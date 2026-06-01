@@ -16,6 +16,14 @@ import {
     useGetNextActivityNumber,
 } from "@/actions/sms/sms_actividades/actions";
 import { Calendar } from "@/components/ui/calendar";
+import {
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList,
+} from "@/components/ui/command";
 import { Input } from "@/components/ui/input";
 import {
     Popover,
@@ -30,6 +38,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { useGetActivityCategories } from "@/hooks/sms/useGetActivityCategories";
 import { useGetEmployeesByDepartment } from "@/hooks/sistema/useGetEmployeesByDepartament";
 import { cn, parseServerDate } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
@@ -37,7 +46,7 @@ import { SMSActivity } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { CalendarIcon, Loader2, Plus, X } from "lucide-react";
+import { CalendarIcon, Check, ChevronsUpDown, Loader2, Plus, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -58,6 +67,7 @@ const FormSchema = z
         end_time: z.string(),
         place: z.string().max(500, "Máximo 500 caracteres"),
         topics: z.string(),
+        categories: z.array(z.string()),
         objetive: z.string().max(500, "Máximo 500 caracteres"),
         description: z.string().max(2000, "Máximo 2000 caracteres"),
         authorized_by: z.string(),
@@ -100,19 +110,21 @@ export default function CreateSMSActivityForm({
     const { selectedCompany, selectedStation } = useCompanyStore();
     const { data: employees, isLoading: isLoadingEmployees } =
         useGetEmployeesByDepartment("SMS", selectedStation, selectedCompany?.slug);
+    const { data: categories, isLoading: isLoadingCategories } =
+        useGetActivityCategories();
 
     const { createSMSActivity } = useCreateSMSActivity();
     const { updateSMSActivity } = useUpdateSMSActivity();
 
     const [topics, setTopics] = useState<string[]>([]);
     const [newTopic, setNewTopic] = useState("");
+    const [openCategories, setOpenCategories] = useState(false);
 
     const { data: nextNumberData, isLoading: isLoadingNextNumber } =
         useGetNextActivityNumber(selectedCompany!.slug);
-    console.log('next number data', nextNumberData);
+
     const form = useForm<FormSchemaType>({
         resolver: zodResolver(FormSchema),
-        // Los defaultValues aquí están bien, pero los re-aplicaremos en el useEffect
         defaultValues: {
             activity_name: initialData?.activity_name || "",
             title: initialData?.title || "",
@@ -129,6 +141,8 @@ export default function CreateSMSActivityForm({
             end_time: initialData?.end_time || "",
             place: initialData?.place || "",
             topics: initialData?.topics || "",
+            categories:
+                initialData?.categories?.map((category) => category.id.toString()) || [],
             objetive: initialData?.objetive || "",
             description: initialData?.description || "",
             authorized_by: initialData?.authorized_by?.dni?.toString(),
@@ -137,15 +151,8 @@ export default function CreateSMSActivityForm({
         },
     });
 
-    // ======================= INICIO DE LA SOLUCIÓN =======================
-    // Este useEffect se encarga de resolver la "race condition".
-    // Se ejecuta cuando los datos iniciales o la lista de empleados cambian.
     useEffect(() => {
-        // Solo actuamos si estamos en modo edición y si YA tenemos los datos de los empleados.
         if (isEditing && initialData && employees) {
-            // Usamos form.reset para re-poblar el formulario. Esto fuerza a los campos
-            // a actualizarse con los nuevos valores, y como 'employees' ya existe,
-            // el Select podrá encontrar la opción correspondiente y mostrarla.
             form.reset({
                 activity_name: initialData.activity_name || "",
                 title: initialData.title || "",
@@ -160,6 +167,8 @@ export default function CreateSMSActivityForm({
                 end_time: initialData.end_time || "",
                 place: initialData.place || "",
                 topics: initialData.topics || "",
+                categories:
+                    initialData.categories?.map((category) => category.id.toString()) || [],
                 objetive: initialData.objetive || "",
                 description: initialData.description || "",
                 authorized_by: initialData.authorized_by?.dni?.toString(),
@@ -169,8 +178,7 @@ export default function CreateSMSActivityForm({
         } else if (!isEditing && nextNumberData?.next_number) {
             form.setValue("activity_number", nextNumberData.next_number);
         }
-    }, [isEditing, initialData, employees, nextNumberData, form.reset, form]); // Dependencias del efecto
-    // ======================= FIN DE LA SOLUCIÓN =======================
+    }, [isEditing, initialData, employees, nextNumberData, form]);
     useEffect(() => {
         if (initialData?.topics) {
             const initialTopics = initialData.topics
@@ -521,6 +529,108 @@ export default function CreateSMSActivityForm({
                         </FormItem>
                     )}
                 />
+
+                <FormField
+                    control={form.control}
+                    name="categories"
+                    render={({ field }) => (
+                        <FormItem className="w-full">
+                            <FormLabel>Categorías</FormLabel>
+                            <FormControl>
+                                <Popover open={openCategories} onOpenChange={setOpenCategories}>
+                                    <PopoverTrigger asChild>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            role="combobox"
+                                            aria-expanded={openCategories}
+                                            className="w-full justify-between"
+                                        >
+                                            {isLoadingCategories
+                                                ? "Cargando categorías..."
+                                                : field.value?.length > 0
+                                                    ? `${field.value.length} seleccionadas`
+                                                    : "Seleccionar categorías"}
+                                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent
+                                        className="w-[var(--radix-popover-trigger-width)] p-0"
+                                        align="start"
+                                    >
+                                        <Command>
+                                            <CommandInput placeholder="Buscar categoría..." />
+                                            <CommandList>
+                                                <CommandEmpty>No se encontraron categorías</CommandEmpty>
+                                                <CommandGroup>
+                                                    {categories?.map((category) => {
+                                                        const categoryId = category.id.toString();
+                                                        const isSelected =
+                                                            field.value?.includes(categoryId);
+
+                                                        return (
+                                                            <CommandItem
+                                                                key={categoryId}
+                                                                value={`${category.name} ${category.description || ""}`}
+                                                                onSelect={() => {
+                                                                    const nextValue = isSelected
+                                                                        ? field.value.filter(
+                                                                            (selectedId) =>
+                                                                                selectedId !==
+                                                                                categoryId,
+                                                                        )
+                                                                        : [
+                                                                            ...(field.value || []),
+                                                                            categoryId,
+                                                                        ];
+                                                                    field.onChange(nextValue);
+                                                                }}
+                                                            >
+                                                                <Check
+                                                                    className={cn(
+                                                                        "mr-2 h-4 w-4",
+                                                                        isSelected
+                                                                            ? "opacity-100"
+                                                                            : "opacity-0",
+                                                                    )}
+                                                                />
+                                                                <span className="truncate">
+                                                                    {category.name}
+                                                                </span>
+                                                            </CommandItem>
+                                                        );
+                                                    })}
+                                                </CommandGroup>
+                                            </CommandList>
+                                        </Command>
+                                    </PopoverContent>
+                                </Popover>
+                            </FormControl>
+
+                            {field.value?.length > 0 && (
+                                <div className="flex flex-wrap gap-1.5 pt-2">
+                                    {field.value.map((categoryId) => {
+                                        const category = categories?.find(
+                                            (item) => item.id.toString() === categoryId,
+                                        );
+
+                                        return (
+                                            <span
+                                                key={categoryId}
+                                                className="text-xs border border-border/40 bg-muted/20 px-2 py-0.5 rounded"
+                                            >
+                                                {category?.name || categoryId}
+                                            </span>
+                                        );
+                                    })}
+                                </div>
+                            )}
+
+                            <FormMessage className="text-xs" />
+                        </FormItem>
+                    )}
+                />
+
                 <FormField
                     control={form.control}
                     name="description"

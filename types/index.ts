@@ -1091,6 +1091,12 @@ export type DangerIdentificationWithAll = {
     analysis: Analysis;
 };
 
+export type ActivityCategory = {
+    id: string;
+    name: string;
+    description?: string;
+}
+
 export type SMSActivity = {
     id: number;
     title: string;
@@ -1112,6 +1118,7 @@ export type SMSActivity = {
     imageUrl?: string;
     documentUrl?: string;
     status: string;
+    categories: ActivityCategory[]
 };
 
 export type SMSActivityAttendance = {
