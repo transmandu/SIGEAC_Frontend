@@ -4,11 +4,17 @@ import DynamicBarChartComponent from "@/components/charts/DynamicBarChartCompone
 import { PieChartComponent } from "@/components/charts/PieChartComponent";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import DateRangePickerInput from "@/components/misc/DateRangePickerInput";
+import { Button } from "@/components/ui/button";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { Label } from "@/components/ui/label";
 import { useGetSMSActivityStats } from "@/hooks/sms/useGetSMSActivityStats";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { format, startOfMonth } from "date-fns";
-import { Loader2 } from "lucide-react";
+import { CalendarRange, ChevronDown, Loader2 } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -28,6 +34,7 @@ const SMSActivityStatsPage = () => {
     from: format(startOfMonth(new Date()), "yyyy-MM-dd"),
     to: format(new Date(), "yyyy-MM-dd"),
   });
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   useEffect(() => {
     const defaultFrom = format(startOfMonth(new Date()), "yyyy-MM-dd");
@@ -78,23 +85,49 @@ const SMSActivityStatsPage = () => {
 
   return (
     <ContentLayout title="Dashboard de Actividades SMS">
-      <div className="flex flex-col space-y-4 mb-6">
-        <div className="flex justify-center items-center">
-          <div className="flex flex-col w-full max-w-md">
-            <Label className="text-lg font-semibold mb-3 text-center">
-              Filtro de Búsqueda
-            </Label>
-            <DateRangePickerInput
-              onDateChange={handleDateChange}
-              onReset={handleReset}
-              initialDate={{
-                from:
-                  params.from || format(startOfMonth(new Date()), "yyyy-MM-dd"),
-                to: params.to || format(new Date(), "yyyy-MM-dd"),
-              }}
-            />
+      <div className="mb-6">
+        <Collapsible open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+          <div className="rounded-xl border border-border/60 bg-card">
+            <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex min-w-0 items-start gap-3">
+                <div className="mt-0.5 rounded-md border border-border/40 bg-muted/40 p-2 text-muted-foreground">
+                  <CalendarRange className="size-4" />
+                </div>
+
+                <div className="min-w-0">
+                  <Label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Filtros
+                  </Label>
+                  <p className="truncate text-sm font-medium">
+                    {params.from || format(startOfMonth(new Date()), "yyyy-MM-dd")} a{" "}
+                    {params.to || format(new Date(), "yyyy-MM-dd")}
+                  </p>
+                </div>
+              </div>
+
+              <CollapsibleTrigger asChild>
+                <Button variant="outline" size="sm" className="w-full sm:w-auto">
+                  {isFilterOpen ? "Ocultar Filtros" : "Mostrar Filtros"}
+                  <ChevronDown
+                    className={`ml-2 size-4 transition-transform ${isFilterOpen ? "rotate-180" : "rotate-0"}`}
+                  />
+                </Button>
+              </CollapsibleTrigger>
+            </div>
+
+            <CollapsibleContent className="border-t border-border/60 p-4 data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down">
+              <DateRangePickerInput
+                onDateChange={handleDateChange}
+                onReset={handleReset}
+                initialDate={{
+                  from:
+                    params.from || format(startOfMonth(new Date()), "yyyy-MM-dd"),
+                  to: params.to || format(new Date(), "yyyy-MM-dd"),
+                }}
+              />
+            </CollapsibleContent>
           </div>
-        </div>
+        </Collapsible>
       </div>
 
       {/* Layout de Gráficos: 2 arriba, 1 ancho completo abajo */}
