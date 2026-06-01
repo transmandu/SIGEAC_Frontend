@@ -98,6 +98,9 @@ const UserCompanyModulesTab = ({ user }: Props) => {
         label: module.label,
       })) ?? []
 
+  const companyHasModules =
+    (selectedCompany?.modules?.length ?? 0) > 0
+
   const toggleModule = (id: number) => {
     setSelectedModuleIds((prev) =>
       prev.includes(id)
@@ -187,7 +190,7 @@ const UserCompanyModulesTab = ({ user }: Props) => {
               No hay módulos asignados.
             </p>
           ) : (
-            <ul className="space-y-2">
+            <ul className="space-y-2 max-h-[112px] overflow-y-auto pr-1">
               {assignedModules.map((module) => (
                 <li
                   key={module.id}
@@ -230,10 +233,12 @@ const UserCompanyModulesTab = ({ user }: Props) => {
 
           {availableModules.length === 0 ? (
             <p className="text-sm italic text-muted-foreground">
-              No hay módulos disponibles para agregar.
+              {companyHasModules
+                ? 'Todos los módulos de esta empresa ya están asignados al usuario.'
+                : 'Esta empresa no tiene módulos disponibles para asignar.'}
             </p>
           ) : (
-            <ul className="space-y-1.5 rounded-md border border-border/50 bg-muted/10 p-2.5">
+            <ul className="space-y-1.5 rounded-md border border-border/50 bg-muted/10 p-2.5 max-h-[112px] overflow-y-auto pr-1">
               {availableModules.map((module) => (
                 <li
                   key={module.id}

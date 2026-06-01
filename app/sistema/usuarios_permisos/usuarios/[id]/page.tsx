@@ -28,10 +28,7 @@ import UserCompanyModulesTab from '@/components/cards/UserCompanyModulesTab'
 import { useGetUserById } from '@/hooks/sistema/usuario/useGetUserById'
 import { cn } from '@/lib/utils'
 
-import {
-  Mail,
-  User as UserIcon,
-} from 'lucide-react'
+import { Mail, User as UserIcon } from 'lucide-react'
 
 const UserByIdPage = ({ params }: { params: { id: string } }) => {
   const { data: user, isLoading, isError } = useGetUserById(params.id)
@@ -58,11 +55,7 @@ const UserByIdPage = ({ params }: { params: { id: string } }) => {
 
         {/* Breadcrumb */}
         <div className="flex items-center gap-2">
-          <BackButton
-            iconOnly
-            tooltip="Volver"
-            variant="secondary"
-          />
+          <BackButton iconOnly tooltip="Volver" variant="secondary" />
 
           <Breadcrumb>
             <BreadcrumbList>
@@ -71,9 +64,7 @@ const UserByIdPage = ({ params }: { params: { id: string } }) => {
                   Usuarios
                 </BreadcrumbLink>
               </BreadcrumbItem>
-
               <BreadcrumbSeparator />
-
               <BreadcrumbItem>
                 <BreadcrumbPage>
                   {user.first_name} {user.last_name}
@@ -83,9 +74,10 @@ const UserByIdPage = ({ params }: { params: { id: string } }) => {
           </Breadcrumb>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
+        {/* GRID PRINCIPAL */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
 
-          {/* ── Información personal ─────────────────────────────── */}
+          {/* Usuario */}
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-base">
@@ -99,7 +91,6 @@ const UserByIdPage = ({ params }: { params: { id: string } }) => {
                 <span className="text-sm text-muted-foreground">
                   Nombre completo
                 </span>
-
                 <span className="text-sm font-medium">
                   {user.first_name} {user.last_name}
                 </span>
@@ -111,7 +102,6 @@ const UserByIdPage = ({ params }: { params: { id: string } }) => {
                 <span className="text-sm text-muted-foreground">
                   Usuario
                 </span>
-
                 <span className="font-mono text-sm font-semibold">
                   {user.username}
                 </span>
@@ -124,10 +114,7 @@ const UserByIdPage = ({ params }: { params: { id: string } }) => {
                   <Mail className="size-3" />
                   Email
                 </span>
-
-                <span className="text-sm">
-                  {user.email}
-                </span>
+                <span className="text-sm">{user.email}</span>
               </div>
 
               <Separator />
@@ -152,44 +139,44 @@ const UserByIdPage = ({ params }: { params: { id: string } }) => {
             </CardContent>
           </Card>
 
-          {/* ── Roles ────────────────────────────────────────────── */}
+          {/* Roles */}
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base">
                 Roles
               </CardTitle>
             </CardHeader>
-
             <CardContent>
               <UserRolesTab user={user} />
             </CardContent>
           </Card>
 
-          {/* ── Módulos por empresa ─────────────────────────────── */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">
-                Módulos por empresa
-              </CardTitle>
-            </CardHeader>
+          {/* 🔥 BLOQUE COMBINADO: EMPRESAS + MÓDULOS MISMA FILA */}
+          <div className="lg:col-span-2 grid grid-cols-1 lg:grid-cols-2 gap-4">
 
-            <CardContent>
-              <UserCompanyModulesTab user={user} />
-            </CardContent>
-          </Card>
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base">
+                  Empresas y ubicaciones
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <UserCompaniesTab user={user} />
+              </CardContent>
+            </Card>
 
-          {/* ── Empresas y ubicaciones ──────────────────────────── */}
-          <Card className="md:col-span-2 lg:col-span-3">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">
-                Empresas y ubicaciones
-              </CardTitle>
-            </CardHeader>
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base">
+                  Módulos por empresa
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <UserCompanyModulesTab user={user} />
+              </CardContent>
+            </Card>
 
-            <CardContent>
-              <UserCompaniesTab user={user} />
-            </CardContent>
-          </Card>
+          </div>
 
         </div>
       </div>

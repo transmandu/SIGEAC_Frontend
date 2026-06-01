@@ -42,13 +42,13 @@ const UserCompaniesTab = ({ user }: { user: User }) => {
   const userCompanyIds = new Set(userCompanies.map((c) => c.id))
   const assignableCompanies = allCompanies?.filter((c) => !userCompanyIds.has(c.id)) ?? []
 
-  // Cargar ubicaciones cuando cambia la empresa seleccionada
   useEffect(() => {
     if (!selectedCompanyId) {
       setAvailableLocations([])
       setSelectedLocationIds([])
       return
     }
+
     fetchLocations(Number(selectedCompanyId)).then((locs) => {
       setAvailableLocations(locs ?? [])
       setSelectedLocationIds([])
@@ -63,6 +63,7 @@ const UserCompaniesTab = ({ user }: { user: User }) => {
 
   const handleAdd = () => {
     if (!selectedCompanyId || selectedLocationIds.length === 0) return
+
     addCompany.mutate(
       {
         userId: String(user.id),
@@ -89,7 +90,7 @@ const UserCompaniesTab = ({ user }: { user: User }) => {
   return (
     <div className="space-y-5 p-1">
 
-      {/* Empresas actuales */}
+      {/* EMPRESAS ASIGNADAS */}
       <div>
         <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
           Empresas asignadas
@@ -100,7 +101,12 @@ const UserCompaniesTab = ({ user }: { user: User }) => {
             Este usuario no tiene empresas asignadas.
           </p>
         ) : (
-          <ul className="space-y-2">
+          <ul
+            className={cn(
+              'space-y-2',
+              userCompanies.length > 2 && 'max-h-40 overflow-y-auto pr-1'
+            )}
+          >
             {userCompanies.map((company) => (
               <li
                 key={company.id}
@@ -116,6 +122,7 @@ const UserCompaniesTab = ({ user }: { user: User }) => {
                       </span>
                     )}
                   </div>
+
                   <Button
                     variant="ghost"
                     size="icon"
@@ -134,17 +141,23 @@ const UserCompaniesTab = ({ user }: { user: User }) => {
                   </Button>
                 </div>
 
+                {/* LOCATIONS SCROLL */}
                 {company.locations && company.locations.length > 0 && (
-                  <ul className="pl-5 space-y-0.5">
+                  <ul className="pl-5 space-y-0.5 max-h-24 overflow-y-auto pr-1">
                     {company.locations.map((loc) => (
-                      <li key={loc.id} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <li
+                        key={loc.id}
+                        className="flex items-center gap-1.5 text-xs text-muted-foreground"
+                      >
                         <MapPin className="size-3 shrink-0" />
                         <span>{loc.address}</span>
+
                         {loc.cod_iata && (
                           <span className="font-mono bg-muted/60 px-1 rounded border border-border/30">
                             {loc.cod_iata}
                           </span>
                         )}
+
                         {loc.isMainBase && (
                           <span className="text-[9px] font-semibold text-amber-600 dark:text-amber-400">
                             BASE
@@ -162,7 +175,7 @@ const UserCompaniesTab = ({ user }: { user: User }) => {
 
       <Separator />
 
-      {/* Agregar empresa */}
+      {/* AGREGAR EMPRESA */}
       <div className="space-y-3">
         <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
           Agregar empresa
@@ -174,16 +187,9 @@ const UserCompaniesTab = ({ user }: { user: User }) => {
           disabled={loadingCompanies || assignableCompanies.length === 0}
         >
           <SelectTrigger className="h-9 text-sm">
-            <SelectValue
-              placeholder={
-                loadingCompanies
-                  ? 'Cargando empresas...'
-                  : assignableCompanies.length === 0
-                  ? 'No hay empresas disponibles'
-                  : 'Seleccionar empresa...'
-              }
-            />
+            <SelectValue placeholder="Seleccionar empresa..." />
           </SelectTrigger>
+
           <SelectContent>
             {assignableCompanies.map((c) => (
               <SelectItem key={c.id} value={String(c.id)}>
@@ -193,7 +199,7 @@ const UserCompaniesTab = ({ user }: { user: User }) => {
           </SelectContent>
         </Select>
 
-        {/* Ubicaciones de la empresa seleccionada */}
+        {/* LOCATIONS */}
         {selectedCompanyId && (
           <div className="space-y-2">
             <p className="text-xs text-muted-foreground">
@@ -210,7 +216,7 @@ const UserCompaniesTab = ({ user }: { user: User }) => {
                 No hay ubicaciones disponibles para esta empresa.
               </p>
             ) : (
-              <ul className="space-y-1.5 rounded-md border border-border/50 bg-muted/10 p-2.5">
+              <ul className="space-y-1.5 rounded-md border border-border/50 bg-muted/10 p-2.5 max-h-32 overflow-y-auto">
                 {availableLocations.map((loc) => (
                   <li key={loc.id} className="flex items-center gap-2">
                     <Checkbox
@@ -218,14 +224,19 @@ const UserCompaniesTab = ({ user }: { user: User }) => {
                       checked={selectedLocationIds.includes(loc.id)}
                       onCheckedChange={() => toggleLocation(loc.id)}
                     />
-                    <Label htmlFor={`loc-${loc.id}`} className="flex items-center gap-1.5 text-xs cursor-pointer">
+                    <Label
+                      htmlFor={`loc-${loc.id}`}
+                      className="flex items-center gap-1.5 text-xs cursor-pointer"
+                    >
                       <MapPin className="size-3 text-muted-foreground" />
                       {loc.address}
+
                       {loc.cod_iata && (
                         <span className="font-mono bg-muted/60 px-1 rounded border border-border/30">
                           {loc.cod_iata}
                         </span>
                       )}
+
                       {loc.isMainBase && (
                         <span className="text-[9px] font-semibold text-amber-600 dark:text-amber-400">
                           BASE
