@@ -1367,6 +1367,7 @@ export type CargoManifest = {
     total_weight: number;
     total_units: number;
     created_by: string;
+    created_at?: string;
     updated_at?: string;
     updated_by?: string | null;
     items: CargoManifestItem[];

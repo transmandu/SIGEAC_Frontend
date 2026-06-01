@@ -41,6 +41,7 @@ export function DayMonthYearPicker({ date, onDateChange, className }: Props) {
           locale={es}
           mode="single"
           selected={date}
+          defaultMonth={date}
           onSelect={(d) => {
             if (d) {
               const normalized = new Date(
