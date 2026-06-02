@@ -14,25 +14,14 @@ export type SMSActivityTableRow = SMSActivity & {
 // Columnas de la tabla
 export const columns: ColumnDef<SMSActivityTableRow>[] = [
   {
-    id: "activity_number",
-    accessorFn: (row) => {
-      const value = row.display_activity_number ?? row.activity_number ?? "";
-      const match = String(value).match(/^(\d{3})-(\d{4})$/);
-
-      if (!match) return Number.NEGATIVE_INFINITY;
-
-      const sequence = Number(match[1]);
-      const year = Number(match[2]);
-
-      return -year * 1000 + sequence;
-    },
+    accessorKey: "activity_number",
     header: ({ column }) => (
       <DataTableColumnHeader filter column={column} title="Numero de actividad" />
     ),
     meta: { title: "Numero de actividad" },
     cell: ({ row }) =>
       <div className="flex justify-center text-center">
-        {row.original.display_activity_number ?? row.original.activity_number ?? "N/A"}
+        {row.original.activity_number ?? "N/A"}
       </div>,
   },
   {
@@ -71,9 +60,9 @@ export const columns: ColumnDef<SMSActivityTableRow>[] = [
     meta: { title: "Duracion de la Actividad" },
     cell: ({ row }) =>
       <div className="flex justify-center text-center">
-       <p className="font-medium text-center">
-           {dateFormat(row.original.start_date, "PPP")}
-       </p>
+        <p className="font-medium text-center">
+          {dateFormat(row.original.start_date, "PPP")}
+        </p>
       </div>,
   },
   {
@@ -83,17 +72,16 @@ export const columns: ColumnDef<SMSActivityTableRow>[] = [
     ),
     meta: { title: "Estado" },
     cell: ({ row }) =>
-    <div className="flex justify-center">
-            <Badge
-              className={`justify-center items-center text-center font-bold font-sans
-          ${
-            row.original.status === "CERRADO"
+      <div className="flex justify-center">
+        <Badge
+          className={`justify-center items-center text-center font-bold font-sans
+          ${row.original.status === "CERRADO"
               ? "bg-red-400"
-              : "bg-green-500" 
-          }`}
-            >
-              {row.original.status}
-            </Badge>
+              : "bg-green-500"
+            }`}
+        >
+          {row.original.status}
+        </Badge>
       </div>
   },
   {
