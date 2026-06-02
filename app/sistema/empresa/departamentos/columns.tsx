@@ -6,6 +6,7 @@ import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
 
 import { Checkbox } from "@/components/ui/checkbox"
 import { Department } from "@/types"
+import DepartmentDropdownActions from "@/components/dropdowns/general/DepartmentDropdownActions"
 
 export const columns: ColumnDef<Department>[] = [
   {
@@ -51,7 +52,7 @@ export const columns: ColumnDef<Department>[] = [
       </>
   },
   {
-    accessorKey: "department",
+    accessorKey: "email",
     header: ({ column }) => (
       <DataTableColumnHeader filter column={column} title="Correo" />
     ),
@@ -60,4 +61,25 @@ export const columns: ColumnDef<Department>[] = [
         <span className="flex justify-center font-medium">{row.original.email}</span>
       </>
   },
+    {
+      id: 'actions',
+      header: ({ column }) => (
+        <div className="flex justify-center w-full">
+          <DataTableColumnHeader
+            column={column}
+            title="Acciones"
+          />
+        </div>
+      ),
+  
+      meta: {
+        title: 'Acciones',
+      },
+  
+      cell: ({ row }) => (
+        <div className="flex justify-center w-full">
+          <DepartmentDropdownActions department={row.original} />
+        </div>
+      ),
+    },
 ]
