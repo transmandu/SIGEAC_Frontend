@@ -1094,7 +1094,6 @@ export type DangerIdentificationWithAll = {
 export type ActivityCategory = {
     id: string;
     name: string;
-    description?: string;
 }
 
 export type SMSActivity = {

@@ -32,7 +32,6 @@ import {
 } from "@/components/ui/dialog";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import CreateSMSActivityForm from "@/components/forms/aerolinea/sms/CreateSMSActivityForm";
 import { AddToSMSActivity } from "@/components/forms/aerolinea/sms/AddToSMSActivityForm";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { startOfDay } from "date-fns";
@@ -45,7 +44,6 @@ const SMSActivityDropDownActions = ({
 }) => {
   const [openDelete, setOpenDelete] = useState<boolean>(false);
   const { selectedCompany } = useCompanyStore();
-  const [openEdit, setOpenEdit] = useState<boolean>(false);
   const [openAdd, setOpenAdd] = useState(false);
   const [openAttendance, setOpenAttendance] = useState(false);
   const [closeActivity, setCloseActivity] = useState(false);
@@ -100,7 +98,13 @@ const SMSActivityDropDownActions = ({
           )}
 
           {smsActivity.status !== "CERRADO" && (
-            <DropdownMenuItem onClick={() => setOpenEdit(true)}>
+            <DropdownMenuItem
+              onClick={() => {
+                router.push(
+                  `/${selectedCompany?.slug}/sms/promocion/actividades/editar/${smsActivity.id}`,
+                );
+              }}
+            >
               <ClipboardPen className="size-5" />
               <p className="pl-2">Editar</p>
             </DropdownMenuItem>
@@ -181,22 +185,6 @@ const SMSActivityDropDownActions = ({
               )}
             </Button>
           </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* DIALOGO DE EDITAR */}
-      <Dialog open={openEdit} onOpenChange={setOpenEdit}>
-        <DialogContent className="flex flex-col max-w-2xl m-2">
-          <DialogHeader>
-            <DialogTitle className="text-center">
-              Edicion de Actividad
-            </DialogTitle>
-            <CreateSMSActivityForm
-              initialData={smsActivity}
-              isEditing={true}
-              onClose={() => setOpenEdit(false)}
-            />
-          </DialogHeader>
         </DialogContent>
       </Dialog>
 
