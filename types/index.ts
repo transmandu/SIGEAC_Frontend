@@ -266,12 +266,14 @@ export type CreditPayment = {
 
 export type Department = {
     id: number;
-    address: string;
-    type: string;
-    cod_iata: string;
-    acronym: string;
     name: string;
     email: string;
+    acronym: string;
+    registered_by: string;
+    updated_by: string | null;
+    library_folder_tree: { id: string; name: string; path: string; children: any[] }[] | null;
+    department_parent_id: string | null;
+    descendants: Department[];
 };
 
 export type MaintenanceClient = {

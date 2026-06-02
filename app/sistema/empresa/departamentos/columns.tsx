@@ -31,7 +31,7 @@ export const columns: ColumnDef<Department>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: "dni",
+    accessorKey: "name",
     header: ({ column }) => (
       <DataTableColumnHeader filter column={column} title="Nombre" />
     ),
@@ -40,10 +40,10 @@ export const columns: ColumnDef<Department>[] = [
         <span className="flex justify-center">{row.original.name}</span>
       </>
   },
-    {
-    accessorKey: "name",
+  {
+    accessorKey: "acronym",
     header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Acronimo" />
+      <DataTableColumnHeader filter column={column} title="Acrónimo" />
     ),
     cell: ({ row }) =>
       <>
