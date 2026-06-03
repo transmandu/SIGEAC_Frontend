@@ -2,8 +2,10 @@ import axios from '@/lib/axios';
 import { Department } from '@/types';
 import { useQuery } from '@tanstack/react-query';
 
-const fetchDepartments= async (company: string | undefined): Promise<Department[]> => {
-  const {data} = await axios.get(`/${company}/departments`);
+const fetchDepartments = async (
+  company: string | undefined,
+): Promise<Department[]> => {
+  const { data } = await axios.get(`/${company}/departments`);
   return data;
 };
 

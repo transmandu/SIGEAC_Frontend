@@ -31,7 +31,7 @@
     "@radix-ui/react-tooltip": "^1.1.2",
     "@react-pdf-viewer/core": "^3.12.0",
     "@react-pdf-viewer/default-layout": "^3.12.0",
-    "@react-pdf/renderer": "^4.1.5",
+    "@react-pdf/renderer": "^4.5.1",
     "@schedule-x/calendar": "^2.36.0",
     "@schedule-x/drag-and-drop": "^2.36.0",
     "@schedule-x/event-modal": "^2.36.0",

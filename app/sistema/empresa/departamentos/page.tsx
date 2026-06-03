@@ -2,18 +2,36 @@
 
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { useGetDepartments } from "@/hooks/sistema/departamento/useGetDepartment";
+import { useIsOmac } from "@/hooks/sistema/useIsOmac";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { Department } from "@/types";
 import { Loader2 } from "lucide-react";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
 
+const getDepartmentList = (
+  departments: Department[],
+  flatten: boolean,
+): Department[] => {
+  if (!flatten) return departments;
+
+  return departments.flatMap((dept) => [
+    dept,
+    ...getDepartmentList(dept.descendants, true),
+  ]);
+};
+
 const DepartmentPage = () => {
   const {selectedCompany} = useCompanyStore();
+  const { data: isOmac } = useIsOmac(selectedCompany?.slug);
   const {
     data: departments,
     isPending: loading,
     isError: error,
   } = useGetDepartments(selectedCompany?.slug);
+
+  const shouldFlatten = isOmac === false;
+  const tableData = departments ? getDepartmentList(departments, shouldFlatten) : [];
 
   return (
     <ContentLayout title="Departamentos">
@@ -33,7 +51,7 @@ const DepartmentPage = () => {
           </p>
         </div>
       )}
-      {departments && <DataTable columns={columns} data={departments} />}
+      {departments && <DataTable columns={columns} data={tableData} />}
     </ContentLayout>
   );
 };

@@ -264,14 +264,23 @@ export type CreditPayment = {
     pay_description: string;
 };
 
+export type LibraryFolderNode = {
+    id: string;
+    name: string;
+    path: string;
+    children: LibraryFolderNode[];
+};
+
 export type Department = {
     id: number;
-    address: string;
-    type: string;
-    cod_iata: string;
-    acronym: string;
     name: string;
     email: string;
+    acronym: string;
+    registered_by: string;
+    updated_by: string | null;
+    library_folder_tree: LibraryFolderNode[] | null;
+    department_parent_id: number | null;
+    descendants: Department[];
 };
 
 export type MaintenanceClient = {
