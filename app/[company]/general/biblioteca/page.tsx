@@ -7,7 +7,7 @@ import { ContentLayout } from "@/components/layout/ContentLayout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { Plus, Search, FolderOpen, Loader2, History, FolderPlus, Send, BarChart, SlidersHorizontal, X, Filter } from "lucide-react";
-
+import { useGetDepartments } from "@/hooks/sistema/departamento/useGetDepartment";
 import DocumentTable from "./DocumentTable";
 import UploadModal from "./UploadModal";
 import DocumentViewer from "@/components/library/SecureVisualizer";
@@ -50,7 +50,7 @@ const BibliotecaPage = () => {
     };
   }, [showFilters]);
 
-  const [departments, setDepartments] = useState<{ id: number; name: string }[]>([]);
+  const { data: rawDepartments = [] } = useGetDepartments(companySlug);
   const [departmentFolders, setDepartmentFolders] = useState<DepartmentFolderGroup[]>([]);
   const [selectedDeptName, setSelectedDeptName] = useState<string | null>(null);
   const [selectedFolderPath, setSelectedFolderPath] = useState<string | null>(null);
@@ -112,6 +112,16 @@ const BibliotecaPage = () => {
   }, [isSuperUser, user]);
 
   const canViewDashboard = isSuperUser || isDirector;
+
+  const departments = useMemo(() => {
+    if (!isSuperUser && !isDipDirector && userDeptId) {
+      return rawDepartments.filter(
+        (d) => Number(d.id) === Number(userDeptId)
+      );
+    }
+
+    return rawDepartments;
+  }, [rawDepartments, isSuperUser, isDipDirector, userDeptId]);
 
   const isMultiDept = useMemo(() => {
     return isSuperUser || departments.length > 1;
@@ -184,22 +194,6 @@ const BibliotecaPage = () => {
     }
   }, [companySlug]);
 
-  const fetchDepartments = useCallback(async () => {
-    try {
-      const response = await axiosInstance.get(`/${companySlug}/library/departments-list`);
-      let depts = response.data || [];
-      if (!isSuperUser && !isDipDirector && userDeptId) {
-        depts = depts.filter((d: any) => Number(d.id) === Number(userDeptId));
-      }
-      setDepartments(depts);
-      if (depts.length === 1) {
-        setSelectedDeptName(prev => prev ?? depts[0].name);
-      }
-    } catch (error) {
-      console.error("Error al cargar departamentos:", error);
-    }
-  }, [companySlug, isSuperUser, userDeptId, isDipDirector]);
-
   const fetchCategories = useCallback(async () => {
     try {
       const response = await axiosInstance.get(`/${companySlug}/library/categories-list`);
@@ -223,12 +217,11 @@ const BibliotecaPage = () => {
     setLoading(true);
     await Promise.all([
       fetchDocs(),
-      fetchDepartments(),
       fetchCategories(),
     ]);
     refreshPendingCount();
     setLoading(false);
-  }, [fetchDocs, fetchDepartments, fetchCategories, refreshPendingCount]);
+  }, [fetchDocs, fetchCategories, refreshPendingCount]);
 
   const deptFoldersRef = useRef(departmentFolders);
   deptFoldersRef.current = departmentFolders;
@@ -338,6 +331,15 @@ const BibliotecaPage = () => {
     const group = departmentFolders.find(g => g.departmentName === selectedDeptName);
     return group?.folders || [];
   }, [selectedDeptName, departmentFolders]);
+
+  useEffect(() => {
+    if (
+      departments.length === 1 &&
+      !selectedDeptName
+    ) {
+      setSelectedDeptName(departments[0].name);
+    }
+  }, [departments, selectedDeptName]);
 
   return (
     <ContentLayout title="Biblioteca Digital">
