@@ -264,6 +264,13 @@ export type CreditPayment = {
     pay_description: string;
 };
 
+export type LibraryFolderNode = {
+    id: string;
+    name: string;
+    path: string;
+    children: LibraryFolderNode[];
+};
+
 export type Department = {
     id: number;
     name: string;
@@ -271,8 +278,8 @@ export type Department = {
     acronym: string;
     registered_by: string;
     updated_by: string | null;
-    library_folder_tree: { id: string; name: string; path: string; children: any[] }[] | null;
-    department_parent_id: string | null;
+    library_folder_tree: LibraryFolderNode[] | null;
+    department_parent_id: number | null;
     descendants: Department[];
 };
 

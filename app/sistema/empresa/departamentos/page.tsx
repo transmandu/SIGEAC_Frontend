@@ -9,9 +9,16 @@ import { Loader2 } from "lucide-react";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
 
-const getDepartmentList = (departments: Department[], flatten: boolean): Department[] => {
+const getDepartmentList = (
+  departments: Department[],
+  flatten: boolean,
+): Department[] => {
   if (!flatten) return departments;
-  return departments.flatMap((dept) => [dept, ...getDepartmentList(dept.descendants ?? [], true)]);
+
+  return departments.flatMap((dept) => [
+    dept,
+    ...getDepartmentList(dept.descendants, true),
+  ]);
 };
 
 const DepartmentPage = () => {
@@ -23,7 +30,7 @@ const DepartmentPage = () => {
     isError: error,
   } = useGetDepartments(selectedCompany?.slug);
 
-  const shouldFlatten = selectedCompany?.slug === "transmandu" || !isOmac;
+  const shouldFlatten = isOmac === false;
   const tableData = departments ? getDepartmentList(departments, shouldFlatten) : [];
 
   return (
