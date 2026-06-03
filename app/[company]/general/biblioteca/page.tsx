@@ -51,7 +51,7 @@ const BibliotecaPage = () => {
   }, [showFilters]);
 
   const { data: rawDepartments = [] } = useGetDepartments(companySlug);
-  const [departmentFolders, setDepartmentFolders] = useState<DepartmentFolderGroup[]>([]);
+  const [foldersMap, setFoldersMap] = useState<Record<number, FolderNode[]>>({});
   const [selectedDeptName, setSelectedDeptName] = useState<string | null>(null);
   const [selectedFolderPath, setSelectedFolderPath] = useState<string | null>(null);
   const [loadingDeptIds, setLoadingDeptIds] = useState<number[]>([]);
@@ -223,21 +223,17 @@ const BibliotecaPage = () => {
     setLoading(false);
   }, [fetchDocs, fetchCategories, refreshPendingCount]);
 
-  const deptFoldersRef = useRef(departmentFolders);
-  deptFoldersRef.current = departmentFolders;
+  const foldersMapRef = useRef(foldersMap);
+  foldersMapRef.current = foldersMap;
 
   const handleToggleDept = useCallback(async (deptId: number) => {
-    const existing = deptFoldersRef.current.find(g => g.departmentId === deptId);
-    if (existing && existing.folders.length > 0) return;
+    const existing = foldersMapRef.current[deptId];
+    if (existing && existing.length > 0) return;
 
     setLoadingDeptIds(prev => [...prev, deptId]);
     try {
       const res = await libraryService.getFolders(companySlug, deptId);
-      setDepartmentFolders(prev => prev.map(g =>
-        g.departmentId === deptId
-          ? { ...g, folders: res.folders || [] }
-          : g
-      ));
+      setFoldersMap(prev => ({ ...prev, [deptId]: res.folders || [] }));
     } catch (error) {
       console.error("Error al cargar carpetas:", error);
     } finally {
@@ -253,16 +249,39 @@ const BibliotecaPage = () => {
 
   // Polling eliminado — las notificaciones llegan vía WebSocket (useLibraryNotifications)
 
-  useEffect(() => {
-    setDepartmentFolders(prev => {
-      const prevMap = new Map(prev.map(g => [g.departmentId, g]));
-      return departments.map(d => prevMap.get(d.id) || {
+  const departmentFolders = useMemo<DepartmentFolderGroup[]>(() => {
+    // Build hierarchical DepartmentFolderGroup tree from a flat `departments` list using `department_parent_id`.
+    const nodes: Record<number, DepartmentFolderGroup & { raw?: any }> = {};
+    departments.forEach((d: any) => {
+      nodes[d.id] = {
         departmentId: d.id,
         departmentName: d.name,
-        folders: [],
-      });
+        folders: foldersMap[d.id] || [],
+        department_parent_id: d.department_parent_id ?? null,
+        decedent: [],
+        raw: d,
+      } as DepartmentFolderGroup & { raw?: any };
     });
-  }, [departments]);
+
+    const roots: DepartmentFolderGroup[] = [];
+    Object.values(nodes).forEach(node => {
+      const parentId = node.department_parent_id as number | null | undefined;
+      if (parentId != null && nodes[parentId]) {
+        nodes[parentId].decedent = nodes[parentId].decedent || [];
+        nodes[parentId].decedent!.push(node);
+      } else {
+        roots.push(node);
+      }
+    });
+
+    // Debug: log built hierarchy in development
+    try {
+      // eslint-disable-next-line no-console
+      console.debug && console.debug('Built departmentFolders hierarchy:', roots);
+    } catch {}
+
+    return roots;
+  }, [departments, foldersMap]);
 
   const handleDeleteDocument = async (id: number | string) => {
     try {
@@ -300,11 +319,7 @@ const BibliotecaPage = () => {
   const handleFolderRefresh = useCallback(async (deptId: number) => {
     try {
       const res = await libraryService.getFolders(companySlug, deptId);
-      setDepartmentFolders(prev => prev.map(g =>
-        g.departmentId === deptId
-          ? { ...g, folders: res.folders || [] }
-          : g
-      ));
+      setFoldersMap(prev => ({ ...prev, [deptId]: res.folders || [] }));
     } catch (error) {
       console.error("Error al refrescar carpetas:", error);
     }
@@ -328,7 +343,18 @@ const BibliotecaPage = () => {
 
   const currentFoldersForDialog = useMemo(() => {
     if (!selectedDeptName) return [];
-    const group = departmentFolders.find(g => g.departmentName === selectedDeptName);
+    // Find in recursive departmentFolders
+    const find = (list: DepartmentFolderGroup[]): DepartmentFolderGroup | null => {
+      for (const g of list) {
+        if (g.departmentName === selectedDeptName) return g;
+        if (g.decedent && g.decedent.length > 0) {
+          const r = find(g.decedent);
+          if (r) return r;
+        }
+      }
+      return null;
+    };
+    const group = find(departmentFolders);
     return group?.folders || [];
   }, [selectedDeptName, departmentFolders]);
 
