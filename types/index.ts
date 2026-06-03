@@ -279,7 +279,7 @@ export type Department = {
     registered_by: string;
     updated_by: string | null;
     library_folder_tree: LibraryFolderNode[] | null;
-    department_parent_id: number | null;
+    department_parent_id?: number | null;
     descendants: Department[];
 };
 
