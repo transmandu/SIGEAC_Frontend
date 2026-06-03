@@ -7,7 +7,7 @@ import { ContentLayout } from "@/components/layout/ContentLayout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { Plus, Search, FolderOpen, Loader2, History, FolderPlus, Send, BarChart, SlidersHorizontal, X, Filter } from "lucide-react";
-
+import { useGetDepartments } from "@/hooks/sistema/departamento/useGetDepartment";
 import DocumentTable from "./DocumentTable";
 import UploadModal from "./UploadModal";
 import DocumentViewer from "@/components/library/SecureVisualizer";
@@ -50,8 +50,8 @@ const BibliotecaPage = () => {
     };
   }, [showFilters]);
 
-  const [departments, setDepartments] = useState<{ id: number; name: string }[]>([]);
-  const [departmentFolders, setDepartmentFolders] = useState<DepartmentFolderGroup[]>([]);
+  const { data: rawDepartments = [] } = useGetDepartments(companySlug);
+  const [foldersMap, setFoldersMap] = useState<Record<number, FolderNode[]>>({});
   const [selectedDeptName, setSelectedDeptName] = useState<string | null>(null);
   const [selectedFolderPath, setSelectedFolderPath] = useState<string | null>(null);
   const [loadingDeptIds, setLoadingDeptIds] = useState<number[]>([]);
@@ -112,6 +112,16 @@ const BibliotecaPage = () => {
   }, [isSuperUser, user]);
 
   const canViewDashboard = isSuperUser || isDirector;
+
+  const departments = useMemo(() => {
+    if (!isSuperUser && !isDipDirector && userDeptId) {
+      return rawDepartments.filter(
+        (d) => Number(d.id) === Number(userDeptId)
+      );
+    }
+
+    return rawDepartments;
+  }, [rawDepartments, isSuperUser, isDipDirector, userDeptId]);
 
   const isMultiDept = useMemo(() => {
     return isSuperUser || departments.length > 1;
@@ -184,22 +194,6 @@ const BibliotecaPage = () => {
     }
   }, [companySlug]);
 
-  const fetchDepartments = useCallback(async () => {
-    try {
-      const response = await axiosInstance.get(`/${companySlug}/library/departments-list`);
-      let depts = response.data || [];
-      if (!isSuperUser && !isDipDirector && userDeptId) {
-        depts = depts.filter((d: any) => Number(d.id) === Number(userDeptId));
-      }
-      setDepartments(depts);
-      if (depts.length === 1) {
-        setSelectedDeptName(prev => prev ?? depts[0].name);
-      }
-    } catch (error) {
-      console.error("Error al cargar departamentos:", error);
-    }
-  }, [companySlug, isSuperUser, userDeptId, isDipDirector]);
-
   const fetchCategories = useCallback(async () => {
     try {
       const response = await axiosInstance.get(`/${companySlug}/library/categories-list`);
@@ -223,28 +217,23 @@ const BibliotecaPage = () => {
     setLoading(true);
     await Promise.all([
       fetchDocs(),
-      fetchDepartments(),
       fetchCategories(),
     ]);
     refreshPendingCount();
     setLoading(false);
-  }, [fetchDocs, fetchDepartments, fetchCategories, refreshPendingCount]);
+  }, [fetchDocs, fetchCategories, refreshPendingCount]);
 
-  const deptFoldersRef = useRef(departmentFolders);
-  deptFoldersRef.current = departmentFolders;
+  const foldersMapRef = useRef(foldersMap);
+  foldersMapRef.current = foldersMap;
 
   const handleToggleDept = useCallback(async (deptId: number) => {
-    const existing = deptFoldersRef.current.find(g => g.departmentId === deptId);
-    if (existing && existing.folders.length > 0) return;
+    const existing = foldersMapRef.current[deptId];
+    if (existing && existing.length > 0) return;
 
     setLoadingDeptIds(prev => [...prev, deptId]);
     try {
       const res = await libraryService.getFolders(companySlug, deptId);
-      setDepartmentFolders(prev => prev.map(g =>
-        g.departmentId === deptId
-          ? { ...g, folders: res.folders || [] }
-          : g
-      ));
+      setFoldersMap(prev => ({ ...prev, [deptId]: res.folders || [] }));
     } catch (error) {
       console.error("Error al cargar carpetas:", error);
     } finally {
@@ -260,16 +249,58 @@ const BibliotecaPage = () => {
 
   // Polling eliminado — las notificaciones llegan vía WebSocket (useLibraryNotifications)
 
-  useEffect(() => {
-    setDepartmentFolders(prev => {
-      const prevMap = new Map(prev.map(g => [g.departmentId, g]));
-      return departments.map(d => prevMap.get(d.id) || {
+  const departmentFolders = useMemo<DepartmentFolderGroup[]>(() => {
+    const buildNode = (dept: any): DepartmentFolderGroup => ({
+      departmentId: dept.id,
+      departmentName: dept.name,
+      folders: foldersMap[dept.id] || [],
+      department_parent_id: dept.department_parent_id ?? null,
+      descendants: Array.isArray(dept.descendants)
+        ? dept.descendants.map(buildNode)
+        : [],
+    });
+
+    const hasNestedDescendants = departments.some((d: any) => Array.isArray(d.descendants) && d.descendants.length > 0);
+    if (hasNestedDescendants) {
+      const roots = departments.map(buildNode);
+
+      try {
+        // eslint-disable-next-line no-console
+        console.debug && console.debug('Built departmentFolders hierarchy from nested descendants:', roots);
+      } catch {}
+
+      return roots;
+    }
+
+    const nodes: Record<number, DepartmentFolderGroup> = {};
+    departments.forEach((d: any) => {
+      nodes[d.id] = {
         departmentId: d.id,
         departmentName: d.name,
-        folders: [],
-      });
+        folders: foldersMap[d.id] || [],
+        department_parent_id: d.department_parent_id ?? null,
+        descendants: [],
+      };
     });
-  }, [departments]);
+
+    const roots: DepartmentFolderGroup[] = [];
+    Object.values(nodes).forEach(node => {
+      const parentId = node.department_parent_id as number | null | undefined;
+      if (parentId != null && nodes[parentId]) {
+        nodes[parentId].descendants = nodes[parentId].descendants || [];
+        nodes[parentId].descendants.push(node);
+      } else {
+        roots.push(node);
+      }
+    });
+
+    try {
+      // eslint-disable-next-line no-console
+      console.debug && console.debug('Built departmentFolders hierarchy from flat list:', roots);
+    } catch {}
+
+    return roots;
+  }, [departments, foldersMap]);
 
   const handleDeleteDocument = async (id: number | string) => {
     try {
@@ -307,11 +338,7 @@ const BibliotecaPage = () => {
   const handleFolderRefresh = useCallback(async (deptId: number) => {
     try {
       const res = await libraryService.getFolders(companySlug, deptId);
-      setDepartmentFolders(prev => prev.map(g =>
-        g.departmentId === deptId
-          ? { ...g, folders: res.folders || [] }
-          : g
-      ));
+      setFoldersMap(prev => ({ ...prev, [deptId]: res.folders || [] }));
     } catch (error) {
       console.error("Error al refrescar carpetas:", error);
     }
@@ -335,9 +362,29 @@ const BibliotecaPage = () => {
 
   const currentFoldersForDialog = useMemo(() => {
     if (!selectedDeptName) return [];
-    const group = departmentFolders.find(g => g.departmentName === selectedDeptName);
+    // Find in recursive departmentFolders
+    const find = (list: DepartmentFolderGroup[]): DepartmentFolderGroup | null => {
+      for (const g of list) {
+        if (g.departmentName === selectedDeptName) return g;
+        if (g.descendants && g.descendants.length > 0) {
+          const r = find(g.descendants);
+          if (r) return r;
+        }
+      }
+      return null;
+    };
+    const group = find(departmentFolders);
     return group?.folders || [];
   }, [selectedDeptName, departmentFolders]);
+
+  useEffect(() => {
+    if (
+      departments.length === 1 &&
+      !selectedDeptName
+    ) {
+      setSelectedDeptName(departments[0].name);
+    }
+  }, [departments, selectedDeptName]);
 
   return (
     <ContentLayout title="Biblioteca Digital">
