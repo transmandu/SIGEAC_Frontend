@@ -250,34 +250,53 @@ const BibliotecaPage = () => {
   // Polling eliminado — las notificaciones llegan vía WebSocket (useLibraryNotifications)
 
   const departmentFolders = useMemo<DepartmentFolderGroup[]>(() => {
-    // Build hierarchical DepartmentFolderGroup tree from a flat `departments` list using `department_parent_id`.
-    const nodes: Record<number, DepartmentFolderGroup & { raw?: any }> = {};
+    const buildNode = (dept: any): DepartmentFolderGroup => ({
+      departmentId: dept.id,
+      departmentName: dept.name,
+      folders: foldersMap[dept.id] || [],
+      department_parent_id: dept.department_parent_id ?? null,
+      descendants: Array.isArray(dept.descendants)
+        ? dept.descendants.map(buildNode)
+        : [],
+    });
+
+    const hasNestedDescendants = departments.some((d: any) => Array.isArray(d.descendants) && d.descendants.length > 0);
+    if (hasNestedDescendants) {
+      const roots = departments.map(buildNode);
+
+      try {
+        // eslint-disable-next-line no-console
+        console.debug && console.debug('Built departmentFolders hierarchy from nested descendants:', roots);
+      } catch {}
+
+      return roots;
+    }
+
+    const nodes: Record<number, DepartmentFolderGroup> = {};
     departments.forEach((d: any) => {
       nodes[d.id] = {
         departmentId: d.id,
         departmentName: d.name,
         folders: foldersMap[d.id] || [],
         department_parent_id: d.department_parent_id ?? null,
-        decedent: [],
-        raw: d,
-      } as DepartmentFolderGroup & { raw?: any };
+        descendants: [],
+      };
     });
 
     const roots: DepartmentFolderGroup[] = [];
     Object.values(nodes).forEach(node => {
       const parentId = node.department_parent_id as number | null | undefined;
       if (parentId != null && nodes[parentId]) {
-        nodes[parentId].decedent = nodes[parentId].decedent || [];
-        nodes[parentId].decedent!.push(node);
+        nodes[parentId].descendants = nodes[parentId].descendants || [];
+        nodes[parentId].descendants.push(node);
       } else {
         roots.push(node);
       }
     });
 
-    // Debug: log built hierarchy in development
     try {
       // eslint-disable-next-line no-console
-      console.debug && console.debug('Built departmentFolders hierarchy:', roots);
+      console.debug && console.debug('Built departmentFolders hierarchy from flat list:', roots);
     } catch {}
 
     return roots;
@@ -347,8 +366,8 @@ const BibliotecaPage = () => {
     const find = (list: DepartmentFolderGroup[]): DepartmentFolderGroup | null => {
       for (const g of list) {
         if (g.departmentName === selectedDeptName) return g;
-        if (g.decedent && g.decedent.length > 0) {
-          const r = find(g.decedent);
+        if (g.descendants && g.descendants.length > 0) {
+          const r = find(g.descendants);
           if (r) return r;
         }
       }

@@ -28,7 +28,7 @@ export interface DepartmentFolderGroup {
   departmentName: string;
   folders: FolderNode[];
   department_parent_id?: number | null;
-  decedent?: DepartmentFolderGroup[];
+  descendants?: DepartmentFolderGroup[];
 }
 
 interface FolderTreeProps {
@@ -308,7 +308,7 @@ function FolderTree({
               />
             )}
 
-            {Array.isArray(dept.decedent) && dept.decedent.map((childDept, ci) => (
+            {Array.isArray(dept.descendants) && dept.descendants.map((childDept, ci) => (
               <div key={childDept.departmentId} className="mt-2">
                 {renderDept(childDept, idx + ci + 1, depth + 1)}
               </div>
