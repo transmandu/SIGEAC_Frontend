@@ -113,15 +113,70 @@ const BibliotecaPage = () => {
 
   const canViewDashboard = isSuperUser || isDirector;
 
+  const accessibleDepartmentIds = useMemo<number[]>(() => {
+    if (!user) return [];
+    return user.employee?.map((emp: any) => Number(emp.department?.id)).filter((id: number) => !Number.isNaN(id)) ?? [];
+  }, [user]);
+
+  const hasNestedDepartmentTree = useMemo(() => {
+    return rawDepartments.some((d: any) => Array.isArray(d.descendants) && d.descendants.length > 0);
+  }, [rawDepartments]);
+
+  const collectAllowedDepartments = useCallback(
+    (dept: any): any[] => {
+      const children = Array.isArray(dept.descendants)
+        ? dept.descendants.flatMap(collectAllowedDepartments)
+        : [];
+
+      if (accessibleDepartmentIds.includes(Number(dept.id))) {
+        return [{ ...dept, descendants: children }];
+      }
+
+      return children;
+    },
+    [accessibleDepartmentIds]
+  );
+
+  const buildFlatDepartmentTree = useCallback((departmentsList: any[]) => {
+    const nodes: Record<number, any> = {};
+    departmentsList.forEach((dept: any) => {
+      nodes[Number(dept.id)] = {
+        ...dept,
+        descendants: [],
+        department_parent_id: dept.department_parent_id ?? null,
+      };
+    });
+
+    const roots: any[] = [];
+    Object.values(nodes).forEach((node) => {
+      const parentId = node.department_parent_id == null ? null : Number(node.department_parent_id);
+      if (parentId != null && nodes[parentId]) {
+        nodes[parentId].descendants = nodes[parentId].descendants || [];
+        nodes[parentId].descendants.push(node);
+      } else {
+        roots.push(node);
+      }
+    });
+
+    return roots;
+  }, []);
+
   const departments = useMemo(() => {
-    if (!isSuperUser && !isDipDirector && userDeptId) {
-      return rawDepartments.filter(
-        (d) => Number(d.id) === Number(userDeptId)
-      );
+    if (isSuperUser || isDipDirector) {
+      return rawDepartments;
     }
 
-    return rawDepartments;
-  }, [rawDepartments, isSuperUser, isDipDirector, userDeptId]);
+    if (accessibleDepartmentIds.length === 0) {
+      return [];
+    }
+
+    if (hasNestedDepartmentTree) {
+      return rawDepartments.flatMap(collectAllowedDepartments);
+    }
+
+    const rootTree = buildFlatDepartmentTree(rawDepartments);
+    return rootTree.flatMap(collectAllowedDepartments);
+  }, [rawDepartments, isSuperUser, isDipDirector, accessibleDepartmentIds, hasNestedDepartmentTree, collectAllowedDepartments, buildFlatDepartmentTree]);
 
   const isMultiDept = useMemo(() => {
     return isSuperUser || departments.length > 1;
