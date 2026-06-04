@@ -18,7 +18,12 @@ export function buildPurchasesGroup({ pathname, currentCompany }: MenuContext): 
                 label: "Solicitudes de Compra",
                 active: pathname.includes(`/${currentCompany?.slug}/compras/requisiciones`),
                 icon: ClipboardList,
-                roles: ["ANALISTA_COMPRAS", "JEFE_COMPRAS", "SUPERUSER"],
+                roles: [
+                    "ANALISTA_COMPRAS", 
+                    "JEFE_COMPRAS", 
+                    "SUPERUSER", 
+                    "JEFE_ADMINISTRACION"
+                ],
                 submenus: [],
             },
             {
@@ -26,7 +31,12 @@ export function buildPurchasesGroup({ pathname, currentCompany }: MenuContext): 
                 label: "Cotizaciones",
                 active: pathname.includes(`/${currentCompany?.slug}/compras/cotizaciones`),
                 icon: HandCoins,
-                roles: ["ANALISTA_COMPRAS", "JEFE_COMPRAS", "SUPERUSER"],
+                roles: [
+                    "ANALISTA_COMPRAS", 
+                    "JEFE_COMPRAS", 
+                    "SUPERUSER", 
+                    "JEFE_ADMINISTRACION"
+                ],
                 submenus: [],
             },
             {
