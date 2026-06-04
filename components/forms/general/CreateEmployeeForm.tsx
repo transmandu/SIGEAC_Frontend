@@ -52,6 +52,7 @@ import { useCreateUser } from '@/actions/general/usuarios/actions';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import Image from "next/image";
 import { genKey } from "../mantenimiento/almacen/_hooks/useDispatchForm";
+import { Department } from "@/types";
 
 const formSchema = z
   .object({
@@ -265,6 +266,16 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
       form.handleSubmit(onSubmit)();
     }
   };
+
+  const flattenDepartments = (departments: Department[]): Department[] =>
+    departments.flatMap((department) => [
+      department,
+      ...flattenDepartments(department.descendants ?? []),
+    ]);
+
+  const allDepartments = departments
+    ? flattenDepartments(departments)
+    : [];
 
   return (
     <Form {...form}>
@@ -559,7 +570,7 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {departments?.map((d) => (
+                            {allDepartments.map((d) => (
                               <SelectItem key={d.id} value={d.id.toString()}>
                                 {d.name}
                               </SelectItem>

@@ -40,6 +40,7 @@ import { useGetDispatchWorkOrders } from "@/hooks/mantenimiento/almacen/reportes
 
 import { DispatchReportFilters } from "@/components/dialogs/mantenimiento/almacen/DispatchReportFilters";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Department } from "@/types";
 
 type DispatchType = "aeronautical" | "general";
 
@@ -92,6 +93,17 @@ export function DispatchReportDialog() {
 
   const { data: departments, isLoading: isLoadingDepartments } =
     useGetDepartments(selectedCompany?.slug);
+
+  const flattenDepartments = (departments: Department[]): Department[] =>
+    departments.flatMap((department) => [
+      department,
+      ...flattenDepartments(department.descendants ?? []),
+    ]);
+
+  const allDepartments = departments
+    ? flattenDepartments(departments)
+    : [];
+
 
   const { data: authorizedEmployees, isLoading: isLoadingEmployees } =
     useGetAuthorizedEmployees(selectedCompany?.slug);
@@ -321,7 +333,7 @@ export function DispatchReportDialog() {
 
               departmentId={departmentId}
               setDepartmentId={setDepartmentId}
-              departments={departments}
+              departments={allDepartments}
               isLoadingDepartments={isLoadingDepartments}
 
               authorizedEmployeeId={authorizedEmployeeId}

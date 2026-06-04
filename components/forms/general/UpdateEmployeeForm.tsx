@@ -17,6 +17,7 @@ import Image from "next/image";
 import { useEffect, useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { Department } from "@/types";
 
 /* =========================
    SCHEMA
@@ -278,6 +279,16 @@ const buildFormData = (values: FormValues, original: any) => {
   /* =========================
      RENDER
   ========================= */
+
+  const flattenDepartments = (departments: Department[]): Department[] =>
+    departments.flatMap((department) => [
+      department,
+      ...flattenDepartments(department.descendants ?? []),
+    ]);
+
+  const allDepartments = departments
+    ? flattenDepartments(departments)
+    : [];
 
   return (
     <Form {...form}>
@@ -678,10 +689,10 @@ const buildFormData = (values: FormValues, original: any) => {
                 />
 
                 <SelectField
-                name="department_id"
-                label="Departamento"
-                placeholder="Sin departamento"
-                options={normalizeOptions(departments)}
+                  name="department_id"
+                  label="Departamento"
+                  placeholder="Sin departamento"
+                  options={normalizeOptions(allDepartments)}
                 />
 
                 <SelectField

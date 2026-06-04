@@ -113,6 +113,13 @@ export type FormSchemaType = z.infer<typeof FormSchema>
 export const aeroKey = (id: string) => `A:${id}`
 export const genKey = (id: string) => `G:${id}`
 
+const flattenDepartments = (departments: Department[]): Department[] =>
+    departments.flatMap((department) => [
+    department,
+    ...flattenDepartments(department.descendants ?? []),
+]);
+
+
 // ── Hook ───────────────────────────────────────────────────────────────────────
 
 export function useDispatchForm(
@@ -133,7 +140,13 @@ export function useDispatchForm(
 
     const { createDispatchRequest } = useCreateDispatchRequest()
 
-    const { data: departments, isLoading: isDepartmentsLoading } = useGetDepartments(selectedCompany?.slug)
+    const { data: departments, isLoading: isDepartmentsLoading } =
+    useGetDepartments(selectedCompany?.slug)
+
+    const allDepartments = useMemo(
+    () => flattenDepartments(departments ?? []),
+    [departments])
+
     const { data: aircrafts, isLoading: isAircraftsLoading } = useGetMaintenanceAircrafts(selectedCompany?.slug)
     const { data: authorizedEmployees, isLoading: isAuthorizedEmployeesLoading } = useGetAuthorizedEmployees(selectedCompany?.slug)
     const { data: thirdParties, isLoading: isThirdPartiesLoading } = useGetThirdParties()
@@ -447,7 +460,7 @@ export function useDispatchForm(
         openThirdParty, setOpenThirdParty,
         selectedDepartment, setSelectedDepartment,
         // data queries
-        departments, isDepartmentsLoading,
+        allDepartments, isDepartmentsLoading,
         aircrafts, isAircraftsLoading,
         authorizedEmployees, isAuthorizedEmployeesLoading,
         thirdParties, isThirdPartiesLoading,
