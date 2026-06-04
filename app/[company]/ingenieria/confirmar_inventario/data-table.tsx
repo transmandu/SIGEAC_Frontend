@@ -78,11 +78,12 @@ export function DataTable<TData, TValue>({
       .filter((id) => Number.isFinite(id));
 
     onSelectionChange(ids);
-  }, [onSelectionChange, rowSelection]);
+  }, [onSelectionChange, rowSelection, table]);
 
   useEffect(() => {
     if (selectionResetKey === undefined) return;
-    table.resetRowSelection();
+
+    setRowSelection({});
   }, [selectionResetKey]);
 
   // ============================================

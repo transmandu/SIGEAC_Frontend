@@ -59,7 +59,7 @@ export function ComponentDispatchForm({ onClose }: FormProps) {
         openAdd, setOpenAdd, addTab, setAddTab,
         openEmployee, setOpenEmployee, openThirdParty, setOpenThirdParty,
         setSelectedDepartment,
-        departments, isDepartmentsLoading,
+        allDepartments, isDepartmentsLoading,
         aircrafts, isAircraftsLoading,
         authorizedEmployees, isAuthorizedEmployeesLoading,
         thirdParties, isThirdPartiesLoading,
@@ -277,7 +277,7 @@ export function ComponentDispatchForm({ onClose }: FormProps) {
                                             value={field.value ?? ""}
                                             onValueChange={(val) => {
                                                 field.onChange(val)
-                                                const dep = departments?.find((d: any) => d.id.toString() === val)
+                                                const dep = allDepartments?.find((d: any) => d.id.toString() === val)
                                                 if (dep) setSelectedDepartment(dep)
                                             }}
                                             disabled={isDepartmentsLoading}
@@ -293,7 +293,7 @@ export function ComponentDispatchForm({ onClose }: FormProps) {
                                                         <Loader2 className="size-4 animate-spin text-muted-foreground" />
                                                     </div>
                                                 )}
-                                                {departments?.map((d: any) => (
+                                                {allDepartments?.map((d: any) => (
                                                     <SelectItem key={d.id} value={d.id.toString()}>{d.name}</SelectItem>
                                                 ))}
                                             </SelectContent>

@@ -40,7 +40,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
         openAdd, setOpenAdd, addTab, setAddTab,
         openEmployee, setOpenEmployee, openThirdParty, setOpenThirdParty,
         setSelectedDepartment,
-        departments, isDepartmentsLoading,
+        allDepartments, isDepartmentsLoading,
         aircrafts, isAircraftsLoading,
         authorizedEmployees, isAuthorizedEmployeesLoading,
         thirdParties, isThirdPartiesLoading,
@@ -258,7 +258,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                                             value={field.value ?? ""}
                                             onValueChange={(val) => {
                                                 field.onChange(val)
-                                                const dep = departments?.find((d) => d.id.toString() === val)
+                                                const dep = allDepartments?.find((d) => d.id.toString() === val)
                                                 if (dep) setSelectedDepartment(dep)
                                             }}
                                             disabled={isDepartmentsLoading}
@@ -274,7 +274,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                                                         <Loader2 className="size-4 animate-spin text-muted-foreground" />
                                                     </div>
                                                 )}
-                                                {departments?.map((d) => (
+                                                {allDepartments?.map((d) => (
                                                     <SelectItem key={d.id} value={d.id.toString()}>{d.name}</SelectItem>
                                                 ))}
                                             </SelectContent>
