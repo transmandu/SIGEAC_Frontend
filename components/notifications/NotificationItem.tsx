@@ -64,6 +64,18 @@ function NotificationIcon({ name }: { name?: string }) {
   return <Icon className="h-5 w-5" />;
 }
 
+function formatNotificationDate(date: string) {
+  const value = formatDistanceToNow(new Date(date), {
+    addSuffix: true,
+    locale: es,
+  });
+
+  return value.replace(
+    /hace alrededor de (\d+) (hora|horas|día|días|mes|meses|año|años)/,
+    'hace $1 $2'
+  );
+}
+
 export default function NotificationItem({
   notification,
 }: {
@@ -238,10 +250,7 @@ export default function NotificationItem({
           {notification.created_at && (
             <span className="flex items-center gap-1">
               <Clock className="h-3 w-3 text-muted-foreground" />
-              {formatDistanceToNow(new Date(notification.created_at), {
-                addSuffix: true,
-                locale: es,
-              })}
+              {formatNotificationDate(notification.created_at)}
             </span>
           )}
 
@@ -252,11 +261,8 @@ export default function NotificationItem({
               <span className="flex items-center gap-1">
                 <CheckCheck className="h-3 w-3 text-blue-500" />
                 <span>
-                  Leído hace{' '}
-                  {formatDistanceToNow(new Date(notification.read_at), {
-                    addSuffix: false,
-                    locale: es,
-                  })}
+                  Leído {' '}
+                  {formatNotificationDate(notification.read_at)}
                 </span>
               </span>
             </>
