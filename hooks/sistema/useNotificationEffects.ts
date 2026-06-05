@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
+import { useAuth } from '@/contexts/AuthContext'
 
 type Notification = {
   id: string
@@ -17,6 +18,8 @@ export function useNotificationEffects({
   unreadCount,
   open = false,
 }: Params) {
+  const { user } = useAuth()
+
   const prevIdsRef = useRef<string[]>([])
   const prevUnreadRef = useRef(0)
   const isFirstLoadRef = useRef(true)
@@ -28,10 +31,18 @@ export function useNotificationEffects({
   const titleTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   /**
-   * Inicialización
+   * Inicialización (audio + unlock + config por usuario)
    */
   useEffect(() => {
-    const audio = new Audio('/sounds/notification.mp3')
+    const isDipSuperUser =
+      user?.roles?.some(role => role.name === 'SUPERUSER') &&
+      user?.employee?.some(emp => emp.department?.acronym === 'DIP')
+
+    const audioPath = isDipSuperUser
+      ? '/sounds/faaah.mp3'
+      : '/sounds/notification.mp3'
+
+    const audio = new Audio(audioPath)
 
     audio.preload = 'auto'
     audio.volume = 0.5
@@ -40,16 +51,10 @@ export function useNotificationEffects({
     baseTitleRef.current = document.title
 
     /**
-     * Desbloquea audio en la primera interacción
-     * para evitar NotAllowedError.
+     * Unlock de audio (obligatorio por políticas del browser)
      */
     const unlockAudio = async () => {
-      if (
-        !audioRef.current ||
-        audioUnlockedRef.current
-      ) {
-        return
-      }
+      if (!audioRef.current || audioUnlockedRef.current) return
 
       try {
         await audioRef.current.play()
@@ -59,38 +64,28 @@ export function useNotificationEffects({
 
         audioUnlockedRef.current = true
 
-        window.removeEventListener(
-          'pointerdown',
-          unlockAudio
-        )
+        window.removeEventListener('pointerdown', unlockAudio)
       } catch {
-        // Ignorar silenciosamente.
+        // silencioso
       }
     }
 
-    window.addEventListener(
-      'pointerdown',
-      unlockAudio,
-      { passive: true }
-    )
+    window.addEventListener('pointerdown', unlockAudio, {
+      passive: true,
+    })
 
     return () => {
-      window.removeEventListener(
-        'pointerdown',
-        unlockAudio
-      )
+      window.removeEventListener('pointerdown', unlockAudio)
 
       if (titleTimeoutRef.current) {
         clearTimeout(titleTimeoutRef.current)
       }
     }
-  }, [])
+  }, [user])
 
   const setBurstTitle = (count: number) => {
     const label =
-      count === 1
-        ? 'Nueva notificación'
-        : 'Nuevas notificaciones'
+      count === 1 ? 'Nueva notificación' : 'Nuevas notificaciones'
 
     document.title = `(${count}) ${label} - SIGEAC`
 
@@ -100,18 +95,15 @@ export function useNotificationEffects({
 
     titleTimeoutRef.current = setTimeout(() => {
       document.title =
-        count > 0
-          ? `(${count}) - SIGEAC`
-          : baseTitleRef.current
+        count > 0 ? `(${count}) - SIGEAC` : baseTitleRef.current
     }, 4000)
   }
 
   /**
-   * Detectar nuevas notificaciones
+   * Detectar nuevas notificaciones (websocket / react-query / polling)
    */
   useEffect(() => {
-    const currentIds =
-      notifications?.map(n => n.id) ?? []
+    const currentIds = notifications?.map(n => n.id) ?? []
 
     if (isFirstLoadRef.current) {
       prevIdsRef.current = currentIds
@@ -120,13 +112,10 @@ export function useNotificationEffects({
       return
     }
 
-    const newIds = currentIds.filter(
-      id => !prevIdsRef.current.includes(id)
-    )
+    const newIds = currentIds.filter(id => !prevIdsRef.current.includes(id))
 
     const shouldTrigger =
-      newIds.length > 0 &&
-      unreadCount > prevUnreadRef.current
+      newIds.length > 0 && unreadCount > prevUnreadRef.current
 
     /**
      * Sonido
@@ -139,7 +128,7 @@ export function useNotificationEffects({
       audioRef.current.currentTime = 0
 
       audioRef.current.play().catch(() => {
-        // Silencioso.
+        // silencioso
       })
     }
 
