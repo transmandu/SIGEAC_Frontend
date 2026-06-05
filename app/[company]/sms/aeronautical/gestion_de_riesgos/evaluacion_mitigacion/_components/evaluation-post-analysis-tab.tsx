@@ -37,7 +37,7 @@ export function EvaluationPostAnalysisTab({
 }: EvaluationPostAnalysisTabProps) {
     const [isCloseReportOpen, setIsCloseReportOpen] = useState(false);
     const voluntaryReport =
-        selectedNotification.voluntary_report || selectedNotification.voluntaryReport;
+        selectedNotification.voluntary_report;
     const voluntaryReportStatus = voluntaryReport?.status?.trim().toUpperCase();
     const canCloseReport = Boolean(
         voluntaryReport && voluntaryReportStatus !== 'CERRADO' && hasPostMitigationAnalysis
