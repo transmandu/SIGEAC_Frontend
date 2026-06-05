@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plane, PlaneTakeoff } from "lucide-react";
+import { motion } from "framer-motion";
 
 import { useAuth } from "@/contexts/AuthContext";
 import { useGetUserLocationsByCompanyId } from "@/hooks/sistema/usuario/useGetUserLocationsByCompanyId";
@@ -27,10 +28,8 @@ const CompanyBootstrap = () => {
     reset,
   } = useCompanyStore();
 
-  const {
-    mutateAsync: getLocations,
-    isPending: locationsLoading,
-  } = useGetUserLocationsByCompanyId();
+  const { mutateAsync: getLocations, isPending: locationsLoading } =
+    useGetUserLocationsByCompanyId();
 
   const [hydrated, setHydrated] = useState(false);
 
@@ -62,10 +61,7 @@ const CompanyBootstrap = () => {
       }
     };
 
-    const saveHistory = (
-      companyId: number | string,
-      stationId: string
-    ) => {
+    const saveHistory = (companyId: number | string, stationId: string) => {
       if (typeof window === "undefined") return;
 
       const history = getHistory();
@@ -107,7 +103,6 @@ const CompanyBootstrap = () => {
           }
 
           navigatingRef.current = true;
-
           router.replace(`/${selectedCompany.slug}/dashboard`);
           return;
         } catch {
@@ -117,10 +112,7 @@ const CompanyBootstrap = () => {
       }
 
       if (!selectedCompany) {
-        if (
-          user.companies?.length === 1 &&
-          !companyAutoSelectedRef.current
-        ) {
+        if (user.companies?.length === 1 && !companyAutoSelectedRef.current) {
           companyAutoSelectedRef.current = true;
           setSelectedCompany(user.companies[0]);
         }
@@ -139,11 +131,9 @@ const CompanyBootstrap = () => {
           const station = locations[0].id.toString();
 
           setSelectedStation(station);
-
           saveHistory(company.id, station);
 
           navigatingRef.current = true;
-
           router.replace(`/${company.slug}/dashboard`);
           return;
         }
@@ -168,49 +158,134 @@ const CompanyBootstrap = () => {
     router,
   ]);
 
-  const isLoading =
+  const shouldShowFullPageLoading =
     !hydrated ||
     userLoading ||
-    locationsLoading ||
-    navigatingRef.current;
+    navigatingRef.current ||
+    (selectedCompany && selectedStation && locationsLoading);
 
   /**
-   * LOADING SCREEN COMPLETA
+   * LOADING SCREEN
    */
-  if (isLoading) {
+  if (shouldShowFullPageLoading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen w-full bg-background">
-        <div className="relative flex flex-col items-center gap-4">
-          <div className="relative">
-            <Plane className="w-10 h-10 text-primary animate-bounce" />
-            <div className="absolute inset-0 blur-xl opacity-30 bg-primary rounded-full scale-150" />
-          </div>
+      <motion.div
+        className="flex flex-col items-center justify-center min-h-screen w-full bg-background"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.35, ease: "easeOut" }}
+      >
+        {/* ambient glow */}
+        <motion.div
+          className="absolute w-[500px] h-[500px] rounded-full bg-primary/10 blur-3xl"
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1.1, opacity: 1 }}
+          transition={{ duration: 1.2, repeat: Infinity, repeatType: "mirror" }}
+        />
 
-          <div className="text-center space-y-1">
-            <p className="text-sm font-medium text-foreground">
+        <div className="relative flex flex-col items-center gap-5">
+          {/* icon container */}
+          <motion.div
+            className="relative"
+            initial={{ scale: 0.6, opacity: 0, y: 10 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
+          >
+            <motion.div
+              animate={{
+                y: [0, -10, 0],
+                rotate: [0, 2, 0, -2, 0],
+              }}
+              transition={{
+                duration: 2.8,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            >
+              <Plane className="w-10 h-10 text-primary" />
+            </motion.div>
+
+            <motion.div
+              className="absolute inset-0 blur-xl opacity-40 bg-primary rounded-full scale-150"
+              animate={{
+                opacity: [0.2, 0.5, 0.2],
+                scale: [1.3, 1.6, 1.3],
+              }}
+              transition={{
+                duration: 2.2,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            />
+          </motion.div>
+
+          {/* text block */}
+          <motion.div
+            className="text-center space-y-1"
+            initial="hidden"
+            animate="show"
+            variants={{
+              hidden: {},
+              show: {
+                transition: {
+                  staggerChildren: 0.15,
+                },
+              },
+            }}
+          >
+            <motion.p
+              className="text-sm font-medium text-foreground"
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
               Preparando tu entorno
-            </p>
+            </motion.p>
 
-            <p className="text-sm text-muted-foreground">
-              Cargando configuración del sistema...
-            </p>
-          </div>
+            <motion.p
+              className="text-sm text-muted-foreground"
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              Inicializando servicios del sistema...
+            </motion.p>
+          </motion.div>
 
-          <div className="w-40 h-1 bg-muted rounded-full overflow-hidden">
-            <div className="h-full w-1/2 bg-primary animate-pulse rounded-full" />
+          {/* progress bar */}
+          <div className="w-44 h-1 bg-muted rounded-full overflow-hidden relative">
+            <motion.div
+              className="h-full w-1/3 bg-primary rounded-full"
+              initial={{ x: "-100%" }}
+              animate={{ x: "250%" }}
+              transition={{
+                duration: 1.4,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            />
           </div>
         </div>
-      </div>
+      </motion.div>
     );
   }
 
   /**
-   * PANTALLA REAL
+   * MAIN SCREEN
    */
   return (
-    <div className="flex justify-end min-h-screen w-full">
+    <motion.div
+      className="flex justify-end min-h-screen w-full"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.25, ease: "easeOut" }}
+    >
       <div className="flex justify-center items-center max-w-sm mx-auto">
-        <div className="flex flex-col items-center justify-center gap-2 -translate-y-14">
+        <motion.div
+          className="flex flex-col items-center justify-center gap-2 -translate-y-14"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
+        >
           <PlaneTakeoff className="size-32" />
 
           <h1 className="text-6xl font-bold text-center">
@@ -222,10 +297,16 @@ const CompanyBootstrap = () => {
             <strong>estación</strong> para comenzar.
           </p>
 
-          <CompanySelect />
-        </div>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.25, ease: "easeOut", delay: 0.05 }}
+          >
+            <CompanySelect />
+          </motion.div>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
