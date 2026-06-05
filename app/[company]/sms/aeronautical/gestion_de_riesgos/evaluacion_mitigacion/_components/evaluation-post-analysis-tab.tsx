@@ -1,14 +1,18 @@
 'use client';
 
+import { useState } from 'react';
 import { FileText, PencilLine, Plus } from 'lucide-react';
 
 import CreateMitigationPlanAnalysis from '@/components/forms/mantenimiento/sms/CreateMitigationPlanAnalysis';
+import CloseVoluntaryReportForm from '@/components/forms/mantenimiento/sms/CloseVoluntaryReportForm';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { TabsContent } from '@/components/ui/tabs';
 import { Analysis, HazardNotification, MitigationMeasure, MitigationPlan } from '@/types/sms/mantenimiento';
 
 import { EmptyWorkflowState, SummaryField } from './evaluation-workflow-shared';
+import { getNotificationSource } from './workflow-helpers';
 
 type EvaluationPostAnalysisTabProps = {
     selectedNotification: HazardNotification;
@@ -31,6 +35,14 @@ export function EvaluationPostAnalysisTab({
     isPostAnalysisFormOpen,
     setIsPostAnalysisFormOpen,
 }: EvaluationPostAnalysisTabProps) {
+    const [isCloseReportOpen, setIsCloseReportOpen] = useState(false);
+    const voluntaryReport =
+        selectedNotification.voluntary_report;
+    const voluntaryReportStatus = voluntaryReport?.status?.trim().toUpperCase();
+    const canCloseReport = Boolean(
+        voluntaryReport && voluntaryReportStatus !== 'CERRADO' && hasPostMitigationAnalysis
+    );
+    console.log('identification seleccionada ', selectedNotification)
     return (
         <TabsContent value="post-analysis" className="space-y-4">
             {!hasPlanAndAnalysis || !currentMitigationPlan ? (
@@ -47,7 +59,7 @@ export function EvaluationPostAnalysisTab({
                                     Análisis post mitigación
                                 </CardTitle>
                                 <CardDescription>
-                                    Este análisis se guarda asociado al plan de mitigación.
+                                    Este análisis se guarda asociado al plan de mitigación de {getNotificationSource(selectedNotification)}.
                                 </CardDescription>
                             </div>
 
@@ -71,19 +83,33 @@ export function EvaluationPostAnalysisTab({
                         </CardHeader>
                         <CardContent className="space-y-4">
                             {hasPostMitigationAnalysis ? (
-                                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                                    <SummaryField
-                                        label="Resultado del análisis"
-                                        value={currentPostMitigationAnalysis?.result}
-                                    />
-                                    <SummaryField
-                                        label="Probabilidad"
-                                        value={currentPostMitigationAnalysis?.probability}
-                                    />
-                                    <SummaryField
-                                        label="Severidad"
-                                        value={currentPostMitigationAnalysis?.severity}
-                                    />
+                                <div className="space-y-4">
+                                    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                                        <SummaryField
+                                            label="Resultado del análisis"
+                                            value={currentPostMitigationAnalysis?.result}
+                                        />
+                                        <SummaryField
+                                            label="Probabilidad"
+                                            value={currentPostMitigationAnalysis?.probability}
+                                        />
+                                        <SummaryField
+                                            label="Severidad"
+                                            value={currentPostMitigationAnalysis?.severity}
+                                        />
+                                    </div>
+
+                                    {canCloseReport ? (
+                                        <div className="flex justify-end">
+                                            <Button
+                                                type="button"
+                                                variant="destructive"
+                                                onClick={() => setIsCloseReportOpen(true)}
+                                            >
+                                                Cerrar reporte
+                                            </Button>
+                                        </div>
+                                    ) : null}
                                 </div>
                             ) : (
                                 <EmptyWorkflowState message="Todavía no hay análisis post mitigación registrado para este plan." />
@@ -116,6 +142,25 @@ export function EvaluationPostAnalysisTab({
                             </CardContent>
                         </Card>
                     ) : null}
+
+                    <Dialog open={isCloseReportOpen} onOpenChange={setIsCloseReportOpen}>
+                        <DialogContent className="sm:max-w-lg">
+                            <DialogHeader>
+                                <DialogTitle className="text-center">Cerrar reporte voluntario</DialogTitle>
+                                <DialogDescription className="text-center">
+                                    Adjunte el documento PDF de cierre y seleccione la fecha de cierre.
+                                </DialogDescription>
+                            </DialogHeader>
+
+                            {voluntaryReport ? (
+                                <CloseVoluntaryReportForm
+                                    reportId={voluntaryReport.id}
+                                    onSuccess={() => setIsCloseReportOpen(false)}
+                                    onCancel={() => setIsCloseReportOpen(false)}
+                                />
+                            ) : null}
+                        </DialogContent>
+                    </Dialog>
                 </>
             )}
         </TabsContent>

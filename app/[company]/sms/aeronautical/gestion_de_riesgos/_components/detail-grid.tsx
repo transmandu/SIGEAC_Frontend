@@ -8,14 +8,17 @@ export function DetailGrid({ items }: { items: DetailItem[] }) {
             {items.map(({ label, value, fullWidth, contentClassName }) => (
                 <div
                     key={label}
-                    className={cn('rounded-lg border bg-background p-3', fullWidth && 'md:col-span-2')}
+                    className={cn(
+                        'rounded-xl border border-border/60 bg-muted/20 p-4 transition-colors hover:bg-muted/30',
+                        fullWidth && 'md:col-span-2'
+                    )}
                 >
-                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
                         {label}
                     </p>
                     <div
                         className={cn(
-                            'mt-1 text-sm',
+                            'mt-1.5 text-sm leading-6',
                             !hasDetailValue(value) && 'text-muted-foreground',
                             contentClassName
                         )}

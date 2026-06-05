@@ -18,8 +18,10 @@ export type VoluntaryReport = {
     hazard_notification?: HazardNotification;
     image?: string;
     document?: string;
+    management_doc?: string;
     imageUrl?: string;
     documentUrl?: string;
+    managementDocUrl?: string;
     close_date?: string;
 }
 

@@ -10,8 +10,7 @@ import { DetailGrid } from "../../_components/detail-grid";
 
 import {
     buildAnalysisDetails,
-    getProbabilityBadgeClass,
-    getSeverityBadgeClass,
+    getRiskMatrixTone,
 } from "./report-detail-helpers";
 import { ReportAnalysisEntry } from "./report-detail-types";
 
@@ -39,7 +38,13 @@ export function ReportAnalysisSection({ entries }: ReportAnalysisSectionProps) {
             </CardHeader>
             <CardContent className="space-y-4">
                 {entries.map((entry) => (
-                    <div key={entry.key} className="space-y-3 rounded-lg border bg-muted/20 p-4">
+                    <div
+                        key={entry.key}
+                        className={cn(
+                            "space-y-3 rounded-xl border p-4",
+                            getRiskMatrixTone(entry.analysis).card,
+                        )}
+                    >
                         <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                             <div className="space-y-1">
                                 <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
@@ -52,7 +57,7 @@ export function ReportAnalysisSection({ entries }: ReportAnalysisSectionProps) {
                                 <span
                                     className={cn(
                                         "inline-flex items-center gap-2 rounded-full px-2 py-1 text-xs",
-                                        getProbabilityBadgeClass(String(entry.analysis.probability)),
+                                        getRiskMatrixTone(entry.analysis).chip,
                                     )}
                                 >
                                     <Activity className="h-4 w-4" />
@@ -61,14 +66,14 @@ export function ReportAnalysisSection({ entries }: ReportAnalysisSectionProps) {
                                 <span
                                     className={cn(
                                         "inline-flex items-center gap-2 rounded-full px-2 py-1 text-xs",
-                                        getSeverityBadgeClass(entry.analysis.severity),
+                                        getRiskMatrixTone(entry.analysis).chip,
                                     )}
                                 >
                                     <AlertTriangle className="h-4 w-4" />
                                     {String(entry.analysis.severity ?? "N/A")}
                                 </span>
                                 {entry.analysis.result ? (
-                                    <Badge className="text-xs">
+                                    <Badge className={cn("text-xs", getRiskMatrixTone(entry.analysis).chip)}>
                                         <Layers3 className="mr-1 h-3.5 w-3.5" />
                                         {String(entry.analysis.result)}
                                     </Badge>

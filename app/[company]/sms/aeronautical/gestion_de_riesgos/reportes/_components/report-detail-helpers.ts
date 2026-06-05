@@ -195,6 +195,47 @@ export const getProbabilityBadgeClass = (probability?: string | number) => {
     return "bg-gray-200 text-gray-800";
 };
 
+export const getRiskMatrixTone = (analysis?: RiskAnalysisLike | null) => {
+    const probability = String(analysis?.probability ?? "").toLowerCase();
+    const severity = String(analysis?.severity ?? "").toLowerCase();
+    const result = String(analysis?.result ?? "").toLowerCase();
+
+    const critical =
+        probability.includes("alta") ||
+        probability.includes("high") ||
+        severity.includes("alto") ||
+        severity.includes("high") ||
+        result.includes("critico") ||
+        result.includes("crítico") ||
+        result.includes("extremo");
+
+    const medium =
+        probability.includes("media") ||
+        probability.includes("medium") ||
+        severity.includes("medio") ||
+        severity.includes("medium") ||
+        result.includes("moderado");
+
+    if (critical) {
+        return {
+            card: "border-red-200 bg-red-50/70 dark:border-red-900/40 dark:bg-red-950/20",
+            chip: "bg-red-600 text-white",
+        };
+    }
+
+    if (medium) {
+        return {
+            card: "border-amber-200 bg-amber-50/70 dark:border-amber-900/40 dark:bg-amber-950/20",
+            chip: "bg-amber-500 text-black",
+        };
+    }
+
+    return {
+        card: "border-emerald-200 bg-emerald-50/70 dark:border-emerald-900/40 dark:bg-emerald-950/20",
+        chip: "bg-emerald-600 text-white",
+    };
+};
+
 export const buildAnalysisDetails = (analysis?: RiskAnalysisLike | null): DetailItem[] => [
     { label: "Probabilidad", value: analysis?.probability || "N/A" },
     { label: "Severidad", value: analysis?.severity || "N/A" },
@@ -361,7 +402,7 @@ export const buildAnalysisEntries = (
     if (notification?.analysis) {
         entries.push({
             key: "hazard-notification-analysis",
-            title: "Análisis Pre Mitigacion",
+            title: "Análisis pre mitigación",
             description: "Evaluación asociada a la identificacion de peligro",
             analysis: notification.analysis,
         });
@@ -370,7 +411,7 @@ export const buildAnalysisEntries = (
     if (mitigationPlan?.analysis) {
         entries.push({
             key: "mitigation-plan-analysis",
-            title: "Análisis Post Mitigacion",
+            title: "Análisis post mitigación",
             description: "Evaluación asociada al plan y sus medidas.",
             analysis: mitigationPlan.analysis,
         });
