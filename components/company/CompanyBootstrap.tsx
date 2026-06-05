@@ -32,6 +32,8 @@ const CompanyBootstrap = () => {
     useGetUserLocationsByCompanyId();
 
   const [hydrated, setHydrated] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
+  const [redirectTarget, setRedirectTarget] = useState<string | null>(null);
 
   useEffect(() => {
     const unsub = useCompanyStore.persist.onFinishHydration(() =>
@@ -76,11 +78,14 @@ const CompanyBootstrap = () => {
 
     const bootstrap = async () => {
       if (selectedCompany && selectedStation) {
+        setIsRedirecting(true);
+
         const companyExists = user.companies?.some(
           (c) => c.id === selectedCompany.id
         );
 
         if (!companyExists) {
+          setIsRedirecting(false);
           reset();
           return;
         }
@@ -89,6 +94,7 @@ const CompanyBootstrap = () => {
           const locations = await getLocations(selectedCompany.id);
 
           if (!locations?.length) {
+            setIsRedirecting(false);
             reset();
             return;
           }
@@ -98,14 +104,23 @@ const CompanyBootstrap = () => {
           );
 
           if (!stationExists) {
+            setIsRedirecting(false);
             reset();
             return;
           }
 
-          navigatingRef.current = true;
-          router.replace(`/${selectedCompany.slug}/dashboard`);
+          setIsRedirecting(true);
+
+          if (typeof window !== "undefined" && "requestAnimationFrame" in window) {
+            requestAnimationFrame(() => requestAnimationFrame(() =>
+              setRedirectTarget(`/${selectedCompany.slug}/dashboard`)
+            ));
+          } else {
+            setTimeout(() => setRedirectTarget(`/${selectedCompany.slug}/dashboard`), 0);
+          }
           return;
         } catch {
+          setIsRedirecting(false);
           reset();
           return;
         }
@@ -132,9 +147,15 @@ const CompanyBootstrap = () => {
 
           setSelectedStation(station);
           saveHistory(company.id, station);
+          setIsRedirecting(true);
 
-          navigatingRef.current = true;
-          router.replace(`/${company.slug}/dashboard`);
+          if (typeof window !== "undefined" && "requestAnimationFrame" in window) {
+            requestAnimationFrame(() => requestAnimationFrame(() =>
+              setRedirectTarget(`/${company.slug}/dashboard`)
+            ));
+          } else {
+            setTimeout(() => setRedirectTarget(`/${company.slug}/dashboard`), 0);
+          }
           return;
         }
 
@@ -158,9 +179,21 @@ const CompanyBootstrap = () => {
     router,
   ]);
 
+  useEffect(() => {
+    if (!redirectTarget) return;
+
+    const timeout = window.setTimeout(() => {
+      navigatingRef.current = true;
+      router.replace(redirectTarget);
+    },  1000);
+
+    return () => window.clearTimeout(timeout);
+  }, [redirectTarget, router]);
+
   const shouldShowFullPageLoading =
     !hydrated ||
     userLoading ||
+    isRedirecting ||
     navigatingRef.current ||
     (selectedCompany && selectedStation && locationsLoading);
 
