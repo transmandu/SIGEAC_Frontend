@@ -45,7 +45,7 @@ interface CloseVoluntaryReportData {
     id: string | number;
     data: {
         close_date: string;
-        document: File;
+        management_doc: File;
     };
 }
 interface NextNumberResponse {

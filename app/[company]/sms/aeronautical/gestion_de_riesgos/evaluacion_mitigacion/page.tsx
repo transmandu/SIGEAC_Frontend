@@ -1,8 +1,8 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { PanelLeftOpen, ShieldAlert } from 'lucide-react';
-import { useParams } from 'next/navigation';
+import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
@@ -12,15 +12,25 @@ import { useCompanyStore } from '@/stores/CompanyStore';
 
 import { EvaluationWorkflowPanel } from './_components/evaluation-workflow-panel';
 import { NotificationSelectionPanel } from './_components/notification-selection-panel';
-import { getNotificationSource, sortByNewestDate } from './_components/workflow-helpers';
+import {
+    getNotificationReportNumber,
+    getNotificationSource,
+    sortByNewestDate,
+} from './_components/workflow-helpers';
 
 const EvaluationMitigationPage = () => {
     const params = useParams<{ company: string }>();
+    const pathname = usePathname();
+    const router = useRouter();
+    const searchParams = useSearchParams();
     const { selectedCompany } = useCompanyStore();
     const companySlug = selectedCompany?.slug || params.company;
 
     const [selectedNotificationId, setSelectedNotificationId] = useState<number | null>(null);
     const [isNotificationSheetOpen, setIsNotificationSheetOpen] = useState(false);
+    const reportNumberParam =
+        searchParams.get('report_number') ||
+        searchParams.get('reportNumber');
 
     const {
         data: notifications,
@@ -30,17 +40,61 @@ const EvaluationMitigationPage = () => {
 
     const sortedNotifications = useMemo(() => sortByNewestDate(notifications || []), [notifications]);
 
+    const selectedNotificationFromUrl = useMemo(() => {
+        if (!reportNumberParam) {
+            return null;
+        }
+
+        return (
+            sortedNotifications.find((notification) => {
+                const notificationReportNumber = getNotificationReportNumber(notification);
+
+                return (
+                    String(notification.id) === reportNumberParam ||
+                    notification.report_number === reportNumberParam ||
+                    notification.reportNumber === reportNumberParam ||
+                    notificationReportNumber === reportNumberParam
+                );
+            }) || null
+        );
+    }, [reportNumberParam, sortedNotifications]);
+
+    useEffect(() => {
+        if (
+            selectedNotificationFromUrl?.id &&
+            selectedNotificationFromUrl.id !== selectedNotificationId
+        ) {
+            setSelectedNotificationId(selectedNotificationFromUrl.id);
+        }
+    }, [selectedNotificationFromUrl, selectedNotificationId]);
+
     const selectedNotification =
         sortedNotifications.find((notification) => notification.id === selectedNotificationId) ||
+        selectedNotificationFromUrl ||
         null;
 
-    const currentMitigationPlan = selectedNotification?.mitigation_plan || null;
-    const currentPlanAnalysis = selectedNotification?.analysis || null;
+    const currentMitigationPlan =
+        selectedNotification?.mitigation_plan || selectedNotification?.mitigationPlan || null;
+    const currentPlanAnalysis = selectedNotification?.analysis || currentMitigationPlan?.analysis || null;
     const currentPostMitigationAnalysis = currentMitigationPlan?.analysis || null;
     const currentMeasures = currentMitigationPlan?.measures || [];
 
+    const syncNotificationToUrl = (notificationId: number) => {
+        const notification = sortedNotifications.find((item) => item.id === notificationId);
+
+        if (!notification) {
+            return;
+        }
+
+        const query = new URLSearchParams(searchParams.toString());
+        query.set('report_number', getNotificationReportNumber(notification));
+
+        router.replace(`${pathname}?${query.toString()}`);
+    };
+
     const handleSelectNotification = (notificationId: number) => {
         setSelectedNotificationId(notificationId);
+        syncNotificationToUrl(notificationId);
         setIsNotificationSheetOpen(false);
     };
 
@@ -52,6 +106,9 @@ const EvaluationMitigationPage = () => {
                         <p className="text-sm font-medium">Notificación activa</p>
                         {selectedNotification ? (
                             <div className="space-y-1">
+                                <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                                    Reporte asociado: {getNotificationSource(selectedNotification)}
+                                </p>
                                 <p className="text-base font-semibold">
                                     {getNotificationSource(selectedNotification)}
                                 </p>

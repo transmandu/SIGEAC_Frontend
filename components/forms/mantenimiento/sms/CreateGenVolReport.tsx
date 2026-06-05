@@ -642,6 +642,32 @@ export function CreateGenVolReport({
                             )}
                         />
 
+                        <FormField
+                            control={form.control}
+                            name="document"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Documento adjunto (PDF)</FormLabel>
+                                    <div className="flex flex-col gap-3 mt-2">
+                                        {field.value ? (
+                                            <p className="text-sm text-muted-foreground border rounded-md bg-white px-3 py-2">
+                                                {field.value.name}
+                                            </p>
+                                        ) : null}
+                                        <FormControl>
+                                            <Input
+                                                type="file"
+                                                accept="application/pdf"
+                                                onChange={(e) => field.onChange(e.target.files?.[0])}
+                                                className="cursor-pointer file:cursor-pointer"
+                                            />
+                                        </FormControl>
+                                    </div>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
                     </div>
                 </div>
 

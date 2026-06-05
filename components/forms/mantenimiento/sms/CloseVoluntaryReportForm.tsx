@@ -31,7 +31,7 @@ const FORM_SCHEMA = z.object({
     close_date: z.date({
         required_error: "Seleccione la fecha de cierre",
     }),
-    document: z
+    management_doc: z
         .custom<File>((value) => value instanceof File, {
             message: "Adjunte el documento de cierre",
         })
@@ -42,7 +42,7 @@ type FormValues = z.infer<typeof FORM_SCHEMA>;
 
 const DEFAULT_VALUES: Partial<FormValues> = {
     close_date: new Date(),
-    document: undefined,
+    management_doc: undefined,
 };
 
 type CloseVoluntaryReportFormProps = {
@@ -64,7 +64,7 @@ export default function CloseVoluntaryReportForm({
         defaultValues: DEFAULT_VALUES,
     });
 
-    const selectedDocument = form.watch("document");
+    const selectedDocument = form.watch("management_doc");
 
     const handleCancel = () => {
         form.reset(DEFAULT_VALUES);
@@ -77,7 +77,7 @@ export default function CloseVoluntaryReportForm({
             id: reportId,
             data: {
                 close_date: format(values.close_date, "yyyy-MM-dd"),
-                document: values.document,
+                    management_doc: values.management_doc,
             },
         });
 
@@ -143,10 +143,10 @@ export default function CloseVoluntaryReportForm({
 
                 <FormField
                     control={form.control}
-                    name="document"
+                    name="management_doc"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Documento de cierre (PDF)</FormLabel>
+                            <FormLabel>Documento de gestión (PDF)</FormLabel>
                             <FormControl>
                                 <Input
                                     type="file"
