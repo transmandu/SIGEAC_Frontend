@@ -22,20 +22,64 @@ export function useNotificationEffects({
   const isFirstLoadRef = useRef(true)
 
   const audioRef = useRef<HTMLAudioElement | null>(null)
-  const baseTitleRef = useRef<string>('')
+  const audioUnlockedRef = useRef(false)
 
+  const baseTitleRef = useRef('')
   const titleTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   /**
-   * Init una sola vez
+   * Inicialización
    */
   useEffect(() => {
-    audioRef.current = new Audio('/sounds/notification.mp3')
-    audioRef.current.volume = 0.5
+    const audio = new Audio('/sounds/notification.mp3')
 
+    audio.preload = 'auto'
+    audio.volume = 0.5
+
+    audioRef.current = audio
     baseTitleRef.current = document.title
 
+    /**
+     * Desbloquea audio en la primera interacción
+     * para evitar NotAllowedError.
+     */
+    const unlockAudio = async () => {
+      if (
+        !audioRef.current ||
+        audioUnlockedRef.current
+      ) {
+        return
+      }
+
+      try {
+        await audioRef.current.play()
+
+        audioRef.current.pause()
+        audioRef.current.currentTime = 0
+
+        audioUnlockedRef.current = true
+
+        window.removeEventListener(
+          'pointerdown',
+          unlockAudio
+        )
+      } catch {
+        // Ignorar silenciosamente.
+      }
+    }
+
+    window.addEventListener(
+      'pointerdown',
+      unlockAudio,
+      { passive: true }
+    )
+
     return () => {
+      window.removeEventListener(
+        'pointerdown',
+        unlockAudio
+      )
+
       if (titleTimeoutRef.current) {
         clearTimeout(titleTimeoutRef.current)
       }
@@ -62,8 +106,12 @@ export function useNotificationEffects({
     }, 4000)
   }
 
+  /**
+   * Detectar nuevas notificaciones
+   */
   useEffect(() => {
-    const currentIds = notifications?.map(n => n.id) ?? []
+    const currentIds =
+      notifications?.map(n => n.id) ?? []
 
     if (isFirstLoadRef.current) {
       prevIdsRef.current = currentIds
@@ -80,12 +128,24 @@ export function useNotificationEffects({
       newIds.length > 0 &&
       unreadCount > prevUnreadRef.current
 
-    if (shouldTrigger) {
-      audioRef.current?.play().catch(err => {
-        console.warn('Audio blocked:', err)
+    /**
+     * Sonido
+     */
+    if (
+      shouldTrigger &&
+      audioUnlockedRef.current &&
+      audioRef.current
+    ) {
+      audioRef.current.currentTime = 0
+
+      audioRef.current.play().catch(() => {
+        // Silencioso.
       })
     }
 
+    /**
+     * Título
+     */
     if (!open) {
       if (shouldTrigger) {
         setBurstTitle(unreadCount)
