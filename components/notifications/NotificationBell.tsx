@@ -26,14 +26,17 @@ import { useCompanyStore } from '@/stores/CompanyStore';
 import { useNotificationEffects } from '@/hooks/sistema/useNotificationEffects';
 import { useAuth } from '@/contexts/AuthContext';
 
-import NotificationDropdown from './NotificationDropdown';
+import NotificationPanel from './NotificationPanel';
 
 export default function NotificationBell() {
   const { selectedCompany } = useCompanyStore();
   const { user } = useAuth();
 
   const { notifications, unreadCount } =
-    useNotifications(selectedCompany?.slug, user?.id);
+    useNotifications(
+      selectedCompany?.slug,
+      user?.id
+    );
 
   const [open, setOpen] = useState(false);
   const [shake, setShake] = useState(false);
@@ -61,25 +64,25 @@ export default function NotificationBell() {
   }, [unreadCount]);
 
   return (
-    <div className="relative">
+    <>
       <TooltipProvider disableHoverableContent>
         <Tooltip delayDuration={100}>
           <TooltipTrigger asChild>
             <button
-              onClick={() => setOpen(prev => !prev)}
+              onClick={() => setOpen(true)}
               aria-label="Notifications"
               className={cn(
-                "relative flex items-center justify-center",
-                "h-9 w-9 rounded-full",
-                "bg-background",
-                "border border-border/80",
-                "text-foreground/90",
-                "hover:text-foreground",
-                "hover:bg-muted/70",
-                "hover:border-border",
-                "transition-all duration-200",
-                "active:scale-95",
-                open && "bg-muted/60"
+                'relative flex items-center justify-center',
+                'h-9 w-9 rounded-full',
+                'bg-background',
+                'border border-border/80',
+                'text-foreground/90',
+                'hover:text-foreground',
+                'hover:bg-muted/70',
+                'hover:border-border',
+                'transition-all duration-200',
+                'active:scale-95',
+                open && 'bg-muted/60'
               )}
             >
               <motion.div
@@ -124,15 +127,15 @@ export default function NotificationBell() {
                       duration: 0.22,
                       ease: [0.22, 1, 0.36, 1],
                     }}
-                    className={cn(
-                      "absolute -top-1 -right-1",
-                      "min-w-4 h-4 px-1",
-                      "flex items-center justify-center",
-                      "rounded-full",
-                      "bg-red-500 text-white",
-                      "text-[10px] font-medium",
-                      "shadow-sm"
-                    )}
+                    className="
+                      absolute -top-1 -right-1
+                      min-w-4 h-4 px-1
+                      flex items-center justify-center
+                      rounded-full
+                      bg-red-500 text-white
+                      text-[10px] font-medium
+                      shadow-sm
+                    "
                   >
                     {unreadCount > 9 ? '+9' : unreadCount}
                   </motion.span>
@@ -147,36 +150,10 @@ export default function NotificationBell() {
         </Tooltip>
       </TooltipProvider>
 
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{
-              opacity: 0,
-              y: 8,
-              scale: 0.98,
-            }}
-            animate={{
-              opacity: 1,
-              y: 0,
-              scale: 1,
-            }}
-            exit={{
-              opacity: 0,
-              y: 8,
-              scale: 0.98,
-            }}
-            transition={{
-              duration: 0.18,
-              ease: [0.22, 1, 0.36, 1],
-            }}
-            className="absolute right-0 top-12 z-50"
-          >
-            <NotificationDropdown
-              onClose={() => setOpen(false)}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+      <NotificationPanel
+        open={open}
+        onClose={() => setOpen(false)}
+      />
+    </>
   );
 }

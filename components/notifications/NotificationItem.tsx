@@ -2,19 +2,72 @@
 
 import { Notification } from '@/types/notifications/types';
 import { cn } from '@/lib/utils';
-import { Bell, Circle, Check } from 'lucide-react';
-
+import { Clock, CheckCheck } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
+import { Check, Bell } from 'lucide-react';
+import type { ComponentType } from 'react';
+import { useRouter } from 'next/navigation';
+import { formatDistanceToNow } from 'date-fns';
+import { es } from 'date-fns/locale';
 import { useCompanyStore } from '@/stores/CompanyStore';
 import { useMarkNotificationAsRead } from '@/hooks/notifications/useMarkNotificationAsRead';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+const ITEM_COLORS = [
+  {
+    stripe: 'bg-blue-500/60',
+    border: 'border-blue-400/25',
+    hover: 'group-hover:border-blue-400/45',
+  },
+  {
+    stripe: 'bg-emerald-500/60',
+    border: 'border-emerald-400/25',
+    hover: 'group-hover:border-emerald-400/45',
+  },
+  {
+    stripe: 'bg-orange-500/60',
+    border: 'border-orange-400/25',
+    hover: 'group-hover:border-orange-400/45',
+  },
+  {
+    stripe: 'bg-indigo-500/60',
+    border: 'border-indigo-400/25',
+    hover: 'group-hover:border-indigo-400/45',
+  },
+  {
+    stripe: 'bg-sky-500/60',
+    border: 'border-sky-400/25',
+    hover: 'group-hover:border-sky-400/45',
+  },
+  {
+    stripe: 'bg-teal-500/60',
+    border: 'border-teal-400/25',
+    hover: 'group-hover:border-teal-400/45',
+  },
+  {
+    stripe: 'bg-red-500/60',
+    border: 'border-red-400/25',
+    hover: 'group-hover:border-red-400/45',
+  },
+];
 
-import { useRouter } from 'next/navigation';
+function getNotificationColors(id: string | number) {
+  const hash = String(id)
+    .split('')
+    .reduce((acc, char) => acc + char.charCodeAt(0), 0);
+
+  return ITEM_COLORS[hash % ITEM_COLORS.length];
+}
+
+function NotificationIcon({ name }: { name?: string }) {
+  const Icon = Reflect.get(LucideIcons, name ?? 'Bell');
+
+  if (typeof Icon !== 'function') {
+    return <Bell className="h-5 w-5" />;
+  }
+
+  return <Icon className="h-5 w-5" />;
+}
 
 export default function NotificationItem({
   notification,
@@ -32,6 +85,7 @@ export default function NotificationItem({
 
   const handleMarkAsRead = (e: React.MouseEvent) => {
     e.stopPropagation();
+
     if (isUnread && !isPending) {
       markAsRead(notification.id);
     }
@@ -43,37 +97,57 @@ export default function NotificationItem({
     router.push(url);
   };
 
+  const colors = getNotificationColors(notification.id);
+
   return (
     <div
       onClick={handleNavigate}
       className={cn(
-        'group relative flex gap-3 px-3 py-2 cursor-pointer transition-all',
-        'rounded-xl mx-1',
+        'group relative flex items-center gap-3 px-3 py-2',
+        'mx-1 cursor-pointer overflow-hidden rounded-xl',
         'bg-muted/20 hover:bg-muted/40',
-        'border border-transparent hover:border-border/30',
-        'shadow-sm',
-        'overflow-hidden'
+        'shadow-sm transition-all'
       )}
     >
-      {/* ACTION + GRADIENT BACKDROP */}
+    {/* COLOR STRIPE */}
+    <div
+      className={cn(
+        'absolute left-0 top-0 h-full w-1',
+        colors.stripe
+      )}
+    />
+
+    {/* COLORED BORDER */}
+    <div
+      className={cn(
+        'pointer-events-none absolute inset-0 rounded-xl border transition-all duration-200',
+        colors.border,
+        colors.hover
+      )}
+    />
+      {/* ACTION + GRADIENT (desktop only) */}
       {isUnread && (
         <div
           className="
+            hidden md:flex
             absolute right-0 top-0 h-full w-20 overflow-visible
-
-            flex items-center justify-center
+            items-center justify-center
 
             opacity-0 scale-95 translate-x-2
-            group-hover:opacity-100 group-hover:scale-100 group-hover:translate-x-0
+            group-hover:opacity-100
+            group-hover:scale-100
+            group-hover:translate-x-0
 
             transition-all duration-200 ease-out
           "
         >
-          {/* GRADIENT BACKDROP */}
           <div
             className="
               absolute inset-0
-              bg-gradient-to-l from-black/30 via-black/10 to-transparent
+              bg-gradient-to-l
+              from-black/30
+              via-black/10
+              to-transparent
               pointer-events-none
               rounded-r-xl
             "
@@ -92,7 +166,9 @@ export default function NotificationItem({
                     w-8 h-8
 
                     rounded-md
-                    bg-background/70 backdrop-blur-md
+                    bg-background/70
+                    backdrop-blur-md
+
                     border border-border/40
                     shadow-sm
 
@@ -102,7 +178,7 @@ export default function NotificationItem({
                     transition
                   "
                 >
-                  <Check className="w-4 h-4 text-green-600" />
+                  <Check className="h-4 w-4 text-green-600" />
                 </button>
               </TooltipTrigger>
 
@@ -115,56 +191,80 @@ export default function NotificationItem({
       )}
 
       {/* ICON */}
-      <div className="mt-0.5 flex-shrink-0">
+      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center">
         <div
           className={cn(
-            'w-8 h-8 rounded-full flex items-center justify-center',
+            'flex h-10 w-10 items-center justify-center rounded-xl',
             isUnread
-              ? 'bg-blue-500/10 text-blue-600'
+              ? 'bg-primary/10 text-primary'
               : 'bg-muted text-muted-foreground'
           )}
         >
-          <Bell className="w-4 h-4" />
+          <NotificationIcon
+            name={notification.data?.icon}
+          />
         </div>
       </div>
 
       {/* CONTENT */}
-      <div className="flex-1 min-w-0">
-        {/* TITLE */}
-        <div className="flex items-start justify-between gap-2">
+      <div className="min-w-0 flex-1">
+        {/* HEADER */}
+        <div className="flex items-start justify-between gap-2 min-w-0">
           <p
             className={cn(
-              'text-sm font-medium truncate',
-              isUnread ? 'text-foreground' : 'text-muted-foreground'
+              'truncate text-sm font-medium flex-1 min-w-0',
+              isUnread
+                ? 'text-foreground'
+                : 'text-muted-foreground'
             )}
           >
             {notification.data.title}
           </p>
 
-          {isUnread && (
-            <Circle className="w-2 h-2 fill-blue-500 text-blue-500 mt-1" />
-          )}
-
-          {!isUnread && (
-            <Check className="w-3 h-3 text-green-500 mt-1" />
-          )}
+          <span
+            className={cn(
+              'flex-shrink-0 whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-medium',
+              isUnread
+                ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400'
+                : 'bg-muted text-muted-foreground'
+            )}
+          >
+            {isUnread ? 'Nueva' : 'Leída'}
+          </span>
         </div>
 
         {/* MESSAGE */}
-        <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">
+        <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
           {notification.data.message}
         </p>
 
         {/* FOOTER */}
-        <div className="mt-1 flex items-center justify-between">
-          {isUnread ? (
-            <span className="text-[10px] text-blue-600 font-medium">
-              Nueva
+        <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] text-muted-foreground">
+          {notification.created_at && (
+            <span className="flex items-center gap-1">
+              <Clock className="h-3 w-3 text-muted-foreground" />
+              {formatDistanceToNow(new Date(notification.created_at), {
+                addSuffix: true,
+                locale: es,
+              })}
             </span>
-          ) : (
-            <span className="text-[10px] text-muted-foreground">
-              Leída
-            </span>
+          )}
+
+          {!isUnread && notification.read_at && (
+            <>
+              <span className="text-muted-foreground/40">·</span>
+
+              <span className="flex items-center gap-1">
+                <CheckCheck className="h-3 w-3 text-blue-500" />
+                <span>
+                  Leído hace{' '}
+                  {formatDistanceToNow(new Date(notification.read_at), {
+                    addSuffix: false,
+                    locale: es,
+                  })}
+                </span>
+              </span>
+            </>
           )}
         </div>
       </div>

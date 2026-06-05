@@ -1,7 +1,7 @@
 import type { Group, MenuContext } from "@/lib/menus/types";
-import { Globe, UserRoundCog } from "lucide-react";
+import { Globe, UserRoundCog, BellRing } from "lucide-react";
 
-export function buildSettingsGroup({ pathname }: MenuContext): Group {
+export function buildSettingsGroup({ pathname, currentCompany }: MenuContext): Group {
     return {
         groupLabel: "Ajustes",
         menus: [
@@ -107,6 +107,14 @@ export function buildSettingsGroup({ pathname }: MenuContext): Group {
                 roles: [],
                 submenus: [],
             },
+            {
+                href: `/${currentCompany?.slug}/notifications`,
+                label: "Notificaciones",
+                active: pathname.includes(`/${currentCompany?.slug}/notifications`),
+                icon: BellRing,
+                roles: [],
+                submenus: [],
+            }
         ],
     };
 }
