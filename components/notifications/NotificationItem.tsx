@@ -5,7 +5,6 @@ import { cn } from '@/lib/utils';
 import { Clock, CheckCheck } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { Check, Bell } from 'lucide-react';
-import type { ComponentType } from 'react';
 import { useRouter } from 'next/navigation';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -60,11 +59,7 @@ function getNotificationColors(id: string | number) {
 }
 
 function NotificationIcon({ name }: { name?: string }) {
-  const Icon = Reflect.get(LucideIcons, name ?? 'Bell');
-
-  if (typeof Icon !== 'function') {
-    return <Bell className="h-5 w-5" />;
-  }
+  const Icon = (LucideIcons as Record<string, any>)[name ?? 'Bell'] ?? Bell;
 
   return <Icon className="h-5 w-5" />;
 }
@@ -189,7 +184,7 @@ export default function NotificationItem({
           </TooltipProvider>
         </div>
       )}
-
+      
       {/* ICON */}
       <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center">
         <div
@@ -201,7 +196,7 @@ export default function NotificationItem({
           )}
         >
           <NotificationIcon
-            name={notification.data?.icon}
+            name={notification.data.icon}
           />
         </div>
       </div>
