@@ -98,6 +98,7 @@ export function MultiSerialInput({
           value={currentValue}
           onChange={(e) => setCurrentValue(e.target.value)}
           onKeyDown={handleKeyDown}
+          onBlur={handleAddSerial}
           placeholder={placeholder}
           disabled={disabled}
           className="pr-10"
