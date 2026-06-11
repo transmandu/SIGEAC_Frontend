@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button'
 import { DataTableColumnHeader } from '@/components/tables/DataTableHeader'
 import { cn } from '@/lib/utils'
 import { useUpdateArticleStatus } from '@/actions/mantenimiento/almacen/inventario/articulos/actions'
-import type { TransitArticle } from './types'
+import type { TransitArticle } from '@/types/purchase'
 
 function TransitActionButton({
   article,

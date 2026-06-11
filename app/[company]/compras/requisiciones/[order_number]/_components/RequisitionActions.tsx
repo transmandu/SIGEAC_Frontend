@@ -19,35 +19,7 @@ import {
 import { PDFDownloadLink } from "@react-pdf/renderer"
 import RequisitionReportPdf from "@/components/pdf/almacen/RequisitionReportPdf"
 import RequisitionDropdownDialogs from "@/components/dialogs/mantenimiento/compras/RequisitionDropdownDialogs"
-
-export interface RequisitionByOrderNumber {
-  id: number
-  order_number: string
-  status: string
-  type: "GENERAL" | "AERONAUTICO"
-  created_by: any
-  requested_by: string
-  received_by: string
-  image?: string
-  justification: string
-  arrival_date?: Date
-  submission_date?: Date
-  submitted_date?: Date
-  aircraft?: any
-  observation?: string
-
-  batch: {
-    id: number
-    name: string
-    batch_articles: {
-      article_part_number: string
-      article_alt_part_number?: string
-      quantity: number
-      unit?: any
-      image?: string
-    }[]
-  }[]
-}
+import { RequisitionByOrderNumber } from "@/hooks/mantenimiento/compras/useGetRequisitionByOrderNumber"
 
 type Props = {
   req: RequisitionByOrderNumber

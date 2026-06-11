@@ -23,7 +23,7 @@ import {
 
 import { useCompanyStore } from '@/stores/CompanyStore'
 
-import { DataTable } from './data-table'
+import { DataTable } from '../data-table'
 import { getColumns } from './columns'
 
 import GroupedCostTable from './_components/GroupedCostTable'
@@ -303,12 +303,13 @@ const CostManagementPage = () => {
           <GroupedCostTable
             data={filteredData}
             groupBy={groupBy as any}
-            renderTable={(rows) => (
+          renderTable={(rows) => (
               <DataTable
                 columns={columns}
                 data={rows}
                 loading={isUpdating}
-                costDrafts={costDrafts}
+                meta={{ costDrafts }}
+                overflowVisible
               />
             )}
             setDrafts={setDrafts}
@@ -318,7 +319,8 @@ const CostManagementPage = () => {
             columns={columns}
             data={filteredData}
             loading={isUpdating}
-            costDrafts={costDrafts}
+            meta={{ costDrafts }}
+            overflowVisible
           />
         )}
 

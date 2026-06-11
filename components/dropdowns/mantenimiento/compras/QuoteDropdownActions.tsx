@@ -24,7 +24,7 @@ import {
   MoreHorizontal,
   Trash2
 } from "lucide-react"
-import { Quote } from "@/types"
+import type { Quote } from "@/types/purchase"
 // import { PDFDownloadLink } from "@react-pdf/renderer"
 import QuoteDropdownDialogs from "@/components/dialogs/mantenimiento/compras/QuoteDropdownDialogs"
 import { useGetPurchaseOrderByQuoteId } from "@/hooks/mantenimiento/compras/useGetPurchaseOrderByQuoteId"

@@ -19,7 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 
-import type { DestinationArticle } from "./types";
+import type { DestinationArticle } from "@/types/purchase";
 
 const ARTICLE_TYPES: Record<
   string,

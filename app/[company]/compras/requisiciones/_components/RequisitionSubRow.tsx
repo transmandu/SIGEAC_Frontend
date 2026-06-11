@@ -3,7 +3,7 @@
 import { CalendarDays, CheckCircle2, Clock3, FileText, XCircle } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
-import { Requisition } from '@/types'
+import type { Requisition } from '@/types/purchase'
 import Link from 'next/link'
 import { useCompanyStore } from '@/stores/CompanyStore'
 

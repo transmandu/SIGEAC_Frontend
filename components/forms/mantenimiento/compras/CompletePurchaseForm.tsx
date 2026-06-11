@@ -25,7 +25,7 @@ import { useGetBankAccounts } from "@/hooks/general/cuentas_bancarias/useGetBank
 import { useGetCards } from "@/hooks/general/tarjetas/useGetCards";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { PurchaseOrder } from "@/types";
+import type { PurchaseOrder } from "@/types/purchase";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, PackageCheck } from "lucide-react";
 import { useMemo } from "react";

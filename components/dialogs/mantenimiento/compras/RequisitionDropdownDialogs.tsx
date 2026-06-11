@@ -6,7 +6,7 @@ import {
 } from "@/actions/mantenimiento/compras/requisiciones/actions"
 import { useAuth } from "@/contexts/AuthContext"
 import { useCompanyStore } from "@/stores/CompanyStore"
-import { Requisition } from "@/types"
+import type { Requisition } from "@/types/purchase"
 import {
     AlertTriangle,
   ClipboardX,

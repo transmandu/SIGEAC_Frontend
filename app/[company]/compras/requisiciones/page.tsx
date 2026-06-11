@@ -8,9 +8,10 @@ import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbP
 import { useGetRequisition } from '@/hooks/mantenimiento/compras/useGetRequisitions'
 import { useCompanyStore } from '@/stores/CompanyStore'
 import { getColumns } from './columns'
-import { DataTable } from './data-table'
-import { Requisition } from '@/types'
+import { DataTable } from '../data-table'
+import type { Requisition } from '@/types/purchase'
 import RequisitionToolBar from './_components/RequisitionToolBar'
+import { CreateRequisitionDialog } from '@/components/dialogs/mantenimiento/compras/CreateRequisitionDialog'
 import RequisitionSubRow from './_components/RequisitionSubRow'
 
 const RequisitionsPage = () => {
@@ -28,6 +29,7 @@ const RequisitionsPage = () => {
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState('ALL')
   const [type, setType] = useState('ALL')
+  const [priority, setPriority] = useState('ALL')
 
   const deferredSearch = useDeferredValue(search)
   const isInitialLoading = isLoading && !requisitions
@@ -42,10 +44,8 @@ const RequisitionsPage = () => {
       const matchesSearch =
         !deferredSearch.trim() ||
         req.order_number?.toLowerCase?.().includes(q) ||
-        req.status?.toLowerCase?.().includes(q) ||
         req.justification?.toLowerCase?.().includes(q) ||
         req.requested_by?.toLowerCase?.().includes(q) ||
-        req.type?.toLowerCase?.().includes(q) ||
         req.created_by?.username?.toLowerCase?.().includes(q)
 
       const matchesStatus =
@@ -54,9 +54,12 @@ const RequisitionsPage = () => {
       const matchesType =
         type === 'ALL' || req.type === type
 
-      return matchesSearch && matchesStatus && matchesType
+      const matchesPriority =
+        priority === 'ALL' || req.priority === priority
+
+      return matchesSearch && matchesStatus && matchesType && matchesPriority
     })
-  }, [requisitions, deferredSearch, status, type])
+  }, [requisitions, deferredSearch, status, type, priority])
 
   const columns = useMemo(
     () => getColumns(selectedCompany ?? undefined),
@@ -121,6 +124,8 @@ const RequisitionsPage = () => {
             setStatus={setStatus}
             type={type}
             setType={setType}
+            priority={priority}
+            setPriority={setPriority}
           />
 
           <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
@@ -149,6 +154,7 @@ const RequisitionsPage = () => {
               !!row.original.quotes?.length
             }
             loading={isUpdating}
+            toolbar={<CreateRequisitionDialog />}
           />
         )}
 

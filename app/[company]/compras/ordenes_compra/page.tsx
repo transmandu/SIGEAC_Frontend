@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/breadcrumb'
 import { useCompanyStore } from '@/stores/CompanyStore'
 import { useGetPurchaseOrders } from '@/hooks/mantenimiento/compras/useGetPurchaseOrders'
-import { DataTable } from './data-table'
+import { DataTable } from '../data-table'
 import { getColumns } from './columns'
 import PurchaseOrderSubRow from './_components/PurchaseOrderSubRow'
 import PurchaseOrderToolBar from './_components/PurchaseOrderToolBar'
@@ -134,6 +134,7 @@ const PurchaseOrdersPage = () => {
             renderSubRow={(row) => (
               <PurchaseOrderSubRow row={row} />
             )}
+            emptyText="No se ha encontrado ningún resultado..."
           />
         )}
 

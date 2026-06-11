@@ -18,7 +18,7 @@ import {
 import { useCompanyStore } from '@/stores/CompanyStore'
 import { useGetArticlesByStatus } from '@/hooks/mantenimiento/almacen/articulos/useGetArticlesByStatus'
 
-import { DataTable } from './data-table'
+import { DataTable } from '../data-table'
 import { columns } from './columns'
 
 import type { DestinationArticle } from './types'
@@ -134,6 +134,8 @@ export default function UnknownDestinationPage() {
             columns={columns}
             data={filteredArticles}
             loading={isUpdating}
+            loadingText="Cargando artículos..."
+            emptyText="No se encontraron artículos"
           />
         )}
 

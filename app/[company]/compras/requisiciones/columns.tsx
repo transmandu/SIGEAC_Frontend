@@ -5,7 +5,7 @@ import { DataTableColumnHeader } from '@/components/tables/DataTableHeader'
 import RequisitionsDropdownActions from '@/components/dropdowns/mantenimiento/compras/RequisitionDropdownActions'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
-import { Requisition } from '@/types'
+import type { Requisition } from '@/types/purchase'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import Link from 'next/link'
@@ -159,6 +159,71 @@ export const getColumns = (
         </div>
       )
     }
+  },
+  {
+    accessorKey: 'priority',
+    size: 120,
+    header: ({ column }) => (
+      <div className="flex justify-center w-full">
+        <DataTableColumnHeader
+          column={column}
+          title="Prioridad"
+        />
+      </div>
+    ),
+    meta: {
+      title: 'Prioridad',
+    },
+    cell: ({ row }) => {
+      const priority = row.original.priority
+
+      const config =
+        priority === 'LOW'
+          ? {
+              label: 'Baja',
+              base: 'bg-green-500/10 text-green-600 dark:text-green-300',
+              glow: 'shadow-green-400/30',
+            }
+          : priority === 'MEDIUM'
+          ? {
+              label: 'Media',
+              base: 'bg-orange-500/10 text-orange-700 dark:text-orange-300',
+              glow: 'shadow-orange-500/30',
+            }
+          : priority === 'HIGH'
+          ? {
+              label: 'Alta',
+              base: 'bg-red-500/10 text-red-700 dark:text-red-300',
+              glow: 'shadow-red-500/40',
+            }
+          : {
+              label: '—',
+              base: 'bg-slate-500/10 text-slate-400',
+              glow: '',
+            }
+
+      return (
+        <div className="flex justify-center w-full select-none">
+          <div
+            className={cn(
+              "flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-medium border border-transparent",
+              config.base,
+              config.glow
+            )}
+          >
+            <span
+              className={cn(
+                "h-1.5 w-1.5 rounded-full",
+                priority === 'LOW' && "bg-green-400",
+                priority === 'MEDIUM' && "bg-orange-500",
+                priority === 'HIGH' && "bg-red-500"
+              )}
+            />
+            {config.label}
+          </div>
+        </div>
+      )
+    },
   },
   {
     accessorKey: 'submission_date',

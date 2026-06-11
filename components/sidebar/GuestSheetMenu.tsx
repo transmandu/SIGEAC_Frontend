@@ -1,40 +1,135 @@
 "use client";
 
-import { MenuIcon } from "lucide-react";
+import { useState } from "react";
 import Link from "next/link";
 
-import { GuestMenu } from "@/components/sidebar/GuestMenu";
-import { Button } from "@/components/ui/button";
 import {
-    Sheet,
-    SheetContent,
-    SheetHeader,
-    SheetTrigger,
+  PanelLeftOpen,
+  PanelLeftClose,
+} from "lucide-react";
+
+import {
+  AnimatePresence,
+  motion,
+} from "motion/react";
+
+import { cn } from "@/lib/utils";
+
+import { GuestMenu } from "@/components/sidebar/GuestMenu";
+
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTrigger,
 } from "@/components/ui/sheet";
-import Image from "next/image";
+
+import Logo from "@/components/misc/Logo";
 
 export function GuestSheetMenu() {
-    return (
-        <Sheet>
-            <SheetTrigger className="lg:hidden" asChild>
-                <Button className="h-8" variant="outline" size="icon">
-                    <MenuIcon size={20} />
-                </Button>
-            </SheetTrigger>
-            <SheetContent className="sm:w-72 px-3 h-full flex flex-col" side="left">
-                <SheetHeader>
-                    <Button
-                        className="flex justify-center items-center pb-2 pt-[40px]"
-                        variant="link"
-                        asChild
-                    >
-                        <Link href="/" className="flex items-center gap-2">
-                            <Image src={"/logo.png"} width={150} height={150} alt="Logo" priority />
-                        </Link>
-                    </Button>
-                </SheetHeader>
-                <GuestMenu isOpen />
-            </SheetContent>
-        </Sheet>
-    );
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger className="lg:hidden" asChild>
+        <motion.button
+          whileTap={{
+            scale: 0.92,
+          }}
+          transition={{
+            duration: 0.18,
+            ease: [0.22, 1, 0.36, 1],
+          }}
+          className={cn(
+            "relative flex items-center justify-center",
+            "h-9 w-9 rounded-lg",
+            "bg-background",
+            "border border-border/70",
+            "text-foreground/80",
+            "hover:text-foreground",
+            "hover:bg-muted/60",
+            "hover:border-border",
+            "transition-colors duration-200",
+            "shadow-sm"
+          )}
+        >
+          <AnimatePresence mode="wait" initial={false}>
+            {open ? (
+              <motion.div
+                key="close"
+                initial={{
+                  opacity: 0,
+                  rotate: -90,
+                  scale: 0.8,
+                }}
+                animate={{
+                  opacity: 1,
+                  rotate: 0,
+                  scale: 1,
+                }}
+                exit={{
+                  opacity: 0,
+                  rotate: 90,
+                  scale: 0.8,
+                }}
+                transition={{
+                  duration: 0.22,
+                  ease: [0.22, 1, 0.36, 1],
+                }}
+                className="absolute"
+              >
+                <PanelLeftClose className="h-4 w-4" />
+              </motion.div>
+            ) : (
+              <motion.div
+                key="open"
+                initial={{
+                  opacity: 0,
+                  rotate: 90,
+                  scale: 0.8,
+                }}
+                animate={{
+                  opacity: 1,
+                  rotate: 0,
+                  scale: 1,
+                }}
+                exit={{
+                  opacity: 0,
+                  rotate: -90,
+                  scale: 0.8,
+                }}
+                transition={{
+                  duration: 0.22,
+                  ease: [0.22, 1, 0.36, 1],
+                }}
+                className="absolute"
+              >
+                <PanelLeftOpen className="h-4 w-4" />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.button>
+      </SheetTrigger>
+
+      <SheetContent
+        side="left"
+        className="sm:max-w-72 px-3 h-full flex flex-col"
+      >
+        {/* HEADER */}
+        <SheetHeader>
+          <div className="flex justify-center items-center mt-4 mb-2 px-4 py-4 bg-background rounded-md">
+            <Link
+              href="/"
+              className="flex items-center justify-center"
+            >
+              <Logo width={120} height={120} />
+            </Link>
+          </div>
+        </SheetHeader>
+
+        {/* MENU */}
+        <GuestMenu isOpen />
+      </SheetContent>
+    </Sheet>
+  );
 }

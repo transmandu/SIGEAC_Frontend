@@ -12,36 +12,9 @@ import {
   TooltipProvider,
   TooltipTrigger
 } from "@/components/ui/tooltip"
+import type { ArticleCostRow, ArticleCostColumnsArgs } from '@/types/purchase'
 
-export type ArticleCostRow = {
-  id: number
-  batch_name?: string
-  part_number?: string
-  serial?: string
-  unit_label?: string
-  cost?: number
-  condition_name?: string
-}
-
-export type ArticleCostColumnsArgs = {
-  onCostChange: (id: number, value: string) => void
-}
-
-const isModified = (
-  id: number,
-  drafts: Record<number, string | number | undefined>,
-  current?: number
-) => {
-  const draft = drafts[id]
-
-  if (draft === undefined || draft === null) return false
-
-  const draftStr = String(draft)
-  const currentStr =
-    current !== undefined && current !== null ? String(current) : ''
-
-  return draftStr !== currentStr || draftStr === '0'
-}
+export type { ArticleCostRow, ArticleCostColumnsArgs }
 
 const usdFormatter = new Intl.NumberFormat('en-US', {
   minimumFractionDigits: 2,
@@ -111,23 +84,6 @@ export function getArticleCostColumns({
         </div>
       ),
     },
-
-    // {
-    //   accessorKey: 'unit_label',
-    //   size: 120,
-    //   header: ({ column }) => (
-    //     <div className="flex justify-center w-full">
-    //       <DataTableColumnHeader column={column} title="Unidad" />
-    //     </div>
-    //   ),
-    //   cell: ({ row }) => (
-    //     <div className="flex justify-center w-full">
-    //       <span className="block text-sm text-slate-500 dark:text-slate-400 text-center">
-    //         {row.original.unit_label ?? '—'}
-    //       </span>
-    //     </div>
-    //   ),
-    // },
 
     {
       accessorKey: 'condition_name',

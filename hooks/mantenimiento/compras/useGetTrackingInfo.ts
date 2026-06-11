@@ -1,5 +1,4 @@
 import axios from '@/lib/axios';
-import { Quote } from '@/types';
 import { useQuery } from '@tanstack/react-query';
 
 interface TrackingInfo {

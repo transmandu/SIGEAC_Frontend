@@ -8,7 +8,7 @@ import QuoteDropdownActions from '@/components/dropdowns/mantenimiento/compras/Q
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 
-import { Quote } from '@/types'
+import type { Quote } from '@/types/purchase'
 
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'

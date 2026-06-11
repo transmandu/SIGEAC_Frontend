@@ -12,7 +12,7 @@ import {
 } from "@/actions/mantenimiento/compras/ordenes_compras/actions"
 import { useAuth } from "@/contexts/AuthContext"
 import { useCompanyStore } from "@/stores/CompanyStore"
-import { Quote } from "@/types"
+import type { Quote } from "@/types/purchase"
 import {
   AlertTriangle,
   ClipboardCheck,

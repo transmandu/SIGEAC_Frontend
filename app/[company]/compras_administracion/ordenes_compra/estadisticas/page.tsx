@@ -44,7 +44,7 @@ import {
   Cell,
 } from "recharts";
 import { Badge } from "@/components/ui/badge";
-import type { PurchaseOrder } from "@/types";
+import type { PurchaseOrder } from "@/types/purchase";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { useGetStatisticsPurchaseOrders } from "@/hooks/administracion/useGetStatisticsPurchaseOrders";
 import months from "@/components/cards/ConfigMonths";

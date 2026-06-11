@@ -1,3 +1,6 @@
+import type { Condition, Manufacturer } from '@/types';
+
+// ── Destination Article ──────────────────────────────────────────────────
 export type DestinationArticle = {
   id: number;
   part_number?: string | null;

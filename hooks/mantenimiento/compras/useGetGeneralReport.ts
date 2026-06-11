@@ -1,5 +1,5 @@
 import axios from '@/lib/axios';
-import { GeneralSalesReport } from '@/types';
+import { GeneralSalesReport } from '@/types/purchase';
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'next/navigation';
 

@@ -13,6 +13,8 @@ type Props = {
   setStatus: (value: string) => void
   type: string
   setType: (value: string) => void
+  priority: string
+  setPriority: (value: string) => void
   placeholder?: string
 }
 
@@ -24,11 +26,15 @@ const FilterSelects = ({
   setStatus,
   type,
   setType,
+  priority,
+  setPriority
 }: {
   status: string
   setStatus: (value: string) => void
   type: string
   setType: (value: string) => void
+  priority: string
+  setPriority: (value: string) => void
 }) => (
   <>
     {/* STATUS */}
@@ -41,25 +47,11 @@ const FilterSelects = ({
         </SelectTrigger>
 
         <SelectContent className={selectContentClass}>
-          <SelectItem value="ALL">
-            Todos los estados
-          </SelectItem>
-
-          <SelectItem value="PROCESO">
-            Proceso
-          </SelectItem>
-
-          <SelectItem value="COTIZADO">
-            Cotizado
-          </SelectItem>
-
-          <SelectItem value="APROBADO">
-            Aprobado
-          </SelectItem>
-
-          <SelectItem value="RECHAZADO">
-            Rechazado
-          </SelectItem>
+          <SelectItem value="ALL">Todos los estados</SelectItem>
+          <SelectItem value="PROCESO">Proceso</SelectItem>
+          <SelectItem value="COTIZADO">Cotizado</SelectItem>
+          <SelectItem value="APROBADO">Aprobado</SelectItem>
+          <SelectItem value="RECHAZADO">Rechazado</SelectItem>
         </SelectContent>
       </Select>
     </div>
@@ -74,17 +66,28 @@ const FilterSelects = ({
         </SelectTrigger>
 
         <SelectContent className={selectContentClass}>
-          <SelectItem value="ALL">
-            Todos los tipos
-          </SelectItem>
+          <SelectItem value="ALL">Todos los tipos</SelectItem>
+          <SelectItem value="AERONAUTICAL">Aeronáutico</SelectItem>
+          <SelectItem value="GENERAL">General</SelectItem>
+          <SelectItem value="STOCK">Stock</SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
 
-          <SelectItem value="Aeronautico">
-            Aeronáutico
-          </SelectItem>
+    {/* PRIORITY */}
+    <div className="relative">
+      <SlidersHorizontal className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 z-10 size-3.5 text-muted-foreground"/>
 
-          <SelectItem value="General">
-            General
-          </SelectItem>
+      <Select value={priority} onValueChange={setPriority}>
+        <SelectTrigger className={selectTriggerClass}>
+          <SelectValue placeholder="Prioridad" />
+        </SelectTrigger>
+
+        <SelectContent className={selectContentClass}>
+          <SelectItem value="ALL">Todas las prioridades</SelectItem>
+          <SelectItem value="LOW">Baja</SelectItem>
+          <SelectItem value="MEDIUM">Media</SelectItem>
+          <SelectItem value="HIGH">Alta</SelectItem>
         </SelectContent>
       </Select>
     </div>
@@ -98,6 +101,8 @@ const RequisitionToolBar = ({
   setStatus,
   type,
   setType,
+  priority,
+  setPriority,
   placeholder = 'Buscar requisiciones...',
 }: Props) => {
   return (
@@ -137,6 +142,8 @@ const RequisitionToolBar = ({
               setStatus={setStatus}
               type={type}
               setType={setType}
+              priority={priority}
+              setPriority={setPriority}
             />
           </PopoverContent>
         </Popover>
@@ -149,6 +156,8 @@ const RequisitionToolBar = ({
           setStatus={setStatus}
           type={type}
           setType={setType}
+          priority={priority}
+          setPriority={setPriority}
         />
       </div>
 

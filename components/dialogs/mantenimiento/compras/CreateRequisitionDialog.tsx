@@ -1,57 +1,60 @@
 'use client'
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
+import { useState } from 'react'
+
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger
-} from "@/components/ui/dialog"
+  DialogTrigger,
+} from '@/components/ui/dialog'
 
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
-} from "@/components/ui/tabs"
+} from '@/components/ui/tabs'
 
-import { Boxes, Package } from "lucide-react"
+import {
+  Boxes,
+  Package,
+  Plane,
+  FilePlus2,
+} from 'lucide-react'
 
-import { useAuth } from "@/contexts/AuthContext"
-
-import { CreateEngineeringBatchRequisitionForm } from "@/components/forms/mantenimiento/compras/CreateEngineeringBatchRequisitionForm"
-import { CreateGeneralBatchRequisitionForm } from "@/components/forms/mantenimiento/compras/CreateGeneralBatchRequisitionForm"
-import { CreateGeneralArticleRequisitionForm } from "@/components/forms/mantenimiento/compras/CreateGeneralArticleRequisitionForm"
-
-import { FilePlus2 } from "lucide-react"
-
-type Role = string
+import { CreateAeronauticalRequisitionForm } from '@/components/forms/mantenimiento/compras/CreateAeronauticalRequisitionForm'
+import { CreateStockRequisitionForm } from '@/components/forms/mantenimiento/compras/CreateStockRequisitionForm'
+import { CreateGeneralRequisitionForm } from '@/components/forms/mantenimiento/compras/CreateGeneralRequisitionForm'
 
 export function CreateRequisitionDialog() {
-  const { user } = useAuth()
   const [open, setOpen] = useState(false)
 
   const [hovered, setHovered] = useState(false)
   const [pos, setPos] = useState({ x: 50, y: 50 })
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleMouseMove = (
+    e: React.MouseEvent<HTMLButtonElement>
+  ) => {
     if (!hovered) return
+
     const rect = e.currentTarget.getBoundingClientRect()
-    const x = ((e.clientX - rect.left) / rect.width) * 100
-    const y = ((e.clientY - rect.top) / rect.height) * 100
+
+    const x =
+      ((e.clientX - rect.left) / rect.width) * 100
+
+    const y =
+      ((e.clientY - rect.top) / rect.height) * 100
+
     setPos({ x, y })
   }
 
-  const userRoles: Role[] = user?.roles?.map(role => role.name) || []
-  const isEngineering = userRoles.includes("ENGINEERING")
-
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-
-      {/* ===================== TRIGGER (igual DispatchReportDialog) ===================== */}
+      {/* ===================== TRIGGER ===================== */}
       <DialogTrigger asChild>
         <Button
           onMouseEnter={() => setHovered(true)}
@@ -76,7 +79,7 @@ export function CreateRequisitionDialog() {
           style={{
             backgroundImage: hovered
               ? `radial-gradient(circle at ${pos.x}% ${pos.y}%, rgba(20,184,166,0.10), transparent 65%)`
-              : 'none'
+              : 'none',
           }}
         >
           Nueva solicitud
@@ -84,23 +87,53 @@ export function CreateRequisitionDialog() {
       </DialogTrigger>
 
       {/* ===================== DIALOG ===================== */}
-      <DialogContent className="sm:max-w-[680px] p-0 overflow-visible">
-
-        {/* ===================== HEADER (idéntico patrón DispatchReport) ===================== */}
-        <div className="relative bg-gradient-to-br from-primary/5 via-background to-background px-6 pt-8 pb-1">
-
+      <DialogContent
+        className="
+          w-[95vw]
+          max-w-[95vw]
+          sm:max-w-[760px]
+          p-0
+          overflow-hidden
+        "
+      >
+        {/* ===================== HEADER ===================== */}
+        <div
+          className="
+            relative
+            bg-gradient-to-br
+            from-primary/5
+            via-background
+            to-background
+            px-4
+            sm:px-6
+            pt-6
+            sm:pt-8
+            pb-1
+          "
+        >
           <div className="absolute inset-0 bg-grid-white/[0.02]" />
 
           <DialogHeader className="relative">
-            <div className="flex items-center gap-4">
-
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-3xl border bg-background shadow-sm">
-                <FilePlus2 className="h-7 w-7 text-teal-600 dark:text-teal-400" />
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              <div
+                className="
+                  flex h-12 w-12
+                  sm:h-14 sm:w-14
+                  shrink-0
+                  items-center
+                  justify-center
+                  rounded-3xl
+                  border
+                  bg-background
+                  shadow-sm
+                "
+              >
+                <FilePlus2 className="h-6 w-6 sm:h-7 sm:w-7 text-teal-600 dark:text-teal-400" />
               </div>
 
               <div className="space-y-1">
-                <DialogTitle className="text-2xl font-bold tracking-tight leading-none">
-                  Centro de requisiciones
+                <DialogTitle className="text-xl sm:text-2xl font-bold tracking-tight leading-none">
+                  Centro de solicitudes
                 </DialogTitle>
 
                 <p className="text-sm font-medium text-teal-700 dark:text-teal-300">
@@ -108,81 +141,114 @@ export function CreateRequisitionDialog() {
                 </p>
 
                 <DialogDescription className="max-w-[430px] text-sm leading-relaxed">
-                  Cree solicitudes de compra por lote o artículo según el tipo de operación.
+                  Cree solicitudes de compra según el tipo de operación.
                 </DialogDescription>
               </div>
-
             </div>
           </DialogHeader>
         </div>
 
         {/* ===================== BODY ===================== */}
-        <div className="px-6 py-5">
+        <div className="px-4 sm:px-6 py-5">
+          <Tabs defaultValue="AERONAUTICAL">
+            {/* ===================== TABS ===================== */}
+            <TabsList
+              className="
+                grid
+                grid-cols-1
+                sm:grid-cols-3
+                gap-1
+                sm:gap-0
+                h-auto
+                mb-4
+              "
+            >
+              <TabsTrigger
+                value="AERONAUTICAL"
+                className="
+                  flex items-center gap-2
+                  justify-start sm:justify-center
+                  text-xs sm:text-sm
+                  rounded-lg
+                  transition-all duration-200
 
-          {isEngineering ? (
-            <CreateEngineeringBatchRequisitionForm onClose={() => setOpen(false)} />
-          ) : (
-            <Tabs defaultValue="batch">
+                  data-[state=active]:bg-background
+                  data-[state=active]:shadow-md
+                  data-[state=active]:shadow-teal-500/10
+                  data-[state=active]:ring-1
+                  data-[state=active]:ring-teal-500/20
+                  data-[state=active]:text-teal-600
+                "
+              >
+                <Plane className="size-4" />
+                Aeronáutica
+              </TabsTrigger>
 
-              {/* ===================== TABS (idéntico DispatchReport) ===================== */}
-              <TabsList className="grid grid-cols-2 mb-4">
+              <TabsTrigger
+                value="STOCK"
+                className="
+                  flex items-center gap-2
+                  justify-start sm:justify-center
+                  text-xs sm:text-sm
+                  rounded-lg
+                  transition-all duration-200
 
-                <TabsTrigger
-                  value="batch"
-                  className="
-                    flex items-center gap-2 text-xs rounded-lg
-                    transition-all duration-200
+                  data-[state=active]:bg-background
+                  data-[state=active]:shadow-md
+                  data-[state=active]:shadow-teal-500/10
+                  data-[state=active]:ring-1
+                  data-[state=active]:ring-teal-500/20
+                  data-[state=active]:text-teal-600
+                "
+              >
+                <Boxes className="size-4" />
+                Inventario
+              </TabsTrigger>
 
-                    data-[state=active]:bg-background
-                    data-[state=active]:shadow-md
-                    data-[state=active]:shadow-teal-500/10
-                    data-[state=active]:ring-1
-                    data-[state=active]:ring-teal-500/20
-                    data-[state=active]:text-teal-600
-                  "
-                >
-                  <Boxes className="size-4" />
-                  Lote
-                </TabsTrigger>
+              <TabsTrigger
+                value="GENERAL"
+                className="
+                  flex items-center gap-2
+                  justify-start sm:justify-center
+                  text-xs sm:text-sm
+                  rounded-lg
+                  transition-all duration-200
 
-                <TabsTrigger
-                  value="articulo"
-                  className="
-                    flex items-center gap-2 text-xs rounded-lg
-                    transition-all duration-200
+                  data-[state=active]:bg-background
+                  data-[state=active]:shadow-md
+                  data-[state=active]:shadow-teal-500/10
+                  data-[state=active]:ring-1
+                  data-[state=active]:ring-teal-500/20
+                  data-[state=active]:text-teal-600
+                "
+              >
+                <Package className="size-4" />
+                General
+              </TabsTrigger>
+            </TabsList>
 
-                    data-[state=active]:bg-background
-                    data-[state=active]:shadow-md
-                    data-[state=active]:shadow-teal-500/10
-                    data-[state=active]:ring-1
-                    data-[state=active]:ring-teal-500/20
-                    data-[state=active]:text-teal-600
-                  "
-                >
-                  <Package className="size-4" />
-                  Artículo
-                </TabsTrigger>
+            {/* ===================== CONTENT ===================== */}
 
-              </TabsList>
+            <TabsContent value="AERONAUTICAL" className="mt-4">
+              <CreateAeronauticalRequisitionForm
+                onClose={() => setOpen(false)}
+              />
+            </TabsContent>
 
-              {/* ===================== CONTENT ===================== */}
-              <TabsContent value="batch" className="mt-4">
-                <CreateGeneralBatchRequisitionForm
-                  isEditing={false}
-                  onClose={() => setOpen(false)}
-                />
-              </TabsContent>
+            <TabsContent value="STOCK" className="mt-4">
+              <CreateStockRequisitionForm
+                isEditing={false}
+                onClose={() => setOpen(false)}
+              />
+            </TabsContent>
 
-              <TabsContent value="articulo" className="mt-4">
-                <CreateGeneralArticleRequisitionForm
-                  isEditing={false}
-                  onClose={() => setOpen(false)}
-                />
-              </TabsContent>
-
-            </Tabs>
-          )}
-
+            <TabsContent value="GENERAL" className="mt-4">
+              <CreateGeneralRequisitionForm
+                isEditing={false}
+                onClose={() => setOpen(false)}
+              />
+            </TabsContent>
+          </Tabs>
         </div>
       </DialogContent>
     </Dialog>

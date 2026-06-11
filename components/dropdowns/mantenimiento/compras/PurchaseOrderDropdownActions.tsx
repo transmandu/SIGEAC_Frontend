@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { PurchaseOrder } from "@/types"
+import type { PurchaseOrder } from "@/types/purchase"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 // import { PDFDownloadLink } from "@react-pdf/renderer"

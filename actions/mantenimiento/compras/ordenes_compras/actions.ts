@@ -1,35 +1,7 @@
 import axiosInstance from "@/lib/axios"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
-
-interface POArticles {
-  article_part_number: string,
-  article_purchase_order_id: number,
-  usa_tracking: string,
-  ock_tracking: string,
-  article_location: string,
-}
-
-interface CreatePurchaseOrderData {
-  status: string,
-  justification: string,
-  purchase_date: Date,
-  sub_total: number,
-  total: number,
-  vendor_id: number,
-  created_by: string,
-  quote_order_id: number;
-  articles_purchase_orders: {
-    batch: {
-        name: string;
-    };
-    article_part_number: string;
-    article_alt_part_number?: string;
-    quantity: number;
-    unit_price: string;
-    image: string;
-}[]
-}
+import type { POArticles, CreatePurchaseOrderData } from "@/types/purchase"
 
 export const useCreatePurchaseOrder = () => {
 

@@ -1,0 +1,311 @@
+'use client';
+
+import Image from 'next/image';
+import { Badge } from '@/components/ui/badge';
+import { ImageIcon } from 'lucide-react';
+import PriorityIndicator from './PriorityIndicator';
+import { articleStatusUI } from './utils/uiHelpers';
+
+interface ArticleCardProps {
+  article: any;
+  batchName: string;
+  batchCategory?: string;
+  onImageClick: (image: string) => void;
+}
+
+const ArticleCard = ({ article, batchName, batchCategory, onImageClick }: ArticleCardProps) => {
+  const showApprovalDetails = (status?: string) => {
+    return status && status !== 'PENDING';
+  };
+
+  const getImageSrc = () => {
+    if (!article.image) return null;
+    return article.image.startsWith('data:image')
+      ? article.image
+      : `data:image/jpeg;base64,${article.image}`;
+  };
+
+  const imageSrc = getImageSrc();
+
+  return (
+    <div className="rounded-lg border border-border/60 bg-background/70 overflow-hidden mx-3">
+      {/* HEADER (batch name dentro del card, no externo) */}
+      <div className="flex items-center justify-between border-b border-border/50 bg-muted/25 px-3 py-1.5">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="truncate text-sm font-medium text-foreground">
+            {batchName}
+          </span>
+          {batchCategory && (
+            <Badge
+              variant="secondary"
+              className="h-4 px-1.5 text-[9px] uppercase tracking-wide text-muted-foreground select-none"
+            >
+              {batchCategory}
+            </Badge>
+          )}
+        </div>
+      </div>
+
+      {/* BODY */}
+      <div className="px-3 py-3">
+        {/* Desktop & Tablet: side-by-side layout */}
+        <div className="hidden md:grid grid-cols-[1fr_auto] gap-5 items-center">
+          {/* IZQUIERDA */}
+          <div className="min-w-0 space-y-2.5">
+            {/* PN */}
+            <div className="space-y-1">
+              <span className="text-[10px] leading-none tracking-wide text-muted-foreground select-none">
+                PART NUMBER
+              </span>
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="shrink-0 text-[10px] px-1.5 py-[2px] rounded bg-teal-500/10 text-teal-700 border border-teal-500/20 font-medium select-none">
+                  P/N
+                </span>
+                <div className="w-[300px] text-sm bg-muted/40 border border-border/40 rounded px-2 py-1 truncate">
+                  {article.article_part_number || 'N/A'}
+                </div>
+              </div>
+            </div>
+
+            {/* ALT */}
+            <div className="space-y-1">
+              <span className="text-[10px] leading-none tracking-wide text-muted-foreground select-none">
+                ALTERNATIVE PART NUMBER
+              </span>
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="shrink-0 text-[10px] px-1.5 py-[2px] rounded bg-slate-500/10 text-slate-600 border border-slate-500/20 font-medium select-none">
+                  ALT
+                </span>
+                <div className="w-[300px] text-[11px] border border-dashed border-border/40 rounded px-2 py-1 truncate text-muted-foreground">
+                  {article.article_alt_part_number || 'N/A'}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* DERECHA */}
+          <div className="flex flex-col gap-2 shrink-0">
+            {/* ── FILA 1 ── */}
+            <div className="flex items-start gap-4">
+              {/* ESTATUS */}
+              <div className="flex flex-col items-center min-w-[90px]">
+                <span className="h-4 w-full flex items-center justify-center text-[10px] tracking-wide text-muted-foreground mb-2 select-none">
+                  ESTATUS
+                </span>
+                <div className="flex items-center justify-center w-full">
+                  <Badge className={articleStatusUI(article.status).className}>
+                    {articleStatusUI(article.status).label}
+                  </Badge>
+                </div>
+              </div>
+
+              {/* PRIORIDAD */}
+              <div className="flex flex-col items-center min-w-[90px]">
+                <span className="h-4 w-full flex items-center justify-center text-[10px] tracking-wide text-muted-foreground mb-2 select-none">
+                  PRIORIDAD
+                </span>
+                <div className="flex items-center justify-center w-full">
+                  <PriorityIndicator priority={article.priority} />
+                </div>
+              </div>
+
+              {/* CANTIDAD */}
+              <div className="flex flex-col items-center min-w-[55px]">
+                <span className="h-4 w-full flex items-center justify-center text-[10px] tracking-wide text-muted-foreground mb-2 select-none">
+                  CANTIDAD
+                </span>
+                <div className="flex items-center justify-center w-full">
+                  <span className="text-sm tabular-nums leading-none">
+                    {article.quantity}
+                  </span>
+                </div>
+              </div>
+
+              {/* UNIDAD */}
+              <div className="flex flex-col items-center min-w-[75px]">
+                <span className="h-4 w-full flex items-center justify-center text-[10px] tracking-wide text-muted-foreground mb-2 select-none">
+                  UNIDAD
+                </span>
+                <div className="flex items-center justify-center w-full">
+                  <span className="text-sm text-muted-foreground leading-none">
+                    {article.unit?.label ?? '—'}
+                  </span>
+                </div>
+              </div>
+
+              {/* IMAGEN */}
+              <div className="flex flex-col items-center">
+                <span className="h-4 w-full flex items-center justify-center text-[10px] tracking-wide text-muted-foreground mb-2 select-none">
+                  IMAGEN
+                </span>
+                <div className="flex items-center justify-center w-full">
+                  {imageSrc ? (
+                    <div
+                      className="relative w-12 h-12 rounded-md overflow-hidden border border-border/40 bg-muted/20 cursor-pointer hover:opacity-80 transition"
+                      onClick={() => onImageClick(imageSrc)}
+                    >
+                      <Image
+                        src={imageSrc}
+                        alt={`Imagen ${article.article_part_number}`}
+                        fill
+                        className="object-contain"
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-12 h-12 rounded-md border border-border/40 bg-muted/10 flex items-center justify-center">
+                      <ImageIcon className="size-4 text-muted-foreground/40" />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* ── FILA 2 ── */}
+            {showApprovalDetails(article.status) && (
+              <div className="flex items-start gap-6 pt-1 border-t border-border/40">
+                {/* CANTIDAD APROBADA */}
+                <div className="flex flex-col items-center min-w-[120px]">
+                  <span className="w-full flex items-center justify-center text-[10px] tracking-wide text-muted-foreground mb-1 select-none">
+                    CANTIDAD APROBADA
+                  </span>
+                  <div className="flex items-center justify-center w-full">
+                    <span className="text-sm tabular-nums">
+                      {article.approved_quantity ?? '—'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* JUSTIFICACIÓN */}
+                <div className="flex flex-col items-center min-w-[220px] max-w-[320px]">
+                  <span className="w-full flex items-center justify-center text-[10px] tracking-wide text-muted-foreground mb-1 select-none">
+                    JUSTIFICACIÓN
+                  </span>
+                  <div className="flex items-center justify-center w-full">
+                    <span className="text-[11px] text-muted-foreground truncate">
+                      {article.justification ?? '—'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Mobile: stacked layout */}
+        <div className="md:hidden space-y-4">
+          {/* Info section */}
+          <div className="space-y-3">
+            {/* PN */}
+            <div className="space-y-1">
+              <span className="text-[10px] leading-none tracking-wide text-muted-foreground select-none">
+                PART NUMBER
+              </span>
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="shrink-0 text-[10px] px-1.5 py-[2px] rounded bg-teal-500/10 text-teal-700 border border-teal-500/20 font-medium select-none">
+                  P/N
+                </span>
+                <div className="flex-1 text-sm bg-muted/40 border border-border/40 rounded px-2 py-1 truncate">
+                  {article.article_part_number || 'N/A'}
+                </div>
+              </div>
+            </div>
+
+            {/* ALT */}
+            <div className="space-y-1">
+              <span className="text-[10px] leading-none tracking-wide text-muted-foreground select-none">
+                ALTERNATIVE PART NUMBER
+              </span>
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="shrink-0 text-[10px] px-1.5 py-[2px] rounded bg-slate-500/10 text-slate-600 border border-slate-500/20 font-medium select-none">
+                  ALT
+                </span>
+                <div className="flex-1 text-[11px] border border-dashed border-border/40 rounded px-2 py-1 truncate text-muted-foreground">
+                  {article.article_alt_part_number || 'N/A'}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Attributes grid */}
+          <div className="grid grid-cols-3 gap-3">
+            {/* ESTATUS */}
+            <div className="flex flex-col items-center">
+              <span className="text-[9px] tracking-wide text-muted-foreground mb-1.5 select-none">
+                ESTATUS
+              </span>
+              <Badge className={articleStatusUI(article.status).className}>
+                {articleStatusUI(article.status).label}
+              </Badge>
+            </div>
+
+            {/* PRIORIDAD */}
+            <div className="flex flex-col items-center">
+              <span className="text-[9px] tracking-wide text-muted-foreground mb-1.5 select-none">
+                PRIORIDAD
+              </span>
+              <PriorityIndicator priority={article.priority} />
+            </div>
+
+            {/* CANTIDAD / UNIDAD combined */}
+            <div className="flex flex-col items-center justify-center">
+              <span className="text-[9px] tracking-wide text-muted-foreground mb-1.5 select-none">
+                CANT.
+              </span>
+              <span className="text-sm tabular-nums leading-none">
+                {article.quantity}
+              </span>
+              <span className="text-[9px] text-muted-foreground leading-none mt-0.5">
+                {article.unit?.label ?? '—'}
+              </span>
+            </div>
+          </div>
+
+          {/* Image */}
+          <div className="flex justify-center pt-1">
+            {imageSrc ? (
+              <div
+                className="relative w-16 h-16 rounded-md overflow-hidden border border-border/40 bg-muted/20 cursor-pointer hover:opacity-80 transition"
+                onClick={() => onImageClick(imageSrc)}
+              >
+                <Image
+                  src={imageSrc}
+                  alt={`Imagen ${article.article_part_number}`}
+                  fill
+                  className="object-contain"
+                />
+              </div>
+            ) : (
+              <div className="w-16 h-16 rounded-md border border-border/40 bg-muted/10 flex items-center justify-center">
+                <ImageIcon className="size-5 text-muted-foreground/40" />
+              </div>
+            )}
+          </div>
+
+          {/* Approval details */}
+          {showApprovalDetails(article.status) && (
+            <div className="border-t border-border/40 pt-3 space-y-2.5">
+              <div className="flex justify-between items-center">
+                <span className="text-[9px] tracking-wide text-muted-foreground select-none">
+                  CANTIDAD APROBADA
+                </span>
+                <span className="text-sm tabular-nums">
+                  {article.approved_quantity ?? '—'}
+                </span>
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className="text-[9px] tracking-wide text-muted-foreground select-none">
+                  JUSTIFICACIÓN
+                </span>
+                <span className="text-[11px] text-muted-foreground truncate">
+                  {article.justification ?? '—'}
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default ArticleCard;

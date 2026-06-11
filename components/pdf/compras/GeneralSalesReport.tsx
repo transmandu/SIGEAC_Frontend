@@ -1,4 +1,4 @@
-import { GeneralSalesReport } from "@/types";
+import { GeneralSalesReport } from "@/types/purchase";
 import { Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";

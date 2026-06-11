@@ -13,12 +13,11 @@ import {
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
 import { useCompanyStore } from '@/stores/CompanyStore'
-import { DataTable } from './data-table'
+import { DataTable } from '../data-table'
 import { getColumns } from './columns'
 import TransitToolbar from './_components/TransitToolBar'
 import { useTransitArticles } from './hooks/useTransitArticles'
-import type { TransitStatusFilter } from './types'
-import TransitSubRow from './_components/TransitSubRow'
+import type { TransitStatusFilter } from '@/types/purchase'
 
 const EnTransitoPage = () => {
   const { selectedCompany } = useCompanyStore()
@@ -137,9 +136,9 @@ const EnTransitoPage = () => {
             columns={columns}
             data={filteredArticles}
             loading={isUpdating}
-            // renderSubRow={(row) => (
-            //   <TransitSubRow row={row} />
-            // )}
+            pageSize={15}
+            loadingText="Cargando artículos..."
+            emptyText="No se encontraron artículos"
           />
         )}
 

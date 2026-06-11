@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useAuth } from "@/contexts/AuthContext"
-import { Requisition } from "@/types"
+import type { Requisition } from "@/types/purchase"
 import {
   DropdownMenu,
   DropdownMenuContent,

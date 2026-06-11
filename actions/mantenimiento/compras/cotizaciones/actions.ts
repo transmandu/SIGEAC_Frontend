@@ -1,25 +1,7 @@
 import axiosInstance from "@/lib/axios"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
-
-interface CreateQuoteData {
-    justification: string,
-    articles: {
-      part_number: string,
-      alt_part_number?: string,
-      quantity: number,
-      unit: string,
-      unit_price: string,
-    }[],
-    sub_total: number,
-    total: number,
-    vendor_id: number,
-    requisition_order_id: number,
-    location_id: number,
-    quote_date: Date,
-    created_by: string,
-    company: string,
-}
+import type { CreateQuoteData } from "@/types/purchase"
 
 export const useCreateQuote = () => {
 

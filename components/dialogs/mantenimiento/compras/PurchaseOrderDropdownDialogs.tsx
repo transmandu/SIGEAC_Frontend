@@ -10,7 +10,7 @@ import {
 import {
   ClipboardCheck,
 } from "lucide-react"
-import { PurchaseOrder } from "@/types"
+import type { PurchaseOrder } from "@/types/purchase"
 import { CompletePurchaseForm } from "../../../forms/mantenimiento/compras/CompletePurchaseForm"
 
 type Props = {

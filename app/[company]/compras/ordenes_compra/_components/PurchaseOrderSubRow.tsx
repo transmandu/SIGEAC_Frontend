@@ -2,7 +2,7 @@
 
 import { Row } from '@tanstack/react-table'
 import { MapPin } from 'lucide-react'
-import { PurchaseOrder } from '@/types'
+import type { PurchaseOrder } from '@/types/purchase'
 
 export default function PurchaseOrderSubRow({
   row,
