@@ -358,7 +358,7 @@ export default function DashboardSummary({ companySlug }: DashboardSummaryProps)
                     className="rounded-xl border bg-background/60 p-3 text-sm space-y-1"
                   >
                     <div>Fecha: {dateFormat(r.report_date, "yyyy-MM-dd")}</div>
-                    <div>Aeronave: {r.aircraft.acronym}</div>
+                    <div>Aeronave: {r.aircraft?.acronym ?? "N/A"}</div>
 
                     <Badge className="bg-red-500">Obligatorio</Badge>
 
