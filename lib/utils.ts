@@ -125,7 +125,8 @@ export const formatDate = (dateInput: string | Date, daysToAdd: number = 0) => {
     });
 };
 
-export function dateFormat(date: string | Date, DateFormat: string) {
+export function dateFormat(date: string | Date | null | undefined, DateFormat: string) {
+    if (!date) return "N/A";
     const newDate = addDays(new Date(date), 1);
     return format(newDate, DateFormat, {
         locale: es,

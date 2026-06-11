@@ -198,7 +198,7 @@ export default function DashboardSummary({ companySlug }: DashboardSummaryProps)
                   >
                     {/* EMPLEADO */}
                     <div className="font-medium text-sm leading-tight">
-                      {t.employee.first_name} {t.employee.last_name}
+                      {t.employee?.first_name ?? ""} {t.employee?.last_name ?? ""}
                     </div>
 
                     {/* STATUS */}
@@ -358,7 +358,7 @@ export default function DashboardSummary({ companySlug }: DashboardSummaryProps)
                     className="rounded-xl border bg-background/60 p-3 text-sm space-y-1"
                   >
                     <div>Fecha: {dateFormat(r.report_date, "yyyy-MM-dd")}</div>
-                    <div>Aeronave: {r.aircraft.acronym}</div>
+                    <div>Aeronave: {r.aircraft?.acronym ?? "N/A"}</div>
 
                     <Badge className="bg-red-500">Obligatorio</Badge>
 

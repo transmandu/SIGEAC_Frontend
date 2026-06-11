@@ -21,7 +21,7 @@ export const useGetCourseStats = (
   company?: string
 ) => {
   return useQuery<GeneralStats>({
-    queryKey: ["course-stats", from, to], // Incluye el ID en la clave de la query
+    queryKey: ["course-stats", company, location_id, from, to], // Incluye el ID en la clave de la query
     queryFn: () => fetchCourseStats(from,to,location_id,company), // Pasa el ID a la función fetchUser
     staleTime: 1000 * 60 * 5, // 5 minutos
     enabled: !!company && !!location_id,
