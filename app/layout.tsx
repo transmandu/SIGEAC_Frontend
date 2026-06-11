@@ -13,6 +13,9 @@ const inter = Poppins({ subsets: ["latin"], weight: ["100", "300", "400", "500",
 export const metadata: Metadata = {
   title: "SIGEAC",
   description: "Sistema de Gestión Aeronáutica Civil",
+  icons: {
+    icon: "/logo.png",
+  },
 };
 
 export default function RootLayout({
@@ -23,7 +26,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        <link rel="icon" href="/logo.png" sizes="any" />
+        
         <QueryClientProvider>
           <RedirectHandler />
           <AuthProvider>
