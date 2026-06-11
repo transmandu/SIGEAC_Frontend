@@ -198,7 +198,7 @@ export default function DashboardSummary({ companySlug }: DashboardSummaryProps)
                   >
                     {/* EMPLEADO */}
                     <div className="font-medium text-sm leading-tight">
-                      {t.employee.first_name} {t.employee.last_name}
+                      {t.employee?.first_name ?? ""} {t.employee?.last_name ?? ""}
                     </div>
 
                     {/* STATUS */}
