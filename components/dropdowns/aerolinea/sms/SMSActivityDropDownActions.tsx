@@ -113,7 +113,7 @@ const SMSActivityDropDownActions = ({
           <DropdownMenuItem
             onClick={() => {
               router.push(
-                `/${selectedCompany?.slug}/sms/promocion/actividades/${smsActivity.id}`
+                `/${selectedCompany?.slug}/sms/promocion/actividades/${smsActivity.activity_number}`
               );
             }}
           >
@@ -261,7 +261,7 @@ const SMSActivityDropDownActions = ({
               ¿Desea reabrir la actividad?
             </DialogTitle>
             <DialogDescription className="text-center p-2 mb-0 pb-0">
-              Al reabrirla, podrás volver a editar la información, gestionar la asistencia y 
+              Al reabrirla, podrás volver a editar la información, gestionar la asistencia y
               agregar personas.
             </DialogDescription>
           </DialogHeader>
