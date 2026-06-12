@@ -3,14 +3,14 @@ import { SMSActivity } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 
-const fetchSMSActivityById = async ({
+const fetchSMSActivityByNumber = async ({
   company,
-  id,
+  activityNumber,
 }: {
   company?: string;
-  id: string;
+  activityNumber: string;
 }) => {
-  const { data } = await axiosInstance.get(`/${company}/sms/activities/${id}`);
+  const { data } = await axiosInstance.get(`/${company}/sms/activities/${activityNumber}`);
 
   // Cargar imagen como Blob para poder mostrarla desde el disco privado
   if (data.image) {
@@ -47,16 +47,16 @@ const fetchSMSActivityById = async ({
   return data;
 };
 
-export const useGetSMSActivityById = ({
+export const useGetSMSActivityByNumber = ({
   company,
-  id,
+  activityNumber,
 }: {
   company?: string;
-  id: string;
+  activityNumber: string;
 }) => {
   const query = useQuery<SMSActivity>({
-    queryKey: ["sms-activity", id],
-    queryFn: () => fetchSMSActivityById({ company, id }),
+    queryKey: ["sms-activity", activityNumber],
+    queryFn: () => fetchSMSActivityByNumber({ company, activityNumber }),
     staleTime: 1000 * 60 * 5, // 5 minutos
     enabled: !!company,
   });

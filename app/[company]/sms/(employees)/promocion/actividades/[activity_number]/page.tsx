@@ -16,7 +16,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useGetActivityAttendanceList } from "@/hooks/sms/useGetActivityAttendanceList";
 import { useGetSMSActivityAttendanceStats } from "@/hooks/sms/useGetSMSActivityAttendanceStats";
-import { useGetSMSActivityById } from "@/hooks/sms/useGetSMSActivityById";
+import { useGetSMSActivityByNumber } from "@/hooks/sms/useGetSMSActivityByNumber";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { generateMinutaPDF } from "@/utils/generateMinutaPDF";
 import { addDays, format } from "date-fns";
@@ -29,7 +29,6 @@ import {
   FileText,
   Info,
   Loader2,
-  Paperclip,
   UserCheck,
   Users,
   X,
@@ -51,16 +50,16 @@ const statusClassName = {
 
 const ShowSMSActivity = () => {
   const { selectedCompany } = useCompanyStore();
-  const { activity_id } = useParams<{ activity_id: string }>();
+  const { activity_number } = useParams<{ activity_number: string }>();
 
   const [openPdf, setOpenPdf] = useState<boolean>(false);
   const {
     data: activity,
     isLoading: isActivityLoading,
     isError: activityError,
-  } = useGetSMSActivityById({
+  } = useGetSMSActivityByNumber({
     company: selectedCompany?.slug,
-    id: activity_id,
+    activityNumber: activity_number,
   });
 
   const {
@@ -69,14 +68,14 @@ const ShowSMSActivity = () => {
     isError: attendedListError,
   } = useGetActivityAttendanceList({
     company: selectedCompany?.slug,
-    activity_id: activity_id.toString(),
+    activityNumber: activity_number?.toString(),
   });
 
   const {
     data: attendanceStats,
     isLoading: isAttendanceStatsLoading,
     isError: isAttendanceStatsError,
-  } = useGetSMSActivityAttendanceStats(activity_id);
+  } = useGetSMSActivityAttendanceStats(activity_number);
 
   const pieChartData = attendanceStats
     ? [

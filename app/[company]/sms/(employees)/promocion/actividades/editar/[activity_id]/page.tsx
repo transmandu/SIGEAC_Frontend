@@ -3,22 +3,22 @@
 import CreateSMSActivityForm from "@/components/forms/aerolinea/sms/CreateSMSActivityForm";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import LoadingPage from "@/components/misc/LoadingPage";
-import { useGetSMSActivityById } from "@/hooks/sms/useGetSMSActivityById";
+import { useGetSMSActivityByNumber } from "@/hooks/sms/useGetSMSActivityByNumber";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useParams, useRouter } from "next/navigation";
 
 const EditSMSActivityPage = () => {
   const { selectedCompany } = useCompanyStore();
   const router = useRouter();
-  const { activity_id } = useParams<{ activity_id: string }>();
+  const { activity_number } = useParams<{ activity_number: string }>();
 
   const {
     data: activity,
     isLoading,
     isError,
-  } = useGetSMSActivityById({
+  } = useGetSMSActivityByNumber({
     company: selectedCompany?.slug,
-    id: activity_id,
+    activityNumber: activity_number,
   });
 
   return (
@@ -38,7 +38,7 @@ const EditSMSActivityPage = () => {
             isEditing
             onClose={() =>
               router.push(
-                `/${selectedCompany?.slug}/sms/promocion/actividades/${activity_id}`,
+                `/${selectedCompany?.slug}/sms/promocion/actividades/${activity_number}`,
               )
             }
           />
