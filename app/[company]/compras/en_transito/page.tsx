@@ -2,7 +2,6 @@
 
 import { useState, useDeferredValue, useMemo } from 'react'
 import { ContentLayout } from '@/components/layout/ContentLayout'
-import LoadingPage from '@/components/misc/LoadingPage'
 import BackButton from '@/components/misc/BackButton'
 import {
   Breadcrumb,
@@ -36,8 +35,6 @@ const EnTransitoPage = () => {
     isError,
   } = useTransitArticles({ status })
 
-  const isInitialLoading = isLoading && !articles
-  const isUpdating = isLoading && !!articles
 
   const filteredArticles = useMemo(() => {
     if (!articles) return []
@@ -127,20 +124,14 @@ const EnTransitoPage = () => {
           </span>
         </div>
 
-        {isInitialLoading && filteredArticles.length === 0 ? (
-          <div className="flex items-center justify-center min-h-[300px]">
-            <LoadingPage />
-          </div>
-        ) : (
           <DataTable
             columns={columns}
             data={filteredArticles}
-            loading={isUpdating}
+            loading={isLoading}
             pageSize={15}
             loadingText="Cargando artículos..."
             emptyText="No se encontraron artículos"
           />
-        )}
 
         {isError && (
           <div className="rounded-lg border border-red-500/20 bg-red-500/5 px-4 py-3">

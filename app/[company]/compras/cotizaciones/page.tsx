@@ -2,7 +2,6 @@
 
 import { useMemo, useState, useDeferredValue } from 'react'
 import { ContentLayout } from '@/components/layout/ContentLayout'
-import LoadingPage from '@/components/misc/LoadingPage'
 import BackButton from '@/components/misc/BackButton'
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
 import { useGetQuotes } from '@/hooks/mantenimiento/compras/useGetQuotes'
@@ -29,8 +28,6 @@ const QuotesOrdersPage = () => {
   const [groupBy, setGroupBy] = useState<string>('NONE')
 
   const deferredSearch = useDeferredValue(search)
-  const isInitialLoading = isLoading && !quotes
-  const isUpdating = isLoading && !!quotes
 
   const filteredQuotes = useMemo(() => {
     if (!quotes) return []
@@ -148,11 +145,7 @@ const QuotesOrdersPage = () => {
           </span>
         </div>
 
-        {isInitialLoading && filteredQuotes.length === 0 ? (
-          <div className="flex items-center justify-center min-h-[300px]">
-            <LoadingPage />
-          </div>
-        ) : groupBy !== 'NONE' ? (
+        {groupBy !== 'NONE' ? (
           <GroupedQuotesTable
             data={filteredQuotes}
             groupBy={groupBy as any}
@@ -160,7 +153,7 @@ const QuotesOrdersPage = () => {
               <DataTable
                 columns={columns}
                 data={rows}
-                loading={isUpdating}
+                loading={isLoading}
               />
             )}
           />
@@ -168,7 +161,7 @@ const QuotesOrdersPage = () => {
           <DataTable
             columns={columns}
             data={filteredQuotes}
-            loading={isUpdating}
+            loading={isLoading}
           />
         )}
 

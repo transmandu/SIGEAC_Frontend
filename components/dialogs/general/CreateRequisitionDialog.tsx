@@ -94,109 +94,116 @@ export function CreateRequisitionDialog() {
         className="
           w-[95vw]
           max-w-[95vw]
-          sm:max-w-[760px]
+          sm:max-w-[860px]
+          max-h-[85vh]
+          p-0
           overflow-hidden
+          flex
+          flex-col
         "
       >
-        <DialogHeader className="space-y-2">
+        <DialogHeader className="space-y-2 px-6 pt-6 shrink-0">
           <DialogTitle className="text-lg sm:text-xl">
-            Creación de Sol. de Compra
+            Creación de Solicitud de Compra
           </DialogTitle>
 
           <DialogDescription>
-            Seleccione el tipo de solicitud que desea crear
+            {tabs.length === 1 && showStock
+              ? 'Cree una solicitud para reponer artículos de inventario y stock de almacén'
+              : 'Seleccione el tipo de solicitud que desea crear'
+            }
           </DialogDescription>
         </DialogHeader>
 
-        {/* ================= SINGLE FORM ================= */}
-        {tabs.length === 1 && (
-          <>
-            {showStock && (
-              <CreateStockRequisitionForm
-                isEditing={false}
-                onClose={() => setOpen(false)}
-              />
-            )}
-
-            {!showStock && showAeronautical && (
-              <CreateAeronauticalRequisitionForm
-                onClose={() => setOpen(false)}
-              />
-            )}
-
-            {!showStock &&
-              !showAeronautical &&
-              showGeneral && (
-                <CreateGeneralRequisitionForm
-                  isEditing={false}
+        <div className="overflow-y-auto px-6 pb-6">
+          {/* ================= SINGLE FORM ================= */}
+          {tabs.length === 1 && (
+            <>
+              {showStock && (
+                <CreateStockRequisitionForm
                   onClose={() => setOpen(false)}
                 />
               )}
-          </>
-        )}
 
-        {/* ================= MULTIPLE TABS ================= */}
-        {tabs.length > 1 && (
-          <Tabs
-            defaultValue={defaultTab}
-            className="w-full overflow-hidden"
-          >
-            <TabsList
-              className={`
-                grid
-                w-full
-                gap-2
-                h-auto
-                ${tabsGridClass}
-              `}
-            >
-              {tabs.map(tab => (
-                <TabsTrigger
-                  key={tab.value}
-                  value={tab.value}
-                  className="
-                    justify-start
-                    sm:justify-center
-                  "
-                >
-                  {tab.label}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-
-            {showAeronautical && (
-              <TabsContent
-                value="AERONAUTICAL"
-                className="mt-4"
-              >
+              {!showStock && showAeronautical && (
                 <CreateAeronauticalRequisitionForm
                   onClose={() => setOpen(false)}
                 />
-              </TabsContent>
-            )}
+              )}
 
-            {showStock && (
-              <TabsContent value="STOCK" className="mt-4">
-                <CreateStockRequisitionForm
-                  isEditing={false}
-                  onClose={() => setOpen(false)}
-                />
-              </TabsContent>
-            )}
+              {!showStock &&
+                !showAeronautical &&
+                showGeneral && (
+                  <CreateGeneralRequisitionForm
+                    isEditing={false}
+                    onClose={() => setOpen(false)}
+                  />
+                )}
+            </>
+          )}
 
-            {showGeneral && (
-              <TabsContent
-                value="GENERAL"
-                className="mt-4"
+          {/* ================= MULTIPLE TABS ================= */}
+          {tabs.length > 1 && (
+            <Tabs
+              defaultValue={defaultTab}
+              className="w-full overflow-hidden"
+            >
+              <TabsList
+                className={`
+                  grid
+                  w-full
+                  gap-2
+                  h-auto
+                  ${tabsGridClass}
+                `}
               >
-                <CreateGeneralRequisitionForm
-                  isEditing={false}
-                  onClose={() => setOpen(false)}
-                />
-              </TabsContent>
-            )}
-          </Tabs>
-        )}
+                {tabs.map(tab => (
+                  <TabsTrigger
+                    key={tab.value}
+                    value={tab.value}
+                    className="
+                      justify-start
+                      sm:justify-center
+                    "
+                  >
+                    {tab.label}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+
+              {showAeronautical && (
+                <TabsContent
+                  value="AERONAUTICAL"
+                  className="mt-4"
+                >
+                  <CreateAeronauticalRequisitionForm
+                    onClose={() => setOpen(false)}
+                  />
+                </TabsContent>
+              )}
+
+              {showStock && (
+                <TabsContent value="STOCK" className="mt-4">
+                  <CreateStockRequisitionForm
+                    onClose={() => setOpen(false)}
+                  />
+                </TabsContent>
+              )}
+
+              {showGeneral && (
+                <TabsContent
+                  value="GENERAL"
+                  className="mt-4"
+                >
+                  <CreateGeneralRequisitionForm
+                    isEditing={false}
+                    onClose={() => setOpen(false)}
+                  />
+                </TabsContent>
+              )}
+            </Tabs>
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   )

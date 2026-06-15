@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Search, SlidersHorizontal } from 'lucide-react'
-import type { TransitStatusFilter } from '../types'
+import type { TransitStatusFilter } from '@/types/purchase'
 
 type Props = {
   search: string

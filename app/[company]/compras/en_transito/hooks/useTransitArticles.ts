@@ -10,7 +10,7 @@ import { useGetArticlesByStatus } from '@/hooks/mantenimiento/almacen/articulos/
 import type {
   TransitArticle,
   TransitStatusFilter,
-} from '../types'
+} from '@/types/purchase'
 
 const ALMACEN_ROLES = [
   'ALMACEN',

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useMemo, useState } from 'react'
+import React, { useMemo, useState, useCallback } from 'react'
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -47,6 +47,17 @@ export interface DataTableProps<TData> {
   overflowVisible?: boolean
   /** Default page size */
   pageSize?: number
+  // ── Manual (server‑side) pagination ──────────────────────────
+  /** Enable manual pagination – page / row count are controlled externally */
+  manualPagination?: boolean
+  /** Total number of rows across all pages (required when manualPagination) */
+  totalRows?: number
+  /** Total number of pages (required when manualPagination) */
+  pageCount?: number
+  /** Current page index (0‑based), required when manualPagination */
+  pageIndex?: number
+  /** Called when the user changes page or page size */
+  onPaginationChange?: (pageIndex: number, pageSize: number) => void
 }
 
 function DataTableInner<TData>({
@@ -62,15 +73,47 @@ function DataTableInner<TData>({
   emptyText = 'No se encontraron resultados...',
   overflowVisible = false,
   pageSize = 10,
+  manualPagination = false,
+  totalRows,
+  pageCount,
+  pageIndex,
+  onPaginationChange,
 }: DataTableProps<TData>) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [expanded, setExpanded] = useState<ExpandedState>({})
-  const [pagination, setPagination] = useState({
+
+  const [localPagination, setLocalPagination] = useState({
     pageIndex: 0,
     pageSize,
   })
+
+  const isManual = manualPagination === true
+
+  // Stable reference to prevent useCallback dependency changes on every render
+  const paginationState = useMemo(
+    () =>
+      isManual
+        ? { pageIndex: pageIndex ?? 0, pageSize }
+        : localPagination,
+    [isManual, pageIndex, pageSize, localPagination],
+  )
+
+  const handlePaginationChange = useCallback(
+    (updater: any) => {
+      if (isManual) {
+        const next =
+          typeof updater === 'function'
+            ? updater(paginationState)
+            : updater
+        onPaginationChange?.(next.pageIndex, next.pageSize)
+      } else {
+        setLocalPagination(updater)
+      }
+    },
+    [isManual, paginationState, onPaginationChange],
+  )
 
   const stableData = useMemo(() => data, [data])
 
@@ -82,19 +125,21 @@ function DataTableInner<TData>({
       columnFilters,
       columnVisibility,
       expanded,
-      pagination,
+      pagination: paginationState,
     },
     meta,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
     onExpandedChange: setExpanded,
-    onPaginationChange: setPagination,
+    onPaginationChange: handlePaginationChange,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
+    getPaginationRowModel: isManual ? undefined : getPaginationRowModel(),
     getExpandedRowModel: getExpandedRowModel(),
+    rowCount: isManual ? (totalRows ?? 0) : undefined,
+    pageCount: isManual ? (pageCount ?? 0) : undefined,
     getRowCanExpand: (row) => {
       if (!renderSubRow) return false
       return canExpandRow?.(row) ?? true
@@ -246,4 +291,6 @@ function DataTableInner<TData>({
   )
 }
 
-export const DataTable = React.memo(DataTableInner) as typeof DataTableInner
+export const DataTable = React.memo(DataTableInner) as <TData>(
+  props: DataTableProps<TData>,
+) => React.ReactElement

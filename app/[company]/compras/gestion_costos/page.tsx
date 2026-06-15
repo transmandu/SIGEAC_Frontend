@@ -9,7 +9,6 @@ import {
 } from 'react'
 
 import { ContentLayout } from '@/components/layout/ContentLayout'
-import LoadingPage from '@/components/misc/LoadingPage'
 import BackButton from '@/components/misc/BackButton'
 
 import {
@@ -94,15 +93,8 @@ const CostManagementPage = () => {
   const { data: generalArticles, isLoading: loadingGeneral } =
     useGetGeneralArticles()
 
-  const isInitialLoading =
-    type === 'ARTICLE'
-      ? loadingArticles && !warehouseData
-      : loadingGeneral && !generalArticles
-
-  const isUpdating =
-    type === 'ARTICLE'
-      ? loadingArticles && !!warehouseData
-      : loadingGeneral && !!generalArticles
+  const isLoading =
+    type === 'ARTICLE' ? loadingArticles : loadingGeneral
 
   const articleData = useMemo<BaseRow[]>(() => {
     if (!warehouseData?.batches) return []
@@ -295,11 +287,7 @@ const CostManagementPage = () => {
           onReset={handleReset}
         />
 
-        {isInitialLoading && filteredData.length === 0 ? (
-          <div className="flex items-center justify-center min-h-[300px]">
-            <LoadingPage />
-          </div>
-        ) : groupBy !== 'NONE' ? (
+        {groupBy !== 'NONE' ? (
           <GroupedCostTable
             data={filteredData}
             groupBy={groupBy as any}
@@ -307,7 +295,7 @@ const CostManagementPage = () => {
               <DataTable
                 columns={columns}
                 data={rows}
-                loading={isUpdating}
+                loading={isLoading}
                 meta={{ costDrafts }}
                 overflowVisible
               />
@@ -318,7 +306,7 @@ const CostManagementPage = () => {
           <DataTable
             columns={columns}
             data={filteredData}
-            loading={isUpdating}
+            loading={isLoading}
             meta={{ costDrafts }}
             overflowVisible
           />

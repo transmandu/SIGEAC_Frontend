@@ -3,7 +3,6 @@
 import { useDeferredValue, useMemo, useState } from 'react'
 
 import { ContentLayout } from '@/components/layout/ContentLayout'
-import LoadingPage from '@/components/misc/LoadingPage'
 import BackButton from '@/components/misc/BackButton'
 
 import {
@@ -21,7 +20,7 @@ import { useGetArticlesByStatus } from '@/hooks/mantenimiento/almacen/articulos/
 import { DataTable } from '../data-table'
 import { columns } from './columns'
 
-import type { DestinationArticle } from './types'
+import type { DestinationArticle } from '@/types/purchase'
 import UnknownDestinationToolbar from './_components/UnknownDestinationToolbar'
 
 export default function UnknownDestinationPage() {
@@ -38,8 +37,6 @@ export default function UnknownDestinationPage() {
   /**
    * 🔥 Loading pattern unificado
    */
-  const isInitialLoading = isLoading && !articles
-  const isUpdating = isLoading && !!articles
 
   const filteredArticles = useMemo(() => {
     if (!articles) return []
@@ -125,19 +122,13 @@ export default function UnknownDestinationPage() {
         </div>
 
         {/* TABLE / LOADING SPLIT */}
-        {isInitialLoading && filteredArticles.length === 0 ? (
-          <div className="flex min-h-[300px] items-center justify-center">
-            <LoadingPage />
-          </div>
-        ) : (
           <DataTable
             columns={columns}
             data={filteredArticles}
-            loading={isUpdating}
+            loading={isLoading}
             loadingText="Cargando artículos..."
             emptyText="No se encontraron artículos"
           />
-        )}
 
         {/* Error */}
         {isError && (

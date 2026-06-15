@@ -2,7 +2,6 @@
 
 import { useMemo, useState, useDeferredValue } from 'react'
 import { ContentLayout } from '@/components/layout/ContentLayout'
-import LoadingPage from '@/components/misc/LoadingPage'
 import BackButton from '@/components/misc/BackButton'
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
 import { useGetRequisition } from '@/hooks/mantenimiento/compras/useGetRequisitions'
@@ -32,8 +31,6 @@ const RequisitionsPage = () => {
   const [priority, setPriority] = useState('ALL')
 
   const deferredSearch = useDeferredValue(search)
-  const isInitialLoading = isLoading && !requisitions
-  const isUpdating = isLoading && !!requisitions
 
   const filteredRequisitions = useMemo<Requisition[]>(() => {
     if (!requisitions) return []
@@ -136,27 +133,21 @@ const RequisitionsPage = () => {
           </span>
         </div>
 
-        {isInitialLoading && filteredRequisitions.length === 0 ? (
-          <div className="flex items-center justify-center min-h-[300px]">
-            <LoadingPage />
-          </div>
-        ) : (
-          <DataTable
-            columns={columns}
-            data={filteredRequisitions}
-            renderSubRow={(row) => (
-              <RequisitionSubRow
-                requisition={row.original}
-                selectedCompany={selectedCompany}
-              />
-            )}
-            canExpandRow={(row) =>
-              !!row.original.quotes?.length
-            }
-            loading={isUpdating}
-            toolbar={<CreateRequisitionDialog />}
-          />
-        )}
+        <DataTable
+          columns={columns}
+          data={filteredRequisitions}
+          renderSubRow={(row) => (
+            <RequisitionSubRow
+              requisition={row.original}
+              selectedCompany={selectedCompany}
+            />
+          )}
+          canExpandRow={(row) =>
+            !!row.original.quotes?.length
+          }
+          loading={isLoading}
+          toolbar={<CreateRequisitionDialog />}
+        />
 
         {isError && (
           <div className="rounded-lg border border-red-500/20 bg-red-500/5 px-4 py-3">

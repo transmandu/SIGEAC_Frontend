@@ -2,7 +2,6 @@
 
 import { useMemo, useState, useDeferredValue } from 'react'
 import { ContentLayout } from '@/components/layout/ContentLayout'
-import LoadingPage from '@/components/misc/LoadingPage'
 import BackButton from '@/components/misc/BackButton'
 import {
   Breadcrumb,
@@ -35,7 +34,6 @@ const PurchaseOrdersPage = () => {
   const [status, setStatus] = useState('ALL')
 
   const deferredSearch = useDeferredValue(search)
-  const isInitialLoading = isLoading && !po
 
   const filteredPO = useMemo(() => {
     if (!po) return []
@@ -123,20 +121,15 @@ const PurchaseOrdersPage = () => {
           </span>
         </div>
 
-        {isInitialLoading && filteredPO.length === 0 ? (
-          <div className="flex items-center justify-center min-h-[300px]">
-            <LoadingPage />
-          </div>
-        ) : (
           <DataTable
             columns={columns}
             data={filteredPO}
             renderSubRow={(row) => (
               <PurchaseOrderSubRow row={row} />
             )}
+            loading={isLoading}
             emptyText="No se ha encontrado ningún resultado..."
           />
-        )}
 
         {/* ERROR */}
         {isError && (

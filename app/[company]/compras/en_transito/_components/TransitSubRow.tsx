@@ -2,7 +2,7 @@
 
 import { Row } from '@tanstack/react-table'
 import { Hash } from 'lucide-react'
-import type { TransitArticle } from '../types'
+import type { TransitArticle } from '@/types/purchase'
 
 type Props = {
   row: Row<TransitArticle>

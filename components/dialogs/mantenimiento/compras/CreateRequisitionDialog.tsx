@@ -91,14 +91,18 @@ export function CreateRequisitionDialog() {
         className="
           w-[95vw]
           max-w-[95vw]
-          sm:max-w-[760px]
+          sm:max-w-[860px]
           p-0
           overflow-hidden
+          max-h-[85vh]
+          flex
+          flex-col
         "
       >
         {/* ===================== HEADER ===================== */}
         <div
           className="
+            shrink-0
             relative
             bg-gradient-to-br
             from-primary/5
@@ -149,7 +153,7 @@ export function CreateRequisitionDialog() {
         </div>
 
         {/* ===================== BODY ===================== */}
-        <div className="px-4 sm:px-6 py-5">
+        <div className="overflow-y-auto px-4 sm:px-6 py-5">
           <Tabs defaultValue="AERONAUTICAL">
             {/* ===================== TABS ===================== */}
             <TabsList
@@ -237,7 +241,6 @@ export function CreateRequisitionDialog() {
 
             <TabsContent value="STOCK" className="mt-4">
               <CreateStockRequisitionForm
-                isEditing={false}
                 onClose={() => setOpen(false)}
               />
             </TabsContent>

@@ -469,7 +469,7 @@ const RequisitionPage = () => {
             </div>
 
             <div className="text-center">
-              <h2 className="font-semibold text-base mb-1">Observación (dada por Compras)</h2>
+              <h2 className="font-semibold text-base mb-1">Observación (indicada por Compras)</h2>
               <p className="text-sm italic bg-secondary p-3 rounded-md">
                 {data?.observation || 'Sin observaciones'}
               </p>

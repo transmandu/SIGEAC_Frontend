@@ -1,4 +1,4 @@
-import type { Unit, User, Aircraft, WorkOrder, Convertion } from '@/types';
+import type { Unit, User, Aircraft, WorkOrder, Convertion, Department, ThirdParty } from '@/types';
 import type { PurchaseOrder } from '@/types/purchase/purchase-order';
 import type { Quote } from '@/types/purchase/quote';
 
@@ -91,6 +91,8 @@ export interface Requisition {
   submission_date: string;
   work_order?: WorkOrder;
   aircraft?: Aircraft | null;
+  department?: Department | null;
+  third_party?: ThirdParty | null;
   quotes?: RequisitionQuote[];
   type: RequisitionType;
   priority?: PurchasePriority | string;
@@ -119,6 +121,8 @@ export interface RequisitionByOrderNumber {
   submission_date?: string | null;
   observation?: string | null;
   aircraft?: Aircraft | null;
+  department?: Department | null;
+  third_party?: ThirdParty | null;
   batch?: RequisitionBatch[] | null;
   general_articles?: RequisitionGeneralArticle[] | null;
   quotes?: RequisitionQuote[] | null;
@@ -156,6 +160,40 @@ export interface GeneralArticlePayload {
   image?: File;
 }
 
+// ── Form State Types ──────────────────────────────────────────────────────
+// These types mirror the strict shape inferred from the Zod schemas used in
+// the requisition forms. They are intentionally stricter than the API payload
+// types because they represent validated in-form state rather than the
+// looser API contract.
+
+/** Form state for a batch article inside a requisition form. */
+export interface RequisitionBatchArticleForm {
+  part_number: string;
+  alt_part_number?: string;
+  quantity: number;
+  unit?: string;
+  aircraft_id?: string;
+  priority?: 'HIGH' | 'MEDIUM' | 'LOW';
+  image?: File;
+}
+
+/** Form state for a batch inside a requisition form. */
+export interface RequisitionBatchForm {
+  batch: string;
+  batch_name: string;
+  batch_articles: RequisitionBatchArticleForm[];
+}
+
+/** Form state for a general article inside a requisition form. */
+export interface RequisitionGeneralArticleForm {
+  description: string;
+  variant_type?: string;
+  quantity: number;
+  unit_id?: string;
+  priority?: 'HIGH' | 'MEDIUM' | 'LOW';
+  image?: File;
+}
+
 /** Mutation payload for creating / updating a requisition order. */
 export interface CreateRequisitionData {
   justification?: string;
@@ -167,6 +205,8 @@ export interface CreateRequisitionData {
   priority?: 'HIGH' | 'MEDIUM' | 'LOW';
   work_order_id?: string | number;
   aircraft_id?: string | number;
+  department_id?: string | number;
+  third_party_id?: string | number;
   image?: File;
   articles?: BatchPayload[];
   general_articles?: GeneralArticlePayload[];

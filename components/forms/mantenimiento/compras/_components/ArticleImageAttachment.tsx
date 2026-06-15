@@ -42,17 +42,25 @@ export const ArticleImageAttachment = ({ article, onChangeImage }: Props) => {
 
       {article.image ? (
         <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7 shrink-0"
-              title="Ver / Cambiar imagen"
-            >
-              <Paperclip className="size-3.5 text-primary" />
-            </Button>
-          </PopoverTrigger>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <PopoverTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 shrink-0"
+                  >
+                    <Paperclip className="size-3.5 text-primary" />
+                  </Button>
+                </PopoverTrigger>
+              </TooltipTrigger>
+              <TooltipContent>
+                Ver / Cambiar imagen
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
 
           <PopoverContent className="w-[220px] p-3 space-y-2">
             <div className="relative w-full h-40">
