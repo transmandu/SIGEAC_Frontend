@@ -72,7 +72,7 @@ export function CreateAeronauticalRequisitionForm({
 }: FormProps) {
   const { user } = useAuth();
 
-  const { mutate, data: batches, isPending: isBatchesLoading } = useGetBatchesByLocationId();
+  const { mutate, mutateAsync, data: batches, isPending: isBatchesLoading } = useGetBatchesByLocationId();
 
   const { selectedCompany, selectedStation } = useCompanyStore();
 
@@ -261,6 +261,15 @@ export function CreateAeronauticalRequisitionForm({
     setSelectedBatches((prev) => prev.filter((batch) => batch.batch !== batchId));
   };
 
+  const handleBatchCreated = async (batchName: string) => {
+    if (!selectedStation) return;
+    const updatedBatches = await mutateAsync({ location_id: Number(selectedStation), company: selectedCompany?.slug });
+    const newBatch = updatedBatches.find((b) => b.name === batchName);
+    if (newBatch) {
+      handleBatchSelect(newBatch.name, newBatch.id.toString(), newBatch.category ?? "");
+    }
+  };
+
   const onSubmit = async (data: FormSchemaType) => {
     const formattedData = {
       ...data,
@@ -322,6 +331,8 @@ export function CreateAeronauticalRequisitionForm({
           addBatchArticle={addBatchArticle}
           removeBatchArticle={removeBatchArticle}
           removeBatch={removeBatch}
+          enableCreateBatch
+          onBatchCreated={handleBatchCreated}
         />
 
         <AdditionalInfoSection form={form} />

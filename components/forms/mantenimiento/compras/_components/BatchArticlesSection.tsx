@@ -1,9 +1,17 @@
 "use client"
 import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
-import { Check, ChevronsUpDown, Hash, Layers, MinusCircle, Plane, Plus, Ruler, Tag } from "lucide-react"
+import { Check, ChevronsUpDown, Hash, Layers, MinusCircle, PackagePlus, Plane, Plus, Ruler, Tag } from "lucide-react"
+import { useState } from "react"
 import type { UseFormReturn } from "react-hook-form"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -12,6 +20,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import type { Aircraft, Batch, Unit } from "@/types"
 import type { RequisitionBatchForm } from "@/types/purchase"
+import { CreateBatchForm } from "@/components/forms/mantenimiento/almacen/CreateBatchForm"
 import { ArticleImageAttachment } from "./ArticleImageAttachment"
 import { RequiredIndicator } from "./RequiredIndicator"
 
@@ -35,6 +44,8 @@ interface BatchArticlesSectionProps {
   addBatchArticle: (batchId: string) => void;
   removeBatchArticle: (batchId: string, articleIndex: number) => void;
   removeBatch: (batchId: string) => void;
+  enableCreateBatch?: boolean;
+  onBatchCreated?: (batchName: string) => void;
 }
 
 export function BatchArticlesSection({
@@ -57,7 +68,11 @@ export function BatchArticlesSection({
   addBatchArticle,
   removeBatchArticle,
   removeBatch,
+  enableCreateBatch = false,
+  onBatchCreated,
 }: BatchArticlesSectionProps) {
+  const [isCreateBatchOpen, setIsCreateBatchOpen] = useState(false);
+
   return (
     <FormField
       control={form.control}
@@ -74,57 +89,78 @@ export function BatchArticlesSection({
                   <Layers className="size-3.5 text-muted-foreground" />
                   Lote/Renglón
                 </FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      disabled={isBatchesLoading}
-                      role="combobox"
-                      className={cn(
-                        "justify-between w-full",
-                        selectedBatches.length === 0 && "text-muted-foreground"
-                      )}
-                    >
-                      {selectedBatches.length > 0
-                        ? `${selectedBatches.length} reng. seleccionados`
-                        : "Selec. un renglón..."}
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="p-0" matchTriggerWidth>
-                    <Command shouldFilter={false}>
-                      <CommandInput
-                        placeholder="Buscar..."
-                        value={batchSearch}
-                        onValueChange={setBatchSearch}
-                      />
-                      <CommandList>
-                        <CommandEmpty>
-                          {batchSearch ? "No existen renglones..." : "Escriba para buscar..."}
-                        </CommandEmpty>
-                        <CommandGroup>
-                          {filteredBatches.map((batch) => (
-                            <CommandItem
-                              key={batch.name}
-                              value={`${batch.name} ${batch.category ?? ""}`}
-                              onSelect={() => handleBatchSelect(batch.name, batch.id.toString(), batch.category ?? "")}
-                            >
-                              <Check
-                                className={cn(
-                                  "mr-2 h-4 w-4",
-                                  selectedBatches.some((b) => b.batch === batch.id.toString())
-                                    ? "opacity-100"
-                                    : "opacity-0"
-                                )}
-                              />
-                              {batch.name}
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
+                <div className="flex items-center gap-1.5">
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        disabled={isBatchesLoading}
+                        role="combobox"
+                        className={cn(
+                          "justify-between w-full",
+                          selectedBatches.length === 0 && "text-muted-foreground"
+                        )}
+                      >
+                        {selectedBatches.length > 0
+                          ? `${selectedBatches.length} reng. seleccionados`
+                          : "Selec. un renglón..."}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="p-0" matchTriggerWidth>
+                      <Command shouldFilter={false}>
+                        <CommandInput
+                          placeholder="Buscar..."
+                          value={batchSearch}
+                          onValueChange={setBatchSearch}
+                        />
+                        <CommandList>
+                          <CommandEmpty>
+                            {batchSearch ? "No existen renglones..." : "Escriba para buscar..."}
+                          </CommandEmpty>
+                          <CommandGroup>
+                            {filteredBatches.map((batch) => (
+                              <CommandItem
+                                key={batch.name}
+                                value={`${batch.name} ${batch.category ?? ""}`}
+                                onSelect={() => handleBatchSelect(batch.name, batch.id.toString(), batch.category ?? "")}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    selectedBatches.some((b) => b.batch === batch.id.toString())
+                                      ? "opacity-100"
+                                      : "opacity-0"
+                                  )}
+                                />
+                                {batch.name}
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+
+                  {enableCreateBatch && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          type="button"
+                          size="icon"
+                          onClick={() => setIsCreateBatchOpen(true)}
+                          className="text-muted-foreground hover:text-foreground shrink-0"
+                        >
+                          <PackagePlus className="size-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="text-xs px-2 py-1">
+                        <p>Crear nuevo renglón</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
+                </div>
               </FormItem>
             </div>
           </div>
@@ -380,6 +416,26 @@ export function BatchArticlesSection({
             </ScrollArea>
           </div>
           <FormMessage />
+
+          {enableCreateBatch && (
+            <Dialog open={isCreateBatchOpen} onOpenChange={setIsCreateBatchOpen}>
+              <DialogContent className="w-full max-w-2xl">
+                <DialogHeader className="px-4">
+                  <DialogTitle>Crear Renglón</DialogTitle>
+                  <DialogDescription>
+                    Cree un nuevo renglón para utilizarlo en esta requisición.
+                  </DialogDescription>
+                </DialogHeader>
+                <CreateBatchForm
+                  onClose={() => setIsCreateBatchOpen(false)}
+                  onSuccess={(batchName) => {
+                    setIsCreateBatchOpen(false);
+                    onBatchCreated?.(batchName);
+                  }}
+                />
+              </DialogContent>
+            </Dialog>
+          )}
         </FormItem>
       )}
     />

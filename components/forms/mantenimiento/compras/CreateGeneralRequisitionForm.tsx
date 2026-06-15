@@ -189,6 +189,19 @@ export function CreateGeneralRequisitionForm({
     setSelectedGeneralArticles((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const addManualGeneralArticle = () => {
+    setSelectedGeneralArticles((prev) => [
+      ...prev,
+      {
+        description: "",
+        variant_type: "",
+        quantity: 0,
+        unit_id: undefined,
+        priority: "MEDIUM",
+      },
+    ]);
+  };
+
   /* ------------------------------- SUBMIT --------------------------------- */
 
   const onSubmit = async (data: FormSchemaType) => {
@@ -247,6 +260,8 @@ export function CreateGeneralRequisitionForm({
           handleGeneralArticleSelect={handleGeneralArticleSelect}
           handleGeneralArticleChange={handleGeneralArticleChange}
           removeGeneralArticle={removeGeneralArticle}
+          enableCreateGeneralArticle
+          addManualGeneralArticle={addManualGeneralArticle}
         />
 
         <AdditionalInfoSection form={form} />
