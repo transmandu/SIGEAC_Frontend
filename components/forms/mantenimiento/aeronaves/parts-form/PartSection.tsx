@@ -1,6 +1,6 @@
 "use client"
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -13,8 +13,59 @@ import { ChevronDown, ChevronRight, Folder, FolderOpen, MinusCircle, PlusCircle,
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { usePartValue, PART_TYPES, POSITION_TYPES } from "./constants";
 import IdentificationFields from "./IdentificationFields";
-import { useCompanyStore } from "@/stores/CompanyStore";
-import { useGetManufacturers } from "@/hooks/general/fabricantes/useGetManufacturers";
+
+function NumberInput({ field, placeholder }: { field: any; placeholder?: string }) {
+  const [displayValue, setDisplayValue] = useState<string>(() =>
+    field.value !== null && field.value !== undefined ? String(field.value) : ""
+  );
+
+  useEffect(() => {
+    const fv = field.value;
+    const next = fv !== null && fv !== undefined ? String(fv) : "";
+    setDisplayValue(next);
+  }, [field.value]);
+
+  const commitValue = (raw: string) => {
+    const trimmed = raw.trim();
+    if (trimmed === "" || trimmed === "." || trimmed === "-") {
+      field.onChange(null);
+      return null;
+    }
+    const num = parseFloat(trimmed);
+    if (!isNaN(num)) {
+      field.onChange(num);
+      return num;
+    }
+    field.onChange(null);
+    return null;
+  };
+
+  return (
+    <Input
+      placeholder={placeholder}
+      value={displayValue}
+      onChange={e => {
+        const raw = e.target.value;
+        if (raw === "" || /^\d*\.?\d*$/.test(raw)) {
+          setDisplayValue(raw);
+          if (raw !== "" && raw !== "." && !raw.endsWith(".")) {
+            commitValue(raw);
+          } else if (raw === "") {
+            field.onChange(null);
+          }
+        }
+      }}
+      onBlur={() => {
+        const num = commitValue(displayValue);
+        if (num !== null) {
+          setDisplayValue(num.toString());
+        } else {
+          setDisplayValue("");
+        }
+      }}
+    />
+  );
+}
 
 export default function PartSection({
     form,
@@ -37,9 +88,6 @@ export default function PartSection({
     const timeSinceOverhaul = usePartValue(form.control, `${path}.time_since_overhaul`, null);
     const cyclesSinceNew = usePartValue(form.control, `${path}.cycles_since_new`, null);
     const cyclesSinceOverhaul = usePartValue(form.control, `${path}.cycles_since_overhaul`, null);
-
-    const { selectedCompany } = useCompanyStore();
-    const { data: manufacturers, isLoading: isManufacturersLoading } = useGetManufacturers(selectedCompany?.slug);
 
     const tsNotApplicable = timeSinceNew === null && timeSinceOverhaul === null;
     const csNotApplicable = cyclesSinceNew === null && cyclesSinceOverhaul === null;
@@ -253,7 +301,7 @@ export default function PartSection({
                                     <FormItem>
                                         <FormLabel>TSN</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Ej: 1500" {...field} onChange={e => field.onChange(e.target.value ? Number(e.target.value) : null)} value={field.value ?? ""} />
+                                            <NumberInput field={field} placeholder="Ej: 1500" />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -262,7 +310,7 @@ export default function PartSection({
                                     <FormItem>
                                         <FormLabel>TSO</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Ej: 1500" {...field} onChange={e => field.onChange(e.target.value ? Number(e.target.value) : null)} value={field.value ?? ""} />
+                                            <NumberInput field={field} placeholder="Ej: 1500" />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -281,7 +329,7 @@ export default function PartSection({
                                     <FormItem>
                                         <FormLabel>CSN</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Ej: 1500" {...field} onChange={e => field.onChange(e.target.value ? Number(e.target.value) : null)} value={field.value ?? ""} />
+                                            <NumberInput field={field} placeholder="Ej: 1500" />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -290,7 +338,7 @@ export default function PartSection({
                                     <FormItem>
                                         <FormLabel>CSO</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Ej: 300" {...field} onChange={e => field.onChange(e.target.value ? Number(e.target.value) : null)} value={field.value ?? ""} />
+                                            <NumberInput field={field} placeholder="Ej: 300" />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
