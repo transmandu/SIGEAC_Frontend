@@ -8,6 +8,8 @@ import { Truck } from "lucide-react";
 export function FuelSummaryCards({ summary }: { summary?: FuelSummary }) {
   const warehouseLiters = Number(summary?.warehouse_balance_liters ?? 0);
   const vehicleLiters = Number(summary?.vehicle_balance_liters ?? 0);
+  const vehicleLitersAll = Number(summary?.vehicle_balance_liters_all ?? 0);
+  const inactiveLiters = Math.max(vehicleLitersAll - vehicleLiters, 0);
   const totalLiters = warehouseLiters + vehicleLiters;
   const warehousePct = totalLiters > 0 ? (warehouseLiters / totalLiters) * 100 : 0;
   const vehiclePct = totalLiters > 0 ? 100 - warehousePct : 0;
@@ -72,6 +74,11 @@ export function FuelSummaryCards({ summary }: { summary?: FuelSummary }) {
               {totalLiters > 0 && (
                 <span className="text-xs text-muted-foreground">
                   ({Math.round(vehiclePct)}%)
+                </span>
+              )}
+              {inactiveLiters > 0 && (
+                <span className="text-xs text-muted-foreground">
+                  (+{formatLiters(inactiveLiters)} en inactivos)
                 </span>
               )}
             </div>

@@ -1442,6 +1442,7 @@ export type FuelVehicle = {
 export type FuelSummary = {
     warehouse_balance_liters: number;
     vehicle_balance_liters: number;
+    vehicle_balance_liters_all: number;
     active_vehicle_count: number;
     movement_count_for_period?: number;
     has_active_warehouse_initial_balance?: boolean;

@@ -9,6 +9,7 @@ const fetchFuelSummary = async (company: string): Promise<FuelSummary> => {
     ...data,
     warehouse_balance_liters: Number(data?.warehouse_balance_liters ?? 0),
     vehicle_balance_liters: Number(data?.vehicle_balance_liters ?? 0),
+    vehicle_balance_liters_all: Number(data?.vehicle_balance_liters_all ?? 0),
     active_vehicle_count: Number(data?.active_vehicle_count ?? 0),
   };
 };
