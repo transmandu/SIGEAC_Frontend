@@ -1,16 +1,15 @@
 import { useDeleteVoluntaryReport } from "@/actions/sms/reporte_voluntario/actions";
 import { AcceptVoluntaryReport } from "@/components/forms/aerolinea/sms/AcceptVoluntaryForm";
+import { CreateVoluntaryReportForm } from "@/components/forms/aerolinea/sms/CreateVoluntaryReportForm";
+import { PdfEndpointPreviewDialog } from "@/components/dialogs/shared/PdfEndpointPreviewDialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useGetDangerIdentificationWithAllById } from "@/hooks/sms/useGetDangerIdentificationWithAllById";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { VoluntaryReport } from "@/types";
-import { PDFDownloadLink, PDFViewer } from "@react-pdf/renderer";
-import { format } from "date-fns";
 import {
   CheckCheck,
   ClipboardPen,
@@ -23,8 +22,6 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { CreateVoluntaryReportForm } from "@/components/forms/aerolinea/sms/CreateVoluntaryReportForm";
-import VoluntaryReportPdf from "@/components/pdf/sms/VoluntaryReportPdf";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -33,7 +30,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 
 const VoluntaryReportDropdownActions = ({
@@ -43,18 +39,28 @@ const VoluntaryReportDropdownActions = ({
 }) => {
   const { selectedCompany } = useCompanyStore();
 
-  const [open, setOpen] = useState<boolean>(false);
-  const [openPDF, setOpenPDF] = useState<boolean>(false);
   const [openEdit, setOpenEdit] = useState<boolean>(false);
   const [openAccept, setOpenAccept] = useState<boolean>(false);
   const [openDelete, setOpenDelete] = useState<boolean>(false);
+  const [openPdf, setOpenPdf] = useState<boolean>(false);
   const { deleteVoluntaryReport } = useDeleteVoluntaryReport();
   const router = useRouter();
 
-  const { data: dangerIdentification } = useGetDangerIdentificationWithAllById({
-    company: selectedCompany?.slug,
-    id: voluntaryReport?.danger_identification_id?.toString(),
-  });
+  const useManagementPdf =
+    voluntaryReport.status === "CERRADO" &&
+    Boolean(voluntaryReport.danger_identification_id);
+
+  const pdfEndpoint = selectedCompany?.slug
+    ? `/${selectedCompany.slug}/sms/voluntary-reports/${voluntaryReport.id}/${useManagementPdf ? "management-pdf" : "format-pdf"}`
+    : "";
+
+  const pdfTitle = useManagementPdf
+    ? "Vista previa del reporte de gestión"
+    : "Vista previa del formato del reporte";
+
+  const pdfDescription = useManagementPdf
+    ? "Revisa el reporte de gestión antes de descargarlo."
+    : "Revisa el formato del reporte antes de descargarlo.";
 
   const handleDelete = async (id: number | string) => {
     const value = {
@@ -74,109 +80,80 @@ const VoluntaryReportDropdownActions = ({
 
   return (
     <>
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DropdownMenu>
-          <DropdownMenuTrigger>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Abrir menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="h-8 w-8 p-0">
+            <span className="sr-only">Abrir menu</span>
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
 
-          <DropdownMenuContent
-            align="center"
-            className="flex-col gap-2 justify-center"
-          >
-            {voluntaryReport && voluntaryReport.status === "ABIERTO" && (
-              <DropdownMenuItem onClick={() => setOpenEdit(true)}>
-                <ClipboardPen className="size-5" />
-                <p className="pl-2">Editar</p>
-              </DropdownMenuItem>
-            )}
-
-            {voluntaryReport && voluntaryReport.status === "PROCESO" && (
-              <DropdownMenuItem onClick={() => setOpenAccept(true)}>
-                <CheckCheck className="size-5 text-green-400" />
-                <p className="pl-2">Aceptar</p>
-              </DropdownMenuItem>
-            )}
-
-            {voluntaryReport &&
-              (voluntaryReport.status === "ABIERTO" ||
-                voluntaryReport.status === "PROCESO") && (
-                <DialogTrigger asChild>
-                  <DropdownMenuItem onClick={() => setOpenDelete(true)}>
-                    <Trash2 className="size-5 text-red-500" />
-                    <p className="pl-2">Eliminar</p>
-                  </DropdownMenuItem>
-                </DialogTrigger>
-              )}
-
-            <DropdownMenuItem
-              onClick={() => {
-                router.push(
-                  `/transmandu/sms/reportes/reportes_voluntarios/${voluntaryReport.id}`
-                );
-              }}
-            >
-              <EyeIcon className="size-5" />
-              <p className="pl-2">Ver</p>
+        <DropdownMenuContent
+          align="center"
+          className="flex-col gap-2 justify-center"
+        >
+          {voluntaryReport && voluntaryReport.status === "ABIERTO" && (
+            <DropdownMenuItem onClick={() => setOpenEdit(true)}>
+              <ClipboardPen className="size-5" />
+              <p className="pl-2">Editar</p>
             </DropdownMenuItem>
+          )}
 
-            {/* ✅ Modificación: redirige enviando el ID como query param */}
-            {!voluntaryReport.danger_identification_id &&
-              voluntaryReport.status === "ABIERTO" && (
-                <DropdownMenuItem onClick={handleCreateIdentification}>
-                  <ClipboardPenLine className="size-5" />
-                  <p className="pl-2">Crear Identificación</p>
-                </DropdownMenuItem>
-              )}
+          {voluntaryReport && voluntaryReport.status === "PROCESO" && (
+            <DropdownMenuItem onClick={() => setOpenAccept(true)}>
+              <CheckCheck className="size-5 text-green-400" />
+              <p className="pl-2">Aceptar</p>
+            </DropdownMenuItem>
+          )}
 
-            {voluntaryReport && voluntaryReport.status !== "PROCESO" && (
-              <DropdownMenuItem onClick={() => setOpenPDF(true)}>
-                <PrinterCheck className="size-5" />
-                <p className="pl-2">Descargar PDF</p>
+          {voluntaryReport &&
+            (voluntaryReport.status === "ABIERTO" ||
+              voluntaryReport.status === "PROCESO") && (
+              <DropdownMenuItem onClick={() => setOpenDelete(true)}>
+                <Trash2 className="size-5 text-red-500" />
+                <p className="pl-2">Eliminar</p>
               </DropdownMenuItem>
             )}
-          </DropdownMenuContent>
-        </DropdownMenu>
 
-        {/* PDF Viewer */}
-        <Dialog open={openPDF} onOpenChange={setOpenPDF}>
-          <DialogContent className="sm:max-w-[65%] max-h-[80vh]">
-            <DialogHeader>
-              <DialogTitle>Vista Previa del Reporte</DialogTitle>
-              <DialogDescription>
-                Revisa el reporte antes de descargarlo.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="w-full h-screen">
-              {voluntaryReport &&
-              voluntaryReport.status === "CERRADO" &&
-              dangerIdentification ? (
-                <PDFViewer style={{ width: "100%", height: "60%" }}>
-                  <VoluntaryReportPdf
-                    report={voluntaryReport}
-                    identification={dangerIdentification}
-                  />
-                </PDFViewer>
-              ) : (
-                <PDFViewer style={{ width: "100%", height: "60%" }}>
-                  <VoluntaryReportPdf report={voluntaryReport} />
-                </PDFViewer>
-              )}
-            </div>
+          <DropdownMenuItem
+            onClick={() => {
+              router.push(
+                `/transmandu/sms/reportes/reportes_voluntarios/${voluntaryReport.id}`
+              );
+            }}
+          >
+            <EyeIcon className="size-5" />
+            <p className="pl-2">Ver</p>
+          </DropdownMenuItem>
 
-            <div className="flex justify-end mt-4">
-              <PDFDownloadLink
-                fileName={`reporte_sms_${format(new Date(), "dd-MM-yyyy")}.pdf`}
-                document={<VoluntaryReportPdf report={voluntaryReport} />}
-              >
-                <Button>Descargar Reporte</Button>
-              </PDFDownloadLink>
-            </div>
-          </DialogContent>
-        </Dialog>
+          {/* ✅ Modificación: redirige enviando el ID como query param */}
+          {!voluntaryReport.danger_identification_id &&
+            voluntaryReport.status === "ABIERTO" && (
+              <DropdownMenuItem onClick={handleCreateIdentification}>
+                <ClipboardPenLine className="size-5" />
+                <p className="pl-2">Crear Identificación</p>
+              </DropdownMenuItem>
+            )}
+
+          {voluntaryReport && voluntaryReport.status !== "PROCESO" && pdfEndpoint && (
+            <DropdownMenuItem onSelect={() => setOpenPdf(true)}>
+              <PrinterCheck className="size-5" />
+              <p className="pl-2">PDF</p>
+            </DropdownMenuItem>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      {voluntaryReport && pdfEndpoint && (
+        <PdfEndpointPreviewDialog
+          open={openPdf}
+          onOpenChange={setOpenPdf}
+          endpoint={pdfEndpoint}
+          fileName={`reporte_sms_${voluntaryReport.id}`}
+          title={pdfTitle}
+          description={pdfDescription}
+        />
+      )}
 
         {/* Delete dialog */}
         <Dialog open={openDelete} onOpenChange={setOpenDelete}>
@@ -234,7 +211,6 @@ const VoluntaryReportDropdownActions = ({
             />
           </DialogContent>
         </Dialog>
-      </Dialog>
     </>
   );
 };

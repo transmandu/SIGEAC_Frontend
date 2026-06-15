@@ -1333,6 +1333,7 @@ export type FuelVehicle = {
 export type FuelSummary = {
     warehouse_balance_liters: number;
     vehicle_balance_liters: number;
+    vehicle_balance_liters_all: number;
     active_vehicle_count: number;
     movement_count_for_period?: number;
     has_active_warehouse_initial_balance?: boolean;
@@ -1380,6 +1381,17 @@ export type CreateFuelVehiclePayload = {
     responsible?: string | null;
     tank_capacity_liters: number;
     initial_balance_liters: number;
+    km_per_liter?: number | null;
+    initial_km?: number | null;
+};
+
+// Actualizacion de vehiculo: mismos campos de configuracion que la creacion,
+// sin el saldo inicial (current_balance_liters no es editable directamente).
+export type UpdateFuelVehiclePayload = {
+    plate: string;
+    type: FuelVehicleType;
+    responsible?: string | null;
+    tank_capacity_liters: number;
     km_per_liter?: number | null;
     initial_km?: number | null;
 };

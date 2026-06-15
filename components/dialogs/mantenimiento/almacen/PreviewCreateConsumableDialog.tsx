@@ -18,6 +18,7 @@ interface PreviewValues {
     batch_name?: string;
     condition_name?: string;
     manufacturer_name?: string;
+    lot_number?: string;
     zone?: string;
     fabrication_date?: string | Date | null;
     expiration_date?: string | Date | null;
@@ -76,6 +77,7 @@ export default function PreviewCreateConsumableDialog({
                                 value={values.alternative_part_number?.length ? values.alternative_part_number.join(", ") : "—"}
                             />
                             <PreviewRow label="Descripción del consumible" value={values.batch_name || "—"} />
+                            <PreviewRow label="Nro. de lote" value={values.lot_number || "—"} />
                         </div>
                     </section>
 
@@ -108,7 +110,7 @@ export default function PreviewCreateConsumableDialog({
                             Ingreso y cantidad
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <PreviewRow label="Método de ingreso" value={values.secondarySelected?.label || "—"} />
+                            <PreviewRow label="Unidad de medida" value={values.secondarySelected?.label || "—"} />
                             <PreviewRow label="Cantidad" value={values.quantity ?? "—"} />
                             <PreviewRow label="Cantidad mínima" value={values.min_quantity ?? "—"} />
                         </div>

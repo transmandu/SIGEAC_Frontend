@@ -79,6 +79,10 @@ export const FUEL_ERROR_MESSAGES: Record<string, string> = {
     "El kilometraje debe ser mayor al ultimo registrado.",
   CONCURRENT_STOCK_CONFLICT:
     "El saldo cambio mientras registrabas la operacion. Actualiza e intenta de nuevo.",
+  CAPACITY_BELOW_BALANCE:
+    "La capacidad no puede ser menor al saldo actual del vehiculo.",
+  MOVEMENT_NOT_ANNULLED:
+    "Solo se pueden eliminar movimientos anulados. Anule el movimiento primero.",
 };
 
 export const formatLiters = (value?: number | string | null) => {

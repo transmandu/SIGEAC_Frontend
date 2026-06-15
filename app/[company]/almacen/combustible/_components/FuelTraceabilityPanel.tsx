@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/table";
 import { formatLiters, getFuelMovementLabel } from "@/lib/fuel";
 import { FuelMovement } from "@/types";
+import { format } from "date-fns";
 import { Route } from "lucide-react";
 
 export function FuelTraceabilityPanel({
@@ -56,7 +57,9 @@ export function FuelTraceabilityPanel({
             {dispatches.length ? (
               dispatches.map((movement) => (
                 <TableRow key={movement.id}>
-                  <TableCell>{movement.operational_date}</TableCell>
+                  <TableCell className="font-medium">
+                    {format(movement.operational_date, "dd/MM/yyyy")}
+                  </TableCell>
                   <TableCell>{getFuelMovementLabel(movement.type)}</TableCell>
                   <TableCell>
                     {movement.vehicle?.plate ||
@@ -75,9 +78,18 @@ export function FuelTraceabilityPanel({
                 </TableRow>
               ))
             ) : (
-              <TableRow>
-                <TableCell colSpan={5} className="h-24 text-center">
-                  No hay despachos con trazabilidad.
+              <TableRow className="hover:bg-transparent">
+                <TableCell colSpan={5} className="h-36">
+                  <div className="flex flex-col items-center justify-center gap-1 text-center">
+                    <Route className="h-5 w-5 text-muted-foreground" />
+                    <p className="text-sm font-medium">
+                      Sin despachos trazables
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Los despachos a vehiculos o terceros apareceran aqui con
+                      su detalle FIFO.
+                    </p>
+                  </div>
                 </TableCell>
               </TableRow>
             )}

@@ -1045,22 +1045,24 @@ export default function DirectRegisterConsumableForm({
     const [previewData, setPreviewData] = useState<FormValues | null>(null);
 
     async function onSubmit(values: FormValues) {
-        // 1. Obtenemos los valores
         const rawValues = form.getValues();
 
-        // 2. Transformamos los datos críticos a formato numérico
-        const formattedValues = {
+        const previewVals = {
             ...rawValues,
-            // Convertimos el ID de condición a número (Ej: "10" -> 10)
-            condition_id: rawValues.condition_id
-                ? Number(rawValues.condition_id)
-                : null,
-            // Aprovechamos para asegurar que quantity también sea número
+            condition_id: rawValues.condition_id ? Number(rawValues.condition_id) : null,
             quantity: Number(rawValues.quantity),
+            batch_name: batchNameById.get(rawValues.batch_id) || rawValues.batch_name || "—",
+            condition_name:
+                conditions?.find((c) => c.id.toString() === String(rawValues.condition_id))?.name || "—",
+            manufacturer_name:
+                manufacturers?.find((m) => m.id.toString() === rawValues.manufacturer_id)?.name || "—",
+            lot_number: rawValues.lot_number || undefined,
+            secondarySelected: secondarySelected,
+            fabrication_date: fabricationDate ? format(fabricationDate, "yyyy-MM-dd") : undefined,
+            expiration_date: caducateDate ? format(caducateDate, "yyyy-MM-dd") : undefined,
         };
 
-        // 3. Pasamos los datos ya formateados a la vista previa
-        setPreviewData(formattedValues as any);
+        setPreviewData(previewVals as any);
         setOpenPreview(true);
     }
 

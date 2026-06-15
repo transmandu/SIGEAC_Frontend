@@ -12,6 +12,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -44,6 +45,7 @@ import {
   Route,
   ShieldAlert,
   Truck,
+  X,
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { FuelMovementsTable } from "./_components/FuelMovementsTable";
@@ -80,6 +82,22 @@ export default function FuelWarehousePage() {
 
   const userRoles = user?.roles?.map((role) => role.name) ?? [];
   const canAccess = FUEL_ALLOWED_ROLES.some((role) => userRoles.includes(role));
+  const isSuperUser = userRoles.includes("SUPERUSER");
+
+  const hasActiveFilters =
+    dateFrom !== "" ||
+    dateTo !== "" ||
+    vehicleId !== "all" ||
+    thirdPartyId !== "all" ||
+    movementType !== "all";
+
+  const clearFilters = () => {
+    setDateFrom("");
+    setDateTo("");
+    setVehicleId("all");
+    setThirdPartyId("all");
+    setMovementType("all");
+  };
 
   const movementFilters = useMemo(
     () => ({
@@ -166,102 +184,106 @@ export default function FuelWarehousePage() {
 
         <FuelSummaryCards summary={summary} />
 
-        {/* --- Acciones rapidas agrupadas por flujo --- */}
-        <div className="space-y-3">
-          <h2 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            Acciones rapidas
-          </h2>
-          <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
-            {/* Entradas */}
-            <Card>
-              <CardContent className="space-y-2 p-4">
-                <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
-                  Entradas
+        {/* --- Acciones agrupadas por flujo: entradas → despachos → consumo --- */}
+        <Card>
+          <CardContent className="grid grid-cols-1 gap-6 p-5 lg:grid-cols-3 lg:gap-0 lg:divide-x lg:divide-border">
+            <div className="space-y-3 lg:pr-6">
+              <div>
+                <p className="text-sm font-semibold">Entradas</p>
+                <p className="text-xs text-muted-foreground">
+                  Suman combustible al inventario
                 </p>
-                <div className="space-y-1.5">
-                  <FuelMovementDialog
-                    company={company}
-                    type="warehouse_initial_balance"
-                    summary={summary}
-                    vehicles={fuelVehicles}
-                    icon={Droplets}
-                    variant="outline"
-                  />
-                  <FuelMovementDialog
-                    company={company}
-                    type="external_refuel"
-                    summary={summary}
-                    vehicles={fuelVehicles}
-                    icon={Fuel}
-                    variant="outline"
-                  />
-                  <FuelMovementDialog
-                    company={company}
-                    type="warehouse_unload"
-                    summary={summary}
-                    vehicles={fuelVehicles}
-                    icon={ArrowDownToLine}
-                    variant="outline"
-                  />
-                </div>
-              </CardContent>
-            </Card>
+              </div>
+              <div className="space-y-1.5">
+                <FuelMovementDialog
+                  company={company}
+                  type="warehouse_initial_balance"
+                  summary={summary}
+                  vehicles={fuelVehicles}
+                  icon={Droplets}
+                  variant="outline"
+                  className="w-full"
+                />
+                <FuelMovementDialog
+                  company={company}
+                  type="external_refuel"
+                  summary={summary}
+                  vehicles={fuelVehicles}
+                  icon={Fuel}
+                  variant="outline"
+                  className="w-full"
+                />
+                <FuelMovementDialog
+                  company={company}
+                  type="warehouse_unload"
+                  summary={summary}
+                  vehicles={fuelVehicles}
+                  icon={ArrowDownToLine}
+                  variant="outline"
+                  className="w-full"
+                />
+              </div>
+            </div>
 
-            {/* Despachos */}
-            <Card>
-              <CardContent className="space-y-2 p-4">
-                <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
-                  Despachos
+            <div className="space-y-3 lg:px-6">
+              <div>
+                <p className="text-sm font-semibold">Despachos</p>
+                <p className="text-xs text-muted-foreground">
+                  Salidas del almacen con trazabilidad FIFO
                 </p>
-                <div className="space-y-1.5">
-                  <FuelMovementDialog
-                    company={company}
-                    type="warehouse_dispatch_vehicle"
-                    summary={summary}
-                    vehicles={fuelVehicles}
-                    icon={Truck}
-                    variant="outline"
-                  />
-                  <FuelMovementDialog
-                    company={company}
-                    type="warehouse_dispatch_third_party"
-                    summary={summary}
-                    vehicles={fuelVehicles}
-                    icon={ArrowUpFromLine}
-                    variant="outline"
-                  />
-                </div>
-              </CardContent>
-            </Card>
+              </div>
+              <div className="space-y-1.5">
+                <FuelMovementDialog
+                  company={company}
+                  type="warehouse_dispatch_vehicle"
+                  summary={summary}
+                  vehicles={fuelVehicles}
+                  icon={Truck}
+                  variant="outline"
+                  className="w-full"
+                />
+                <FuelMovementDialog
+                  company={company}
+                  type="warehouse_dispatch_third_party"
+                  summary={summary}
+                  vehicles={fuelVehicles}
+                  icon={ArrowUpFromLine}
+                  variant="outline"
+                  className="w-full"
+                />
+              </div>
+            </div>
 
-            {/* Consumo */}
-            <Card>
-              <CardContent className="space-y-2 p-4">
-                <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
-                  Consumo
+            <div className="space-y-3 lg:pl-6">
+              <div>
+                <p className="text-sm font-semibold">Consumo</p>
+                <p className="text-xs text-muted-foreground">
+                  Registro operativo de los vehiculos
                 </p>
-                <div className="space-y-1.5">
-                  <FuelMovementDialog
-                    company={company}
-                    type="vehicle_daily_consumption"
-                    summary={summary}
-                    vehicles={fuelVehicles}
-                    icon={CalendarMinus}
-                    variant="outline"
-                  />
-                  <FuelMovementDialog
-                    company={company}
-                    type="vehicle_trip"
-                    summary={summary}
-                    vehicles={fuelVehicles}
-                    icon={Route}
-                    variant="outline"
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+              </div>
+              <div className="space-y-1.5">
+                <FuelMovementDialog
+                  company={company}
+                  type="vehicle_daily_consumption"
+                  summary={summary}
+                  vehicles={fuelVehicles}
+                  icon={CalendarMinus}
+                  variant="outline"
+                  className="w-full"
+                />
+                <FuelMovementDialog
+                  company={company}
+                  type="vehicle_trip"
+                  summary={summary}
+                  vehicles={fuelVehicles}
+                  icon={Route}
+                  variant="outline"
+                  className="w-full"
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* --- Tabs con datos --- */}
         <Tabs defaultValue="movements" className="space-y-4">
@@ -286,101 +308,120 @@ export default function FuelWarehousePage() {
           </TabsList>
 
           <TabsContent value="movements" className="space-y-4">
-            <Card>
-              <CardContent className="p-4">
-                <div className="grid grid-cols-1 gap-3 md:grid-cols-5">
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                      Desde
-                    </Label>
-                    <Input
-                      type="date"
-                      value={dateFrom}
-                      onChange={(event) => setDateFrom(event.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                      Hasta
-                    </Label>
-                    <Input
-                      type="date"
-                      value={dateTo}
-                      onChange={(event) => setDateTo(event.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                      Vehiculo
-                    </Label>
-                    <Select value={vehicleId} onValueChange={setVehicleId}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Vehiculo" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todos</SelectItem>
-                        {fuelVehicles.map((vehicle) => (
-                          <SelectItem key={vehicle.id} value={vehicle.id.toString()}>
-                            {vehicle.plate} - {formatLiters(vehicle.current_balance_liters)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                      Tercero
-                    </Label>
-                    <Select value={thirdPartyId} onValueChange={setThirdPartyId}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Tercero" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todos</SelectItem>
-                        {thirdParties?.map((thirdParty) => (
-                          <SelectItem key={thirdParty.id} value={thirdParty.id}>
-                            {thirdParty.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                      Tipo
-                    </Label>
-                    <Select
-                      value={movementType}
-                      onValueChange={(value) =>
-                        setMovementType(value as FuelMovementType | "all")
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Tipo" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todos</SelectItem>
-                        {movementFilterOptions.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+            <div className="space-y-2">
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-5">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Desde
+                  </Label>
+                  <Input
+                    type="date"
+                    value={dateFrom}
+                    onChange={(event) => setDateFrom(event.target.value)}
+                  />
                 </div>
-              </CardContent>
-            </Card>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Hasta
+                  </Label>
+                  <Input
+                    type="date"
+                    value={dateTo}
+                    onChange={(event) => setDateTo(event.target.value)}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Vehiculo
+                  </Label>
+                  <Select value={vehicleId} onValueChange={setVehicleId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Vehiculo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos</SelectItem>
+                      {fuelVehicles.map((vehicle) => (
+                        <SelectItem key={vehicle.id} value={vehicle.id.toString()}>
+                          {vehicle.plate} - {formatLiters(vehicle.current_balance_liters)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Tercero
+                  </Label>
+                  <Select value={thirdPartyId} onValueChange={setThirdPartyId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Tercero" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos</SelectItem>
+                      {thirdParties?.map((thirdParty) => (
+                        <SelectItem key={thirdParty.id} value={thirdParty.id}>
+                          {thirdParty.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Tipo
+                  </Label>
+                  <Select
+                    value={movementType}
+                    onValueChange={(value) =>
+                      setMovementType(value as FuelMovementType | "all")
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Tipo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos</SelectItem>
+                      {movementFilterOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              {hasActiveFilters && (
+                <div className="flex justify-end">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 gap-1.5 px-2 text-xs text-muted-foreground"
+                    onClick={clearFilters}
+                  >
+                    <X className="h-3.5 w-3.5" />
+                    Limpiar filtros
+                  </Button>
+                </div>
+              )}
+            </div>
 
             {movementsLoading ? (
               <LoadingPage />
             ) : (
-              <FuelMovementsTable company={company} movements={fuelMovements} />
+              <FuelMovementsTable
+                company={company}
+                movements={fuelMovements}
+                isSuperUser={isSuperUser}
+              />
             )}
           </TabsContent>
 
           <TabsContent value="vehicles">
-            <FuelVehiclesTable company={company} vehicles={fuelVehicles} />
+            <FuelVehiclesTable
+              company={company}
+              vehicles={fuelVehicles}
+              isSuperUser={isSuperUser}
+            />
           </TabsContent>
 
           <TabsContent value="traceability">
