@@ -1,6 +1,8 @@
 "use client";
 
 import { useUpdateFuelVehicleStatus } from "@/actions/mantenimiento/almacen/combustible/actions";
+import { DeleteFuelVehicleDialog } from "@/components/dialogs/mantenimiento/almacen/combustible/DeleteFuelVehicleDialog";
+import { EditFuelVehicleDialog } from "@/components/dialogs/mantenimiento/almacen/combustible/EditFuelVehicleDialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,9 +25,11 @@ import { Loader2, Power, PowerOff, Truck } from "lucide-react";
 export function FuelVehiclesTable({
   company,
   vehicles,
+  isSuperUser = false,
 }: {
   company?: string;
   vehicles: FuelVehicle[];
+  isSuperUser?: boolean;
 }) {
   const updateStatus = useUpdateFuelVehicleStatus(company);
   const pendingVehicleId = updateStatus.isPending
@@ -116,22 +120,34 @@ export function FuelVehiclesTable({
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 gap-2"
-                      onClick={() => toggleStatus(vehicle)}
-                      disabled={updateStatus.isPending}
-                    >
-                      {pendingVehicleId === vehicle.id ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : isInactive ? (
-                        <Power className="h-4 w-4" />
-                      ) : (
-                        <PowerOff className="h-4 w-4" />
+                    <div className="flex justify-end gap-1">
+                      <EditFuelVehicleDialog
+                        company={company}
+                        vehicle={vehicle}
+                      />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 gap-2"
+                        onClick={() => toggleStatus(vehicle)}
+                        disabled={updateStatus.isPending}
+                      >
+                        {pendingVehicleId === vehicle.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : isInactive ? (
+                          <Power className="h-4 w-4" />
+                        ) : (
+                          <PowerOff className="h-4 w-4" />
+                        )}
+                        {isInactive ? "Activar" : "Inactivar"}
+                      </Button>
+                      {isSuperUser && (
+                        <DeleteFuelVehicleDialog
+                          company={company}
+                          vehicle={vehicle}
+                        />
                       )}
-                      {isInactive ? "Activar" : "Inactivar"}
-                    </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               );

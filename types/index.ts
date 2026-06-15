@@ -1494,6 +1494,17 @@ export type CreateFuelVehiclePayload = {
     initial_km?: number | null;
 };
 
+// Actualizacion de vehiculo: mismos campos de configuracion que la creacion,
+// sin el saldo inicial (current_balance_liters no es editable directamente).
+export type UpdateFuelVehiclePayload = {
+    plate: string;
+    type: FuelVehicleType;
+    responsible?: string | null;
+    tank_capacity_liters: number;
+    km_per_liter?: number | null;
+    initial_km?: number | null;
+};
+
 export type CreateFuelMovementPayload = {
     type: FuelMovementType;
     operational_date: string;

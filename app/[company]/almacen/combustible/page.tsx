@@ -82,6 +82,7 @@ export default function FuelWarehousePage() {
 
   const userRoles = user?.roles?.map((role) => role.name) ?? [];
   const canAccess = FUEL_ALLOWED_ROLES.some((role) => userRoles.includes(role));
+  const isSuperUser = userRoles.includes("SUPERUSER");
 
   const hasActiveFilters =
     dateFrom !== "" ||
@@ -407,12 +408,20 @@ export default function FuelWarehousePage() {
             {movementsLoading ? (
               <LoadingPage />
             ) : (
-              <FuelMovementsTable company={company} movements={fuelMovements} />
+              <FuelMovementsTable
+                company={company}
+                movements={fuelMovements}
+                isSuperUser={isSuperUser}
+              />
             )}
           </TabsContent>
 
           <TabsContent value="vehicles">
-            <FuelVehiclesTable company={company} vehicles={fuelVehicles} />
+            <FuelVehiclesTable
+              company={company}
+              vehicles={fuelVehicles}
+              isSuperUser={isSuperUser}
+            />
           </TabsContent>
 
           <TabsContent value="traceability">

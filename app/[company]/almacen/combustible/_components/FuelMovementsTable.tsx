@@ -1,6 +1,7 @@
 "use client";
 
 import { AnnulFuelMovementDialog } from "@/components/dialogs/mantenimiento/almacen/combustible/AnnulFuelMovementDialog";
+import { DeleteFuelMovementDialog } from "@/components/dialogs/mantenimiento/almacen/combustible/DeleteFuelMovementDialog";
 import { FuelMovementDetailDialog } from "@/components/dialogs/mantenimiento/almacen/combustible/FuelMovementDetailDialog";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -37,9 +38,11 @@ const MOVEMENT_DOT_CLASS: Record<FuelMovementType, string> = {
 export function FuelMovementsTable({
   company,
   movements,
+  isSuperUser = false,
 }: {
   company?: string;
   movements: FuelMovement[];
+  isSuperUser?: boolean;
 }) {
   return (
     <div className="overflow-hidden rounded-md border bg-background">
@@ -115,6 +118,12 @@ export function FuelMovementsTable({
                         company={company}
                         movement={movement}
                       />
+                      {isSuperUser && isAnnulled && (
+                        <DeleteFuelMovementDialog
+                          company={company}
+                          movement={movement}
+                        />
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>

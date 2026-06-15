@@ -13,6 +13,7 @@ import {
   CreateFuelVehiclePayload,
   FuelMovement,
   FuelVehicle,
+  UpdateFuelVehiclePayload,
 } from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -72,6 +73,58 @@ export const useUpdateFuelVehicleStatus = (company?: string) => {
   });
 };
 
+export const useUpdateFuelVehicle = (company?: string) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: number;
+      data: UpdateFuelVehiclePayload;
+    }) => {
+      const response = await axiosInstance.put<FuelVehicle>(
+        `/${company}/fuel/vehicles/${id}`,
+        data,
+      );
+      return normalizeFuelVehicle(response.data);
+    },
+    onSuccess: () => {
+      invalidateFuelQueries(queryClient);
+      toast.success("Vehiculo actualizado", {
+        description: "Los datos del vehiculo fueron actualizados.",
+      });
+    },
+    onError: (error) => {
+      toast.error("No se pudo actualizar", {
+        description: getFuelErrorMessage(error),
+      });
+    },
+  });
+};
+
+export const useDeleteFuelVehicle = (company?: string) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: number) => {
+      await axiosInstance.delete(`/${company}/fuel/vehicles/${id}`);
+    },
+    onSuccess: () => {
+      invalidateFuelQueries(queryClient);
+      toast.success("Vehiculo eliminado", {
+        description: "El vehiculo y su historial fueron eliminados.",
+      });
+    },
+    onError: (error) => {
+      toast.error("No se pudo eliminar", {
+        description: getFuelErrorMessage(error),
+      });
+    },
+  });
+};
+
 export const useCreateFuelMovement = (company?: string) => {
   const queryClient = useQueryClient();
 
@@ -122,6 +175,29 @@ export const useAnnulFuelMovement = (company?: string) => {
     },
     onError: (error) => {
       toast.error("No se pudo anular", {
+        description: getFuelErrorMessage(error),
+      });
+    },
+  });
+};
+
+// Eliminacion definitiva de un movimiento. Solo SUPERUSER (validado en el backend)
+// y solo sobre movimientos ya anulados.
+export const useDeleteFuelMovement = (company?: string) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: number) => {
+      await axiosInstance.delete(`/${company}/fuel/movements/${id}`);
+    },
+    onSuccess: () => {
+      invalidateFuelQueries(queryClient);
+      toast.success("Movimiento eliminado", {
+        description: "El movimiento anulado fue eliminado permanentemente.",
+      });
+    },
+    onError: (error) => {
+      toast.error("No se pudo eliminar", {
         description: getFuelErrorMessage(error),
       });
     },
