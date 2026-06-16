@@ -7,6 +7,7 @@ import { format, startOfMonth, endOfMonth, parseISO, isValid } from "date-fns";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 import {
   useCreateCargoShipment,
@@ -162,10 +163,35 @@ export function useCargoShipmentForm(
   }
 
   const onSubmit = async (values: CargoShipmentFormValues) => {
-    const data = {
-      ...values,
-      registration_date: format(values.registration_date, "yyyy-MM-dd"),
-    };
+    // Detectar y agrupar productos duplicados
+    const itemMap = new Map<string, { product_description: string; units: number; weight: number }>();
+    let hasDuplicates = false;
+
+    values.items.forEach((item) => {
+      const key = item.product_description.trim().toUpperCase();
+      if (itemMap.has(key)) {
+        hasDuplicates = true;
+        const existing = itemMap.get(key)!;
+        existing.units += Number(item.units);
+        existing.weight += Number(item.weight);
+      } else {
+        itemMap.set(key, {
+          product_description: item.product_description,
+          units: Number(item.units),
+          weight: Number(item.weight),
+        });
+      }
+    });
+
+    const finalItems = Array.from(itemMap.values());
+
+    if (hasDuplicates) {
+      toast.info("Productos duplicados agrupados", {
+        description: "Se detectaron productos repetidos y se han agrupado automáticamente sumando sus unidades y pesos.",
+      });
+      // Actualizar el formulario para que el usuario vea los cambios
+      form.setValue("items", finalItems);
+    }
 
     const parsePilot = (key: string) => {
       const [type, id] = key.split(":");
@@ -177,6 +203,7 @@ export function useCargoShipmentForm(
 
     const payload = {
       ...values,
+      items: finalItems,
       registration_date: format(values.registration_date, "yyyy-MM-dd"),
       pilot_id: p.type === "int" ? p.id : null,
       copilot_id: cp.type === "int" ? cp.id : null,

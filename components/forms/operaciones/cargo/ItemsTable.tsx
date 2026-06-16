@@ -13,14 +13,21 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import type { CargoShipmentFormValues } from "@/hooks/operaciones/cargo/useCargoShipmentForm";
+import { ProductAutocompleteInput } from "./ProductAutoCompleteInput";
 
 interface ItemsTableProps {
   form: UseFormReturn<CargoShipmentFormValues>;
   totalUnits: number;
   totalWeight: number;
+  company: string;
 }
 
-export function ItemsTable({ form, totalUnits, totalWeight }: ItemsTableProps) {
+export function ItemsTable({
+  form,
+  totalUnits,
+  totalWeight,
+  company,
+}: ItemsTableProps) {
   const { fields, append, remove } = useFieldArray({
     name: "items",
     control: form.control,
@@ -75,10 +82,11 @@ export function ItemsTable({ form, totalUnits, totalWeight }: ItemsTableProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <Input
+                      <ProductAutocompleteInput
+                        company={company}
+                        value={field.value}
+                        onChange={field.onChange}
                         placeholder="Ej. BOLSA CON GRIFO"
-                        className="bg-transparent h-8 text-sm focus-visible:bg-background"
-                        {...field}
                       />
                     </FormControl>
                     <FormMessage className="text-[10px]" />
