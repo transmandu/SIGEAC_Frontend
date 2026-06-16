@@ -117,7 +117,6 @@ const QuoteDropdownDialogs = ({
       id: quote.id,
       data: {
         status: "RECHAZADA",
-        updated_by: `${user?.first_name} ${user?.last_name}`,
         observation: Observation.trim() || null
       },
       company: selectedCompany.slug
@@ -141,24 +140,22 @@ const QuoteDropdownDialogs = ({
   const handleApprove = async () => {
     const poData = {
       status: "PROCESO",
-      justification: quote.justification,
+      justification: quote.justification ?? '',
       purchase_date: new Date(),
       sub_total: Number(quote.total),
       total: Number(quote.total),
-      vendor_id: Number(quote.vendor.id),
+      vendor_id: Number(quote.vendor?.id),
       created_by: `${user?.first_name} ${user?.last_name}`,
-      articles_purchase_orders: quote.article_quote_order,
+      articles_purchase_orders: quote.article_quote_order.map((a) => ({
+        batch: { name: '' },
+        article_part_number: a.article_requisition_order?.article_part_number ?? '',
+        article_alt_part_number: a.article_requisition_order?.article_alt_part_number ?? undefined,
+        quantity: a.quantity,
+        unit_price: String(a.unit_price),
+        image: '',
+      })),
       quote_order_id: Number(quote.id)
     }
-
-    await updateStatusQuote.mutateAsync({
-      id: quote.id,
-      data: {
-        status: "APROBADO",
-        updated_by: `${user?.first_name} ${user?.last_name}`
-      },
-      company: selectedCompany.slug
-    })
 
     await createPurchaseOrder.mutateAsync({
       data: poData,

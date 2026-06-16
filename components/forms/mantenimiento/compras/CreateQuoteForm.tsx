@@ -1,6 +1,5 @@
 "use client";
 import { useCreateQuote } from "@/actions/mantenimiento/compras/cotizaciones/actions";
-import { useUpdateRequisitionStatus } from "@/actions/mantenimiento/compras/requisiciones/actions";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -12,7 +11,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useAuth } from "@/contexts/AuthContext";
 import { useGetVendors } from "@/hooks/general/proveedores/useGetVendors";
 import { useGetLocationsByCompanyId } from "@/hooks/sistema/useGetLocationsByCompanyId";
 import { cn } from "@/lib/utils";
@@ -52,6 +50,7 @@ const FormSchema = z.object({
   justification: z.string(),
   articles: z.array(
     z.object({
+      article_requisition_order_id: z.number().optional(),
       part_number: z.string(),
       alt_part_number: z.string().optional(),
       quantity: z.string().regex(/^\d+(\.\d{0,2})?$/),
@@ -84,14 +83,12 @@ export function CreateQuoteForm({
 }) {
   const { selectedCompany } = useCompanyStore();
   const [openVendor, setOpenVendor] = useState(false);
-  const [openVendorDialog, setOpenVendorDialog] = useState(false);
-  const { updateStatusRequisition } = useUpdateRequisitionStatus();
   const { data: units } = useGetUnits(selectedCompany?.slug);
   const { createQuote } = useCreateQuote();
-  const { user } = useAuth();
 
   const transformedArticles = req.batch.flatMap((batch) =>
     batch.batch_articles.map((article: any) => ({
+      article_requisition_order_id: article.id as number | undefined,
       part_number: article.article_part_number,
       alt_part_number: article.article_alt_part_number ?? "",
       quantity: article.quantity,
@@ -99,7 +96,7 @@ export function CreateQuoteForm({
       unit_price: "0",
       batch: {
         name: batch.name,
-        category: batch.category,
+        category: batch.category ?? "",
       },
     }))
   );
@@ -154,33 +151,25 @@ export function CreateQuoteForm({
 
   const onSubmit = async (data: FormSchemaType) => {
     const formattedData = {
-      ...data,
-      created_by: `${user?.id}`,
-      sub_total: total,
+      quote_date: data.quote_date.toISOString(),
+      justification: data.justification,
       total: total,
       location_id: Number(data.location_id),
-      company: selectedCompany!.slug,
       requisition_order_id: req.id,
       vendor_id: Number(data.vendor_id),
       observation: data.observation || null,
-      articles: data.articles.map((article: any) => ({
-        ...article,
-        amount: Number(article.unit_price) * Number(article.quantity),
+      articles: data.articles.map((a) => ({
+        article_requisition_order_id: a.article_requisition_order_id ?? 0,
+        quantity: Number(a.quantity),
+        unit_price: Number(a.unit_price),
+        unit_id: a.unit ? Number(a.unit) : undefined,
       })),
     };
     await createQuote.mutateAsync({ data: formattedData, company: selectedCompany!.slug });
-    await updateStatusRequisition.mutateAsync({
-      id: req.id,
-      data: {
-        status: "COTIZADO",
-        updated_by: `${user?.first_name} ${user?.last_name}`,
-      },
-      company: selectedCompany!.slug,
-    });
     onClose();
   };
 
-  const isPending = createQuote.isPending || updateStatusRequisition.isPending;
+  const isPending = createQuote.isPending;
 
   return (
     <Form {...form}>

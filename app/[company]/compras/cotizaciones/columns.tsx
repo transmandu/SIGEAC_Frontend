@@ -180,7 +180,7 @@ export const getColumns = (
       const status = row.original.status
 
       const pending = status === 'PENDIENTE'
-      const approved = status === 'APROBADO'
+      const approved = status === 'APROBADA'
 
       return (
         <div className="flex justify-center w-full">

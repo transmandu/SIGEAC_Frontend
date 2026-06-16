@@ -49,8 +49,8 @@ const FilterSelects = ({
             Pendiente
           </SelectItem>
 
-          <SelectItem value="APROBADO">
-            Aprobado
+          <SelectItem value="APROBADA">
+            Aprobada
           </SelectItem>
 
           <SelectItem value="RECHAZADA">

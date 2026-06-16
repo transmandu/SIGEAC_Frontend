@@ -12,13 +12,14 @@ export type PurchaseStatus =
   | 'REJECTED'
   | 'PROCESO'
   | 'COTIZADO'
-  | 'APROBADO'
-  | 'RECHAZADO';
+  | 'APROBADA'
+  | 'RECHAZADA';
 
 export type RequisitionType = 'AERONAUTICAL' | 'STOCK' | 'GENERAL';
 
 // ── Batch Article (response / detail) ──────────────────────────────────────
 export interface BatchArticle {
+  id?: number;
   article_part_number: string;
   article_alt_part_number?: string;
   justification?: string | null;
