@@ -98,7 +98,7 @@ export default function CreateCargoShipmentForm({
       label: a.model
         ? `${a.model} - ${a.acronym}`
         : (a.acronym ?? a.serial ?? `Aeronave ${a.id}`),
-    })
+    }),
   );
 
   // Opciones solo de aeronaves externas
@@ -231,7 +231,10 @@ export default function CreateCargoShipmentForm({
                       ]
                     : aircraftIdFromUrl
                       ? [{ value: "", label: "Ninguna" }, ...allAircraftOptions]
-                      : [{ value: "", label: "Ninguna" }, ...internalAircraftOptions]
+                      : [
+                          { value: "", label: "Ninguna" },
+                          ...internalAircraftOptions,
+                        ]
                 }
                 disabled={
                   isExternalMode
@@ -378,6 +381,7 @@ export default function CreateCargoShipmentForm({
             form={form}
             totalUnits={totalUnits}
             totalWeight={totalWeight}
+            company={company}
           />
 
           {/* ═══ SUBMIT ══════════════════════════════════════════════════════ */}
