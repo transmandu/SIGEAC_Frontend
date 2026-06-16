@@ -20,6 +20,7 @@ const PartSchema: any = z.object({
   manufacturer_id: z.string().optional(),
 
   type: z.string().min(1, "Tipo obligatorio").max(50),
+  category: z.enum(["ENGINE", "APU", "PROPELLER"]).optional(),
   position: z.enum(["LH", "RH"]).optional(),
   part_order: z.number().nullable().optional(),
 
@@ -46,6 +47,12 @@ export const PART_CATEGORIES: Record<string, string> = {
   ENGINE: "Planta de Poder",
   APU: "APU",
   PROPELLER: "Hélice",
+};
+
+const TYPE_TO_CATEGORY: Record<string, "ENGINE" | "APU" | "PROPELLER"> = {
+  MOTOR: "ENGINE",
+  HELICE: "PROPELLER",
+  APU: "APU",
 };
 
 type PartsFormType = z.infer<typeof PartsFormSchema>
@@ -101,11 +108,13 @@ const normalizePartType = (type?: string | null) => {
 
 const normalizePart = (part: any): z.infer<typeof PartSchema> => {
   const normalizedSubParts = (part.sub_parts || []).map(normalizePart);
+  const type = normalizePartType(part.type);
   return {
     id: part.id,
     serial: part.serial || "",
     manufacturer_id: part.manufacturer_id || "",
-    type: normalizePartType(part.type),
+    type,
+    category: part.category || TYPE_TO_CATEGORY[type] || "ENGINE",
     part_number: part.part_number || "",
     ata_chapter: part.ata_chapter || part.ata_number || part.ata || "",
     position: part.position || undefined,
@@ -213,6 +222,7 @@ export function AircraftPartsInfoForm({ onNext, onBack, initialData }: {
   const { toast } = useToast();
   const [removingPath, setRemovingPath] = useState<string | null>(null);
   const [tempDate, setTempDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const normalizedInitialData = useMemo(() => {
     if (initialData?.parts) {
@@ -296,16 +306,29 @@ export function AircraftPartsInfoForm({ onNext, onBack, initialData }: {
 
   const addSubpart = (partPath: string) => {
     const currentSubparts = form.getValues(`${partPath}.sub_parts` as any) || [];
+    const parentPart = form.getValues(partPath as any);
+    const parentCategory = parentPart?.category || TYPE_TO_CATEGORY[parentPart?.type] || "ENGINE";
     form.setValue(`${partPath}.sub_parts` as any, [
       ...currentSubparts,
-      { condition_type: "NEW" }
+      { condition_type: "NEW", category: parentCategory }
     ]);
     if (!expandedParts[partPath]) {
       toggleExpand(partPath);
     }
   };
 
+  const addCategoryToParts = (parts: any[]): any[] => {
+    return parts.map(part => ({
+      ...part,
+      category: part.category || TYPE_TO_CATEGORY[part.type] || "ENGINE",
+      sub_parts: part.sub_parts ? addCategoryToParts(part.sub_parts) : undefined
+    }));
+  };
+
   const submitFiltered = () => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+
     const values = form.getValues();
     const parts = values.parts || [];
 
@@ -331,11 +354,16 @@ export function AircraftPartsInfoForm({ onNext, onBack, initialData }: {
         }
       });
       toast({ title: 'Errores en el formulario', description: 'Corrige los campos marcados.' });
+      setIsSubmitting(false);
       return;
     }
 
+    // Add category to all parts based on type
+    const partsWithCategory = addCategoryToParts(parts);
+
     // If valid, send all parts (registered and removals) to the next step
-    onNext({ parts });
+    onNext({ parts: partsWithCategory });
+    setIsSubmitting(false);
   };
 
   return (
@@ -386,8 +414,10 @@ export function AircraftPartsInfoForm({ onNext, onBack, initialData }: {
         />
 
         <div className="flex justify-between pt-4">
-          <Button type="button" variant="outline" onClick={() => onBack(form.getValues())}>Anterior</Button>
-          <Button type="button" onClick={submitFiltered}>Siguiente</Button>
+          <Button type="button" variant="outline" onClick={() => onBack(form.getValues())} disabled={isSubmitting}>Anterior</Button>
+          <Button type="button" onClick={submitFiltered} disabled={isSubmitting}>
+            {isSubmitting ? "Procesando..." : "Siguiente"}
+          </Button>
         </div>
       </form>
     </Form>
