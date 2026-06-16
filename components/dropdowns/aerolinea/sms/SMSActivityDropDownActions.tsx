@@ -101,7 +101,7 @@ const SMSActivityDropDownActions = ({
             <DropdownMenuItem
               onClick={() => {
                 router.push(
-                  `/${selectedCompany?.slug}/sms/promocion/actividades/editar/${smsActivity.id}`,
+                  `/${selectedCompany?.slug}/sms/promocion/actividades/editar/${smsActivity.activity_number}`,
                 );
               }}
             >
