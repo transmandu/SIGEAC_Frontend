@@ -1,6 +1,6 @@
 "use client";
 
-import { QRCodeSVG } from "qrcode.react";
+import { ReactQRCode } from "@lglab/react-qr-code";
 import { useRef } from "react";
 import { Download } from "lucide-react";
 
@@ -25,13 +25,34 @@ const QRGenerator = ({
 }: QRGeneratorProps) => {
   const qrRef = useRef<HTMLDivElement>(null);
 
-  const downloadQRCode = () => {
+  const downloadQRCode = async () => {
     if (!qrRef.current) return;
 
     const svg = qrRef.current.querySelector("svg");
     if (!svg) return;
 
-    const svgData = new XMLSerializer().serializeToString(svg);
+    const svgClone = svg.cloneNode(true) as SVGElement;
+
+    const imageEl = svgClone.querySelector("image");
+    if (imageEl) {
+      const href = imageEl.getAttribute("href");
+      if (href && !href.startsWith("data:")) {
+        try {
+          const response = await fetch(href);
+          const blob = await response.blob();
+          const dataUrl = await new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.readAsDataURL(blob);
+          });
+          imageEl.setAttribute("href", dataUrl);
+        } catch {
+          console.error("Failed to embed image in QR download");
+        }
+      }
+    }
+
+    const svgData = new XMLSerializer().serializeToString(svgClone);
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
     const img = new Image();
@@ -55,16 +76,34 @@ const QRGenerator = ({
 
   return (
     <div className="flex flex-col items-center gap-4">
+      {/* Mantenemos el div contenedor para que la lógica de descarga encuentre el SVG */}
       <div ref={qrRef}>
-        <QRCodeSVG
+        <ReactQRCode
+          finderPatternInnerSettings={{
+            style: 'outpoint-lg',
+            color: '#1F7FDB',
+          }}
+          finderPatternOuterSettings={{
+            style: 'outpoint-lg',
+            color: '#000',
+          }}
+          dataModulesSettings={{
+            style: 'leaf',
+            color: '#1F7FDB',
+            size: 0.90
+          }}
           value={value}
           size={size}
-          bgColor={bgColor}
-          level="H"
-          fgColor={fgColor}
-          marginSize={1}
-          height={size}
-          width={size}
+          background={fgColor}
+          imageSettings={
+            {
+              src: '/aircraft.png',
+              width: 60,
+              height: 40,
+              excavate: true,
+              opacity: 0.9
+            }
+          }
         />
       </div>
 
