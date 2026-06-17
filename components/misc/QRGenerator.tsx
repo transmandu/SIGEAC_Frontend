@@ -1,6 +1,6 @@
 "use client";
 
-import { QRCodeSVG } from "qrcode.react";
+import { ReactQRCode } from "@lglab/react-qr-code";
 import { useRef } from "react";
 import { Download } from "lucide-react";
 
@@ -55,16 +55,34 @@ const QRGenerator = ({
 
   return (
     <div className="flex flex-col items-center gap-4">
+      {/* Mantenemos el div contenedor para que la lógica de descarga encuentre el SVG */}
       <div ref={qrRef}>
-        <QRCodeSVG
+        <ReactQRCode
+          finderPatternInnerSettings={{
+            style: 'outpoint-lg',
+            color: '#1F7FDB',
+          }}
+          finderPatternOuterSettings={{
+            style: 'outpoint-lg',
+            color: '#000',
+          }}
+          dataModulesSettings={{
+            style: 'leaf',
+            color: '#1F7FDB',
+            size: 0.90
+          }}
           value={value}
           size={size}
-          bgColor={bgColor}
-          level="H"
-          fgColor={fgColor}
-          marginSize={1}
-          height={size}
-          width={size}
+          background={fgColor}
+          imageSettings={
+            {
+              src: '/aircraft.png',
+              width: 60,
+              height: 40,
+              excavate: true,
+              opacity: 0.9
+            }
+          }
         />
       </div>
 
