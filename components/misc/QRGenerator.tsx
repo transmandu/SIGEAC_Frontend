@@ -25,13 +25,34 @@ const QRGenerator = ({
 }: QRGeneratorProps) => {
   const qrRef = useRef<HTMLDivElement>(null);
 
-  const downloadQRCode = () => {
+  const downloadQRCode = async () => {
     if (!qrRef.current) return;
 
     const svg = qrRef.current.querySelector("svg");
     if (!svg) return;
 
-    const svgData = new XMLSerializer().serializeToString(svg);
+    const svgClone = svg.cloneNode(true) as SVGElement;
+
+    const imageEl = svgClone.querySelector("image");
+    if (imageEl) {
+      const href = imageEl.getAttribute("href");
+      if (href && !href.startsWith("data:")) {
+        try {
+          const response = await fetch(href);
+          const blob = await response.blob();
+          const dataUrl = await new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.readAsDataURL(blob);
+          });
+          imageEl.setAttribute("href", dataUrl);
+        } catch {
+          console.error("Failed to embed image in QR download");
+        }
+      }
+    }
+
+    const svgData = new XMLSerializer().serializeToString(svgClone);
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
     const img = new Image();
