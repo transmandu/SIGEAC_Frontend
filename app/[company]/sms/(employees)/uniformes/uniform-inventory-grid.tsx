@@ -339,10 +339,10 @@ function UniformCard({
       {/* Body */}
       <div className="flex flex-1 flex-col p-4">
         <h3 className="text-base font-semibold uppercase leading-tight text-foreground">
-          {item.type_label}
+          {item.type_label} • {item.company_label}
         </h3>
         <p className="mb-3 mt-1 flex-1 text-[13px] uppercase text-muted-foreground">
-          {item.company_label} • Talla {item.size}
+          Talla {item.size}
         </p>
         <div className="mt-auto flex items-center justify-between border-t pt-3">
           <div className="flex flex-col gap-0.5">
