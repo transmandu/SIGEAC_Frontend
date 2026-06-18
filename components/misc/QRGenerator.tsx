@@ -12,14 +12,19 @@ interface QRGeneratorProps {
   fgColor?: string;
   showDownloadButton?: boolean;
   showLink?: boolean;
+  innerColor?: string;
+  outerColor?: string;
+  moduleColor?: string;
 }
 
 const QRGenerator = ({
   value,
   fileName = "qr-code",
   size = 256,
-  bgColor = "#000000",
-  fgColor = "#FFFFFF",
+  innerColor = "#000000",
+  outerColor = "#FFF",
+  moduleColor = "#000000",
+  bgColor = "#FFFFFF",
   showDownloadButton = true,
   showLink = false,
 }: QRGeneratorProps) => {
@@ -81,20 +86,20 @@ const QRGenerator = ({
         <ReactQRCode
           finderPatternInnerSettings={{
             style: 'outpoint-lg',
-            color: '#1F7FDB',
+            color: innerColor,
           }}
           finderPatternOuterSettings={{
             style: 'outpoint-lg',
-            color: '#000',
+            color: outerColor,
           }}
           dataModulesSettings={{
             style: 'leaf',
-            color: '#1F7FDB',
+            color: moduleColor,
             size: 0.90
           }}
           value={value}
           size={size}
-          background={fgColor}
+          background={bgColor}
           imageSettings={
             {
               src: '/aircraft.png',
