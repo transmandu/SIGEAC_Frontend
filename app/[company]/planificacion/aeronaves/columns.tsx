@@ -24,6 +24,12 @@ import Link from "next/link"
 import { MaintenanceAircraft } from "@/types"
 import MaintenanceAircraftDropdownActions from "@/components/dropdowns/mantenimiento/ordenes_trabajo/MaintenanceAircraftDropdownActions"
 
+const fmtNumber = (n: any) => {
+    if (n === null || n === undefined) return "0"
+    const num = Number(n)
+    return isNaN(num) ? "0" : num.toLocaleString('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 3 })
+}
+
 export const columns: ColumnDef<MaintenanceAircraft>[] = [
   {
     id: "select",
@@ -80,7 +86,7 @@ export const columns: ColumnDef<MaintenanceAircraft>[] = [
       <DataTableColumnHeader column={column} title="Horas de Vuelo" />
     ),
     cell: ({ row }) => (
-      <p className="flex justify-center font-semibold">{row.original.flight_hours} hrs.</p>
+      <p className="flex justify-center font-semibold">{fmtNumber(row.original.flight_hours)} hrs.</p>
     )
   },
   {
@@ -89,7 +95,7 @@ export const columns: ColumnDef<MaintenanceAircraft>[] = [
       <DataTableColumnHeader column={column} title="Ciclos de Vuelo" />
     ),
     cell: ({ row }) => (
-      <p className="flex justify-center font-semibold">{row.original.flight_cycles} cyc.</p>
+      <p className="flex justify-center font-semibold">{fmtNumber(row.original.flight_cycles)} cyc.</p>
     )
   },
   {

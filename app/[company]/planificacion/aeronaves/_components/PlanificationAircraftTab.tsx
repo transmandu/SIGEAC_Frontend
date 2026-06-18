@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Checkbox } from "@/components/ui/checkbox"
 import {
     Plane, Hash, Calendar as CalendarIcon, Layers, Search,
-    Clock, ChevronRight, Edit, Package, Download, Loader2
+    Clock, ChevronRight, Edit, Package, Download, Loader2, Archive
 } from "lucide-react"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -28,7 +28,7 @@ import { toast } from "sonner"
 const fmtNumber = (n: any) => {
     if (n === null || n === undefined) return "0"
     const num = Number(n)
-    return isNaN(num) ? "0" : num.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 3 })
+    return isNaN(num) ? "0" : num.toLocaleString('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 3 })
 }
 
 const fmtDate = (d?: string | null | Date) => {
@@ -341,6 +341,9 @@ export function PlanificationAircraftTab({ aircraft }: { aircraft: MaintenanceAi
                         <TabsTrigger value="partes" className="inline-flex items-center gap-1">
                             <Layers className="h-4 w-4" /> Partes (desglosadas)
                         </TabsTrigger>
+                        <TabsTrigger value="desinstaladas" className="inline-flex items-center gap-1">
+                            <Archive className="h-4 w-4" /> Desinstaladas
+                        </TabsTrigger>
                     </TabsList>
                 </div>
 
@@ -515,6 +518,81 @@ export function PlanificationAircraftTab({ aircraft }: { aircraft: MaintenanceAi
                                                     </TableCell>
                                                     <TableCell className="text-right text-xs font-mono">
                                                         {fmtNumber(a.time_since_new)} / {fmtNumber(a.cycles_since_new)}
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+
+                {/* ===== Desinstaladas ===== */}
+                <TabsContent value="desinstaladas" className="mt-4 space-y-4">
+                    <Card className="border-muted/40">
+                        <CardHeader>
+                            <CardTitle className="inline-flex items-center gap-2 text-base">
+                                <Archive className="h-4 w-4" /> Partes desinstaladas
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            {(!aircraft.uninstalled_parts || aircraft.uninstalled_parts.length === 0) ? (
+                                <div className="py-10 text-center text-sm text-muted-foreground">Sin partes desinstaladas.</div>
+                            ) : (
+                                <div className="overflow-x-auto">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Parte</TableHead>
+                                                <TableHead>PN / Serial</TableHead>
+                                                <TableHead className="text-center">Posición</TableHead>
+                                                <TableHead>TSN / TSO</TableHead>
+                                                <TableHead>CSN / CSO</TableHead>
+                                                <TableHead>Removida</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {aircraft.uninstalled_parts.map((a) => (
+                                                <TableRow key={a.id}>
+                                                    <TableCell>
+                                                        <div className="flex flex-col">
+                                                            <span className="font-medium text-sm">{a.aircraft_part.part_name}</span>
+                                                            {a.aircraft_part.description && (
+                                                                <span className="text-[10px] text-muted-foreground line-clamp-1">
+                                                                    {a.aircraft_part.description}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <div className="flex flex-col">
+                                                            <span className="text-xs font-mono">{a.aircraft_part.part_number}</span>
+                                                            <span className="text-[10px] text-muted-foreground font-mono">
+                                                                {a.aircraft_part.serial || "S/N"}
+                                                            </span>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell className="text-center text-xs text-muted-foreground">
+                                                        {a.position || "—"}
+                                                    </TableCell>
+                                                    <TableCell className="text-sm font-mono">
+                                                        <div className="flex items-center gap-3">
+                                                            <span>{fmtNumber(a.aircraft_part.time_since_new)}</span>
+                                                            <span className="text-muted-foreground/50">/</span>
+                                                            <span className="text-muted-foreground">{fmtNumber(a.aircraft_part.time_since_overhaul)}</span>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell className="text-sm font-mono">
+                                                        <div className="flex items-center gap-3">
+                                                            <span>{fmtNumber(a.aircraft_part.cycles_since_new)}</span>
+                                                            <span className="text-muted-foreground/50">/</span>
+                                                            <span className="text-muted-foreground">{fmtNumber(a.aircraft_part.cycles_since_overhaul)}</span>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell className="text-xs text-muted-foreground">
+                                                        {fmtDate(a.removed_date)}
                                                     </TableCell>
                                                 </TableRow>
                                             ))}
