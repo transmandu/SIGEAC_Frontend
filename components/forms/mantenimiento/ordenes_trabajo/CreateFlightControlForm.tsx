@@ -413,8 +413,8 @@ function CreateForm({
       aircraft_id: deafultAircraftId ?? "",
       flights: [
         {
-          flight_cycles: 0,
-          flight_hours: 0,
+          flight_cycles: "",
+          flight_hours: "",
           flight_number: "",
           origin: "",
           destination: "",
@@ -460,8 +460,8 @@ function CreateForm({
                 aircraft_operator: "",
                 origin: "",
                 destination: "",
-                flight_hours: 0,
-                flight_cycles: 0,
+                flight_hours: "",
+                flight_cycles: "",
                 flight_date: undefined as unknown as Date,
               })
             }
