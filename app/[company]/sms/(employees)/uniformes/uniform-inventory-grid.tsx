@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import {
   AlertTriangle,
   ChevronDown,
@@ -13,11 +14,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
 import { UniformItem } from "@/hooks/sms/useGetUniforms";
 import { getUniformTypeIcon } from "@/components/sms/uniform-meta";
@@ -32,6 +28,8 @@ interface Props {
 
 const PAGE_SIZE = 12;
 const SIZE_ORDER = ["XS", "S", "M", "L", "XL", "XXL", "XXXL"];
+/** Strong ease-out curve — gives the expand a decisive, professional feel. */
+const EASE = [0.22, 1, 0.36, 1] as const;
 
 /** Natural talla ordering (XS→XXXL), numeric sizes (38, 40…) fall back last. */
 const sizeRank = (size: string) => {
@@ -39,13 +37,22 @@ const sizeRank = (size: string) => {
   return i === -1 ? 999 : i;
 };
 
-/** Three-state stock signal mirroring the catalog "dot" indicator. */
-const getStockSignal = (item: UniformItem) => {
-  if (item.is_low_stock)
-    return { dot: "bg-destructive", label: "text-destructive font-semibold" };
-  if (item.current_stock <= item.min_stock * 2)
-    return { dot: "bg-amber-500", label: "text-foreground" };
-  return { dot: "bg-emerald-500", label: "text-foreground" };
+type StockStatus = "out" | "low" | "ok";
+
+const getStockStatus = (item: UniformItem): StockStatus => {
+  if (item.current_stock === 0) return "out";
+  if (item.is_low_stock) return "low";
+  return "ok";
+};
+
+/** Dot + text treatment per stock status. Amber = needs reorder, red = agotado. */
+const STOCK_SIGNAL: Record<StockStatus, { dot: string; label: string }> = {
+  out: { dot: "bg-destructive", label: "text-destructive font-semibold" },
+  low: {
+    dot: "bg-amber-500",
+    label: "text-amber-700 dark:text-amber-400 font-medium",
+  },
+  ok: { dot: "bg-emerald-500", label: "text-foreground" },
 };
 
 /** One company's worth of a uniform type — a single "stack" in the grid. */
@@ -370,43 +377,70 @@ function UniformStackCard({
   onRegisterMovement: (item: UniformItem) => void;
 }) {
   const [open, setOpen] = useState(false);
+  const reduce = useReducedMotion();
   const Icon = getUniformTypeIcon(stack.uniform_type, stack.type_label);
   const sizeCount = stack.items.length;
   const isStack = sizeCount > 1;
+  const outOfStock = stack.items.filter((i) => i.current_stock === 0).length;
+
+  const layerTransition = { duration: reduce ? 0 : 0.3, ease: EASE };
+  // Shared expand/collapse choreography for the swapping panels.
+  const panel = {
+    initial: reduce ? false : { height: 0, opacity: 0 },
+    animate: { height: "auto" as const, opacity: 1 },
+    exit: reduce ? { opacity: 0 } : { height: 0, opacity: 0 },
+    transition: {
+      height: { duration: reduce ? 0 : 0.32, ease: EASE },
+      opacity: { duration: reduce ? 0 : 0.2, ease: EASE },
+    },
+  };
 
   return (
-    <div className="group relative isolate">
+    <motion.div
+      className="group relative isolate"
+      initial={false}
+      animate={open ? "open" : "rest"}
+      whileHover={open || reduce ? undefined : "hover"}
+    >
       {/* Layered "stack" edges peeking out the bottom — only when grouped */}
       {isStack && (
         <>
-          <div
-            className={cn(
-              "pointer-events-none absolute inset-x-3 top-0 -z-10 h-full rounded-lg border border-border/50 bg-card/70 transition-[transform,opacity] duration-300 ease-out",
-              open
-                ? "translate-y-0 opacity-0"
-                : "translate-y-[6px] group-hover:translate-y-[9px]"
-            )}
+          <motion.div
+            aria-hidden
+            variants={{
+              rest: { y: 6, opacity: 1 },
+              hover: { y: 10, opacity: 1 },
+              open: { y: 0, opacity: 0 },
+            }}
+            transition={layerTransition}
+            className="pointer-events-none absolute inset-x-3 top-0 -z-10 h-full rounded-lg border border-border/50 bg-card/70"
           />
-          <div
-            className={cn(
-              "pointer-events-none absolute inset-x-1.5 top-0 -z-10 h-full rounded-lg border border-border/60 bg-card transition-[transform,opacity] duration-300 ease-out",
-              open
-                ? "translate-y-0 opacity-0"
-                : "translate-y-[3px] group-hover:translate-y-[4px]"
-            )}
+          <motion.div
+            aria-hidden
+            variants={{
+              rest: { y: 3, opacity: 1 },
+              hover: { y: 5, opacity: 1 },
+              open: { y: 0, opacity: 0 },
+            }}
+            transition={layerTransition}
+            className="pointer-events-none absolute inset-x-1.5 top-0 -z-10 h-full rounded-lg border border-border/60 bg-card"
           />
         </>
       )}
 
-      <Collapsible
-        open={open}
-        onOpenChange={setOpen}
+      <div
         className={cn(
           "overflow-hidden rounded-lg border bg-card transition-colors duration-200",
-          open ? "border-primary/40" : "hover:border-primary/40"
+          open ? "border-primary/40" : "group-hover:border-primary/40"
         )}
       >
-        <CollapsibleTrigger className="group/t block w-full text-left outline-none transition-colors hover:bg-muted/20 focus-visible:bg-muted/20">
+        {/* Trigger: identity + summary */}
+        <button
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          aria-expanded={open}
+          className="block w-full text-left outline-none transition-colors hover:bg-muted/20 focus-visible:bg-muted/20"
+        >
           <div className="flex items-start gap-3 p-4 pb-3">
             <span className="grid size-10 shrink-0 place-items-center rounded-md border border-border/60 bg-muted/40 text-muted-foreground">
               <Icon className="size-5" />
@@ -419,55 +453,123 @@ function UniformStackCard({
                 {stack.company_label}
               </h3>
             </div>
-            <ChevronDown className="mt-0.5 size-4 shrink-0 text-muted-foreground transition-transform duration-200 group-data-[state=open]/t:rotate-180" />
+            <motion.span
+              animate={{ rotate: open ? 180 : 0 }}
+              transition={{ duration: reduce ? 0 : 0.22, ease: EASE }}
+              className="mt-0.5 shrink-0 text-muted-foreground"
+            >
+              <ChevronDown className="size-4" />
+            </motion.span>
           </div>
 
-          <div className="flex items-center justify-between gap-2 border-t border-border/60 px-4 py-2.5">
+          {/* Summary metrics */}
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 border-t border-border/60 px-4 py-2.5">
             <div className="flex items-baseline gap-1.5">
               <span className="font-mono text-lg font-bold leading-none tabular-nums text-foreground">
                 {stack.totalStock}
               </span>
               <span className="text-xs text-muted-foreground">
-                uds · {sizeCount} {sizeCount === 1 ? "talla" : "tallas"}
+                uds en {sizeCount} {sizeCount === 1 ? "talla" : "tallas"}
               </span>
             </div>
-            {stack.lowStockCount > 0 ? (
-              <span className="inline-flex items-center gap-1 rounded border border-amber-200 bg-amber-100 px-1.5 py-0.5 text-[11px] font-medium text-amber-700 dark:border-amber-800 dark:bg-amber-950/50 dark:text-amber-400">
-                <AlertTriangle className="size-3" />
-                {stack.lowStockCount} bajo stock
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                <span className="size-1.5 rounded-full bg-emerald-500" />
-                Stock ok
-              </span>
-            )}
+            <div className="ml-auto flex items-center gap-1.5">
+              {stack.lowStockCount > 0 && (
+                <span className="inline-flex items-center gap-1 rounded border border-amber-200 bg-amber-100 px-1.5 py-0.5 text-[11px] font-medium text-amber-700 dark:border-amber-800 dark:bg-amber-950/50 dark:text-amber-400">
+                  <AlertTriangle className="size-3" />
+                  {stack.lowStockCount} bajo
+                </span>
+              )}
+              {outOfStock > 0 && (
+                <span className="inline-flex items-center gap-1 rounded border border-destructive/30 bg-destructive/10 px-1.5 py-0.5 text-[11px] font-medium text-destructive">
+                  {outOfStock} agotada{outOfStock === 1 ? "" : "s"}
+                </span>
+              )}
+              {stack.lowStockCount === 0 && outOfStock === 0 && (
+                <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                  <span className="size-1.5 rounded-full bg-emerald-500" />
+                  Stock ok
+                </span>
+              )}
+            </div>
           </div>
-        </CollapsibleTrigger>
+        </button>
 
-        <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down">
-          <div className="border-t border-border/60 bg-muted/10">
-            <div className="grid grid-cols-[44px_1fr_auto] items-center gap-3 px-4 pb-1 pt-2">
-              <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
-                Talla
-              </span>
-              <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
-                Stock
-              </span>
-              <span className="sr-only">Acciones</span>
-            </div>
-            {stack.items.map((item) => (
-              <SizeRow
-                key={item.id}
-                item={item}
-                onEdit={onEdit}
-                onRegisterMovement={onRegisterMovement}
-              />
-            ))}
-          </div>
-        </CollapsibleContent>
-      </Collapsible>
-    </div>
+        {/* Collapsed: compact size availability strip */}
+        <AnimatePresence initial={false}>
+          {!open && (
+            <motion.div key="strip" {...panel} className="overflow-hidden">
+              <div className="flex flex-wrap gap-1.5 border-t border-border/60 px-4 py-2.5">
+                {stack.items.map((item) => (
+                  <SizePill key={item.id} item={item} />
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Expanded: detailed per-size ledger */}
+        <AnimatePresence initial={false}>
+          {open && (
+            <motion.div key="ledger" {...panel} className="overflow-hidden">
+              <div className="border-t border-border/60 bg-muted/10">
+                <div className="grid grid-cols-[44px_1fr_auto] items-center gap-3 px-4 pb-1 pt-2">
+                  <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
+                    Talla
+                  </span>
+                  <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
+                    Stock
+                  </span>
+                  <span className="sr-only">Acciones</span>
+                </div>
+                {stack.items.map((item, i) => (
+                  <motion.div
+                    key={item.id}
+                    initial={reduce ? false : { opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{
+                      delay: reduce ? 0 : 0.05 + i * 0.04,
+                      duration: 0.2,
+                      ease: EASE,
+                    }}
+                  >
+                    <SizeRow
+                      item={item}
+                      onEdit={onEdit}
+                      onRegisterMovement={onRegisterMovement}
+                    />
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </motion.div>
+  );
+}
+
+/** Compact at-a-glance pill: talla + units, tinted by stock status. */
+function SizePill({ item }: { item: UniformItem }) {
+  const status = getStockStatus(item);
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1.5 rounded border px-2 py-1 font-mono text-[11px]",
+        status === "out" && "border-destructive/30 text-destructive",
+        status === "low" &&
+          "border-amber-300 text-amber-700 dark:border-amber-800 dark:text-amber-400",
+        status === "ok" && "border-border/60 text-foreground",
+        !item.active && "opacity-50"
+      )}
+    >
+      <span
+        className={cn("size-1.5 rounded-full", STOCK_SIGNAL[status].dot)}
+      />
+      <span className="font-semibold tracking-wide">{item.size}</span>
+      <span className="tabular-nums text-muted-foreground">
+        {item.current_stock}
+      </span>
+    </span>
   );
 }
 
@@ -480,7 +582,7 @@ function SizeRow({
   onEdit: (item: UniformItem) => void;
   onRegisterMovement: (item: UniformItem) => void;
 }) {
-  const signal = getStockSignal(item);
+  const signal = STOCK_SIGNAL[getStockStatus(item)];
 
   return (
     <div
