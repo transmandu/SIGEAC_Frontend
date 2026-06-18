@@ -2,7 +2,9 @@
 
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 import { ImageIcon } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
 import PriorityIndicator from './PriorityIndicator';
 import { articleStatusUI } from './utils/uiHelpers';
 
@@ -26,9 +28,28 @@ const ArticleCard = ({ article, batchName, batchCategory, onImageClick }: Articl
   };
 
   const imageSrc = getImageSrc();
+  const isRejected = article.status === 'REJECTED';
 
   return (
     <div className="rounded-lg border border-border/60 bg-background/70 overflow-hidden mx-3">
+      <div className="relative">
+        <AnimatePresence>
+          {isRejected && (
+            <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center overflow-hidden">
+              <motion.span
+                initial={{ opacity: 0, scale: 2.6, rotate: -12 }}
+                animate={{ opacity: 1, scale: 1, rotate: -12 }}
+                exit={{ opacity: 0, scale: 1.4, transition: { duration: 0.1 } }}
+                transition={{ type: 'spring', stiffness: 700, damping: 18, mass: 0.6 }}
+                className="select-none whitespace-nowrap rounded border-2 border-red-500/50 px-4 py-1 text-xl font-extrabold uppercase tracking-widest text-red-500/50"
+              >
+                No Cotizado
+              </motion.span>
+            </div>
+          )}
+        </AnimatePresence>
+
+        <div className={cn(isRejected && 'opacity-40')}>
       {/* HEADER (batch name dentro del card, no externo) */}
       <div className="flex items-center justify-between border-b border-border/50 bg-muted/25 px-3 py-1.5">
         <div className="flex items-center gap-2 min-w-0">
@@ -174,18 +195,6 @@ const ArticleCard = ({ article, batchName, batchCategory, onImageClick }: Articl
                     </span>
                   </div>
                 </div>
-
-                {/* JUSTIFICACIÓN */}
-                <div className="flex flex-col items-center min-w-[220px] max-w-[320px]">
-                  <span className="w-full flex items-center justify-center text-[10px] tracking-wide text-muted-foreground mb-1 select-none">
-                    JUSTIFICACIÓN
-                  </span>
-                  <div className="flex items-center justify-center w-full">
-                    <span className="text-[11px] text-muted-foreground truncate">
-                      {article.justification ?? '—'}
-                    </span>
-                  </div>
-                </div>
               </div>
             )}
           </div>
@@ -292,18 +301,24 @@ const ArticleCard = ({ article, batchName, batchCategory, onImageClick }: Articl
                   {article.approved_quantity ?? '—'}
                 </span>
               </div>
-              <div className="flex flex-col gap-1">
-                <span className="text-[9px] tracking-wide text-muted-foreground select-none">
-                  JUSTIFICACIÓN
-                </span>
-                <span className="text-[11px] text-muted-foreground truncate">
-                  {article.justification ?? '—'}
-                </span>
-              </div>
             </div>
           )}
         </div>
       </div>
+        </div>
+      </div>
+
+      {/* JUSTIFICACIÓN */}
+      {article.justification && (
+        <div className="border-t border-border/50 bg-muted/20 px-3 py-1.5">
+          <span className="select-none text-[9px] leading-none text-muted-foreground uppercase">
+            Justificación
+          </span>
+          <p className="mt-0.5 text-xs text-foreground/80">
+            {article.justification}
+          </p>
+        </div>
+      )}
     </div>
   );
 }

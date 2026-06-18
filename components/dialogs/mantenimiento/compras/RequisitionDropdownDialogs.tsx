@@ -333,10 +333,14 @@ const RequisitionDropdownDialogs = ({
             backdrop-blur-xl
             shadow-2xl
             p-0
+            max-h-[85vh]
+            flex
+            flex-col
           "
         >
           <DialogHeader
             className="
+              shrink-0
               border-b border-border/40
               bg-muted/20
               px-6
@@ -396,7 +400,7 @@ const RequisitionDropdownDialogs = ({
             </div>
           </DialogHeader>
 
-          <div className="px-8 py-6">
+          <div className="overflow-y-auto px-8 py-6">
             <CreateQuoteForm
               req={req}
               initialData={initialData}

@@ -40,7 +40,8 @@ export default function RequisitionSubRow({
           const approved = quote.status === 'APROBADO'
           const rejected = quote.status === 'RECHAZADA'
           const pending = quote.status === 'PENDIENTE'
-          const vendorName = quote.vendor?.name ?? '—'
+          const vendorNames = quote.article_vendors ?? []
+          const vendorLabel = vendorNames.length > 0 ? vendorNames.join(', ') : 'No aplica "Proveedores" para esta cotización'
           const decisionDate = quote.updated_at
             ? new Date(quote.updated_at).toISOString().slice(0, 10)
             : null
@@ -61,8 +62,8 @@ export default function RequisitionSubRow({
                   >
                     {quote.quote_number}
                   </Link>
-                  <span className="text-[11px] text-muted-foreground">
-                    {vendorName}
+                  <span className="text-[11px] text-muted-foreground truncate">
+                    {vendorLabel}
                   </span>
               </div>
             </div>

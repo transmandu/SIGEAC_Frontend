@@ -61,7 +61,7 @@ const QuotesOrdersPage = () => {
         quote.vendor?.name
           ?.toLowerCase?.()
           .includes(q) ||
-        quote.justification
+        quote.requisition_order?.justification
           ?.toLowerCase?.()
           .includes(q)
       )

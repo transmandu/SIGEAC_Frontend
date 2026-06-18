@@ -1,4 +1,4 @@
-import type { Unit, Vendor } from '@/types';
+import type { Location, Unit, Vendor } from '@/types';
 
 // ── Article-level status on requisition articles ───────────────────────────
 export type RequisitionArticleStatus = 'PENDING' | 'APPROVED' | 'PARTIAL' | 'REJECTED';
@@ -16,7 +16,7 @@ export interface ArticleRequisitionOrderRef {
   status: RequisitionArticleStatus;
   justification?: string | null;
   priority?: string | null;
-  batch?: { id: number; name: string } | null;
+  batch?: { id: number; name: string; category?: string | null } | null;
   unit?: Unit | null;
 }
 
@@ -39,7 +39,12 @@ export interface ArticleQuoteOrder {
   unit_price: string | number;
   reference?: string | null;
   lead_time?: string | null;
+  /** Reason for a quantity/unit change or exclusion made at quote time — stored on the quote article itself. */
+  justification?: string | null;
+  /** True when this row only exists to record that the article was deliberately not quoted. */
+  is_not_quoted?: boolean;
   vendor?: Vendor | null;
+  location?: Location | null;
   condition?: { id: number; name: string } | null;
   unit?: Unit | null;
   article_requisition_order: ArticleRequisitionOrderRef | null;
@@ -53,6 +58,11 @@ export interface GeneralArticleQuoteOrder {
   brand_model?: string | null;
   reference?: string | null;
   lead_time?: string | null;
+  /** Reason for a quantity/unit change or exclusion made at quote time — stored on the quote article itself. */
+  justification?: string | null;
+  /** True when this row only exists to record that the article was deliberately not quoted. */
+  is_not_quoted?: boolean;
+  location?: Location | null;
   unit?: Unit | null;
   general_article_requisition_order: GeneralArticleRequisitionOrderRef | null;
 }
@@ -62,7 +72,6 @@ export interface Quote {
   id: number;
   quote_number: string;
   status: QuoteStatus;
-  justification?: string | null;
   observation?: string | null;
   quote_date: string;
   total: number | null;
@@ -73,6 +82,12 @@ export interface Quote {
     order_number: string;
     image?: string | null;
     requested_by: string;
+    status?: string | null;
+    justification?: string | null;
+    submission_date?: string | null;
+    type?: string | null;
+    priority?: string | null;
+    work_order?: { id: number; order_number: string } | null;
   };
   article_quote_order: ArticleQuoteOrder[];
   general_article_quote_order: GeneralArticleQuoteOrder[];
@@ -84,24 +99,35 @@ export interface CreateQuoteArticleData {
   quantity: number;
   unit_price: number;
   vendor_id?: number | null;
+  location_id?: number | null;
   condition_id?: number | null;
   unit_id?: number | null;
   reference?: string | null;
   lead_time?: string | null;
+  alt_part_number?: string | null;
   /** Explains a quantity discrepancy — written to the requisition article, not the quote article. */
   justification?: string | null;
+  /** Reason for a quantity/unit change or exclusion made at quote time — stored on the quote article itself. */
+  quote_justification?: string | null;
+  /** True when the article is deliberately not being quoted — the row is kept only to carry the exclusion justification. */
+  is_not_quoted?: boolean;
 }
 
 export interface CreateQuoteGeneralArticleData {
   general_article_requisition_order_id: number;
   quantity: number;
   unit_price: number;
+  location_id?: number | null;
   unit_id?: number | null;
   brand_model?: string | null;
   reference?: string | null;
   lead_time?: string | null;
   /** Explains a quantity discrepancy — written to the requisition article, not the quote article. */
   justification?: string | null;
+  /** Reason for a quantity/unit change or exclusion made at quote time — stored on the quote article itself. */
+  quote_justification?: string | null;
+  /** True when the article is deliberately not being quoted — the row is kept only to carry the exclusion justification. */
+  is_not_quoted?: boolean;
 }
 
 export interface CreateQuoteData {
@@ -110,7 +136,6 @@ export interface CreateQuoteData {
   requisition_order_id: number;
   vendor_id?: number | null;
   total?: number | null;
-  justification?: string | null;
   observation?: string | null;
   articles?: CreateQuoteArticleData[];
   general_articles?: CreateQuoteGeneralArticleData[];
@@ -140,5 +165,12 @@ export interface QuoteableRequisition {
     }[];
     name: string;
     category?: string;
+  }[];
+  general_articles?: {
+    id?: number;
+    description: string;
+    variant_type?: string | null;
+    quantity: number;
+    unit?: { id: number } | null;
   }[];
 }

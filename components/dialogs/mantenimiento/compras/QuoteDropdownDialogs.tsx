@@ -140,7 +140,7 @@ const QuoteDropdownDialogs = ({
   const handleApprove = async () => {
     const poData = {
       status: "PROCESO",
-      justification: quote.justification ?? '',
+      justification: quote.requisition_order?.justification ?? '',
       purchase_date: new Date(),
       sub_total: Number(quote.total),
       total: Number(quote.total),

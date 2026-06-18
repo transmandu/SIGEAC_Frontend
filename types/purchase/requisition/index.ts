@@ -41,6 +41,7 @@ export interface RequisitionBatch {
 
 // ── General Article (response / detail) ────────────────────────────────────
 export interface RequisitionGeneralArticle {
+  id: number;
   description: string;
   variant_type?: string | null;
   quantity: string | number;
@@ -59,6 +60,7 @@ export interface RequisitionQuote {
   vendor: {
     name: string | null;
   };
+  article_vendors?: string[];
   updated_at: string;
 }
 
@@ -80,6 +82,7 @@ export interface Requisition {
     }[];
   }[];
   general_articles?: {
+    id: number;
     description: string;
     variant_type?: string;
     quantity: number;

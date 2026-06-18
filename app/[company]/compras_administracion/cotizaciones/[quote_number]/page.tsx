@@ -68,7 +68,7 @@ const QuotePage = () => {
               <p className='font-bold flex gap-2 items-center'>{data?.vendor?.name}</p>
             </div>
           </div>
-          <p className='text-center font-medium italic'>{data?.justification}</p>
+          <p className='text-center font-medium italic'>{data?.requisition_order?.justification}</p>
           <div className='flex justify-center gap-2'>
             {
               data?.article_quote_order.map((article) => (
