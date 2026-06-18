@@ -67,19 +67,19 @@ export function PartSummaryCard({ part, index, level }: {
                         <InfoItem label="Marca" value={part.brand} />
                         <InfoItem 
                             label="TSN (Time Since New)" 
-                            value={part.time_since_new ? `${part.time_since_new.toLocaleString()} hrs` : "No especificado"} 
+                            value={part.time_since_new ? `${part.time_since_new.toLocaleString('es-ES')} hrs` : "No especificado"} 
                         />
                         <InfoItem 
                             label="TSO (Time Since Overhaul)" 
-                            value={part.time_since_overhaul ? `${part.time_since_overhaul.toLocaleString()} hrs` : "No especificado"} 
+                            value={part.time_since_overhaul ? `${part.time_since_overhaul.toLocaleString('es-ES')} hrs` : "No especificado"} 
                         />
                         <InfoItem 
                             label="CSN (Cycles Since New)" 
-                            value={part.cycles_since_new ? part.cycles_since_new.toLocaleString() : "No especificado"} 
+                            value={part.cycles_since_new ? part.cycles_since_new.toLocaleString('es-ES') : "No especificado"} 
                         />
                         <InfoItem 
                             label="CSO (Cycles Since Overhaul)" 
-                            value={part.cycles_since_overhaul ? part.cycles_since_overhaul.toLocaleString() : "No especificado"} 
+                            value={part.cycles_since_overhaul ? part.cycles_since_overhaul.toLocaleString('es-ES') : "No especificado"} 
                         />
                     </div>
 

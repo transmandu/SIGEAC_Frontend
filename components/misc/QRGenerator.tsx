@@ -86,20 +86,20 @@ const QRGenerator = ({
         <ReactQRCode
           finderPatternInnerSettings={{
             style: 'outpoint-lg',
-            color: innerColor,
+            color: '#1F7FDB',
           }}
           finderPatternOuterSettings={{
             style: 'outpoint-lg',
-            color: outerColor,
+            color: '#000',
           }}
           dataModulesSettings={{
             style: 'leaf',
-            color: moduleColor,
+            color: '#1F7FDB',
             size: 0.90
           }}
           value={value}
           size={size}
-          background={bgColor}
+          background={fgColor}
           imageSettings={
             {
               src: '/aircraft.png',
