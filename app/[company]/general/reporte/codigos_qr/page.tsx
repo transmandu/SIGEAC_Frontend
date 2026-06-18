@@ -22,7 +22,10 @@ const QrCodePage = () => {
             <QRGenerator
               value={qrValueReport}
               fileName={`crear-reporte-sms-${selectedCompany?.slug}`}
-              bgColor="#3088FF"
+              bgColor="#FFF"
+              outerColor="#000000"
+              innerColor="#1F7FDB"
+              moduleColor="#1F7FDB"
               showLink={true}
               showDownloadButton={true}
               size={300}
@@ -35,8 +38,11 @@ const QrCodePage = () => {
             <QRGenerator
               value={qrSMSPage}
               fileName={`pagina-sms-${selectedCompany?.slug}`}
-              bgColor="#00000"
               showLink={true}
+              bgColor="#FFF"
+              outerColor="#000000"
+              innerColor="#1F7FDB"
+              moduleColor="#000000"
               showDownloadButton={true}
               size={300}
             />
