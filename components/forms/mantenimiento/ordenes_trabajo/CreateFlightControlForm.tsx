@@ -39,8 +39,8 @@ const flightEntrySchema = z.object({
   origin: z.string().optional(),
   destination: z.string().optional(),
   flight_date: z.date({ required_error: "Seleccione una fecha" }),
-  flight_hours: z.coerce.number().min(0, "Debe ser ≥ 0"),
-  flight_cycles: z.coerce.number().min(0, "Debe ser ≥ 0"),
+  flight_hours: z.coerce.number().min(0, "Debe ser ≥ 0").optional(),
+  flight_cycles: z.coerce.number().min(0, "Debe ser ≥ 0").optional(),
 });
 
 const createFormSchema = z.object({
@@ -54,8 +54,8 @@ const editFormSchema = z.object({
   origin: z.string().optional(),
   destination: z.string().optional(),
   flight_date: z.date({ required_error: "Seleccione una fecha" }),
-  flight_hours: z.coerce.number().min(0, "Debe ser ≥ 0"),
-  flight_cycles: z.coerce.number().min(0, "Debe ser ≥ 0"),
+  flight_hours: z.coerce.number().min(0, "Debe ser ≥ 0").optional(),
+  flight_cycles: z.coerce.number().min(0, "Debe ser ≥ 0").optional(),
   aircraft_id: z.string().min(1, "Seleccione una aeronave"),
 });
 
@@ -413,8 +413,8 @@ function CreateForm({
       aircraft_id: deafultAircraftId ?? "",
       flights: [
         {
-          flight_cycles: "",
-          flight_hours: "",
+          flight_cycles: undefined,
+          flight_hours: undefined,
           flight_number: "",
           origin: "",
           destination: "",
@@ -432,6 +432,8 @@ function CreateForm({
   const onSubmit = async (values: z.infer<typeof createFormSchema>) => {
     const flightsData = values.flights.map((f) => ({
       ...f,
+      flight_hours: f.flight_hours ?? 0,
+      flight_cycles: f.flight_cycles ?? 0,
       aircraft_id: values.aircraft_id,
     }));
     await createFlightControl.mutateAsync({
@@ -460,8 +462,8 @@ function CreateForm({
                 aircraft_operator: "",
                 origin: "",
                 destination: "",
-                flight_hours: "",
-                flight_cycles: "",
+                flight_hours: undefined,
+                flight_cycles: undefined,
                 flight_date: undefined as unknown as Date,
               })
             }
