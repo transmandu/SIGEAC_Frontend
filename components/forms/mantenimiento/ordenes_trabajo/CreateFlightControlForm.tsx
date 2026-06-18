@@ -35,9 +35,9 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 
 const flightEntrySchema = z.object({
   flight_number: z.string().optional(),
-  aircraft_operator: z.string().min(1, "Requerido"),
-  origin: z.string().min(1, "Requerido"),
-  destination: z.string().min(1, "Requerido"),
+  aircraft_operator: z.string().optional(),
+  origin: z.string().optional(),
+  destination: z.string().optional(),
   flight_date: z.date({ required_error: "Seleccione una fecha" }),
   flight_hours: z.coerce.number().min(0, "Debe ser ≥ 0"),
   flight_cycles: z.coerce.number().min(0, "Debe ser ≥ 0"),
@@ -50,9 +50,9 @@ const createFormSchema = z.object({
 
 const editFormSchema = z.object({
   flight_number: z.string().optional(),
-  aircraft_operator: z.string().min(1, "Requerido"),
-  origin: z.string().min(1, "Requerido"),
-  destination: z.string().min(1, "Requerido"),
+  aircraft_operator: z.string().optional(),
+  origin: z.string().optional(),
+  destination: z.string().optional(),
   flight_date: z.date({ required_error: "Seleccione una fecha" }),
   flight_hours: z.coerce.number().min(0, "Debe ser ≥ 0"),
   flight_cycles: z.coerce.number().min(0, "Debe ser ≥ 0"),
@@ -62,9 +62,9 @@ const editFormSchema = z.object({
 interface FlightData {
   id: string;
   flight_number: string;
-  aircraft_operator: string;
-  origin: string;
-  destination: string;
+  aircraft_operator: string | null;
+  origin: string | null;
+  destination: string | null;
   flight_date: string | Date;
   flight_hours: number;
   flight_cycles: number;
@@ -230,10 +230,10 @@ function EditForm({
     defaultValues: {
       flight_cycles: flightData.flight_cycles,
       flight_hours: flightData.flight_hours,
-      flight_number: flightData.flight_number,
-      origin: flightData.origin,
-      destination: flightData.destination,
-      aircraft_operator: flightData.aircraft_operator,
+      flight_number: flightData.flight_number ?? "",
+      origin: flightData.origin ?? "",
+      destination: flightData.destination ?? "",
+      aircraft_operator: flightData.aircraft_operator ?? "",
       aircraft_id: flightData.aircraft_id.toString(),
       flight_date:
         typeof flightData.flight_date === "string"
@@ -462,6 +462,7 @@ function CreateForm({
                 destination: "",
                 flight_hours: 0,
                 flight_cycles: 0,
+                flight_date: undefined as unknown as Date,
               })
             }
             className="h-7 gap-1 text-xs"

@@ -7,9 +7,9 @@ interface CreateFlightControlData {
   flight_cycles: number,
   flight_hours: number,
   flight_number?: string,
-  origin: string,
-  destination: string,
-  aircraft_operator: string,
+  origin?: string,
+  destination?: string,
+  aircraft_operator?: string,
 }
 
 export const useCreateFlightControl = () => {
