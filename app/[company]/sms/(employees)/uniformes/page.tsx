@@ -17,7 +17,6 @@ import {
   PackagePlus,
   Download,
   AlertTriangle,
-  Shirt,
   Package,
   ArrowLeftRight,
 } from "lucide-react";
@@ -32,7 +31,7 @@ import {
 } from "@/hooks/sms/useGetUniforms";
 
 import { UniformDataTable } from "./uniform-data-table";
-import { getInventoryColumns } from "./inventory-columns";
+import { UniformInventoryGrid } from "./uniform-inventory-grid";
 import { movementsColumns } from "./movements-columns";
 import { CreateUniformItemForm } from "@/components/forms/sms/CreateUniformItemForm";
 import { EditUniformItemForm } from "@/components/forms/sms/EditUniformItemForm";
@@ -51,7 +50,6 @@ const UniformesPage = () => {
   const [movementItemId, setMovementItemId] = useState<number | undefined>();
   const [editOpen, setEditOpen] = useState(false);
   const [editItem, setEditItem] = useState<UniformItem | undefined>();
-  const [lowStockOnly, setLowStockOnly] = useState(false);
   const [exporting, setExporting] = useState(false);
 
   const openMovementFor = (item?: UniformItem) => {
@@ -63,20 +61,6 @@ const UniformesPage = () => {
     setEditItem(item);
     setEditOpen(true);
   };
-
-  const inventoryColumns = useMemo(
-    () =>
-      getInventoryColumns({
-        onEdit: openEdit,
-        onRegisterMovement: openMovementFor,
-      }),
-    []
-  );
-
-  const filteredItems = useMemo(() => {
-    if (!items) return [];
-    return lowStockOnly ? items.filter((i) => i.is_low_stock) : items;
-  }, [items, lowStockOnly]);
 
   const lowStockCount = useMemo(
     () => items?.filter((i) => i.is_low_stock).length ?? 0,
@@ -109,72 +93,58 @@ const UniformesPage = () => {
     }
   };
 
-  const inventoryToolbar = (
-    <>
-      <Button
-        onClick={() => setCreateOpen(true)}
-        variant="outline"
-        size="sm"
-        className="flex h-8 items-center gap-2"
-      >
-        <Plus className="h-4 w-4" />
-        Nuevo artículo
-      </Button>
-      <Button
-        onClick={() => openMovementFor(undefined)}
-        variant="outline"
-        size="sm"
-        className="flex h-8 items-center gap-2"
-      >
-        <PackagePlus className="h-4 w-4" />
-        Registrar movimiento
-      </Button>
-      <Button
-        onClick={() => setLowStockOnly((v) => !v)}
-        variant={lowStockOnly ? "default" : "outline"}
-        size="sm"
-        className={`flex h-8 items-center gap-2 ${
-          lowStockOnly ? "bg-red-600 hover:bg-red-700 text-white" : ""
-        }`}
-      >
-        <AlertTriangle className="h-4 w-4" />
-        Bajo stock{lowStockCount > 0 ? ` (${lowStockCount})` : ""}
-      </Button>
-      <Button
-        onClick={handleExport}
-        variant="outline"
-        size="sm"
-        disabled={exporting}
-        className="flex h-8 items-center gap-2"
-      >
-        {exporting ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          <Download className="h-4 w-4" />
-        )}
-        Exportar
-      </Button>
-    </>
-  );
-
   return (
     <ContentLayout title="Uniformes">
-      <div className="mb-4 flex flex-col items-center gap-2">
-        <div className="flex items-center gap-2.5">
-          <Shirt className="size-7 text-primary" />
-          <h1 className="text-4xl font-bold text-center">
+      {/* Page header */}
+      <div className="mb-6 flex flex-col gap-3 border-b pb-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">
             Dotación de Uniformes
           </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Inventario y entregas de camisas, pantalones, botas y chalecos.
+          </p>
+          {lowStockCount > 0 && (
+            <Badge variant="destructive" className="mt-2 gap-1.5">
+              <AlertTriangle className="size-3.5" />
+              {lowStockCount} artículo{lowStockCount > 1 ? "s" : ""} en bajo
+              stock
+            </Badge>
+          )}
         </div>
-        <p className="text-sm italic text-muted-foreground text-center">
-          Inventario y entregas de camisas, pantalones, botas y chalecos.
-        </p>
-        {lowStockCount > 0 && (
-          <Badge variant="destructive" className="gap-1.5">
-            <AlertTriangle className="size-3.5" />
-            {lowStockCount} artículo{lowStockCount > 1 ? "s" : ""} en bajo stock
-          </Badge>
-        )}
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            onClick={() => openMovementFor(undefined)}
+            variant="outline"
+            size="sm"
+            className="flex h-9 items-center gap-2"
+          >
+            <PackagePlus className="h-4 w-4" />
+            Registrar movimiento
+          </Button>
+          <Button
+            onClick={handleExport}
+            variant="outline"
+            size="sm"
+            disabled={exporting}
+            className="flex h-9 items-center gap-2"
+          >
+            {exporting ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Download className="h-4 w-4" />
+            )}
+            Exportar
+          </Button>
+          <Button
+            onClick={() => setCreateOpen(true)}
+            size="sm"
+            className="flex h-9 items-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Nuevo artículo
+          </Button>
+        </div>
       </div>
 
       <Tabs defaultValue="inventory" className="w-full">
@@ -205,23 +175,21 @@ const UniformesPage = () => {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="inventory">
+        <TabsContent value="inventory" className="mt-4">
           {loadingItems ? (
             <div className="flex w-full justify-center py-20">
               <Loader2 className="size-20 animate-spin text-muted-foreground" />
             </div>
           ) : (
-            <UniformDataTable
-              columns={inventoryColumns}
-              data={filteredItems}
-              toolbar={inventoryToolbar}
-              searchPlaceholder="Buscar artículos..."
-              emptyMessage="No hay artículos en el inventario..."
+            <UniformInventoryGrid
+              items={items ?? []}
+              onEdit={openEdit}
+              onRegisterMovement={openMovementFor}
             />
           )}
         </TabsContent>
 
-        <TabsContent value="movements">
+        <TabsContent value="movements" className="mt-4">
           {loadingMovements ? (
             <div className="flex w-full justify-center py-20">
               <Loader2 className="size-20 animate-spin text-muted-foreground" />
