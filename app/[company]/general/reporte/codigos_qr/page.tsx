@@ -24,8 +24,8 @@ const QrCodePage = () => {
               fileName={`crear-reporte-sms-${selectedCompany?.slug}`}
               bgColor="#FFF"
               outerColor="#000000"
-              innerColor="#044D8F"
-              moduleColor="#000000"
+              innerColor="#1F7FDB"
+              moduleColor="#1F7FDB"
               showLink={true}
               showDownloadButton={true}
               size={300}
@@ -42,7 +42,7 @@ const QrCodePage = () => {
               bgColor="#FFF"
               outerColor="#000000"
               innerColor="#1F7FDB"
-              moduleColor="#1F7FDB"
+              moduleColor="#000000"
               showDownloadButton={true}
               size={300}
             />
