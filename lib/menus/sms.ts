@@ -6,6 +6,7 @@ import {
   ClipboardPen,
   Settings,
   ShieldAlert,
+  Shirt,
 } from "lucide-react";
 
 export function buildSmsGroup({ pathname, currentCompany }: MenuContext): Group {
@@ -218,6 +219,15 @@ export function buildSmsGroup({ pathname, currentCompany }: MenuContext): Group 
               `/${currentCompany?.slug}/sms/aeronautical/gestion_de_riesgos/evaluacion_mitigacion`,
           },
         ],
+      },
+      {
+        href: `/${currentCompany?.slug}/sms/uniformes`,
+        label: "Uniformes",
+        active: pathname.includes(`/${currentCompany?.slug}/sms/uniformes`),
+        icon: Shirt,
+        roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
+        requiresOmac: false,
+        submenus: [],
       },
     ],
   };

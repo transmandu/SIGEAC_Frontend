@@ -80,17 +80,17 @@ export function CreateObligatoryReportForm({
     .object({
       report_number: shouldEnableField
         ? z
-            .string()
-            .min(1, "El número de reporte es obligatorio")
-            .refine((val) => !isNaN(Number(val)), {
-              message: "El valor debe ser un número",
-            })
+          .string()
+          .min(1, "El número de reporte es obligatorio")
+          .refine((val) => !isNaN(Number(val)), {
+            message: "El valor debe ser un número",
+          })
         : z
-            .string()
-            .refine((val) => val === "" || !isNaN(Number(val)), {
-              message: "El valor debe ser un número o estar vacío",
-            })
-            .optional(),
+          .string()
+          .refine((val) => val === "" || !isNaN(Number(val)), {
+            message: "El valor debe ser un número o estar vacío",
+          })
+          .optional(),
       incident_location: z
         .string()
         .min(3, {
@@ -127,8 +127,8 @@ export function CreateObligatoryReportForm({
         .min(3, {
           message: "El origen del vuelo debe tener al menos 3 caracteres.",
         })
-        .max(4, {
-          message: "El origen del vuelo debe tener máximo 4 caracteres.",
+        .max(50, {
+          message: "El origen del vuelo debe tener máximo 50 caracteres.",
         }),
       flight_destiny: z
         .string()
@@ -721,7 +721,6 @@ export function CreateObligatoryReportForm({
                   <Input
                     placeholder="Numero del vuelo"
                     {...field}
-                    maxLength={6}
                   />
                 </FormControl>
                 <FormMessage className="text-xs" />
@@ -813,8 +812,8 @@ export function CreateObligatoryReportForm({
                                     selectedValues.includes(currentValue);
                                   const newValues = isSelected
                                     ? selectedValues.filter(
-                                        (v) => v !== currentValue,
-                                      )
+                                      (v) => v !== currentValue,
+                                    )
                                     : [...selectedValues, currentValue];
 
                                   setSelectedValues(newValues);

@@ -57,6 +57,13 @@ interface AircraftAssignment {
     aircraft_part?: any;
 }
 
+// Función para formatear números con locale español (coma decimal, punto miles)
+const fmtNumber = (n: any) => {
+    if (n === null || n === undefined) return "0"
+    const num = Number(n)
+    return isNaN(num) ? "0" : num.toLocaleString('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 3 })
+}
+
 // Función para parsear fecha ISO sin problemas de timezone
 const parseISODate = (dateString: string | Date | null | undefined): Date => {
     if (!dateString) return new Date();
@@ -98,10 +105,10 @@ function PartsSummaryTree({ parts, level = 0 }: { parts: AircraftPart[], level?:
                                     <span className="font-medium">Condición:</span> {part.condition_type === "OVERHAULED" ? "Reacondicionada" : "Nueva"}
                                 </div>
                                 <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
-                                    <div><span className="font-medium">TSN:</span> {part.time_since_new ?? 0}</div>
-                                    <div><span className="font-medium">TSO:</span> {part.time_since_overhaul ?? 0}</div>
-                                    <div><span className="font-medium">CSN:</span> {part.cycles_since_new ?? 0}</div>
-                                    <div><span className="font-medium">CSO:</span> {part.cycles_since_overhaul ?? 0}</div>
+                                    <div><span className="font-medium">TSN:</span> {fmtNumber(part.time_since_new ?? 0)}</div>
+                                    <div><span className="font-medium">TSO:</span> {fmtNumber(part.time_since_overhaul ?? 0)}</div>
+                                    <div><span className="font-medium">CSN:</span> {fmtNumber(part.cycles_since_new ?? 0)}</div>
+                                    <div><span className="font-medium">CSO:</span> {fmtNumber(part.cycles_since_overhaul ?? 0)}</div>
                                 </div>
 
                                 {part.sub_parts && part.sub_parts.length > 0 && (
