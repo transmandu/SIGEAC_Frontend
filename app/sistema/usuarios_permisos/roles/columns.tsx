@@ -28,8 +28,11 @@ export const columns: ColumnDef<Role>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Compañia" />
     ),
-    cell: ({ row }) =>
-      <div className="flex flex-col items-center">{row.original.company?.map((c) => <div key={c.description} className="flex gap-2 items-center"><p className="text-muted-foreground">{c.description}</p></div>)}</div>
+    cell: ({ row }) => (
+      <div className="flex items-center justify-center">
+        <p className="text-muted-foreground">{row.original.company?.name ?? "—"}</p>
+      </div>
+    )
   },
   {
     id: "actions",
