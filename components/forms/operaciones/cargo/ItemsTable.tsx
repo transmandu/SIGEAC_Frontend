@@ -1,11 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import { UseFormReturn, useFieldArray } from "react-hook-form";
 import { Plus, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   FormControl,
   FormField,
@@ -14,6 +16,8 @@ import {
 } from "@/components/ui/form";
 import type { CargoShipmentFormValues } from "@/hooks/operaciones/cargo/useCargoShipmentForm";
 import { ProductAutocompleteInput } from "./ProductAutoCompleteInput";
+import { ScaleButton } from "@/components/ui/scale/ScaleButton";
+import { ScaleConnectionPanel } from "@/components/ui/scale/ScaleConnectionPanel";
 
 interface ItemsTableProps {
   form: UseFormReturn<CargoShipmentFormValues>;
@@ -28,6 +32,7 @@ export function ItemsTable({
   totalWeight,
   company,
 }: ItemsTableProps) {
+  const [useScale, setUseScale] = useState(false);
   const { fields, append, remove } = useFieldArray({
     name: "items",
     control: form.control,
@@ -36,19 +41,43 @@ export function ItemsTable({
   return (
     <div className="border border-border rounded-xl shadow-sm bg-card overflow-hidden">
       {/* Encabezado */}
-      <div className="flex justify-between items-center px-4 py-4 border-b border-border/80 bg-muted/20">
-        <h3 className="font-semibold text-foreground">Productos</h3>
-        <Button
-          type="button"
-          variant="default"
-          size="sm"
-          className="h-8 text-xs font-semibold"
-          onClick={() =>
-            append({ product_description: "", units: 1, weight: 0.1 })
-          }
-        >
-          <Plus className="size-4 mr-1.5" /> Agregar fila
-        </Button>
+      <div className="flex items-center px-4 py-4 border-b border-border/80 bg-muted/20">
+        <div className="flex items-center gap-6 w-1/3">
+          <h3 className="font-semibold text-foreground text-2xl">Productos</h3>
+        </div>
+
+        <div className="flex-1 flex justify-center min-w-[500px]">
+          {useScale && <ScaleConnectionPanel />}
+        </div>
+
+        <div className="w-1/3 flex justify-end">
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="use-scale-toggle"
+                checked={useScale}
+                onCheckedChange={(checked) => setUseScale(!!checked)}
+              />
+              <label
+                htmlFor="use-scale-toggle"
+                className="text-xs font-semibold uppercase tracking-wider text-muted-foreground cursor-pointer select-none hover:text-foreground transition-colors"
+              >
+                Usar balanza
+              </label>
+            </div>
+            <Button
+              type="button"
+              variant="default"
+              size="sm"
+              className="h-8 text-xs font-semibold w-full"
+              onClick={() =>
+                append({ product_description: "", units: 1, weight: 0.1 })
+              }
+            >
+              <Plus className="size-4 mr-1.5" /> Agregar fila
+            </Button>
+          </div>
+        </div>
       </div>
 
       {/* Encabezados de columna */}
@@ -112,25 +141,37 @@ export function ItemsTable({
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name={`items.${index}.weight`}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        placeholder="0.00"
-                        className="h-9 text-center"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage className="text-[10px]" />
-                  </FormItem>
+              <div className="flex items-center gap-1">
+                <FormField
+                  control={form.control}
+                  name={`items.${index}.weight`}
+                  render={({ field }) => (
+                    <FormItem className="flex-1">
+                      <FormControl>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          placeholder="0.00"
+                          className="h-9 text-center"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage className="text-[10px]" />
+                    </FormItem>
+                  )}
+                />
+                {useScale && (
+                  <ScaleButton
+                    onCapture={(result) => {
+                      form.setValue(`items.${index}.weight`, result.weight, {
+                        shouldValidate: true,
+                        shouldDirty: true,
+                      });
+                    }}
+                  />
                 )}
-              />
+              </div>
 
               <div className="flex justify-end items-center">
                 <Button
