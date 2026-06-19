@@ -361,7 +361,7 @@ function EditForm({
               <FormItem>
                 <FormLabel>Horas de Vuelo</FormLabel>
                 <FormControl>
-                  <Input placeholder="EJ: 5" {...field} />
+                  <Input type="number" step="0.001" placeholder="EJ: 5" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -374,7 +374,7 @@ function EditForm({
               <FormItem>
                 <FormLabel>Ciclos de Vuelo</FormLabel>
                 <FormControl>
-                  <Input placeholder="EJ: 5" {...field} />
+                  <Input type="number" step="0.001" placeholder="EJ: 5" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -545,7 +545,7 @@ function CreateForm({
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <Input type="number" min="0" step="0.1" placeholder="0" className="h-8 text-sm" {...field} />
+                    <Input type="number" min="0" step="0.001" placeholder="0" className="h-8 text-sm" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

@@ -95,7 +95,7 @@ export const getColumns = (companySlug: string): ColumnDef<FlightControl>[] => [
     cell: ({ row }) => (
       <div className="flex items-center justify-center gap-2">
         <Clock className="h-4 w-4 text-muted-foreground" />
-        <span className="font-medium tabular-nums">{Number(row.original.flight_hours ?? 0).toFixed(1)}</span>
+        <span className="font-medium tabular-nums">{Number(row.original.flight_hours ?? 0).toFixed(3)}</span>
         <span className="text-xs text-muted-foreground">h</span>
       </div>
     ),
