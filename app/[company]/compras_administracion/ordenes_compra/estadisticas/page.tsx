@@ -501,7 +501,7 @@ const StatisticsPurchaseOrdersDashboard = () => {
                         <Badge
                           variant="secondary"
                           className={
-                            order.status === "APROBADA"
+                            order.status === "PAGADA" || order.status === "COMPLETADA"
                               ? "bg-green-100 text-green-800"
                               : order.status === "PENDIENTE"
                                 ? "bg-yellow-100 text-yellow-800"

@@ -138,23 +138,26 @@ const QuoteDropdownDialogs = ({
   }
 
   const handleApprove = async () => {
+    const locationId =
+      quote.article_quote_order.find((a) => a.location)?.location?.id ??
+      quote.general_article_quote_order.find((a) => a.location)?.location?.id
+
+    // El total con impuestos/tarifas aún no existe en este punto — se calcula
+    // al completar la compra (markAsPaid/update), no al crearla.
+    const subTotal = Number(quote.total)
+
     const poData = {
-      status: "PROCESO",
-      justification: quote.requisition_order?.justification ?? '',
-      purchase_date: new Date(),
-      sub_total: Number(quote.total),
-      total: Number(quote.total),
-      vendor_id: Number(quote.vendor?.id),
-      created_by: `${user?.first_name} ${user?.last_name}`,
+      quote_order_id: Number(quote.id),
+      location_id: Number(locationId),
+      purchase_date: new Date().toISOString(),
+      sub_total: subTotal,
+      total: subTotal,
       articles_purchase_orders: quote.article_quote_order.map((a) => ({
-        batch: { name: '' },
-        article_part_number: a.article_requisition_order?.article_part_number ?? '',
-        article_alt_part_number: a.article_requisition_order?.article_alt_part_number ?? undefined,
-        quantity: a.quantity,
-        unit_price: String(a.unit_price),
-        image: '',
+        article_quote_order_id: a.id,
       })),
-      quote_order_id: Number(quote.id)
+      general_articles_purchase_orders: quote.general_article_quote_order.map((a) => ({
+        general_article_quote_order_id: a.id,
+      })),
     }
 
     await createPurchaseOrder.mutateAsync({

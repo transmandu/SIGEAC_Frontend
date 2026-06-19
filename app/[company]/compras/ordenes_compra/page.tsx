@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/breadcrumb'
 import { useCompanyStore } from '@/stores/CompanyStore'
 import { useGetPurchaseOrders } from '@/hooks/mantenimiento/compras/useGetPurchaseOrders'
+import type { PurchaseOrder } from '@/types/purchase'
 import { DataTable } from '../data-table'
 import { getColumns } from './columns'
 import PurchaseOrderSubRow from './_components/PurchaseOrderSubRow'
@@ -40,14 +41,14 @@ const PurchaseOrdersPage = () => {
 
     const q = deferredSearch.toLowerCase()
 
-    return po.filter((item: any) => {
+    return po.filter((item: PurchaseOrder) => {
       const matchesStatus =
         status === 'ALL' || item.status === status
 
       const matchesSearch =
         !q ||
         item.order_number?.toLowerCase?.().includes(q) ||
-        item.supplier?.name?.toLowerCase?.().includes(q)
+        item.vendor?.name?.toLowerCase?.().includes(q)
 
       return matchesStatus && matchesSearch
     })

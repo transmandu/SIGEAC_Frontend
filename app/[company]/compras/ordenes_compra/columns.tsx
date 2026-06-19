@@ -166,10 +166,8 @@ export const getColumns = (
     cell: ({ row }) => {
       const status = row.original.status
 
-      const approved = status === "CERRADO"
-      const process =
-        status === "PROCESO" ||
-        status === "PAGADO"
+      const completed = status === "COMPLETADA"
+      const paid = status === "PAGADA"
 
       return (
         <div className="flex justify-center w-full">
@@ -187,7 +185,7 @@ export const getColumns = (
                 cursor-default
               `,
 
-              process && `
+              paid && `
                 border-yellow-500/30
                 bg-yellow-500/10
                 text-yellow-700
@@ -195,7 +193,7 @@ export const getColumns = (
                 hover:bg-yellow-500/15
               `,
 
-              approved && `
+              completed && `
                 border-emerald-500/30
                 bg-emerald-500/10
                 text-emerald-700
@@ -203,8 +201,8 @@ export const getColumns = (
                 hover:bg-emerald-500/15
               `,
 
-              !process &&
-                !approved &&
+              !paid &&
+                !completed &&
                 `
                   border-red-500/30
                   bg-red-500/10
@@ -236,7 +234,9 @@ export const getColumns = (
     },
 
     cell: ({ row }) => {
-      const count = row.original.article_purchase_order?.length ?? 0
+      const count =
+        (row.original.article_purchase_order?.length ?? 0) +
+        (row.original.general_article_purchase_order?.length ?? 0)
 
       const isEmpty = count === 0
 

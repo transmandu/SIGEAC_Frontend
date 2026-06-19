@@ -1,7 +1,6 @@
 'use client'
 
 import { Row } from '@tanstack/react-table'
-import { MapPin } from 'lucide-react'
 import type { PurchaseOrder } from '@/types/purchase'
 
 export default function PurchaseOrderSubRow({
@@ -10,8 +9,9 @@ export default function PurchaseOrderSubRow({
   row: Row<PurchaseOrder>
 }) {
   const articles = row.original.article_purchase_order
+  const generalArticles = row.original.general_article_purchase_order
 
-  if (!articles?.length) {
+  if (!articles?.length && !generalArticles?.length) {
     return (
       <div className="px-4 py-2">
         <p className="text-[11px] text-muted-foreground/60 italic">
@@ -22,7 +22,7 @@ export default function PurchaseOrderSubRow({
   }
 
   const grid =
-    'grid grid-cols-[1fr_60px_90px_110px_110px_160px] items-center'
+    'grid grid-cols-[1fr_60px_90px_110px_110px] items-center'
 
   return (
     <div className="px-4 py-2 space-y-2">
@@ -50,128 +50,198 @@ export default function PurchaseOrderSubRow({
         </div>
 
         <div className="flex items-center justify-center w-full">
-          Tracking USA
-        </div>
-
-        <div className="flex items-center justify-center w-full">
           Tracking Envío
         </div>
 
         <div className="flex items-center justify-center w-full">
-          Ubicación
+          Tracking Int&apos;l
         </div>
       </div>
 
       <div className="space-y-[4px]">
 
-        {articles.map((article) => (
-          <div
-            key={article.id}
-            className={`
-              ${grid}
-              px-2 py-2
-              rounded-md
+        {articles?.map((article) => {
+          const reqArticle = article.article_quote_order?.article_requisition_order
 
-              bg-slate-50/70
-              dark:bg-slate-900/40
+          return (
+            <div
+              key={article.id}
+              className={`
+                ${grid}
+                px-2 py-2
+                rounded-md
 
-              border
-              border-slate-200/50
-              dark:border-slate-700/50
+                bg-slate-50/70
+                dark:bg-slate-900/40
 
-              text-[11px]
-              text-slate-600
-              dark:text-slate-300
+                border
+                border-slate-200/50
+                dark:border-slate-700/50
 
-              hover:bg-slate-100/70
-              dark:hover:bg-slate-800/50
+                text-[11px]
+                text-slate-600
+                dark:text-slate-300
 
-              transition-colors
-            `}
-          >
+                hover:bg-slate-100/70
+                dark:hover:bg-slate-800/50
 
-            <div className="min-w-0 flex flex-col justify-center">
+                transition-colors
+              `}
+            >
 
-              <div className="flex items-center gap-2 min-w-0">
-                <span
+              <div className="min-w-0 flex flex-col justify-center">
+
+                <div className="flex items-center gap-2 min-w-0">
+                  <span
+                    className="
+                      uppercase
+                      tracking-wide
+                      text-[9px]
+                      opacity-70
+                      shrink-0
+                      dark:text-slate-400
+                    "
+                  >
+                    P/N
+                  </span>
+
+                  <span
+                    className="
+                      font-medium
+                      text-[12px]
+                      text-slate-800
+                      dark:text-slate-100
+                      truncate
+                    "
+                  >
+                    {reqArticle?.article_part_number ?? '—'}
+                  </span>
+                </div>
+
+                <div
                   className="
-                    uppercase
-                    tracking-wide
-                    text-[9px]
-                    opacity-70
-                    shrink-0
+                    flex items-center gap-2
+                    text-[10px]
+                    text-muted-foreground
                     dark:text-slate-400
+                    mt-0.5
                   "
                 >
-                  P/N
-                </span>
+                  <span
+                    className="
+                      uppercase
+                      text-[9px]
+                      opacity-70
+                      shrink-0
+                    "
+                  >
+                    ALT
+                  </span>
 
-                <span
-                  className="
-                    font-medium
-                    text-[12px]
-                    text-slate-800
-                    dark:text-slate-100
-                    truncate
-                  "
-                >
-                  {article.article_part_number}
-                </span>
+                  <span className="truncate">
+                    {reqArticle?.article_alt_part_number ?? 'Sin alterno'}
+                  </span>
+                </div>
+
               </div>
 
-              <div
-                className="
-                  flex items-center gap-2
-                  text-[10px]
-                  text-muted-foreground
-                  dark:text-slate-400
-                  mt-0.5
-                "
-              >
-                <span
-                  className="
-                    uppercase
-                    text-[9px]
-                    opacity-70
-                    shrink-0
-                  "
-                >
-                  ALT
-                </span>
+              <div className="flex items-center justify-center w-full tabular-nums">
+                {article.article_quote_order?.quantity ?? '—'}
+              </div>
 
-                <span className="truncate">
-                  {article.article_alt_part_number ?? 'Sin alterno'}
-                </span>
+              <div className="flex items-center justify-center w-full tabular-nums text-muted-foreground dark:text-slate-400">
+                ${Number(article.article_quote_order?.unit_price || 0).toFixed(2)}
+              </div>
+
+              <div className="flex items-center justify-center w-full text-[10px] text-muted-foreground dark:text-slate-400">
+                {article.shipping_tracking ?? '—'}
+              </div>
+
+              <div className="flex items-center justify-center w-full text-[10px] text-muted-foreground dark:text-slate-400">
+                {article.international_shipping_tracking ?? '—'}
               </div>
 
             </div>
+          )
+        })}
 
-            <div className="flex items-center justify-center w-full tabular-nums">
-              {article.quantity}
+        {generalArticles?.map((article) => {
+          const reqArticle = article.general_article_quote_order?.general_article_requisition_order
+
+          return (
+            <div
+              key={article.id}
+              className={`
+                ${grid}
+                px-2 py-2
+                rounded-md
+
+                bg-slate-50/70
+                dark:bg-slate-900/40
+
+                border
+                border-slate-200/50
+                dark:border-slate-700/50
+
+                text-[11px]
+                text-slate-600
+                dark:text-slate-300
+
+                hover:bg-slate-100/70
+                dark:hover:bg-slate-800/50
+
+                transition-colors
+              `}
+            >
+
+              <div className="min-w-0 flex flex-col justify-center">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span
+                    className="
+                      uppercase
+                      tracking-wide
+                      text-[9px]
+                      opacity-70
+                      shrink-0
+                      dark:text-slate-400
+                    "
+                  >
+                    GEN
+                  </span>
+
+                  <span
+                    className="
+                      font-medium
+                      text-[12px]
+                      text-slate-800
+                      dark:text-slate-100
+                      truncate
+                    "
+                  >
+                    {reqArticle?.description ?? '—'}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-center w-full tabular-nums">
+                {article.general_article_quote_order?.quantity ?? '—'}
+              </div>
+
+              <div className="flex items-center justify-center w-full tabular-nums text-muted-foreground dark:text-slate-400">
+                ${Number(article.general_article_quote_order?.unit_price || 0).toFixed(2)}
+              </div>
+
+              <div className="flex items-center justify-center w-full text-[10px] text-muted-foreground dark:text-slate-400">
+                {article.shipping_tracking ?? '—'}
+              </div>
+
+              <div className="flex items-center justify-center w-full text-[10px] text-muted-foreground dark:text-slate-400">
+                {article.international_shipping_tracking ?? '—'}
+              </div>
+
             </div>
-
-            <div className="flex items-center justify-center w-full tabular-nums text-muted-foreground dark:text-slate-400">
-              ${Number(article.unit_price || 0).toFixed(2)}
-            </div>
-
-            <div className="flex items-center justify-center w-full text-[10px] text-muted-foreground dark:text-slate-400">
-              {article.usa_tracking ?? '—'}
-            </div>
-
-            <div className="flex items-center justify-center w-full text-[10px] text-muted-foreground dark:text-slate-400">
-              {article.ock_tracking ?? '—'}
-            </div>
-
-            <div className="flex items-center justify-center w-full gap-1 text-[10px] text-muted-foreground dark:text-slate-400 min-w-0">
-              <MapPin className="size-3 opacity-50 shrink-0" />
-
-              <span className="truncate">
-                {article.article_location ?? 'Pendiente'}
-              </span>
-            </div>
-
-          </div>
-        ))}
+          )
+        })}
 
       </div>
     </div>

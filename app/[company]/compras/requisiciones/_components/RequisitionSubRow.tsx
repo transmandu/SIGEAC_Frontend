@@ -37,7 +37,7 @@ export default function RequisitionSubRow({
 
       <div className="flex flex-col gap-1.5">
         {quotes.map((quote) => {
-          const approved = quote.status === 'APROBADO'
+          const approved = quote.status === 'APROBADA'
           const rejected = quote.status === 'RECHAZADA'
           const pending = quote.status === 'PENDIENTE'
           const vendorNames = quote.article_vendors ?? []

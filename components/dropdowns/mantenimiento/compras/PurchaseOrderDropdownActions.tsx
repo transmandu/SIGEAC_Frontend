@@ -18,7 +18,7 @@ const PurchaseOrderDropdownActions = ({ po }: { po: PurchaseOrder }) => {
   const [openDropdown, setOpenDropdown] = useState(false)
   const [openApprove, setOpenApprove] = useState(false)
 
-  const canApprove = po.status == "PROCESO"
+  const canApprove = po.status === "PENDIENTE"
 
   return (
     <TooltipProvider delayDuration={120}>

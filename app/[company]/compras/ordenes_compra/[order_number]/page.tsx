@@ -18,7 +18,6 @@ import {
   ClipboardCheck,
   CreditCard,
   FileText,
-  MapPin,
   Package,
   Trash2,
   Truck,
@@ -46,7 +45,7 @@ const PurchaseOrderPage = () => {
 
   if (isLoading) return <LoadingPage />;
 
-  const isPaid = data?.status === 'PAGADO';
+  const isPaid = data?.status === 'PAGADA' || data?.status === 'COMPLETADA';
 
   return (
     <ContentLayout title="Orden de Compra">
@@ -163,97 +162,148 @@ const PurchaseOrderPage = () => {
               <div className="flex items-center justify-between">
                 <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Artículos</span>
                 <span className="text-xs text-muted-foreground tabular-nums">
-                  {data.article_purchase_order.length} {data.article_purchase_order.length === 1 ? 'ítem' : 'ítems'}
+                  {data.article_purchase_order.length + data.general_article_purchase_order.length}{' '}
+                  {data.article_purchase_order.length + data.general_article_purchase_order.length === 1 ? 'ítem' : 'ítems'}
                 </span>
               </div>
 
               {/* Cabecera de columnas */}
-              <div className="grid grid-cols-[1fr_60px_90px_140px_140px_120px] gap-3 px-3 pb-1.5 border-b border-border/60">
-                {['Parte / Alterno', 'Cant.', 'P. Unit.', 'Tracking USA', 'Tracking OCK', 'Ubicación'].map((h) => (
+              <div className="grid grid-cols-[1fr_60px_90px_140px_140px] gap-3 px-3 pb-1.5 border-b border-border/60">
+                {['Parte / Alterno', 'Cant.', 'P. Unit.', 'Tracking Nacional', "Tracking Int'l"].map((h) => (
                   <span key={h} className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">{h}</span>
                 ))}
               </div>
 
               <div className="space-y-0">
-                {data.article_purchase_order.map((article) => (
-                  <div
-                    key={article.article_part_number}
-                    className="grid grid-cols-[1fr_60px_90px_140px_140px_120px] gap-3 items-start px-3 py-3 border-b border-border/30 last:border-0 hover:bg-muted/20 transition-colors"
-                  >
-                    {/* Identidad de parte */}
-                    <div className="space-y-1 min-w-0">
-                      <div className="font-mono text-sm bg-muted/60 px-2 py-1 rounded border border-border/50 tracking-wide truncate">
-                        {article.article_part_number}
+                {data.article_purchase_order.map((article) => {
+                  const reqArticle = article.article_quote_order?.article_requisition_order;
+
+                  return (
+                    <div
+                      key={article.id}
+                      className="grid grid-cols-[1fr_60px_90px_140px_140px] gap-3 items-start px-3 py-3 border-b border-border/30 last:border-0 hover:bg-muted/20 transition-colors"
+                    >
+                      {/* Identidad de parte */}
+                      <div className="space-y-1 min-w-0">
+                        <div className="font-mono text-sm bg-muted/60 px-2 py-1 rounded border border-border/50 tracking-wide truncate">
+                          {reqArticle?.article_part_number ?? '—'}
+                        </div>
+                        {reqArticle?.article_alt_part_number ? (
+                          <div className="flex items-center gap-1.5">
+                            <span className="shrink-0 text-[10px] font-mono font-semibold text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800/60 px-1.5 py-0.5 rounded tracking-widest">
+                              ALT
+                            </span>
+                            <span className="font-mono text-xs text-muted-foreground truncate">
+                              {reqArticle.article_alt_part_number}
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[10px] font-mono text-muted-foreground/40 border border-dashed border-border/40 px-1.5 py-0.5 rounded">
+                              ALT —
+                            </span>
+                          </div>
+                        )}
+                        {reqArticle?.batch?.name && (
+                          <span className="text-[10px] text-muted-foreground/60">{reqArticle.batch.name}</span>
+                        )}
                       </div>
-                      {article.article_alt_part_number ? (
+
+                      {/* Cantidad */}
+                      <div className="font-mono text-sm tabular-nums pt-1">
+                        {displayValue(article.article_quote_order?.quantity)}
+                        {reqArticle?.unit && (
+                          <span className="text-xs text-muted-foreground ml-1">{reqArticle.unit.label}</span>
+                        )}
+                      </div>
+
+                      {/* Precio unitario */}
+                      <div className="font-mono text-sm tabular-nums pt-1">
+                        ${Number(article.article_quote_order?.unit_price || 0).toFixed(2)}
+                      </div>
+
+                      {/* Tracking nacional */}
+                      <div className="pt-1">
+                        {article.shipping_tracking ? (
+                          <span className="font-mono text-xs bg-muted/50 px-2 py-1 rounded border border-border/40 block truncate">
+                            {article.shipping_tracking}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-muted-foreground/50 italic">Pendiente</span>
+                        )}
+                      </div>
+
+                      {/* Tracking internacional */}
+                      <div className="pt-1">
+                        {article.international_shipping_tracking ? (
+                          <span className="font-mono text-xs bg-muted/50 px-2 py-1 rounded border border-border/40 block truncate">
+                            {article.international_shipping_tracking}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-muted-foreground/50 italic">Pendiente</span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {data.general_article_purchase_order.map((article) => {
+                  const reqArticle = article.general_article_quote_order?.general_article_requisition_order;
+
+                  return (
+                    <div
+                      key={article.id}
+                      className="grid grid-cols-[1fr_60px_90px_140px_140px] gap-3 items-start px-3 py-3 border-b border-border/30 last:border-0 hover:bg-muted/20 transition-colors"
+                    >
+                      {/* Identidad */}
+                      <div className="space-y-1 min-w-0">
                         <div className="flex items-center gap-1.5">
-                          <span className="shrink-0 text-[10px] font-mono font-semibold text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800/60 px-1.5 py-0.5 rounded tracking-widest">
-                            ALT
+                          <span className="shrink-0 text-[10px] font-mono font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800/60 px-1.5 py-0.5 rounded tracking-widest">
+                            GEN
                           </span>
-                          <span className="font-mono text-xs text-muted-foreground truncate">
-                            {article.article_alt_part_number}
-                          </span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-[10px] font-mono text-muted-foreground/40 border border-dashed border-border/40 px-1.5 py-0.5 rounded">
-                            ALT —
+                          <span className="font-mono text-sm truncate">
+                            {reqArticle?.description ?? '—'}
                           </span>
                         </div>
-                      )}
-                      {article.batch?.name && (
-                        <span className="text-[10px] text-muted-foreground/60">{article.batch.name}</span>
-                      )}
-                    </div>
+                      </div>
 
-                    {/* Cantidad */}
-                    <div className="font-mono text-sm tabular-nums pt-1">
-                      {displayValue(article.quantity)}
-                      {article.unit && (
-                        <span className="text-xs text-muted-foreground ml-1">{article.unit.label}</span>
-                      )}
-                    </div>
+                      {/* Cantidad */}
+                      <div className="font-mono text-sm tabular-nums pt-1">
+                        {displayValue(article.general_article_quote_order?.quantity)}
+                        {reqArticle?.unit && (
+                          <span className="text-xs text-muted-foreground ml-1">{reqArticle.unit.label}</span>
+                        )}
+                      </div>
 
-                    {/* Precio unitario */}
-                    <div className="font-mono text-sm tabular-nums pt-1">
-                      ${Number(article.unit_price || 0).toFixed(2)}
-                    </div>
+                      {/* Precio unitario */}
+                      <div className="font-mono text-sm tabular-nums pt-1">
+                        ${Number(article.general_article_quote_order?.unit_price || 0).toFixed(2)}
+                      </div>
 
-                    {/* Tracking USA */}
-                    <div className="pt-1">
-                      {article.usa_tracking ? (
-                        <span className="font-mono text-xs bg-muted/50 px-2 py-1 rounded border border-border/40 block truncate">
-                          {article.usa_tracking}
-                        </span>
-                      ) : (
-                        <span className="text-xs text-muted-foreground/50 italic">Pendiente</span>
-                      )}
-                    </div>
+                      {/* Tracking nacional */}
+                      <div className="pt-1">
+                        {article.shipping_tracking ? (
+                          <span className="font-mono text-xs bg-muted/50 px-2 py-1 rounded border border-border/40 block truncate">
+                            {article.shipping_tracking}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-muted-foreground/50 italic">Pendiente</span>
+                        )}
+                      </div>
 
-                    {/* Tracking OCK */}
-                    <div className="pt-1">
-                      {article.ock_tracking ? (
-                        <span className="font-mono text-xs bg-muted/50 px-2 py-1 rounded border border-border/40 block truncate">
-                          {article.ock_tracking}
-                        </span>
-                      ) : (
-                        <span className="text-xs text-muted-foreground/50 italic">Pendiente</span>
-                      )}
+                      {/* Tracking internacional */}
+                      <div className="pt-1">
+                        {article.international_shipping_tracking ? (
+                          <span className="font-mono text-xs bg-muted/50 px-2 py-1 rounded border border-border/40 block truncate">
+                            {article.international_shipping_tracking}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-muted-foreground/50 italic">Pendiente</span>
+                        )}
+                      </div>
                     </div>
-
-                    {/* Ubicación */}
-                    <div className="pt-1">
-                      {article.article_location ? (
-                        <div className="flex items-start gap-1">
-                          <MapPin className="size-3 text-muted-foreground mt-0.5 shrink-0" />
-                          <span className="text-xs">{article.article_location}</span>
-                        </div>
-                      ) : (
-                        <span className="text-xs text-muted-foreground/50 italic">Pendiente</span>
-                      )}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 
@@ -268,8 +318,8 @@ const PurchaseOrderPage = () => {
                   <CostRow label="Tax" value={data.tax} />
                   <CostRow label="Wire Fee" value={data.wire_fee} />
                   <CostRow label="Handling Fee" value={data.handling_fee} />
-                  <CostRow label="Envío USA" value={data.usa_shipping} />
-                  <CostRow label="Envío OCK21" value={data.ock_shipping} />
+                  <CostRow label="Envío internacional" value={data.international_shipping} />
+                  <CostRow label="Envío nacional" value={data.shipping_fee} />
                 </div>
               </div>
 

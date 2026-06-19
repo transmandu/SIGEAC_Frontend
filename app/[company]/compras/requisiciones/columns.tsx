@@ -140,7 +140,7 @@ export const getColumns = (
       const process =
         status === 'PROCESO' ||
         status === 'COTIZADO'
-      const approved = status === 'APROBADO'
+      const approved = status === 'APROBADA'
       return (
         <div className="flex justify-center w-full">
           <Badge

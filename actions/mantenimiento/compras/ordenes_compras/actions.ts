@@ -1,7 +1,7 @@
 import axiosInstance from "@/lib/axios"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
-import type { POArticles, CreatePurchaseOrderData } from "@/types/purchase"
+import type { CreatePurchaseOrderData, UpdatePurchaseOrderData } from "@/types/purchase"
 
 export const useCreatePurchaseOrder = () => {
 
@@ -36,29 +36,17 @@ export const useCompletePurchase = () => {
   const queryClient = useQueryClient()
 
   const completePurchaseMutation = useMutation({
-      mutationFn: async ({id, data, company}: {id: number, data: {
-        tax: string,
-        wire_fee: string,
-        total: number,
-        handling_fee: string,
-        payment_method: string,
-        ock_shipping: string,
-        usa_shipping: string,
-        observation?: string,
-        bank_account_id: string,
-        card_id?: string,
-        invoice?: File,
-        articles_purchase_orders: POArticles[]
-      }, company: string}) => {
+      mutationFn: async ({id, data, company}: {id: number, data: UpdatePurchaseOrderData, company: string}) => {
           await axiosInstance.put(`/${company}/purchase-order/${id}`, data)
         },
       onSuccess: () => {
           queryClient.invalidateQueries({queryKey: ['purchase-orders']})
+          queryClient.invalidateQueries({queryKey: ['purchase-order'], exact: false})
           toast.success("¡Confirmada!", {
               description: `¡La orden de compra ha sido actualizada correctamente!`
           })
         },
-      onError: (e) => {
+      onError: () => {
           toast.error("Oops!", {
             description: "¡Hubo un error al actualizar la orden de compra!"
         })
@@ -68,6 +56,64 @@ export const useCompletePurchase = () => {
 
   return {
     completePurchase: completePurchaseMutation,
+  }
+}
+
+export const useMarkPurchaseOrderAsPaid = () => {
+
+  const queryClient = useQueryClient()
+
+  const markAsPaidMutation = useMutation({
+      mutationFn: async ({id, company}: {id: number, company: string}) => {
+          const {data} = await axiosInstance.put(`/${company}/purchase-order/${id}/pay`)
+          return data
+        },
+      onSuccess: () => {
+          queryClient.invalidateQueries({queryKey: ['purchase-orders']})
+          queryClient.invalidateQueries({queryKey: ['purchase-order'], exact: false})
+          toast.success("¡Pagada!", {
+              description: `La orden de compra ha sido marcada como pagada.`
+          })
+        },
+      onError: () => {
+          toast.error("Oops!", {
+            description: "¡Hubo un error al marcar la orden de compra como pagada!"
+        })
+        },
+      }
+  )
+
+  return {
+    markPurchaseOrderAsPaid: markAsPaidMutation,
+  }
+}
+
+export const useMarkPurchaseOrderAsCompleted = () => {
+
+  const queryClient = useQueryClient()
+
+  const markAsCompletedMutation = useMutation({
+      mutationFn: async ({id, company}: {id: number, company: string}) => {
+          const {data} = await axiosInstance.put(`/${company}/purchase-order/${id}/complete`)
+          return data
+        },
+      onSuccess: () => {
+          queryClient.invalidateQueries({queryKey: ['purchase-orders']})
+          queryClient.invalidateQueries({queryKey: ['purchase-order'], exact: false})
+          toast.success("¡Completada!", {
+              description: `La orden de compra ha sido marcada como completada.`
+          })
+        },
+      onError: () => {
+          toast.error("Oops!", {
+            description: "¡Hubo un error al marcar la orden de compra como completada!"
+        })
+        },
+      }
+  )
+
+  return {
+    markPurchaseOrderAsCompleted: markAsCompletedMutation,
   }
 }
 

@@ -37,16 +37,16 @@ const StatusFilter = ({
           Todos los estados
         </SelectItem>
 
-        <SelectItem value="PROCESO">
-          En proceso
+        <SelectItem value="PENDIENTE">
+          Pendiente
         </SelectItem>
 
-        <SelectItem value="PAGADO">
+        <SelectItem value="PAGADA">
           Pagada
         </SelectItem>
 
-        <SelectItem value="CERRADO">
-          Cerrada
+        <SelectItem value="COMPLETADA">
+          Completada
         </SelectItem>
       </SelectContent>
     </Select>

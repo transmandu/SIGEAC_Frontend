@@ -1,6 +1,6 @@
 "use client";
 
-import { useCompletePurchase } from "@/actions/mantenimiento/compras/ordenes_compras/actions";
+import { useCompletePurchase, useMarkPurchaseOrderAsPaid } from "@/actions/mantenimiento/compras/ordenes_compras/actions";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -19,12 +19,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { useAuth } from "@/contexts/AuthContext";
+import { useCompanyStore } from "@/stores/CompanyStore";
 import { useGetBankAccounts } from "@/hooks/general/cuentas_bancarias/useGetBankAccounts";
 import { useGetCards } from "@/hooks/general/tarjetas/useGetCards";
+import { useGetShippingAgencies } from "@/hooks/general/agencias_envio/useGetShippingAgencies";
 import { cn } from "@/lib/utils";
-import { useCompanyStore } from "@/stores/CompanyStore";
 import type { PurchaseOrder } from "@/types/purchase";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, PackageCheck } from "lucide-react";
@@ -37,19 +36,21 @@ const FormSchema = z.object({
   tax: z.string(),
   wire_fee: z.string(),
   handling_fee: z.string(),
+  shipping_fee: z.string(),
+  international_shipping: z.string(),
   payment_method: z.string(),
   bank_account_id: z.string(),
   card_id: z.string().optional(),
-  ock_shipping: z.string(),
-  usa_shipping: z.string(),
+  shipping_agency_id: z.string().optional(),
+  invoice_number: z.string().optional(),
+  observation: z.string().optional(),
   invoice: z.instanceof(File).optional(),
   articles_purchase_orders: z.array(
     z.object({
-      article_part_number: z.string(),
-      article_purchase_order_id: z.number().optional(),
-      usa_tracking: z.string(),
-      ock_tracking: z.string(),
-      article_location: z.string(),
+      article_purchase_order_id: z.number(),
+      label: z.string(),
+      shipping_tracking: z.string(),
+      international_shipping_tracking: z.string(),
     })
   ),
 });
@@ -69,10 +70,25 @@ const SectionHeader = ({ children }: { children: React.ReactNode }) => (
 
 export function CompletePurchaseForm({ onClose, po }: FormProps) {
   const { selectedCompany } = useCompanyStore();
-  const { user } = useAuth();
   const { data: accounts, isLoading: isAccLoading } = useGetBankAccounts();
   const { data: cards, isLoading: isCardsLoading } = useGetCards();
+  const { data: shippingAgencies, isLoading: isAgenciesLoading } = useGetShippingAgencies(selectedCompany?.slug);
   const { completePurchase } = useCompletePurchase();
+  const { markPurchaseOrderAsPaid } = useMarkPurchaseOrderAsPaid();
+
+  const articleRows = useMemo(
+    () => [
+      ...po.article_purchase_order.map((article) => ({
+        article_purchase_order_id: article.id,
+        label: article.article_quote_order?.article_requisition_order?.article_part_number ?? `Artículo #${article.id}`,
+      })),
+      ...po.general_article_purchase_order.map((article) => ({
+        article_purchase_order_id: article.id,
+        label: article.general_article_quote_order?.general_article_requisition_order?.description ?? `Artículo #${article.id}`,
+      })),
+    ],
+    [po.article_purchase_order, po.general_article_purchase_order]
+  );
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
@@ -80,20 +96,22 @@ export function CompletePurchaseForm({ onClose, po }: FormProps) {
       tax: "",
       wire_fee: "",
       handling_fee: "",
-      usa_shipping: "",
-      ock_shipping: "",
+      shipping_fee: "",
+      international_shipping: "",
       payment_method: "",
-      articles_purchase_orders: po.article_purchase_order.map((article) => ({
-        article_part_number: article.article_part_number,
-        article_purchase_order_id: article.id,
-        usa_tracking: "",
-        ock_tracking: "",
-        article_location: "",
+      bank_account_id: "",
+      invoice_number: "",
+      observation: "",
+      articles_purchase_orders: articleRows.map((article) => ({
+        article_purchase_order_id: article.article_purchase_order_id,
+        label: article.label,
+        shipping_tracking: "",
+        international_shipping_tracking: "",
       })),
     },
   });
 
-  const { tax, wire_fee, handling_fee, usa_shipping, ock_shipping } = form.watch();
+  const { tax, wire_fee, handling_fee, shipping_fee, international_shipping } = form.watch();
   const paymentMethod = form.watch("payment_method");
 
   const total = useMemo(() => {
@@ -102,10 +120,10 @@ export function CompletePurchaseForm({ onClose, po }: FormProps) {
       Number(tax || 0) +
       Number(wire_fee || 0) +
       Number(handling_fee || 0) +
-      Number(usa_shipping || 0) +
-      Number(ock_shipping || 0)
+      Number(shipping_fee || 0) +
+      Number(international_shipping || 0)
     );
-  }, [po.sub_total, tax, wire_fee, handling_fee, usa_shipping, ock_shipping]);
+  }, [po.sub_total, tax, wire_fee, handling_fee, shipping_fee, international_shipping]);
 
   const onSubmit = async (data: FormSchemaType) => {
     const computedTotal =
@@ -113,30 +131,42 @@ export function CompletePurchaseForm({ onClose, po }: FormProps) {
       Number(data.tax || 0) +
       Number(data.wire_fee || 0) +
       Number(data.handling_fee || 0) +
-      Number(data.usa_shipping || 0) +
-      Number(data.ock_shipping || 0);
-
-    const finalData = {
-      ...data,
-      articles_purchase_orders: data.articles_purchase_orders.map((article) => ({
-        article_part_number: article.article_part_number,
-        article_purchase_order_id: article.article_purchase_order_id!,
-        article_location: article.article_location,
-        usa_tracking: article.usa_tracking,
-        ock_tracking: article.ock_tracking,
-      })),
-      company: selectedCompany!.slug,
-      total: computedTotal,
-      updated_by: `${user?.first_name} ${user?.last_name}`,
-    };
+      Number(data.shipping_fee || 0) +
+      Number(data.international_shipping || 0);
 
     await completePurchase.mutateAsync({
       id: po.id,
-      data: { ...finalData },
+      data: {
+        tax: Number(data.tax || 0),
+        wire_fee: Number(data.wire_fee || 0),
+        handling_fee: Number(data.handling_fee || 0),
+        shipping_fee: Number(data.shipping_fee || 0),
+        international_shipping: Number(data.international_shipping || 0),
+        total: computedTotal,
+        bank_account_id: data.bank_account_id ? Number(data.bank_account_id) : null,
+        card_id: data.card_id ? Number(data.card_id) : null,
+        shipping_agency_id: data.shipping_agency_id ? Number(data.shipping_agency_id) : null,
+        invoice_number: data.invoice_number || null,
+        observation: data.observation || null,
+        invoice: data.invoice,
+        articles_purchase_orders: data.articles_purchase_orders.map((article) => ({
+          article_purchase_order_id: article.article_purchase_order_id,
+          shipping_tracking: article.shipping_tracking || null,
+          international_shipping_tracking: article.international_shipping_tracking || null,
+        })),
+      },
       company: selectedCompany!.slug,
     });
+
+    await markPurchaseOrderAsPaid.mutateAsync({
+      id: po.id,
+      company: selectedCompany!.slug,
+    });
+
     onClose();
   };
+
+  const isPending = completePurchase.isPending || markPurchaseOrderAsPaid.isPending;
 
   return (
     <Form {...form}>
@@ -196,11 +226,11 @@ export function CompletePurchaseForm({ onClose, po }: FormProps) {
             />
             <FormField
               control={form.control}
-              name="usa_shipping"
+              name="international_shipping"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                    Envío USA
+                    Envío internacional
                   </FormLabel>
                   <FormControl>
                     <AmountInput placeholder="$0.00" {...field} />
@@ -211,11 +241,11 @@ export function CompletePurchaseForm({ onClose, po }: FormProps) {
             />
             <FormField
               control={form.control}
-              name="ock_shipping"
+              name="shipping_fee"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                    Envío OCK21
+                    Envío nacional
                   </FormLabel>
                   <FormControl>
                     <AmountInput placeholder="$0.00" {...field} />
@@ -241,45 +271,64 @@ export function CompletePurchaseForm({ onClose, po }: FormProps) {
           </div>
         </div>
 
-        {/* ── Artículos — tracking y ubicación ──────────────────────── */}
+        {/* ── Agencia de envío ────────────────────────────────────────── */}
         <div className="space-y-2">
-          <SectionHeader>Tracking y ubicación</SectionHeader>
+          <SectionHeader>Envío</SectionHeader>
+          <FormField
+            control={form.control}
+            name="shipping_agency_id"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Agencia de envío
+                </FormLabel>
+                <Select disabled={isAgenciesLoading} onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger className="h-9 text-sm">
+                      <SelectValue placeholder="Seleccionar agencia..." />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {shippingAgencies?.map((agency) => (
+                      <SelectItem value={agency.id.toString()} key={agency.id} className="text-sm">
+                        {agency.name} ({agency.code})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        {/* ── Artículos — tracking ─────────────────────────────────────── */}
+        <div className="space-y-2">
+          <SectionHeader>Tracking de envío</SectionHeader>
 
           {/* Cabecera de columnas */}
-          <div className="grid grid-cols-[1fr_140px_140px_1fr] gap-3 px-3 pb-1 border-b border-border/60">
-            {['Nro. Parte', 'Tracking USA', 'Tracking OCK', 'Ubicación'].map((h) => (
+          <div className="grid grid-cols-[1fr_140px_140px] gap-3 px-3 pb-1 border-b border-border/60">
+            {['Artículo', 'Tracking nacional', "Tracking int'l"].map((h) => (
               <span key={h} className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">{h}</span>
             ))}
           </div>
 
-          <ScrollArea className={cn(po.article_purchase_order.length >= 2 && "h-[220px]")}>
+          <ScrollArea className={cn(articleRows.length >= 2 && "h-[220px]")}>
             <div className="space-y-0">
-              {po.article_purchase_order.map((article, index) => (
+              {articleRows.map((article, index) => (
                 <div
-                  key={article.id}
-                  className="grid grid-cols-[1fr_140px_140px_1fr] gap-3 items-start px-3 py-3 border-b border-border/30 last:border-0 hover:bg-muted/20 transition-colors"
+                  key={article.article_purchase_order_id}
+                  className="grid grid-cols-[1fr_140px_140px] gap-3 items-start px-3 py-3 border-b border-border/30 last:border-0 hover:bg-muted/20 transition-colors"
                 >
-                  {/* PN — read-only */}
-                  <FormField
-                    control={form.control}
-                    name={`articles_purchase_orders.${index}.article_part_number`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <Input
-                            disabled
-                            className="font-mono text-sm h-8 bg-muted/60 border-border/50 disabled:opacity-100 disabled:cursor-default tracking-wide"
-                            {...field}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
+                  {/* Identidad — read-only */}
+                  <div className="flex items-center h-8">
+                    <span className="font-mono text-sm truncate">{article.label}</span>
+                  </div>
 
-                  {/* Tracking USA */}
+                  {/* Tracking nacional */}
                   <FormField
                     control={form.control}
-                    name={`articles_purchase_orders.${index}.usa_tracking`}
+                    name={`articles_purchase_orders.${index}.shipping_tracking`}
                     render={({ field }) => (
                       <FormItem>
                         <FormControl>
@@ -294,34 +343,16 @@ export function CompletePurchaseForm({ onClose, po }: FormProps) {
                     )}
                   />
 
-                  {/* Tracking OCK */}
+                  {/* Tracking internacional */}
                   <FormField
                     control={form.control}
-                    name={`articles_purchase_orders.${index}.ock_tracking`}
+                    name={`articles_purchase_orders.${index}.international_shipping_tracking`}
                     render={({ field }) => (
                       <FormItem>
                         <FormControl>
                           <Input
                             placeholder="Tracking #"
                             className="font-mono text-sm h-8"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  {/* Ubicación */}
-                  <FormField
-                    control={form.control}
-                    name={`articles_purchase_orders.${index}.article_location`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <Textarea
-                            placeholder="Miami, PZO, en tránsito..."
-                            className="text-sm min-h-[32px] h-8 resize-none py-1.5"
                             {...field}
                           />
                         </FormControl>
@@ -433,6 +464,27 @@ export function CompletePurchaseForm({ onClose, po }: FormProps) {
               />
             )}
 
+            {/* Nro. de factura */}
+            <FormField
+              control={form.control}
+              name="invoice_number"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Nro. Factura
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="INV-0001"
+                      className="h-9 text-sm"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             {/* Invoice */}
             <FormField
               control={form.control}
@@ -463,11 +515,11 @@ export function CompletePurchaseForm({ onClose, po }: FormProps) {
 
         {/* ── Submit ──────────────────────────────────────────────────── */}
         <Button
-          disabled={completePurchase.isPending}
+          disabled={isPending}
           type="submit"
           className="w-full h-10"
         >
-          {completePurchase.isPending ? (
+          {isPending ? (
             <Loader2 className="size-4 animate-spin" />
           ) : (
             <>

@@ -116,7 +116,7 @@ const GeneralSalesReportPdf = ({ reports }: { reports: GeneralSalesReport }) => 
                     Orden de Compra: {report.purchase_order.order_number}
                   </Text>
                   <Text style={styles.sectionInfo}>
-                    Proveedor: {report.purchase_order.vendor.name}
+                    Proveedor: {report.purchase_order.vendor?.name ?? "N/A"}
                   </Text>
                   <Text style={styles.sectionInfo}>
                     Total: ${report.purchase_order.total}

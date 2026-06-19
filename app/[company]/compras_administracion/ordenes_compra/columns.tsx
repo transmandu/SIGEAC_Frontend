@@ -79,7 +79,7 @@ export const columns: ColumnDef<PurchaseOrder>[] = [
     ),
     cell: ({ row }) => {
       return (
-        <p className="font-medium text-center">{row.original.vendor.name}</p>
+        <p className="font-medium text-center">{row.original.vendor?.name ?? "N/A"}</p>
       )
     }
   },
@@ -89,10 +89,10 @@ export const columns: ColumnDef<PurchaseOrder>[] = [
       <DataTableColumnHeader column={column} title="Status" />
     ),
     cell: ({ row }) => {
-      const process = row.original.status === 'PROCESO'
-      const aproved = row.original.status === 'PAGADO'
+      const pending = row.original.status === 'PENDIENTE'
+      const paid = row.original.status === 'PAGADA'
       return (
-        <Badge className={cn("flex justify-center", process ? "bg-yellow-500" : aproved ? "bg-green-500" : "bg-red-500")} > {row.original.status.toUpperCase()}</Badge >
+        <Badge className={cn("flex justify-center", pending ? "bg-yellow-500" : paid ? "bg-green-500" : "bg-red-500")} > {row.original.status.toUpperCase()}</Badge >
       )
     }
   },
