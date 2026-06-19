@@ -658,10 +658,12 @@ export type Role = {
   id: number;
   name: string;
   label: string;
+  company_id: string | null;
   company: {
+    id: number;
     name: string;
     description: string;
-  }[];
+  } | null;
 };
 
 export type Route = {
@@ -723,6 +725,7 @@ export type User = {
     id: number;
     name: string;
     label: string;
+    company_id: string | null;
     permissions: Permission[];
   }[];
   permissions: Permission[];

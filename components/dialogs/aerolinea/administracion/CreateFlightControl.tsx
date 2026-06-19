@@ -31,7 +31,7 @@ export function CreateFlightControlDialog({
           Nuevo
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[420px] md:max-w-[650px]">
+      <DialogContent className="sm:max-w-[600px] md:max-w-[900px]">
         <DialogHeader>
           <DialogTitle>Creación de Vuelo</DialogTitle>
           <DialogDescription>
