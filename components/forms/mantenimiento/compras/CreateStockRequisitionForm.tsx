@@ -24,6 +24,7 @@ import { RequisitionHeader } from "./_components/RequisitionHeader"
 import { BatchArticlesSection } from "./_components/BatchArticlesSection"
 import { GeneralArticlesSection } from "./_components/GeneralArticlesSection"
 import { AdditionalInfoSection } from "./_components/AdditionalInfoSection"
+import { MixedTypeConfirmDialog } from "./_components/MixedTypeConfirmDialog"
 
 const FormSchema = z.object({
   justification: z
@@ -138,6 +139,11 @@ export function CreateStockRequisitionForm({
   const [selectedBatches, setSelectedBatches] = useState<RequisitionBatchForm[]>([]);
   const [selectedGeneralArticles, setSelectedGeneralArticles] = useState<RequisitionGeneralArticleForm[]>([]);
   const [activeTab, setActiveTab] = useState<"batches" | "general">("batches");
+
+  const hasMixedTypes = selectedBatches.length > 0 && selectedGeneralArticles.length > 0;
+
+  const [showMixedTypeConfirm, setShowMixedTypeConfirm] = useState(false);
+  const [pendingSubmitData, setPendingSubmitData] = useState<FormSchemaType | null>(null);
 
   // Local search state for each searchable selector (keeps filtering stable during typing)
   const [employeeSearch, setEmployeeSearch] = useState("");
@@ -335,7 +341,7 @@ export function CreateStockRequisitionForm({
     setSelectedGeneralArticles((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const onSubmit = async (data: FormSchemaType) => {
+  const submitRequisition = async (data: FormSchemaType) => {
     const formattedData = {
       ...data,
       type: "STOCK" as const,
@@ -345,6 +351,25 @@ export function CreateStockRequisitionForm({
 
     await createRequisition.mutateAsync({ data: formattedData, company: selectedCompany!.slug });
     onClose();
+  };
+
+  const onSubmit = async (data: FormSchemaType) => {
+    if (hasMixedTypes) {
+      setPendingSubmitData(data);
+      setShowMixedTypeConfirm(true);
+      return;
+    }
+
+    await submitRequisition(data);
+  };
+
+  const handleConfirmMixedTypeSubmit = async () => {
+    if (!pendingSubmitData) return;
+
+    await submitRequisition(pendingSubmitData);
+
+    setShowMixedTypeConfirm(false);
+    setPendingSubmitData(null);
   };
 
   return (
@@ -444,6 +469,16 @@ export function CreateStockRequisitionForm({
             <Loader2 className="size-4 animate-spin" />
           )}
         </Button>
+
+        <MixedTypeConfirmDialog
+          open={showMixedTypeConfirm}
+          onOpenChange={(open) => {
+            setShowMixedTypeConfirm(open);
+            if (!open) setPendingSubmitData(null);
+          }}
+          onConfirm={handleConfirmMixedTypeSubmit}
+          isPending={createRequisition.isPending}
+        />
       </form>
     </Form>
   );
