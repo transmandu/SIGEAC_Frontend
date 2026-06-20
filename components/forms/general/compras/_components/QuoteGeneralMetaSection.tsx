@@ -11,19 +11,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { CalendarIcon, Check, ChevronsUpDown, Loader2 } from "lucide-react";
-import { useState } from "react";
+import { CalendarIcon } from "lucide-react";
 import type { UseFormReturn } from "react-hook-form";
 import { Calendar } from "@/components/ui/calendar";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -31,10 +21,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { MarqueeBlockText } from "@/components/misc/MarqueeBlockText";
-import type { Vendor } from "@/types";
 import type { QuoteableRequisition } from "@/types/purchase/quote";
-import { RequiredIndicator } from "./RequiredIndicator";
+import { RequiredIndicator } from "@/components/forms/mantenimiento/compras/_components/RequiredIndicator";
 
 interface LocationOption {
   id: number;
@@ -42,23 +32,17 @@ interface LocationOption {
   type: string;
 }
 
-interface QuoteMetaSectionProps {
+interface QuoteGeneralMetaSectionProps {
   form: UseFormReturn<any>;
   req: QuoteableRequisition;
-  vendors?: Vendor[];
-  isVendorsLoading: boolean;
   locations?: LocationOption[];
 }
 
-export function QuoteMetaSection({
+export function QuoteGeneralMetaSection({
   form,
   req,
-  vendors,
-  isVendorsLoading,
   locations,
-}: QuoteMetaSectionProps) {
-  const [openVendor, setOpenVendor] = useState(false);
-
+}: QuoteGeneralMetaSectionProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
 
@@ -71,7 +55,7 @@ export function QuoteMetaSection({
               Datos de cotización
             </span>
             <span className="text-[11px] text-muted-foreground/70">
-              Información principal de la cotización
+              Información principal de la cotización general
             </span>
           </div>
         </div>
@@ -164,75 +148,6 @@ export function QuoteMetaSection({
               )}
             />
           </div>
-
-          {/* Proveedor */}
-          <FormField
-            control={form.control}
-            name="vendor_id"
-            render={({ field }) => (
-              <FormItem className="space-y-2">
-                <div className="flex items-center gap-2 min-h-[16px] pb-1.5">
-                  <FormLabel className="m-0 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                    Proveedor
-                    <RequiredIndicator />
-                  </FormLabel>
-                  <div className="h-px flex-1 bg-border/60" />
-                </div>
-
-                <Popover open={openVendor} onOpenChange={setOpenVendor}>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant="outline"
-                        disabled={isVendorsLoading}
-                        className="h-9 w-full justify-between bg-background/70 text-sm"
-                      >
-                        {isVendorsLoading ? (
-                          <Loader2 className="size-3.5 animate-spin" />
-                        ) : field.value ? (
-                          vendors?.find(v => v.id.toString() === field.value)?.name
-                        ) : (
-                          "Seleccionar proveedor"
-                        )}
-                        <ChevronsUpDown className="h-3 w-3 opacity-40" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-
-                  <PopoverContent className="p-0" matchTriggerWidth>
-                    <Command>
-                      <CommandInput placeholder="Buscar proveedor..." />
-                      <CommandList>
-                        <CommandEmpty>Sin resultados</CommandEmpty>
-                        <CommandGroup>
-                          {vendors?.map((vendor) => (
-                            <CommandItem
-                              key={vendor.id}
-                              value={vendor.name}
-                              onSelect={() => {
-                                form.setValue("vendor_id", vendor.id.toString());
-                                setOpenVendor(false);
-                              }}
-                            >
-                              <Check
-                                className={cn(
-                                  "mr-2 h-3 w-3",
-                                  vendor.id.toString() === field.value ? "opacity-100" : "opacity-0"
-                                )}
-                              />
-                              {vendor.name}
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
-
-                <FormMessage />
-              </FormItem>
-            )}
-          />
         </div>
       </div>
 

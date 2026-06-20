@@ -16,6 +16,7 @@ import {
 } from "lucide-react"
 import LoadingPage from "@/components/misc/LoadingPage"
 import { CreateQuoteForm } from "../../../forms/mantenimiento/compras/CreateQuoteForm"
+import { CreateGeneralQuoteForm } from "../../../forms/general/compras/CreateGeneralQuoteForm"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -103,6 +104,12 @@ const RequisitionDropdownDialogs = ({
   const [Observation, setObservation] = useState("")
 
   const initialData = transformApiData(req)
+
+  // Las requisiciones GENERAL, y las STOCK sin artículos por lote, cotizan
+  // sin proveedor mediante el formulario general.
+  const isGeneralRequisition =
+    req.type === "GENERAL" ||
+    (req.type === "STOCK" && (req.batch?.length ?? 0) === 0)
 
   if (!selectedCompany) return <LoadingPage />
 
@@ -401,14 +408,24 @@ const RequisitionDropdownDialogs = ({
           </DialogHeader>
 
           <div className="overflow-y-auto px-8 py-6">
-            <CreateQuoteForm
-              req={req}
-              initialData={initialData}
-              onClose={() => {
-                setOpenConfirm(false)
-                onSuccessUpdate?.()
-              }}
-            />
+            {isGeneralRequisition ? (
+              <CreateGeneralQuoteForm
+                req={req as any}
+                onClose={() => {
+                  setOpenConfirm(false)
+                  onSuccessUpdate?.()
+                }}
+              />
+            ) : (
+              <CreateQuoteForm
+                req={req}
+                initialData={initialData}
+                onClose={() => {
+                  setOpenConfirm(false)
+                  onSuccessUpdate?.()
+                }}
+              />
+            )}
           </div>
         </DialogContent>
       </Dialog>

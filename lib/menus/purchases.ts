@@ -57,6 +57,18 @@ export function buildPurchasesGroup({ pathname, currentCompany }: MenuContext): 
                 submenus: [],
             },
             {
+                href: `/${currentCompany?.slug}/compras/cotizaciones_generales`,
+                label: "Cotizaciones Generales",
+                active: isActivePath(pathname, `/${currentCompany?.slug}/compras/cotizaciones_generales`),
+                icon: HandCoins,
+                roles: [
+                    "ASISTENTE_COMPRAS",
+                    "SUPERUSER",
+                    "JEFE_ADMINISTRACION",
+                ],
+                submenus: [],
+            },
+            {
                 href: `/${currentCompany?.slug}/compras/ordenes_compra`,
                 label: "Ordenes de Compra",
                 active: isActivePath(pathname, `/${currentCompany?.slug}/compras/ordenes_compra`),

@@ -10,7 +10,7 @@ import { getColumns } from './columns'
 import { DataTable } from '../../data-table'
 import QuotesToolBar from './_components/QuotesToolBar'
 import GroupedQuotesTable from './_components/GroupedQuotesTable'
-import { isAeronauticalQuoteScope } from '@/lib/purchases/quote-scope'
+import { isGeneralQuoteScope } from '@/lib/purchases/quote-scope'
 
 const QuotesOrdersPage = () => {
   const { selectedCompany, selectedStation } = useCompanyStore()
@@ -33,9 +33,9 @@ const QuotesOrdersPage = () => {
   const filteredQuotes = useMemo(() => {
     if (!quotes) return []
 
-    // Compras generales no se gestiona en este módulo: las cotizaciones
-    // GENERAL, y las de STOCK que incluyan artículos generales, no aplican aquí.
-    let filtered = quotes.filter((quote: any) => isAeronauticalQuoteScope(quote))
+    // Compras aeronáuticas no se gestiona en este módulo: las cotizaciones
+    // AERONAUTICAL, y las de STOCK que incluyan artículos por lote, no aplican aquí.
+    let filtered = quotes.filter((quote: any) => isGeneralQuoteScope(quote))
 
     if (status !== 'ALL') {
       filtered = filtered.filter(
@@ -77,7 +77,7 @@ const QuotesOrdersPage = () => {
   )
 
   return (
-    <ContentLayout title="Cotizaciones de Compra">
+    <ContentLayout title="Cotizaciones Generales">
       <div className="flex flex-col gap-6">
 
         <div className="flex items-center gap-3">
@@ -101,7 +101,7 @@ const QuotesOrdersPage = () => {
 
               <BreadcrumbItem>
                 <BreadcrumbPage>
-                  Cotizaciones de Compra
+                  Cotizaciones Generales
                 </BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
@@ -112,11 +112,11 @@ const QuotesOrdersPage = () => {
           <div className="flex items-end justify-between">
             <div className="flex flex-col">
               <h1 className="text-3xl font-semibold tracking-tight">
-                Cotizaciones de Compra
+                Cotizaciones Generales
               </h1>
 
               <p className="text-sm text-muted-foreground">
-                Visualiza y gestiona las cotizaciones generadas dentro del sistema de compras.
+                Visualiza y gestiona las cotizaciones de compra generales registradas dentro del sistema de compras.
               </p>
             </div>
           </div>

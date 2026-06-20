@@ -13,11 +13,10 @@ import Link from 'next/link';
 import QuoteActions from './_components/QuoteActions';
 import MetaItem from './_components/MetaItem';
 import InfoSection from './_components/InfoSection';
-import QuoteArticleCard from './_components/QuoteArticleCard';
 import QuoteGeneralArticleCard from './_components/QuoteGeneralArticleCard';
 import QuoteOutOfScope from './_components/QuoteOutOfScope';
 import { statusBadgeCls, formatQuoteDate } from './_components/utils/uiHelpers';
-import { isAeronauticalQuoteScope } from '@/lib/purchases/quote-scope';
+import { isGeneralQuoteScope } from '@/lib/purchases/quote-scope';
 
 const QuotePage = () => {
   const { selectedCompany } = useCompanyStore();
@@ -28,17 +27,13 @@ const QuotePage = () => {
     quote_number
   );
 
-  const articles = data?.article_quote_order ?? [];
   const generalArticles = data?.general_article_quote_order ?? [];
 
-  const isOutOfScope = !!data && !isAeronauticalQuoteScope(data);
+  const isOutOfScope = !!data && !isGeneralQuoteScope(data);
 
   const vendorNames = Array.from(
     new Set(
-      [
-        data?.vendor?.name,
-        ...articles.map((a) => a.vendor?.name),
-      ].filter((name): name is string => !!name)
+      [data?.vendor?.name].filter((name): name is string => !!name)
     )
   );
 
@@ -47,7 +42,7 @@ const QuotePage = () => {
   if (isOutOfScope) return <QuoteOutOfScope />;
 
   return (
-    <ContentLayout title="Cotización">
+    <ContentLayout title="Cotización General">
       <div className="flex flex-col gap-6">
 
         {/* ── Breadcrumb ──────────────────────────────────────────────── */}
@@ -65,8 +60,8 @@ const QuotePage = () => {
               <BreadcrumbSeparator />
 
               <BreadcrumbItem>
-                <BreadcrumbLink href={`/${selectedCompany?.slug}/compras/cotizaciones`}>
-                  Cotizaciones
+                <BreadcrumbLink href={`/${selectedCompany?.slug}/compras/cotizaciones_generales`}>
+                  Cotizaciones Generales
                 </BreadcrumbLink>
               </BreadcrumbItem>
 
@@ -100,12 +95,12 @@ const QuotePage = () => {
               </div>
 
               <p className="text-sm text-muted-foreground">
-                Cotización de Compra
+                Cotización de Compra General
                 {data?.requisition_order?.order_number && (
                   <>
                     {' '}derivada de{' '}
                     <Link
-                      href={`/${selectedCompany?.slug}/compras/requisiciones/${data.requisition_order.order_number}`}
+                      href={`/${selectedCompany?.slug}/compras/requisiciones_generales/${data.requisition_order.order_number}`}
                       className="hover:text-foreground hover:underline underline-offset-4 decoration-1 transition-colors"
                     >
                       {data.requisition_order.order_number}
@@ -204,33 +199,21 @@ const QuotePage = () => {
               </span>
 
               <span className="text-sm font-semibold tabular-nums">
-                {articles.length + generalArticles.length}
+                {generalArticles.length}
               </span>
             </div>
 
           </div>
 
-          {/* ===================== BATCH ===================== */}
+          {/* ===================== GENERAL ===================== */}
           <div className="space-y-2">
-            {articles.map((article) => (
-              <QuoteArticleCard
+            {generalArticles.map((article) => (
+              <QuoteGeneralArticleCard
                 key={article.id}
                 article={article}
               />
             ))}
           </div>
-
-          {/* ===================== GENERAL ===================== */}
-          {generalArticles.length > 0 && (
-            <div className="space-y-2 mt-4">
-              {generalArticles.map((article) => (
-                <QuoteGeneralArticleCard
-                  key={article.id}
-                  article={article}
-                />
-              ))}
-            </div>
-          )}
 
           {/* ── Total general ──────────────────────────────────────── */}
           <div className="flex justify-end pt-2 border-t border-border/60">
