@@ -3,7 +3,7 @@
 import { useMemo, useState, useEffect } from 'react'
 
 import GroupRow from './GroupRow'
-import GroupPagination from '../../../../../components/misc/GroupPagination'
+import GroupPagination from '@/components/misc/GroupPagination'
 
 type GroupableKey =
   | 'vendor'

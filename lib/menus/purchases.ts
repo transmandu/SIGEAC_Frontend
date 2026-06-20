@@ -19,11 +19,12 @@ export function buildPurchasesGroup({ pathname, currentCompany }: MenuContext): 
                 active: pathname.includes(`/${currentCompany?.slug}/compras/requisiciones`),
                 icon: ClipboardList,
                 roles: [
-                    "ANALISTA_COMPRAS", 
-                    "JEFE_COMPRAS", 
-                    "SUPERUSER", 
+                    "ANALISTA_COMPRAS",
+                    "JEFE_COMPRAS",
+                    "SUPERUSER",
                     "JEFE_ADMINISTRACION"
                 ],
+                requiresOmac: true,
                 submenus: [],
             },
             {
@@ -32,11 +33,12 @@ export function buildPurchasesGroup({ pathname, currentCompany }: MenuContext): 
                 active: pathname.includes(`/${currentCompany?.slug}/compras/cotizaciones`),
                 icon: HandCoins,
                 roles: [
-                    "ANALISTA_COMPRAS", 
-                    "JEFE_COMPRAS", 
-                    "SUPERUSER", 
+                    "ANALISTA_COMPRAS",
+                    "JEFE_COMPRAS",
+                    "SUPERUSER",
                     "JEFE_ADMINISTRACION"
                 ],
+                requiresOmac: true,
                 submenus: [],
             },
             {
@@ -52,6 +54,7 @@ export function buildPurchasesGroup({ pathname, currentCompany }: MenuContext): 
                     "SUPERUSER",
                     "JEFE_ADMINISTRACION",
                 ],
+                requiresOmac: true,
                 submenus: [],
             },
             {
@@ -65,6 +68,7 @@ export function buildPurchasesGroup({ pathname, currentCompany }: MenuContext): 
                     "SUPERUSER",
                     "JEFE_ADMINISTRACION",
                 ],
+                requiresOmac: true,
                 submenus: [],
             },
             {
@@ -78,6 +82,7 @@ export function buildPurchasesGroup({ pathname, currentCompany }: MenuContext): 
                     "SUPERUSER",
                     "JEFE_ADMINISTRACION",
                 ],
+                requiresOmac: true,
                 submenus: [],
             },
             {
@@ -92,6 +97,7 @@ export function buildPurchasesGroup({ pathname, currentCompany }: MenuContext): 
                     "SUPERUSER",
                     "JEFE_ADMINISTRACION",
                 ],
+                requiresOmac: true,
                 submenus: [],
             },
         ],
