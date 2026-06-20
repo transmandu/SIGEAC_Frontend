@@ -6,7 +6,7 @@ import { ContentLayout } from '@/components/layout/ContentLayout'
 
 const RequisitionOutOfScope = () => {
   return (
-    <ContentLayout title="Solicitud de Compra">
+    <ContentLayout title="Requisición General">
 
       <div
         className="

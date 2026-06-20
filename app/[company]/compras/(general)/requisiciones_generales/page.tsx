@@ -71,7 +71,7 @@ const RequisitionsPage = () => {
   )
 
   return (
-    <ContentLayout title="Solicitudes de Compra">
+    <ContentLayout title="Requisiciones Generales">
       <div className="flex flex-col gap-6">
 
         <div className="flex items-center gap-3">
@@ -97,7 +97,7 @@ const RequisitionsPage = () => {
 
               <BreadcrumbItem>
                 <BreadcrumbPage>
-                  Solicitudes de Compra
+                  Requisiciones Generales
                 </BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
@@ -108,12 +108,12 @@ const RequisitionsPage = () => {
           <div className="flex items-end justify-between">
             <div className="flex flex-col">
               <h1 className="text-3xl font-semibold tracking-tight">
-                Solicitudes de Compra
+                Requisiciones Generales
               </h1>
 
               <p className="text-sm text-muted-foreground">
-                Visualiza y gestiona las requisiciones registradas
-                dentro del sistema de compras y abastecimiento.
+                Visualiza y gestiona las solicitudes de compra generales
+                registradas dentro del sistema de compras y abastecimiento.
               </p>
             </div>
           </div>
@@ -159,7 +159,7 @@ const RequisitionsPage = () => {
         {isError && (
           <div className="rounded-lg border border-red-500/20 bg-red-500/5 px-4 py-3">
             <p className="text-sm text-red-500">
-              Ha ocurrido un error al cargar las solicitudes de compra.
+              Ha ocurrido un error al cargar las solicitudes de compra generales.
             </p>
           </div>
         )}

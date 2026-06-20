@@ -90,7 +90,7 @@ const RequisitionPage = () => {
   if (isOutOfScope) return <RequisitionOutOfScope />;
 
   return (
-    <ContentLayout title="Solicitud de Compra">
+    <ContentLayout title="Requisición General">
       <div className="flex flex-col gap-4 sm:gap-6">
 
         {/* ── Breadcrumb ──────────────────────────────────────────────── */}
@@ -106,7 +106,7 @@ const RequisitionPage = () => {
               <BreadcrumbSeparator />
               <BreadcrumbItem>
                 <BreadcrumbLink href={`/${selectedCompany?.slug}/compras/requisiciones_generales`}>
-                  Solicitudes
+                  Requisiciones Generales
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
@@ -152,7 +152,7 @@ const RequisitionPage = () => {
               </div>
 
               <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-                Solicitud de Compra de {requisitionTypeLabel(data?.type)}
+                Solicitud de Compra General de {requisitionTypeLabel(data?.type)}
               </p>
 
               {/* ACTIONS SOLO MOBILE (debajo del título) */}
