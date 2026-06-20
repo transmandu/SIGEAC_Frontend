@@ -114,7 +114,7 @@ const BatchArticleCard = ({ article }: { article: any }) => {
 
           {/* CANTIDAD / UNIDAD */}
           <div>
-            <p className="text-muted-foreground text-xs">Cantidad</p>
+            <p className="text-muted-foreground text-xs">Cantidad solicitada</p>
             <p className="font-medium">{article.quantity ?? '-'}</p>
           </div>
 

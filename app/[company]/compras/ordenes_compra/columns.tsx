@@ -89,7 +89,7 @@ export const getColumns = (
     cell: ({ row }) => (
       <div className="flex justify-center w-full">
         <Link
-          href={`/${selectedCompany?.slug}/compras/ordenes_compra/${row.original.order_number}`}
+          href={`/${selectedCompany?.slug}/compras/cotizaciones/${row.original.quote_order?.quote_number}`}
           onClick={(e) => e.stopPropagation()}
           className="text-sm text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-400 hover:underline underline-offset-4 decoration-1"
         >

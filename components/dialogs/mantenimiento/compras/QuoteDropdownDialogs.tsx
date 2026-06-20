@@ -5,12 +5,8 @@ import {
   useUpdateQuoteStatus
 } from "@/actions/mantenimiento/compras/cotizaciones/actions"
 import {
-  useUpdateRequisitionStatus
-} from "@/actions/mantenimiento/compras/requisiciones/actions"
-import {
   useCreatePurchaseOrder
 } from "@/actions/mantenimiento/compras/ordenes_compras/actions"
-import { useAuth } from "@/contexts/AuthContext"
 import { useCompanyStore } from "@/stores/CompanyStore"
 import type { Quote } from "@/types/purchase"
 import {
@@ -100,11 +96,9 @@ const QuoteDropdownDialogs = ({
   onSuccessUpdate,
   onSuccessDelete
 }: Props) => {
-  const { user } = useAuth()
   const { selectedCompany } = useCompanyStore()
 
   const { updateStatusQuote } = useUpdateQuoteStatus()
-  const { updateStatusRequisition } = useUpdateRequisitionStatus()
   const { createPurchaseOrder } = useCreatePurchaseOrder()
   const { deleteQuote } = useDeleteQuote()
 
@@ -118,15 +112,6 @@ const QuoteDropdownDialogs = ({
       data: {
         status: "RECHAZADA",
         observation: Observation.trim() || null
-      },
-      company: selectedCompany.slug
-    })
-
-    await updateStatusRequisition.mutateAsync({
-      id: quote.requisition_order.id,
-      data: {
-        status: "PROCESO",
-        updated_by: `${user?.first_name} ${user?.last_name}`
       },
       company: selectedCompany.slug
     })
@@ -162,15 +147,6 @@ const QuoteDropdownDialogs = ({
 
     await createPurchaseOrder.mutateAsync({
       data: poData,
-      company: selectedCompany.slug
-    })
-
-    await updateStatusRequisition.mutateAsync({
-      id: quote.requisition_order.id,
-      data: {
-        status: "APROBADO",
-        updated_by: `${user?.first_name} ${user?.last_name}`
-      },
       company: selectedCompany.slug
     })
 

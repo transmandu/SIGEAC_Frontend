@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
 import { useCompanyStore } from "@/stores/CompanyStore"
 import {
   DropdownMenu,
@@ -19,7 +18,6 @@ import { Button } from "@/components/ui/button"
 import {
   ClipboardCheck,
   ClipboardX,
-  ExternalLink,
   FileDown,
   MoreHorizontal,
   Trash2
@@ -27,7 +25,7 @@ import {
 import type { Quote } from "@/types/purchase"
 // import { PDFDownloadLink } from "@react-pdf/renderer"
 import QuoteDropdownDialogs from "@/components/dialogs/mantenimiento/compras/QuoteDropdownDialogs"
-import { useGetPurchaseOrderByQuoteId } from "@/hooks/mantenimiento/compras/useGetPurchaseOrderByQuoteId"
+import PurchaseOrderMenuLink from "@/components/dropdowns/mantenimiento/compras/PurchaseOrderMenuLink"
 
 const iconBase =
   "size-[18px] transition-all duration-200 ease-out group-hover:scale-110"
@@ -49,7 +47,6 @@ const itemBase = `
 `
 
 const QuoteDropdownActions = ({ quote }: { quote: Quote }) => {
-  const router = useRouter()
   const { selectedCompany } = useCompanyStore()
 
   const [openDropdown, setOpenDropdown] = useState(false)
@@ -62,11 +59,6 @@ const QuoteDropdownActions = ({ quote }: { quote: Quote }) => {
   const canApproveOrReject = quote.status === "PENDIENTE"
 
   const shouldFetchPO = canViewPO && !!selectedCompany?.slug && !!quote.id
-  const {data: purchaseOrder, isFetching} = useGetPurchaseOrderByQuoteId({company: selectedCompany?.slug, quoteId: quote.id, enabled: shouldFetchPO})
-  const handleGoToPO = () => {
-    if (!purchaseOrder?.order_number || !selectedCompany) return
-    router.push(`/${selectedCompany.slug}/compras/ordenes_compra/${purchaseOrder.order_number}`)
-  }
 
   return (
     <TooltipProvider delayDuration={120}>
@@ -196,28 +188,14 @@ const QuoteDropdownActions = ({ quote }: { quote: Quote }) => {
             {/* </PDFDownloadLink> */}
 
             {/* PO LINK */}
-            {canViewPO && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    disabled={!purchaseOrder?.order_number}
-                    onClick={handleGoToPO}
-                    className={`${itemBase} text-indigo-600`}
-                  >
-                    <ExternalLink className={iconBase} />
-                  </Button>
-                </TooltipTrigger>
-
-                <TooltipContent>
-                  {isFetching
-                    ? "Cargando..."
-                    : purchaseOrder?.order_number
-                    ? "Ver orden de compra"
-                    : "No existe orden de compra"}
-                </TooltipContent>
-              </Tooltip>
+            {canViewPO && selectedCompany?.slug && (
+              <PurchaseOrderMenuLink
+                company={selectedCompany.slug}
+                quoteId={quote.id}
+                enabled={shouldFetchPO}
+                itemClassName={itemBase}
+                iconClassName={iconBase}
+              />
             )}
 
             {/* DELETE */}

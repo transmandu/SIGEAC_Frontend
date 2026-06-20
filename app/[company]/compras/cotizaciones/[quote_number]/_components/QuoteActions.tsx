@@ -5,10 +5,10 @@ import { useRouter } from "next/navigation"
 import { useCompanyStore } from "@/stores/CompanyStore"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { ClipboardCheck, ClipboardX, Trash2, ExternalLink, FileDown } from "lucide-react"
+import { ClipboardCheck, ClipboardX, Trash2, FileDown } from "lucide-react"
 import QuoteDropdownDialogs from "@/components/dialogs/mantenimiento/compras/QuoteDropdownDialogs"
 import type { Quote } from "@/types/purchase"
-import { useGetPurchaseOrderByQuoteId } from "@/hooks/mantenimiento/compras/useGetPurchaseOrderByQuoteId"
+import PurchaseOrderLinkButton from "@/components/dropdowns/mantenimiento/compras/PurchaseOrderLinkButton"
 
 /* =========================
    STYLES
@@ -50,29 +50,8 @@ export default function QuoteActions({
   const canAct = isPending
   const canDelete = !isApproved
 
-  /* =========================
-     FETCH CONTROLADO
-  ========================= */
-
   const shouldFetchPO =
     isApproved && !!selectedCompany?.slug && !!quote.id
-
-  const {
-    data: purchaseOrder,
-    isFetching
-  } = useGetPurchaseOrderByQuoteId({
-    company: selectedCompany?.slug,
-    quoteId: quote.id,
-    enabled: shouldFetchPO
-  })
-
-  const handleGoToPO = () => {
-    if (!purchaseOrder?.order_number || !selectedCompany) return
-
-    router.push(
-      `/${selectedCompany.slug}/compras/ordenes_compra/${purchaseOrder.order_number}`
-    )
-  }
 
   if (!selectedCompany) return null
 
@@ -154,28 +133,14 @@ export default function QuoteActions({
         )}
         
         {/* PO LINK */}
-        {isApproved && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                disabled={!purchaseOrder?.order_number}
-                onClick={handleGoToPO}
-                className={`${itemBase} text-indigo-600`}
-              >
-                <ExternalLink className={iconBase} />
-              </Button>
-            </TooltipTrigger>
-
-            <TooltipContent>
-              {isFetching
-                ? "Cargando..."
-                : purchaseOrder?.order_number
-                ? "Ver orden de compra"
-                : "No existe orden de compra"}
-            </TooltipContent>
-          </Tooltip>
+        {isApproved && selectedCompany?.slug && (
+          <PurchaseOrderLinkButton
+            company={selectedCompany.slug}
+            quoteId={quote.id}
+            enabled={shouldFetchPO}
+            className={itemBase}
+            iconClassName={iconBase}
+          />
         )}
 
         {/* DIALOGS */}

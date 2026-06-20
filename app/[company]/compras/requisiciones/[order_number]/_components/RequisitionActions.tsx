@@ -52,7 +52,7 @@ export default function RequisitionActions({
 
   const status = req.status
 
-  const isApproved = status === "APROBADO"
+  const isApproved = status === "APROBADA"
   const isRejected = status === "RECHAZADO"
   const isFinal = isApproved || isRejected
 

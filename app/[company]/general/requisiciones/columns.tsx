@@ -57,7 +57,7 @@ export const getColumns = (
       const status = row.original.status?.toUpperCase();
 
       const isProcess = status === "PROCESO" || status === "COTIZADO";
-      const isApproved = status === "APROBADO";
+      const isApproved = status === "APROBADA";
 
       return (
         <div className="flex justify-center">

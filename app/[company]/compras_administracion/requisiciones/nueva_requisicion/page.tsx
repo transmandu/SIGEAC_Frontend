@@ -154,7 +154,7 @@ const CreateRequisitionPage = () => {
   const {
     data: employees,
     isPending: employeesLoading,
-  } = useGetUserDepartamentEmployees();
+  } = useGetUserDepartamentEmployees(selectedCompany?.slug);
   const { data: secondaryUnits, isLoading: secondaryUnitLoading } =
     useGetSecondaryUnits(selectedCompany?.slug);
   const {

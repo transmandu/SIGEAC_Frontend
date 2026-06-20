@@ -271,6 +271,7 @@ const RequisitionPage = () => {
                   batchName={batch.name}
                   batchCategory={batch.category}
                   onImageClick={setOpenImage}
+                  requisitionStatus={data?.status}
                 />
               ))}
             </div>
@@ -284,6 +285,7 @@ const RequisitionPage = () => {
                   key={idx}
                   article={article}
                   onImageClick={setOpenImage}
+                  requisitionStatus={data?.status}
                 />
               ))}
             </div>

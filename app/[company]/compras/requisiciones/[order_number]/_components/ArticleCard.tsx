@@ -13,12 +13,16 @@ interface ArticleCardProps {
   batchName: string;
   batchCategory?: string;
   onImageClick: (image: string) => void;
+  requisitionStatus?: string;
 }
 
-const ArticleCard = ({ article, batchName, batchCategory, onImageClick }: ArticleCardProps) => {
+const ArticleCard = ({ article, batchName, batchCategory, onImageClick, requisitionStatus }: ArticleCardProps) => {
   const showApprovalDetails = (status?: string) => {
     return status && status !== 'PENDING';
   };
+
+  const showQuantityApproval =
+    showApprovalDetails(article.status) && article.approved_quantity !== article.quantity;
 
   const getImageSrc = () => {
     if (!article.image) return null;
@@ -28,7 +32,7 @@ const ArticleCard = ({ article, batchName, batchCategory, onImageClick }: Articl
   };
 
   const imageSrc = getImageSrc();
-  const isRejected = article.status === 'REJECTED';
+  const isRejected = article.status === 'REJECTED' && requisitionStatus !== 'RECHAZADO';
 
   return (
     <div className="rounded-lg border border-border/60 bg-background/70 overflow-hidden mx-3">
@@ -132,14 +136,33 @@ const ArticleCard = ({ article, batchName, batchCategory, onImageClick }: Articl
 
               {/* CANTIDAD */}
               <div className="flex flex-col items-center min-w-[55px]">
-                <span className="h-4 w-full flex items-center justify-center text-[10px] tracking-wide text-muted-foreground mb-2 select-none">
-                  CANTIDAD
-                </span>
-                <div className="flex items-center justify-center w-full">
-                  <span className="text-sm tabular-nums leading-none">
-                    {article.quantity}
-                  </span>
-                </div>
+                {showQuantityApproval ? (
+                  <>
+                    <span className="h-4 w-full flex items-center justify-center text-[10px] tracking-wide text-muted-foreground select-none">
+                      CANTIDAD SOLICITADA
+                    </span>
+                    <span className="text-sm tabular-nums leading-none">
+                      {article.quantity}
+                    </span>
+                    <span className="h-4 w-full flex items-center justify-center text-[10px] tracking-wide text-muted-foreground mt-1 select-none">
+                      CANTIDAD APROBADA
+                    </span>
+                    <span className="text-sm tabular-nums leading-none">
+                      {article.approved_quantity ?? '—'}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span className="h-4 w-full flex items-center justify-center text-[10px] tracking-wide text-muted-foreground mb-2 select-none">
+                      CANTIDAD
+                    </span>
+                    <div className="flex items-center justify-center w-full">
+                      <span className="text-sm tabular-nums leading-none">
+                        {article.quantity}
+                      </span>
+                    </div>
+                  </>
+                )}
               </div>
 
               {/* UNIDAD */}
@@ -180,23 +203,6 @@ const ArticleCard = ({ article, batchName, batchCategory, onImageClick }: Articl
                 </div>
               </div>
             </div>
-
-            {/* ── FILA 2 ── */}
-            {showApprovalDetails(article.status) && (
-              <div className="flex items-start gap-6 pt-1 border-t border-border/40">
-                {/* CANTIDAD APROBADA */}
-                <div className="flex flex-col items-center min-w-[120px]">
-                  <span className="w-full flex items-center justify-center text-[10px] tracking-wide text-muted-foreground mb-1 select-none">
-                    CANTIDAD APROBADA
-                  </span>
-                  <div className="flex items-center justify-center w-full">
-                    <span className="text-sm tabular-nums">
-                      {article.approved_quantity ?? '—'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         </div>
 
@@ -258,7 +264,7 @@ const ArticleCard = ({ article, batchName, batchCategory, onImageClick }: Articl
             {/* CANTIDAD / UNIDAD combined */}
             <div className="flex flex-col items-center justify-center">
               <span className="text-[9px] tracking-wide text-muted-foreground mb-1.5 select-none">
-                CANT.
+                {showQuantityApproval ? 'SOLICITADA' : 'CANT.'}
               </span>
               <span className="text-sm tabular-nums leading-none">
                 {article.quantity}
@@ -266,6 +272,16 @@ const ArticleCard = ({ article, batchName, batchCategory, onImageClick }: Articl
               <span className="text-[9px] text-muted-foreground leading-none mt-0.5">
                 {article.unit?.label ?? '—'}
               </span>
+              {showQuantityApproval && (
+                <>
+                  <span className="text-[9px] tracking-wide text-muted-foreground mb-1.5 mt-1.5 select-none">
+                    APROBADA
+                  </span>
+                  <span className="text-sm tabular-nums leading-none">
+                    {article.approved_quantity ?? '—'}
+                  </span>
+                </>
+              )}
             </div>
           </div>
 
@@ -289,20 +305,6 @@ const ArticleCard = ({ article, batchName, batchCategory, onImageClick }: Articl
               </div>
             )}
           </div>
-
-          {/* Approval details */}
-          {showApprovalDetails(article.status) && (
-            <div className="border-t border-border/40 pt-3 space-y-2.5">
-              <div className="flex justify-between items-center">
-                <span className="text-[9px] tracking-wide text-muted-foreground select-none">
-                  CANTIDAD APROBADA
-                </span>
-                <span className="text-sm tabular-nums">
-                  {article.approved_quantity ?? '—'}
-                </span>
-              </div>
-            </div>
-          )}
         </div>
       </div>
         </div>

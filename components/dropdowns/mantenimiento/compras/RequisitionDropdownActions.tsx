@@ -64,18 +64,18 @@ const RequisitionDropdownActions = ({
   const userRoles = user?.roles?.map(role => role.name) || []
 
   const canQuote =
-    !(req.status === "APROBADO" || req.status === "RECHAZADO")
+    !(req.status === "APROBADA" || req.status === "RECHAZADO")
   const canReject =
-    !(req.status === "RECHAZADO" || req.status === "APROBADO")
+    !(req.status === "RECHAZADO" || req.status === "APROBADA")
 
   const quoteTooltip =
-    req.status === "APROBADO"
+    req.status === "APROBADA"
       ? "Una cotización ya fue aprobada para esta requisición"
       : req.status === "RECHAZADO"
       ? "Esta requisición ha sido rechazada"
       : "Generar cotización"
   const rejectTooltip =
-    req.status === "APROBADO"
+    req.status === "APROBADA"
       ? "Esta requisición ya fue aprobada"
       : req.status === "RECHAZADO"
       ? "Esta requisición ya fue rechazada"
