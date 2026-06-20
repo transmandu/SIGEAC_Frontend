@@ -12,7 +12,7 @@ import {
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
 import { useCompanyStore } from '@/stores/CompanyStore'
-import { DataTable } from '../data-table'
+import { DataTable } from '../../data-table'
 import { getColumns } from './columns'
 import TransitToolbar from './_components/TransitToolBar'
 import { useTransitArticles } from './hooks/useTransitArticles'

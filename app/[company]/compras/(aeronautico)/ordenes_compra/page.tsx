@@ -14,7 +14,7 @@ import {
 import { useCompanyStore } from '@/stores/CompanyStore'
 import { useGetPurchaseOrders } from '@/hooks/mantenimiento/compras/useGetPurchaseOrders'
 import type { PurchaseOrder } from '@/types/purchase'
-import { DataTable } from '../data-table'
+import { DataTable } from '../../data-table'
 import { getColumns } from './columns'
 import PurchaseOrderSubRow from './_components/PurchaseOrderSubRow'
 import PurchaseOrderToolBar from './_components/PurchaseOrderToolBar'

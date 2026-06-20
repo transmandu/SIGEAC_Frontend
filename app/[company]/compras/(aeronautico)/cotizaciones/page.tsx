@@ -7,7 +7,7 @@ import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbP
 import { useGetQuotes } from '@/hooks/mantenimiento/compras/useGetQuotes'
 import { useCompanyStore } from '@/stores/CompanyStore'
 import { getColumns } from './columns'
-import { DataTable } from '../data-table'
+import { DataTable } from '../../data-table'
 import QuotesToolBar from './_components/QuotesToolBar'
 import GroupedQuotesTable from './_components/GroupedQuotesTable'
 

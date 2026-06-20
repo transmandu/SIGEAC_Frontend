@@ -15,7 +15,7 @@ import PriorityIndicator from './_components/PriorityIndicator';
 import MetaItem from './_components/MetaItem';
 import InfoSection from './_components/InfoSection';
 import ImageAttachment from './_components/ImageAttachment';
-import ArticleCard from './_components/ArticleCard';
+import GeneralArticleCard from './_components/GeneralArticleCard';
 import ImageViewer from './_components/ImageViewer';
 import RequisitionOutOfScope from './_components/RequisitionOutOfScope';
 import { statusBadgeCls, requisitionTypeLabel, formatSolicitudDate } from './_components/utils/uiHelpers';
@@ -35,8 +35,8 @@ const RequisitionPage = () => {
 
   const isOutOfScope =
     !!data &&
-    (data.type === 'GENERAL' ||
-      (data.type === 'STOCK' && (generalArticles?.length ?? 0) > 0));
+    (data.type === 'AERONAUTICAL' ||
+      (data.type === 'STOCK' && (batches?.length ?? 0) > 0));
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
@@ -105,7 +105,7 @@ const RequisitionPage = () => {
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbLink href={`/${selectedCompany?.slug}/compras/requisiciones`}>
+                <BreadcrumbLink href={`/${selectedCompany?.slug}/compras/requisiciones_generales`}>
                   Solicitudes
                 </BreadcrumbLink>
               </BreadcrumbItem>
@@ -257,33 +257,25 @@ const RequisitionPage = () => {
               </span>
 
               <span className="text-sm font-semibold tabular-nums">
-                {batches.reduce(
-                  (acc, batch) => acc + (batch.batch_articles?.length ?? 0),
-                  0
-                )}
+                {generalArticles?.length ?? 0}
               </span>
             </div>
 
           </div>
 
-          {/* ===================== BATCH ===================== */}
-          {batches.map((batch: any, batchIdx: number) => (
-            <div
-              key={`${batch.name}-${batchIdx}`}
-              className="space-y-2"
-            >
-              {batch.batch_articles.map((article: any, idx: number) => (
-                <ArticleCard
-                  key={`${article.article_part_number}-${idx}`}
+          {/* ===================== GENERAL ARTICLES ===================== */}
+          {generalArticles?.length > 0 && (
+            <div className="space-y-2">
+              {generalArticles.map((article: any, idx: number) => (
+                <GeneralArticleCard
+                  key={idx}
                   article={article}
-                  batchName={batch.name}
-                  batchCategory={batch.category}
                   onImageClick={setOpenImage}
                   requisitionStatus={data?.status}
                 />
               ))}
             </div>
-          ))}
+          )}
 
         </div>
 
