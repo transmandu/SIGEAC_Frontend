@@ -39,11 +39,8 @@ const RequisitionsPage = () => {
 
     return requisitions.filter((req: Requisition) => {
       // Compras aeronáuticas no se gestiona en este módulo: las requisiciones
-      // AERONAUTICAL, y las de STOCK que incluyan artículos por lote (aeronáuticos),
-      // no aplican aquí.
-      const isGeneralScope =
-        req.type !== 'AERONAUTICAL' &&
-        !(req.type === 'STOCK' && (req.batch?.length ?? 0) > 0)
+      // AERONAUTICAL no aplican aquí.
+      const isGeneralScope = req.type !== 'AERONAUTICAL'
 
       const matchesSearch =
         !deferredSearch.trim() ||

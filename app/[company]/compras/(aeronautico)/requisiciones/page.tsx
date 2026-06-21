@@ -39,10 +39,8 @@ const RequisitionsPage = () => {
 
     return requisitions.filter((req: Requisition) => {
       // Compras generales no se gestiona en este módulo: las requisiciones
-      // GENERAL, y las de STOCK que incluyan artículos generales, no aplican aquí.
-      const isAeronauticalScope =
-        req.type !== 'GENERAL' &&
-        !(req.type === 'STOCK' && (req.general_articles?.length ?? 0) > 0)
+      // GENERAL no aplican aquí.
+      const isAeronauticalScope = req.type !== 'GENERAL'
 
       const matchesSearch =
         !deferredSearch.trim() ||

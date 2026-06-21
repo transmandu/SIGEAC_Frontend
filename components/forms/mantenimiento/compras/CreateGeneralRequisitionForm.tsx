@@ -25,6 +25,7 @@ import type { GeneralArticle } from "@/types";
 import { RequisitionHeader } from "./_components/RequisitionHeader";
 import { GeneralArticlesSection } from "./_components/GeneralArticlesSection";
 import { AdditionalInfoSection } from "./_components/AdditionalInfoSection";
+import { isHigherPriority, type Priority } from "./_components/priorityUtils";
 
 /* -------------------------------------------------------------------------- */
 /*                                   SCHEMA                                   */
@@ -178,6 +179,12 @@ export function CreateGeneralRequisitionForm({
     field: keyof RequisitionGeneralArticleForm,
     value: any
   ) => {
+    if (field === "priority") {
+      const currentPriority = form.getValues("priority") as Priority | undefined;
+      if (isHigherPriority(value as Priority, currentPriority)) {
+        form.setValue("priority", value);
+      }
+    }
     setSelectedGeneralArticles((prev) =>
       prev.map((article, i) =>
         i === index ? { ...article, [field]: value } : article

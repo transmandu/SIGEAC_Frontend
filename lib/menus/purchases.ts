@@ -100,7 +100,7 @@ export function buildPurchasesGroups({ pathname, currentCompany, userRoles }: Me
     const generalMenus: Menu[] = [
         {
             href: `/${currentCompany?.slug}/compras/requisiciones_generales`,
-            label: "Requisiones Generales",
+            label: "Requisiciones Generales",
             active: isActivePath(pathname, `/${currentCompany?.slug}/compras/requisiciones_generales`),
             icon: ClipboardList,
             roles: [

@@ -4,6 +4,7 @@ import { FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/for
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 import { Check, ChevronsUpDown, Layers, MinusCircle, PackagePlus, Ruler, Tag } from "lucide-react"
+import { useMemo } from "react"
 import type { UseFormReturn } from "react-hook-form"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -48,6 +49,24 @@ export function GeneralArticlesSection({
   enableCreateGeneralArticle = false,
   addManualGeneralArticle,
 }: GeneralArticlesSectionProps) {
+  // Disambiguate articles that share the same description but differ by
+  // variant_type, so users don't recreate duplicates under slightly
+  // different casings/typos when they meant the same underlying article.
+  const descriptionCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const article of filteredGeneralArticles) {
+      counts.set(article.description, (counts.get(article.description) ?? 0) + 1);
+    }
+    return counts;
+  }, [filteredGeneralArticles]);
+
+  const getArticleLabel = (article: GeneralArticle) => {
+    const isAmbiguous = (descriptionCounts.get(article.description) ?? 0) > 1;
+    return isAmbiguous && article.variant_type
+      ? `${article.description} - ${article.variant_type}`
+      : article.description;
+  };
+
   return (
     <FormField
       control={form.control}
@@ -108,7 +127,7 @@ export function GeneralArticlesSection({
                                       : "opacity-0"
                                   )}
                                 />
-                                {article.description}
+                                {getArticleLabel(article)}
                               </CommandItem>
                             ))}
                           </CommandGroup>

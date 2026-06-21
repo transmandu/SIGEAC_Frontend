@@ -15,7 +15,7 @@ export type PurchaseStatus =
   | 'APROBADA'
   | 'RECHAZADA';
 
-export type RequisitionType = 'AERONAUTICAL' | 'STOCK' | 'GENERAL';
+export type RequisitionType = 'AERONAUTICAL' | 'GENERAL';
 
 // ── Batch Article (response / detail) ──────────────────────────────────────
 export interface BatchArticle {
@@ -205,7 +205,7 @@ export interface CreateRequisitionData {
   requested_by: string;
   created_by: string | number;
   location_id: string | number;
-  type: 'AERONAUTICAL' | 'STOCK' | 'GENERAL';
+  type: 'AERONAUTICAL' | 'GENERAL';
   priority?: 'HIGH' | 'MEDIUM' | 'LOW';
   work_order_id?: string | number;
   aircraft_id?: string | number;

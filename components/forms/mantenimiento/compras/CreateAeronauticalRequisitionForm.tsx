@@ -10,7 +10,7 @@ import { useGetWorkOrders } from '@/hooks/mantenimiento/planificacion/useGetWork
 import { useCompanyStore } from "@/stores/CompanyStore"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Loader2, Send } from "lucide-react"
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits"
@@ -20,6 +20,7 @@ import { Separator } from "@/components/ui/separator"
 import { RequisitionHeader } from "./_components/RequisitionHeader"
 import { BatchArticlesSection } from "./_components/BatchArticlesSection"
 import { AdditionalInfoSection } from "./_components/AdditionalInfoSection"
+import { isHigherPriority, type Priority } from "./_components/priorityUtils"
 
 const FormSchema = z.object({
   justification: z
@@ -195,6 +196,38 @@ export function CreateAeronauticalRequisitionForm({
     form.setValue("articles", selectedBatches);
   }, [selectedBatches, form]);
 
+  // Aircraft Sync: the header aircraft is the default for batch items. We only
+  // propagate it to items that were still following the header's previous
+  // value (or had none), so manual per-item overrides are never clobbered.
+  const headerAircraftId = form.watch("aircraft_id");
+  const previousHeaderAircraftId = useRef<string | undefined>(undefined);
+
+  useEffect(() => {
+    const previous = previousHeaderAircraftId.current;
+    if (headerAircraftId !== previous) {
+      setSelectedBatches((prev) =>
+        prev.map((batch) => ({
+          ...batch,
+          batch_articles: batch.batch_articles.map((article) =>
+            article.aircraft_id === previous || !article.aircraft_id
+              ? { ...article, aircraft_id: headerAircraftId }
+              : article
+          ),
+        }))
+      );
+      previousHeaderAircraftId.current = headerAircraftId;
+    }
+  }, [headerAircraftId]);
+
+  // Priority Escalation: an item's priority can only raise the header's
+  // priority, never lower it, and never touches other items.
+  const escalateHeaderPriority = (priority?: Priority) => {
+    const currentPriority = form.getValues("priority") as Priority | undefined;
+    if (isHigherPriority(priority, currentPriority)) {
+      form.setValue("priority", priority);
+    }
+  };
+
   // Batch handlers
   const handleBatchSelect = (batchName: string, batchId: string, batch_category: string) => {
     setSelectedBatches((prev) => {
@@ -206,7 +239,7 @@ export function CreateAeronauticalRequisitionForm({
         {
           batch: batchId,
           batch_name: batchName,
-          batch_articles: [{ part_number: "", quantity: 1, unit: getDefaultUnit(batch_category), priority: "MEDIUM" }],
+          batch_articles: [{ part_number: "", quantity: 1, unit: getDefaultUnit(batch_category), priority: "MEDIUM", aircraft_id: headerAircraftId }],
         },
       ];
     });
@@ -218,6 +251,9 @@ export function CreateAeronauticalRequisitionForm({
     field: string,
     value: string | number | File | undefined
   ) => {
+    if (field === "priority") {
+      escalateHeaderPriority(value as Priority);
+    }
     setSelectedBatches((prev) =>
       prev.map((batch) =>
         batch.batch === batchId
@@ -240,7 +276,7 @@ export function CreateAeronauticalRequisitionForm({
           ...batch,
           batch_articles: [
             ...batch.batch_articles,
-            { part_number: "", quantity: 1, unit: getDefaultUnit(batch.batch_name), priority: "MEDIUM" },
+            { part_number: "", quantity: 1, unit: getDefaultUnit(batch.batch_name), priority: "MEDIUM", aircraft_id: headerAircraftId },
           ],
         };
       })

@@ -34,7 +34,7 @@ const QuotesOrdersPage = () => {
     if (!quotes) return []
 
     // Compras aeronáuticas no se gestiona en este módulo: las cotizaciones
-    // AERONAUTICAL, y las de STOCK que incluyan artículos por lote, no aplican aquí.
+    // AERONAUTICAL no aplican aquí.
     let filtered = quotes.filter((quote: any) => isGeneralQuoteScope(quote))
 
     if (status !== 'ALL') {

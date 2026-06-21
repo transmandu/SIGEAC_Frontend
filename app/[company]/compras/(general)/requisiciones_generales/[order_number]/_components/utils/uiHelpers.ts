@@ -72,9 +72,6 @@ export const requisitionTypeLabel = (type?: string) => {
     case 'AERONAUTICAL':
       return 'material aeronáutico'
 
-    case 'STOCK':
-      return 'material de re-stock'
-
     default:
       return 'uso general'
   }

@@ -68,7 +68,6 @@ const FilterSelects = ({
         <SelectContent className={selectContentClass}>
           <SelectItem value="ALL">Todos los tipos</SelectItem>
           <SelectItem value="AERONAUTICAL">Aeronáutico</SelectItem>
-          <SelectItem value="STOCK">Stock</SelectItem>
         </SelectContent>
       </Select>
     </div>

@@ -27,7 +27,7 @@ import {
 } from 'lucide-react'
 
 import { CreateAeronauticalRequisitionForm } from '@/components/forms/mantenimiento/compras/CreateAeronauticalRequisitionForm'
-import { CreateStockRequisitionForm } from '@/components/forms/mantenimiento/compras/CreateStockRequisitionForm'
+import { CreateWarehouseRequisitionForm } from '@/components/forms/mantenimiento/compras/CreateWarehouseRequisitionForm'
 import { CreateGeneralRequisitionForm } from '@/components/forms/mantenimiento/compras/CreateGeneralRequisitionForm'
 
 export function CreateRequisitionDialog() {
@@ -189,7 +189,7 @@ export function CreateRequisitionDialog() {
               </TabsTrigger>
 
               <TabsTrigger
-                value="STOCK"
+                value="WAREHOUSE"
                 className="
                   flex items-center gap-2
                   justify-start sm:justify-center
@@ -206,7 +206,7 @@ export function CreateRequisitionDialog() {
                 "
               >
                 <Boxes className="size-4" />
-                Inventario
+                Almacén
               </TabsTrigger>
 
               <TabsTrigger
@@ -239,8 +239,8 @@ export function CreateRequisitionDialog() {
               />
             </TabsContent>
 
-            <TabsContent value="STOCK" className="mt-4">
-              <CreateStockRequisitionForm
+            <TabsContent value="WAREHOUSE" className="mt-4">
+              <CreateWarehouseRequisitionForm
                 onClose={() => setOpen(false)}
               />
             </TabsContent>

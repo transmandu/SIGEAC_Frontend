@@ -34,7 +34,7 @@ const QuotesOrdersPage = () => {
     if (!quotes) return []
 
     // Compras generales no se gestiona en este módulo: las cotizaciones
-    // GENERAL, y las de STOCK que incluyan artículos generales, no aplican aquí.
+    // GENERAL no aplican aquí.
     let filtered = quotes.filter((quote: any) => isAeronauticalQuoteScope(quote))
 
     if (status !== 'ALL') {

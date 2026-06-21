@@ -9,13 +9,12 @@ import { useGetWorkOrders } from '@/hooks/mantenimiento/planificacion/useGetWork
 import { useGetUserDepartamentEmployees } from "@/hooks/sistema/empleados/useGetUserDepartamentEmployees"
 import { useCompanyStore } from "@/stores/CompanyStore"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Loader2, Send } from "lucide-react"
-import { useEffect, useMemo, useState } from "react"
+import { Loader2, Send, Plane, Package } from "lucide-react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Layers } from "lucide-react"
+import { cn } from "@/lib/utils"
 import { useGetGeneralArticles } from "@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticles"
 import type { RequisitionBatchForm, RequisitionGeneralArticleForm } from "@/types/purchase"
 import type { Aircraft, GeneralArticle } from "@/types"
@@ -24,7 +23,9 @@ import { RequisitionHeader } from "./_components/RequisitionHeader"
 import { BatchArticlesSection } from "./_components/BatchArticlesSection"
 import { GeneralArticlesSection } from "./_components/GeneralArticlesSection"
 import { AdditionalInfoSection } from "./_components/AdditionalInfoSection"
-import { MixedTypeConfirmDialog } from "./_components/MixedTypeConfirmDialog"
+import { isHigherPriority, type Priority } from "./_components/priorityUtils"
+
+type WarehouseRequisitionType = "AERONAUTICAL" | "GENERAL"
 
 const FormSchema = z.object({
   justification: z
@@ -83,7 +84,7 @@ const FormSchema = z.object({
     return hasArticles || hasGeneralArticles;
   },
   {
-    message: "Debe agregar al menos un artículo (lote o general)",
+    message: "Debe agregar al menos un artículo",
     path: ["articles"],
   }
 );
@@ -94,7 +95,7 @@ interface FormProps {
   onClose: () => void;
 }
 
-export function CreateStockRequisitionForm({
+export function CreateWarehouseRequisitionForm({
   onClose,
 }: FormProps) {
   const { user } = useAuth();
@@ -136,14 +137,10 @@ export function CreateStockRequisitionForm({
 
   const { createRequisition } = useCreateRequisition();
 
+  const [requisitionType, setRequisitionType] = useState<WarehouseRequisitionType>("AERONAUTICAL");
+
   const [selectedBatches, setSelectedBatches] = useState<RequisitionBatchForm[]>([]);
   const [selectedGeneralArticles, setSelectedGeneralArticles] = useState<RequisitionGeneralArticleForm[]>([]);
-  const [activeTab, setActiveTab] = useState<"batches" | "general">("batches");
-
-  const hasMixedTypes = selectedBatches.length > 0 && selectedGeneralArticles.length > 0;
-
-  const [showMixedTypeConfirm, setShowMixedTypeConfirm] = useState(false);
-  const [pendingSubmitData, setPendingSubmitData] = useState<FormSchemaType | null>(null);
 
   // Local search state for each searchable selector (keeps filtering stable during typing)
   const [employeeSearch, setEmployeeSearch] = useState("");
@@ -240,6 +237,49 @@ export function CreateStockRequisitionForm({
     form.setValue("general_articles", selectedGeneralArticles.length > 0 ? selectedGeneralArticles : undefined);
   }, [selectedBatches, selectedGeneralArticles, form]);
 
+  // Aircraft Sync: the header aircraft is the default for batch items. We only
+  // propagate it to items that were still following the header's previous
+  // value (or had none), so manual per-item overrides are never clobbered.
+  const headerAircraftId = form.watch("aircraft_id");
+  const previousHeaderAircraftId = useRef<string | undefined>(undefined);
+
+  useEffect(() => {
+    const previous = previousHeaderAircraftId.current;
+    if (headerAircraftId !== previous) {
+      setSelectedBatches((prev) =>
+        prev.map((batch) => ({
+          ...batch,
+          batch_articles: batch.batch_articles.map((article) =>
+            article.aircraft_id === previous || !article.aircraft_id
+              ? { ...article, aircraft_id: headerAircraftId }
+              : article
+          ),
+        }))
+      );
+      previousHeaderAircraftId.current = headerAircraftId;
+    }
+  }, [headerAircraftId]);
+
+  // Priority Escalation: an item's priority can only raise the header's
+  // priority, never lower it, and never touches other items.
+  const escalateHeaderPriority = (priority?: Priority) => {
+    const currentPriority = form.getValues("priority") as Priority | undefined;
+    if (isHigherPriority(priority, currentPriority)) {
+      form.setValue("priority", priority);
+    }
+  };
+
+  // Switching the requisition type clears the other side's selection, so a
+  // user can never submit a requisition mixing batch and general articles.
+  const handleRequisitionTypeChange = (next: WarehouseRequisitionType) => {
+    setRequisitionType(next);
+    if (next === "AERONAUTICAL") {
+      setSelectedGeneralArticles([]);
+    } else {
+      setSelectedBatches([]);
+    }
+  };
+
   // Batch handlers
   const handleBatchSelect = (batchName: string, batchId: string, batch_category: string) => {
     setSelectedBatches((prev) => {
@@ -251,7 +291,7 @@ export function CreateStockRequisitionForm({
         {
           batch: batchId,
           batch_name: batchName,
-          batch_articles: [{ part_number: "", quantity: 1, unit: getDefaultUnit(batch_category), priority: "MEDIUM" }],
+          batch_articles: [{ part_number: "", quantity: 1, unit: getDefaultUnit(batch_category), priority: "MEDIUM", aircraft_id: headerAircraftId }],
         },
       ];
     });
@@ -263,6 +303,9 @@ export function CreateStockRequisitionForm({
     field: string,
     value: string | number | File | undefined
   ) => {
+    if (field === "priority") {
+      escalateHeaderPriority(value as Priority);
+    }
     setSelectedBatches((prev) =>
       prev.map((batch) =>
         batch.batch === batchId
@@ -285,7 +328,7 @@ export function CreateStockRequisitionForm({
           ...batch,
           batch_articles: [
             ...batch.batch_articles,
-            { part_number: "", quantity: 1, unit: getDefaultUnit(batch.batch_name), priority: "MEDIUM" },
+            { part_number: "", quantity: 1, unit: getDefaultUnit(batch.batch_name), priority: "MEDIUM", aircraft_id: headerAircraftId },
           ],
         };
       })
@@ -317,8 +360,8 @@ export function CreateStockRequisitionForm({
         {
           description: article.description,
           variant_type: article.variant_type,
-          quantity: 1,
-          unit_id: article.general_primary_unit?.id.toString(),
+          quantity: 0,
+          unit_id: undefined,
           priority: "MEDIUM",
         },
       ];
@@ -330,6 +373,9 @@ export function CreateStockRequisitionForm({
     field: keyof RequisitionGeneralArticleForm,
     value: any
   ) => {
+    if (field === "priority") {
+      escalateHeaderPriority(value as Priority);
+    }
     setSelectedGeneralArticles((prev) =>
       prev.map((article, i) =>
         i === index ? { ...article, [field]: value } : article
@@ -341,35 +387,16 @@ export function CreateStockRequisitionForm({
     setSelectedGeneralArticles((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const submitRequisition = async (data: FormSchemaType) => {
+  const onSubmit = async (data: FormSchemaType) => {
     const formattedData = {
       ...data,
-      type: "STOCK" as const,
+      type: requisitionType,
       work_order_id: data.work_order_id ? Number(data.work_order_id) : undefined,
       aircraft_id: data.aircraft_id ? Number(data.aircraft_id) : undefined,
     };
 
     await createRequisition.mutateAsync({ data: formattedData, company: selectedCompany!.slug });
     onClose();
-  };
-
-  const onSubmit = async (data: FormSchemaType) => {
-    if (hasMixedTypes) {
-      setPendingSubmitData(data);
-      setShowMixedTypeConfirm(true);
-      return;
-    }
-
-    await submitRequisition(data);
-  };
-
-  const handleConfirmMixedTypeSubmit = async () => {
-    if (!pendingSubmitData) return;
-
-    await submitRequisition(pendingSubmitData);
-
-    setShowMixedTypeConfirm(false);
-    setPendingSubmitData(null);
   };
 
   return (
@@ -398,62 +425,80 @@ export function CreateStockRequisitionForm({
           setAircraftSearch={setAircraftSearch}
         />
 
-        {/* Items Section with Tabs */}
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "batches" | "general")} className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="batches">
-              <Layers className="size-3.5 mr-1" />
-              Artículos por Lote
-            </TabsTrigger>
-            <TabsTrigger value="general">
-              <Layers className="size-3.5 mr-1" />
-              Artículos Generales
-            </TabsTrigger>
-          </TabsList>
+        {/* ───────── Selector de tipo de requisición ───────── */}
+        <div className="flex justify-center w-full py-1">
+          <div className="relative flex items-center w-full max-w-md h-8">
+            <Separator className="flex-1" />
+            <div className="flex items-center mx-3 rounded-full border border-border/60 bg-muted/40 p-0.5">
+              <button
+                type="button"
+                onClick={() => handleRequisitionTypeChange("AERONAUTICAL")}
+                className={cn(
+                  "flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-medium transition-colors duration-200",
+                  requisitionType === "AERONAUTICAL"
+                    ? "bg-background text-teal-600 shadow-sm"
+                    : "text-muted-foreground hover:text-teal-600"
+                )}
+              >
+                <Plane className="w-3.5 h-3.5 shrink-0" />
+                Aeronáutica
+              </button>
+              <button
+                type="button"
+                onClick={() => handleRequisitionTypeChange("GENERAL")}
+                className={cn(
+                  "flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-medium transition-colors duration-200",
+                  requisitionType === "GENERAL"
+                    ? "bg-background text-teal-600 shadow-sm"
+                    : "text-muted-foreground hover:text-teal-600"
+                )}
+              >
+                <Package className="w-3.5 h-3.5 shrink-0" />
+                General
+              </button>
+            </div>
+            <Separator className="flex-1" />
+          </div>
+        </div>
 
-          {/* Batches Tab */}
-          <TabsContent value="batches" className="mt-4">
-            <BatchArticlesSection
-              form={form}
-              batches={batches}
-              isBatchesLoading={isBatchesLoading}
-              selectedBatches={selectedBatches}
-              filteredBatches={filteredBatches}
-              batchSearch={batchSearch}
-              setBatchSearch={setBatchSearch}
-              units={units}
-              isUnitsLoading={isUnitsLoading}
-              aircrafts={aircrafts}
-              isAircraftsLoading={isAircraftsLoading}
-              filteredAircrafts={filteredAircrafts}
-              aircraftSearch={aircraftSearch}
-              setAircraftSearch={setAircraftSearch}
-              handleBatchSelect={handleBatchSelect}
-              handleBatchArticleChange={handleBatchArticleChange}
-              addBatchArticle={addBatchArticle}
-              removeBatchArticle={removeBatchArticle}
-              removeBatch={removeBatch}
-            />
-          </TabsContent>
-
-          {/* General Articles Tab */}
-          <TabsContent value="general" className="mt-4">
-            <GeneralArticlesSection
-              form={form}
-              generalArticles={generalArticles}
-              isGeneralArticlesLoading={isGeneralArticlesLoading}
-              selectedGeneralArticles={selectedGeneralArticles}
-              filteredGeneralArticles={filteredGeneralArticles}
-              generalArticleSearch={generalArticleSearch}
-              setGeneralArticleSearch={setGeneralArticleSearch}
-              units={units}
-              isUnitsLoading={isUnitsLoading}
-              handleGeneralArticleSelect={handleGeneralArticleSelect}
-              handleGeneralArticleChange={handleGeneralArticleChange}
-              removeGeneralArticle={removeGeneralArticle}
-            />
-          </TabsContent>
-        </Tabs>
+        {requisitionType === "AERONAUTICAL" ? (
+          <BatchArticlesSection
+            form={form}
+            batches={batches}
+            isBatchesLoading={isBatchesLoading}
+            selectedBatches={selectedBatches}
+            filteredBatches={filteredBatches}
+            batchSearch={batchSearch}
+            setBatchSearch={setBatchSearch}
+            units={units}
+            isUnitsLoading={isUnitsLoading}
+            aircrafts={aircrafts}
+            isAircraftsLoading={isAircraftsLoading}
+            filteredAircrafts={filteredAircrafts}
+            aircraftSearch={aircraftSearch}
+            setAircraftSearch={setAircraftSearch}
+            handleBatchSelect={handleBatchSelect}
+            handleBatchArticleChange={handleBatchArticleChange}
+            addBatchArticle={addBatchArticle}
+            removeBatchArticle={removeBatchArticle}
+            removeBatch={removeBatch}
+          />
+        ) : (
+          <GeneralArticlesSection
+            form={form}
+            generalArticles={generalArticles}
+            isGeneralArticlesLoading={isGeneralArticlesLoading}
+            selectedGeneralArticles={selectedGeneralArticles}
+            filteredGeneralArticles={filteredGeneralArticles}
+            generalArticleSearch={generalArticleSearch}
+            setGeneralArticleSearch={setGeneralArticleSearch}
+            units={units}
+            isUnitsLoading={isUnitsLoading}
+            handleGeneralArticleSelect={handleGeneralArticleSelect}
+            handleGeneralArticleChange={handleGeneralArticleChange}
+            removeGeneralArticle={removeGeneralArticle}
+          />
+        )}
 
         <AdditionalInfoSection form={form} />
 
@@ -469,16 +514,6 @@ export function CreateStockRequisitionForm({
             <Loader2 className="size-4 animate-spin" />
           )}
         </Button>
-
-        <MixedTypeConfirmDialog
-          open={showMixedTypeConfirm}
-          onOpenChange={(open) => {
-            setShowMixedTypeConfirm(open);
-            if (!open) setPendingSubmitData(null);
-          }}
-          onConfirm={handleConfirmMixedTypeSubmit}
-          isPending={createRequisition.isPending}
-        />
       </form>
     </Form>
   );

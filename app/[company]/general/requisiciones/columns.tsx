@@ -11,7 +11,7 @@ import type { Requisition } from "@/types/purchase"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import Link from "next/link"
-import { Plane } from "lucide-react"
+import { Plane, ClipboardList, Building2, Handshake } from "lucide-react"
 
 
 // This type is used to define the shape of our data.
@@ -25,6 +25,7 @@ export const getColumns = (
 ): ColumnDef<Requisition>[] => [
   {
     accessorKey: "order_number",
+    size: 160,
     header: ({ column }) => (
       <DataTableColumnHeader filter column={column} title="Nro. Req." />
     ),
@@ -133,21 +134,65 @@ export const getColumns = (
   {
     accessorKey: "aircraft",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Aeronave" />
+      <DataTableColumnHeader column={column} title="Destino" />
     ),
-    meta: { title: "Aeronave" },
+    meta: { title: "Destino" },
     cell: ({ row }) => {
-      const aircraft = row.original.aircraft;
-      const acronym = aircraft?.acronym;
+      const { aircraft, work_order, department, third_party } = row.original;
 
-      const hasAircraft = Boolean(acronym);
+      const entries = [
+        aircraft?.acronym && {
+          key: "aircraft",
+          label: "Aeronave",
+          value: aircraft.acronym,
+          icon: Plane,
+        },
+        work_order?.order_number && {
+          key: "work_order",
+          label: "O.T.",
+          value: work_order.order_number,
+          icon: ClipboardList,
+        },
+        department?.name && {
+          key: "department",
+          label: "Dpto",
+          value: department.acronym || department.name,
+          icon: Building2,
+        },
+        third_party?.name && {
+          key: "third_party",
+          label: "Tercero",
+          value: third_party.name,
+          icon: Handshake,
+        },
+      ].filter(Boolean) as {
+        key: string;
+        label: string;
+        value: string;
+        icon: typeof Plane;
+      }[];
+
+      if (entries.length === 0) {
+        return (
+          <div className="flex items-center justify-center font-medium">
+            <span>N/A</span>
+          </div>
+        );
+      }
 
       return (
-        <div className="flex items-center justify-center gap-2 font-medium">
-          {hasAircraft && (
-            <Plane className="h-4 w-4 text-muted-foreground" />
-          )}
-          <span>{acronym ?? "N/A"}</span>
+        <div className="flex flex-col items-center justify-center gap-1.5">
+          {entries.map(({ key, label, value, icon: Icon }) => (
+            <div key={key} className="flex flex-col items-center justify-center gap-0.5">
+              <span className="text-[10px] uppercase tracking-wide text-muted-foreground/70 border border-border/60 rounded px-1 leading-4">
+                {label}
+              </span>
+              <div className="flex items-center justify-center gap-1.5">
+                <Icon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                <span className="font-medium text-sm">{value}</span>
+              </div>
+            </div>
+          ))}
         </div>
       );
     },

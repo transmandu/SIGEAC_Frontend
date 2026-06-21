@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/tabs'
 import { useAuth } from '@/contexts/AuthContext'
 import { CreateAeronauticalRequisitionForm } from '@/components/forms/mantenimiento/compras/CreateAeronauticalRequisitionForm'
-import { CreateStockRequisitionForm } from '@/components/forms/mantenimiento/compras/CreateStockRequisitionForm'
+import { CreateWarehouseRequisitionForm } from '@/components/forms/mantenimiento/compras/CreateWarehouseRequisitionForm'
 import { CreateGeneralRequisitionForm } from '@/components/forms/mantenimiento/compras/CreateGeneralRequisitionForm'
 
 type Role = string
@@ -50,7 +50,7 @@ export function CreateRequisitionDialog() {
     'JEFE_COMPRAS'
   )
 
-  const showStock = isWarehouseUser || isPurchasingUser
+  const showWarehouse = isWarehouseUser || isPurchasingUser
   const showAeronautical = isMaintenanceUser || isPurchasingUser
   const showGeneral = !isWarehouseUser || isPurchasingUser
 
@@ -59,9 +59,9 @@ export function CreateRequisitionDialog() {
       value: 'AERONAUTICAL',
       label: 'Aeronáutica',
     },
-    showStock && {
-      value: 'STOCK',
-      label: 'Inventario',
+    showWarehouse && {
+      value: 'WAREHOUSE',
+      label: 'Almacén',
     },
     showGeneral && {
       value: 'GENERAL',
@@ -108,8 +108,8 @@ export function CreateRequisitionDialog() {
           </DialogTitle>
 
           <DialogDescription>
-            {tabs.length === 1 && showStock
-              ? 'Cree una solicitud para reponer artículos de inventario y stock de almacén'
+            {tabs.length === 1 && showWarehouse
+              ? 'Cree una solicitud para reponer artículos de almacén'
               : 'Seleccione el tipo de solicitud que desea crear'
             }
           </DialogDescription>
@@ -119,19 +119,19 @@ export function CreateRequisitionDialog() {
           {/* ================= SINGLE FORM ================= */}
           {tabs.length === 1 && (
             <>
-              {showStock && (
-                <CreateStockRequisitionForm
+              {showWarehouse && (
+                <CreateWarehouseRequisitionForm
                   onClose={() => setOpen(false)}
                 />
               )}
 
-              {!showStock && showAeronautical && (
+              {!showWarehouse && showAeronautical && (
                 <CreateAeronauticalRequisitionForm
                   onClose={() => setOpen(false)}
                 />
               )}
 
-              {!showStock &&
+              {!showWarehouse &&
                 !showAeronautical &&
                 showGeneral && (
                   <CreateGeneralRequisitionForm
@@ -182,9 +182,9 @@ export function CreateRequisitionDialog() {
                 </TabsContent>
               )}
 
-              {showStock && (
-                <TabsContent value="STOCK" className="mt-4">
-                  <CreateStockRequisitionForm
+              {showWarehouse && (
+                <TabsContent value="WAREHOUSE" className="mt-4">
+                  <CreateWarehouseRequisitionForm
                     onClose={() => setOpen(false)}
                   />
                 </TabsContent>

@@ -33,10 +33,7 @@ const RequisitionPage = () => {
   const batches = data?.batch ?? [];
   const generalArticles = data?.general_articles ?? [];
 
-  const isOutOfScope =
-    !!data &&
-    (data.type === 'GENERAL' ||
-      (data.type === 'STOCK' && (generalArticles?.length ?? 0) > 0));
+  const isOutOfScope = !!data && data.type === 'GENERAL';
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {

@@ -105,11 +105,8 @@ const RequisitionDropdownDialogs = ({
 
   const initialData = transformApiData(req)
 
-  // Las requisiciones GENERAL, y las STOCK sin artículos por lote, cotizan
-  // sin proveedor mediante el formulario general.
-  const isGeneralRequisition =
-    req.type === "GENERAL" ||
-    (req.type === "STOCK" && (req.batch?.length ?? 0) === 0)
+  // Las requisiciones GENERAL cotizan sin proveedor mediante el formulario general.
+  const isGeneralRequisition = req.type === "GENERAL"
 
   if (!selectedCompany) return <LoadingPage />
 
