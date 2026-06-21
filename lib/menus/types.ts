@@ -32,6 +32,7 @@ export type MenuContext = {
     pathname: string;
     currentCompany: Company | null;
     date: string;
+    userRoles: string[];
 };
 
 export type MenuFilterContext = {
