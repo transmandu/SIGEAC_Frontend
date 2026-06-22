@@ -1,0 +1,40 @@
+import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
+
+export const statusBadgeCls = (status?: string) => {
+  const completed = status === 'PAGADA' || status === 'COMPLETADA';
+  const pending = status === 'PENDIENTE';
+
+  return cn(
+    'rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-sm transition-colors duration-150 cursor-default hover:scale-100 hover:translate-y-0 select-none',
+
+    completed &&
+      'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/15 dark:hover:text-emerald-200',
+
+    pending &&
+      'border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300 hover:bg-amber-500/15 dark:hover:text-amber-200'
+  );
+};
+
+export const formatPurchaseDate = (date?: string | Date | null): string | undefined => {
+  if (!date) return undefined;
+
+  const d = typeof date === 'string' ? new Date(date) : date;
+
+  const day = format(d, 'dd');
+  const month = format(d, 'MMMM', { locale: es }).toUpperCase();
+  const year = format(d, 'yyyy');
+
+  return `${day} ${month} ${year}`;
+};
+
+/**
+ * Una orden de compra pertenece al ámbito aeronáutico si su order_number
+ * termina en -A (mismo sufijo de correlativo usado en requisiciones y
+ * cotizaciones). Sin sufijo (compañías no-OMAC o datos legacy) se asume que
+ * no es aeronáutica, para no ocultar un costo real sin certeza del ámbito.
+ */
+export const isAeronauticalPurchaseOrder = (orderNumber?: string | null): boolean => {
+  return !!orderNumber && orderNumber.endsWith('-A');
+};

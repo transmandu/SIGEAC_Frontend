@@ -49,7 +49,7 @@ export interface PurchaseOrderArticle {
   /** Only present on the `show` (detail) endpoint — resolved from the requisition's matching batch article. */
   unit?: Unit | null;
   /** Only present on the `show` (detail) endpoint — resolved from the requisition's matching batch article. */
-  batch?: { id: number; name: string } | null;
+  batch?: { id: number; name: string; category?: string | null } | null;
 }
 
 /** A line item on a purchase order — tracks shipping for one quoted general article. */

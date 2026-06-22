@@ -6,7 +6,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 // import { PDFDownloadLink } from "@react-pdf/renderer"
 import { Button } from "@/components/ui/button"
-import { ClipboardCheck, FileDown, MoreHorizontal } from "lucide-react"
+import { ClipboardCheck, FileDown, MoreHorizontal, Wallet } from "lucide-react"
 import PurchaseOrderDropdownDialogs from "@/components/dialogs/mantenimiento/compras/PurchaseOrderDropdownDialogs"
 
 const iconBase =
@@ -18,7 +18,9 @@ const PurchaseOrderDropdownActions = ({ po }: { po: PurchaseOrder }) => {
   const [openDropdown, setOpenDropdown] = useState(false)
   const [openApprove, setOpenApprove] = useState(false)
 
-  const canApprove = po.status === "PENDIENTE"
+  const canPay = po.status === "PENDIENTE"
+  const canComplete = po.status === "PAGADA"
+  const canApprove = canPay || canComplete
 
   return (
     <TooltipProvider delayDuration={120}>
@@ -42,7 +44,7 @@ const PurchaseOrderDropdownActions = ({ po }: { po: PurchaseOrder }) => {
               sideOffset={3}
               className="flex items-center justify-center gap-1.5 rounded-2xl border border-border/50 bg-background/90 backdrop-blur-xl shadow-xl p-1.5 overflow-visible animate-in fade-in zoom-in-95 duration-200"
             >
-              {/* COMPLETE PURCHASE */}
+              {/* PAY / COMPLETE PURCHASE */}
               {canApprove && (
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -61,16 +63,18 @@ const PurchaseOrderDropdownActions = ({ po }: { po: PurchaseOrder }) => {
                             text-emerald-600
                           `}
                         >
-                          <ClipboardCheck
-                            className={iconBase}
-                          />
+                          {canPay ? (
+                            <Wallet className={iconBase} />
+                          ) : (
+                            <ClipboardCheck className={iconBase} />
+                          )}
                         </button>
                       </DropdownMenuItem>
                     </span>
                   </TooltipTrigger>
 
                   <TooltipContent>
-                    Completar compra
+                    {canPay ? "Pagar compra" : "Completar compra"}
                   </TooltipContent>
                 </Tooltip>
               )}

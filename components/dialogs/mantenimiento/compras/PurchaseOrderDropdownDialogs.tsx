@@ -9,9 +9,11 @@ import {
 } from "@/components/ui/dialog"
 import {
   ClipboardCheck,
+  Wallet,
 } from "lucide-react"
 import type { PurchaseOrder } from "@/types/purchase"
-import { CompletePurchaseForm } from "../../../forms/mantenimiento/compras/CompletePurchaseForm"
+import { PayPurchaseOrderForm } from "../../../forms/mantenimiento/compras/PayPurchaseOrderForm"
+import { CompleteOrderForm } from "../../../forms/mantenimiento/compras/CompleteOrderForm"
 
 type Props = {
   po: PurchaseOrder
@@ -21,91 +23,175 @@ type Props = {
 }
 
 const dialogClass =
-  "sm:max-w-5xl rounded-3xl border border-border/50 bg-background/95 backdrop-blur-xl shadow-2xl overflow-hidden p-0"
+  "w-[95vw] max-w-[95vw] sm:max-w-5xl max-h-[85vh] flex flex-col rounded-3xl border border-border/50 bg-background/95 backdrop-blur-xl shadow-2xl overflow-hidden p-0"
 
 const PurchaseOrderDropdownDialogs = ({
   po,
   openApprove,
   setOpenApprove
 }: Props) => {
+  const isPaying = po.status === "PENDIENTE"
+  const isCompleting = po.status === "PAGADA"
+
   return (
     <>
       {/* =========================
-          COMPLETE PURCHASE
+          PAY ORDER
       ========================= */}
 
-      <Dialog
-        open={openApprove}
-        onOpenChange={setOpenApprove}
-      >
-        <DialogContent className={dialogClass}>
+      {isPaying && (
+        <Dialog
+          open={openApprove}
+          onOpenChange={setOpenApprove}
+        >
+          <DialogContent className={dialogClass}>
 
-          <DialogHeader
-            className="
-              border-b border-border/40
-              bg-muted/20
-              px-8
-              pt-8
-              pb-6
-              text-left
-            "
-          >
-            <div className="flex items-start gap-4">
+            <DialogHeader
+              className="
+                shrink-0
+                border-b border-border/40
+                bg-muted/20
+                px-8
+                pt-8
+                pb-6
+                text-left
+              "
+            >
+              <div className="flex items-start gap-4">
 
-              <div
-                className="
-                  flex items-center justify-center
-                  size-14 shrink-0
-                  rounded-2xl
-                  border border-emerald-500/10
-                  bg-emerald-500/[0.08]
-                "
-              >
-                <ClipboardCheck className="size-6 text-emerald-600" />
-              </div>
-
-              <div className="space-y-2">
-                <DialogTitle
+                <div
                   className="
-                    text-2xl
-                    font-semibold
-                    tracking-tight
+                    flex items-center justify-center
+                    size-14 shrink-0
+                    rounded-2xl
+                    border border-emerald-500/10
+                    bg-emerald-500/[0.08]
                   "
                 >
-                  Completar compra
-                </DialogTitle>
+                  <Wallet className="size-6 text-emerald-600" />
+                </div>
 
-                <DialogDescription
-                  className="
-                    max-w-2xl
-                    text-sm
-                    leading-relaxed
-                    text-muted-foreground
-                  "
-                >
-                  Complete la información requerida
-                  para confirmar y finalizar la orden
-                  de compra{" "}
-                  <span className="font-medium text-foreground">
-                    {po.order_number}
-                  </span>.
-                </DialogDescription>
+                <div className="space-y-2">
+                  <DialogTitle
+                    className="
+                      text-2xl
+                      font-semibold
+                      tracking-tight
+                    "
+                  >
+                    Pagar orden de compra
+                  </DialogTitle>
+
+                  <DialogDescription
+                    className="
+                      max-w-2xl
+                      text-sm
+                      leading-relaxed
+                      text-muted-foreground
+                    "
+                  >
+                    Ingrese los datos de pago, costos e impuestos
+                    para la orden de compra{" "}
+                    <span className="font-medium text-foreground">
+                      {po.order_number}
+                    </span>.
+                  </DialogDescription>
+                </div>
+
               </div>
+            </DialogHeader>
 
+            <div className="overflow-y-auto px-8 py-6">
+              <PayPurchaseOrderForm
+                po={po}
+                onClose={() =>
+                  setOpenApprove(false)
+                }
+              />
             </div>
-          </DialogHeader>
 
-          <div className="px-8 py-6">
-            <CompletePurchaseForm
-              po={po}
-              onClose={() =>
-                setOpenApprove(false)
-              }
-            />
-          </div>
+          </DialogContent>
+        </Dialog>
+      )}
 
-        </DialogContent>
-      </Dialog>
+      {/* =========================
+          COMPLETE ORDER
+      ========================= */}
+
+      {isCompleting && (
+        <Dialog
+          open={openApprove}
+          onOpenChange={setOpenApprove}
+        >
+          <DialogContent className={dialogClass}>
+
+            <DialogHeader
+              className="
+                shrink-0
+                border-b border-border/40
+                bg-muted/20
+                px-8
+                pt-8
+                pb-6
+                text-left
+              "
+            >
+              <div className="flex items-start gap-4">
+
+                <div
+                  className="
+                    flex items-center justify-center
+                    size-14 shrink-0
+                    rounded-2xl
+                    border border-emerald-500/10
+                    bg-emerald-500/[0.08]
+                  "
+                >
+                  <ClipboardCheck className="size-6 text-emerald-600" />
+                </div>
+
+                <div className="space-y-2">
+                  <DialogTitle
+                    className="
+                      text-2xl
+                      font-semibold
+                      tracking-tight
+                    "
+                  >
+                    Completar orden de compra
+                  </DialogTitle>
+
+                  <DialogDescription
+                    className="
+                      max-w-2xl
+                      text-sm
+                      leading-relaxed
+                      text-muted-foreground
+                    "
+                  >
+                    Revise y confirme la información de la orden
+                    de compra{" "}
+                    <span className="font-medium text-foreground">
+                      {po.order_number}
+                    </span>.
+                  </DialogDescription>
+                </div>
+
+              </div>
+            </DialogHeader>
+
+            <div className="overflow-y-auto px-8 py-6">
+              <CompleteOrderForm
+                po={po}
+                onClose={() =>
+                  setOpenApprove(false)
+                }
+              />
+            </div>
+
+          </DialogContent>
+        </Dialog>
+      )}
     </>
   )
 }
