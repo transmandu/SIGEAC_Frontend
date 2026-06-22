@@ -1,9 +1,19 @@
 import { useQuery } from "@tanstack/react-query";
 import axiosInstance from "@/lib/axios";
 
+export interface UniformArticleType {
+  id: number;
+  name: string;
+  sizes: string[];
+  active: boolean;
+  items_count?: number;
+  registered_by?: string | null;
+  updated_by?: string | null;
+}
+
 export interface UniformItem {
   id: number;
-  uniform_type: string;
+  uniform_article_type_id: number;
   size: string;
   company: string;
   min_stock: number;
@@ -12,6 +22,7 @@ export interface UniformItem {
   is_low_stock: boolean;
   type_label: string;
   company_label: string;
+  article_type?: UniformArticleType;
   movements_sum_quantity?: number | null;
   registered_by?: string | null;
   updated_by?: string | null;
@@ -36,7 +47,9 @@ export interface UniformOption {
   label: string;
 }
 
-export interface UniformTypeOption extends UniformOption {
+export interface UniformTypeOption {
+  value: number;
+  label: string;
   sizes: string[];
 }
 
@@ -74,6 +87,25 @@ export const useGetUniformMovements = (
       const { data } = await axiosInstance.get(
         `/${company}/sms/uniforms/movements`,
         { params: filters }
+      );
+      return data;
+    },
+    enabled: !!company,
+    refetchOnWindowFocus: false,
+    staleTime: 1000 * 60 * 5,
+  });
+};
+
+export const useGetUniformArticleTypes = (
+  company: string | undefined,
+  onlyActive = false
+) => {
+  return useQuery<UniformArticleType[]>({
+    queryKey: ["uniform-article-types", company, onlyActive],
+    queryFn: async () => {
+      const { data } = await axiosInstance.get(
+        `/${company}/sms/uniforms/article-types`,
+        { params: { only_active: onlyActive ? 1 : 0 } }
       );
       return data;
     },
