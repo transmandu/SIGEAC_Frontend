@@ -28,7 +28,9 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 const formSchema = z.object({
-  uniform_type: z.string().min(1, { message: "Seleccione un tipo." }),
+  uniform_article_type_id: z
+    .string()
+    .min(1, { message: "Seleccione un tipo." }),
   size: z.string().min(1, { message: "Seleccione una talla." }),
   company: z.string().min(1, { message: "Seleccione una empresa." }),
   min_stock: z.coerce.number().int().min(0).default(0),
@@ -49,7 +51,7 @@ export const CreateUniformItemForm = ({ onClose }: Props) => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      uniform_type: "",
+      uniform_article_type_id: "",
       size: "",
       company: "",
       min_stock: 0,
@@ -57,9 +59,9 @@ export const CreateUniformItemForm = ({ onClose }: Props) => {
     },
   });
 
-  const selectedType = form.watch("uniform_type");
+  const selectedType = form.watch("uniform_article_type_id");
   const availableSizes =
-    options?.types.find((t) => t.value === selectedType)?.sizes ?? [];
+    options?.types.find((t) => String(t.value) === selectedType)?.sizes ?? [];
 
   // Reset the size when the type changes so an invalid size can't linger.
   useEffect(() => {
@@ -68,7 +70,16 @@ export const CreateUniformItemForm = ({ onClose }: Props) => {
 
   const onSubmit = (data: z.infer<typeof formSchema>) => {
     createItem.mutate(
-      { company: selectedCompany!.slug, data },
+      {
+        company: selectedCompany!.slug,
+        data: {
+          uniform_article_type_id: Number(data.uniform_article_type_id),
+          size: data.size,
+          company: data.company,
+          min_stock: data.min_stock,
+          initial_quantity: data.initial_quantity,
+        },
+      },
       { onSuccess: () => onClose() }
     );
   };
@@ -89,10 +100,10 @@ export const CreateUniformItemForm = ({ onClose }: Props) => {
       >
         <FormField
           control={form.control}
-          name="uniform_type"
+          name="uniform_article_type_id"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Tipo de uniforme</FormLabel>
+              <FormLabel>Tipo de artículo</FormLabel>
               <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger>
@@ -100,11 +111,17 @@ export const CreateUniformItemForm = ({ onClose }: Props) => {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {options?.types.map((t) => (
-                    <SelectItem key={t.value} value={t.value}>
-                      {t.label}
-                    </SelectItem>
-                  ))}
+                  {options?.types.length ? (
+                    options.types.map((t) => (
+                      <SelectItem key={t.value} value={String(t.value)}>
+                        {t.label}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <div className="px-2 py-1.5 text-sm text-muted-foreground">
+                      No hay tipos. Créelos en la pestaña “Tipos”.
+                    </div>
+                  )}
                 </SelectContent>
               </Select>
               <FormMessage />

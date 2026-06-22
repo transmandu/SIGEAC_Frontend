@@ -19,6 +19,7 @@ import {
   AlertTriangle,
   Package,
   ArrowLeftRight,
+  Tags,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -27,15 +28,19 @@ import axiosInstance from "@/lib/axios";
 import {
   useGetUniformItems,
   useGetUniformMovements,
+  useGetUniformArticleTypes,
   UniformItem,
+  UniformArticleType,
 } from "@/hooks/sms/useGetUniforms";
 
 import { UniformDataTable } from "./uniform-data-table";
 import { UniformInventoryGrid } from "./uniform-inventory-grid";
 import { movementsColumns } from "./movements-columns";
+import { getArticleTypesColumns } from "./article-types-columns";
 import { CreateUniformItemForm } from "@/components/forms/sms/CreateUniformItemForm";
 import { EditUniformItemForm } from "@/components/forms/sms/EditUniformItemForm";
 import { RegisterUniformMovementForm } from "@/components/forms/sms/RegisterUniformMovementForm";
+import { UniformArticleTypeForm } from "@/components/forms/sms/UniformArticleTypeForm";
 
 const UniformesPage = () => {
   const { selectedCompany } = useCompanyStore();
@@ -44,6 +49,8 @@ const UniformesPage = () => {
   const { data: items, isLoading: loadingItems } = useGetUniformItems(company);
   const { data: movements, isLoading: loadingMovements } =
     useGetUniformMovements(company);
+  const { data: articleTypes, isLoading: loadingTypes } =
+    useGetUniformArticleTypes(company);
 
   const [createOpen, setCreateOpen] = useState(false);
   const [movementOpen, setMovementOpen] = useState(false);
@@ -51,6 +58,9 @@ const UniformesPage = () => {
   const [editOpen, setEditOpen] = useState(false);
   const [editItem, setEditItem] = useState<UniformItem | undefined>();
   const [exporting, setExporting] = useState(false);
+
+  const [typeFormOpen, setTypeFormOpen] = useState(false);
+  const [editType, setEditType] = useState<UniformArticleType | undefined>();
 
   const openMovementFor = (item?: UniformItem) => {
     setMovementItemId(item?.id);
@@ -61,6 +71,21 @@ const UniformesPage = () => {
     setEditItem(item);
     setEditOpen(true);
   };
+
+  const openCreateType = () => {
+    setEditType(undefined);
+    setTypeFormOpen(true);
+  };
+
+  const openEditType = (type: UniformArticleType) => {
+    setEditType(type);
+    setTypeFormOpen(true);
+  };
+
+  const articleTypesColumns = useMemo(
+    () => getArticleTypesColumns({ onEdit: openEditType }),
+    []
+  );
 
   const lowStockCount = useMemo(
     () => items?.filter((i) => i.is_low_stock).length ?? 0,
@@ -148,7 +173,7 @@ const UniformesPage = () => {
       </div>
 
       <Tabs defaultValue="inventory" className="w-full">
-        <TabsList className="mx-auto grid w-full max-w-md grid-cols-2">
+        <TabsList className="mx-auto grid w-full max-w-xl grid-cols-3">
           <TabsTrigger value="inventory" className="gap-2">
             <Package className="size-4" />
             Inventario
@@ -170,6 +195,18 @@ const UniformesPage = () => {
                 className="ml-0.5 px-1.5 py-0 text-[10px] tabular-nums"
               >
                 {movements.length}
+              </Badge>
+            ) : null}
+          </TabsTrigger>
+          <TabsTrigger value="types" className="gap-2">
+            <Tags className="size-4" />
+            Tipos
+            {articleTypes?.length ? (
+              <Badge
+                variant="secondary"
+                className="ml-0.5 px-1.5 py-0 text-[10px] tabular-nums"
+              >
+                {articleTypes.length}
               </Badge>
             ) : null}
           </TabsTrigger>
@@ -200,6 +237,32 @@ const UniformesPage = () => {
               data={movements ?? []}
               searchPlaceholder="Buscar movimientos..."
               emptyMessage="No hay movimientos registrados..."
+            />
+          )}
+        </TabsContent>
+
+        <TabsContent value="types" className="mt-4">
+          {loadingTypes ? (
+            <div className="flex w-full justify-center py-20">
+              <Loader2 className="size-20 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
+            <UniformDataTable
+              columns={articleTypesColumns}
+              data={articleTypes ?? []}
+              searchPlaceholder="Buscar tipos..."
+              emptyMessage="No hay tipos de artículo. Cree el primero..."
+              toolbar={
+                <Button
+                  onClick={openCreateType}
+                  variant="outline"
+                  size="sm"
+                  className="flex h-8 items-center gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  Nuevo tipo
+                </Button>
+              }
             />
           )}
         </TabsContent>
@@ -247,6 +310,22 @@ const UniformesPage = () => {
               onClose={() => setEditOpen(false)}
             />
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Crear / editar tipo de artículo */}
+      <Dialog open={typeFormOpen} onOpenChange={setTypeFormOpen}>
+        <DialogContent className="sm:max-w-[480px]">
+          <DialogHeader>
+            <DialogTitle className="text-center text-xl font-bold">
+              {editType ? "Editar tipo de artículo" : "Nuevo tipo de artículo"}
+            </DialogTitle>
+          </DialogHeader>
+          <UniformArticleTypeForm
+            key={editType?.id ?? "new"}
+            articleType={editType}
+            onClose={() => setTypeFormOpen(false)}
+          />
         </DialogContent>
       </Dialog>
     </ContentLayout>

@@ -5,12 +5,23 @@ import { toast } from "sonner";
 interface CreateItemPayload {
   company: string;
   data: {
-    uniform_type: string;
+    uniform_article_type_id: number;
     size: string;
     company: string;
     min_stock?: number;
     initial_quantity?: number;
   };
+}
+
+interface CreateArticleTypePayload {
+  company: string;
+  data: { name: string; sizes: string[]; active?: boolean };
+}
+
+interface UpdateArticleTypePayload {
+  company: string;
+  id: number;
+  data: { name?: string; sizes?: string[]; active?: boolean };
 }
 
 interface UpdateItemPayload {
@@ -35,6 +46,13 @@ interface CreateMovementPayload {
 const invalidate = (queryClient: ReturnType<typeof useQueryClient>) => {
   queryClient.invalidateQueries({ queryKey: ["uniform-items"] });
   queryClient.invalidateQueries({ queryKey: ["uniform-movements"] });
+};
+
+const invalidateTypes = (queryClient: ReturnType<typeof useQueryClient>) => {
+  queryClient.invalidateQueries({ queryKey: ["uniform-article-types"] });
+  queryClient.invalidateQueries({ queryKey: ["uniform-options"] });
+  // SKUs render their type name, so refresh them too.
+  queryClient.invalidateQueries({ queryKey: ["uniform-items"] });
 };
 
 // --- CREAR ARTÍCULO (SKU) ---
@@ -98,6 +116,77 @@ export const useDeleteUniformItem = () => {
       toast.error(
         error.response?.data?.message ||
           "No se pudo eliminar el artículo"
+      );
+    },
+  });
+};
+
+// --- CRUD TIPOS DE ARTÍCULO ---
+export const useCreateUniformArticleType = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ company, data }: CreateArticleTypePayload) => {
+      return await axiosInstance.post(
+        `/${company}/sms/uniforms/article-types`,
+        data
+      );
+    },
+    onSuccess: () => {
+      invalidateTypes(queryClient);
+      toast.success("Tipo de artículo creado");
+    },
+    onError: (error: any) => {
+      toast.error(
+        error.response?.data?.message?.name?.[0] ||
+          error.response?.data?.message ||
+          "Error al crear el tipo de artículo"
+      );
+    },
+  });
+};
+
+export const useUpdateUniformArticleType = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ company, id, data }: UpdateArticleTypePayload) => {
+      return await axiosInstance.patch(
+        `/${company}/sms/uniforms/article-types/${id}`,
+        data
+      );
+    },
+    onSuccess: () => {
+      invalidateTypes(queryClient);
+      toast.success("Tipo de artículo actualizado");
+    },
+    onError: (error: any) => {
+      toast.error(
+        error.response?.data?.message?.name?.[0] ||
+          error.response?.data?.message ||
+          "Error al actualizar el tipo"
+      );
+    },
+  });
+};
+
+export const useDeleteUniformArticleType = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ company, id }: { company: string; id: number }) => {
+      return await axiosInstance.delete(
+        `/${company}/sms/uniforms/article-types/${id}`
+      );
+    },
+    onSuccess: () => {
+      invalidateTypes(queryClient);
+      toast.success("Tipo de artículo eliminado");
+    },
+    onError: (error: any) => {
+      toast.error(
+        error.response?.data?.message ||
+          "No se pudo eliminar el tipo de artículo"
       );
     },
   });

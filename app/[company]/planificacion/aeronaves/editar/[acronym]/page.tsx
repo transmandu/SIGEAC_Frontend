@@ -162,10 +162,18 @@ export default function EditAircraftPage({ params }: { params: { acronym: string
                 ata_chapter: part.ata_chapter || part.ata_number || part.ata || "",
                 position: part.position ?? (part as any).position ?? null,
                 part_order: part.part_order ?? null,
-                time_since_new: Math.round(Number(part.time_since_new || part.part_hours || 0) * 100) / 100,
-                time_since_overhaul: Math.round(Number(part.time_since_overhaul || 0) * 100) / 100,
-                cycles_since_new: Math.round(Number(part.cycles_since_new || part.part_cycles || 0)),
-                cycles_since_overhaul: Math.round(Number(part.cycles_since_overhaul || 0)),
+                time_since_new: (part.time_since_new ?? part.part_hours) != null
+                    ? Math.round(Number(part.time_since_new ?? part.part_hours) * 100) / 100
+                    : null,
+                time_since_overhaul: part.time_since_overhaul != null
+                    ? Math.round(Number(part.time_since_overhaul) * 100) / 100
+                    : null,
+                cycles_since_new: (part.cycles_since_new ?? part.part_cycles) != null
+                    ? Math.round(Number(part.cycles_since_new ?? part.part_cycles))
+                    : null,
+                cycles_since_overhaul: part.cycles_since_overhaul != null
+                    ? Math.round(Number(part.cycles_since_overhaul))
+                    : null,
                 condition_type: part.condition_type === "OVERHAULED" ? "OVERHAULED" : "NEW",
                 is_father: typeof part.is_father === "boolean" ? part.is_father : Boolean(part.sub_parts?.length),
                 removed_date: part.removed_date || null,

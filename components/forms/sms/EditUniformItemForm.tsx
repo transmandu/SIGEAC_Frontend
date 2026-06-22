@@ -50,7 +50,7 @@ export const EditUniformItemForm = ({ item, onClose }: Props) => {
     );
   };
 
-  const TypeIcon = getUniformTypeIcon(item.uniform_type, item.type_label);
+  const TypeIcon = getUniformTypeIcon(undefined, item.type_label);
 
   return (
     <Form {...form}>
