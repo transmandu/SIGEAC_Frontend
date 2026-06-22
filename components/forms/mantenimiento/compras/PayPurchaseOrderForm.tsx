@@ -160,9 +160,11 @@ type FormSchemaType = z.infer<typeof FormSchema>;
 interface FormProps {
   onClose: () => void;
   po: PurchaseOrder;
+  /** Wire Fee no aplica al ámbito aeronáutico — se oculta el campo en ese caso. */
+  isAeronautical?: boolean;
 }
 
-export function PayPurchaseOrderForm({ onClose, po }: FormProps) {
+export function PayPurchaseOrderForm({ onClose, po, isAeronautical = false }: FormProps) {
   const { selectedCompany } = useCompanyStore();
   const { data: accounts, isLoading: isAccLoading } = useGetBankAccounts();
   const { data: cards, isLoading: isCardsLoading } = useGetCards();
@@ -231,23 +233,26 @@ export function PayPurchaseOrderForm({ onClose, po }: FormProps) {
   const { tax, wire_fee, handling_fee, shipping_fee, international_shipping } = form.watch();
   const paymentMethod = form.watch("payment_method");
   const knowsShippingInfo = form.watch("knows_shipping_info");
+  const effectiveWireFee = isAeronautical ? 0 : Number(wire_fee || 0);
 
   const total = useMemo(() => {
     return (
       Number(po.sub_total) +
       Number(tax || 0) +
-      Number(wire_fee || 0) +
+      effectiveWireFee +
       Number(handling_fee || 0) +
       Number(shipping_fee || 0) +
       Number(international_shipping || 0)
     );
-  }, [po.sub_total, tax, wire_fee, handling_fee, shipping_fee, international_shipping]);
+  }, [po.sub_total, tax, effectiveWireFee, handling_fee, shipping_fee, international_shipping]);
 
   const onSubmit = async (data: FormSchemaType) => {
+    const wireFee = isAeronautical ? 0 : Number(data.wire_fee || 0);
+
     const computedTotal =
       Number(po.sub_total) +
       Number(data.tax || 0) +
-      Number(data.wire_fee || 0) +
+      wireFee +
       Number(data.handling_fee || 0) +
       Number(data.shipping_fee || 0) +
       Number(data.international_shipping || 0);
@@ -256,7 +261,7 @@ export function PayPurchaseOrderForm({ onClose, po }: FormProps) {
       id: po.id,
       data: {
         tax: Number(data.tax || 0),
-        wire_fee: Number(data.wire_fee || 0),
+        wire_fee: wireFee,
         handling_fee: Number(data.handling_fee || 0),
         shipping_fee: data.knows_shipping_info ? Number(data.shipping_fee || 0) : 0,
         international_shipping: data.knows_shipping_info ? Number(data.international_shipping || 0) : 0,
@@ -457,19 +462,21 @@ export function PayPurchaseOrderForm({ onClose, po }: FormProps) {
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="wire_fee"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className={LABEL_CLS}>Wire Fee</FormLabel>
-                    <FormControl>
-                      <AmountInput placeholder="$0.00" className={INPUT_CLS} {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {!isAeronautical && (
+                <FormField
+                  control={form.control}
+                  name="wire_fee"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className={LABEL_CLS}>Wire Fee</FormLabel>
+                      <FormControl>
+                        <AmountInput placeholder="$0.00" className={INPUT_CLS} {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
               <FormField
                 control={form.control}
                 name="handling_fee"

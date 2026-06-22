@@ -32,7 +32,7 @@ const PurchaseOrderPage = () => {
   if (isLoading) return <LoadingPage />;
 
   return (
-    <ContentLayout title="Orden de Compra">
+    <ContentLayout title="Orden de Compra General">
       <div className="flex flex-col gap-6">
 
         {/* ── Breadcrumb ──────────────────────────────────────────────── */}
@@ -50,8 +50,8 @@ const PurchaseOrderPage = () => {
               <BreadcrumbSeparator />
 
               <BreadcrumbItem>
-                <BreadcrumbLink href={`/${selectedCompany?.slug}/compras/ordenes_compra`}>
-                  Órdenes de Compra
+                <BreadcrumbLink href={`/${selectedCompany?.slug}/compras/ordenes_compra_generales`}>
+                  Órdenes de Compra Generales
                 </BreadcrumbLink>
               </BreadcrumbItem>
 
@@ -85,12 +85,12 @@ const PurchaseOrderPage = () => {
               </div>
 
               <p className="text-sm text-muted-foreground">
-                Orden de Compra
+                Orden de Compra General
                 {data?.requisition_order?.order_number && (
                   <>
                     {' '}derivada de{' '}
                     <Link
-                      href={`/${selectedCompany?.slug}/compras/requisiciones/${data.requisition_order.order_number}`}
+                      href={`/${selectedCompany?.slug}/compras/requisiciones_generales/${data.requisition_order.order_number}`}
                       className="hover:text-foreground hover:underline underline-offset-4 decoration-1 transition-colors"
                     >
                       {data.requisition_order.order_number}

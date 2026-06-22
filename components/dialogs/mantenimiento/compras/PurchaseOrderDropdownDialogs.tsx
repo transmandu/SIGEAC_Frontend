@@ -12,6 +12,7 @@ import {
   Wallet,
 } from "lucide-react"
 import type { PurchaseOrder } from "@/types/purchase"
+import { isAeronauticalPurchaseOrder } from "@/lib/purchases/purchase-order-scope"
 import { PayPurchaseOrderForm } from "../../../forms/mantenimiento/compras/PayPurchaseOrderForm"
 import { CompleteOrderForm } from "../../../forms/mantenimiento/compras/CompleteOrderForm"
 
@@ -32,6 +33,7 @@ const PurchaseOrderDropdownDialogs = ({
 }: Props) => {
   const isPaying = po.status === "PENDIENTE"
   const isCompleting = po.status === "PAGADA"
+  const isAeronautical = isAeronauticalPurchaseOrder(po)
 
   return (
     <>
@@ -104,6 +106,7 @@ const PurchaseOrderDropdownDialogs = ({
             <div className="overflow-y-auto px-8 py-6">
               <PayPurchaseOrderForm
                 po={po}
+                isAeronautical={isAeronautical}
                 onClose={() =>
                   setOpenApprove(false)
                 }
@@ -183,6 +186,7 @@ const PurchaseOrderDropdownDialogs = ({
             <div className="overflow-y-auto px-8 py-6">
               <CompleteOrderForm
                 po={po}
+                isAeronautical={isAeronautical}
                 onClose={() =>
                   setOpenApprove(false)
                 }

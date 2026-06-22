@@ -14,6 +14,7 @@ export const useCreatePurchaseOrder = () => {
       onSuccess: () => {
           queryClient.invalidateQueries({queryKey: ['purchase-orders']})
           queryClient.invalidateQueries({queryKey: ['purchase-order'], exact: false})
+          queryClient.invalidateQueries({queryKey: ['purchaseOrderByQuote'], exact: false})
           toast.success("¡Creado!", {
               description: `La orden de compra ha sido creada correctamente.`
           })
@@ -37,7 +38,31 @@ export const useCompletePurchase = () => {
 
   const completePurchaseMutation = useMutation({
       mutationFn: async ({id, data, company}: {id: number, data: UpdatePurchaseOrderData, company: string}) => {
-          await axiosInstance.put(`/${company}/purchase-order/${id}`, data)
+          const formData = new FormData()
+          formData.append("_method", "PUT")
+
+          if (data.tax != null) formData.append("tax", String(data.tax))
+          if (data.wire_fee != null) formData.append("wire_fee", String(data.wire_fee))
+          if (data.handling_fee != null) formData.append("handling_fee", String(data.handling_fee))
+          formData.append("total", String(data.total))
+          if (data.bank_account_id != null) formData.append("bank_account_id", String(data.bank_account_id))
+          if (data.card_id != null) formData.append("card_id", String(data.card_id))
+          if (data.shipping_fee != null) formData.append("shipping_fee", String(data.shipping_fee))
+          if (data.shipping_agency_id != null) formData.append("shipping_agency_id", String(data.shipping_agency_id))
+          if (data.international_shipping != null) formData.append("international_shipping", String(data.international_shipping))
+          if (data.invoice_number != null) formData.append("invoice_number", data.invoice_number)
+          if (data.observation != null) formData.append("observation", data.observation)
+          if (data.invoice) formData.append("invoice", data.invoice)
+
+          data.articles_purchase_orders?.forEach((article, index) => {
+            formData.append(`articles_purchase_orders[${index}][article_purchase_order_id]`, String(article.article_purchase_order_id))
+            if (article.shipping_tracking != null) formData.append(`articles_purchase_orders[${index}][shipping_tracking]`, article.shipping_tracking)
+            if (article.international_shipping_tracking != null) formData.append(`articles_purchase_orders[${index}][international_shipping_tracking]`, article.international_shipping_tracking)
+          })
+
+          await axiosInstance.post(`/${company}/purchase-order/${id}`, formData, {
+            headers: { "Content-Type": "multipart/form-data" },
+          })
         },
       onSuccess: () => {
           queryClient.invalidateQueries({queryKey: ['purchase-orders']})
@@ -114,32 +139,5 @@ export const useMarkPurchaseOrderAsCompleted = () => {
 
   return {
     markPurchaseOrderAsCompleted: markAsCompletedMutation,
-  }
-}
-
-export const useDeleteQuote = () => {
-
-  const queryClient = useQueryClient()
-
-  const deleteMutation = useMutation({
-      mutationFn: async ({id, company}: {id: number, company: string}) => {
-          await axiosInstance.post(`/${company}/delete-quote/${id}`, {company})
-        },
-      onSuccess: () => {
-          queryClient.invalidateQueries({queryKey: ['purchase-orders']})
-          toast.success("¡Eliminado!", {
-              description: `¡La cotización ha sido eliminada correctamente!`
-          })
-        },
-      onError: (e) => {
-          toast.error("Oops!", {
-            description: "¡Hubo un error al eliminar la cotizacion!"
-        })
-        },
-      }
-  )
-
-  return {
-    deleteQuote: deleteMutation,
   }
 }

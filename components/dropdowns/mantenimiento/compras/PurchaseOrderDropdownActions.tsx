@@ -6,8 +6,10 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 // import { PDFDownloadLink } from "@react-pdf/renderer"
 import { Button } from "@/components/ui/button"
-import { ClipboardCheck, FileDown, MoreHorizontal, Wallet } from "lucide-react"
+import { ClipboardCheck, FileDown, MoreHorizontal, Receipt, Wallet } from "lucide-react"
 import PurchaseOrderDropdownDialogs from "@/components/dialogs/mantenimiento/compras/PurchaseOrderDropdownDialogs"
+import InvoicePreviewDialog from "@/components/dialogs/mantenimiento/compras/InvoicePreviewDialog"
+import { useCompanyStore } from "@/stores/CompanyStore"
 
 const iconBase =
   "size-[18px] transition-all duration-200 ease-out group-hover:scale-110"
@@ -15,12 +17,15 @@ const itemBase =
   `group relative flex items-center justify-center size-9 rounded-xl transition-all duration-200 ease-out hover:bg-muted hover:shadow-sm active:scale-95`
 
 const PurchaseOrderDropdownActions = ({ po }: { po: PurchaseOrder }) => {
+  const { selectedCompany } = useCompanyStore()
   const [openDropdown, setOpenDropdown] = useState(false)
   const [openApprove, setOpenApprove] = useState(false)
+  const [openInvoice, setOpenInvoice] = useState(false)
 
   const canPay = po.status === "PENDIENTE"
   const canComplete = po.status === "PAGADA"
   const canApprove = canPay || canComplete
+  const hasInvoice = !!po.invoice
 
   return (
     <TooltipProvider delayDuration={120}>
@@ -78,6 +83,36 @@ const PurchaseOrderDropdownActions = ({ po }: { po: PurchaseOrder }) => {
                   </TooltipContent>
                 </Tooltip>
               )}
+              {/* VIEW INVOICE */}
+              {hasInvoice && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span>
+                      <DropdownMenuItem
+                        asChild
+                        className="p-0 focus:bg-transparent"
+                      >
+                        <button
+                          onClick={() => {
+                            setOpenDropdown(false)
+                            setOpenInvoice(true)
+                          }}
+                          className={`
+                            ${itemBase}
+                            text-amber-600
+                          `}
+                        >
+                          <Receipt className={iconBase} />
+                        </button>
+                      </DropdownMenuItem>
+                    </span>
+                  </TooltipTrigger>
+
+                  <TooltipContent>
+                    Ver factura
+                  </TooltipContent>
+                </Tooltip>
+              )}
               {/* PDF */}
               {/* <PDFDownloadLink
                 fileName={`${quote.quote_number}.pdf`}
@@ -115,6 +150,16 @@ const PurchaseOrderDropdownActions = ({ po }: { po: PurchaseOrder }) => {
           openApprove={openApprove}
           setOpenApprove={setOpenApprove}
         />
+
+        {hasInvoice && selectedCompany && (
+          <InvoicePreviewDialog
+            open={openInvoice}
+            onOpenChange={setOpenInvoice}
+            invoicePath={po.invoice!}
+            company={selectedCompany.slug}
+            orderNumber={po.order_number}
+          />
+        )}
       </>
     </TooltipProvider>
   )

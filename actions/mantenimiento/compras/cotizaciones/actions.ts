@@ -14,6 +14,7 @@ export const useCreateQuote = () => {
       queryClient.invalidateQueries({ queryKey: ['quotes'] })
       queryClient.invalidateQueries({ queryKey: ['quote'], exact: false })
       queryClient.invalidateQueries({ queryKey: ['requisitions-orders'] })
+      queryClient.invalidateQueries({ queryKey: ['requisition-order'], exact: false })
       toast.success("¡Creado!", {
         description: "La cotización ha sido creada correctamente.",
       })
@@ -47,6 +48,7 @@ export const useUpdateQuoteStatus = () => {
       queryClient.invalidateQueries({ queryKey: ['quotes'] })
       queryClient.invalidateQueries({ queryKey: ['quote'], exact: false })
       queryClient.invalidateQueries({ queryKey: ['requisitions-orders'] })
+      queryClient.invalidateQueries({ queryKey: ['requisition-order'], exact: false })
       toast.success("¡Confirmada!", {
         description: "La cotización ha sido actualizada correctamente.",
       })
@@ -72,6 +74,7 @@ export const useDeleteQuote = () => {
       queryClient.invalidateQueries({ queryKey: ['quotes'] })
       queryClient.invalidateQueries({ queryKey: ['quote'], exact: false })
       queryClient.invalidateQueries({ queryKey: ['requisitions-orders'] })
+      queryClient.invalidateQueries({ queryKey: ['requisition-order'], exact: false })
       toast.success("¡Eliminado!", {
         description: "La cotización ha sido eliminada correctamente.",
       })

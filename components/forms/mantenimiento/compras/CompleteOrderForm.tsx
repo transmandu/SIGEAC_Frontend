@@ -3,7 +3,6 @@
 import { useCompletePurchase, useMarkPurchaseOrderAsCompleted } from "@/actions/mantenimiento/compras/ordenes_compras/actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
   FormControl,
@@ -30,7 +29,7 @@ import { useGetShippingAgencies } from "@/hooks/general/agencias_envio/useGetShi
 import { cn } from "@/lib/utils";
 import type { PurchaseOrder } from "@/types/purchase";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ClipboardCheck, FileCheck2, Loader2, Paperclip, Trash2, Truck } from "lucide-react";
+import { ClipboardCheck, FileCheck2, Loader2, Paperclip, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { useMemo, useRef } from "react";
 import { useForm } from "react-hook-form";
@@ -140,7 +139,6 @@ const FormSchema = z.object({
   payment_method: z.string(),
   bank_account_id: z.string(),
   card_id: z.string().optional(),
-  knows_shipping_info: z.boolean(),
   shipping_agency_id: z.string().optional(),
   invoice_number: z.string().optional(),
   observation: z.string().optional(),
@@ -160,6 +158,8 @@ type FormSchemaType = z.infer<typeof FormSchema>;
 interface FormProps {
   onClose: () => void;
   po: PurchaseOrder;
+  /** Wire Fee no aplica al ámbito aeronáutico — se oculta el campo en ese caso. */
+  isAeronautical?: boolean;
 }
 
 /** El método de pago no se persiste — se reconstruye a partir de qué medio quedó asociado a la orden, para que el campo no aparezca vacío al revisar. */
@@ -169,7 +169,7 @@ const inferPaymentMethod = (po: PurchaseOrder): string => {
   return "";
 };
 
-export function CompleteOrderForm({ onClose, po }: FormProps) {
+export function CompleteOrderForm({ onClose, po, isAeronautical = false }: FormProps) {
   const { selectedCompany } = useCompanyStore();
   const { data: accounts, isLoading: isAccLoading } = useGetBankAccounts();
   const { data: cards, isLoading: isCardsLoading } = useGetCards();
@@ -217,8 +217,6 @@ export function CompleteOrderForm({ onClose, po }: FormProps) {
     [po.article_purchase_order, po.general_article_purchase_order]
   );
 
-  const hadShippingInfo = !!(po.shipping_agency || po.shipping_fee || po.international_shipping);
-
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -230,7 +228,6 @@ export function CompleteOrderForm({ onClose, po }: FormProps) {
       payment_method: inferPaymentMethod(po),
       bank_account_id: po.bank_account ? String(po.bank_account.id) : "",
       card_id: po.card ? String(po.card.id) : "",
-      knows_shipping_info: hadShippingInfo,
       shipping_agency_id: po.shipping_agency ? String(po.shipping_agency.id) : "",
       invoice_number: po.invoice_number ?? "",
       observation: po.observation ?? "",
@@ -245,24 +242,26 @@ export function CompleteOrderForm({ onClose, po }: FormProps) {
 
   const { tax, wire_fee, handling_fee, shipping_fee, international_shipping } = form.watch();
   const paymentMethod = form.watch("payment_method");
-  const knowsShippingInfo = form.watch("knows_shipping_info");
+  const effectiveWireFee = isAeronautical ? 0 : Number(wire_fee || 0);
 
   const total = useMemo(() => {
     return (
       Number(po.sub_total) +
       Number(tax || 0) +
-      Number(wire_fee || 0) +
+      effectiveWireFee +
       Number(handling_fee || 0) +
       Number(shipping_fee || 0) +
       Number(international_shipping || 0)
     );
-  }, [po.sub_total, tax, wire_fee, handling_fee, shipping_fee, international_shipping]);
+  }, [po.sub_total, tax, effectiveWireFee, handling_fee, shipping_fee, international_shipping]);
 
   const onSubmit = async (data: FormSchemaType) => {
+    const wireFee = isAeronautical ? 0 : Number(data.wire_fee || 0);
+
     const computedTotal =
       Number(po.sub_total) +
       Number(data.tax || 0) +
-      Number(data.wire_fee || 0) +
+      wireFee +
       Number(data.handling_fee || 0) +
       Number(data.shipping_fee || 0) +
       Number(data.international_shipping || 0);
@@ -271,21 +270,21 @@ export function CompleteOrderForm({ onClose, po }: FormProps) {
       id: po.id,
       data: {
         tax: Number(data.tax || 0),
-        wire_fee: Number(data.wire_fee || 0),
+        wire_fee: wireFee,
         handling_fee: Number(data.handling_fee || 0),
-        shipping_fee: data.knows_shipping_info ? Number(data.shipping_fee || 0) : 0,
-        international_shipping: data.knows_shipping_info ? Number(data.international_shipping || 0) : 0,
+        shipping_fee: Number(data.shipping_fee || 0),
+        international_shipping: Number(data.international_shipping || 0),
         total: computedTotal,
         bank_account_id: data.bank_account_id ? Number(data.bank_account_id) : null,
         card_id: data.card_id ? Number(data.card_id) : null,
-        shipping_agency_id: data.knows_shipping_info && data.shipping_agency_id ? Number(data.shipping_agency_id) : null,
+        shipping_agency_id: data.shipping_agency_id ? Number(data.shipping_agency_id) : null,
         invoice_number: data.invoice_number || null,
         observation: data.observation || null,
         invoice: data.invoice,
         articles_purchase_orders: data.articles_purchase_orders.map((article) => ({
           article_purchase_order_id: article.article_purchase_order_id,
-          shipping_tracking: data.knows_shipping_info ? article.shipping_tracking || null : null,
-          international_shipping_tracking: data.knows_shipping_info ? article.international_shipping_tracking || null : null,
+          shipping_tracking: article.shipping_tracking || null,
+          international_shipping_tracking: article.international_shipping_tracking || null,
         })),
       },
       company: selectedCompany!.slug,
@@ -307,37 +306,6 @@ export function CompleteOrderForm({ onClose, po }: FormProps) {
         onSubmit={form.handleSubmit(onSubmit)}
         className="flex flex-col gap-6"
       >
-
-        {/* ── Toggle: datos de envío conocidos ──────────────────────────── */}
-        <FormField
-          control={form.control}
-          name="knows_shipping_info"
-          render={({ field }) => (
-            <FormItem
-              className={cn(
-                "flex items-center gap-2 rounded-lg border px-3 py-2 transition-colors",
-                field.value
-                  ? "border-teal-500/20 bg-teal-500/[0.04]"
-                  : "border-border/40 bg-muted/10"
-              )}
-            >
-              <FormControl>
-                <Checkbox
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                  className="size-3.5"
-                />
-              </FormControl>
-              <Truck className={cn("size-3.5", field.value ? "text-teal-600" : "text-muted-foreground/60")} />
-              <FormLabel className="!mt-0 text-xs font-medium cursor-pointer select-none text-foreground/90">
-                Ya conozco los datos de envío
-              </FormLabel>
-              <span className="text-[11px] text-muted-foreground/70 select-none">
-                — agencia, costos y tracking por artículo
-              </span>
-            </FormItem>
-          )}
-        />
 
         {/* ── Artículos ──────────────────────────────────────────────────── */}
         <div className="space-y-3">
@@ -404,44 +372,42 @@ export function CompleteOrderForm({ onClose, po }: FormProps) {
                       </div>
                     </div>
 
-                    {knowsShippingInfo && (
-                      <div className="mt-2.5 grid grid-cols-2 gap-3 border-t border-border/40 pt-2.5">
-                        <FormField
-                          control={form.control}
-                          name={`articles_purchase_orders.${index}.shipping_tracking`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <span className={LABEL_CLS}>Tracking nacional</span>
-                              <FormControl>
-                                <Input
-                                  placeholder="Tracking #"
-                                  className={cn(INPUT_CLS, "h-8 font-mono text-xs mt-0.5")}
-                                  {...field}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name={`articles_purchase_orders.${index}.international_shipping_tracking`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <span className={LABEL_CLS}>Tracking int&apos;l</span>
-                              <FormControl>
-                                <Input
-                                  placeholder="Tracking #"
-                                  className={cn(INPUT_CLS, "h-8 font-mono text-xs mt-0.5")}
-                                  {...field}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                    )}
+                    <div className="mt-2.5 grid grid-cols-2 gap-3 border-t border-border/40 pt-2.5">
+                      <FormField
+                        control={form.control}
+                        name={`articles_purchase_orders.${index}.shipping_tracking`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <span className={LABEL_CLS}>Tracking nacional</span>
+                            <FormControl>
+                              <Input
+                                placeholder="Tracking #"
+                                className={cn(INPUT_CLS, "h-8 font-mono text-xs mt-0.5")}
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name={`articles_purchase_orders.${index}.international_shipping_tracking`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <span className={LABEL_CLS}>Tracking int&apos;l</span>
+                            <FormControl>
+                              <Input
+                                placeholder="Tracking #"
+                                className={cn(INPUT_CLS, "h-8 font-mono text-xs mt-0.5")}
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
                   </div>
                 </div>
               ))}
@@ -472,19 +438,21 @@ export function CompleteOrderForm({ onClose, po }: FormProps) {
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="wire_fee"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className={LABEL_CLS}>Wire Fee</FormLabel>
-                    <FormControl>
-                      <AmountInput placeholder="$0.00" className={INPUT_CLS} {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {!isAeronautical && (
+                <FormField
+                  control={form.control}
+                  name="wire_fee"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className={LABEL_CLS}>Wire Fee</FormLabel>
+                      <FormControl>
+                        <AmountInput placeholder="$0.00" className={INPUT_CLS} {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
               <FormField
                 control={form.control}
                 name="handling_fee"
@@ -499,60 +467,56 @@ export function CompleteOrderForm({ onClose, po }: FormProps) {
                 )}
               />
 
-              {knowsShippingInfo && (
-                <>
-                  <FormField
-                    control={form.control}
-                    name="shipping_fee"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className={LABEL_CLS}>Envío nacional</FormLabel>
-                        <FormControl>
-                          <AmountInput placeholder="$0.00" className={INPUT_CLS} {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="international_shipping"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className={LABEL_CLS}>Envío internacional</FormLabel>
-                        <FormControl>
-                          <AmountInput placeholder="$0.00" className={INPUT_CLS} {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="shipping_agency_id"
-                    render={({ field }) => (
-                      <FormItem className="col-span-2">
-                        <FormLabel className={LABEL_CLS}>Agencia de envío</FormLabel>
-                        <Select disabled={isAgenciesLoading} onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger className={SELECT_TRIGGER_CLS}>
-                              <SelectValue placeholder="Seleccionar agencia..." />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {shippingAgencies?.map((agency) => (
-                              <SelectItem value={agency.id.toString()} key={agency.id} className="text-sm">
-                                {agency.name} ({agency.code})
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </>
-              )}
+              <FormField
+                control={form.control}
+                name="shipping_fee"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className={LABEL_CLS}>Envío nacional</FormLabel>
+                    <FormControl>
+                      <AmountInput placeholder="$0.00" className={INPUT_CLS} {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="international_shipping"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className={LABEL_CLS}>Envío internacional</FormLabel>
+                    <FormControl>
+                      <AmountInput placeholder="$0.00" className={INPUT_CLS} {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="shipping_agency_id"
+                render={({ field }) => (
+                  <FormItem className="col-span-2">
+                    <FormLabel className={LABEL_CLS}>Agencia de envío</FormLabel>
+                    <Select disabled={isAgenciesLoading} onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger className={SELECT_TRIGGER_CLS}>
+                          <SelectValue placeholder="Seleccionar agencia..." />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {shippingAgencies?.map((agency) => (
+                          <SelectItem value={agency.id.toString()} key={agency.id} className="text-sm">
+                            {agency.name} ({agency.code})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
           </div>
 

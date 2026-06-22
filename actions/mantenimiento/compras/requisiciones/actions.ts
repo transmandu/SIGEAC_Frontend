@@ -16,7 +16,7 @@ export const useCreateRequisition = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['requisitions-orders'] })
-      queryClient.invalidateQueries({ queryKey: ['requisitions-order'], exact: false })
+      queryClient.invalidateQueries({ queryKey: ['requisition-order'], exact: false })
 
       toast.success("¡Creado!", {
         description: `La requisicion ha sido creada correctamente.`
@@ -43,6 +43,7 @@ export const useUpdateRequisition = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['requisitions-orders'] })
+      queryClient.invalidateQueries({ queryKey: ['requisition-order'], exact: false })
       toast.success("¡Actualizada!", {
         description: `La requisicion ha sido actualizada correctamente.`
       })
@@ -68,6 +69,7 @@ export const useDeleteRequisition = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['requisitions-orders'] })
+      queryClient.invalidateQueries({ queryKey: ['requisition-order'], exact: false })
       toast.success("¡Eliminado!", {
         description: `¡La requisición ha sido eliminada correctamente!`
       })
@@ -101,6 +103,7 @@ export const useUpdateRequisitionStatus = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['requisitions-orders'] })
+      queryClient.invalidateQueries({ queryKey: ['requisition-order'], exact: false })
       toast.success("¡Confirmada!", {
         description: `¡La requisición ha sido confirmada correctamente!`
       })

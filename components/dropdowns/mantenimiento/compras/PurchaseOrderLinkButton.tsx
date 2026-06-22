@@ -15,6 +15,7 @@ import {
   TooltipTrigger
 } from "@/components/ui/tooltip"
 import { useGetPurchaseOrderByQuoteId } from "@/hooks/mantenimiento/compras/useGetPurchaseOrderByQuoteId"
+import { isAeronauticalPurchaseOrder } from "@/lib/purchases/purchase-order-scope"
 import { cn } from "@/lib/utils"
 
 type Props = {
@@ -47,7 +48,10 @@ const PurchaseOrderLinkButton = ({
 
   const goToPO = (orderNumber: string) => {
     setOpen(false)
-    router.push(`/${company}/compras/ordenes_compra/${orderNumber}`)
+    const segment = isAeronauticalPurchaseOrder(orderNumber)
+      ? "ordenes_compra"
+      : "ordenes_compra_generales"
+    router.push(`/${company}/compras/${segment}/${orderNumber}`)
   }
 
   const handleClick = () => {

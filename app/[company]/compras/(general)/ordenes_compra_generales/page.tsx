@@ -14,7 +14,7 @@ import {
 import { useCompanyStore } from '@/stores/CompanyStore'
 import { useGetPurchaseOrders } from '@/hooks/mantenimiento/compras/useGetPurchaseOrders'
 import type { PurchaseOrder } from '@/types/purchase'
-import { isAeronauticalPurchaseOrder } from '@/lib/purchases/purchase-order-scope'
+import { isGeneralPurchaseOrder } from '@/lib/purchases/purchase-order-scope'
 import { DataTable } from '../../data-table'
 import { getColumns } from './columns'
 import PurchaseOrderSubRow from './_components/PurchaseOrderSubRow'
@@ -43,9 +43,9 @@ const PurchaseOrdersPage = () => {
     const q = deferredSearch.toLowerCase()
 
     return po.filter((item: PurchaseOrder) => {
-      // Compras generales no se gestionan en este módulo: las órdenes con
-      // sufijo -G no aplican aquí.
-      const isAeronauticalScope = isAeronauticalPurchaseOrder(item)
+      // Compras aeronáuticas no se gestionan en este módulo: las órdenes con
+      // sufijo -A no aplican aquí.
+      const isGeneralScope = isGeneralPurchaseOrder(item)
 
       const matchesStatus =
         status === 'ALL' || item.status === status
@@ -55,7 +55,7 @@ const PurchaseOrdersPage = () => {
         item.order_number?.toLowerCase?.().includes(q) ||
         item.vendor?.name?.toLowerCase?.().includes(q)
 
-      return isAeronauticalScope && matchesStatus && matchesSearch
+      return isGeneralScope && matchesStatus && matchesSearch
     })
   }, [po, deferredSearch, status])
 
@@ -89,7 +89,7 @@ const PurchaseOrdersPage = () => {
 
               <BreadcrumbItem>
                 <BreadcrumbPage>
-                  Órdenes de Compra
+                  Órdenes de Compra Generales
                 </BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
@@ -98,11 +98,11 @@ const PurchaseOrdersPage = () => {
 
         <div className="flex flex-col gap-2 border-b pb-4">
           <h1 className="text-3xl font-semibold tracking-tight">
-            Órdenes de Compra
+            Órdenes de Compra Generales
           </h1>
 
           <p className="text-sm text-muted-foreground">
-            Gestiona y visualiza las órdenes generadas en el sistema de compras.
+            Gestiona y visualiza las órdenes de compra generales generadas en el sistema de compras.
           </p>
         </div>
 
