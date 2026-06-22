@@ -34,7 +34,7 @@ export const movementsColumns: ColumnDef<UniformMovement>[] = [
     cell: ({ row }) => {
       const item = row.original.item;
       if (!item) return <span className="text-muted-foreground">---</span>;
-      const Icon = getUniformTypeIcon(item.uniform_type, item.type_label);
+      const Icon = getUniformTypeIcon(undefined, item.type_label);
       return (
         <div className="flex items-center gap-2.5">
           <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">

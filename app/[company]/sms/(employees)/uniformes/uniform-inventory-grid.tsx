@@ -58,7 +58,7 @@ const STOCK_SIGNAL: Record<StockStatus, { dot: string; label: string }> = {
 /** One company's worth of a uniform type — a single "stack" in the grid. */
 interface UniformStack {
   key: string;
-  uniform_type: string;
+  article_type_id: number;
   type_label: string;
   company_label: string;
   items: UniformItem[];
@@ -80,7 +80,9 @@ export function UniformInventoryGrid({
   /** Distinct uniform types present in the data become the category tabs. */
   const categories = useMemo(() => {
     const map = new Map<string, string>();
-    items.forEach((i) => map.set(i.uniform_type, i.type_label));
+    items.forEach((i) =>
+      map.set(String(i.uniform_article_type_id), i.type_label)
+    );
     return Array.from(map, ([value, label]) => ({ value, label }));
   }, [items]);
 
@@ -89,7 +91,7 @@ export function UniformInventoryGrid({
     const pool =
       category === "all"
         ? items
-        : items.filter((i) => i.uniform_type === category);
+        : items.filter((i) => String(i.uniform_article_type_id) === category);
     return Array.from(new Set(pool.map((i) => i.size))).sort(
       (a, b) => sizeRank(a) - sizeRank(b) || a.localeCompare(b)
     );
@@ -98,7 +100,11 @@ export function UniformInventoryGrid({
   const filteredItems = useMemo(() => {
     const term = search.trim().toLowerCase();
     return items.filter((item) => {
-      if (category !== "all" && item.uniform_type !== category) return false;
+      if (
+        category !== "all" &&
+        String(item.uniform_article_type_id) !== category
+      )
+        return false;
       if (size && item.size !== size) return false;
       if (lowStockOnly && !item.is_low_stock) return false;
       if (term) {
@@ -114,12 +120,12 @@ export function UniformInventoryGrid({
   const stacks = useMemo(() => {
     const map = new Map<string, UniformStack>();
     filteredItems.forEach((item) => {
-      const key = `${item.uniform_type}__${item.company_label}`;
+      const key = `${item.uniform_article_type_id}__${item.company_label}`;
       let stack = map.get(key);
       if (!stack) {
         stack = {
           key,
-          uniform_type: item.uniform_type,
+          article_type_id: item.uniform_article_type_id,
           type_label: item.type_label,
           company_label: item.company_label,
           items: [],
@@ -378,7 +384,7 @@ function UniformStackCard({
 }) {
   const [open, setOpen] = useState(false);
   const reduce = useReducedMotion();
-  const Icon = getUniformTypeIcon(stack.uniform_type, stack.type_label);
+  const Icon = getUniformTypeIcon(undefined, stack.type_label);
   const sizeCount = stack.items.length;
   const isStack = sizeCount > 1;
   const outOfStock = stack.items.filter((i) => i.current_stock === 0).length;
