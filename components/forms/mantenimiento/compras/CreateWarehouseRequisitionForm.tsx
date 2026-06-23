@@ -394,6 +394,19 @@ export function CreateWarehouseRequisitionForm({
     setSelectedGeneralArticles((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const addManualGeneralArticle = () => {
+    setSelectedGeneralArticles((prev) => [
+      ...prev,
+      {
+        description: "",
+        variant_type: "",
+        quantity: 0,
+        unit_id: undefined,
+        priority: "MEDIUM",
+      },
+    ]);
+  };
+
   const onSubmit = async (data: FormSchemaType) => {
     const formattedData = {
       ...data,
@@ -504,6 +517,8 @@ export function CreateWarehouseRequisitionForm({
             handleGeneralArticleSelect={handleGeneralArticleSelect}
             handleGeneralArticleChange={handleGeneralArticleChange}
             removeGeneralArticle={removeGeneralArticle}
+            enableCreateGeneralArticle
+            addManualGeneralArticle={addManualGeneralArticle}
           />
         )}
 
