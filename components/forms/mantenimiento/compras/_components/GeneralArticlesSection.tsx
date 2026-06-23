@@ -49,23 +49,30 @@ export function GeneralArticlesSection({
   enableCreateGeneralArticle = false,
   addManualGeneralArticle,
 }: GeneralArticlesSectionProps) {
-  // Disambiguate articles that share the same description but differ by
-  // variant_type, so users don't recreate duplicates under slightly
-  // different casings/typos when they meant the same underlying article.
-  const descriptionCounts = useMemo(() => {
-    const counts = new Map<string, number>();
-    for (const article of filteredGeneralArticles) {
-      counts.set(article.description, (counts.get(article.description) ?? 0) + 1);
-    }
-    return counts;
-  }, [filteredGeneralArticles]);
+  // Identity of a general article is description + variant_type together:
+  // two entries can share a description but differ by variant_type (and
+  // must be treated as distinct), so every comparison/key below must use
+  // both fields, never description alone.
+  const getArticleKey = (description: string, variantType?: string | null) =>
+    `${description}__${variantType ?? ""}`;
 
-  const getArticleLabel = (article: GeneralArticle) => {
-    const isAmbiguous = (descriptionCounts.get(article.description) ?? 0) > 1;
-    return isAmbiguous && article.variant_type
+  const getArticleLabel = (article: { description: string; variant_type?: string | null }) =>
+    article.variant_type
       ? `${article.description} - ${article.variant_type}`
       : article.description;
-  };
+
+  // The catalog can contain multiple rows (different ids) for the same
+  // description + variant_type combination; collapse them to one entry so
+  // the dropdown never lists the same article twice.
+  const dedupedGeneralArticles = useMemo(() => {
+    const seen = new Set<string>();
+    return filteredGeneralArticles.filter((article) => {
+      const key = getArticleKey(article.description, article.variant_type);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [filteredGeneralArticles]);
 
   return (
     <FormField
@@ -113,16 +120,18 @@ export function GeneralArticlesSection({
                             {generalArticleSearch ? "No existen artículos generales..." : "Escriba para buscar..."}
                           </CommandEmpty>
                           <CommandGroup>
-                            {filteredGeneralArticles.map((article) => (
+                            {dedupedGeneralArticles.map((article) => (
                               <CommandItem
-                                key={article.id}
+                                key={getArticleKey(article.description, article.variant_type)}
                                 value={`${article.description} ${article.variant_type ?? ""}`}
                                 onSelect={() => handleGeneralArticleSelect(article)}
                               >
                                 <Check
                                   className={cn(
                                     "mr-2 h-4 w-4",
-                                    selectedGeneralArticles.some((a) => a.description === article.description)
+                                    selectedGeneralArticles.some(
+                                      (a) => getArticleKey(a.description, a.variant_type) === getArticleKey(article.description, article.variant_type)
+                                    )
                                       ? "opacity-100"
                                       : "opacity-0"
                                   )}
@@ -162,17 +171,19 @@ export function GeneralArticlesSection({
           <div className="mt-4 space-y-4">
             <ScrollArea className={cn(selectedGeneralArticles.length > 1 ? "h-[280px]" : "")}>
               {selectedGeneralArticles.map((article, index) => {
-                const isUnregistered = !generalArticles?.some((a) => a.description === article.description);
+                const isUnregistered = !generalArticles?.some(
+                  (a) => getArticleKey(a.description, a.variant_type) === getArticleKey(article.description, article.variant_type)
+                );
                 return (
                 <div
-                  key={index}
+                  key={getArticleKey(article.description, article.variant_type)}
                   className="rounded-md border bg-muted/30 p-3 mb-3"
                 >
                   <div className="flex items-center justify-between mb-2">
                     {isUnregistered ? (
                       <h4 className="font-medium text-sm select-none">Solicitar Artículo No Registrado</h4>
                     ) : (
-                      <h4 className="font-medium text-sm select-none">{article.description || "Sin descripción"}</h4>
+                      <h4 className="font-medium text-sm select-none">{getArticleLabel(article) || "Sin descripción"}</h4>
                     )}
                     <Tooltip>
                       <TooltipTrigger asChild>

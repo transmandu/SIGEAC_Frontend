@@ -349,11 +349,18 @@ export function CreateWarehouseRequisitionForm({
     setSelectedBatches((prev) => prev.filter((batch) => batch.batch !== batchId));
   };
 
-  // General article handlers
+  // General article handlers. Two articles can share a description but
+  // differ by variant_type, so identity (and toggle-off matching) must
+  // always compare both fields together, never description alone.
+  const isSameGeneralArticle = (
+    a: { description: string; variant_type?: string | null },
+    b: { description: string; variant_type?: string | null }
+  ) => a.description === b.description && (a.variant_type ?? "") === (b.variant_type ?? "");
+
   const handleGeneralArticleSelect = (article: GeneralArticle) => {
     setSelectedGeneralArticles((prev) => {
-      if (prev.some((a) => a.description === article.description)) {
-        return prev.filter((a) => a.description !== article.description);
+      if (prev.some((a) => isSameGeneralArticle(a, article))) {
+        return prev.filter((a) => !isSameGeneralArticle(a, article));
       }
       return [
         ...prev,
@@ -385,6 +392,19 @@ export function CreateWarehouseRequisitionForm({
 
   const removeGeneralArticle = (index: number) => {
     setSelectedGeneralArticles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const addManualGeneralArticle = () => {
+    setSelectedGeneralArticles((prev) => [
+      ...prev,
+      {
+        description: "",
+        variant_type: "",
+        quantity: 0,
+        unit_id: undefined,
+        priority: "MEDIUM",
+      },
+    ]);
   };
 
   const onSubmit = async (data: FormSchemaType) => {
@@ -497,6 +517,8 @@ export function CreateWarehouseRequisitionForm({
             handleGeneralArticleSelect={handleGeneralArticleSelect}
             handleGeneralArticleChange={handleGeneralArticleChange}
             removeGeneralArticle={removeGeneralArticle}
+            enableCreateGeneralArticle
+            addManualGeneralArticle={addManualGeneralArticle}
           />
         )}
 
