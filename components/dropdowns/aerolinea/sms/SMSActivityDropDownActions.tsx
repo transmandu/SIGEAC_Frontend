@@ -147,7 +147,7 @@ const SMSActivityDropDownActions = ({
           )}
 
           {smsActivity.categories?.some(
-            (cat) => cat.name.toUpperCase() === "BOLETIN.",
+            (cat) => cat.name.toUpperCase() === "BOLETÍN",
           ) && (
               <DropdownMenuItem onClick={() => setOpenLink(true)}>
                 <Link className="size-5" />

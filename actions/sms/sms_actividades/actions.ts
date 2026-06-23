@@ -341,7 +341,7 @@ export const useLinkBulletinToActivity = () => {
       activity_id: number;
       bulletin_id: string;
     }) => {
-      const response = await axiosInstance.post(
+      const response = await axiosInstance.patch(
         `/${company}/sms/activity-bulletin`,
         { activity_id, bulletin_id },
       );
