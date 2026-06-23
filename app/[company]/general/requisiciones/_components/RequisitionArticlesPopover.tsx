@@ -111,7 +111,7 @@ export default function RequisitionArticlesPopover({ requisition }: Props) {
                 className={cn(
                   'flex items-center justify-center rounded-md p-1 transition-colors',
                   hasArticles
-                    ? 'text-muted-foreground hover:text-emerald-600 hover:bg-emerald-500/10 dark:hover:text-emerald-400'
+                    ? 'text-muted-foreground hover:text-blue-600 hover:bg-blue-500/10 dark:hover:text-blue-400'
                     : 'text-muted-foreground/30 cursor-not-allowed'
                 )}
               >

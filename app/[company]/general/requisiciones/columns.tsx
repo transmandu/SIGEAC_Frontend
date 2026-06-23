@@ -26,7 +26,7 @@ export const getColumns = (
 ): ColumnDef<Requisition>[] => [
   {
     accessorKey: "order_number",
-    size: 160,
+    size: 205,
     header: ({ column }) => (
       <DataTableColumnHeader filter column={column} title="Nro. Req." />
     ),
@@ -47,6 +47,7 @@ export const getColumns = (
   },
   {
     accessorKey: "requested_by",
+    size: 120,
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Solicitado por" />
     ),
@@ -57,6 +58,7 @@ export const getColumns = (
   },
   {
     accessorKey: "status",
+    size: 60,
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Estado" />
     ),
@@ -87,6 +89,7 @@ export const getColumns = (
   },
   {
     accessorKey: "justification",
+    size: 220,
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Justificación" />
     ),
@@ -97,7 +100,7 @@ export const getColumns = (
   },
   {
     id: "articles",
-    size: 48,
+    size: 20,
     header: () => null,
     cell: ({ row }) => (
       <div className="flex justify-center" onClick={(e) => e.stopPropagation()}>
@@ -109,6 +112,7 @@ export const getColumns = (
   },
   {
     accessorKey: "type",
+    size: 130,
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Tipo de Req." />
     ),
@@ -119,6 +123,7 @@ export const getColumns = (
   },
   {
     accessorKey: "priority",
+    size: 90,
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Prioridad" />
     ),
@@ -152,6 +157,7 @@ export const getColumns = (
   },
   {
     accessorKey: "aircraft",
+    size: 140,
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Destino" />
     ),
@@ -218,6 +224,7 @@ export const getColumns = (
   },
   {
     accessorKey: "submission_date",
+    size: 150,
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Fecha de Creación" />
     ),
@@ -228,6 +235,7 @@ export const getColumns = (
   },
   {
     accessorKey: "actions",
+    size: 50,
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Acciones" />
     ),
