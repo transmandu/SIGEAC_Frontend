@@ -13,6 +13,7 @@ import { es } from "date-fns/locale"
 import Link from "next/link"
 import { Plane, ClipboardList, Building2, Handshake } from "lucide-react"
 
+import RequisitionArticlesPopover from "./_components/RequisitionArticlesPopover"
 
 // This type is used to define the shape of our data.
 // You can use a Zod schema here if you want.
@@ -33,7 +34,13 @@ export const getColumns = (
     cell: ({ row }) => {
       return (
         <div className="flex justify-center items-center">
-          <Link href={`/${selectedCompany?.slug}/general/requisiciones/${row.original.order_number}`} className="text-center font-bold">{row.original.order_number}</Link>
+          <Link
+            href={`/${selectedCompany?.slug}/general/requisiciones/${row.original.order_number}`}
+            className="text-center font-bold"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {row.original.order_number}
+          </Link>
         </div>
       )
     }
@@ -87,6 +94,18 @@ export const getColumns = (
     cell: ({ row }) => (
       <p className="text-center flex justify-center text-muted-foreground italic">{row.original.justification?? 'N/A'}</p>
     )
+  },
+  {
+    id: "articles",
+    size: 48,
+    header: () => null,
+    cell: ({ row }) => (
+      <div className="flex justify-center" onClick={(e) => e.stopPropagation()}>
+        <RequisitionArticlesPopover requisition={row.original} />
+      </div>
+    ),
+    enableSorting: false,
+    enableHiding: false,
   },
   {
     accessorKey: "type",
@@ -214,7 +233,7 @@ export const getColumns = (
     ),
     meta: { title: "Acciones" },
     cell: ({ row }) => (
-      <div className="flex justify-center">
+      <div className="flex justify-center" onClick={(e) => e.stopPropagation()}>
         <RequisitionsDropdownActions req={row.original} />
       </div>
     )
