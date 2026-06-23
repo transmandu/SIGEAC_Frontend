@@ -1,6 +1,20 @@
-import type { Unit, User, Aircraft, WorkOrder, Convertion, Department, ThirdParty } from '@/types';
+import type { Unit, User, Aircraft, WorkOrder, Convertion, Department, ThirdParty, Employee } from '@/types';
 import type { PurchaseOrder } from '@/types/purchase/purchase-order';
 import type { Quote } from '@/types/purchase/quote';
+
+// ── General Article relation summaries (response) ──────────────────────────
+// Narrowed projections returned by the backend for general article requisitions.
+export type GeneralArticleDepartment = Pick<Department, 'id' | 'name' | 'acronym'>;
+export type GeneralArticleThirdParty = Pick<ThirdParty, 'id' | 'name'>;
+export type GeneralArticleEmployee = Pick<
+  Employee,
+  'id' | 'first_name' | 'last_name' | 'middle_name' | 'second_last_name' | 'dni'
+>;
+export interface GeneralArticleAuthorizedEmployee {
+  id: number;
+  dni_employee: string;
+  full_name?: string;
+}
 
 // ── Purchase-specific enums ────────────────────────────────────────────────
 export type PurchasePriority = 'LOW' | 'MEDIUM' | 'HIGH';
@@ -51,6 +65,10 @@ export interface RequisitionGeneralArticle {
   status?: string;
   image?: string | null;
   justification?: string | null;
+  department?: GeneralArticleDepartment | null;
+  third_party?: GeneralArticleThirdParty | null;
+  employee?: GeneralArticleEmployee | null;
+  authorized_employee?: GeneralArticleAuthorizedEmployee | null;
 }
 
 // ── Requisition Quote Reference ────────────────────────────────────────────
@@ -162,6 +180,10 @@ export interface GeneralArticlePayload {
   priority?: 'HIGH' | 'MEDIUM' | 'LOW';
   justification?: string;
   image?: File;
+  department_id?: string | number | null;
+  third_party_id?: string | number | null;
+  employee_id?: string | number | null;
+  authorized_employee_id?: string | number | null;
 }
 
 // ── Form State Types ──────────────────────────────────────────────────────
@@ -196,6 +218,10 @@ export interface RequisitionGeneralArticleForm {
   unit_id?: string;
   priority?: 'HIGH' | 'MEDIUM' | 'LOW';
   image?: File;
+  department_id?: string;
+  third_party_id?: string;
+  employee_id?: string;
+  authorized_employee_id?: string;
 }
 
 /** Mutation payload for creating / updating a requisition order. */

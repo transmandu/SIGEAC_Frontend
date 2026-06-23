@@ -11,9 +11,11 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useGetUserDepartamentEmployees } from "@/hooks/sistema/empleados/useGetUserDepartamentEmployees";
+import { useGetEmployeesByCompany } from "@/hooks/sistema/empleados/useGetEmployees";
 import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits";
 import { useGetDepartments } from "@/hooks/sistema/departamento/useGetDepartment";
 import { useGetThirdParties } from "@/hooks/general/terceros/useGetThirdParties";
+import { useGetAuthorizedEmployees } from "@/hooks/sistema/autorizados/useGetAuthorizedEmployees";
 import { useGetGeneralArticles } from "@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticles";
 
 import { Form } from "@/components/ui/form";
@@ -56,6 +58,10 @@ const FormSchema = z.object({
       unit_id: z.string().optional(),
       priority: z.enum(["HIGH", "MEDIUM", "LOW"]).optional(),
       image: z.any().optional(),
+      department_id: z.string().optional(),
+      third_party_id: z.string().optional(),
+      employee_id: z.string().optional(),
+      authorized_employee_id: z.string().optional(),
     })
   ).min(1, "Debe agregar al menos un artículo general"),
 });
@@ -93,6 +99,12 @@ export function CreateGeneralRequisitionForm({
 
   const { data: thirdParties, isLoading: isThirdPartiesLoading } =
     useGetThirdParties();
+
+  const { data: destinationEmployees, isLoading: isDestinationEmployeesLoading } =
+    useGetEmployeesByCompany(selectedCompany?.slug);
+
+  const { data: authorizedEmployees, isLoading: isAuthorizedEmployeesLoading } =
+    useGetAuthorizedEmployees(selectedCompany?.slug);
 
   const { data: generalArticles, isLoading: isGeneralArticlesLoading } =
     useGetGeneralArticles();

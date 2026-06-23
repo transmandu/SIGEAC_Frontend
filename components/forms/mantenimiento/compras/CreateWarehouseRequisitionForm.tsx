@@ -7,6 +7,10 @@ import { useGetBatchesByLocationId } from "@/hooks/mantenimiento/almacen/renglon
 import { useGetMaintenanceAircrafts } from '@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts'
 import { useGetWorkOrders } from '@/hooks/mantenimiento/planificacion/useGetWorkOrders'
 import { useGetUserDepartamentEmployees } from "@/hooks/sistema/empleados/useGetUserDepartamentEmployees"
+import { useGetEmployeesByCompany } from "@/hooks/sistema/empleados/useGetEmployees"
+import { useGetDepartments } from "@/hooks/sistema/departamento/useGetDepartment"
+import { useGetThirdParties } from "@/hooks/general/terceros/useGetThirdParties"
+import { useGetAuthorizedEmployees } from "@/hooks/sistema/autorizados/useGetAuthorizedEmployees"
 import { useCompanyStore } from "@/stores/CompanyStore"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Loader2, Send, Plane, Package } from "lucide-react"
@@ -74,6 +78,10 @@ const FormSchema = z.object({
         unit_id: z.string().optional(),
         priority: z.enum(["HIGH", "MEDIUM", "LOW"]).optional(),
         image: z.any().optional(),
+        department_id: z.string().optional(),
+        third_party_id: z.string().optional(),
+        employee_id: z.string().optional(),
+        authorized_employee_id: z.string().optional(),
       })
     )
     .optional(),
@@ -134,6 +142,14 @@ export function CreateWarehouseRequisitionForm({
   const { data: workOrders, isLoading: isWorkOrdersLoading, isError: isWorkOrdersError } = useGetWorkOrders(selectedStation, selectedCompany?.slug);
 
   const { data: generalArticles, isLoading: isGeneralArticlesLoading } = useGetGeneralArticles();
+
+  const { data: departments, isLoading: isDepartmentsLoading } = useGetDepartments(selectedCompany?.slug);
+
+  const { data: thirdParties, isLoading: isThirdPartiesLoading } = useGetThirdParties();
+
+  const { data: destinationEmployees, isLoading: isDestinationEmployeesLoading } = useGetEmployeesByCompany(selectedCompany?.slug);
+
+  const { data: authorizedEmployees, isLoading: isAuthorizedEmployeesLoading } = useGetAuthorizedEmployees(selectedCompany?.slug);
 
   const { createRequisition } = useCreateRequisition();
 
