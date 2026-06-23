@@ -1,9 +1,19 @@
+"use client";
+
 import AuthRedirect from "@/components/auth/AuthRedirect";
 import { LoginForm } from '@/components/forms/ajustes/LoginForm'
 import { ThemeToggler } from '@/components/layout/ThemeToggler'
 import Logo from '@/components/misc/Logo'
+import { useAuth } from "@/contexts/AuthContext";
+import { useEffect } from "react";
 
 const Login = () => {
+  const { clearLoggingOut } = useAuth();
+
+  useEffect(() => {
+    clearLoggingOut();
+  }, [clearLoggingOut]);
+
   return (
     <>
       <AuthRedirect />
