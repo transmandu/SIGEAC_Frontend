@@ -6,10 +6,7 @@ import { DataTableColumnHeader } from '@/components/tables/DataTableHeader'
 import QuoteDropdownActions from '@/components/dropdowns/mantenimiento/compras/QuoteDropdownActions'
 
 import { Badge } from '@/components/ui/badge'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { cn } from '@/lib/utils'
-
-import { Truck } from 'lucide-react'
 
 import type { Quote } from '@/types/purchase'
 
@@ -128,118 +125,6 @@ export const getColumns = (
         </span>
       </div>
     ),
-  },
-
-  {
-    accessorKey: 'vendor',
-    size: 220,
-
-    header: ({ column }) => (
-      <div className="flex justify-center w-full">
-        <DataTableColumnHeader
-          column={column}
-          title="Proveedor"
-        />
-      </div>
-    ),
-
-    meta: {
-      title: 'Proveedor',
-    },
-
-    cell: ({ row }) => {
-      const quote = row.original
-
-      const vendorNames = Array.from(
-        new Set(
-          [
-            quote.vendor?.name,
-            ...(quote.article_quote_order?.map((a) => a.vendor?.name) ?? []),
-          ].filter((name): name is string => !!name)
-        )
-      )
-
-      if (vendorNames.length === 0) {
-        return (
-          <div className="flex justify-center w-full">
-            <span
-              className="
-                text-sm font-medium
-                text-slate-700 dark:text-slate-200
-                text-center
-              "
-            >
-              N/A
-            </span>
-          </div>
-        )
-      }
-
-      if (vendorNames.length === 1) {
-        return (
-          <div className="flex justify-center w-full">
-            <span
-              className="
-                text-sm font-medium
-                text-slate-700 dark:text-slate-200
-                text-center
-              "
-            >
-              {vendorNames[0]}
-            </span>
-          </div>
-        )
-      }
-
-      return (
-        <div className="flex justify-center w-full">
-          <Popover>
-            <PopoverTrigger asChild>
-              <button
-                type="button"
-                onClick={(e) => e.stopPropagation()}
-                className="
-                  inline-flex items-center gap-1.5
-                  rounded-md border px-2 py-0.5
-                  text-[10px] font-semibold tracking-wide
-                  shadow-sm transition-colors duration-150
-                  border-slate-500/30 bg-slate-500/10
-                  text-slate-700 dark:text-slate-300
-                  hover:bg-slate-500/15 dark:hover:text-slate-200
-                "
-              >
-                <Truck className="size-3" />
-                {vendorNames.length} PROVEEDORES
-              </button>
-            </PopoverTrigger>
-
-            <PopoverContent
-              align="center"
-              className="w-56 p-2"
-            >
-              <span className="block px-1 pb-1.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground/60 select-none">
-                Proveedores
-              </span>
-
-              <div className="space-y-0.5">
-                {vendorNames.map((name) => (
-                  <div
-                    key={name}
-                    className="
-                      flex items-center gap-2 rounded-md px-2 py-1
-                      text-sm text-slate-700 dark:text-slate-200
-                    "
-                  >
-                    <Truck className="size-3.5 text-muted-foreground/50 shrink-0" />
-                    <span className="truncate">{name}</span>
-                  </div>
-                ))}
-              </div>
-            </PopoverContent>
-          </Popover>
-        </div>
-      )
-    },
   },
 
   {

@@ -436,8 +436,8 @@ export function CreateWarehouseRequisitionForm({
                 className={cn(
                   "flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-medium transition-colors duration-200",
                   requisitionType === "AERONAUTICAL"
-                    ? "bg-background text-teal-600 shadow-sm"
-                    : "text-muted-foreground hover:text-teal-600"
+                    ? "bg-background text-blue-600 shadow-sm"
+                    : "text-muted-foreground hover:text-blue-600"
                 )}
               >
                 <Plane className="w-3.5 h-3.5 shrink-0" />
@@ -449,8 +449,8 @@ export function CreateWarehouseRequisitionForm({
                 className={cn(
                   "flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-medium transition-colors duration-200",
                   requisitionType === "GENERAL"
-                    ? "bg-background text-teal-600 shadow-sm"
-                    : "text-muted-foreground hover:text-teal-600"
+                    ? "bg-background text-blue-600 shadow-sm"
+                    : "text-muted-foreground hover:text-blue-600"
                 )}
               >
                 <Package className="w-3.5 h-3.5 shrink-0" />

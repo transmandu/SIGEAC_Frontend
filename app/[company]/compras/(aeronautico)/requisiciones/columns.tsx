@@ -250,30 +250,6 @@ export const getColumns = (
     ),
   },
   {
-    accessorKey: 'type',
-    size: 180,
-    header: ({ column }) => (
-      <div className="flex justify-center w-full">
-        <DataTableColumnHeader
-          column={column}
-          title="Tipo"
-        />
-      </div>
-    ),
-    meta: {
-      title: 'Tipo',
-    },
-    cell: ({ row }) => (
-      <div className="flex justify-center w-full">
-        <span
-          className="text-sm text-slate-500 dark:text-slate-400 text-center"
-        >
-          {row.original.type ?? '—'}
-        </span>
-      </div>
-    ),
-  },
-  {
     id: 'actions',
     size: 120,
     header: ({ column }) => (

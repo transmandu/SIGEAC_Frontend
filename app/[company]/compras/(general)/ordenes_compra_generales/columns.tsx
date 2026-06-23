@@ -127,29 +127,6 @@ export const getColumns = (
   },
 
   {
-    accessorKey: "vendor",
-    size: 240,
-
-    header: ({ column }) => (
-      <div className="flex justify-center w-full">
-        <DataTableColumnHeader column={column} title="Proveedor" />
-      </div>
-    ),
-
-    meta: {
-      title: "Proveedor",
-    },
-
-    cell: ({ row }) => (
-      <div className="flex justify-center w-full">
-        <span className="text-sm font-medium text-center text-slate-700 dark:text-slate-200">
-          {row.original.vendor?.name ?? "—"}
-        </span>
-      </div>
-    ),
-  },
-
-  {
     accessorKey: "status",
     size: 180,
 

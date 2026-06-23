@@ -18,7 +18,7 @@ type Props = {
   placeholder?: string
 }
 
-const selectTriggerClass = `h-8 w-full pl-8 text-xs bg-white/80 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-700/60 transition-colors focus:ring-1 focus:ring-[#439A97]/40 data-[placeholder]:text-muted-foreground`
+const selectTriggerClass = `h-8 w-full pl-8 text-xs bg-white/80 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-700/60 transition-colors focus:ring-1 focus:ring-[#439A97]/40 data-[placeholder]:text-muted-foreground [&>span]:truncate`
 const selectContentClass = `border-slate-200/60 dark:border-slate-700/60`
 
 const FilterSelects = ({
@@ -38,7 +38,7 @@ const FilterSelects = ({
 }) => (
   <>
     {/* STATUS */}
-    <div className="relative">
+    <div className="relative sm:w-44 sm:shrink-0">
       <SlidersHorizontal className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 z-10 size-3.5 text-muted-foreground"/>
 
       <Select value={status} onValueChange={setStatus}>
@@ -56,8 +56,8 @@ const FilterSelects = ({
       </Select>
     </div>
 
-    {/* TYPE */}
-    <div className="relative">
+    {/* TYPE — oculto: las requisiciones de este módulo siempre son tipo "AERONAUTICAL" */}
+    {/* <div className="relative sm:w-44 sm:shrink-0">
       <SlidersHorizontal className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 z-10 size-3.5 text-muted-foreground"/>
 
       <Select value={type} onValueChange={setType}>
@@ -70,10 +70,10 @@ const FilterSelects = ({
           <SelectItem value="AERONAUTICAL">Aeronáutico</SelectItem>
         </SelectContent>
       </Select>
-    </div>
+    </div> */}
 
     {/* PRIORITY */}
-    <div className="relative">
+    <div className="relative sm:w-44 sm:shrink-0">
       <SlidersHorizontal className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 z-10 size-3.5 text-muted-foreground"/>
 
       <Select value={priority} onValueChange={setPriority}>
