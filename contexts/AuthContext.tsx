@@ -22,6 +22,7 @@ import {
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { AxiosError } from "axios";
+import LoadingPage from "@/components/misc/LoadingPage";
 
 /* ---------------- TYPES ---------------- */
 
@@ -29,9 +30,11 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   loading: boolean;
+  loggingOut: boolean;
   error: string | null;
   loginMutation: any;
   logout: () => Promise<void>;
+  clearLoggingOut: () => void;
 }
 
 interface ApiErrorResponse {
@@ -51,6 +54,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const [user, setUser] = useState<User | null>(null);
   const [loading, setIsLoading] = useState(true);
+  const [loggingOut, setLoggingOut] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const initializedRef = useRef(false);
@@ -61,6 +65,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
    * LOGOUT
    * ========================================================= */
   const logout = useCallback(async () => {
+    // Cover the viewport before clearing any state, so the current page
+    // never re-renders its unauthenticated/empty state while still mounted.
+    setLoggingOut(true);
+
     try {
       setUser(null);
       setError(null);
@@ -77,8 +85,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
     } catch (err) {
       console.error("Logout error:", err);
+      setLoggingOut(false);
     }
   }, [router, queryClient, reset]);
+
+  const clearLoggingOut = useCallback(() => {
+    setLoggingOut(false);
+  }, []);
 
   /* =========================================================
    * FETCH USER
@@ -237,16 +250,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       user,
       isAuthenticated,
       loading,
+      loggingOut,
       error,
       loginMutation,
       logout,
+      clearLoggingOut,
     }),
-    [user, isAuthenticated, loading, error, loginMutation, logout]
+    [
+      user,
+      isAuthenticated,
+      loading,
+      loggingOut,
+      error,
+      loginMutation,
+      logout,
+      clearLoggingOut,
+    ]
   );
 
   return (
     <AuthContext.Provider value={value}>
       {children}
+      {loggingOut && (
+        <div className="fixed inset-0 z-[9999] bg-background">
+          <LoadingPage />
+        </div>
+      )}
     </AuthContext.Provider>
   );
 };
