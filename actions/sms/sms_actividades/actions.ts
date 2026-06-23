@@ -328,3 +328,42 @@ export const useGetNextActivityNumber = (company: string | null) => {
     retry: 1,
   });
 };
+
+export const useLinkBulletinToActivity = () => {
+  const queryClient = useQueryClient();
+  const linkMutation = useMutation({
+    mutationFn: async ({
+      company,
+      activity_id,
+      bulletin_id,
+    }: {
+      company: string;
+      activity_id: number;
+      bulletin_id: string;
+    }) => {
+      const response = await axiosInstance.post(
+        `/${company}/sms/activity-bulletin`,
+        { activity_id, bulletin_id },
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["sms-activities"] });
+      queryClient.invalidateQueries({
+        queryKey: ["bulletins-without-activity"],
+      });
+      toast.success("¡Vinculado!", {
+        description: "El boletín ha sido vinculado a la actividad correctamente.",
+      });
+    },
+    onError: (error) => {
+      toast.error("Oops!", {
+        description: "No se pudo vincular el boletín a la actividad...",
+      });
+      console.log(error);
+    },
+  });
+  return {
+    linkBulletinToActivity: linkMutation,
+  };
+};
