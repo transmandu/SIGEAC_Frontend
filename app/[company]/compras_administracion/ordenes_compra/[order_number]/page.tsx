@@ -42,7 +42,7 @@ const CotizacionPage = () => {
       <Card className='max-w-5xl mx-auto'>
         <CardHeader className='flex flex-col items-center'>
           <CardTitle className='flex justify-center text-5xl mb-2'>#{order_number}</CardTitle>
-          <Badge className={cn("text-lg", data?.status === 'pagado' ? "bg-green-500" : "bg-yellow-600")}>{data?.status.toUpperCase()}</Badge>
+          <Badge className={cn("text-lg", data?.status === 'PAGADA' ? "bg-green-500" : "bg-yellow-600")}>{data?.status.toUpperCase()}</Badge>
         </CardHeader>
         <CardContent className='flex flex-col gap-4' >
           <div className='flex w-full justify-center gap-24 text-xl'>
@@ -52,7 +52,7 @@ const CotizacionPage = () => {
             </div>
             <div className='flex flex-col gap-2 items-center'>
               <h1>Proveedor:</h1>
-              <p className='font-bold flex gap-2 items-center'>{data?.vendor.name}</p>
+              <p className='font-bold flex gap-2 items-center'>{data?.vendor?.name}</p>
             </div>
           </div>
           <div className='flex justify-center gap-24 text-center'>
@@ -74,8 +74,8 @@ const CotizacionPage = () => {
                 <p>Handling Fee: {data?.handling_fee}</p>
               </div>
               <div className='flex gap-2'>
-                <p>Envío USA: ${data?.usa_shipping}</p>
-                <p>Envío OCK21: ${data?.ock_shipping}</p>
+                <p>Envío: ${data?.shipping_fee}</p>
+                <p>Envío Internacional: ${data?.international_shipping}</p>
               </div>
             </div>
           </div>
@@ -83,13 +83,12 @@ const CotizacionPage = () => {
           <div className='flex justify-center gap-2'>
             {
               data?.article_purchase_order.map((article) => (
-                <Card className='w-[280px] text-center' key={article.article_part_number}>
-                  <CardTitle className='p-6'>{article.batch?.name} - {article.article_part_number}</CardTitle>
+                <Card className='w-[280px] text-center' key={article.id}>
+                  <CardTitle className='p-6'>{article.batch?.name} - {article.article_quote_order?.article_requisition_order?.article_part_number}</CardTitle>
                   <CardContent>
-                    <p className='font-medium'>Cantidad: <span className='font-bold italic'>{article.quantity}</span></p>
-                    <p className='font-medium'>Tracking - USA: <span className='font-bold italic'>{article.usa_tracking}</span></p>
-                    <p className='font-medium'>Tracking - OCK21: <span className='font-bold italic'>{article.ock_tracking}</span></p>
-                    <p className='font-medium'>Ubicación: <span className='font-bold italic'>{article.article_location}</span></p>
+                    <p className='font-medium'>Cantidad: <span className='font-bold italic'>{article.article_quote_order?.quantity}</span></p>
+                    <p className='font-medium'>Tracking: <span className='font-bold italic'>{article.shipping_tracking}</span></p>
+                    <p className='font-medium'>Tracking Internacional: <span className='font-bold italic'>{article.international_shipping_tracking}</span></p>
                   </CardContent>
                 </Card>
               ))
@@ -97,7 +96,7 @@ const CotizacionPage = () => {
           </div>
         </CardContent>
         {
-          data?.status !== 'aprobada' && (
+          data?.status !== 'COMPLETADA' && (
             <CardFooter className='flex gap-2 justify-end'>
               <Button>Aprobar</Button>
               <Button onClick={() => setOpenDelete(true)} variant={"destructive"}><Trash2 /></Button>

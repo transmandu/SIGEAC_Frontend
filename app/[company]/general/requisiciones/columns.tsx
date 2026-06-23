@@ -6,12 +6,12 @@ import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
 
 import RequisitionsDropdownActions from "@/components/dropdowns/mantenimiento/compras/RequisitionDropdownActions"
 import { Badge } from "@/components/ui/badge"
-import { Checkbox } from "@/components/ui/checkbox"
 import { cn } from "@/lib/utils"
-import { Batch, Requisition } from "@/types"
+import type { Requisition } from "@/types/purchase"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import Link from "next/link"
+import { Plane, ClipboardList, Building2, Handshake } from "lucide-react"
 
 
 // This type is used to define the shape of our data.
@@ -20,39 +20,20 @@ import Link from "next/link"
 //   article_count: number,
 // }
 
-export const columns: ColumnDef<Requisition>[] = [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Seleccionar todos"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Seleccionar fila"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
+export const getColumns = (
+  selectedCompany?: { slug: string }
+): ColumnDef<Requisition>[] => [
   {
     accessorKey: "order_number",
+    size: 160,
     header: ({ column }) => (
       <DataTableColumnHeader filter column={column} title="Nro. Req." />
     ),
-    meta: { title: "Nro. Req." }, // 👈 Agrega el título aquí
+    meta: { title: "Nro. Req." },
     cell: ({ row }) => {
       return (
-        <div className="flex justify-center">
-          <Link href={`/hangar74/general/requisiciones/${row.original.order_number}`} className="text-center font-bold">{row.original.order_number}</Link>
+        <div className="flex justify-center items-center">
+          <Link href={`/${selectedCompany?.slug}/general/requisiciones/${row.original.order_number}`} className="text-center font-bold">{row.original.order_number}</Link>
         </div>
       )
     }
@@ -64,7 +45,7 @@ export const columns: ColumnDef<Requisition>[] = [
     ),
     meta: { title: "Solicitado por" },
     cell: ({ row }) => (
-      <p className="flex text-center font-bold">{row.original.requested_by ?? "-"}</p>
+      <p className="flex text-center justify-center items-center font-bold">{row.original.requested_by ?? "-"}</p>
     )
   },
   {
@@ -74,12 +55,28 @@ export const columns: ColumnDef<Requisition>[] = [
     ),
     meta: { title: "Estado" },
     cell: ({ row }) => {
-      const process = row.original.status === 'PROCESO' || row.original.status === 'COTIZADO'
-      const aproved = row.original.status === 'APROBADO'
+      const status = row.original.status?.toUpperCase();
+
+      const isProcess = status === "PROCESO" || status === "COTIZADO";
+      const isApproved = status === "APROBADA";
+
       return (
-        <Badge className={cn("flex justify-center", process ? "bg-yellow-500" : aproved ? "bg-green-500" : "bg-red-500")} > {row.original.status.toUpperCase()}</Badge >
-      )
-    }
+        <div className="flex justify-center">
+          <Badge
+            className={cn(
+              "text-[11px] px-2 py-0 h-5 leading-none font-medium",
+              isProcess
+                ? "bg-yellow-500 text-white"
+                : isApproved
+                ? "bg-green-500 text-white"
+                : "bg-red-500 text-white"
+            )}
+          >
+            {status}
+          </Badge>
+        </div>
+      );
+    },
   },
   {
     accessorKey: "justification",
@@ -102,22 +99,102 @@ export const columns: ColumnDef<Requisition>[] = [
     )
   },
   {
-    accessorKey: "aircraft",
+    accessorKey: "priority",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Aeronave" />
+      <DataTableColumnHeader column={column} title="Prioridad" />
     ),
-    meta: { title: "Aeronave" },
+    meta: { title: "Prioridad" },
     cell: ({ row }) => {
-      const aircraft =
-        row.original.batch
-          ?.flatMap(b => b.batch_articles)
-          ?.find(a => a.aircraft)?.aircraft ?? "N/A"
+      const priority = row.original.priority?.toUpperCase();
+
+      const config = {
+        ALTA: { label: "Alta", dot: "bg-red-500" },
+        HIGH: { label: "Alta", dot: "bg-red-500" },
+        MEDIA: { label: "Media", dot: "bg-yellow-500" },
+        MEDIUM: { label: "Media", dot: "bg-yellow-500" },
+        BAJA: { label: "Baja", dot: "bg-green-500" },
+        LOW: { label: "Baja", dot: "bg-green-500" },
+      } as const;
+
+      const value = config[priority as keyof typeof config] ?? {
+        label: "N/A",
+        dot: "bg-gray-400",
+      };
 
       return (
-        <p className="text-center font-medium">
-          {aircraft}
-        </p>
-      )
+        <div className="flex justify-center">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <span className={cn("h-1.5 w-1.5 rounded-full", value.dot)} />
+            <span>{value.label}</span>
+          </div>
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: "aircraft",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Destino" />
+    ),
+    meta: { title: "Destino" },
+    cell: ({ row }) => {
+      const { aircraft, work_order, department, third_party } = row.original;
+
+      const entries = [
+        aircraft?.acronym && {
+          key: "aircraft",
+          label: "Aeronave",
+          value: aircraft.acronym,
+          icon: Plane,
+        },
+        work_order?.order_number && {
+          key: "work_order",
+          label: "O.T.",
+          value: work_order.order_number,
+          icon: ClipboardList,
+        },
+        department?.name && {
+          key: "department",
+          label: "Dpto",
+          value: department.acronym || department.name,
+          icon: Building2,
+        },
+        third_party?.name && {
+          key: "third_party",
+          label: "Tercero",
+          value: third_party.name,
+          icon: Handshake,
+        },
+      ].filter(Boolean) as {
+        key: string;
+        label: string;
+        value: string;
+        icon: typeof Plane;
+      }[];
+
+      if (entries.length === 0) {
+        return (
+          <div className="flex items-center justify-center font-medium">
+            <span>N/A</span>
+          </div>
+        );
+      }
+
+      return (
+        <div className="flex flex-col items-center justify-center gap-1.5">
+          {entries.map(({ key, label, value, icon: Icon }) => (
+            <div key={key} className="flex flex-col items-center justify-center gap-0.5">
+              <span className="text-[10px] uppercase tracking-wide text-muted-foreground/70 border border-border/60 rounded px-1 leading-4">
+                {label}
+              </span>
+              <div className="flex items-center justify-center gap-1.5">
+                <Icon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                <span className="font-medium text-sm">{value}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      );
     },
   },
   {

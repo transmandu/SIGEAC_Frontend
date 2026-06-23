@@ -9,7 +9,6 @@ import {
 } from 'react'
 
 import { ContentLayout } from '@/components/layout/ContentLayout'
-import LoadingPage from '@/components/misc/LoadingPage'
 import BackButton from '@/components/misc/BackButton'
 
 import {
@@ -21,9 +20,10 @@ import {
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
 
+import { useAuth } from '@/contexts/AuthContext'
 import { useCompanyStore } from '@/stores/CompanyStore'
 
-import { DataTable } from './data-table'
+import { DataTable } from '../data-table'
 import { getColumns } from './columns'
 
 import GroupedCostTable from './_components/GroupedCostTable'
@@ -66,8 +66,26 @@ type BaseRow = {
   unit_label?: string
 }
 
+const ARTICLE_COST_ROLES = ['ANALISTA_COMPRAS', 'JEFE_COMPRAS', 'SUPERUSER', 'JEFE_ADMINISTRACION', 'ANALISTA_ADMINISTRACION']
+const GENERAL_COST_ROLES = ['ASISTENTE_COMPRAS', 'SUPERUSER', 'JEFE_ADMINISTRACION', 'ANALISTA_ADMINISTRACION']
+
 const CostManagementPage = () => {
+  const { user } = useAuth()
   const { selectedCompany } = useCompanyStore()
+
+  const userRoles = useMemo(
+    () => user?.roles?.map((role) => role.name) ?? [],
+    [user]
+  )
+
+  const canViewArticleCosts =
+    !!selectedCompany?.isOMAC &&
+    ARTICLE_COST_ROLES.some((role) => userRoles.includes(role))
+
+  const canViewGeneralCosts =
+    GENERAL_COST_ROLES.some((role) => userRoles.includes(role))
+
+  const showTypeToggle = canViewArticleCosts && canViewGeneralCosts
 
   const [type, setType] = useState<CostType>('ARTICLE')
   const [category, setCategory] = useState<Category>('all')
@@ -76,6 +94,15 @@ const CostManagementPage = () => {
   const [groupBy, setGroupBy] = useState<string>('NONE')
 
   const deferredSearch = useDeferredValue(search)
+
+  // Si el usuario solo tiene acceso a un tipo, fijarlo y no permitir el otro
+  useEffect(() => {
+    if (!canViewArticleCosts && type === 'ARTICLE') {
+      setType('GENERAL')
+    } else if (!canViewGeneralCosts && type === 'GENERAL') {
+      setType('ARTICLE')
+    }
+  }, [canViewArticleCosts, canViewGeneralCosts, type])
 
   /**
    * 🔥 FIX: reset de filtros incompatibles al cambiar tipo
@@ -88,21 +115,14 @@ const CostManagementPage = () => {
   const { data: warehouseData, isLoading: loadingArticles } =
     useGetAllWarehouseArticlesByCategory(
       category === 'all' ? 'all' : category,
-      type === 'ARTICLE'
+      type === 'ARTICLE' && canViewArticleCosts
     )
 
   const { data: generalArticles, isLoading: loadingGeneral } =
     useGetGeneralArticles()
 
-  const isInitialLoading =
-    type === 'ARTICLE'
-      ? loadingArticles && !warehouseData
-      : loadingGeneral && !generalArticles
-
-  const isUpdating =
-    type === 'ARTICLE'
-      ? loadingArticles && !!warehouseData
-      : loadingGeneral && !!generalArticles
+  const isLoading =
+    type === 'ARTICLE' ? loadingArticles : loadingGeneral
 
   const articleData = useMemo<BaseRow[]>(() => {
     if (!warehouseData?.batches) return []
@@ -262,6 +282,7 @@ const CostManagementPage = () => {
             setType={setType}
             category={category}
             setCategory={setCategory}
+            showTabs={showTypeToggle}
           />
         </div>
 
@@ -295,20 +316,17 @@ const CostManagementPage = () => {
           onReset={handleReset}
         />
 
-        {isInitialLoading && filteredData.length === 0 ? (
-          <div className="flex items-center justify-center min-h-[300px]">
-            <LoadingPage />
-          </div>
-        ) : groupBy !== 'NONE' ? (
+        {groupBy !== 'NONE' ? (
           <GroupedCostTable
             data={filteredData}
             groupBy={groupBy as any}
-            renderTable={(rows) => (
+          renderTable={(rows) => (
               <DataTable
                 columns={columns}
                 data={rows}
-                loading={isUpdating}
-                costDrafts={costDrafts}
+                loading={isLoading}
+                meta={{ costDrafts }}
+                overflowVisible
               />
             )}
             setDrafts={setDrafts}
@@ -317,8 +335,9 @@ const CostManagementPage = () => {
           <DataTable
             columns={columns}
             data={filteredData}
-            loading={isUpdating}
-            costDrafts={costDrafts}
+            loading={isLoading}
+            meta={{ costDrafts }}
+            overflowVisible
           />
         )}
 

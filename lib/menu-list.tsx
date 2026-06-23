@@ -10,7 +10,7 @@ import { filterMenuGroups } from "@/lib/menus/helpers";
 import { buildMaintenanceGroup } from "@/lib/menus/maintenance";
 import { buildOperationGroup } from "@/lib/menus/operation";
 import { buildPlanificationGroup } from "@/lib/menus/planification";
-import { buildPurchasesGroup } from "@/lib/menus/purchases";
+import { buildPurchasesGroups } from "@/lib/menus/purchases";
 import { buildQualityControlGroup } from "@/lib/menus/quality-control";
 import { buildSettingsGroup } from "@/lib/menus/settings";
 import { buildSmsGroup } from "@/lib/menus/sms";
@@ -27,6 +27,7 @@ export function getMenuList(
         pathname,
         currentCompany,
         date: format(new Date(), "yyyy-MM-dd"),
+        userRoles,
     };
 
     const fullMenu: Group[] = [
@@ -34,7 +35,7 @@ export function getMenuList(
         buildGeneralGroup(context),
         buildDevelopmentGroup(context),
         buildSmsGroup(context),
-        buildPurchasesGroup(context),
+        ...buildPurchasesGroups(context),
         buildWarehouseGroup(context),
         buildPlanificationGroup(context),
         buildQualityControlGroup(context),

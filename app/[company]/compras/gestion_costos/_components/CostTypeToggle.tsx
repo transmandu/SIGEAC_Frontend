@@ -27,6 +27,9 @@ type Props = {
 
   category: Category
   setCategory: (category: Category) => void
+
+  /** Oculta el selector de tipo cuando el usuario solo tiene acceso a uno */
+  showTabs?: boolean
 }
 
 const categoryLabels: Record<Category, string> = {
@@ -58,63 +61,66 @@ const CostTypeToggle = ({
   setType,
   category,
   setCategory,
+  showTabs = true,
 }: Props) => {
   return (
     <div className="flex flex-col items-center gap-2 w-full">
 
-      <Tabs
-        value={type}
-        onValueChange={(val) => {
-          const next = val as CostType
-          setType(next)
-          if (next === 'GENERAL') setCategory('all')
-        }}
-        className="w-full flex justify-center"
-      >
-        <TabsList
-          className={cn(
-            'px-8 py-3 rounded-2xl border backdrop-blur-md',
-            'bg-slate-200/50 border-slate-200/40',
-            'dark:bg-slate-800/60 dark:border-slate-800/60'
-          )}
+      {showTabs && (
+        <Tabs
+          value={type}
+          onValueChange={(val) => {
+            const next = val as CostType
+            setType(next)
+            if (next === 'GENERAL') setCategory('all')
+          }}
+          className="w-full flex justify-center"
         >
-          <div className="flex gap-2">
+          <TabsList
+            className={cn(
+              'px-8 py-3 rounded-2xl border backdrop-blur-md',
+              'bg-slate-200/50 border-slate-200/40',
+              'dark:bg-slate-800/60 dark:border-slate-800/60'
+            )}
+          >
+            <div className="flex gap-2">
 
-            <TabsTrigger
-              value="ARTICLE"
-              className={cn(
-                'px-4 py-2 rounded-xl text-xs font-medium transition-all duration-200',
-                'flex items-center justify-center gap-2',
-                'text-muted-foreground hover:text-[#439A97]',
-                'data-[state=active]:bg-white/80 dark:data-[state=active]:bg-slate-900/50',
-                'data-[state=active]:text-[#439A97]',
-                'data-[state=active]:shadow-[0_0_18px_rgba(67,154,151,0.25)]',
-                'data-[state=active]:ring-1 data-[state=active]:ring-[#CBEDD5]'
-              )}
-            >
-              <Boxes className="w-4 h-4 shrink-0" />
-              Artículos
-            </TabsTrigger>
+              <TabsTrigger
+                value="ARTICLE"
+                className={cn(
+                  'px-4 py-2 rounded-xl text-xs font-medium transition-all duration-200',
+                  'flex items-center justify-center gap-2',
+                  'text-muted-foreground hover:text-[#439A97]',
+                  'data-[state=active]:bg-white/80 dark:data-[state=active]:bg-slate-900/50',
+                  'data-[state=active]:text-[#439A97]',
+                  'data-[state=active]:shadow-[0_0_18px_rgba(67,154,151,0.25)]',
+                  'data-[state=active]:ring-1 data-[state=active]:ring-[#CBEDD5]'
+                )}
+              >
+                <Boxes className="w-4 h-4 shrink-0" />
+                Artículos
+              </TabsTrigger>
 
-            <TabsTrigger
-              value="GENERAL"
-              className={cn(
-                'px-4 py-2 rounded-xl text-xs font-medium transition-all duration-200',
-                'flex items-center justify-center gap-2',
-                'text-muted-foreground hover:text-[#439A97]',
-                'data-[state=active]:bg-white/80 dark:data-[state=active]:bg-slate-900/50',
-                'data-[state=active]:text-[#439A97]',
-                'data-[state=active]:shadow-[0_0_18px_rgba(67,154,151,0.25)]',
-                'data-[state=active]:ring-1 data-[state=active]:ring-[#CBEDD5]'
-              )}
-            >
-              <Wrench className="w-4 h-4 shrink-0" />
-              General / Ferretería
-            </TabsTrigger>
+              <TabsTrigger
+                value="GENERAL"
+                className={cn(
+                  'px-4 py-2 rounded-xl text-xs font-medium transition-all duration-200',
+                  'flex items-center justify-center gap-2',
+                  'text-muted-foreground hover:text-[#439A97]',
+                  'data-[state=active]:bg-white/80 dark:data-[state=active]:bg-slate-900/50',
+                  'data-[state=active]:text-[#439A97]',
+                  'data-[state=active]:shadow-[0_0_18px_rgba(67,154,151,0.25)]',
+                  'data-[state=active]:ring-1 data-[state=active]:ring-[#CBEDD5]'
+                )}
+              >
+                <Wrench className="w-4 h-4 shrink-0" />
+                General / Ferretería
+              </TabsTrigger>
 
-          </div>
-        </TabsList>
-      </Tabs>
+            </div>
+          </TabsList>
+        </Tabs>
+      )}
 
       <AnimatePresence mode="wait">
         {type === 'ARTICLE' && (

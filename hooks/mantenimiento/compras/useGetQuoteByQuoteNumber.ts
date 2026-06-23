@@ -1,6 +1,6 @@
 import axiosInstance from '@/lib/axios';
-import { Quote } from '@/types';
 import { useQuery } from '@tanstack/react-query';
+import type { Quote } from '@/types/purchase';
 
 const fetchQuoteByQuoteNumber = async (company: string | null, quote_number: string): Promise<Quote> => {
   const {data} = await axiosInstance.get(`/${company}/show-quote/${quote_number}`);

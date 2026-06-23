@@ -1,6 +1,6 @@
 "use client"
 
-import { PurchaseOrder } from '@/types';
+import { PurchaseOrder } from '@/types/purchase';
 import { useQuery } from '@tanstack/react-query';
 import  axiosInstance from "@/lib/axios"
 

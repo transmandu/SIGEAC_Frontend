@@ -145,19 +145,6 @@ export function buildGeneralGroup({ pathname, currentCompany }: MenuContext): Gr
                 submenus: [],
             },            
             {
-                href: `/${currentCompany?.slug}/compras/gestion_costos`,
-                label: "Gestión de Costos",
-                active: pathname.includes(`/${currentCompany?.slug}/compras/gestion_costos`),
-                icon: CircleDollarSign,
-                roles: [
-                    "SUPERUSER",
-                    "JEFE_ADMINISTRACION",
-                    "ANALISTA_ADMINISTRACION",
-                ],
-                submenus: [],
-            },
-
-            {
                 href: `/${currentCompany?.slug}/general/biblioteca`,
                 label: "Biblioteca Digital",
                 active: pathname.includes(`/${currentCompany?.slug}/general/biblioteca`),

@@ -209,9 +209,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     onError: (err: Error) => {
       const axiosError = err as AxiosError<ApiErrorResponse>;
 
-      const message =
-        axiosError.response?.data?.message ||
-        "Credenciales inválidas";
+      const status = axiosError.response?.status;
+      const rawMessage = axiosError.response?.data?.message;
+
+      // Credenciales inválidas u otros errores de validación controlados por el backend
+      const isExpectedAuthError = status === 401 || status === 422;
+
+      const message = isExpectedAuthError
+        ? rawMessage || "Credenciales inválidas"
+        : "Ha ocurrido un problema. Por favor contacte al equipo de Desarrollo para resolverlo a la brevedad posible.";
 
       // 🔴 FIX CLAVE: evita side-effects globales
       setError(message);

@@ -13,6 +13,12 @@ interface Params {
   open?: boolean
 }
 
+const UNLOCK_EVENTS: (keyof WindowEventMap)[] = [
+  'pointerdown',
+  'keydown',
+  'touchstart',
+]
+
 export function useNotificationEffects({
   notifications,
   unreadCount,
@@ -26,6 +32,7 @@ export function useNotificationEffects({
 
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const audioUnlockedRef = useRef(false)
+  const pendingPlayRef = useRef(false)
 
   const baseTitleRef = useRef('')
   const titleTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -48,34 +55,49 @@ export function useNotificationEffects({
     audio.volume = 0.5
 
     audioRef.current = audio
+    audioUnlockedRef.current = false
     baseTitleRef.current = document.title
 
     /**
-     * Unlock de audio (obligatorio por políticas del browser)
+     * Unlock de audio (obligatorio por políticas del browser).
+     * Cualquier gesto del usuario (click, tecla, touch) sirve para
+     * destrabar el audio. Si llegó una notificación mientras estaba
+     * bloqueado, se reproduce inmediatamente al desbloquear.
      */
-    const unlockAudio = async () => {
+    const unlockAudio = () => {
       if (!audioRef.current || audioUnlockedRef.current) return
 
-      try {
-        await audioRef.current.play()
+      audioRef.current
+        .play()
+        .then(() => {
+          audioRef.current?.pause()
+          if (audioRef.current) audioRef.current.currentTime = 0
 
-        audioRef.current.pause()
-        audioRef.current.currentTime = 0
+          audioUnlockedRef.current = true
+          UNLOCK_EVENTS.forEach(evt =>
+            window.removeEventListener(evt, unlockAudio)
+          )
 
-        audioUnlockedRef.current = true
-
-        window.removeEventListener('pointerdown', unlockAudio)
-      } catch {
-        // silencioso
-      }
+          if (pendingPlayRef.current) {
+            pendingPlayRef.current = false
+            audioRef.current?.play().catch(() => {
+              // silencioso
+            })
+          }
+        })
+        .catch(() => {
+          // el navegador sigue bloqueando: se reintenta en el próximo gesto
+        })
     }
 
-    window.addEventListener('pointerdown', unlockAudio, {
-      passive: true,
-    })
+    UNLOCK_EVENTS.forEach(evt =>
+      window.addEventListener(evt, unlockAudio, { passive: true })
+    )
 
     return () => {
-      window.removeEventListener('pointerdown', unlockAudio)
+      UNLOCK_EVENTS.forEach(evt =>
+        window.removeEventListener(evt, unlockAudio)
+      )
 
       if (titleTimeoutRef.current) {
         clearTimeout(titleTimeoutRef.current)
@@ -120,16 +142,16 @@ export function useNotificationEffects({
     /**
      * Sonido
      */
-    if (
-      shouldTrigger &&
-      audioUnlockedRef.current &&
-      audioRef.current
-    ) {
-      audioRef.current.currentTime = 0
-
-      audioRef.current.play().catch(() => {
-        // silencioso
-      })
+    if (shouldTrigger && audioRef.current) {
+      if (audioUnlockedRef.current) {
+        audioRef.current.currentTime = 0
+        audioRef.current.play().catch(() => {
+          // silencioso
+        })
+      } else {
+        // Aún no hubo gesto del usuario: se reproduce en cuanto se desbloquee
+        pendingPlayRef.current = true
+      }
     }
 
     /**
