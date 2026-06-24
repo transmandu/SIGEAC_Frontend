@@ -264,6 +264,40 @@ const GeneralArticleCard = ({ article }: { article: any }) => {
             </div>
           )}
 
+          {article.department && (
+            <div>
+              <p className="text-muted-foreground text-xs">Departamento</p>
+              <p className="font-medium">
+                {article.department.acronym ?? article.department.name}
+              </p>
+            </div>
+          )}
+
+          {article.third_party && (
+            <div>
+              <p className="text-muted-foreground text-xs">Tercero</p>
+              <p className="font-medium">{article.third_party.name}</p>
+            </div>
+          )}
+
+          {article.employee && (
+            <div>
+              <p className="text-muted-foreground text-xs">Solicitante</p>
+              <p className="font-medium">
+                {`${article.employee.first_name} ${article.employee.last_name}`.trim()}
+              </p>
+            </div>
+          )}
+
+          {article.authorized_employee && (
+            <div>
+              <p className="text-muted-foreground text-xs">Autorizado</p>
+              <p className="font-medium">
+                {article.authorized_employee.full_name ?? article.authorized_employee.dni_employee}
+              </p>
+            </div>
+          )}
+
         </div>
 
         {/* JUSTIFICACIÓN SOLO SI NO ES PENDING */}

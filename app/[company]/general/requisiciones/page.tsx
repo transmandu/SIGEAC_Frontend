@@ -35,6 +35,7 @@ const RequisitionsPage = () => {
       'ANALISTA_COMPRAS',
       'JEFE_COMPRAS',
       'JEFE_ALMACEN',
+      'JEFE_ADMINISTRACION',
     ],
     []
   );
