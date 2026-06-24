@@ -3,8 +3,10 @@
 import {
   ColumnDef,
   ColumnFiltersState,
+  ExpandedState,
   flexRender,
   getCoreRowModel,
+  getExpandedRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
@@ -27,6 +29,8 @@ import { useRouter } from "next/navigation"
 import { useState } from "react"
 // import { RegisterDispatchRequestDialog } from "@/components/dialogs/mantenimiento/almacen/RegisterDispatchRequestDialog"
 import { CreateRequisitionDialog } from "@/components/dialogs/general/CreateRequisitionDialog"
+import RequisitionExpandedRow from "./_components/RequisitionExpandedRow"
+import type { Requisition } from "@/types/purchase"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -42,6 +46,7 @@ export function DataTable<TData, TValue>({
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(
     []
   )
+  const [expanded, setExpanded] = useState<ExpandedState>({})
 
   const locations = [
     {
@@ -55,13 +60,16 @@ export function DataTable<TData, TValue>({
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    getExpandedRowModel: getExpandedRowModel(),
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
+    onExpandedChange: setExpanded,
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     state: {
       sorting,
-      columnFilters
+      columnFilters,
+      expanded,
     }
   })
 
@@ -100,16 +108,27 @@ export function DataTable<TData, TValue>({
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} style={{ minWidth: cell.column.getSize() }}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                  ))}
-                </TableRow>
+                <>
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id} style={{ minWidth: cell.column.getSize() }}>
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                  {row.getIsExpanded() && (
+                    <TableRow key={`${row.id}-expanded`}>
+                      <TableCell colSpan={row.getVisibleCells().length} className="p-0">
+                        <RequisitionExpandedRow
+                          requisition={row.original as Requisition}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </>
               ))
             ) : (
               <TableRow>

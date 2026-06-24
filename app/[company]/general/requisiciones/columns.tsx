@@ -11,7 +11,7 @@ import type { Requisition } from "@/types/purchase"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import Link from "next/link"
-import { Plane, ClipboardList, Building2, Handshake } from "lucide-react"
+import { Plane, ClipboardList, Building2, Handshake, ChevronRight } from "lucide-react"
 
 import RequisitionArticlesPopover from "./_components/RequisitionArticlesPopover"
 
@@ -24,6 +24,30 @@ import RequisitionArticlesPopover from "./_components/RequisitionArticlesPopover
 export const getColumns = (
   selectedCompany?: { slug: string }
 ): ColumnDef<Requisition>[] => [
+  {
+    id: "expand",
+    size: 40,
+    header: () => null,
+    cell: ({ row }) => (
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation()
+          row.toggleExpanded()
+        }}
+        className="flex items-center justify-center rounded-md p-1 transition-colors hover:bg-muted"
+      >
+        <ChevronRight
+          className={cn(
+            "h-4 w-4 text-muted-foreground transition-transform duration-200",
+            row.getIsExpanded() && "rotate-90"
+          )}
+        />
+      </button>
+    ),
+    enableSorting: false,
+    enableHiding: false,
+  },
   {
     accessorKey: "order_number",
     size: 205,
