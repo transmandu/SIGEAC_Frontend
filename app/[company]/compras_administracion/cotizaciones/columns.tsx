@@ -7,7 +7,7 @@ import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
 import QuoteDropdownActions from "@/components/dropdowns/mantenimiento/compras/QuoteDropdownActions"
 import { Checkbox } from "@/components/ui/checkbox"
 import { cn } from "@/lib/utils"
-import { Quote } from "@/types"
+import type { Quote } from "@/types/purchase"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import { Badge } from "@/components/ui/badge"
@@ -78,7 +78,7 @@ export const columns: ColumnDef<Quote>[] = [
     ),
     cell: ({ row }) => {
       return (
-        <p className="font-medium text-center">{row.original.vendor.name}</p>
+        <p className="font-medium text-center">{row.original.vendor?.name}</p>
       )
     }
   },
@@ -88,8 +88,8 @@ export const columns: ColumnDef<Quote>[] = [
       <DataTableColumnHeader column={column} title="Status" />
     ),
     cell: ({ row }) => {
-      const process = row.original.status === 'pendiente'
-      const aproved = row.original.status === 'aprobada'
+      const process = row.original.status === 'PENDIENTE'
+      const aproved = row.original.status === 'APROBADA'
       return (
         <Badge className={cn("flex justify-center", process ? "bg-yellow-500" : aproved ? "bg-green-500" : "bg-red-500")} > {row.original.status.toUpperCase()}</Badge >
       )

@@ -107,7 +107,7 @@ const RequisitionPage = () => {
 
           {/* Listado de lotes y artículos */}
           <div className='flex flex-wrap justify-center gap-4'>
-            {data && data.batch.map((batch) => (
+          {data && data.batch?.map((batch) => (
               <Card key={batch.id} className='w-full max-w-xl'>
                 <CardHeader className='pb-2'>
                   <CardTitle className='text-2xl text-center'>
@@ -115,7 +115,7 @@ const RequisitionPage = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className='space-y-4'>
-                  {batch.batch_articles.map((article, index) => (
+                  {batch.batch_articles.map((article: any, index: number) => (
                     <div key={`${article.article_part_number}-${index}`} className='space-y-4'>
                       <div className='grid grid-cols-1 md:grid-cols-2'>
                         {/* Información básica del artículo */}

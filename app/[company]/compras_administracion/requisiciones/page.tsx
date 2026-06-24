@@ -9,7 +9,7 @@ import { useCompanyStore } from '@/stores/CompanyStore';
 import { useEffect, useState } from 'react';
 import { columns } from './columns';
 import { DataTable } from './data-table';
-import { Requisition } from '@/types';
+import type { Requisition } from '@/types/purchase';
 
 const RequisitionsPage = () => {
   const { user } = useAuth();

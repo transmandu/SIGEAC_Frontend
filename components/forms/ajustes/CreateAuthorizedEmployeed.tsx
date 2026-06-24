@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -77,10 +77,14 @@ export function AuthorizedEmployeeForm({ onSuccess }: Props) {
   );
 
   // DNIs ya autorizados a la empresa destino seleccionada
-  const authorizedDnisForDestination = new Set(
-    authorizedEmployees
-      .filter((auth) => auth.to_company_db === toCompany)
-      .map((auth) => auth.dni_employee)
+  const authorizedDnisForDestination = useMemo(
+    () =>
+      new Set(
+        authorizedEmployees
+          .filter((auth) => auth.to_company_db === toCompany)
+          .map((auth) => auth.dni_employee)
+      ),
+    [authorizedEmployees, toCompany]
   );
 
   // Empleados disponibles: ocultar los que ya están autorizados al destino seleccionado

@@ -203,7 +203,7 @@ export default function NotificationPanel({
                       <button
                         onClick={() => clearRead()}
                         disabled={isClearingRead}
-                        className="flex h-9 w-9 items-center justify-center  rounded-lg text-orange-500/70 transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex h-9 w-9 items-center justify-center rounded-lg text-orange-500/70 transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <CheckCheck className="h-4 w-4" />
                       </button>
@@ -225,7 +225,7 @@ export default function NotificationPanel({
                       <button
                         onClick={() => clearAll()}
                         disabled={isClearingAll}
-                        className="flex h-9 w-9 items-center justify-center rounded-lg text-red-500/70 transition-colors hover:bg-red-500/10 hover:text-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex h-9 w-9 items-center justify-center rounded-lg text-red-500/70 transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <X className="h-4 w-4" />
                       </button>

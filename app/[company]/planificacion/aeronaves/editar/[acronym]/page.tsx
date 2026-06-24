@@ -193,10 +193,10 @@ export default function EditAircraftPage({ params }: { params: { acronym: string
                     ata_chapter: assignmentData.ata_chapter ?? src?.ata_chapter ?? assignmentData.ata_number ?? src?.ata_number ?? src?.ata ?? null,
                     position: assignmentData.position ?? src?.position ?? null,
                     part_order: assignmentData.part_order ?? src?.part_order ?? null,
-                    time_since_new: assignmentData.time_since_new ?? src?.time_since_new ?? src?.part_hours ?? null,
-                    time_since_overhaul: assignmentData.time_since_overhaul ?? src?.time_since_overhaul ?? null,
-                    cycles_since_new: assignmentData.cycles_since_new ?? src?.cycles_since_new ?? src?.part_cycles ?? null,
-                    cycles_since_overhaul: assignmentData.cycles_since_overhaul ?? src?.cycles_since_overhaul ?? null,
+                    time_since_new: src?.time_since_new ?? src?.part_hours ?? null,
+                    time_since_overhaul: src?.time_since_overhaul ?? null,
+                    cycles_since_new: src?.cycles_since_new ?? src?.part_cycles ?? null,
+                    cycles_since_overhaul: src?.cycles_since_overhaul ?? null,
                 };
             })
             .filter((part): part is any => Boolean(part) && !part.parent_part_id)

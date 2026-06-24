@@ -22,9 +22,10 @@ export function filterMenuGroups(
         );
     };
 
-    const isModuleActive = (moduleValue?: string): boolean => {
+    const isModuleActive = (moduleValue?: string | string[]): boolean => {
         if (!moduleValue || !currentCompany) return true;
-        return currentCompany.modules.some((module) => module.value === moduleValue);
+        const values = Array.isArray(moduleValue) ? moduleValue : [moduleValue];
+        return currentCompany.modules.some((module) => values.includes(module.value));
     };
 
     const hasOmacAccess = (item: { requiresOmac?: boolean }): boolean => {

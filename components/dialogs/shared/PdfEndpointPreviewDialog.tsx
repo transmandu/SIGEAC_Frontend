@@ -46,14 +46,14 @@ export function PdfEndpointPreviewDialog({
     setPreviewBlob(null);
   }, [previewUrl]);
 
-  const fetchPdfBlob = async () => {
+  const fetchPdfBlob = useCallback(async () => {
     const response = await axiosInstance.get(endpoint, {
       responseType: "blob",
     });
     return new Blob([response.data], { type: "application/pdf" });
-  };
+  }, [endpoint]);
 
-  const ensurePreview = async () => {
+  const ensurePreview = useCallback(async () => {
     if (previewBlob && previewUrl) {
       return previewBlob;
     }
@@ -61,15 +61,16 @@ export function PdfEndpointPreviewDialog({
     const blob = await fetchPdfBlob();
     const url = window.URL.createObjectURL(blob);
 
-    if (previewUrl) {
-      window.URL.revokeObjectURL(previewUrl);
-    }
-
+    setPreviewUrl((prevUrl) => {
+      if (prevUrl) {
+        window.URL.revokeObjectURL(prevUrl);
+      }
+      return url;
+    });
     setPreviewBlob(blob);
-    setPreviewUrl(url);
 
     return blob;
-  };
+  }, [previewBlob, previewUrl, fetchPdfBlob]);
 
   const loadPreview = useCallback(async () => {
     setIsLoading(true);
@@ -84,7 +85,7 @@ export function PdfEndpointPreviewDialog({
     } finally {
       setIsLoading(false);
     }
-  }, [previewBlob, previewUrl, endpoint]);
+  }, [ensurePreview]);
 
   // EFECTO 1: Carga automática al abrir y limpieza al cerrar/desmontar
   useEffect(() => {
@@ -93,12 +94,7 @@ export function PdfEndpointPreviewDialog({
     } else {
       resetPreview();
     }
-
-    return () => {
-      if (previewUrl) {
-        window.URL.revokeObjectURL(previewUrl);
-      }
-    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   const handleDownload = async () => {

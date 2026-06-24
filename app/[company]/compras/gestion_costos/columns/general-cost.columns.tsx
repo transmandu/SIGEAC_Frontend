@@ -5,19 +5,9 @@ import { DataTableColumnHeader } from '@/components/tables/DataTableHeader'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 import React from 'react'
+import type { GeneralCostRow, GeneralCostColumnsArgs } from '@/types/purchase'
 
-export type GeneralCostRow = {
-  id: number
-  description?: string
-  brand_model?: string
-  variant_type?: string
-  unit_label?: string
-  cost?: number
-}
-
-export type GeneralCostColumnsArgs = {
-  onCostChange: (id: number, value: string) => void
-}
+export type { GeneralCostRow, GeneralCostColumnsArgs }
 
 const isModified = (
   id: number,
@@ -91,23 +81,6 @@ export function getGeneralCostColumns({
         </div>
       ),
     },
-
-    // {
-    //   accessorKey: 'unit_label',
-    //   size: 120,
-    //   header: ({ column }) => (
-    //     <div className="flex justify-center w-full">
-    //       <DataTableColumnHeader column={column} title="Unidad" />
-    //     </div>
-    //   ),
-    //   cell: ({ row }) => (
-    //     <div className="flex justify-center w-full">
-    //       <span className="block text-sm text-slate-500 dark:text-slate-400 text-center">
-    //         {row.original.unit_label ?? '—'}
-    //       </span>
-    //     </div>
-    //   ),
-    // },
 
     {
       accessorKey: 'cost',

@@ -1,0 +1,154 @@
+'use client'
+
+import { useMemo, useState, useDeferredValue } from 'react'
+import { ContentLayout } from '@/components/layout/ContentLayout'
+import BackButton from '@/components/misc/BackButton'
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb'
+import { useCompanyStore } from '@/stores/CompanyStore'
+import { useGetPurchaseOrders } from '@/hooks/mantenimiento/compras/useGetPurchaseOrders'
+import type { PurchaseOrder } from '@/types/purchase'
+import { isGeneralPurchaseOrder } from '@/lib/purchases/purchase-order-scope'
+import { DataTable } from '../../data-table'
+import { getColumns } from './columns'
+import PurchaseOrderSubRow from './_components/PurchaseOrderSubRow'
+import PurchaseOrderToolBar from './_components/PurchaseOrderToolBar'
+
+const PurchaseOrdersPage = () => {
+  const { selectedCompany, selectedStation } = useCompanyStore()
+
+  const {
+    data: po,
+    isLoading,
+    isError,
+  } = useGetPurchaseOrders(
+    selectedCompany?.slug ?? '',
+    selectedStation ?? ''
+  )
+
+  const [search, setSearch] = useState('')
+  const [status, setStatus] = useState('ALL')
+
+  const deferredSearch = useDeferredValue(search)
+
+  const filteredPO = useMemo(() => {
+    if (!po) return []
+
+    const q = deferredSearch.toLowerCase()
+
+    return po.filter((item: PurchaseOrder) => {
+      // Compras aeronáuticas no se gestionan en este módulo: las órdenes con
+      // sufijo -A no aplican aquí.
+      const isGeneralScope = isGeneralPurchaseOrder(item)
+
+      const matchesStatus =
+        status === 'ALL' || item.status === status
+
+      const matchesSearch =
+        !q ||
+        item.order_number?.toLowerCase?.().includes(q) ||
+        item.vendor?.name?.toLowerCase?.().includes(q)
+
+      return isGeneralScope && matchesStatus && matchesSearch
+    })
+  }, [po, deferredSearch, status])
+
+  const columns = useMemo(
+    () => getColumns(selectedCompany ?? undefined),
+    [selectedCompany]
+  )
+
+  return (
+    <ContentLayout title="Órdenes de Compra">
+      <div className="flex flex-col gap-6">
+
+        <div className="flex items-center gap-3">
+          <BackButton iconOnly tooltip="Volver" variant="secondary" />
+
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink href={`/${selectedCompany?.slug}/dashboard`}>
+                  Inicio
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+
+              <BreadcrumbSeparator />
+
+              <BreadcrumbItem>
+                Compras
+              </BreadcrumbItem>
+
+              <BreadcrumbSeparator />
+
+              <BreadcrumbItem>
+                <BreadcrumbPage>
+                  Órdenes de Compra Generales
+                </BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        </div>
+
+        <div className="flex flex-col gap-2 border-b pb-4">
+          <h1 className="text-3xl font-semibold tracking-tight">
+            Órdenes de Compra Generales
+          </h1>
+
+          <p className="text-sm text-muted-foreground">
+            Gestiona y visualiza las órdenes de compra generales generadas en el sistema de compras.
+          </p>
+        </div>
+
+        <div className="
+          flex items-center justify-between gap-4
+          px-3 py-2
+          rounded-xl border
+          bg-slate-200/40 border-slate-200/40
+          dark:bg-slate-800/70 dark:border-slate-700/60
+          backdrop-blur-md
+        ">
+          <PurchaseOrderToolBar
+            search={search}
+            setSearch={setSearch}
+            status={status}
+            setStatus={setStatus}
+          />
+
+          <span className="text-xs text-muted-foreground tabular-nums">
+            {filteredPO.length}{' '}
+            {filteredPO.length === 1 ? 'orden' : 'órdenes'}
+          </span>
+        </div>
+
+          <DataTable
+            columns={columns}
+            data={filteredPO}
+            renderSubRow={(row) => (
+              <PurchaseOrderSubRow row={row} />
+            )}
+            loading={isLoading}
+            emptyText="No se ha encontrado ningún resultado..."
+          />
+
+        {/* ERROR */}
+        {isError && (
+          <div className="rounded-lg border border-red-500/20 bg-red-500/5 px-4 py-3">
+            <p className="text-sm text-red-500">
+              Error cargando órdenes de compra.
+            </p>
+          </div>
+        )}
+
+      </div>
+    </ContentLayout>
+  )
+}
+
+export default PurchaseOrdersPage

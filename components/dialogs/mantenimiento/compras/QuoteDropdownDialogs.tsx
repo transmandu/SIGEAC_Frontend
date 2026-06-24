@@ -5,14 +5,10 @@ import {
   useUpdateQuoteStatus
 } from "@/actions/mantenimiento/compras/cotizaciones/actions"
 import {
-  useUpdateRequisitionStatus
-} from "@/actions/mantenimiento/compras/requisiciones/actions"
-import {
   useCreatePurchaseOrder
 } from "@/actions/mantenimiento/compras/ordenes_compras/actions"
-import { useAuth } from "@/contexts/AuthContext"
 import { useCompanyStore } from "@/stores/CompanyStore"
-import { Quote } from "@/types"
+import type { Quote } from "@/types/purchase"
 import {
   AlertTriangle,
   ClipboardCheck,
@@ -100,11 +96,9 @@ const QuoteDropdownDialogs = ({
   onSuccessUpdate,
   onSuccessDelete
 }: Props) => {
-  const { user } = useAuth()
   const { selectedCompany } = useCompanyStore()
 
   const { updateStatusQuote } = useUpdateQuoteStatus()
-  const { updateStatusRequisition } = useUpdateRequisitionStatus()
   const { createPurchaseOrder } = useCreatePurchaseOrder()
   const { deleteQuote } = useDeleteQuote()
 
@@ -117,17 +111,7 @@ const QuoteDropdownDialogs = ({
       id: quote.id,
       data: {
         status: "RECHAZADA",
-        updated_by: `${user?.first_name} ${user?.last_name}`,
         observation: Observation.trim() || null
-      },
-      company: selectedCompany.slug
-    })
-
-    await updateStatusRequisition.mutateAsync({
-      id: quote.requisition_order.id,
-      data: {
-        status: "PROCESO",
-        updated_by: `${user?.first_name} ${user?.last_name}`
       },
       company: selectedCompany.slug
     })
@@ -139,38 +123,30 @@ const QuoteDropdownDialogs = ({
   }
 
   const handleApprove = async () => {
-    const poData = {
-      status: "PROCESO",
-      justification: quote.justification,
-      purchase_date: new Date(),
-      sub_total: Number(quote.total),
-      total: Number(quote.total),
-      vendor_id: Number(quote.vendor.id),
-      created_by: `${user?.first_name} ${user?.last_name}`,
-      articles_purchase_orders: quote.article_quote_order,
-      quote_order_id: Number(quote.id)
-    }
+    const locationId =
+      quote.article_quote_order.find((a) => a.location)?.location?.id ??
+      quote.general_article_quote_order.find((a) => a.location)?.location?.id
 
-    await updateStatusQuote.mutateAsync({
-      id: quote.id,
-      data: {
-        status: "APROBADO",
-        updated_by: `${user?.first_name} ${user?.last_name}`
-      },
-      company: selectedCompany.slug
-    })
+    // El total con impuestos/tarifas aún no existe en este punto — se calcula
+    // al completar la compra (markAsPaid/update), no al crearla.
+    const subTotal = Number(quote.total)
+
+    const poData = {
+      quote_order_id: Number(quote.id),
+      location_id: Number(locationId),
+      purchase_date: new Date().toISOString(),
+      sub_total: subTotal,
+      total: subTotal,
+      articles_purchase_orders: quote.article_quote_order.map((a) => ({
+        article_quote_order_id: a.id,
+      })),
+      general_articles_purchase_orders: quote.general_article_quote_order.map((a) => ({
+        general_article_quote_order_id: a.id,
+      })),
+    }
 
     await createPurchaseOrder.mutateAsync({
       data: poData,
-      company: selectedCompany.slug
-    })
-
-    await updateStatusRequisition.mutateAsync({
-      id: quote.requisition_order.id,
-      data: {
-        status: "APROBADO",
-        updated_by: `${user?.first_name} ${user?.last_name}`
-      },
       company: selectedCompany.slug
     })
 

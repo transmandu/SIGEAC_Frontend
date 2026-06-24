@@ -3,15 +3,9 @@
 import { ColumnDef } from '@tanstack/react-table'
 import { getArticleCostColumns } from './article-cost.columns'
 import { getGeneralCostColumns } from './general-cost.columns'
+import type { CostType, BuildColumnsArgs } from '@/types/purchase'
 
-type CostType = 'ARTICLE' | 'GENERAL'
-
-type DraftValue = string | number | undefined
-
-type BuildColumnsArgs = {
-  type: CostType
-  onCostChange: (id: number, value: string) => void
-}
+export { type ArticleCostRow, type GeneralCostRow, type DraftValue } from '@/types/purchase'
 
 export const getColumns = ({
   type,

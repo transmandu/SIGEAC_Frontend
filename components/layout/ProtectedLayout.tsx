@@ -3,16 +3,19 @@
 import { ReactNode, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCompanyStore } from '@/stores/CompanyStore';
 import LoadingPage from '../misc/LoadingPage';
 
 interface ProtectedLayoutProps {
   children: ReactNode;
   roles?: string[];
   permissions?: string[];
+  requiresOmac?: boolean;
 }
 
-const ProtectedLayout = ({ children, roles, permissions }: ProtectedLayoutProps) => {
+const ProtectedLayout = ({ children, roles, permissions, requiresOmac }: ProtectedLayoutProps) => {
   const { user, loading } = useAuth();
+  const { selectedCompany } = useCompanyStore();
   const router = useRouter();
 
   useEffect(() => {
@@ -35,9 +38,14 @@ const ProtectedLayout = ({ children, roles, permissions }: ProtectedLayoutProps)
 
       if (permissions && !permissions.some(permission => userPermissions.includes(permission))) {
         router.push('/not-authorized');
+        return;
+      }
+
+      if (requiresOmac !== undefined && selectedCompany?.isOMAC !== requiresOmac) {
+        router.push('/not-authorized');
       }
     }
-  }, [loading, user, roles, permissions, router]);
+  }, [loading, user, roles, permissions, requiresOmac, selectedCompany, router]);
 
   if (loading) return <LoadingPage />;
 
@@ -54,6 +62,10 @@ const ProtectedLayout = ({ children, roles, permissions }: ProtectedLayoutProps)
   }
 
   if (permissions && !permissions.some(permission => finalUserPermissions.includes(permission))) {
+    return null;
+  }
+
+  if (requiresOmac !== undefined && selectedCompany?.isOMAC !== requiresOmac) {
     return null;
   }
 

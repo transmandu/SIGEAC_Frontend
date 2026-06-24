@@ -1,26 +1,7 @@
 import axiosInstance from "@/lib/axios"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
-
-/* =========================
-   TYPES
-========================= */
-
-type UpdateCostPayload = {
-  company: string
-  id: number
-  cost: number
-}
-
-type BulkUpdateItem = {
-  id: number
-  cost: number
-}
-
-type BulkUpdatePayload = {
-  company: string
-  updates: BulkUpdateItem[]
-}
+import type { UpdateCostPayload, BulkUpdateItem, BulkUpdatePayload } from "@/types/purchase"
 
 /* =========================
    API CALLS

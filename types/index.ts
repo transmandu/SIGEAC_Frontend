@@ -1,5 +1,3 @@
-import { string } from "zod";
-
 export type Accountant = {
   id: number;
   name: string;
@@ -548,12 +546,6 @@ export type FlightPayment = {
   pay_description: string;
 };
 
-export type GeneralSalesReport = {
-  requisition_order: Requisition;
-  purchase_order?: PurchaseOrder;
-  quote_order?: Quote[];
-}[];
-
 export type JobTitle = {
   id: number;
   name: string;
@@ -614,71 +606,6 @@ export type Permission = {
   }[];
 };
 
-export type PurchaseOrder = {
-  id: number;
-  order_number: string;
-  justification: string;
-  article_purchase_order: {
-    batch?: {
-      name: string;
-    };
-    id: number;
-    article_part_number: string;
-    article_alt_part_number?: string;
-    quantity: number;
-    unit?: Unit;
-    unit_price: string;
-    article_tax: number;
-    usa_tracking: string;
-    ock_tracking: string;
-    article_location: string;
-  }[];
-  articles: Article[];
-  status: string;
-  purchase_date: Date;
-  tax: number;
-  wire_fee: number;
-  card?: Card;
-  bank_account?: BankAccount;
-  handling_fee: number;
-  shipping_fee: number;
-  ock_shipping: number;
-  usa_shipping: number;
-  sub_total: number;
-  total: number;
-  vendor: Vendor;
-  requisition_order: Requisition;
-  quote_order: Quote;
-  location: Location;
-  created_by: string;
-  company: string;
-};
-
-export type Quote = {
-  id: number;
-  quote_number: string;
-  justification: string;
-  article_quote_order: {
-    batch: {
-      name: string;
-    };
-    article_part_number: string;
-    article_alt_part_number?: string;
-    quantity: number;
-    unit_price: string;
-    unit?: Unit;
-    image: string;
-  }[];
-  sub_total: number;
-  total: number;
-  vendor: Vendor;
-  requisition_order: Requisition;
-  quote_date: Date;
-  created_by: string;
-  status: string;
-  observation?: string;
-};
-
 export type Renting = {
   id: number;
   description: string;
@@ -707,42 +634,6 @@ export type Request = {
   article?: Article;
   requested_by: string;
   created_by: string;
-};
-
-export type Requisition = {
-  id: number;
-  order_number: string;
-  status: string;
-  created_by: User;
-  requested_by: string;
-  batch: {
-    name: string;
-    batch_articles: {
-      article_part_number: string;
-      quantity: number;
-      unit?: Convertion;
-      image: string;
-      aircraft?: string;
-    }[];
-  }[];
-  received_by: string;
-  justification: string;
-  arrival_date: Date;
-  submission_date: Date;
-  work_order: WorkOrder;
-  aircraft: Aircraft;
-  quotes?: RequisitionQuote[];
-  type: "GENERAL" | "AERONAUTICO";
-  observation?: null;
-};
-
-export type RequisitionQuote = {
-  quote_number: string;
-  status: string;
-  vendor: {
-    name: string | null;
-  };
-  updated_at: string;
 };
 
 export type AdministrationRequisition = {
