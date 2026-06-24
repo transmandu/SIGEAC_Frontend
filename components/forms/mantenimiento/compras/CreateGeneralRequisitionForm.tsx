@@ -284,6 +284,14 @@ export function CreateGeneralRequisitionForm({
           setGeneralArticleSearch={setGeneralArticleSearch}
           units={units}
           isUnitsLoading={isUnitsLoading}
+          departments={departments}
+          isDepartmentsLoading={isDepartmentsLoading}
+          destinationEmployees={destinationEmployees}
+          isDestinationEmployeesLoading={isDestinationEmployeesLoading}
+          thirdParties={thirdParties}
+          isThirdPartiesLoading={isThirdPartiesLoading}
+          authorizedEmployees={authorizedEmployees}
+          isAuthorizedEmployeesLoading={isAuthorizedEmployeesLoading}
           handleGeneralArticleSelect={handleGeneralArticleSelect}
           handleGeneralArticleChange={handleGeneralArticleChange}
           removeGeneralArticle={removeGeneralArticle}

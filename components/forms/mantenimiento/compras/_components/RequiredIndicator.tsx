@@ -3,9 +3,10 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 
 interface RequiredIndicatorProps {
   show?: boolean;
+  invalid?: boolean;
 }
 
-export function RequiredIndicator({ show = true }: RequiredIndicatorProps) {
+export function RequiredIndicator({ show = true, invalid = false }: RequiredIndicatorProps) {
   if (!show) return null;
 
   return (
@@ -19,7 +20,7 @@ export function RequiredIndicator({ show = true }: RequiredIndicatorProps) {
         </span>
       </TooltipTrigger>
       <TooltipContent side="top" className="text-xs px-2 py-1">
-        <p>Campo obligatorio</p>
+        <p>{invalid ? "Campo obligatorio: falta completar" : "Campo obligatorio"}</p>
       </TooltipContent>
     </Tooltip>
   )

@@ -2,8 +2,9 @@
 
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-import { ImageIcon } from 'lucide-react';
+import { Building2, Handshake, ImageIcon, ShieldCheck, User } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import PriorityIndicator from './PriorityIndicator';
 import { articleStatusUI } from './utils/uiHelpers';
@@ -31,6 +32,40 @@ const GeneralArticleCard = ({ article, onImageClick, requisitionStatus }: Genera
 
   const imageSrc = getImageSrc();
   const isRejected = article.status === 'REJECTED' && requisitionStatus !== 'RECHAZADO';
+
+  // Usually at most 1-2 of these are populated, so only the ones present render.
+  const destinationEntries = [
+    article.department && {
+      key: 'department',
+      icon: Building2,
+      label: 'Departamento',
+      value: article.department.acronym ?? article.department.name,
+      tooltip: article.department.acronym
+        ? `Departamento: ${article.department.name}`
+        : `Departamento: ${article.department.name} (sin acrónimo)`,
+    },
+    article.third_party && {
+      key: 'third_party',
+      icon: Handshake,
+      label: 'Tercero',
+      value: article.third_party.name,
+      tooltip: `Tercero: ${article.third_party.name}`,
+    },
+    article.employee && {
+      key: 'employee',
+      icon: User,
+      label: 'Solicitante',
+      value: `${article.employee.first_name} ${article.employee.last_name}`.trim(),
+      tooltip: `Solicitante: ${article.employee.first_name} ${article.employee.last_name}`.trim(),
+    },
+    article.authorized_employee && {
+      key: 'authorized_employee',
+      icon: ShieldCheck,
+      label: 'Autorizado',
+      value: article.authorized_employee.full_name ?? article.authorized_employee.dni_employee,
+      tooltip: `Autorizado: ${article.authorized_employee.full_name ?? article.authorized_employee.dni_employee}`,
+    },
+  ].filter(Boolean) as { key: string; icon: typeof Building2; label: string; value: string; tooltip: string }[];
 
   return (
     <div className="rounded-lg border border-border/60 bg-background/70 overflow-hidden mx-3">
@@ -64,7 +99,7 @@ const GeneralArticleCard = ({ article, onImageClick, requisitionStatus }: Genera
       {/* BODY */}
       <div className="px-3 py-3">
         {/* Desktop & Tablet: side-by-side layout */}
-        <div className="hidden md:grid grid-cols-[1fr_auto] gap-5 items-center">
+        <div className="hidden md:grid grid-cols-[1fr_auto_auto] gap-5 items-center">
           {/* IZQUIERDA */}
           <div className="min-w-0 space-y-2.5">
             <div className="space-y-1">
@@ -85,6 +120,31 @@ const GeneralArticleCard = ({ article, onImageClick, requisitionStatus }: Genera
               </div>
             </div>
           </div>
+
+          {/* CENTRO: DESTINO */}
+          {destinationEntries.length > 0 && (
+            <div className="flex flex-col items-center gap-1.5 shrink-0 px-2">
+              <span className="text-[10px] tracking-wide text-muted-foreground select-none">
+                DESTINO
+              </span>
+              <div className="flex flex-col gap-1.5">
+                {destinationEntries.map(({ key, icon: Icon, label, value, tooltip }) => (
+                  <Tooltip key={key}>
+                    <TooltipTrigger asChild>
+                      <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground bg-background/60 border border-border/40 rounded-full px-2.5 py-1 w-[210px] cursor-default">
+                        <Icon className="size-3 shrink-0 opacity-70" />
+                        <span className="font-medium text-foreground/80 shrink-0">{label}:</span>
+                        <span className="truncate">{value}</span>
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">
+                      {tooltip}
+                    </TooltipContent>
+                  </Tooltip>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* DERECHA */}
           <div className="flex flex-col gap-2 shrink-0">
@@ -207,6 +267,30 @@ const GeneralArticleCard = ({ article, onImageClick, requisitionStatus }: Genera
                 {article.variant_type ?? 'N/A'}
               </div>
             </div>
+
+            {destinationEntries.length > 0 && (
+              <div className="space-y-1">
+                <span className="text-[10px] tracking-wide text-muted-foreground">
+                  DESTINO
+                </span>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {destinationEntries.map(({ key, icon: Icon, label, value, tooltip }) => (
+                    <Tooltip key={key}>
+                      <TooltipTrigger asChild>
+                        <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground bg-background/60 border border-border/40 rounded-full px-2.5 py-1 max-w-[210px] cursor-default">
+                          <Icon className="size-3 shrink-0 opacity-70" />
+                          <span className="font-medium text-foreground/80 shrink-0">{label}:</span>
+                          <span className="truncate">{value}</span>
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent side="top">
+                        {tooltip}
+                      </TooltipContent>
+                    </Tooltip>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Attributes grid */}
