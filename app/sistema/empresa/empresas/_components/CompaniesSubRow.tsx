@@ -164,6 +164,7 @@ export default function CompaniesSubRow({
                                 src={company.logo}
                                 alt={company.slug}
                                 fill
+                                unoptimized
                                 className="object-cover"
                             />
                         ) : (
