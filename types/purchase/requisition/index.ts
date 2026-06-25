@@ -93,11 +93,13 @@ export interface Requisition {
   batch: {
     name: string;
     batch_articles: {
+      id?: number;
       article_part_number: string;
       quantity: number;
       unit?: Convertion;
       image: string;
       aircraft?: string;
+      priority?: PurchasePriority | string;
     }[];
   }[];
   general_articles?: {
@@ -108,6 +110,7 @@ export interface Requisition {
     quantity: number;
     unit?: Unit;
     image?: string;
+    priority?: PurchasePriority | string;
     department?: GeneralArticleDepartment | null;
     third_party?: GeneralArticleThirdParty | null;
     employee?: GeneralArticleEmployee | null;

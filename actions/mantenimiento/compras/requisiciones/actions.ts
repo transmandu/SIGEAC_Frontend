@@ -86,6 +86,40 @@ export const useDeleteRequisition = () => {
   }
 }
 
+export const useUpdateRequisitionPriority = () => {
+  const queryClient = useQueryClient()
+
+  const updatePriorityMutation = useMutation({
+    mutationFn: async ({ id, data, company }: {
+      id: number,
+      data: {
+        priority?: string | null,
+        articles?: { id: number, priority?: string | null }[],
+        general_articles?: { id: number, priority?: string | null }[]
+      },
+      company: string
+    }) => {
+      await axiosInstance.put(`/${company}/requisition-order-update-priority/${id}`, data)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['requisitions-orders'] })
+      queryClient.invalidateQueries({ queryKey: ['requisition-order'], exact: false })
+      toast.success("¡Actualizada!", {
+        description: `¡La prioridad ha sido actualizada correctamente!`
+      })
+    },
+    onError: (e) => {
+      toast.error("Oops!", {
+        description: "¡Hubo un error al actualizar la prioridad!"
+      })
+    },
+  })
+
+  return {
+    updatePriorityRequisition: updatePriorityMutation,
+  }
+}
+
 export const useUpdateRequisitionStatus = () => {
   const queryClient = useQueryClient()
 
