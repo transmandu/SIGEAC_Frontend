@@ -159,7 +159,7 @@ export function CompanyUpdateForm({ company, onSuccess }: Props) {
     onSuccess?.();
   };
 
-  const logoSrc = preview || company?.logo_url;
+  const logoSrc = preview || company?.logo;
 
   /* =========================
      UI
