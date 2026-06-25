@@ -3,9 +3,12 @@ import { Button } from "@/components/ui/button"
 import { FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
-import { Building2, Check, ChevronsUpDown, Layers, MinusCircle, PackagePlus, Ruler, Tag, User, UserCog } from "lucide-react"
+import { format, parseISO } from "date-fns"
+import { es } from "date-fns/locale"
+import { Building2, Calendar as CalendarIcon, Check, ChevronsUpDown, Layers, MinusCircle, PackagePlus, Ruler, Tag, User, UserCog } from "lucide-react"
 import { useMemo } from "react"
 import type { UseFormReturn } from "react-hook-form"
+import { Calendar } from "@/components/ui/calendar"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -117,9 +120,45 @@ function DestinationFieldsRow({
   const selectedEmployee = destinationEmployees?.find((e) => e.id.toString() === article.employee_id);
   const authorizedOrThirdPartyValue = getAuthorizedOrThirdPartyValue(article);
   const authorizedOrThirdPartyLabel = getAuthorizedOrThirdPartyLabel(article);
+  const requestedDate = article.requested_date ? parseISO(article.requested_date) : undefined;
 
   return (
     <div className="flex items-center justify-center gap-2 mt-1.5">
+      <div className="flex flex-col gap-1 w-32 shrink-0">
+        <label className="flex items-center gap-1 text-[10px] font-medium text-muted-foreground select-none">
+          <CalendarIcon className="size-3" />
+          Fecha Solicitud
+        </label>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              type="button"
+              variant="outline"
+              className={cn(
+                "w-full justify-start text-xs h-8 px-2 font-normal text-muted-foreground",
+                requestedDate && "text-foreground"
+              )}
+            >
+              <CalendarIcon className="mr-1 h-3 w-3 shrink-0 opacity-50" />
+              <span className="truncate">
+                {requestedDate ? format(requestedDate, "dd MMM yyyy", { locale: es }) : "Opcional"}
+              </span>
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0">
+            <Calendar
+              mode="single"
+              selected={requestedDate}
+              onSelect={(date) =>
+                handleGeneralArticleChange(index, "requested_date", date ? format(date, "yyyy-MM-dd") : undefined)
+              }
+              locale={es}
+              initialFocus
+            />
+          </PopoverContent>
+        </Popover>
+      </div>
+
       <div className="flex flex-col gap-1 w-48 shrink-0">
         <label className="flex items-center gap-1 text-[10px] font-medium text-muted-foreground select-none">
           <Building2 className="size-3" />

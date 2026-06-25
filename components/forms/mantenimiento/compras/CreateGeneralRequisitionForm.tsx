@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { format } from "date-fns";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   useCreateRequisition,
@@ -38,7 +39,7 @@ const FormSchema = z.object({
   company: z.string(),
   location_id: z.string(),
   created_by: z.string(),
-  requested_by: z.string(),
+  requested_by: z.string().min(1, "Debe ingresar quien lo solicita."),
   priority: z.enum(["HIGH", "MEDIUM", "LOW"]).optional(),
   department_id: z.string().optional(),
   third_party_id: z.string().optional(),
@@ -53,7 +54,8 @@ const FormSchema = z.object({
   general_articles: z.array(
     z.object({
       description: z.string().min(1, "La descripción es obligatoria"),
-      variant_type: z.string().optional(),
+      requested_date: z.string().optional(),
+      variant_type: z.string().nullable().optional(),
       quantity: z.number().min(1, "La cantidad debe ser mayor a 0"),
       unit_id: z.string().optional(),
       priority: z.enum(["HIGH", "MEDIUM", "LOW"]).optional(),
@@ -163,7 +165,7 @@ export function CreateGeneralRequisitionForm({
   }, [user, selectedCompany, selectedStation, initialData, form]);
 
   useEffect(() => {
-    form.setValue("general_articles", selectedGeneralArticles);
+    form.setValue("general_articles", selectedGeneralArticles, { shouldValidate: form.formState.isSubmitted });
   }, [selectedGeneralArticles, form]);
 
   /* ------------------------------- HANDLERS ------------------------------- */
@@ -239,6 +241,10 @@ export function CreateGeneralRequisitionForm({
       type: "GENERAL" as const,
       department_id: data.department_id ? Number(data.department_id) : undefined,
       third_party_id: data.third_party_id ? Number(data.third_party_id) : undefined,
+      general_articles: data.general_articles.map((article) => ({
+        ...article,
+        requested_date: article.requested_date ?? format(new Date(), "yyyy-MM-dd"),
+      })),
     };
 
     if (isEditing) {

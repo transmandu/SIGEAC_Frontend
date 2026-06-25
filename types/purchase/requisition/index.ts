@@ -57,6 +57,7 @@ export interface RequisitionBatch {
 export interface RequisitionGeneralArticle {
   id: number;
   description: string;
+  requested_date?: string | null;
   variant_type?: string | null;
   quantity: string | number;
   approved_quantity?: string | number;
@@ -102,10 +103,15 @@ export interface Requisition {
   general_articles?: {
     id: number;
     description: string;
+    requested_date?: string | null;
     variant_type?: string;
     quantity: number;
     unit?: Unit;
     image?: string;
+    department?: GeneralArticleDepartment | null;
+    third_party?: GeneralArticleThirdParty | null;
+    employee?: GeneralArticleEmployee | null;
+    authorized_employee?: GeneralArticleAuthorizedEmployee | null;
   }[];
   received_by?: string;
   justification: string;
@@ -174,7 +180,8 @@ export interface BatchPayload {
 /** Form payload for a general article inside a requisition. */
 export interface GeneralArticlePayload {
   description?: string;
-  variant_type?: string;
+  requested_date?: string;
+  variant_type?: string | null;
   quantity: number;
   unit_id?: string | number;
   priority?: 'HIGH' | 'MEDIUM' | 'LOW';
@@ -213,7 +220,8 @@ export interface RequisitionBatchForm {
 /** Form state for a general article inside a requisition form. */
 export interface RequisitionGeneralArticleForm {
   description: string;
-  variant_type?: string;
+  requested_date?: string;
+  variant_type?: string | null;
   quantity: number;
   unit_id?: string;
   priority?: 'HIGH' | 'MEDIUM' | 'LOW';
@@ -228,7 +236,9 @@ export interface RequisitionGeneralArticleForm {
 export interface CreateRequisitionData {
   justification?: string;
   observation?: string;
-  requested_by: string;
+  /** Either requested_by (DNI) or requested_by_authorized_employee_id must be present. */
+  requested_by?: string;
+  requested_by_authorized_employee_id?: number;
   created_by: string | number;
   location_id: string | number;
   type: 'AERONAUTICAL' | 'GENERAL';

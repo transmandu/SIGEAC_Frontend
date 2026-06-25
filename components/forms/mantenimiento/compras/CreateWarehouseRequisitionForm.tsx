@@ -20,6 +20,7 @@ import { z } from "zod"
 import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits"
 import { cn } from "@/lib/utils"
 import { useGetGeneralArticles } from "@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticles"
+import { format } from "date-fns"
 import type { RequisitionBatchForm, RequisitionGeneralArticleForm } from "@/types/purchase"
 import type { Aircraft, GeneralArticle } from "@/types"
 import { Separator } from "@/components/ui/separator"
@@ -38,7 +39,8 @@ const FormSchema = z.object({
   company: z.string(),
   location_id: z.string(),
   created_by: z.string(),
-  requested_by: z.string({ message: "Debe ingresar quien lo solicita." }),
+  requested_by: z.string().optional(),
+  requested_by_authorized_employee_id: z.string().optional(),
   priority: z.enum(["HIGH", "MEDIUM", "LOW"]).optional(),
   work_order_id: z.string().optional(),
   aircraft_id: z.string().optional(),
@@ -73,7 +75,8 @@ const FormSchema = z.object({
     .array(
       z.object({
         description: z.string().min(1, "La descripción es obligatoria"),
-        variant_type: z.string().optional(),
+        requested_date: z.string().optional(),
+        variant_type: z.string().nullable().optional(),
         quantity: z.number().min(1, "La cantidad debe ser mayor a 0"),
         unit_id: z.string().optional(),
         priority: z.enum(["HIGH", "MEDIUM", "LOW"]).optional(),
@@ -94,6 +97,12 @@ const FormSchema = z.object({
   {
     message: "Debe agregar al menos un artículo",
     path: ["articles"],
+  }
+).refine(
+  (data) => !!data.requested_by || !!data.requested_by_authorized_employee_id,
+  {
+    message: "Debe seleccionar un empleado o un empleado autorizado.",
+    path: ["requested_by"],
   }
 );
 
@@ -249,8 +258,8 @@ export function CreateWarehouseRequisitionForm({
   }, [selectedStation, mutate, selectedCompany]);
 
   useEffect(() => {
-    form.setValue("articles", selectedBatches.length > 0 ? selectedBatches : undefined);
-    form.setValue("general_articles", selectedGeneralArticles.length > 0 ? selectedGeneralArticles : undefined);
+    form.setValue("articles", selectedBatches.length > 0 ? selectedBatches : undefined, { shouldValidate: form.formState.isSubmitted });
+    form.setValue("general_articles", selectedGeneralArticles.length > 0 ? selectedGeneralArticles : undefined, { shouldValidate: form.formState.isSubmitted });
   }, [selectedBatches, selectedGeneralArticles, form]);
 
   // Aircraft Sync: the header aircraft is the default for batch items. We only
@@ -382,6 +391,7 @@ export function CreateWarehouseRequisitionForm({
         ...prev,
         {
           description: article.description,
+          requested_date: format(new Date(), "yyyy-MM-dd"),
           variant_type: article.variant_type,
           quantity: 0,
           unit_id: undefined,
@@ -415,6 +425,7 @@ export function CreateWarehouseRequisitionForm({
       ...prev,
       {
         description: "",
+        requested_date: format(new Date(), "yyyy-MM-dd"),
         variant_type: "",
         quantity: 0,
         unit_id: undefined,
@@ -429,6 +440,9 @@ export function CreateWarehouseRequisitionForm({
       type: requisitionType,
       work_order_id: data.work_order_id ? Number(data.work_order_id) : undefined,
       aircraft_id: data.aircraft_id ? Number(data.aircraft_id) : undefined,
+      requested_by_authorized_employee_id: data.requested_by_authorized_employee_id
+        ? Number(data.requested_by_authorized_employee_id)
+        : undefined,
     };
 
     await createRequisition.mutateAsync({ data: formattedData, company: selectedCompany!.slug });
@@ -448,6 +462,9 @@ export function CreateWarehouseRequisitionForm({
           filteredEmployees={filteredEmployees}
           employeeSearch={employeeSearch}
           setEmployeeSearch={setEmployeeSearch}
+          authorizedEmployees={authorizedEmployees}
+          isAuthorizedEmployeesLoading={isAuthorizedEmployeesLoading}
+          allowAuthorizedEmployees
           workOrders={workOrders}
           isWorkOrdersLoading={isWorkOrdersLoading}
           isWorkOrdersError={isWorkOrdersError}

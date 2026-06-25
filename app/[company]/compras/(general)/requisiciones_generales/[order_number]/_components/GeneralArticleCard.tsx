@@ -4,7 +4,8 @@ import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-import { Building2, Handshake, ImageIcon, ShieldCheck, User } from 'lucide-react';
+import { format, parseISO } from 'date-fns';
+import { Building2, CalendarDays, Handshake, ImageIcon, ShieldCheck, User } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import PriorityIndicator from './PriorityIndicator';
 import { articleStatusUI } from './utils/uiHelpers';
@@ -94,6 +95,12 @@ const GeneralArticleCard = ({ article, onImageClick, requisitionStatus }: Genera
             GENERAL
           </span>
         </div>
+        {article.requested_date && (
+          <div className="flex items-center gap-1 shrink-0 text-[11px] text-muted-foreground">
+            <CalendarDays className="size-3 opacity-70" />
+            <span>Solicitado el {format(parseISO(article.requested_date), 'dd/MM/yyyy')}</span>
+          </div>
+        )}
       </div>
 
       {/* BODY */}

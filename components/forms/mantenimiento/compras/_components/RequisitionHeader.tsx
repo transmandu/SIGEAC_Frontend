@@ -1,14 +1,22 @@
 "use client"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { cn } from "@/lib/utils"
 import { Check, ChevronsUpDown, FileText, Plane, Tag, User, ArrowUp, ArrowDown, Minus, ArrowBigDown, Building2, Briefcase } from "lucide-react"
 import type { UseFormReturn } from "react-hook-form"
 import type { Employee, WorkOrder, Aircraft, Department, ThirdParty } from "@/types"
+import type { AuthorizedEmployeeResponse } from "@/hooks/sistema/autorizados/useGetAuthorizedEmployees"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Separator } from "@/components/ui/separator"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { RequiredIndicator } from "./RequiredIndicator"
+
+// Regular employees and authorized (cross-company) employees live in two
+// separate tables/id spaces, so the requester combobox is split into two
+// tabs rather than one merged, ambiguous list.
+type RequesterTab = "employee" | "authorized";
 
 interface RequisitionHeaderProps {
   form: UseFormReturn<any>;
@@ -17,6 +25,9 @@ interface RequisitionHeaderProps {
   filteredEmployees: Employee[];
   employeeSearch: string;
   setEmployeeSearch: (v: string) => void;
+  authorizedEmployees?: AuthorizedEmployeeResponse[];
+  isAuthorizedEmployeesLoading?: boolean;
+  allowAuthorizedEmployees?: boolean;
   workOrders?: WorkOrder[];
   isWorkOrdersLoading?: boolean;
   isWorkOrdersError?: boolean;
@@ -45,6 +56,9 @@ export function RequisitionHeader({
   filteredEmployees,
   employeeSearch,
   setEmployeeSearch,
+  authorizedEmployees,
+  isAuthorizedEmployeesLoading = false,
+  allowAuthorizedEmployees = false,
   workOrders,
   isWorkOrdersLoading,
   isWorkOrdersError,
@@ -65,6 +79,18 @@ export function RequisitionHeader({
   thirdParties,
   isThirdPartiesLoading,
 }: RequisitionHeaderProps) {
+  const [requesterTab, setRequesterTab] = useState<RequesterTab>("employee");
+  const [authorizedEmployeeSearch, setAuthorizedEmployeeSearch] = useState("");
+
+  const filteredAuthorizedEmployees = (authorizedEmployees ?? []).filter((emp) => {
+    const query = authorizedEmployeeSearch.toLowerCase().trim();
+    if (!query) return true;
+    return `${emp.employee_name} ${emp.dni_employee} ${emp.from_company_db}`.toLowerCase().includes(query);
+  });
+
+  const formatAuthorizedEmployeeLabel = (authorizedEmployee: AuthorizedEmployeeResponse) =>
+    `${authorizedEmployee.employee_name}`;
+
   return (
     <div className="rounded-lg border bg-card p-3 space-y-1.5">
       <div className="flex items-center gap-1.5">
@@ -72,12 +98,65 @@ export function RequisitionHeader({
         <Separator className="flex-1" />
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        {/* Requester - Searchable Select */}
+        {/* Requester - Searchable Select (regular or authorized employee) */}
         <FormField
           control={form.control}
           name="requested_by"
           render={({ field }) => {
-            const selectedEmployee = employees?.find((e) => `${e.dni}` === field.value);
+            const authorizedEmployeeId = allowAuthorizedEmployees
+              ? form.watch("requested_by_authorized_employee_id")
+              : undefined;
+            const selectedEmployee = !authorizedEmployeeId
+              ? employees?.find((e) => `${e.dni}` === field.value)
+              : undefined;
+            const selectedAuthorizedEmployee = authorizedEmployeeId
+              ? authorizedEmployees?.find((a) => `${a.id}` === authorizedEmployeeId)
+              : undefined;
+
+            const selectEmployee = (dni: string) => {
+              form.setValue("requested_by", dni);
+              if (allowAuthorizedEmployees) {
+                form.setValue("requested_by_authorized_employee_id", undefined);
+              }
+            };
+
+            const selectAuthorizedEmployee = (authorizedEmployee: AuthorizedEmployeeResponse) => {
+              form.setValue("requested_by", authorizedEmployee.dni_employee);
+              form.setValue("requested_by_authorized_employee_id", `${authorizedEmployee.id}`);
+            };
+
+            const employeeList = (
+              <Command shouldFilter={false}>
+                <CommandInput
+                  placeholder="Busque un empleado..."
+                  value={employeeSearch}
+                  onValueChange={setEmployeeSearch}
+                />
+                <CommandList>
+                  <CommandEmpty className="text-sm p-2 text-center">
+                    {employeeSearch ? "No se ha encontrado ningún empleado." : "Escriba para buscar..."}
+                  </CommandEmpty>
+                  <CommandGroup>
+                    {filteredEmployees.map((employee) => (
+                      <CommandItem
+                        value={`${employee.dni} ${employee.first_name} ${employee.last_name}`}
+                        key={employee.id}
+                        onSelect={() => selectEmployee(`${employee.dni}`)}
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            `${employee.dni}` === field.value && !authorizedEmployeeId ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                        {employee.first_name} {employee.last_name}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            );
+
             return (
               <FormItem className="w-full">
                 <FormLabel
@@ -98,43 +177,64 @@ export function RequisitionHeader({
                     >
                       {selectedEmployee
                         ? <span>{selectedEmployee.first_name} {selectedEmployee.last_name}</span>
-                        : <span>Elige al solicitante...</span>}
+                        : selectedAuthorizedEmployee
+                          ? <span>{formatAuthorizedEmployeeLabel(selectedAuthorizedEmployee)}</span>
+                          : <span>Elige al solicitante...</span>}
                       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="p-0" matchTriggerWidth>
-                    <Command shouldFilter={false}>
-                      <CommandInput
-                        placeholder="Busque un empleado..."
-                        value={employeeSearch}
-                        onValueChange={setEmployeeSearch}
-                      />
-                      <CommandList>
-                        <CommandEmpty className="text-sm p-2 text-center">
-                          {employeeSearch ? "No se ha encontrado ningún empleado." : "Escriba para buscar..."}
-                        </CommandEmpty>
-                        <CommandGroup>
-                          {filteredEmployees.map((employee) => (
-                            <CommandItem
-                              value={`${employee.dni} ${employee.first_name} ${employee.last_name}`}
-                              key={employee.id}
-                              onSelect={(currentValue: string) => {
-                                const dni = currentValue.split(" ")[0];
-                                form.setValue("requested_by", dni);
-                              }}
-                            >
-                              <Check
-                                className={cn(
-                                  "mr-2 h-4 w-4",
-                                  `${employee.dni}` === field.value ? "opacity-100" : "opacity-0"
-                                )}
-                              />
-                              {employee.first_name} {employee.last_name}
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
+                    {!allowAuthorizedEmployees ? (
+                      employeeList
+                    ) : (
+                      <>
+                        <Tabs value={requesterTab} onValueChange={(v) => setRequesterTab(v as RequesterTab)}>
+                          <TabsList className="grid w-full grid-cols-2 h-9 rounded-none">
+                            <TabsTrigger value="employee" className="text-xs">Empleado</TabsTrigger>
+                            <TabsTrigger value="authorized" className="text-xs">Autorizado</TabsTrigger>
+                          </TabsList>
+                        </Tabs>
+                        {requesterTab === "employee" ? (
+                          employeeList
+                        ) : (
+                          <Command shouldFilter={false}>
+                            <CommandInput
+                              placeholder="Busque un empleado autorizado..."
+                              value={authorizedEmployeeSearch}
+                              onValueChange={setAuthorizedEmployeeSearch}
+                            />
+                            <CommandList>
+                              <CommandEmpty className="text-sm p-2 text-center">
+                                {isAuthorizedEmployeesLoading
+                                  ? "Cargando..."
+                                  : authorizedEmployeeSearch
+                                    ? "No se ha encontrado ningún empleado autorizado."
+                                    : authorizedEmployees?.length
+                                      ? "Escriba para buscar..."
+                                      : "No hay empleados autorizados para esta compañía."}
+                              </CommandEmpty>
+                              <CommandGroup>
+                                {filteredAuthorizedEmployees.map((authorizedEmployee) => (
+                                  <CommandItem
+                                    value={`${authorizedEmployee.id} ${formatAuthorizedEmployeeLabel(authorizedEmployee)}`}
+                                    key={authorizedEmployee.id}
+                                    onSelect={() => selectAuthorizedEmployee(authorizedEmployee)}
+                                  >
+                                    <Check
+                                      className={cn(
+                                        "mr-2 h-4 w-4",
+                                        `${authorizedEmployee.id}` === authorizedEmployeeId ? "opacity-100" : "opacity-0"
+                                      )}
+                                    />
+                                    {formatAuthorizedEmployeeLabel(authorizedEmployee)}
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        )}
+                      </>
+                    )}
                   </PopoverContent>
                 </Popover>
                 <FormMessage />

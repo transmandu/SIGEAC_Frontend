@@ -242,6 +242,20 @@ const GeneralArticleCard = ({ article }: { article: any }) => {
             </div>
           )}
 
+          {article.requested_date && (
+            <div>
+              <p className="text-muted-foreground text-xs">Fecha Solicitud</p>
+              <p className="font-medium">
+                {new Intl.DateTimeFormat('es-VE', {
+                  timeZone: 'America/Caracas',
+                  year: 'numeric',
+                  month: '2-digit',
+                  day: '2-digit',
+                }).format(new Date(article.requested_date))}
+              </p>
+            </div>
+          )}
+
           <div>
             <p className="text-muted-foreground text-xs">Cantidad</p>
             <p className="font-medium">{article.quantity}</p>

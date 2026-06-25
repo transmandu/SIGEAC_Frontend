@@ -1,5 +1,7 @@
 'use client'
 
+import { format, parseISO } from 'date-fns'
+import { es } from 'date-fns/locale'
 import { HelpCircle, Layers, Package, Plane } from 'lucide-react'
 
 import {
@@ -170,17 +172,24 @@ export default function RequisitionArticlesPopover({ requisition }: Props) {
               { label: 'Present. / Especif.', value: article.variant_type ?? 'N/A' },
             ]
 
-            const destination =
-              article.department?.name ??
-              article.third_party?.name ??
-              (article.employee &&
-                `${article.employee.first_name} ${article.employee.last_name}`) ??
-              (article.authorized_employee?.full_name ||
-                article.authorized_employee?.dni_employee) ??
-              null
+            if (article.requested_date) {
+              fields.push({
+                label: 'Fecha Solicitud',
+                value: format(parseISO(article.requested_date), 'dd MMM yyyy', { locale: es }),
+              })
+            }
 
-            if (destination) {
-              fields.push({ label: 'Destino', value: destination })
+            const destinations = [
+              article.department?.name,
+              article.third_party?.name,
+              article.employee &&
+                `${article.employee.first_name} ${article.employee.last_name}`,
+              article.authorized_employee?.full_name ||
+                article.authorized_employee?.dni_employee,
+            ].filter(Boolean)
+
+            if (destinations.length > 0) {
+              fields.push({ label: 'Destino', value: destinations.join(' / ') })
             }
 
             return (
