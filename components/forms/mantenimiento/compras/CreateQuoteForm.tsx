@@ -58,7 +58,7 @@ const FormSchema = z.object({
     z.object({
       general_article_requisition_order_id: z.number().optional(),
       description: z.string(),
-      variant_type: z.string().optional(),
+      variant_type: z.string().nullable().optional(),
       brand_model: z.string().optional(),
       original_brand_model: z.string().optional(),
       quantity: z.string().regex(/^\d+(\.\d{0,2})?$/),
