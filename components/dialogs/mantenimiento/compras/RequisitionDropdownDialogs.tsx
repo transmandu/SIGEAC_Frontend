@@ -6,7 +6,7 @@ import {
 } from "@/actions/mantenimiento/compras/requisiciones/actions"
 import { useAuth } from "@/contexts/AuthContext"
 import { useCompanyStore } from "@/stores/CompanyStore"
-import { Requisition } from "@/types"
+import type { Requisition } from "@/types/purchase"
 import {
     AlertTriangle,
   ClipboardX,
@@ -16,6 +16,7 @@ import {
 } from "lucide-react"
 import LoadingPage from "@/components/misc/LoadingPage"
 import { CreateQuoteForm } from "../../../forms/mantenimiento/compras/CreateQuoteForm"
+import { CreateGeneralQuoteForm } from "../../../forms/general/compras/CreateGeneralQuoteForm"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -103,6 +104,9 @@ const RequisitionDropdownDialogs = ({
   const [Observation, setObservation] = useState("")
 
   const initialData = transformApiData(req)
+
+  // Las requisiciones GENERAL cotizan sin proveedor mediante el formulario general.
+  const isGeneralRequisition = req.type === "GENERAL"
 
   if (!selectedCompany) return <LoadingPage />
 
@@ -333,10 +337,14 @@ const RequisitionDropdownDialogs = ({
             backdrop-blur-xl
             shadow-2xl
             p-0
+            max-h-[85vh]
+            flex
+            flex-col
           "
         >
           <DialogHeader
             className="
+              shrink-0
               border-b border-border/40
               bg-muted/20
               px-6
@@ -396,15 +404,25 @@ const RequisitionDropdownDialogs = ({
             </div>
           </DialogHeader>
 
-          <div className="px-8 py-6">
-            <CreateQuoteForm
-              req={req}
-              initialData={initialData}
-              onClose={() => {
-                setOpenConfirm(false)
-                onSuccessUpdate?.()
-              }}
-            />
+          <div className="overflow-y-auto px-8 py-6">
+            {isGeneralRequisition ? (
+              <CreateGeneralQuoteForm
+                req={req as any}
+                onClose={() => {
+                  setOpenConfirm(false)
+                  onSuccessUpdate?.()
+                }}
+              />
+            ) : (
+              <CreateQuoteForm
+                req={req}
+                initialData={initialData}
+                onClose={() => {
+                  setOpenConfirm(false)
+                  onSuccessUpdate?.()
+                }}
+              />
+            )}
           </div>
         </DialogContent>
       </Dialog>

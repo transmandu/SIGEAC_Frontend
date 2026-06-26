@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useAuth } from "@/contexts/AuthContext"
-import { Requisition } from "@/types"
+import type { Requisition } from "@/types/purchase"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,11 +21,13 @@ import {
   FileDown,
   MoreHorizontal,
   Receipt,
+  Tag,
   Trash2
 } from "lucide-react"
 import { PDFDownloadLink } from "@react-pdf/renderer"
 import RequisitionReportPdf from "@/components/pdf/almacen/RequisitionReportPdf"
 import RequisitionDropdownDialogs from "@/components/dialogs/mantenimiento/compras/RequisitionDropdownDialogs"
+import UpdateRequisitionPriorityDialog from "@/components/dialogs/mantenimiento/compras/UpdateRequisitionPriorityDialog"
 
 const iconBase =
   "size-[18px] transition-all duration-200 ease-out group-hover:scale-110"
@@ -60,26 +62,38 @@ const RequisitionDropdownActions = ({
   const [openDelete, setOpenDelete] = useState(false)
   const [openConfirm, setOpenConfirm] = useState(false)
   const [openReject, setOpenReject] = useState(false)
+  const [openPriority, setOpenPriority] = useState(false)
 
   const userRoles = user?.roles?.map(role => role.name) || []
+  const canChangePriority = ["JEFE_ALMACEN", "SUPERUSER"].some(role =>
+    userRoles.includes(role)
+  );
 
   const canQuote =
-    !(req.status === "APROBADO" || req.status === "RECHAZADO")
+    !(req.status === "APROBADA" || req.status === "RECHAZADO")
   const canReject =
-    !(req.status === "RECHAZADO" || req.status === "APROBADO")
+    !(req.status === "RECHAZADO" || req.status === "APROBADA")
+  const canChangePriorityStatus =
+    !(req.status === "APROBADA" || req.status === "COTIZADO")
 
   const quoteTooltip =
-    req.status === "APROBADO"
+    req.status === "APROBADA"
       ? "Una cotización ya fue aprobada para esta requisición"
       : req.status === "RECHAZADO"
       ? "Esta requisición ha sido rechazada"
       : "Generar cotización"
   const rejectTooltip =
-    req.status === "APROBADO"
+    req.status === "APROBADA"
       ? "Esta requisición ya fue aprobada"
       : req.status === "RECHAZADO"
       ? "Esta requisición ya fue rechazada"
       : "Rechazar solicitud"
+  const priorityTooltip =
+    req.status === "APROBADA"
+      ? "Esta requisición ya fue aprobada"
+      : req.status === "COTIZADO"
+      ? "Esta requisición ya fue cotizada"
+      : "Cambiar prioridad"
 
   return (
     <TooltipProvider delayDuration={120}>
@@ -219,6 +233,39 @@ const RequisitionDropdownActions = ({
               </Tooltip>
             </PDFDownloadLink>
 
+            {/* CAMBIAR PRIORIDAD */}
+            {canChangePriority && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span>
+                    <DropdownMenuItem
+                      asChild
+                      disabled={!canChangePriorityStatus}
+                      className="p-0 focus:bg-transparent"
+                    >
+                      <button
+                        onClick={() => {
+                          setOpenDropdown(false)
+                          setOpenPriority(true)
+                        }}
+                        className={`
+                          ${itemBase}
+                          text-amber-600
+                          ${!canChangePriorityStatus ? disabledClass : ""}
+                        `}
+                      >
+                        <Tag className={iconBase} />
+                      </button>
+                    </DropdownMenuItem>
+                  </span>
+                </TooltipTrigger>
+
+                <TooltipContent>
+                  {priorityTooltip}
+                </TooltipContent>
+              </Tooltip>
+            )}
+
             {/* ELIMINAR */}
             <Tooltip>
               <TooltipTrigger asChild>
@@ -257,6 +304,14 @@ const RequisitionDropdownActions = ({
           openReject={openReject}
           setOpenReject={setOpenReject}
         />
+
+        {canChangePriority && (
+          <UpdateRequisitionPriorityDialog
+            req={req}
+            open={openPriority}
+            setOpen={setOpenPriority}
+          />
+        )}
       </>
     </TooltipProvider>
   )

@@ -9,7 +9,30 @@ import {
     BookCheck,
 } from "lucide-react";
 
-export function buildGeneralGroup({ pathname, currentCompany }: MenuContext): Group {
+const INVENTARIO_ARTICULOS_ROLES = [
+    "SUPERUSER",
+    "ANALISTA_COMPRAS",
+    "JEFE_COMPRAS",
+    "ANALISTA_PLANIFICACION",
+    "JEFE_PLANIFICACION",
+    "RRHH_ADMINISTRACION",
+    "JEFE_ADMINISTRACION",
+    "JEFE_CONTROL_CALIDAD",
+    "CONTADOR_ADMINISTRACION",
+    "TESTER",
+    "ENGINEERING",
+    "TECNICO_MANTENIMIENTO_AERONAUTICO",
+    "JEFE_MANTENIMIENTO",
+];
+
+export function buildGeneralGroup({ pathname, currentCompany, userRoles }: MenuContext): Group {
+    const hasInventarioArticulosAccess = INVENTARIO_ARTICULOS_ROLES.some((role) =>
+        userRoles.includes(role),
+    );
+    const inventarioHref = hasInventarioArticulosAccess
+        ? `/${currentCompany?.slug}/general/inventario_articulos`
+        : `/${currentCompany?.slug}/general/inventario_general`;
+
     return {
         groupLabel: "General",
         menus: [
@@ -88,27 +111,13 @@ export function buildGeneralGroup({ pathname, currentCompany }: MenuContext): Gr
                 ],
             },
             {
-                href: `/${currentCompany?.slug}/general/inventario_articulos`,
+                href: inventarioHref,
                 label: "Inventario",
-                active: pathname.includes(
-                    `/${currentCompany?.slug}/general/inventario_articulos`,
-                ),
+                active: pathname.includes(inventarioHref),
                 icon: PackageSearch,
-                roles: [
-                    "SUPERUSER",
-                    "ANALISTA_COMPRAS",
-                    "JEFE_COMPRAS",
-                    "ANALISTA_PLANIFICACION",
-                    "JEFE_PLANIFICACION",
-                    "RRHH_ADMINISTRACION",
-                    "JEFE_ADMINISTRACION",
-                    "CONTADOR_ADMINISTRACION",
-                    "TESTER",
-                    "ENGINEERING",
-                    "TECNICO_MANTENIMIENTO_AERONAUTICO",
-                    "JEFE_MANTENIMIENTO",
-                ],
+                roles: [],
                 submenus: [],
+                requiresOmac: true,
             },
             {
                 href: `/${currentCompany?.slug}/general/requisiciones`,
@@ -144,19 +153,6 @@ export function buildGeneralGroup({ pathname, currentCompany }: MenuContext): Gr
                 ],
                 submenus: [],
             },            
-            {
-                href: `/${currentCompany?.slug}/compras/gestion_costos`,
-                label: "Gestión de Costos",
-                active: pathname.includes(`/${currentCompany?.slug}/compras/gestion_costos`),
-                icon: CircleDollarSign,
-                roles: [
-                    "SUPERUSER",
-                    "JEFE_ADMINISTRACION",
-                    "ANALISTA_ADMINISTRACION",
-                ],
-                submenus: [],
-            },
-
             {
                 href: `/${currentCompany?.slug}/general/biblioteca`,
                 label: "Biblioteca Digital",

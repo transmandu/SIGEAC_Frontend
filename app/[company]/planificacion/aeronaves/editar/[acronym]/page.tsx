@@ -57,6 +57,13 @@ interface AircraftAssignment {
     aircraft_part?: any;
 }
 
+// Función para formatear números con locale español (coma decimal, punto miles)
+const fmtNumber = (n: any) => {
+    if (n === null || n === undefined) return "0"
+    const num = Number(n)
+    return isNaN(num) ? "0" : num.toLocaleString('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 3 })
+}
+
 // Función para parsear fecha ISO sin problemas de timezone
 const parseISODate = (dateString: string | Date | null | undefined): Date => {
     if (!dateString) return new Date();
@@ -98,10 +105,10 @@ function PartsSummaryTree({ parts, level = 0 }: { parts: AircraftPart[], level?:
                                     <span className="font-medium">Condición:</span> {part.condition_type === "OVERHAULED" ? "Reacondicionada" : "Nueva"}
                                 </div>
                                 <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
-                                    <div><span className="font-medium">TSN:</span> {part.time_since_new ?? 0}</div>
-                                    <div><span className="font-medium">TSO:</span> {part.time_since_overhaul ?? 0}</div>
-                                    <div><span className="font-medium">CSN:</span> {part.cycles_since_new ?? 0}</div>
-                                    <div><span className="font-medium">CSO:</span> {part.cycles_since_overhaul ?? 0}</div>
+                                    <div><span className="font-medium">TSN:</span> {fmtNumber(part.time_since_new ?? 0)}</div>
+                                    <div><span className="font-medium">TSO:</span> {fmtNumber(part.time_since_overhaul ?? 0)}</div>
+                                    <div><span className="font-medium">CSN:</span> {fmtNumber(part.cycles_since_new ?? 0)}</div>
+                                    <div><span className="font-medium">CSO:</span> {fmtNumber(part.cycles_since_overhaul ?? 0)}</div>
                                 </div>
 
                                 {part.sub_parts && part.sub_parts.length > 0 && (
@@ -155,10 +162,18 @@ export default function EditAircraftPage({ params }: { params: { acronym: string
                 ata_chapter: part.ata_chapter || part.ata_number || part.ata || "",
                 position: part.position ?? (part as any).position ?? null,
                 part_order: part.part_order ?? null,
-                time_since_new: Math.round(Number(part.time_since_new || part.part_hours || 0) * 100) / 100,
-                time_since_overhaul: Math.round(Number(part.time_since_overhaul || 0) * 100) / 100,
-                cycles_since_new: Math.round(Number(part.cycles_since_new || part.part_cycles || 0)),
-                cycles_since_overhaul: Math.round(Number(part.cycles_since_overhaul || 0)),
+                time_since_new: (part.time_since_new ?? part.part_hours) != null
+                    ? Math.round(Number(part.time_since_new ?? part.part_hours) * 100) / 100
+                    : null,
+                time_since_overhaul: part.time_since_overhaul != null
+                    ? Math.round(Number(part.time_since_overhaul) * 100) / 100
+                    : null,
+                cycles_since_new: (part.cycles_since_new ?? part.part_cycles) != null
+                    ? Math.round(Number(part.cycles_since_new ?? part.part_cycles))
+                    : null,
+                cycles_since_overhaul: part.cycles_since_overhaul != null
+                    ? Math.round(Number(part.cycles_since_overhaul))
+                    : null,
                 condition_type: part.condition_type === "OVERHAULED" ? "OVERHAULED" : "NEW",
                 is_father: typeof part.is_father === "boolean" ? part.is_father : Boolean(part.sub_parts?.length),
                 removed_date: part.removed_date || null,
@@ -178,10 +193,10 @@ export default function EditAircraftPage({ params }: { params: { acronym: string
                     ata_chapter: assignmentData.ata_chapter ?? src?.ata_chapter ?? assignmentData.ata_number ?? src?.ata_number ?? src?.ata ?? null,
                     position: assignmentData.position ?? src?.position ?? null,
                     part_order: assignmentData.part_order ?? src?.part_order ?? null,
-                    time_since_new: assignmentData.time_since_new ?? src?.time_since_new ?? src?.part_hours ?? null,
-                    time_since_overhaul: assignmentData.time_since_overhaul ?? src?.time_since_overhaul ?? null,
-                    cycles_since_new: assignmentData.cycles_since_new ?? src?.cycles_since_new ?? src?.part_cycles ?? null,
-                    cycles_since_overhaul: assignmentData.cycles_since_overhaul ?? src?.cycles_since_overhaul ?? null,
+                    time_since_new: src?.time_since_new ?? src?.part_hours ?? null,
+                    time_since_overhaul: src?.time_since_overhaul ?? null,
+                    cycles_since_new: src?.cycles_since_new ?? src?.part_cycles ?? null,
+                    cycles_since_overhaul: src?.cycles_since_overhaul ?? null,
                 };
             })
             .filter((part): part is any => Boolean(part) && !part.parent_part_id)

@@ -11,6 +11,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { getFuelMovementLabel } from "@/lib/fuel";
+import { cn } from "@/lib/utils";
 import { FuelMovementType, FuelSummary, FuelVehicle } from "@/types";
 import { LucideIcon } from "lucide-react";
 import { useState } from "react";
@@ -22,6 +23,7 @@ export function FuelMovementDialog({
   vehicles,
   icon: Icon,
   variant = "outline",
+  className,
 }: {
   company?: string;
   type: FuelMovementType;
@@ -29,14 +31,15 @@ export function FuelMovementDialog({
   vehicles: FuelVehicle[];
   icon: LucideIcon;
   variant?: "default" | "outline" | "secondary";
+  className?: string;
 }) {
   const [open, setOpen] = useState(false);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant={variant} className="justify-start gap-2">
-          <Icon className="h-4 w-4" />
+        <Button variant={variant} className={cn("justify-start gap-2", className)}>
+          <Icon className="h-4 w-4 shrink-0 text-muted-foreground" />
           {getFuelMovementLabel(type)}
         </Button>
       </DialogTrigger>

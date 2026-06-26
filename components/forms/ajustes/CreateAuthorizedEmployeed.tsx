@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -7,6 +8,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { useCreateAuthorizedEmployee } from "@/hooks/sistema/autorizados/useCreateAuthorizedEmployee";
 import { useGetEmployeesByCompany } from "@/hooks/sistema/empleados/useGetEmployees";
 import { useGetCompanies } from "@/hooks/sistema/useGetCompanies";
+import { useGetAuthorizedEmployeesFromCompany } from "@/hooks/sistema/autorizados/useGetAuthorizedEmployeesFromCompany";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,6 +42,9 @@ export function AuthorizedEmployeeForm({ onSuccess }: Props) {
   const { data: companies = [], isLoading: isLoadingCompanies } =
     useGetCompanies();
 
+  const { data: authorizedEmployees = [] } =
+    useGetAuthorizedEmployeesFromCompany(selectedCompany?.slug);
+
   const {
     handleSubmit,
     setValue,
@@ -71,71 +76,52 @@ export function AuthorizedEmployeeForm({ onSuccess }: Props) {
     (company) => company.slug !== selectedCompany?.slug
   );
 
+  // DNIs ya autorizados a la empresa destino seleccionada
+  const authorizedDnisForDestination = useMemo(
+    () =>
+      new Set(
+        authorizedEmployees
+          .filter((auth) => auth.to_company_db === toCompany)
+          .map((auth) => auth.dni_employee)
+      ),
+    [authorizedEmployees, toCompany]
+  );
+
+  // Empleados disponibles: ocultar los que ya están autorizados al destino seleccionado
+  const availableEmployees = toCompany
+    ? employees.filter((emp) => !authorizedDnisForDestination.has(emp.dni))
+    : employees;
+
+  // Si el empleado seleccionado queda oculto al cambiar el destino, limpiar la selección
+  useEffect(() => {
+    if (selectedEmployee && authorizedDnisForDestination.has(selectedEmployee)) {
+      setValue("dni_employee", "");
+    }
+  }, [selectedEmployee, toCompany, authorizedDnisForDestination, setValue]);
+
+  const hasDestination = Boolean(toCompany);
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      {/* Empleado */}
-      <div className="space-y-2">
-        <Label>Empleado</Label>
-
-        <Select
-          value={selectedEmployee}
-          onValueChange={(value) => setValue("dni_employee", value)}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Seleccione empleado" />
-          </SelectTrigger>
-
-          <SelectContent>
-            {isLoading && (
-              <SelectItem value="loading" disabled>
-                Cargando empleados...
-              </SelectItem>
-            )}
-
-            {!isLoading && employees.length === 0 && (
-              <SelectItem value="empty" disabled>
-                No hay empleados disponibles
-              </SelectItem>
-            )}
-
-            {employees.map((emp) => (
-              <SelectItem key={emp.dni} value={emp.dni}>
-                <div className="flex flex-col">
-                  <span>
-                    {emp.first_name} {emp.last_name} – {emp.dni}
-                  </span>
-                  {(emp.job_title?.name || emp.department?.name) && (
-                    <span className="text-sm text-muted-foreground">
-                      {emp.job_title?.name ?? "–"} –{" "}
-                      {emp.department?.name ?? "–"}
-                    </span>
-                  )}
-                </div>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        {errors.dni_employee && (
-          <p className="text-sm text-destructive">
-            {errors.dni_employee.message}
-          </p>
-        )}
-      </div>
-
-      {/* Empresa Origen */}
-      <div className="space-y-2">
-        <Label>Empresa Origen</Label>
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+      {/* Empresa Origen (contexto: empresa que autoriza) */}
+      <div className="space-y-1.5">
+        <Label className="text-muted-foreground">Empresa Origen</Label>
         <Input
-          disabled
-          value={selectedCompany?.slug ?? ""}
-          className="uppercase"
+          readOnly
+          tabIndex={-1}
+          value={selectedCompany?.name ?? selectedCompany?.slug ?? ""}
+          className="bg-muted/50 cursor-default focus-visible:ring-0"
         />
+        <p className="text-xs text-muted-foreground">
+          Empresa que otorga la autorización.
+        </p>
       </div>
 
-      {/* Empresa Destino */}
-      <div className="space-y-2">
-        <Label>Empresa Destino</Label>
+      {/* Empresa Destino (decisión que filtra los empleados disponibles) */}
+      <div className="space-y-1.5">
+        <Label>
+          Empresa Destino <span className="text-destructive">*</span>
+        </Label>
 
         <Select
           value={toCompany}
@@ -169,6 +155,71 @@ export function AuthorizedEmployeeForm({ onSuccess }: Props) {
         {errors.to_company_db && (
           <p className="text-sm text-destructive">
             {errors.to_company_db.message}
+          </p>
+        )}
+      </div>
+
+      {/* Empleado (habilitado tras elegir destino; oculta los ya autorizados) */}
+      <div className="space-y-1.5">
+        <Label className={!hasDestination ? "text-muted-foreground" : undefined}>
+          Empleado <span className="text-destructive">*</span>
+        </Label>
+
+        <Select
+          value={selectedEmployee}
+          onValueChange={(value) => setValue("dni_employee", value)}
+          disabled={!hasDestination}
+        >
+          <SelectTrigger>
+            <SelectValue
+              placeholder={
+                hasDestination
+                  ? "Seleccione empleado"
+                  : "Primero elija la empresa destino"
+              }
+            />
+          </SelectTrigger>
+
+          <SelectContent>
+            {isLoading && (
+              <SelectItem value="loading" disabled>
+                Cargando empleados...
+              </SelectItem>
+            )}
+
+            {!isLoading && availableEmployees.length === 0 && (
+              <SelectItem value="empty" disabled>
+                Todos los empleados ya están autorizados a esta empresa
+              </SelectItem>
+            )}
+
+            {availableEmployees.map((emp) => (
+              <SelectItem key={emp.dni} value={emp.dni}>
+                <div className="flex flex-col">
+                  <span>
+                    {emp.first_name} {emp.last_name} – {emp.dni}
+                  </span>
+                  {(emp.job_title?.name || emp.department?.name) && (
+                    <span className="text-sm text-muted-foreground">
+                      {emp.job_title?.name ?? "–"} –{" "}
+                      {emp.department?.name ?? "–"}
+                    </span>
+                  )}
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <p className="text-xs text-muted-foreground">
+          {hasDestination
+            ? "Los empleados ya autorizados a esta empresa no aparecen en la lista."
+            : "Seleccione la empresa destino para ver los empleados disponibles."}
+        </p>
+
+        {errors.dni_employee && (
+          <p className="text-sm text-destructive">
+            {errors.dni_employee.message}
           </p>
         )}
       </div>

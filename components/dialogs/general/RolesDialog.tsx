@@ -10,7 +10,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { Permission, Role } from "@/types"
+import { Permission } from "@/types"
 
 import Image from "next/image"
 import { useRouter } from "next/navigation"
@@ -21,12 +21,15 @@ interface RolesDialogProps {
   roles: {
     id: number,
     name: string,
-    permissions: Permission[]
+    label?: string,
+    company_id?: string | null,
+    permissions?: Permission[]
   }[];
+  companies?: { id: number; name: string }[];
   names: string;
 }
 
-const RolesDialog = ({ roles, names }: RolesDialogProps) => {
+const RolesDialog = ({ roles, names, companies = [] }: RolesDialogProps) => {
   const router = useRouter()
   return (
     <Dialog >
@@ -45,19 +48,26 @@ const RolesDialog = ({ roles, names }: RolesDialogProps) => {
           <div className="p-4 pb-4">
             <div className="flex flex-col gap-4">
               {
-                roles.map(role => (
-                  <div onClick={() => router.push('/administracion/usuarios_permisos/roles')} key={role.id} className="flex flex-col border border-black items-center justify-center p-2 rounded-md shadow-sm hover:scale-105 hover:bg-sky-100 transition-all hover:cursor-pointer">
-                    <h3 className="text-lg font-semibold text-center ">{role.name}
-                    </h3>
-                    <div className="flex gap-2">
-                      {
-                        role.permissions.map((permission) => (
-                          <Badge key={permission.id}>{permission.label}</Badge>
-                        ))
-                      }
+                roles.map(role => {
+                  const company = companies.find((c) => String(c.id) === String(role.company_id))
+                  return (
+                    <div onClick={() => router.push('/administracion/usuarios_permisos/roles')} key={role.id} className="flex flex-col border border-border items-center justify-center p-3 rounded-md shadow-sm hover:scale-105 hover:bg-accent transition-all hover:cursor-pointer gap-1">
+                      {company && (
+                        <Badge variant="outline" className="text-[10px] text-muted-foreground font-medium">
+                          {company.name}
+                        </Badge>
+                      )}
+                      <h3 className="text-base font-semibold text-center">{role.label ?? role.name}</h3>
+                      {role.permissions && role.permissions.length > 0 && (
+                        <div className="flex gap-2 flex-wrap justify-center">
+                          {role.permissions.map((permission) => (
+                            <Badge key={permission.id}>{permission.label}</Badge>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                  </div>
-                ))
+                  )
+                })
               }
             </div>
           </div>

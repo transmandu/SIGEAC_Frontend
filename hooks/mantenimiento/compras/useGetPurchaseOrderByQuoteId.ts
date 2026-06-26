@@ -3,8 +3,10 @@
 import { useQuery } from '@tanstack/react-query';
 import axios from '@/lib/axios';
 
-interface PurchaseOrderByQuoteResponse {
+export interface PurchaseOrderByQuote {
+  id: number;
   order_number: string;
+  vendor_name: string | null;
 }
 
 export const useGetPurchaseOrderByQuoteId = ({
@@ -16,7 +18,7 @@ export const useGetPurchaseOrderByQuoteId = ({
   quoteId?: number;
   enabled?: boolean;
 }) => {
-  return useQuery<PurchaseOrderByQuoteResponse | null, Error>({
+  return useQuery<PurchaseOrderByQuote[], Error>({
     queryKey: ['purchaseOrderByQuote', company, quoteId],
     queryFn: async () => {
       const { data } = await axios.get(
@@ -24,7 +26,7 @@ export const useGetPurchaseOrderByQuoteId = ({
         { params: { quote_id: quoteId } }
       );
 
-      return data;
+      return data.purchase_orders ?? [];
     },
     enabled: enabled && !!company && !!quoteId,
     retry: false, // 👈 CRÍTICO (evita tus 3 requests)

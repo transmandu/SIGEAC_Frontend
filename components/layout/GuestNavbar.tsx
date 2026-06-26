@@ -11,18 +11,23 @@ interface GuestNavbarProps {
 export function GuestNavbar({ title }: GuestNavbarProps) {
   return (
     <header className="sticky top-0 z-10 w-full bg-background/95 shadow backdrop-blur supports-[backdrop-filter]:bg-background/60 dark:shadow-secondary">
-      <div className="mx-4 sm:mx-8 flex h-14 items-center justify-center">
-        <div className="flex flex-1 items-center space-x-4 lg:space-x-0">
+      <div className="relative mx-4 sm:mx-8 flex h-14 items-center">
+
+        {/* IZQUIERDA */}
+        <div className="flex items-center gap-4 flex-shrink-0 max-w-[40%] overflow-hidden z-0">
           <GuestSheetMenu />
-          <h1 className="font-bold text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl">
+
+          <h1 className="hidden md:block text-xs sm:text-sm font-bold truncate max-w-[220px] lg:max-w-[320px]">
             {title}
           </h1>
         </div>
-        {/* <CompanySelect /> */}
-        <div className="flex flex-1 items-center space-x-2 justify-end">
+
+        {/* DERECHA */}
+        <div className="flex items-center gap-2 ml-auto flex-shrink-0 z-10">
           <ThemeToggler />
           <GuestUserNav />
         </div>
+
       </div>
     </header>
   );

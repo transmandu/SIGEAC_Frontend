@@ -11,34 +11,34 @@ interface AttendanceData {
   id: string;
   attended: Boolean;
   employee_dni: string;
-  sms_activity_id: string;
+  sms_activityNumber: string;
   employee: EmployeeData;
 }
 
 const fetchAttendanceList = async ({
   company,
-  activity_id,
+  activityNumber,
 }: {
   company?: string;
-  activity_id: string;
+  activityNumber: string;
 }): Promise<AttendanceData[]> => {
   const { data } = await axiosInstance.get(
-    `/${company}/sms/activities/${activity_id}/attendance-list`
+    `/${company}/sms/activities/${activityNumber}/attendance-list`
   );
   return data;
 };
 
 export const useGetActivityAttendanceList = ({
   company,
-  activity_id,
+  activityNumber,
 }: {
   company?: string;
-  activity_id: string;
+  activityNumber: string;
 }) => {
   return useQuery<AttendanceData[], Error>({
-    queryKey: ["sms-activity-attendance-list", activity_id], // Incluye el activity_id en la clave
-    queryFn: () => fetchAttendanceList({ company, activity_id }),
+    queryKey: ["sms-activity-attendance-list", activityNumber], // Incluye el activity_id en la clave
+    queryFn: () => fetchAttendanceList({ company, activityNumber }),
     staleTime: 1000 * 60 * 5, // 5 minutos
-    enabled: !!company, // Solo ejecuta si activity_id tiene valor
+    enabled: !!company, // Solo ejecuta si activityNumber tiene valor
   });
 };

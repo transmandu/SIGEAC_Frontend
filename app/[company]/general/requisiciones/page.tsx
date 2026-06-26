@@ -17,9 +17,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useCompanyStore } from '@/stores/CompanyStore';
 import { useGetRequisition } from '@/hooks/mantenimiento/compras/useGetRequisitions';
 
-import { columns } from './columns';
+import { getColumns } from './columns';
 import { DataTable } from './data-table';
-import { Requisition } from '@/types';
 
 const RequisitionsPage = () => {
   const { user } = useAuth();
@@ -36,6 +35,7 @@ const RequisitionsPage = () => {
       'ANALISTA_COMPRAS',
       'JEFE_COMPRAS',
       'JEFE_ALMACEN',
+      'JEFE_ADMINISTRACION',
     ],
     []
   );
@@ -58,6 +58,11 @@ const RequisitionsPage = () => {
     });
   }, [requisitions, hasFullAccess, user]);
 
+  const columns = useMemo(
+    () => getColumns(selectedCompany ?? undefined),
+    [selectedCompany]
+  )
+  
   if (isLoading) {
     return <LoadingPage />;
   }

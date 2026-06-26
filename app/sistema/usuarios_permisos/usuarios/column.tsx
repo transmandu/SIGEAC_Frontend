@@ -14,7 +14,6 @@ import RolesDialog from "@/components/dialogs/general/RolesDialog"
 import UserDropdownActions from "@/components/dropdowns/ajustes/UserDropdownActions"
 import { Badge } from "@/components/ui/badge"
 import { User } from "@/types"
-import { redirect } from "next/navigation"
 import { useState } from "react"
 import UserStatusButton  from "@/components/misc/UserStatusButton"
 import { Info } from "lucide-react"
@@ -113,22 +112,55 @@ export const columns: ColumnDef<User>[] = [
     ),
     cell: ({ row }) => {
       const item = row.original
-      return (
-        <div className="flex flex-col gap-2 justify-center items-center">
-          {
-            item && item.roles && item?.roles?.length < 3 ? item.roles.map((rol) => (
-              <div onClick={() => redirect('/administracion/usuarios_permisos/roles')} className="flex items-center justify-center cursor-pointer" key={rol.id}>
-                <Badge className="text-center">{rol.label}</Badge>
-              </div>
-            ))
-              :
-              (
-                item && item.roles && <RolesDialog names={`${item.first_name} ${item.last_name}`} roles={item.roles} />
+
+      const CHART_DOTS = [
+        "bg-[hsl(var(--chart-1))]",
+        "bg-[hsl(var(--chart-2))]",
+        "bg-[hsl(var(--chart-3))]",
+        "bg-[hsl(var(--chart-4))]",
+        "bg-[hsl(var(--chart-5))]",
+      ]
+
+      if (!item.roles || item.roles.length === 0) {
+        return (
+          <div className="flex items-center justify-center">
+            <span className="text-xs italic text-muted-foreground/50">Sin roles asignados</span>
+          </div>
+        )
+      }
+
+      if (item.roles.length < 3) {
+        return (
+          <div className="flex flex-col gap-2 items-center">
+            {item.roles.map((rol, idx) => {
+              const company = item.companies?.find((c) => String(c.id) === String(rol.company_id))
+              return (
+                <div key={rol.id} className="flex flex-col items-center gap-1">
+                  {company && (
+                    <Badge variant="outline" className="text-[10px] gap-1 py-0 font-medium text-muted-foreground">
+                      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${CHART_DOTS[idx % CHART_DOTS.length]}`} />
+                      {company.name}
+                    </Badge>
+                  )}
+                  <Badge variant="secondary">{rol.label}</Badge>
+                </div>
               )
-          }
-          {
-            item && item.roles && item?.roles?.length <= 0 && <p className="text-center italic text-muted-foreground">No tiene permisos</p>
-          }
+            })}
+          </div>
+        )
+      }
+
+      return (
+        <div className="flex flex-col items-center gap-1.5">
+          <div className="flex -space-x-1">
+            {item.roles.slice(0, 3).map((rol, idx) => (
+              <span key={rol.id} className={`w-3 h-3 rounded-full border-2 border-background ${CHART_DOTS[idx % CHART_DOTS.length]}`} />
+            ))}
+            {item.roles.length > 3 && (
+              <span className="w-3 h-3 rounded-full border-2 border-background bg-muted-foreground/40" />
+            )}
+          </div>
+          <RolesDialog names={`${item.first_name} ${item.last_name}`} roles={item.roles} companies={item.companies} />
         </div>
       )
     },

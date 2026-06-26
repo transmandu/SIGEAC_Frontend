@@ -4,7 +4,10 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Paperclip, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { useRef } from "react";
+import { toast } from "sonner";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+
+const MAX_IMAGE_SIZE_BYTES = 2048 * 1024;
 
 interface Props {
   article: any;
@@ -21,9 +24,17 @@ export const ArticleImageAttachment = ({ article, onChangeImage }: Props) => {
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      onChangeImage(e.target.files[0]);
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > MAX_IMAGE_SIZE_BYTES) {
+      toast.error("La imagen excede el límite de 2MB. Por favor, selecciona una más ligera.");
+      e.target.value = "";
+      return;
     }
+
+    onChangeImage(file);
+    e.target.value = "";
   };
 
   const handleRemoveImage = () => {
@@ -42,17 +53,25 @@ export const ArticleImageAttachment = ({ article, onChangeImage }: Props) => {
 
       {article.image ? (
         <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7 shrink-0"
-              title="Ver / Cambiar imagen"
-            >
-              <Paperclip className="size-3.5 text-primary" />
-            </Button>
-          </PopoverTrigger>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <PopoverTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 shrink-0"
+                  >
+                    <Paperclip className="size-3.5 text-primary" />
+                  </Button>
+                </PopoverTrigger>
+              </TooltipTrigger>
+              <TooltipContent>
+                Ver / Cambiar imagen
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
 
           <PopoverContent className="w-[220px] p-3 space-y-2">
             <div className="relative w-full h-40">

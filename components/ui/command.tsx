@@ -59,10 +59,18 @@ CommandInput.displayName = CommandPrimitive.Input.displayName
 const CommandList = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.List>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.List>
->(({ className, ...props }, ref) => (
+>(({ className, onWheel, ...props }, ref) => (
   <CommandPrimitive.List
     ref={ref}
     className={cn("max-h-[300px] overflow-y-auto overflow-x-hidden", className)}
+    onWheel={(e) => {
+      // Popovers/comboboxes portal outside the Dialog's DOM subtree, so the
+      // Dialog's scroll-lock (react-remove-scroll) doesn't recognize this list
+      // as scrollable and cancels the wheel event. Stop it here so native
+      // scrolling reaches this list before the document-level lock sees it.
+      e.stopPropagation()
+      onWheel?.(e)
+    }}
     {...props}
   />
 ))

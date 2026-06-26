@@ -8,17 +8,11 @@ import RequisitionsDropdownActions from "@/components/dropdowns/mantenimiento/co
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { cn } from "@/lib/utils"
-import { Batch, Requisition } from "@/types"
+import type { Requisition } from "@/types/purchase"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import Link from "next/link"
 
-
-// This type is used to define the shape of our data.
-// You can use a Zod schema here if you want.
-interface BatchesWithCountProp extends Batch {
-  article_count: number,
-}
 
 export const columns: ColumnDef<Requisition>[] = [
   {

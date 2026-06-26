@@ -228,7 +228,12 @@ export function UserNav() {
 
           {/* LOGOUT */}
           <DropdownMenuItem
-            onClick={logout}
+            onSelect={(e) => {
+              e.preventDefault();
+              setTimeout(() => {
+                logout();
+              }, 0);
+            }}
             className={cn(
               "rounded-xl px-2 py-2 cursor-pointer",
               "text-red-500",

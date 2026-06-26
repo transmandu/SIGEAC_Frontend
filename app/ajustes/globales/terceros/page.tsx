@@ -1,42 +1,124 @@
 'use client'
 
+import { useMemo, useState, useDeferredValue } from 'react'
 import { ContentLayout } from '@/components/layout/ContentLayout'
-import { useGetThirdParties } from '@/hooks/general/terceros/useGetThirdParties'
+import BackButton from '@/components/misc/BackButton'
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
+import { Input } from '@/components/ui/input'
+import { Search } from 'lucide-react'
 import { useCompanyStore } from '@/stores/CompanyStore'
-import { Loader2 } from 'lucide-react'
+import { useGetThirdParties } from '@/hooks/general/terceros/useGetThirdParties'
+import { getThirdPartyTypeLabel } from '@/lib/utils'
 import { columns } from './columns'
 import { DataTable } from './data-table'
 
-const VendorsPage = () => {
-  const { selectedCompany } = useCompanyStore();
-  const { data: third_parties, isLoading, error } = useGetThirdParties();
+const ThirdPartiesPage = () => {
+  const { selectedCompany } = useCompanyStore()
+  const { data: thirdParties, isLoading, isError } = useGetThirdParties()
+  const [search, setSearch] = useState('')
+
+  const deferredSearch = useDeferredValue(search)
+
+  const filteredThirdParties = useMemo(() => {
+    if (!thirdParties) return []
+
+    const q = deferredSearch.toLowerCase()
+
+    return thirdParties.filter((thirdParty) => {
+      const matchesSearch =
+        !deferredSearch.trim() ||
+        thirdParty.name?.toLowerCase()?.includes(q) ||
+        getThirdPartyTypeLabel(thirdParty.type)?.toLowerCase()?.includes(q)
+
+      return matchesSearch
+    })
+  }, [thirdParties, deferredSearch])
+
   return (
-    <ContentLayout title='Permisos'>
-      <h1 className='text-5xl font-bold text-center mt-2'>
-        Control de Terceros
-      </h1>
-      <p className='text-sm text-muted-foreground text-center italic mt-2'>Aquí puede llevar el control de los terceros registrados en el sistema.</p>
-      {
-        isLoading && (
-          <div className='grid mt-72 place-content-center'>
-            <Loader2 className='w-12 h-12 animate-spin' />
+    <ContentLayout title="Terceros">
+      <div className="flex flex-col gap-6">
+
+        <div className="flex items-center gap-3">
+          <BackButton iconOnly tooltip="Volver" variant="secondary" />
+
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink href={`/${selectedCompany?.slug}/dashboard`}>
+                  Inicio
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+
+              <BreadcrumbSeparator />
+
+              <BreadcrumbItem>
+                Ajustes
+              </BreadcrumbItem>
+
+              <BreadcrumbSeparator />
+
+              <BreadcrumbItem>
+                <BreadcrumbPage>
+                  Terceros
+                </BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        </div>
+
+        <div className="flex flex-col gap-2 border-b pb-4">
+          <h1 className="text-3xl font-semibold tracking-tight">
+            Control de Terceros
+          </h1>
+
+          <p className="text-sm text-muted-foreground">
+            Administra los terceros registrados en el sistema.
+          </p>
+        </div>
+
+        <div className="flex items-center justify-between gap-4 px-3 py-2 rounded-xl border bg-slate-200/40 border-slate-200/40 dark:bg-slate-800/70 dark:border-slate-700/60 backdrop-blur-md dark:shadow-[0_4px_20px_rgba(0,0,0,0.35)]">
+
+          <div className="relative w-64 sm:w-72">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
+
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Buscar terceros..."
+              className="
+                pl-8 h-8 text-xs
+                bg-white/80 dark:bg-slate-900/60
+                border-slate-200/60
+                dark:border-slate-700/60
+                focus-visible:ring-1
+                focus-visible:ring-[#439A97]/40
+              "
+            />
           </div>
-        )
-      }
-      {
-        error && (
-          <div className='grid mt-72 place-content-center'>
-            <p className='text-sm text-muted-foreground'>Ha ocurrido un error al cargar los terceros...</p>
+
+          <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
+            {filteredThirdParties.length}{' '}
+            {filteredThirdParties.length === 1 ? 'tercero' : 'terceros'}
+          </span>
+        </div>
+
+        <DataTable
+          columns={columns}
+          data={filteredThirdParties}
+          loading={isLoading}
+        />
+
+        {isError && (
+          <div className="rounded-lg border border-red-500/20 bg-red-500/5 px-4 py-3">
+            <p className="text-sm text-red-500">
+              Ha ocurrido un error al cargar los terceros.
+            </p>
           </div>
-        )
-      }
-      {
-        third_parties && (
-          <DataTable columns={columns} data={third_parties} />
-        )
-      }
+        )}
+
+      </div>
     </ContentLayout>
   )
 }
 
-export default VendorsPage
+export default ThirdPartiesPage

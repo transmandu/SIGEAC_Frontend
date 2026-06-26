@@ -2,7 +2,7 @@ import React from "react";
 import { Document, Page, Text, StyleSheet, View } from "@react-pdf/renderer";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { Requisition as RequisitionType } from "@/types";
+import type { Requisition } from "@/types/purchase"
 import { registerPdfFonts } from "@/lib/fontmanager";
 
 registerPdfFonts();
@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
   noRecords: { fontSize: 13, color: "#f44336", textAlign: "center", marginVertical: 20 },
 });
 
-const RequisitionReportPdf = ({ requisition }: { requisition: RequisitionType }) => {
+const RequisitionReportPdf = ({ requisition }: { requisition: Requisition }) => {
   return (
     <Document>
       <Page size="LETTER" style={styles.page} wrap>

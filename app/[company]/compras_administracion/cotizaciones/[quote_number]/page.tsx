@@ -36,7 +36,7 @@ const QuotePage = () => {
 
   if (isLoading) return <LoadingPage />;
 
-  const handleDelete = async (id: number, company: string) => {
+  const handleDelete = async (id: number) => {
     await deleteQuote.mutateAsync({
       id,
       company: selectedCompany!.slug
@@ -55,7 +55,7 @@ const QuotePage = () => {
       <Card className='max-w-5xl mx-auto'>
         <CardHeader className='flex flex-col items-center'>
           <CardTitle className='flex justify-center text-5xl mb-2'>#{quote_number}</CardTitle>
-          <Badge className={cn("text-lg", data?.status === 'aprobada' ? "bg-green-500" : "bg-yellow-600")}>{data?.status.toUpperCase()}</Badge>
+          <Badge className={cn("text-lg", data?.status === 'APROBADA' ? "bg-green-500" : "bg-yellow-600")}>{data?.status.toUpperCase()}</Badge>
         </CardHeader>
         <CardContent className='flex flex-col gap-8' >
           <div className='flex w-full justify-center gap-24 text-xl'>
@@ -65,17 +65,17 @@ const QuotePage = () => {
             </div>
             <div className='flex flex-col gap-2 items-center'>
               <h1>Proveedor:</h1>
-              <p className='font-bold flex gap-2 items-center'>{data?.vendor.name}</p>
+              <p className='font-bold flex gap-2 items-center'>{data?.vendor?.name}</p>
             </div>
           </div>
-          <p className='text-center font-medium italic'>{data?.justification}</p>
+          <p className='text-center font-medium italic'>{data?.requisition_order?.justification}</p>
           <div className='flex justify-center gap-2'>
             {
               data?.article_quote_order.map((article) => (
-                <Card className='w-[280px] text-center' key={article.article_part_number}>
-                  <CardTitle className='p-6'>{article.batch.name}</CardTitle>
+                <Card className='w-[280px] text-center' key={article.id}>
+                  <CardTitle className='p-6'>{article.article_requisition_order?.article_part_number}</CardTitle>
                   <CardContent>
-                    <p className='font-medium'>Nro. de Parte: <span className='font-bold italic'>{article.article_part_number}</span></p>
+                    <p className='font-medium'>Nro. de Parte: <span className='font-bold italic'>{article.article_requisition_order?.article_part_number}</span></p>
                     <p className='font-medium'>Cantidad: <span className='font-bold italic'>{article.quantity}</span></p>
                     <p className='font-medium'>Precio Unitario: <span className='font-bold italic'>${Number(article.unit_price).toFixed(2)}</span></p>
                     <p className='font-medium'>Total: <span className='font-bold italic'>${(article.quantity * Number(article.unit_price)).toFixed(2)}</span></p>
@@ -86,7 +86,7 @@ const QuotePage = () => {
           </div>
         </CardContent>
         {
-          data?.status !== 'aprobada' && (
+          data?.status !== 'APROBADA' && (
             <CardFooter className='flex gap-2 justify-end'>
               <Button>Aprobar</Button>
               <Button onClick={() => setOpenDelete(true)} variant={"destructive"}><Trash2 /></Button>
@@ -101,7 +101,7 @@ const QuotePage = () => {
           </DialogHeader>
           <DialogFooter>
             <Button type="button" variant={"destructive"} onClick={() => setOpenDelete(false)}>Cancelar</Button>
-            <Button onClick={() => handleDelete(data!.id, selectedCompany!.slug)} disabled={deleteQuote.isPending}>{deleteQuote.isPending ? <Loader2 className="animate-spin size-4" /> : "Confirmar"}</Button>
+            <Button onClick={() => handleDelete(data!.id)} disabled={deleteQuote.isPending}>{deleteQuote.isPending ? <Loader2 className="animate-spin size-4" /> : "Confirmar"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

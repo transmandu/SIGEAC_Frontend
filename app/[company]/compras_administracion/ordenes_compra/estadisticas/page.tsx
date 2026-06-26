@@ -44,7 +44,7 @@ import {
   Cell,
 } from "recharts";
 import { Badge } from "@/components/ui/badge";
-import type { PurchaseOrder } from "@/types";
+import type { PurchaseOrder } from "@/types/purchase";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { useGetStatisticsPurchaseOrders } from "@/hooks/administracion/useGetStatisticsPurchaseOrders";
 import months from "@/components/cards/ConfigMonths";
@@ -501,7 +501,7 @@ const StatisticsPurchaseOrdersDashboard = () => {
                         <Badge
                           variant="secondary"
                           className={
-                            order.status === "APROBADA"
+                            order.status === "PAGADA" || order.status === "COMPLETADA"
                               ? "bg-green-100 text-green-800"
                               : order.status === "PENDIENTE"
                                 ? "bg-yellow-100 text-yellow-800"

@@ -7,9 +7,9 @@ interface CreateFlightControlData {
   flight_cycles: number,
   flight_hours: number,
   flight_number?: string,
-  origin: string,
-  destination: string,
-  aircraft_operator: string,
+  origin?: string,
+  destination?: string,
+  aircraft_operator?: string,
 }
 
 export const useCreateFlightControl = () => {
@@ -17,18 +17,19 @@ export const useCreateFlightControl = () => {
   const queryClient = useQueryClient()
 
   const createMutation = useMutation({
-    mutationFn: async ({ data, company }: { data: CreateFlightControlData, company: string }) => {
-      await axiosInstance.post(`/${company}/flight-control`, data)
+    mutationFn: async ({ data, company }: { data: CreateFlightControlData | CreateFlightControlData[], company: string }) => {
+      const flights = Array.isArray(data) ? data : [data]
+      await axiosInstance.post(`/${company}/flight-control`, { flights })
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['flight-control'] })
       toast.success("¡Creado!", {
-        description: `El vuelo ha sido registrado correctamente.`
+        description: `El/los vuelo(s) ha(n) sido registrado(s) correctamente.`
       })
     },
     onError: (error) => {
       toast.error('Oops!', {
-        description: 'No se pudo registrar el vuelo...'
+        description: 'No se pudo registrar el/los vuelo(s)...'
       })
       console.log(error)
     },

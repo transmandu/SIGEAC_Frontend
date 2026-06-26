@@ -6,7 +6,7 @@ export type Submenu = {
     label: string;
     active: boolean;
     roles?: string[];
-    moduleValue?: string;
+    moduleValue?: string | string[];
     requiresOmac?: boolean;
 };
 
@@ -16,14 +16,14 @@ export type Menu = {
     active: boolean;
     icon: LucideIcon;
     roles: string[];
-    moduleValue?: string;
+    moduleValue?: string | string[];
     submenus: Submenu[];
     requiresOmac?: boolean;
 };
 
 export type Group = {
     groupLabel: string;
-    moduleValue?: string;
+    moduleValue?: string | string[];
     requiresOmac?: boolean;
     menus: Menu[];
 };
@@ -32,6 +32,7 @@ export type MenuContext = {
     pathname: string;
     currentCompany: Company | null;
     date: string;
+    userRoles: string[];
 };
 
 export type MenuFilterContext = {

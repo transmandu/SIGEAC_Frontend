@@ -1,39 +1,6 @@
 import axios from '@/lib/axios';
-import { Aircraft, Unit, User } from '@/types';
 import { useQuery } from '@tanstack/react-query';
-
-export interface RequisitionByOrderNumber {
-  id: number;
-  order_number: string;
-  status: string;
-  type: 'GENERAL' | 'AERONAUTICO';
-  created_by: User;
-  requested_by: string;
-  received_by: string;
-  image?: string;
-  justification: string;
-  arrival_date?: Date;
-  submission_date?: Date;
-  submitted_date?: Date;
-  aircraft?: Aircraft;
-  observation?: string;
-  batch: {
-    id: number;
-    name: string;
-    batch_articles: {
-      article_part_number: string;
-      article_alt_part_number?: string;
-      pma?: string;
-      manual?: string;
-      reference_cod?: string;
-      justification?: string;
-      quantity: number;
-      unit?: Unit;
-      image?: string;
-      certificates?: string[];
-    }[];
-  }[];
-}
+import type { RequisitionByOrderNumber } from '@/types/purchase';
 
 const fetchRequisitionByOrderNumber = async ({
   company,
@@ -61,3 +28,5 @@ export const useGetRequisitionByOrderNumber = ({
     enabled: !!company && !!order_number,
   });
 };
+
+export type { RequisitionByOrderNumber };
