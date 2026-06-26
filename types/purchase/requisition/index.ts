@@ -185,11 +185,15 @@ export interface GeneralArticlePayload {
   description?: string;
   requested_date?: string;
   variant_type?: string | null;
+  /** Disambiguates catalog entries that share description + variant_type but differ by brand. Not persisted by the backend. */
+  brand_model?: string | null;
   quantity: number;
   unit_id?: string | number;
   priority?: 'HIGH' | 'MEDIUM' | 'LOW';
   justification?: string;
   image?: File;
+  /** Storage path of the catalog article's existing image, sent instead of `image` to reuse it without re-uploading. */
+  existing_image_path?: string;
   department_id?: string | number | null;
   third_party_id?: string | number | null;
   employee_id?: string | number | null;
@@ -225,10 +229,14 @@ export interface RequisitionGeneralArticleForm {
   description: string;
   requested_date?: string;
   variant_type?: string | null;
+  /** Disambiguates catalog entries that share description + variant_type but differ by brand. Not persisted by the backend. */
+  brand_model?: string | null;
   quantity: number;
   unit_id?: string;
   priority?: 'HIGH' | 'MEDIUM' | 'LOW';
-  image?: File;
+  image?: File | string;
+  /** Storage path of the catalog article's existing image, sent instead of `image` to reuse it without re-uploading. */
+  existing_image_path?: string;
   department_id?: string;
   third_party_id?: string;
   employee_id?: string;

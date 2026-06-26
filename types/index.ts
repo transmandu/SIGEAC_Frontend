@@ -1184,6 +1184,7 @@ export type GeneralArticle = {
   warehouse: Warehouse;
   general_primary_unit: Unit;
   cost?: number;
+  image?: string | null;
 };
 
 export interface SMSCertificate {

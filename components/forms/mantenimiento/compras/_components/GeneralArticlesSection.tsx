@@ -424,17 +424,18 @@ export function GeneralArticlesSection({
   const dateColClass = isLg ? "w-40" : "w-32";
   const priorityColClass = isLg ? "w-28" : "w-[80px]";
 
-  // Identity of a general article is description + variant_type together:
-  // two entries can share a description but differ by variant_type (and
-  // must be treated as distinct), so every comparison/key below must use
-  // both fields, never description alone.
-  const getArticleKey = (description: string, variantType?: string | null) =>
-    `${description}__${variantType ?? ""}`;
+  // Identity of a general article is description + variant_type + brand_model
+  // together: two entries can share a description (and even variant_type)
+  // but differ by brand_model — e.g. the same item from two different
+  // brands, only one of which has a catalog image — so every comparison/key
+  // below must use all three fields, never description alone.
+  const getArticleKey = (description: string, variantType?: string | null, brandModel?: string | null) =>
+    `${description}__${variantType ?? ""}__${brandModel ?? ""}`;
 
-  const getArticleLabel = (article: { description: string; variant_type?: string | null }) =>
-    article.variant_type
-      ? `${article.description} - ${article.variant_type}`
-      : article.description;
+  const getArticleLabel = (article: { description: string; variant_type?: string | null; brand_model?: string | null }) => {
+    const parts = [article.description, article.variant_type, article.brand_model].filter(Boolean);
+    return parts.join(" - ");
+  };
 
   // Required-field checks mirror the zod rules in the parent form's
   // general_articles schema (description min 1, quantity min 1, unit_id
@@ -450,12 +451,12 @@ export function GeneralArticlesSection({
     isSubmitted && !article.unit_id;
 
   // The catalog can contain multiple rows (different ids) for the same
-  // description + variant_type combination; collapse them to one entry so
-  // the dropdown never lists the same article twice.
+  // description + variant_type + brand_model combination; collapse them to
+  // one entry so the dropdown never lists the same article twice.
   const dedupedGeneralArticles = useMemo(() => {
     const seen = new Set<string>();
     return filteredGeneralArticles.filter((article) => {
-      const key = getArticleKey(article.description, article.variant_type);
+      const key = getArticleKey(article.description, article.variant_type, article.brand_model);
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
@@ -470,7 +471,7 @@ export function GeneralArticlesSection({
         <FormItem className="flex flex-col">
           <div className="flex gap-4 items-end">
             <div className="flex gap-4 items-end w-full">
-              <FormItem className="flex flex-col w-[200px]">
+              <FormItem className="flex flex-col w-[320px]">
                 <FormLabel
                   className="flex items-center gap-1.5 select-none"
                   onClick={(e) => e.preventDefault()}
@@ -510,15 +511,17 @@ export function GeneralArticlesSection({
                           <CommandGroup>
                             {dedupedGeneralArticles.map((article) => (
                               <CommandItem
-                                key={getArticleKey(article.description, article.variant_type)}
-                                value={`${article.description} ${article.variant_type ?? ""}`}
+                                key={getArticleKey(article.description, article.variant_type, article.brand_model)}
+                                value={`${article.description} ${article.variant_type ?? ""} ${article.brand_model ?? ""}`}
                                 onSelect={() => handleGeneralArticleSelect(article)}
                               >
                                 <Check
                                   className={cn(
                                     "mr-2 h-4 w-4",
                                     selectedGeneralArticles.some(
-                                      (a) => getArticleKey(a.description, a.variant_type) === getArticleKey(article.description, article.variant_type)
+                                      (a) =>
+                                        getArticleKey(a.description, a.variant_type, a.brand_model) ===
+                                        getArticleKey(article.description, article.variant_type, article.brand_model)
                                     )
                                       ? "opacity-100"
                                       : "opacity-0"
@@ -560,7 +563,9 @@ export function GeneralArticlesSection({
             <ScrollArea className={cn(selectedGeneralArticles.length > 1 ? "h-[280px]" : "")}>
               {selectedGeneralArticles.map((article, index) => {
                 const isUnregistered = !generalArticles?.some(
-                  (a) => getArticleKey(a.description, a.variant_type) === getArticleKey(article.description, article.variant_type)
+                  (a) =>
+                    getArticleKey(a.description, a.variant_type, a.brand_model) ===
+                    getArticleKey(article.description, article.variant_type, article.brand_model)
                 );
                 return (
                 <div
