@@ -1,7 +1,5 @@
 'use client'
 
-import { format, parseISO } from 'date-fns'
-import { es } from 'date-fns/locale'
 import { HelpCircle, Layers, Package, Plane } from 'lucide-react'
 
 import {
@@ -15,7 +13,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { cn } from '@/lib/utils'
+import { cn, formatRequestedDate } from '@/lib/utils'
 import type { Requisition } from '@/types/purchase'
 
 interface Props {
@@ -175,7 +173,7 @@ export default function RequisitionArticlesPopover({ requisition }: Props) {
             if (article.requested_date) {
               fields.push({
                 label: 'Fecha Solicitud',
-                value: format(parseISO(article.requested_date), 'dd MMM yyyy', { locale: es }),
+                value: formatRequestedDate(article.requested_date),
               })
             }
 

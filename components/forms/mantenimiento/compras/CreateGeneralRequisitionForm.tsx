@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { format } from "date-fns";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   useCreateRequisition,
@@ -29,6 +28,7 @@ import { RequisitionHeader } from "./_components/RequisitionHeader";
 import { GeneralArticlesSection } from "./_components/GeneralArticlesSection";
 import { AdditionalInfoSection } from "./_components/AdditionalInfoSection";
 import { isHigherPriority, type Priority } from "./_components/priorityUtils";
+import { getStoragePathFromUrl } from "./_components/imageUtils";
 
 /* -------------------------------------------------------------------------- */
 /*                                   SCHEMA                                   */
@@ -60,6 +60,7 @@ const FormSchema = z.object({
       unit_id: z.string().optional(),
       priority: z.enum(["HIGH", "MEDIUM", "LOW"]).optional(),
       image: z.any().optional(),
+      existing_image_path: z.string().optional(),
       department_id: z.string().optional(),
       third_party_id: z.string().optional(),
       employee_id: z.string().optional(),
@@ -170,13 +171,17 @@ export function CreateGeneralRequisitionForm({
 
   /* ------------------------------- HANDLERS ------------------------------- */
 
-  // Two articles can share a description but differ by variant_type, so
-  // identity (and toggle-off matching) must always compare both fields
-  // together, never description alone.
+  // Two articles can share a description and variant_type but differ by
+  // brand_model (e.g. same item from two brands, only one with a catalog
+  // image), so identity (and toggle-off matching) must always compare all
+  // three fields together, never description alone.
   const isSameGeneralArticle = (
-    a: { description: string; variant_type?: string | null },
-    b: { description: string; variant_type?: string | null }
-  ) => a.description === b.description && (a.variant_type ?? "") === (b.variant_type ?? "");
+    a: { description: string; variant_type?: string | null; brand_model?: string | null },
+    b: { description: string; variant_type?: string | null; brand_model?: string | null }
+  ) =>
+    a.description === b.description &&
+    (a.variant_type ?? "") === (b.variant_type ?? "") &&
+    (a.brand_model ?? "") === (b.brand_model ?? "");
 
   const handleGeneralArticleSelect = (article: GeneralArticle) => {
     setSelectedGeneralArticles((prev) => {
@@ -188,9 +193,15 @@ export function CreateGeneralRequisitionForm({
         {
           description: article.description,
           variant_type: article.variant_type,
+          brand_model: article.brand_model,
           quantity: 0,
           unit_id: undefined,
           priority: "MEDIUM",
+          // Prefills the article's existing image so the user isn't forced to
+          // re-upload the same picture; existing_image_path tells the backend
+          // to reuse the stored file instead of treating it as a new upload.
+          image: article.image ?? undefined,
+          existing_image_path: getStoragePathFromUrl(article.image),
         },
       ];
     });
@@ -208,9 +219,16 @@ export function CreateGeneralRequisitionForm({
       }
     }
     setSelectedGeneralArticles((prev) =>
-      prev.map((article, i) =>
-        i === index ? { ...article, [field]: value } : article
-      )
+      prev.map((article, i) => {
+        if (i !== index) return article;
+        // Once the user removes the prefilled image or attaches a new file,
+        // it's no longer the catalog's existing image, so the backend must
+        // not be told to reuse the old stored path.
+        if (field === "image") {
+          return { ...article, image: value, existing_image_path: undefined };
+        }
+        return { ...article, [field]: value };
+      })
     );
   };
 
@@ -243,7 +261,12 @@ export function CreateGeneralRequisitionForm({
       third_party_id: data.third_party_id ? Number(data.third_party_id) : undefined,
       general_articles: data.general_articles.map((article) => ({
         ...article,
-        requested_date: article.requested_date ?? format(new Date(), "yyyy-MM-dd"),
+        requested_date: article.requested_date ?? new Date().toISOString(),
+        // `image` only carries a File (new upload) or, for preview purposes,
+        // the catalog article's existing URL string — the backend's image
+        // validation rule rejects anything that isn't an actual uploaded
+        // file, so a reused image must travel solely via existing_image_path.
+        image: article.image instanceof File ? article.image : undefined,
       })),
     };
 

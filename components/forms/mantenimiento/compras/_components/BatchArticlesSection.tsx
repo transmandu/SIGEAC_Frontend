@@ -46,6 +46,7 @@ interface BatchArticlesSectionProps {
   removeBatch: (batchId: string) => void;
   enableCreateBatch?: boolean;
   onBatchCreated?: (batchName: string) => void;
+  size?: "default" | "lg";
 }
 
 export function BatchArticlesSection({
@@ -70,8 +71,15 @@ export function BatchArticlesSection({
   removeBatch,
   enableCreateBatch = false,
   onBatchCreated,
+  size = "default",
 }: BatchArticlesSectionProps) {
   const [isCreateBatchOpen, setIsCreateBatchOpen] = useState(false);
+  const isLg = size === "lg";
+  const labelTextClass = cn(
+    isLg ? "text-sm text-foreground/80" : "text-[10px] text-muted-foreground",
+    "whitespace-nowrap"
+  );
+  const priorityColClass = isLg ? "w-40" : "w-28";
 
   return (
     <FormField
@@ -211,7 +219,7 @@ export function BatchArticlesSection({
                             {/* Row 1: Part Number, Quantity, Unit */}
                             <div className="flex items-center gap-2">
                               <div className="flex flex-col gap-1 flex-1">
-                                <label className="flex items-center gap-1 text-[10px] font-medium text-muted-foreground select-none">
+                                <label className={cn("flex items-center gap-1 font-medium select-none", labelTextClass)}>
                                   <Hash className="size-3" />
                                   P/N
                                   <RequiredIndicator />
@@ -224,7 +232,7 @@ export function BatchArticlesSection({
                               </div>
 
                               <div className="flex flex-col gap-1 w-28 shrink-0">
-                                <label className="flex items-center gap-1 text-[10px] font-medium text-muted-foreground select-none">
+                                <label className={cn("flex items-center gap-1 font-medium select-none", labelTextClass)}>
                                   <Tag className="size-3" />
                                   Cant.
                                   <RequiredIndicator />
@@ -240,7 +248,7 @@ export function BatchArticlesSection({
                               </div>
 
                               <div className="flex flex-col gap-1 w-36 shrink-0">
-                                <label className="flex items-center gap-1 text-[10px] font-medium text-muted-foreground select-none">
+                                <label className={cn("flex items-center gap-1 font-medium select-none", labelTextClass)}>
                                   <Ruler className="size-3" />
                                   Unidad.
                                   <RequiredIndicator />
@@ -267,7 +275,7 @@ export function BatchArticlesSection({
                             {/* Row 2: Alternative Part Number, Aircraft, Priority */}
                             <div className="flex items-center gap-2">
                               <div className="flex flex-col gap-1 flex-1">
-                                <label className="flex items-center gap-1 text-[10px] font-medium text-muted-foreground select-none">
+                                <label className={cn("flex items-center gap-1 font-medium select-none", labelTextClass)}>
                                   <Hash className="size-3" />
                                   P/N Alterno.
                                 </label>
@@ -278,8 +286,8 @@ export function BatchArticlesSection({
                                 />
                               </div>
 
-                              <div className="flex flex-col gap-1 w-28 shrink-0">
-                                <label className="flex items-center gap-1 text-[10px] font-medium text-muted-foreground select-none">
+                              <div className={cn("flex flex-col gap-1 shrink-0", priorityColClass)}>
+                                <label className={cn("flex items-center gap-1 font-medium select-none", labelTextClass)}>
                                   <Tag className="size-3" />
                                   Prioridad.
                                   <RequiredIndicator />
@@ -302,7 +310,7 @@ export function BatchArticlesSection({
                               </div>
 
                               <div className="flex flex-col gap-1 w-36 shrink-0">
-                                <label className="flex items-center gap-1 text-[10px] font-medium text-muted-foreground select-none">
+                                <label className={cn("flex items-center gap-1 font-medium select-none", labelTextClass)}>
                                   <Plane className="size-3" />
                                   Aeronave.
                                 </label>

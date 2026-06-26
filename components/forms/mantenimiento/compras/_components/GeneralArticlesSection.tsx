@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button"
 import { FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
-import { format, parseISO } from "date-fns"
+import { format, parseISO, set } from "date-fns"
 import { es } from "date-fns/locale"
 import { Building2, Calendar as CalendarIcon, Check, ChevronsUpDown, Layers, MinusCircle, PackagePlus, Ruler, Tag, User, UserCog } from "lucide-react"
 import { useMemo } from "react"
@@ -44,6 +44,7 @@ interface GeneralArticlesSectionProps {
   removeGeneralArticle: (index: number) => void;
   enableCreateGeneralArticle?: boolean;
   addManualGeneralArticle?: () => void;
+  size?: "default" | "lg";
 }
 
 // Authorized employees and third parties are mutually exclusive in a single
@@ -51,6 +52,20 @@ interface GeneralArticlesSectionProps {
 // them apart without colliding ids from the two different tables.
 const AUTH_PREFIX = "auth:";
 const THIRD_PREFIX = "third:";
+
+// Keeps the calendar-picked day but stamps it with the current time, so
+// requested_date records when the action was actually performed instead of
+// always saving midnight (which the backend stores/returns as UTC and then
+// renders a day behind in Venezuela's UTC-4 offset).
+const withCurrentTime = (day: Date) => {
+  const now = new Date();
+  return set(day, {
+    hours: now.getHours(),
+    minutes: now.getMinutes(),
+    seconds: now.getSeconds(),
+    milliseconds: now.getMilliseconds(),
+  });
+};
 
 interface DestinationFieldsRowProps {
   article: RequisitionGeneralArticleForm;
@@ -64,6 +79,8 @@ interface DestinationFieldsRowProps {
   authorizedEmployees?: AuthorizedEmployeeResponse[];
   isAuthorizedEmployeesLoading: boolean;
   handleGeneralArticleChange: (index: number, field: keyof RequisitionGeneralArticleForm, value: any) => void;
+  labelTextClass: string;
+  dateColClass: string;
 }
 
 // Hoisted to module scope so it isn't redefined as a new component identity
@@ -81,6 +98,8 @@ function DestinationFieldsRow({
   authorizedEmployees,
   isAuthorizedEmployeesLoading,
   handleGeneralArticleChange,
+  labelTextClass,
+  dateColClass,
 }: DestinationFieldsRowProps) {
   // Combined value for the authorized-employee / third-party combobox: the
   // two tables don't share an id space, so selections are namespaced and
@@ -124,8 +143,8 @@ function DestinationFieldsRow({
 
   return (
     <div className="flex items-center justify-center gap-2 mt-1.5">
-      <div className="flex flex-col gap-1 w-32 shrink-0">
-        <label className="flex items-center gap-1 text-[10px] font-medium text-muted-foreground select-none">
+      <div className={cn("flex flex-col gap-1 shrink-0", dateColClass)}>
+        <label className={cn("flex items-center gap-1 font-medium select-none", labelTextClass)}>
           <CalendarIcon className="size-3" />
           Fecha Solicitud
         </label>
@@ -150,7 +169,7 @@ function DestinationFieldsRow({
               mode="single"
               selected={requestedDate}
               onSelect={(date) =>
-                handleGeneralArticleChange(index, "requested_date", date ? format(date, "yyyy-MM-dd") : undefined)
+                handleGeneralArticleChange(index, "requested_date", date ? withCurrentTime(date).toISOString() : undefined)
               }
               locale={es}
               initialFocus
@@ -160,7 +179,7 @@ function DestinationFieldsRow({
       </div>
 
       <div className="flex flex-col gap-1 w-48 shrink-0">
-        <label className="flex items-center gap-1 text-[10px] font-medium text-muted-foreground select-none">
+        <label className={cn("flex items-center gap-1 font-medium select-none", labelTextClass)}>
           <Building2 className="size-3" />
           Depto.
         </label>
@@ -223,7 +242,7 @@ function DestinationFieldsRow({
       </div>
 
       <div className="flex flex-col gap-1 w-48 shrink-0">
-        <label className="flex items-center gap-1 text-[10px] font-medium text-muted-foreground select-none">
+        <label className={cn("flex items-center gap-1 font-medium select-none", labelTextClass)}>
           <User className="size-3" />
           Solicitante
         </label>
@@ -286,7 +305,7 @@ function DestinationFieldsRow({
       </div>
 
       <div className="flex flex-col gap-1 w-48 shrink-0">
-        <label className="flex items-center gap-1 text-[10px] font-medium text-muted-foreground select-none">
+        <label className={cn("flex items-center gap-1 font-medium select-none", labelTextClass)}>
           <UserCog className="size-3" />
           Autoriz.
         </label>
@@ -395,18 +414,28 @@ export function GeneralArticlesSection({
   removeGeneralArticle,
   enableCreateGeneralArticle = false,
   addManualGeneralArticle,
+  size = "default",
 }: GeneralArticlesSectionProps) {
-  // Identity of a general article is description + variant_type together:
-  // two entries can share a description but differ by variant_type (and
-  // must be treated as distinct), so every comparison/key below must use
-  // both fields, never description alone.
-  const getArticleKey = (description: string, variantType?: string | null) =>
-    `${description}__${variantType ?? ""}`;
+  const isLg = size === "lg";
+  const labelTextClass = cn(
+    isLg ? "text-sm text-foreground/80" : "text-[10px] text-muted-foreground",
+    "whitespace-nowrap"
+  );
+  const dateColClass = isLg ? "w-40" : "w-32";
+  const priorityColClass = isLg ? "w-28" : "w-[80px]";
 
-  const getArticleLabel = (article: { description: string; variant_type?: string | null }) =>
-    article.variant_type
-      ? `${article.description} - ${article.variant_type}`
-      : article.description;
+  // Identity of a general article is description + variant_type + brand_model
+  // together: two entries can share a description (and even variant_type)
+  // but differ by brand_model — e.g. the same item from two different
+  // brands, only one of which has a catalog image — so every comparison/key
+  // below must use all three fields, never description alone.
+  const getArticleKey = (description: string, variantType?: string | null, brandModel?: string | null) =>
+    `${description}__${variantType ?? ""}__${brandModel ?? ""}`;
+
+  const getArticleLabel = (article: { description: string; variant_type?: string | null; brand_model?: string | null }) => {
+    const parts = [article.description, article.variant_type, article.brand_model].filter(Boolean);
+    return parts.join(" - ");
+  };
 
   // Required-field checks mirror the zod rules in the parent form's
   // general_articles schema (description min 1, quantity min 1, unit_id
@@ -422,12 +451,12 @@ export function GeneralArticlesSection({
     isSubmitted && !article.unit_id;
 
   // The catalog can contain multiple rows (different ids) for the same
-  // description + variant_type combination; collapse them to one entry so
-  // the dropdown never lists the same article twice.
+  // description + variant_type + brand_model combination; collapse them to
+  // one entry so the dropdown never lists the same article twice.
   const dedupedGeneralArticles = useMemo(() => {
     const seen = new Set<string>();
     return filteredGeneralArticles.filter((article) => {
-      const key = getArticleKey(article.description, article.variant_type);
+      const key = getArticleKey(article.description, article.variant_type, article.brand_model);
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
@@ -442,7 +471,7 @@ export function GeneralArticlesSection({
         <FormItem className="flex flex-col">
           <div className="flex gap-4 items-end">
             <div className="flex gap-4 items-end w-full">
-              <FormItem className="flex flex-col w-[200px]">
+              <FormItem className="flex flex-col w-[320px]">
                 <FormLabel
                   className="flex items-center gap-1.5 select-none"
                   onClick={(e) => e.preventDefault()}
@@ -482,15 +511,17 @@ export function GeneralArticlesSection({
                           <CommandGroup>
                             {dedupedGeneralArticles.map((article) => (
                               <CommandItem
-                                key={getArticleKey(article.description, article.variant_type)}
-                                value={`${article.description} ${article.variant_type ?? ""}`}
+                                key={getArticleKey(article.description, article.variant_type, article.brand_model)}
+                                value={`${article.description} ${article.variant_type ?? ""} ${article.brand_model ?? ""}`}
                                 onSelect={() => handleGeneralArticleSelect(article)}
                               >
                                 <Check
                                   className={cn(
                                     "mr-2 h-4 w-4",
                                     selectedGeneralArticles.some(
-                                      (a) => getArticleKey(a.description, a.variant_type) === getArticleKey(article.description, article.variant_type)
+                                      (a) =>
+                                        getArticleKey(a.description, a.variant_type, a.brand_model) ===
+                                        getArticleKey(article.description, article.variant_type, article.brand_model)
                                     )
                                       ? "opacity-100"
                                       : "opacity-0"
@@ -532,7 +563,9 @@ export function GeneralArticlesSection({
             <ScrollArea className={cn(selectedGeneralArticles.length > 1 ? "h-[280px]" : "")}>
               {selectedGeneralArticles.map((article, index) => {
                 const isUnregistered = !generalArticles?.some(
-                  (a) => getArticleKey(a.description, a.variant_type) === getArticleKey(article.description, article.variant_type)
+                  (a) =>
+                    getArticleKey(a.description, a.variant_type, a.brand_model) ===
+                    getArticleKey(article.description, article.variant_type, article.brand_model)
                 );
                 return (
                 <div
@@ -568,8 +601,9 @@ export function GeneralArticlesSection({
                       <div className="flex flex-col gap-1.5 flex-1">
                         <div className="flex flex-col gap-1">
                           <label className={cn(
-                            "flex items-center gap-1 text-[10px] font-medium select-none",
-                            isDescriptionInvalid(article) ? "text-destructive" : "text-muted-foreground"
+                            "flex items-center gap-1 font-medium select-none",
+                            labelTextClass,
+                            isDescriptionInvalid(article) && "text-destructive"
                           )}>
                             <Tag className="size-3" />
                             Descripción
@@ -585,7 +619,7 @@ export function GeneralArticlesSection({
 
                         <div className="flex items-center gap-2">
                           <div className="flex flex-col gap-1 flex-1">
-                            <label className="flex items-center gap-1 text-[10px] font-medium text-muted-foreground select-none">
+                            <label className={cn("flex items-center gap-1 font-medium select-none", labelTextClass)}>
                               Present. / Especif.
                             </label>
                             <Input
@@ -598,8 +632,9 @@ export function GeneralArticlesSection({
 
                           <div className="flex flex-col gap-1 w-28 shrink-0">
                             <label className={cn(
-                              "flex items-center gap-1 text-[10px] font-medium select-none",
-                              isQuantityInvalid(article) ? "text-destructive" : "text-muted-foreground"
+                              "flex items-center gap-1 font-medium select-none",
+                              labelTextClass,
+                              isQuantityInvalid(article) && "text-destructive"
                             )}>
                               <Tag className="size-3" />
                               Cant.
@@ -618,8 +653,9 @@ export function GeneralArticlesSection({
 
                           <div className="flex flex-col gap-1 w-36 shrink-0">
                             <label className={cn(
-                              "flex items-center gap-1 text-[10px] font-medium select-none",
-                              isUnitInvalid(article) ? "text-destructive" : "text-muted-foreground"
+                              "flex items-center gap-1 font-medium select-none",
+                              labelTextClass,
+                              isUnitInvalid(article) && "text-destructive"
                             )}>
                               <Ruler className="size-3" />
                               Unidad.
@@ -647,8 +683,8 @@ export function GeneralArticlesSection({
                             </Select>
                           </div>
 
-                          <div className="flex flex-col gap-1 w-[80px] shrink-0">
-                            <label className="flex items-center gap-1 text-[10px] font-medium text-muted-foreground select-none">
+                          <div className={cn("flex flex-col gap-1 shrink-0", priorityColClass)}>
+                            <label className={cn("flex items-center gap-1 font-medium select-none", labelTextClass)}>
                               <Tag className="size-3" />
                               Prioridad.
                               <RequiredIndicator />
@@ -684,6 +720,8 @@ export function GeneralArticlesSection({
                             authorizedEmployees={authorizedEmployees}
                             isAuthorizedEmployeesLoading={isAuthorizedEmployeesLoading}
                             handleGeneralArticleChange={handleGeneralArticleChange}
+                            labelTextClass={labelTextClass}
+                            dateColClass={dateColClass}
                           />
                         )}
                       </div>
@@ -700,7 +738,7 @@ export function GeneralArticlesSection({
                       <div className="flex flex-col gap-1.5 flex-1">
                         <div className="flex items-center gap-2">
                           <div className="flex flex-col gap-1 flex-1">
-                            <label className="flex items-center gap-1 text-[10px] font-medium text-muted-foreground select-none">
+                            <label className={cn("flex items-center gap-1 font-medium select-none", labelTextClass)}>
                               Present. / Especif.
                             </label>
                             <Input
@@ -713,8 +751,9 @@ export function GeneralArticlesSection({
 
                           <div className="flex flex-col gap-1 w-28 shrink-0">
                             <label className={cn(
-                              "flex items-center gap-1 text-[10px] font-medium select-none",
-                              isQuantityInvalid(article) ? "text-destructive" : "text-muted-foreground"
+                              "flex items-center gap-1 font-medium select-none",
+                              labelTextClass,
+                              isQuantityInvalid(article) && "text-destructive"
                             )}>
                               <Tag className="size-3" />
                               Cant.
@@ -733,8 +772,9 @@ export function GeneralArticlesSection({
 
                           <div className="flex flex-col gap-1 w-36 shrink-0">
                             <label className={cn(
-                              "flex items-center gap-1 text-[10px] font-medium select-none",
-                              isUnitInvalid(article) ? "text-destructive" : "text-muted-foreground"
+                              "flex items-center gap-1 font-medium select-none",
+                              labelTextClass,
+                              isUnitInvalid(article) && "text-destructive"
                             )}>
                               <Ruler className="size-3" />
                               Unidad.
@@ -762,8 +802,8 @@ export function GeneralArticlesSection({
                             </Select>
                           </div>
 
-                          <div className="flex flex-col gap-1 w-[80px] shrink-0">
-                            <label className="flex items-center gap-1 text-[10px] font-medium text-muted-foreground select-none">
+                          <div className={cn("flex flex-col gap-1 shrink-0", priorityColClass)}>
+                            <label className={cn("flex items-center gap-1 font-medium select-none", labelTextClass)}>
                               <Tag className="size-3" />
                               Prioridad.
                               <RequiredIndicator />
@@ -799,6 +839,8 @@ export function GeneralArticlesSection({
                             authorizedEmployees={authorizedEmployees}
                             isAuthorizedEmployeesLoading={isAuthorizedEmployeesLoading}
                             handleGeneralArticleChange={handleGeneralArticleChange}
+                            labelTextClass={labelTextClass}
+                            dateColClass={dateColClass}
                           />
                         )}
                       </div>
