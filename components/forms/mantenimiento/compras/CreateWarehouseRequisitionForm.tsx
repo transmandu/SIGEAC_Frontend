@@ -20,7 +20,6 @@ import { z } from "zod"
 import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits"
 import { cn } from "@/lib/utils"
 import { useGetGeneralArticles } from "@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticles"
-import { format } from "date-fns"
 import type { RequisitionBatchForm, RequisitionGeneralArticleForm } from "@/types/purchase"
 import type { Aircraft, GeneralArticle } from "@/types"
 import { Separator } from "@/components/ui/separator"
@@ -393,7 +392,7 @@ export function CreateWarehouseRequisitionForm({
         ...prev,
         {
           description: article.description,
-          requested_date: format(new Date(), "yyyy-MM-dd"),
+          requested_date: new Date().toISOString(),
           variant_type: article.variant_type,
           quantity: 0,
           unit_id: undefined,
@@ -427,7 +426,7 @@ export function CreateWarehouseRequisitionForm({
       ...prev,
       {
         description: "",
-        requested_date: format(new Date(), "yyyy-MM-dd"),
+        requested_date: new Date().toISOString(),
         variant_type: "",
         quantity: 0,
         unit_id: undefined,

@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button"
 import { FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
-import { format, parseISO } from "date-fns"
+import { format, parseISO, set } from "date-fns"
 import { es } from "date-fns/locale"
 import { Building2, Calendar as CalendarIcon, Check, ChevronsUpDown, Layers, MinusCircle, PackagePlus, Ruler, Tag, User, UserCog } from "lucide-react"
 import { useMemo } from "react"
@@ -52,6 +52,20 @@ interface GeneralArticlesSectionProps {
 // them apart without colliding ids from the two different tables.
 const AUTH_PREFIX = "auth:";
 const THIRD_PREFIX = "third:";
+
+// Keeps the calendar-picked day but stamps it with the current time, so
+// requested_date records when the action was actually performed instead of
+// always saving midnight (which the backend stores/returns as UTC and then
+// renders a day behind in Venezuela's UTC-4 offset).
+const withCurrentTime = (day: Date) => {
+  const now = new Date();
+  return set(day, {
+    hours: now.getHours(),
+    minutes: now.getMinutes(),
+    seconds: now.getSeconds(),
+    milliseconds: now.getMilliseconds(),
+  });
+};
 
 interface DestinationFieldsRowProps {
   article: RequisitionGeneralArticleForm;
@@ -155,7 +169,7 @@ function DestinationFieldsRow({
               mode="single"
               selected={requestedDate}
               onSelect={(date) =>
-                handleGeneralArticleChange(index, "requested_date", date ? format(date, "yyyy-MM-dd") : undefined)
+                handleGeneralArticleChange(index, "requested_date", date ? withCurrentTime(date).toISOString() : undefined)
               }
               locale={es}
               initialFocus

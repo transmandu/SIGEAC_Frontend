@@ -8,7 +8,7 @@ import { Loader2, Trash2, User, FileText, Image as ImageIcon, Plane } from 'luci
 import { useDeleteRequisition } from '@/actions/mantenimiento/compras/requisiciones/actions';
 import { useGetRequisitionByOrderNumber } from '@/hooks/mantenimiento/compras/useGetRequisitionByOrderNumber';
 import { useCompanyStore } from '@/stores/CompanyStore';
-import { cn } from '@/lib/utils';
+import { cn, formatRequestedDate } from '@/lib/utils';
 
 import { ContentLayout } from '@/components/layout/ContentLayout';
 import LoadingPage from '@/components/misc/LoadingPage';
@@ -246,12 +246,7 @@ const GeneralArticleCard = ({ article }: { article: any }) => {
             <div>
               <p className="text-muted-foreground text-xs">Fecha Solicitud</p>
               <p className="font-medium">
-                {new Intl.DateTimeFormat('es-VE', {
-                  timeZone: 'America/Caracas',
-                  year: 'numeric',
-                  month: '2-digit',
-                  day: '2-digit',
-                }).format(new Date(article.requested_date))}
+                {formatRequestedDate(article.requested_date, 'dd/MM/yyyy')}
               </p>
             </div>
           )}

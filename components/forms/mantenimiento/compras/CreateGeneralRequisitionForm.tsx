@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { format } from "date-fns";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   useCreateRequisition,
@@ -243,7 +242,7 @@ export function CreateGeneralRequisitionForm({
       third_party_id: data.third_party_id ? Number(data.third_party_id) : undefined,
       general_articles: data.general_articles.map((article) => ({
         ...article,
-        requested_date: article.requested_date ?? format(new Date(), "yyyy-MM-dd"),
+        requested_date: article.requested_date ?? new Date().toISOString(),
       })),
     };
 
