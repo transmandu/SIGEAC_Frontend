@@ -16,7 +16,7 @@ type Step = 1 | 2;
 
 const CreateSMSActivity = () => {
   const router = useRouter();
-  const { selectedCompany } = useCompanyStore();
+  const { selectedCompany, selectedStation } = useCompanyStore();
   const [step, setStep] = useState<Step>(1);
   const [activityData, setActivityData] = useState<any>(null);
   const [categoryNames, setCategoryNames] = useState<string[]>([]);
@@ -96,6 +96,7 @@ const CreateSMSActivity = () => {
         payload.survey = {
           title: childData.title,
           type: childData.type,
+          location_id: selectedStation,
           description: childData.description,
           questions: childData.questions,
         };
