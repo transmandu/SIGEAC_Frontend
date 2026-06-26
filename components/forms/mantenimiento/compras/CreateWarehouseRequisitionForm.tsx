@@ -110,10 +110,12 @@ type FormSchemaType = z.infer<typeof FormSchema>;
 
 interface FormProps {
   onClose: () => void;
+  itemLabelSize?: "default" | "lg";
 }
 
 export function CreateWarehouseRequisitionForm({
   onClose,
+  itemLabelSize = "default",
 }: FormProps) {
   const { user } = useAuth();
 
@@ -535,6 +537,7 @@ export function CreateWarehouseRequisitionForm({
             addBatchArticle={addBatchArticle}
             removeBatchArticle={removeBatchArticle}
             removeBatch={removeBatch}
+            size={itemLabelSize}
           />
         ) : (
           <GeneralArticlesSection
@@ -561,6 +564,7 @@ export function CreateWarehouseRequisitionForm({
             removeGeneralArticle={removeGeneralArticle}
             enableCreateGeneralArticle
             addManualGeneralArticle={addManualGeneralArticle}
+            size={itemLabelSize}
           />
         )}
 
