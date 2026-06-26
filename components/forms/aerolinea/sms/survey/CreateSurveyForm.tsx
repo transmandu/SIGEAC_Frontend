@@ -37,9 +37,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 interface FormProps {
   onClose: () => void;
+  onStepSubmit?: (data: Record<string, unknown>) => Promise<void>;
+  isSubmitting?: boolean;
 }
 
 // Esquema para las opciones de preguntas
@@ -546,9 +549,9 @@ function QuestionItem({
   );
 }
 
-export function CreateSurveyForm({ onClose }: FormProps) {
+export function CreateSurveyForm({ onClose, onStepSubmit, isSubmitting }: FormProps) {
   const { createSurvey } = useCreateSurvey();
-
+  const { selectedStation } = useCompanyStore();
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -590,6 +593,7 @@ export function CreateSurveyForm({ onClose }: FormProps) {
     const formPayload = {
       title: data.title,
       type: data.type,
+      location_id: selectedStation,
       description: data.description,
       questions: data.questions.map((question) => {
         if (question.type === "OPEN") {
@@ -612,6 +616,10 @@ export function CreateSurveyForm({ onClose }: FormProps) {
       }),
     };
 
+    if (onStepSubmit) {
+      await onStepSubmit(formPayload);
+      return;
+    }
 
     try {
       await createSurvey.mutateAsync(formPayload);
@@ -680,8 +688,8 @@ export function CreateSurveyForm({ onClose }: FormProps) {
                       type="button"
                       onClick={() => field.onChange(opt.value)}
                       className={`px-4 py-2 text-sm rounded-md border transition-colors ${field.value === opt.value
-                          ? "bg-primary text-primary-foreground border-primary"
-                          : "bg-background text-foreground border-border hover:bg-muted"
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-background text-foreground border-border hover:bg-muted"
                         }`}
                     >
                       {opt.label}
@@ -770,11 +778,13 @@ export function CreateSurveyForm({ onClose }: FormProps) {
 
         <Button
           type="submit"
-          disabled={createSurvey.isPending}
-          className="w-full"
+          disabled={createSurvey.isPending || isSubmitting}
+          className="w-full h-10"
         >
-          {createSurvey.isPending ? (
+          {createSurvey.isPending || isSubmitting ? (
             <Loader2 className="size-4 animate-spin" />
+          ) : onStepSubmit ? (
+            `Crear Actividad y ${surveyType === "QUIZ" ? "Trivia" : "Encuesta"}`
           ) : (
             `Crear ${surveyType === "QUIZ" ? "Trivia" : "Encuesta"}`
           )}

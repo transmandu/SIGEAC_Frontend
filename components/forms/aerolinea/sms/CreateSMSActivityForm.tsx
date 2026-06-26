@@ -99,6 +99,8 @@ interface FormProps {
   initialData?: SMSActivity;
   isEditing?: boolean;
   selectedDate?: string;
+  onSuccess?: (activityId: string, categoryNames: string[]) => void;
+  onContinue?: (data: FormSchemaType, categoryNames: string[]) => void;
 }
 
 export default function CreateSMSActivityForm({
@@ -106,6 +108,8 @@ export default function CreateSMSActivityForm({
   isEditing,
   initialData,
   selectedDate,
+  onSuccess,
+  onContinue,
 }: FormProps) {
   const router = useRouter();
   const { selectedCompany, selectedStation } = useCompanyStore();
@@ -223,18 +227,35 @@ export default function CreateSMSActivityForm({
         },
       };
       await updateSMSActivity.mutateAsync(value);
+      onClose(true);
+    } else if (onContinue) {
+      const selectedCategoryNames = data.categories
+        .map((id) => categories?.find((c) => c.id.toString() === id)?.name || "")
+        .filter(Boolean);
+      onContinue(data, selectedCategoryNames);
+      return;
     } else {
       try {
-        await createSMSActivity.mutateAsync({
+        const result = await createSMSActivity.mutateAsync({
           company: selectedCompany!.slug,
           data,
         });
+        const createdId = result?.data?.id;
+
+        if (onSuccess && createdId) {
+          const selectedCategoryNames = data.categories
+            .map((id) => categories?.find((c) => c.id.toString() === id)?.name || "")
+            .filter(Boolean);
+          onSuccess(createdId.toString(), selectedCategoryNames);
+          return;
+        }
+
         router.push(`/${selectedCompany?.slug}/sms/promocion/actividades`);
       } catch (error) {
         console.error("Error al crear la actividad", error);
       }
+      onClose(true);
     }
-    onClose(true);
   };
 
   return (
@@ -820,7 +841,9 @@ export default function CreateSMSActivityForm({
           />
         </div>
 
-        <Button type="submit">Enviar</Button>
+        <Button type="submit" className="w-full h-10">
+          {onContinue ? "Continuar" : "Enviar"}
+        </Button>
       </form>
     </Form>
   );

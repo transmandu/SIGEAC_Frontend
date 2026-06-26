@@ -10,6 +10,7 @@ interface BulletinData {
     description: string;
     image?: File | undefined;
     document: File | undefined;
+    sms_activity_id?: string;
   };
 }
 
