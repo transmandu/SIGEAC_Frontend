@@ -4,6 +4,30 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { toast } from "sonner";
 
+interface BulletinPayload {
+  title?: string;
+  description?: string;
+  date?: string;
+  image?: File;
+  document?: File;
+}
+
+interface SurveyPayload {
+  title?: string;
+  type?: string;
+  description?: string;
+  location_id: string;
+  questions?: Array<{
+    text: string;
+    type: string;
+    is_required: boolean;
+    options?: Array<{
+      text: string;
+      is_correct?: boolean;
+    }>;
+  }>;
+}
+
 interface SMSActivityData {
   activity_name: string;
   title: string;
@@ -22,6 +46,8 @@ interface SMSActivityData {
   executed_by?: string;
   image?: File;
   document?: File;
+  bulletin?: BulletinPayload;
+  survey?: SurveyPayload;
 }
 interface updateSMSActivityData {
   company: string | null;
@@ -88,6 +114,17 @@ export const useCreateSMSActivity = () => {
       if (data.image instanceof File) formData.append("image", data.image);
       if (data.document instanceof File)
         formData.append("document", data.document);
+
+      if (data.bulletin) {
+        const { image: bulletinImage, document: bulletinDocument, ...bulletinRest } = data.bulletin;
+        formData.append("bulletin", JSON.stringify(bulletinRest));
+        if (bulletinImage instanceof File) formData.append("bulletin_image", bulletinImage);
+        if (bulletinDocument instanceof File) formData.append("bulletin_document", bulletinDocument);
+      }
+
+      if (data.survey) {
+        formData.append("survey", JSON.stringify(data.survey));
+      }
 
       const response = await axiosInstance.post(
         `/${company}/sms/activities`,
