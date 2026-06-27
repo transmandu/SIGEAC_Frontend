@@ -12,6 +12,7 @@ import type { Requisition } from '@/types/purchase'
 import RequisitionToolBar from './_components/RequisitionToolBar'
 import { CreateRequisitionDialog } from '@/components/dialogs/mantenimiento/compras/CreateRequisitionDialog'
 import RequisitionSubRow from './_components/RequisitionSubRow'
+import GroupedRequisitionTable from './_components/GroupedRequisitionTable'
 
 const RequisitionsPage = () => {
   const { selectedCompany, selectedStation } = useCompanyStore()
@@ -29,6 +30,7 @@ const RequisitionsPage = () => {
   const [status, setStatus] = useState('ALL')
   const [type, setType] = useState('ALL')
   const [priority, setPriority] = useState('ALL')
+  const [groupBy, setGroupBy] = useState('NONE')
 
   const deferredSearch = useDeferredValue(search)
 
@@ -127,6 +129,8 @@ const RequisitionsPage = () => {
             setType={setType}
             priority={priority}
             setPriority={setPriority}
+            groupBy={groupBy}
+            setGroupBy={setGroupBy}
           />
 
           <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
@@ -137,21 +141,47 @@ const RequisitionsPage = () => {
           </span>
         </div>
 
-        <DataTable
-          columns={columns}
-          data={filteredRequisitions}
-          renderSubRow={(row) => (
-            <RequisitionSubRow
-              requisition={row.original}
-              selectedCompany={selectedCompany}
-            />
-          )}
-          canExpandRow={(row) =>
-            !!row.original.quotes?.length
-          }
-          loading={isLoading}
-          toolbar={<CreateRequisitionDialog />}
-        />
+        <div className="flex items-center justify-between gap-2">
+          <CreateRequisitionDialog />
+        </div>
+
+        {groupBy === 'requested_by' ? (
+          <GroupedRequisitionTable
+            data={filteredRequisitions}
+            renderTable={(rows) => (
+              <DataTable
+                columns={columns}
+                data={rows}
+                renderSubRow={(row) => (
+                  <RequisitionSubRow
+                    requisition={row.original}
+                    selectedCompany={selectedCompany}
+                  />
+                )}
+                canExpandRow={(row) =>
+                  !!row.original.quotes?.length
+                }
+                loading={isLoading}
+                overflowVisible
+              />
+            )}
+          />
+        ) : (
+          <DataTable
+            columns={columns}
+            data={filteredRequisitions}
+            renderSubRow={(row) => (
+              <RequisitionSubRow
+                requisition={row.original}
+                selectedCompany={selectedCompany}
+              />
+            )}
+            canExpandRow={(row) =>
+              !!row.original.quotes?.length
+            }
+            loading={isLoading}
+          />
+        )}
 
         {isError && (
           <div className="rounded-lg border border-red-500/20 bg-red-500/5 px-4 py-3">
