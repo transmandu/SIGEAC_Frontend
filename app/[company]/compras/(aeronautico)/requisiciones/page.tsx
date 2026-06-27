@@ -22,7 +22,8 @@ const RequisitionsPage = () => {
     isError,
   } = useGetRequisition(
     selectedCompany?.slug,
-    selectedStation || undefined
+    selectedStation || undefined,
+    'AERONAUTICAL'
   )
 
   const [search, setSearch] = useState('')
@@ -38,10 +39,6 @@ const RequisitionsPage = () => {
     const q = deferredSearch.toLowerCase()
 
     return requisitions.filter((req: Requisition) => {
-      // Compras generales no se gestiona en este módulo: las requisiciones
-      // GENERAL no aplican aquí.
-      const isAeronauticalScope = req.type !== 'GENERAL'
-
       const matchesSearch =
         !deferredSearch.trim() ||
         req.order_number?.toLowerCase?.().includes(q) ||
@@ -58,7 +55,7 @@ const RequisitionsPage = () => {
       const matchesPriority =
         priority === 'ALL' || req.priority === priority
 
-      return isAeronauticalScope && matchesSearch && matchesStatus && matchesType && matchesPriority
+      return matchesSearch && matchesStatus && matchesType && matchesPriority
     })
   }, [requisitions, deferredSearch, status, type, priority])
 
