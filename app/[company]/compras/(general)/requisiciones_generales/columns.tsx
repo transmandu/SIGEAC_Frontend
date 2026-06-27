@@ -73,7 +73,7 @@ export const getColumns = (
   },
   {
     accessorKey: 'justification',
-    size: 420,
+    size: 380,
     header: ({ column }) => (
       <div className="flex justify-center w-full">
         <DataTableColumnHeader

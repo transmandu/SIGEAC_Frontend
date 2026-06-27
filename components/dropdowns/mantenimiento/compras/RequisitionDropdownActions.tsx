@@ -68,6 +68,9 @@ const RequisitionDropdownActions = ({
   const canChangePriority = ["JEFE_ALMACEN", "SUPERUSER"].some(role =>
     userRoles.includes(role)
   );
+  const canSeeAllOptions = ["JEFE_COMPRAS", "ANALISTA_COMPRAS","ASISTENTE_COMPRAS", "SUPERUSER"].some(role =>
+    userRoles.includes(role)
+  );
 
   const canQuote =
     !(req.status === "APROBADA" || req.status === "RECHAZADO")
@@ -136,8 +139,7 @@ const RequisitionDropdownActions = ({
               animate-in fade-in zoom-in-95 duration-200
             "
           >
-            {(userRoles.includes("ANALISTA_COMPRAS") || userRoles.includes("JEFE_COMPRAS") ||
-              userRoles.includes("SUPERUSER")) && (
+            {canSeeAllOptions && (
               <>
                 {/* GENERAR COTIZACIÓN */}
                 <Tooltip>
