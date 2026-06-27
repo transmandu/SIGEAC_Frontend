@@ -44,7 +44,7 @@ export const getColumns = (
   },
   {
     accessorKey: 'order_number',
-    size: 180,
+    size: 220,
 
     header: ({ column }) => (
       <div className="flex justify-center w-full">
