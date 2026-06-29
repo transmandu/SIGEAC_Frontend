@@ -4,10 +4,14 @@ import { FileText, ImageIcon, Upload, X } from "lucide-react"
 import Image from "next/image"
 import { useRef, useCallback } from "react"
 import type { UseFormReturn } from "react-hook-form"
+import { toast } from "sonner"
 import { Textarea } from "@/components/ui/textarea"
 import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
 import { RequiredIndicator } from "./RequiredIndicator"
+
+const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
+const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png"];
 
 interface AdditionalInfoSectionProps {
   form: UseFormReturn<any>;
@@ -22,9 +26,21 @@ function ImageUploadField({ value, onChange }: { value: File | undefined; onChan
 
   const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      onChange(file);
+    if (!file) return;
+
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+      toast.error("Formato de imagen inválido. Solo se permiten archivos JPG o PNG.");
+      e.target.value = "";
+      return;
     }
+
+    if (file.size > MAX_IMAGE_SIZE_BYTES) {
+      toast.error("La imagen excede el límite de 5MB. Por favor, selecciona una más ligera.");
+      e.target.value = "";
+      return;
+    }
+
+    onChange(file);
   }, [onChange]);
 
   const handleRemove = useCallback((e: React.MouseEvent) => {
