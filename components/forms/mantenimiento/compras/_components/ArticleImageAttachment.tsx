@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 const MAX_IMAGE_SIZE_BYTES = 2048 * 1024;
+const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png"];
 
 interface Props {
   article: any;
@@ -26,6 +27,12 @@ export const ArticleImageAttachment = ({ article, onChangeImage }: Props) => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+      toast.error("Formato de imagen inválido. Solo se permiten archivos JPG o PNG.");
+      e.target.value = "";
+      return;
+    }
 
     if (file.size > MAX_IMAGE_SIZE_BYTES) {
       toast.error("La imagen excede el límite de 2MB. Por favor, selecciona una más ligera.");

@@ -6,8 +6,19 @@ export const useAddRoleToUser = () => {
   const queryClient = useQueryClient()
 
   const mutation = useMutation({
-    mutationFn: async ({ userId, roleId }: { userId: string; roleId: number }) => {
-      await axiosInstance.post(`/users/${userId}/roles`, { role_id: roleId })
+    mutationFn: async ({
+      userId,
+      roleId,
+      companyId,
+    }: {
+      userId: string
+      roleId: number
+      companyId: number
+    }) => {
+      await axiosInstance.post(`/users/${userId}/roles`, {
+        role_id: roleId,
+        company_id: companyId,
+      })
     },
     onSuccess: (_, { userId }) => {
       queryClient.invalidateQueries({ queryKey: ['user', userId] })
@@ -25,8 +36,18 @@ export const useRemoveRoleFromUser = () => {
   const queryClient = useQueryClient()
 
   const mutation = useMutation({
-    mutationFn: async ({ userId, roleId }: { userId: string; roleId: number }) => {
-      await axiosInstance.delete(`/users/${userId}/roles`, { data: { role_id: roleId } })
+    mutationFn: async ({
+      userId,
+      roleId,
+      companyId,
+    }: {
+      userId: string
+      roleId: number
+      companyId: number
+    }) => {
+      await axiosInstance.delete(`/users/${userId}/roles`, {
+        data: { role_id: roleId, company_id: companyId },
+      })
     },
     onSuccess: (_, { userId }) => {
       queryClient.invalidateQueries({ queryKey: ['user', userId] })

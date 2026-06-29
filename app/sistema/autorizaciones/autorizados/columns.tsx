@@ -2,7 +2,6 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
-import { Checkbox } from "@/components/ui/checkbox";
 
 export interface AuthorizedEmployee {
   id: number;
@@ -15,98 +14,118 @@ export interface AuthorizedEmployee {
 }
 
 export const columns: ColumnDef<AuthorizedEmployee>[] = [
-  // 🔹 Selección
-  {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(value) =>
-          table.toggleAllPageRowsSelected(!!value)
-        }
-        aria-label="Seleccionar todos"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Seleccionar fila"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-
-  // 🔹 DNI
   {
     accessorKey: "dni_employee",
+    size: 140,
+
     header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="DNI" />
+      <div className="flex justify-center w-full">
+        <DataTableColumnHeader filter column={column} title="DNI" />
+      </div>
     ),
+
+    meta: {
+      title: "DNI",
+    },
+
     cell: ({ row }) => (
-      <span className="flex justify-center font-medium">
-        V-{row.original.dni_employee}
-      </span>
+      <div className="flex justify-center w-full">
+        <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
+          V-{row.original.dni_employee}
+        </span>
+      </div>
     ),
   },
 
-  // 🔹 Nombre completo
   {
     accessorKey: "employee_name",
+    size: 240,
+
     header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Nombre" />
+      <div className="flex justify-center w-full">
+        <DataTableColumnHeader filter column={column} title="Nombre" />
+      </div>
     ),
+
+    meta: {
+      title: "Nombre",
+    },
+
     cell: ({ row }) => (
-      <span className="flex justify-center font-semibold">
-        {row.original.employee_name}
-      </span>
+      <div className="flex justify-center w-full">
+        <span className="text-sm font-semibold text-slate-700 dark:text-slate-200 text-center">
+          {row.original.employee_name}
+        </span>
+      </div>
     ),
   },
 
-  // 🔹 Cargo (job_title)
   {
     accessorKey: "job_title",
+    size: 200,
+
     header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Cargo" />
+      <div className="flex justify-center w-full">
+        <DataTableColumnHeader filter column={column} title="Cargo" />
+      </div>
     ),
+
+    meta: {
+      title: "Cargo",
+    },
+
     cell: ({ row }) => (
-      <span className="flex justify-center font-medium">
-        {row.original.job_title ?? "-"}
-      </span>
+      <div className="flex justify-center w-full">
+        <span className="text-sm text-slate-600 dark:text-slate-300">
+          {row.original.job_title ?? "—"}
+        </span>
+      </div>
     ),
   },
 
-  // 🔹 Departamento
   {
     accessorKey: "department",
+    size: 200,
+
     header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Departamento" />
+      <div className="flex justify-center w-full">
+        <DataTableColumnHeader filter column={column} title="Departamento" />
+      </div>
     ),
+
+    meta: {
+      title: "Departamento",
+    },
+
     cell: ({ row }) => (
-      <span className="flex justify-center font-medium">
-        {row.original.department ?? "-"}
-      </span>
+      <div className="flex justify-center w-full">
+        <span className="text-sm text-slate-600 dark:text-slate-300">
+          {row.original.department ?? "—"}
+        </span>
+      </div>
     ),
   },
 
-  // 🔹 Empresa de ORIGEN (quien autorizó)
   {
     accessorKey: "from_company_db",
+    size: 220,
+
     header: ({ column }) => (
-      <DataTableColumnHeader
-        filter
-        column={column}
-        title="Empresa que Autoriza"
-      />
+      <div className="flex justify-center w-full">
+        <DataTableColumnHeader filter column={column} title="Empresa que Autoriza" />
+      </div>
     ),
+
+    meta: {
+      title: "Empresa que Autoriza",
+    },
+
     cell: ({ row }) => (
-      <span className="flex justify-center uppercase text-muted-foreground">
-        {row.original.from_company_db}
-      </span>
+      <div className="flex justify-center w-full">
+        <span className="text-sm text-slate-600 dark:text-slate-300 uppercase">
+          {row.original.from_company_db}
+        </span>
+      </div>
     ),
   },
 ];

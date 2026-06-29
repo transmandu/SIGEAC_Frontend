@@ -7,6 +7,10 @@ import { useGetBatchesByLocationId } from "@/hooks/mantenimiento/almacen/renglon
 import { useGetMaintenanceAircrafts } from '@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts'
 import { useGetWorkOrders } from '@/hooks/mantenimiento/planificacion/useGetWorkOrders'
 import { useGetUserDepartamentEmployees } from "@/hooks/sistema/empleados/useGetUserDepartamentEmployees"
+import { useGetEmployeesByCompany } from "@/hooks/sistema/empleados/useGetEmployees"
+import { useGetDepartments } from "@/hooks/sistema/departamento/useGetDepartment"
+import { useGetThirdParties } from "@/hooks/general/terceros/useGetThirdParties"
+import { useGetAuthorizedEmployees } from "@/hooks/sistema/autorizados/useGetAuthorizedEmployees"
 import { useCompanyStore } from "@/stores/CompanyStore"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Loader2, Send, Plane, Package } from "lucide-react"
@@ -24,6 +28,7 @@ import { BatchArticlesSection } from "./_components/BatchArticlesSection"
 import { GeneralArticlesSection } from "./_components/GeneralArticlesSection"
 import { AdditionalInfoSection } from "./_components/AdditionalInfoSection"
 import { isHigherPriority, type Priority } from "./_components/priorityUtils"
+import { getStoragePathFromUrl } from "./_components/imageUtils"
 
 type WarehouseRequisitionType = "AERONAUTICAL" | "GENERAL"
 
@@ -34,7 +39,8 @@ const FormSchema = z.object({
   company: z.string(),
   location_id: z.string(),
   created_by: z.string(),
-  requested_by: z.string({ message: "Debe ingresar quien lo solicita." }),
+  requested_by: z.string().optional(),
+  requested_by_authorized_employee_id: z.string().optional(),
   priority: z.enum(["HIGH", "MEDIUM", "LOW"]).optional(),
   work_order_id: z.string().optional(),
   aircraft_id: z.string().optional(),
@@ -69,11 +75,17 @@ const FormSchema = z.object({
     .array(
       z.object({
         description: z.string().min(1, "La descripción es obligatoria"),
-        variant_type: z.string().optional(),
+        requested_date: z.string().optional(),
+        variant_type: z.string().nullable().optional(),
         quantity: z.number().min(1, "La cantidad debe ser mayor a 0"),
         unit_id: z.string().optional(),
         priority: z.enum(["HIGH", "MEDIUM", "LOW"]).optional(),
         image: z.any().optional(),
+        existing_image_path: z.string().optional(),
+        department_id: z.string().optional(),
+        third_party_id: z.string().optional(),
+        employee_id: z.string().optional(),
+        authorized_employee_id: z.string().optional(),
       })
     )
     .optional(),
@@ -87,16 +99,24 @@ const FormSchema = z.object({
     message: "Debe agregar al menos un artículo",
     path: ["articles"],
   }
+).refine(
+  (data) => !!data.requested_by || !!data.requested_by_authorized_employee_id,
+  {
+    message: "Debe seleccionar un empleado o un empleado autorizado.",
+    path: ["requested_by"],
+  }
 );
 
 type FormSchemaType = z.infer<typeof FormSchema>;
 
 interface FormProps {
   onClose: () => void;
+  itemLabelSize?: "default" | "lg";
 }
 
 export function CreateWarehouseRequisitionForm({
   onClose,
+  itemLabelSize = "default",
 }: FormProps) {
   const { user } = useAuth();
 
@@ -134,6 +154,14 @@ export function CreateWarehouseRequisitionForm({
   const { data: workOrders, isLoading: isWorkOrdersLoading, isError: isWorkOrdersError } = useGetWorkOrders(selectedStation, selectedCompany?.slug);
 
   const { data: generalArticles, isLoading: isGeneralArticlesLoading } = useGetGeneralArticles();
+
+  const { data: departments, isLoading: isDepartmentsLoading } = useGetDepartments(selectedCompany?.slug);
+
+  const { data: thirdParties, isLoading: isThirdPartiesLoading } = useGetThirdParties();
+
+  const { data: destinationEmployees, isLoading: isDestinationEmployeesLoading } = useGetEmployeesByCompany(selectedCompany?.slug);
+
+  const { data: authorizedEmployees, isLoading: isAuthorizedEmployeesLoading } = useGetAuthorizedEmployees(selectedCompany?.slug);
 
   const { createRequisition } = useCreateRequisition();
 
@@ -233,8 +261,8 @@ export function CreateWarehouseRequisitionForm({
   }, [selectedStation, mutate, selectedCompany]);
 
   useEffect(() => {
-    form.setValue("articles", selectedBatches.length > 0 ? selectedBatches : undefined);
-    form.setValue("general_articles", selectedGeneralArticles.length > 0 ? selectedGeneralArticles : undefined);
+    form.setValue("articles", selectedBatches.length > 0 ? selectedBatches : undefined, { shouldValidate: form.formState.isSubmitted });
+    form.setValue("general_articles", selectedGeneralArticles.length > 0 ? selectedGeneralArticles : undefined, { shouldValidate: form.formState.isSubmitted });
   }, [selectedBatches, selectedGeneralArticles, form]);
 
   // Aircraft Sync: the header aircraft is the default for batch items. We only
@@ -349,13 +377,17 @@ export function CreateWarehouseRequisitionForm({
     setSelectedBatches((prev) => prev.filter((batch) => batch.batch !== batchId));
   };
 
-  // General article handlers. Two articles can share a description but
-  // differ by variant_type, so identity (and toggle-off matching) must
-  // always compare both fields together, never description alone.
+  // General article handlers. Two articles can share a description and
+  // variant_type but differ by brand_model (e.g. same item from two brands,
+  // only one with a catalog image), so identity (and toggle-off matching)
+  // must always compare all three fields together, never description alone.
   const isSameGeneralArticle = (
-    a: { description: string; variant_type?: string | null },
-    b: { description: string; variant_type?: string | null }
-  ) => a.description === b.description && (a.variant_type ?? "") === (b.variant_type ?? "");
+    a: { description: string; variant_type?: string | null; brand_model?: string | null },
+    b: { description: string; variant_type?: string | null; brand_model?: string | null }
+  ) =>
+    a.description === b.description &&
+    (a.variant_type ?? "") === (b.variant_type ?? "") &&
+    (a.brand_model ?? "") === (b.brand_model ?? "");
 
   const handleGeneralArticleSelect = (article: GeneralArticle) => {
     setSelectedGeneralArticles((prev) => {
@@ -366,10 +398,17 @@ export function CreateWarehouseRequisitionForm({
         ...prev,
         {
           description: article.description,
+          requested_date: new Date().toISOString(),
           variant_type: article.variant_type,
+          brand_model: article.brand_model,
           quantity: 0,
           unit_id: undefined,
           priority: "MEDIUM",
+          // Prefills the article's existing image so the user isn't forced to
+          // re-upload the same picture; existing_image_path tells the backend
+          // to reuse the stored file instead of treating it as a new upload.
+          image: article.image ?? undefined,
+          existing_image_path: getStoragePathFromUrl(article.image),
         },
       ];
     });
@@ -384,9 +423,16 @@ export function CreateWarehouseRequisitionForm({
       escalateHeaderPriority(value as Priority);
     }
     setSelectedGeneralArticles((prev) =>
-      prev.map((article, i) =>
-        i === index ? { ...article, [field]: value } : article
-      )
+      prev.map((article, i) => {
+        if (i !== index) return article;
+        // Once the user removes the prefilled image or attaches a new file,
+        // it's no longer the catalog's existing image, so the backend must
+        // not be told to reuse the old stored path.
+        if (field === "image") {
+          return { ...article, image: value, existing_image_path: undefined };
+        }
+        return { ...article, [field]: value };
+      })
     );
   };
 
@@ -399,6 +445,7 @@ export function CreateWarehouseRequisitionForm({
       ...prev,
       {
         description: "",
+        requested_date: new Date().toISOString(),
         variant_type: "",
         quantity: 0,
         unit_id: undefined,
@@ -413,6 +460,17 @@ export function CreateWarehouseRequisitionForm({
       type: requisitionType,
       work_order_id: data.work_order_id ? Number(data.work_order_id) : undefined,
       aircraft_id: data.aircraft_id ? Number(data.aircraft_id) : undefined,
+      requested_by_authorized_employee_id: data.requested_by_authorized_employee_id
+        ? Number(data.requested_by_authorized_employee_id)
+        : undefined,
+      general_articles: data.general_articles?.map((article) => ({
+        ...article,
+        // `image` only carries a File (new upload) or, for preview purposes,
+        // the catalog article's existing URL string — the backend's image
+        // validation rule rejects anything that isn't an actual uploaded
+        // file, so a reused image must travel solely via existing_image_path.
+        image: article.image instanceof File ? article.image : undefined,
+      })),
     };
 
     await createRequisition.mutateAsync({ data: formattedData, company: selectedCompany!.slug });
@@ -432,6 +490,9 @@ export function CreateWarehouseRequisitionForm({
           filteredEmployees={filteredEmployees}
           employeeSearch={employeeSearch}
           setEmployeeSearch={setEmployeeSearch}
+          authorizedEmployees={authorizedEmployees}
+          isAuthorizedEmployeesLoading={isAuthorizedEmployeesLoading}
+          allowAuthorizedEmployees
           workOrders={workOrders}
           isWorkOrdersLoading={isWorkOrdersLoading}
           isWorkOrdersError={isWorkOrdersError}
@@ -502,6 +563,7 @@ export function CreateWarehouseRequisitionForm({
             addBatchArticle={addBatchArticle}
             removeBatchArticle={removeBatchArticle}
             removeBatch={removeBatch}
+            size={itemLabelSize}
           />
         ) : (
           <GeneralArticlesSection
@@ -514,11 +576,21 @@ export function CreateWarehouseRequisitionForm({
             setGeneralArticleSearch={setGeneralArticleSearch}
             units={units}
             isUnitsLoading={isUnitsLoading}
+            departments={departments}
+            isDepartmentsLoading={isDepartmentsLoading}
+            destinationEmployees={destinationEmployees}
+            isDestinationEmployeesLoading={isDestinationEmployeesLoading}
+            thirdParties={thirdParties}
+            isThirdPartiesLoading={isThirdPartiesLoading}
+            authorizedEmployees={authorizedEmployees}
+            isAuthorizedEmployeesLoading={isAuthorizedEmployeesLoading}
+            showDestinationFields
             handleGeneralArticleSelect={handleGeneralArticleSelect}
             handleGeneralArticleChange={handleGeneralArticleChange}
             removeGeneralArticle={removeGeneralArticle}
             enableCreateGeneralArticle
             addManualGeneralArticle={addManualGeneralArticle}
+            size={itemLabelSize}
           />
         )}
 

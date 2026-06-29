@@ -8,7 +8,7 @@ import { Loader2, Trash2, User, FileText, Image as ImageIcon, Plane } from 'luci
 import { useDeleteRequisition } from '@/actions/mantenimiento/compras/requisiciones/actions';
 import { useGetRequisitionByOrderNumber } from '@/hooks/mantenimiento/compras/useGetRequisitionByOrderNumber';
 import { useCompanyStore } from '@/stores/CompanyStore';
-import { cn } from '@/lib/utils';
+import { cn, formatRequestedDate } from '@/lib/utils';
 
 import { ContentLayout } from '@/components/layout/ContentLayout';
 import LoadingPage from '@/components/misc/LoadingPage';
@@ -242,6 +242,15 @@ const GeneralArticleCard = ({ article }: { article: any }) => {
             </div>
           )}
 
+          {article.requested_date && (
+            <div>
+              <p className="text-muted-foreground text-xs">Fecha Solicitud</p>
+              <p className="font-medium">
+                {formatRequestedDate(article.requested_date, 'dd/MM/yyyy')}
+              </p>
+            </div>
+          )}
+
           <div>
             <p className="text-muted-foreground text-xs">Cantidad</p>
             <p className="font-medium">{article.quantity}</p>
@@ -261,6 +270,40 @@ const GeneralArticleCard = ({ article }: { article: any }) => {
             <div>
               <p className="text-muted-foreground text-xs">Unidad</p>
               <p className="font-medium">{article.unit.label}</p>
+            </div>
+          )}
+
+          {article.department && (
+            <div>
+              <p className="text-muted-foreground text-xs">Departamento</p>
+              <p className="font-medium">
+                {article.department.acronym ?? article.department.name}
+              </p>
+            </div>
+          )}
+
+          {article.third_party && (
+            <div>
+              <p className="text-muted-foreground text-xs">Tercero</p>
+              <p className="font-medium">{article.third_party.name}</p>
+            </div>
+          )}
+
+          {article.employee && (
+            <div>
+              <p className="text-muted-foreground text-xs">Solicitante</p>
+              <p className="font-medium">
+                {`${article.employee.first_name} ${article.employee.last_name}`.trim()}
+              </p>
+            </div>
+          )}
+
+          {article.authorized_employee && (
+            <div>
+              <p className="text-muted-foreground text-xs">Autorizado</p>
+              <p className="font-medium">
+                {article.authorized_employee.full_name ?? article.authorized_employee.dni_employee}
+              </p>
             </div>
           )}
 

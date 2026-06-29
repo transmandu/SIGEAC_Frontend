@@ -159,7 +159,7 @@ export function CompanyUpdateForm({ company, onSuccess }: Props) {
     onSuccess?.();
   };
 
-  const logoSrc = preview || company?.logo_url;
+  const logoSrc = preview || company?.logo;
 
   /* =========================
      UI
@@ -246,7 +246,7 @@ export function CompanyUpdateForm({ company, onSuccess }: Props) {
         <div className="flex justify-between items-center border rounded-xl p-4">
           <div className="relative size-16 border rounded-lg overflow-hidden">
             {logoSrc ? (
-              <Image src={logoSrc} alt="logo" fill className="object-cover" />
+              <Image src={logoSrc} alt="logo" fill unoptimized className="object-cover" />
             ) : (
               <div className="text-xs flex items-center justify-center h-full">
                 Sin logo

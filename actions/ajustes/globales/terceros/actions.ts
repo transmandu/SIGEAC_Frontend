@@ -37,6 +37,37 @@ export const useCreateThirdParty = () => {
   };
 };
 
+export const useUpdateThirdParty = () => {
+  const queryClient = useQueryClient();
+
+  const updateMutation = useMutation({
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: number | string;
+      data: Partial<ThirdPartySchema>;
+    }) => {
+      await axiosInstance.put(`/third-parties/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["third-parties"] });
+      toast.success("¡Actualizado!", {
+        description: `El tercero ha sido actualizado correctamente.`,
+      });
+    },
+    onError: (e) => {
+      toast.error("Oops!", {
+        description: "¡Hubo un error al actualizar el tercero!",
+      });
+    },
+  });
+
+  return {
+    updateThirdParty: updateMutation,
+  };
+};
+
 export const useDeleteThirdParty = () => {
   const queryClient = useQueryClient();
 

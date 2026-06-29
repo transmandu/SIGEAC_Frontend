@@ -2,13 +2,15 @@ import axiosInstance from "@/lib/axios"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import type { CreateRequisitionData } from "@/types/purchase"
+import { buildRequisitionFormData, getRequisitionErrorMessage } from "@/lib/purchases/build-requisition-form-data"
 
 export const useCreateRequisition = () => {
   const queryClient = useQueryClient()
 
   const createMutation = useMutation({
     mutationFn: async ({ data, company }: { data: CreateRequisitionData, company: string }) => {
-      await axiosInstance.post(`/${company}/requisition-order`, data, {
+      const formData = buildRequisitionFormData(data)
+      await axiosInstance.post(`/${company}/requisition-order`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         }
@@ -24,7 +26,7 @@ export const useCreateRequisition = () => {
     },
     onError: (error) => {
       toast.error('Oops!', {
-        description: 'No se pudo crear la requisicion...'
+        description: getRequisitionErrorMessage(error, 'No se pudo crear la requisicion...')
       })
       console.log(error)
     },
@@ -39,7 +41,15 @@ export const useUpdateRequisition = () => {
 
   const updateMutation = useMutation({
     mutationFn: async ({ data, id, company }: { id: string | number, data: CreateRequisitionData, company: string }) => {
-      await axiosInstance.put(`/${company}/requisition-order/${id}`, data)
+      const formData = buildRequisitionFormData(data)
+      // Laravel can't parse multipart bodies on a native PUT request, so the
+      // method is spoofed via _method and sent as POST instead.
+      formData.append('_method', 'PUT')
+      await axiosInstance.post(`/${company}/requisition-order/${id}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        }
+      })
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['requisitions-orders'] })
@@ -50,7 +60,7 @@ export const useUpdateRequisition = () => {
     },
     onError: (error) => {
       toast.error('Oops!', {
-        description: 'No se pudo actualizar la requisicion...'
+        description: getRequisitionErrorMessage(error, 'No se pudo actualizar la requisicion...')
       })
       console.log(error)
     },
@@ -83,6 +93,40 @@ export const useDeleteRequisition = () => {
 
   return {
     deleteRequisition: deleteMutation,
+  }
+}
+
+export const useUpdateRequisitionPriority = () => {
+  const queryClient = useQueryClient()
+
+  const updatePriorityMutation = useMutation({
+    mutationFn: async ({ id, data, company }: {
+      id: number,
+      data: {
+        priority?: string | null,
+        articles?: { id: number, priority?: string | null }[],
+        general_articles?: { id: number, priority?: string | null }[]
+      },
+      company: string
+    }) => {
+      await axiosInstance.put(`/${company}/requisition-order-update-priority/${id}`, data)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['requisitions-orders'] })
+      queryClient.invalidateQueries({ queryKey: ['requisition-order'], exact: false })
+      toast.success("¡Actualizada!", {
+        description: `¡La prioridad ha sido actualizada correctamente!`
+      })
+    },
+    onError: (e) => {
+      toast.error("Oops!", {
+        description: "¡Hubo un error al actualizar la prioridad!"
+      })
+    },
+  })
+
+  return {
+    updatePriorityRequisition: updatePriorityMutation,
   }
 }
 

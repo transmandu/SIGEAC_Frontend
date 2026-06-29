@@ -29,7 +29,7 @@ const FormSchema = z.object({
   company: z.string(),
   location_id: z.string(),
   created_by: z.string(),
-  requested_by: z.string({ message: "Debe ingresar quien lo solicita." }),
+  requested_by: z.string().min(1, "Debe ingresar quien lo solicita."),
   priority: z.enum(["HIGH", "MEDIUM", "LOW"]).optional(),
   work_order_id: z.string({ required_error: "La orden de trabajo es obligatoria para requisiciones aeronáuticas" }),
   aircraft_id: z.string({ required_error: "La aeronave es obligatoria para requisiciones aeronáuticas" }),
@@ -193,7 +193,7 @@ export function CreateAeronauticalRequisitionForm({
   }, [selectedStation, mutate, selectedCompany]);
 
   useEffect(() => {
-    form.setValue("articles", selectedBatches);
+    form.setValue("articles", selectedBatches, { shouldValidate: form.formState.isSubmitted });
   }, [selectedBatches, form]);
 
   // Aircraft Sync: the header aircraft is the default for batch items. We only

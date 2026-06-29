@@ -1,6 +1,20 @@
-import type { Unit, User, Aircraft, WorkOrder, Convertion, Department, ThirdParty } from '@/types';
+import type { Unit, User, Aircraft, WorkOrder, Convertion, Department, ThirdParty, Employee } from '@/types';
 import type { PurchaseOrder } from '@/types/purchase/purchase-order';
 import type { Quote } from '@/types/purchase/quote';
+
+// ── General Article relation summaries (response) ──────────────────────────
+// Narrowed projections returned by the backend for general article requisitions.
+export type GeneralArticleDepartment = Pick<Department, 'id' | 'name' | 'acronym'>;
+export type GeneralArticleThirdParty = Pick<ThirdParty, 'id' | 'name'>;
+export type GeneralArticleEmployee = Pick<
+  Employee,
+  'id' | 'first_name' | 'last_name' | 'middle_name' | 'second_last_name' | 'dni'
+>;
+export interface GeneralArticleAuthorizedEmployee {
+  id: number;
+  dni_employee: string;
+  full_name?: string;
+}
 
 // ── Purchase-specific enums ────────────────────────────────────────────────
 export type PurchasePriority = 'LOW' | 'MEDIUM' | 'HIGH';
@@ -43,6 +57,7 @@ export interface RequisitionBatch {
 export interface RequisitionGeneralArticle {
   id: number;
   description: string;
+  requested_date?: string | null;
   variant_type?: string | null;
   quantity: string | number;
   approved_quantity?: string | number;
@@ -51,6 +66,10 @@ export interface RequisitionGeneralArticle {
   status?: string;
   image?: string | null;
   justification?: string | null;
+  department?: GeneralArticleDepartment | null;
+  third_party?: GeneralArticleThirdParty | null;
+  employee?: GeneralArticleEmployee | null;
+  authorized_employee?: GeneralArticleAuthorizedEmployee | null;
 }
 
 // ── Requisition Quote Reference ────────────────────────────────────────────
@@ -74,20 +93,28 @@ export interface Requisition {
   batch: {
     name: string;
     batch_articles: {
+      id?: number;
       article_part_number: string;
       quantity: number;
       unit?: Convertion;
       image: string;
       aircraft?: string;
+      priority?: PurchasePriority | string;
     }[];
   }[];
   general_articles?: {
     id: number;
     description: string;
+    requested_date?: string | null;
     variant_type?: string;
     quantity: number;
     unit?: Unit;
     image?: string;
+    priority?: PurchasePriority | string;
+    department?: GeneralArticleDepartment | null;
+    third_party?: GeneralArticleThirdParty | null;
+    employee?: GeneralArticleEmployee | null;
+    authorized_employee?: GeneralArticleAuthorizedEmployee | null;
   }[];
   received_by?: string;
   justification: string;
@@ -156,12 +183,21 @@ export interface BatchPayload {
 /** Form payload for a general article inside a requisition. */
 export interface GeneralArticlePayload {
   description?: string;
-  variant_type?: string;
+  requested_date?: string;
+  variant_type?: string | null;
+  /** Disambiguates catalog entries that share description + variant_type but differ by brand. Not persisted by the backend. */
+  brand_model?: string | null;
   quantity: number;
   unit_id?: string | number;
   priority?: 'HIGH' | 'MEDIUM' | 'LOW';
   justification?: string;
   image?: File;
+  /** Storage path of the catalog article's existing image, sent instead of `image` to reuse it without re-uploading. */
+  existing_image_path?: string;
+  department_id?: string | number | null;
+  third_party_id?: string | number | null;
+  employee_id?: string | number | null;
+  authorized_employee_id?: string | number | null;
 }
 
 // ── Form State Types ──────────────────────────────────────────────────────
@@ -191,18 +227,29 @@ export interface RequisitionBatchForm {
 /** Form state for a general article inside a requisition form. */
 export interface RequisitionGeneralArticleForm {
   description: string;
-  variant_type?: string;
+  requested_date?: string;
+  variant_type?: string | null;
+  /** Disambiguates catalog entries that share description + variant_type but differ by brand. Not persisted by the backend. */
+  brand_model?: string | null;
   quantity: number;
   unit_id?: string;
   priority?: 'HIGH' | 'MEDIUM' | 'LOW';
-  image?: File;
+  image?: File | string;
+  /** Storage path of the catalog article's existing image, sent instead of `image` to reuse it without re-uploading. */
+  existing_image_path?: string;
+  department_id?: string;
+  third_party_id?: string;
+  employee_id?: string;
+  authorized_employee_id?: string;
 }
 
 /** Mutation payload for creating / updating a requisition order. */
 export interface CreateRequisitionData {
   justification?: string;
   observation?: string;
-  requested_by: string;
+  /** Either requested_by (DNI) or requested_by_authorized_employee_id must be present. */
+  requested_by?: string;
+  requested_by_authorized_employee_id?: number;
   created_by: string | number;
   location_id: string | number;
   type: 'AERONAUTICAL' | 'GENERAL';

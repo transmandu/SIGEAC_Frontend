@@ -17,6 +17,7 @@ import {
   TabsTrigger,
 } from '@/components/ui/tabs'
 import { useAuth } from '@/contexts/AuthContext'
+import { cn } from '@/lib/utils'
 import { CreateAeronauticalRequisitionForm } from '@/components/forms/mantenimiento/compras/CreateAeronauticalRequisitionForm'
 import { CreateWarehouseRequisitionForm } from '@/components/forms/mantenimiento/compras/CreateWarehouseRequisitionForm'
 import { CreateGeneralRequisitionForm } from '@/components/forms/mantenimiento/compras/CreateGeneralRequisitionForm'
@@ -91,7 +92,8 @@ export function CreateRequisitionDialog() {
       </DialogTrigger>
 
       <DialogContent
-        className="
+        className={cn(
+          `
           w-[95vw]
           max-w-[95vw]
           sm:max-w-[860px]
@@ -100,7 +102,10 @@ export function CreateRequisitionDialog() {
           overflow-hidden
           flex
           flex-col
-        "
+          `,
+          isWarehouseUser &&
+            'sm:max-w-[960px] max-h-[94vh]'
+        )}
       >
         <DialogHeader className="space-y-2 px-6 pt-6 shrink-0">
           <DialogTitle className="text-lg sm:text-xl">
@@ -122,6 +127,7 @@ export function CreateRequisitionDialog() {
               {showWarehouse && (
                 <CreateWarehouseRequisitionForm
                   onClose={() => setOpen(false)}
+                  itemLabelSize={isWarehouseUser ? 'lg' : 'default'}
                 />
               )}
 
@@ -186,6 +192,7 @@ export function CreateRequisitionDialog() {
                 <TabsContent value="WAREHOUSE" className="mt-4">
                   <CreateWarehouseRequisitionForm
                     onClose={() => setOpen(false)}
+                    itemLabelSize={isWarehouseUser ? 'lg' : 'default'}
                   />
                 </TabsContent>
               )}

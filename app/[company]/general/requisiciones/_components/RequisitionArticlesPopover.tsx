@@ -13,7 +13,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { cn } from '@/lib/utils'
+import { cn, formatRequestedDate } from '@/lib/utils'
 import type { Requisition } from '@/types/purchase'
 
 interface Props {
@@ -82,9 +82,9 @@ const ArticleRow = ({
 
     <div className="h-7 w-px bg-border/60 shrink-0" />
 
-    <div className="flex shrink-0 items-center gap-1 rounded-md bg-emerald-500/10 px-2 py-0.5 text-emerald-700 dark:text-emerald-300">
+    <div className="flex shrink-0 items-center gap-1 rounded-md bg-blue-500/10 px-2 py-0.5 text-blue-700 dark:text-blue-300">
       <span className="text-sm font-semibold tabular-nums">{quantity}</span>
-      <span className="text-[10px] text-emerald-700/70 dark:text-emerald-300/70">
+      <span className="text-[10px] text-blue-700/70 dark:text-blue-300/70">
         {unit}
       </span>
     </div>
@@ -165,17 +165,43 @@ export default function RequisitionArticlesPopover({ requisition }: Props) {
             })
           )}
 
-          {generalArticles.map((article: any) => (
-            <ArticleRow
-              key={`general-${article.id}`}
-              icon={Package}
-              iconClassName="bg-amber-500/10 text-amber-600 dark:text-amber-400"
-              title={article.description ?? 'N/A'}
-              fields={[{ label: 'Present. / Especif.', value: article.variant_type ?? 'N/A' }]}
-              quantity={article.quantity ?? '-'}
-              unit={article.unit?.label ?? 'N/A'}
-            />
-          ))}
+          {generalArticles.map((article: any) => {
+            const fields: FieldProps[] = [
+              { label: 'Present. / Especif.', value: article.variant_type ?? 'N/A' },
+            ]
+
+            if (article.requested_date) {
+              fields.push({
+                label: 'Fecha Solicitud',
+                value: formatRequestedDate(article.requested_date),
+              })
+            }
+
+            const destinations = [
+              article.department?.name,
+              article.third_party?.name,
+              article.employee &&
+                `${article.employee.first_name} ${article.employee.last_name}`,
+              article.authorized_employee?.full_name ||
+                article.authorized_employee?.dni_employee,
+            ].filter(Boolean)
+
+            if (destinations.length > 0) {
+              fields.push({ label: 'Destino', value: destinations.join(' / ') })
+            }
+
+            return (
+              <ArticleRow
+                key={`general-${article.id}`}
+                icon={Package}
+                iconClassName="bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                title={article.description ?? 'N/A'}
+                fields={fields}
+                quantity={article.quantity ?? '-'}
+                unit={article.unit?.label ?? 'N/A'}
+              />
+            )
+          })}
 
           {!hasArticles && (
             <p className="text-sm text-muted-foreground italic text-center px-2 py-1">

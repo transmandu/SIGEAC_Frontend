@@ -215,3 +215,37 @@ export function parseServerDate(input?: string | Date | null): Date | undefined 
     if (!isNaN(parsed.getTime())) return parsed;
     return undefined;
 }
+
+// requested_date used to be saved as midnight UTC (no real time-of-day), which
+// Intl/date-fns then convert to the previous day once rendered in Venezuela's
+// UTC-4 offset. For those legacy values we read the calendar date straight off
+// the UTC string instead of converting it. Newer records carry the actual
+// time the action was performed, so those convert correctly to America/Caracas.
+const LEGACY_MIDNIGHT_UTC = /^(\d{4})-(\d{2})-(\d{2})T00:00:00(\.0+)?Z$/;
+
+export function formatRequestedDate(
+    input?: string | Date | null,
+    dateFormat: string = "dd MMM yyyy",
+): string {
+    if (!input) return "N/A";
+
+    const s = String(input);
+    const legacyMatch = s.match(LEGACY_MIDNIGHT_UTC);
+    if (legacyMatch) {
+        const [, y, m, d] = legacyMatch;
+        return format(new Date(Number(y), Number(m) - 1, Number(d)), dateFormat, { locale: es });
+    }
+
+    const date = input instanceof Date ? input : new Date(s);
+    if (isNaN(date.getTime())) return "N/A";
+
+    const parts = new Intl.DateTimeFormat("en-US", {
+        timeZone: "America/Caracas",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+    }).formatToParts(date);
+    const get = (type: string) => Number(parts.find((p) => p.type === type)?.value);
+
+    return format(new Date(get("year"), get("month") - 1, get("day")), dateFormat, { locale: es });
+}

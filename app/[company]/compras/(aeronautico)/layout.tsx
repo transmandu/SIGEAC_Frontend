@@ -5,7 +5,7 @@ const AeronauticalPurchaseLayout = ({ children }: {
   children: React.ReactNode
 }) => {
   return (
-    <ProtectedLayout roles={["ANALISTA_COMPRAS", "SUPERUSER", "ASISTENTE_COMPRAS", "ANALISTA_ADMINISTRACION", "JEFE_COMPRAS"]} requiresOmac={true}>
+    <ProtectedLayout roles={["ANALISTA_COMPRAS", "SUPERUSER", "ASISTENTE_COMPRAS", "ANALISTA_ADMINISTRACION", "JEFE_COMPRAS", "JEFE_ADMINISTRACION"]} requiresOmac={true}>
       {children}
     </ProtectedLayout>
   )

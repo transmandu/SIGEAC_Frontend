@@ -1178,12 +1178,13 @@ export interface WarehouseDashboard {
 export type GeneralArticle = {
   id: number;
   description: string;
-  variant_type?: string;
+  variant_type?: string | null;
   quantity: number;
   brand_model?: string;
   warehouse: Warehouse;
   general_primary_unit: Unit;
   cost?: number;
+  image?: string | null;
 };
 
 export interface SMSCertificate {

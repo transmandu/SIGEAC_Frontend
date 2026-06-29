@@ -166,7 +166,7 @@ function DataTableInner<TData>({
           border-slate-200 dark:border-slate-700/60
         `}
       >
-        <Table>
+        <Table className="table-fixed">
 
           <TableHeader className="sticky top-0">
             {table.getHeaderGroups().map((headerGroup) => (
@@ -180,6 +180,7 @@ function DataTableInner<TData>({
                 {headerGroup.headers.map((header) => (
                   <TableHead
                     key={header.id}
+                    style={{ width: header.getSize() }}
                     className="
                       py-3
                       text-[11px]
@@ -244,6 +245,7 @@ function DataTableInner<TData>({
                       {row.getVisibleCells().map((cell) => (
                         <TableCell
                           key={cell.id}
+                          style={{ width: cell.column.getSize() }}
                           className="py-2 text-sm leading-tight"
                         >
                           {flexRender(
