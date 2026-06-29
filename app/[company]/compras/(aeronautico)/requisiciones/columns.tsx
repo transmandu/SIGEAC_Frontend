@@ -27,16 +27,18 @@ const STATUS_LABELS: Record<string, string> = {
 const statusLabel = (status?: string) => STATUS_LABELS[status ?? ''] ?? status ?? '—'
 
 const statusBadgeClass = (status?: string) => {
-  const early = status === 'CREATED' || status === 'RECEIVED'
+  const created = status === 'CREATED'
+  const received = status === 'RECEIVED'
   const process = status === 'IN_PROGRESS' || status === 'QUOTED'
   const approved = status === 'APPROVED'
 
   return cn(
     'rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-sm transition-colors duration-150 hover:scale-100 hover:translate-y-0',
-    early && 'border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300 hover:bg-sky-500/15 dark:hover:text-sky-200',
+    created && 'border-slate-500/30 bg-slate-500/10 text-slate-700 dark:text-slate-300 hover:bg-slate-500/15 dark:hover:text-slate-200',
+    received && 'border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300 hover:bg-sky-500/15 dark:hover:text-sky-200',
     process && 'border-yellow-500/30 bg-yellow-500/10 text-yellow-700 dark:text-yellow-300 hover:bg-yellow-500/15 dark:hover:text-yellow-200',
     approved && 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/15 dark:hover:text-emerald-200',
-    !early && !process && !approved && 'border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300 hover:bg-red-500/15 dark:hover:text-red-200'
+    !created && !received && !process && !approved && 'border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300 hover:bg-red-500/15 dark:hover:text-red-200'
   )
 }
 
@@ -93,7 +95,9 @@ const StatusCell = ({ requisition }: { requisition: Requisition }) => {
   return (
     <TooltipProvider delayDuration={120}>
       <Tooltip>
-        <TooltipTrigger asChild>{badge}</TooltipTrigger>
+        <TooltipTrigger asChild>
+          <span className="inline-flex">{badge}</span>
+        </TooltipTrigger>
         <TooltipContent>{ADVANCE_TOOLTIP[status as string]}</TooltipContent>
       </Tooltip>
     </TooltipProvider>
