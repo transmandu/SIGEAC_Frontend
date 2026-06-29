@@ -66,8 +66,17 @@ export const getColumns = (
     cell: ({ row }) => {
       const status = row.original.status?.toUpperCase();
 
-      const isProcess = status === "PROCESO" || status === "COTIZADO";
-      const isApproved = status === "APROBADA";
+      const isProcess = status === "CREATED" || status === "RECEIVED" || status === "IN_PROGRESS" || status === "QUOTED";
+      const isApproved = status === "APPROVED";
+
+      const labels: Record<string, string> = {
+        CREATED: 'CREADA',
+        RECEIVED: 'RECIBIDA',
+        IN_PROGRESS: 'EN PROCESO',
+        QUOTED: 'COTIZADA',
+        APPROVED: 'APROBADA',
+        REJECTED: 'RECHAZADA',
+      };
 
       return (
         <div className="flex justify-center">
@@ -81,7 +90,7 @@ export const getColumns = (
                 : "bg-red-500 text-white"
             )}
           >
-            {status}
+            {labels[status ?? ''] ?? status}
           </Badge>
         </div>
       );

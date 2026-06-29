@@ -302,7 +302,7 @@ const RequisitionDropdownDialogs = ({
                 handleReject(
                     req.id,
                     `${user?.first_name} ${user?.last_name}`,
-                    "RECHAZADO"
+                    "REJECTED"
                 )
                 }
                 disabled={updateStatusRequisition.isPending}

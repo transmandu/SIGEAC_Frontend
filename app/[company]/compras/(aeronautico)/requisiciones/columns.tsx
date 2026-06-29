@@ -4,12 +4,101 @@ import { ColumnDef } from '@tanstack/react-table'
 import { DataTableColumnHeader } from '@/components/tables/DataTableHeader'
 import RequisitionsDropdownActions from '@/components/dropdowns/mantenimiento/compras/RequisitionDropdownActions'
 import { Badge } from '@/components/ui/badge'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 import type { Requisition } from '@/types/purchase'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import Link from 'next/link'
-import { ChevronRight } from 'lucide-react'
+import { ChevronRight, Loader2 } from 'lucide-react'
+import { useAuth } from '@/contexts/AuthContext'
+import { useCompanyStore } from '@/stores/CompanyStore'
+import { useUpdateRequisitionStatus } from '@/actions/mantenimiento/compras/requisiciones/actions'
+
+const STATUS_LABELS: Record<string, string> = {
+  CREATED: 'CREADA',
+  RECEIVED: 'RECIBIDA',
+  IN_PROGRESS: 'EN PROCESO',
+  QUOTED: 'COTIZADA',
+  APPROVED: 'APROBADA',
+  REJECTED: 'RECHAZADA',
+}
+
+const statusLabel = (status?: string) => STATUS_LABELS[status ?? ''] ?? status ?? '—'
+
+const statusBadgeClass = (status?: string) => {
+  const early = status === 'CREATED' || status === 'RECEIVED'
+  const process = status === 'IN_PROGRESS' || status === 'QUOTED'
+  const approved = status === 'APPROVED'
+
+  return cn(
+    'rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-sm transition-colors duration-150 hover:scale-100 hover:translate-y-0',
+    early && 'border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300 hover:bg-sky-500/15 dark:hover:text-sky-200',
+    process && 'border-yellow-500/30 bg-yellow-500/10 text-yellow-700 dark:text-yellow-300 hover:bg-yellow-500/15 dark:hover:text-yellow-200',
+    approved && 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/15 dark:hover:text-emerald-200',
+    !early && !process && !approved && 'border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300 hover:bg-red-500/15 dark:hover:text-red-200'
+  )
+}
+
+const NEXT_STATUS: Record<string, string> = {
+  CREATED: 'RECEIVED',
+  RECEIVED: 'IN_PROGRESS',
+}
+
+const ADVANCE_TOOLTIP: Record<string, string> = {
+  CREATED: 'Marcar esta requisición como recibida',
+  RECEIVED: 'Iniciar proceso de atención / ejecución',
+}
+
+const StatusCell = ({ requisition }: { requisition: Requisition }) => {
+  const { user } = useAuth()
+  const { selectedCompany } = useCompanyStore()
+  const { updateStatusRequisition } = useUpdateRequisitionStatus()
+
+  const status = requisition.status
+  const nextStatus = NEXT_STATUS[status as string]
+  const isClickable = !!nextStatus && !!selectedCompany
+
+  const badge = (
+    <Badge
+      className={cn(
+        statusBadgeClass(status),
+        isClickable ? 'cursor-pointer' : 'cursor-default'
+      )}
+      onClick={(e) => {
+        e.stopPropagation()
+        if (!isClickable || updateStatusRequisition.isPending) return
+
+        updateStatusRequisition.mutate({
+          id: requisition.id,
+          data: {
+            status: nextStatus,
+            updated_by: `${user?.first_name} ${user?.last_name}`,
+          },
+          company: selectedCompany!.slug,
+        })
+      }}
+    >
+      {updateStatusRequisition.isPending && (
+        <Loader2 className="mr-1 size-3 animate-spin" />
+      )}
+      {statusLabel(status)}
+    </Badge>
+  )
+
+  if (!isClickable) {
+    return badge
+  }
+
+  return (
+    <TooltipProvider delayDuration={120}>
+      <Tooltip>
+        <TooltipTrigger asChild>{badge}</TooltipTrigger>
+        <TooltipContent>{ADVANCE_TOOLTIP[status as string]}</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  )
+}
 
 export const getColumns = (
   selectedCompany?: { slug: string }
@@ -135,30 +224,11 @@ export const getColumns = (
     meta: {
       title: 'Estado',
     },
-    cell: ({ row }) => {
-      const status = row.original.status
-      const process =
-        status === 'PROCESO' ||
-        status === 'COTIZADO'
-      const approved = status === 'APROBADA'
-      return (
-        <div className="flex justify-center w-full">
-          <Badge
-            className={cn(
-              `rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-sm transition-colors duration-150 cursor-default hover:scale-100 hover:translate-y-0`,
-
-              process && `border-yellow-500/30 bg-yellow-500/10 text-yellow-700 dark:text-yellow-300 hover:bg-yellow-500/15 dark:hover:text-yellow-200`,
-
-              approved && ` border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/15 dark:hover:text-emerald-200`,
-
-              !process && !approved && `border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300 hover:bg-red-500/15 dark:hover:text-red-200`
-            )}
-          >
-            {status}
-          </Badge>
-        </div>
-      )
-    }
+    cell: ({ row }) => (
+      <div className="flex justify-center w-full" onClick={(e) => e.stopPropagation()}>
+        <StatusCell requisition={row.original} />
+      </div>
+    )
   },
   {
     accessorKey: 'priority',
@@ -180,19 +250,19 @@ export const getColumns = (
       const config =
         priority === 'LOW'
           ? {
-              label: 'Baja',
+              label: 'BAJA',
               base: 'bg-green-500/10 text-green-600 dark:text-green-300',
               glow: 'shadow-green-400/30',
             }
           : priority === 'MEDIUM'
           ? {
-              label: 'Media',
+              label: 'MEDIA',
               base: 'bg-orange-500/10 text-orange-700 dark:text-orange-300',
               glow: 'shadow-orange-500/30',
             }
           : priority === 'HIGH'
           ? {
-              label: 'Alta',
+              label: 'ALTA',
               base: 'bg-red-500/10 text-red-700 dark:text-red-300',
               glow: 'shadow-red-500/40',
             }

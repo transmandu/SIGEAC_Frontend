@@ -31,7 +31,7 @@ const GeneralArticleCard = ({ article, onImageClick, requisitionStatus }: Genera
   };
 
   const imageSrc = getImageSrc();
-  const isRejected = article.status === 'REJECTED' && requisitionStatus !== 'RECHAZADO';
+  const isRejected = article.status === 'REJECTED' && requisitionStatus !== 'REJECTED';
 
   // Usually at most 1-2 of these are populated, so only the ones present render.
   const destinationEntries = [
