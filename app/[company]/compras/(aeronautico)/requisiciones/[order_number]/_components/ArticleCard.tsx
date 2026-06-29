@@ -32,7 +32,7 @@ const ArticleCard = ({ article, batchName, batchCategory, onImageClick, requisit
   };
 
   const imageSrc = getImageSrc();
-  const isRejected = article.status === 'REJECTED' && requisitionStatus !== 'RECHAZADO';
+  const isRejected = article.status === 'REJECTED' && requisitionStatus !== 'REJECTED';
 
   return (
     <div className="rounded-lg border border-border/60 bg-background/70 overflow-hidden mx-3">

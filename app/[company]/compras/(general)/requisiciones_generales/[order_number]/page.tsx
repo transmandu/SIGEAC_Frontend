@@ -18,7 +18,7 @@ import ImageAttachment from './_components/ImageAttachment';
 import GeneralArticleCard from './_components/GeneralArticleCard';
 import ImageViewer from './_components/ImageViewer';
 import RequisitionOutOfScope from './_components/RequisitionOutOfScope';
-import { statusBadgeCls, requisitionTypeLabel, formatSolicitudDate } from './_components/utils/uiHelpers';
+import { statusBadgeCls, requisitionStatusLabel, requisitionTypeLabel, formatSolicitudDate } from './_components/utils/uiHelpers';
 
 // ── Página ────────────────────────────────────────────────────────────
 const RequisitionPage = () => {
@@ -134,7 +134,7 @@ const RequisitionPage = () => {
                   </span>
 
                   <Badge className={statusBadgeCls(data?.status)}>
-                    {data?.status}
+                    {requisitionStatusLabel(data?.status)}
                   </Badge>
                 </div>
 

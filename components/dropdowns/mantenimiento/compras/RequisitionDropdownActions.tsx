@@ -73,28 +73,28 @@ const RequisitionDropdownActions = ({
   );
 
   const canQuote =
-    !(req.status === "APROBADA" || req.status === "RECHAZADO")
+    !(req.status === "APPROVED" || req.status === "REJECTED")
   const canReject =
-    !(req.status === "RECHAZADO" || req.status === "APROBADA")
+    !(req.status === "REJECTED" || req.status === "APPROVED")
   const canChangePriorityStatus =
-    !(req.status === "APROBADA" || req.status === "COTIZADO")
+    !(req.status === "APPROVED" || req.status === "QUOTED")
 
   const quoteTooltip =
-    req.status === "APROBADA"
+    req.status === "APPROVED"
       ? "Una cotización ya fue aprobada para esta requisición"
-      : req.status === "RECHAZADO"
+      : req.status === "REJECTED"
       ? "Esta requisición ha sido rechazada"
       : "Generar cotización"
   const rejectTooltip =
-    req.status === "APROBADA"
+    req.status === "APPROVED"
       ? "Esta requisición ya fue aprobada"
-      : req.status === "RECHAZADO"
+      : req.status === "REJECTED"
       ? "Esta requisición ya fue rechazada"
       : "Rechazar solicitud"
   const priorityTooltip =
-    req.status === "APROBADA"
+    req.status === "APPROVED"
       ? "Esta requisición ya fue aprobada"
-      : req.status === "COTIZADO"
+      : req.status === "QUOTED"
       ? "Esta requisición ya fue cotizada"
       : "Cambiar prioridad"
 
