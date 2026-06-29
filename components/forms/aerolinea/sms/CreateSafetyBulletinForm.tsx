@@ -41,12 +41,18 @@ interface FormProps {
   initialData?: SafetyBulletin;
   isEditing?: boolean;
   selectedDate?: string;
+  smsActivityId?: string;
+  onStepSubmit?: (data: Record<string, unknown>) => Promise<void>;
+  isSubmitting?: boolean;
 }
 export function CreateSafetyBulletinForm({
   onClose,
   isEditing,
   initialData,
   selectedDate,
+  smsActivityId,
+  onStepSubmit,
+  isSubmitting,
 }: FormProps) {
   const { selectedCompany } = useCompanyStore();
   const { createBulletin } = useCreateBulletin();
@@ -97,6 +103,10 @@ export function CreateSafetyBulletinForm({
   });
 
   const onSubmit = async (data: FormSchemaType) => {
+    if (onStepSubmit) {
+      await onStepSubmit(data);
+      return;
+    }
     if (initialData && isEditing) {
       // Si el usuario marcó el documento para eliminar, ejecutar la eliminación primero
       if (documentMarkedForDeletion && initialData.id) {
@@ -124,6 +134,7 @@ export function CreateSafetyBulletinForm({
             ...data,
             image: data.image ?? undefined,
             document: data.document ?? undefined,
+            sms_activity_id: smsActivityId ?? undefined,
           };
 
           await createBulletin.mutateAsync({
@@ -368,9 +379,11 @@ export function CreateSafetyBulletinForm({
           <p className="text-muted-foreground">SIGEAC</p>
           <Separator className="flex-1" />
         </div>
-        <Button disabled={createBulletin.isPending}>
-          {createBulletin.isPending ? (
+        <Button disabled={createBulletin.isPending || isSubmitting} className="w-full h-10">
+          {createBulletin.isPending || isSubmitting ? (
             <Loader2 className="size-4 animate-spin" />
+          ) : onStepSubmit ? (
+            "Crear Actividad y Boletín"
           ) : (
             "Enviar"
           )}

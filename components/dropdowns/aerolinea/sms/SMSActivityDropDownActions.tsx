@@ -13,6 +13,7 @@ import { SMSActivity } from "@/types";
 import {
   ClipboardPen,
   EyeIcon,
+  Link,
   Loader2,
   LockKeyhole,
   LockOpen, // Icono para reabrir
@@ -36,6 +37,7 @@ import { AddToSMSActivity } from "@/components/forms/aerolinea/sms/AddToSMSActiv
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { startOfDay } from "date-fns";
 import { AddSMSActivityAttendanceForm } from "@/components/forms/aerolinea/sms/AddSMSActivityAttendanceForm";
+import { LinkBulletinToActivityForm } from "@/components/forms/aerolinea/sms/LinkBulletinToActivityForm";
 
 const SMSActivityDropDownActions = ({
   smsActivity,
@@ -48,6 +50,7 @@ const SMSActivityDropDownActions = ({
   const [openAttendance, setOpenAttendance] = useState(false);
   const [closeActivity, setCloseActivity] = useState(false);
   const [openReopen, setOpenReopen] = useState(false); // Estado para reabrir
+  const [openLink, setOpenLink] = useState(false); // Estado para vincular boletín
 
   const { deleteSMSActivity } = useDeleteSMSActivity();
   const { closeSMSActivity } = useCloseSMSActivity();
@@ -142,6 +145,14 @@ const SMSActivityDropDownActions = ({
               <p className="pl-2">Asistencia</p>
             </DropdownMenuItem>
           )}
+
+          {smsActivity.activity_name === "BOLETÍN"
+            && (
+              <DropdownMenuItem onClick={() => setOpenLink(true)}>
+                <Link className="size-5" />
+                <p className="pl-2">Linkear</p>
+              </DropdownMenuItem>
+            )}
 
           {realNow >= ActivityDate && smsActivity.status === "ABIERTO" && (
             <DropdownMenuItem onClick={() => setCloseActivity(true)}>
@@ -286,6 +297,21 @@ const SMSActivityDropDownActions = ({
               )}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* DIALOGO PARA VINCULAR BOLETÍN */}
+      <Dialog open={openLink} onOpenChange={setOpenLink}>
+        <DialogContent className="flex flex-col max-w-2xl m-2">
+          <DialogHeader>
+            <DialogTitle className="text-center font-light">
+              Vincular Boletín a Actividad
+            </DialogTitle>
+            <LinkBulletinToActivityForm
+              initialData={smsActivity}
+              onClose={() => setOpenLink(false)}
+            />
+          </DialogHeader>
         </DialogContent>
       </Dialog>
     </>

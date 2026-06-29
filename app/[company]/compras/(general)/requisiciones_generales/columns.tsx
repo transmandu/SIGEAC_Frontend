@@ -105,7 +105,7 @@ export const getColumns = (
 ): ColumnDef<Requisition>[] => [
   {
     id: 'expander',
-    size: 40,
+    size: 50,
     header: () => null,
     cell: ({ row }) => {
       const canExpand = row.getCanExpand()
@@ -133,7 +133,7 @@ export const getColumns = (
   },
   {
     accessorKey: 'order_number',
-    size: 180,
+    size: 210,
 
     header: ({ column }) => (
       <div className="flex justify-center w-full">
@@ -162,7 +162,7 @@ export const getColumns = (
   },
   {
     accessorKey: 'justification',
-    size: 380,
+    size: 360,
     header: ({ column }) => (
       <div className="flex justify-center w-full">
         <DataTableColumnHeader
@@ -188,7 +188,7 @@ export const getColumns = (
   },
   {
     accessorKey: 'requested_by',
-    size: 220,
+    size: 180,
     header: ({ column }) => (
       <div className="flex justify-center w-full">
         <DataTableColumnHeader
@@ -212,7 +212,7 @@ export const getColumns = (
   },
   {
     accessorKey: 'status',
-    size: 180,
+    size: 150,
     header: ({ column }) => (
       <div className="flex justify-center w-full">
         <DataTableColumnHeader
@@ -232,7 +232,7 @@ export const getColumns = (
   },
   {
     accessorKey: 'priority',
-    size: 120,
+    size: 100,
     header: ({ column }) => (
       <div className="flex justify-center w-full">
         <DataTableColumnHeader
@@ -297,7 +297,7 @@ export const getColumns = (
   },
   {
     accessorKey: 'submission_date',
-    size: 220,
+    size: 180,
     header: ({ column }) => (
       <div className="flex justify-center w-full">
         <DataTableColumnHeader
@@ -309,19 +309,21 @@ export const getColumns = (
     meta: {
       title: 'Fecha de Creación',
     },
-    cell: ({ row }) => (
-      <div className="flex justify-center w-full">
-        <span
-          className="text-s text-slate-600 dark:text-slate-300 text-center"
-        >
-          {format( new Date(row.original.submission_date), 'PPP', { locale: es } )}
-        </span>
-      </div>
-    ),
+    cell: ({ row }) => {
+      const date = new Date(row.original.submission_date);
+
+      return (
+        <div className="flex justify-center w-full">
+          <span className="text-s text-slate-600 dark:text-slate-300 text-center font-medium tracking-wide uppercase">
+            {format(date, "dd MMM yyyy", { locale: es })}
+          </span>
+        </div>
+      );
+    },
   },
   {
     id: 'actions',
-    size: 120,
+    size: 80,
     header: ({ column }) => (
       <div className="flex justify-center w-full">
         <DataTableColumnHeader
