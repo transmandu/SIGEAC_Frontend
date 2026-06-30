@@ -3,13 +3,100 @@
 import { ColumnDef } from "@tanstack/react-table"
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
 import { Badge } from "@/components/ui/badge"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 import type { PurchaseOrder } from "@/types/purchase"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import Link from "next/link"
 import PurchaseOrderDropdownActions from "@/components/dropdowns/mantenimiento/compras/PurchaseOrderDropdownActions"
-import { ChevronRight } from "lucide-react"
+import { ChevronRight, Loader2 } from "lucide-react"
+import { useRegisterGeneralArticlesDelivery } from "@/actions/mantenimiento/compras/ordenes_compras/actions"
+
+const ArticlesCountAction = ({
+  po,
+  company,
+}: {
+  po: PurchaseOrder
+  company?: string
+}) => {
+  const { registerGeneralArticlesDelivery } = useRegisterGeneralArticlesDelivery()
+
+  const count =
+    (po.article_purchase_order?.length ?? 0) +
+    (po.general_article_purchase_order?.length ?? 0)
+
+  const isEmpty = count === 0
+  const hasGeneralArticles = (po.general_article_purchase_order?.length ?? 0) > 0
+  const canRegisterDelivery = hasGeneralArticles && po.status !== "PENDIENTE" && !!company
+
+  const badge = (
+    <div
+      className={cn(
+        `
+          flex items-center justify-center
+          px-2 py-0.5
+          rounded-md
+          text-xs tabular-nums
+          border
+          transition-colors
+          bg-white/60 dark:bg-slate-900/30
+          border-slate-200/60 dark:border-slate-700/50
+          text-slate-600 dark:text-slate-300
+        `,
+        canRegisterDelivery && "cursor-pointer hover:bg-emerald-50 hover:border-emerald-300/60 dark:hover:bg-emerald-950/30 dark:hover:border-emerald-700/50"
+      )}
+    >
+      {registerGeneralArticlesDelivery.isPending ? (
+        <Loader2 className="size-3 animate-spin" />
+      ) : (
+        <span className="font-medium">
+          {count}
+        </span>
+      )}
+
+      <span className="ml-1 text-muted-foreground">
+        {count === 1 ? "artículo" : "artículos"}
+      </span>
+
+      {isEmpty && (
+        <span className="ml-1 text-[10px] text-muted-foreground/70">
+          vacío
+        </span>
+      )}
+    </div>
+  )
+
+  if (!canRegisterDelivery) {
+    return badge
+  }
+
+  return (
+    <TooltipProvider delayDuration={120}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            type="button"
+            disabled={registerGeneralArticlesDelivery.isPending}
+            onClick={(e) => {
+              e.stopPropagation()
+              if (registerGeneralArticlesDelivery.isPending) return
+
+              registerGeneralArticlesDelivery.mutate({
+                id: po.id,
+                company: company!,
+              })
+            }}
+            className="inline-flex disabled:opacity-60"
+          >
+            {badge}
+          </button>
+        </TooltipTrigger>
+        <TooltipContent>Registrar la entrega de los artículos generales de esta orden</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  )
+}
 
 export const getColumns = (
   selectedCompany?: { slug: string }
@@ -210,45 +297,11 @@ export const getColumns = (
       title: "Artículos",
     },
 
-    cell: ({ row }) => {
-      const count =
-        (row.original.article_purchase_order?.length ?? 0) +
-        (row.original.general_article_purchase_order?.length ?? 0)
-
-      const isEmpty = count === 0
-
-      return (
-        <div className="flex justify-center w-full">
-          <div
-            className="
-              flex items-center justify-center
-              px-2 py-0.5
-              rounded-md
-              text-xs tabular-nums
-              border
-              transition-colors
-              bg-white/60 dark:bg-slate-900/30
-              border-slate-200/60 dark:border-slate-700/50
-              text-slate-600 dark:text-slate-300
-            "
-          >
-            <span className="font-medium">
-              {count}
-            </span>
-
-            <span className="ml-1 text-muted-foreground">
-              {count === 1 ? "artículo" : "artículos"}
-            </span>
-
-            {isEmpty && (
-              <span className="ml-1 text-[10px] text-muted-foreground/70">
-                vacío
-              </span>
-            )}
-          </div>
-        </div>
-      )
-    },
+    cell: ({ row }) => (
+      <div className="flex justify-center w-full" onClick={(e) => e.stopPropagation()}>
+        <ArticlesCountAction po={row.original} company={selectedCompany?.slug} />
+      </div>
+    ),
   },
 
   {

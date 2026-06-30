@@ -141,10 +141,10 @@ export function buildGeneralGroup({ pathname, currentCompany, userRoles }: MenuC
                 submenus: [],
             },
             {
-                href: `/${currentCompany?.slug}/general/articulos_en_transito`,
-                label: "Art. en transito",
+                href: `/${currentCompany?.slug}/general/recepcion_articulos`,
+                label: "Recepción de Artículos",
                 active: pathname.includes(
-                    `/${currentCompany?.slug}/general/articulos_en_transito`,
+                    `/${currentCompany?.slug}/general/recepcion_articulos`,
                 ),
                 icon: Truck,
                 roles: [

@@ -134,6 +134,19 @@ export function buildPurchasesGroups({ pathname, currentCompany, userRoles }: Me
             ],
             submenus: [],
         },
+        {
+            href: `/${currentCompany?.slug}/compras/recepcion_general`,
+            label: "Recepción General",
+            active: isActivePath(pathname, `/${currentCompany?.slug}/compras/recepcion_general`),
+            icon: Truck,
+            roles: [
+                "ASISTENTE_COMPRAS",
+                "ANALISTA_ADMINISTRACION",
+                "SUPERUSER",
+                "JEFE_ADMINISTRACION",
+            ],
+            submenus: [],
+        },
     ];
 
     const globalPurchaseMenu: Menu = {
