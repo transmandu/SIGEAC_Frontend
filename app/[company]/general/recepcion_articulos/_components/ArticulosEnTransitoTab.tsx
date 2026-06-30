@@ -1,20 +1,8 @@
-
 'use client'
 
 import { useUpdateArticleStatus } from '@/actions/mantenimiento/almacen/inventario/articulos/actions'
-import { ContentLayout } from '@/components/layout/ContentLayout'
-import BackButton from '@/components/misc/BackButton'
-import LoadingPage from '@/components/misc/LoadingPage'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-    Breadcrumb,
-    BreadcrumbItem,
-    BreadcrumbLink,
-    BreadcrumbList,
-    BreadcrumbPage,
-    BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb'
 import {
     Table,
     TableBody,
@@ -24,10 +12,8 @@ import {
     TableRow,
 } from '@/components/ui/table'
 import { useGetArticlesByStatus } from '@/hooks/mantenimiento/almacen/articulos/useGetArticlesByStatus'
-import { useCompanyStore } from '@/stores/CompanyStore'
-import { useAuth } from '@/contexts/AuthContext'
 import { cn } from '@/lib/utils'
-import { ArrowRight, ChevronRight, Loader2, MapPin, PackageCheck, Search, ShieldOff } from 'lucide-react'
+import { ArrowRight, ChevronRight, Loader2, MapPin, PackageCheck, Search } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Condition, Manufacturer } from '@/types'
 
@@ -63,7 +49,7 @@ type TransitArticle = {
 type StatusFilter = 'ALL' | 'TRANSIT' | 'RECEPTION'
 
 // ── Fila de artículo ───────────────────────────────────────────────────
-function ArticleRow({ article }: { article: TransitArticle; company: string }) {
+function ArticleRow({ article }: { article: TransitArticle }) {
     const { updateArticleStatus } = useUpdateArticleStatus()
     const [pending, setPending] = useState(false)
     const [expanded, setExpanded] = useState(false)
@@ -231,17 +217,10 @@ function ArticleRow({ article }: { article: TransitArticle; company: string }) {
     )
 }
 
-const ALMACEN_ROLES = ['ALMACEN', 'JEFE_ALMACEN', 'ANALISTA_ALMACEN', 'SUPERUSER']
-
-// ── Página ─────────────────────────────────────────────────────────────
-const EnTransitoPage = () => {
-    const { selectedCompany } = useCompanyStore()
-    const { user } = useAuth()
+// ── Tab ──────────────────────────────────────────────────────────────
+export function ArticulosEnTransitoTab() {
     const [statusFilter, setStatusFilter] = useState<StatusFilter>('ALL')
     const [search, setSearch] = useState('')
-
-    const userRoles = user?.roles?.map((r) => r.name) ?? []
-    const canView = ALMACEN_ROLES.some((r) => userRoles.includes(r))
 
     const { data: transitArticles, isLoading: loadingTransit } = useGetArticlesByStatus('TRANSIT')
     const { data: receptionArticles, isLoading: loadingReception } = useGetArticlesByStatus('RECEPTION')
@@ -269,17 +248,11 @@ const EnTransitoPage = () => {
         )
     }, [transitArticles, receptionArticles, statusFilter, search])
 
-    if (isLoading) return <LoadingPage />
-
-    if (!canView) {
+    if (isLoading) {
         return (
-            <ContentLayout title="Artículos en Tránsito">
-                <div className="flex flex-col items-center justify-center gap-3 py-24 text-muted-foreground">
-                    <ShieldOff className="size-10" />
-                    <p className="text-sm font-medium">No tienes permiso para ver esta sección.</p>
-                    <p className="text-xs">Se requiere el rol de Almacén.</p>
-                </div>
-            </ContentLayout>
+            <div className="flex items-center justify-center py-24 text-muted-foreground">
+                <Loader2 className="size-5 animate-spin" />
+            </div>
         )
     }
 
@@ -287,122 +260,93 @@ const EnTransitoPage = () => {
     const totalReception = (receptionArticles as TransitArticle[])?.length ?? 0
 
     return (
-        <ContentLayout title="Artículos en Tránsito">
-            <div className="flex flex-col gap-y-3">
-
-                {/* Breadcrumb */}
-                <div className="flex items-center gap-2">
-                    <BackButton iconOnly tooltip="Volver" variant="secondary" />
-                    <Breadcrumb>
-                        <BreadcrumbList>
-                            <BreadcrumbItem>
-                                <BreadcrumbLink href={`/${selectedCompany?.slug ?? ''}/dashboard`}>
-                                    Inicio
-                                </BreadcrumbLink>
-                            </BreadcrumbItem>
-                            <BreadcrumbSeparator />
-                            <BreadcrumbItem>
-                                <BreadcrumbLink>Compras</BreadcrumbLink>
-                            </BreadcrumbItem>
-                            <BreadcrumbSeparator />
-                            <BreadcrumbItem>
-                                <BreadcrumbPage>Art. en Tránsito</BreadcrumbPage>
-                            </BreadcrumbItem>
-                        </BreadcrumbList>
-                    </Breadcrumb>
-                </div>
-
-                {/* Encabezado */}
-                <div className="flex items-baseline justify-between">
-                    <h1 className="text-2xl font-bold">Artículos en Tránsito</h1>
-                    <span className="text-xs text-muted-foreground tabular-nums">
-                        {articles.length} {articles.length === 1 ? 'artículo' : 'artículos'}
-                    </span>
-                </div>
-
-                {/* Filtros + búsqueda */}
-                <div className="flex items-center gap-2 flex-wrap">
-                    <div className="flex rounded-md border border-border overflow-hidden">
-                        {([
-                            { value: 'ALL', label: 'Todos', count: totalTransit + totalReception },
-                            { value: 'TRANSIT', label: 'Tránsito', count: totalTransit },
-                            { value: 'RECEPTION', label: 'Recepción', count: totalReception },
-                        ] as { value: StatusFilter; label: string; count: number }[]).map(({ value, label, count }) => (
-                            <button
-                                key={value}
-                                onClick={() => setStatusFilter(value)}
-                                className={cn(
-                                    'px-3 py-1.5 text-xs font-medium transition-colors border-r last:border-r-0',
-                                    statusFilter === value
-                                        ? value === 'TRANSIT'
-                                            ? 'bg-sky-100 text-sky-700 dark:bg-sky-950/60 dark:text-sky-400'
-                                            : value === 'RECEPTION'
-                                                ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400'
-                                                : 'bg-muted text-foreground'
-                                        : 'bg-background text-muted-foreground hover:bg-muted/50'
-                                )}
-                            >
-                                {label}
-                                <span className={cn(
-                                    'ml-1.5 px-1 py-0 rounded text-[10px] font-semibold',
-                                    statusFilter === value ? 'bg-background/60' : 'bg-muted'
-                                )}>
-                                    {count}
-                                </span>
-                            </button>
-                        ))}
-                    </div>
-
-                    <div className="relative ml-auto">
-                        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
-                        <Input
-                            placeholder="Buscar parte, nombre, ubicación..."
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            className="pl-8 h-8 text-xs w-64"
-                        />
-                    </div>
-                </div>
-
-                {/* Tabla */}
-                <div className="rounded-md border">
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead className="w-8" />
-                                <TableHead className="text-xs">Numero de Parte / Alterno</TableHead>
-                                <TableHead className="text-xs">Descripcion</TableHead>
-                                <TableHead className="text-xs">Fecha de Recepcion</TableHead>
-                                <TableHead className="text-xs">Ubicación</TableHead>
-                                <TableHead className="text-xs">Estado</TableHead>
-                                <TableHead className="text-xs">Acciones</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {articles.length > 0 ? (
-                                articles.map((article) => (
-                                    <ArticleRow
-                                        key={article.id}
-                                        article={article}
-                                        company=""
-                                    />
-                                ))
-                            ) : (
-                                <TableRow>
-                                    <TableCell colSpan={6} className="h-24 text-center text-muted-foreground text-sm">
-                                        No se encontraron artículos
-                                        {statusFilter !== 'ALL' && ` con estado ${statusFilter}`}
-                                        {search && ` que coincidan con "${search}"`}.
-                                    </TableCell>
-                                </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
-                </div>
-
+        <div className="flex flex-col gap-y-3">
+            {/* Encabezado */}
+            <div className="flex items-baseline justify-between">
+                <h2 className="text-lg font-semibold">Artículos en Tránsito</h2>
+                <span className="text-xs text-muted-foreground tabular-nums">
+                    {articles.length} {articles.length === 1 ? 'artículo' : 'artículos'}
+                </span>
             </div>
-        </ContentLayout>
+
+            {/* Filtros + búsqueda */}
+            <div className="flex items-center gap-2 flex-wrap">
+                <div className="flex rounded-md border border-border overflow-hidden">
+                    {([
+                        { value: 'ALL', label: 'Todos', count: totalTransit + totalReception },
+                        { value: 'TRANSIT', label: 'Tránsito', count: totalTransit },
+                        { value: 'RECEPTION', label: 'Recepción', count: totalReception },
+                    ] as { value: StatusFilter; label: string; count: number }[]).map(({ value, label, count }) => (
+                        <button
+                            key={value}
+                            onClick={() => setStatusFilter(value)}
+                            className={cn(
+                                'px-3 py-1.5 text-xs font-medium transition-colors border-r last:border-r-0',
+                                statusFilter === value
+                                    ? value === 'TRANSIT'
+                                        ? 'bg-sky-100 text-sky-700 dark:bg-sky-950/60 dark:text-sky-400'
+                                        : value === 'RECEPTION'
+                                            ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400'
+                                            : 'bg-muted text-foreground'
+                                    : 'bg-background text-muted-foreground hover:bg-muted/50'
+                            )}
+                        >
+                            {label}
+                            <span className={cn(
+                                'ml-1.5 px-1 py-0 rounded text-[10px] font-semibold',
+                                statusFilter === value ? 'bg-background/60' : 'bg-muted'
+                            )}>
+                                {count}
+                            </span>
+                        </button>
+                    ))}
+                </div>
+
+                <div className="relative ml-auto">
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
+                    <Input
+                        placeholder="Buscar parte, nombre, ubicación..."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        className="pl-8 h-8 text-xs w-64"
+                    />
+                </div>
+            </div>
+
+            {/* Tabla */}
+            <div className="rounded-md border">
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead className="w-8" />
+                            <TableHead className="text-xs">Numero de Parte / Alterno</TableHead>
+                            <TableHead className="text-xs">Descripcion</TableHead>
+                            <TableHead className="text-xs">Fecha de Recepcion</TableHead>
+                            <TableHead className="text-xs">Ubicación</TableHead>
+                            <TableHead className="text-xs">Estado</TableHead>
+                            <TableHead className="text-xs">Acciones</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {articles.length > 0 ? (
+                            articles.map((article) => (
+                                <ArticleRow
+                                    key={article.id}
+                                    article={article}
+                                />
+                            ))
+                        ) : (
+                            <TableRow>
+                                <TableCell colSpan={6} className="h-24 text-center text-muted-foreground text-sm">
+                                    No se encontraron artículos
+                                    {statusFilter !== 'ALL' && ` con estado ${statusFilter}`}
+                                    {search && ` que coincidan con "${search}"`}.
+                                </TableCell>
+                            </TableRow>
+                        )}
+                    </TableBody>
+                </Table>
+            </div>
+        </div>
     )
 }
-
-export default EnTransitoPage
