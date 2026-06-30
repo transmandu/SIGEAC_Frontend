@@ -16,14 +16,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { ComboboxField } from "@/components/ui/ComboboxField";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useGetUniformOptions } from "@/hooks/sms/useGetUniforms";
 import { useCreateUniformItem } from "@/actions/sms/uniforms/actions";
+import { UniformBrandForm } from "@/components/forms/sms/UniformBrandForm";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, Plus } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -31,8 +39,10 @@ const formSchema = z.object({
   uniform_article_type_id: z
     .string()
     .min(1, { message: "Seleccione un tipo." }),
+  uniform_brand_id: z.string().min(1, { message: "Seleccione una marca." }),
   size: z.string().min(1, { message: "Seleccione una talla." }),
   company: z.string().min(1, { message: "Seleccione una empresa." }),
+  gender: z.string().min(1, { message: "Seleccione un género." }),
   min_stock: z.coerce.number().int().min(0).default(0),
   initial_quantity: z.coerce.number().int().min(0).default(0),
 });
@@ -47,13 +57,25 @@ export const CreateUniformItemForm = ({ onClose }: Props) => {
     selectedCompany?.slug
   );
   const createItem = useCreateUniformItem();
+  const [brandModalOpen, setBrandModalOpen] = useState(false);
+
+  const brandOptions = useMemo(
+    () =>
+      (options?.brands ?? []).map((b) => ({
+        value: String(b.value),
+        label: b.label,
+      })),
+    [options?.brands]
+  );
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       uniform_article_type_id: "",
+      uniform_brand_id: "",
       size: "",
       company: "",
+      gender: "UNISEX",
       min_stock: 0,
       initial_quantity: 0,
     },
@@ -74,8 +96,10 @@ export const CreateUniformItemForm = ({ onClose }: Props) => {
         company: selectedCompany!.slug,
         data: {
           uniform_article_type_id: Number(data.uniform_article_type_id),
+          uniform_brand_id: Number(data.uniform_brand_id),
           size: data.size,
           company: data.company,
+          gender: data.gender,
           min_stock: data.min_stock,
           initial_quantity: data.initial_quantity,
         },
@@ -93,7 +117,8 @@ export const CreateUniformItemForm = ({ onClose }: Props) => {
   }
 
   return (
-    <Form {...form}>
+    <>
+      <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
         className="flex flex-col gap-y-4"
@@ -127,6 +152,18 @@ export const CreateUniformItemForm = ({ onClose }: Props) => {
               <FormMessage />
             </FormItem>
           )}
+        />
+
+        <ComboboxField
+          form={form}
+          name="uniform_brand_id"
+          label="Marca"
+          placeholder="Seleccione una marca"
+          searchPlaceholder="Buscar marca..."
+          emptyText="No se encontraron marcas."
+          options={brandOptions}
+          onCreateNew={() => setBrandModalOpen(true)}
+          createNewLabel="Nueva marca"
         />
 
         <FormField
@@ -164,30 +201,57 @@ export const CreateUniformItemForm = ({ onClose }: Props) => {
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="company"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Empresa (marca)</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccione una empresa" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {options?.companies.map((c) => (
-                    <SelectItem key={c.value} value={c.value}>
-                      {c.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="company"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Empresa</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Empresa" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {options?.companies.map((c) => (
+                      <SelectItem key={c.value} value={c.value}>
+                        {c.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="gender"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Género</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Género" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {options?.genders.map((g) => (
+                      <SelectItem key={g.value} value={g.value}>
+                        {g.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
         <div className="grid grid-cols-2 gap-4">
           <FormField
@@ -236,6 +300,26 @@ export const CreateUniformItemForm = ({ onClose }: Props) => {
           )}
         </Button>
       </form>
-    </Form>
+      </Form>
+
+      {/* Crear marca al vuelo desde el combobox */}
+      <Dialog open={brandModalOpen} onOpenChange={setBrandModalOpen}>
+        <DialogContent className="sm:max-w-[420px]">
+          <DialogHeader>
+            <DialogTitle className="text-center text-xl font-bold">
+              Nueva marca
+            </DialogTitle>
+          </DialogHeader>
+          <UniformBrandForm
+            onClose={() => setBrandModalOpen(false)}
+            onCreated={(brandId) =>
+              form.setValue("uniform_brand_id", String(brandId), {
+                shouldValidate: true,
+              })
+            }
+          />
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };

@@ -157,7 +157,10 @@ export const RegisterUniformMovementForm = ({ onClose, itemId }: Props) => {
                 <SelectContent>
                   {items?.map((i) => (
                     <SelectItem key={i.id} value={String(i.id)}>
-                      {i.type_label} · {i.size} · {i.company_label} (stock:{" "}
+                      {i.type_label}
+                      {i.brand_label ? ` · ${i.brand_label}` : ""} · {i.size} ·{" "}
+                      {i.company_label}
+                      {i.gender_label ? ` · ${i.gender_label}` : ""} (stock:{" "}
                       {i.current_stock})
                     </SelectItem>
                   ))}
