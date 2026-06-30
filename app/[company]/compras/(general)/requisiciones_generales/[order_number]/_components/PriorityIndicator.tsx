@@ -1,4 +1,4 @@
-import { priorityBadgeCls, priorityLabel } from './utils/uiHelpers';
+import { priorityPageBadgeCls, priorityLabel } from './utils/uiHelpers';
 
 interface PriorityIndicatorProps {
   priority?: string;
@@ -9,7 +9,7 @@ const PriorityIndicator = ({ priority }: PriorityIndicatorProps) => {
     priority === 'LOW' ? 1 : priority === 'MEDIUM' ? 2 : priority === 'HIGH' ? 3 : 0;
 
   return (
-    <div className={priorityBadgeCls(priority)}>
+    <div className={priorityPageBadgeCls(priority)}>
       <div className="flex items-end gap-[2px] h-2.5 shrink-0">
         <div className={`w-[2px] rounded-sm ${level >= 1 ? 'h-1.5 bg-current opacity-60' : 'h-1 bg-current opacity-15'}`} />
         <div className={`w-[2px] rounded-sm ${level >= 2 ? 'h-2 bg-current opacity-75' : 'h-1 bg-current opacity-15'}`} />
