@@ -119,7 +119,7 @@ const CostManagementPage = () => {
     )
 
   const { data: generalArticles, isLoading: loadingGeneral } =
-    useGetGeneralArticles()
+    useGetGeneralArticles(canViewGeneralCosts)
 
   const isLoading =
     type === 'ARTICLE' ? loadingArticles : loadingGeneral
