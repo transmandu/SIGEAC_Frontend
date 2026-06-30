@@ -6,8 +6,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { cn, formatRequestedDate } from '@/lib/utils';
 import { Building2, CalendarDays, Handshake, ImageIcon, ShieldCheck, User } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
-import PriorityIndicator from './PriorityIndicator';
-import { articleStatusUI } from './utils/uiHelpers';
+import { articleStatusUI, priorityCardBadgeCls } from './utils/uiHelpers';
 
 interface GeneralArticleCardProps {
   article: any;
@@ -174,7 +173,9 @@ const GeneralArticleCard = ({ article, onImageClick, requisitionStatus }: Genera
                   PRIORIDAD
                 </span>
                 <div className="flex items-center justify-center w-full">
-                  <PriorityIndicator priority={article.priority} />
+                  <Badge className={priorityCardBadgeCls(article.priority).className}>
+                    {priorityCardBadgeCls(article.priority).label}
+                  </Badge>
                 </div>
               </div>
 
@@ -316,7 +317,9 @@ const GeneralArticleCard = ({ article, onImageClick, requisitionStatus }: Genera
               <span className="text-[9px] tracking-wide text-muted-foreground mb-1.5 select-none">
                 PRIORIDAD
               </span>
-              <PriorityIndicator priority={article.priority} />
+              <Badge className={priorityCardBadgeCls(article.priority).className}>
+                {priorityCardBadgeCls(article.priority).label}
+              </Badge>
             </div>
 
             {/* CANTIDAD / UNIDAD combined */}
