@@ -16,13 +16,18 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { useCompanyStore } from '@/stores/CompanyStore';
 import { useGetRequisition } from '@/hooks/mantenimiento/compras/useGetRequisitions';
+import { cn } from '@/lib/utils';
+import type { RequisitionType } from '@/types/purchase';
 
 import { getColumns } from './columns';
 import { DataTable } from './data-table';
 
+type TypeFilter = 'ALL' | RequisitionType;
+
 const RequisitionsPage = () => {
   const { user } = useAuth();
   const { selectedCompany, selectedStation } = useCompanyStore();
+  const [typeFilter, setTypeFilter] = useState<TypeFilter>('ALL');
 
   const { data: requisitions, isLoading, isError } = useGetRequisition(
     selectedCompany?.slug,
@@ -46,7 +51,7 @@ const RequisitionsPage = () => {
     );
   }, [user, fullAccessRoles]);
 
-  const filteredRequisitions = useMemo(() => {
+  const accessFilteredRequisitions = useMemo(() => {
     if (!requisitions) return [];
 
     if (hasFullAccess) {
@@ -57,6 +62,22 @@ const RequisitionsPage = () => {
       return req.created_by?.id === user?.id;
     });
   }, [requisitions, hasFullAccess, user]);
+
+  const totalAeronautical = useMemo(
+    () => accessFilteredRequisitions.filter(req => req.type === 'AERONAUTICAL').length,
+    [accessFilteredRequisitions]
+  );
+
+  const totalGeneral = useMemo(
+    () => accessFilteredRequisitions.filter(req => req.type === 'GENERAL').length,
+    [accessFilteredRequisitions]
+  );
+
+  const filteredRequisitions = useMemo(() => {
+    if (typeFilter === 'ALL') return accessFilteredRequisitions;
+
+    return accessFilteredRequisitions.filter(req => req.type === typeFilter);
+  }, [accessFilteredRequisitions, typeFilter]);
 
   const columns = useMemo(
     () => getColumns(selectedCompany ?? undefined),
@@ -102,6 +123,37 @@ const RequisitionsPage = () => {
             Ha ocurrido un error al cargar las solicitudes de compra...
           </p>
         )}
+
+        <div className="flex rounded-md border border-border overflow-hidden w-fit">
+          {(
+            [
+              { value: 'ALL', label: 'Todas', count: totalAeronautical + totalGeneral },
+              { value: 'AERONAUTICAL', label: 'Aeronáutica', count: totalAeronautical },
+              { value: 'GENERAL', label: 'General', count: totalGeneral },
+            ] as { value: TypeFilter; label: string; count: number }[]
+          ).map(({ value, label, count }) => (
+            <button
+              key={value}
+              onClick={() => setTypeFilter(value)}
+              className={cn(
+                'px-3 py-1.5 text-xs font-medium transition-colors border-r last:border-r-0',
+                typeFilter === value
+                  ? 'bg-muted text-foreground'
+                  : 'bg-background text-muted-foreground hover:bg-muted/50'
+              )}
+            >
+              {label}
+              <span
+                className={cn(
+                  'ml-1.5 px-1 py-0 rounded text-[10px] font-semibold',
+                  typeFilter === value ? 'bg-background/60' : 'bg-muted'
+                )}
+              >
+                {count}
+              </span>
+            </button>
+          ))}
+        </div>
 
         <DataTable
           columns={columns}
