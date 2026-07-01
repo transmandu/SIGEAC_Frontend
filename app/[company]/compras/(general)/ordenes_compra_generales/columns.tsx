@@ -28,7 +28,7 @@ const ArticlesCountAction = ({
 
   const isEmpty = count === 0
   const hasGeneralArticles = (po.general_article_purchase_order?.length ?? 0) > 0
-  const canRegisterDelivery = hasGeneralArticles && po.status !== "PENDIENTE" && !!company
+  const canRegisterDelivery = hasGeneralArticles && !!company
 
   const badge = (
     <div

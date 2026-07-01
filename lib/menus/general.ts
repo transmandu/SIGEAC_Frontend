@@ -150,6 +150,8 @@ export function buildGeneralGroup({ pathname, currentCompany, userRoles }: MenuC
                 roles: [
                     "SUPERUSER",
                     "JEFE_ALMACEN",
+                    "ANALISTA_ALMACEN",
+                    "JEFE_CONTROL_CALIDAD",
                 ],
                 submenus: [],
             },            
