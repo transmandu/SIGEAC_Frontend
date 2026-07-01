@@ -42,10 +42,12 @@ export const movementsColumns: ColumnDef<UniformMovement>[] = [
           </span>
           <div className="flex flex-col">
             <span className="text-sm font-semibold uppercase">
-              {item.type_label} · {item.size}
+              {item.type_label}
+              {item.brand_label ? ` · ${item.brand_label}` : ""} · {item.size}
             </span>
             <span className="text-xs uppercase text-muted-foreground">
               {item.company_label}
+              {item.gender_label ? ` · ${item.gender_label}` : ""}
             </span>
           </div>
         </div>

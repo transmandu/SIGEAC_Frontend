@@ -1,4 +1,4 @@
-import type { Unit, Location, BankAccount, Card, ShippingAgency } from '@/types';
+import type { Unit, Location, BankAccount, Card, ShippingAgency, GeneralArticle } from '@/types';
 import type { ArticleRequisitionOrderRef, GeneralArticleRequisitionOrderRef } from '@/types/purchase/quote';
 
 // ── Purchase order status ───────────────────────────────────────────────────
@@ -176,4 +176,82 @@ export interface UpdatePurchaseOrderData {
   observation?: string | null;
   invoice?: File;
   articles_purchase_orders?: UpdatePurchaseOrderArticleData[];
+}
+
+// ── Register the physical delivery of a PO's general articles ──────────────
+// PATCH /{company}/purchase-order/{id}/register-general-articles-delivery
+//
+// Paying a PO no longer creates inventory for its general articles: the
+// person who physically brings the goods must call this endpoint once they
+// arrive. It creates one PENDING GeneralArticleIntake per general-article
+// line item on the PO that doesn't already have one (safe to call more than
+// once on the same PO — e.g. staggered/partial deliveries).
+export interface RegisterGeneralArticlesDeliveryResponse {
+  message: string;
+  general_article_intakes_count: number;
+}
+
+// ── General article intakes (staged receiving / verification) ─────────────
+// A purchase order's general articles are never written straight into
+// general_articles. Registering a delivery (above) creates a PENDING
+// GeneralArticleIntake carrying the descriptive fields of what arrived;
+// only confirming it (GeneralArticleIntakeController::confirm) creates or
+// increments the matching general_articles row. The intake row itself is
+// never deleted — it's the permanent audit trail of who/when/how much.
+export type GeneralArticleIntakeStatus = 'PENDING' | 'CONFIRMED';
+
+// Shaped by GeneralArticleIntakeResource — only what the frontend needs from
+// each relation, not the full purchase_order/quote_order/requisition_order
+// or warehouse/unit models.
+export interface GeneralArticleIntakePurchaseOrderRef {
+  id: number;
+  order_number: string;
+  quote_order?: {
+    id: number;
+    quote_number: string;
+    requisition_order?: PurchaseOrderRequisitionRef | null;
+  } | null;
+}
+
+export interface GeneralArticleIntakeUnitRef {
+  id: number;
+  label: string;
+}
+
+export interface GeneralArticleIntakeWarehouseRef {
+  location_id: number;
+  name: string;
+  type: string;
+}
+
+// GET /{company}/{location_id}/general-article-intakes
+export interface GeneralArticleIntake {
+  id: number;
+  description: string;
+  variant_type?: string | null;
+  brand_model?: string | null;
+  cost?: number | null;
+  image?: string | null;
+  quantity: string | number;
+  arrived_at: string;
+  status: GeneralArticleIntakeStatus;
+  registered_by: string;
+  confirmed_by?: string | null;
+  confirmed_at?: string | null;
+  observation?: string | null;
+  unit?: GeneralArticleIntakeUnitRef | null;
+  warehouse?: GeneralArticleIntakeWarehouseRef | null;
+  purchase_order?: GeneralArticleIntakePurchaseOrderRef | null;
+}
+
+// GET /{company}/general-article-intakes/{location_id}?status=PENDING|CONFIRMED
+export type GetGeneralArticleIntakesParams = {
+  status?: GeneralArticleIntakeStatus;
+};
+
+// PATCH /{company}/general-article-intakes/{id}/confirm
+export interface ConfirmGeneralArticleIntakeResponse {
+  message: string;
+  intake: GeneralArticleIntake;
+  general_article: GeneralArticle;
 }

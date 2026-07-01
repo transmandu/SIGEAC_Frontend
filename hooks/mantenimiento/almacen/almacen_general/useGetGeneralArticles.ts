@@ -8,11 +8,11 @@ const fetchGeneralArticles = async (location_id: number | string, company: strin
     return data;
 };
 
-export const useGetGeneralArticles = () => {
+export const useGetGeneralArticles = (enabled: boolean = true) => {
     const { selectedCompany, selectedStation } = useCompanyStore()
     return useQuery<GeneralArticle[], Error>({
         queryKey: ["general-articles", selectedCompany?.slug],
         queryFn: () => fetchGeneralArticles(selectedStation!, selectedCompany?.slug!),
-        enabled: !!selectedCompany && !!selectedStation,
+        enabled: enabled && !!selectedCompany && !!selectedStation,
     });
 };

@@ -52,7 +52,7 @@ const RequisitionPage = () => {
       <Card className='max-w-7xl mx-auto'>
         <CardHeader className='flex flex-col items-center'>
           <CardTitle className='flex justify-center text-5xl mb-2'>#{order_number}</CardTitle>
-          <Badge className={cn("text-lg", data?.status === 'aprobada' ? "bg-green-500" : "bg-yellow-600")}>
+          <Badge className={cn("text-lg", data?.status === 'APPROVED' ? "bg-green-500" : "bg-yellow-600")}>
             {data?.status.toUpperCase()}
           </Badge>
         </CardHeader>
@@ -213,7 +213,7 @@ const RequisitionPage = () => {
           <Button
             onClick={() => setOpenDelete(true)}
             variant={"destructive"}
-            className={cn(data?.status === "APROBADO" ? "hidden" : "")}
+            className={cn(data?.status === "APPROVED" ? "hidden" : "")}
           >
             <Trash2 className='w-4 h-4 mr-2' /> Eliminar
           </Button>
@@ -231,7 +231,7 @@ const RequisitionPage = () => {
               Cancelar
             </Button>
             <Button
-              className={cn(data?.status === 'aprobado' ? "hidden" : "flex")}
+              className={cn(data?.status === 'APPROVED' ? "hidden" : "flex")}
               onClick={() => handleDelete(data!.id, selectedCompany!.slug)}
               disabled={deleteRequisition.isPending}
             >

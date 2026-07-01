@@ -82,10 +82,12 @@ const FilterSelects = ({
 
         <SelectContent className={selectContentClass}>
           <SelectItem value="ALL">Todos los estados</SelectItem>
-          <SelectItem value="PROCESO">Proceso</SelectItem>
-          <SelectItem value="COTIZADO">Cotizado</SelectItem>
-          <SelectItem value="APROBADA">Aprobada</SelectItem>
-          <SelectItem value="RECHAZADO">Rechazada</SelectItem>
+          <SelectItem value="CREATED">CREADA</SelectItem>
+          <SelectItem value="RECEIVED">RECIBIDA</SelectItem>
+          <SelectItem value="IN_PROGRESS">EN PROCESO</SelectItem>
+          <SelectItem value="QUOTED">COTIZADA</SelectItem>
+          <SelectItem value="APPROVED">APROBADA</SelectItem>
+          <SelectItem value="REJECTED">RECHAZADA</SelectItem>
         </SelectContent>
       </Select>
     </div>

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
 import { useAuth } from "@/contexts/AuthContext"
 import { useGetBatchesByLocationId } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByLocationId"
+import { useSearchBatchesWithArticles, type BatchWithArticles } from "@/hooks/mantenimiento/almacen/renglones/useSearchBatchesWithArticles"
 import { useGetMaintenanceAircrafts } from '@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts'
 import { useGetWorkOrders } from '@/hooks/mantenimiento/planificacion/useGetWorkOrders'
 import { useGetUserDepartamentEmployees } from "@/hooks/sistema/empleados/useGetUserDepartamentEmployees"
@@ -18,6 +19,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits"
+import { useDebounce } from "@/lib/useDebounce"
 import { cn } from "@/lib/utils"
 import { useGetGeneralArticles } from "@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticles"
 import type { RequisitionBatchForm, RequisitionGeneralArticleForm } from "@/types/purchase"
@@ -176,6 +178,14 @@ export function CreateWarehouseRequisitionForm({
   const [workOrderSearch, setWorkOrderSearch] = useState("");
   const [batchSearch, setBatchSearch] = useState("");
   const [generalArticleSearch, setGeneralArticleSearch] = useState("");
+  const [articleSearch, setArticleSearch] = useState("");
+  const debouncedArticleSearch = useDebounce(articleSearch, 300);
+
+  const { data: articleResults, isFetching: isArticleResultsLoading } = useSearchBatchesWithArticles(
+    selectedCompany?.slug,
+    selectedStation ?? undefined,
+    debouncedArticleSearch || undefined
+  );
 
   // Memoized filtered lists for each searchable selector
   const filteredEmployees = useMemo(() => {
@@ -322,6 +332,71 @@ export function CreateWarehouseRequisitionForm({
           batch_articles: [{ part_number: "", quantity: 1, unit: getDefaultUnit(batch_category), priority: "MEDIUM", aircraft_id: headerAircraftId }],
         },
       ];
+    });
+  };
+
+  // Article search handler: selecting an article by part_number loads its
+  // associated batch (adding it if not already selected) and fills the
+  // part_number/alt_part_number/unit into an empty row, or appends a new one.
+  const handleArticleSelect = (
+    batch: BatchWithArticles["batch"],
+    article: BatchWithArticles["articles"][number]
+  ) => {
+    const batchId = batch.id.toString();
+    const altPartNumber = article.alternative_part_number?.[0] ?? "";
+    const unit = getDefaultUnit(batch.category);
+
+    setSelectedBatches((prev) => {
+      const existingBatch = prev.find((b) => b.batch === batchId);
+
+      if (!existingBatch) {
+        return [
+          ...prev,
+          {
+            batch: batchId,
+            batch_name: batch.name,
+            batch_articles: [
+              {
+                part_number: article.part_number,
+                alt_part_number: altPartNumber,
+                quantity: 1,
+                unit,
+                priority: "MEDIUM",
+                aircraft_id: headerAircraftId,
+              },
+            ],
+          },
+        ];
+      }
+
+      return prev.map((b) => {
+        if (b.batch !== batchId) return b;
+        const emptyIndex = b.batch_articles.findIndex((a) => !a.part_number);
+        if (emptyIndex === -1) {
+          return {
+            ...b,
+            batch_articles: [
+              ...b.batch_articles,
+              {
+                part_number: article.part_number,
+                alt_part_number: altPartNumber,
+                quantity: 1,
+                unit,
+                priority: "MEDIUM",
+                aircraft_id: headerAircraftId,
+              },
+            ],
+          };
+        }
+        return {
+          ...b,
+          batch_articles: b.batch_articles.map((a, i) =>
+            i === emptyIndex
+              ? { ...a, part_number: article.part_number, alt_part_number: altPartNumber, unit }
+              : a
+          ),
+        };
+      });
     });
   };
 
@@ -564,6 +639,11 @@ export function CreateWarehouseRequisitionForm({
             removeBatchArticle={removeBatchArticle}
             removeBatch={removeBatch}
             size={itemLabelSize}
+            filteredArticleResults={articleResults}
+            isArticleResultsLoading={isArticleResultsLoading}
+            articleSearch={articleSearch}
+            setArticleSearch={setArticleSearch}
+            handleArticleSelect={handleArticleSelect}
           />
         ) : (
           <GeneralArticlesSection

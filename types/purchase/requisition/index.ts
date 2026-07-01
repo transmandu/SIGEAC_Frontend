@@ -24,10 +24,10 @@ export type PurchaseStatus =
   | 'APPROVED'
   | 'PARTIAL'
   | 'REJECTED'
-  | 'PROCESO'
-  | 'COTIZADO'
-  | 'APROBADA'
-  | 'RECHAZADA';
+  | 'CREATED'
+  | 'RECEIVED'
+  | 'IN_PROGRESS'
+  | 'QUOTED';
 
 export type RequisitionType = 'AERONAUTICAL' | 'GENERAL';
 
@@ -116,7 +116,8 @@ export interface Requisition {
     employee?: GeneralArticleEmployee | null;
     authorized_employee?: GeneralArticleAuthorizedEmployee | null;
   }[];
-  received_by?: string;
+  received_by?: string | null;
+  received_at?: string | null;
   justification: string;
   arrival_date?: string;
   submission_date: string;
@@ -147,6 +148,8 @@ export interface RequisitionByOrderNumber {
   created_by: User;
   requested_by: string;
   updated_by?: string | null;
+  received_by?: string | null;
+  received_at?: string | null;
   justification: string;
   image?: string | null;
   submission_date?: string | null;

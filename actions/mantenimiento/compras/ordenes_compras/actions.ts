@@ -1,7 +1,7 @@
 import axiosInstance from "@/lib/axios"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
-import type { CreatePurchaseOrderData, UpdatePurchaseOrderData } from "@/types/purchase"
+import type { CreatePurchaseOrderData, UpdatePurchaseOrderData, RegisterGeneralArticlesDeliveryResponse } from "@/types/purchase"
 
 export const useCreatePurchaseOrder = () => {
 
@@ -110,6 +110,43 @@ export const useMarkPurchaseOrderAsPaid = () => {
 
   return {
     markPurchaseOrderAsPaid: markAsPaidMutation,
+  }
+}
+
+// El responsable de traer la mercancía llama esto cuando los artículos
+// generales de la orden llegan físicamente. Crea un GeneralArticleIntake en
+// PENDING por cada ítem general que aún no tenga uno (seguro de llamar más
+// de una vez sobre la misma orden, p. ej. entregas parciales/escalonadas).
+// Pagar la orden (useMarkPurchaseOrderAsPaid) ya NO dispara esto automáticamente.
+export const useRegisterGeneralArticlesDelivery = () => {
+
+  const queryClient = useQueryClient()
+
+  const registerDeliveryMutation = useMutation({
+      mutationFn: async ({id, company}: {id: number, company: string}) => {
+          const {data} = await axiosInstance.patch<RegisterGeneralArticlesDeliveryResponse>(
+            `/${company}/purchase-order/${id}/register-general-articles-delivery`
+          )
+          return data
+        },
+      onSuccess: () => {
+          queryClient.invalidateQueries({queryKey: ['purchase-orders']})
+          queryClient.invalidateQueries({queryKey: ['purchase-order'], exact: false})
+          queryClient.invalidateQueries({queryKey: ['general-article-intakes'], exact: false})
+          toast.success("¡Entrega registrada!", {
+              description: `Se registró la entrega de los artículos generales de la orden de compra.`
+          })
+        },
+      onError: (error: any) => {
+          toast.error("Oops!", {
+            description: error?.response?.data?.message || "¡Hubo un error al registrar la entrega de los artículos generales!"
+        })
+        },
+      }
+  )
+
+  return {
+    registerGeneralArticlesDelivery: registerDeliveryMutation,
   }
 }
 
