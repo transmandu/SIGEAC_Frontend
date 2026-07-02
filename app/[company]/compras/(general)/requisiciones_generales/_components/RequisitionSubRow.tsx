@@ -54,7 +54,7 @@ export default function RequisitionSubRow({
               </div>
               <div className="flex flex-col leading-tight">
                 <Link
-                    href={`/${selectedCompany?.slug}/compras/cotizaciones/${quote.quote_number}`}
+                    href={`/${selectedCompany?.slug}/compras/cotizaciones_generales/${quote.quote_number}`}
                     className="text-sm font-medium text-slate-800 dark:text-slate-100 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
                     onClick={(e) => e.stopPropagation()}
                   >

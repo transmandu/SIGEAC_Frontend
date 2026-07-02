@@ -155,7 +155,7 @@ export const getColumns = (
     cell: ({ row }) => (
       <div className="flex justify-center w-full">
         <Link
-          href={`/${selectedCompany?.slug}/compras/requisiciones_generales/${row.original.order_number}`}
+          href={`/${selectedCompany?.slug}/compras/requisiciones/${row.original.order_number}`}
           className="text-sm font-semibold text-slate-700 dark:text-slate-200 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
           onClick={(e) => e.stopPropagation()}
         >

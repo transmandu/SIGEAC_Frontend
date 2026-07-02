@@ -97,14 +97,14 @@ function DataTableInner<TData, TValue>({
             {loading ? (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center text-muted-foreground">
-                  Cargando agencias de envío...
+                  Cargando agentes de envío...
                 </TableCell>
               </TableRow>
 
             ) : isEmpty ? (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center text-muted-foreground">
-                  No se encontraron agencias de envío.
+                  No se encontraron agentes de envío.
                 </TableCell>
               </TableRow>
 

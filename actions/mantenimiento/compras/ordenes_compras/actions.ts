@@ -15,6 +15,12 @@ export const useCreatePurchaseOrder = () => {
           queryClient.invalidateQueries({queryKey: ['purchase-orders']})
           queryClient.invalidateQueries({queryKey: ['purchase-order'], exact: false})
           queryClient.invalidateQueries({queryKey: ['purchaseOrderByQuote'], exact: false})
+          // Crear la OC aprueba la cotización y avanza la requisición en el
+          // backend, así que refrescamos esas vistas también.
+          queryClient.invalidateQueries({queryKey: ['quotes']})
+          queryClient.invalidateQueries({queryKey: ['quote'], exact: false})
+          queryClient.invalidateQueries({queryKey: ['requisitions-orders']})
+          queryClient.invalidateQueries({queryKey: ['requisition-order'], exact: false})
           toast.success("¡Creado!", {
               description: `La orden de compra ha sido creada correctamente.`
           })
@@ -67,6 +73,10 @@ export const useCompletePurchase = () => {
       onSuccess: () => {
           queryClient.invalidateQueries({queryKey: ['purchase-orders']})
           queryClient.invalidateQueries({queryKey: ['purchase-order'], exact: false})
+          queryClient.invalidateQueries({queryKey: ['quotes']})
+          queryClient.invalidateQueries({queryKey: ['quote'], exact: false})
+          queryClient.invalidateQueries({queryKey: ['requisitions-orders']})
+          queryClient.invalidateQueries({queryKey: ['requisition-order'], exact: false})
           toast.success("¡Confirmada!", {
               description: `¡La orden de compra ha sido actualizada correctamente!`
           })
@@ -96,6 +106,10 @@ export const useMarkPurchaseOrderAsPaid = () => {
       onSuccess: () => {
           queryClient.invalidateQueries({queryKey: ['purchase-orders']})
           queryClient.invalidateQueries({queryKey: ['purchase-order'], exact: false})
+          queryClient.invalidateQueries({queryKey: ['quotes']})
+          queryClient.invalidateQueries({queryKey: ['quote'], exact: false})
+          queryClient.invalidateQueries({queryKey: ['requisitions-orders']})
+          queryClient.invalidateQueries({queryKey: ['requisition-order'], exact: false})
           toast.success("¡Pagada!", {
               description: `La orden de compra ha sido marcada como pagada.`
           })
@@ -162,6 +176,10 @@ export const useMarkPurchaseOrderAsCompleted = () => {
       onSuccess: () => {
           queryClient.invalidateQueries({queryKey: ['purchase-orders']})
           queryClient.invalidateQueries({queryKey: ['purchase-order'], exact: false})
+          queryClient.invalidateQueries({queryKey: ['quotes']})
+          queryClient.invalidateQueries({queryKey: ['quote'], exact: false})
+          queryClient.invalidateQueries({queryKey: ['requisitions-orders']})
+          queryClient.invalidateQueries({queryKey: ['requisition-order'], exact: false})
           toast.success("¡Completada!", {
               description: `La orden de compra ha sido marcada como completada.`
           })
