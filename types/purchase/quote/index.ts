@@ -1,4 +1,4 @@
-import type { Location, Unit, Vendor } from '@/types';
+import type { Location, Retailer, Unit, Vendor } from '@/types';
 
 // ── Article-level status on requisition articles ───────────────────────────
 export type RequisitionArticleStatus = 'PENDING' | 'APPROVED' | 'PARTIAL' | 'REJECTED';
@@ -62,6 +62,8 @@ export interface GeneralArticleQuoteOrder {
   justification?: string | null;
   /** True when this row only exists to record that the article was deliberately not quoted. */
   is_not_quoted?: boolean;
+  /** Comercio / lugar de compra where this general article was quoted. */
+  retailer?: Retailer | null;
   location?: Location | null;
   unit?: Unit | null;
   general_article_requisition_order: GeneralArticleRequisitionOrderRef | null;
@@ -77,6 +79,8 @@ export interface Quote {
   total: number | null;
   created_by: string;
   vendor: Vendor | null;
+  /** Quote-level comercio / lugar de compra — set for quotes from a general requisition, mirrors `vendor` for aeronautical ones. */
+  retailer: Retailer | null;
   requisition_order: {
     id: number;
     order_number: string;
@@ -117,6 +121,8 @@ export interface CreateQuoteGeneralArticleData {
   general_article_requisition_order_id: number;
   quantity: number;
   unit_price: number;
+  /** Comercio / lugar de compra selected for this general article. */
+  retailer_id?: number | null;
   location_id?: number | null;
   unit_id?: number | null;
   brand_model?: string | null;
@@ -135,6 +141,7 @@ export interface CreateQuoteData {
   location_id: number;
   requisition_order_id: number;
   vendor_id?: number | null;
+  retailer_id?: number | null;
   total?: number | null;
   observation?: string | null;
   articles?: CreateQuoteArticleData[];

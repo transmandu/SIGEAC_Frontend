@@ -15,6 +15,7 @@ import { Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "../../ui/button";
+import type { Unit } from "@/types";
 
 
 const formSchema = z.object({
@@ -30,9 +31,11 @@ const formSchema = z.object({
 interface FormProps {
   onClose: () => void;
   onSuccess?: (unitData: { value: string; label: string }) => void;
+  /** Called with the full created unit (incl. id) after a successful creation. */
+  onCreated?: (unit: Unit) => void;
 }
 
-export default function CreateUnitForm({ onClose, onSuccess }: FormProps) {
+export default function CreateUnitForm({ onClose, onSuccess, onCreated }: FormProps) {
   const { createUnit } = useCreateUnit();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -43,9 +46,12 @@ export default function CreateUnitForm({ onClose, onSuccess }: FormProps) {
   })
   const { control } = form;
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    await createUnit.mutateAsync(values);
+    const unit = await createUnit.mutateAsync(values);
     if (onSuccess) {
       onSuccess(values);
+    }
+    if (unit && onCreated) {
+      onCreated(unit);
     }
     onClose()
   }

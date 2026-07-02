@@ -79,7 +79,11 @@ export interface RequisitionQuote {
   vendor: {
     name: string | null;
   };
+  retailer?: {
+    name: string | null;
+  };
   article_vendors?: string[];
+  article_retailers?: string[];
   updated_at: string;
 }
 

@@ -578,6 +578,18 @@ export type Vendor = {
   email: string;
 };
 
+/**
+ * Comercio / lugar de compra de artículos generales: tienda física (centro
+ * comercial, librería, ferretería, supermercado) o sitio en línea (p. ej.
+ * Mercado Libre). Es el equivalente al Vendor para el mundo general.
+ */
+export type Retailer = {
+  id: string | number;
+  name: string;
+  address?: string | null;
+  phone?: string | null;
+};
+
 export type ThirdParty = {
   id: string;
   name: string;

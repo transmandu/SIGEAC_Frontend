@@ -31,9 +31,15 @@ const QuotePage = () => {
 
   const isOutOfScope = !!data && !isGeneralQuoteScope(data);
 
-  const vendorNames = Array.from(
+  // General quotes are placed at retailers (lugares de compra), not vendors.
+  // Collect the header retailer plus any per-article retailers so a quote that
+  // spans several places lists them all.
+  const retailerNames = Array.from(
     new Set(
-      [data?.vendor?.name].filter((name): name is string => !!name)
+      [
+        data?.retailer?.name,
+        ...generalArticles.map((a) => a.retailer?.name),
+      ].filter((name): name is string => !!name)
     )
   );
 
@@ -132,12 +138,12 @@ const QuotePage = () => {
         <div className="mx-auto w-full max-w-4xl px-4 py-3 rounded-md border border-border/50 bg-muted/20">
           <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-x-4 sm:gap-x-6 md:gap-x-10 gap-y-3 md:gap-y-4 justify-items-center">
 
-            {vendorNames.length > 0 && (
+            {retailerNames.length > 0 && (
               <MetaItem
-                label={vendorNames.length > 1 ? 'PROVEEDORES' : 'PROVEEDOR'}
-                value={vendorNames.join(', ').toUpperCase()}
+                label={retailerNames.length > 1 ? 'LUGARES DE COMPRA' : 'LUGAR DE COMPRA'}
+                value={retailerNames.join(', ').toUpperCase()}
                 icon={Truck}
-                wrap={vendorNames.length > 1}
+                clamp
               />
             )}
 
