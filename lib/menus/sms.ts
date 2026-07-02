@@ -4,6 +4,7 @@ import {
   CalendarClock,
   ClipboardCheck,
   ClipboardPen,
+  FileText,
   Settings,
   ShieldAlert,
   Shirt,
@@ -103,7 +104,7 @@ export function buildSmsGroup({ pathname, currentCompany }: MenuContext): Group 
       },
       {
         href: "",
-        label: "Promoción",
+        label: "Promoción de la seguridad operacional",
         active: pathname.includes(`/${currentCompany?.slug}/sms/promocion`),
         icon: CalendarClock,
         roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
@@ -132,6 +133,14 @@ export function buildSmsGroup({ pathname, currentCompany }: MenuContext): Group 
             active:
               pathname ===
               `/${currentCompany?.slug}/sms/promocion/capacitacion_personal`,
+          },
+          {
+            href: `/${currentCompany?.slug}/sms/promocion/minutas_reunion`,
+            label: "Minutas de Reunión",
+            roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
+            active:
+              pathname ===
+              `/${currentCompany?.slug}/sms/promocion/minutas_reunion`,
           },
         ],
       },
