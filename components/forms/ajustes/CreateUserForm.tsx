@@ -17,6 +17,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useGetCompanies } from "@/hooks/sistema/useGetCompanies";
 import { useGetLocationsByCompanies } from "@/hooks/sistema/useGetLocationsByCompanies";
 import { useGetRoles } from "@/hooks/sistema/usuario/useGetRoles";
@@ -29,7 +36,6 @@ import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../../ui/accordion";
 import { Badge } from "../../ui/badge";
 import { Checkbox } from "../../ui/checkbox";
 import { Label } from "../../ui/label";
@@ -58,9 +64,13 @@ const FormSchema = z.object({
   companies_locations: z.array(
     z.object({
       companyID: z.number(),
-      locationID: z.array(z.number().or(z.string()))
+      locationID: z.array(z.number().or(z.string())).min(1, {
+        message: "Debe seleccionar al menos una ubicación.",
+      })
     })
-  ).optional(),
+  ).min(1, {
+    message: "Debe seleccionar una empresa.",
+  }),
   isActive: z.boolean(),
 })
 
@@ -72,11 +82,13 @@ export function CreateUserForm() {
 
   const { data: users, error, isLoading } = useGetUsers();
 
-  const { data: roles, error: rolesError, isLoading: isRolesLoading } = useGetRoles();
-
   const { data: companies, error: companiesError, isLoading: isCompaniesLoading } = useGetCompanies();
 
   const { data: companies_locations, error: companies_locationsError, isLoading: companies_locationsLoading } = useGetLocationsByCompanies();
+
+  const [selectedCompanyId, setSelectedCompanyId] = useState<number | undefined>(undefined);
+
+  const { data: roles, error: rolesError, isLoading: isRolesLoading } = useGetRoles(selectedCompanyId);
 
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
 
@@ -143,6 +155,13 @@ export function CreateUserForm() {
   };
 
   const isRoleSelected = (value: string) => selectedRoles.includes(value);
+
+  const handleCompanyChange = (companyID: string) => {
+    const parsedCompanyID = Number(companyID);
+    setSelectedCompanyId(parsedCompanyID);
+    form.setValue('companies_locations', [{ companyID: parsedCompanyID, locationID: [] }]);
+    setSelectedRoles([]);
+  };
 
 
   // Usar useEffect para actualizar el valor del formulario
@@ -263,6 +282,121 @@ export function CreateUserForm() {
             />
           </div>
           <div className="flex flex-col justify-center items-center space-y-3 w-full mt-2">
+            <FormItem className="flex flex-col w-[200px]">
+              <FormLabel>Empresa</FormLabel>
+              <Select
+                value={selectedCompanyId ? selectedCompanyId.toString() : undefined}
+                onValueChange={handleCompanyChange}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccione..." />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {
+                    isCompaniesLoading && <Loader2 className="animate-spin size-4" />
+                  }
+                  {companies?.map((company) => (
+                    <SelectItem key={company.id} value={company.id.toString()}>
+                      {company.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {
+                companiesError && <p className="text-center text-muted-foreground text-sm">Ha ocurrido un error al cargar las empresas...</p>
+              }
+            </FormItem>
+            <FormField
+              control={form.control}
+              name="companies_locations"
+              render={({ field }) => {
+
+                const handleLocationChange = (
+                  locationID: number,
+                  isSelected: boolean | string
+                ) => {
+                  if (!selectedCompanyId) return;
+
+                  const currentValue = [...(field.value || [])]; // ✅ no mutar referencia
+
+                  const companyIndex = currentValue.findIndex(
+                    (item) => item.companyID === selectedCompanyId
+                  );
+
+                  if (companyIndex === -1 && isSelected) {
+                    currentValue.push({
+                      companyID: selectedCompanyId,
+                      locationID: [locationID],
+                    });
+                  } else if (companyIndex !== -1) {
+                    const company = currentValue[companyIndex];
+
+                    if (isSelected) {
+                      if (!company.locationID.includes(locationID)) {
+                        company.locationID.push(locationID);
+                      }
+                    } else {
+                      company.locationID = company.locationID.filter(
+                        (id) => id !== locationID
+                      );
+                    }
+                  }
+
+                  field.onChange(currentValue);
+                };
+
+                const locations = selectedCompanyId ? (locationsByCompany[selectedCompanyId] || []) : [];
+
+                return (
+                  <FormItem className="flex flex-col items-start rounded-md space-y-2 py-2 px-6 w-full">
+                    <FormLabel>Ubicaciones</FormLabel>
+
+                    {!selectedCompanyId && (
+                      <p className="text-xs text-muted-foreground">
+                        Seleccione una empresa primero.
+                      </p>
+                    )}
+
+                    {/* 🔄 Loading */}
+                    {selectedCompanyId && companies_locationsLoading && (
+                      <Loader2 className="animate-spin size-4" />
+                    )}
+
+                    {selectedCompanyId && !companies_locationsLoading && locations.length === 0 && (
+                      <p className="text-xs text-muted-foreground">
+                        No hay ubicaciones
+                      </p>
+                    )}
+
+                    <div className="flex flex-col gap-2">
+                      {locations.map((loc) => (
+                        <div
+                          className="flex items-center space-x-2"
+                          key={loc.id}
+                        >
+                          <Checkbox
+                            checked={Boolean(
+                              field.value?.find(
+                                (item) =>
+                                  item.companyID === selectedCompanyId &&
+                                  item.locationID.includes(loc.id)
+                              )
+                            )}
+                            onCheckedChange={(isSelected) =>
+                              handleLocationChange(loc.id, isSelected)
+                            }
+                          />
+                          <Label>{loc.address}</Label>
+                        </div>
+                      ))}
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
+            />
             <FormField
               control={form.control}
               name="roles"
@@ -274,6 +408,7 @@ export function CreateUserForm() {
                       <Button
                         variant="outline"
                         className="w-[200px] justify-between"
+                        disabled={!selectedCompanyId}
                       >
                         {selectedRoles?.length > 0 && (
                           <>
@@ -308,7 +443,7 @@ export function CreateUserForm() {
                           </>
                         )}
                         {
-                          selectedRoles.length <= 0 && "Seleccione..."
+                          selectedRoles.length <= 0 && (selectedCompanyId ? "Seleccione..." : "Seleccione una empresa primero")
                         }
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
@@ -342,7 +477,7 @@ export function CreateUserForm() {
                                   </span>
                                 </div>
                               </CommandItem>
-                              
+
                             ))}
                             {
                               rolesError && <p className="text-center text-muted-foreground text-sm">Ha ocurrido un error al cargar los roles...</p>
@@ -355,111 +490,6 @@ export function CreateUserForm() {
                   <FormMessage />
                 </FormItem>
               )}
-            />
-            <FormField
-              control={form.control}
-              name="companies_locations"
-              render={({ field }) => {
-
-                const handleLocationChange = (
-                  companyID: number,
-                  locationID: number,
-                  isSelected: boolean | string
-                ) => {
-
-                  const currentValue = [...(field.value || [])]; // ✅ no mutar referencia
-
-                  const companyIndex = currentValue.findIndex(
-                    (item) => item.companyID === companyID
-                  );
-
-                  if (companyIndex === -1 && isSelected) {
-                    currentValue.push({
-                      companyID,
-                      locationID: [locationID],
-                    });
-                  } else if (companyIndex !== -1) {
-                    const company = currentValue[companyIndex];
-
-                    if (isSelected) {
-                      if (!company.locationID.includes(locationID)) {
-                        company.locationID.push(locationID);
-                      }
-                    } else {
-                      company.locationID = company.locationID.filter(
-                        (id) => id !== locationID
-                      );
-
-                      if (company.locationID.length === 0) {
-                        currentValue.splice(companyIndex, 1);
-                      }
-                    }
-                  }
-
-                  field.onChange(currentValue);
-                };
-
-                return (
-                  <FormItem className="flex flex-col items-start rounded-md space-y-2 py-2 px-6">
-                    <FormLabel>Ubicaciones</FormLabel>
-
-                    {/* 🔄 Loading */}
-                    {companies_locationsLoading && (
-                      <Loader2 className="animate-spin size-4" />
-                    )}
-
-                    <Accordion className="w-full" type="single" collapsible>
-                      {companies?.map((company) => {
-
-                        const locations = locationsByCompany[company.id] || []; // ✅ O(1)
-
-                        return (
-                          <AccordionItem key={company.id} value={company.name}>
-                            <AccordionTrigger>{company.name}</AccordionTrigger>
-
-                            <AccordionContent>
-                              <div className="flex flex-col gap-2">
-
-                                {locations.length === 0 && (
-                                  <p className="text-xs text-muted-foreground">
-                                    No hay ubicaciones
-                                  </p>
-                                )}
-
-                                {locations.map((loc) => (
-                                  <div
-                                    className="flex items-center space-x-2"
-                                    key={loc.id}
-                                  >
-                                    <Checkbox
-                                      checked={Boolean(
-                                        field.value?.find(
-                                          (item) =>
-                                            item.companyID === company.id &&
-                                            item.locationID.includes(loc.id)
-                                        )
-                                      )}
-                                      onCheckedChange={(isSelected) =>
-                                        handleLocationChange(
-                                          company.id,
-                                          loc.id,
-                                          isSelected
-                                        )
-                                      }
-                                    />
-                                    <Label>{loc.address}</Label>
-                                  </div>
-                                ))}
-
-                              </div>
-                            </AccordionContent>
-                          </AccordionItem>
-                        );
-                      })}
-                    </Accordion>
-                  </FormItem>
-                );
-              }}
             />
           </div>
         </div>
