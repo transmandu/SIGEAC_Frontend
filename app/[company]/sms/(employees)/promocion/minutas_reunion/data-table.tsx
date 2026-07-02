@@ -11,6 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useCompanyStore } from "@/stores/CompanyStore";
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -52,7 +53,7 @@ export function DataTable<TData, TValue>({
   });
 
   const router = useRouter();
-
+  const { selectedCompany } = useCompanyStore();
   return (
     <>
       <div className="flex flex-col gap-2 mb-4">
@@ -63,10 +64,23 @@ export function DataTable<TData, TValue>({
           Aquí se pueden visualizar las minutas de reunion</p>
       </div>
 
-      <div className="flex items-center py-4">
+      <div className="flex items-center justify-between py-4">
+        {/* Grupo de botones a la izquierda */}
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={() => {
+              router.push(`/${selectedCompany?.slug}/sms/promocion/minuta_reunion/crear`);
+            }}
+            variant="outline"
+            size="sm"
+            className="h-8 flex"
+          >
+            Nueva          </Button>
+        </div>
+
+        {/* Opciones de visualización de columnas a la derecha */}
         <DataTableViewOptions table={table} />
       </div>
-
       <div className="rounded-md border mb-4">
         <Table>
           <TableHeader>
