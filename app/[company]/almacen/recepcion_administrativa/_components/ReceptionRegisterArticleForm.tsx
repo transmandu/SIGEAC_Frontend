@@ -59,6 +59,7 @@ export interface EditingArticle extends Article {
     certificate_vendor?: string;
     certificate_fabricant?: string;
     has_documentation?: boolean;
+    reception_date?: string;
 }
 
 interface IRegisterArticleProps {
