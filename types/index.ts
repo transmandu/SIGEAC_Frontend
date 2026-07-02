@@ -1113,6 +1113,39 @@ export type SafetyBulletin = {
   document?: string;
 };
 
+export type MeetingMinutes = {
+  id: string;
+  date: Date;
+  place: string;
+  location: Location;
+  department: Department;
+  objective: string;
+  topics: string;
+  chaired_by: Employee;
+  filled_out_by: Employee;
+  prepared_by: Employee;
+  reviewed_by: Employee;
+  approved_by: Employee;
+  agreements?: MeetingAgreement[];
+  attendaces?: Attendace[];
+  image?: string;
+  document?: string;
+}
+
+export type MeetingAgreement = {
+  description: string;
+  responsible_name?: string;
+  responsible_employee?: Employee
+}
+
+export type Attendace = {
+  attendable_type: string;
+  attendee_name?: string;
+  job_title?: string;
+  employee: Employee;
+  has_attended: boolean;
+}
+
 export type FlightHistory = {
   id: number;
   flight_number: string;
