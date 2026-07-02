@@ -1114,35 +1114,41 @@ export type SafetyBulletin = {
 };
 
 export type MeetingMinutes = {
-  id: string;
+  id: number;
+  title?: string;
   date: Date;
   place: string;
-  location: Location;
-  department: Department;
-  objective: string;
-  topics: string;
-  chaired_by: Employee;
-  filled_out_by: Employee;
-  prepared_by: Employee;
-  reviewed_by: Employee;
-  approved_by: Employee;
+  location_id: number;
+  objective?: string;
+  topics?: string;
+  photo?: string;
+  document?: string;
+  chaired_by: number | Employee;
+  filled_out_by: number | Employee;
+  prepared_by?: number | Employee | null;
+  reviewed_by?: number | Employee | null;
+  approved_by?: number | Employee | null;
   agreements?: MeetingAgreement[];
   attendaces?: Attendace[];
-  image?: string;
-  document?: string;
 }
 
 export type MeetingAgreement = {
+  id?: number;
+  meeting_id?: number;
   description: string;
-  responsible_name?: string;
-  responsible_employee?: Employee
+  responsible_employee_id?: number | null;
+  responsible_name?: string | null;
+  responsible_employee?: Employee | null;
 }
 
 export type Attendace = {
-  attendable_type: string;
-  attendee_name?: string;
-  job_title?: string;
-  employee: Employee;
+  id?: number;
+  attendable_type?: string;
+  attendable_id?: number;
+  attendee_name?: string | null;
+  job_title?: string | null;
+  employee_id?: number | null;
+  employee?: Employee | null;
   has_attended: boolean;
 }
 
