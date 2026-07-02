@@ -38,6 +38,7 @@ interface ArticleData {
     life_limit_part_cycles?: string | number;
     inspector?: string;
     inspect_date?: string;
+    reception_date?: string;
     hard_time_calendar?: string;
     hard_time_hours?: string | number;
     hard_time_cycles?: string | number;

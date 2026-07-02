@@ -1172,6 +1172,10 @@ export default function ReceptionRegisterConsumableForm({
         initialData?.inspect_date ? parseISO(initialData.inspect_date) : undefined,
     );
 
+    const [receptionDate, setReceptionDate] = useState<Date | null | undefined>(
+        initialData?.reception_date ? parseISO(initialData.reception_date) : undefined,
+    );
+
     const [fabricationDate, setFabricationDate] = useState<
         Date | null | undefined
     >(
@@ -1212,6 +1216,16 @@ export default function ReceptionRegisterConsumableForm({
             setInspectDate(undefined);
         } else {
             setInspectDate(d);
+        }
+    };
+
+    const handleReceptionDateChange = (d?: Date | null) => {
+        if (d === null) {
+            setReceptionDate(null);
+        } else if (d === undefined) {
+            setReceptionDate(undefined);
+        } else {
+            setReceptionDate(d);
         }
     };
 
@@ -1455,11 +1469,19 @@ export default function ReceptionRegisterConsumableForm({
                     ? "1900-01-01"
                     : undefined;
 
+        const receptionDateStr: string | undefined =
+            receptionDate && !isNotApplicableDate(receptionDate)
+                ? format(receptionDate, "yyyy-MM-dd")
+                : receptionDate && isNotApplicableDate(receptionDate)
+                    ? "1900-01-01"
+                    : undefined;
+
         const formattedValues: Omit<FormValues, "expiration_date"> & {
             expiration_date?: string;
             fabrication_date?: string;
             shelf_life?: string;
             inspect_date?: string;
+            reception_date?: string;
             part_number: string;
             article_type: string;
             status: string;
@@ -1477,6 +1499,7 @@ export default function ReceptionRegisterConsumableForm({
             expiration_date: caducateDateStr,
             shelf_life: shelfDateStr,
             inspect_date: inspectDateStr,
+            reception_date: receptionDateStr,
             fabrication_date:
                 fabricationDate &&
                     fabricationDate !== null &&
@@ -1511,6 +1534,7 @@ export default function ReceptionRegisterConsumableForm({
             setCaducateDate(undefined);
             setShelfDate(undefined);
             setInspectDate(undefined);
+            setReceptionDate(undefined);
             setSelectedUnits([]);
 
             form.reset();
@@ -2106,6 +2130,16 @@ export default function ReceptionRegisterConsumableForm({
                                 shortcuts="forward"
                                 showNotApplicable={true}
                                 required={true}
+                            />
+
+                            <DatePickerField
+                                label="Fecha de Recepción"
+                                value={receptionDate}
+                                setValue={handleReceptionDateChange}
+                                description="Fecha de recepción del artículo."
+                                busy={busy}
+                                shortcuts="back"
+                                showNotApplicable={true}
                             />
                         </div>
                     </SectionCard>
