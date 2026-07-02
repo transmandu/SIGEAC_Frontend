@@ -89,6 +89,7 @@ export const formSchema = z.object({
 
   image: z.instanceof(File).optional(),
   destination_unknown: z.boolean().optional(),
+  reception_date: z.string().optional(),
 });
 
 export type FormValues = z.infer<typeof formSchema>;
@@ -126,6 +127,7 @@ export default function ReceptionRegisterComponentForm({ initialData, isEditing 
       condition_id: initialData?.condition?.id?.toString() || "",
       description: initialData?.description || "",
       destination_unknown: false,
+      reception_date: initialData?.reception_date || "",
     },
   });
 
@@ -140,6 +142,7 @@ export default function ReceptionRegisterComponentForm({ initialData, isEditing 
       condition_id: initialData.condition?.id?.toString() ?? "",
       description: initialData.description ?? "",
       destination_unknown: false,
+      reception_date: initialData.reception_date ?? "",
     });
   }, [initialData, form]);
 
@@ -192,7 +195,8 @@ export default function ReceptionRegisterComponentForm({ initialData, isEditing 
       certificate_vendor: values.certificate_vendor,
       image: values.image,
       status: values.destination_unknown ? "TO_DETERMINATE" : "RECEPTION",
-    }
+      reception_date: values.reception_date || undefined,
+    };
 
     if (isEditing && initialData) {
       await updateArticle.mutateAsync({
@@ -219,6 +223,7 @@ export default function ReceptionRegisterComponentForm({ initialData, isEditing 
       condition_id: "",
       description: "",
       destination_unknown: false,
+      reception_date: "",
     });
   };
 
@@ -547,6 +552,32 @@ export default function ReceptionRegisterComponentForm({ initialData, isEditing 
                   </Popover>
                   <FormDescription>
                     Descripción del componente a registrar.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="reception_date"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>
+                    Fecha de Recepción{" "}
+                    <span className="text-xs italic text-gray-500 font-normal ml-1">
+                      (Reception Date)
+                    </span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      type="date"
+                      {...field}
+                      disabled={busy}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Fecha de recepción del artículo.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

@@ -173,6 +173,7 @@ const formSchema = z
       .optional()
       .or(z.literal("").transform(() => undefined)),
     hard_time_calendar: z.string().optional(),
+    reception_date: z.string().optional(),
   })
   .superRefine((vals, ctx) => {
     if (vals.fabrication_date && vals.expiration_date) {
@@ -237,6 +238,10 @@ export default function ReceptionRegisterPartForm({
 
   const [inspectDate, setInspectDate] = useState<Date | null | undefined>(
     initialData?.inspect_date ? parseISO(initialData.inspect_date) : null, // Por defecto "No aplica" (componentes nuevos o sin fecha)
+  );
+
+  const [receptionDate, setReceptionDate] = useState<Date | null | undefined>(
+    initialData?.reception_date ? parseISO(initialData.reception_date) : null,
   );
 
   const [lifeLimitPartCalendar, setLifeLimitPartCalendar] = useState<
@@ -335,6 +340,7 @@ export default function ReceptionRegisterPartForm({
         ? Number(initialData.partComponent.life_limit_part_hours)
         : undefined,
       ata_code: initialData?.ata_code || "",
+      reception_date: initialData?.reception_date || "",
     },
     mode: "onBlur",
   });
@@ -391,6 +397,7 @@ export default function ReceptionRegisterPartForm({
         ? Number(initialData.partComponent.life_limit_part_hours)
         : undefined,
       ata_code: initialData?.ata_code || "",
+      reception_date: initialData?.reception_date ?? "",
     });
   }, [initialData, form]);
 
@@ -539,6 +546,10 @@ export default function ReceptionRegisterPartForm({
       aircraft_id: values.aircraft_id, // Incluir aircraft_id si está presente
       life_limit_part_cycles: values.life_limit_part_cycles,
       life_limit_part_hours: values.life_limit_part_hours,
+      reception_date:
+        receptionDate && receptionDate !== null
+          ? format(receptionDate, "yyyy-MM-dd")
+          : undefined,
     };
 
     if (isEditing && initialData) {
@@ -594,6 +605,7 @@ export default function ReceptionRegisterPartForm({
       setFabricationDate(null);
       setCaducateDate(null);
       setLifeLimitPartCalendar(null);
+      setReceptionDate(null);
     }
   }
 
@@ -1457,6 +1469,18 @@ export default function ReceptionRegisterPartForm({
                 shortcuts="forward"
                 showNotApplicable={true}
                 required={true}
+              />
+            </FormItem>
+
+            <FormItem className="w-full">
+              <DatePickerField
+                label="Fecha de Recepción"
+                value={receptionDate}
+                setValue={setReceptionDate}
+                description="Fecha de recepción del artículo."
+                busy={busy}
+                shortcuts="back"
+                showNotApplicable={true}
               />
             </FormItem>
           </div>

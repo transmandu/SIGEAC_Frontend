@@ -122,6 +122,10 @@ const formSchema = z
       .date()
       .refine((val) => !isNaN(val.getTime()), { message: "Invalid Date" })
       .optional(),
+    reception_date: z
+      .date()
+      .refine((val) => !isNaN(val.getTime()), { message: "Invalid Date" })
+      .optional(),
   })
   .superRefine((vals, ctx) => {
     if (vals.needs_calibration) {
@@ -433,6 +437,9 @@ export default function ReceptionRegisterToolForm({
       inspect_date: initialData?.inspect_date
         ? addDays(new Date(initialData.inspect_date), 1)
         : undefined,
+      reception_date: initialData?.reception_date
+        ? addDays(new Date(initialData.reception_date), 1)
+        : undefined,
     },
     mode: "onBlur",
   });
@@ -462,6 +469,9 @@ export default function ReceptionRegisterToolForm({
         : undefined,
       has_documentation: initialData.has_documentation ?? false,
       destination_unknown: false,
+      reception_date: initialData?.reception_date
+        ? addDays(new Date(initialData.reception_date), 1)
+        : undefined,
     });
   }, [initialData, form]);
 
@@ -515,6 +525,9 @@ export default function ReceptionRegisterToolForm({
         values.alternative_part_number?.map((v) => normalizeUpper(v)) ?? [],
       calibration_date: values.calibration_date
         ? format(values.calibration_date, "yyyy-MM-dd")
+        : undefined,
+      reception_date: values.reception_date
+        ? format(values.reception_date, "yyyy-MM-dd")
         : undefined,
       batch_name: enableBatchNameEdit ? values.batch_name : undefined,
       // next_calibration se envía como número si existe
@@ -571,6 +584,59 @@ export default function ReceptionRegisterToolForm({
                 <FormItem className="flex flex-col">
                   <FormLabel>
                     Fecha de Inspección <span className="text-xs italic text-gray-500 font-normal ml-1">(Inspection Date)</span>
+                  </FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-full pl-3 text-left font-normal",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          {field.value ? (
+                            format(field.value, "PPP", { locale: es })
+                          ) : (
+                            <span>Seleccione una fecha</span>
+                          )}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value}
+                        onSelect={field.onChange}
+                        initialFocus
+                        fromYear={2000}
+                        toYear={new Date().getFullYear()}
+                        captionLayout="dropdown-buttons"
+                        components={{
+                          Dropdown: (props) => (
+                            <select
+                              {...props}
+                              className="bg-popover text-popover-foreground"
+                            >
+                              {props.children}
+                            </select>
+                          ),
+                        }}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="reception_date"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel>
+                    Fecha de Recepción <span className="text-xs italic text-gray-500 font-normal ml-1">(Reception Date)</span>
                   </FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
