@@ -36,23 +36,22 @@ import { useGetDepartments } from '@/hooks/sistema/departamento/useGetDepartment
 import { useGetLocationsByCompanies } from '@/hooks/sistema/useGetLocationsByCompanies';
 import { useGetLocationsByCompany } from '@/hooks/sistema/useGetLocationsByCompany';
 import { useGetRoles } from '@/hooks/sistema/usuario/useGetRoles';
+import { useGetUsers } from '@/hooks/sistema/usuario/useGetUsers';
 import { cn } from '@/lib/utils';
 import { useCompanyStore } from '@/stores/CompanyStore';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Check, ChevronsUpDown, Eye, EyeOff, Loader2, Camera, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../../ui/accordion';
 import { Badge } from '../../ui/badge';
 import { Checkbox } from '../../ui/checkbox';
 import { Label } from '../../ui/label';
+import { Separator } from '../../ui/separator';
 import { useGetCompanies } from '@/hooks/sistema/useGetCompanies';
 import { useCreateUser } from '@/actions/general/usuarios/actions';
-import { ScrollArea } from "@/components/ui/scroll-area";
 import Image from "next/image";
-import { genKey } from "../mantenimiento/almacen/_hooks/useDispatchForm";
-import { Department } from "@/types";
+import { Department, Location as AppLocation } from "@/types";
 
 const formSchema = z
   .object({
@@ -75,6 +74,7 @@ const formSchema = z
         return file instanceof File;
       }, "Archivo inválido"),
     createUser: z.boolean(),
+    existing_user_id: z.string().optional(),
     username: z.string().min(3, "Mínimo 3 caracteres").optional(),
     password: z.string().min(5, "Mínimo 5 caracteres").optional(),
     email: z.string().email("Correo inválido").optional(),
@@ -89,7 +89,7 @@ const formSchema = z
       .optional(),
   })
   .superRefine((data, ctx) => {
-    if (data.createUser) {
+    if (data.createUser && !data.existing_user_id) {
       if (!data.username) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
@@ -136,8 +136,10 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
   const [step, setStep] = useState<1 | 2>(1);
   const [showPassword, setShowPassword] = useState(false);
   const [openRoles, setOpenRoles] = useState(false);
+  const [openUserSearch, setOpenUserSearch] = useState(false);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [selectedUserCompanyId, setSelectedUserCompanyId] = useState<number | undefined>(undefined);
 
   const { data: locations, isLoading: isLocLoading } = useGetLocationsByCompany(
     selectedCompany?.slug
@@ -147,7 +149,7 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
   const { data: jobTitles, isLoading: isJobTitlesLoading } = useGetJobTitles(
     selectedCompany?.slug
   );
-  const { data: roles, isLoading: isRolesLoading } = useGetRoles();
+  const { data: roles, error: rolesError, isLoading: isRolesLoading } = useGetRoles(selectedUserCompanyId);
   const {
     data: companies,
     error: companiesError,
@@ -155,9 +157,24 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
   } = useGetCompanies();
   const {
     data: companies_locations,
-    error: companies_locationsError,
+    isLoading: companies_locationsLoading,
   } = useGetLocationsByCompanies();
-  
+  const { data: users, isLoading: isUsersLoading } = useGetUsers();
+
+  const availableUsers = useMemo(
+    () => users?.filter((user) => !user.employee || user.employee.length === 0),
+    [users]
+  );
+
+  const locationsByCompany = useMemo(() => {
+    if (!companies_locations) return {};
+
+    return companies_locations.reduce((acc, item) => {
+      acc[item.company_id] = item.locations;
+      return acc;
+    }, {} as Record<number, AppLocation[]>);
+  }, [companies_locations]);
+
   const form = useForm<EmployeeForm>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -174,6 +191,10 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
     },
   });
   const selectedRoles = form.watch("roles") || [];
+  const existingUserId = form.watch("existing_user_id");
+  const selectedExistingUser = availableUsers?.find(
+    (user) => String(user.id) === existingUserId
+  );
 
   const shouldCreateUser = form.watch("createUser");
   const firstName = form.watch("first_name");
@@ -206,12 +227,28 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
 
   const isRoleSelected = (roleId: string) => selectedRoles.includes(roleId);
 
+  const handleUserCompanyChange = (companyID: string) => {
+    const parsedCompanyID = Number(companyID);
+    setSelectedUserCompanyId(parsedCompanyID);
+    form.setValue('companies_locations', [{ companyID: parsedCompanyID, locationID: [] }]);
+    form.setValue('roles', []);
+  };
+
+  const handleSelectExistingUser = (userId: string | number) => {
+    const parsedUserId = String(userId);
+    form.setValue('existing_user_id', parsedUserId === existingUserId ? undefined : parsedUserId);
+    form.setValue('createUser', false);
+    setOpenUserSearch(false);
+  };
+
   const onSubmit = async (data: EmployeeForm) => {
     if (!selectedCompany) return;
 
     try {
       let userId: number | null = null;
-      if (data.createUser && createUser) {
+      if (data.existing_user_id) {
+        userId = Number(data.existing_user_id);
+      } else if (data.createUser && createUser) {
         const userData = {
           isActive: true,
           first_name: data.first_name,
@@ -613,13 +650,83 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
 
                 <FormField
                   control={form.control}
+                  name="existing_user_id"
+                  render={() => (
+                    <FormItem className="flex flex-col gap-2 p-4 border rounded-lg">
+                      <FormLabel>¿Vincular a un usuario ya creado?</FormLabel>
+                      <Popover open={openUserSearch} onOpenChange={setOpenUserSearch}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="w-full justify-between"
+                          >
+                            {selectedExistingUser
+                              ? `${selectedExistingUser.first_name} ${selectedExistingUser.last_name} (${selectedExistingUser.username})`
+                              : "Buscar usuario por nombre o usuario..."}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[400px] p-0">
+                          <Command>
+                            <CommandInput placeholder="Buscar usuario..." />
+                            <CommandList>
+                              <CommandEmpty>No se encontraron usuarios disponibles.</CommandEmpty>
+                              <CommandGroup>
+                                {
+                                  isUsersLoading && <Loader2 className="animate-spin size-4" />
+                                }
+                                {availableUsers?.map((user) => (
+                                  <CommandItem
+                                    key={user.id}
+                                    value={`${user.first_name} ${user.last_name} ${user.username}`}
+                                    onSelect={() => handleSelectExistingUser(user.id)}
+                                  >
+                                    <Check
+                                      className={cn(
+                                        "mr-2 h-4 w-4",
+                                        existingUserId === String(user.id) ? "opacity-100" : "opacity-0"
+                                      )}
+                                    />
+                                    {user.first_name} {user.last_name} ({user.username})
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
+                      {selectedExistingUser && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="self-start text-muted-foreground"
+                          onClick={() => form.setValue('existing_user_id', undefined)}
+                        >
+                          Quitar selección
+                        </Button>
+                      )}
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
                   name="createUser"
                   render={({ field }) => (
                     <FormItem className="flex items-center gap-2 p-4 border rounded-lg">
                       <FormControl>
                         <Checkbox
                           checked={field.value}
-                          onCheckedChange={field.onChange}
+                          disabled={!!existingUserId}
+                          onCheckedChange={(checked) => {
+                            field.onChange(checked);
+                            if (checked) {
+                              form.setValue('existing_user_id', undefined);
+                            }
+                          }}
                         />
                       </FormControl>
                       <FormLabel className="!mt-0">
@@ -645,7 +752,6 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
           </>
         )}
 
-        {/* STEP 2 SIN CAMBIOS */}
         {step === 2 && (
           <div className="flex justify-center">
             <div className="w-full max-w-2xl space-y-6">
@@ -728,77 +834,118 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
 
                 <div className="space-y-6">
 
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Empresa</FormLabel>
+                    <Select
+                      value={selectedUserCompanyId ? selectedUserCompanyId.toString() : undefined}
+                      onValueChange={handleUserCompanyChange}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Seleccione..." />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {
+                          isCompaniesLoading && <Loader2 className="animate-spin size-4" />
+                        }
+                        {companies?.map((company) => (
+                          <SelectItem key={company.id} value={company.id.toString()}>
+                            {company.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {
+                      companiesError && <p className="text-center text-muted-foreground text-sm">Ha ocurrido un error al cargar las empresas...</p>
+                    }
+                  </FormItem>
+
                   <FormField
                     control={form.control}
-                    name="roles"
-                    render={() => {
-                      const selectedRoles = form.watch("roles") || [];
+                    name="companies_locations"
+                    render={({ field }) => {
+
+                      const handleLocationChange = (
+                        locationID: number,
+                        isSelected: boolean | string
+                      ) => {
+                        if (!selectedUserCompanyId) return;
+
+                        const currentValue = [...(field.value || [])];
+
+                        const companyIndex = currentValue.findIndex(
+                          (item) => item.companyID === selectedUserCompanyId
+                        );
+
+                        if (companyIndex === -1 && isSelected) {
+                          currentValue.push({
+                            companyID: selectedUserCompanyId,
+                            locationID: [locationID],
+                          });
+                        } else if (companyIndex !== -1) {
+                          const company = currentValue[companyIndex];
+
+                          if (isSelected) {
+                            if (!company.locationID.includes(locationID)) {
+                              company.locationID.push(locationID);
+                            }
+                          } else {
+                            company.locationID = company.locationID.filter(
+                              (id) => id !== locationID
+                            );
+                          }
+                        }
+
+                        field.onChange(currentValue);
+                      };
+
+                      const userLocations = selectedUserCompanyId
+                        ? (locationsByCompany[selectedUserCompanyId] || [])
+                        : [];
 
                       return (
-                        <FormItem>
-                          <FormLabel>Roles</FormLabel>
+                        <FormItem className="flex flex-col items-start rounded-md space-y-2 py-2 px-4 border">
+                          <FormLabel>Ubicaciones</FormLabel>
 
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <Button
-                                variant="outline"
-                                className="w-full justify-between"
+                          {!selectedUserCompanyId && (
+                            <p className="text-xs text-muted-foreground">
+                              Seleccione una empresa primero.
+                            </p>
+                          )}
+
+                          {selectedUserCompanyId && companies_locationsLoading && (
+                            <Loader2 className="animate-spin size-4" />
+                          )}
+
+                          {selectedUserCompanyId && !companies_locationsLoading && userLocations.length === 0 && (
+                            <p className="text-xs text-muted-foreground">
+                              No hay ubicaciones
+                            </p>
+                          )}
+
+                          <div className="flex flex-col gap-2">
+                            {userLocations.map((loc) => (
+                              <div
+                                className="flex items-center space-x-2"
+                                key={loc.id}
                               >
-                                {selectedRoles.length > 0
-                                  ? `${selectedRoles.length} rol(es)`
-                                  : "Seleccionar roles"}
-                                <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
-                              </Button>
-                            </PopoverTrigger>
-
-                            <PopoverContent className="w-80 p-0">
-                              <Command>
-                                <CommandInput placeholder="Buscar rol..." />
-                                <CommandList className="max-h-60 overflow-auto">
-                                  <CommandEmpty>No hay roles</CommandEmpty>
-
-                                  <CommandGroup>
-                                    {roles?.map((role) => {
-                                      const isSelected = selectedRoles.includes(
-                                        role.id.toString()
-                                      );
-
-                                      return (
-                                        <CommandItem
-                                          key={role.id}
-                                          value={role.name}
-                                          onSelect={() => {
-                                            const current =
-                                              form.getValues("roles") || [];
-
-                                            const updated = isSelected
-                                              ? current.filter(
-                                                  (id) =>
-                                                    id !== role.id.toString()
-                                                )
-                                              : [...current, role.id.toString()];
-
-                                            form.setValue("roles", updated);
-                                          }}
-                                        >
-                                          <Check
-                                            className={cn(
-                                              "mr-2 h-4 w-4",
-                                              isSelected
-                                                ? "opacity-100"
-                                                : "opacity-0"
-                                            )}
-                                          />
-                                          {role.name}
-                                        </CommandItem>
-                                      );
-                                    })}
-                                  </CommandGroup>
-                                </CommandList>
-                              </Command>
-                            </PopoverContent>
-                          </Popover>
-
+                                <Checkbox
+                                  checked={Boolean(
+                                    field.value?.find(
+                                      (item) =>
+                                        item.companyID === selectedUserCompanyId &&
+                                        item.locationID.includes(loc.id)
+                                    )
+                                  )}
+                                  onCheckedChange={(isSelected) =>
+                                    handleLocationChange(loc.id, isSelected)
+                                  }
+                                />
+                                <Label>{loc.address}</Label>
+                              </div>
+                            ))}
+                          </div>
                           <FormMessage />
                         </FormItem>
                       );
@@ -807,128 +954,93 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
 
                   <FormField
                     control={form.control}
-                    name="companies_locations"
-                    render={() => {
-                      const selected =
-                        form.watch("companies_locations") || [];
-
-                      const toggleLocation = (
-                        companyId: number,
-                        locationId: number
-                      ) => {
-                        const existsCompany = selected.find(
-                          (c) => c.companyID === companyId
-                        );
-
-                        let updated;
-
-                        if (!existsCompany) {
-                          updated = [
-                            ...selected,
-                            {
-                              companyID: companyId,
-                              locationID: [locationId],
-                            },
-                          ];
-                        } else {
-                          const alreadySelected =
-                            existsCompany.locationID.includes(locationId);
-
-                          const newLocations = alreadySelected
-                            ? existsCompany.locationID.filter(
-                                (id) => id !== locationId
-                              )
-                            : [...existsCompany.locationID, locationId];
-
-                          updated = selected.map((c) =>
-                            c.companyID === companyId
-                              ? { ...c, locationID: newLocations }
-                              : c
-                          );
-                        }
-
-                        form.setValue("companies_locations", updated);
-                      };
-
-                      const isChecked = (
-                        companyId: number,
-                        locationId: number
-                      ) => {
-                        return selected
-                          .find((c) => c.companyID === companyId)
-                          ?.locationID.includes(locationId);
-                      };
-
-                      return (
-                        <FormItem>
-                          <FormLabel>Ubicaciones por empresa</FormLabel>
-
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <Button
-                                variant="outline"
-                                className="w-full justify-between"
-                              >
-                                {selected.length > 0
-                                  ? `${selected.length} empresa(s)`
-                                  : "Seleccionar ubicaciones"}
-                                <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
-                              </Button>
-                            </PopoverTrigger>
-
-                            <PopoverContent className="w-[420px] p-2">
-                              <ScrollArea className="h-72 pr-2">
-                                <div className="space-y-4">
-
-                                  {companies_locations?.map((company) => (
-                                    <div
-                                      key={company.company_id}
-                                      className="border rounded-md p-3 space-y-2"
+                    name="roles"
+                    render={() => (
+                      <FormItem className="flex flex-col">
+                        <FormLabel>Rol(es)</FormLabel>
+                        <Popover open={openRoles} onOpenChange={setOpenRoles}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              className="w-full justify-between"
+                              disabled={!selectedUserCompanyId}
+                            >
+                              {selectedRoles?.length > 0 && (
+                                <>
+                                  <Separator orientation="vertical" className="mx-2 h-4" />
+                                  <Badge
+                                    variant="secondary"
+                                    className="rounded-sm px-1 font-normal lg:hidden"
+                                  >
+                                    {selectedRoles.length}
+                                  </Badge>
+                                  <div className="hidden space-x-1 lg:flex">
+                                    {selectedRoles.length > 2 ? (
+                                      <Badge
+                                        variant="secondary"
+                                        className="rounded-sm px-1 font-normal"
+                                      >
+                                        {selectedRoles.length} seleccionados
+                                      </Badge>
+                                    ) : (
+                                      roles?.filter((option) => selectedRoles.includes(option.id.toString()))
+                                        .map((option) => (
+                                          <Badge
+                                            variant="secondary"
+                                            key={option.name}
+                                            className="rounded-sm px-1 font-medium"
+                                          >
+                                            {option.name}
+                                          </Badge>
+                                        ))
+                                    )}
+                                  </div>
+                                </>
+                              )}
+                              {
+                                selectedRoles.length <= 0 && (selectedUserCompanyId ? "Seleccione..." : "Seleccione una empresa primero")
+                              }
+                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-80 p-0">
+                            <Command>
+                              <CommandInput placeholder="Buscar rol..." />
+                              <CommandList className="max-h-60 overflow-auto">
+                                <CommandEmpty>No se encontraron roles.</CommandEmpty>
+                                <CommandGroup>
+                                  {
+                                    isRolesLoading && <Loader2 className="animate-spin size-4" />
+                                  }
+                                  {roles?.map((role) => (
+                                    <CommandItem
+                                      key={role.id}
+                                      value={role.name}
+                                      onSelect={() => handleRoleSelect(role.id.toString())}
                                     >
-                                      <p className="font-semibold text-sm">
-                                        {company.company_name}
-                                      </p>
-
-                                      <div className="space-y-1">
-                                        {company.locations.map((loc) => {
-                                          const checked = isChecked(
-                                            Number(company.company_id),
-                                            Number(loc.id)
-                                          );
-
-                                          return (
-                                            <div
-                                              key={loc.id}
-                                              className="flex items-center gap-2"
-                                            >
-                                              <Checkbox
-                                                checked={!!checked}
-                                                onCheckedChange={() =>
-                                                  toggleLocation(
-                                                    Number(company.company_id),
-                                                    Number(loc.id)
-                                                  )
-                                                }
-                                              />
-                                              <span className="text-sm">
-                                                {loc.address} ({loc.type})
-                                              </span>
-                                            </div>
-                                          );
-                                        })}
-                                      </div>
-                                    </div>
+                                      <Check
+                                        className={cn(
+                                          "mr-2 h-4 w-4",
+                                          isRoleSelected(role.id.toString())
+                                            ? "opacity-100"
+                                            : "opacity-0"
+                                        )}
+                                      />
+                                      {role.name}
+                                    </CommandItem>
                                   ))}
-
-                                </div>
-                              </ScrollArea>
-                            </PopoverContent>
-                          </Popover>
-
-                          <FormMessage />
-                        </FormItem>
-                      );
-                    }}
+                                  {
+                                    rolesError && <p className="text-center text-muted-foreground text-sm">Ha ocurrido un error al cargar los roles...</p>
+                                  }
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
 
                 </div>
