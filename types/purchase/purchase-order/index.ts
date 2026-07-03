@@ -62,6 +62,8 @@ export interface PurchaseOrderGeneralArticle {
   shipping_tracking?: string | null;
   international_shipping_tracking?: string | null;
   general_article_quote_order: PurchaseOrderGeneralArticleQuoteOrder | null;
+  /** Present once someone has registered this line's physical delivery (see registerGeneralArticlesDelivery). Null while still pending. */
+  general_article_intake?: { id: number; status: GeneralArticleIntakeStatus } | null;
 }
 
 export interface PurchaseOrderQuoteRef {

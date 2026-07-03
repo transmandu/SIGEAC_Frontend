@@ -111,9 +111,10 @@ export const useConfirmGeneralArticleIntake = () => {
 
     const confirmGeneralArticleIntake = useMutation({
         mutationKey: ["confirm-general-article-intake", selectedCompany?.slug],
-        mutationFn: async ({ id }: { id: number }) => {
+        mutationFn: async ({ id, confirmedAt }: { id: number; confirmedAt?: Date }) => {
             const { data } = await axiosInstance.patch<ConfirmGeneralArticleIntakeResponse>(
-                `/${selectedCompany?.slug}/general-article-intakes/${id}/confirm`
+                `/${selectedCompany?.slug}/general-article-intakes/${id}/confirm`,
+                confirmedAt ? { confirmed_at: confirmedAt.toISOString() } : {}
             );
             return data;
         },
