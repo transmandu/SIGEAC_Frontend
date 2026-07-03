@@ -26,7 +26,6 @@ import { FaFilePdf } from "react-icons/fa"
 import { RiFileExcel2Fill } from "react-icons/ri"
 
 import {
-  allCategoriesCols,
   flattenArticles,
   getColumnsByCategory,
   groupByPartNumber,
@@ -55,6 +54,7 @@ const InventarioArticulosPage = () => {
   >("all")
 
   const [consumableFilter, setConsumableFilter] = useState<"all" | "QUIMICOS">("all")
+  const [statusFilter, setStatusFilter] = useState<string | undefined>(undefined)
   const [partNumberSearch, setPartNumberSearch] = useState("")
   const [debouncedSearch, setDebouncedSearch] = useState("")
 
@@ -75,13 +75,18 @@ const InventarioArticulosPage = () => {
 
   const isSearching = debouncedSearch.trim().length > 0
 
+  const handleStatusFilterChange = (value: string | undefined) => {
+    setStatusFilter(value)
+    setApiPage(1)
+  }
+
   // Paginated fetch — always used; sends part_number to backend when searching
   const { data: pagedArticles, isLoading: isLoadingArticles } = useGetWarehouseArticlesByCategory(
     apiPage,
     15,
     activeCategory,
     true,
-    undefined,
+    statusFilter,
     debouncedSearch.trim() || undefined,
     activeCategory === "CONSUMABLE" && consumableFilter === "QUIMICOS",
   )
@@ -95,29 +100,29 @@ const InventarioArticulosPage = () => {
     if (activeCategory === "all") return null
     return {
       category: activeCategory as "COMPONENT" | "PART" | "CONSUMABLE" | "TOOL",
-      search: partNumberSearch,
-      filters:
-        activeCategory === "COMPONENT"
-          ? { condition: componentCondition }
-          : activeCategory === "CONSUMABLE"
-            ? { group: consumableFilter }
-            : {},
+      search: debouncedSearch.trim(),
+      filters: {
+        ...(activeCategory === "COMPONENT" ? { condition: componentCondition } : {}),
+        ...(activeCategory === "CONSUMABLE" ? { group: consumableFilter } : {}),
+        ...(statusFilter ? { status: statusFilter } : {}),
+      },
       filenamePrefix: "inventario",
     }
-  }, [activeCategory, partNumberSearch, componentCondition, consumableFilter])
+  }, [activeCategory, debouncedSearch, componentCondition, consumableFilter, statusFilter])
 
   // Reset subfiltros y página al cambiar categoría
   useEffect(() => {
     if (activeCategory !== "COMPONENT") setComponentCondition("all")
     if (activeCategory !== "CONSUMABLE") setConsumableFilter("all")
+    setStatusFilter(undefined)
     setApiPage(1)
   }, [activeCategory])
 
   // Columns memo
-  const cols = useMemo(() => {
-    if (activeCategory === "all") return allCategoriesCols
-    return getColumnsByCategory(activeCategory)
-  }, [activeCategory])
+  const cols = useMemo(
+    () => getColumnsByCategory(activeCategory, statusFilter, handleStatusFilterChange),
+    [activeCategory, statusFilter],
+  )
 
   // Datos + filtros memo
   const currentData = useMemo<IArticleSimple[]>(() => {
