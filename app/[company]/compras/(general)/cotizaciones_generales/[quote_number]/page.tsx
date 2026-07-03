@@ -15,7 +15,7 @@ import MetaItem from './_components/MetaItem';
 import InfoSection from './_components/InfoSection';
 import QuoteGeneralArticleCard from './_components/QuoteGeneralArticleCard';
 import QuoteOutOfScope from './_components/QuoteOutOfScope';
-import { statusBadgeCls, formatQuoteDate } from './_components/utils/uiHelpers';
+import { statusBadgeCls, statusLabel, formatQuoteDate } from './_components/utils/uiHelpers';
 import { isGeneralQuoteScope } from '@/lib/purchases/quote-scope';
 
 const QuotePage = () => {
@@ -95,7 +95,7 @@ const QuotePage = () => {
                 </h1>
 
                 <Badge className={statusBadgeCls(data?.status)}>
-                  {data?.status}
+                  {statusLabel(data?.status)}
                 </Badge>
 
               </div>

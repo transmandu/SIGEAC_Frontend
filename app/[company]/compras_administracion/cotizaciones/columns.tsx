@@ -13,6 +13,12 @@ import { es } from "date-fns/locale"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 
+const QUOTE_STATUS_LABELS: Record<string, string> = {
+  PENDING: 'PENDIENTE',
+  APPROVED: 'APROBADA',
+  REJECTED: 'RECHAZADA',
+}
+
 export const columns: ColumnDef<Quote>[] = [
   {
     id: "select",
@@ -88,10 +94,10 @@ export const columns: ColumnDef<Quote>[] = [
       <DataTableColumnHeader column={column} title="Status" />
     ),
     cell: ({ row }) => {
-      const process = row.original.status === 'PENDIENTE'
-      const aproved = row.original.status === 'APROBADA'
+      const process = row.original.status === 'PENDING'
+      const aproved = row.original.status === 'APPROVED'
       return (
-        <Badge className={cn("flex justify-center", process ? "bg-yellow-500" : aproved ? "bg-green-500" : "bg-red-500")} > {row.original.status.toUpperCase()}</Badge >
+        <Badge className={cn("flex justify-center", process ? "bg-yellow-500" : aproved ? "bg-green-500" : "bg-red-500")} > {QUOTE_STATUS_LABELS[row.original.status] ?? row.original.status.toUpperCase()}</Badge >
       )
     }
   },

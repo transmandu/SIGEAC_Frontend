@@ -50,6 +50,12 @@ import { useGetStatisticsPurchaseOrders } from "@/hooks/administracion/useGetSta
 import months from "@/components/cards/ConfigMonths";
 import { useCompanyStore } from "@/stores/CompanyStore";
 
+const PO_STATUS_LABELS: Record<string, string> = {
+  PENDING: 'PENDIENTE',
+  PAID: 'PAGADA',
+  COMPLETED: 'COMPLETADA',
+}
+
 type MonthlyData = {
   name: string;
   shortName: string;
@@ -501,14 +507,14 @@ const StatisticsPurchaseOrdersDashboard = () => {
                         <Badge
                           variant="secondary"
                           className={
-                            order.status === "PAGADA" || order.status === "COMPLETADA"
+                            order.status === "PAID" || order.status === "COMPLETED"
                               ? "bg-green-100 text-green-800"
-                              : order.status === "PENDIENTE"
+                              : order.status === "PENDING"
                                 ? "bg-yellow-100 text-yellow-800"
                                 : ""
                           }
                         >
-                          {order.status}
+                          {PO_STATUS_LABELS[order.status] ?? order.status}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">

@@ -231,6 +231,12 @@ const ArticlesCountAction = ({
   )
 }
 
+const PO_STATUS_LABELS: Record<string, string> = {
+  PENDING: 'PENDIENTE',
+  PAID: 'PAGADA',
+  COMPLETED: 'COMPLETADA',
+}
+
 export const getColumns = (
   selectedCompany?: { slug: string }
 ): ColumnDef<PurchaseOrder>[] => [
@@ -398,8 +404,8 @@ export const getColumns = (
     cell: ({ row }) => {
       const status = row.original.status
 
-      const completed = status === "COMPLETADA"
-      const paid = status === "PAGADA"
+      const completed = status === "COMPLETED"
+      const paid = status === "PAID"
 
       return (
         <div className="flex justify-center w-full">
@@ -444,7 +450,7 @@ export const getColumns = (
                 `
             )}
           >
-            {status}
+            {PO_STATUS_LABELS[status] ?? status}
           </Badge>
         </div>
       )

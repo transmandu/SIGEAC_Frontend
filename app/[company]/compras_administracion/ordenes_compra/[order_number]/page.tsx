@@ -19,6 +19,12 @@ import { Trash2, User } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import { useState } from 'react';
 
+const PO_STATUS_LABELS: Record<string, string> = {
+  PENDING: 'PENDIENTE',
+  PAID: 'PAGADA',
+  COMPLETED: 'COMPLETADA',
+};
+
 const CotizacionPage = () => {
 
   const [openDelete, setOpenDelete] = useState<boolean>(false);
@@ -42,7 +48,7 @@ const CotizacionPage = () => {
       <Card className='max-w-5xl mx-auto'>
         <CardHeader className='flex flex-col items-center'>
           <CardTitle className='flex justify-center text-5xl mb-2'>#{order_number}</CardTitle>
-          <Badge className={cn("text-lg", data?.status === 'PAGADA' ? "bg-green-500" : "bg-yellow-600")}>{data?.status.toUpperCase()}</Badge>
+          <Badge className={cn("text-lg", data?.status === 'PAID' ? "bg-green-500" : "bg-yellow-600")}>{data?.status ? (PO_STATUS_LABELS[data.status] ?? data.status.toUpperCase()) : ''}</Badge>
         </CardHeader>
         <CardContent className='flex flex-col gap-4' >
           <div className='flex w-full justify-center gap-24 text-xl'>
@@ -96,7 +102,7 @@ const CotizacionPage = () => {
           </div>
         </CardContent>
         {
-          data?.status !== 'COMPLETADA' && (
+          data?.status !== 'COMPLETED' && (
             <CardFooter className='flex gap-2 justify-end'>
               <Button>Aprobar</Button>
               <Button onClick={() => setOpenDelete(true)} variant={"destructive"}><Trash2 /></Button>

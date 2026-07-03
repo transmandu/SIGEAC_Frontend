@@ -4,7 +4,7 @@ import type { Location, Retailer, Unit, Vendor } from '@/types';
 export type RequisitionArticleStatus = 'PENDING' | 'APPROVED' | 'PARTIAL' | 'REJECTED';
 
 // ── Quote-level status ─────────────────────────────────────────────────────
-export type QuoteStatus = 'PENDIENTE' | 'APROBADA' | 'RECHAZADA';
+export type QuoteStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
 
 // ── Nested requisition article snapshot inside a quote article ─────────────
 export interface ArticleRequisitionOrderRef {
@@ -149,10 +149,10 @@ export interface CreateQuoteData {
 }
 
 // ── Update quote status mutation payload ───────────────────────────────────
-// Only PENDIENTE and RECHAZADA are allowed — APROBADA is set automatically
+// Only PENDING and REJECTED are allowed — APPROVED is set automatically
 // by the backend when a Purchase Order is created from this quote.
 export interface UpdateQuoteStatusData {
-  status: 'PENDIENTE' | 'RECHAZADA';
+  status: 'PENDING' | 'REJECTED';
   observation?: string | null;
 }
 

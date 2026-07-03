@@ -2,7 +2,7 @@ import type { Unit, Location, BankAccount, Card, PaymentMethod, ShippingAgency, 
 import type { ArticleRequisitionOrderRef, GeneralArticleRequisitionOrderRef } from '@/types/purchase/quote';
 
 // ── Purchase order status ───────────────────────────────────────────────────
-export type PurchaseOrderStatus = 'PENDIENTE' | 'PAGADA' | 'COMPLETADA';
+export type PurchaseOrderStatus = 'PENDING' | 'PAID' | 'COMPLETED';
 
 // ── Quote article snapshot nested under an article_purchase_order ──────────
 export interface PurchaseOrderArticleQuoteOrder {

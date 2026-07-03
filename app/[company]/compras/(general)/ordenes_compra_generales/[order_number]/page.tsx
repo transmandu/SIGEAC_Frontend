@@ -17,7 +17,7 @@ import InfoSection from './_components/InfoSection';
 import PurchaseOrderArticleCard from './_components/PurchaseOrderArticleCard';
 import PurchaseOrderGeneralArticleCard from './_components/PurchaseOrderGeneralArticleCard';
 import PurchaseOrderCostSummary from './_components/PurchaseOrderCostSummary';
-import { statusBadgeCls, formatPurchaseDate } from './_components/utils/uiHelpers';
+import { statusBadgeCls, statusLabel, formatPurchaseDate } from './_components/utils/uiHelpers';
 import { isAeronauticalPurchaseOrder } from '@/lib/purchases/purchase-order-scope';
 
 const PurchaseOrderPage = () => {
@@ -79,7 +79,7 @@ const PurchaseOrderPage = () => {
                 </h1>
 
                 <Badge className={statusBadgeCls(data?.status)}>
-                  {data?.status}
+                  {statusLabel(data?.status)}
                 </Badge>
 
               </div>

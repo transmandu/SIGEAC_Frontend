@@ -110,7 +110,7 @@ const QuoteDropdownDialogs = ({
     await updateStatusQuote.mutateAsync({
       id: quote.id,
       data: {
-        status: "RECHAZADA",
+        status: "REJECTED",
         observation: Observation.trim() || null
       },
       company: selectedCompany.slug
