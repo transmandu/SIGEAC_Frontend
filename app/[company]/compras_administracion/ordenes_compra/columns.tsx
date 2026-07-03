@@ -14,6 +14,12 @@ import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import PurchaseOrderDropdownActions from "@/components/dropdowns/mantenimiento/compras/PurchaseOrderDropdownActions"
 
+const PO_STATUS_LABELS: Record<string, string> = {
+  PENDING: 'PENDIENTE',
+  PAID: 'PAGADA',
+  COMPLETED: 'COMPLETADA',
+}
+
 export const columns: ColumnDef<PurchaseOrder>[] = [
   {
     id: "select",
@@ -89,10 +95,10 @@ export const columns: ColumnDef<PurchaseOrder>[] = [
       <DataTableColumnHeader column={column} title="Status" />
     ),
     cell: ({ row }) => {
-      const pending = row.original.status === 'PENDIENTE'
-      const paid = row.original.status === 'PAGADA'
+      const pending = row.original.status === 'PENDING'
+      const paid = row.original.status === 'PAID'
       return (
-        <Badge className={cn("flex justify-center", pending ? "bg-yellow-500" : paid ? "bg-green-500" : "bg-red-500")} > {row.original.status.toUpperCase()}</Badge >
+        <Badge className={cn("flex justify-center", pending ? "bg-yellow-500" : paid ? "bg-green-500" : "bg-red-500")} > {PO_STATUS_LABELS[row.original.status] ?? row.original.status.toUpperCase()}</Badge >
       )
     }
   },

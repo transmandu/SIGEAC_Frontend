@@ -18,6 +18,12 @@ import { es } from 'date-fns/locale'
 
 import Link from 'next/link'
 
+const QUOTE_STATUS_LABELS: Record<string, string> = {
+  PENDING: 'PENDIENTE',
+  APPROVED: 'APROBADA',
+  REJECTED: 'RECHAZADA',
+}
+
 export const getColumns = (
   selectedCompany?: { slug: string }
 ): ColumnDef<Quote>[] => [
@@ -262,8 +268,8 @@ export const getColumns = (
     cell: ({ row }) => {
       const status = row.original.status
 
-      const pending = status === 'PENDIENTE'
-      const approved = status === 'APROBADA'
+      const pending = status === 'PENDING'
+      const approved = status === 'APPROVED'
 
       return (
         <div className="flex justify-center w-full">
@@ -317,7 +323,7 @@ export const getColumns = (
                 `
             )}
           >
-            {status?.toUpperCase?.() ?? 'N/A'}
+            {QUOTE_STATUS_LABELS[status] ?? status?.toUpperCase?.() ?? 'N/A'}
           </Badge>
         </div>
       )
