@@ -31,6 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useAddModulesToUser } from '@/actions/sistema/usuarios/actions';
 import { useGetJobTitles } from '@/hooks/sistema/cargo/useGetJobTitles';
 import { useGetDepartments } from '@/hooks/sistema/departamento/useGetDepartment';
 import { useGetLocationsByCompanies } from '@/hooks/sistema/useGetLocationsByCompanies';
@@ -79,6 +80,7 @@ const formSchema = z
     password: z.string().min(5, "Mínimo 5 caracteres").optional(),
     email: z.string().email("Correo inválido").optional(),
     roles: z.array(z.string()).optional(),
+    module_ids: z.array(z.number()).optional(),
     companies_locations: z
       .array(
         z.object({
@@ -129,13 +131,25 @@ const formSchema = z
   });
 type EmployeeForm = z.infer<typeof formSchema>;
 
+const resolveCreatedUserId = (response: unknown): string | undefined => {
+  const r = response as {
+    data?: { user?: { id?: string | number }; id?: string | number };
+    user?: { id?: string | number };
+    id?: string | number;
+  };
+  const id = r?.data?.user?.id ?? r?.user?.id ?? r?.data?.id ?? r?.id;
+  return id !== undefined && id !== null ? String(id) : undefined;
+};
+
 export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
   const { selectedCompany } = useCompanyStore();
   const createEmployee = useCreateEmployee();
   const { createUser } = useCreateUser();
+  const { addModules } = useAddModulesToUser();
   const [step, setStep] = useState<1 | 2>(1);
   const [showPassword, setShowPassword] = useState(false);
   const [openRoles, setOpenRoles] = useState(false);
+  const [openModules, setOpenModules] = useState(false);
   const [openUserSearch, setOpenUserSearch] = useState(false);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
@@ -175,6 +189,10 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
     }, {} as Record<number, AppLocation[]>);
   }, [companies_locations]);
 
+  const selectedUserCompanyModules = useMemo(() => {
+    return companies?.find((company) => company.id === selectedUserCompanyId)?.modules ?? [];
+  }, [companies, selectedUserCompanyId]);
+
   const form = useForm<EmployeeForm>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -191,6 +209,7 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
     },
   });
   const selectedRoles = form.watch("roles") || [];
+  const selectedModuleIds = form.watch("module_ids") || [];
   const existingUserId = form.watch("existing_user_id");
   const selectedExistingUser = availableUsers?.find(
     (user) => String(user.id) === existingUserId
@@ -227,11 +246,24 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
 
   const isRoleSelected = (roleId: string) => selectedRoles.includes(roleId);
 
+  const handleModuleSelect = (moduleId: number) => {
+    const current = form.getValues("module_ids") || [];
+
+    const newModules = current.includes(moduleId)
+      ? current.filter((id) => id !== moduleId)
+      : [...current, moduleId];
+
+    form.setValue("module_ids", newModules);
+  };
+
+  const isModuleSelected = (moduleId: number) => selectedModuleIds.includes(moduleId);
+
   const handleUserCompanyChange = (companyID: string) => {
     const parsedCompanyID = Number(companyID);
     setSelectedUserCompanyId(parsedCompanyID);
     form.setValue('companies_locations', [{ companyID: parsedCompanyID, locationID: [] }]);
     form.setValue('roles', []);
+    form.setValue('module_ids', []);
   };
 
   const handleSelectExistingUser = (userId: string | number) => {
@@ -260,7 +292,20 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
           roles: data.roles?.map(Number) || [],
         };
         const userResponse = await createUser.mutateAsync(userData);
-        userId = userResponse.user.id;
+        const newUserId = resolveCreatedUserId(userResponse);
+        userId = newUserId ? Number(newUserId) : null;
+
+        if (selectedUserCompanyId && data.module_ids && data.module_ids.length > 0) {
+          if (!newUserId) {
+            console.error("No se pudo determinar el ID del usuario recién creado para asignar los módulos.", userResponse);
+          } else {
+            await addModules.mutateAsync({
+              userId: newUserId,
+              companyId: selectedUserCompanyId,
+              moduleIds: data.module_ids,
+            });
+          }
+        }
       }
       await createEmployee.mutateAsync({
         first_name: data.first_name,
@@ -1033,6 +1078,60 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
                                   {
                                     rolesError && <p className="text-center text-muted-foreground text-sm">Ha ocurrido un error al cargar los roles...</p>
                                   }
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="module_ids"
+                    render={() => (
+                      <FormItem className="flex flex-col">
+                        <FormLabel>Módulo(s)</FormLabel>
+                        <Popover open={openModules} onOpenChange={setOpenModules}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              className="w-full justify-between"
+                              disabled={!selectedUserCompanyId}
+                            >
+                              {selectedModuleIds.length > 0
+                                ? `${selectedModuleIds.length} módulo(s)`
+                                : (selectedUserCompanyId ? "Seleccionar módulos" : "Seleccione una empresa primero")}
+                              <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+
+                          <PopoverContent className="w-80 p-0">
+                            <Command>
+                              <CommandInput placeholder="Buscar módulo..." />
+                              <CommandList className="max-h-60 overflow-auto">
+                                <CommandEmpty>No hay módulos</CommandEmpty>
+                                <CommandGroup>
+                                  {selectedUserCompanyModules.map((module) => (
+                                    <CommandItem
+                                      key={module.id}
+                                      value={module.label}
+                                      onSelect={() => handleModuleSelect(module.id)}
+                                    >
+                                      <Check
+                                        className={cn(
+                                          "mr-2 h-4 w-4",
+                                          isModuleSelected(module.id)
+                                            ? "opacity-100"
+                                            : "opacity-0"
+                                        )}
+                                      />
+                                      {module.label}
+                                    </CommandItem>
+                                  ))}
                                 </CommandGroup>
                               </CommandList>
                             </Command>

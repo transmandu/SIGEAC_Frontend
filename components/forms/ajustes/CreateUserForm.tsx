@@ -24,6 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useAddModulesToUser } from "@/actions/sistema/usuarios/actions";
 import { useGetCompanies } from "@/hooks/sistema/useGetCompanies";
 import { useGetLocationsByCompanies } from "@/hooks/sistema/useGetLocationsByCompanies";
 import { useGetRoles } from "@/hooks/sistema/usuario/useGetRoles";
@@ -71,12 +72,22 @@ const FormSchema = z.object({
   ).min(1, {
     message: "Debe seleccionar una empresa.",
   }),
+  module_ids: z.array(z.number()).optional(),
   isActive: z.boolean(),
 })
 
 
 type FormSchemaType = z.infer<typeof FormSchema>
 
+const resolveCreatedUserId = (response: unknown): string | undefined => {
+  const r = response as {
+    data?: { user?: { id?: string | number }; id?: string | number };
+    user?: { id?: string | number };
+    id?: string | number;
+  };
+  const id = r?.data?.user?.id ?? r?.user?.id ?? r?.data?.id ?? r?.id;
+  return id !== undefined && id !== null ? String(id) : undefined;
+};
 
 export function CreateUserForm() {
 
@@ -92,11 +103,17 @@ export function CreateUserForm() {
 
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
 
+  const [selectedModuleIds, setSelectedModuleIds] = useState<number[]>([]);
+
   const [openRoles, setOpenRoles] = useState(false);
+
+  const [openModules, setOpenModules] = useState(false);
 
   const [showPwd, setShowPwd] = useState(false);
 
   const { createUser } = useCreateUser();
+
+  const { addModules } = useAddModulesToUser();
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
@@ -156,11 +173,22 @@ export function CreateUserForm() {
 
   const isRoleSelected = (value: string) => selectedRoles.includes(value);
 
+  const handleModuleSelect = (moduleId: number) => {
+    setSelectedModuleIds((prevSelected) =>
+      prevSelected.includes(moduleId)
+        ? prevSelected.filter((id) => id !== moduleId)
+        : [...prevSelected, moduleId]
+    );
+  };
+
+  const isModuleSelected = (moduleId: number) => selectedModuleIds.includes(moduleId);
+
   const handleCompanyChange = (companyID: string) => {
     const parsedCompanyID = Number(companyID);
     setSelectedCompanyId(parsedCompanyID);
     form.setValue('companies_locations', [{ companyID: parsedCompanyID, locationID: [] }]);
     setSelectedRoles([]);
+    setSelectedModuleIds([]);
   };
 
 
@@ -169,7 +197,11 @@ export function CreateUserForm() {
     form.setValue('roles', selectedRoles);
   }, [selectedRoles, form]);
 
-  const onSubmit = (data: FormSchemaType) => {
+  useEffect(() => {
+    form.setValue('module_ids', selectedModuleIds);
+  }, [selectedModuleIds, form]);
+
+  const onSubmit = async (data: FormSchemaType) => {
     try {
       // Verifica si el nombre de usuario ya existe
       const isUsernameTaken = users?.some(user => user.username === data.username);
@@ -192,7 +224,20 @@ export function CreateUserForm() {
           roles: rolesAsNumbers
         };
 
-        createUser.mutate(formattedData);
+        const userResponse = await createUser.mutateAsync(formattedData);
+        const newUserId = resolveCreatedUserId(userResponse);
+
+        if (selectedCompanyId && data.module_ids && data.module_ids.length > 0) {
+          if (!newUserId) {
+            console.error("No se pudo determinar el ID del usuario recién creado para asignar los módulos.", userResponse);
+          } else {
+            await addModules.mutateAsync({
+              userId: newUserId,
+              companyId: selectedCompanyId,
+              moduleIds: data.module_ids,
+            });
+          }
+        }
       }
     } catch (error) {
       console.error("Error al crear usuario:", error);
@@ -206,6 +251,10 @@ export function CreateUserForm() {
       return acc;
     }, {} as Record<number, AppLocation[]>);
   }, [companies_locations]);
+
+  const selectedCompanyModules = useMemo(() => {
+    return companies?.find((company) => company.id === selectedCompanyId)?.modules ?? [];
+  }, [companies, selectedCompanyId]);
   
   return (
     <Form {...form}>
@@ -482,6 +531,96 @@ export function CreateUserForm() {
                             {
                               rolesError && <p className="text-center text-muted-foreground text-sm">Ha ocurrido un error al cargar los roles...</p>
                             }
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="module_ids"
+              render={() => (
+                <FormItem className="flex flex-col">
+                  <FormLabel>Módulo(s)</FormLabel>
+                  <Popover open={openModules} onOpenChange={setOpenModules}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-[200px] justify-between"
+                        disabled={!selectedCompanyId}
+                      >
+                        {selectedModuleIds?.length > 0 && (
+                          <>
+                            <Separator orientation="vertical" className="mx-2 h-4" />
+                            <Badge
+                              variant="secondary"
+                              className="rounded-sm px-1 font-normal lg:hidden"
+                            >
+                              {selectedModuleIds.length}
+                            </Badge>
+                            <div className="hidden space-x-1 lg:flex">
+                              {selectedModuleIds.length > 2 ? (
+                                <Badge
+                                  variant="secondary"
+                                  className="rounded-sm px-1 font-normal"
+                                >
+                                  {selectedModuleIds.length} seleccionados
+                                </Badge>
+                              ) : (
+                                selectedCompanyModules
+                                  .filter((option) => selectedModuleIds.includes(option.id))
+                                  .map((option) => (
+                                    <Badge
+                                      variant="secondary"
+                                      key={option.id}
+                                      className="rounded-sm px-1 font-medium"
+                                    >
+                                      {option.label}
+                                    </Badge>
+                                  ))
+                              )}
+                            </div>
+                          </>
+                        )}
+                        {
+                          selectedModuleIds.length <= 0 && (selectedCompanyId ? "Seleccione..." : "Seleccione una empresa primero")
+                        }
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[200px] p-0">
+                      <Command>
+                        <CommandInput placeholder="Buscar módulo..." />
+                        <CommandList>
+                          <CommandEmpty>No se encontraron módulos.</CommandEmpty>
+                          <CommandGroup>
+                            {selectedCompanyModules.map((module) => (
+
+                              <CommandItem
+                                key={module.id}
+                                value={module.label}
+                                onSelect={() => handleModuleSelect(module.id)}
+                                className="flex items-center justify-start pl-1 pr-1 py-1 text-[12px] cursor-pointer"
+                              >
+                                <div className="flex items-center gap-1 w-full text-left">
+                                  <Check
+                                    className={cn(
+                                      "h-3 w-3 shrink-0",
+                                      isModuleSelected(module.id) ? "opacity-100" : "opacity-0"
+                                    )}
+                                  />
+                                  <span className="truncate flex-1 text-left leading-none tracking-tighter">
+                                    {module.label}
+                                  </span>
+                                </div>
+                              </CommandItem>
+
+                            ))}
                           </CommandGroup>
                         </CommandList>
                       </Command>

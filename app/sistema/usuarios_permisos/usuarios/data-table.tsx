@@ -13,7 +13,7 @@ import {
 } from "@tanstack/react-table"
 
 import { CreateUserDialog } from "@/components/dialogs/ajustes/CreateUserDialog"
-import { DataTableFacetedFilter } from "@/components/tables/DataTableFacetedFilter"
+import { DataTableFacetedFilter, Option } from "@/components/tables/DataTableFacetedFilter"
 import { DataTablePagination } from "@/components/tables/DataTablePagination"
 import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions"
 import { Button } from "@/components/ui/button"
@@ -35,11 +35,6 @@ interface DataTableProps<TData, TValue> {
   data: TData[]
 }
 
-interface TableProps {
-  label: string;
-  value: string;
-}
-
 export function DataTable<TData, TValue>({
   columns,
   data,
@@ -55,13 +50,14 @@ export function DataTable<TData, TValue>({
   })
   const { data: roles, isLoading } = useGetRoles();
 
-  function formatData(roles: Role[] | undefined): TableProps[] {
+  function formatData(roles: Role[] | undefined): Option[] {
     if (!roles) {
       return []
     }
     return roles.map(item => ({
       label: item.name,
-      value: item.name,
+      value: String(item.id),
+      description: item.company?.name ?? "Global",
     }));
   }
 

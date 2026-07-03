@@ -23,6 +23,7 @@ import { Separator } from "@/components/ui/separator"
 export interface Option {
   label: string
   value: string
+  description?: string
   icon?: React.ComponentType<{ className?: string }>
   withCount?: boolean
 }
@@ -64,7 +65,7 @@ export function DataTableFacetedFilter<TData, TValue>({
                   </Badge>
                 ) : (
                   options
-                    .filter((option) => selectedValues.has(option.label))
+                    .filter((option) => selectedValues.has(option.value))
                     .map((option) => (
                       <Badge
                         variant="secondary"
@@ -72,6 +73,9 @@ export function DataTableFacetedFilter<TData, TValue>({
                         className="rounded-sm px-1 font-normal"
                       >
                         {option.label}
+                        {option.description && (
+                          <span className="text-muted-foreground"> · {option.description}</span>
+                        )}
                       </Badge>
                     ))
                 )}
@@ -80,7 +84,7 @@ export function DataTableFacetedFilter<TData, TValue>({
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[12.5rem] p-0" align="start">
+      <PopoverContent className="w-[20rem] p-0" align="start">
         <Command>
           <CommandInput placeholder={title} />
           <CommandList>
@@ -103,10 +107,11 @@ export function DataTableFacetedFilter<TData, TValue>({
                         filterValues.length ? filterValues : undefined
                       )
                     }}
+                    className="items-start"
                   >
                     <div
                       className={cn(
-                        "mr-2 flex size-4 items-center justify-center rounded-sm border border-primary",
+                        "mr-2 mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-sm border border-primary",
                         isSelected
                           ? "bg-primary text-primary-foreground"
                           : "opacity-50 [&_svg]:invisible"
@@ -116,14 +121,21 @@ export function DataTableFacetedFilter<TData, TValue>({
                     </div>
                     {option.icon && (
                       <option.icon
-                        className="mr-2 size-4 text-muted-foreground"
+                        className="mr-2 mt-0.5 size-4 shrink-0 text-muted-foreground"
                         aria-hidden="true"
                       />
                     )}
-                    <span>{option.label}</span>
+                    <div className="flex flex-1 flex-col">
+                      <span className="whitespace-normal break-words">{option.label}</span>
+                      {option.description && (
+                        <span className="whitespace-normal break-words text-xs text-muted-foreground">
+                          {option.description}
+                        </span>
+                      )}
+                    </div>
                     {option.withCount &&
                       column?.getFacetedUniqueValues()?.get(option.value) && (
-                        <span className="ml-auto flex size-4 items-center justify-center font-mono text-xs">
+                        <span className="ml-auto flex size-4 shrink-0 items-center justify-center font-mono text-xs">
                           {column?.getFacetedUniqueValues().get(option.value)}
                         </span>
                       )}
