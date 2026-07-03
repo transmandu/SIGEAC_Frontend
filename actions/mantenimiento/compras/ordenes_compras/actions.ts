@@ -141,9 +141,10 @@ export const useRegisterGeneralArticlesDelivery = () => {
   const queryClient = useQueryClient()
 
   const registerDeliveryMutation = useMutation({
-      mutationFn: async ({id, company}: {id: number, company: string}) => {
+      mutationFn: async ({id, company, arrivedAt}: {id: number, company: string, arrivedAt?: Date}) => {
           const {data} = await axiosInstance.patch<RegisterGeneralArticlesDeliveryResponse>(
-            `/${company}/purchase-order/${id}/register-general-articles-delivery`
+            `/${company}/purchase-order/${id}/register-general-articles-delivery`,
+            arrivedAt ? { arrived_at: arrivedAt.toISOString() } : {}
           )
           return data
         },
