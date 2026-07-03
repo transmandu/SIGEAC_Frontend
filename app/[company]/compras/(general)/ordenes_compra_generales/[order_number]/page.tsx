@@ -225,6 +225,7 @@ const PurchaseOrderPage = () => {
             shipping_fee: data?.shipping_fee,
             total: data?.total,
           }}
+          paymentMethod={data?.payment_method}
           bankAccount={data?.bank_account}
           card={data?.card}
           isAeronautical={isAeronauticalPurchaseOrder(data)}

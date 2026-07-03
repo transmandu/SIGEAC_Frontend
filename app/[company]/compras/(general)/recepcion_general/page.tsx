@@ -120,6 +120,7 @@ const RecepcionGeneralPage = () => {
           pageSize={15}
           loadingText="Cargando recepciones..."
           emptyText="No se encontraron entradas"
+          persistKey="recepcion_general"
         />
 
         {isError && (

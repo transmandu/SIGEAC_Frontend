@@ -53,6 +53,7 @@ const PurchaseOrderGeneralArticleCard = ({ article }: PurchaseOrderGeneralArticl
           <Field label="Unidad" value={req?.unit?.label} />
           <Field label="P. Unitario" value={`$${Number(quoteArticle?.unit_price || 0).toFixed(2)}`} />
           <Field label="Total" value={`$${amount.toFixed(2)}`} />
+          <Field label="Lugar de compra" value={quoteArticle?.retailer?.name} />
           <Field
             label="Tracking Nacional"
             value={article.shipping_tracking}

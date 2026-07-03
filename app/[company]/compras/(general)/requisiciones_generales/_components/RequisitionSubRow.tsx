@@ -40,6 +40,10 @@ export default function RequisitionSubRow({
           const approved = quote.status === 'APROBADA'
           const rejected = quote.status === 'RECHAZADA'
           const pending = quote.status === 'PENDIENTE'
+          const retailerNames = quote.article_retailers ?? []
+          const retailerLabel = retailerNames.length > 0
+            ? retailerNames.join(', ')
+            : 'No aplica "Lugar de compra" para esta cotización'
           const decisionDate = quote.updated_at
             ? new Date(quote.updated_at).toISOString().slice(0, 10)
             : null
@@ -60,6 +64,9 @@ export default function RequisitionSubRow({
                   >
                     {quote.quote_number}
                   </Link>
+                  <span className="text-[11px] text-muted-foreground truncate max-w-[240px]">
+                    {retailerLabel}
+                  </span>
               </div>
             </div>
 

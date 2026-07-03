@@ -160,6 +160,7 @@ const RequisitionsPage = () => {
                 }
                 loading={isLoading}
                 overflowVisible
+                persistKey="requisiciones_generales"
               />
             )}
           />
@@ -177,6 +178,7 @@ const RequisitionsPage = () => {
               !!row.original.quotes?.length
             }
             loading={isLoading}
+            persistKey="requisiciones_generales"
           />
         )}
 

@@ -157,6 +157,7 @@ const QuotesOrdersPage = () => {
                 columns={columns}
                 data={rows}
                 loading={isLoading}
+                persistKey="cotizaciones_generales"
               />
             )}
           />
@@ -165,6 +166,7 @@ const QuotesOrdersPage = () => {
             columns={columns}
             data={filteredQuotes}
             loading={isLoading}
+            persistKey="cotizaciones_generales"
           />
         )}
 

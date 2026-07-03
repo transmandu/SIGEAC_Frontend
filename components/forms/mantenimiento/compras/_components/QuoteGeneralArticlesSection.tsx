@@ -22,9 +22,11 @@ import {
 } from "@/components/ui/tooltip";
 import { AmountInput } from "@/components/misc/AmountInput";
 import { Ban, ArrowRight, Sparkles } from "lucide-react";
-import type { GeneralArticle, Unit } from "@/types";
+import type { GeneralArticle, Retailer, Unit } from "@/types";
 import { articleNeedsJustification } from "../CreateQuoteForm";
 import { RequiredIndicator } from "./RequiredIndicator";
+import { RetailerCombobox } from "@/components/forms/general/compras/_components/RetailerCombobox";
+import { UnitCombobox } from "@/components/forms/general/compras/_components/UnitCombobox";
 import { useGetGeneralArticles } from "@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticles";
 import { useRef, useState, useEffect } from "react";
 import { createPortal } from "react-dom";
@@ -39,6 +41,7 @@ interface QuoteGeneralArticlesSectionProps {
   form: UseFormReturn<any>;
   units?: Unit[];
   locations?: LocationOption[];
+  retailers?: Retailer[];
 }
 
 // ── Width scale shared across the operation rows ───────────────────────────
@@ -199,6 +202,7 @@ export function QuoteGeneralArticlesSection({
   form,
   units,
   locations,
+  retailers,
 }: QuoteGeneralArticlesSectionProps) {
   const { control } = form;
 
@@ -446,35 +450,19 @@ export function QuoteGeneralArticlesSection({
                             />
                           </div>
 
-                          <div className="space-y-0.5">
+                          <div className="space-y-0.5 min-w-0">
                             <span className={LABEL_CLS}>Unidad<RequiredIndicator /></span>
-                            <Select
+                            <UnitCombobox
                               value={article.unit?.toString() ?? ""}
-                              onValueChange={(val: string) =>
+                              onChange={(val) =>
                                 form.setValue(`general_articles.${index}.unit`, val)
                               }
+                              units={units}
                               disabled={isNotQuoted}
-                            >
-                              <SelectTrigger className={cn(
-                                W_COMPACT,
-                                "h-7 text-xs",
-                                !article.unit && "text-muted-foreground",
-                                invalidCls(!isNotQuoted && !article.unit)
-                              )}>
-                                <span className="truncate">
-                                  {article.unit
-                                    ? units?.find(u => u.id.toString() === article.unit)?.label
-                                    : "—"}
-                                </span>
-                              </SelectTrigger>
-                              <SelectContent>
-                                {units?.map((unit) => (
-                                  <SelectItem key={unit.id} value={unit.id.toString()}>
-                                    {unit.label}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                              invalid={invalidCls(!isNotQuoted && !article.unit)}
+                              triggerClassName="h-7 text-xs"
+                              placeholder="—"
+                            />
                           </div>
 
                           <div className="space-y-0.5">
@@ -508,7 +496,25 @@ export function QuoteGeneralArticlesSection({
                             </Select>
                           </div>
 
-                          <div />
+                          {retailers ? (
+                            <div className="space-y-0.5 min-w-0">
+                              <span className={LABEL_CLS}>Lugar de compra<RequiredIndicator /></span>
+                              <RetailerCombobox
+                                value={article.retailer_id?.toString() ?? ""}
+                                onChange={(val) =>
+                                  form.setValue(`general_articles.${index}.retailer_id`, val)
+                                }
+                                retailers={retailers}
+                                disabled={isNotQuoted}
+                                invalid={invalidCls(!isNotQuoted && !article.retailer_id)}
+                                triggerClassName="h-7 text-xs"
+                                placeholder="Sin lugar de compra"
+                                wrapOptions
+                              />
+                            </div>
+                          ) : (
+                            <div />
+                          )}
                       </div>
                     </div>
                   </div>

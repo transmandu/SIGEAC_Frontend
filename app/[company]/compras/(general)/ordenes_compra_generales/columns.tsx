@@ -126,7 +126,7 @@ export const getColumns = (
 
   {
     accessorKey: "order_number",
-    size: 180,
+    size: 210,
 
     header: ({ column }) => (
       <div className="flex justify-center w-full">
@@ -186,6 +186,41 @@ export const getColumns = (
         </Link>
       </div>
     ),
+  },
+
+  {
+    accessorKey: "retailer",
+    size: 240,
+
+    header: ({ column }) => (
+      <div className="flex justify-center w-full">
+        <DataTableColumnHeader column={column} title="Comercio" />
+      </div>
+    ),
+
+    meta: {
+      title: "Comercio",
+    },
+
+    cell: ({ row }) => {
+      const name = row.original.retailer?.name
+
+      if (!name) {
+        return (
+          <div className="flex justify-center w-full">
+            <span className="text-sm text-muted-foreground">—</span>
+          </div>
+        )
+      }
+
+      return (
+        <div className="flex justify-center w-full min-w-0">
+          <span className="block w-full max-w-[220px] whitespace-normal break-words text-center text-sm font-medium text-slate-700 dark:text-slate-200">
+            {name}
+          </span>
+        </div>
+      )
+    },
   },
 
   {
@@ -285,7 +320,7 @@ export const getColumns = (
 
   {
     accessorKey: "articles",
-    size: 180,
+    size: 150,
 
     header: ({ column }) => (
       <div className="flex justify-center w-full">
@@ -306,7 +341,7 @@ export const getColumns = (
 
   {
     id: "actions",
-    size: 120,
+    size: 100,
     header: ({ column }) => (
       <div className="flex justify-center w-full">
         <DataTableColumnHeader column={column} title="Acciones" />

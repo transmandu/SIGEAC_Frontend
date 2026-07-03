@@ -20,7 +20,7 @@ const BankAccountsPage = () => {
   useEffect(() => {
     if (cards && account_number) {
       const filterCards = cards.filter(
-        (card) => card.bank_account.account_number === account_number
+        (card) => card.bank_account?.account_number === account_number
       );
       setFilteredCards(filterCards);
     }

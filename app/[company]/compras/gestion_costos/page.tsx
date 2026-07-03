@@ -327,6 +327,7 @@ const CostManagementPage = () => {
                 loading={isLoading}
                 meta={{ costDrafts }}
                 overflowVisible
+                persistKey="gestion_costos"
               />
             )}
             setDrafts={setDrafts}
@@ -338,6 +339,7 @@ const CostManagementPage = () => {
             loading={isLoading}
             meta={{ costDrafts }}
             overflowVisible
+            persistKey="gestion_costos"
           />
         )}
 

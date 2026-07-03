@@ -1,4 +1,5 @@
 import axiosInstance from "@/lib/axios";
+import { Unit } from "@/types";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -19,8 +20,9 @@ export const useCreateUnit = () => {
   const queryClient = useQueryClient();
 
   const createMutation = useMutation({
-    mutationFn: async (data: createUnitSchema) => {
-      await axiosInstance.post(`/${selectedCompany?.slug}/unit`, data);
+    mutationFn: async (data: createUnitSchema): Promise<Unit> => {
+      const res = await axiosInstance.post(`/${selectedCompany?.slug}/unit`, data);
+      return res.data?.Unit as Unit;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({

@@ -1,4 +1,4 @@
-import type { Unit, Location, BankAccount, Card, ShippingAgency, GeneralArticle } from '@/types';
+import type { Unit, Location, BankAccount, Card, PaymentMethod, ShippingAgency, GeneralArticle, Retailer } from '@/types';
 import type { ArticleRequisitionOrderRef, GeneralArticleRequisitionOrderRef } from '@/types/purchase/quote';
 
 // ── Purchase order status ───────────────────────────────────────────────────
@@ -35,6 +35,8 @@ export interface PurchaseOrderGeneralArticleQuoteOrder {
   lead_time?: string | null;
   justification?: string | null;
   is_not_quoted?: boolean;
+  /** Comercio / lugar de compra where this general article was quoted. */
+  retailer?: Retailer | null;
   general_article_requisition_order: GeneralArticleRequisitionOrderRef | null;
 }
 
@@ -109,10 +111,14 @@ export interface PurchaseOrder {
   invoice_number?: string | null;
   created_by: string;
   updated_by?: string | null;
+  /** Cómo se pagó la orden: método de pago (con su cuenta y banco), y tarjeta si aplica. */
+  payment_method?: PaymentMethod | null;
   bank_account?: BankAccount | null;
   card?: Card | null;
   shipping_agency?: ShippingAgency | null;
   vendor: PurchaseOrderVendorRef | null;
+  /** Present on general POs — the comercio / lugar de compra this order groups. */
+  retailer?: PurchaseOrderVendorRef | null;
   location?: Location;
   quote_order: PurchaseOrderQuoteRef;
   requisition_order?: PurchaseOrderRequisitionRef;
@@ -122,8 +128,9 @@ export interface PurchaseOrder {
 
 // ── Create purchase order(s) from a quote ───────────────────────────────────
 // POST /{company}/purchase-order — splits into one PO per vendor present
-// among the selected articles, plus one PO (vendor_id = null) for any
-// general articles, all linked to the same quote_order_id.
+// among the selected standard articles, plus one PO per retailer (comercio /
+// lugar de compra) present among the selected general articles, all linked to
+// the same quote_order_id.
 export interface CreatePurchaseOrderArticleData {
   article_quote_order_id: number;
   shipping_tracking?: string | null;
@@ -167,6 +174,8 @@ export interface UpdatePurchaseOrderData {
   wire_fee?: number | null;
   handling_fee?: number | null;
   total: number;
+  /** El backend deriva bank_account_id del método de pago cuando se envía payment_method_id. */
+  payment_method_id?: number | null;
   bank_account_id?: number | null;
   card_id?: number | null;
   shipping_fee?: number | null;

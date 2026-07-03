@@ -119,7 +119,7 @@ const PurchaseOrderLinkButton = ({
             >
               <span className="flex flex-col min-w-0">
                 <span className="truncate font-medium text-foreground">
-                  {po.vendor_name ?? "Sin proveedor"}
+                  {po.vendor_name ?? po.retailer_name ?? "Sin proveedor"}
                 </span>
                 <span className="truncate text-[11px] text-muted-foreground">
                   {po.order_number}
