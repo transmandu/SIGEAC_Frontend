@@ -1,26 +1,20 @@
 "use client";
 
 import { ContentLayout } from "@/components/layout/ContentLayout";
+import { useGetPaymentMethods } from "@/hooks/general/metodos_pago/useGetPaymentMethods";
 import { Loader2 } from "lucide-react";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
-import { useGetBankAccounts } from "@/hooks/general/cuentas_bancarias/useGetBankAccounts";
-import { useCompanyStore } from "@/stores/CompanyStore";
 
-const BankAccountsPage = () => {
-  const { selectedCompany } = useCompanyStore();
-  const {
-    data: accounts,
-    isLoading,
-    error,
-  } = useGetBankAccounts();
+const PaymentMethodsPage = () => {
+  const { data: paymentMethods, isLoading, error } = useGetPaymentMethods();
   return (
-    <ContentLayout title={"Cuentas Bancarias"}>
+    <ContentLayout title={"Métodos de Pago"}>
       <h1 className="text-4xl font-bold text-center mb-2">
-        Control de Cuentas
+        Control de Métodos de Pago
       </h1>
       <p className="text-sm text-muted-foreground text-center">
-        Cuentas bancarias, sus métodos de pago y las compañías habilitadas para operar con ellas.
+        Catálogo fijo definido por el sistema (solo lectura): el nombre del registro es el tipo de pago. Cada cuenta bancaria define cuáles puede usar.
       </p>
       {isLoading && (
         <div className="grid mt-72 place-content-center">
@@ -30,13 +24,13 @@ const BankAccountsPage = () => {
       {error && (
         <div className="grid mt-72 place-content-center">
           <p className="text-sm text-muted-foreground">
-            Ha ocurrido un error al cargar las cuentas...
+            Ha ocurrido un error al cargar los métodos de pago...
           </p>
         </div>
       )}
-      {accounts && <DataTable columns={columns} data={accounts} />}
+      {paymentMethods && <DataTable columns={columns} data={paymentMethods} />}
     </ContentLayout>
   );
 };
 
-export default BankAccountsPage;
+export default PaymentMethodsPage;

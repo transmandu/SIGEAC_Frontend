@@ -1,5 +1,5 @@
 import type { Group, MenuContext } from "@/lib/menus/types";
-import { Globe, UserRoundCog, BellRing } from "lucide-react";
+import { Globe, Landmark, UserRoundCog, BellRing } from "lucide-react";
 
 export function buildSettingsGroup({ pathname, currentCompany }: MenuContext): Group {
     return {
@@ -113,6 +113,76 @@ export function buildSettingsGroup({ pathname, currentCompany }: MenuContext): G
                         label: "Agencias de Envío",
                         active: pathname === "/ajustes/globales/agencias_envio",
                         roles: ["JEFE_COMPRAS", "ANALISTA_COMPRAS", "JEFE_ADMINISTRACION", "ANALISTA_ADMINISTRACION", "ASISTENTE_COMPRAS", "SUPERUSER"],
+                    },
+                ],
+            },
+            {
+                href: "/ajustes/bancos_cuentas/bancos",
+                label: "Bancos y Pagos",
+                active: pathname.includes("/ajustes/bancos_cuentas"),
+                icon: Landmark,
+                // Lectura para roles de compras/administración; la gestión
+                // (crear/editar/eliminar) queda restringida a SUPERUSER en la UI y el backend.
+                roles: [
+                    "SUPERUSER",
+                    "JEFE_COMPRAS",
+                    "ANALISTA_COMPRAS",
+                    "ASISTENTE_COMPRAS",
+                    "JEFE_ADMINISTRACION",
+                    "ANALISTA_ADMINISTRACION",
+                ],
+                submenus: [
+                    {
+                        href: "/ajustes/bancos_cuentas/bancos",
+                        label: "Bancos",
+                        active: pathname.startsWith("/ajustes/bancos_cuentas/bancos"),
+                        roles: [
+                            "SUPERUSER",
+                            "JEFE_COMPRAS",
+                            "ANALISTA_COMPRAS",
+                            "ASISTENTE_COMPRAS",
+                            "JEFE_ADMINISTRACION",
+                            "ANALISTA_ADMINISTRACION",
+                        ],
+                    },
+                    {
+                        href: "/ajustes/bancos_cuentas/cuentas",
+                        label: "Cuentas",
+                        active: pathname.startsWith("/ajustes/bancos_cuentas/cuentas"),
+                        roles: [
+                            "SUPERUSER",
+                            "JEFE_COMPRAS",
+                            "ANALISTA_COMPRAS",
+                            "ASISTENTE_COMPRAS",
+                            "JEFE_ADMINISTRACION",
+                            "ANALISTA_ADMINISTRACION",
+                        ],
+                    },
+                    {
+                        href: "/ajustes/bancos_cuentas/metodos_pago",
+                        label: "Métodos de Pago",
+                        active: pathname === "/ajustes/bancos_cuentas/metodos_pago",
+                        roles: [
+                            "SUPERUSER",
+                            "JEFE_COMPRAS",
+                            "ANALISTA_COMPRAS",
+                            "ASISTENTE_COMPRAS",
+                            "JEFE_ADMINISTRACION",
+                            "ANALISTA_ADMINISTRACION",
+                        ],
+                    },
+                    {
+                        href: "/ajustes/bancos_cuentas/tarjetas",
+                        label: "Tarjetas",
+                        active: pathname === "/ajustes/bancos_cuentas/tarjetas",
+                        roles: [
+                            "SUPERUSER",
+                            "JEFE_COMPRAS",
+                            "ANALISTA_COMPRAS",
+                            "ASISTENTE_COMPRAS",
+                            "JEFE_ADMINISTRACION",
+                            "ANALISTA_ADMINISTRACION",
+                        ],
                     },
                 ],
             },

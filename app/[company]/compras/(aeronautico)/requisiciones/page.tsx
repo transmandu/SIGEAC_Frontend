@@ -148,6 +148,7 @@ const RequisitionsPage = () => {
           }
           loading={isLoading}
           toolbar={<CreateRequisitionDialog />}
+          persistKey="requisiciones"
         />
 
         {isError && (

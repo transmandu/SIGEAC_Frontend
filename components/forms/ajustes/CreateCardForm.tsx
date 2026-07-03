@@ -1,5 +1,6 @@
 "use client";
-import { useCreateCard } from "@/actions/general/banco_cuentas/tarjetas/actions";
+import { useCreateCard, useUpdateCard } from "@/actions/general/banco_cuentas/tarjetas/actions";
+import { CompanyMultiSelect } from "@/components/misc/CompanyMultiSelect";
 import {
   Form,
   FormControl,
@@ -17,53 +18,82 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useGetBankAccounts } from "@/hooks/general/cuentas_bancarias/useGetBankAccounts";
+import { Card } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
+import { useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "../../ui/button";
-import { useGetBankAccounts } from "@/hooks/general/cuentas_bancarias/useGetBankAccounts";
-import { generateSlug } from "@/lib/utils";
-import { useCompanyStore } from "@/stores/CompanyStore";
 
 const formSchema = z.object({
   name: z.string().min(3, {
     message: "El nombre debe tener al menos 3 carácteres.",
   }),
   card_number: z.string().min(4, {
-    message: "Debe ingresar un numero de tarjeta valido.",
+    message: "Debe ingresar un número de tarjeta válido.",
   }),
-  type: z.string().min(1, {
-    message: "El tipo debe ser valido.",
+  bank_account_id: z.string().min(1, {
+    message: "Debe elegir una cuenta bancaria.",
   }),
-  bank_account_id: z.string({
-    message: "Debe elegir una cuenta.",
+  payment_method_id: z.string().min(1, {
+    message: "Debe elegir un método de pago.",
   }),
+  company_ids: z.array(z.number()),
 });
 
 interface FormProps {
   onClose: () => void;
+  /** Si se pasa una tarjeta, el formulario pasa a modo edición. */
+  card?: Card;
 }
 
-export default function CreateCardForm({ onClose }: FormProps) {
-  const { selectedCompany } = useCompanyStore();
+export default function CreateCardForm({ onClose, card }: FormProps) {
   const { data: accounts, isLoading: isAccLoading } = useGetBankAccounts();
   const { createCard } = useCreateCard();
+  const { updateCard } = useUpdateCard();
+  const isEditing = !!card;
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
-      type: "",
+      name: card?.name ?? "",
+      card_number: card?.card_number ?? "",
+      bank_account_id: card ? card.bank_account_id.toString() : "",
+      payment_method_id: card ? card.payment_method_id.toString() : "",
+      company_ids: card?.companies?.map((company) => company.id) ?? [],
     },
   });
   const { control } = form;
+
+  const selectedAccountId = form.watch("bank_account_id");
+
+  // El método de pago debe estar habilitado para la cuenta elegida
+  // (pivote bank_account_payment_method).
+  const accountMethods = useMemo(() => {
+    const account = accounts?.find((acc) => acc.id.toString() === selectedAccountId);
+    return account?.payment_methods ?? [];
+  }, [accounts, selectedAccountId]);
+
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    await createCard.mutateAsync({
+    // El tipo de la tarjeta lo define el método de pago elegido.
+    const data = {
       ...values,
-      slug: generateSlug(values.name),
-    });
+      bank_account_id: Number(values.bank_account_id),
+      payment_method_id: Number(values.payment_method_id),
+    };
+
+    if (isEditing) {
+      await updateCard.mutateAsync({ id: card.id, data });
+    } else {
+      await createCard.mutateAsync(data);
+    }
     onClose();
   };
+
+  const isPending = createCard.isPending || updateCard.isPending;
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -78,7 +108,7 @@ export default function CreateCardForm({ onClose }: FormProps) {
                   <Input placeholder="EJ: Tarjeta de TMD, etc..." {...field} />
                 </FormControl>
                 <FormDescription>
-                  Este será el nombre de su banco.
+                  Nombre identificador de la tarjeta.
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -92,7 +122,7 @@ export default function CreateCardForm({ onClose }: FormProps) {
                 <FormLabel>Nro. de Tarjeta</FormLabel>
                 <Input placeholder="EJ: 7184769" {...field} />
                 <FormDescription>
-                  Este sera el tipo de su banco.
+                  Últimos dígitos de la tarjeta.
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -103,22 +133,20 @@ export default function CreateCardForm({ onClose }: FormProps) {
             name="bank_account_id"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Cuenta</FormLabel>
+                <FormLabel>Cuenta bancaria</FormLabel>
                 <Select
                   disabled={isAccLoading}
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
+                  onValueChange={(value) => {
+                    field.onChange(value);
+                    // Cambiar de cuenta invalida el método elegido.
+                    form.setValue("payment_method_id", "");
+                  }}
+                  value={field.value}
                 >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue
-                        placeholder={
-                          isAccLoading ? (
-                            <Loader2 className="animate-spin" />
-                          ) : (
-                            "Seleccione un tipo..."
-                          )
-                        }
+                        placeholder={isAccLoading ? "Cargando..." : "Seleccione una cuenta..."}
                       />
                     </SelectTrigger>
                   </FormControl>
@@ -126,13 +154,13 @@ export default function CreateCardForm({ onClose }: FormProps) {
                     {accounts &&
                       accounts.map((acc) => (
                         <SelectItem value={acc.id.toString()} key={acc.id}>
-                          {acc.name} - {acc.bank.name}
+                          {acc.name} ({acc.account_number}) — {acc.bank.name}
                         </SelectItem>
                       ))}
                   </SelectContent>
                 </Select>
                 <FormDescription>
-                  Este sera la cuenta a la que pertenece la tarjeta.
+                  Cuenta a la que pertenece la tarjeta.
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -140,41 +168,73 @@ export default function CreateCardForm({ onClose }: FormProps) {
           />
           <FormField
             control={form.control}
-            name="type"
+            name="payment_method_id"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Tipo de Tarjeta</FormLabel>
+                <FormLabel>Método de pago</FormLabel>
                 <Select
+                  disabled={!selectedAccountId}
                   onValueChange={field.onChange}
-                  defaultValue={field.value}
+                  value={field.value}
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Seleccione un tipo..." />
+                      <SelectValue
+                        placeholder={
+                          selectedAccountId
+                            ? "Seleccione un método..."
+                            : "Elija una cuenta primero"
+                        }
+                      />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="DEBITO">Debito</SelectItem>
-                    <SelectItem value="CREDITO">Credito</SelectItem>
+                    {accountMethods.length === 0 && (
+                      <p className="p-2 text-xs text-muted-foreground">
+                        La cuenta no tiene métodos de pago habilitados.
+                      </p>
+                    )}
+                    {accountMethods.map((method) => (
+                      <SelectItem value={method.id.toString()} key={method.id}>
+                        {method.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 <FormDescription>
-                  Este sera el tipo de su tarjeta.
+                  Método (habilitado para la cuenta) bajo el que se usa la
+                  tarjeta; define el tipo de la tarjeta.
                 </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
           />
         </div>
+        <FormField
+          control={form.control}
+          name="company_ids"
+          render={({ field }) => (
+            <FormItem className="mt-2">
+              <FormLabel>Compañías habilitadas</FormLabel>
+              <FormControl>
+                <CompanyMultiSelect value={field.value} onChange={field.onChange} />
+              </FormControl>
+              <FormDescription>
+                La tarjeta será válida solo para las compañías seleccionadas.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         <Button
           className="bg-primary mt-2 text-white hover:bg-blue-900 disabled:bg-primary/70"
-          disabled={createCard?.isPending}
+          disabled={isPending}
           type="submit"
         >
-          {createCard?.isPending ? (
+          {isPending ? (
             <Loader2 className="size-4 animate-spin" />
           ) : (
-            <p>Registrar</p>
+            <p>{isEditing ? "Actualizar" : "Registrar"}</p>
           )}
         </Button>
       </form>

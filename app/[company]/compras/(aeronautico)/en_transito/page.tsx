@@ -131,6 +131,7 @@ const EnTransitoPage = () => {
             pageSize={15}
             loadingText="Cargando artículos..."
             emptyText="No se encontraron artículos"
+            persistKey="en_transito"
           />
 
         {isError && (

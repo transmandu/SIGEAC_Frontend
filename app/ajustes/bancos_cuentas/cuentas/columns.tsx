@@ -1,35 +1,13 @@
 "use client"
 
-import WarehouseDropdownActions from "@/components/dropdowns/ajustes/WarehouseDropdownActions"
+import { BankAccountDropdownActions } from "@/components/dropdowns/ajustes/BancosPagosDropdownActions"
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
-import { Checkbox } from "@/components/ui/checkbox"
+import { Badge } from "@/components/ui/badge"
 import { BankAccount } from "@/types"
 import { ColumnDef } from "@tanstack/react-table"
 import Link from "next/link"
 
 export const columns: ColumnDef<BankAccount>[] = [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Seleccionar todos"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Seleccionar fila"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
   {
     accessorKey: "name",
     header: ({ column }) => (
@@ -46,7 +24,7 @@ export const columns: ColumnDef<BankAccount>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Nro. de Cuenta" />
     ),
-    meta: { title: 'Tipo de Banco' },
+    meta: { title: 'Nro. de Cuenta' },
     cell: ({ row }) =>
       <>
         <span className='font-medium flex justify-center italic'>***-******-*****-{row.original.account_number}</span>
@@ -57,7 +35,7 @@ export const columns: ColumnDef<BankAccount>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Banco" />
     ),
-    meta: { title: 'Tipo de Banco' },
+    meta: { title: 'Banco' },
     cell: ({ row }) =>
       <>
         <span className='text-muted-foreground flex justify-center italic'>{row.original.bank.name}</span>
@@ -66,9 +44,9 @@ export const columns: ColumnDef<BankAccount>[] = [
   {
     accessorKey: "account_owner",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Tipo" />
+      <DataTableColumnHeader column={column} title="Titular" />
     ),
-    meta: { title: 'Tipo de Banco' },
+    meta: { title: 'Titular' },
     cell: ({ row }) =>
       <>
         <span className='font-bold flex justify-center italic'>{row.original.account_owner}</span>
@@ -79,10 +57,54 @@ export const columns: ColumnDef<BankAccount>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Tipo de Cuenta" />
     ),
-    meta: { title: 'Tipo de Banco' },
+    meta: { title: 'Tipo de Cuenta' },
     cell: ({ row }) =>
       <>
         <span className='font-bold flex justify-center italic'>{row.original.account_type}</span>
       </>
+  },
+  {
+    accessorKey: "payment_methods",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Métodos de Pago" />
+    ),
+    meta: { title: 'Métodos de Pago' },
+    cell: ({ row }) => {
+      const methods = row.original.payment_methods ?? [];
+      return (
+        <div className='flex flex-wrap justify-center gap-1'>
+          {methods.length === 0 && <span className='text-xs text-muted-foreground italic'>Sin métodos</span>}
+          {methods.map((method) => (
+            <Badge key={method.id} variant="secondary" className='text-[10px]'>{method.name}</Badge>
+          ))}
+        </div>
+      );
+    }
+  },
+  {
+    accessorKey: "companies",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Compañías" />
+    ),
+    meta: { title: 'Compañías' },
+    cell: ({ row }) => {
+      const companies = row.original.companies ?? [];
+      return (
+        <div className='flex flex-wrap justify-center gap-1'>
+          {companies.length === 0 && <span className='text-xs text-muted-foreground italic'>Sin compañías</span>}
+          {companies.map((company) => (
+            <Badge key={company.id} variant="outline" className='text-[10px]'>{company.name}</Badge>
+          ))}
+        </div>
+      );
+    }
+  },
+  {
+    id: "actions",
+    cell: ({ row }) => (
+      <div className="flex justify-center">
+        <BankAccountDropdownActions account={row.original} />
+      </div>
+    ),
   },
 ]
