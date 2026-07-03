@@ -52,7 +52,6 @@ interface FormProps {
 }
 
 const FormSchema = z.object({
-  title: z.string().optional(),
   date: z.date({ required_error: "La fecha es obligatoria" }),
   place: z.string().min(1, "El lugar es obligatorio"),
   objectives: z.array(z.object({
@@ -90,7 +89,6 @@ function buildFormData(companySlug: string, locationId: number, data: FormSchema
   fd.append("date", data.date.toISOString().split("T")[0]);
   fd.append("place", data.place);
   fd.append("location_id", String(locationId));
-  if (data.title) fd.append("title", data.title);
 
   const objectiveValues = data.objectives?.map((o) => o.value).filter(Boolean) ?? [];
   if (objectiveValues.length > 0) {
@@ -145,21 +143,19 @@ export function CreateMeetingMinuteForm({
     try {
       const parsed = JSON.parse(val);
       if (Array.isArray(parsed)) return parsed.map((v: string) => ({ value: String(v) }));
-    } catch {}
+    } catch { }
     return val.trim() ? [{ value: val }] : [];
   };
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      title: initialData?.title ?? "",
       date: initialData?.date ? new Date(initialData.date) : undefined,
       place: initialData?.place ?? "",
       objectives: parseStringArray(initialData?.objective as string | undefined),
       topics: parseStringArray(initialData?.topics as string | undefined),
       chaired_by: typeof initialData?.chaired_by === "object" ? String((initialData.chaired_by as any)?.id ?? "") : String(initialData?.chaired_by ?? ""),
       filled_out_by: typeof initialData?.filled_out_by === "object" ? String((initialData.filled_out_by as any)?.id ?? "") : String(initialData?.filled_out_by ?? ""),
-      prepared_by: typeof initialData?.prepared_by === "object" ? String((initialData.prepared_by as any)?.id ?? "") : String(initialData?.prepared_by ?? ""),
       reviewed_by: typeof initialData?.reviewed_by === "object" ? String((initialData.reviewed_by as any)?.id ?? "") : String(initialData?.reviewed_by ?? ""),
       approved_by: typeof initialData?.approved_by === "object" ? String((initialData.approved_by as any)?.id ?? "") : String(initialData?.approved_by ?? ""),
       attendees: initialData?.attendaces?.map((a) => ({
@@ -228,28 +224,13 @@ export function CreateMeetingMinuteForm({
         onSubmit={form.handleSubmit(onSubmit)}
         className="flex flex-col space-y-5"
       >
+        {/* Fecha y Lugar */}
         <div className="space-y-3">
           <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            Información General
+            Información de la Reunión
           </span>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-            <FormField
-              control={form.control}
-              name="title"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">
-                    Título
-                  </FormLabel>
-                  <FormControl>
-                    <Input placeholder="Título de la reunión" {...field} />
-                  </FormControl>
-                  <FormMessage className="text-xs" />
-                </FormItem>
-              )}
-            />
-
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-3">
             <FormField
               control={form.control}
               name="date"
@@ -314,54 +295,11 @@ export function CreateMeetingMinuteForm({
 
         <Separator className="border-border/60" />
 
+        {/* Motivo */}
         <div className="space-y-3">
           <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            Contenido
+            Motivo
           </span>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <FormField
-              control={form.control}
-              name="photo"
-              render={({ field: { value, onChange, ...field } }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">
-                    Foto
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      type="file"
-                      accept="image/jpeg,image/png,image/jpg"
-                      onChange={(e) => onChange(e.target.files?.[0])}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage className="text-xs" />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="document"
-              render={({ field: { value, onChange, ...field } }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">
-                    Documento
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      type="file"
-                      accept=".pdf"
-                      onChange={(e) => onChange(e.target.files?.[0])}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage className="text-xs" />
-                </FormItem>
-              )}
-            />
-          </div>
 
           <div className="space-y-2">
             <div className="flex items-center justify-between">
@@ -407,58 +345,14 @@ export function CreateMeetingMinuteForm({
               </div>
             ))}
           </div>
-
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                Temas Tratados
-              </FormLabel>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => appendTopic({ value: "" })}
-              >
-                <Plus className="size-3.5 mr-1" />
-                Agregar
-              </Button>
-            </div>
-            {topicFields.length === 0 && (
-              <p className="text-xs text-muted-foreground">No hay temas agregados.</p>
-            )}
-            {topicFields.map((field, index) => (
-              <div key={field.id} className="flex items-start gap-2">
-                <FormField
-                  control={form.control}
-                  name={`topics.${index}.value`}
-                  render={({ field: f }) => (
-                    <FormItem className="flex-1">
-                      <FormControl>
-                        <Input placeholder={`Tema ${index + 1}`} {...f} />
-                      </FormControl>
-                      <FormMessage className="text-xs" />
-                    </FormItem>
-                  )}
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="mt-0.5 shrink-0"
-                  onClick={() => removeTopic(index)}
-                >
-                  <Trash2 className="size-4 text-destructive" />
-                </Button>
-              </div>
-            ))}
-          </div>
         </div>
 
         <Separator className="border-border/60" />
 
+        {/* Quien Preside */}
         <div className="space-y-3">
           <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            Participantes Clave
+            Dirección
           </span>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -492,141 +386,16 @@ export function CreateMeetingMinuteForm({
                 </FormItem>
               )}
             />
-
-            <FormField
-              control={form.control}
-              name="filled_out_by"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">
-                    Diligenciada por
-                  </FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Seleccionar..." />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {employeesLoading ? (
-                        <div className="flex justify-center py-2"><Loader2 className="size-4 animate-spin" /></div>
-                      ) : (
-                        employees?.map((e) => (
-                          <SelectItem key={e.id} value={String(e.id)}>
-                            {getEmployeeFullName(e)}
-                          </SelectItem>
-                        ))
-                      )}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage className="text-xs" />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <FormField
-              control={form.control}
-              name="prepared_by"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">
-                    Preparada por
-                  </FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Opcional" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {employeesLoading ? (
-                        <div className="flex justify-center py-2"><Loader2 className="size-4 animate-spin" /></div>
-                      ) : (
-                        employees?.map((e) => (
-                          <SelectItem key={e.id} value={String(e.id)}>
-                            {getEmployeeFullName(e)}
-                          </SelectItem>
-                        ))
-                      )}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage className="text-xs" />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="reviewed_by"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">
-                    Revisada por
-                  </FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Opcional" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {employeesLoading ? (
-                        <div className="flex justify-center py-2"><Loader2 className="size-4 animate-spin" /></div>
-                      ) : (
-                        employees?.map((e) => (
-                          <SelectItem key={e.id} value={String(e.id)}>
-                            {getEmployeeFullName(e)}
-                          </SelectItem>
-                        ))
-                      )}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage className="text-xs" />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="approved_by"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">
-                    Aprobada por
-                  </FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Opcional" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {employeesLoading ? (
-                        <div className="flex justify-center py-2"><Loader2 className="size-4 animate-spin" /></div>
-                      ) : (
-                        employees?.map((e) => (
-                          <SelectItem key={e.id} value={String(e.id)}>
-                            {getEmployeeFullName(e)}
-                          </SelectItem>
-                        ))
-                      )}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage className="text-xs" />
-                </FormItem>
-              )}
-            />
           </div>
         </div>
 
         <Separator className="border-border/60" />
 
+        {/* Participantes */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              Asistentes
+              Participantes
             </span>
             <Button
               type="button"
@@ -648,7 +417,7 @@ export function CreateMeetingMinuteForm({
           </div>
 
           {attendeeFields.length === 0 && (
-            <p className="text-xs text-muted-foreground">No hay asistentes agregados.</p>
+            <p className="text-xs text-muted-foreground">No hay participantes agregados.</p>
           )}
 
           {attendeeFields.map((field, index) => {
@@ -776,6 +545,61 @@ export function CreateMeetingMinuteForm({
 
         <Separator className="border-border/60" />
 
+        {/* Puntos a Tratar */}
+        <div className="space-y-3">
+          <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            Puntos a Tratar
+          </span>
+
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Temas
+              </FormLabel>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => appendTopic({ value: "" })}
+              >
+                <Plus className="size-3.5 mr-1" />
+                Agregar
+              </Button>
+            </div>
+            {topicFields.length === 0 && (
+              <p className="text-xs text-muted-foreground">No hay temas agregados.</p>
+            )}
+            {topicFields.map((field, index) => (
+              <div key={field.id} className="flex items-start gap-2">
+                <FormField
+                  control={form.control}
+                  name={`topics.${index}.value`}
+                  render={({ field: f }) => (
+                    <FormItem className="flex-1">
+                      <FormControl>
+                        <Input placeholder={`Tema ${index + 1}`} {...f} />
+                      </FormControl>
+                      <FormMessage className="text-xs" />
+                    </FormItem>
+                  )}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="mt-0.5 shrink-0"
+                  onClick={() => removeTopic(index)}
+                >
+                  <Trash2 className="size-4 text-destructive" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <Separator className="border-border/60" />
+
+        {/* Acuerdos */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
@@ -880,6 +704,155 @@ export function CreateMeetingMinuteForm({
               </div>
             </div>
           ))}
+        </div>
+
+        <Separator className="border-border/60" />
+
+        {/* Realizado por, Revisado por, Aprobado por */}
+        <div className="space-y-3">
+          <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            Revisión y Aprobación
+          </span>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <FormField
+              control={form.control}
+              name="prepared_by"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">
+                    Realizado por
+                  </FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Opcional" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {employeesLoading ? (
+                        <div className="flex justify-center py-2"><Loader2 className="size-4 animate-spin" /></div>
+                      ) : (
+                        employees?.map((e) => (
+                          <SelectItem key={e.id} value={String(e.id)}>
+                            {getEmployeeFullName(e)}
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage className="text-xs" />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="reviewed_by"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">
+                    Revisado por
+                  </FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Opcional" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {employeesLoading ? (
+                        <div className="flex justify-center py-2"><Loader2 className="size-4 animate-spin" /></div>
+                      ) : (
+                        employees?.map((e) => (
+                          <SelectItem key={e.id} value={String(e.id)}>
+                            {getEmployeeFullName(e)}
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage className="text-xs" />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="approved_by"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">
+                    Aprobado por
+                  </FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Opcional" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {employeesLoading ? (
+                        <div className="flex justify-center py-2"><Loader2 className="size-4 animate-spin" /></div>
+                      ) : (
+                        employees?.map((e) => (
+                          <SelectItem key={e.id} value={String(e.id)}>
+                            {getEmployeeFullName(e)}
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage className="text-xs" />
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>
+
+        {/* Foto y Documento */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <FormField
+            control={form.control}
+            name="photo"
+            render={({ field: { value, onChange, ...field } }) => (
+              <FormItem className="flex flex-col">
+                <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">
+                  Foto
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    type="file"
+                    accept="image/jpeg,image/png,image/jpg"
+                    onChange={(e) => onChange(e.target.files?.[0])}
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage className="text-xs" />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="document"
+            render={({ field: { value, onChange, ...field } }) => (
+              <FormItem className="flex flex-col">
+                <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">
+                  Documento
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    type="file"
+                    accept=".pdf"
+                    onChange={(e) => onChange(e.target.files?.[0])}
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage className="text-xs" />
+              </FormItem>
+            )}
+          />
         </div>
 
         <Separator className="border-border/60" />

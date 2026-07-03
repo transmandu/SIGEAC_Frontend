@@ -1115,7 +1115,6 @@ export type SafetyBulletin = {
 
 export type MeetingMinutes = {
   id: number;
-  title?: string;
   date: Date;
   place: string;
   location_id: number;
@@ -1123,11 +1122,10 @@ export type MeetingMinutes = {
   topics?: string;
   photo?: string;
   document?: string;
-  chaired_by: number | Employee;
-  filled_out_by: number | Employee;
-  prepared_by?: number | Employee | null;
-  reviewed_by?: number | Employee | null;
-  approved_by?: number | Employee | null;
+  chaired_by: Employee;
+  filled_out_by: Employee;
+  reviewed_by?: Employee | null;
+  approved_by?: Employee | null;
   agreements?: MeetingAgreement[];
   attendaces?: Attendace[];
 }
