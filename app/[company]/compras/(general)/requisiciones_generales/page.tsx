@@ -11,6 +11,7 @@ import { DataTable } from '../../data-table'
 import type { Requisition } from '@/types/purchase'
 import RequisitionToolBar from './_components/RequisitionToolBar'
 import { CreateRequisitionDialog } from '@/components/dialogs/mantenimiento/compras/CreateRequisitionDialog'
+import { GenerateInProgressRequisitionsPdfButton } from '@/components/misc/GenerateInProgressRequisitionsPdfButton'
 import RequisitionSubRow from './_components/RequisitionSubRow'
 import GroupedRequisitionTable from './_components/GroupedRequisitionTable'
 import RequisitionSplitView, { useRequisitionPreview } from '@/components/side-panels/RequisitionSplitView'
@@ -143,8 +144,9 @@ const RequisitionsPageContent = () => {
           </span>
         </div>
 
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
           <CreateRequisitionDialog />
+          <GenerateInProgressRequisitionsPdfButton />
         </div>
 
         {groupBy === 'requested_by' ? (

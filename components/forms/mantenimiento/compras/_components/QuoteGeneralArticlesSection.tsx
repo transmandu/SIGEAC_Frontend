@@ -326,7 +326,7 @@ export function QuoteGeneralArticlesSection({
 
                         {/* Fila 1: Variante · Cantidad · Precio unitario */}
                           <div className="space-y-0.5">
-                            <span className={LABEL_CLS}>Presentación / Variante<RequiredIndicator /></span>
+                            <span className={LABEL_CLS}>Present. / Especif.<RequiredIndicator /></span>
                             <FormField
                               control={control}
                               name={`general_articles.${index}.variant_type`}
