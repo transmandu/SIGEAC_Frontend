@@ -118,7 +118,7 @@ export function buildSettingsGroup({ pathname, currentCompany }: MenuContext): G
             },
             {
                 href: "/ajustes/bancos_cuentas/bancos",
-                label: "Bancos y Pagos",
+                label: "Banca",
                 active: pathname.includes("/ajustes/bancos_cuentas"),
                 icon: Landmark,
                 // Lectura para roles de compras/administración; la gestión
