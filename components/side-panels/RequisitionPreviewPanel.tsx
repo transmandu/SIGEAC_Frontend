@@ -325,7 +325,7 @@ export default function RequisitionPreviewPanel({ requisition, onClose }: Props)
               const details: DetailChipProps[] = []
 
               if (article.variant_type) {
-                details.push({ label: 'Variante', value: article.variant_type })
+                details.push({ label: 'Present. / Especif.', value: article.variant_type })
               }
 
               if (article.requested_date) {
