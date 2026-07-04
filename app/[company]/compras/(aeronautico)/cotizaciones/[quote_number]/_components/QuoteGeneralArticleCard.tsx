@@ -40,10 +40,10 @@ const QuoteGeneralArticleCard = ({ article }: QuoteGeneralArticleCardProps) => {
           {/* IZQUIERDA */}
           <div className="min-w-0 space-y-2.5">
 
-            {/* PRESENTACIÓN / VARIANTE */}
+            {/* PRESENT. / ESPECIF. */}
             <div className="space-y-1">
               <span className="text-[10px] leading-none uppercase tracking-wide text-muted-foreground select-none">
-                Presentación / Variante
+                Present. / Especif.
               </span>
               <div className="flex items-center gap-2 min-w-0">
                 <div className="w-[300px] text-sm bg-muted/40 border border-border/40 rounded px-2 py-1 truncate">

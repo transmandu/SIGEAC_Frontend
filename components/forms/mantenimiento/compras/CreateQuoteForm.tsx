@@ -117,7 +117,7 @@ const FormSchema = z.object({
     if (article.not_quoted) return;
 
     const requiredFields: { key: keyof typeof article; message: string }[] = [
-      { key: "variant_type", message: "La variante es obligatoria." },
+      { key: "variant_type", message: "El campo Present. / Especif. es obligatorio." },
       { key: "brand_model", message: "La marca/modelo es obligatoria." },
       { key: "quantity", message: "La cantidad es obligatoria." },
       { key: "unit", message: "La unidad es obligatoria." },
