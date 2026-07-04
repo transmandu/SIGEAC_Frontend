@@ -28,7 +28,7 @@ export function Sidebar() {
     >
       <SidebarToggle isOpen={isOpen} setIsOpen={setIsOpen} />
 
-      <div className="relative h-full flex flex-col px-3 py-4 overflow-y-auto shadow-md dark:shadow-zinc-800 mt-5">
+      <div className="relative h-full flex flex-col px-3 py-4 overflow-hidden shadow-md dark:shadow-zinc-800 mt-5">
         {/* LOGO CONTAINER */}
         <div
           className={cn(
