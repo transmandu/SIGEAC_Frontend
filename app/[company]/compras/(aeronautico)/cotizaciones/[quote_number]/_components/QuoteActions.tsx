@@ -43,9 +43,9 @@ export default function QuoteActions({
 
   const status = quote.status
 
-  const isApproved = status === "APROBADA"
-  const isRejected = status === "RECHAZADA"
-  const isPending = status === "PENDIENTE"
+  const isApproved = status === "APPROVED"
+  const isRejected = status === "REJECTED"
+  const isPending = status === "PENDING"
 
   const canAct = isPending
   const canDelete = !isApproved

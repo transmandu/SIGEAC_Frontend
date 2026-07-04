@@ -9,10 +9,10 @@ import { DataTable } from "./data-table";
 const BanksPage = () => {
   const { data: banks, isLoading, error } = useGetBanks();
   return (
-    <ContentLayout title={"Almacenes"}>
+    <ContentLayout title={"Bancos"}>
       <h1 className="text-4xl font-bold text-center mb-2">Control de Bancos</h1>
       <p className="text-sm text-muted-foreground text-center">
-        Lleve un control de los diferentes bancos que se han registrado.
+        Registro global de instituciones bancarias.
       </p>
       {isLoading && (
         <div className="grid mt-72 place-content-center">
@@ -22,7 +22,7 @@ const BanksPage = () => {
       {error && (
         <div className="grid mt-72 place-content-center">
           <p className="text-sm text-muted-foreground">
-            Ha ocurrido un error al cargar los almacenes...
+            Ha ocurrido un error al cargar los bancos...
           </p>
         </div>
       )}

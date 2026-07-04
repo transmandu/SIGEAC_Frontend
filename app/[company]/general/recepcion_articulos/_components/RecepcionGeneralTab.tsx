@@ -13,7 +13,10 @@ import {
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Calendar } from '@/components/ui/calendar'
 import { Input } from '@/components/ui/input'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import {
     Table,
     TableBody,
@@ -22,12 +25,13 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table'
+import { useAuth } from '@/contexts/AuthContext'
 import { useGetGeneralArticleIntakes } from '@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticleIntakes'
 import { cn } from '@/lib/utils'
 import type { GeneralArticleIntake, GeneralArticleIntakeStatus } from '@/types/purchase'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { CheckCircle2, Loader2, PackageSearch, Search } from 'lucide-react'
+import { CalendarIcon, CheckCircle2, Loader2, PackageSearch, Search } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
 type StatusFilter = 'ALL' | GeneralArticleIntakeStatus
@@ -35,10 +39,41 @@ type StatusFilter = 'ALL' | GeneralArticleIntakeStatus
 // ── Acción de confirmar una entrada ─────────────────────────────────────
 function ConfirmIntakeAction({ intake }: { intake: GeneralArticleIntake }) {
     const [open, setOpen] = useState(false)
+    const [confirmedAt, setConfirmedAt] = useState<Date>(() => new Date())
     const { confirmGeneralArticleIntake } = useConfirmGeneralArticleIntake()
+    const { user } = useAuth()
+
+    const canEditDate = useMemo(
+        () => (user?.roles ?? []).some((r) => r.name === 'JEFE_ALMACEN' || r.name === 'SUPERUSER'),
+        [user?.roles]
+    )
+
+    const handleOpenChange = (next: boolean) => {
+        if (next) setConfirmedAt(new Date())
+        setOpen(next)
+    }
+
+    const handleDateSelect = (day: Date | undefined) => {
+        if (!day) return
+        setConfirmedAt((prev) => {
+            const next = new Date(day)
+            next.setHours(prev.getHours(), prev.getMinutes(), 0, 0)
+            return next
+        })
+    }
+
+    const handleTimeChange = (value: string) => {
+        const [hours, minutes] = value.split(':').map(Number)
+        if (Number.isNaN(hours) || Number.isNaN(minutes)) return
+        setConfirmedAt((prev) => {
+            const next = new Date(prev)
+            next.setHours(hours, minutes, 0, 0)
+            return next
+        })
+    }
 
     return (
-        <AlertDialog open={open} onOpenChange={setOpen}>
+        <AlertDialog open={open} onOpenChange={handleOpenChange}>
             <AlertDialogTrigger asChild>
                 <button
                     disabled={confirmGeneralArticleIntake.isPending}
@@ -65,13 +100,62 @@ function ConfirmIntakeAction({ intake }: { intake: GeneralArticleIntake }) {
                     </AlertDialogDescription>
                 </AlertDialogHeader>
 
+                {canEditDate && (
+                    <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                            <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                                Fecha y hora de confirmación
+                            </span>
+                            <div className="h-px flex-1 bg-border/60" />
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        variant="outline"
+                                        className={cn(
+                                            'h-9 flex-1 justify-start text-sm bg-background/70',
+                                            !confirmedAt && 'text-muted-foreground'
+                                        )}
+                                    >
+                                        <CalendarIcon className="mr-2 h-3 w-3 opacity-60" />
+                                        {format(confirmedAt, 'dd MMM yyyy', { locale: es })}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0">
+                                    <Calendar
+                                        mode="single"
+                                        selected={confirmedAt}
+                                        onSelect={handleDateSelect}
+                                        locale={es}
+                                        initialFocus
+                                    />
+                                </PopoverContent>
+                            </Popover>
+
+                            <Input
+                                type="time"
+                                value={format(confirmedAt, 'HH:mm')}
+                                onChange={(e) => handleTimeChange(e.target.value)}
+                                className="h-9 w-28 bg-background/70 text-sm"
+                            />
+                        </div>
+                    </div>
+                )}
+
                 <AlertDialogFooter>
                     <AlertDialogCancel disabled={confirmGeneralArticleIntake.isPending}>
                         Cancelar
                     </AlertDialogCancel>
                     <AlertDialogAction
                         disabled={confirmGeneralArticleIntake.isPending}
-                        onClick={() => confirmGeneralArticleIntake.mutate({ id: intake.id })}
+                        onClick={() =>
+                            confirmGeneralArticleIntake.mutate({
+                                id: intake.id,
+                                confirmedAt: canEditDate ? confirmedAt : undefined,
+                            })
+                        }
                     >
                         Confirmar
                     </AlertDialogAction>

@@ -3,15 +3,20 @@
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import { Separator } from '@/components/ui/separator';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Inbox, CheckCheck, X } from 'lucide-react';
 import { useNotifications } from '@/hooks/notifications/useNotifications';
 import { useMarkAllNotificationsAsRead } from '@/hooks/notifications/useMarkAllNotificationsAsRead';
 import { useClearAllNotifications } from '@/hooks/notifications/useClearAllNotifications';
 import { useClearReadNotifications } from '@/hooks/notifications/useClearReadNotifications';
+import { useHideReadNotifications } from '@/hooks/helpers/use-hide-read-notifications';
 import { useCompanyStore } from '@/stores/CompanyStore';
+import { useAuth } from '@/contexts/AuthContext';
 import NotificationItem from './NotificationItem';
 import Link from 'next/link';
+
+const WAREHOUSE_RESTRICTED_ROLES = ['ANALISTA_ALMACEN', 'JEFE_ALMACEN'];
 
 interface Props {
   open: boolean;
@@ -23,9 +28,20 @@ export default function NotificationPanel({
   onClose,
 }: Props) {
   const { selectedCompany } = useCompanyStore();
+  const { user } = useAuth();
+
+  const canClearNotifications = !user?.roles?.some((role) =>
+    WAREHOUSE_RESTRICTED_ROLES.includes(role.name)
+  );
 
   const { notifications, unreadCount } =
     useNotifications(selectedCompany?.slug);
+
+  const { hideRead, setHideRead } = useHideReadNotifications();
+
+  const visibleNotifications = hideRead
+    ? notifications.filter((notification) => !notification.read_at)
+    : notifications;
 
   const { mutate: markAllAsRead, isPending } =
     useMarkAllNotificationsAsRead(
@@ -105,7 +121,7 @@ export default function NotificationPanel({
                         </Link>
                       </TooltipTrigger>
 
-                      <TooltipContent side="right" align="center" sideOffset={8}>
+                      <TooltipContent side="right" align="center" sideOffset={8} className="z-[1001]">
                         Ir al panel
                       </TooltipContent>
                     </Tooltip>
@@ -114,6 +130,14 @@ export default function NotificationPanel({
                   <p className="mt-1 text-xs text-muted-foreground">
                     {unreadCount} sin leer
                   </p>
+
+                  <label className="mt-2 flex items-center gap-2 text-xs text-muted-foreground cursor-pointer w-fit">
+                    <Checkbox
+                      checked={hideRead}
+                      onCheckedChange={(checked) => setHideRead(checked === true)}
+                    />
+                    Ocultar leídas
+                  </label>
                 </div>
 
                 {/* RIGHT ACTIONS */}
@@ -133,7 +157,7 @@ export default function NotificationPanel({
                           </button>
                         </TooltipTrigger>
 
-                        <TooltipContent side="bottom">
+                        <TooltipContent side="bottom" className="z-[1001]">
                           Marcar todas como leídas
                         </TooltipContent>
                       </Tooltip>
@@ -152,7 +176,7 @@ export default function NotificationPanel({
                         </button>
                       </TooltipTrigger>
 
-                      <TooltipContent side="bottom">
+                      <TooltipContent side="bottom" className="z-[1001]">
                         Cerrar
                       </TooltipContent>
                     </Tooltip>
@@ -165,7 +189,7 @@ export default function NotificationPanel({
             {/* CONTENT */}
 
             <div className="flex-1 overflow-y-auto scrollbar-modern">
-              {notifications.length === 0 ? (
+              {visibleNotifications.length === 0 ? (
                 <div className="flex h-full flex-col items-center justify-center px-8 text-center">
                   <Inbox className="mb-4 h-12 w-12text-muted-foreground/50"/>
 
@@ -174,12 +198,14 @@ export default function NotificationPanel({
                   </h3>
 
                   <p className="mt-1 text-xs text-muted-foreground">
-                    Todo está al día.
+                    {hideRead && notifications.length > 0
+                      ? 'No hay notificaciones sin leer.'
+                      : 'Todo está al día.'}
                   </p>
                 </div>
               ) : (
                 <div className="p-2 gap-2 flex flex-col">
-                  {notifications.map(notification => (
+                  {visibleNotifications.map(notification => (
                     <NotificationItem
                       key={notification.id}
                       notification={notification}
@@ -193,52 +219,54 @@ export default function NotificationPanel({
 
             {/* FOOTER */}
 
-            <div className="border-t bg-background/80 backdrop-blur px-4 py-3">
-              <div className="flex items-center justify-center gap-6">
+            {canClearNotifications && (
+              <div className="border-t bg-background/80 backdrop-blur px-4 py-3">
+                <div className="flex items-center justify-center gap-6">
 
-                {/* VACÍAR LEÍDAS */}
-                <TooltipProvider delayDuration={150}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button
-                        onClick={() => clearRead()}
-                        disabled={isClearingRead}
-                        className="flex h-9 w-9 items-center justify-center rounded-lg text-orange-500/70 transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <CheckCheck className="h-4 w-4" />
-                      </button>
-                    </TooltipTrigger>
+                  {/* VACÍAR LEÍDAS */}
+                  <TooltipProvider delayDuration={150}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          onClick={() => clearRead()}
+                          disabled={isClearingRead}
+                          className="flex h-9 w-9 items-center justify-center rounded-lg text-orange-500/70 transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <CheckCheck className="h-4 w-4" />
+                        </button>
+                      </TooltipTrigger>
 
-                    <TooltipContent side="top">
-                      Vaciar leídas
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                      <TooltipContent side="top" className="z-[1001]">
+                        Eliminar leídas
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
 
-                {/* DIVIDER */}
-                <span className="h-5 w-px bg-border/60" />
+                  {/* DIVIDER */}
+                  <span className="h-5 w-px bg-border/60" />
 
-                {/* VACÍAR TODO */}
-                <TooltipProvider delayDuration={150}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button
-                        onClick={() => clearAll()}
-                        disabled={isClearingAll}
-                        className="flex h-9 w-9 items-center justify-center rounded-lg text-red-500/70 transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                    </TooltipTrigger>
+                  {/* VACÍAR TODO */}
+                  <TooltipProvider delayDuration={150}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          onClick={() => clearAll()}
+                          disabled={isClearingAll}
+                          className="flex h-9 w-9 items-center justify-center rounded-lg text-red-500/70 transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </TooltipTrigger>
 
-                    <TooltipContent side="top">
-                      Vaciar todo
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                      <TooltipContent side="top" className="z-[1001]">
+                        Eliminar todo
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
 
+                </div>
               </div>
-            </div>
+            )}
           </motion.aside>
         </>
       )}

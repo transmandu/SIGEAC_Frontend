@@ -20,6 +20,12 @@ import { Loader2, Trash2, User } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
 
+const QUOTE_STATUS_LABELS: Record<string, string> = {
+  PENDING: 'PENDIENTE',
+  APPROVED: 'APROBADA',
+  REJECTED: 'RECHAZADA',
+};
+
 const QuotePage = () => {
 
   const [openDelete, setOpenDelete] = useState<boolean>(false);
@@ -55,7 +61,7 @@ const QuotePage = () => {
       <Card className='max-w-5xl mx-auto'>
         <CardHeader className='flex flex-col items-center'>
           <CardTitle className='flex justify-center text-5xl mb-2'>#{quote_number}</CardTitle>
-          <Badge className={cn("text-lg", data?.status === 'APROBADA' ? "bg-green-500" : "bg-yellow-600")}>{data?.status.toUpperCase()}</Badge>
+          <Badge className={cn("text-lg", data?.status === 'APPROVED' ? "bg-green-500" : "bg-yellow-600")}>{data?.status ? (QUOTE_STATUS_LABELS[data.status] ?? data.status.toUpperCase()) : ''}</Badge>
         </CardHeader>
         <CardContent className='flex flex-col gap-8' >
           <div className='flex w-full justify-center gap-24 text-xl'>
@@ -86,7 +92,7 @@ const QuotePage = () => {
           </div>
         </CardContent>
         {
-          data?.status !== 'APROBADA' && (
+          data?.status !== 'APPROVED' && (
             <CardFooter className='flex gap-2 justify-end'>
               <Button>Aprobar</Button>
               <Button onClick={() => setOpenDelete(true)} variant={"destructive"}><Trash2 /></Button>

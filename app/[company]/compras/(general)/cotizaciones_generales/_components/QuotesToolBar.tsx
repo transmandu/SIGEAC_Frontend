@@ -45,15 +45,15 @@ const FilterSelects = ({
             Todos los estados
           </SelectItem>
 
-          <SelectItem value="PENDIENTE">
+          <SelectItem value="PENDING">
             Pendiente
           </SelectItem>
 
-          <SelectItem value="APROBADA">
+          <SelectItem value="APPROVED">
             Aprobada
           </SelectItem>
 
-          <SelectItem value="RECHAZADA">
+          <SelectItem value="REJECTED">
             Rechazada
           </SelectItem>
         </SelectContent>

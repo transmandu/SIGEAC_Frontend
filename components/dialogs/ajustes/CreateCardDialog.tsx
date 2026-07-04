@@ -11,9 +11,22 @@ import {
 } from "@/components/ui/dialog"
 import { useState } from "react"
 import CreateCardForm from "@/components/forms/ajustes/CreateCardForm"
+import { useAuth } from "@/contexts/AuthContext"
 
 export function CreateCardDialog() {
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
+
+  // La gestión de tarjetas (incluida su validez por compañía) es
+  // exclusiva de ADMINISTRACIÓN (el backend también lo exige).
+  const ALLOWED_ROLES = ["SUPERUSER", "JEFE_ADMINISTRACION", "ANALISTA_ADMINISTRACION"];
+
+  const hasAccess = user?.roles?.some((role) => ALLOWED_ROLES.includes(role.name));
+
+  if (!hasAccess) {
+    return null;
+  }
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>

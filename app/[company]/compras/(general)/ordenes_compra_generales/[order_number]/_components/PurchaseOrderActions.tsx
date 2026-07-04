@@ -35,8 +35,8 @@ export default function PurchaseOrderActions({
   const [openApprove, setOpenApprove] = useState(false)
   const [openInvoice, setOpenInvoice] = useState(false)
 
-  const canPay = po.status === "PENDIENTE"
-  const canComplete = po.status === "PAGADA"
+  const canPay = po.status === "PENDING"
+  const canComplete = po.status === "PAID"
   const hasInvoice = !!po.invoice
 
   return (

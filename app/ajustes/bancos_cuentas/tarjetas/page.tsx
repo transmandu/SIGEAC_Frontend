@@ -11,12 +11,12 @@ const BankAccountsPage = () => {
   const { selectedCompany } = useCompanyStore();
   const { data: cards, isLoading, error } = useGetCards();
   return (
-    <ContentLayout title={"Almacenes"}>
+    <ContentLayout title={"Tarjetas"}>
       <h1 className="text-4xl font-bold text-center mb-2">
         Control de Tarjetas
       </h1>
       <p className="text-sm text-muted-foreground text-center">
-        Lleve un control de las diferentes cuentas que se han registrado.
+        Tarjetas registradas bajo métodos de pago de tipo TARJETA y su validez por compañía.
       </p>
       {isLoading && (
         <div className="grid mt-72 place-content-center">

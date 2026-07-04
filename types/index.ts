@@ -78,22 +78,47 @@ export type Article = {
 export type Bank = {
   id: number;
   name: string;
-  type: string;
-  created_by: string;
-  updated_by: string;
+  slug?: string;
+  type: "NACIONAL" | "EXTRANJERO";
+  registered_by?: string | null;
+  updated_by?: string | null;
 };
 
+/**
+ * Jerarquía: Banco → Cuenta bancaria. Los métodos de pago son un catálogo
+ * global habilitado por cuenta (pivote) y las tarjetas pertenecen a una
+ * cuenta bajo uno de sus métodos. Las cuentas viven en master y su
+ * habilitación por compañía (companies) la administra únicamente un SUPERUSER.
+ */
 export type BankAccount = {
   id: number;
   name: string;
+  slug?: string;
   account_number: string;
-  account_type: string;
-  account_owner: string;
+  account_type: "CORRIENTE" | "AHORRO";
+  account_owner: "NATURAL" | "JURIDICA";
   bank: Bank;
-  cards: Card[];
-  company: Company;
-  created_by: string;
-  updated_by: string;
+  /** Compañías habilitadas para operar con la cuenta. */
+  companies?: Pick<Company, "id" | "name">[];
+  /** Métodos de pago (catálogo global) que esta cuenta puede usar. */
+  payment_methods?: PaymentMethod[];
+  cards?: Card[];
+  registered_by?: string | null;
+  updated_by?: string | null;
+};
+
+/**
+ * Método de pago: catálogo FIJO definido por el sistema (seeder) — el
+ * nombre del registro ES el tipo (Efectivo, Pago Móvil, Tarjeta de
+ * Crédito, ...). Solo lectura vía API; solo name + timestamps.
+ */
+export type PaymentMethod = {
+  id: number;
+  name: string;
+  /** Cuentas habilitadas para usar este método (solo en el listado admin). */
+  bank_accounts?: Pick<BankAccount, "id" | "name" | "account_number">[];
+  created_at?: string;
+  updated_at?: string;
 };
 
 export type Batch = {
@@ -112,14 +137,24 @@ export type Batch = {
   warehouse_name: string;
 };
 
+/**
+ * Tarjeta bancaria: pertenece a una cuenta y se usa bajo un método de pago
+ * del catálogo fijo (habilitado para esa cuenta). El tipo de la tarjeta lo
+ * define su método (Tarjeta de Crédito / Débito / Prepagada) — no tiene
+ * campo type propio. Su validez por compañía la define un SUPERUSER.
+ */
 export type Card = {
   id: number;
   name: string;
   card_number: string;
-  type: string;
-  bank_account: BankAccount;
-  created_by: string;
-  updated_by: string;
+  bank_account_id: number;
+  bank_account?: BankAccount;
+  payment_method_id: number;
+  payment_method?: PaymentMethod;
+  /** Compañías para las que la tarjeta es válida. */
+  companies?: Pick<Company, "id" | "name">[];
+  registered_by?: string | null;
+  updated_by?: string | null;
 };
 
 export type Cash = {
@@ -576,6 +611,18 @@ export type Vendor = {
   type: "PROVEEDOR" | "BENEFICIARIO";
   address: string;
   email: string;
+};
+
+/**
+ * Comercio / lugar de compra de artículos generales: tienda física (centro
+ * comercial, librería, ferretería, supermercado) o sitio en línea (p. ej.
+ * Mercado Libre). Es el equivalente al Vendor para el mundo general.
+ */
+export type Retailer = {
+  id: string | number;
+  name: string;
+  address?: string | null;
+  phone?: string | null;
 };
 
 export type ThirdParty = {

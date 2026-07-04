@@ -51,6 +51,10 @@ export const useCompletePurchase = () => {
           if (data.wire_fee != null) formData.append("wire_fee", String(data.wire_fee))
           if (data.handling_fee != null) formData.append("handling_fee", String(data.handling_fee))
           formData.append("total", String(data.total))
+          // El backend deriva bank_account_id del método de pago cuando se
+          // envía payment_method_id; bank_account_id suelto queda por
+          // compatibilidad con órdenes previas a la reingeniería de pagos.
+          if (data.payment_method_id != null) formData.append("payment_method_id", String(data.payment_method_id))
           if (data.bank_account_id != null) formData.append("bank_account_id", String(data.bank_account_id))
           if (data.card_id != null) formData.append("card_id", String(data.card_id))
           if (data.shipping_fee != null) formData.append("shipping_fee", String(data.shipping_fee))
@@ -137,9 +141,10 @@ export const useRegisterGeneralArticlesDelivery = () => {
   const queryClient = useQueryClient()
 
   const registerDeliveryMutation = useMutation({
-      mutationFn: async ({id, company}: {id: number, company: string}) => {
+      mutationFn: async ({id, company, arrivedAt}: {id: number, company: string, arrivedAt?: Date}) => {
           const {data} = await axiosInstance.patch<RegisterGeneralArticlesDeliveryResponse>(
-            `/${company}/purchase-order/${id}/register-general-articles-delivery`
+            `/${company}/purchase-order/${id}/register-general-articles-delivery`,
+            arrivedAt ? { arrived_at: arrivedAt.toISOString() } : {}
           )
           return data
         },

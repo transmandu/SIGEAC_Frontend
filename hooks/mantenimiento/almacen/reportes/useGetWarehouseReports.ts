@@ -30,7 +30,13 @@ const downloadBlob = (blob: Blob, filename: string) => {
   URL.revokeObjectURL(url);
 };
 
-export function useInventoryExport() {
+type UseInventoryExportReturn = {
+  exporting: State;
+  exportPdf: (p: ExportParams) => Promise<void>;
+  exportExcel: (p: ExportParams) => Promise<void>;
+};
+
+export function useInventoryExport(): UseInventoryExportReturn {
   const { selectedCompany, selectedStation } = useCompanyStore();
   const [exporting, setExporting] = useState<State>({
     pdf: false,
@@ -40,10 +46,10 @@ export function useInventoryExport() {
 
   useEffect(() => () => abortRef.current?.abort(), []);
 
-  const buildParams = (p: ExportParams) => {
+  const buildParams = (p: ExportParams): Record<string, any> => {
     const params: Record<string, any> = {
       category: p.category,
-      search: p.search?.trim() || undefined,
+      part_number: p.search?.trim() || undefined,
       date_from: p.dateFrom || undefined,
       date_to: p.dateTo || undefined,
       ...p.filters, // condition, group, etc.
@@ -55,7 +61,7 @@ export function useInventoryExport() {
     return params;
   };
 
-  const run = async (kind: "pdf" | "xlsx", p: ExportParams) => {
+  const run = async (kind: "pdf" | "xlsx", p: ExportParams): Promise<void> => {
     if (!selectedCompany) throw new Error("Falta companySlug");
     if (selectedStation == null) throw new Error("Falta locationId");
 
@@ -83,8 +89,8 @@ export function useInventoryExport() {
     }
   };
 
-  const exportPdf = (p: ExportParams) => run("pdf", p);
-  const exportExcel = (p: ExportParams) => run("xlsx", p);
+  const exportPdf = (p: ExportParams): Promise<void> => run("pdf", p);
+  const exportExcel = (p: ExportParams): Promise<void> => run("xlsx", p);
 
   return { exporting, exportPdf, exportExcel };
 }

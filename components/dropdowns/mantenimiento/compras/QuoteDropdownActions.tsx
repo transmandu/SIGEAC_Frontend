@@ -54,9 +54,9 @@ const QuoteDropdownActions = ({ quote }: { quote: Quote }) => {
   const [openApprove, setOpenApprove] = useState(false)
   const [openDelete, setOpenDelete] = useState(false)
 
-  const canDelete = quote.status !== "APROBADA"
-  const canViewPO = quote.status === "APROBADA"
-  const canApproveOrReject = quote.status === "PENDIENTE"
+  const canDelete = quote.status !== "APPROVED"
+  const canViewPO = quote.status === "APPROVED"
+  const canApproveOrReject = quote.status === "PENDING"
 
   const shouldFetchPO = canViewPO && !!selectedCompany?.slug && !!quote.id
 

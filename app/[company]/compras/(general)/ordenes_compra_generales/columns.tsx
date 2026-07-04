@@ -2,15 +2,32 @@
 
 import { ColumnDef } from "@tanstack/react-table"
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Calendar } from "@/components/ui/calendar"
+import { Input } from "@/components/ui/input"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { useAuth } from "@/contexts/AuthContext"
 import { cn } from "@/lib/utils"
 import type { PurchaseOrder } from "@/types/purchase"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import Link from "next/link"
 import PurchaseOrderDropdownActions from "@/components/dropdowns/mantenimiento/compras/PurchaseOrderDropdownActions"
-import { ChevronRight, Loader2 } from "lucide-react"
+import { CalendarIcon, ChevronRight, Loader2 } from "lucide-react"
+import { useMemo, useState } from "react"
+import { toast } from "sonner"
 import { useRegisterGeneralArticlesDelivery } from "@/actions/mantenimiento/compras/ordenes_compras/actions"
 
 const ArticlesCountAction = ({
@@ -20,15 +37,26 @@ const ArticlesCountAction = ({
   po: PurchaseOrder
   company?: string
 }) => {
+  const [open, setOpen] = useState(false)
+  const [arrivedAt, setArrivedAt] = useState<Date>(() => new Date())
   const { registerGeneralArticlesDelivery } = useRegisterGeneralArticlesDelivery()
+  const { user } = useAuth()
+
+  const canRegister = useMemo(
+    () => (user?.roles ?? []).some((r) => r.name === "ASISTENTE_COMPRAS" || r.name === "SUPERUSER"),
+    [user?.roles]
+  )
 
   const count =
     (po.article_purchase_order?.length ?? 0) +
     (po.general_article_purchase_order?.length ?? 0)
 
   const isEmpty = count === 0
-  const hasGeneralArticles = (po.general_article_purchase_order?.length ?? 0) > 0
-  const canRegisterDelivery = hasGeneralArticles && !!company
+  const generalArticles = po.general_article_purchase_order ?? []
+  const pendingGeneralArticles = generalArticles.filter((item) => !item.general_article_intake)
+  const hasGeneralArticles = generalArticles.length > 0
+  const hasPendingDelivery = pendingGeneralArticles.length > 0
+  const canRegisterDelivery = hasGeneralArticles && !!company && canRegister
 
   const badge = (
     <div
@@ -44,7 +72,7 @@ const ArticlesCountAction = ({
           border-slate-200/60 dark:border-slate-700/50
           text-slate-600 dark:text-slate-300
         `,
-        canRegisterDelivery && "cursor-pointer hover:bg-emerald-50 hover:border-emerald-300/60 dark:hover:bg-emerald-950/30 dark:hover:border-emerald-700/50"
+        canRegisterDelivery && hasPendingDelivery && "cursor-pointer hover:bg-emerald-50 hover:border-emerald-300/60 dark:hover:bg-emerald-950/30 dark:hover:border-emerald-700/50"
       )}
     >
       {registerGeneralArticlesDelivery.isPending ? (
@@ -71,31 +99,142 @@ const ArticlesCountAction = ({
     return badge
   }
 
-  return (
-    <TooltipProvider delayDuration={120}>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <button
-            type="button"
-            disabled={registerGeneralArticlesDelivery.isPending}
-            onClick={(e) => {
-              e.stopPropagation()
-              if (registerGeneralArticlesDelivery.isPending) return
+  const handleTriggerClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (registerGeneralArticlesDelivery.isPending) return
 
+    if (!hasPendingDelivery) {
+      toast.info("Ya se registró la entrega", {
+        description: "Todos los artículos de esta orden de compra ya fueron entregados.",
+      })
+      return
+    }
+
+    setArrivedAt(new Date())
+    setOpen(true)
+  }
+
+  const handleDateSelect = (day: Date | undefined) => {
+    if (!day) return
+    setArrivedAt((prev) => {
+      const next = new Date(day)
+      next.setHours(prev.getHours(), prev.getMinutes(), 0, 0)
+      return next
+    })
+  }
+
+  const handleTimeChange = (value: string) => {
+    const [hours, minutes] = value.split(":").map(Number)
+    if (Number.isNaN(hours) || Number.isNaN(minutes)) return
+    setArrivedAt((prev) => {
+      const next = new Date(prev)
+      next.setHours(hours, minutes, 0, 0)
+      return next
+    })
+  }
+
+  return (
+    <AlertDialog open={open} onOpenChange={setOpen}>
+      <TooltipProvider delayDuration={120}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              disabled={registerGeneralArticlesDelivery.isPending}
+              onClick={handleTriggerClick}
+              className="inline-flex disabled:opacity-60"
+            >
+              {badge}
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>
+            {hasPendingDelivery
+              ? "Registrar la entrega de los artículos generales de esta orden"
+              : "Todos los artículos ya fueron entregados"}
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+
+      <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Registrar entrega de artículos</AlertDialogTitle>
+          <AlertDialogDescription>
+            Estás a punto de registrar la entrega física de{" "}
+            <span className="font-semibold text-foreground">{pendingGeneralArticles.length}</span>{" "}
+            {pendingGeneralArticles.length === 1 ? "artículo general" : "artículos generales"} de la orden{" "}
+            <span className="font-semibold text-foreground">{po.order_number}</span>.
+            Esto creará las entradas pendientes de verificación en almacén.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+              Fecha y hora de llegada
+            </span>
+            <div className="h-px flex-1 bg-border/60" />
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "h-9 flex-1 justify-start text-sm bg-background/70",
+                    !arrivedAt && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-3 w-3 opacity-60" />
+                  {format(arrivedAt, "dd MMM yyyy", { locale: es })}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={arrivedAt}
+                  onSelect={handleDateSelect}
+                  locale={es}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+
+            <Input
+              type="time"
+              value={format(arrivedAt, "HH:mm")}
+              onChange={(e) => handleTimeChange(e.target.value)}
+              className="h-9 w-28 bg-background/70 text-sm"
+            />
+          </div>
+        </div>
+
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={registerGeneralArticlesDelivery.isPending}>
+            Cancelar
+          </AlertDialogCancel>
+          <AlertDialogAction
+            disabled={registerGeneralArticlesDelivery.isPending}
+            onClick={() =>
               registerGeneralArticlesDelivery.mutate({
                 id: po.id,
                 company: company!,
+                arrivedAt,
               })
-            }}
-            className="inline-flex disabled:opacity-60"
+            }
           >
-            {badge}
-          </button>
-        </TooltipTrigger>
-        <TooltipContent>Registrar la entrega de los artículos generales de esta orden</TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+            Confirmar
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   )
+}
+
+const PO_STATUS_LABELS: Record<string, string> = {
+  PENDING: 'PENDIENTE',
+  PAID: 'PAGADA',
+  COMPLETED: 'COMPLETADA',
 }
 
 export const getColumns = (
@@ -126,7 +265,7 @@ export const getColumns = (
 
   {
     accessorKey: "order_number",
-    size: 180,
+    size: 210,
 
     header: ({ column }) => (
       <div className="flex justify-center w-full">
@@ -189,6 +328,41 @@ export const getColumns = (
   },
 
   {
+    accessorKey: "retailer",
+    size: 240,
+
+    header: ({ column }) => (
+      <div className="flex justify-center w-full">
+        <DataTableColumnHeader column={column} title="Comercio" />
+      </div>
+    ),
+
+    meta: {
+      title: "Comercio",
+    },
+
+    cell: ({ row }) => {
+      const name = row.original.retailer?.name
+
+      if (!name) {
+        return (
+          <div className="flex justify-center w-full">
+            <span className="text-sm text-muted-foreground">—</span>
+          </div>
+        )
+      }
+
+      return (
+        <div className="flex justify-center w-full min-w-0">
+          <span className="block w-full max-w-[220px] whitespace-normal break-words text-center text-sm font-medium text-slate-700 dark:text-slate-200">
+            {name}
+          </span>
+        </div>
+      )
+    },
+  },
+
+  {
     accessorKey: "purchase_date",
     size: 200,
 
@@ -230,8 +404,8 @@ export const getColumns = (
     cell: ({ row }) => {
       const status = row.original.status
 
-      const completed = status === "COMPLETADA"
-      const paid = status === "PAGADA"
+      const completed = status === "COMPLETED"
+      const paid = status === "PAID"
 
       return (
         <div className="flex justify-center w-full">
@@ -276,7 +450,7 @@ export const getColumns = (
                 `
             )}
           >
-            {status}
+            {PO_STATUS_LABELS[status] ?? status}
           </Badge>
         </div>
       )
@@ -285,7 +459,7 @@ export const getColumns = (
 
   {
     accessorKey: "articles",
-    size: 180,
+    size: 150,
 
     header: ({ column }) => (
       <div className="flex justify-center w-full">
@@ -306,7 +480,7 @@ export const getColumns = (
 
   {
     id: "actions",
-    size: 120,
+    size: 100,
     header: ({ column }) => (
       <div className="flex justify-center w-full">
         <DataTableColumnHeader column={column} title="Acciones" />

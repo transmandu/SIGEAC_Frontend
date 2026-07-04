@@ -1,76 +1,85 @@
 "use client"
 
-import WarehouseDropdownActions from "@/components/dropdowns/ajustes/WarehouseDropdownActions"
+import { CardDropdownActions } from "@/components/dropdowns/ajustes/BancosPagosDropdownActions"
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
-import { Checkbox } from "@/components/ui/checkbox"
+import { Badge } from "@/components/ui/badge"
 import { Card } from "@/types"
 import { ColumnDef } from "@tanstack/react-table"
 
 export const columns: ColumnDef<Card>[] = [
   {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Seleccionar todos"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Seleccionar fila"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
     accessorKey: "name",
     header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Nro. de Tarjeta" />
+      <DataTableColumnHeader filter column={column} title="Nombre" />
+    ),
+    meta: { title: 'Nombre' },
+    cell: ({ row }) =>
+      <>
+        <span className='font-bold flex justify-center'>{row.original.name}</span>
+      </>
+  },
+  {
+    accessorKey: "card_number",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Nro. de Tarjeta" />
     ),
     meta: { title: 'Nro. de Tarjeta' },
     cell: ({ row }) =>
       <>
-        <span className='font-bold flex justify-center'>****-******-****-{row.original.card_number}</span>
+        <span className='font-medium flex justify-center'>****-******-****-{row.original.card_number}</span>
       </>
   },
   {
-    accessorKey: "type",
+    accessorKey: "payment_method",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Tipo de Tarjeta" />
+      // El método define el tipo de la tarjeta (Crédito / Débito / Prepagada).
+      <DataTableColumnHeader column={column} title="Método de Pago" />
     ),
-    meta: { title: 'Tipo de Tarjeta' },
+    meta: { title: 'Método de Pago' },
     cell: ({ row }) =>
       <>
-        <span className='font-medium flex justify-center italic'>{row.original.type}</span>
+        <span className='font-medium flex justify-center italic'>{row.original.payment_method?.name ?? "N/A"}</span>
       </>
   },
   {
-    accessorKey: "bank",
+    id: "bank",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Banco" />
+      <DataTableColumnHeader column={column} title="Banco / Cuenta" />
     ),
-    meta: { title: 'Banco' },
-    cell: ({ row }) =>
-      <>
-        <span className='text-muted-foreground flex justify-center italic'>{row.original.bank_account.bank.name}</span>
-      </>
+    meta: { title: 'Banco / Cuenta' },
+    cell: ({ row }) => {
+      const account = row.original.bank_account;
+      return (
+        <span className='text-muted-foreground flex justify-center italic'>
+          {account ? `${account.bank?.name ?? "N/A"} — ${account.account_number}` : "N/A"}
+        </span>
+      );
+    }
   },
   {
-    accessorKey: "bank_account",
+    accessorKey: "companies",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Cuenta" />
+      <DataTableColumnHeader column={column} title="Compañías" />
     ),
-    meta: { title: 'Cuenta' },
-    cell: ({ row }) =>
-      <>
-        <span className='text-muted-foreground flex justify-center italic'>******-*******-****-{row.original.bank_account.account_number}</span>
-      </>
+    meta: { title: 'Compañías' },
+    cell: ({ row }) => {
+      const companies = row.original.companies ?? [];
+      return (
+        <div className='flex flex-wrap justify-center gap-1'>
+          {companies.length === 0 && <span className='text-xs text-muted-foreground italic'>Sin compañías</span>}
+          {companies.map((company) => (
+            <Badge key={company.id} variant="outline" className='text-[10px]'>{company.name}</Badge>
+          ))}
+        </div>
+      );
+    }
+  },
+  {
+    id: "actions",
+    cell: ({ row }) => (
+      <div className="flex justify-center">
+        <CardDropdownActions card={row.original} />
+      </div>
+    ),
   },
 ]

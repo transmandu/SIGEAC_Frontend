@@ -15,12 +15,12 @@ const BankAccountsPage = () => {
     error,
   } = useGetBankAccounts();
   return (
-    <ContentLayout title={"Almacenes"}>
+    <ContentLayout title={"Cuentas Bancarias"}>
       <h1 className="text-4xl font-bold text-center mb-2">
         Control de Cuentas
       </h1>
       <p className="text-sm text-muted-foreground text-center">
-        Lleve un control de las diferentes cuentas que se han registrado.
+        Cuentas bancarias, sus métodos de pago y las compañías habilitadas para operar con ellas.
       </p>
       {isLoading && (
         <div className="grid mt-72 place-content-center">
@@ -30,7 +30,7 @@ const BankAccountsPage = () => {
       {error && (
         <div className="grid mt-72 place-content-center">
           <p className="text-sm text-muted-foreground">
-            Ha ocurrido un error al cargar los almacenes...
+            Ha ocurrido un error al cargar las cuentas...
           </p>
         </div>
       )}
