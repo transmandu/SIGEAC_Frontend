@@ -59,12 +59,24 @@ const InventarioGeneralPage = () => {
       return {
         ...col,
         cell: ({ row }: any) => {
-          const qty = Number((row.original as GeneralArticle).quantity ?? 0);
+          const article = row.original as GeneralArticle;
+          const qty = Number(article.quantity ?? 0);
+          const unitLabel = article.general_primary_unit?.label;
+
+          if (qty <= 0) {
+            return (
+              <div className="flex justify-center">
+                <Badge variant="destructive" className="px-2 py-1 text-xs">
+                  No Disponible
+                </Badge>
+              </div>
+            );
+          }
 
           return (
             <div className="flex justify-center">
               <Badge variant="secondary" className="tabular-nums px-2 py-1 text-xs">
-                {qty}
+                {qty} {unitLabel ?? ""}
               </Badge>
             </div>
           );
