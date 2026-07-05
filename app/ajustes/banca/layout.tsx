@@ -7,10 +7,9 @@ const BankAccountLayout = ({ children }: { children: React.ReactNode }) => {
       roles={[
         "ANALISTA_ADMINISTRACION",
         "JEFE_ADMINISTRACION",
-        "JEFE_CONTADURIA",
-        "RRHH",
         "ANALISTA_COMPRAS",
         "JEFE_COMPRAS",
+        "ASISTENTE_COMPRAS",
         "SUPERUSER",
       ]}
     >

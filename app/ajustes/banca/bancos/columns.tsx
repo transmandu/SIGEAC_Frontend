@@ -15,7 +15,7 @@ export const columns: ColumnDef<Bank>[] = [
     meta: { title: 'Nombre' },
     cell: ({ row }) =>
       <>
-        <Link href={`/ajustes/bancos_cuentas/bancos/${row.original.id}`} className='font-bold flex justify-center hover:scale-110 transition-all ease-in '>{row.original.name ?? "N/A"}</Link>
+        <Link href={`/ajustes/banca/bancos/${row.original.id}`} className='font-bold flex justify-center hover:scale-110 transition-all ease-in '>{row.original.name ?? "N/A"}</Link>
       </>
   },
   {
