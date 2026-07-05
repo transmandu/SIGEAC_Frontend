@@ -1,6 +1,6 @@
 "use client"
 
-import { useUpdateUser } from "@/actions/general/usuarios/actions";
+import { useUpdateUser } from "@/actions/sistema/usuarios/actions";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";

@@ -2,7 +2,7 @@
 import {
   useCreateBankAccount,
   useUpdateBankAccount,
-} from "@/actions/general/banco_cuentas/cuentas/actions";
+} from "@/actions/ajustes/banca/cuentas/actions";
 import { CompanyMultiSelect } from "@/components/misc/CompanyMultiSelect";
 import { PaymentMethodMultiSelect } from "@/components/misc/PaymentMethodMultiSelect";
 import {

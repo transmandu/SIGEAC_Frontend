@@ -1,5 +1,5 @@
 "use client";
-import { useCreateCard, useUpdateCard } from "@/actions/general/banco_cuentas/tarjetas/actions";
+import { useCreateBankCard, useUpdateBankCard } from "@/actions/ajustes/banca/tarjetas/actions";
 import { CompanyMultiSelect } from "@/components/misc/CompanyMultiSelect";
 import {
   Form,
@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useGetBankAccounts } from "@/hooks/general/cuentas_bancarias/useGetBankAccounts";
-import { Card } from "@/types";
+import { BankCard } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { useMemo } from "react";
@@ -46,23 +46,23 @@ const formSchema = z.object({
 interface FormProps {
   onClose: () => void;
   /** Si se pasa una tarjeta, el formulario pasa a modo edición. */
-  card?: Card;
+  bankCard?: BankCard;
 }
 
-export default function CreateCardForm({ onClose, card }: FormProps) {
+export default function CreateBankCardForm({ onClose, bankCard }: FormProps) {
   const { data: accounts, isLoading: isAccLoading } = useGetBankAccounts();
-  const { createCard } = useCreateCard();
-  const { updateCard } = useUpdateCard();
-  const isEditing = !!card;
+  const { createCard } = useCreateBankCard();
+  const { updateCard } = useUpdateBankCard();
+  const isEditing = !!bankCard;
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: card?.name ?? "",
-      card_number: card?.card_number ?? "",
-      bank_account_id: card ? card.bank_account_id.toString() : "",
-      payment_method_id: card ? card.payment_method_id.toString() : "",
-      company_ids: card?.companies?.map((company) => company.id) ?? [],
+      name: bankCard?.name ?? "",
+      card_number: bankCard?.card_number ?? "",
+      bank_account_id: bankCard ? bankCard.bank_account_id.toString() : "",
+      payment_method_id: bankCard ? bankCard.payment_method_id.toString() : "",
+      company_ids: bankCard?.companies?.map((company) => company.id) ?? [],
     },
   });
   const { control } = form;
@@ -85,7 +85,7 @@ export default function CreateCardForm({ onClose, card }: FormProps) {
     };
 
     if (isEditing) {
-      await updateCard.mutateAsync({ id: card.id, data });
+      await updateCard.mutateAsync({ id: bankCard.id, data });
     } else {
       await createCard.mutateAsync(data);
     }

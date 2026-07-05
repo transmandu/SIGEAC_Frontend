@@ -227,7 +227,7 @@ const PurchaseOrderPage = () => {
           }}
           paymentMethod={data?.payment_method}
           bankAccount={data?.bank_account}
-          card={data?.card}
+          card={data?.bank_card}
           isAeronautical={isAeronauticalPurchaseOrder(data)}
         />
 

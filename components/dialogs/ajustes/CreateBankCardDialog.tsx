@@ -10,10 +10,10 @@ import {
   DialogTrigger
 } from "@/components/ui/dialog"
 import { useState } from "react"
-import CreateCardForm from "@/components/forms/ajustes/CreateCardForm"
+import CreateBankCardForm from "@/components/forms/ajustes/CreateBankCardForm"
 import { useAuth } from "@/contexts/AuthContext"
 
-export function CreateCardDialog() {
+export function CreateBankCardDialog() {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
 
@@ -39,7 +39,7 @@ export function CreateCardDialog() {
             Registre una tarjeta rellenando la información necesaria.
           </DialogDescription>
         </DialogHeader>
-        <CreateCardForm onClose={() => setOpen(false)} />
+        <CreateBankCardForm onClose={() => setOpen(false)} />
       </DialogContent>
     </Dialog>
   )

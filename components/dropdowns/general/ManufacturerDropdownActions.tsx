@@ -6,7 +6,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 
-import { useDeleteManufacturer, useUpdateManufacturer } from "@/actions/general/fabricantes/actions"
+import { useDeleteManufacturer, useUpdateManufacturer } from "@/actions/ajustes/globales/fabricantes/actions"
 import { Loader2, MoreHorizontal, Pencil, Trash2 } from "lucide-react"
 import { useState } from "react"
 import { Button } from "../../ui/button"

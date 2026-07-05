@@ -1,12 +1,12 @@
 "use client"
 
-import { CardDropdownActions } from "@/components/dropdowns/ajustes/BancosPagosDropdownActions"
+import { BankCardDropdownActions } from "@/components/dropdowns/ajustes/BancosPagosDropdownActions"
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
 import { Badge } from "@/components/ui/badge"
-import { Card } from "@/types"
+import { BankCard } from "@/types"
 import { ColumnDef } from "@tanstack/react-table"
 
-export const columns: ColumnDef<Card>[] = [
+export const columns: ColumnDef<BankCard>[] = [
   {
     accessorKey: "name",
     header: ({ column }) => (
@@ -78,7 +78,7 @@ export const columns: ColumnDef<Card>[] = [
     id: "actions",
     cell: ({ row }) => (
       <div className="flex justify-center">
-        <CardDropdownActions card={row.original} />
+        <BankCardDropdownActions bankCard={row.original} />
       </div>
     ),
   },

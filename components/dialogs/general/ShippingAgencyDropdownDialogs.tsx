@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Loader2, Trash2, Edit3, AlertTriangle } from "lucide-react"
 import { ShippingAgency } from "@/types"
 import { useCompanyStore } from "@/stores/CompanyStore"
-import { useDeleteShippingAgency, useUpdateShippingAgency } from "@/actions/general/agencias_envio/actions"
+import { useDeleteShippingAgency, useUpdateShippingAgency } from "@/actions/ajustes/globales/agencias_envio/actions"
 import { CreateShippingAgencyForm } from "@/components/forms/general/CreateShippingAgencyForm"
 import LoadingPage from "@/components/misc/LoadingPage"
 

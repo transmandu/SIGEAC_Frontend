@@ -83,7 +83,7 @@ export const useDeleteBankAccount = () => {
     onSuccess: () => {
       invalidateBankAccountQueries(queryClient);
       // Los métodos y tarjetas de la cuenta se eliminan en cascada.
-      queryClient.invalidateQueries({ queryKey: ["cards"] });
+      queryClient.invalidateQueries({ queryKey: ["bank-cards"] });
       toast.success("¡Eliminada!", {
         description: "¡La cuenta ha sido eliminada correctamente!",
       });

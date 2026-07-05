@@ -2,7 +2,7 @@ import axiosInstance from "@/lib/axios";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-interface CardData {
+interface BankCardData {
   name: string;
   card_number: string;
   /** Cuenta a la que pertenece la tarjeta. */
@@ -13,22 +13,22 @@ interface CardData {
   company_ids?: number[];
 }
 
-const invalidateCardQueries = (queryClient: ReturnType<typeof useQueryClient>) => {
-  queryClient.invalidateQueries({ queryKey: ["cards"] });
+const invalidateBankCardQueries = (queryClient: ReturnType<typeof useQueryClient>) => {
+  queryClient.invalidateQueries({ queryKey: ["bank-cards"] });
   queryClient.invalidateQueries({ queryKey: ["payment-methods"] });
   queryClient.invalidateQueries({ queryKey: ["bank-accounts"] });
   queryClient.invalidateQueries({ queryKey: ["payment-options"] });
 };
 
-export const useCreateCard = () => {
+export const useCreateBankCard = () => {
   const queryClient = useQueryClient();
 
   const createMutation = useMutation({
-    mutationFn: async (data: CardData) => {
-      await axiosInstance.post("/cards", data);
+    mutationFn: async (data: BankCardData) => {
+      await axiosInstance.post("/bank-cards", data);
     },
     onSuccess: () => {
-      invalidateCardQueries(queryClient);
+      invalidateBankCardQueries(queryClient);
       toast.success("¡Creada!", {
         description: "¡La tarjeta se ha creado correctamente!",
       });
@@ -46,15 +46,15 @@ export const useCreateCard = () => {
   };
 };
 
-export const useUpdateCard = () => {
+export const useUpdateBankCard = () => {
   const queryClient = useQueryClient();
 
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: number | string; data: Partial<CardData> }) => {
-      await axiosInstance.put(`/cards/${id}`, data);
+    mutationFn: async ({ id, data }: { id: number | string; data: Partial<BankCardData> }) => {
+      await axiosInstance.put(`/bank-cards/${id}`, data);
     },
     onSuccess: () => {
-      invalidateCardQueries(queryClient);
+      invalidateBankCardQueries(queryClient);
       toast.success("¡Actualizada!", {
         description: "¡La tarjeta se ha actualizado correctamente!",
       });
@@ -72,15 +72,15 @@ export const useUpdateCard = () => {
   };
 };
 
-export const useDeleteCard = () => {
+export const useDeleteBankCard = () => {
   const queryClient = useQueryClient();
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number | string) => {
-      await axiosInstance.delete(`/cards/${id}`);
+      await axiosInstance.delete(`/bank-cards/${id}`);
     },
     onSuccess: () => {
-      invalidateCardQueries(queryClient);
+      invalidateBankCardQueries(queryClient);
       toast.success("¡Eliminada!", {
         description: "¡La tarjeta ha sido eliminada correctamente!",
       });

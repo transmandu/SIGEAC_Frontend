@@ -1,6 +1,6 @@
 "use client";
 
-import { useCreateEmployee } from "@/actions/general/empleados/actions";
+import { useCreateEmployee } from "@/actions/sistema/empresas/empleados/actions";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -50,7 +50,7 @@ import { Checkbox } from '../../ui/checkbox';
 import { Label } from '../../ui/label';
 import { Separator } from '../../ui/separator';
 import { useGetCompanies } from '@/hooks/sistema/useGetCompanies';
-import { useCreateUser } from '@/actions/general/usuarios/actions';
+import { useCreateUser } from '@/actions/sistema/usuarios/actions';
 import Image from "next/image";
 import { Department, Location as AppLocation } from "@/types";
 

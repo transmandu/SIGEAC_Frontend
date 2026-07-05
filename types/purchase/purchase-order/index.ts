@@ -1,4 +1,4 @@
-import type { Unit, Location, BankAccount, Card, PaymentMethod, ShippingAgency, GeneralArticle, Retailer } from '@/types';
+import type { Unit, Location, BankAccount, BankCard, PaymentMethod, ShippingAgency, GeneralArticle, Retailer } from '@/types';
 import type { ArticleRequisitionOrderRef, GeneralArticleRequisitionOrderRef } from '@/types/purchase/quote';
 
 // ── Purchase order status ───────────────────────────────────────────────────
@@ -116,7 +116,7 @@ export interface PurchaseOrder {
   /** Cómo se pagó la orden: método de pago (con su cuenta y banco), y tarjeta si aplica. */
   payment_method?: PaymentMethod | null;
   bank_account?: BankAccount | null;
-  card?: Card | null;
+  bank_card?: BankCard | null;
   shipping_agency?: ShippingAgency | null;
   vendor: PurchaseOrderVendorRef | null;
   /** Present on general POs — the comercio / lugar de compra this order groups. */
@@ -179,7 +179,7 @@ export interface UpdatePurchaseOrderData {
   /** El backend deriva bank_account_id del método de pago cuando se envía payment_method_id. */
   payment_method_id?: number | null;
   bank_account_id?: number | null;
-  card_id?: number | null;
+  bank_card_id?: number | null;
   shipping_fee?: number | null;
   shipping_agency_id?: number | null;
   international_shipping?: number | null;
