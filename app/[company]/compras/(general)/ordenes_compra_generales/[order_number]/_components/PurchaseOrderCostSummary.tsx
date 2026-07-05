@@ -1,5 +1,5 @@
 import { Building2, CreditCard, Wallet } from 'lucide-react';
-import type { BankAccount, Card, PaymentMethod } from '@/types';
+import type { BankAccount, BankCard, PaymentMethod } from '@/types';
 
 interface CostBreakdown {
   sub_total?: number | null;
@@ -15,7 +15,7 @@ interface PurchaseOrderCostSummaryProps {
   costs: CostBreakdown;
   paymentMethod?: PaymentMethod | null;
   bankAccount?: BankAccount | null;
-  card?: Card | null;
+  card?: BankCard | null;
   isAeronautical?: boolean;
 }
 

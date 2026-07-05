@@ -1,7 +1,7 @@
 "use client";
 
 import { useCreateMaintenanceAircraft, AircraftPartAPI } from "@/actions/mantenimiento/planificacion/aeronaves/actions";
-import { useCreateClient } from "@/actions/general/clientes/actions";
+import { useCreateClient } from "@/actions/ajustes/globales/clientes/actions";
 import { useGetClients } from "@/hooks/general/clientes/useGetClients";
 import { useGetManufacturers } from "@/hooks/general/condiciones/useGetConditions";
 import { AircraftPartsInfoForm } from "@/components/forms/mantenimiento/aeronaves/AircraftPartsForm";

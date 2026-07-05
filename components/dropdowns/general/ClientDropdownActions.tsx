@@ -30,7 +30,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from "../../ui/dialog";
-import { useDeleteClient } from "@/actions/general/clientes/actions";
+import { useDeleteClient } from "@/actions/ajustes/globales/clientes/actions";
 import { useCompanyStore } from "@/stores/CompanyStore";
 
 const ClientDropdownActions = ({ client }: { client: Client }) => {

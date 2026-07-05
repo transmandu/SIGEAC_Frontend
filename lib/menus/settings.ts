@@ -117,9 +117,9 @@ export function buildSettingsGroup({ pathname, currentCompany }: MenuContext): G
                 ],
             },
             {
-                href: "/ajustes/bancos_cuentas/bancos",
-                label: "Bancos y Pagos",
-                active: pathname.includes("/ajustes/bancos_cuentas"),
+                href: "/ajustes/banca/bancos",
+                label: "Banca",
+                active: pathname.includes("/ajustes/banca"),
                 icon: Landmark,
                 // Lectura para roles de compras/administración; la gestión
                 // (crear/editar/eliminar) queda restringida a SUPERUSER en la UI y el backend.
@@ -133,9 +133,9 @@ export function buildSettingsGroup({ pathname, currentCompany }: MenuContext): G
                 ],
                 submenus: [
                     {
-                        href: "/ajustes/bancos_cuentas/bancos",
+                        href: "/ajustes/banca/bancos",
                         label: "Bancos",
-                        active: pathname.startsWith("/ajustes/bancos_cuentas/bancos"),
+                        active: pathname.startsWith("/ajustes/banca/bancos"),
                         roles: [
                             "SUPERUSER",
                             "JEFE_COMPRAS",
@@ -146,9 +146,9 @@ export function buildSettingsGroup({ pathname, currentCompany }: MenuContext): G
                         ],
                     },
                     {
-                        href: "/ajustes/bancos_cuentas/cuentas",
+                        href: "/ajustes/banca/cuentas",
                         label: "Cuentas",
-                        active: pathname.startsWith("/ajustes/bancos_cuentas/cuentas"),
+                        active: pathname.startsWith("/ajustes/banca/cuentas"),
                         roles: [
                             "SUPERUSER",
                             "JEFE_COMPRAS",
@@ -159,9 +159,9 @@ export function buildSettingsGroup({ pathname, currentCompany }: MenuContext): G
                         ],
                     },
                     {
-                        href: "/ajustes/bancos_cuentas/metodos_pago",
+                        href: "/ajustes/banca/metodos_pago",
                         label: "Métodos de Pago",
-                        active: pathname === "/ajustes/bancos_cuentas/metodos_pago",
+                        active: pathname === "/ajustes/banca/metodos_pago",
                         roles: [
                             "SUPERUSER",
                             "JEFE_COMPRAS",
@@ -172,9 +172,9 @@ export function buildSettingsGroup({ pathname, currentCompany }: MenuContext): G
                         ],
                     },
                     {
-                        href: "/ajustes/bancos_cuentas/tarjetas",
+                        href: "/ajustes/banca/tarjetas",
                         label: "Tarjetas",
-                        active: pathname === "/ajustes/bancos_cuentas/tarjetas",
+                        active: pathname === "/ajustes/banca/tarjetas",
                         roles: [
                             "SUPERUSER",
                             "JEFE_COMPRAS",
