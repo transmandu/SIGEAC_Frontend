@@ -7,16 +7,6 @@ import { IncomingArticle } from "./IncomingTypes";
 
 export const form_columns: ColumnDef<IncomingArticle>[] = [
   {
-    accessorKey: "order_number",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Nro. Orden" />
-    ),
-    meta: { title: "Nro. Orden" },
-    cell: ({ row }) => (
-      <p className="text-center">{row.original.order_number ?? "-"}</p>
-    )
-  },
-  {
     id: "select",
     header: ({ table }) => (
       <div className="flex justify-center">
@@ -41,6 +31,17 @@ export const form_columns: ColumnDef<IncomingArticle>[] = [
     ),
     enableSorting: false,
     enableHiding: false,
+  },
+
+  {
+    accessorKey: "order_number",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Nro. Orden" />
+    ),
+    meta: { title: "Nro. Orden" },
+    cell: ({ row }) => (
+      <p className="text-center">{row.original.order_number ?? "-"}</p>
+    )
   },
   {
     accessorKey: "batch.name",
