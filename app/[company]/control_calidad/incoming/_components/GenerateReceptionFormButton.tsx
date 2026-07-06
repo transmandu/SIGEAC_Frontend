@@ -43,9 +43,9 @@ export function GenerateReceptionFormButton({
 
       const payload = {
         inspection_date: format(inspectionDate, "yyyy-MM-dd"),
-        purchase_order_code: purchaseOrderCode.trim() || "N/A",
-        client: client.trim() || "N/A",
-        others: others.trim() || "N/A",
+        purchase_order_code: purchaseOrderCode.trim() || null,
+        client: client.trim() || null,
+        others: others.trim() || null,
         article_ids: selected.map((a) => a.id),
         download: downloadFormat,
       };

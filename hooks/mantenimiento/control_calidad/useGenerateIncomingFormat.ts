@@ -4,9 +4,9 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export type GenerateReceptionFormPayload = {
   inspection_date: string;
-  purchase_order_code: string;
-  client: string;
-  others?: string | null;
+  purchase_order_code: string | null;
+  client: string | null;
+  others: string | null;
   article_ids: number[];
   download: boolean;
 };
@@ -30,7 +30,7 @@ export function useGenerateIncomingFormat() {
         const disposition = res.headers?.["content-disposition"];
         const filename =
           filenameFromDisposition(disposition) ??
-          `H74-036_${payload.purchase_order_code}_${payload.inspection_date}.pdf`;
+          `H74-036_${(payload.purchase_order_code ?? 'N_A').replace(/[/\\\s]+/g, '_')}_${payload.inspection_date}.pdf`;
 
         downloadBlob(res.data, filename);
       }
