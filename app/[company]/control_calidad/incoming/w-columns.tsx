@@ -8,6 +8,16 @@ import { IncomingArticle } from "./IncomingTypes"
 import IncomingArticleDropdownActions from "@/components/dropdowns/mantenimiento/control_calidad/IncomingArticleDropdownActions"
 
 export const w_columns: ColumnDef<IncomingArticle>[] = [
+  {
+    accessorKey: "order_number",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Nro. Orden" />
+    ),
+    meta: { title: "Nro. Orden" },
+    cell: ({ row }) => (
+      <p className="text-center">{row.original.order_number ?? "-"}</p>
+    )
+  },
     {
         accessorKey: "batch.name",
         header: ({ column }) => (

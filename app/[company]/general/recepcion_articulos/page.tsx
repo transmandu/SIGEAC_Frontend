@@ -17,6 +17,7 @@ import { useCompanyStore } from '@/stores/CompanyStore'
 import { ShieldOff } from 'lucide-react'
 import { ArticulosEnTransitoTab } from './_components/ArticulosEnTransitoTab'
 import { RecepcionGeneralTab } from './_components/RecepcionGeneralTab'
+import { DownloadReportDialog } from './_components/DownloadReportDialog'
 
 const ALMACEN_ROLES = ['ALMACEN', 'JEFE_ALMACEN', 'ANALISTA_ALMACEN', 'SUPERUSER']
 
@@ -66,7 +67,10 @@ const RecepcionArticulosPage = () => {
                 </div>
 
                 {/* Encabezado */}
-                <h1 className="text-2xl font-bold">Recepción de Artículos</h1>
+                <div className="flex items-center justify-between">
+                    <h1 className="text-2xl font-bold">Recepción de Artículos</h1>
+                    <DownloadReportDialog />
+                </div>
 
                 {/* Tabs */}
                 <Tabs defaultValue="transito" className="space-y-4">

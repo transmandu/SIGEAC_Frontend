@@ -34,4 +34,5 @@ export interface IncomingArticle {
   alt_part_number?: string[]
   serial: string,
   ata_code: string,
+  order_number?: string | null
 }
