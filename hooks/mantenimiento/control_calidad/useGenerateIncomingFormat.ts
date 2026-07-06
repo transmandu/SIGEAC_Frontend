@@ -8,6 +8,7 @@ export type GenerateReceptionFormPayload = {
   client: string;
   others?: string | null;
   article_ids: number[];
+  download: boolean;
 };
 
 export function useGenerateIncomingFormat() {
@@ -22,15 +23,17 @@ export function useGenerateIncomingFormat() {
       const res = await axiosInstance.post(
         `/${company}/incoming-format`,
         payload,
-        { responseType: "blob" }
+        { responseType: payload.download ? "blob" : "json" }
       );
 
-      const disposition = res.headers?.["content-disposition"];
-      const filename =
-        filenameFromDisposition(disposition) ??
-        `H74-036_${payload.purchase_order_code}_${payload.inspection_date}.pdf`;
+      if (payload.download) {
+        const disposition = res.headers?.["content-disposition"];
+        const filename =
+          filenameFromDisposition(disposition) ??
+          `H74-036_${payload.purchase_order_code}_${payload.inspection_date}.pdf`;
 
-      downloadBlob(res.data, filename);
+        downloadBlob(res.data, filename);
+      }
 
       return true;
     },

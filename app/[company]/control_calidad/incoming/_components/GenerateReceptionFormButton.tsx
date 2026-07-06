@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
@@ -13,14 +14,6 @@ import { Label } from "@/components/ui/label";
 import { useGenerateIncomingFormat } from "@/hooks/mantenimiento/control_calidad/useGenerateIncomingFormat";
 import { toast } from "sonner";
 import { IncomingArticle } from "../IncomingTypes";
-
-export type GenerateReceptionFormPayload = {
-  inspection_date: string;
-  purchase_order_code: string;
-  client: string;
-  others?: string | null;
-  article_ids: number[];
-};
 
 export function GenerateReceptionFormButton({
   selected,
@@ -34,6 +27,7 @@ export function GenerateReceptionFormButton({
   const [purchaseOrderCode, setPurchaseOrderCode] = useState("");
   const [client, setClient] = useState("");
   const [others, setOthers] = useState("");
+  const [downloadFormat, setDownloadFormat] = useState(true);
 
   const generatePdf = useGenerateIncomingFormat();
 
@@ -41,29 +35,28 @@ export function GenerateReceptionFormButton({
 
   const validation = useMemo(() => {
     if (!canGenerate) return { ok: false, reason: "Selecciona al menos un artículo." };
-    if (purchaseOrderCode.trim().length < 2) return { ok: false, reason: "OC es obligatoria." };
-    if (client.trim().length < 2) return { ok: false, reason: "Cliente es obligatorio." };
     return { ok: true, reason: "" };
-  }, [canGenerate, purchaseOrderCode, client]);
+  }, [canGenerate]);
 
     const confirm = async () => {
       if (!validation.ok) return;
 
-      const payload: GenerateReceptionFormPayload = {
+      const payload = {
         inspection_date: format(inspectionDate, "yyyy-MM-dd"),
-        purchase_order_code: purchaseOrderCode.trim(),
-        client: client.trim(),
-        others: others.trim() ? others.trim() : null,
+        purchase_order_code: purchaseOrderCode.trim() || "N/A",
+        client: client.trim() || "N/A",
+        others: others.trim() || "N/A",
         article_ids: selected.map((a) => a.id),
+        download: downloadFormat,
       };
 
       try {
         await generatePdf.mutateAsync(payload);
-        toast.success("PDF generado y descargado.");
+        toast.success(downloadFormat ? "PDF generado y descargado." : "Artículos actualizados correctamente.");
         setOpen(false);
         onDone?.();
       } catch (e: any) {
-        toast.error(e?.message ?? "No se pudo generar el PDF.");
+        toast.error(e?.message ?? "No se pudo generar el formato.");
       }
     };
 
@@ -72,6 +65,7 @@ export function GenerateReceptionFormButton({
     setPurchaseOrderCode("");
     setClient("");
     setOthers("");
+    setDownloadFormat(true);
   };
 
   return (
@@ -153,6 +147,18 @@ export function GenerateReceptionFormButton({
                 onChange={(e) => setOthers(e.target.value)}
                 placeholder="Opcional"
               />
+            </div>
+
+            {/* Descargar formato */}
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="download-format"
+                checked={downloadFormat}
+                onCheckedChange={(checked) => setDownloadFormat(checked === true)}
+              />
+              <Label htmlFor="download-format" className="cursor-pointer">
+                Descargar formato
+              </Label>
             </div>
 
             {!validation.ok ? (
