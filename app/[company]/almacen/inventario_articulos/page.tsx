@@ -80,7 +80,7 @@ const InventarioArticulosPage = () => {
     setApiPage(1)
   }
 
-  // Paginated fetch — always used; sends part_number to backend when searching
+  // Paginated fetch — always used; sends part_number + description to backend when searching
   const { data: pagedArticles, isLoading: isLoadingArticles } = useGetWarehouseArticlesByCategory(
     apiPage,
     15,
@@ -89,6 +89,7 @@ const InventarioArticulosPage = () => {
     statusFilter,
     debouncedSearch.trim() || undefined,
     activeCategory === "CONSUMABLE" && consumableFilter === "QUIMICOS",
+    debouncedSearch.trim() || undefined,
   )
 
   const articles = pagedArticles
@@ -214,7 +215,7 @@ const InventarioArticulosPage = () => {
           <div className="space-y-2">
             <div className="relative max-w-xl mx-auto">
               <Input
-                placeholder="Búsqueda General - Nro. de Parte (Ej: 65-50587-4, TORNILLO, ALT-123...)"
+                placeholder="Búsqueda General - Nro. de Parte o Descripción (Ej: 65-50587-4, TORNILLO, ALT-123...)"
                 value={partNumberSearch}
                 onChange={(e) => setPartNumberSearch(e.target.value)}
                 className="pr-8 h-11"
