@@ -19,6 +19,7 @@ interface MonthYearPickerProps {
   onYearChange: (year: number) => void;
   className?: string;
   disabled?: boolean;
+  "data-tour"?: string;
 }
 
 export function MonthYearPicker({
@@ -28,6 +29,7 @@ export function MonthYearPicker({
   onYearChange,
   className,
   disabled = false,
+  "data-tour": dataTour,
 }: MonthYearPickerProps) {
   const [open, setOpen] = useState(false);
   const [viewYear, setViewYear] = useState(year);
@@ -58,6 +60,7 @@ export function MonthYearPicker({
     >
       <PopoverTrigger asChild>
         <Button
+          data-tour={dataTour}
           variant="outline"
           className={cn(
             "w-[180px] justify-start text-left font-medium bg-background border-input shadow-sm",

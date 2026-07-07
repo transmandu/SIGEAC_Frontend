@@ -53,7 +53,11 @@ const ActionsCell = ({ row, isCurrentMonth, company, canWrite }: any) => {
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Acciones</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem asChild className="cursor-pointer">
+            <DropdownMenuItem
+              asChild
+              className="cursor-pointer"
+              data-tour="cargo-guia-row-ver"
+            >
               <Link href={`/${company}/operaciones/cargo/guia/${shipment.id}`}>
                 <FileText className="mr-2 h-4 w-4" />
                 <span>Ver detalles</span>
@@ -62,7 +66,11 @@ const ActionsCell = ({ row, isCurrentMonth, company, canWrite }: any) => {
 
             {canWrite && isCurrentMonth && (
               <>
-                <DropdownMenuItem asChild className="cursor-pointer">
+                <DropdownMenuItem
+                  asChild
+                  className="cursor-pointer"
+                  data-tour="cargo-guia-row-editar"
+                >
                   <Link
                     href={`/${company}/operaciones/cargo/guia/${shipment.id}/update`}
                   >
@@ -73,6 +81,7 @@ const ActionsCell = ({ row, isCurrentMonth, company, canWrite }: any) => {
                 <DropdownMenuItem
                   className="text-destructive focus:text-destructive cursor-pointer"
                   onClick={() => setOpenDelete(true)}
+                  data-tour="cargo-guia-row-eliminar"
                 >
                   <Trash className="mr-2 h-4 w-4" />
                   <span>Eliminar</span>
@@ -282,6 +291,7 @@ export const getColumns = (
     id: "actions",
     cell: ({ row }: any) => (
       <ActionsCell
+        data-tour="cargo-guia-row-acciones"
         row={row}
         isCurrentMonth={isCurrentMonth}
         company={company}

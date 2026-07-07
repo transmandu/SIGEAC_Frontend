@@ -3,7 +3,7 @@
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { useParams, useSearchParams } from "next/navigation";
 import { useGetCargoManifests } from "@/hooks/operaciones/cargo/useGetCargoManifests";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { DayMonthYearPicker } from "@/components/selects/DayMonthYearPicker";
@@ -21,6 +21,8 @@ import { getManifestColumns } from "./columns";
 import { useAuth } from "@/contexts/AuthContext";
 import { useGetAircrafts } from "@/hooks/aerolinea/aeronaves/useGetAircrafts";
 import { useGetExternalAircraftSuggestions } from "@/hooks/operaciones/cargo/useGetExternalAircraftSuggestions";
+import { useTourContext } from "@/components/tour/TourProvider";
+import { cargoManifiestosSteps } from "@/components/tour/steps/cargo/manifiestos";
 import {
   Select,
   SelectContent,
@@ -71,6 +73,17 @@ const ManifestosPage = () => {
   const canWrite = userRoles.some((r) =>
     ["OPERADOR_CARGA", "SUPERUSER"].includes(r),
   );
+  const { registerTour, unregisterTour } = useTourContext();
+
+  useEffect(() => {
+    registerTour(
+      "cargo-manifiestos",
+      "Manifiestos de Carga",
+      cargoManifiestosSteps,
+    );
+
+    return () => unregisterTour("cargo-manifiestos");
+  }, [registerTour, unregisterTour]);
 
   return (
     <ContentLayout title="Manifiestos de Carga">
@@ -98,14 +111,22 @@ const ManifestosPage = () => {
         </Breadcrumb>
 
         <div className="flex flex-col gap-2 text-center">
-          <h1 className="text-4xl font-bold">Manifiestos de Carga</h1>
+          <h1
+            className="text-4xl font-bold"
+            data-tour="cargo-manifiestos-title"
+          >
+            Manifiestos de Carga
+          </h1>
           <p className="text-sm text-muted-foreground italic">
             Gestiona los manifiestos de despacho de carga.
           </p>
         </div>
 
         <div className="flex justify-between bg-muted/30 p-3 rounded-lg border mt-4">
-          <div className="flex items-center gap-3">
+          <div
+            className="flex items-center gap-3"
+            data-tour="cargo-manifiestos-fecha"
+          >
             <span className="text-sm font-medium text-muted-foreground">
               Fecha:
             </span>
@@ -116,7 +137,7 @@ const ManifestosPage = () => {
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="w-64">
+            <div className="w-64" data-tour="cargo-manifiestos-aeronave">
               <Select
                 value={filterAircraftId ? `reg:${filterAircraftId}` : "none"}
                 onValueChange={(val) => {
@@ -160,7 +181,7 @@ const ManifestosPage = () => {
           </div>
 
           {canWrite && (
-            <Button asChild>
+            <Button asChild data-tour="cargo-manifiestos-btn-nuevo">
               <Link
                 href={`/${company}/operaciones/cargo/manifiestos/nuevo?month=${month}&year=${year}&day=${day}${filterAircraftId ? `&aircraft_id=${filterAircraftId}` : ""}`}
               >
@@ -179,7 +200,9 @@ const ManifestosPage = () => {
             Error al cargar los manifiestos.
           </p>
         ) : (
-          <DataTable columns={columns} data={manifests || []} />
+          <div data-tour="cargo-manifiestos-tabla">
+            <DataTable columns={columns} data={manifests || []} />
+          </div>
         )}
       </div>
     </ContentLayout>

@@ -5,6 +5,7 @@ import { useStore } from "@/hooks/helpers/use-store";
 import { useSidebarToggle } from "@/hooks/helpers/use-sidebar-toggle";
 import { Sidebar } from "./Sidebar";
 import Footer from "./Footer";
+import { CustomTourProvider } from "@/components/tour/TourProvider";
 
 export default function DashboardLayout({
   children
@@ -18,7 +19,7 @@ export default function DashboardLayout({
   const { isOpen } = sidebar;
 
   return (
-    <>
+    <CustomTourProvider>
       <Sidebar />
 
       <main
@@ -38,6 +39,6 @@ export default function DashboardLayout({
       >
         <Footer />
       </footer>
-    </>
+    </CustomTourProvider>
   );
 }

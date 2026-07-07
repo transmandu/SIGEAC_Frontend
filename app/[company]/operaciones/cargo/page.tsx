@@ -29,6 +29,9 @@ import { AircraftCargoStats } from "@/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
 import { useExportCargoByAircraft } from "@/hooks/operaciones/cargo/useExportCargoByAircraft";
+import { useTourContext } from "@/components/tour/TourProvider";
+import { cargoDashboardSteps } from "@/components/tour/steps/cargo/dashboard";
+import { useEffect } from "react";
 
 const AircraftCard = ({
   aircraft,
@@ -42,7 +45,10 @@ const AircraftCard = ({
   year: number;
 }) => {
   return (
-    <Card className="flex flex-col justify-between hover:shadow-lg hover:border-primary/50 transition-all duration-200 group relative overflow-visible">
+    <Card
+      data-tour="cargo-dashboard-card"
+      className="flex flex-col justify-between hover:shadow-lg hover:border-primary/50 transition-all duration-200 group relative overflow-visible"
+    >
       <CardContent className="pt-6 pb-2 space-y-4">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
@@ -122,6 +128,13 @@ const CargoPage = () => {
   const { exportAll, isExporting } = useExportCargoByAircraft(
     selectedCompany?.slug,
   );
+  const { registerTour, unregisterTour } = useTourContext();
+
+  useEffect(() => {
+    registerTour("cargo-dashboard", "Dashboard de Carga", cargoDashboardSteps);
+    return () => unregisterTour("cargo-dashboard");
+  }, [registerTour, unregisterTour]);
+
   return (
     <ContentLayout title="Carga">
       <div className="flex flex-col gap-4">
@@ -142,7 +155,12 @@ const CargoPage = () => {
         </Breadcrumb>
 
         <div className="flex flex-col gap-2 text-center md:text-left">
-          <h1 className="text-4xl font-bold text-center">Módulo de Carga</h1>
+          <h1
+            className="text-4xl font-bold text-center"
+            data-tour="cargo-dashboard-title"
+          >
+            Módulo de Carga
+          </h1>
           <p className="text-sm text-muted-foreground text-center italic">
             Selecciona una aeronave para ver o registrar sus guías de carga.
           </p>
@@ -155,6 +173,7 @@ const CargoPage = () => {
               Período:
             </span>
             <MonthYearPicker
+              data-tour="cargo-dashboard-periodo"
               month={month}
               year={year}
               onMonthChange={setMonth}
@@ -164,7 +183,7 @@ const CargoPage = () => {
 
           <div className="flex justify-end gap-2">
             {canWrite && (
-              <Button asChild>
+              <Button asChild data-tour="cargo-dashboard-btn-nuevo">
                 <Link
                   href={
                     activeTab === "registered"
@@ -178,6 +197,7 @@ const CargoPage = () => {
               </Button>
             )}
             <Button
+              data-tour="cargo-dashboard-btn-exportar"
               variant="outline"
               onClick={() => exportAll(month, year)}
               disabled={isExporting || isLoading}
@@ -191,10 +211,16 @@ const CargoPage = () => {
         {/* Tabs de Aeronaves */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-2">
           <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto">
-            <TabsTrigger value="registered">
+            <TabsTrigger
+              value="registered"
+              data-tour="cargo-dashboard-tab-registered"
+            >
               Aeronaves de la Empresa ({registeredAircrafts.length})
             </TabsTrigger>
-            <TabsTrigger value="external">
+            <TabsTrigger
+              value="external"
+              data-tour="cargo-dashboard-tab-external"
+            >
               Aeronaves Externas ({externalAircrafts.length})
             </TabsTrigger>
           </TabsList>

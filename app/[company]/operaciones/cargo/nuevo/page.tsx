@@ -5,10 +5,19 @@ import { PackagePlus, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { useEffect } from "react";
+import { useTourContext } from "@/components/tour/TourProvider";
+import { cargoGuiaCrearSteps } from "@/components/tour/steps/cargo/guia-crear";
 
 export default function CreateGenericCargoPage() {
   const params = useParams();
   const company = params.company as string;
+  const { registerTour, unregisterTour } = useTourContext();
+
+  useEffect(() => {
+    registerTour("cargo-guia-crear", "Nuevo Registro de Carga", cargoGuiaCrearSteps);
+    return () => unregisterTour("cargo-guia-crear");
+  }, [registerTour, unregisterTour]);
 
   return (
     <ContentLayout title="Nuevo Registro">
@@ -19,7 +28,7 @@ export default function CreateGenericCargoPage() {
           </Link>
         </Button>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-primary flex items-center gap-2">
+          <h1 className="text-3xl font-bold tracking-tight text-primary flex items-center gap-2" data-tour="cargo-crear-title">
             <PackagePlus className="text-muted-foreground mr-1 size-7" />
             Nuevo Registro De Carga
           </h1>

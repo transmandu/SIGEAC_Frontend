@@ -7,11 +7,21 @@ import { Loader2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { parseISO } from "date-fns";
+import { useEffect } from "react";
+import { useTourContext } from "@/components/tour/TourProvider";
+import { cargoGuiaCrearSteps } from "@/components/tour/steps/cargo/guia-crear";
 
 export default function UpdateCargoShipmentPage() {
   const params = useParams();
   const company = params.company as string;
   const id = params.id as string;
+
+  const { registerTour, unregisterTour } = useTourContext();
+
+  useEffect(() => {
+    registerTour("cargo-guia-editar", "Editar Guía de Carga", cargoGuiaCrearSteps);
+    return () => unregisterTour("cargo-guia-editar");
+  }, [registerTour, unregisterTour]);
 
   const {
     data: cargoShipment,
