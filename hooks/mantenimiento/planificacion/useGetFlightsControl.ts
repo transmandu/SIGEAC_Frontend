@@ -1,9 +1,9 @@
 import axios from '@/lib/axios';
-import { FlightControl, MaintenanceAircraftPart } from '@/types';
+import { FlightControl } from '@/types';
 import { useQuery } from '@tanstack/react-query';
 
 const fetchFlightControl = async (company: string | undefined): Promise<FlightControl[]> => {
-  const {data} = await axios.get(`/${company}/flight-control`);
+  const { data } = await axios.get(`/${company}/flight-control`);
   return data;
 };
 
