@@ -52,7 +52,7 @@ export function ItemsTable({
 
         <div className="w-1/3 flex justify-end">
           <div className="flex flex-col gap-1.5">
-            <div className="flex items-center gap-2">
+{/*             <div className="flex items-center gap-2">
               <Checkbox
                 data-tour="cargo-crear-items-usar-balanza"
                 id="use-scale-toggle"
@@ -65,7 +65,7 @@ export function ItemsTable({
               >
                 Usar balanza
               </label>
-            </div>
+            </div> */}
             <Button
               data-tour="cargo-crear-items-agregar"
               type="button"
