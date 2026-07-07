@@ -67,7 +67,7 @@ export const useUpdateFlightControl = () => {
   }
 }
 
-export const useDeleteFlightCOntrol = () => {
+export const useDeleteFlightControl = () => {
   const queryClient = useQueryClient();
 
   const deleteMutation = useMutation({
@@ -98,6 +98,7 @@ export const useDeleteFlightCOntrol = () => {
   });
 
   return {
-    deleteFlightCOntrol: deleteMutation,
+    deleteFlightControl: deleteMutation,
+
   };
 };
