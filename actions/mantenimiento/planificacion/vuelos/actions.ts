@@ -79,7 +79,7 @@ export const useDeleteFlightControl = () => {
       company: string | null;
       id: string | number;
     }) => {
-      await axiosInstance.delete(`/${company}/flight-controls/${id}`);
+      await axiosInstance.delete(`/${company}/flight-control/${id}`);
     },
     onSuccess: (_, data) => {
       queryClient.invalidateQueries({
