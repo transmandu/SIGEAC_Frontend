@@ -32,8 +32,10 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/contexts/AuthContext";
 import { useGetIncomingChecks } from "@/hooks/mantenimiento/control_calidad/useGetIncomingInspectionChecks";
+import axiosInstance from "@/lib/axios";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import type { ArticleDocument, ArticleDocumentRequirementSummary } from "@/types";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import {
@@ -44,6 +46,7 @@ import {
   ChevronDown,
   ClipboardCheck,
   Factory,
+  FileDown,
   Flame,
   Hash,
   Layers,
@@ -462,13 +465,17 @@ export function IncomingReview({ article }: { article: any }) {
 
   /* ── Derived article data ── */
   const hasDocs = !!article?.has_documentation;
-  const anyDocUploaded = !!(
-    article?.certificate_8130 ||
-    article?.certificate_fabricant ||
-    article?.certificate_vendor ||
-    article?.image
+  const documentRequirements: ArticleDocumentRequirementSummary[] =
+    article?.document_requirements ?? [];
+  const pendingRequirements = documentRequirements.filter(
+    (req) => req.documents.length === 0
   );
-  const docRisk = hasDocs && !anyDocUploaded;
+  // Riesgo documental: hay documentos esperados sin consignar, o el artículo
+  // declara documentación pero no tiene ningún requerimiento registrado.
+  const docRisk =
+    pendingRequirements.length > 0 ||
+    (hasDocs && documentRequirements.length === 0);
+  const expectsDocs = hasDocs || documentRequirements.length > 0;
   const serialValue = Array.isArray(article?.serial)
     ? article.serial.join(", ")
     : article?.serial;
@@ -477,7 +484,32 @@ export function IncomingReview({ article }: { article: any }) {
   const consumable = article?.consumable;
 
   /* ── Checklist state ── */
-  const { data: groups = [], isLoading } = useGetIncomingChecks(hasDocs);
+  const { data: groups = [], isLoading } = useGetIncomingChecks(expectsDocs);
+
+  /* ── Document download (nuevo sistema documental) ── */
+  const handleDownloadDocument = async (doc: ArticleDocument) => {
+    try {
+      const response = await axiosInstance.get(
+        `/${selectedCompany?.slug}/article-documents/${doc.id}/download`,
+        { responseType: "blob" }
+      );
+
+      const downloadUrl = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      link.setAttribute(
+        "download",
+        doc.file_path?.split("/").pop() ?? `documento-${doc.id}`
+      );
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+    } catch (error) {
+      console.error("Error descargando el documento:", error);
+      toast.error("Error al descargar el documento");
+    }
+  };
   const [checklist, setChecklist] = useState<Record<string, ChecklistValue>>(
     {}
   );
@@ -640,10 +672,10 @@ export function IncomingReview({ article }: { article: any }) {
                     Documentación pendiente
                   </span>
                 )}
-                {!docRisk && hasDocs && (
+                {!docRisk && expectsDocs && (
                   <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-300/60 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700 dark:border-emerald-700/40 dark:bg-emerald-950/30 dark:text-emerald-400">
                     <Check className="h-3.5 w-3.5" />
-                    Documentación declarada
+                    Documentación consignada
                   </span>
                 )}
               </div>
@@ -730,10 +762,78 @@ export function IncomingReview({ article }: { article: any }) {
               <p className="mb-4 text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
                 Documentos
               </p>
-              <div className="flex flex-wrap gap-2">
-                <DocPill label="Certificado 8130" ready={!!article?.certificate_8130} />
-                <DocPill label="Fabricante" ready={!!article?.certificate_fabricant} />
-                <DocPill label="Vendedor" ready={!!article?.certificate_vendor} />
+
+              {documentRequirements.length > 0 ? (
+                <div className="space-y-2">
+                  {documentRequirements.map((req) => {
+                    const consigned = req.documents.length > 0;
+                    return (
+                      <div
+                        key={req.id}
+                        className={cn(
+                          "flex flex-wrap items-center justify-between gap-2 rounded-lg border px-3 py-2",
+                          consigned
+                            ? "border-emerald-300/60 bg-emerald-50/50 dark:border-emerald-700/40 dark:bg-emerald-950/20"
+                            : "border-border bg-muted/30"
+                        )}
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          {consigned ? (
+                            <Check className="h-4 w-4 shrink-0 text-emerald-600" />
+                          ) : (
+                            <Minus className="h-4 w-4 shrink-0 text-muted-foreground" />
+                          )}
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-foreground truncate">
+                              {req.document_type?.name ?? "Tipo de documento"}
+                            </p>
+                            {req.document_type?.regulation && (
+                              <p className="text-[10px] text-muted-foreground">
+                                {req.document_type.regulation}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          {req.documents.map((doc) => (
+                            <span key={doc.id} className="flex items-center gap-1.5">
+                              {doc.is_physical && (
+                                <span className="inline-flex items-center rounded-full border border-amber-300/60 bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-700 dark:border-amber-600/40 dark:bg-amber-950/30 dark:text-amber-400">
+                                  Físico
+                                </span>
+                              )}
+                              {doc.file_path && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleDownloadDocument(doc)}
+                                  className="inline-flex items-center gap-1 rounded-full border border-emerald-300/60 bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700 hover:bg-emerald-100 dark:border-emerald-700/40 dark:bg-emerald-950/30 dark:text-emerald-400 dark:hover:bg-emerald-900/40"
+                                >
+                                  <FileDown className="h-3 w-3" />
+                                  <span className="max-w-[140px] truncate">
+                                    {doc.file_path.split("/").pop()}
+                                  </span>
+                                </button>
+                              )}
+                            </span>
+                          ))}
+                          {!consigned && (
+                            <span className="text-[10px] font-medium text-muted-foreground">
+                              Pendiente por consignar
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  <DocPill label="Sin documentación esperada" ready={false} />
+                </div>
+              )}
+
+              <div className="mt-3 flex flex-wrap gap-2">
                 <DocPill label="Imagen" ready={!!article?.image} />
               </div>
             </section>

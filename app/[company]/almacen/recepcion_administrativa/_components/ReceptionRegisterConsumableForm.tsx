@@ -26,11 +26,15 @@ import {
 } from "lucide-react";
 
 import {
+    ArticleDocumentSelection,
+    extractCreatedArticleIds,
     useConfirmIncomingArticle,
     useCreateArticle,
     useUpdateArticle,
+    useUploadArticleDocuments,
 } from "@/actions/mantenimiento/almacen/inventario/articulos/actions";
 
+import ArticleDocumentsSelector from "@/components/misc/ArticleDocumentsSelector";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -141,18 +145,6 @@ const formSchema = z.object({
     batch_id: z
         .string({ message: "Debe ingresar un lote." })
         .min(1, "Seleccione un lote"),
-    certificate_8130: z
-        .instanceof(File, { message: "Suba un archivo válido." })
-        .refine((f) => f.size <= fileMaxBytes, "Tamaño máximo 10 MB.")
-        .optional(),
-    certificate_fabricant: z
-        .instanceof(File, { message: "Suba un archivo válido." })
-        .refine((f) => f.size <= fileMaxBytes, "Tamaño máximo 10 MB.")
-        .optional(),
-    certificate_vendor: z
-        .instanceof(File, { message: "Suba un archivo válido." })
-        .refine((f) => f.size <= fileMaxBytes, "Tamaño máximo 10 MB.")
-        .optional(),
     image: z.instanceof(File).optional(),
     conversion_id: z.number().optional(),
     primary_unit_id: z.number().optional(),
@@ -1147,6 +1139,9 @@ export default function ReceptionRegisterConsumableForm({
 
     const { createArticle } = useCreateArticle();
     const { updateArticle } = useUpdateArticle();
+    const { uploadArticleDocuments } = useUploadArticleDocuments();
+
+    const [documents, setDocuments] = useState<ArticleDocumentSelection[]>([]);
     const { confirmIncoming } = useConfirmIncomingArticle();
 
     const [secondaryOpen, setSecondaryOpen] = useState(false);
@@ -1521,12 +1516,33 @@ export default function ReceptionRegisterConsumableForm({
                 id: initialData?.id,
                 company: selectedCompany.slug,
             });
+
+            if (values.has_documentation && documents.length > 0) {
+                await uploadArticleDocuments.mutateAsync({
+                    company: selectedCompany.slug,
+                    articleId: Number(initialData.id),
+                    documents,
+                });
+            }
+
             router.push(`/${selectedCompany.slug}/ingenieria/confirmar_inventario`);
         } else {
-            await createArticle.mutateAsync({
+            const res = await createArticle.mutateAsync({
                 company: selectedCompany.slug,
                 data: formattedValues,
             });
+
+            if (values.has_documentation && documents.length > 0) {
+                for (const articleId of extractCreatedArticleIds(res?.data)) {
+                    await uploadArticleDocuments.mutateAsync({
+                        company: selectedCompany.slug,
+                        articleId,
+                        documents,
+                    });
+                }
+            }
+
+            setDocuments([]);
             setSecondaryQuantity(undefined);
             setSecondarySelected(null);
             setSelectedPrimaryUnit(null);
@@ -2458,46 +2474,11 @@ export default function ReceptionRegisterConsumableForm({
                                     />
                                 )}
                                 {hasDocumentation && (
-                                    <div className="space-y-4">
-                                        <FileField
-                                            form={form}
-                                            name="certificate_8130"
-                                            label={
-                                                <span>
-                                                    Certificado{" "}
-                                                    <span className="text-primary font-semibold">
-                                                        8130
-                                                    </span>
-                                                </span>
-                                            }
-                                            description="PDF o imagen. Máx. 10 MB."
-                                            busy={busy}
-                                        />
-                                        <FileField
-                                            form={form}
-                                            name="certificate_fabricant"
-                                            label={
-                                                <span>
-                                                    Certificado del{" "}
-                                                    <span className="text-primary">fabricante</span>
-                                                </span>
-                                            }
-                                            description="PDF o imagen. Máx. 10 MB."
-                                            busy={busy}
-                                        />
-                                        <FileField
-                                            form={form}
-                                            name="certificate_vendor"
-                                            label={
-                                                <span>
-                                                    Certificado del{" "}
-                                                    <span className="text-primary">vendedor</span>
-                                                </span>
-                                            }
-                                            description="PDF o imagen. Máx. 10 MB."
-                                            busy={busy}
-                                        />
-                                    </div>
+                                    <ArticleDocumentsSelector
+                                        value={documents}
+                                        onChange={setDocuments}
+                                        disabled={busy}
+                                    />
                                 )}
                             </div>
                         </div>

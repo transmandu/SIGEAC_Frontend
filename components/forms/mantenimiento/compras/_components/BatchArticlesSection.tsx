@@ -22,6 +22,7 @@ import type { Aircraft, Batch, Unit } from "@/types"
 import type { RequisitionBatchForm } from "@/types/purchase"
 import type { BatchWithArticles } from "@/hooks/mantenimiento/almacen/renglones/useSearchBatchesWithArticles"
 import { CreateBatchForm } from "@/components/forms/mantenimiento/almacen/CreateBatchForm"
+import { ArticleDocumentTypesAttachment } from "./ArticleDocumentTypesAttachment"
 import { ArticleImageAttachment } from "./ArticleImageAttachment"
 import { RequiredIndicator } from "./RequiredIndicator"
 
@@ -41,7 +42,7 @@ interface BatchArticlesSectionProps {
   aircraftSearch: string;
   setAircraftSearch: (v: string) => void;
   handleBatchSelect: (batchName: string, batchId: string, batch_category: string) => void;
-  handleBatchArticleChange: (batchId: string, index: number, field: string, value: string | number | File | undefined) => void;
+  handleBatchArticleChange: (batchId: string, index: number, field: string, value: string | number | number[] | File | undefined) => void;
   addBatchArticle: (batchId: string) => void;
   removeBatchArticle: (batchId: string, articleIndex: number) => void;
   removeBatch: (batchId: string) => void;
@@ -93,6 +94,13 @@ export function BatchArticlesSection({
     "whitespace-nowrap"
   );
   const priorityColClass = isLg ? "w-40" : "w-28";
+
+  // Mirrors the zod rule requiring at least one document_type per batch
+  // article; red styling only kicks in after a submit attempt, so a freshly
+  // added row doesn't look broken before the user has had a chance to pick.
+  const isSubmitted = form.formState.isSubmitted;
+  const isDocumentTypesInvalid = (article: { document_type_ids?: number[] }) =>
+    isSubmitted && !(article.document_type_ids && article.document_type_ids.length > 0);
 
   return (
     <FormField
@@ -462,6 +470,12 @@ export function BatchArticlesSection({
                           </div>
 
                           <div className="flex flex-col items-center justify-center gap-1 shrink-0 self-stretch ml-2 pl-2">
+                            <ArticleDocumentTypesAttachment
+                              selectedIds={article.document_type_ids}
+                              onChange={(ids) => handleBatchArticleChange(batch.batch, index, "document_type_ids", ids)}
+                              invalid={isDocumentTypesInvalid(article)}
+                            />
+
                             <ArticleImageAttachment
                               article={article}
                               onChangeImage={(file) => handleBatchArticleChange(batch.batch, index, "image", file)}

@@ -23,11 +23,15 @@ import {
 } from "lucide-react";
 
 import {
+    ArticleDocumentSelection,
+    extractCreatedArticleIds,
     useConfirmIncomingArticle,
     useCreateArticle,
     useUpdateArticle,
+    useUploadArticleDocuments,
 } from "@/actions/mantenimiento/almacen/inventario/articulos/actions";
 
+import ArticleDocumentsSelector from "@/components/misc/ArticleDocumentsSelector";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -141,18 +145,6 @@ const formSchema = z.object({
     batch_id: z
         .string({ message: "Debe ingresar un lote." })
         .min(1, "Seleccione un lote"),
-    certificate_8130: z
-        .instanceof(File, { message: "Suba un archivo válido." })
-        .refine((f) => f.size <= fileMaxBytes, "Tamaño máximo 10 MB.")
-        .optional(),
-    certificate_fabricant: z
-        .instanceof(File, { message: "Suba un archivo válido." })
-        .refine((f) => f.size <= fileMaxBytes, "Tamaño máximo 10 MB.")
-        .optional(),
-    certificate_vendor: z
-        .instanceof(File, { message: "Suba un archivo válido." })
-        .refine((f) => f.size <= fileMaxBytes, "Tamaño máximo 10 MB.")
-        .optional(),
     image: z.instanceof(File).optional(),
     conversion_id: z.number().optional(),
     primary_unit_id: z.number().optional(),
@@ -697,9 +689,12 @@ function DatePickerField({
 export default function DirectRegisterConsumableForm({
     initialData,
     isEditing,
+    onEditSuccess,
 }: {
     initialData?: EditingArticle;
     isEditing?: boolean;
+    /** Al editar: reemplaza la redirección post-guardado (útil dentro de diálogos). */
+    onEditSuccess?: () => void;
 }) {
     const router = useRouter();
     const queryClient = useQueryClient();
@@ -770,6 +765,14 @@ export default function DirectRegisterConsumableForm({
     const { createArticle } = useCreateArticle();
     const { updateArticle } = useUpdateArticle();
     const { confirmIncoming } = useConfirmIncomingArticle();
+    const { uploadArticleDocuments } = useUploadArticleDocuments();
+
+    // Al editar, precarga los tipos de documento requeridos aún sin consignar.
+    const [documents, setDocuments] = useState<ArticleDocumentSelection[]>(() =>
+        (initialData?.document_requirements ?? [])
+            .filter((req) => req.documents.length === 0 && typeof req.document_type?.id === "number")
+            .map((req) => ({ typeId: req.document_type!.id }))
+    );
 
     const [secondaryOpen, setSecondaryOpen] = useState(false);
     const [secondarySelected, setSecondarySelected] = useState<any | null>(
@@ -858,7 +861,9 @@ export default function DirectRegisterConsumableForm({
                 ? Number(initialData.consumable.min_quantity)
                 : undefined,
             primary_unit_id: Number(initialData?.consumable?.primary_unit_id) || undefined,
-            has_documentation: initialData?.has_documentation || false,
+            has_documentation:
+                (initialData?.has_documentation ?? false) ||
+                (initialData?.document_requirements?.length ?? 0) > 0,
             destination_unknown: false,
             inspector: initialData?.inspector || "",
             inspect_date: initialData?.inspect_date
@@ -941,7 +946,9 @@ export default function DirectRegisterConsumableForm({
             primary_unit_id: initialData?.primary_unit_id
                 ? Number(initialData.primary_unit_id)
                 : undefined,
-            has_documentation: initialData.has_documentation ?? false,
+            has_documentation:
+                (initialData.has_documentation ?? false) ||
+                (initialData.document_requirements?.length ?? 0) > 0,
             destination_unknown: false,
         };
 
@@ -1140,13 +1147,37 @@ export default function DirectRegisterConsumableForm({
                 id: initialData?.id,
                 company: selectedCompany.slug,
             });
-            router.push(`/${selectedCompany.slug}/ingenieria/confirmar_inventario`);
+
+            if (values.has_documentation && documents.length > 0) {
+                await uploadArticleDocuments.mutateAsync({
+                    company: selectedCompany.slug,
+                    articleId: Number(initialData.id),
+                    documents,
+                });
+            }
+
+            if (onEditSuccess) {
+                onEditSuccess();
+            } else {
+                router.push(`/${selectedCompany.slug}/ingenieria/confirmar_inventario`);
+            }
         } else {
-            await createArticle.mutateAsync({
+            const res = await createArticle.mutateAsync({
                 company: selectedCompany.slug,
                 data: formattedValues,
             });
-            console.log(formattedValues);
+
+            if (values.has_documentation && documents.length > 0) {
+                for (const articleId of extractCreatedArticleIds(res?.data)) {
+                    await uploadArticleDocuments.mutateAsync({
+                        company: selectedCompany.slug,
+                        articleId,
+                        documents,
+                    });
+                }
+            }
+
+            setDocuments([]);
             setSecondaryQuantity(undefined);
             setSecondarySelected(null);
             setSelectedPrimaryUnit(null);
@@ -2095,46 +2126,11 @@ export default function DirectRegisterConsumableForm({
                                     />
                                 )}
                                 {hasDocumentation && (
-                                    <div className="space-y-4">
-                                        <FileField
-                                            form={form}
-                                            name="certificate_8130"
-                                            label={
-                                                <span>
-                                                    Certificado{" "}
-                                                    <span className="text-primary font-semibold">
-                                                        8130
-                                                    </span>
-                                                </span>
-                                            }
-                                            description="PDF o imagen. Máx. 10 MB."
-                                            busy={busy}
-                                        />
-                                        <FileField
-                                            form={form}
-                                            name="certificate_fabricant"
-                                            label={
-                                                <span>
-                                                    Certificado del{" "}
-                                                    <span className="text-primary">fabricante</span>
-                                                </span>
-                                            }
-                                            description="PDF o imagen. Máx. 10 MB."
-                                            busy={busy}
-                                        />
-                                        <FileField
-                                            form={form}
-                                            name="certificate_vendor"
-                                            label={
-                                                <span>
-                                                    Certificado del{" "}
-                                                    <span className="text-primary">vendedor</span>
-                                                </span>
-                                            }
-                                            description="PDF o imagen. Máx. 10 MB."
-                                            busy={busy}
-                                        />
-                                    </div>
+                                    <ArticleDocumentsSelector
+                                        value={documents}
+                                        onChange={setDocuments}
+                                        disabled={busy}
+                                    />
                                 )}
                             </div>
                         </div>

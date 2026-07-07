@@ -32,6 +32,13 @@ export type PurchaseStatus =
 export type RequisitionType = 'AERONAUTICAL' | 'GENERAL';
 
 // ── Batch Article (response / detail) ──────────────────────────────────────
+export interface BatchArticleDocumentType {
+  id: number;
+  name: string;
+  description?: string | null;
+  regulation?: string | null;
+}
+
 export interface BatchArticle {
   id?: number;
   article_part_number: string;
@@ -44,6 +51,7 @@ export interface BatchArticle {
   priority?: string;
   image?: string | null;
   aircraft?: string | { acronym: string } | null;
+  document_types?: BatchArticleDocumentType[];
 }
 
 export interface RequisitionBatch {
@@ -222,6 +230,8 @@ export interface RequisitionBatchArticleForm {
   aircraft_id?: string;
   priority?: 'HIGH' | 'MEDIUM' | 'LOW';
   image?: File;
+  /** Tipos de documento (ArticleDocumentType) que deben solicitarse al vendedor para este ítem. Requiere al menos uno. */
+  document_type_ids: number[];
 }
 
 /** Form state for a batch inside a requisition form. */

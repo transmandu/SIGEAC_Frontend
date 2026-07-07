@@ -118,9 +118,6 @@ const formSchema = z.object({
   expiration_date: z.string().optional(),
   quantity: z.coerce.number().optional(),
   image: z.instanceof(File).optional(),
-  certificate_8130: z.instanceof(File).optional(),
-  certificate_fabricant: z.instanceof(File).optional(),
-  certificate_vendor: z.instanceof(File).optional(),
 })
 
 interface EditArticleFormProps {
@@ -652,30 +649,6 @@ const EditArticleForm = ({ initialData, onSuccess }: EditArticleFormProps) => {
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="certificate_8130"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Certificado 8130</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <FileUpIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 z-10" />
-                        <Input
-                          type="file"
-                          accept=".pdf,.doc,.docx"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0]
-                            if (file) form.setValue("certificate_8130", file)
-                          }}
-                          className="pl-10"
-                        />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
             </div>
           </div>
 

@@ -27,9 +27,6 @@ interface ArticleData {
     quantity?: string | number;
     fabrication_date?: string;
     calendar_date?: string;
-    certificate_8130?: File | string;
-    certificate_fabricant?: File | string;
-    certificate_vendor?: File | string;
     image?: File | string;
     conversions?: number[];
     primary_unit_id?: number;
@@ -55,6 +52,30 @@ interface SendToQuarantinePayload {
 
 
 type CheckResult = "PASS" | "FAIL" | "NA";
+
+/**
+ * Selección de documentación de un artículo: tipo de documento esperado
+ * (crea el ArticleDocumentRequirement) y, opcionalmente, el archivo a
+ * consignar y/o la constancia de recepción física (crea el ArticleDocument).
+ */
+export interface ArticleDocumentSelection {
+    typeId: number;
+    file?: File;
+    isPhysical?: boolean;
+}
+
+/**
+ * Extrae los ids de los artículos creados de la respuesta de POST /article.
+ * El backend devuelve un array (o un objeto único para consumibles ya
+ * existentes) con la forma { Article: { article: { id, ... }, ... }, ... }.
+ */
+export const extractCreatedArticleIds = (responseData: any): number[] => {
+    const items = Array.isArray(responseData) ? responseData : [responseData];
+
+    return items
+        .map((item) => item?.Article?.article?.id)
+        .filter((id): id is number => typeof id === "number");
+};
 
 const serializeFormValue = (value: unknown) => {
     if (value instanceof Date) {
@@ -188,6 +209,124 @@ export const useCreateToReviewArticle = () => {
 
     return {
         createArticle: createMutation,
+    };
+};
+
+export const useUploadArticleDocuments = () => {
+    const queryClient = useQueryClient();
+
+    const uploadMutation = useMutation({
+        mutationKey: ["article-documents"],
+        mutationFn: async ({
+            company,
+            articleId,
+            documents,
+        }: {
+            company: string;
+            articleId: number;
+            documents: ArticleDocumentSelection[];
+        }) => {
+            if (documents.length === 0) return;
+
+            // 1. Registra los tipos de documento que se esperan del artículo
+            const { data } = await axiosInstance.post(
+                `/${company}/articles/${articleId}/document-requirements`,
+                { document_type_ids: documents.map((doc) => doc.typeId) }
+            );
+
+            const requirements: { id: number; article_document_type_id: number }[] =
+                data?.Requirements ?? [];
+
+            // 2. Consigna cada requerimiento que tenga archivo o constancia física
+            for (const doc of documents) {
+                if (!doc.file && !doc.isPhysical) continue;
+
+                const requirement = requirements.find(
+                    (req) => req.article_document_type_id === doc.typeId
+                );
+
+                if (!requirement) continue;
+
+                const formData = new FormData();
+                if (doc.file) {
+                    formData.append("file", doc.file);
+                }
+                formData.append("is_physical", doc.isPhysical ? "1" : "0");
+
+                await axiosInstance.post(
+                    `/${company}/article-document-requirements/${requirement.id}/documents`,
+                    formData
+                );
+            }
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["articles"] });
+            queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
+        },
+        onError: (error) => {
+            toast.error("Oops!", {
+                description: "No se pudo guardar la documentación del artículo...",
+            });
+            console.log(error);
+        },
+    });
+
+    return {
+        uploadArticleDocuments: uploadMutation,
+    };
+};
+
+/**
+ * Consignación de un requerimiento documental ya existente
+ * (ArticleDocumentRequirement): archivo y/o constancia de recepción física.
+ */
+export interface RequirementConsignment {
+    requirementId: number;
+    file?: File;
+    isPhysical?: boolean;
+}
+
+export const useConsignRequirementDocuments = () => {
+    const queryClient = useQueryClient();
+
+    const consignMutation = useMutation({
+        mutationKey: ["article-documents"],
+        mutationFn: async ({
+            company,
+            consignments,
+        }: {
+            company: string;
+            consignments: RequirementConsignment[];
+        }) => {
+            for (const consignment of consignments) {
+                if (!consignment.file && !consignment.isPhysical) continue;
+
+                const formData = new FormData();
+                if (consignment.file) {
+                    formData.append("file", consignment.file);
+                }
+                formData.append("is_physical", consignment.isPhysical ? "1" : "0");
+
+                await axiosInstance.post(
+                    `/${company}/article-document-requirements/${consignment.requirementId}/documents`,
+                    formData
+                );
+            }
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["articles"] });
+            queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
+        },
+        onError: (error) => {
+            toast.error("Oops!", {
+                description: "No se pudo consignar la documentación del artículo...",
+            });
+            console.log(error);
+        },
+    });
+
+    return {
+        consignRequirementDocuments: consignMutation,
     };
 };
 
