@@ -22,6 +22,8 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { useExportCargoByAircraft } from "@/hooks/operaciones/cargo/useExportCargoByAircraft";
+import { useTourContext } from "@/components/tour/TourProvider";
+import { cargoGuiaListaSteps } from "@/components/tour/steps/cargo/guia-lista";
 
 const CargoByAircraftPage = () => {
   const params = useParams();
@@ -59,6 +61,12 @@ const CargoByAircraftPage = () => {
   );
   const { exportToExcel, isExporting } = useExportCargoByAircraft(company);
   const columns = getColumns(isCurrentMonth, company, canWrite);
+  const { registerTour, unregisterTour } = useTourContext();
+
+  useEffect(() => {
+    registerTour("cargo-guia-lista", "Guías por Aeronave", cargoGuiaListaSteps);
+    return () => unregisterTour("cargo-guia-lista");
+  }, []);
 
   return (
     <ContentLayout title="Registros de Carga">
@@ -74,7 +82,9 @@ const CargoByAircraftPage = () => {
             <BreadcrumbItem>Operaciones</BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink href={`/${company}/operaciones/cargo?month=${month}&year=${year}`}>
+              <BreadcrumbLink
+                href={`/${company}/operaciones/cargo?month=${month}&year=${year}`}
+              >
                 Carga
               </BreadcrumbLink>
             </BreadcrumbItem>
@@ -91,7 +101,7 @@ const CargoByAircraftPage = () => {
         <div className="flex flex-col gap-2 text-center md:text-left">
           <div className="flex items-center justify-center gap-3">
             <Plane className="h-7 w-7 text-primary" />
-            <h1 className="text-4xl font-bold">
+            <h1 className="text-4xl font-bold" data-tour="cargo-guia-title">
               {aircraft ? (
                 <>
                   <span className="text-primary">{aircraft.acronym}</span>
@@ -117,8 +127,11 @@ const CargoByAircraftPage = () => {
               variant="outline"
               size="icon"
               className="h-9 w-9 shrink-0"
+              data-tour="cargo-guia-btn-volver"
             >
-              <Link href={`/${company}/operaciones/cargo?month=${month}&year=${year}`}>
+              <Link
+                href={`/${company}/operaciones/cargo?month=${month}&year=${year}`}
+              >
                 <ArrowLeft className="h-4 w-4" />
               </Link>
             </Button>
@@ -126,6 +139,7 @@ const CargoByAircraftPage = () => {
               Filtrar por:
             </span>
             <MonthYearPicker
+              data-tour="cargo-guia-periodo"
               month={month}
               year={year}
               onMonthChange={setMonth}
@@ -135,7 +149,7 @@ const CargoByAircraftPage = () => {
 
           <div className="flex items-center gap-2">
             {canWrite && isCurrentMonth && (
-              <Button asChild>
+              <Button asChild data-tour="cargo-guia-btn-nuevo">
                 <Link
                   href={`/${company}/operaciones/cargo/${aircraft_id}/nuevo`}
                 >
@@ -150,6 +164,7 @@ const CargoByAircraftPage = () => {
                 exportToExcel(aircraft_id, month, year, aircraft?.acronym)
               }
               disabled={isExporting || isLoading || !data?.length}
+              data-tour="cargo-guia-btn-exportar"
             >
               <Download className="size-4 mr-2" />
               {isExporting ? "Exportando..." : "Exportar Excel"}
@@ -165,7 +180,12 @@ const CargoByAircraftPage = () => {
             Ha ocurrido un error al cargar los registros...
           </p>
         ) : (
-          data && <DataTable columns={columns} data={data} />
+          data && (
+            <DataTable
+              columns={columns}
+              data={data}
+            />
+          )
         )}
       </div>
     </ContentLayout>

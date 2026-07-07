@@ -11,12 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import {
-  Loader2,
-  AlertCircle,
-  ChevronDown,
-  ChevronRight,
-} from "lucide-react";
+import { Loader2, AlertCircle, ChevronDown, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
@@ -87,13 +82,7 @@ export default function CreateCargoManifestForm({
   onSuccess,
 }: Props) {
   const { data: availableShipments, isLoading: loadingAvailable } =
-    useGetAvailableShipments(
-      company,
-      month,
-      year,
-      selectedAircraftId,
-      day,
-    );
+    useGetAvailableShipments(company, month, year, selectedAircraftId, day);
 
   const { createCargoManifest } = useCreateCargoManifest(company);
 
@@ -330,9 +319,13 @@ export default function CreateCargoManifestForm({
   // ── Render principal ──────────────────────────────────────────────────────
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3" data-tour="cargo-manifiestos-nuevo-guias" >
       {/* Listado de Guías o Mensaje Sin Resultados */}
-      {!availableShipments || availableShipments.length === 0 ? (
+      {!selectedAircraftId ? (
+        <p className="text-center text-muted-foreground py-8 border border-dashed border-border rounded-lg bg-muted/20">
+          Selecciona una aeronave para continuar y ver las guías de carga.
+        </p>
+      ) : !availableShipments || availableShipments.length === 0 ? (
         <p className="text-center text-muted-foreground py-8">
           No hay guías disponibles para este período.
         </p>
@@ -381,6 +374,7 @@ export default function CreateCargoManifestForm({
               >
                 <div
                   className="flex items-center justify-between px-4 py-2.5 bg-muted/30 cursor-pointer hover:bg-muted/50 transition-colors"
+                  data-tour="cargo-manifiestos-nuevo-guia-{id}"
                   onClick={() => toggleCollapse(shipment.id)}
                 >
                   <div className="flex items-center gap-3">
@@ -438,6 +432,7 @@ export default function CreateCargoManifestForm({
                         onClick={() => toggleAllItems(shipment)}
                       >
                         <Checkbox
+                          data-tour="cargo-manifiestos-nuevo-seleccionar-todos"
                           checked={allSelected}
                           onCheckedChange={() => toggleAllItems(shipment)}
                           onClick={(e) => e.stopPropagation()}
@@ -492,6 +487,7 @@ export default function CreateCargoManifestForm({
                             onClick={(e) => e.stopPropagation()}
                           >
                             <Checkbox
+                              data-tour="cargo-manifiestos-nuevo-item-checkbox"
                               checked={isSelected}
                               disabled={isExhausted}
                               onCheckedChange={() =>
@@ -530,6 +526,7 @@ export default function CreateCargoManifestForm({
                           {/* Unidades */}
                           <div
                             className="flex flex-col items-center gap-0.5"
+                            data-tour="cargo-manifiestos-nuevo-item-unidades"
                             onClick={(e) => e.stopPropagation()}
                           >
                             {isSelected ? (
@@ -572,6 +569,7 @@ export default function CreateCargoManifestForm({
                           {/* Peso */}
                           <div
                             className="flex flex-col items-center gap-0.5"
+                            data-tour="cargo-manifiestos-nuevo-item-peso"
                             onClick={(e) => e.stopPropagation()}
                           >
                             {isSelected ? (
@@ -623,7 +621,10 @@ export default function CreateCargoManifestForm({
 
       {/* Footer */}
       <div className="flex items-center justify-between border-t pt-3">
-        <div className="text-sm text-muted-foreground">
+        <div
+          className="text-sm text-muted-foreground"
+          data-tour="cargo-manifiestos-nuevo-totales"
+        >
           {totals.count > 0 ? (
             <span>
               <span className="font-semibold text-foreground">
@@ -651,11 +652,9 @@ export default function CreateCargoManifestForm({
         )}
 
         <Button
+          data-tour="cargo-manifiestos-nuevo-generar"
           onClick={handleSubmit}
-          disabled={
-            createCargoManifest.isPending ||
-          (!selectedAircraftId)
-        }
+          disabled={createCargoManifest.isPending || !selectedAircraftId}
         >
           {createCargoManifest.isPending ? (
             <>

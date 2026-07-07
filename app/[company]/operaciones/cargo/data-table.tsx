@@ -56,9 +56,10 @@ export function DataTable<TData, TValue>({
     },
   });
   return (
-    <div>
+    <div data-tour="cargo-guia-tabla">
       <div className="flex items-center py-4 gap-2">
         <Input
+          data-tour="cargo-guia-tabla-search"
           placeholder="Filtrar por N° de guía"
           value={
             (table.getColumn("manifest_number")?.getFilterValue() as string) ??

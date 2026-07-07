@@ -21,6 +21,9 @@ import { MonthYearPicker } from "@/components/selects/MonthYearPicker";
 import UpdateCargoManifestForm from "@/components/forms/operaciones/cargo/UpdateCargoManifestForm";
 
 import { useGetCargoManifestById } from "@/hooks/operaciones/cargo/useGetCargoManifestById";
+import { useTourContext } from "@/components/tour/TourProvider";
+import { cargoManifiestoEditarSteps } from "@/components/tour/steps/cargo/manifiesto-editar";
+import { useEffect } from "react";
 
 const EditarManifiestoPage = () => {
   const params = useParams();
@@ -34,6 +37,12 @@ const EditarManifiestoPage = () => {
     isLoading,
     isError,
   } = useGetCargoManifestById(company, id);
+  const { registerTour, unregisterTour } = useTourContext();
+
+  useEffect(() => {
+    registerTour("cargo-manifiesto-editar", "Editar Manifiesto", cargoManifiestoEditarSteps);
+    return () => unregisterTour("cargo-manifiesto-editar");
+  }, [registerTour, unregisterTour]);
 
   const handleSuccess = () => {
     if (!manifest) return;
@@ -124,7 +133,7 @@ const EditarManifiestoPage = () => {
 
         {/* Header */}
         <div className="flex items-center gap-4 mb-4">
-          <Button asChild variant="outline" size="icon" className="h-9 w-9">
+          <Button asChild variant="outline" size="icon" className="h-9 w-9" data-tour="cargo-manifiestos-editar-btn-volver">
             <Link
               href={`/${company}/operaciones/cargo/manifiestos?month=${manifest.month}&year=${manifest.year}`}
             >
@@ -132,7 +141,7 @@ const EditarManifiestoPage = () => {
             </Link>
           </Button>
 
-          <h1 className="text-3xl font-bold">
+          <h1 className="text-3xl font-bold" data-tour="cargo-manifiestos-editar-header">
             Editar Manifiesto - {manifest.manifest_number}
           </h1>
         </div>

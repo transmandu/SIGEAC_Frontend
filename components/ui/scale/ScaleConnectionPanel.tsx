@@ -20,7 +20,7 @@ export function ScaleConnectionPanel() {
           Simulación
         </span>
       )}
-
+  
       {isConnected && state.reading !== null && (
         <span
           className={`text-sm font-mono font-semibold px-2 py-0.5 rounded ${

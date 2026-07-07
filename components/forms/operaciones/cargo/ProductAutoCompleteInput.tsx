@@ -97,6 +97,7 @@ export function ProductAutocompleteInput({
   return (
     <div ref={containerRef} className="relative w-full">
       <Input
+        data-tour="cargo-crear-items-producto"
         ref={inputRef}
         type="text"
         placeholder={placeholder}

@@ -28,6 +28,6 @@ export const useGetAvailableShipments = (
   return useQuery({
     queryKey: ["available-shipments", month, year, aircraftId, day],
     queryFn: () => fetchAvailableShipments(company, month, year, aircraftId, day),
-    enabled: !!company && !!month && !!year,
+    enabled: !!company && !!month && !!year && !!aircraftId,
   });
 }

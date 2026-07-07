@@ -43,7 +43,7 @@ export function ItemsTable({
       {/* Encabezado */}
       <div className="flex items-center px-4 py-4 border-b border-border/80 bg-muted/20">
         <div className="flex items-center gap-6 w-1/3">
-          <h3 className="font-semibold text-foreground text-2xl">Productos</h3>
+          <h3 className="font-semibold text-foreground text-2xl" data-tour="cargo-crear-items-header">Productos</h3>
         </div>
 
         <div className="flex-1 flex justify-center min-w-[500px]">
@@ -54,6 +54,7 @@ export function ItemsTable({
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center gap-2">
               <Checkbox
+                data-tour="cargo-crear-items-usar-balanza"
                 id="use-scale-toggle"
                 checked={useScale}
                 onCheckedChange={(checked) => setUseScale(!!checked)}
@@ -66,6 +67,7 @@ export function ItemsTable({
               </label>
             </div>
             <Button
+              data-tour="cargo-crear-items-agregar"
               type="button"
               variant="default"
               size="sm"
@@ -99,7 +101,7 @@ export function ItemsTable({
           fields.length > 5 ? "h-[320px]" : "h-auto max-h-[320px]",
         )}
       >
-        <div className="space-y-0">
+        <div className="space-y-0" data-tour="cargo-crear-items-row-{index}">
           {fields.map((field, index) => (
             <div
               key={field.id}
@@ -130,6 +132,7 @@ export function ItemsTable({
                   <FormItem>
                     <FormControl>
                       <Input
+                        data-tour="cargo-crear-items-unidades"
                         type="number"
                         min="1"
                         className="bg-transparent h-8 text-sm text-center tabular-nums focus-visible:bg-background"
@@ -149,6 +152,7 @@ export function ItemsTable({
                     <FormItem className="flex-1">
                       <FormControl>
                         <Input
+                          data-tour="cargo-crear-items-peso"
                           type="number"
                           step="0.01"
                           min="0"
@@ -175,6 +179,7 @@ export function ItemsTable({
 
               <div className="flex justify-end items-center">
                 <Button
+                  data-tour="cargo-crear-items-eliminar"
                   type="button"
                   variant="ghost"
                   size="icon"
@@ -195,7 +200,7 @@ export function ItemsTable({
 
       {/* Totals footer */}
       <div className="grid grid-cols-[1fr_120px_140px_48px] gap-2 items-center pl-4 pr-6 py-2 border-t-2 border-border/60 bg-muted/20 rounded-b-xl">
-        <div className="text-right text-sm font-extrabold tracking-widest text-muted-foreground pr-4">
+        <div className="text-right text-sm font-extrabold tracking-widest text-muted-foreground pr-4" data-tour="cargo-crear-items-total">
           TOTAL
         </div>
         <TotalCell value={String(totalUnits)} />

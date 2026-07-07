@@ -47,6 +47,10 @@ interface ComboboxFieldProps<T extends FieldValues> {
   /** Agrega una acción "Registrar nuevo …" al final de la lista */
   onCreateNew?: () => void;
   createNewLabel?: string;
+  /** data-tour para el botón "Registrar nuevo …" dentro del dropdown */
+  createNewDataTour?: string;
+  /** data-tour para el componente principal */
+  "data-tour"?: string;
 }
 
 /**
@@ -63,6 +67,8 @@ export function ComboboxField<T extends FieldValues>({
   disabled = false,
   onCreateNew,
   createNewLabel = "Registrar nuevo",
+  createNewDataTour,
+  "data-tour": dataTour,
 }: ComboboxFieldProps<T>) {
   const [open, setOpen] = useState(false);
 
@@ -84,6 +90,7 @@ export function ComboboxField<T extends FieldValues>({
               <PopoverTrigger asChild>
                 <FormControl>
                   <Button
+                    data-tour={dataTour}
                     variant="outline"
                     role="combobox"
                     disabled={disabled}
@@ -163,6 +170,7 @@ export function ComboboxField<T extends FieldValues>({
                         <CommandSeparator />
                         <CommandGroup>
                           <CommandItem
+                            data-tour={createNewDataTour}
                             onSelect={() => {
                               onCreateNew();
                               setOpen(false);
