@@ -566,8 +566,8 @@ export function IncomingReview({ article }: { article: any }) {
 
     return {
       warehouse_id: currentWarehouseId,
-      purchase_order_code: "N/A",
-      purchase_order_id: null,
+      purchase_order_code: article?.purchase_order_number ? article.purchase_order_number : "N/A",
+      purchase_order_id: article?.purchase_order_id ? article.purchase_order_id : null,
       inspection_date: format(incomingDate, "yyyy-MM-dd"),
       items: [
         {
