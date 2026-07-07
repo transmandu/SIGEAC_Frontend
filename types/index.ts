@@ -46,6 +46,21 @@ export type AdministrationArticle = {
   type: string;
 };
 
+/** Documento consignado de un artículo (nuevo sistema documental). */
+export type ArticleDocument = {
+  id: number;
+  file_path: string | null;
+  file_url: string | null;
+  is_physical: boolean;
+};
+
+/** Requerimiento documental de un artículo: tipo esperado + documentos consignados. */
+export type ArticleDocumentRequirementSummary = {
+  id: number;
+  document_type: { id: number; name: string; regulation: string | null } | null;
+  documents: ArticleDocument[];
+};
+
 export type Article = {
   id: number;
   article_type?: string;
@@ -65,9 +80,11 @@ export type Article = {
   batches?: Batch;
   batch_id?: number;
   vendor_id?: string;
-  certifcate_8130?: File | string;
-  certifcate_vendor?: File | string;
-  certifcate_fabricant?: File | string;
+  has_documentation?: boolean;
+  /** Rutas de archivos consignados (lista plana, para vistas simples). */
+  certificates?: string[];
+  /** Checklist documental completo del artículo. */
+  document_requirements?: ArticleDocumentRequirementSummary[];
   image?: File | string;
   primary_unit_id?: number;
   inspector?: string;

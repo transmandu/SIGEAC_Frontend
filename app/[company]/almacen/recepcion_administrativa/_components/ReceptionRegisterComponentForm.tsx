@@ -3,7 +3,7 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -12,23 +12,30 @@ import { Check, ChevronsUpDown, Loader2, Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 
-import { useCreateArticle, useUpdateArticle } from "@/actions/mantenimiento/almacen/inventario/articulos/actions";
+import {
+  ArticleDocumentSelection,
+  extractCreatedArticleIds,
+  useCreateArticle,
+  useUpdateArticle,
+  useUploadArticleDocuments,
+} from "@/actions/mantenimiento/almacen/inventario/articulos/actions";
+
+import ArticleDocumentsSelector from "@/components/misc/ArticleDocumentsSelector";
 
 import { useGetConditions } from "@/hooks/administracion/useGetConditions";
 import { useGetManufacturers } from "@/hooks/general/fabricantes/useGetManufacturers";
 import { useGetBatchesByCategory } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByCategory";
 
 import { useCompanyStore } from "@/stores/CompanyStore";
-import axiosInstance from "@/lib/axios";
 import { cn } from "@/lib/utils";
 import loadingGif from "@/public/loading2.gif";
-import { toast } from "sonner";
 
 import { CreateManufacturerDialog } from "@/components/dialogs/general/CreateManufacturerDialog";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
@@ -72,22 +79,8 @@ export const formSchema = z.object({
 
   batch_id: z.string({ message: "Debe ingresar un lote." }).min(1, "Seleccione un lote"),
 
-  certificate_8130: z
-    .instanceof(File, { message: "Suba un archivo válido." })
-    .refine((f) => f.size <= fileMaxBytes, "Tamaño máximo 10 MB.")
-    .optional(),
-
-  certificate_fabricant: z
-    .instanceof(File, { message: "Suba un archivo válido." })
-    .refine((f) => f.size <= fileMaxBytes, "Tamaño máximo 10 MB.")
-    .optional(),
-
-  certificate_vendor: z
-    .instanceof(File, { message: "Suba un archivo válido." })
-    .refine((f) => f.size <= fileMaxBytes, "Tamaño máximo 10 MB.")
-    .optional(),
-
   image: z.instanceof(File).optional(),
+  has_documentation: z.boolean().optional(),
   destination_unknown: z.boolean().optional(),
   reception_date: z.string().optional(),
 });
@@ -115,6 +108,9 @@ export default function ReceptionRegisterComponentForm({ initialData, isEditing 
 
   const { createArticle } = useCreateArticle();
   const { updateArticle } = useUpdateArticle();
+  const { uploadArticleDocuments } = useUploadArticleDocuments();
+
+  const [documents, setDocuments] = useState<ArticleDocumentSelection[]>([]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -126,6 +122,7 @@ export default function ReceptionRegisterComponentForm({ initialData, isEditing 
       manufacturer_id: initialData?.manufacturer?.id?.toString() || "",
       condition_id: initialData?.condition?.id?.toString() || "",
       description: initialData?.description || "",
+      has_documentation: initialData?.has_documentation ?? false,
       destination_unknown: false,
       reception_date: initialData?.reception_date || "",
     },
@@ -141,6 +138,7 @@ export default function ReceptionRegisterComponentForm({ initialData, isEditing 
       manufacturer_id: initialData.manufacturer?.id?.toString() ?? "",
       condition_id: initialData.condition?.id?.toString() ?? "",
       description: initialData.description ?? "",
+      has_documentation: initialData.has_documentation ?? false,
       destination_unknown: false,
       reception_date: initialData.reception_date ?? "",
     });
@@ -151,30 +149,10 @@ export default function ReceptionRegisterComponentForm({ initialData, isEditing 
     isManufacturerLoading ||
     isConditionsLoading ||
     createArticle.isPending ||
-    updateArticle.isPending;
+    updateArticle.isPending ||
+    uploadArticleDocuments.isPending;
 
-  const handleDownload = async (url: string) => {
-    if (!url) return;
-    try {
-      const response = await axiosInstance.get(`/warehouse/download-certificate/${url}`, {
-        responseType: "blob",
-      });
-
-      const downloadUrl = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement("a");
-      link.href = downloadUrl;
-      link.setAttribute("download", url.split("/").pop() || "certificate");
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(downloadUrl);
-
-      toast.success("Certificado descargado correctamente");
-    } catch (error) {
-      console.error("Error descargando el archivo:", error);
-      toast.error("Error al descargar el certificado");
-    }
-  };
+  const hasDocumentation = form.watch("has_documentation");
 
   const normalizeUpper = (s?: string) => s?.trim().toUpperCase() ?? "";
 
@@ -190,9 +168,6 @@ export default function ReceptionRegisterComponentForm({ initialData, isEditing 
       serial: values.serial,
       alternative_part_number: values.alternative_part_number?.map(normalizeUpper) ?? [],
       description: values.description,
-      certificate_8130: values.certificate_8130,
-      certificate_fabricant: values.certificate_fabricant,
-      certificate_vendor: values.certificate_vendor,
       image: values.image,
       status: values.destination_unknown ? "TO_DETERMINATE" : "RECEPTION",
       reception_date: values.reception_date || undefined,
@@ -205,15 +180,34 @@ export default function ReceptionRegisterComponentForm({ initialData, isEditing 
         data: payload,
       });
 
+      if (values.has_documentation && documents.length > 0) {
+        await uploadArticleDocuments.mutateAsync({
+          company: selectedCompany.slug,
+          articleId: Number(initialData.id),
+          documents,
+        });
+      }
+
       router.push(`/${selectedCompany.slug}/almacen/inventario_articulos`);
       return;
     }
 
-    await createArticle.mutateAsync({
+    const res = await createArticle.mutateAsync({
       company: selectedCompany.slug,
       data: payload,
     });
 
+    if (values.has_documentation && documents.length > 0) {
+      for (const articleId of extractCreatedArticleIds(res?.data)) {
+        await uploadArticleDocuments.mutateAsync({
+          company: selectedCompany.slug,
+          articleId,
+          documents,
+        });
+      }
+    }
+
+    setDocuments([]);
     form.reset({
       part_number: "",
       serial: "",
@@ -222,6 +216,7 @@ export default function ReceptionRegisterComponentForm({ initialData, isEditing 
       manufacturer_id: "",
       condition_id: "",
       description: "",
+      has_documentation: false,
       destination_unknown: false,
       reception_date: "",
     });
@@ -622,6 +617,29 @@ export default function ReceptionRegisterComponentForm({ initialData, isEditing 
               <DestinationUnknownField control={form.control} disabled={busy} />
             )}
 
+            <FormField
+              control={form.control}
+              name="has_documentation"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      disabled={busy}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>¿El artículo tiene documentación?</FormLabel>
+                    <FormDescription>
+                      Marque esta casilla para seleccionar los documentos que se
+                      esperan del artículo y consignarlos.
+                    </FormDescription>
+                  </div>
+                </FormItem>
+              )}
+            />
+
             <Separator />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -634,76 +652,13 @@ export default function ReceptionRegisterComponentForm({ initialData, isEditing 
                 description="Imagen descriptiva."
               />
 
-              <FileField
-                control={form.control}
-                setValue={form.setValue}
-                name="certificate_8130"
-                label={
-                  <>
-                    Certificado{" "}
-                    <span className="text-primary font-semibold">
-                      8130 / 21-004 / EASA 1
-                    </span>
-                  </>
-                }
-                accept=".pdf,image/*"
-                currentFileLabel={
-                  isEditing && initialData?.certificate_8130
-                    ? initialData.certificate_8130.split("/").pop()
-                    : undefined
-                }
-                onDownload={
-                  isEditing && initialData?.certificate_8130
-                    ? () => handleDownload(initialData.certificate_8130!)
-                    : undefined
-                }
-              />
-
-              <FileField
-                control={form.control}
-                setValue={form.setValue}
-                name="certificate_fabricant"
-                label={
-                  <>
-                    Certificado del{" "}
-                    <span className="text-primary">fabricante</span>
-                  </>
-                }
-                accept=".pdf,image/*"
-                currentFileLabel={
-                  isEditing && initialData?.certificate_fabricant
-                    ? initialData.certificate_fabricant.split("/").pop()
-                    : undefined
-                }
-                onDownload={
-                  isEditing && initialData?.certificate_fabricant
-                    ? () => handleDownload(initialData.certificate_fabricant!)
-                    : undefined
-                }
-              />
-
-              <FileField
-                control={form.control}
-                setValue={form.setValue}
-                name="certificate_vendor"
-                label={
-                  <>
-                    Certificado del{" "}
-                    <span className="text-primary">vendedor</span>
-                  </>
-                }
-                accept=".pdf,image/*"
-                currentFileLabel={
-                  isEditing && initialData?.certificate_vendor
-                    ? initialData.certificate_vendor.split("/").pop()
-                    : undefined
-                }
-                onDownload={
-                  isEditing && initialData?.certificate_vendor
-                    ? () => handleDownload(initialData.certificate_vendor!)
-                    : undefined
-                }
-              />
+              {hasDocumentation && (
+                <ArticleDocumentsSelector
+                  value={documents}
+                  onChange={setDocuments}
+                  disabled={busy}
+                />
+              )}
             </div>
           </CardContent>
         </Card>

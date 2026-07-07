@@ -40,11 +40,15 @@ import {
 import { Separator } from "@/components/ui/separator";
 
 import {
+  ArticleDocumentSelection,
+  extractCreatedArticleIds,
   useConfirmIncomingArticle,
   useCreateArticle,
   useUpdateArticle,
+  useUploadArticleDocuments,
 } from "@/actions/mantenimiento/almacen/inventario/articulos/actions";
 
+import ArticleDocumentsSelector from "@/components/misc/ArticleDocumentsSelector";
 import { useGetConditions } from "@/hooks/administracion/useGetConditions";
 import { useGetManufacturers } from "@/hooks/general/fabricantes/useGetManufacturers";
 import { useSearchBatchesByPartNumber } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByArticlePartNumber";
@@ -128,18 +132,6 @@ const formSchema = z
     batch_id: z
       .string({ message: "Debe ingresar un lote." })
       .min(1, "Seleccione un lote"),
-    certificate_8130: z
-      .instanceof(File, { message: "Suba un archivo válido." })
-      .refine((f) => f.size <= fileMaxBytes, "Tamaño máximo 10 MB.")
-      .optional(),
-    certificate_fabricant: z
-      .instanceof(File, { message: "Suba un archivo válido." })
-      .refine((f) => f.size <= fileMaxBytes, "Tamaño máximo 10 MB.")
-      .optional(),
-    certificate_vendor: z
-      .instanceof(File, { message: "Suba un archivo válido." })
-      .refine((f) => f.size <= fileMaxBytes, "Tamaño máximo 10 MB.")
-      .optional(),
     image: z.instanceof(File).optional(),
     has_documentation: z.boolean().optional(),
     aircraft_id: z.string().optional(),
@@ -296,6 +288,9 @@ export default function ReceptionRegisterPartForm({
   // Mutations
   const { createArticle } = useCreateArticle();
   const { updateArticle } = useUpdateArticle();
+  const { uploadArticleDocuments } = useUploadArticleDocuments();
+
+  const [documents, setDocuments] = useState<ArticleDocumentSelection[]>([]);
   const { confirmIncoming } = useConfirmIncomingArticle();
 
   // Form
@@ -591,15 +586,36 @@ export default function ReceptionRegisterPartForm({
         company: selectedCompany.slug,
         id: initialData.id,
       });
+
+      if (values.has_documentation && documents.length > 0) {
+        await uploadArticleDocuments.mutateAsync({
+          company: selectedCompany.slug,
+          articleId: Number(initialData.id),
+          documents,
+        });
+      }
+
       // Esperar un momento para que las queries se invaliden antes de redirigir
       await new Promise((resolve) => setTimeout(resolve, 100));
       router.push(`/${selectedCompany.slug}/ingenieria/confirmar_inventario`);
       router.refresh(); // Forzar refresco de la página
     } else {
-      await createArticle.mutateAsync({
+      const res = await createArticle.mutateAsync({
         company: selectedCompany.slug,
         data: formattedValues,
       });
+
+      if (values.has_documentation && documents.length > 0) {
+        for (const articleId of extractCreatedArticleIds(res?.data)) {
+          await uploadArticleDocuments.mutateAsync({
+            company: selectedCompany.slug,
+            articleId,
+            documents,
+          });
+        }
+      }
+
+      setDocuments([]);
       form.reset();
       // Restablecer a "No aplica" por defecto
       setFabricationDate(null);
@@ -1731,46 +1747,11 @@ export default function ReceptionRegisterPartForm({
                     description="Imagen descriptiva."
                   />
 
-                  <div className="space-y-4">
-                    <FileField
-                      name="certificate_8130"
-                      label={
-                        (
-                          <span>
-                            Certificado{" "}
-                            <span className="text-primary font-semibold">
-                              8130
-                            </span>
-                          </span>
-                        ) as any
-                      }
-                      description="PDF o imagen. Máx. 10 MB."
-                    />
-                    <FileField
-                      name="certificate_fabricant"
-                      label={
-                        (
-                          <span>
-                            Certificado del{" "}
-                            <span className="text-primary">fabricante</span>
-                          </span>
-                        ) as any
-                      }
-                      description="PDF o imagen. Máx. 10 MB."
-                    />
-                    <FileField
-                      name="certificate_vendor"
-                      label={
-                        (
-                          <span>
-                            Certificado del{" "}
-                            <span className="text-primary">vendedor</span>
-                          </span>
-                        ) as any
-                      }
-                      description="PDF o imagen. Máx. 10 MB."
-                    />
-                  </div>
+                  <ArticleDocumentsSelector
+                    value={documents}
+                    onChange={setDocuments}
+                    disabled={busy}
+                  />
                 </div>
               </>
             )}

@@ -21,10 +21,14 @@ import {
 } from "lucide-react";
 
 import {
+  ArticleDocumentSelection,
+  extractCreatedArticleIds,
   useConfirmIncomingArticle,
   useCreateArticle,
+  useUploadArticleDocuments,
 } from "@/actions/mantenimiento/almacen/inventario/articulos/actions";
 
+import ArticleDocumentsSelector from "@/components/misc/ArticleDocumentsSelector";
 import { MultiInputField } from "@/components/misc/MultiInputField";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -102,18 +106,6 @@ const formSchema = z
     next_calibration: z.coerce.number().int().positive().optional(),
 
     // Archivos
-    certificate_8130: z
-      .instanceof(File, { message: "Archivo inválido." })
-      .refine((f) => f.size <= fileMaxBytes, "Máx. 10 MB.")
-      .optional(),
-    certificate_fabricant: z
-      .instanceof(File, { message: "Archivo inválido." })
-      .refine((f) => f.size <= fileMaxBytes, "Máx. 10 MB.")
-      .optional(),
-    certificate_vendor: z
-      .instanceof(File, { message: "Archivo inválido." })
-      .refine((f) => f.size <= fileMaxBytes, "Máx. 10 MB.")
-      .optional(),
     image: z.instanceof(File).optional(),
     has_documentation: z.boolean().optional(),
     destination_unknown: z.boolean().optional(),
@@ -409,6 +401,9 @@ export default function ReceptionRegisterToolForm({
 
   const { createArticle } = useCreateArticle();
   const { updateArticle } = useUpdateArticle();
+  const { uploadArticleDocuments } = useUploadArticleDocuments();
+
+  const [documents, setDocuments] = useState<ArticleDocumentSelection[]>([]);
   const { confirmIncoming } = useConfirmIncomingArticle();
 
   const [enableBatchNameEdit, setEnableBatchNameEdit] = useState(false);
@@ -539,17 +534,39 @@ export default function ReceptionRegisterToolForm({
         id: (initialData as any)?.id,
         company: selectedCompany.slug,
       });
+
+      if (values.has_documentation && documents.length > 0) {
+        await uploadArticleDocuments.mutateAsync({
+          company: selectedCompany.slug,
+          articleId: Number((initialData as any)?.id),
+          documents,
+        });
+      }
+
       router.push(`/${selectedCompany.slug}/ingenieria/confirmar_inventario`);
     } else {
-      await createArticle.mutateAsync({
+      const res = await createArticle.mutateAsync({
         company: selectedCompany.slug,
         data: payload,
       });
+
+      if (values.has_documentation && documents.length > 0) {
+        for (const articleId of extractCreatedArticleIds(res?.data)) {
+          await uploadArticleDocuments.mutateAsync({
+            company: selectedCompany.slug,
+            articleId,
+            documents,
+          });
+        }
+      }
+
+      setDocuments([]);
       form.reset();
     }
   }
 
   const isCalibrated = form.watch("needs_calibration");
+  const hasDocumentation = form.watch("has_documentation");
 
   return (
     <Form {...form}>
@@ -1244,44 +1261,13 @@ export default function ReceptionRegisterToolForm({
                 busy={busy}
               />
 
-              <div className="space-y-4">
-                <FileField
-                  form={form}
-                  name="certificate_8130"
-                  label={
-                    <span>
-                      Certificado{" "}
-                      <span className="text-primary font-semibold">8130</span>
-                    </span>
-                  }
-                  description="PDF o imagen. Máx. 10 MB."
-                  busy={busy}
+              {hasDocumentation && (
+                <ArticleDocumentsSelector
+                  value={documents}
+                  onChange={setDocuments}
+                  disabled={busy}
                 />
-                <FileField
-                  form={form}
-                  name="certificate_fabricant"
-                  label={
-                    <span>
-                      Certificado del{" "}
-                      <span className="text-primary">fabricante</span>
-                    </span>
-                  }
-                  description="PDF o imagen. Máx. 10 MB."
-                  busy={busy}
-                />
-                <FileField
-                  form={form}
-                  name="certificate_vendor"
-                  label={
-                    <span>
-                      Certificado del{" "}
-                      <span className="text-primary">vendedor</span>
-                    </span>
-                  }
-                  description="PDF o imagen. Máx. 10 MB."
-                  busy={busy}
-                />
-              </div>
+              )}
             </div>
           </div>
         </SectionCard>
