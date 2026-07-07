@@ -21,7 +21,7 @@ export default function UpdateCargoShipmentPage() {
   useEffect(() => {
     registerTour("cargo-guia-editar", "Editar Guía de Carga", cargoGuiaCrearSteps);
     return () => unregisterTour("cargo-guia-editar");
-  }, []);
+  }, [registerTour, unregisterTour]);
 
   const {
     data: cargoShipment,

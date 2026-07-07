@@ -17,7 +17,7 @@ export default function CreateGenericCargoPage() {
   useEffect(() => {
     registerTour("cargo-guia-crear", "Nuevo Registro de Carga", cargoGuiaCrearSteps);
     return () => unregisterTour("cargo-guia-crear");
-  }, []);
+  }, [registerTour, unregisterTour]);
 
   return (
     <ContentLayout title="Nuevo Registro">

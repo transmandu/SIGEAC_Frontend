@@ -45,7 +45,7 @@ export default function CargoDetailsPage() {
   useEffect(() => {
     registerTour("cargo-guia-detalle", "Detalle de Guía", cargoGuiaDetalleSteps);
     return () => unregisterTour("cargo-guia-detalle");
-  }, []);
+  }, [registerTour, unregisterTour]);
 
   const {
     data: shipment,

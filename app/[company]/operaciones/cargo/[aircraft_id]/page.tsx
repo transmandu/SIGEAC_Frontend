@@ -66,7 +66,7 @@ const CargoByAircraftPage = () => {
   useEffect(() => {
     registerTour("cargo-guia-lista", "Guías por Aeronave", cargoGuiaListaSteps);
     return () => unregisterTour("cargo-guia-lista");
-  }, []);
+  }, [registerTour, unregisterTour]);
 
   return (
     <ContentLayout title="Registros de Carga">
