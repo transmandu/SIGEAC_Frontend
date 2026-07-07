@@ -26,9 +26,9 @@ import { toast } from "sonner"
 
 
 const fmtNumber = (n: any) => {
-    if (n === null || n === undefined) return "0"
+    if (n === null || n === undefined) return "N/A"
     const num = Number(n)
-    return isNaN(num) ? "0" : num.toLocaleString('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 3 })
+    return isNaN(num) ? "N/A" : num.toLocaleString('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 3 })
 }
 
 const fmtDate = (d?: string | null | Date) => {
