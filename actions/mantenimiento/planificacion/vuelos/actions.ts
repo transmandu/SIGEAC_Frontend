@@ -66,3 +66,38 @@ export const useUpdateFlightControl = () => {
     updateFlightControl: updateMutation,
   }
 }
+
+export const useDeleteFlightCOntrol = () => {
+  const queryClient = useQueryClient();
+
+  const deleteMutation = useMutation({
+    mutationKey: ["flight-control"],
+    mutationFn: async ({
+      company,
+      id,
+    }: {
+      company: string | null;
+      id: string | number;
+    }) => {
+      await axiosInstance.delete(`/${company}/flight-controls/${id}`);
+    },
+    onSuccess: (_, data) => {
+      queryClient.invalidateQueries({
+        queryKey: ["flight-control"],
+      });
+      queryClient.invalidateQueries({ queryKey: ["flight-controls"] });
+      toast.success("¡Eliminado!", {
+        description: `¡El vuelo ha sido eliminada correctamente!`,
+      });
+    },
+    onError: (e) => {
+      toast.error("Oops!", {
+        description: "¡Hubo un error al eliminar el vuelo!",
+      });
+    },
+  });
+
+  return {
+    deleteFlightCOntrol: deleteMutation,
+  };
+};
