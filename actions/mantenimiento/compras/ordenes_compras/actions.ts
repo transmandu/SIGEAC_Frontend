@@ -56,7 +56,7 @@ export const useCompletePurchase = () => {
           // compatibilidad con órdenes previas a la reingeniería de pagos.
           if (data.payment_method_id != null) formData.append("payment_method_id", String(data.payment_method_id))
           if (data.bank_account_id != null) formData.append("bank_account_id", String(data.bank_account_id))
-          if (data.card_id != null) formData.append("card_id", String(data.card_id))
+          if (data.bank_card_id != null) formData.append("bank_card_id", String(data.bank_card_id))
           if (data.shipping_fee != null) formData.append("shipping_fee", String(data.shipping_fee))
           if (data.shipping_agency_id != null) formData.append("shipping_agency_id", String(data.shipping_agency_id))
           if (data.international_shipping != null) formData.append("international_shipping", String(data.international_shipping))

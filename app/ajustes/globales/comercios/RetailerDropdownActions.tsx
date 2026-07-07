@@ -43,7 +43,7 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { useCompanyStore } from "@/stores/CompanyStore"
-import { useUpdateRetailer, useDeleteRetailer } from "@/actions/general/comercios/actions"
+import { useUpdateRetailer, useDeleteRetailer } from "@/actions/ajustes/globales/comercios/actions"
 import { Retailer } from "@/types"
 
 const formSchema = z.object({

@@ -142,7 +142,7 @@ const FormSchema = z.object({
   // cuenta) o la cuenta bancaria; métodos como Efectivo no piden nada más.
   payment_method_id: z.string().min(1, { message: "Debe seleccionar un método de pago." }),
   bank_account_id: z.string().optional(),
-  card_id: z.string().optional(),
+  bank_card_id: z.string().optional(),
   knows_shipping_info: z.boolean(),
   shipping_agency_id: z.string().optional(),
   invoice_number: z.string().optional(),
@@ -221,7 +221,7 @@ export function PayPurchaseOrderForm({ onClose, po, isAeronautical = false }: Fo
       international_shipping: "",
       payment_method_id: "",
       bank_account_id: "",
-      card_id: "",
+      bank_card_id: "",
       knows_shipping_info: false,
       invoice_number: "",
       observation: "",
@@ -236,7 +236,7 @@ export function PayPurchaseOrderForm({ onClose, po, isAeronautical = false }: Fo
 
   const { tax, wire_fee, handling_fee, shipping_fee, international_shipping } = form.watch();
   const selectedMethodId = form.watch("payment_method_id");
-  const selectedCardId = form.watch("card_id");
+  const selectedCardId = form.watch("bank_card_id");
   const knowsShippingInfo = form.watch("knows_shipping_info");
   const effectiveWireFee = isAeronautical ? 0 : Number(wire_fee || 0);
 
@@ -250,7 +250,7 @@ export function PayPurchaseOrderForm({ onClose, po, isAeronautical = false }: Fo
   const cardsForMethod = useMemo(() => {
     if (!paymentOptions || !selectedMethodId) return [];
     return paymentOptions.flatMap((account) =>
-      (account.cards ?? [])
+      (account.bank_cards ?? [])
         .filter((card) => card.payment_method_id.toString() === selectedMethodId)
         .map((card) => ({ ...card, bank_account: account }))
     );
@@ -282,8 +282,8 @@ export function PayPurchaseOrderForm({ onClose, po, isAeronautical = false }: Fo
   const onSubmit = async (data: FormSchemaType) => {
     // Si el método tiene tarjetas registradas, hay que indicar cuál se usó;
     // si no tiene tarjetas pero sí cuentas habilitadas, hay que indicar la cuenta.
-    if (cardsForMethod.length > 0 && !data.card_id) {
-      form.setError("card_id", { message: "Debe seleccionar la tarjeta utilizada." });
+    if (cardsForMethod.length > 0 && !data.bank_card_id) {
+      form.setError("bank_card_id", { message: "Debe seleccionar la tarjeta utilizada." });
       return;
     }
 
@@ -317,7 +317,7 @@ export function PayPurchaseOrderForm({ onClose, po, isAeronautical = false }: Fo
         bank_account_id: selectedCard
           ? selectedCard.bank_account_id
           : (data.bank_account_id ? Number(data.bank_account_id) : null),
-        card_id: selectedCard ? selectedCard.id : null,
+        bank_card_id: selectedCard ? selectedCard.id : null,
         shipping_agency_id: data.knows_shipping_info && data.shipping_agency_id ? Number(data.shipping_agency_id) : null,
         invoice_number: data.invoice_number || null,
         observation: data.observation || null,
@@ -617,7 +617,7 @@ export function PayPurchaseOrderForm({ onClose, po, isAeronautical = false }: Fo
                       onValueChange={(value) => {
                         field.onChange(value);
                         // Cambiar de método invalida tarjeta y cuenta elegidas.
-                        form.setValue("card_id", "");
+                        form.setValue("bank_card_id", "");
                         form.setValue("bank_account_id", "");
                       }}
                       value={field.value}
@@ -645,7 +645,7 @@ export function PayPurchaseOrderForm({ onClose, po, isAeronautical = false }: Fo
               {cardsForMethod.length > 0 && (
                 <FormField
                   control={form.control}
-                  name="card_id"
+                  name="bank_card_id"
                   render={({ field }) => (
                     <FormItem className="col-span-2">
                       <FormLabel className={LABEL_CLS}>Tarjeta</FormLabel>

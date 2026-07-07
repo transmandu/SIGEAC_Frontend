@@ -7,7 +7,7 @@ import { ShippingAgency } from "@/types"
 import {
   useUpdateShippingAgency,
   useDeleteShippingAgency
-} from "@/actions/general/agencias_envio/actions"
+} from "@/actions/ajustes/globales/agencias_envio/actions"
 
 import {
   DropdownMenu,

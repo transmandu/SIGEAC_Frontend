@@ -115,7 +115,7 @@ export const useGetWarehouseArticlesByCategory = (
         enabled: enabled && !!selectedCompany && !!selectedStation,
         staleTime: 0,
         refetchOnMount: true,
-        refetchOnWindowFocus: false,    
+        refetchOnWindowFocus: false,
     });
 };
 

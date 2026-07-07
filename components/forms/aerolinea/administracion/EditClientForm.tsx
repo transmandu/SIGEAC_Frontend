@@ -1,6 +1,6 @@
 "use client";
 
-import { useUpdateClient } from "@/actions/general/clientes/actions";
+import { useUpdateClient } from "@/actions/ajustes/globales/clientes/actions";
 import { Button } from "@/components/ui/button";
 import {
   Form,

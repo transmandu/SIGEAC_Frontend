@@ -1,11 +1,11 @@
 "use client";
 
-import { useDeleteBank } from "@/actions/general/banco_cuentas/bancos/actions";
-import { useDeleteBankAccount } from "@/actions/general/banco_cuentas/cuentas/actions";
-import { useDeleteCard } from "@/actions/general/banco_cuentas/tarjetas/actions";
+import { useDeleteBank } from "@/actions/ajustes/banca/bancos/actions";
+import { useDeleteBankAccount } from "@/actions/ajustes/banca/cuentas/actions";
+import { useDeleteBankCard } from "@/actions/ajustes/banca/tarjetas/actions";
 import CreateBankAccountForm from "@/components/forms/ajustes/CreateBankAccountForm";
 import CreateBankForm from "@/components/forms/ajustes/CreateBankForm";
-import CreateCardForm from "@/components/forms/ajustes/CreateCardForm";
+import CreateBankCardForm from "@/components/forms/ajustes/CreateBankCardForm";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -22,7 +22,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/contexts/AuthContext";
-import { Bank, BankAccount, Card } from "@/types";
+import { Bank, BankAccount, BankCard } from "@/types";
 import { Loader2, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
 import type { UseMutationResult } from "@tanstack/react-query";
@@ -146,15 +146,15 @@ export function BankAccountDropdownActions({ account }: { account: BankAccount }
   );
 }
 
-export function CardDropdownActions({ card }: { card: Card }) {
-  const { deleteCard } = useDeleteCard();
+export function BankCardDropdownActions({ bankCard }: { bankCard: BankCard }) {
+  const { deleteCard } = useDeleteBankCard();
   return (
     <EntityActions
       deleteMutation={deleteCard}
       deleteLabel="¿Seguro que desea eliminar esta tarjeta?"
       editTitle="Editar Tarjeta"
-      entityId={card.id}
-      renderEditForm={(onClose) => <CreateCardForm onClose={onClose} card={card} />}
+      entityId={bankCard.id}
+      renderEditForm={(onClose) => <CreateBankCardForm onClose={onClose} bankCard={bankCard} />}
     />
   );
 }

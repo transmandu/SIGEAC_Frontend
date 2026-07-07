@@ -1,6 +1,6 @@
 "use client";
 
-import { useUpdateEmployee } from "@/actions/general/empleados/actions";
+import { useUpdateEmployee } from "@/actions/sistema/empresas/empleados/actions";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";

@@ -102,7 +102,7 @@ export type BankAccount = {
   companies?: Pick<Company, "id" | "name">[];
   /** Métodos de pago (catálogo global) que esta cuenta puede usar. */
   payment_methods?: PaymentMethod[];
-  cards?: Card[];
+  bank_cards?: BankCard[];
   registered_by?: string | null;
   updated_by?: string | null;
 };
@@ -143,7 +143,7 @@ export type Batch = {
  * define su método (Tarjeta de Crédito / Débito / Prepagada) — no tiene
  * campo type propio. Su validez por compañía la define un SUPERUSER.
  */
-export type Card = {
+export type BankCard = {
   id: number;
   name: string;
   card_number: string;

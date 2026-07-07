@@ -142,7 +142,7 @@ const FormSchema = z.object({
   // puede completarse sin re-registrar el pago.
   payment_method_id: z.string().optional(),
   bank_account_id: z.string().optional(),
-  card_id: z.string().optional(),
+  bank_card_id: z.string().optional(),
   shipping_agency_id: z.string().optional(),
   invoice_number: z.string().optional(),
   observation: z.string().optional(),
@@ -224,7 +224,7 @@ export function CompleteOrderForm({ onClose, po, isAeronautical = false }: FormP
       international_shipping: po.international_shipping != null ? String(po.international_shipping) : "",
       payment_method_id: po.payment_method ? String(po.payment_method.id) : "",
       bank_account_id: po.bank_account ? String(po.bank_account.id) : "",
-      card_id: po.card ? String(po.card.id) : "",
+      bank_card_id: po.bank_card ? String(po.bank_card.id) : "",
       shipping_agency_id: po.shipping_agency ? String(po.shipping_agency.id) : "",
       invoice_number: po.invoice_number ?? "",
       observation: po.observation ?? "",
@@ -239,14 +239,14 @@ export function CompleteOrderForm({ onClose, po, isAeronautical = false }: FormP
 
   const { tax, wire_fee, handling_fee, shipping_fee, international_shipping } = form.watch();
   const selectedMethodId = form.watch("payment_method_id");
-  const selectedCardId = form.watch("card_id");
+  const selectedCardId = form.watch("bank_card_id");
   const effectiveWireFee = isAeronautical ? 0 : Number(wire_fee || 0);
 
   // ── Flujo de pago: método → tarjeta / cuenta (condicional) ───────────────
   const cardsForMethod = useMemo(() => {
     if (!paymentOptions || !selectedMethodId) return [];
     return paymentOptions.flatMap((account) =>
-      (account.cards ?? [])
+      (account.bank_cards ?? [])
         .filter((card) => card.payment_method_id.toString() === selectedMethodId)
         .map((card) => ({ ...card, bank_account: account }))
     );
@@ -278,8 +278,8 @@ export function CompleteOrderForm({ onClose, po, isAeronautical = false }: FormP
   const onSubmit = async (data: FormSchemaType) => {
     // Si el método tiene tarjetas registradas, hay que indicar cuál se usó;
     // si no tiene tarjetas pero sí cuentas habilitadas, hay que indicar la cuenta.
-    if (data.payment_method_id && cardsForMethod.length > 0 && !data.card_id) {
-      form.setError("card_id", { message: "Debe seleccionar la tarjeta utilizada." });
+    if (data.payment_method_id && cardsForMethod.length > 0 && !data.bank_card_id) {
+      form.setError("bank_card_id", { message: "Debe seleccionar la tarjeta utilizada." });
       return;
     }
 
@@ -315,7 +315,7 @@ export function CompleteOrderForm({ onClose, po, isAeronautical = false }: FormP
           : (data.bank_account_id
             ? Number(data.bank_account_id)
             : (! data.payment_method_id && po.bank_account ? po.bank_account.id : null)),
-        card_id: selectedCard ? selectedCard.id : null,
+        bank_card_id: selectedCard ? selectedCard.id : null,
         shipping_agency_id: data.shipping_agency_id ? Number(data.shipping_agency_id) : null,
         invoice_number: data.invoice_number || null,
         observation: data.observation || null,
@@ -578,7 +578,7 @@ export function CompleteOrderForm({ onClose, po, isAeronautical = false }: FormP
                       onValueChange={(value) => {
                         field.onChange(value);
                         // Cambiar de método invalida tarjeta y cuenta elegidas.
-                        form.setValue("card_id", "");
+                        form.setValue("bank_card_id", "");
                         form.setValue("bank_account_id", "");
                       }}
                       value={field.value}
@@ -606,7 +606,7 @@ export function CompleteOrderForm({ onClose, po, isAeronautical = false }: FormP
               {cardsForMethod.length > 0 && (
                 <FormField
                   control={form.control}
-                  name="card_id"
+                  name="bank_card_id"
                   render={({ field }) => (
                     <FormItem className="col-span-2">
                       <FormLabel className={LABEL_CLS}>Tarjeta</FormLabel>
