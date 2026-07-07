@@ -19,6 +19,8 @@ import { FlightControl } from "@/types"
 import { MoreHorizontal, SquarePen, Trash2, Loader2 } from "lucide-react"
 import { useState } from "react"
 import CreateFlightControlForm from "@/components/forms/mantenimiento/ordenes_trabajo/CreateFlightControlForm"
+import { useDeleteFlightControl } from "@/actions/mantenimiento/planificacion/vuelos/actions"
+import { useCompanyStore } from "@/stores/CompanyStore"
 
 interface FlightControlDropdownActionsProps {
   flightControl: FlightControl
@@ -28,10 +30,11 @@ const FlightControlDropdownActions = ({ flightControl }: FlightControlDropdownAc
   const [open, setOpen] = useState<boolean>(false)
   const [openEdit, setOpenEdit] = useState<boolean>(false)
   const [openDelete, setOpenDelete] = useState<boolean>(false)
+  const { deleteFlightControl } = useDeleteFlightControl();
+  const { selectedCompany } = useCompanyStore();
 
   const handleDelete = () => {
-    // TODO: Implementar eliminación
-    console.log('Eliminar vuelo:', flightControl.id)
+    deleteFlightControl.mutate({ id: flightControl.id, company: selectedCompany!.slug })
     setOpenDelete(false)
   }
 
@@ -79,10 +82,15 @@ const FlightControlDropdownActions = ({ flightControl }: FlightControlDropdownAc
               </Button>
 
               <Button
+                disabled={deleteFlightControl.isPending}
                 className="hover:bg-white hover:text-black hover:border hover:border-black transition-all"
                 onClick={handleDelete}
               >
-                <p>Confirmar</p>
+                {deleteFlightControl.isPending ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <p>Confirmar</p>
+                )}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -97,8 +105,8 @@ const FlightControlDropdownActions = ({ flightControl }: FlightControlDropdownAc
                 Edite el vuelo modificando la información necesaria.
               </DialogDescription>
             </DialogHeader>
-            <CreateFlightControlForm 
-              onClose={() => setOpenEdit(false)} 
+            <CreateFlightControlForm
+              onClose={() => setOpenEdit(false)}
               flightData={{
                 id: flightControl.id.toString(),
                 flight_number: flightControl.flight_number,
