@@ -788,12 +788,12 @@ export default function ReceptionRegisterComponentForm({ initialData, isEditing 
         </div>
 
         {/* Indicador interno de status (opcional, por si quieres dejarlo visible en UI) */}
-        <p className="text-xs text-muted-foreground">
-          Estado al registrar:{" "}
-          <span className="font-medium">
-            {form.watch("destination_unknown") ? "TO_DETERMINATE" : "RECEPTION"}
-          </span>
-        </p>
+        {/* <p className="text-xs text-muted-foreground"> */}
+        {/*   Estado al registrar:{" "} */}
+        {/*   <span className="font-medium"> */}
+        {/*     {form.watch("destination_unknown") ? "TO_DETERMINATE" : "RECEPTION"} */}
+        {/*   </span> */}
+        {/* </p> */}
       </form>
     </Form>
   );
