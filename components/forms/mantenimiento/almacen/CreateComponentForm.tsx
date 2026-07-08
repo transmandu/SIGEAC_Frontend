@@ -561,9 +561,9 @@ export default function CreateComponentForm({ initialData, isEditing }: Props) {
         </div>
 
         {/* Indicador interno de status (opcional, por si quieres dejarlo visible en UI) */}
-        <p className="text-xs text-muted-foreground">
-          Estado al registrar: <span className="font-medium">INCOMING</span>
-        </p>
+        {/* <p className="text-xs text-muted-foreground"> */}
+        {/*   Estado al registrar: <span className="font-medium">INCOMING</span> */}
+        {/* </p> */}
       </form>
     </Form>
   );

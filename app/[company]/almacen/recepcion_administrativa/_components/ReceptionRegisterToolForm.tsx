@@ -118,6 +118,10 @@ const formSchema = z
       .date()
       .refine((val) => !isNaN(val.getTime()), { message: "Invalid Date" })
       .optional(),
+    sender: z.string().optional(),
+    origin: z.string().optional(),
+    destination: z.string().optional(),
+    justification: z.string().optional(),
   })
   .superRefine((vals, ctx) => {
     if (vals.needs_calibration) {
@@ -435,6 +439,10 @@ export default function ReceptionRegisterToolForm({
       reception_date: initialData?.reception_date
         ? addDays(new Date(initialData.reception_date), 1)
         : undefined,
+      sender: (initialData as any)?.article_detail?.sender || "",
+      origin: (initialData as any)?.article_detail?.origin || "",
+      destination: (initialData as any)?.article_detail?.destination || "",
+      justification: (initialData as any)?.article_detail?.justification || "",
     },
     mode: "onBlur",
   });
@@ -525,6 +533,10 @@ export default function ReceptionRegisterToolForm({
         ? format(values.reception_date, "yyyy-MM-dd")
         : undefined,
       batch_name: enableBatchNameEdit ? values.batch_name : undefined,
+      sender: values.sender || undefined,
+      origin: values.origin || undefined,
+      destination: values.destination || undefined,
+      justification: values.justification || undefined,
       // next_calibration se envía como número si existe
     };
 
@@ -1269,6 +1281,76 @@ export default function ReceptionRegisterToolForm({
                 />
               )}
             </div>
+          </div>
+        </SectionCard>
+
+        {/* Detalles de Almacén */}
+        <SectionCard title="Detalles de Almacén">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="sender"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>
+                    Remitente{" "}
+                    <span className="text-xs italic text-gray-500 font-normal ml-1">(Sender)</span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input placeholder="Nombre del responsable" {...field} disabled={busy} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="origin"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>
+                    Origen{" "}
+                    <span className="text-xs italic text-gray-500 font-normal ml-1">(Origin)</span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input placeholder="Origen del artículo" {...field} disabled={busy} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="destination"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>
+                    Destino{" "}
+                    <span className="text-xs italic text-gray-500 font-normal ml-1">(Destination)</span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input placeholder="Destino del artículo" {...field} disabled={busy} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="justification"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>
+                    Justificación{" "}
+                    <span className="text-xs italic text-gray-500 font-normal ml-1">(Justification)</span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input placeholder="Justificación" {...field} disabled={busy} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
         </SectionCard>
 
