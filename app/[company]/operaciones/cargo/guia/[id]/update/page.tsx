@@ -33,7 +33,7 @@ export default function UpdateCargoShipmentPage() {
     <ContentLayout title="Editar Carga">
       <div className="flex flex-col gap-4">
         <div className="flex items-center gap-4 mb-4">
-          <Button asChild variant="outline" size="icon" className="h-9 w-9">
+          <Button asChild variant="outline" size="icon" className="h-9 w-9" data-tour="cargo-crear-btn-volver">
             <Link
               href={
                 cargoShipment?.aircraft
@@ -44,7 +44,7 @@ export default function UpdateCargoShipmentPage() {
               <ArrowLeft className="h-4 w-4" />
             </Link>
           </Button>
-          <h1 className="text-3xl font-bold text-center">
+          <h1 className="text-3xl font-bold text-center" data-tour="cargo-crear-title">
             Modificar Carga {cargoShipment?.guide_number}
           </h1>
         </div>

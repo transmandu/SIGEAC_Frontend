@@ -142,32 +142,32 @@ interface CustomTourProviderProps {
 const tourStyles = {
   popover: (base: Record<string, unknown>) => ({
     ...base,
-    background: "#1e293b",
-    color: "#f8fafc",
+    background: "var(--tour-bg)",
+    color: "var(--tour-color)",
     borderRadius: 12,
     padding: 20,
   }),
   badge: (base: Record<string, unknown>) => ({
     ...base,
-    background: "#334155",
-    color: "#94a3b8",
+    background: "var(--tour-badge-bg)",
+    color: "var(--tour-badge-color)",
   }),
   navigation: (base: Record<string, unknown>) => ({
     ...base,
-    color: "#f8fafc",
+    color: "var(--tour-color)",
   }),
   arrow: (_base: Record<string, unknown>, state?: Record<string, unknown>) => ({
-    color: state?.disabled ? "#475569" : "#f8fafc",
+    color: state?.disabled ? "var(--tour-arrow-disabled)" : "var(--tour-arrow-enabled)",
     width: 16,
     height: 12,
     flex: "0 0 16px",
   }),
   close: (base: Record<string, unknown>) => ({
     ...base,
-    color: "#94a3b8",
+    color: "var(--tour-close-color)",
     top: 8,
     right: 8,
-    _hover: { color: "#f8fafc" },
+    _hover: { color: "var(--tour-close-hover)" },
   }),
 };
 
