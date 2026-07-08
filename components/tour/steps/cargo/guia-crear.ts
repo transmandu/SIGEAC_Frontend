@@ -8,6 +8,12 @@ export const cargoGuiaCrearSteps: StepType[] = [
     position: "center",
   },
   {
+    selector: '[data-tour="cargo-crear-btn-volver"]',
+    content:
+      "Volver al listado de aeronaves sin guardar cambios.",
+    position: "right",
+  },
+  {
     selector: '[data-tour="cargo-crear-aeronave"]',
     content:
       "Seleccione la aeronave a la que pertenece la carga. Puede ser de la empresa o externa (terceros).",
@@ -60,12 +66,12 @@ export const cargoGuiaCrearSteps: StepType[] = [
       "Sección de productos. Aquí puede agregar todos los ítems que componen la carga.",
     position: "top",
   },
-  {
+/*   {
     selector: '[data-tour="cargo-crear-items-usar-balanza"]',
     content:
       "En caso de contar con balanza electrónica, puede usar esta opción para capturar el peso automáticamente.",
     position: "left",
-  },
+  }, */
   {
     selector: '[data-tour="cargo-crear-items-agregar"]',
     content:

@@ -8,6 +8,12 @@ export const cargoGuiaDetalleSteps: StepType[] = [
     position: "center",
   },
   {
+    selector: '[data-tour="cargo-detalle-btn-volver"]',
+    content:
+      "Volver al listado de guías de esta aeronave.",
+    position: "right",
+  },
+  {
     selector: '[data-tour="cargo-detalle-card-generales"]',
     content:
       "Información general: fecha, emisor y transportista.",
