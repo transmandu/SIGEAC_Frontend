@@ -151,6 +151,10 @@ const formSchema = z.object({
     has_documentation: z.boolean().optional(),
     destination_unknown: z.boolean().optional(),
     shelf_life: z.string().optional(),
+    sender: z.string().optional(),
+    origin: z.string().optional(),
+    destination: z.string().optional(),
+    justification: z.string().optional(),
 });
 
 export type FormValues = z.infer<typeof formSchema>;
@@ -1248,6 +1252,10 @@ export default function ReceptionRegisterConsumableForm({
             has_documentation: initialData?.has_documentation || false,
             destination_unknown: false,
             shelf_life: initialData?.consumable?.shelf_life || undefined,
+            sender: (initialData as any)?.article_detail?.sender || "",
+            origin: (initialData as any)?.article_detail?.origin || "",
+            destination: (initialData as any)?.article_detail?.destination || "",
+            justification: (initialData as any)?.article_detail?.justification || "",
         },
         mode: "onBlur",
     });
@@ -1312,6 +1320,10 @@ export default function ReceptionRegisterConsumableForm({
             primary_unit_id: initialData?.primary_unit_id || undefined,
             has_documentation: initialData.has_documentation ?? false,
             destination_unknown: false,
+            sender: (initialData as any)?.article_detail?.sender ?? "",
+            origin: (initialData as any)?.article_detail?.origin ?? "",
+            destination: (initialData as any)?.article_detail?.destination ?? "",
+            justification: (initialData as any)?.article_detail?.justification ?? "",
         };
 
         form.reset(resetValues);
@@ -1508,6 +1520,10 @@ export default function ReceptionRegisterConsumableForm({
                 ? selectedUnits.map(unit => unit.conversion_id)
                 : undefined,
             primary_unit_id: secondarySelected?.id,
+            sender: values.sender || undefined,
+            origin: values.origin || undefined,
+            destination: values.destination || undefined,
+            justification: values.justification || undefined,
         };
 
         if (isEditing && initialData) {
@@ -2481,6 +2497,75 @@ export default function ReceptionRegisterConsumableForm({
                                     />
                                 )}
                             </div>
+                        </div>
+                    </SectionCard>
+
+                    <SectionCard title="Detalles de Almacén">
+                        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                            <FormField
+                                control={form.control}
+                                name="sender"
+                                render={({ field }) => (
+                                    <FormItem className="w-full">
+                                        <FormLabel>
+                                            Remitente{" "}
+                                            <span className="text-xs italic text-gray-500 font-normal ml-1">(Sender)</span>
+                                        </FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Nombre del responsable" {...field} disabled={busy} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="origin"
+                                render={({ field }) => (
+                                    <FormItem className="w-full">
+                                        <FormLabel>
+                                            Origen{" "}
+                                            <span className="text-xs italic text-gray-500 font-normal ml-1">(Origin)</span>
+                                        </FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Origen del artículo" {...field} disabled={busy} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="destination"
+                                render={({ field }) => (
+                                    <FormItem className="w-full">
+                                        <FormLabel>
+                                            Destino{" "}
+                                            <span className="text-xs italic text-gray-500 font-normal ml-1">(Destination)</span>
+                                        </FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Destino del artículo" {...field} disabled={busy} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="justification"
+                                render={({ field }) => (
+                                    <FormItem className="w-full">
+                                        <FormLabel>
+                                            Justificación{" "}
+                                            <span className="text-xs italic text-gray-500 font-normal ml-1">(Justification)</span>
+                                        </FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Justificación" {...field} disabled={busy} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
                         </div>
                     </SectionCard>
 

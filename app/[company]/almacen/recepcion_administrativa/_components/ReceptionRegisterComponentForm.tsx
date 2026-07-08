@@ -83,6 +83,10 @@ export const formSchema = z.object({
   has_documentation: z.boolean().optional(),
   destination_unknown: z.boolean().optional(),
   reception_date: z.string().optional(),
+  sender: z.string().optional(),
+  origin: z.string().optional(),
+  destination: z.string().optional(),
+  justification: z.string().optional(),
 });
 
 export type FormValues = z.infer<typeof formSchema>;
@@ -125,6 +129,10 @@ export default function ReceptionRegisterComponentForm({ initialData, isEditing 
       has_documentation: initialData?.has_documentation ?? false,
       destination_unknown: false,
       reception_date: initialData?.reception_date || "",
+      sender: (initialData as any)?.article_detail?.sender || "",
+      origin: (initialData as any)?.article_detail?.origin || "",
+      destination: (initialData as any)?.article_detail?.destination || "",
+      justification: (initialData as any)?.article_detail?.justification || "",
     },
   });
 
@@ -141,6 +149,10 @@ export default function ReceptionRegisterComponentForm({ initialData, isEditing 
       has_documentation: initialData.has_documentation ?? false,
       destination_unknown: false,
       reception_date: initialData.reception_date ?? "",
+      sender: (initialData as any)?.article_detail?.sender ?? "",
+      origin: (initialData as any)?.article_detail?.origin ?? "",
+      destination: (initialData as any)?.article_detail?.destination ?? "",
+      justification: (initialData as any)?.article_detail?.justification ?? "",
     });
   }, [initialData, form]);
 
@@ -171,6 +183,10 @@ export default function ReceptionRegisterComponentForm({ initialData, isEditing 
       image: values.image,
       status: values.destination_unknown ? "TO_DETERMINATE" : "RECEPTION",
       reception_date: values.reception_date || undefined,
+      sender: values.sender || undefined,
+      origin: values.origin || undefined,
+      destination: values.destination || undefined,
+      justification: values.justification || undefined,
     };
 
     if (isEditing && initialData) {
@@ -660,6 +676,79 @@ export default function ReceptionRegisterComponentForm({ initialData, isEditing 
                 />
               )}
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Detalles de Almacén */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-xl">Detalles de Almacén</CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="sender"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>
+                    Remitente{" "}
+                    <span className="text-xs italic text-gray-500 font-normal ml-1">(Sender)</span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input placeholder="Nombre del responsable" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="origin"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>
+                    Origen{" "}
+                    <span className="text-xs italic text-gray-500 font-normal ml-1">(Origin)</span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input placeholder="Origen del artículo" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="destination"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>
+                    Destino{" "}
+                    <span className="text-xs italic text-gray-500 font-normal ml-1">(Destination)</span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input placeholder="Destino del artículo" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="justification"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>
+                    Justificación{" "}
+                    <span className="text-xs italic text-gray-500 font-normal ml-1">(Justification)</span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input placeholder="Justificación" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </CardContent>
         </Card>
 
