@@ -4,26 +4,31 @@ import axiosInstance from '@/lib/axios'
 
 declare global {
   interface Window {
-    // Highlight-next-line
-    __echo?: InstanceType<typeof Echo<'reverb'>> | null
+    __echo?: Echo
     Pusher: any
   }
 }
 
-const createEcho = (): InstanceType<typeof Echo<'reverb'>> | null => {
+const createEcho = () => {
   if (typeof window === 'undefined') return null
 
   window.Pusher = Pusher
 
-  return new Echo<'reverb'>({
+  return new Echo({
     broadcaster: 'reverb',
     key: process.env.NEXT_PUBLIC_REVERB_APP_KEY!,
+
     wsHost: process.env.NEXT_PUBLIC_REVERB_HOST!,
+
     wsPort: Number(process.env.NEXT_PUBLIC_REVERB_PORT),
     wssPort: Number(process.env.NEXT_PUBLIC_REVERB_PORT),
-    forceTLS: process.env.NEXT_PUBLIC_REVERB_SCHEME === 'https',
+
+    forceTLS:
+      process.env.NEXT_PUBLIC_REVERB_SCHEME === 'https',
+
     enabledTransports: ['ws', 'wss'],
     disableStats: true,
+
     authorizer: (channel: any) => ({
       authorize: (socketId: string, callback: Function) => {
         axiosInstance
@@ -41,13 +46,12 @@ const createEcho = (): InstanceType<typeof Echo<'reverb'>> | null => {
   })
 }
 
-export const getEcho = (): InstanceType<typeof Echo<'reverb'>> | null => {
+export const getEcho = (): Echo | null => {
   if (typeof window === 'undefined') return null
 
   if (!window.__echo) {
-    window.__echo = createEcho()
+    window.__echo = createEcho() as Echo
   }
 
-  // Highlight-next-line
-  return window.__echo ?? null
+  return window.__echo
 }
