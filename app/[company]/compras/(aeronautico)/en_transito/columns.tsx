@@ -3,12 +3,12 @@
 import { ColumnDef } from '@tanstack/react-table'
 import { useState } from 'react'
 import {
+  CheckCircle2,
   ChevronRight,
   FilePen,
   FileWarning,
   Loader2,
   MapPin,
-  ArrowRight,
   PackageCheck,
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
@@ -41,7 +41,6 @@ function TransitActionButton({
 
   const pending = updateArticleStatus.isPending
   const status = article.status?.toUpperCase()
-  const isReception = status === 'RECEPTION'
   const isTransit = status === 'TRANSIT'
 
   const pendingDocs = getPendingRequirements(article)
@@ -65,26 +64,51 @@ function TransitActionButton({
     }
   }
 
+  // Una vez el artículo pasa a RECEPTION, la transición es unidireccional:
+  // no queda ninguna acción disponible, solo un estado vacío deshabilitado.
+  if (!isTransit) {
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className="inline-flex">
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled
+                className="
+                  h-7 px-3 gap-1.5
+                  text-[11px]
+                  rounded-full
+                  border border-slate-200/60 dark:border-slate-700/60
+                  bg-white/50 dark:bg-slate-800/40
+                  disabled:opacity-100
+                "
+              >
+                <CheckCircle2 className="size-3 text-emerald-500" />
+                Recepción
+              </Button>
+            </span>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="text-xs px-2 py-1">
+            Ya marcaste este artículo como entregado a recepción
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    )
+  }
+
   const handleAction = async (e: React.MouseEvent) => {
     e.stopPropagation()
     if (pending) return
 
-    if (isTransit) {
-      // La documentación requerida debe estar consignada antes de recepcionar.
-      if (pendingDocs.length > 0) {
-        setDocsDialogOpen(true)
-        return
-      }
-
-      await moveToReception()
+    // La documentación requerida debe estar consignada antes de recepcionar.
+    if (pendingDocs.length > 0) {
+      setDocsDialogOpen(true)
+      return
     }
 
-    if (isReception) {
-      await updateArticleStatus.mutateAsync({
-        id: article.id,
-        status: 'INCOMING',
-      })
-    }
+    await moveToReception()
   }
 
   return (
@@ -105,11 +129,6 @@ function TransitActionButton({
       >
         {pending ? (
           <Loader2 className="size-3 animate-spin" />
-        ) : isReception ? (
-          <>
-            <ArrowRight className="size-3" />
-            Incoming
-          </>
         ) : (
           <>
             {pendingDocs.length > 0 ? (
@@ -140,35 +159,48 @@ function EditTransitArticleAction({
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const pendingCount = getPendingRequirements(article).length
 
+  // Un artículo ya recepcionado no debe poder editarse: el ícono
+  // permanece visible pero deshabilitado como estado vacío.
+  const isEditable = article.status?.toUpperCase() === 'TRANSIT'
+
   return (
     <>
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={(e) => {
-                e.stopPropagation()
-                setEditDialogOpen(true)
-              }}
-              className={cn(
-                'relative h-7 w-7',
-                pendingCount > 0 ? 'text-amber-500' : 'text-muted-foreground'
-              )}
-            >
-              <FilePen className="size-3.5" />
-              {pendingCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-amber-500 text-[9px] font-semibold text-white">
-                  {pendingCount}
-                </span>
-              )}
-            </Button>
+            <span className="inline-flex">
+              <Button
+                variant="ghost"
+                size="icon"
+                disabled={!isEditable}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setEditDialogOpen(true)
+                }}
+                className={cn(
+                  'relative h-7 w-7 disabled:opacity-40',
+                  isEditable
+                    ? pendingCount > 0
+                      ? 'text-amber-500'
+                      : 'text-muted-foreground'
+                    : 'text-muted-foreground'
+                )}
+              >
+                <FilePen className="size-3.5" />
+                {isEditable && pendingCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-amber-500 text-[9px] font-semibold text-white">
+                    {pendingCount}
+                  </span>
+                )}
+              </Button>
+            </span>
           </TooltipTrigger>
           <TooltipContent side="top" className="text-xs px-2 py-1">
-            {pendingCount > 0
-              ? `Editar artículo (${pendingCount} documento${pendingCount === 1 ? '' : 's'} pendiente${pendingCount === 1 ? '' : 's'})`
-              : 'Editar información del artículo'}
+            {!isEditable
+              ? 'Ya marcaste este artículo como entregado a recepción'
+              : pendingCount > 0
+                ? `Editar artículo (${pendingCount} documento${pendingCount === 1 ? '' : 's'} pendiente${pendingCount === 1 ? '' : 's'})`
+                : 'Editar información del artículo'}
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>

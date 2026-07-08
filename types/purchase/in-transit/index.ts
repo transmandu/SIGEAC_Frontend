@@ -34,6 +34,10 @@ export interface TransitArticle {
   certificates?: string[];
   /** Checklist documental heredado desde la requisición (vía orden de compra). */
   document_requirements?: ArticleDocumentRequirementSummary[];
+  purchase_order_id?: number | null;
+  order_number?: string | null;
+  /** Número de la requisición de origen: purchase_order -> quote_order -> requisition_order. */
+  requisition_order_number?: string | null;
   created_at?: string;
   updated_at?: string;
 }
