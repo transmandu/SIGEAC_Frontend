@@ -33,8 +33,8 @@ const FormSchema = z.object({
   created_by: z.string(),
   requested_by: z.string().min(1, "Debe ingresar quien lo solicita."),
   priority: z.enum(["HIGH", "MEDIUM", "LOW"]).optional(),
-  work_order_id: z.string({ required_error: "La orden de trabajo es obligatoria para requisiciones aeronáuticas" }),
-  aircraft_id: z.string({ required_error: "La aeronave es obligatoria para requisiciones aeronáuticas" }),
+  work_order_id: z.string().optional(),
+  aircraft_id: z.string().optional(),
   image: z
     .instanceof(File)
     .refine((file) => file.size <= 5 * 1024 * 1024, "Max 5MB")
@@ -395,8 +395,8 @@ export function CreateAeronauticalRequisitionForm({
     const formattedData = {
       ...data,
       type: "AERONAUTICAL" as const,
-      work_order_id: Number(data.work_order_id),
-      aircraft_id: Number(data.aircraft_id),
+      work_order_id: data.work_order_id ? Number(data.work_order_id) : undefined,
+      aircraft_id: data.aircraft_id ? Number(data.aircraft_id) : undefined,
     };
 
     await createRequisition.mutateAsync({ data: formattedData, company: selectedCompany!.slug });
@@ -428,8 +428,6 @@ export function CreateAeronauticalRequisitionForm({
           aircraftSearch={aircraftSearch}
           setAircraftSearch={setAircraftSearch}
           aircraftPlaceholder="Seleccione la aeronave..."
-          aircraftRequired
-          workOrderRequired
         />
 
         <BatchArticlesSection
