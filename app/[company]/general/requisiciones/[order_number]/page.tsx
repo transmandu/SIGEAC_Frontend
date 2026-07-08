@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
-import { Loader2, Trash2, User, FileText, Image as ImageIcon, Plane } from 'lucide-react';
+import { Loader2, Trash2, User, FileText, Image as ImageIcon, Plane, FileBadge, AlertTriangle } from 'lucide-react';
 
 import { useDeleteRequisition } from '@/actions/mantenimiento/compras/requisiciones/actions';
 import { useGetRequisitionByOrderNumber } from '@/hooks/mantenimiento/compras/useGetRequisitionByOrderNumber';
@@ -23,15 +23,177 @@ import {
   CardTitle
 } from "@/components/ui/card";
 import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle
-} from "@/components/ui/dialog";
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Separator } from '@/components/ui/separator';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
-/* -------------------- ARTICLE CARD (SIN CAMBIOS) -------------------- */
+/* -------------------- TRADUCCIONES -------------------- */
+const STATUS_LABELS: Record<string, string> = {
+  PENDING: 'PENDIENTE',
+  CREATED: 'CREADA',
+  RECEIVED: 'RECIBIDA',
+  IN_PROGRESS: 'EN PROCESO',
+  QUOTED: 'COTIZADA',
+  APPROVED: 'APROBADA',
+  PARTIAL: 'PARCIAL',
+  REJECTED: 'NO APROBADA',
+};
+
+const PRIORITY_LABELS: Record<string, string> = {
+  HIGH: 'ALTA',
+  MEDIUM: 'MEDIA',
+  LOW: 'BAJA',
+};
+
+const TYPE_LABELS: Record<string, string> = {
+  AERONAUTICAL: 'AERONÁUTICO',
+  GENERAL: 'GENERAL',
+};
+
+const translateStatus = (value?: string | null) =>
+  value ? STATUS_LABELS[value.toUpperCase()] ?? value : value;
+
+const translatePriority = (value?: string | null) =>
+  value ? PRIORITY_LABELS[value.toUpperCase()] ?? value : value;
+
+const translateType = (value?: string | null) =>
+  value ? TYPE_LABELS[value.toUpperCase()] ?? value : value;
+
+/* -------------------- DOCUMENTOS REQUERIDOS (POPOVER) -------------------- */
+interface RequiredDocumentsPopoverProps {
+  batches: {
+    batch_articles: {
+      article_part_number: string;
+      document_types?: { id: number; name: string; regulation?: string | null }[];
+    }[];
+  }[];
+}
+
+const RequiredDocumentsPopover = ({ batches }: RequiredDocumentsPopoverProps) => {
+  const items = batches
+    .flatMap((batch) => batch.batch_articles ?? [])
+    .filter((article) => (article.document_types?.length ?? 0) > 0)
+    .sort((a, b) => a.article_part_number.localeCompare(b.article_part_number));
+
+  const hasItems = items.length > 0;
+
+  return (
+    <Popover>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                disabled={!hasItems}
+                className={cn(
+                  'flex items-center justify-center rounded-md p-2.5 border transition-colors',
+                  hasItems
+                    ? 'text-muted-foreground hover:text-blue-600 hover:bg-blue-500/10 dark:hover:text-blue-400'
+                    : 'text-muted-foreground/30 cursor-not-allowed'
+                )}
+              >
+                <FileBadge className="size-5" />
+              </button>
+            </PopoverTrigger>
+          </TooltipTrigger>
+          <TooltipContent>
+            {hasItems ? 'Documentos requeridos' : 'Sin documentos requeridos'}
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+
+      <PopoverContent align="center" className="w-72 max-h-72 overflow-y-auto p-3">
+        <span className="block px-1 pb-2 text-[10px] uppercase tracking-wide text-muted-foreground">
+          Documentos requeridos
+        </span>
+
+        {hasItems ? (
+          <ul className="flex flex-col gap-2">
+            {items.map((article, idx) => (
+              <li
+                key={`${article.article_part_number}-${idx}`}
+                className="rounded-md border bg-background/60 px-2.5 py-1.5 shadow-sm"
+              >
+                <span className="block text-xs font-semibold text-foreground/90 truncate">
+                  P/N: {article.article_part_number}
+                </span>
+                <ul className="mt-1 space-y-0.5 border-l border-border/50 pl-2">
+                  {article.document_types!.map((type) => (
+                    <li
+                      key={type.id}
+                      className="text-[11px] leading-tight text-muted-foreground truncate"
+                    >
+                      {type.name}
+                    </li>
+                  ))}
+                </ul>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm text-muted-foreground italic text-center px-2 py-1">
+            Sin documentos requeridos
+          </p>
+        )}
+      </PopoverContent>
+    </Popover>
+  );
+};
+
+/* -------------------- CANTIDAD (SOLICITADA / APROBADA) -------------------- */
+const QuantityField = ({
+  quantity,
+  approvedQuantity,
+  showApproved,
+}: {
+  quantity: string | number | null | undefined;
+  approvedQuantity: string | number | null | undefined;
+  showApproved: boolean;
+}) => {
+  const hasApproved = showApproved && approvedQuantity !== undefined && approvedQuantity !== null && approvedQuantity !== '';
+  const sameValue = hasApproved && String(approvedQuantity) === String(quantity ?? '');
+
+  if (!hasApproved || sameValue) {
+    return (
+      <div>
+        <p className="text-muted-foreground text-xs">Cantidad</p>
+        <p className="font-medium">{quantity ?? '-'}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <p className="text-muted-foreground text-xs">Cantidad (solicitada / aprobada)</p>
+      <p className="font-medium">{quantity ?? '-'} / {approvedQuantity ?? '-'}</p>
+    </div>
+  );
+};
+
+/* -------------------- JUSTIFICACIÓN (EXTENSIÓN) -------------------- */
+const ArticleJustificationStrip = ({ justification }: { justification?: string | null }) => {
+  if (!justification) return null;
+
+  return (
+    <div className="mt-2 -mx-2.5 px-2.5 py-2 border-t border-dashed bg-muted/30 rounded-b-md">
+      <p className="text-muted-foreground text-xs mb-0.5">Justificación</p>
+      <p className="text-sm italic text-muted-foreground">{justification}</p>
+    </div>
+  );
+};
+
+/* -------------------- ARTICLE CARD -------------------- */
 const BatchArticleCard = ({ article }: { article: any }) => {
   const isPending = article.status === 'PENDING';
   const showExtra = !isPending;
@@ -46,113 +208,96 @@ const BatchArticleCard = ({ article }: { article: any }) => {
           : 'bg-muted';
 
   return (
-    <div className="grid grid-cols-12 gap-3 items-start">
+    <div className="flex gap-3 items-center">
 
-      {/* ---------------- INFO ---------------- */}
-      <div className="col-span-8 space-y-2">
+      {/* ---------------- INFO + JUSTIFICACIÓN ---------------- */}
+      <div className="flex-1 min-w-0">
 
-        {/* BADGE P/N + TITLE (BADGE ANTES) */}
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="space-y-2">
 
-          <span className="text-[10px] px-2 py-0.5 rounded-md bg-muted text-muted-foreground border">
-            P/N
-          </span>
+          {/* BADGE P/N + TITLE (BADGE ANTES) */}
+          <div className="flex items-center gap-2 flex-wrap">
 
-          <h3 className="font-semibold text-base leading-tight">
-            {article.article_part_number || 'N/A'}
-          </h3>
+            <span className="text-[10px] px-2 py-0.5 rounded-md bg-muted text-muted-foreground border">
+              P/N
+            </span>
 
-        </div>
+            <h3 className="font-semibold text-base leading-tight">
+              {article.article_part_number || 'N/A'}
+            </h3>
 
-        {/* PRIORIDAD + ESTADO */}
-        <div className="flex gap-3 flex-wrap items-center text-xs">
-
-          {article.priority && (
-            <div className="flex items-center gap-1">
-              <span className="text-muted-foreground">Prioridad:</span>
-              <span className={cn(
-                "px-2 py-0.5 rounded-md font-semibold",
-                priorityColor
-              )}>
-                {article.priority}
-              </span>
-            </div>
-          )}
-
-          {article.status && (
-            <div className="flex items-center gap-1">
-              <span className="text-muted-foreground">Estado:</span>
-              <Badge variant="outline" className="text-xs">
-                {article.status}
-              </Badge>
-            </div>
-          )}
-
-        </div>
-
-        {/* ---------------- CAMPOS (ORDEN EXACTO) ---------------- */}
-        <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm pt-1">
-
-          {/* ALT / AIRCRAFT */}
-          <div>
-            <p className="text-muted-foreground text-xs">
-              Alt Part Number
-            </p>
-            <p className="font-medium">
-              {article.article_alt_part_number ?? 'N/A'}
-            </p>
           </div>
 
-          <div>
-            <p className="text-muted-foreground text-xs">
-              Aeronave
-            </p>
-            <p className="font-medium">
-              {article.aircraft?.acronym ?? 'N/A'}
-            </p>
+          {/* PRIORIDAD + ESTADO */}
+          <div className="flex gap-3 flex-wrap items-center text-xs">
+
+            {article.priority && (
+              <div className="flex items-center gap-1">
+                <span className="text-muted-foreground">Prioridad:</span>
+                <span className={cn(
+                  "px-2 py-0.5 rounded-md font-semibold",
+                  priorityColor
+                )}>
+                  {translatePriority(article.priority)}
+                </span>
+              </div>
+            )}
+
+            {article.status && (
+              <div className="flex items-center gap-1">
+                <span className="text-muted-foreground">Estado:</span>
+                <Badge variant="outline" className="text-xs">
+                  {translateStatus(article.status)}
+                </Badge>
+              </div>
+            )}
+
           </div>
 
-          {/* CANTIDAD / UNIDAD */}
-          <div>
-            <p className="text-muted-foreground text-xs">Cantidad solicitada</p>
-            <p className="font-medium">{article.quantity ?? '-'}</p>
-          </div>
+          {/* ---------------- CAMPOS (ORDEN EXACTO) ---------------- */}
+          <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm pt-1">
 
-          <div>
-            <p className="text-muted-foreground text-xs">Unidad</p>
-            <p className="font-medium">{article.unit?.label ?? '-'}</p>
-          </div>
-
-          {/* CANTIDAD APROBADA */}
-          {showExtra && (
+            {/* ALT / AIRCRAFT */}
             <div>
               <p className="text-muted-foreground text-xs">
-                Cantidad aprobada
+                Alt Part Number
               </p>
               <p className="font-medium">
-                {article.approved_quantity ?? '-'}
+                {article.article_alt_part_number ?? 'N/A'}
               </p>
             </div>
-          )}
 
-          {/* JUSTIFICACIÓN */}
-          {showExtra && (
-            <div className="col-span-2">
+            <div>
               <p className="text-muted-foreground text-xs">
-                Justificación
+                Aeronave
               </p>
-              <p className="text-sm italic text-muted-foreground">
-                {article.justification ?? 'Sin justificación'}
+              <p className="font-medium">
+                {article.aircraft?.acronym ?? 'N/A'}
               </p>
             </div>
-          )}
+
+            {/* CANTIDAD (MERGED) / UNIDAD */}
+            <QuantityField
+              quantity={article.quantity}
+              approvedQuantity={article.approved_quantity}
+              showApproved={showExtra}
+            />
+
+            <div>
+              <p className="text-muted-foreground text-xs">Unidad</p>
+              <p className="font-medium">{article.unit?.label ?? '-'}</p>
+            </div>
+
+          </div>
 
         </div>
+
+        {showExtra && <ArticleJustificationStrip justification={article.justification} />}
 
       </div>
 
-      {/* ---------------- IMAGEN CENTRADA ---------------- */}
-      <div className="col-span-4 flex justify-center items-center">
+      {/* ---------------- IMAGEN CENTRADA EN LA TARJETA ---------------- */}
+      <div className="shrink-0 flex justify-center items-center self-stretch">
 
         {article.image ? (
           <Image
@@ -192,12 +337,12 @@ const GeneralArticleCard = ({ article }: { article: any }) => {
           : 'bg-muted';
 
   return (
-    <div className="grid grid-cols-12 gap-3 items-start">
+    <div className="flex h-full">
 
-      {/* CARD MÁS COMPACTA (MENOS ANCHO) */}
-      <div className="col-span-8 space-y-2">
+      {/* FIELDS (3/4) */}
+      <div className="w-3/4 min-w-0 pr-3 flex flex-col">
 
-        {/* HEADER */}
+        {/* TÍTULO + PRIORIDAD/ESTADO (SIEMPRE ARRIBA) */}
         <div className="space-y-1">
 
           {/* TÍTULO = DESCRIPCIÓN */}
@@ -215,7 +360,7 @@ const GeneralArticleCard = ({ article }: { article: any }) => {
                   "px-2 py-0.5 rounded-md font-semibold",
                   priorityColor
                 )}>
-                  {article.priority}
+                  {translatePriority(article.priority)}
                 </span>
               </div>
             )}
@@ -224,7 +369,7 @@ const GeneralArticleCard = ({ article }: { article: any }) => {
               <div className="flex items-center gap-1">
                 <span className="text-muted-foreground">Estado:</span>
                 <Badge variant="outline" className="text-xs">
-                  {article.status}
+                  {translateStatus(article.status)}
                 </Badge>
               </div>
             )}
@@ -232,97 +377,85 @@ const GeneralArticleCard = ({ article }: { article: any }) => {
           </div>
         </div>
 
-        {/* DETALLES */}
-        <div className="grid grid-cols-3 gap-x-4 gap-y-2 text-sm pt-1">
+        {/* DETALLES + JUSTIFICACIÓN (CENTRADOS EN EL ESPACIO RESTANTE) */}
+        <div className="flex-1 flex flex-col justify-center pt-1">
 
-          {article.variant_type && (
-            <div>
-              <p className="text-muted-foreground text-xs">Present. / Especif.</p>
-              <p className="font-medium">{article.variant_type}</p>
-            </div>
-          )}
+          <div className="grid grid-cols-3 gap-x-4 gap-y-2 text-sm">
 
-          {article.requested_date && (
-            <div>
-              <p className="text-muted-foreground text-xs">Fecha Solicitud</p>
-              <p className="font-medium">
-                {formatRequestedDate(article.requested_date, 'dd/MM/yyyy')}
-              </p>
-            </div>
-          )}
+            {article.variant_type && (
+              <div>
+                <p className="text-muted-foreground text-xs">Present. / Especif.</p>
+                <p className="font-medium">{article.variant_type}</p>
+              </div>
+            )}
 
-          <div>
-            <p className="text-muted-foreground text-xs">Cantidad</p>
-            <p className="font-medium">{article.quantity}</p>
+            {article.requested_date && (
+              <div>
+                <p className="text-muted-foreground text-xs">Fecha Solicitud</p>
+                <p className="font-medium">
+                  {formatRequestedDate(article.requested_date, 'dd/MM/yyyy')}
+                </p>
+              </div>
+            )}
+
+            {/* CANTIDAD (MERGED) */}
+            <QuantityField
+              quantity={article.quantity}
+              approvedQuantity={article.approved_quantity}
+              showApproved={showExtra}
+            />
+
+            {article.unit && (
+              <div>
+                <p className="text-muted-foreground text-xs">Unidad</p>
+                <p className="font-medium">{article.unit.label}</p>
+              </div>
+            )}
+
+            {article.department && (
+              <div>
+                <p className="text-muted-foreground text-xs">Departamento</p>
+                <p className="font-medium">
+                  {article.department.acronym ?? article.department.name}
+                </p>
+              </div>
+            )}
+
+            {article.third_party && (
+              <div>
+                <p className="text-muted-foreground text-xs">Tercero</p>
+                <p className="font-medium">{article.third_party.name}</p>
+              </div>
+            )}
+
+            {article.employee && (
+              <div>
+                <p className="text-muted-foreground text-xs">Solicitante</p>
+                <p className="font-medium">
+                  {`${article.employee.first_name} ${article.employee.last_name}`.trim()}
+                </p>
+              </div>
+            )}
+
+            {article.authorized_employee && (
+              <div>
+                <p className="text-muted-foreground text-xs">Autorizado</p>
+                <p className="font-medium">
+                  {article.authorized_employee.full_name ?? article.authorized_employee.dni_employee}
+                </p>
+              </div>
+            )}
+
           </div>
 
-          {/* SOLO SI NO ES PENDING */}
-          {showExtra && (
-            <div>
-              <p className="text-muted-foreground text-xs">Cantidad Aprobada</p>
-              <p className="font-medium">
-                {article.approved_quantity ?? '-'}
-              </p>
-            </div>
-          )}
-
-          {article.unit && (
-            <div>
-              <p className="text-muted-foreground text-xs">Unidad</p>
-              <p className="font-medium">{article.unit.label}</p>
-            </div>
-          )}
-
-          {article.department && (
-            <div>
-              <p className="text-muted-foreground text-xs">Departamento</p>
-              <p className="font-medium">
-                {article.department.acronym ?? article.department.name}
-              </p>
-            </div>
-          )}
-
-          {article.third_party && (
-            <div>
-              <p className="text-muted-foreground text-xs">Tercero</p>
-              <p className="font-medium">{article.third_party.name}</p>
-            </div>
-          )}
-
-          {article.employee && (
-            <div>
-              <p className="text-muted-foreground text-xs">Solicitante</p>
-              <p className="font-medium">
-                {`${article.employee.first_name} ${article.employee.last_name}`.trim()}
-              </p>
-            </div>
-          )}
-
-          {article.authorized_employee && (
-            <div>
-              <p className="text-muted-foreground text-xs">Autorizado</p>
-              <p className="font-medium">
-                {article.authorized_employee.full_name ?? article.authorized_employee.dni_employee}
-              </p>
-            </div>
-          )}
+          {showExtra && <ArticleJustificationStrip justification={article.justification} />}
 
         </div>
 
-        {/* JUSTIFICACIÓN SOLO SI NO ES PENDING */}
-        {showExtra && (
-          <div className="pt-1">
-            <p className="text-muted-foreground text-xs">Justificación</p>
-            <p className="text-sm italic text-muted-foreground">
-              {article.justification || 'Sin justificación'}
-            </p>
-          </div>
-        )}
-
       </div>
 
-      {/* IMAGEN (MÁS COMPACTA Y MENOS DOMINANTE) */}
-      <div className="col-span-4 flex justify-center items-center">
+      {/* IMAGEN (1/4, CENTRADA EN TODO EL ALTO DE LA TARJETA) */}
+      <div className="w-1/4 shrink-0 flex justify-center items-center">
 
         {article.image ? (
           <Image
@@ -351,6 +484,7 @@ const GeneralArticleCard = ({ article }: { article: any }) => {
 /* -------------------- PAGE -------------------- */
 const RequisitionPage = () => {
   const [openDelete, setOpenDelete] = useState(false);
+  const [confirmOrderNumber, setConfirmOrderNumber] = useState('');
 
   const { selectedCompany } = useCompanyStore();
   const router = useRouter();
@@ -365,7 +499,18 @@ const RequisitionPage = () => {
 
   if (isLoading) return <LoadingPage />;
 
+  const batchArticleCount = data?.batch?.reduce(
+    (acc, batch) => acc + (batch.batch_articles?.length ?? 0),
+    0
+  ) ?? 0;
+  const generalArticleCount = data?.general_articles?.length ?? 0;
+  const totalArticleCount = batchArticleCount + generalArticleCount;
+
+  const canConfirmDelete = confirmOrderNumber.trim().toUpperCase() === order_number.toUpperCase();
+
   const handleDelete = async () => {
+    if (!canConfirmDelete) return;
+
     await deleteRequisition.mutateAsync({
       id: data!.id,
       company: selectedCompany!.slug
@@ -383,7 +528,7 @@ const RequisitionPage = () => {
           Nro. Requisición: <span className="text-blue-600">#{order_number}</span>
         </h1>
         <p className="text-sm text-muted-foreground text-center italic">
-          Detalles de la orden de requisición #{order_number}
+          Información detallada de la requisición
         </p>
       </div>
 
@@ -391,9 +536,6 @@ const RequisitionPage = () => {
 
         {/* HEADER CARD */}
         <CardHeader className="flex flex-col items-center gap-4">
-          <CardTitle className="text-4xl">
-            #{order_number}
-          </CardTitle>
 
           {/* BADGES EN FORMATO LABEL ARRIBA */}
           <div className="flex gap-6 flex-wrap justify-center text-center">
@@ -401,7 +543,7 @@ const RequisitionPage = () => {
             <div className="flex flex-col items-center">
               <p className="text-xs text-muted-foreground">Estado</p>
               <Badge className="text-xs">
-                {data?.status?.toUpperCase()}
+                {translateStatus(data?.status)}
               </Badge>
             </div>
 
@@ -418,7 +560,7 @@ const RequisitionPage = () => {
                         : "bg-green-100 text-green-700"
                   )}
                 >
-                  {data.priority}
+                  {translatePriority(data.priority)}
                 </Badge>
               </div>
             )}
@@ -427,7 +569,7 @@ const RequisitionPage = () => {
               <div className="flex flex-col items-center">
                 <p className="text-xs text-muted-foreground">Tipo</p>
                 <Badge variant="outline" className="text-xs">
-                  {data.type}
+                  {translateType(data.type)}
                 </Badge>
               </div>
             )}
@@ -502,21 +644,33 @@ const RequisitionPage = () => {
           </div>
 
           {/* JUSTIFICACIÓN + OBSERVACIÓN */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className={cn(
+            "grid grid-cols-1 gap-4",
+            data?.type === 'AERONAUTICAL' ? "md:grid-cols-[1fr_1fr_auto] md:items-stretch" : "md:grid-cols-2"
+          )}>
 
-            <div className="text-center">
+            <div className="text-center flex flex-col">
               <h2 className="font-semibold text-base mb-1">Justificación</h2>
-              <p className="text-sm italic bg-secondary p-3 rounded-md">
+              <p className="text-sm italic bg-secondary p-3 rounded-md flex-1">
                 {data?.justification || 'No se proporcionó justificación'}
               </p>
             </div>
 
-            <div className="text-center">
+            <div className="text-center flex flex-col">
               <h2 className="font-semibold text-base mb-1">Observación (indicada por Compras)</h2>
-              <p className="text-sm italic bg-secondary p-3 rounded-md">
+              <p className="text-sm italic bg-secondary p-3 rounded-md flex-1">
                 {data?.observation || 'Sin observaciones'}
               </p>
             </div>
+
+            {data?.type === 'AERONAUTICAL' && (
+              <div className="flex flex-col">
+                <span className="invisible mb-1 font-semibold text-base leading-tight">.</span>
+                <div className="flex-1 flex items-center justify-center">
+                  <RequiredDocumentsPopover batches={data?.batch ?? []} />
+                </div>
+              </div>
+            )}
 
           </div>
 
@@ -570,8 +724,8 @@ const RequisitionPage = () => {
                 }
               >
                 {data.general_articles.map((article, index) => (
-                  <Card key={index} className="w-full">
-                    <CardContent className="p-3">
+                  <Card key={index} className="w-full flex flex-col">
+                    <CardContent className="p-3 flex-1">
                       <GeneralArticleCard article={article} />
                     </CardContent>
                   </Card>
@@ -591,28 +745,86 @@ const RequisitionPage = () => {
         </CardFooter>
       </Card>
 
-      <Dialog open={openDelete} onOpenChange={setOpenDelete}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="text-center text-2xl">
-              ¿Eliminar Requisición?
-            </DialogTitle>
-          </DialogHeader>
+      <AlertDialog
+        open={openDelete}
+        onOpenChange={(next) => {
+          if (!deleteRequisition.isPending) {
+            setOpenDelete(next);
+            if (!next) setConfirmOrderNumber('');
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader className="flex flex-col items-center text-center space-y-3">
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setOpenDelete(false)}>
+            <div className="flex items-center justify-center size-12 rounded-2xl border border-red-500/15 bg-red-500/[0.08]">
+              <Trash2 className="size-5 text-red-600" />
+            </div>
+
+            <AlertDialogTitle className="text-lg font-semibold tracking-tight">
+              Eliminar requisición {order_number}
+            </AlertDialogTitle>
+
+            <AlertDialogDescription asChild>
+              <div className="space-y-3 text-sm text-center">
+                <p>
+                  Esta acción elimina <strong>permanentemente</strong> la requisición y no se puede deshacer.
+                </p>
+
+                {totalArticleCount > 0 && (
+                  <p>
+                    Se perderán <strong>{totalArticleCount}</strong>{' '}
+                    {totalArticleCount === 1 ? 'artículo asociado' : 'artículos asociados'}
+                    {batchArticleCount > 0 && generalArticleCount > 0 && (
+                      <> ({batchArticleCount} por lote, {generalArticleCount} generales)</>
+                    )}
+                    , junto con su justificación, observaciones e imágenes adjuntas.
+                  </p>
+                )}
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <div className="mx-1 p-3 rounded-xl border border-red-500/20 bg-red-500/[0.05] text-sm text-red-600 flex gap-2 leading-relaxed">
+            <AlertTriangle className="size-4 mt-[2px] shrink-0" />
+            <div>
+              Esta operación es <b>irreversible</b>. Verifica que realmente deseas eliminar este registro antes de continuar.
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="confirm-order-number">
+              Escribe <strong>{order_number}</strong> para confirmar
+            </Label>
+            <Input
+              id="confirm-order-number"
+              value={confirmOrderNumber}
+              onChange={(event) => setConfirmOrderNumber(event.target.value.toUpperCase())}
+              placeholder={order_number}
+              className="uppercase"
+              autoComplete="off"
+            />
+          </div>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteRequisition.isPending}>
               Cancelar
-            </Button>
+            </AlertDialogCancel>
 
-            <Button onClick={handleDelete} disabled={deleteRequisition.isPending}>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={!canConfirmDelete || deleteRequisition.isPending}
+              className="bg-red-600/90 hover:bg-red-600"
+            >
               {deleteRequisition.isPending && (
                 <Loader2 className="animate-spin size-4 mr-2" />
               )}
-              Confirmar
+              Eliminar definitivamente
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </ContentLayout>
   );
 };

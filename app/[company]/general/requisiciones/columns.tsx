@@ -26,7 +26,7 @@ export const getColumns = (
 ): ColumnDef<Requisition>[] => [
   {
     accessorKey: "order_number",
-    size: 205,
+    size: 210,
     header: ({ column }) => (
       <DataTableColumnHeader filter column={column} title="Nro. Req." />
     ),
@@ -58,7 +58,7 @@ export const getColumns = (
   },
   {
     accessorKey: "status",
-    size: 60,
+    size: 90,
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Estado" />
     ),
@@ -72,13 +72,13 @@ export const getColumns = (
         IN_PROGRESS: { label: 'PROCESO',    cls: 'bg-yellow-500/20 text-yellow-700 dark:text-yellow-200' },
         QUOTED:      { label: 'COTIZADA',   cls: 'bg-violet-500/20 text-violet-700 dark:text-violet-200' },
         APPROVED:    { label: 'APROBADA',   cls: 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-200' },
-        REJECTED:    { label: 'RECHAZADA',  cls: 'bg-red-500/20 text-red-700 dark:text-red-200' },
+        REJECTED:    { label: 'NO APROBADA',  cls: 'bg-red-500/20 text-red-700 dark:text-red-200' },
       };
 
       const config = STATUS_CONFIG[status ?? ''] ?? { label: status ?? '—', cls: 'border-border bg-muted text-muted-foreground' };
 
       return (
-        <div className="flex justify-center">
+        <div className="flex justify-center text-center">
           <span className={cn(
             "rounded-full px-2.5 py-0.5 text-[11px] font-medium select-none cursor-default",
             config.cls
@@ -102,7 +102,7 @@ export const getColumns = (
   },
   {
     id: "articles",
-    size: 28,
+    size: 20,
     header: () => null,
     cell: ({ row }) => (
       <div className="flex justify-center px-0" onClick={(e) => e.stopPropagation()}>
@@ -114,7 +114,7 @@ export const getColumns = (
   },
   {
     accessorKey: "type",
-    size: 130,
+    size: 80,
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Tipo de Req." />
     ),
@@ -125,7 +125,7 @@ export const getColumns = (
   },
   {
     accessorKey: "priority",
-    size: 90,
+    size: 60,
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Prioridad" />
     ),
@@ -134,11 +134,8 @@ export const getColumns = (
       const priority = row.original.priority?.toUpperCase();
 
       const config = {
-        ALTA: { label: "Alta", dot: "bg-red-500" },
-        HIGH: { label: "Alta", dot: "bg-red-500" },
-        MEDIA: { label: "Media", dot: "bg-yellow-500" },
-        MEDIUM: { label: "Media", dot: "bg-yellow-500" },
-        BAJA: { label: "Baja", dot: "bg-green-500" },
+        HIGH: { label: "ALTA", dot: "bg-red-500" },
+        MEDIUM: { label: "MEDIA", dot: "bg-yellow-500" },
         LOW: { label: "Baja", dot: "bg-green-500" },
       } as const;
 
@@ -238,7 +235,7 @@ export const getColumns = (
     )
   },
   {
-    accessorKey: "actions",
+    id: 'actions',
     size: 50,
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Acciones" />
