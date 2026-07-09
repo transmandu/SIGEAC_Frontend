@@ -44,7 +44,7 @@ function ConfirmIntakeAction({ intake }: { intake: GeneralArticleIntake }) {
     const { user } = useAuth()
 
     const canEditDate = useMemo(
-        () => (user?.roles ?? []).some((r) => r.name === 'JEFE_ALMACEN' || r.name === 'SUPERUSER'),
+        () => (user?.roles ?? []).some((r) => r.name === 'JEFE_ALMACEN' || r.name === 'ANALISTA_ALMACEN' || r.name === 'SUPERUSER'),
         [user?.roles]
     )
 
