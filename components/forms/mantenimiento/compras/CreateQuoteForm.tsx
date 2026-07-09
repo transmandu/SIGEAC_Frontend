@@ -328,6 +328,7 @@ export function CreateQuoteForm({
         is_not_quoted: !!a.not_quoted,
         quantity: a.not_quoted ? 0 : Number(a.quantity),
         unit_price: a.not_quoted ? 0 : Number(a.unit_price),
+        total: a.not_quoted ? 0 : (Number(a.quantity) || 0) * (Number(a.unit_price) || 0),
         unit_id: a.unit ? Number(a.unit) : undefined,
         vendor_id: a.vendor_id ? Number(a.vendor_id) : undefined,
         location_id: a.location_id ? Number(a.location_id) : undefined,
@@ -347,6 +348,7 @@ export function CreateQuoteForm({
         is_not_quoted: !!a.not_quoted,
         quantity: a.not_quoted ? 0 : Number(a.quantity),
         unit_price: a.not_quoted ? 0 : Number(a.unit_price),
+        total: a.not_quoted ? 0 : (Number(a.quantity) || 0) * (Number(a.unit_price) || 0),
         unit_id: a.unit ? Number(a.unit) : undefined,
         location_id: a.location_id ? Number(a.location_id) : undefined,
         brand_model:
