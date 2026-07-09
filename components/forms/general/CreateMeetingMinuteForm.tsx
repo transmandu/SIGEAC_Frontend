@@ -54,9 +54,7 @@ interface FormProps {
 const FormSchema = z.object({
   date: z.date({ required_error: "La fecha es obligatoria" }),
   place: z.string().min(1, "El lugar es obligatorio"),
-  objectives: z.array(z.object({
-    value: z.string().min(1, "El objetivo no puede estar vacío"),
-  })).optional(),
+  objective: z.string().optional(),
   topics: z.array(z.object({
     value: z.string().min(1, "El tema no puede estar vacío"),
   })).optional(),
@@ -64,7 +62,6 @@ const FormSchema = z.object({
   document: z.any().optional(),
   chaired_by: z.string({ required_error: "Seleccione quien preside" }),
   filled_out_by: z.string({ required_error: "Seleccione quien diligencia" }),
-  prepared_by: z.string().optional(),
   reviewed_by: z.string().optional(),
   approved_by: z.string().optional(),
   attendees: z.array(z.object({
@@ -90,10 +87,7 @@ function buildFormData(companySlug: string, locationId: number, data: FormSchema
   fd.append("place", data.place);
   fd.append("location_id", String(locationId));
 
-  const objectiveValues = data.objectives?.map((o) => o.value).filter(Boolean) ?? [];
-  if (objectiveValues.length > 0) {
-    fd.append("objective", JSON.stringify(objectiveValues));
-  }
+  if (data.objective) fd.append("objective", data.objective);
 
   const topicValues = data.topics?.map((t) => t.value).filter(Boolean) ?? [];
   if (topicValues.length > 0) {
@@ -104,7 +98,6 @@ function buildFormData(companySlug: string, locationId: number, data: FormSchema
   if (data.document) fd.append("document", data.document);
   fd.append("chaired_by", String(data.chaired_by));
   fd.append("filled_out_by", String(data.filled_out_by));
-  if (data.prepared_by) fd.append("prepared_by", String(data.prepared_by));
   if (data.reviewed_by) fd.append("reviewed_by", String(data.reviewed_by));
   if (data.approved_by) fd.append("approved_by", String(data.approved_by));
 
@@ -152,7 +145,7 @@ export function CreateMeetingMinuteForm({
     defaultValues: {
       date: initialData?.date ? new Date(initialData.date) : undefined,
       place: initialData?.place ?? "",
-      objectives: parseStringArray(initialData?.objective as string | undefined),
+      objective: typeof initialData?.objective === "string" ? initialData.objective : "",
       topics: parseStringArray(initialData?.topics as string | undefined),
       chaired_by: typeof initialData?.chaired_by === "object" ? String((initialData.chaired_by as any)?.id ?? "") : String(initialData?.chaired_by ?? ""),
       filled_out_by: typeof initialData?.filled_out_by === "object" ? String((initialData.filled_out_by as any)?.id ?? "") : String(initialData?.filled_out_by ?? ""),
@@ -172,12 +165,6 @@ export function CreateMeetingMinuteForm({
       })) ?? [],
     },
   });
-
-  const {
-    fields: objectiveFields,
-    append: appendObjective,
-    remove: removeObjective,
-  } = useFieldArray({ control: form.control, name: "objectives" });
 
   const {
     fields: topicFields,
@@ -301,50 +288,21 @@ export function CreateMeetingMinuteForm({
             Motivo
           </span>
 
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                Objetivos
-              </FormLabel>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => appendObjective({ value: "" })}
-              >
-                <Plus className="size-3.5 mr-1" />
-                Agregar
-              </Button>
-            </div>
-            {objectiveFields.length === 0 && (
-              <p className="text-xs text-muted-foreground">No hay objetivos agregados.</p>
+          <FormField
+            control={form.control}
+            name="objective"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Objetivo
+                </FormLabel>
+                <FormControl>
+                  <Textarea placeholder="Objetivo de la reunión" className="min-h-[80px]" {...field} />
+                </FormControl>
+                <FormMessage className="text-xs" />
+              </FormItem>
             )}
-            {objectiveFields.map((field, index) => (
-              <div key={field.id} className="flex items-start gap-2">
-                <FormField
-                  control={form.control}
-                  name={`objectives.${index}.value`}
-                  render={({ field: f }) => (
-                    <FormItem className="flex-1">
-                      <FormControl>
-                        <Input placeholder={`Objetivo ${index + 1}`} {...f} />
-                      </FormControl>
-                      <FormMessage className="text-xs" />
-                    </FormItem>
-                  )}
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="mt-0.5 shrink-0"
-                  onClick={() => removeObjective(index)}
-                >
-                  <Trash2 className="size-4 text-destructive" />
-                </Button>
-              </div>
-            ))}
-          </div>
+          />
         </div>
 
         <Separator className="border-border/60" />
