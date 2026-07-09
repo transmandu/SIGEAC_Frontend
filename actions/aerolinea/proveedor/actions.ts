@@ -1,13 +1,15 @@
 import axiosInstance from "@/lib/axios"
+import { useCompanyStore } from "@/stores/CompanyStore"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 
 export const useCreateAdministartionVendor = () => {
 
+  const { selectedCompany } = useCompanyStore()
   const queryAdministrationVendor = useQueryClient()
   const createMutation = useMutation({
     mutationFn: async (data: any) => {
-          await axiosInstance.post('/transmandu/vendors', data)
+          await axiosInstance.post(`/${selectedCompany?.slug}/vendors`, data)
         },
         onSuccess: () => {
           queryAdministrationVendor.invalidateQueries({queryKey: ['vendors']})
@@ -30,11 +32,12 @@ export const useCreateAdministartionVendor = () => {
 
 export const useDeleteAdministrationVendor = () => {
 
+  const { selectedCompany } = useCompanyStore()
   const queryAdministrationVendor = useQueryClient()
 
   const deleteMutation = useMutation({
       mutationFn: async (id: number | string) => {
-          await axiosInstance.delete(`/transmandu/vendors/${id}`)
+          await axiosInstance.delete(`/${selectedCompany?.slug}/vendors/${id}`)
         },
       onSuccess: () => {
 
@@ -57,11 +60,12 @@ export const useDeleteAdministrationVendor = () => {
 }
 
 export const useUpdateAdministrationVendor = () => {
+  const { selectedCompany } = useCompanyStore();
   const queryClient = useQueryClient();
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: any }) => {
-      await axiosInstance.put(`/transmandu/vendors/${id}`, data);
+      await axiosInstance.put(`/${selectedCompany?.slug}/vendors/${id}`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vendors'] });
