@@ -31,6 +31,7 @@ import GroupedCostTable from './_components/GroupedCostTable'
 import CostToolbar from './_components/CostToolbar'
 import CostTypeToggle from './_components/CostTypeToggle'
 import CostSaveBar from './_components/CostSaveBar'
+import GeneralCostHistorySheet from './_components/GeneralCostHistorySheet'
 
 import { useCostDrafts } from './hooks/useCostDrafts'
 
@@ -64,6 +65,7 @@ type BaseRow = {
   brand_model?: string
   variant_type?: string
   unit_label?: string
+  cost_history?: import('@/types').GeneralArticleCostHistoryEntry[]
 }
 
 const ARTICLE_COST_ROLES = ['ANALISTA_COMPRAS', 'JEFE_COMPRAS', 'SUPERUSER', 'JEFE_ADMINISTRACION', 'ANALISTA_ADMINISTRACION']
@@ -150,6 +152,7 @@ const CostManagementPage = () => {
         variant_type: a.variant_type,
         cost: Number(a.cost ?? 0),
         unit_label: a.general_primary_unit?.label,
+        cost_history: a.cost_history,
       }))
     }
 
@@ -227,11 +230,14 @@ const CostManagementPage = () => {
     setDrafts({})
   }, [setDrafts])
 
+  const [historyRow, setHistoryRow] = useState<BaseRow | null>(null)
+
   const columns = useMemo(
     () =>
       getColumns({
         type,
         onCostChange,
+        onViewHistory: (row) => setHistoryRow(row),
       }),
     [type, onCostChange]
   )
@@ -344,6 +350,15 @@ const CostManagementPage = () => {
         )}
 
       </div>
+
+      <GeneralCostHistorySheet
+        open={!!historyRow}
+        onOpenChange={(open) => !open && setHistoryRow(null)}
+        description={historyRow?.description}
+        brandModel={historyRow?.brand_model}
+        variantType={historyRow?.variant_type}
+        history={historyRow?.cost_history}
+      />
     </ContentLayout>
   )
 }

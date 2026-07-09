@@ -98,11 +98,11 @@ export const useUpdateGeneralCost = () => {
   return useMutation({
     mutationFn: updateGeneralCost,
     onSuccess: () => {
-      toast.success("Costo actualizado correctamente")
+      toast.success("Costo inicial registrado correctamente")
       invalidateGeneral(queryClient)
     },
-    onError: () => {
-      toast.error("Error al actualizar costo")
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.error ?? "Error al registrar costo")
     },
   })
 }
@@ -112,12 +112,17 @@ export const useBulkUpdateGeneralCost = () => {
 
   return useMutation({
     mutationFn: bulkUpdateGeneralCost,
-    onSuccess: () => {
-      toast.success("Costos actualizados correctamente")
+    onSuccess: (data) => {
+      const skippedCount = data?.skipped?.length ?? 0
+      toast.success(
+        skippedCount > 0
+          ? `Costos registrados. ${skippedCount} artículo(s) ya tenían costo y no se modificaron.`
+          : "Costos iniciales registrados correctamente"
+      )
       invalidateGeneral(queryClient)
     },
-    onError: () => {
-      toast.error("Error en actualización masiva")
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.error ?? "Error en actualización masiva")
     },
   })
 }

@@ -10,10 +10,12 @@ export { type ArticleCostRow, type GeneralCostRow, type DraftValue } from '@/typ
 export const getColumns = ({
   type,
   onCostChange,
+  onViewHistory,
 }: BuildColumnsArgs): ColumnDef<any>[] => {
   if (type === 'GENERAL') {
     return getGeneralCostColumns({
       onCostChange,
+      onViewHistory,
     })
   }
 

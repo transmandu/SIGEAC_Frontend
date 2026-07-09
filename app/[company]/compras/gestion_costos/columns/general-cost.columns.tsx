@@ -3,7 +3,15 @@
 import { ColumnDef } from '@tanstack/react-table'
 import { DataTableColumnHeader } from '@/components/tables/DataTableHeader'
 import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { History, Lock } from 'lucide-react'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import React from 'react'
 import type { GeneralCostRow, GeneralCostColumnsArgs } from '@/types/purchase'
 
@@ -27,6 +35,7 @@ const isModified = (
 
 export function getGeneralCostColumns({
   onCostChange,
+  onViewHistory,
 }: GeneralCostColumnsArgs): ColumnDef<GeneralCostRow>[] {
 
   return [
@@ -94,10 +103,11 @@ export function getGeneralCostColumns({
       cell: ({ row, table }) => {
         const id = row.original.id
         const current = row.original.cost
+        const hasCost = Number(current ?? 0) > 0
         const meta = table.options.meta as any
         const costDrafts = meta?.costDrafts ?? {}
         const draft = costDrafts[id]
-        const modified = isModified(id, costDrafts, current)
+        const modified = !hasCost && isModified(id, costDrafts, current)
 
         const currentValue =
           current !== undefined && current !== null ? String(current) : '0'
@@ -106,6 +116,36 @@ export function getGeneralCostColumns({
           draft !== undefined && draft !== null
             ? String(draft)
             : ''
+
+        if (hasCost) {
+          return (
+            <div className="flex justify-center w-full">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div
+                      className="
+                        flex items-center gap-1.5 rounded-md border px-2 py-1
+                        bg-slate-100/70 dark:bg-slate-800/40
+                        border-slate-200 dark:border-slate-700/60
+                        cursor-default
+                      "
+                    >
+                      <span className="text-xs text-muted-foreground">$</span>
+                      <span className="text-sm tabular-nums text-center text-foreground">
+                        {currentValue}
+                      </span>
+                      <Lock className="h-3 w-3 text-muted-foreground" />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="text-xs max-w-[220px] text-center">
+                    Este artículo ya tiene costo registrado. Solo cambia con una nueva compra.
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+          )
+        }
 
         return (
           <div className="flex justify-center w-full">
@@ -163,6 +203,24 @@ export function getGeneralCostColumns({
           </div>
         )
       },
+    },
+
+    {
+      id: 'history',
+      size: 60,
+      header: () => <div className="flex justify-center w-full text-xs text-muted-foreground">Historial</div>,
+      cell: ({ row }) => (
+        <div className="flex justify-center w-full">
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-7 w-7 text-muted-foreground hover:text-foreground"
+            onClick={() => onViewHistory?.(row.original)}
+          >
+            <History className="h-4 w-4" />
+          </Button>
+        </div>
+      ),
     },
   ]
 }
