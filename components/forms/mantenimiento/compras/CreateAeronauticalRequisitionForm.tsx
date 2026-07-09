@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
 import { useAuth } from "@/contexts/AuthContext"
 import { useGetBatchesByLocationId } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByLocationId"
+import { useSearchBatchesWithArticles, type BatchWithArticles } from "@/hooks/mantenimiento/almacen/renglones/useSearchBatchesWithArticles"
 import { useGetMaintenanceAircrafts } from '@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts'
 import { useGetWorkOrderEmployees } from "@/hooks/mantenimiento/planificacion/useGetWorkOrderEmployees"
 import { useGetWorkOrders } from '@/hooks/mantenimiento/planificacion/useGetWorkOrders'
@@ -14,6 +15,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits"
+import { useDebounce } from "@/lib/useDebounce"
 import type { RequisitionBatchForm } from "@/types/purchase"
 import type { Aircraft } from "@/types"
 import { Separator } from "@/components/ui/separator"
@@ -31,8 +33,8 @@ const FormSchema = z.object({
   created_by: z.string(),
   requested_by: z.string().min(1, "Debe ingresar quien lo solicita."),
   priority: z.enum(["HIGH", "MEDIUM", "LOW"]).optional(),
-  work_order_id: z.string({ required_error: "La orden de trabajo es obligatoria para requisiciones aeronáuticas" }),
-  aircraft_id: z.string({ required_error: "La aeronave es obligatoria para requisiciones aeronáuticas" }),
+  work_order_id: z.string().optional(),
+  aircraft_id: z.string().optional(),
   image: z
     .instanceof(File)
     .refine((file) => file.size <= 5 * 1024 * 1024, "Max 5MB")
@@ -55,6 +57,7 @@ const FormSchema = z.object({
             aircraft_id: z.string().optional(),
             priority: z.enum(["HIGH", "MEDIUM", "LOW"]).optional(),
             image: z.any().optional(),
+            document_type_ids: z.array(z.number()).min(1, "Debe seleccionar al menos un tipo de documento"),
           })
         ),
       })
@@ -119,6 +122,14 @@ export function CreateAeronauticalRequisitionForm({
   const [aircraftSearch, setAircraftSearch] = useState("");
   const [workOrderSearch, setWorkOrderSearch] = useState("");
   const [batchSearch, setBatchSearch] = useState("");
+  const [articleSearch, setArticleSearch] = useState("");
+  const debouncedArticleSearch = useDebounce(articleSearch, 300);
+
+  const { data: articleResults, isFetching: isArticleResultsLoading } = useSearchBatchesWithArticles(
+    selectedCompany?.slug,
+    selectedStation ?? undefined,
+    debouncedArticleSearch || undefined
+  );
 
   // Memoized filtered lists for each searchable selector
   const filteredEmployees = useMemo(() => {
@@ -239,9 +250,83 @@ export function CreateAeronauticalRequisitionForm({
         {
           batch: batchId,
           batch_name: batchName,
-          batch_articles: [{ part_number: "", quantity: 1, unit: getDefaultUnit(batch_category), priority: "MEDIUM", aircraft_id: headerAircraftId }],
+          batch_articles: [{ part_number: "", quantity: 1, unit: getDefaultUnit(batch_category), priority: "MEDIUM", aircraft_id: headerAircraftId, document_type_ids: [] }],
         },
       ];
+    });
+  };
+
+  // Article search handler: selecting an article by part_number loads its
+  // associated batch (adding it if not already selected) and fills the
+  // part_number/alt_part_number/unit into an empty row, or appends a new one.
+  const handleArticleSelect = (
+    batch: BatchWithArticles["batch"],
+    article: BatchWithArticles["articles"][number]
+  ) => {
+    const batchId = batch.id.toString();
+    const altPartNumber = article.alternative_part_number?.[0] ?? "";
+    const unit = getDefaultUnit(batch.category);
+
+    // Pre-selección: los documentos que el inventario ya espera para este
+    // artículo se marcan como documentación a solicitar al vendedor.
+    const documentTypeIds =
+      article.document_requirements
+        ?.map((req) => req.document_type?.id)
+        .filter((id): id is number => typeof id === "number") ?? [];
+
+    setSelectedBatches((prev) => {
+      const existingBatch = prev.find((b) => b.batch === batchId);
+
+      if (!existingBatch) {
+        return [
+          ...prev,
+          {
+            batch: batchId,
+            batch_name: batch.name,
+            batch_articles: [
+              {
+                part_number: article.part_number,
+                alt_part_number: altPartNumber,
+                quantity: 1,
+                unit,
+                priority: "MEDIUM",
+                aircraft_id: headerAircraftId,
+                document_type_ids: documentTypeIds,
+              },
+            ],
+          },
+        ];
+      }
+
+      return prev.map((b) => {
+        if (b.batch !== batchId) return b;
+        const emptyIndex = b.batch_articles.findIndex((a) => !a.part_number);
+        if (emptyIndex === -1) {
+          return {
+            ...b,
+            batch_articles: [
+              ...b.batch_articles,
+              {
+                part_number: article.part_number,
+                alt_part_number: altPartNumber,
+                quantity: 1,
+                unit,
+                priority: "MEDIUM",
+                aircraft_id: headerAircraftId,
+                document_type_ids: documentTypeIds,
+              },
+            ],
+          };
+        }
+        return {
+          ...b,
+          batch_articles: b.batch_articles.map((a, i) =>
+            i === emptyIndex
+              ? { ...a, part_number: article.part_number, alt_part_number: altPartNumber, unit, document_type_ids: documentTypeIds }
+              : a
+          ),
+        };
+      });
     });
   };
 
@@ -249,7 +334,7 @@ export function CreateAeronauticalRequisitionForm({
     batchId: string,
     index: number,
     field: string,
-    value: string | number | File | undefined
+    value: string | number | number[] | File | undefined
   ) => {
     if (field === "priority") {
       escalateHeaderPriority(value as Priority);
@@ -276,7 +361,7 @@ export function CreateAeronauticalRequisitionForm({
           ...batch,
           batch_articles: [
             ...batch.batch_articles,
-            { part_number: "", quantity: 1, unit: getDefaultUnit(batch.batch_name), priority: "MEDIUM", aircraft_id: headerAircraftId },
+            { part_number: "", quantity: 1, unit: getDefaultUnit(batch.batch_name), priority: "MEDIUM", aircraft_id: headerAircraftId, document_type_ids: [] },
           ],
         };
       })
@@ -310,8 +395,8 @@ export function CreateAeronauticalRequisitionForm({
     const formattedData = {
       ...data,
       type: "AERONAUTICAL" as const,
-      work_order_id: Number(data.work_order_id),
-      aircraft_id: Number(data.aircraft_id),
+      work_order_id: data.work_order_id ? Number(data.work_order_id) : undefined,
+      aircraft_id: data.aircraft_id ? Number(data.aircraft_id) : undefined,
     };
 
     await createRequisition.mutateAsync({ data: formattedData, company: selectedCompany!.slug });
@@ -343,8 +428,6 @@ export function CreateAeronauticalRequisitionForm({
           aircraftSearch={aircraftSearch}
           setAircraftSearch={setAircraftSearch}
           aircraftPlaceholder="Seleccione la aeronave..."
-          aircraftRequired
-          workOrderRequired
         />
 
         <BatchArticlesSection
@@ -369,6 +452,11 @@ export function CreateAeronauticalRequisitionForm({
           removeBatch={removeBatch}
           enableCreateBatch
           onBatchCreated={handleBatchCreated}
+          filteredArticleResults={articleResults}
+          isArticleResultsLoading={isArticleResultsLoading}
+          articleSearch={articleSearch}
+          setArticleSearch={setArticleSearch}
+          handleArticleSelect={handleArticleSelect}
         />
 
         <AdditionalInfoSection form={form} />

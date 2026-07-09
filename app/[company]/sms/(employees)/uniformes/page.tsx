@@ -20,6 +20,7 @@ import {
   Package,
   ArrowLeftRight,
   Tags,
+  Tag,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -29,18 +30,22 @@ import {
   useGetUniformItems,
   useGetUniformMovements,
   useGetUniformArticleTypes,
+  useGetUniformBrands,
   UniformItem,
   UniformArticleType,
+  UniformBrand,
 } from "@/hooks/sms/useGetUniforms";
 
 import { UniformDataTable } from "./uniform-data-table";
 import { UniformInventoryGrid } from "./uniform-inventory-grid";
 import { movementsColumns } from "./movements-columns";
 import { getArticleTypesColumns } from "./article-types-columns";
+import { getBrandsColumns } from "./brands-columns";
 import { CreateUniformItemForm } from "@/components/forms/sms/CreateUniformItemForm";
 import { EditUniformItemForm } from "@/components/forms/sms/EditUniformItemForm";
 import { RegisterUniformMovementForm } from "@/components/forms/sms/RegisterUniformMovementForm";
 import { UniformArticleTypeForm } from "@/components/forms/sms/UniformArticleTypeForm";
+import { UniformBrandForm } from "@/components/forms/sms/UniformBrandForm";
 
 const UniformesPage = () => {
   const { selectedCompany } = useCompanyStore();
@@ -51,6 +56,8 @@ const UniformesPage = () => {
     useGetUniformMovements(company);
   const { data: articleTypes, isLoading: loadingTypes } =
     useGetUniformArticleTypes(company);
+  const { data: brands, isLoading: loadingBrands } =
+    useGetUniformBrands(company);
 
   const [createOpen, setCreateOpen] = useState(false);
   const [movementOpen, setMovementOpen] = useState(false);
@@ -61,6 +68,9 @@ const UniformesPage = () => {
 
   const [typeFormOpen, setTypeFormOpen] = useState(false);
   const [editType, setEditType] = useState<UniformArticleType | undefined>();
+
+  const [brandFormOpen, setBrandFormOpen] = useState(false);
+  const [editBrand, setEditBrand] = useState<UniformBrand | undefined>();
 
   const openMovementFor = (item?: UniformItem) => {
     setMovementItemId(item?.id);
@@ -82,8 +92,23 @@ const UniformesPage = () => {
     setTypeFormOpen(true);
   };
 
+  const openCreateBrand = () => {
+    setEditBrand(undefined);
+    setBrandFormOpen(true);
+  };
+
+  const openEditBrand = (brand: UniformBrand) => {
+    setEditBrand(brand);
+    setBrandFormOpen(true);
+  };
+
   const articleTypesColumns = useMemo(
     () => getArticleTypesColumns({ onEdit: openEditType }),
+    []
+  );
+
+  const brandsColumns = useMemo(
+    () => getBrandsColumns({ onEdit: openEditBrand }),
     []
   );
 
@@ -173,7 +198,7 @@ const UniformesPage = () => {
       </div>
 
       <Tabs defaultValue="inventory" className="w-full">
-        <TabsList className="mx-auto grid w-full max-w-xl grid-cols-3">
+        <TabsList className="mx-auto grid w-full max-w-2xl grid-cols-4">
           <TabsTrigger value="inventory" className="gap-2">
             <Package className="size-4" />
             Inventario
@@ -207,6 +232,18 @@ const UniformesPage = () => {
                 className="ml-0.5 px-1.5 py-0 text-[10px] tabular-nums"
               >
                 {articleTypes.length}
+              </Badge>
+            ) : null}
+          </TabsTrigger>
+          <TabsTrigger value="brands" className="gap-2">
+            <Tag className="size-4" />
+            Marcas
+            {brands?.length ? (
+              <Badge
+                variant="secondary"
+                className="ml-0.5 px-1.5 py-0 text-[10px] tabular-nums"
+              >
+                {brands.length}
               </Badge>
             ) : null}
           </TabsTrigger>
@@ -261,6 +298,32 @@ const UniformesPage = () => {
                 >
                   <Plus className="h-4 w-4" />
                   Nuevo tipo
+                </Button>
+              }
+            />
+          )}
+        </TabsContent>
+
+        <TabsContent value="brands" className="mt-4">
+          {loadingBrands ? (
+            <div className="flex w-full justify-center py-20">
+              <Loader2 className="size-20 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
+            <UniformDataTable
+              columns={brandsColumns}
+              data={brands ?? []}
+              searchPlaceholder="Buscar marcas..."
+              emptyMessage="No hay marcas. Cree la primera..."
+              toolbar={
+                <Button
+                  onClick={openCreateBrand}
+                  variant="outline"
+                  size="sm"
+                  className="flex h-8 items-center gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  Nueva marca
                 </Button>
               }
             />
@@ -325,6 +388,22 @@ const UniformesPage = () => {
             key={editType?.id ?? "new"}
             articleType={editType}
             onClose={() => setTypeFormOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Crear / editar marca */}
+      <Dialog open={brandFormOpen} onOpenChange={setBrandFormOpen}>
+        <DialogContent className="sm:max-w-[420px]">
+          <DialogHeader>
+            <DialogTitle className="text-center text-xl font-bold">
+              {editBrand ? "Editar marca" : "Nueva marca"}
+            </DialogTitle>
+          </DialogHeader>
+          <UniformBrandForm
+            key={editBrand?.id ?? "new"}
+            brand={editBrand}
+            onClose={() => setBrandFormOpen(false)}
           />
         </DialogContent>
       </Dialog>

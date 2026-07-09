@@ -88,9 +88,7 @@ export default function UpdateCargoManifestForm({
 
   const manifestAircraftLabel = useMemo(() => {
     const firstItem = manifest.items?.[0];
-    return (
-      firstItem?.shipment?.aircraft?.acronym ?? "N/a"
-    );
+    return firstItem?.shipment?.aircraft?.acronym ?? "N/a";
   }, [manifest.items]);
 
   // Guías disponibles filtradas (excluyendo lo ya manifestado)
@@ -198,7 +196,10 @@ export default function UpdateCargoManifestForm({
       </div>
 
       {/* ── SECCIÓN SUPERIOR: ITEMS ACTUALES EN EL MANIFIESTO ── */}
-      <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
+      <div
+        className="space-y-3 max-h-[60vh] overflow-y-auto pr-1"
+        data-tour="cargo-manifiestos-editar-existentes"
+      >
         {editor.shipmentGroups.map(([shipmentId, group]) => (
           <ExistingShipmentGroup
             key={shipmentId}
@@ -214,53 +215,57 @@ export default function UpdateCargoManifestForm({
       </div>
 
       {/* ── SEPARADOR ESTÉTICO ── */}
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t border-dashed border-border" />
+      <div className="pt-2" data-tour="cargo-manifiestos-editar-disponibles">
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t border-dashed border-border" />
+          </div>
+          <div className="relative flex justify-center">
+            <span className="bg-background px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+              Agregar productos disponibles
+            </span>
+          </div>
         </div>
-        <div className="relative flex justify-center">
-          <span className="bg-background px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-            Agregar productos disponibles
-          </span>
-        </div>
+
+        {/* ── SECCIÓN INFERIOR: PRODUCTOS DISPONIBLES PARA AGREGAR ── */}
+        {loadingAvailable ? (
+          <div className="flex justify-center py-6">
+            <Loader2 className="animate-spin h-6 w-6 text-muted-foreground" />
+          </div>
+        ) : filteredAvailableShipments.length === 0 ? (
+          <p className="text-center text-xs text-muted-foreground py-4 italic">
+            No hay más guías con productos disponibles para agregar.
+          </p>
+        ) : (
+          <div className="space-y-2">
+            {filteredAvailableShipments.map((shipment) => (
+              <AvailableShipmentGroup
+                key={shipment.id}
+                shipment={shipment}
+                newSelections={selector.newSelections}
+                newErrors={selector.newErrors}
+                statusConfig={statusConfig}
+                onToggleNewItem={selector.toggleNewItem}
+                onUpdateNewWeight={selector.updateNewWeight}
+                onUpdateNewUnits={selector.updateNewUnits}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* ── SECCIÓN INFERIOR: PRODUCTOS DISPONIBLES PARA AGREGAR ── */}
-      {loadingAvailable ? (
-        <div className="flex justify-center py-6">
-          <Loader2 className="animate-spin h-6 w-6 text-muted-foreground" />
-        </div>
-      ) : filteredAvailableShipments.length === 0 ? (
-        <p className="text-center text-xs text-muted-foreground py-4 italic">
-          No hay más guías con productos disponibles para agregar.
-        </p>
-      ) : (
-        <div className="space-y-2">
-          {filteredAvailableShipments.map((shipment) => (
-            <AvailableShipmentGroup
-              key={shipment.id}
-              shipment={shipment}
-              newSelections={selector.newSelections}
-              newErrors={selector.newErrors}
-              statusConfig={statusConfig}
-              onToggleNewItem={selector.toggleNewItem}
-              onUpdateNewWeight={selector.updateNewWeight}
-              onUpdateNewUnits={selector.updateNewUnits}
-            />
-          ))}
-        </div>
-      )}
-
       {/* ── FOOTER: TOTALES Y ENVÍO ── */}
-      <ManifestFormFooter
-        totalWeight={totals.totalWeight}
-        totalUnits={totals.totalUnits}
-        activeCount={totals.activeCount}
-        hasErrors={hasErrors}
-        hasChanges={hasChanges}
-        isPending={updateCargoManifest.isPending}
-        onSubmit={handleSubmit}
-      />
+      <div data-tour="cargo-manifiestos-editar-footer">
+        <ManifestFormFooter
+          totalWeight={totals.totalWeight}
+          totalUnits={totals.totalUnits}
+          activeCount={totals.activeCount}
+          hasErrors={hasErrors}
+          hasChanges={hasChanges}
+          isPending={updateCargoManifest.isPending}
+          onSubmit={handleSubmit}
+        />
+      </div>
     </div>
   );
 }

@@ -83,6 +83,7 @@ export function ExistingItemRow({
         ) : (
           <>
             <Input
+              data-tour="cargo-manifiestos-editar-item-unidades"
               type="number"
               min={1}
               max={availUnits}
@@ -119,6 +120,7 @@ export function ExistingItemRow({
         ) : (
           <>
             <Input
+              data-tour="cargo-manifiestos-editar-item-peso"
               type="number"
               min={0.01}
               max={availWeight}
@@ -151,6 +153,7 @@ export function ExistingItemRow({
       {/* Botón quitar/restaurar */}
       <div className="flex justify-center">
         <Button
+          data-tour="cargo-manifiestos-editar-item-quitar"
           type="button"
           variant={isRemoved ? "outline" : "ghost"}
           size="icon"

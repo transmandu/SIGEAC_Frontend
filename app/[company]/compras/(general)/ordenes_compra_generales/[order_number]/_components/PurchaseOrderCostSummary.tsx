@@ -1,5 +1,5 @@
-import { Building2, CreditCard } from 'lucide-react';
-import type { BankAccount, Card } from '@/types';
+import { Building2, CreditCard, Wallet } from 'lucide-react';
+import type { BankAccount, BankCard, PaymentMethod } from '@/types';
 
 interface CostBreakdown {
   sub_total?: number | null;
@@ -13,8 +13,9 @@ interface CostBreakdown {
 
 interface PurchaseOrderCostSummaryProps {
   costs: CostBreakdown;
+  paymentMethod?: PaymentMethod | null;
   bankAccount?: BankAccount | null;
-  card?: Card | null;
+  card?: BankCard | null;
   isAeronautical?: boolean;
 }
 
@@ -25,7 +26,7 @@ const CostRow = ({ label, value }: { label: string; value: number | null | undef
   </div>
 );
 
-const PurchaseOrderCostSummary = ({ costs, bankAccount, card, isAeronautical }: PurchaseOrderCostSummaryProps) => {
+const PurchaseOrderCostSummary = ({ costs, paymentMethod, bankAccount, card, isAeronautical }: PurchaseOrderCostSummaryProps) => {
   return (
     <div className="relative mx-auto max-w-md w-full rounded-xl border border-border/60 bg-gradient-to-b from-muted/30 to-muted/10 p-4 shadow-sm">
       <div className="flex items-center gap-3 mb-2.5 select-none">
@@ -53,8 +54,14 @@ const PurchaseOrderCostSummary = ({ costs, bankAccount, card, isAeronautical }: 
       </div>
 
       {/* Payment method */}
-      {(bankAccount || card) && (
+      {(paymentMethod || bankAccount || card) && (
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2.5 pt-2.5 border-t border-border/40 text-xs text-muted-foreground">
+          {paymentMethod && (
+            <span className="flex items-center gap-1.5">
+              <Wallet className="size-3.5 shrink-0" />
+              {paymentMethod.name}
+            </span>
+          )}
           {bankAccount && (
             <span className="flex items-center gap-1.5">
               <Building2 className="size-3.5 shrink-0" />

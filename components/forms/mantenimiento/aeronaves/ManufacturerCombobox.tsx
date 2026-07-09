@@ -9,7 +9,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Check, ChevronsUpDown, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { useCreateManufacturer } from "@/actions/general/fabricantes/actions"
+import { useCreateManufacturer } from "@/actions/ajustes/globales/fabricantes/actions"
 import { useCompanyStore } from "@/stores/CompanyStore"
 import { Manufacturer } from "@/types"
 

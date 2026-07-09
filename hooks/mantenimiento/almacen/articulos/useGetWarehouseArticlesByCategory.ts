@@ -110,12 +110,12 @@ export const useGetWarehouseArticlesByCategory = (
 ) => {
     const { selectedCompany, selectedStation } = useCompanyStore();
     return useQuery<WarehouseResponse, Error>({
-        queryKey: ["warehouse-articles", selectedCompany?.slug, selectedStation, page, per_page, category, part_number, is_hazardous],
+        queryKey: ["warehouse-articles", selectedCompany?.slug, selectedStation, page, per_page, category, status, part_number, is_hazardous],
         queryFn: () => fetchWarehouseArticlesByCategory(selectedStation, category, selectedCompany?.slug, status, page, per_page, part_number, is_hazardous),
         enabled: enabled && !!selectedCompany && !!selectedStation,
         staleTime: 0,
         refetchOnMount: true,
-        refetchOnWindowFocus: false,    
+        refetchOnWindowFocus: false,
     });
 };
 

@@ -2,6 +2,7 @@ import axiosInstance from "@/lib/axios";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import type { ConfirmGeneralArticleIntakeResponse } from "@/types/purchase";
 
 export interface IUpdateArticleData {
     id: number
@@ -100,6 +101,42 @@ export const useUpdateGeneralArticleQuantity = () => {
     };
 };
 
+
+// Confirma físicamente la llegada de una entrada PENDING (GeneralArticleIntake).
+// Crea o incrementa el general_article correspondiente; el intake queda
+// como historial permanente con quién/cuándo lo confirmó.
+export const useConfirmGeneralArticleIntake = () => {
+    const queryClient = useQueryClient();
+    const { selectedCompany } = useCompanyStore();
+
+    const confirmGeneralArticleIntake = useMutation({
+        mutationKey: ["confirm-general-article-intake", selectedCompany?.slug],
+        mutationFn: async ({ id, confirmedAt }: { id: number; confirmedAt?: Date }) => {
+            const { data } = await axiosInstance.patch<ConfirmGeneralArticleIntakeResponse>(
+                `/${selectedCompany?.slug}/general-article-intakes/${id}/confirm`,
+                confirmedAt ? { confirmed_at: confirmedAt.toISOString() } : {}
+            );
+            return data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["general-article-intakes"], exact: false });
+            queryClient.invalidateQueries({ queryKey: ["general-articles"], exact: false });
+
+            toast.success("¡Confirmado!", {
+                description: "La entrada fue confirmada y el stock se actualizó correctamente."
+            });
+        },
+        onError: (error: any) => {
+            toast.error("Error", {
+                description: error?.response?.data?.message || "No se pudo confirmar la entrada."
+            });
+        },
+    });
+
+    return {
+        confirmGeneralArticleIntake,
+    };
+};
 
 export const useCreateGeneralArticle = () => {
     const queryClient = useQueryClient();

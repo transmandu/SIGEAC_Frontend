@@ -47,7 +47,7 @@ export function FuelMovementDialog({
         <DialogHeader>
           <DialogTitle>{getFuelMovementLabel(type)}</DialogTitle>
           <DialogDescription>
-            Registra el movimiento. El backend validara saldos y capacidad.
+            Registra el movimiento. El sistema validara saldos y capacidad.
           </DialogDescription>
         </DialogHeader>
         <FuelMovementForm

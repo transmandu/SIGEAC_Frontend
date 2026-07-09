@@ -10,7 +10,7 @@ import {
 import { FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
-import { Check, ChevronsUpDown, Hash, Layers, MinusCircle, PackagePlus, Plane, Plus, Ruler, Tag } from "lucide-react"
+import { Check, ChevronsUpDown, Hash, Layers, MinusCircle, PackagePlus, Plane, Plus, Ruler, Search, Tag } from "lucide-react"
 import { useState } from "react"
 import type { UseFormReturn } from "react-hook-form"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
@@ -20,7 +20,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import type { Aircraft, Batch, Unit } from "@/types"
 import type { RequisitionBatchForm } from "@/types/purchase"
+import type { BatchWithArticles } from "@/hooks/mantenimiento/almacen/renglones/useSearchBatchesWithArticles"
 import { CreateBatchForm } from "@/components/forms/mantenimiento/almacen/CreateBatchForm"
+import { ArticleDocumentTypesAttachment } from "./ArticleDocumentTypesAttachment"
 import { ArticleImageAttachment } from "./ArticleImageAttachment"
 import { RequiredIndicator } from "./RequiredIndicator"
 
@@ -40,13 +42,20 @@ interface BatchArticlesSectionProps {
   aircraftSearch: string;
   setAircraftSearch: (v: string) => void;
   handleBatchSelect: (batchName: string, batchId: string, batch_category: string) => void;
-  handleBatchArticleChange: (batchId: string, index: number, field: string, value: string | number | File | undefined) => void;
+  handleBatchArticleChange: (batchId: string, index: number, field: string, value: string | number | number[] | File | undefined) => void;
   addBatchArticle: (batchId: string) => void;
   removeBatchArticle: (batchId: string, articleIndex: number) => void;
   removeBatch: (batchId: string) => void;
   enableCreateBatch?: boolean;
   onBatchCreated?: (batchName: string) => void;
   size?: "default" | "lg";
+  // Part number selector: finds an article by part_number/alt_part_number and
+  // loads its associated batch, prefilling the article row with its data.
+  filteredArticleResults?: BatchWithArticles[];
+  isArticleResultsLoading?: boolean;
+  articleSearch?: string;
+  setArticleSearch?: (v: string) => void;
+  handleArticleSelect?: (batch: BatchWithArticles["batch"], article: BatchWithArticles["articles"][number]) => void;
 }
 
 export function BatchArticlesSection({
@@ -72,6 +81,11 @@ export function BatchArticlesSection({
   enableCreateBatch = false,
   onBatchCreated,
   size = "default",
+  filteredArticleResults,
+  isArticleResultsLoading = false,
+  articleSearch = "",
+  setArticleSearch,
+  handleArticleSelect,
 }: BatchArticlesSectionProps) {
   const [isCreateBatchOpen, setIsCreateBatchOpen] = useState(false);
   const isLg = size === "lg";
@@ -81,6 +95,13 @@ export function BatchArticlesSection({
   );
   const priorityColClass = isLg ? "w-40" : "w-28";
 
+  // Mirrors the zod rule requiring at least one document_type per batch
+  // article; red styling only kicks in after a submit attempt, so a freshly
+  // added row doesn't look broken before the user has had a chance to pick.
+  const isSubmitted = form.formState.isSubmitted;
+  const isDocumentTypesInvalid = (article: { document_type_ids?: number[] }) =>
+    isSubmitted && !(article.document_type_ids && article.document_type_ids.length > 0);
+
   return (
     <FormField
       control={form.control}
@@ -89,7 +110,7 @@ export function BatchArticlesSection({
         <FormItem className="flex flex-col">
           <div className="flex gap-4 items-end">
             <div className="flex gap-4 items-end w-full">
-              <FormItem className="flex flex-col w-[200px]">
+              <FormItem className={cn("flex flex-col", enableCreateBatch ? "w-[236px]" : "w-[200px]")}>
                 <FormLabel
                   className="flex items-center gap-1.5 select-none"
                   onClick={(e) => e.preventDefault()}
@@ -105,13 +126,15 @@ export function BatchArticlesSection({
                         disabled={isBatchesLoading}
                         role="combobox"
                         className={cn(
-                          "justify-between w-full",
+                          "justify-between w-full min-w-0",
                           selectedBatches.length === 0 && "text-muted-foreground"
                         )}
                       >
-                        {selectedBatches.length > 0
-                          ? `${selectedBatches.length} reng. seleccionados`
-                          : "Selec. un renglón..."}
+                        <span className="truncate">
+                          {selectedBatches.length > 0
+                            ? `${selectedBatches.length} reng. seleccionados`
+                            : "Selec. un renglón..."}
+                        </span>
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
                     </PopoverTrigger>
@@ -170,6 +193,69 @@ export function BatchArticlesSection({
                   )}
                 </div>
               </FormItem>
+
+              {handleArticleSelect && (
+                <FormItem className="flex flex-col w-[220px]">
+                  <FormLabel
+                    className="flex items-center gap-1.5 select-none"
+                    onClick={(e) => e.preventDefault()}
+                  >
+                    <Search className="size-3.5 text-muted-foreground" />
+                    Buscar por P/N
+                  </FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        className="justify-between w-full text-muted-foreground"
+                      >
+                        Buscar artículo...
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="p-0" matchTriggerWidth>
+                      <Command shouldFilter={false}>
+                        <CommandInput
+                          placeholder="P/N o P/N alterno..."
+                          value={articleSearch}
+                          onValueChange={setArticleSearch}
+                        />
+                        <CommandList>
+                          <CommandEmpty>
+                            {isArticleResultsLoading
+                              ? "Buscando..."
+                              : articleSearch
+                                ? "No se encontraron artículos..."
+                                : "Escriba para buscar..."}
+                          </CommandEmpty>
+                          <CommandGroup>
+                            {filteredArticleResults?.flatMap((result) =>
+                              result.articles.map((article) => (
+                                <CommandItem
+                                  key={article.id}
+                                  value={`${article.id}`}
+                                  onSelect={() => handleArticleSelect(result.batch, article)}
+                                >
+                                  <div className="flex flex-col">
+                                    <span>{article.part_number}</span>
+                                    <span className="text-xs text-muted-foreground">
+                                      {result.batch.name}
+                                      {article.alternative_part_number && article.alternative_part_number.length > 0
+                                        ? ` · Alt: ${article.alternative_part_number.join(", ")}`
+                                        : ""}
+                                    </span>
+                                  </div>
+                                </CommandItem>
+                              ))
+                            )}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                </FormItem>
+              )}
             </div>
           </div>
 
@@ -227,6 +313,7 @@ export function BatchArticlesSection({
                                 <Input
                                   placeholder="Ej: 123-456-789"
                                   className="text-xs h-8"
+                                  value={article.part_number}
                                   onChange={(e) => handleBatchArticleChange(batch.batch, index, "part_number", e.target.value)}
                                 />
                               </div>
@@ -282,6 +369,7 @@ export function BatchArticlesSection({
                                 <Input
                                   placeholder="Ej: ABC-123-X Opcional..."
                                   className="text-xs h-8"
+                                  value={article.alt_part_number || ""}
                                   onChange={(e) => handleBatchArticleChange(batch.batch, index, "alt_part_number", e.target.value)}
                                 />
                               </div>
@@ -382,6 +470,12 @@ export function BatchArticlesSection({
                           </div>
 
                           <div className="flex flex-col items-center justify-center gap-1 shrink-0 self-stretch ml-2 pl-2">
+                            <ArticleDocumentTypesAttachment
+                              selectedIds={article.document_type_ids}
+                              onChange={(ids) => handleBatchArticleChange(batch.batch, index, "document_type_ids", ids)}
+                              invalid={isDocumentTypesInvalid(article)}
+                            />
+
                             <ArticleImageAttachment
                               article={article}
                               onChangeImage={(file) => handleBatchArticleChange(batch.batch, index, "image", file)}

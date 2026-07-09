@@ -35,6 +35,11 @@ export interface BatchWithArticles {
     cost: number | null;
     image: string | null;
     certificates: string[] | null;
+    document_requirements?: {
+      id: number;
+      document_type: { id: number; name: string; regulation: string | null } | null;
+      documents: { id: number; file_path: string | null; file_url: string | null; is_physical: boolean }[];
+    }[];
     article_type: string | null;
 
     // Información específica del tipo de artículo

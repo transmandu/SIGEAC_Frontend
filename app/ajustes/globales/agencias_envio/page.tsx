@@ -61,7 +61,7 @@ const ShippingAgenciesPage = () => {
   }
 
   return (
-    <ContentLayout title="Agencias de Envío">
+    <ContentLayout title="Agentes de Envío">
       <div className="flex flex-col gap-6">
 
         <div className="flex items-center gap-3">
@@ -84,7 +84,7 @@ const ShippingAgenciesPage = () => {
               <BreadcrumbSeparator />
 
               <BreadcrumbItem>
-                <BreadcrumbPage> Agencias de Envío </BreadcrumbPage>
+                <BreadcrumbPage> Agentes de Envío </BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
@@ -94,7 +94,7 @@ const ShippingAgenciesPage = () => {
           <div className="flex items-end justify-between">
             <div className="flex flex-col">
               <h1 className="text-3xl font-semibold tracking-tight">
-                Agencias de Envío
+                Agentes de Envío
               </h1>
 
               <p className="text-sm text-muted-foreground">
@@ -110,7 +110,7 @@ const ShippingAgenciesPage = () => {
 
           <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
             {(agencies ?? []).length}{' '}
-            {(agencies ?? []).length === 1 ? 'agencia' : 'agencias'}
+            {(agencies ?? []).length === 1 ? 'agente' : 'agentes'}
           </span>
         </div>
 
@@ -125,7 +125,7 @@ const ShippingAgenciesPage = () => {
         {isError && (
           <div className="rounded-lg border border-red-500/20 bg-red-500/5 px-4 py-3">
             <p className="text-sm text-red-500">
-              Ha ocurrido un error al cargar las agencias de envío.
+              Ha ocurrido un error al cargar los agentes de envío.
             </p>
           </div>
         )}

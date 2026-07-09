@@ -613,19 +613,20 @@ export const TaskDetailsDialog = ({
             <DialogFooter className="sm:justify-between mt-5">
               {currentStep === "assign" ? (
                 <>
-                  <Button variant="outline" onClick={() => onOpenChange(false)}>
+                  <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                     Cerrar
                   </Button>
                   {selectedTask.status === "ABIERTO" &&
                     selectedTask.technician_responsable &&
                     !isEditing && (
                       <div className="flex gap-2 items-center">
-                        {!selectedTask.non_routine && !isNonRoutine && (
+                        {/* {!selectedTask.non_routine && !isNonRoutine && (
                           <CreateNoRutineDialog
                             task_id={selectedTask.id.toString()}
                           />
-                        )}
+                        )} */}
                         <Button
+                          type="button"
                           onClick={handleCompleteTask}
                           disabled={
                             updateTaskStatus.isPending ||
@@ -645,6 +646,7 @@ export const TaskDetailsDialog = ({
               ) : (
                 <>
                   <Button
+                    type="button"
                     variant="outline"
                     onClick={() => setCurrentStep("assign")}
                     className="flex items-center gap-1"

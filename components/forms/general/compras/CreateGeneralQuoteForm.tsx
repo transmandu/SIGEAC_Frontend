@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { useGetLocationsByCompanyId } from "@/hooks/sistema/useGetLocationsByCompanyId";
 import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits";
+import { useGetRetailers } from "@/hooks/general/comercios/useGetRetailers";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, PackageSearch } from "lucide-react";
@@ -25,6 +26,7 @@ const FormSchema = z.object({
       variant_type: z.string().optional(),
       brand_model: z.string().optional(),
       original_brand_model: z.string().optional(),
+      retailer_id: z.string().optional(),
       quantity: z.string().regex(/^\d+(\.\d{0,2})?$/),
       original_quantity: z.string().optional(),
       unit: z.string().optional(),
@@ -40,19 +42,29 @@ const FormSchema = z.object({
       quote_justification: z.string().optional(),
     })
   ),
+  retailer_id: z.string().optional(),
   location_id: z.string({ message: "Debe ingresar una ubicacion destino." }),
   quote_date: z.date({ message: "Debe ingresar una fecha de cotizacion." }),
   observation: z.string().optional(),
 }).superRefine((data, ctx) => {
+  if (!data.retailer_id) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Debe seleccionar un lugar de compra.",
+      path: ["retailer_id"],
+    });
+  }
+
   data.general_articles.forEach((article, index) => {
     if (article.not_quoted) return;
 
     const requiredFields: { key: keyof typeof article; message: string }[] = [
-      { key: "variant_type", message: "La variante es obligatoria." },
+      { key: "variant_type", message: "El campo Present. / Especif. es obligatorio." },
       { key: "brand_model", message: "La marca/modelo es obligatoria." },
       { key: "quantity", message: "La cantidad es obligatoria." },
       { key: "unit", message: "La unidad es obligatoria." },
       { key: "unit_price", message: "El precio es obligatorio." },
+      { key: "retailer_id", message: "El lugar de compra es obligatorio." },
       { key: "location_id", message: "El destino es obligatorio." },
     ];
 
@@ -79,6 +91,7 @@ export function CreateGeneralQuoteForm({
 }) {
   const { selectedCompany } = useCompanyStore();
   const { data: units } = useGetUnits(selectedCompany?.slug);
+  const { data: retailers } = useGetRetailers(selectedCompany?.slug);
   const { createQuote } = useCreateQuote();
 
   const {
@@ -96,6 +109,7 @@ export function CreateGeneralQuoteForm({
     variant_type: article.variant_type ?? "",
     brand_model: "",
     original_brand_model: "",
+    retailer_id: undefined,
     quantity: article.quantity,
     original_quantity: article.quantity,
     unit: article.unit ? article.unit.id.toString() : undefined,
@@ -120,6 +134,7 @@ export function CreateGeneralQuoteForm({
 
   const generalArticles = useWatch({ control: form.control, name: "general_articles" });
   const headerLocationId = useWatch({ control: form.control, name: "location_id" });
+  const headerRetailerId = useWatch({ control: form.control, name: "retailer_id" });
 
   // Cascade the header location to every article whenever it changes.
   // Per-article selects remain editable afterward — this only sets the default.
@@ -130,6 +145,17 @@ export function CreateGeneralQuoteForm({
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [headerLocationId]);
+
+  // Cascade the header retailer (lugar de compra) to every article whenever it
+  // changes — mirrors how the aeronautical form cascades its header vendor.
+  // Per-article selects remain editable afterward for multi-retailer quotes.
+  useEffect(() => {
+    if (!headerRetailerId) return;
+    form.getValues("general_articles").forEach((_, index) => {
+      form.setValue(`general_articles.${index}.retailer_id`, headerRetailerId);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [headerRetailerId]);
 
   const total = useMemo(
     () =>
@@ -174,6 +200,7 @@ export function CreateGeneralQuoteForm({
       location_id: Number(data.location_id),
       requisition_order_id: req.id,
       vendor_id: null,
+      retailer_id: data.retailer_id ? Number(data.retailer_id) : null,
       observation: data.observation || null,
       articles: [],
       general_articles: data.general_articles.map((a) => ({
@@ -182,6 +209,7 @@ export function CreateGeneralQuoteForm({
         quantity: a.not_quoted ? 0 : Number(a.quantity),
         unit_price: a.not_quoted ? 0 : Number(a.unit_price),
         unit_id: a.unit ? Number(a.unit) : undefined,
+        retailer_id: a.retailer_id ? Number(a.retailer_id) : undefined,
         location_id: a.location_id ? Number(a.location_id) : undefined,
         brand_model:
           a.brand_model && a.brand_model !== a.original_brand_model
@@ -210,12 +238,14 @@ export function CreateGeneralQuoteForm({
           form={form}
           req={req}
           locations={locations}
+          retailers={retailers}
         />
 
         <QuoteGeneralArticlesSection
           form={form}
           units={units}
           locations={locations}
+          retailers={retailers}
         />
 
         {/* ── Total general ── */}

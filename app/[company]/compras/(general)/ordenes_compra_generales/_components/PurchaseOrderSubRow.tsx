@@ -167,6 +167,9 @@ export default function PurchaseOrderSubRow({
 
         {generalArticles?.map((article) => {
           const reqArticle = article.general_article_quote_order?.general_article_requisition_order
+          const variantType = reqArticle?.variant_type
+          const brandModel = article.general_article_quote_order?.brand_model
+          const details = [variantType, brandModel].filter(Boolean).join(' · ')
 
           return (
             <div
@@ -221,6 +224,12 @@ export default function PurchaseOrderSubRow({
                     {reqArticle?.description ?? '—'}
                   </span>
                 </div>
+
+                {details && (
+                  <span className="mt-0.5 pl-[26px] text-[10px] text-muted-foreground dark:text-slate-400 truncate">
+                    {details}
+                  </span>
+                )}
               </div>
 
               <div className="flex items-center justify-center w-full tabular-nums">

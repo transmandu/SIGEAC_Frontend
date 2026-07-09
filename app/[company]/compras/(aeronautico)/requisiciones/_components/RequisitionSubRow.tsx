@@ -7,6 +7,12 @@ import type { Requisition } from '@/types/purchase'
 import Link from 'next/link'
 import { useCompanyStore } from '@/stores/CompanyStore'
 
+const QUOTE_STATUS_LABELS: Record<string, string> = {
+  PENDING: 'PENDIENTE',
+  APPROVED: 'APROBADA',
+  REJECTED: 'RECHAZADA',
+}
+
 interface Props {
   requisition: Requisition
   selectedCompany: { slug: string } | null
@@ -37,9 +43,9 @@ export default function RequisitionSubRow({
 
       <div className="flex flex-col gap-1.5">
         {quotes.map((quote) => {
-          const approved = quote.status === 'APROBADA'
-          const rejected = quote.status === 'RECHAZADA'
-          const pending = quote.status === 'PENDIENTE'
+          const approved = quote.status === 'APPROVED'
+          const rejected = quote.status === 'REJECTED'
+          const pending = quote.status === 'PENDING'
           const vendorNames = quote.article_vendors ?? []
           const vendorLabel = vendorNames.length > 0 ? vendorNames.join(', ') : 'No aplica "Proveedores" para esta cotización'
           const decisionDate = quote.updated_at
@@ -90,7 +96,7 @@ export default function RequisitionSubRow({
                     {approved && <CheckCircle2 className="h-3 w-3" />}
                     {rejected && <XCircle className="h-3 w-3" />}
                     {pending && <Clock3 className="h-3 w-3" />}
-                    {quote.status}
+                    {QUOTE_STATUS_LABELS[quote.status] ?? quote.status}
                   </div>
                 </Badge>
               </div>

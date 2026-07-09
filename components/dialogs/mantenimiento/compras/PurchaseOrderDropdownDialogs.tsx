@@ -31,8 +31,8 @@ const PurchaseOrderDropdownDialogs = ({
   openApprove,
   setOpenApprove
 }: Props) => {
-  const isPaying = po.status === "PENDIENTE"
-  const isCompleting = po.status === "PAGADA"
+  const isPaying = po.status === "PENDING"
+  const isCompleting = po.status === "PAID"
   const isAeronautical = isAeronauticalPurchaseOrder(po)
 
   return (

@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
@@ -21,11 +21,15 @@ import {
 } from "lucide-react";
 
 import {
+  ArticleDocumentSelection,
+  extractCreatedArticleIds,
   useConfirmIncomingArticle,
   useCreateArticle,
   useUpdateArticle,
+  useUploadArticleDocuments,
 } from "@/actions/mantenimiento/almacen/inventario/articulos/actions";
 
+import ArticleDocumentsSelector from "@/components/misc/ArticleDocumentsSelector";
 import { MultiInputField } from "@/components/misc/MultiInputField";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -64,8 +68,6 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { Batch } from "@/types";
 
 import loadingGif from "@/public/loading2.gif";
-import axiosInstance from "@/lib/axios";
-import { toast } from "sonner";
 import { EditingArticle } from "./RegisterArticleForm";
 import { CreateManufacturerDialog } from "@/components/dialogs/general/CreateManufacturerDialog";
 import {
@@ -101,19 +103,8 @@ const formSchema = z
       .optional(), // ingresado solo si needs_calibration
 
     // Archivos
-    certificate_8130: z
-      .instanceof(File, { message: "Archivo inválido." })
-      .refine((f) => f.size <= fileMaxBytes, "Máx. 10 MB.")
-      .optional(),
-    certificate_fabricant: z
-      .instanceof(File, { message: "Archivo inválido." })
-      .refine((f) => f.size <= fileMaxBytes, "Máx. 10 MB.")
-      .optional(),
-    certificate_vendor: z
-      .instanceof(File, { message: "Archivo inválido." })
-      .refine((f) => f.size <= fileMaxBytes, "Máx. 10 MB.")
-      .optional(),
     image: z.instanceof(File).optional(),
+    has_documentation: z.boolean().optional(),
   })
   .superRefine((vals, ctx) => {
     if (vals.needs_calibration) {
@@ -147,39 +138,16 @@ type FormValues = z.infer<typeof formSchema>;
 export default function CreateToolForm({
   initialData,
   isEditing,
+  onEditSuccess,
 }: {
   initialData?: EditingArticle;
   isEditing?: boolean;
+  /** Al editar: reemplaza la redirección post-guardado (útil dentro de diálogos). */
+  onEditSuccess?: () => void;
 }) {
   const router = useRouter();
   const { selectedCompany } = useCompanyStore();
 
-  const handleDownload = async (url: string) => {
-    if (!url) return;
-
-    try {
-      const response = await axiosInstance.get(
-        `/warehouse/download-certificate/${url}`,
-        {
-          responseType: "blob",
-        },
-      );
-
-      const downloadUrl = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement("a");
-      link.href = downloadUrl;
-      link.setAttribute("download", url.split("/").pop() || "certificate");
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(downloadUrl);
-
-      toast.success("Certificado descargado correctamente");
-    } catch (error) {
-      console.error("Error descargando el archivo:", error);
-      toast.error("Error al descargar el certificado");
-    }
-  };
   const {
     data: batches,
     isPending: isBatchesLoading,
@@ -194,6 +162,14 @@ export default function CreateToolForm({
 
   const { createArticle } = useCreateArticle();
   const { updateArticle } = useUpdateArticle();
+  const { uploadArticleDocuments } = useUploadArticleDocuments();
+
+  // Al editar, precarga los tipos de documento requeridos aún sin consignar.
+  const [documents, setDocuments] = useState<ArticleDocumentSelection[]>(() =>
+    (initialData?.document_requirements ?? [])
+      .filter((req) => req.documents.length === 0 && typeof req.document_type?.id === "number")
+      .map((req) => ({ typeId: req.document_type!.id }))
+  );
   const { confirmIncoming } = useConfirmIncomingArticle();
 
   const form = useForm<FormValues>({
@@ -215,6 +191,9 @@ export default function CreateToolForm({
         : undefined,
 
       model: initialData?.tool?.model || "",
+      has_documentation:
+        (initialData?.has_documentation ?? false) ||
+        (initialData?.document_requirements?.length ?? 0) > 0,
     },
   });
 
@@ -240,6 +219,9 @@ export default function CreateToolForm({
       next_calibration: initialData.tool?.next_calibration
         ? Number(initialData.tool.next_calibration)
         : undefined,
+      has_documentation:
+        (initialData.has_documentation ?? false) ||
+        (initialData.document_requirements?.length ?? 0) > 0,
     });
   }, [initialData, form]);
 
@@ -248,7 +230,8 @@ export default function CreateToolForm({
     isManufacturerLoading ||
     createArticle.isPending ||
     confirmIncoming.isPending ||
-    updateArticle.isPending;
+    updateArticle.isPending ||
+    uploadArticleDocuments.isPending;
 
   const batchesOptions = useMemo<Batch[] | undefined>(() => batches, [batches]);
 
@@ -274,16 +257,42 @@ export default function CreateToolForm({
         id: (initialData as any)?.id,
         company: selectedCompany.slug,
       });
-      router.push(`/${selectedCompany.slug}/almacen/inventario_articulos`);
+
+      if (values.has_documentation && documents.length > 0) {
+        await uploadArticleDocuments.mutateAsync({
+          company: selectedCompany.slug,
+          articleId: Number((initialData as any)?.id),
+          documents,
+        });
+      }
+
+      if (onEditSuccess) {
+        onEditSuccess();
+      } else {
+        router.push(`/${selectedCompany.slug}/almacen/inventario_articulos`);
+      }
     } else {
-      await createArticle.mutateAsync({
+      const res = await createArticle.mutateAsync({
         company: selectedCompany.slug,
         data: payload,
       });
+
+      if (values.has_documentation && documents.length > 0) {
+        for (const articleId of extractCreatedArticleIds(res?.data)) {
+          await uploadArticleDocuments.mutateAsync({
+            company: selectedCompany.slug,
+            articleId,
+            documents,
+          });
+        }
+      }
+
+      setDocuments([]);
     }
   };
 
   const isCalibrated = form.watch("needs_calibration");
+  const hasDocumentation = form.watch("has_documentation");
 
   return (
     <Form {...form}>
@@ -716,147 +725,34 @@ export default function CreateToolForm({
               <div className="space-y-4">
                 <FormField
                   control={form.control}
-                  name="certificate_8130"
-                  render={() => (
-                    <FormItem>
-                      <FormLabel>Certificado 8130</FormLabel>
-                      {isEditing && initialData?.certificate_8130 && (
-                        <div className="text-xs text-muted-foreground bg-muted p-2 rounded mb-2">
-                          <span className="font-medium">Archivo actual:</span>{" "}
-                          <button
-                            type="button"
-                            onClick={() =>
-                              handleDownload(initialData.certificate_8130!)
-                            }
-                            className="text-primary hover:underline cursor-pointer underline"
-                          >
-                            {initialData.certificate_8130.split("/").pop()}
-                          </button>
-                        </div>
-                      )}
+                  name="has_documentation"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                       <FormControl>
-                        <div className="relative h-10 w-full">
-                          <FileUpIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 z-10" />
-                          <Input
-                            type="file"
-                            accept=".pdf,image/*"
-                            onChange={(e) => {
-                              const f = e.target.files?.[0];
-                              if (f)
-                                form.setValue("certificate_8130", f, {
-                                  shouldDirty: true,
-                                  shouldValidate: true,
-                                });
-                            }}
-                            className="pl-10 pr-3 py-2 w-full border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-[#6E23DD] focus:border-transparent cursor-pointer"
-                          />
-                        </div>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          disabled={busy}
+                        />
                       </FormControl>
-                      <FormDescription>
-                        {isEditing && initialData?.certificate_8130
-                          ? "Subir nuevo archivo para reemplazar el actual"
-                          : "PDF o imagen. Máx. 10 MB."}
-                      </FormDescription>
-                      <FormMessage />
+                      <div className="space-y-1 leading-none">
+                        <FormLabel>¿El artículo tiene documentación?</FormLabel>
+                        <FormDescription>
+                          Marque esta casilla para seleccionar los documentos
+                          que se esperan del artículo y consignarlos.
+                        </FormDescription>
+                      </div>
                     </FormItem>
                   )}
                 />
 
-                <FormField
-                  control={form.control}
-                  name="certificate_fabricant"
-                  render={() => (
-                    <FormItem>
-                      <FormLabel>Certificado del fabricante</FormLabel>
-                      {isEditing && initialData?.certificate_fabricant && (
-                        <div className="text-xs text-muted-foreground bg-muted p-2 rounded mb-2">
-                          <span className="font-medium">Archivo actual:</span>{" "}
-                          <button
-                            type="button"
-                            onClick={() =>
-                              handleDownload(initialData.certificate_fabricant!)
-                            }
-                            className="text-primary hover:underline cursor-pointer underline"
-                          >
-                            {initialData.certificate_fabricant.split("/").pop()}
-                          </button>
-                        </div>
-                      )}
-                      <FormControl>
-                        <div className="relative h-10 w-full">
-                          <FileUpIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 z-10" />
-                          <Input
-                            type="file"
-                            accept=".pdf,image/*"
-                            onChange={(e) => {
-                              const f = e.target.files?.[0];
-                              if (f)
-                                form.setValue("certificate_fabricant", f, {
-                                  shouldDirty: true,
-                                  shouldValidate: true,
-                                });
-                            }}
-                            className="pl-10 pr-3 py-2 w-full border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-[#6E23DD] focus:border-transparent cursor-pointer"
-                          />
-                        </div>
-                      </FormControl>
-                      <FormDescription>
-                        {isEditing && initialData?.certificate_fabricant
-                          ? "Subir nuevo archivo para reemplazar el actual"
-                          : "PDF o imagen. Máx. 10 MB."}
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="certificate_vendor"
-                  render={() => (
-                    <FormItem>
-                      <FormLabel>Certificado del vendedor</FormLabel>
-                      {isEditing && initialData?.certificate_vendor && (
-                        <div className="text-xs text-muted-foreground bg-muted p-2 rounded mb-2">
-                          <span className="font-medium">Archivo actual:</span>{" "}
-                          <button
-                            type="button"
-                            onClick={() =>
-                              handleDownload(initialData.certificate_vendor!)
-                            }
-                            className="text-primary hover:underline cursor-pointer underline"
-                          >
-                            {initialData.certificate_vendor.split("/").pop()}
-                          </button>
-                        </div>
-                      )}
-                      <FormControl>
-                        <div className="relative h-10 w-full">
-                          <FileUpIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 z-10" />
-                          <Input
-                            type="file"
-                            accept=".pdf,image/*"
-                            onChange={(e) => {
-                              const f = e.target.files?.[0];
-                              if (f)
-                                form.setValue("certificate_vendor", f, {
-                                  shouldDirty: true,
-                                  shouldValidate: true,
-                                });
-                            }}
-                            className="pl-10 pr-3 py-2 w-full border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-[#6E23DD] focus:border-transparent cursor-pointer"
-                          />
-                        </div>
-                      </FormControl>
-                      <FormDescription>
-                        {isEditing && initialData?.certificate_vendor
-                          ? "Subir nuevo archivo para reemplazar el actual"
-                          : "PDF o imagen. Máx. 10 MB."}
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {hasDocumentation && (
+                  <ArticleDocumentsSelector
+                    value={documents}
+                    onChange={setDocuments}
+                    disabled={busy}
+                  />
+                )}
               </div>
             </div>
           </CardContent>

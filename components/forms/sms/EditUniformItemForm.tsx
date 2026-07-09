@@ -63,7 +63,10 @@ export const EditUniformItemForm = ({ item, onClose }: Props) => {
             <TypeIcon className="size-4" />
           </span>
           <span className="text-sm font-medium">
-            {item.type_label} · Talla {item.size} · {item.company_label}
+            {item.type_label}
+            {item.brand_label ? ` · ${item.brand_label}` : ""} · Talla{" "}
+            {item.size} · {item.company_label}
+            {item.gender_label ? ` · ${item.gender_label}` : ""}
           </span>
         </div>
 

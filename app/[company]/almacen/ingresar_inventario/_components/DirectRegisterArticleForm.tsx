@@ -58,9 +58,6 @@ export interface EditingArticle extends Article {
         conversions: Convertion[];
 
     };
-    certificate_8130?: string;
-    certificate_vendor?: string;
-    certificate_fabricant?: string;
     has_documentation?: boolean;
 }
 

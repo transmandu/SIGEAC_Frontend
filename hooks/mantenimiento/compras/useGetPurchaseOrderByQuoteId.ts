@@ -7,6 +7,8 @@ export interface PurchaseOrderByQuote {
   id: number;
   order_number: string;
   vendor_name: string | null;
+  /** Present on general POs — the comercio / lugar de compra this order groups. */
+  retailer_name: string | null;
 }
 
 export const useGetPurchaseOrderByQuoteId = ({

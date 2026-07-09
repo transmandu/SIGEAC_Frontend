@@ -5,6 +5,9 @@ import { useParams } from "next/navigation";
 import { PackagePlus, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { useEffect } from "react";
+import { useTourContext } from "@/components/tour/TourProvider";
+import { cargoGuiaCrearSteps } from "@/components/tour/steps/cargo/guia-crear";
 import {
   Card,
   CardContent,
@@ -17,17 +20,23 @@ export default function CreateExternalCargoPage() {
   const params = useParams();
   const company = params.company as string;
   const name = decodeURIComponent(params.name as string);
+  const { registerTour, unregisterTour } = useTourContext();
+
+  useEffect(() => {
+    registerTour("cargo-guia-crear", "Nuevo Registro de Carga", cargoGuiaCrearSteps);
+    return () => unregisterTour("cargo-guia-crear");
+  }, [registerTour, unregisterTour]);
 
   return (
     <ContentLayout title="Nuevo Registro">
       <div className="flex items-center gap-4 mb-6">
-        <Button asChild variant="outline" size="icon" className="h-9 w-9">
+        <Button asChild variant="outline" size="icon" className="h-9 w-9" data-tour="cargo-crear-btn-volver">
           <Link href={`/${company}/operaciones/cargo/externa/${encodeURIComponent(name)}`}>
             <ArrowLeft className="h-4 w-4" />
           </Link>
         </Button>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-primary flex items-center gap-2">
+          <h1 className="text-3xl font-bold tracking-tight text-primary flex items-center gap-2" data-tour="cargo-crear-title">
             <PackagePlus className="text-muted-foreground mr-1 size-7" />
             Nuevo Registro De Carga (Externa)
           </h1>

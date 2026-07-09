@@ -1,4 +1,4 @@
-import type { Condition, Manufacturer } from '@/types';
+import type { ArticleDocumentRequirementSummary, Condition, Manufacturer } from '@/types';
 
 export type TransitStatus = 'ALL' | 'TRANSIT' | 'RECEPTION';
 
@@ -30,6 +30,10 @@ export interface TransitArticle {
   manufacturer?: Manufacturer | null;
   quantity?: number | null;
   unit?: string | null;
+  has_documentation?: boolean;
+  certificates?: string[];
+  /** Checklist documental heredado desde la requisición (vía orden de compra). */
+  document_requirements?: ArticleDocumentRequirementSummary[];
   created_at?: string;
   updated_at?: string;
 }

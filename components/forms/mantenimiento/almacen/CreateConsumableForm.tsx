@@ -21,11 +21,15 @@ import {
 } from "lucide-react";
 
 import {
+    ArticleDocumentSelection,
+    extractCreatedArticleIds,
     useConfirmIncomingArticle,
     useCreateArticle,
     useUpdateArticle,
+    useUploadArticleDocuments,
 } from "@/actions/mantenimiento/almacen/inventario/articulos/actions";
 
+import ArticleDocumentsSelector from "@/components/misc/ArticleDocumentsSelector";
 import { MultiInputField } from "@/components/misc/MultiInputField";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -75,8 +79,6 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { Batch } from "@/types";
 
 import loadingGif from "@/public/loading2.gif";
-import axiosInstance from "@/lib/axios";
-import { toast } from "sonner";
 import { EditingArticle } from "./RegisterArticleForm";
 import { CreateManufacturerDialog } from "@/components/dialogs/general/CreateManufacturerDialog";
 
@@ -113,19 +115,8 @@ const formSchema = z.object({
         .string({ message: "Debe ingresar un lote." })
         .min(1, "Seleccione un lote"),
     is_managed: z.boolean().optional(),
-    certificate_8130: z
-        .instanceof(File, { message: "Suba un archivo válido." })
-        .refine((f) => f.size <= fileMaxBytes, "Tamaño máximo 10 MB.")
-        .optional(),
-    certificate_fabricant: z
-        .instanceof(File, { message: "Suba un archivo válido." })
-        .refine((f) => f.size <= fileMaxBytes, "Tamaño máximo 10 MB.")
-        .optional(),
-    certificate_vendor: z
-        .instanceof(File, { message: "Suba un archivo válido." })
-        .refine((f) => f.size <= fileMaxBytes, "Tamaño máximo 10 MB.")
-        .optional(),
     image: z.instanceof(File).optional(),
+    has_documentation: z.boolean().optional(),
     // auxiliares para conversión secundaria
     convertion_id: z.number().optional(),
 });
@@ -144,30 +135,6 @@ const CreateConsumableForm = ({
     const router = useRouter();
 
     const { selectedCompany } = useCompanyStore();
-
-    const handleDownload = async (url: string) => {
-        if (!url) return;
-
-        try {
-            const response = await axiosInstance.get(`/warehouse/download-certificate/${url}`, {
-                responseType: 'blob',
-            });
-
-            const downloadUrl = window.URL.createObjectURL(new Blob([response.data]));
-            const link = document.createElement('a');
-            link.href = downloadUrl;
-            link.setAttribute('download', url.split('/').pop() || 'certificate');
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-            window.URL.revokeObjectURL(downloadUrl);
-
-            toast.success("Certificado descargado correctamente");
-        } catch (error) {
-            console.error('Error descargando el archivo:', error);
-            toast.error("Error al descargar el certificado");
-        }
-    };
 
     const {
         data: batches,
@@ -190,6 +157,9 @@ const CreateConsumableForm = ({
 
     const { createArticle } = useCreateArticle();
     const { updateArticle } = useUpdateArticle();
+    const { uploadArticleDocuments } = useUploadArticleDocuments();
+
+    const [documents, setDocuments] = useState<ArticleDocumentSelection[]>([]);
     const { confirmIncoming } = useConfirmIncomingArticle();
 
     const [selectedBatchId, setSelectedBatchId] = useState<number | undefined>(
@@ -311,7 +281,10 @@ const CreateConsumableForm = ({
         isConditionsLoading ||
         createArticle.isPending ||
         confirmIncoming.isPending ||
+        uploadArticleDocuments.isPending ||
         consumableConversionsLoading;
+
+    const hasDocumentation = form.watch("has_documentation");
 
     const batchesOptions = useMemo<Batch[] | undefined>(() => batches, [batches]);
 
@@ -345,12 +318,33 @@ const CreateConsumableForm = ({
                 id: initialData?.id,
                 company: selectedCompany.slug,
             });
+
+            if (values.has_documentation && documents.length > 0) {
+                await uploadArticleDocuments.mutateAsync({
+                    company: selectedCompany.slug,
+                    articleId: Number(initialData.id),
+                    documents,
+                });
+            }
+
             router.push(`/${selectedCompany.slug}/almacen/inventario_articulos`);
         } else {
-            await createArticle.mutateAsync({
+            const res = await createArticle.mutateAsync({
                 company: selectedCompany.slug,
                 data: formattedValues,
             });
+
+            if (values.has_documentation && documents.length > 0) {
+                for (const articleId of extractCreatedArticleIds(res?.data)) {
+                    await uploadArticleDocuments.mutateAsync({
+                        company: selectedCompany.slug,
+                        articleId,
+                        documents,
+                    });
+                }
+            }
+
+            setDocuments([]);
             form.reset();
         }
     };
@@ -1051,150 +1045,37 @@ const CreateConsumableForm = ({
                             <div className="space-y-4">
                                 <FormField
                                     control={form.control}
-                                    name="certificate_8130"
-                                    render={() => (
-                                        <FormItem>
-                                            <FormLabel>
-                                                Certificado{" "}
-                                                <span className="text-primary font-semibold">8130</span>
-                                            </FormLabel>
-                                            {isEditing && initialData?.certificate_8130 && (
-                                                <div className="text-xs text-muted-foreground bg-muted p-2 rounded mb-2">
-                                                    <span className="font-medium">Archivo actual:</span>{" "}
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => handleDownload(initialData.certificate_8130!)}
-                                                        className="text-primary hover:underline cursor-pointer underline"
-                                                    >
-                                                        {initialData.certificate_8130.split('/').pop()}
-                                                    </button>
-                                                </div>
-                                            )}
+                                    name="has_documentation"
+                                    render={({ field }) => (
+                                        <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                                             <FormControl>
-                                                <div className="relative h-10 w-full">
-                                                    <FileUpIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 z-10" />
-                                                    <Input
-                                                        type="file"
-                                                        accept=".pdf,image/*"
-                                                        onChange={(e) => {
-                                                            const f = e.target.files?.[0];
-                                                            if (f)
-                                                                form.setValue("certificate_8130", f, {
-                                                                    shouldDirty: true,
-                                                                    shouldValidate: true,
-                                                                });
-                                                        }}
-                                                        className="pl-10 pr-3 py-2 w-full border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-[#6E23DD] focus:border-transparent cursor-pointer"
-                                                    />
-                                                </div>
+                                                <Checkbox
+                                                    checked={field.value}
+                                                    onCheckedChange={field.onChange}
+                                                    disabled={busy}
+                                                />
                                             </FormControl>
-                                            <FormDescription>
-                                                {isEditing && initialData?.certificate_8130
-                                                    ? "Subir nuevo archivo para reemplazar el actual"
-                                                    : "PDF o imagen. Máx. 10 MB."}
-                                            </FormDescription>
-                                            <FormMessage />
+                                            <div className="space-y-1 leading-none">
+                                                <FormLabel>
+                                                    ¿El artículo tiene documentación?
+                                                </FormLabel>
+                                                <FormDescription>
+                                                    Marque esta casilla para seleccionar los
+                                                    documentos que se esperan del artículo y
+                                                    consignarlos.
+                                                </FormDescription>
+                                            </div>
                                         </FormItem>
                                     )}
                                 />
 
-                                <FormField
-                                    control={form.control}
-                                    name="certificate_fabricant"
-                                    render={() => (
-                                        <FormItem>
-                                            <FormLabel>
-                                                Certificado del{" "}
-                                                <span className="text-primary">fabricante</span>
-                                            </FormLabel>
-                                            {isEditing && initialData?.certificate_fabricant && (
-                                                <div className="text-xs text-muted-foreground bg-muted p-2 rounded mb-2">
-                                                    <span className="font-medium">Archivo actual:</span>{" "}
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => handleDownload(initialData.certificate_fabricant!)}
-                                                        className="text-primary hover:underline cursor-pointer underline"
-                                                    >
-                                                        {initialData.certificate_fabricant.split('/').pop()}
-                                                    </button>
-                                                </div>
-                                            )}
-                                            <FormControl>
-                                                <div className="relative h-10 w-full">
-                                                    <FileUpIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 z-10" />
-                                                    <Input
-                                                        type="file"
-                                                        accept=".pdf,image/*"
-                                                        onChange={(e) => {
-                                                            const f = e.target.files?.[0];
-                                                            if (f)
-                                                                form.setValue("certificate_fabricant", f, {
-                                                                    shouldDirty: true,
-                                                                    shouldValidate: true,
-                                                                });
-                                                        }}
-                                                        className="pl-10 pr-3 py-2 w-full border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-[#6E23DD] focus:border-transparent cursor-pointer"
-                                                    />
-                                                </div>
-                                            </FormControl>
-                                            <FormDescription>
-                                                {isEditing && initialData?.certificate_fabricant
-                                                    ? "Subir nuevo archivo para reemplazar el actual"
-                                                    : "PDF o imagen. Máx. 10 MB."}
-                                            </FormDescription>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-
-                                <FormField
-                                    control={form.control}
-                                    name="certificate_vendor"
-                                    render={() => (
-                                        <FormItem>
-                                            <FormLabel>
-                                                Certificado del{" "}
-                                                <span className="text-primary">vendedor</span>
-                                            </FormLabel>
-                                            {isEditing && initialData?.certificate_vendor && (
-                                                <div className="text-xs text-muted-foreground bg-muted p-2 rounded mb-2">
-                                                    <span className="font-medium">Archivo actual:</span>{" "}
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => handleDownload(initialData.certificate_vendor!)}
-                                                        className="text-primary hover:underline cursor-pointer underline"
-                                                    >
-                                                        {initialData.certificate_vendor.split('/').pop()}
-                                                    </button>
-                                                </div>
-                                            )}
-                                            <FormControl>
-                                                <div className="relative h-10 w-full">
-                                                    <FileUpIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 z-10" />
-                                                    <Input
-                                                        type="file"
-                                                        accept=".pdf,image/*"
-                                                        onChange={(e) => {
-                                                            const f = e.target.files?.[0];
-                                                            if (f)
-                                                                form.setValue("certificate_vendor", f, {
-                                                                    shouldDirty: true,
-                                                                    shouldValidate: true,
-                                                                });
-                                                        }}
-                                                        className="pl-10 pr-3 py-2 w-full border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-[#6E23DD] focus:border-transparent cursor-pointer"
-                                                    />
-                                                </div>
-                                            </FormControl>
-                                            <FormDescription>
-                                                {isEditing && initialData?.certificate_vendor
-                                                    ? "Subir nuevo archivo para reemplazar el actual"
-                                                    : "PDF o imagen. Máx. 10 MB."}
-                                            </FormDescription>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
+                                {hasDocumentation && (
+                                    <ArticleDocumentsSelector
+                                        value={documents}
+                                        onChange={setDocuments}
+                                        disabled={busy}
+                                    />
+                                )}
                             </div>
                         </div>
                     </CardContent>

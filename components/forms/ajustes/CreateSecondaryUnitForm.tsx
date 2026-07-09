@@ -1,5 +1,5 @@
 "use client";
-import { useCreateSecondaryUnit } from "@/actions/general/unidades/actions";
+import { useCreateSecondaryUnit } from "@/actions/ajustes/globales/unidades/actions";
 import {
   Form,
   FormControl,

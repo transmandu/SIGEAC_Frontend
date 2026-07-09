@@ -21,7 +21,7 @@ import { toast } from "sonner";
 const invalidateFuelQueries = (
   queryClient: ReturnType<typeof useQueryClient>,
 ) => {
-  queryClient.invalidateQueries({ queryKey: FUEL_QUERY_KEYS.all });
+  queryClient.refetchQueries({ queryKey: FUEL_QUERY_KEYS.all });
 };
 
 export const useCreateFuelVehicle = (company?: string) => {

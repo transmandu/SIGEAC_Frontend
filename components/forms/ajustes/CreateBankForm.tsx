@@ -1,5 +1,5 @@
 "use client";
-import { useCreateBank } from "@/actions/general/banco_cuentas/bancos/actions";
+import { useCreateBank, useUpdateBank } from "@/actions/ajustes/banca/bancos/actions";
 import {
   Form,
   FormControl,
@@ -17,49 +17,52 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { generateSlug } from "@/lib/utils";
+import { Bank } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "../../ui/button";
-import { useCompanyStore } from "@/stores/CompanyStore";
 
 const formSchema = z.object({
   name: z.string().min(3, {
-    message: "El nombre debe tener al menos 3 carácters.",
+    message: "El nombre debe tener al menos 3 carácteres.",
   }),
   type: z.string().min(1, {
-    message: "El tipo debe ser valido.",
+    message: "Debe seleccionar un tipo.",
   }),
 });
 
 interface FormProps {
   onClose: () => void;
+  /** Si se pasa un banco, el formulario pasa a modo edición. */
+  bank?: Bank;
 }
 
-export default function CreateBankForm({ onClose }: FormProps) {
-  const { selectedCompany } = useCompanyStore();
+export default function CreateBankForm({ onClose, bank }: FormProps) {
   const { createBank } = useCreateBank();
+  const { updateBank } = useUpdateBank();
+  const isEditing = !!bank;
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
-      type: "",
+      name: bank?.name ?? "",
+      type: bank?.type ?? "",
     },
   });
   const { control } = form;
+
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    const formData = {
-      company: selectedCompany!.slug,
-      data: {
-        ...values,
-        slug: generateSlug(values.name),
-      },
-    };
-    await createBank.mutateAsync(formData);
+    if (isEditing) {
+      await updateBank.mutateAsync({ id: bank.id, data: values });
+    } else {
+      await createBank.mutateAsync(values);
+    }
     onClose();
   };
+
+  const isPending = createBank.isPending || updateBank.isPending;
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -73,7 +76,7 @@ export default function CreateBankForm({ onClose }: FormProps) {
                 <Input placeholder="EJ: Banesco, BOFA, etc..." {...field} />
               </FormControl>
               <FormDescription>
-                Este será el nombre de su banco.
+                Nombre de la institución bancaria.
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -96,20 +99,20 @@ export default function CreateBankForm({ onClose }: FormProps) {
                   <SelectItem value="EXTRANJERO">Extranjero</SelectItem>
                 </SelectContent>
               </Select>
-              <FormDescription>Este sera el tipo de su banco.</FormDescription>
+              <FormDescription>Nacional o extranjero.</FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
         <Button
           className="bg-primary mt-2 text-white hover:bg-blue-900 disabled:bg-primary/70"
-          disabled={createBank?.isPending}
+          disabled={isPending}
           type="submit"
         >
-          {createBank?.isPending ? (
+          {isPending ? (
             <Loader2 className="size-4 animate-spin" />
           ) : (
-            <p>Crear</p>
+            <p>{isEditing ? "Actualizar" : "Crear"}</p>
           )}
         </Button>
       </form>

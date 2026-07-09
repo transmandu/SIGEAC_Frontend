@@ -2,7 +2,7 @@
 
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { DayMonthYearPicker } from "@/components/selects/DayMonthYearPicker";
@@ -29,6 +29,8 @@ import CreateCargoManifestForm from "@/components/forms/operaciones/cargo/Create
 import { useGetAircrafts } from "@/hooks/aerolinea/aeronaves/useGetAircrafts";
 import { useGetExternalAircraftSuggestions } from "@/hooks/operaciones/cargo/useGetExternalAircraftSuggestions";
 import { useGetNextManifestNumber } from "@/hooks/operaciones/cargo/useGetNextManifestNumber";
+import { useTourContext } from "@/components/tour/TourProvider";
+import { cargoManifiestoCrearSteps } from "@/components/tour/steps/cargo/manifiesto-crear";
 
 const NuevoManifiestoPage = () => {
   const params = useParams();
@@ -56,12 +58,10 @@ const NuevoManifiestoPage = () => {
   );
 
   const { data: aircrafts } = useGetAircrafts(company);
-  const { data: externalSuggestions } = useGetExternalAircraftSuggestions(company);
+  const { data: externalSuggestions } =
+    useGetExternalAircraftSuggestions(company);
 
-  const internalAircraft = useMemo(
-    () => aircrafts ?? [],
-    [aircrafts],
-  );
+  const internalAircraft = useMemo(() => aircrafts ?? [], [aircrafts]);
 
   const externalAircraft = useMemo(
     () => externalSuggestions ?? [],
@@ -74,6 +74,17 @@ const NuevoManifiestoPage = () => {
     year,
     selectedAircraftId,
   );
+
+  const { registerTour, unregisterTour } = useTourContext();
+
+  useEffect(() => {
+    registerTour(
+      "cargo-manifiesto-crear",
+      "Nuevo Manifiesto",
+      cargoManifiestoCrearSteps,
+    );
+    return () => unregisterTour("cargo-manifiesto-crear");
+  }, [registerTour, unregisterTour]);
 
   // ── Éxito ──────────────────────────────────────────────────────────────────
   const handleSuccess = () => {
@@ -116,7 +127,13 @@ const NuevoManifiestoPage = () => {
         </Breadcrumb>
 
         <div className="flex items-center gap-4">
-          <Button asChild variant="outline" size="icon" className="h-9 w-9">
+          <Button
+            asChild
+            variant="outline"
+            size="icon"
+            className="h-9 w-9"
+            data-tour="cargo-manifiestos-nuevo-btn-volver"
+          >
             <Link
               href={`/${company}/operaciones/cargo/manifiestos?month=${month}&year=${year}`}
             >
@@ -125,7 +142,10 @@ const NuevoManifiestoPage = () => {
           </Button>
 
           <div className="">
-            <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+            <h1
+              className="text-3xl font-bold tracking-tight flex items-center gap-2"
+              data-tour="cargo-manifiestos-nuevo-title"
+            >
               Nuevo Manifiesto de Carga
             </h1>
             <p className="text-muted-foreground mt-1">
@@ -138,7 +158,10 @@ const NuevoManifiestoPage = () => {
         {/* ─── Barra unificada: Fecha | Aeronave | Nº Manifiesto ────────── */}
         <div className="flex justify-between flex-wrap items-end gap-4 bg-muted/30 p-3 rounded-lg border mt-4">
           {/* Fecha */}
-          <div className="flex flex-col items-center gap-1">
+          <div
+            className="flex flex-col items-center gap-1"
+            data-tour="cargo-manifiestos-nuevo-fecha"
+          >
             <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">
               Fecha
             </span>
@@ -149,7 +172,10 @@ const NuevoManifiestoPage = () => {
           </div>
 
           {/* Aeronave */}
-          <div className="flex flex-col items-center min-w-[300px]">
+          <div
+            className="flex flex-col items-center min-w-[300px]"
+            data-tour="cargo-manifiestos-nuevo-aeronave"
+          >
             <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1.5 block">
               Aeronave
             </label>
@@ -197,7 +223,10 @@ const NuevoManifiestoPage = () => {
           </div>
 
           {/* Nº Manifiesto */}
-          <div className="text-center shrink-0">
+          <div
+            className="text-center shrink-0"
+            data-tour="cargo-manifiestos-nuevo-numero"
+          >
             <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1 block">
               Nº Manifiesto
             </label>

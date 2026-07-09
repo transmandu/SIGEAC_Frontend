@@ -9,13 +9,8 @@ import { Button } from "@/components/ui/button"
 import { FlightControl } from "@/types"
 import FlightControlDropdownActions from "@/components/dropdowns/mantenimiento/FlightControlDropdownActions"
 import { ArrowRight, Hash, MapPin, Clock, Repeat2, Calendar } from "lucide-react"
+import { formatDate } from "@/lib/utils"
 
-function formatDate(value?: string | Date | null) {
-  if (!value) return "N/D"
-  const d = value instanceof Date ? value : new Date(value)
-  if (Number.isNaN(d.getTime())) return "N/D"
-  return d.toLocaleDateString("es-ES", { year: "numeric", month: "short", day: "2-digit" })
-}
 
 export const getColumns = (companySlug: string): ColumnDef<FlightControl>[] => [
   {

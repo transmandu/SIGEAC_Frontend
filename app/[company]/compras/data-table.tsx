@@ -27,6 +27,7 @@ import {
 } from '@/components/ui/table'
 
 import { DataTablePagination } from '@/components/tables/DataTablePagination'
+import { useComprasPageSize } from './use-compras-page-size'
 
 export interface DataTableProps<TData> {
   columns: ColumnDef<TData, any>[]
@@ -47,6 +48,8 @@ export interface DataTableProps<TData> {
   overflowVisible?: boolean
   /** Default page size */
   pageSize?: number
+  /** When set, the selected page size is persisted per-user (localStorage) under this key and restored on future visits, overriding `pageSize` */
+  persistKey?: string
   // ── Manual (server‑side) pagination ──────────────────────────
   /** Enable manual pagination – page / row count are controlled externally */
   manualPagination?: boolean
@@ -73,6 +76,7 @@ function DataTableInner<TData>({
   emptyText = 'No se encontraron resultados...',
   overflowVisible = false,
   pageSize = 10,
+  persistKey,
   manualPagination = false,
   totalRows,
   pageCount,
@@ -84,9 +88,14 @@ function DataTableInner<TData>({
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [expanded, setExpanded] = useState<ExpandedState>({})
 
+  const persistedPageSize = useComprasPageSize((s) =>
+    persistKey ? s.pageSizes[persistKey] : undefined,
+  )
+  const setPersistedPageSize = useComprasPageSize((s) => s.setPageSize)
+
   const [localPagination, setLocalPagination] = useState({
     pageIndex: 0,
-    pageSize,
+    pageSize: persistedPageSize ?? pageSize,
   })
 
   const isManual = manualPagination === true
@@ -95,9 +104,9 @@ function DataTableInner<TData>({
   const paginationState = useMemo(
     () =>
       isManual
-        ? { pageIndex: pageIndex ?? 0, pageSize }
+        ? { pageIndex: pageIndex ?? 0, pageSize: persistedPageSize ?? pageSize }
         : localPagination,
-    [isManual, pageIndex, pageSize, localPagination],
+    [isManual, pageIndex, pageSize, persistedPageSize, localPagination],
   )
 
   const handlePaginationChange = useCallback(
@@ -107,12 +116,21 @@ function DataTableInner<TData>({
           typeof updater === 'function'
             ? updater(paginationState)
             : updater
+        if (persistKey && next.pageSize !== paginationState.pageSize) {
+          setPersistedPageSize(persistKey, next.pageSize)
+        }
         onPaginationChange?.(next.pageIndex, next.pageSize)
       } else {
-        setLocalPagination(updater)
+        setLocalPagination((prev: typeof localPagination) => {
+          const next = typeof updater === 'function' ? updater(prev) : updater
+          if (persistKey && next.pageSize !== prev.pageSize) {
+            setPersistedPageSize(persistKey, next.pageSize)
+          }
+          return next
+        })
       }
     },
-    [isManual, paginationState, onPaginationChange],
+    [isManual, paginationState, onPaginationChange, persistKey, setPersistedPageSize],
   )
 
   const stableData = useMemo(() => data, [data])

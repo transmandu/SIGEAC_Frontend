@@ -55,12 +55,14 @@ const STOCK_SIGNAL: Record<StockStatus, { dot: string; label: string }> = {
   ok: { dot: "bg-emerald-500", label: "text-foreground" },
 };
 
-/** One company's worth of a uniform type — a single "stack" in the grid. */
+/** One model (tipo + marca + empresa + género) — a single "stack" in the grid. */
 interface UniformStack {
   key: string;
   article_type_id: number;
   type_label: string;
   company_label: string;
+  brand_label: string | null;
+  gender_label: string | null;
   items: UniformItem[];
   totalStock: number;
   lowStockCount: number;
@@ -109,18 +111,18 @@ export function UniformInventoryGrid({
       if (lowStockOnly && !item.is_low_stock) return false;
       if (term) {
         const haystack =
-          `${item.type_label} ${item.company_label} ${item.size}`.toLowerCase();
+          `${item.type_label} ${item.company_label} ${item.brand_label ?? ""} ${item.gender_label ?? ""} ${item.size}`.toLowerCase();
         if (!haystack.includes(term)) return false;
       }
       return true;
     });
   }, [items, category, size, lowStockOnly, search]);
 
-  /** Collapse the flat item list into one stack per (tipo, empresa). */
+  /** Collapse the flat item list into one stack per (tipo, marca, empresa, género). */
   const stacks = useMemo(() => {
     const map = new Map<string, UniformStack>();
     filteredItems.forEach((item) => {
-      const key = `${item.uniform_article_type_id}__${item.company_label}`;
+      const key = `${item.uniform_article_type_id}__${item.uniform_brand_id}__${item.company_label}__${item.gender}`;
       let stack = map.get(key);
       if (!stack) {
         stack = {
@@ -128,6 +130,8 @@ export function UniformInventoryGrid({
           article_type_id: item.uniform_article_type_id,
           type_label: item.type_label,
           company_label: item.company_label,
+          brand_label: item.brand_label,
+          gender_label: item.gender_label,
           items: [],
           totalStock: 0,
           lowStockCount: 0,
@@ -454,10 +458,19 @@ function UniformStackCard({
             <div className="min-w-0 flex-1">
               <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
                 {stack.type_label}
+                {stack.brand_label ? ` · ${stack.brand_label}` : ""}
               </p>
               <h3 className="truncate text-base font-semibold uppercase leading-tight text-foreground">
                 {stack.company_label}
               </h3>
+              {stack.gender_label && (
+                <Badge
+                  variant="outline"
+                  className="mt-1 text-[10px] font-medium uppercase"
+                >
+                  {stack.gender_label}
+                </Badge>
+              )}
             </div>
             <motion.span
               animate={{ rotate: open ? 180 : 0 }}

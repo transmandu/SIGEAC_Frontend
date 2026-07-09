@@ -26,11 +26,15 @@ import {
 } from "lucide-react";
 
 import {
+    ArticleDocumentSelection,
+    extractCreatedArticleIds,
     useConfirmIncomingArticle,
     useCreateArticle,
     useUpdateArticle,
+    useUploadArticleDocuments,
 } from "@/actions/mantenimiento/almacen/inventario/articulos/actions";
 
+import ArticleDocumentsSelector from "@/components/misc/ArticleDocumentsSelector";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -141,24 +145,16 @@ const formSchema = z.object({
     batch_id: z
         .string({ message: "Debe ingresar un lote." })
         .min(1, "Seleccione un lote"),
-    certificate_8130: z
-        .instanceof(File, { message: "Suba un archivo válido." })
-        .refine((f) => f.size <= fileMaxBytes, "Tamaño máximo 10 MB.")
-        .optional(),
-    certificate_fabricant: z
-        .instanceof(File, { message: "Suba un archivo válido." })
-        .refine((f) => f.size <= fileMaxBytes, "Tamaño máximo 10 MB.")
-        .optional(),
-    certificate_vendor: z
-        .instanceof(File, { message: "Suba un archivo válido." })
-        .refine((f) => f.size <= fileMaxBytes, "Tamaño máximo 10 MB.")
-        .optional(),
     image: z.instanceof(File).optional(),
     conversion_id: z.number().optional(),
     primary_unit_id: z.number().optional(),
     has_documentation: z.boolean().optional(),
     destination_unknown: z.boolean().optional(),
     shelf_life: z.string().optional(),
+    sender: z.string().optional(),
+    origin: z.string().optional(),
+    destination: z.string().optional(),
+    justification: z.string().optional(),
 });
 
 export type FormValues = z.infer<typeof formSchema>;
@@ -1147,6 +1143,9 @@ export default function ReceptionRegisterConsumableForm({
 
     const { createArticle } = useCreateArticle();
     const { updateArticle } = useUpdateArticle();
+    const { uploadArticleDocuments } = useUploadArticleDocuments();
+
+    const [documents, setDocuments] = useState<ArticleDocumentSelection[]>([]);
     const { confirmIncoming } = useConfirmIncomingArticle();
 
     const [secondaryOpen, setSecondaryOpen] = useState(false);
@@ -1170,6 +1169,10 @@ export default function ReceptionRegisterConsumableForm({
 
     const [inspectDate, setInspectDate] = useState<Date | null | undefined>(
         initialData?.inspect_date ? parseISO(initialData.inspect_date) : undefined,
+    );
+
+    const [receptionDate, setReceptionDate] = useState<Date | null | undefined>(
+        initialData?.reception_date ? parseISO(initialData.reception_date) : undefined,
     );
 
     const [fabricationDate, setFabricationDate] = useState<
@@ -1215,6 +1218,16 @@ export default function ReceptionRegisterConsumableForm({
         }
     };
 
+    const handleReceptionDateChange = (d?: Date | null) => {
+        if (d === null) {
+            setReceptionDate(null);
+        } else if (d === undefined) {
+            setReceptionDate(undefined);
+        } else {
+            setReceptionDate(d);
+        }
+    };
+
     const currentBatch = initialData?.batch ?? initialData?.batches;
 
     const form = useForm<FormValues>({
@@ -1239,6 +1252,10 @@ export default function ReceptionRegisterConsumableForm({
             has_documentation: initialData?.has_documentation || false,
             destination_unknown: false,
             shelf_life: initialData?.consumable?.shelf_life || undefined,
+            sender: (initialData as any)?.article_detail?.sender || "",
+            origin: (initialData as any)?.article_detail?.origin || "",
+            destination: (initialData as any)?.article_detail?.destination || "",
+            justification: (initialData as any)?.article_detail?.justification || "",
         },
         mode: "onBlur",
     });
@@ -1303,6 +1320,10 @@ export default function ReceptionRegisterConsumableForm({
             primary_unit_id: initialData?.primary_unit_id || undefined,
             has_documentation: initialData.has_documentation ?? false,
             destination_unknown: false,
+            sender: (initialData as any)?.article_detail?.sender ?? "",
+            origin: (initialData as any)?.article_detail?.origin ?? "",
+            destination: (initialData as any)?.article_detail?.destination ?? "",
+            justification: (initialData as any)?.article_detail?.justification ?? "",
         };
 
         form.reset(resetValues);
@@ -1455,11 +1476,19 @@ export default function ReceptionRegisterConsumableForm({
                     ? "1900-01-01"
                     : undefined;
 
+        const receptionDateStr: string | undefined =
+            receptionDate && !isNotApplicableDate(receptionDate)
+                ? format(receptionDate, "yyyy-MM-dd")
+                : receptionDate && isNotApplicableDate(receptionDate)
+                    ? "1900-01-01"
+                    : undefined;
+
         const formattedValues: Omit<FormValues, "expiration_date"> & {
             expiration_date?: string;
             fabrication_date?: string;
             shelf_life?: string;
             inspect_date?: string;
+            reception_date?: string;
             part_number: string;
             article_type: string;
             status: string;
@@ -1477,6 +1506,7 @@ export default function ReceptionRegisterConsumableForm({
             expiration_date: caducateDateStr,
             shelf_life: shelfDateStr,
             inspect_date: inspectDateStr,
+            reception_date: receptionDateStr,
             fabrication_date:
                 fabricationDate &&
                     fabricationDate !== null &&
@@ -1490,6 +1520,10 @@ export default function ReceptionRegisterConsumableForm({
                 ? selectedUnits.map(unit => unit.conversion_id)
                 : undefined,
             primary_unit_id: secondarySelected?.id,
+            sender: values.sender || undefined,
+            origin: values.origin || undefined,
+            destination: values.destination || undefined,
+            justification: values.justification || undefined,
         };
 
         if (isEditing && initialData) {
@@ -1498,12 +1532,33 @@ export default function ReceptionRegisterConsumableForm({
                 id: initialData?.id,
                 company: selectedCompany.slug,
             });
+
+            if (values.has_documentation && documents.length > 0) {
+                await uploadArticleDocuments.mutateAsync({
+                    company: selectedCompany.slug,
+                    articleId: Number(initialData.id),
+                    documents,
+                });
+            }
+
             router.push(`/${selectedCompany.slug}/ingenieria/confirmar_inventario`);
         } else {
-            await createArticle.mutateAsync({
+            const res = await createArticle.mutateAsync({
                 company: selectedCompany.slug,
                 data: formattedValues,
             });
+
+            if (values.has_documentation && documents.length > 0) {
+                for (const articleId of extractCreatedArticleIds(res?.data)) {
+                    await uploadArticleDocuments.mutateAsync({
+                        company: selectedCompany.slug,
+                        articleId,
+                        documents,
+                    });
+                }
+            }
+
+            setDocuments([]);
             setSecondaryQuantity(undefined);
             setSecondarySelected(null);
             setSelectedPrimaryUnit(null);
@@ -1511,6 +1566,7 @@ export default function ReceptionRegisterConsumableForm({
             setCaducateDate(undefined);
             setShelfDate(undefined);
             setInspectDate(undefined);
+            setReceptionDate(undefined);
             setSelectedUnits([]);
 
             form.reset();
@@ -2107,6 +2163,16 @@ export default function ReceptionRegisterConsumableForm({
                                 showNotApplicable={true}
                                 required={true}
                             />
+
+                            <DatePickerField
+                                label="Fecha de Recepción"
+                                value={receptionDate}
+                                setValue={handleReceptionDateChange}
+                                description="Fecha de recepción del artículo."
+                                busy={busy}
+                                shortcuts="back"
+                                showNotApplicable={true}
+                            />
                         </div>
                     </SectionCard>
 
@@ -2424,48 +2490,82 @@ export default function ReceptionRegisterConsumableForm({
                                     />
                                 )}
                                 {hasDocumentation && (
-                                    <div className="space-y-4">
-                                        <FileField
-                                            form={form}
-                                            name="certificate_8130"
-                                            label={
-                                                <span>
-                                                    Certificado{" "}
-                                                    <span className="text-primary font-semibold">
-                                                        8130
-                                                    </span>
-                                                </span>
-                                            }
-                                            description="PDF o imagen. Máx. 10 MB."
-                                            busy={busy}
-                                        />
-                                        <FileField
-                                            form={form}
-                                            name="certificate_fabricant"
-                                            label={
-                                                <span>
-                                                    Certificado del{" "}
-                                                    <span className="text-primary">fabricante</span>
-                                                </span>
-                                            }
-                                            description="PDF o imagen. Máx. 10 MB."
-                                            busy={busy}
-                                        />
-                                        <FileField
-                                            form={form}
-                                            name="certificate_vendor"
-                                            label={
-                                                <span>
-                                                    Certificado del{" "}
-                                                    <span className="text-primary">vendedor</span>
-                                                </span>
-                                            }
-                                            description="PDF o imagen. Máx. 10 MB."
-                                            busy={busy}
-                                        />
-                                    </div>
+                                    <ArticleDocumentsSelector
+                                        value={documents}
+                                        onChange={setDocuments}
+                                        disabled={busy}
+                                    />
                                 )}
                             </div>
+                        </div>
+                    </SectionCard>
+
+                    <SectionCard title="Detalles de Almacén">
+                        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                            <FormField
+                                control={form.control}
+                                name="sender"
+                                render={({ field }) => (
+                                    <FormItem className="w-full">
+                                        <FormLabel>
+                                            Remitente{" "}
+                                            <span className="text-xs italic text-gray-500 font-normal ml-1">(Sender)</span>
+                                        </FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Nombre del responsable" {...field} disabled={busy} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="origin"
+                                render={({ field }) => (
+                                    <FormItem className="w-full">
+                                        <FormLabel>
+                                            Origen{" "}
+                                            <span className="text-xs italic text-gray-500 font-normal ml-1">(Origin)</span>
+                                        </FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Origen del artículo" {...field} disabled={busy} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="destination"
+                                render={({ field }) => (
+                                    <FormItem className="w-full">
+                                        <FormLabel>
+                                            Destino{" "}
+                                            <span className="text-xs italic text-gray-500 font-normal ml-1">(Destination)</span>
+                                        </FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Destino del artículo" {...field} disabled={busy} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="justification"
+                                render={({ field }) => (
+                                    <FormItem className="w-full">
+                                        <FormLabel>
+                                            Justificación{" "}
+                                            <span className="text-xs italic text-gray-500 font-normal ml-1">(Justification)</span>
+                                        </FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Justificación" {...field} disabled={busy} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
                         </div>
                     </SectionCard>
 

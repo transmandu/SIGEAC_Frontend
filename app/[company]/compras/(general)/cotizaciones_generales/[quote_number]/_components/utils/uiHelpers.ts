@@ -2,10 +2,19 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
+const QUOTE_STATUS_LABELS: Record<string, string> = {
+  PENDING: 'PENDIENTE',
+  APPROVED: 'APROBADA',
+  REJECTED: 'RECHAZADA',
+};
+
+export const statusLabel = (status?: string) =>
+  QUOTE_STATUS_LABELS[status ?? ''] ?? status ?? '—';
+
 export const statusBadgeCls = (status?: string) => {
-  const approved = status === 'APROBADO' || status === 'APROBADA';
-  const rejected = status === 'RECHAZADA';
-  const pending = status === 'PENDIENTE';
+  const approved = status === 'APPROVED';
+  const rejected = status === 'REJECTED';
+  const pending = status === 'PENDING';
 
   return cn(
     'rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-sm transition-colors duration-150 cursor-default hover:scale-100 hover:translate-y-0 select-none',

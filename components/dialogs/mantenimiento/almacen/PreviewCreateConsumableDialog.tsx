@@ -28,9 +28,6 @@ interface PreviewValues {
     description?: string;
     has_documentation?: boolean;
     image?: { name?: string };
-    certificate_8130?: { name?: string };
-    certificate_fabricant?: { name?: string };
-    certificate_vendor?: { name?: string };
 }
 
 interface PreviewProps {
@@ -136,9 +133,6 @@ export default function PreviewCreateConsumableDialog({
                             {values.has_documentation && (
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3 pt-3 border-t border-dashed border-border">
                                     <PreviewRow label="Imagen" value={values.image?.name || "Ninguna"} />
-                                    <PreviewRow label="Certificado 8130" value={values.certificate_8130?.name || "Ninguno"} />
-                                    <PreviewRow label="Certificado fabricante" value={values.certificate_fabricant?.name || "Ninguno"} />
-                                    <PreviewRow label="Certificado vendedor" value={values.certificate_vendor?.name || "Ninguno"} />
                                 </div>
                             )}
                         </div>

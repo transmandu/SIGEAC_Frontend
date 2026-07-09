@@ -47,12 +47,13 @@ const PurchaseOrderGeneralArticleCard = ({ article }: PurchaseOrderGeneralArticl
       <div className="px-2.5 py-2 space-y-1.5">
 
         <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
-          <Field label="Presentación" value={req?.variant_type} />
+          <Field label="Present. / Especif." value={req?.variant_type} />
           <Field label="Marca / Modelo" value={quoteArticle?.brand_model} />
           <Field label="Cantidad" value={quoteArticle?.quantity} />
           <Field label="Unidad" value={req?.unit?.label} />
           <Field label="P. Unitario" value={`$${Number(quoteArticle?.unit_price || 0).toFixed(2)}`} />
           <Field label="Total" value={`$${amount.toFixed(2)}`} />
+          <Field label="Lugar de compra" value={quoteArticle?.retailer?.name} />
           <Field
             label="Tracking Nacional"
             value={article.shipping_tracking}

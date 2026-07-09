@@ -19,6 +19,8 @@ import {
 
 interface StatusColumnHeaderProps<TData, TValue> {
   column: Column<TData, TValue>;
+  value?: string;
+  onValueChange?: (value: string | undefined) => void;
 }
 
 const statusOptions = [
@@ -38,7 +40,15 @@ const statusOptions = [
 
 export function StatusColumnHeader<TData, TValue>({
   column,
+  value,
+  onValueChange,
 }: StatusColumnHeaderProps<TData, TValue>) {
+  const setStatus = (v: string | undefined) => {
+    // Mantiene compatibilidad con el filtrado local de la tabla (fallback)
+    column.setFilterValue(v);
+    onValueChange?.(v);
+  };
+
   return (
     <div className="flex flex-col items-center justify-center">
       <DropdownMenu>
@@ -59,16 +69,18 @@ export function StatusColumnHeader<TData, TValue>({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="max-h-[400px] overflow-y-auto">
-          <DropdownMenuItem onClick={() => column.setFilterValue(undefined)}>
-            <span className="font-medium">Todos</span>
+          <DropdownMenuItem onClick={() => setStatus(undefined)}>
+            <span className={value ? "font-medium" : "font-bold"}>Todos</span>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           {statusOptions.map((option) => (
             <DropdownMenuItem
               key={option.value}
-              onClick={() => column.setFilterValue(option.value)}
+              onClick={() => setStatus(option.value)}
             >
-              {option.label}
+              <span className={value === option.value ? "font-bold" : undefined}>
+                {option.label}
+              </span>
             </DropdownMenuItem>
           ))}
           <DropdownMenuSeparator />

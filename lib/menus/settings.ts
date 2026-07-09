@@ -1,5 +1,5 @@
 import type { Group, MenuContext } from "@/lib/menus/types";
-import { Globe, UserRoundCog, BellRing } from "lucide-react";
+import { Globe, Landmark, UserRoundCog, BellRing } from "lucide-react";
 
 export function buildSettingsGroup({ pathname, currentCompany }: MenuContext): Group {
     return {
@@ -21,6 +21,10 @@ export function buildSettingsGroup({ pathname, currentCompany }: MenuContext): G
                     "EJECUTIVO_RESPONSABLE",
                     "JEFE_COMPRAS",
                     "ANALISTA_COMPRAS",
+                    "ASISTENTE_COMPRAS",
+                    "JEFE_ADMINISTRACION",
+                    "ANALISTA_ADMINISTRACION",
+                    "ENGINEERING",
                 ],
                 submenus: [
                     {
@@ -31,6 +35,12 @@ export function buildSettingsGroup({ pathname, currentCompany }: MenuContext): G
                             "JEFE_ALMACEN",
                             "ANALISTA_ALMACEN",
                             "SUPERUSER",
+                            "ENGINEERING",
+                            "ASISTENTE_COMPRAS",
+                            "JEFE_COMPRAS",
+                            "ANALISTA_COMPRAS",
+                            "JEFE_ADMINISTRACION",
+                            "ANALISTA_ADMINISTRACION",
                             "ENGINEERING",
                         ],
                     },
@@ -44,13 +54,20 @@ export function buildSettingsGroup({ pathname, currentCompany }: MenuContext): G
                             "JEFE_PLANIFICACION",
                             "ANALISTA_PLANIFICACION",
                             "SUPERUSER",
+                            "ENGINEERING",
                         ],
                     },
                     {
                         href: "/ajustes/globales/proveedores",
                         label: "Proveedores",
                         active: pathname === "/ajustes/globales/proveedores",
-                        roles: ["JEFE_COMPRAS", "ANALISTA_COMPRAS", "SUPERUSER"],
+                        roles: ["JEFE_COMPRAS", "ANALISTA_COMPRAS", "JEFE_ADMINISTRACION", "ANALISTA_ADMINISTRACION", "SUPERUSER"],
+                    },
+                    {
+                        href: "/ajustes/globales/comercios",
+                        label: "Comercios",
+                        active: pathname === "/ajustes/globales/comercios",
+                        roles: ["ASISTENTE_COMPRAS", "JEFE_ADMINISTRACION", "ANALISTA_ADMINISTRACION", "SUPERUSER"],
                     },
                     {
                         href: "/ajustes/globales/clientes",
@@ -95,7 +112,77 @@ export function buildSettingsGroup({ pathname, currentCompany }: MenuContext): G
                         href: "/ajustes/globales/agencias_envio",
                         label: "Agencias de Envío",
                         active: pathname === "/ajustes/globales/agencias_envio",
-                        roles: ["JEFE_COMPRAS", "ANALISTA_COMPRAS", "SUPERUSER"],
+                        roles: ["JEFE_COMPRAS", "ANALISTA_COMPRAS", "JEFE_ADMINISTRACION", "ANALISTA_ADMINISTRACION", "ASISTENTE_COMPRAS", "SUPERUSER"],
+                    },
+                ],
+            },
+            {
+                href: "/ajustes/banca/bancos",
+                label: "Banca",
+                active: pathname.includes("/ajustes/banca"),
+                icon: Landmark,
+                // Lectura para roles de compras/administración; la gestión
+                // (crear/editar/eliminar) queda restringida a SUPERUSER en la UI y el backend.
+                roles: [
+                    "SUPERUSER",
+                    "JEFE_COMPRAS",
+                    "ANALISTA_COMPRAS",
+                    "ASISTENTE_COMPRAS",
+                    "JEFE_ADMINISTRACION",
+                    "ANALISTA_ADMINISTRACION",
+                ],
+                submenus: [
+                    {
+                        href: "/ajustes/banca/bancos",
+                        label: "Bancos",
+                        active: pathname.startsWith("/ajustes/banca/bancos"),
+                        roles: [
+                            "SUPERUSER",
+                            "JEFE_COMPRAS",
+                            "ANALISTA_COMPRAS",
+                            "ASISTENTE_COMPRAS",
+                            "JEFE_ADMINISTRACION",
+                            "ANALISTA_ADMINISTRACION",
+                        ],
+                    },
+                    {
+                        href: "/ajustes/banca/cuentas",
+                        label: "Cuentas",
+                        active: pathname.startsWith("/ajustes/banca/cuentas"),
+                        roles: [
+                            "SUPERUSER",
+                            "JEFE_COMPRAS",
+                            "ANALISTA_COMPRAS",
+                            "ASISTENTE_COMPRAS",
+                            "JEFE_ADMINISTRACION",
+                            "ANALISTA_ADMINISTRACION",
+                        ],
+                    },
+                    {
+                        href: "/ajustes/banca/metodos_pago",
+                        label: "Métodos de Pago",
+                        active: pathname === "/ajustes/banca/metodos_pago",
+                        roles: [
+                            "SUPERUSER",
+                            "JEFE_COMPRAS",
+                            "ANALISTA_COMPRAS",
+                            "ASISTENTE_COMPRAS",
+                            "JEFE_ADMINISTRACION",
+                            "ANALISTA_ADMINISTRACION",
+                        ],
+                    },
+                    {
+                        href: "/ajustes/banca/tarjetas",
+                        label: "Tarjetas",
+                        active: pathname === "/ajustes/banca/tarjetas",
+                        roles: [
+                            "SUPERUSER",
+                            "JEFE_COMPRAS",
+                            "ANALISTA_COMPRAS",
+                            "ASISTENTE_COMPRAS",
+                            "JEFE_ADMINISTRACION",
+                            "ANALISTA_ADMINISTRACION",
+                        ],
                     },
                 ],
             },

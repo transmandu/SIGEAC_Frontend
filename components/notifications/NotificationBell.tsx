@@ -144,7 +144,7 @@ export default function NotificationBell() {
             </button>
           </TooltipTrigger>
 
-          <TooltipContent side="bottom">
+          <TooltipContent side="bottom" className="z-[1001]">
             Notificaciones
           </TooltipContent>
         </Tooltip>

@@ -201,12 +201,13 @@ export function buildSmsGroup({ pathname, currentCompany }: MenuContext): Group 
           `/${currentCompany?.slug}/sms/aeronautical/gestion_de_riesgos`,
         ),
         icon: ShieldAlert,
-        roles: ["COORDINADOR_SMS", "GERENTE_SMS", "SUPERUSER"],
+        requiresOmac: true,
+        roles: ["COORDINADOR_SMS", "GERENTE_SMS", "SUPERUSER", "PRESIDENCIA", "COORDINADOR_SMS", "ANALISTA_SMS"],
         submenus: [
           {
             href: `/${currentCompany?.slug}/sms/aeronautical/gestion_de_riesgos/reportes`,
             label: "Reportes",
-            roles: ["COORDINADOR_SMS", "GERENTE_SMS", "SUPERUSER"],
+            roles: ["COORDINADOR_SMS", "GERENTE_SMS", "SUPERUSER", "PRESIDENCIA", "COORDINADOR_SMS", "ANALISTA_SMS"],
             active:
               pathname ===
               `/${currentCompany?.slug}/sms/aeronautical/gestion_de_riesgos/reportes`,
@@ -214,7 +215,7 @@ export function buildSmsGroup({ pathname, currentCompany }: MenuContext): Group 
           {
             href: `/${currentCompany?.slug}/sms/aeronautical/gestion_de_riesgos/identificacion`,
             label: "Identificacion de Peligros",
-            roles: ["COORDINADOR_SMS", "GERENTE_SMS", "SUPERUSER"],
+            roles: ["COORDINADOR_SMS", "GERENTE_SMS", "SUPERUSER", "PRESIDENCIA", "COORDINADOR_SMS", "ANALISTA_SMS"],
             active:
               pathname ===
               `/${currentCompany?.slug}/sms/aeronautical/gestion_de_riesgos/identificacion`,
@@ -222,7 +223,7 @@ export function buildSmsGroup({ pathname, currentCompany }: MenuContext): Group 
           {
             href: `/${currentCompany?.slug}/sms/aeronautical/gestion_de_riesgos/evaluacion_mitigacion`,
             label: "Eval y Mitigacion",
-            roles: ["COORDINADOR_SMS", "GERENTE_SMS", "SUPERUSER"],
+            roles: ["COORDINADOR_SMS", "GERENTE_SMS", "SUPERUSER", "PRESIDENCIA", "COORDINADOR_SMS", "ANALISTA_SMS"],
             active:
               pathname ===
               `/${currentCompany?.slug}/sms/aeronautical/gestion_de_riesgos/evaluacion_mitigacion`,

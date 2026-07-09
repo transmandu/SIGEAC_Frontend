@@ -15,12 +15,18 @@ import { es } from 'date-fns/locale'
 
 import Link from 'next/link'
 
+const QUOTE_STATUS_LABELS: Record<string, string> = {
+  PENDING: 'PENDIENTE',
+  APPROVED: 'APROBADA',
+  REJECTED: 'RECHAZADA',
+}
+
 export const getColumns = (
   selectedCompany?: { slug: string }
 ): ColumnDef<Quote>[] => [
   {
     accessorKey: 'quote_number',
-    size: 180,
+    size: 210,
 
     header: ({ column }) => (
       <div className="flex justify-center w-full">
@@ -57,7 +63,7 @@ export const getColumns = (
 
   {
     accessorKey: 'requisition_order',
-    size: 200,
+    size: 210,
 
     header: ({ column }) => (
       <div className="flex justify-center w-full">
@@ -95,41 +101,37 @@ export const getColumns = (
 
   {
     accessorKey: 'quote_date',
-    size: 200,
+    size: 180,
 
     header: ({ column }) => (
       <div className="flex justify-center w-full">
         <DataTableColumnHeader
           column={column}
-          title="Fecha de Creación"
+          title="Fecha de Cotización"
         />
       </div>
     ),
 
     meta: {
-      title: 'Fecha de Creación',
+      title: 'Fecha de Cotización',
     },
 
-    cell: ({ row }) => (
-      <div className="flex justify-center w-full">
-        <span
-          className="
-            text-sm
-            text-slate-600 dark:text-slate-300
-            text-center
-          "
-        >
-          {format(new Date(row.original.quote_date), 'PPP', {
-            locale: es,
-          })}
-        </span>
-      </div>
-    ),
+    cell: ({ row }) => {
+      const date = new Date(row.original.quote_date);
+
+      return (
+        <div className="flex justify-center w-full">
+          <span className="text-s text-slate-600 dark:text-slate-300 text-center font-medium tracking-wide uppercase">
+            {format(date, "dd MMM yyyy", { locale: es })}
+          </span>
+        </div>
+      );
+    },
   },
 
   {
     accessorKey: 'status',
-    size: 180,
+    size: 150,
 
     header: ({ column }) => (
       <div className="flex justify-center w-full">
@@ -147,8 +149,8 @@ export const getColumns = (
     cell: ({ row }) => {
       const status = row.original.status
 
-      const pending = status === 'PENDIENTE'
-      const approved = status === 'APROBADA'
+      const pending = status === 'PENDING'
+      const approved = status === 'APPROVED'
 
       return (
         <div className="flex justify-center w-full">
@@ -202,7 +204,7 @@ export const getColumns = (
                 `
             )}
           >
-            {status?.toUpperCase?.() ?? 'N/A'}
+            {QUOTE_STATUS_LABELS[status] ?? status?.toUpperCase?.() ?? 'N/A'}
           </Badge>
         </div>
       )
@@ -249,7 +251,7 @@ export const getColumns = (
 
   {
     id: 'actions',
-    size: 120,
+    size: 80,
 
     header: ({ column }) => (
       <div className="flex justify-center w-full">

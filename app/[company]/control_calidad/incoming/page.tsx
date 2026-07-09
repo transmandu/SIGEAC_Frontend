@@ -106,7 +106,7 @@ const IncomingControlPage = () => {
             {isIncomingLoading ? (
               <LoadingPage />
             ) : (
-              <DataTable columns={columns} data={incomingArticles ?? []} />
+              <DataTable groupBy="order_number" columns={columns} data={incomingArticles ?? []} />
             )}
           </TabsContent>
 
@@ -114,7 +114,7 @@ const IncomingControlPage = () => {
             {isWaitingLoading ? (
               <LoadingPage />
             ) : (
-              <DataTable columns={w_columns} data={waitingToLocateArticles ?? []} />
+              <DataTable groupBy="order_number" columns={w_columns} data={waitingToLocateArticles ?? []} />
             )}
           </TabsContent>
 
@@ -123,6 +123,7 @@ const IncomingControlPage = () => {
               <LoadingPage />
             ) : (
               <DataTable
+                groupBy="order_number"
                 columns={form_columns}
                 data={waitingForFormArticles ?? []}
                 getRowId={(row) => String((row as any).id)}

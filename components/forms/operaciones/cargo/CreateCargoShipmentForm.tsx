@@ -213,6 +213,7 @@ export default function CreateCargoShipmentForm({
             {/* Aeronave */}
             <div className="flex flex-col space-y-2">
               <ComboboxField
+                data-tour="cargo-crear-aeronave"
                 form={form}
                 name="aircraft_id"
                 label={isExternalMode ? "Aeronave Externa" : "Aeronave"}
@@ -253,10 +254,14 @@ export default function CreateCargoShipmentForm({
                   <FormLabel className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                     Fecha
                   </FormLabel>
-                  <Popover open={openCalendar} onOpenChange={setOpenCalendar}>
+                  <Popover
+                    open={openCalendar}
+                    onOpenChange={setOpenCalendar}
+                  >
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
+                          data-tour="cargo-crear-fecha"
                           variant="outline"
                           className={cn(
                             "w-full pl-3 text-left font-normal h-9",
@@ -292,6 +297,7 @@ export default function CreateCargoShipmentForm({
 
             {/* Transportista */}
             <ComboboxField
+              data-tour="cargo-crear-transportista"
               form={form}
               name="carrier_id"
               label="Transportista"
@@ -301,7 +307,8 @@ export default function CreateCargoShipmentForm({
               options={carrierOptions}
               disabled={loadingCarriers}
               onCreateNew={() => setOpenNewCarrier(true)}
-              createNewLabel="Registrar nuevo transportista"
+              createNewLabel={"Registrar nuevo transportista"}
+              createNewDataTour="cargo-crear-transportista-nuevo"
             />
 
             {/* Piloto */}
@@ -314,10 +321,14 @@ export default function CreateCargoShipmentForm({
               emptyText="No se encontraron pilotos."
               options={pilotOptions}
               disabled={loadingPilots || loadingExternalPilots}
+              data-tour="cargo-crear-piloto"
             />
 
             {/* Nro de guía */}
-            <div className="flex flex-col space-y-2">
+            <div
+              className="flex flex-col space-y-2"
+              data-tour="cargo-crear-guia-numero"
+            >
               <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Nº Guía
               </label>
@@ -330,6 +341,7 @@ export default function CreateCargoShipmentForm({
 
             {/* Cliente */}
             <ComboboxField
+              data-tour="cargo-crear-cliente"
               form={form}
               name="client_id"
               label="Cliente"
@@ -340,6 +352,7 @@ export default function CreateCargoShipmentForm({
               disabled={loadingClients}
               onCreateNew={() => setOpenNewClient(true)}
               createNewLabel="Registrar nuevo cliente"
+              createNewDataTour="cargo-crear-cliente-nuevo"
             />
 
             {/* Emisor */}
@@ -347,7 +360,7 @@ export default function CreateCargoShipmentForm({
               control={form.control}
               name="issuer"
               render={() => (
-                <FormItem className="flex flex-col">
+                <FormItem className="flex flex-col" data-tour="cargo-crear-emisor">
                   <FormLabel className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                     Emisor
                   </FormLabel>
@@ -365,6 +378,7 @@ export default function CreateCargoShipmentForm({
 
             {/* Copiloto */}
             <ComboboxField
+              data-tour="cargo-crear-copiloto"
               form={form}
               name="copilot_id"
               label="Copiloto"
@@ -386,6 +400,7 @@ export default function CreateCargoShipmentForm({
 
           {/* ═══ SUBMIT ══════════════════════════════════════════════════════ */}
           <Button
+            data-tour="cargo-crear-submit"
             disabled={isPending}
             type="submit"
             className="w-full text-sm font-semibold h-11"
@@ -397,7 +412,7 @@ export default function CreateCargoShipmentForm({
       </Form>
 
       {/* ═══ MODALES ══════════════════════════════════════════════════════════ */}
-      <Dialog open={openNewCarrier} onOpenChange={setOpenNewCarrier}>
+      <Dialog open={openNewCarrier} onOpenChange={setOpenNewCarrier}  data-tour="cargo-crear-modal-transportista">
         <DialogContent onInteractOutside={(e) => e.preventDefault()}>
           <DialogHeader>
             <DialogTitle>Registrar Transportista</DialogTitle>
@@ -414,7 +429,7 @@ export default function CreateCargoShipmentForm({
         </DialogContent>
       </Dialog>
 
-      <Dialog open={openNewClient} onOpenChange={setOpenNewClient}>
+      <Dialog open={openNewClient} onOpenChange={setOpenNewClient} data-tour="cargo-crear-modal-cliente">
         <DialogContent onInteractOutside={(e) => e.preventDefault()}>
           <DialogHeader>
             <DialogTitle>Registrar Cliente</DialogTitle>

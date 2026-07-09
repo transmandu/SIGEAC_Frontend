@@ -206,7 +206,10 @@ const quantityCol: ColumnDef<IArticleSimple> = {
     },
 };
 
-const baseCols: ColumnDef<IArticleSimple>[] = [
+const buildBaseCols = (
+    statusFilter?: string,
+    onStatusFilterChange?: (value: string | undefined) => void,
+): ColumnDef<IArticleSimple>[] => [
     {
         accessorKey: "part_number",
         header: ({ column }) => (
@@ -294,7 +297,13 @@ const baseCols: ColumnDef<IArticleSimple>[] = [
 
     {
         accessorKey: "status",
-        header: ({ column }) => <StatusColumnHeader column={column} />,
+        header: ({ column }) => (
+            <StatusColumnHeader
+                column={column}
+                value={statusFilter}
+                onValueChange={onStatusFilterChange}
+            />
+        ),
         cell: ({ row }) => {
             if (row.original.__isGroup) {
                 return (
@@ -342,8 +351,11 @@ const baseCols: ColumnDef<IArticleSimple>[] = [
 ];
 
 // COMPONENTE (sin cantidad)
-export const componenteCols: ColumnDef<IArticleSimple>[] = [
-    ...baseCols,
+export const buildComponenteCols = (
+    statusFilter?: string,
+    onStatusFilterChange?: (value: string | undefined) => void,
+): ColumnDef<IArticleSimple>[] => [
+    ...buildBaseCols(statusFilter, onStatusFilterChange),
     {
         id: "actions",
         header: () => (
@@ -369,8 +381,11 @@ export const componenteCols: ColumnDef<IArticleSimple>[] = [
 ];
 
 // CONSUMIBLE (con cantidad)
-export const consumibleCols: ColumnDef<IArticleSimple>[] = [
-    ...baseCols,
+export const buildConsumibleCols = (
+    statusFilter?: string,
+    onStatusFilterChange?: (value: string | undefined) => void,
+): ColumnDef<IArticleSimple>[] => [
+    ...buildBaseCols(statusFilter, onStatusFilterChange),
     quantityCol,
     {
         id: "expiration_date",
@@ -519,8 +534,11 @@ export const consumibleCols: ColumnDef<IArticleSimple>[] = [
 ];
 
 // HERRAMIENTA (sin cantidad)
-export const herramientaCols: ColumnDef<IArticleSimple>[] = [
-    ...baseCols,
+export const buildHerramientaCols = (
+    statusFilter?: string,
+    onStatusFilterChange?: (value: string | undefined) => void,
+): ColumnDef<IArticleSimple>[] => [
+    ...buildBaseCols(statusFilter, onStatusFilterChange),
     {
         accessorKey: "model",
         header: ({ column }) => (
@@ -605,8 +623,11 @@ export const herramientaCols: ColumnDef<IArticleSimple>[] = [
 ];
 
 // ALL (con cantidad porque mezcla categorías)
-export const allCategoriesCols: ColumnDef<IArticleSimple>[] = [
-    ...baseCols,
+export const buildAllCategoriesCols = (
+    statusFilter?: string,
+    onStatusFilterChange?: (value: string | undefined) => void,
+): ColumnDef<IArticleSimple>[] => [
+    ...buildBaseCols(statusFilter, onStatusFilterChange),
     quantityCol,
     {
         id: "actions",
@@ -633,13 +654,15 @@ export const allCategoriesCols: ColumnDef<IArticleSimple>[] = [
 ];
 
 export const getColumnsByCategory = (
-    cat: "COMPONENT" | "PART" | "CONSUMABLE" | "TOOL",
+    cat: "all" | "COMPONENT" | "PART" | "CONSUMABLE" | "TOOL",
+    statusFilter?: string,
+    onStatusFilterChange?: (value: string | undefined) => void,
 ): ColumnDef<IArticleSimple>[] => {
-    if (cat === "TOOL") return herramientaCols;
-    if (cat === "CONSUMABLE") return consumibleCols;
-    if (cat === "COMPONENT") return componenteCols;
-    if (cat === "PART") return componenteCols;
-    return baseCols;
+    if (cat === "TOOL") return buildHerramientaCols(statusFilter, onStatusFilterChange);
+    if (cat === "CONSUMABLE") return buildConsumibleCols(statusFilter, onStatusFilterChange);
+    if (cat === "COMPONENT") return buildComponenteCols(statusFilter, onStatusFilterChange);
+    if (cat === "PART") return buildComponenteCols(statusFilter, onStatusFilterChange);
+    return buildAllCategoriesCols(statusFilter, onStatusFilterChange);
 };
 
 export function groupByPartNumber(list: IArticleSimple[]) {

@@ -97,9 +97,9 @@ const CostManagementPage = () => {
 
   // Si el usuario solo tiene acceso a un tipo, fijarlo y no permitir el otro
   useEffect(() => {
-    if (!canViewArticleCosts && type === 'ARTICLE') {
+    if (!canViewArticleCosts && type === 'ARTICLE' && canViewGeneralCosts) {
       setType('GENERAL')
-    } else if (!canViewGeneralCosts && type === 'GENERAL') {
+    } else if (!canViewGeneralCosts && type === 'GENERAL' && canViewArticleCosts) {
       setType('ARTICLE')
     }
   }, [canViewArticleCosts, canViewGeneralCosts, type])
@@ -119,7 +119,7 @@ const CostManagementPage = () => {
     )
 
   const { data: generalArticles, isLoading: loadingGeneral } =
-    useGetGeneralArticles()
+    useGetGeneralArticles(canViewGeneralCosts)
 
   const isLoading =
     type === 'ARTICLE' ? loadingArticles : loadingGeneral
@@ -327,6 +327,7 @@ const CostManagementPage = () => {
                 loading={isLoading}
                 meta={{ costDrafts }}
                 overflowVisible
+                persistKey="gestion_costos"
               />
             )}
             setDrafts={setDrafts}
@@ -338,6 +339,7 @@ const CostManagementPage = () => {
             loading={isLoading}
             meta={{ costDrafts }}
             overflowVisible
+            persistKey="gestion_costos"
           />
         )}
 

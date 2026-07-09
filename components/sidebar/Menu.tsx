@@ -87,7 +87,7 @@ export function Menu({ isOpen }: MenuProps) {
         );
 
     return (
-        <ScrollArea className="[&>div>div[style]]:!block">
+        <ScrollArea className="flex-1 [&>div>div[style]]:!block">
             <nav className="mt-6 h-full w-full" aria-label="Main navigation">
                 <ul
                     className={cn(

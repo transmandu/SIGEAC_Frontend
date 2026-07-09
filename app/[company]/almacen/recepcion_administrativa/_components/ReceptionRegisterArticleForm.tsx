@@ -55,10 +55,8 @@ export interface EditingArticle extends Article {
         primary_unit_id: string;
         conversions: Convertion[];
     };
-    certificate_8130?: string;
-    certificate_vendor?: string;
-    certificate_fabricant?: string;
     has_documentation?: boolean;
+    reception_date?: string;
 }
 
 interface IRegisterArticleProps {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCreateClient } from "@/actions/general/clientes/actions";
+import { useCreateClient } from "@/actions/ajustes/globales/clientes/actions";
 import { Button } from "@/components/ui/button";
 import {
   Form,

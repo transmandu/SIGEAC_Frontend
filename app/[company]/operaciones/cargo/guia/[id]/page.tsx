@@ -3,6 +3,7 @@
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { useParams } from "next/navigation";
 import { useGetCargoShipmentById } from "@/hooks/operaciones/cargo/useGetCargoShipmentById";
+import { useEffect } from "react";
 import { format, isValid, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import Link from "next/link";
@@ -32,11 +33,19 @@ import {
   Plane,
   Package,
 } from "lucide-react";
+import { useTourContext } from "@/components/tour/TourProvider";
+import { cargoGuiaDetalleSteps } from "@/components/tour/steps/cargo/guia-detalle";
 
 export default function CargoDetailsPage() {
   const params = useParams();
   const company = params.company as string;
   const id = params.id as string;
+  const { registerTour, unregisterTour } = useTourContext();
+
+  useEffect(() => {
+    registerTour("cargo-guia-detalle", "Detalle de Guía", cargoGuiaDetalleSteps);
+    return () => unregisterTour("cargo-guia-detalle");
+  }, [registerTour, unregisterTour]);
 
   const {
     data: shipment,
@@ -89,7 +98,13 @@ export default function CargoDetailsPage() {
         {/* Cabecera de Acciones Rápidas */}
         <div className="flex items-center justify-between bg-muted/30 p-4 rounded-xl border border-border/50">
           <div className="flex items-center gap-4">
-            <Button asChild variant="outline" size="icon" className="h-9 w-9">
+            <Button
+              asChild
+              variant="outline"
+              size="icon"
+              className="h-9 w-9"
+              data-tour="cargo-detalle-btn-volver"
+            >
               <Link
                 href={
                   shipment.aircraft
@@ -101,7 +116,10 @@ export default function CargoDetailsPage() {
               </Link>
             </Button>
             <div>
-              <h1 className="text-2xl font-bold flex items-center gap-2">
+              <h1
+                className="text-2xl font-bold flex items-center gap-2"
+                data-tour="cargo-detalle-title"
+              >
                 <FileText className="h-6 w-6 text-primary" />
                 Guía N°{" "}
                 <span className="text-primary">{shipment.guide_number}</span>
@@ -113,7 +131,7 @@ export default function CargoDetailsPage() {
         {/* Sección de Tarjetas de Información */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Tarjeta 1: Detalles Generales */}
-          <Card className="shadow-sm">
+          <Card className="shadow-sm" data-tour="cargo-detalle-card-generales">
             <CardHeader className="pb-3 border-b bg-muted/10">
               <CardTitle className="text-base flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-blue-500" />
@@ -159,7 +177,7 @@ export default function CargoDetailsPage() {
           </Card>
 
           {/* Tarjeta 2: Cliente */}
-          <Card className="shadow-sm">
+          <Card className="shadow-sm" data-tour="cargo-detalle-card-cliente">
             <CardHeader className="pb-3 border-b bg-muted/10">
               <CardTitle className="text-base flex items-center gap-2">
                 <User className="h-4 w-4 text-green-500" />
@@ -198,7 +216,7 @@ export default function CargoDetailsPage() {
           </Card>
 
           {/* Tarjeta 3: Logística / Vuelo */}
-          <Card className="shadow-sm">
+          <Card className="shadow-sm" data-tour="cargo-detalle-card-vuelo">
             <CardHeader className="pb-3 border-b bg-muted/10">
               <CardTitle className="text-base flex items-center gap-2">
                 <Plane className="h-4 w-4 text-orange-500" />
@@ -245,7 +263,7 @@ export default function CargoDetailsPage() {
         </div>
 
         {/* Sección de Manifiesto de Carga (Items) */}
-        <Card className="shadow-sm mt-4">
+        <Card className="shadow-sm mt-4" data-tour="cargo-detalle-manifiesto">
           <CardHeader className="pb-3 border-b">
             <CardTitle className="text-lg flex items-center gap-2">
               <Package className="h-5 w-5 text-indigo-500" />

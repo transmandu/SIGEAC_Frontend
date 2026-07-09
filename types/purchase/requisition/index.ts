@@ -24,14 +24,21 @@ export type PurchaseStatus =
   | 'APPROVED'
   | 'PARTIAL'
   | 'REJECTED'
-  | 'PROCESO'
-  | 'COTIZADO'
-  | 'APROBADA'
-  | 'RECHAZADA';
+  | 'CREATED'
+  | 'RECEIVED'
+  | 'IN_PROGRESS'
+  | 'QUOTED';
 
 export type RequisitionType = 'AERONAUTICAL' | 'GENERAL';
 
 // ── Batch Article (response / detail) ──────────────────────────────────────
+export interface BatchArticleDocumentType {
+  id: number;
+  name: string;
+  description?: string | null;
+  regulation?: string | null;
+}
+
 export interface BatchArticle {
   id?: number;
   article_part_number: string;
@@ -44,6 +51,7 @@ export interface BatchArticle {
   priority?: string;
   image?: string | null;
   aircraft?: string | { acronym: string } | null;
+  document_types?: BatchArticleDocumentType[];
 }
 
 export interface RequisitionBatch {
@@ -79,7 +87,11 @@ export interface RequisitionQuote {
   vendor: {
     name: string | null;
   };
+  retailer?: {
+    name: string | null;
+  };
   article_vendors?: string[];
+  article_retailers?: string[];
   updated_at: string;
 }
 
@@ -116,7 +128,8 @@ export interface Requisition {
     employee?: GeneralArticleEmployee | null;
     authorized_employee?: GeneralArticleAuthorizedEmployee | null;
   }[];
-  received_by?: string;
+  received_by?: string | null;
+  received_at?: string | null;
   justification: string;
   arrival_date?: string;
   submission_date: string;
@@ -147,6 +160,8 @@ export interface RequisitionByOrderNumber {
   created_by: User;
   requested_by: string;
   updated_by?: string | null;
+  received_by?: string | null;
+  received_at?: string | null;
   justification: string;
   image?: string | null;
   submission_date?: string | null;
@@ -215,6 +230,8 @@ export interface RequisitionBatchArticleForm {
   aircraft_id?: string;
   priority?: 'HIGH' | 'MEDIUM' | 'LOW';
   image?: File;
+  /** Tipos de documento (ArticleDocumentType) que deben solicitarse al vendedor para este ítem. Requiere al menos uno. */
+  document_type_ids: number[];
 }
 
 /** Form state for a batch inside a requisition form. */

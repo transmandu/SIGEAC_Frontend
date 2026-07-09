@@ -23,13 +23,13 @@ import {
 } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { useGetBankAccounts } from "@/hooks/general/cuentas_bancarias/useGetBankAccounts";
-import { useGetCards } from "@/hooks/general/tarjetas/useGetCards";
+import { useGetPaymentOptions } from "@/hooks/general/cuentas_bancarias/useGetPaymentOptions";
+import { useGetPaymentMethods } from "@/hooks/general/metodos_pago/useGetPaymentMethods";
 import { useGetShippingAgencies } from "@/hooks/general/agencias_envio/useGetShippingAgencies";
 import { cn } from "@/lib/utils";
 import type { PurchaseOrder } from "@/types/purchase";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ClipboardCheck, FileCheck2, Loader2, Paperclip, Trash2 } from "lucide-react";
+import { Building2, ClipboardCheck, FileCheck2, Loader2, Paperclip, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { useMemo, useRef } from "react";
 import { useForm } from "react-hook-form";
@@ -136,9 +136,13 @@ const FormSchema = z.object({
   handling_fee: z.string(),
   shipping_fee: z.string(),
   international_shipping: z.string(),
-  payment_method: z.string(),
-  bank_account_id: z.string(),
-  card_id: z.string().optional(),
+  // Flujo de pago: SIEMPRE arranca por el método (catálogo fijo); según el
+  // método aparece condicionalmente la tarjeta (que determina su cuenta) o
+  // la cuenta bancaria. Opcionales aquí: una orden previa a la reingeniería
+  // puede completarse sin re-registrar el pago.
+  payment_method_id: z.string().optional(),
+  bank_account_id: z.string().optional(),
+  bank_card_id: z.string().optional(),
   shipping_agency_id: z.string().optional(),
   invoice_number: z.string().optional(),
   observation: z.string().optional(),
@@ -162,17 +166,10 @@ interface FormProps {
   isAeronautical?: boolean;
 }
 
-/** El método de pago no se persiste — se reconstruye a partir de qué medio quedó asociado a la orden, para que el campo no aparezca vacío al revisar. */
-const inferPaymentMethod = (po: PurchaseOrder): string => {
-  if (po.card) return "debito_credito";
-  if (po.bank_account) return "transferencia_nacional";
-  return "";
-};
-
 export function CompleteOrderForm({ onClose, po, isAeronautical = false }: FormProps) {
   const { selectedCompany } = useCompanyStore();
-  const { data: accounts, isLoading: isAccLoading } = useGetBankAccounts();
-  const { data: cards, isLoading: isCardsLoading } = useGetCards();
+  const { data: paymentMethods, isLoading: isMethodsLoading } = useGetPaymentMethods();
+  const { data: paymentOptions } = useGetPaymentOptions(selectedCompany?.id);
   const { data: shippingAgencies, isLoading: isAgenciesLoading } = useGetShippingAgencies(selectedCompany?.slug);
   const { completePurchase } = useCompletePurchase();
   const { markPurchaseOrderAsCompleted } = useMarkPurchaseOrderAsCompleted();
@@ -225,9 +222,9 @@ export function CompleteOrderForm({ onClose, po, isAeronautical = false }: FormP
       handling_fee: po.handling_fee != null ? String(po.handling_fee) : "",
       shipping_fee: po.shipping_fee != null ? String(po.shipping_fee) : "",
       international_shipping: po.international_shipping != null ? String(po.international_shipping) : "",
-      payment_method: inferPaymentMethod(po),
+      payment_method_id: po.payment_method ? String(po.payment_method.id) : "",
       bank_account_id: po.bank_account ? String(po.bank_account.id) : "",
-      card_id: po.card ? String(po.card.id) : "",
+      bank_card_id: po.bank_card ? String(po.bank_card.id) : "",
       shipping_agency_id: po.shipping_agency ? String(po.shipping_agency.id) : "",
       invoice_number: po.invoice_number ?? "",
       observation: po.observation ?? "",
@@ -241,8 +238,31 @@ export function CompleteOrderForm({ onClose, po, isAeronautical = false }: FormP
   });
 
   const { tax, wire_fee, handling_fee, shipping_fee, international_shipping } = form.watch();
-  const paymentMethod = form.watch("payment_method");
+  const selectedMethodId = form.watch("payment_method_id");
+  const selectedCardId = form.watch("bank_card_id");
   const effectiveWireFee = isAeronautical ? 0 : Number(wire_fee || 0);
+
+  // ── Flujo de pago: método → tarjeta / cuenta (condicional) ───────────────
+  const cardsForMethod = useMemo(() => {
+    if (!paymentOptions || !selectedMethodId) return [];
+    return paymentOptions.flatMap((account) =>
+      (account.bank_cards ?? [])
+        .filter((card) => card.payment_method_id.toString() === selectedMethodId)
+        .map((card) => ({ ...card, bank_account: account }))
+    );
+  }, [paymentOptions, selectedMethodId]);
+
+  const accountsForMethod = useMemo(() => {
+    if (!paymentOptions || !selectedMethodId) return [];
+    return paymentOptions.filter((account) =>
+      (account.payment_methods ?? []).some((method) => method.id.toString() === selectedMethodId)
+    );
+  }, [paymentOptions, selectedMethodId]);
+
+  const selectedCard = useMemo(
+    () => cardsForMethod.find((card) => card.id.toString() === selectedCardId),
+    [cardsForMethod, selectedCardId]
+  );
 
   const total = useMemo(() => {
     return (
@@ -256,6 +276,18 @@ export function CompleteOrderForm({ onClose, po, isAeronautical = false }: FormP
   }, [po.sub_total, tax, effectiveWireFee, handling_fee, shipping_fee, international_shipping]);
 
   const onSubmit = async (data: FormSchemaType) => {
+    // Si el método tiene tarjetas registradas, hay que indicar cuál se usó;
+    // si no tiene tarjetas pero sí cuentas habilitadas, hay que indicar la cuenta.
+    if (data.payment_method_id && cardsForMethod.length > 0 && !data.bank_card_id) {
+      form.setError("bank_card_id", { message: "Debe seleccionar la tarjeta utilizada." });
+      return;
+    }
+
+    if (data.payment_method_id && cardsForMethod.length === 0 && accountsForMethod.length > 0 && !data.bank_account_id) {
+      form.setError("bank_account_id", { message: "Debe seleccionar la cuenta utilizada." });
+      return;
+    }
+
     const wireFee = isAeronautical ? 0 : Number(data.wire_fee || 0);
 
     const computedTotal =
@@ -275,8 +307,15 @@ export function CompleteOrderForm({ onClose, po, isAeronautical = false }: FormP
         shipping_fee: Number(data.shipping_fee || 0),
         international_shipping: Number(data.international_shipping || 0),
         total: computedTotal,
-        bank_account_id: data.bank_account_id ? Number(data.bank_account_id) : null,
-        card_id: data.card_id ? Number(data.card_id) : null,
+        // La tarjeta determina su cuenta; sin método (orden previa a la
+        // reingeniería) se preserva la cuenta que ya tenía la orden.
+        payment_method_id: data.payment_method_id ? Number(data.payment_method_id) : null,
+        bank_account_id: selectedCard
+          ? selectedCard.bank_account_id
+          : (data.bank_account_id
+            ? Number(data.bank_account_id)
+            : (! data.payment_method_id && po.bank_account ? po.bank_account.id : null)),
+        bank_card_id: selectedCard ? selectedCard.id : null,
         shipping_agency_id: data.shipping_agency_id ? Number(data.shipping_agency_id) : null,
         invoice_number: data.invoice_number || null,
         observation: data.observation || null,
@@ -527,24 +566,34 @@ export function CompleteOrderForm({ onClose, po, isAeronautical = false }: FormP
             </span>
 
             <div className="grid grid-cols-2 gap-3">
-              {/* Método de pago */}
+              {/* 1. Método de pago: catálogo fijo del sistema, siempre primero */}
               <FormField
                 control={form.control}
-                name="payment_method"
+                name="payment_method_id"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className={LABEL_CLS}>Método</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormItem className="col-span-2">
+                    <FormLabel className={LABEL_CLS}>Método de pago</FormLabel>
+                    <Select
+                      disabled={isMethodsLoading}
+                      onValueChange={(value) => {
+                        field.onChange(value);
+                        // Cambiar de método invalida tarjeta y cuenta elegidas.
+                        form.setValue("bank_card_id", "");
+                        form.setValue("bank_account_id", "");
+                      }}
+                      value={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger className={SELECT_TRIGGER_CLS}>
-                          <SelectValue placeholder="Seleccionar..." />
+                          <SelectValue placeholder={isMethodsLoading ? "Cargando..." : "Seleccionar método..."} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="transferencia_usa">Transferencia — USA</SelectItem>
-                        <SelectItem value="transferencia_nacional">Transferencia — Nacional</SelectItem>
-                        <SelectItem value="debito_credito">Débito / Crédito</SelectItem>
-                        <SelectItem value="zelle">Zelle</SelectItem>
+                        {paymentMethods?.map((method) => (
+                          <SelectItem value={method.id.toString()} key={method.id} className="text-sm">
+                            {method.name}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -552,24 +601,25 @@ export function CompleteOrderForm({ onClose, po, isAeronautical = false }: FormP
                 )}
               />
 
-              {/* Cuenta bancaria */}
-              {(paymentMethod === "transferencia_nacional" || paymentMethod === "transferencia_usa") && (
+              {/* 2a. Tarjeta: si el método tiene tarjetas válidas para la
+                  compañía, se elige la tarjeta y su cuenta queda determinada */}
+              {cardsForMethod.length > 0 && (
                 <FormField
                   control={form.control}
-                  name="bank_account_id"
+                  name="bank_card_id"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className={LABEL_CLS}>Cuenta bancaria</FormLabel>
-                      <Select disabled={isAccLoading} onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormItem className="col-span-2">
+                      <FormLabel className={LABEL_CLS}>Tarjeta</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger className={SELECT_TRIGGER_CLS}>
-                            <SelectValue placeholder="Seleccionar cuenta..." />
+                            <SelectValue placeholder="Seleccionar tarjeta..." />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {accounts?.map((acc) => (
-                            <SelectItem value={acc.id.toString()} key={acc.id} className="text-sm">
-                              {acc.name} ({acc.account_number}) — {acc.bank.name}
+                          {cardsForMethod.map((card) => (
+                            <SelectItem value={card.id.toString()} key={card.id} className="text-sm">
+                              {card.name} ({card.card_number}) — {card.bank_account.name} · {card.bank_account.bank.name}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -580,31 +630,39 @@ export function CompleteOrderForm({ onClose, po, isAeronautical = false }: FormP
                 />
               )}
 
-              {/* Tarjeta */}
-              {paymentMethod === "debito_credito" && (
+              {/* Cuenta determinada por la tarjeta elegida: se muestra, no se elige */}
+              {selectedCard && (
+                <div className="col-span-2 flex items-center gap-2 rounded-lg border border-border/40 bg-muted/20 px-3 py-2 text-xs text-muted-foreground">
+                  <Building2 className="size-3.5 shrink-0" />
+                  <span>
+                    Cuenta: <span className="font-medium text-foreground/90">{selectedCard.bank_account.name}</span>
+                    {" "}
+                    <span className="font-mono">(***{selectedCard.bank_account.account_number})</span>
+                    {" — "}
+                    {selectedCard.bank_account.bank.name}
+                  </span>
+                </div>
+              )}
+
+              {/* 2b. Cuenta: si el método no tiene tarjetas pero sí cuentas
+                  habilitadas (p. ej. Transferencia, Pago Móvil) */}
+              {cardsForMethod.length === 0 && accountsForMethod.length > 0 && (
                 <FormField
                   control={form.control}
-                  name="card_id"
+                  name="bank_account_id"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className={LABEL_CLS}>Tarjeta</FormLabel>
-                      <Select disabled={isCardsLoading} onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormItem className="col-span-2">
+                      <FormLabel className={LABEL_CLS}>Cuenta bancaria</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger className={SELECT_TRIGGER_CLS}>
-                            <SelectValue placeholder="Seleccionar tarjeta..." />
+                            <SelectValue placeholder="Seleccionar cuenta..." />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {cards?.map((card) => (
-                            <SelectItem
-                              value={card.id.toString()}
-                              key={card.id}
-                              className="text-sm"
-                              onClick={() => {
-                                form.setValue("bank_account_id", card.bank_account.id.toString());
-                              }}
-                            >
-                              {card.name} ({card.card_number}) — {card.bank_account.bank.name}
+                          {accountsForMethod.map((account) => (
+                            <SelectItem value={account.id.toString()} key={account.id} className="text-sm">
+                              {account.name} ({account.account_number}) — {account.bank.name}
                             </SelectItem>
                           ))}
                         </SelectContent>

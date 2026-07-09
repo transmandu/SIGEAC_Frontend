@@ -18,7 +18,8 @@ import ImageAttachment from './_components/ImageAttachment';
 import ArticleCard from './_components/ArticleCard';
 import ImageViewer from './_components/ImageViewer';
 import RequisitionOutOfScope from './_components/RequisitionOutOfScope';
-import { statusBadgeCls, requisitionTypeLabel, formatSolicitudDate } from './_components/utils/uiHelpers';
+import RequiredDocumentsSection from './_components/RequiredDocumentsSection';
+import { statusBadgeCls, requisitionStatusLabel, requisitionTypeLabel, formatSolicitudDate } from './_components/utils/uiHelpers';
 
 // ── Página ────────────────────────────────────────────────────────────
 const RequisitionPage = () => {
@@ -134,7 +135,7 @@ const RequisitionPage = () => {
                   </span>
 
                   <Badge className={statusBadgeCls(data?.status)}>
-                    {data?.status}
+                    {requisitionStatusLabel(data?.status)}
                   </Badge>
                 </div>
 
@@ -207,7 +208,7 @@ const RequisitionPage = () => {
         <div className="w-full space-y-4 sm:space-y-6">
 
           {/* GRID PRINCIPAL */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
+          <div className="grid grid-cols-1 xl:grid-cols-[1fr_1fr_auto] gap-4 sm:gap-5 items-start">
 
             {/* JUSTIFICACIÓN */}
             <InfoSection
@@ -224,6 +225,11 @@ const RequisitionPage = () => {
               content={data?.observation}
               emptyMessage="SIN OBSERVACIONES"
             />
+
+            {/* DOCUMENTOS REQUERIDOS POR ÍTEM */}
+            <div className="w-full xl:w-[220px] shrink-0">
+              <RequiredDocumentsSection batches={batches} />
+            </div>
           </div>
 
           {/* ── IMAGEN ADJUNTA ───────────────────────────── */}

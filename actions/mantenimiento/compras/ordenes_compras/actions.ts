@@ -1,7 +1,7 @@
 import axiosInstance from "@/lib/axios"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
-import type { CreatePurchaseOrderData, UpdatePurchaseOrderData } from "@/types/purchase"
+import type { CreatePurchaseOrderData, UpdatePurchaseOrderData, RegisterGeneralArticlesDeliveryResponse } from "@/types/purchase"
 
 export const useCreatePurchaseOrder = () => {
 
@@ -15,6 +15,12 @@ export const useCreatePurchaseOrder = () => {
           queryClient.invalidateQueries({queryKey: ['purchase-orders']})
           queryClient.invalidateQueries({queryKey: ['purchase-order'], exact: false})
           queryClient.invalidateQueries({queryKey: ['purchaseOrderByQuote'], exact: false})
+          // Crear la OC aprueba la cotización y avanza la requisición en el
+          // backend, así que refrescamos esas vistas también.
+          queryClient.invalidateQueries({queryKey: ['quotes']})
+          queryClient.invalidateQueries({queryKey: ['quote'], exact: false})
+          queryClient.invalidateQueries({queryKey: ['requisitions-orders']})
+          queryClient.invalidateQueries({queryKey: ['requisition-order'], exact: false})
           toast.success("¡Creado!", {
               description: `La orden de compra ha sido creada correctamente.`
           })
@@ -45,8 +51,12 @@ export const useCompletePurchase = () => {
           if (data.wire_fee != null) formData.append("wire_fee", String(data.wire_fee))
           if (data.handling_fee != null) formData.append("handling_fee", String(data.handling_fee))
           formData.append("total", String(data.total))
+          // El backend deriva bank_account_id del método de pago cuando se
+          // envía payment_method_id; bank_account_id suelto queda por
+          // compatibilidad con órdenes previas a la reingeniería de pagos.
+          if (data.payment_method_id != null) formData.append("payment_method_id", String(data.payment_method_id))
           if (data.bank_account_id != null) formData.append("bank_account_id", String(data.bank_account_id))
-          if (data.card_id != null) formData.append("card_id", String(data.card_id))
+          if (data.bank_card_id != null) formData.append("bank_card_id", String(data.bank_card_id))
           if (data.shipping_fee != null) formData.append("shipping_fee", String(data.shipping_fee))
           if (data.shipping_agency_id != null) formData.append("shipping_agency_id", String(data.shipping_agency_id))
           if (data.international_shipping != null) formData.append("international_shipping", String(data.international_shipping))
@@ -67,6 +77,10 @@ export const useCompletePurchase = () => {
       onSuccess: () => {
           queryClient.invalidateQueries({queryKey: ['purchase-orders']})
           queryClient.invalidateQueries({queryKey: ['purchase-order'], exact: false})
+          queryClient.invalidateQueries({queryKey: ['quotes']})
+          queryClient.invalidateQueries({queryKey: ['quote'], exact: false})
+          queryClient.invalidateQueries({queryKey: ['requisitions-orders']})
+          queryClient.invalidateQueries({queryKey: ['requisition-order'], exact: false})
           toast.success("¡Confirmada!", {
               description: `¡La orden de compra ha sido actualizada correctamente!`
           })
@@ -96,6 +110,10 @@ export const useMarkPurchaseOrderAsPaid = () => {
       onSuccess: () => {
           queryClient.invalidateQueries({queryKey: ['purchase-orders']})
           queryClient.invalidateQueries({queryKey: ['purchase-order'], exact: false})
+          queryClient.invalidateQueries({queryKey: ['quotes']})
+          queryClient.invalidateQueries({queryKey: ['quote'], exact: false})
+          queryClient.invalidateQueries({queryKey: ['requisitions-orders']})
+          queryClient.invalidateQueries({queryKey: ['requisition-order'], exact: false})
           toast.success("¡Pagada!", {
               description: `La orden de compra ha sido marcada como pagada.`
           })
@@ -113,6 +131,44 @@ export const useMarkPurchaseOrderAsPaid = () => {
   }
 }
 
+// El responsable de traer la mercancía llama esto cuando los artículos
+// generales de la orden llegan físicamente. Crea un GeneralArticleIntake en
+// PENDING por cada ítem general que aún no tenga uno (seguro de llamar más
+// de una vez sobre la misma orden, p. ej. entregas parciales/escalonadas).
+// Pagar la orden (useMarkPurchaseOrderAsPaid) ya NO dispara esto automáticamente.
+export const useRegisterGeneralArticlesDelivery = () => {
+
+  const queryClient = useQueryClient()
+
+  const registerDeliveryMutation = useMutation({
+      mutationFn: async ({id, company, arrivedAt}: {id: number, company: string, arrivedAt?: Date}) => {
+          const {data} = await axiosInstance.patch<RegisterGeneralArticlesDeliveryResponse>(
+            `/${company}/purchase-order/${id}/register-general-articles-delivery`,
+            arrivedAt ? { arrived_at: arrivedAt.toISOString() } : {}
+          )
+          return data
+        },
+      onSuccess: () => {
+          queryClient.invalidateQueries({queryKey: ['purchase-orders']})
+          queryClient.invalidateQueries({queryKey: ['purchase-order'], exact: false})
+          queryClient.invalidateQueries({queryKey: ['general-article-intakes'], exact: false})
+          toast.success("¡Entrega registrada!", {
+              description: `Se registró la entrega de los artículos generales de la orden de compra.`
+          })
+        },
+      onError: (error: any) => {
+          toast.error("Oops!", {
+            description: error?.response?.data?.message || "¡Hubo un error al registrar la entrega de los artículos generales!"
+        })
+        },
+      }
+  )
+
+  return {
+    registerGeneralArticlesDelivery: registerDeliveryMutation,
+  }
+}
+
 export const useMarkPurchaseOrderAsCompleted = () => {
 
   const queryClient = useQueryClient()
@@ -125,6 +181,10 @@ export const useMarkPurchaseOrderAsCompleted = () => {
       onSuccess: () => {
           queryClient.invalidateQueries({queryKey: ['purchase-orders']})
           queryClient.invalidateQueries({queryKey: ['purchase-order'], exact: false})
+          queryClient.invalidateQueries({queryKey: ['quotes']})
+          queryClient.invalidateQueries({queryKey: ['quote'], exact: false})
+          queryClient.invalidateQueries({queryKey: ['requisitions-orders']})
+          queryClient.invalidateQueries({queryKey: ['requisition-order'], exact: false})
           toast.success("¡Completada!", {
               description: `La orden de compra ha sido marcada como completada.`
           })

@@ -63,6 +63,15 @@
     --sx-color-surface-tint: #6750a4;
     --sx-color-neutral: var(--sx-color-outline);
     --sx-color-neutral-variant: var(--sx-color-outline-variant);
+
+    --tour-bg: #ffffff;
+    --tour-color: #1e293b;
+    --tour-arrow-enabled: #1e293b;
+    --tour-arrow-disabled: #cbd5e1;
+    --tour-badge-bg: #f1f5f9;
+    --tour-badge-color: #64748b;
+    --tour-close-color: #94a3b8;
+    --tour-close-hover: #1e293b;
   }
 
   .dark {
@@ -86,6 +95,15 @@
     --input: 226 30% 50%;
     --ring: 226 100% 60%;
     --radius: 0.5rem;
+
+    --tour-bg: #1e293b;
+    --tour-color: #f8fafc;
+    --tour-arrow-enabled: #f8fafc;
+    --tour-arrow-disabled: #475569;
+    --tour-badge-bg: #334155;
+    --tour-badge-color: #94a3b8;
+    --tour-close-color: #94a3b8;
+    --tour-close-hover: #f8fafc;
   }
 }
 

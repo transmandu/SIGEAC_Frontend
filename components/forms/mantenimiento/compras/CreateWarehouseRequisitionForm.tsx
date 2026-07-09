@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
 import { useAuth } from "@/contexts/AuthContext"
 import { useGetBatchesByLocationId } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByLocationId"
+import { useSearchBatchesWithArticles, type BatchWithArticles } from "@/hooks/mantenimiento/almacen/renglones/useSearchBatchesWithArticles"
 import { useGetMaintenanceAircrafts } from '@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts'
 import { useGetWorkOrders } from '@/hooks/mantenimiento/planificacion/useGetWorkOrders'
 import { useGetUserDepartamentEmployees } from "@/hooks/sistema/empleados/useGetUserDepartamentEmployees"
@@ -18,6 +19,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits"
+import { useDebounce } from "@/lib/useDebounce"
 import { cn } from "@/lib/utils"
 import { useGetGeneralArticles } from "@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticles"
 import type { RequisitionBatchForm, RequisitionGeneralArticleForm } from "@/types/purchase"
@@ -66,6 +68,7 @@ const FormSchema = z.object({
             aircraft_id: z.string().optional(),
             priority: z.enum(["HIGH", "MEDIUM", "LOW"]).optional(),
             image: z.any().optional(),
+            document_type_ids: z.array(z.number()).min(1, "Debe seleccionar al menos un tipo de documento"),
           })
         ),
       })
@@ -176,6 +179,14 @@ export function CreateWarehouseRequisitionForm({
   const [workOrderSearch, setWorkOrderSearch] = useState("");
   const [batchSearch, setBatchSearch] = useState("");
   const [generalArticleSearch, setGeneralArticleSearch] = useState("");
+  const [articleSearch, setArticleSearch] = useState("");
+  const debouncedArticleSearch = useDebounce(articleSearch, 300);
+
+  const { data: articleResults, isFetching: isArticleResultsLoading } = useSearchBatchesWithArticles(
+    selectedCompany?.slug,
+    selectedStation ?? undefined,
+    debouncedArticleSearch || undefined
+  );
 
   // Memoized filtered lists for each searchable selector
   const filteredEmployees = useMemo(() => {
@@ -319,9 +330,83 @@ export function CreateWarehouseRequisitionForm({
         {
           batch: batchId,
           batch_name: batchName,
-          batch_articles: [{ part_number: "", quantity: 1, unit: getDefaultUnit(batch_category), priority: "MEDIUM", aircraft_id: headerAircraftId }],
+          batch_articles: [{ part_number: "", quantity: 1, unit: getDefaultUnit(batch_category), priority: "MEDIUM", aircraft_id: headerAircraftId, document_type_ids: [] }],
         },
       ];
+    });
+  };
+
+  // Article search handler: selecting an article by part_number loads its
+  // associated batch (adding it if not already selected) and fills the
+  // part_number/alt_part_number/unit into an empty row, or appends a new one.
+  const handleArticleSelect = (
+    batch: BatchWithArticles["batch"],
+    article: BatchWithArticles["articles"][number]
+  ) => {
+    const batchId = batch.id.toString();
+    const altPartNumber = article.alternative_part_number?.[0] ?? "";
+    const unit = getDefaultUnit(batch.category);
+
+    // Pre-selección: los documentos que el inventario ya espera para este
+    // artículo se marcan como documentación a solicitar al vendedor.
+    const documentTypeIds =
+      article.document_requirements
+        ?.map((req) => req.document_type?.id)
+        .filter((id): id is number => typeof id === "number") ?? [];
+
+    setSelectedBatches((prev) => {
+      const existingBatch = prev.find((b) => b.batch === batchId);
+
+      if (!existingBatch) {
+        return [
+          ...prev,
+          {
+            batch: batchId,
+            batch_name: batch.name,
+            batch_articles: [
+              {
+                part_number: article.part_number,
+                alt_part_number: altPartNumber,
+                quantity: 1,
+                unit,
+                priority: "MEDIUM",
+                aircraft_id: headerAircraftId,
+                document_type_ids: documentTypeIds,
+              },
+            ],
+          },
+        ];
+      }
+
+      return prev.map((b) => {
+        if (b.batch !== batchId) return b;
+        const emptyIndex = b.batch_articles.findIndex((a) => !a.part_number);
+        if (emptyIndex === -1) {
+          return {
+            ...b,
+            batch_articles: [
+              ...b.batch_articles,
+              {
+                part_number: article.part_number,
+                alt_part_number: altPartNumber,
+                quantity: 1,
+                unit,
+                priority: "MEDIUM",
+                aircraft_id: headerAircraftId,
+                document_type_ids: documentTypeIds,
+              },
+            ],
+          };
+        }
+        return {
+          ...b,
+          batch_articles: b.batch_articles.map((a, i) =>
+            i === emptyIndex
+              ? { ...a, part_number: article.part_number, alt_part_number: altPartNumber, unit, document_type_ids: documentTypeIds }
+              : a
+          ),
+        };
+      });
     });
   };
 
@@ -329,7 +414,7 @@ export function CreateWarehouseRequisitionForm({
     batchId: string,
     index: number,
     field: string,
-    value: string | number | File | undefined
+    value: string | number | number[] | File | undefined
   ) => {
     if (field === "priority") {
       escalateHeaderPriority(value as Priority);
@@ -356,7 +441,7 @@ export function CreateWarehouseRequisitionForm({
           ...batch,
           batch_articles: [
             ...batch.batch_articles,
-            { part_number: "", quantity: 1, unit: getDefaultUnit(batch.batch_name), priority: "MEDIUM", aircraft_id: headerAircraftId },
+            { part_number: "", quantity: 1, unit: getDefaultUnit(batch.batch_name), priority: "MEDIUM", aircraft_id: headerAircraftId, document_type_ids: [] },
           ],
         };
       })
@@ -564,6 +649,11 @@ export function CreateWarehouseRequisitionForm({
             removeBatchArticle={removeBatchArticle}
             removeBatch={removeBatch}
             size={itemLabelSize}
+            filteredArticleResults={articleResults}
+            isArticleResultsLoading={isArticleResultsLoading}
+            articleSearch={articleSearch}
+            setArticleSearch={setArticleSearch}
+            handleArticleSelect={handleArticleSelect}
           />
         ) : (
           <GeneralArticlesSection

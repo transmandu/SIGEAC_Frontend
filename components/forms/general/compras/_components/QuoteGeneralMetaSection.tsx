@@ -23,8 +23,10 @@ import {
 } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { MarqueeBlockText } from "@/components/misc/MarqueeBlockText";
+import type { Retailer } from "@/types";
 import type { QuoteableRequisition } from "@/types/purchase/quote";
 import { RequiredIndicator } from "@/components/forms/mantenimiento/compras/_components/RequiredIndicator";
+import { RetailerCombobox } from "./RetailerCombobox";
 
 interface LocationOption {
   id: number;
@@ -36,12 +38,14 @@ interface QuoteGeneralMetaSectionProps {
   form: UseFormReturn<any>;
   req: QuoteableRequisition;
   locations?: LocationOption[];
+  retailers?: Retailer[];
 }
 
 export function QuoteGeneralMetaSection({
   form,
   req,
   locations,
+  retailers,
 }: QuoteGeneralMetaSectionProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
@@ -148,6 +152,34 @@ export function QuoteGeneralMetaSection({
               )}
             />
           </div>
+
+          {/* Lugar de compra (cabecera) */}
+          <FormField
+            control={form.control}
+            name="retailer_id"
+            render={({ field }) => (
+              <FormItem className="space-y-2">
+                <div className="flex items-center gap-2 min-h-[16px] pb-1.5">
+                  <FormLabel className="m-0 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                    Lugar de compra
+                    <RequiredIndicator />
+                  </FormLabel>
+                  <div className="h-px flex-1 bg-border/60" />
+                </div>
+
+                <FormControl>
+                  <RetailerCombobox
+                    value={field.value ?? ""}
+                    onChange={field.onChange}
+                    retailers={retailers}
+                    triggerClassName="h-9 text-sm"
+                  />
+                </FormControl>
+
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
       </div>
 

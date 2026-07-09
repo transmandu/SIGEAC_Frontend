@@ -16,9 +16,6 @@ import CreateToolForm from "./CreateToolForm";
 
 export interface EditingArticle extends Article {
     batch: Batch;
-    certificate_8130?: string;
-    certificate_vendor?: string;
-    certificate_fabricant?: string;
     tool?: {
         id: number;
         serial: string;
@@ -67,11 +64,14 @@ interface IRegisterArticleProps {
     isEditing?: boolean;
     initialData?: EditingArticle;
     category?: string;
+    /** Al editar: reemplaza la redirección post-guardado (útil dentro de diálogos). */
+    onEditSuccess?: () => void;
 }
 
 const DirectRegisterArticleForm = ({
     isEditing = false,
     initialData,
+    onEditSuccess,
 }: IRegisterArticleProps) => {
     const [type, setType] = useState(
         initialData?.batch.category.toUpperCase() ?? "COMPONENTE",
@@ -105,16 +105,16 @@ const DirectRegisterArticleForm = ({
                 </SelectContent>
             </Select>
             {type === "CONSUMIBLE" && (
-                <DirectRegisterConsumableForm isEditing={isEditing} initialData={initialData} />
+                <DirectRegisterConsumableForm isEditing={isEditing} initialData={initialData} onEditSuccess={onEditSuccess} />
             )}
             {type === "HERRAMIENTA" && (
-                <CreateToolForm isEditing={isEditing} initialData={initialData} />
+                <CreateToolForm isEditing={isEditing} initialData={initialData} onEditSuccess={onEditSuccess} />
             )}
             {type === "COMPONENTE" && (
-                <DirectRegisterComponentForm isEditing={isEditing} initialData={initialData} />
+                <DirectRegisterComponentForm isEditing={isEditing} initialData={initialData} onEditSuccess={onEditSuccess} />
             )}
             {type === "PARTE" && (
-                <DirectRegisterPartForm isEditing={isEditing} initialData={initialData} />
+                <DirectRegisterPartForm isEditing={isEditing} initialData={initialData} onEditSuccess={onEditSuccess} />
             )}
         </div>
     );

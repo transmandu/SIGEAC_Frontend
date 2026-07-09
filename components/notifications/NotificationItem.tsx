@@ -189,7 +189,7 @@ export default function NotificationItem({
                 </button>
               </TooltipTrigger>
 
-              <TooltipContent side="left">
+              <TooltipContent side="left" className="z-[1001]">
                 Marcar como leído
               </TooltipContent>
             </Tooltip>

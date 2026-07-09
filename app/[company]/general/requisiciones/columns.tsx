@@ -5,7 +5,7 @@ import { ColumnDef } from "@tanstack/react-table"
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
 
 import RequisitionsDropdownActions from "@/components/dropdowns/mantenimiento/compras/RequisitionDropdownActions"
-import { Badge } from "@/components/ui/badge"
+
 import { cn } from "@/lib/utils"
 import type { Requisition } from "@/types/purchase"
 import { format } from "date-fns"
@@ -26,7 +26,7 @@ export const getColumns = (
 ): ColumnDef<Requisition>[] => [
   {
     accessorKey: "order_number",
-    size: 205,
+    size: 210,
     header: ({ column }) => (
       <DataTableColumnHeader filter column={column} title="Nro. Req." />
     ),
@@ -58,7 +58,7 @@ export const getColumns = (
   },
   {
     accessorKey: "status",
-    size: 60,
+    size: 90,
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Estado" />
     ),
@@ -66,23 +66,25 @@ export const getColumns = (
     cell: ({ row }) => {
       const status = row.original.status?.toUpperCase();
 
-      const isProcess = status === "PROCESO" || status === "COTIZADO";
-      const isApproved = status === "APROBADA";
+      const STATUS_CONFIG: Record<string, { label: string; cls: string }> = {
+        CREATED:     { label: 'CREADA',     cls: 'bg-slate-500/20 text-slate-700 dark:text-slate-200' },
+        RECEIVED:    { label: 'RECIBIDA',   cls: 'bg-sky-500/20 text-sky-700 dark:text-sky-200' },
+        IN_PROGRESS: { label: 'PROCESO',    cls: 'bg-yellow-500/20 text-yellow-700 dark:text-yellow-200' },
+        QUOTED:      { label: 'COTIZADA',   cls: 'bg-violet-500/20 text-violet-700 dark:text-violet-200' },
+        APPROVED:    { label: 'APROBADA',   cls: 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-200' },
+        REJECTED:    { label: 'NO APROBADA',  cls: 'bg-red-500/20 text-red-700 dark:text-red-200' },
+      };
+
+      const config = STATUS_CONFIG[status ?? ''] ?? { label: status ?? '—', cls: 'border-border bg-muted text-muted-foreground' };
 
       return (
-        <div className="flex justify-center">
-          <Badge
-            className={cn(
-              "text-[11px] px-2 py-0 h-5 leading-none font-medium",
-              isProcess
-                ? "bg-yellow-500 text-white"
-                : isApproved
-                ? "bg-green-500 text-white"
-                : "bg-red-500 text-white"
-            )}
-          >
-            {status}
-          </Badge>
+        <div className="flex justify-center text-center">
+          <span className={cn(
+            "rounded-full px-2.5 py-0.5 text-[11px] font-medium select-none cursor-default",
+            config.cls
+          )}>
+            {config.label}
+          </span>
         </div>
       );
     },
@@ -103,7 +105,7 @@ export const getColumns = (
     size: 20,
     header: () => null,
     cell: ({ row }) => (
-      <div className="flex justify-center" onClick={(e) => e.stopPropagation()}>
+      <div className="flex justify-center px-0" onClick={(e) => e.stopPropagation()}>
         <RequisitionArticlesPopover requisition={row.original} />
       </div>
     ),
@@ -112,7 +114,7 @@ export const getColumns = (
   },
   {
     accessorKey: "type",
-    size: 130,
+    size: 80,
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Tipo de Req." />
     ),
@@ -123,7 +125,7 @@ export const getColumns = (
   },
   {
     accessorKey: "priority",
-    size: 90,
+    size: 60,
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Prioridad" />
     ),
@@ -132,11 +134,8 @@ export const getColumns = (
       const priority = row.original.priority?.toUpperCase();
 
       const config = {
-        ALTA: { label: "Alta", dot: "bg-red-500" },
-        HIGH: { label: "Alta", dot: "bg-red-500" },
-        MEDIA: { label: "Media", dot: "bg-yellow-500" },
-        MEDIUM: { label: "Media", dot: "bg-yellow-500" },
-        BAJA: { label: "Baja", dot: "bg-green-500" },
+        HIGH: { label: "ALTA", dot: "bg-red-500" },
+        MEDIUM: { label: "MEDIA", dot: "bg-yellow-500" },
         LOW: { label: "Baja", dot: "bg-green-500" },
       } as const;
 
@@ -230,11 +229,13 @@ export const getColumns = (
     ),
     meta: { title: "Fecha de Creación" },
     cell: ({ row }) => (
-      <p className="text-center">{format(row.original.submission_date, "PPP", { locale: es })}</p>
+      <p className="text-center text-sm text-slate-600 dark:text-slate-300 font-medium tracking-wide uppercase">
+        {format(new Date(row.original.submission_date), "dd MMM yyyy", { locale: es })}
+      </p>
     )
   },
   {
-    accessorKey: "actions",
+    id: 'actions',
     size: 50,
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Acciones" />

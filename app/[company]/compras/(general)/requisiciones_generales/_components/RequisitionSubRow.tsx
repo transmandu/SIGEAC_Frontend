@@ -7,6 +7,12 @@ import type { Requisition } from '@/types/purchase'
 import Link from 'next/link'
 import { useCompanyStore } from '@/stores/CompanyStore'
 
+const QUOTE_STATUS_LABELS: Record<string, string> = {
+  PENDING: 'PENDIENTE',
+  APPROVED: 'APROBADA',
+  REJECTED: 'RECHAZADA',
+}
+
 interface Props {
   requisition: Requisition
   selectedCompany: { slug: string } | null
@@ -37,9 +43,13 @@ export default function RequisitionSubRow({
 
       <div className="flex flex-col gap-1.5">
         {quotes.map((quote) => {
-          const approved = quote.status === 'APROBADA'
-          const rejected = quote.status === 'RECHAZADA'
-          const pending = quote.status === 'PENDIENTE'
+          const approved = quote.status === 'APPROVED'
+          const rejected = quote.status === 'REJECTED'
+          const pending = quote.status === 'PENDING'
+          const retailerNames = quote.article_retailers ?? []
+          const retailerLabel = retailerNames.length > 0
+            ? retailerNames.join(', ')
+            : 'No aplica "Lugar de compra" para esta cotización'
           const decisionDate = quote.updated_at
             ? new Date(quote.updated_at).toISOString().slice(0, 10)
             : null
@@ -54,12 +64,15 @@ export default function RequisitionSubRow({
               </div>
               <div className="flex flex-col leading-tight">
                 <Link
-                    href={`/${selectedCompany?.slug}/compras/cotizaciones/${quote.quote_number}`}
+                    href={`/${selectedCompany?.slug}/compras/cotizaciones_generales/${quote.quote_number}`}
                     className="text-sm font-medium text-slate-800 dark:text-slate-100 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
                     onClick={(e) => e.stopPropagation()}
                   >
                     {quote.quote_number}
                   </Link>
+                  <span className="text-[11px] text-muted-foreground truncate max-w-[240px]">
+                    {retailerLabel}
+                  </span>
               </div>
             </div>
 
@@ -85,7 +98,7 @@ export default function RequisitionSubRow({
                     {approved && <CheckCircle2 className="h-3 w-3" />}
                     {rejected && <XCircle className="h-3 w-3" />}
                     {pending && <Clock3 className="h-3 w-3" />}
-                    {quote.status}
+                    {QUOTE_STATUS_LABELS[quote.status] ?? quote.status}
                   </div>
                 </Badge>
               </div>

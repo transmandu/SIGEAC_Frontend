@@ -128,6 +128,7 @@ export default function UnknownDestinationPage() {
             loading={isLoading}
             loadingText="Cargando artículos..."
             emptyText="No se encontraron artículos"
+            persistKey="destino_indeterminado"
           />
 
         {/* Error */}

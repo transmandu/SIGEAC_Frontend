@@ -21,10 +21,14 @@ import {
 } from "lucide-react";
 
 import {
+  ArticleDocumentSelection,
+  extractCreatedArticleIds,
   useConfirmIncomingArticle,
   useCreateArticle,
+  useUploadArticleDocuments,
 } from "@/actions/mantenimiento/almacen/inventario/articulos/actions";
 
+import ArticleDocumentsSelector from "@/components/misc/ArticleDocumentsSelector";
 import { MultiInputField } from "@/components/misc/MultiInputField";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -102,18 +106,6 @@ const formSchema = z
     next_calibration: z.coerce.number().int().positive().optional(),
 
     // Archivos
-    certificate_8130: z
-      .instanceof(File, { message: "Archivo inválido." })
-      .refine((f) => f.size <= fileMaxBytes, "Máx. 10 MB.")
-      .optional(),
-    certificate_fabricant: z
-      .instanceof(File, { message: "Archivo inválido." })
-      .refine((f) => f.size <= fileMaxBytes, "Máx. 10 MB.")
-      .optional(),
-    certificate_vendor: z
-      .instanceof(File, { message: "Archivo inválido." })
-      .refine((f) => f.size <= fileMaxBytes, "Máx. 10 MB.")
-      .optional(),
     image: z.instanceof(File).optional(),
     has_documentation: z.boolean().optional(),
     destination_unknown: z.boolean().optional(),
@@ -122,6 +114,14 @@ const formSchema = z
       .date()
       .refine((val) => !isNaN(val.getTime()), { message: "Invalid Date" })
       .optional(),
+    reception_date: z
+      .date()
+      .refine((val) => !isNaN(val.getTime()), { message: "Invalid Date" })
+      .optional(),
+    sender: z.string().optional(),
+    origin: z.string().optional(),
+    destination: z.string().optional(),
+    justification: z.string().optional(),
   })
   .superRefine((vals, ctx) => {
     if (vals.needs_calibration) {
@@ -405,6 +405,9 @@ export default function ReceptionRegisterToolForm({
 
   const { createArticle } = useCreateArticle();
   const { updateArticle } = useUpdateArticle();
+  const { uploadArticleDocuments } = useUploadArticleDocuments();
+
+  const [documents, setDocuments] = useState<ArticleDocumentSelection[]>([]);
   const { confirmIncoming } = useConfirmIncomingArticle();
 
   const [enableBatchNameEdit, setEnableBatchNameEdit] = useState(false);
@@ -433,6 +436,13 @@ export default function ReceptionRegisterToolForm({
       inspect_date: initialData?.inspect_date
         ? addDays(new Date(initialData.inspect_date), 1)
         : undefined,
+      reception_date: initialData?.reception_date
+        ? addDays(new Date(initialData.reception_date), 1)
+        : undefined,
+      sender: (initialData as any)?.article_detail?.sender || "",
+      origin: (initialData as any)?.article_detail?.origin || "",
+      destination: (initialData as any)?.article_detail?.destination || "",
+      justification: (initialData as any)?.article_detail?.justification || "",
     },
     mode: "onBlur",
   });
@@ -462,6 +472,9 @@ export default function ReceptionRegisterToolForm({
         : undefined,
       has_documentation: initialData.has_documentation ?? false,
       destination_unknown: false,
+      reception_date: initialData?.reception_date
+        ? addDays(new Date(initialData.reception_date), 1)
+        : undefined,
     });
   }, [initialData, form]);
 
@@ -516,7 +529,14 @@ export default function ReceptionRegisterToolForm({
       calibration_date: values.calibration_date
         ? format(values.calibration_date, "yyyy-MM-dd")
         : undefined,
+      reception_date: values.reception_date
+        ? format(values.reception_date, "yyyy-MM-dd")
+        : undefined,
       batch_name: enableBatchNameEdit ? values.batch_name : undefined,
+      sender: values.sender || undefined,
+      origin: values.origin || undefined,
+      destination: values.destination || undefined,
+      justification: values.justification || undefined,
       // next_calibration se envía como número si existe
     };
 
@@ -526,17 +546,39 @@ export default function ReceptionRegisterToolForm({
         id: (initialData as any)?.id,
         company: selectedCompany.slug,
       });
+
+      if (values.has_documentation && documents.length > 0) {
+        await uploadArticleDocuments.mutateAsync({
+          company: selectedCompany.slug,
+          articleId: Number((initialData as any)?.id),
+          documents,
+        });
+      }
+
       router.push(`/${selectedCompany.slug}/ingenieria/confirmar_inventario`);
     } else {
-      await createArticle.mutateAsync({
+      const res = await createArticle.mutateAsync({
         company: selectedCompany.slug,
         data: payload,
       });
+
+      if (values.has_documentation && documents.length > 0) {
+        for (const articleId of extractCreatedArticleIds(res?.data)) {
+          await uploadArticleDocuments.mutateAsync({
+            company: selectedCompany.slug,
+            articleId,
+            documents,
+          });
+        }
+      }
+
+      setDocuments([]);
       form.reset();
     }
   }
 
   const isCalibrated = form.watch("needs_calibration");
+  const hasDocumentation = form.watch("has_documentation");
 
   return (
     <Form {...form}>
@@ -571,6 +613,59 @@ export default function ReceptionRegisterToolForm({
                 <FormItem className="flex flex-col">
                   <FormLabel>
                     Fecha de Inspección <span className="text-xs italic text-gray-500 font-normal ml-1">(Inspection Date)</span>
+                  </FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-full pl-3 text-left font-normal",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          {field.value ? (
+                            format(field.value, "PPP", { locale: es })
+                          ) : (
+                            <span>Seleccione una fecha</span>
+                          )}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value}
+                        onSelect={field.onChange}
+                        initialFocus
+                        fromYear={2000}
+                        toYear={new Date().getFullYear()}
+                        captionLayout="dropdown-buttons"
+                        components={{
+                          Dropdown: (props) => (
+                            <select
+                              {...props}
+                              className="bg-popover text-popover-foreground"
+                            >
+                              {props.children}
+                            </select>
+                          ),
+                        }}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="reception_date"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel>
+                    Fecha de Recepción <span className="text-xs italic text-gray-500 font-normal ml-1">(Reception Date)</span>
                   </FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
@@ -1178,45 +1273,84 @@ export default function ReceptionRegisterToolForm({
                 busy={busy}
               />
 
-              <div className="space-y-4">
-                <FileField
-                  form={form}
-                  name="certificate_8130"
-                  label={
-                    <span>
-                      Certificado{" "}
-                      <span className="text-primary font-semibold">8130</span>
-                    </span>
-                  }
-                  description="PDF o imagen. Máx. 10 MB."
-                  busy={busy}
+              {hasDocumentation && (
+                <ArticleDocumentsSelector
+                  value={documents}
+                  onChange={setDocuments}
+                  disabled={busy}
                 />
-                <FileField
-                  form={form}
-                  name="certificate_fabricant"
-                  label={
-                    <span>
-                      Certificado del{" "}
-                      <span className="text-primary">fabricante</span>
-                    </span>
-                  }
-                  description="PDF o imagen. Máx. 10 MB."
-                  busy={busy}
-                />
-                <FileField
-                  form={form}
-                  name="certificate_vendor"
-                  label={
-                    <span>
-                      Certificado del{" "}
-                      <span className="text-primary">vendedor</span>
-                    </span>
-                  }
-                  description="PDF o imagen. Máx. 10 MB."
-                  busy={busy}
-                />
-              </div>
+              )}
             </div>
+          </div>
+        </SectionCard>
+
+        {/* Detalles de Almacén */}
+        <SectionCard title="Detalles de Almacén">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="sender"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>
+                    Remitente{" "}
+                    <span className="text-xs italic text-gray-500 font-normal ml-1">(Sender)</span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input placeholder="Nombre del responsable" {...field} disabled={busy} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="origin"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>
+                    Origen{" "}
+                    <span className="text-xs italic text-gray-500 font-normal ml-1">(Origin)</span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input placeholder="Origen del artículo" {...field} disabled={busy} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="destination"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>
+                    Destino{" "}
+                    <span className="text-xs italic text-gray-500 font-normal ml-1">(Destination)</span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input placeholder="Destino del artículo" {...field} disabled={busy} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="justification"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>
+                    Justificación{" "}
+                    <span className="text-xs italic text-gray-500 font-normal ml-1">(Justification)</span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input placeholder="Justificación" {...field} disabled={busy} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
         </SectionCard>
 

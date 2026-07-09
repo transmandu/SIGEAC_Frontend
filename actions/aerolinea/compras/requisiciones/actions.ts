@@ -119,6 +119,7 @@ export const useUpdateRequisitionStatus = () => {
         },
       onSuccess: () => {
           queryClient.invalidateQueries({queryKey: ['requisitions-orders']})
+          queryClient.invalidateQueries({queryKey: ['requisition-order'], exact: false})
           toast.success("¡Confirmada!", {
               description: `¡La requisición ha sido confirmada correctamente!`
           })

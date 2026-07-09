@@ -9,7 +9,7 @@ interface QuoteGeneralArticleCardProps {
 }
 
 // ── Shared column widths so row 1 and row 2 fields line up vertically ──────
-const FIELDS_GRID_COLS = 'grid-cols-[55px_90px_100px]';
+const FIELDS_GRID_COLS = 'grid-cols-[80px_120px]';
 
 const QuoteGeneralArticleCard = ({ article }: QuoteGeneralArticleCardProps) => {
   const req = article.general_article_requisition_order;
@@ -31,6 +31,19 @@ const QuoteGeneralArticleCard = ({ article }: QuoteGeneralArticleCardProps) => {
             General / Ferreteria
           </Badge>
         </div>
+        {article.retailer?.name && (
+          <div className="flex items-center gap-1 shrink-0">
+            <span className="text-[9px] uppercase tracking-wide text-muted-foreground select-none">
+              Lugar de compra
+            </span>
+            <Badge
+              variant="outline"
+              className="h-4 px-1.5 text-[9px] font-medium text-foreground/80 select-none"
+            >
+              {article.retailer.name}
+            </Badge>
+          </div>
+        )}
       </div>
 
       {/* BODY */}
@@ -40,10 +53,10 @@ const QuoteGeneralArticleCard = ({ article }: QuoteGeneralArticleCardProps) => {
           {/* IZQUIERDA */}
           <div className="min-w-0 space-y-2.5">
 
-            {/* PRESENTACIÓN / VARIANTE */}
+            {/* PRESENT. / ESPECIF. */}
             <div className="space-y-1">
               <span className="text-[10px] leading-none uppercase tracking-wide text-muted-foreground select-none">
-                Presentación / Variante
+                Present. / Especif.
               </span>
               <div className="flex items-center gap-2 min-w-0">
                 <div className="w-[300px] text-sm bg-muted/40 border border-border/40 rounded px-2 py-1 truncate">
@@ -72,7 +85,7 @@ const QuoteGeneralArticleCard = ({ article }: QuoteGeneralArticleCardProps) => {
             {/* FILAS */}
             <div className="flex flex-col gap-2">
 
-              {/* FILA 1: Cantidad · Lead time · Precio unitario */}
+              {/* FILA 1: Cantidad · Precio unitario */}
               <div className={cn('grid gap-x-5', FIELDS_GRID_COLS)}>
 
                 {/* CANTIDAD */}
@@ -82,16 +95,6 @@ const QuoteGeneralArticleCard = ({ article }: QuoteGeneralArticleCardProps) => {
                   </span>
                   <span className="text-sm tabular-nums leading-none block">
                     {article.quantity}
-                  </span>
-                </div>
-
-                {/* LEAD TIME */}
-                <div className="flex flex-col items-start min-w-0">
-                  <span className="h-4 text-[10px] uppercase tracking-wide text-muted-foreground select-none mb-2 block">
-                    Lead Time
-                  </span>
-                  <span className="text-sm leading-none block">
-                    {article.lead_time ?? '—'}
                   </span>
                 </div>
 
@@ -107,7 +110,7 @@ const QuoteGeneralArticleCard = ({ article }: QuoteGeneralArticleCardProps) => {
 
               </div>
 
-              {/* FILA 2: Unidad · Referencia · Destino */}
+              {/* FILA 2: Unidad · Destino */}
               <div className={cn('grid gap-x-5', FIELDS_GRID_COLS)}>
 
                 {/* UNIDAD */}
@@ -117,16 +120,6 @@ const QuoteGeneralArticleCard = ({ article }: QuoteGeneralArticleCardProps) => {
                   </span>
                   <span className="text-sm leading-none block">
                     {article.unit?.label ?? '—'}
-                  </span>
-                </div>
-
-                {/* REFERENCIA */}
-                <div className="flex flex-col items-start min-w-0">
-                  <span className="h-4 text-[10px] uppercase tracking-wide text-muted-foreground select-none mb-2 block">
-                    Referencia
-                  </span>
-                  <span className="text-sm leading-none block truncate w-full">
-                    {article.reference ?? '—'}
                   </span>
                 </div>
 

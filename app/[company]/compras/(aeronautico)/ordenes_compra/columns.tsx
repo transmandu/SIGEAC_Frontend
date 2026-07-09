@@ -11,13 +11,19 @@ import Link from "next/link"
 import PurchaseOrderDropdownActions from "@/components/dropdowns/mantenimiento/compras/PurchaseOrderDropdownActions"
 import { ChevronRight } from "lucide-react"
 
+const PO_STATUS_LABELS: Record<string, string> = {
+  PENDING: 'PENDIENTE',
+  PAID: 'PAGADA',
+  COMPLETED: 'COMPLETADA',
+}
+
 export const getColumns = (
   selectedCompany?: { slug: string }
 ): ColumnDef<PurchaseOrder>[] => [
 
   {
     id: "expander",
-    size: 32,
+    size: 50,
 
     header: () => null,
 
@@ -39,7 +45,7 @@ export const getColumns = (
 
   {
     accessorKey: "order_number",
-    size: 180,
+    size: 210,
 
     header: ({ column }) => (
       <div className="flex justify-center w-full">
@@ -74,7 +80,7 @@ export const getColumns = (
 
   {
     accessorKey: "quote_order",
-    size: 200,
+    size: 210,
 
     header: ({ column }) => (
       <div className="flex justify-center w-full">
@@ -102,33 +108,8 @@ export const getColumns = (
   },
 
   {
-    accessorKey: "purchase_date",
-    size: 200,
-
-    header: ({ column }) => (
-      <div className="flex justify-center w-full">
-        <DataTableColumnHeader column={column} title="Fecha de Creación" />
-      </div>
-    ),
-
-    meta: {
-      title: "Fecha de Creación",
-    },
-
-    cell: ({ row }) => (
-      <div className="flex justify-center w-full">
-        <span className="text-sm text-slate-600 dark:text-slate-300">
-          {format(new Date(row.original.purchase_date), "PPP", {
-            locale: es,
-          })}
-        </span>
-      </div>
-    ),
-  },
-
-  {
     accessorKey: "vendor",
-    size: 240,
+    size: 180,
 
     header: ({ column }) => (
       <div className="flex justify-center w-full">
@@ -150,8 +131,35 @@ export const getColumns = (
   },
 
   {
-    accessorKey: "status",
+    accessorKey: "purchase_date",
     size: 180,
+
+    header: ({ column }) => (
+      <div className="flex justify-center w-full">
+        <DataTableColumnHeader column={column} title="Fecha de Creación" />
+      </div>
+    ),
+
+    meta: {
+      title: "Fecha de Creación",
+    },
+
+    cell: ({ row }) => {
+      const date = new Date(row.original.purchase_date);
+
+      return (
+        <div className="flex justify-center w-full">
+          <span className="text-s text-slate-600 dark:text-slate-300 text-center font-medium tracking-wide uppercase">
+            {format(date, "dd MMM yyyy", { locale: es })}
+          </span>
+        </div>
+      );
+    },
+  },
+
+  {
+    accessorKey: "status",
+    size: 150,
 
     header: ({ column }) => (
       <div className="flex justify-center w-full">
@@ -166,8 +174,8 @@ export const getColumns = (
     cell: ({ row }) => {
       const status = row.original.status
 
-      const completed = status === "COMPLETADA"
-      const paid = status === "PAGADA"
+      const completed = status === "COMPLETED"
+      const paid = status === "PAID"
 
       return (
         <div className="flex justify-center w-full">
@@ -212,7 +220,7 @@ export const getColumns = (
                 `
             )}
           >
-            {status}
+            {PO_STATUS_LABELS[status] ?? status}
           </Badge>
         </div>
       )
@@ -221,7 +229,7 @@ export const getColumns = (
 
   {
     accessorKey: "articles",
-    size: 180,
+    size: 150,
 
     header: ({ column }) => (
       <div className="flex justify-center w-full">
@@ -276,7 +284,7 @@ export const getColumns = (
 
   {
     id: "actions",
-    size: 120,
+    size: 80,
     header: ({ column }) => (
       <div className="flex justify-center w-full">
         <DataTableColumnHeader column={column} title="Acciones" />

@@ -1,8 +1,8 @@
-import type { Unit, Location, BankAccount, Card, ShippingAgency } from '@/types';
+import type { Unit, Location, BankAccount, BankCard, PaymentMethod, ShippingAgency, GeneralArticle, Retailer } from '@/types';
 import type { ArticleRequisitionOrderRef, GeneralArticleRequisitionOrderRef } from '@/types/purchase/quote';
 
 // ── Purchase order status ───────────────────────────────────────────────────
-export type PurchaseOrderStatus = 'PENDIENTE' | 'PAGADA' | 'COMPLETADA';
+export type PurchaseOrderStatus = 'PENDING' | 'PAID' | 'COMPLETED';
 
 // ── Quote article snapshot nested under an article_purchase_order ──────────
 export interface PurchaseOrderArticleQuoteOrder {
@@ -35,6 +35,8 @@ export interface PurchaseOrderGeneralArticleQuoteOrder {
   lead_time?: string | null;
   justification?: string | null;
   is_not_quoted?: boolean;
+  /** Comercio / lugar de compra where this general article was quoted. */
+  retailer?: Retailer | null;
   general_article_requisition_order: GeneralArticleRequisitionOrderRef | null;
 }
 
@@ -60,6 +62,8 @@ export interface PurchaseOrderGeneralArticle {
   shipping_tracking?: string | null;
   international_shipping_tracking?: string | null;
   general_article_quote_order: PurchaseOrderGeneralArticleQuoteOrder | null;
+  /** Present once someone has registered this line's physical delivery (see registerGeneralArticlesDelivery). Null while still pending. */
+  general_article_intake?: { id: number; status: GeneralArticleIntakeStatus } | null;
 }
 
 export interface PurchaseOrderQuoteRef {
@@ -109,10 +113,14 @@ export interface PurchaseOrder {
   invoice_number?: string | null;
   created_by: string;
   updated_by?: string | null;
+  /** Cómo se pagó la orden: método de pago (con su cuenta y banco), y tarjeta si aplica. */
+  payment_method?: PaymentMethod | null;
   bank_account?: BankAccount | null;
-  card?: Card | null;
+  bank_card?: BankCard | null;
   shipping_agency?: ShippingAgency | null;
   vendor: PurchaseOrderVendorRef | null;
+  /** Present on general POs — the comercio / lugar de compra this order groups. */
+  retailer?: PurchaseOrderVendorRef | null;
   location?: Location;
   quote_order: PurchaseOrderQuoteRef;
   requisition_order?: PurchaseOrderRequisitionRef;
@@ -122,8 +130,9 @@ export interface PurchaseOrder {
 
 // ── Create purchase order(s) from a quote ───────────────────────────────────
 // POST /{company}/purchase-order — splits into one PO per vendor present
-// among the selected articles, plus one PO (vendor_id = null) for any
-// general articles, all linked to the same quote_order_id.
+// among the selected standard articles, plus one PO per retailer (comercio /
+// lugar de compra) present among the selected general articles, all linked to
+// the same quote_order_id.
 export interface CreatePurchaseOrderArticleData {
   article_quote_order_id: number;
   shipping_tracking?: string | null;
@@ -167,8 +176,10 @@ export interface UpdatePurchaseOrderData {
   wire_fee?: number | null;
   handling_fee?: number | null;
   total: number;
+  /** El backend deriva bank_account_id del método de pago cuando se envía payment_method_id. */
+  payment_method_id?: number | null;
   bank_account_id?: number | null;
-  card_id?: number | null;
+  bank_card_id?: number | null;
   shipping_fee?: number | null;
   shipping_agency_id?: number | null;
   international_shipping?: number | null;
@@ -176,4 +187,82 @@ export interface UpdatePurchaseOrderData {
   observation?: string | null;
   invoice?: File;
   articles_purchase_orders?: UpdatePurchaseOrderArticleData[];
+}
+
+// ── Register the physical delivery of a PO's general articles ──────────────
+// PATCH /{company}/purchase-order/{id}/register-general-articles-delivery
+//
+// Paying a PO no longer creates inventory for its general articles: the
+// person who physically brings the goods must call this endpoint once they
+// arrive. It creates one PENDING GeneralArticleIntake per general-article
+// line item on the PO that doesn't already have one (safe to call more than
+// once on the same PO — e.g. staggered/partial deliveries).
+export interface RegisterGeneralArticlesDeliveryResponse {
+  message: string;
+  general_article_intakes_count: number;
+}
+
+// ── General article intakes (staged receiving / verification) ─────────────
+// A purchase order's general articles are never written straight into
+// general_articles. Registering a delivery (above) creates a PENDING
+// GeneralArticleIntake carrying the descriptive fields of what arrived;
+// only confirming it (GeneralArticleIntakeController::confirm) creates or
+// increments the matching general_articles row. The intake row itself is
+// never deleted — it's the permanent audit trail of who/when/how much.
+export type GeneralArticleIntakeStatus = 'PENDING' | 'CONFIRMED';
+
+// Shaped by GeneralArticleIntakeResource — only what the frontend needs from
+// each relation, not the full purchase_order/quote_order/requisition_order
+// or warehouse/unit models.
+export interface GeneralArticleIntakePurchaseOrderRef {
+  id: number;
+  order_number: string;
+  quote_order?: {
+    id: number;
+    quote_number: string;
+    requisition_order?: PurchaseOrderRequisitionRef | null;
+  } | null;
+}
+
+export interface GeneralArticleIntakeUnitRef {
+  id: number;
+  label: string;
+}
+
+export interface GeneralArticleIntakeWarehouseRef {
+  location_id: number;
+  name: string;
+  type: string;
+}
+
+// GET /{company}/{location_id}/general-article-intakes
+export interface GeneralArticleIntake {
+  id: number;
+  description: string;
+  variant_type?: string | null;
+  brand_model?: string | null;
+  cost?: number | null;
+  image?: string | null;
+  quantity: string | number;
+  arrived_at: string;
+  status: GeneralArticleIntakeStatus;
+  registered_by: string;
+  confirmed_by?: string | null;
+  confirmed_at?: string | null;
+  observation?: string | null;
+  unit?: GeneralArticleIntakeUnitRef | null;
+  warehouse?: GeneralArticleIntakeWarehouseRef | null;
+  purchase_order?: GeneralArticleIntakePurchaseOrderRef | null;
+}
+
+// GET /{company}/general-article-intakes/{location_id}?status=PENDING|CONFIRMED
+export type GetGeneralArticleIntakesParams = {
+  status?: GeneralArticleIntakeStatus;
+};
+
+// PATCH /{company}/general-article-intakes/{id}/confirm
+export interface ConfirmGeneralArticleIntakeResponse {
+  message: string;
+  intake: GeneralArticleIntake;
+  general_article: GeneralArticle;
 }

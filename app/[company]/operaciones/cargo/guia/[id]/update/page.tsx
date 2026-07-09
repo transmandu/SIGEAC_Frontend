@@ -7,11 +7,21 @@ import { Loader2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { parseISO } from "date-fns";
+import { useEffect } from "react";
+import { useTourContext } from "@/components/tour/TourProvider";
+import { cargoGuiaCrearSteps } from "@/components/tour/steps/cargo/guia-crear";
 
 export default function UpdateCargoShipmentPage() {
   const params = useParams();
   const company = params.company as string;
   const id = params.id as string;
+
+  const { registerTour, unregisterTour } = useTourContext();
+
+  useEffect(() => {
+    registerTour("cargo-guia-editar", "Editar Guía de Carga", cargoGuiaCrearSteps);
+    return () => unregisterTour("cargo-guia-editar");
+  }, [registerTour, unregisterTour]);
 
   const {
     data: cargoShipment,
@@ -23,7 +33,7 @@ export default function UpdateCargoShipmentPage() {
     <ContentLayout title="Editar Carga">
       <div className="flex flex-col gap-4">
         <div className="flex items-center gap-4 mb-4">
-          <Button asChild variant="outline" size="icon" className="h-9 w-9">
+          <Button asChild variant="outline" size="icon" className="h-9 w-9" data-tour="cargo-crear-btn-volver">
             <Link
               href={
                 cargoShipment?.aircraft
@@ -34,7 +44,7 @@ export default function UpdateCargoShipmentPage() {
               <ArrowLeft className="h-4 w-4" />
             </Link>
           </Button>
-          <h1 className="text-3xl font-bold text-center">
+          <h1 className="text-3xl font-bold text-center" data-tour="cargo-crear-title">
             Modificar Carga {cargoShipment?.guide_number}
           </h1>
         </div>

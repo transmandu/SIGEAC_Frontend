@@ -11,11 +11,22 @@ import { DataTable } from '../../data-table'
 import type { Requisition } from '@/types/purchase'
 import RequisitionToolBar from './_components/RequisitionToolBar'
 import { CreateRequisitionDialog } from '@/components/dialogs/mantenimiento/compras/CreateRequisitionDialog'
+import { GenerateInProgressRequisitionsPdfButton } from '@/components/misc/GenerateInProgressRequisitionsPdfButton'
 import RequisitionSubRow from './_components/RequisitionSubRow'
 import GroupedRequisitionTable from './_components/GroupedRequisitionTable'
+import RequisitionSplitView, { useRequisitionPreview } from '@/components/side-panels/RequisitionSplitView'
 
 const RequisitionsPage = () => {
+  return (
+    <RequisitionSplitView>
+      <RequisitionsPageContent />
+    </RequisitionSplitView>
+  )
+}
+
+const RequisitionsPageContent = () => {
   const { selectedCompany, selectedStation } = useCompanyStore()
+  const onPreview = useRequisitionPreview()
 
   const {
     data: requisitions,
@@ -60,11 +71,6 @@ const RequisitionsPage = () => {
       return matchesSearch && matchesStatus && matchesType && matchesPriority
     })
   }, [requisitions, deferredSearch, status, type, priority])
-
-  const columns = useMemo(
-    () => getColumns(selectedCompany ?? undefined),
-    [selectedCompany]
-  )
 
   return (
     <ContentLayout title="Requisiciones Generales">
@@ -138,8 +144,9 @@ const RequisitionsPage = () => {
           </span>
         </div>
 
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
           <CreateRequisitionDialog />
+          <GenerateInProgressRequisitionsPdfButton />
         </div>
 
         {groupBy === 'requested_by' ? (
@@ -147,7 +154,7 @@ const RequisitionsPage = () => {
             data={filteredRequisitions}
             renderTable={(rows) => (
               <DataTable
-                columns={columns}
+                columns={getColumns(selectedCompany ?? undefined, onPreview ?? undefined)}
                 data={rows}
                 renderSubRow={(row) => (
                   <RequisitionSubRow
@@ -160,12 +167,13 @@ const RequisitionsPage = () => {
                 }
                 loading={isLoading}
                 overflowVisible
+                persistKey="requisiciones_generales"
               />
             )}
           />
         ) : (
           <DataTable
-            columns={columns}
+            columns={getColumns(selectedCompany ?? undefined, onPreview ?? undefined)}
             data={filteredRequisitions}
             renderSubRow={(row) => (
               <RequisitionSubRow
@@ -177,6 +185,7 @@ const RequisitionsPage = () => {
               !!row.original.quotes?.length
             }
             loading={isLoading}
+            persistKey="requisiciones_generales"
           />
         )}
 

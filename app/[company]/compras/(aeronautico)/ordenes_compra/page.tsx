@@ -135,6 +135,7 @@ const PurchaseOrdersPage = () => {
             )}
             loading={isLoading}
             emptyText="No se ha encontrado ningún resultado..."
+            persistKey="ordenes_compra"
           />
 
         {/* ERROR */}
