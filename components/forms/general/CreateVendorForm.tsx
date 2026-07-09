@@ -1,156 +1,162 @@
-'use client';
-import { useCreateVendor } from "@/actions/ajustes/globales/proveedores/actions";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+"use client"
 
-import { Input } from "@/components/ui/input";
-import { useCompanyStore } from "@/stores/CompanyStore";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2 } from "lucide-react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { Button } from "../../ui/button";
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
+import { Button } from "@/components/ui/button"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useCreateVendor } from "@/actions/ajustes/globales/proveedores/actions"
+import { useCompanyStore } from "@/stores/CompanyStore"
+import { Loader2 } from "lucide-react"
 
-
-const formSchema = z.object({
-  name: z.string().min(3, {
-    message: "El nombre debe tener al menos 3 carácters.",
-  }),
-  email: z.string().email().optional(),
-  phone: z.string().optional(),
-  address: z.string().optional(),
-  type: z.enum(["PROVEEDOR", "BENEFICIARIO"]).optional(),
+const FormSchema = z.object({
+  name: z.string().min(2, { message: "El nombre debe tener al menos 2 caracteres." }).max(30, { message: "El nombre tiene un máximo de 30 caracteres." }),
+  email: z.string().email({ message: "Debe ser un email válido." }),
+  phone: z.string().min(1, { message: "El teléfono es requerido." }).max(20, { message: "El teléfono tiene un máximo de 20 caracteres." }),
+  address: z.string().min(2, { message: "La dirección debe tener al menos 2 caracteres." }).max(100, { message: "La dirección tiene un máximo de 100 caracteres." }),
+  type: z.enum(["VENDOR", "BENEFICIARY"], { required_error: "Selecciona un tipo." }),
 })
 
+type FormSchemaType = z.infer<typeof FormSchema>
 
-interface FormProps {
-  onClose: () => void,
+interface Props {
+  onClose: () => void
+  initialValues?: FormSchemaType
+  onSubmit?: (data: FormSchemaType) => Promise<void>
+  isLoading?: boolean
 }
 
-export default function CreateVendorForm({ onClose }: FormProps) {
-  const { createVendor } = useCreateVendor()
+export default function CreateVendorForm({
+  onClose,
+  initialValues,
+  onSubmit,
+  isLoading: externalLoading,
+}: Props) {
   const { selectedCompany } = useCompanyStore()
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
+  const createVendor = useCreateVendor(selectedCompany?.slug)
+
+  const form = useForm<FormSchemaType>({
+    resolver: zodResolver(FormSchema),
+    defaultValues: initialValues ?? {
       name: "",
+      email: "",
       phone: "",
       address: "",
-      email: "",
+      type: undefined,
     },
   })
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    try {
-      await createVendor.mutateAsync({
-        ...values,
-        company: selectedCompany!.slug,
-      })
-    } catch (error) {
+  const handleSubmit = async (data: FormSchemaType) => {
+    if (onSubmit) {
+      await onSubmit(data)
+      onClose()
+      return
     }
-    onClose()
+    try {
+      await createVendor.mutateAsync(data)
+      onClose()
+    } catch (error) {
+      // El error ya se notifica mediante el toast del hook de mutación.
+    }
   }
+
+  const isLoading = onSubmit ? externalLoading : createVendor.isPending
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
-        <div className="flex flex-col gap-2 justify-center">
-          <div className="flex gap-2 items-center">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem className="w-full">
-                  <FormLabel>Nombre del Proveedor</FormLabel>
-                  <FormControl>
-                    <Input placeholder="EJ: Boeing, Airbus, etc..." {...field} />
-                  </FormControl>
-                  <FormDescription>Nombre identificador.</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="phone"
-              render={({ field }) => (
-                <FormItem className="w-full">
-                  <FormLabel>Nro. de TLF</FormLabel>
-                  <FormControl>
-                    <Input placeholder="..." {...field} />
-                  </FormControl>
-                  <FormDescription>Número de contacto.</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="flex flex-col gap-4">
+        <div className="grid grid-cols-2 gap-4">
           <FormField
             control={form.control}
-            name="type"
+            name="name"
             render={({ field }) => (
-              <FormItem className="w-full">
-                <FormLabel>Tipo</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selec. el tipo..." />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="BENEFICIARIO">Beneficiario</SelectItem>
-                    <SelectItem value="PROVEEDOR">Proveedor</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
+              <FormItem>
+                <FormLabel>Nombre</FormLabel>
+                <FormControl>
+                  <Input placeholder="Ej: Boeing, Airbus, etc..." {...field} />
+                </FormControl>
+                <FormMessage className="text-xs" />
               </FormItem>
             )}
           />
+
           <FormField
             control={form.control}
-            name="email"
+            name="phone"
             render={({ field }) => (
-              <FormItem className="w-full">
-                <FormLabel>Correo Electrónico</FormLabel>
+              <FormItem>
+                <FormLabel>Teléfono</FormLabel>
                 <FormControl>
-                  <Input placeholder="..." {...field} />
+                  <Input placeholder="Ej: +584247000001" {...field} />
                 </FormControl>
-                <FormDescription>Correo de contacto.</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="address"
-            render={({ field }) => (
-              <FormItem className="w-full">
-                <FormLabel>Ubicación</FormLabel>
-                <FormControl>
-                  <Input placeholder="..." {...field} />
-                </FormControl>
-                <FormDescription>Ubicación fiscal.</FormDescription>
-                <FormMessage />
+                <FormMessage className="text-xs" />
               </FormItem>
             )}
           />
         </div>
-        <Button className="bg-primary mt-2 text-white hover:bg-blue-900 disabled:bg-primary/70" disabled={createVendor?.isPending} type="submit">
-          {createVendor?.isPending ? <Loader2 className="size-4 animate-spin" /> : <p>Crear Proveedor</p>}
+
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Correo electrónico</FormLabel>
+              <FormControl>
+                <Input type="email" placeholder="Ej: contacto@proveedor.com" {...field} />
+              </FormControl>
+              <FormMessage className="text-xs" />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="address"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Dirección</FormLabel>
+              <FormControl>
+                <Input placeholder="Ubicación fiscal" {...field} />
+              </FormControl>
+              <FormMessage className="text-xs" />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="type"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Tipo</FormLabel>
+              <Select value={field.value} onValueChange={field.onChange}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecciona el tipo..." />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="VENDOR">Proveedor</SelectItem>
+                  <SelectItem value="BENEFICIARY">Beneficiario</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage className="text-xs" />
+            </FormItem>
+          )}
+        />
+
+        <Button
+          type="submit"
+          className="bg-primary text-white hover:bg-blue-900 disabled:bg-primary/70 flex items-center justify-center gap-2"
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            onSubmit ? "Actualizar Proveedor" : "Crear Proveedor"
+          )}
         </Button>
       </form>
     </Form>

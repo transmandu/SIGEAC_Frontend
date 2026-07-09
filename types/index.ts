@@ -625,7 +625,7 @@ export type Vendor = {
   id: string | number;
   name: string;
   phone: string;
-  type: "PROVEEDOR" | "BENEFICIARIO";
+  type: "VENDOR" | "BENEFICIARY";
   address: string;
   email: string;
 };
@@ -833,7 +833,7 @@ export type AdministrationVendor = {
   email: string;
   phone: string;
   address: string;
-  type: "PROVEEDOR" | "BENEFICIARIO";
+  type: "VENDOR" | "BENEFICIARY";
   created_at: Date;
   updated_at: Date;
 };
