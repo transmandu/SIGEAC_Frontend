@@ -22,7 +22,7 @@ const VendorResumeDialog = ({ vendor }: { vendor: AdministrationVendor }) => {
           {/* Header con gradiente según tipo */}
           <div
             className={`p-6 text-white rounded-t-lg ${
-              vendor.type === "PROVEEDOR"
+              vendor.type === "VENDOR"
                 ? "bg-gradient-to-r from-blue-600 to-blue-500"
                 : "bg-gradient-to-r from-green-600 to-green-500"
             }`}
@@ -31,7 +31,7 @@ const VendorResumeDialog = ({ vendor }: { vendor: AdministrationVendor }) => {
               <Avatar className="h-12 w-12 border-2 border-white">
                 <AvatarFallback
                   className={`font-semibold ${
-                    vendor.type === "PROVEEDOR"
+                    vendor.type === "VENDOR"
                       ? "bg-white text-blue-600"
                       : "bg-white text-green-600"
                   }`}
@@ -47,12 +47,12 @@ const VendorResumeDialog = ({ vendor }: { vendor: AdministrationVendor }) => {
                 <h2 className="text-xl font-bold">{vendor.name}</h2>
                 <Badge
                   className={`mt-1 text-white ${
-                    vendor.type === "PROVEEDOR"
+                    vendor.type === "VENDOR"
                       ? "bg-blue-700 hover:bg-blue-800"
                       : "bg-green-700 hover:bg-green-800"
                   }`}
                 >
-                  {vendor.type === "PROVEEDOR" ? "PROVEEDOR" : "BENEFICIARIO"}
+                  {vendor.type === "VENDOR" ? "Proveedor" : "Beneficiario"}
                 </Badge>
               </div>
             </div>
@@ -93,7 +93,7 @@ const VendorResumeDialog = ({ vendor }: { vendor: AdministrationVendor }) => {
             {/* Sección de información adicional */}
             <Card
               className={`${
-                vendor.type === "PROVEEDOR"
+                vendor.type === "VENDOR"
                   ? "bg-blue-50 border-blue-200"
                   : "bg-green-50 border-green-200"
               }`}

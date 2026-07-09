@@ -133,7 +133,7 @@ export default function RequisitionArticlesPopover({ requisition }: Props) {
           Artículos de la requisición {requisition.order_number}
         </span>
 
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col items-center gap-2">
           {batches.flatMap((batch: any, batchIndex: number) =>
             (batch.batch_articles ?? []).map((article: any, articleIndex: number) => {
               const acronym =

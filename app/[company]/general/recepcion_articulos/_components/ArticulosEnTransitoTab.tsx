@@ -13,40 +13,17 @@ import {
 } from '@/components/ui/table'
 import { useGetArticlesByStatus } from '@/hooks/mantenimiento/almacen/articulos/useGetArticlesByStatus'
 import { cn } from '@/lib/utils'
-import { ArrowRight, ChevronRight, Loader2, MapPin, PackageCheck, Search } from 'lucide-react'
+import { ArrowRight, ChevronRight, Loader2, MapPin, Search } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import { Condition, Manufacturer } from '@/types'
-
-// Tipo que refleja la estructura real devuelta por el backend
-type TransitArticle = {
-    id: number
-    part_number: string
-    alternative_part_number?: string | null
-    serial?: string | null
-    ata_code?: string | null
-    status: string
-    batch_id: string
-    condition?: Condition;
-    manufacturer?: Manufacturer;
-    quantity: number;
-    reception_date: string;
-    unit?: string;
-    batch: {
-        id: number
-        name: string
-        warehouse?: {
-            id: number
-            name: string
-            location?: {
-                id: number
-                address: string
-                cod_iata?: string
-            }
-        }
-    }
-}
+import type { TransitArticle } from '@/types/purchase/in-transit'
+import { ArticleDetailDialog } from './ArticleDetailDialog'
 
 type StatusFilter = 'ALL' | 'TRANSIT' | 'RECEPTION'
+
+const TRANSIT_STATUS_LABELS: Record<string, string> = {
+    TRANSIT: 'En tránsito',
+    RECEPTION: 'En recepción',
+}
 
 // ── Fila de artículo ───────────────────────────────────────────────────
 function ArticleRow({ article }: { article: TransitArticle }) {
@@ -54,17 +31,12 @@ function ArticleRow({ article }: { article: TransitArticle }) {
     const [pending, setPending] = useState(false)
     const [expanded, setExpanded] = useState(false)
 
-    const status = article.status?.toLowerCase()
-    const isReception = status === 'reception'
-    const isTransit = status === 'transit'
+    const status = article.status?.toUpperCase()
+    const isReception = status === 'RECEPTION'
 
-    const handleAction = async () => {
+    const handleMoveToIncoming = async () => {
         setPending(true)
-        if (isTransit) {
-            await updateArticleStatus.mutateAsync({ id: article.id, status: 'RECEPTION' })
-        } else if (isReception) {
-            await updateArticleStatus.mutateAsync({ id: article.id, status: 'INCOMING' })
-        }
+        await updateArticleStatus.mutateAsync({ id: article.id, status: 'INCOMING' })
         setPending(false)
     }
 
@@ -76,11 +48,11 @@ function ArticleRow({ article }: { article: TransitArticle }) {
         <>
             <TableRow className="hover:bg-muted/30 transition-colors">
                 {/* Expand toggle */}
-                <TableCell className="w-8 pr-0">
+                <TableCell className="w-6 p-0 text-center">
                     {hasExtra && (
                         <button
                             onClick={() => setExpanded((v) => !v)}
-                            className="flex items-center justify-center rounded p-0.5 text-muted-foreground/50 hover:text-foreground transition-colors"
+                            className="flex items-center justify-center rounded p-0.5 text-muted-foreground/50 hover:text-foreground transition-colors mx-auto"
                         >
                             <ChevronRight className={cn(
                                 'size-3.5 transition-transform duration-150',
@@ -91,9 +63,9 @@ function ArticleRow({ article }: { article: TransitArticle }) {
                 </TableCell>
 
                 {/* Parte / Alterno */}
-                <TableCell>
-                    <div className="space-y-1 min-w-0">
-                        <div className="font-mono text-[11px] bg-muted/60 px-1.5 py-0.5 rounded border border-border/40 w-fit tracking-wide">
+                <TableCell className="text-center">
+                    <div className="space-y-1 flex flex-col items-center">
+                        <div className="font-mono text-[12px] font-semibold bg-muted/60 px-1.5 py-0.5 rounded border border-border/40 w-fit tracking-wide">
                             {article.part_number}
                         </div>
                         {article.alternative_part_number ? (
@@ -107,25 +79,30 @@ function ArticleRow({ article }: { article: TransitArticle }) {
                             </div>
                         ) : (
                             <span className="text-[10px] font-mono text-muted-foreground/30 border border-dashed border-border/30 px-1 py-0.5 rounded">
-                                ALT —
+                                ALT N/A
                             </span>
                         )}
                     </div>
                 </TableCell>
 
-                {/* Nombre del batch */}
-                <TableCell>
-                    <span className="text-sm font-medium">{article.batch?.name ?? '—'}</span>
+                {/* Descripción (batch) */}
+                <TableCell className="text-center">
+                    <span className="text-sm font-medium">{article.batch?.name ?? 'N/A'}</span>
                 </TableCell>
 
-                <TableCell>
-                    <span className="text-sm font-medium">{article.reception_date ?? '—'}</span>
+                {/* N° de requisición */}
+                <TableCell className="text-center">
+                    <span className="text-sm font-medium">{article.requisition_order_number ?? 'N/A'}</span>
+                </TableCell>
+
+                <TableCell className="text-center">
+                    <span className="text-sm font-medium">{article.reception_date ?? 'N/A'}</span>
                 </TableCell>
 
                 {/* Ubicación */}
-                <TableCell>
+                <TableCell className="text-center">
                     {location ? (
-                        <div className="flex items-center gap-1 text-muted-foreground">
+                        <div className="flex items-center justify-center gap-1 text-muted-foreground">
                             <MapPin className="size-3 shrink-0" />
                             <span className="text-xs">{location.address}</span>
                             {location.cod_iata && (
@@ -135,52 +112,54 @@ function ArticleRow({ article }: { article: TransitArticle }) {
                             )}
                         </div>
                     ) : (
-                        <span className="text-xs text-muted-foreground/40">—</span>
+                        <span className="text-xs text-muted-foreground/40">N/A</span>
                     )}
                 </TableCell>
 
                 {/* Estado */}
-                <TableCell>
+                <TableCell className="text-center">
                     <span className={cn(
                         'text-[10px] font-medium px-1.5 py-0.5 rounded border uppercase tracking-wide',
                         isReception
                             ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800/60'
                             : 'bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950/40 dark:text-sky-400 dark:border-sky-800/60'
                     )}>
-                        {article.status}
+                        {TRANSIT_STATUS_LABELS[status ?? ''] ?? 'Sin estado'}
                     </span>
                 </TableCell>
 
+                {/* Detalle */}
+                <TableCell className="w-10 text-center">
+                    <ArticleDetailDialog article={article} />
+                </TableCell>
+
                 {/* Acciones */}
-                <TableCell>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-7 px-2 text-xs gap-1"
-                        disabled={pending}
-                        onClick={handleAction}
-                    >
-                        {pending ? (
-                            <Loader2 className="size-3 animate-spin" />
-                        ) : isReception ? (
-                            <>
-                                <ArrowRight className="size-3" />
-                                Incoming
-                            </>
-                        ) : (
-                            <>
-                                <PackageCheck className="size-3" />
-                                Recepción
-                            </>
-                        )}
-                    </Button>
+                <TableCell className="text-center">
+                    {isReception && (
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 px-2 text-xs gap-1"
+                            disabled={pending}
+                            onClick={handleMoveToIncoming}
+                        >
+                            {pending ? (
+                                <Loader2 className="size-3 animate-spin" />
+                            ) : (
+                                <>
+                                    <ArrowRight className="size-3" />
+                                    Incoming
+                                </>
+                            )}
+                        </Button>
+                    )}
                 </TableCell>
             </TableRow>
 
             {/* Sub-fila expandible */}
             {expanded && hasExtra && (
                 <TableRow className="hover:bg-transparent">
-                    <TableCell colSpan={6} className="p-0 border-b border-border/40">
+                    <TableCell colSpan={9} className="p-0 border-b border-border/40">
                         <div className="pl-10 pr-4 py-3 bg-muted/20 border-l-2 border-amber-300 dark:border-amber-700/60">
                             <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs">
                                 {article.manufacturer && (
@@ -318,13 +297,15 @@ export function ArticulosEnTransitoTab() {
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead className="w-8" />
-                            <TableHead className="text-xs">Numero de Parte / Alterno</TableHead>
-                            <TableHead className="text-xs">Descripcion</TableHead>
-                            <TableHead className="text-xs">Fecha de Recepcion</TableHead>
-                            <TableHead className="text-xs">Ubicación</TableHead>
-                            <TableHead className="text-xs">Estado</TableHead>
-                            <TableHead className="text-xs">Acciones</TableHead>
+                            <TableHead className="w-6 p-0" />
+                            <TableHead className="text-xs text-center">N° de Parte / Alterno</TableHead>
+                            <TableHead className="text-xs text-center">Descripción</TableHead>
+                            <TableHead className="text-xs text-center">N° de Requisición</TableHead>
+                            <TableHead className="text-xs text-center">Fecha de Recepción</TableHead>
+                            <TableHead className="text-xs text-center">Ubicación</TableHead>
+                            <TableHead className="text-xs text-center">Estado</TableHead>
+                            <TableHead className="w-10 text-center" />
+                            <TableHead className="text-xs text-center">Acciones</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -337,7 +318,7 @@ export function ArticulosEnTransitoTab() {
                             ))
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={6} className="h-24 text-center text-muted-foreground text-sm">
+                                <TableCell colSpan={9} className="h-24 text-center text-muted-foreground text-sm">
                                     No se encontraron artículos
                                     {statusFilter !== 'ALL' && ` con estado ${statusFilter}`}
                                     {search && ` que coincidan con "${search}"`}.

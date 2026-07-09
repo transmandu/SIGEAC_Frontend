@@ -58,6 +58,10 @@ export interface EditingArticle extends Article {
         conversions: Convertion[];
     };
     has_documentation?: boolean;
+    purchase_order_id?: number | null;
+    purchase_order_number?: string | null;
+    /** Número de la requisición de origen: purchase_order -> quote_order -> requisition_order. */
+    requisition_order_number?: string | null;
 }
 
 interface IRegisterArticleProps {
