@@ -717,7 +717,7 @@ export function CreateMeetingMinuteForm({
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <FormField
               control={form.control}
-              name="prepared_by"
+              name="filled_out_by"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
                   <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">
