@@ -1239,6 +1239,19 @@ export interface WarehouseDashboard {
   }[];
 }
 
+// Una entrada del historial de precios de un GeneralArticle: viene de una
+// compra confirmada (source: PURCHASE, con quantity y purchase_order_number)
+// o de una edición manual desde Gestión de Costos (source: MANUAL).
+export type GeneralArticleCostHistoryEntry = {
+  source: 'PURCHASE' | 'MANUAL' | 'SEED';
+  cost: number | null;
+  quantity: number | null;
+  date: string | null;
+  by: string | null;
+  purchase_order_number?: string | null;
+  requisition_order_number?: string | null;
+};
+
 export type GeneralArticle = {
   id: number;
   description: string;
@@ -1249,6 +1262,7 @@ export type GeneralArticle = {
   general_primary_unit: Unit;
   cost?: number;
   image?: string | null;
+  cost_history?: GeneralArticleCostHistoryEntry[];
 };
 
 export interface SMSCertificate {

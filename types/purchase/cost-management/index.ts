@@ -58,6 +58,7 @@ export interface GeneralCostRow {
   variant_type?: string;
   unit_label?: string;
   cost?: number;
+  cost_history?: import('@/types').GeneralArticleCostHistoryEntry[];
 }
 
 export type DraftValue = string | number | undefined;
@@ -68,9 +69,11 @@ export interface ArticleCostColumnsArgs {
 
 export interface GeneralCostColumnsArgs {
   onCostChange: (id: number, value: string) => void;
+  onViewHistory?: (row: GeneralCostRow) => void;
 }
 
 export interface BuildColumnsArgs {
   type: CostType;
   onCostChange: (id: number, value: string) => void;
+  onViewHistory?: (row: GeneralCostRow) => void;
 }
