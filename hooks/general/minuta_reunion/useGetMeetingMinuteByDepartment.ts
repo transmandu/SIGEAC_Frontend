@@ -5,58 +5,78 @@ export type MeetingMinuteDetail = {
   id: number;
   date: string;
   place: string;
-  location_id: number;
+  location_id: string;
   objective?: string;
   topics?: string;
-  photo?: string;
-  document?: string;
-  department_id: number;
+  photo?: string | null;
+  document?: string | null;
+  department_id: string;
   chaired_by: {
     id: number;
     first_name: string;
     last_name: string;
-    dni: string;
+    job_title: {
+      id: number;
+      name: string;
+    };
   };
   filled_out_by: {
     id: number;
     first_name: string;
     last_name: string;
-    dni: string;
+    job_title: {
+      id: number;
+      name: string;
+    };
   };
   reviewed_by?: {
     id: number;
     first_name: string;
     last_name: string;
-    dni: string;
+    job_title: {
+      id: number;
+      name: string;
+    };
   } | null;
   approved_by?: {
     id: number;
     first_name: string;
     last_name: string;
-    dni: string;
+    job_title: {
+      id: number;
+      name: string;
+    };
   } | null;
   attendees: {
-    id: number;
-    employee_id?: number | null;
+    id: string;
+    employee_id?: string | null;
     attendee_name?: string | null;
     job_title?: string | null;
-    has_attended: boolean;
+    has_attended: boolean | string;
     employee?: {
       id: number;
       first_name: string;
       last_name: string;
-      dni: string;
+      job_title: {
+        id: number;
+        name: string;
+      };
     } | null;
   }[];
   agreements: {
     id: number;
     description: string;
-    responsible_employee_id?: number | null;
+    responsible_employee_id?: string | null;
     responsible_name?: string | null;
-    responsible_employee?: {
+    responsible_job_title?: string | null;
+    responsible?: {
       id: number;
       first_name: string;
       last_name: string;
+      job_title: {
+        id: number;
+        name: string;
+      };
     } | null;
   }[];
 };

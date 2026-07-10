@@ -22,8 +22,25 @@ const ShowMeetingMinute = () => {
     selectedCompany?.slug,
   );
 
-  const employeeName = (emp?: { first_name: string; last_name: string } | null) =>
-    emp ? `${emp.first_name} ${emp.last_name}` : "N/A";
+  const EmployeeDetail = ({
+    employee,
+    bold = false,
+  }: {
+    employee?: { first_name: string; last_name: string; job_title?: { name: string } } | null;
+    bold?: boolean;
+  }) => {
+    if (!employee) return <p className="mt-1 text-sm">N/A</p>;
+    return (
+      <div className="mt-1">
+        <p className={`text-sm ${bold ? "font-medium" : ""}`}>
+          {employee.first_name} {employee.last_name}
+        </p>
+        {employee.job_title && (
+          <p className="text-xs text-muted-foreground">{employee.job_title.name}</p>
+        )}
+      </div>
+    );
+  };
 
   const dateLabel = (date: string) => {
     try {
@@ -131,13 +148,13 @@ const ShowMeetingMinute = () => {
                 <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                   Presidida por
                 </p>
-                <p className="mt-1 text-sm font-medium">{employeeName(meeting.chaired_by)}</p>
+                <EmployeeDetail employee={meeting.chaired_by} bold />
               </div>
               <div className="rounded-lg border border-border/60 p-3">
                 <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                   Elaborada por
                 </p>
-                <p className="mt-1 text-sm">{employeeName(meeting.filled_out_by)}</p>
+                <EmployeeDetail employee={meeting.filled_out_by} />
               </div>
             </div>
 
@@ -147,7 +164,7 @@ const ShowMeetingMinute = () => {
                   <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                     Revisada por
                   </p>
-                  <p className="mt-1 text-sm">{employeeName(meeting.reviewed_by)}</p>
+                  <EmployeeDetail employee={meeting.reviewed_by} />
                 </div>
               )}
               {meeting.approved_by && (
@@ -155,7 +172,7 @@ const ShowMeetingMinute = () => {
                   <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                     Aprobada por
                   </p>
-                  <p className="mt-1 text-sm">{employeeName(meeting.approved_by)}</p>
+                  <EmployeeDetail employee={meeting.approved_by} />
                 </div>
               )}
             </div>
@@ -228,7 +245,7 @@ const ShowMeetingMinute = () => {
                               : att.attendee_name || "N/A"}
                           </td>
                           <td className="whitespace-nowrap px-3 py-3 text-sm text-muted-foreground">
-                            {att.job_title || (att.employee?.dni ?? "—")}
+                            {att.employee?.job_title?.name || att.job_title || "—"}
                           </td>
                           <td className="px-3 py-3 text-center">
                             {att.has_attended ? (
@@ -278,11 +295,25 @@ const ShowMeetingMinute = () => {
                         <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
                           Responsable
                         </p>
-                        <p className="mt-0.5 text-sm font-medium">
-                          {agreement.responsible_employee
-                            ? `${agreement.responsible_employee.first_name} ${agreement.responsible_employee.last_name}`
-                            : agreement.responsible_name || "N/A"}
-                        </p>
+                        {agreement.responsible ? (
+                          <div className="mt-0.5">
+                            <p className="text-sm font-medium">
+                              {agreement.responsible.first_name} {agreement.responsible.last_name}
+                            </p>
+                            {agreement.responsible.job_title && (
+                              <p className="text-xs text-muted-foreground">{agreement.responsible.job_title.name}</p>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="mt-0.5">
+                            <p className="text-sm font-medium">
+                              {agreement.responsible_name || "N/A"}
+                            </p>
+                            {agreement.responsible_job_title && (
+                              <p className="text-xs text-muted-foreground">{agreement.responsible_job_title}</p>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}
