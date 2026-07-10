@@ -7,9 +7,20 @@ import { ColumnDef } from "@tanstack/react-table";
 
 export const columns: ColumnDef<MeetingMinutes>[] = [
   {
+    accessorKey: "Numero",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Estado" />
+    ),
+    meta: { title: "Estado" },
+    cell: ({ row }) => (
+      <div className="flex justify-center">
+      </div>
+    ),
+  },
+  {
     accessorKey: "employee",
     header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Empleado" />
+      <DataTableColumnHeader filter column={column} title="Lugar" />
     ),
     meta: { title: "Lugar" },
     cell: ({ row }) => (
@@ -24,10 +35,10 @@ export const columns: ColumnDef<MeetingMinutes>[] = [
       <DataTableColumnHeader
         filter
         column={column}
-        title="Fecha de Curso Inicial"
+        title="Fecha"
       />
     ),
-    meta: { title: "Fecha de Curso Inicial" },
+    meta: { title: "Fecha" },
     cell: ({ row }) => (
       <div className="flex justify-center text-center">
         {row.original.date ? ( // <--- Aquí la condición
@@ -41,9 +52,9 @@ export const columns: ColumnDef<MeetingMinutes>[] = [
     ),
   },
   {
-    accessorKey: "last_enrollment",
+    accessorKey: "objective",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Ultimo curso" />
+      <DataTableColumnHeader column={column} title="Objetivo" />
     ),
     meta: { title: "Objetivo" },
     cell: ({ row }) => (
@@ -52,17 +63,7 @@ export const columns: ColumnDef<MeetingMinutes>[] = [
       </div>
     ),
   },
-  {
-    accessorKey: "status",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Estado" />
-    ),
-    meta: { title: "Estado" },
-    cell: ({ row }) => (
-      <div className="flex justify-center">
-      </div>
-    ),
-  },
+
   {
     id: "actions",
     cell: ({ row }) => (
