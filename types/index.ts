@@ -1200,6 +1200,7 @@ export type MeetingAgreement = {
   description: string;
   responsible_employee_id?: number | null;
   responsible_name?: string | null;
+  responsible_job_title?: string | null;
   responsible_employee?: Employee | null;
 }
 

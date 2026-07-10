@@ -1,5 +1,6 @@
 "use client";
 
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -10,13 +11,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Popover,
@@ -26,6 +20,8 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
+import { ComboboxField } from "@/components/ui/ComboboxField";
+import { AgreementItem } from "@/components/forms/general/AgreementItem";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useFieldArray } from "react-hook-form";
@@ -34,6 +30,8 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import {
   CalendarIcon,
+  ChevronLeft,
+  ChevronRight,
   Loader2,
   Plus,
   Trash2,
@@ -75,6 +73,8 @@ const FormSchema = z.object({
     description: z.string().min(1, "La descripción es obligatoria"),
     responsible_employee_id: z.string().optional(),
     responsible_name: z.string().optional(),
+    responsible_job_title: z.string().optional(),
+    is_external: z.boolean().default(false),
   })).optional(),
 });
 
@@ -113,8 +113,12 @@ function buildFormData(companySlug: string, locationId: number, data: FormSchema
 
   data.agreements?.filter((a) => a.description).forEach((a, i) => {
     fd.append(`agreements[${i}][description]`, a.description);
-    if (a.responsible_employee_id) fd.append(`agreements[${i}][responsible_employee_id]`, String(a.responsible_employee_id));
-    if (a.responsible_name) fd.append(`agreements[${i}][responsible_name]`, a.responsible_name);
+    if (a.is_external) {
+      if (a.responsible_name) fd.append(`agreements[${i}][responsible_name]`, a.responsible_name);
+      if (a.responsible_job_title) fd.append(`agreements[${i}][responsible_job_title]`, a.responsible_job_title);
+    } else {
+      if (a.responsible_employee_id) fd.append(`agreements[${i}][responsible_employee_id]`, String(a.responsible_employee_id));
+    }
   });
 
   return fd;
@@ -130,6 +134,13 @@ export function CreateMeetingMinuteForm({
   const { data: employees, isLoading: employeesLoading } = useGetEmployeesByCompany(companySlug);
   const { createMeetingMinute } = useCreateMeetingMinute();
   const { updateMeetingMinute } = useUpdateMeetingMinute();
+
+  const [step, setStep] = useState(1);
+
+  const employeeOptions = (employees ?? []).map((e) => ({
+    value: String(e.id),
+    label: `${e.first_name} ${e.last_name}`.trim(),
+  }));
 
   const parseStringArray = (val: string | undefined | null): { value: string }[] => {
     if (!val) return [];
@@ -162,6 +173,8 @@ export function CreateMeetingMinuteForm({
         description: a.description,
         responsible_employee_id: a.responsible_employee_id ? String(a.responsible_employee_id) : "",
         responsible_name: a.responsible_name ?? "",
+        responsible_job_title: (a as any).responsible_job_title ?? "",
+        is_external: !a.responsible_employee_id && !!a.responsible_name,
       })) ?? [],
     },
   });
@@ -186,11 +199,6 @@ export function CreateMeetingMinuteForm({
 
   const isPending = createMeetingMinute.isPending || updateMeetingMinute.isPending;
 
-  function getEmployeeFullName(emp: any): string {
-    if (!emp) return "";
-    return `${emp.first_name ?? ""} ${emp.last_name ?? ""}`.trim();
-  }
-
   const onSubmit = async (data: FormSchemaType) => {
     if (!companySlug || !selectedStation) return;
 
@@ -211,146 +219,164 @@ export function CreateMeetingMinuteForm({
         onSubmit={form.handleSubmit(onSubmit)}
         className="flex flex-col space-y-5"
       >
-        {/* Fecha y Lugar */}
-        <div className="space-y-3">
-          <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            Información de la Reunión
-          </span>
+        {/* Step indicator */}
+        <div className="flex items-center justify-center gap-0 mb-2">
+          {[
+            { num: 1, label: "Información" },
+            { num: 2, label: "Participantes" },
+            { num: 3, label: "Acuerdos" },
+          ].map((s, i) => (
+            <React.Fragment key={s.num}>
+              {i > 0 && (
+                <div className={cn("w-12 h-px mx-2", step > i ? "bg-primary" : "bg-border")} />
+              )}
+              <div className="flex items-center gap-2">
+                <div
+                  className={cn(
+                    "flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold border",
+                    step >= s.num
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-muted text-muted-foreground border-border"
+                  )}
+                >
+                  {step > s.num ? (
+                    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                    </svg>
+                  ) : (
+                    s.num
+                  )}
+                </div>
+                <span className={cn("text-xs font-medium whitespace-nowrap", step >= s.num ? "text-foreground" : "text-muted-foreground")}>
+                  {s.label}
+                </span>
+              </div>
+            </React.Fragment>
+          ))}
+        </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-3">
-            <FormField
-              control={form.control}
-              name="date"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">
-                    Fecha
-                  </FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
+        {step === 1 && (
+          <>
+            {/* Fecha y Lugar */}
+            <div className="space-y-3">
+              <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Información de la Reunión
+              </span>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-3">
+                <FormField
+                  control={form.control}
+                  name="date"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">
+                        Fecha
+                      </FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "w-full pl-3 text-left font-normal",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              {field.value ? (
+                                format(field.value, "PPP", { locale: es })
+                              ) : (
+                                <span>Seleccionar fecha</span>
+                              )}
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            initialFocus
+                            fromYear={2020}
+                            toYear={new Date().getFullYear() + 1}
+                            captionLayout="dropdown-buttons"
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage className="text-xs" />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="place"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">
+                        Lugar
+                      </FormLabel>
                       <FormControl>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "w-full pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          {field.value ? (
-                            format(field.value, "PPP", { locale: es })
-                          ) : (
-                            <span>Seleccionar fecha</span>
-                          )}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
+                        <Input placeholder="Sala de reuniones" {...field} />
                       </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={field.onChange}
-                        initialFocus
-                        fromYear={2020}
-                        toYear={new Date().getFullYear() + 1}
-                        captionLayout="dropdown-buttons"
-                      />
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage className="text-xs" />
-                </FormItem>
-              )}
-            />
+                      <FormMessage className="text-xs" />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
 
-            <FormField
-              control={form.control}
-              name="place"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">
-                    Lugar
-                  </FormLabel>
-                  <FormControl>
-                    <Input placeholder="Sala de reuniones" {...field} />
-                  </FormControl>
-                  <FormMessage className="text-xs" />
-                </FormItem>
-              )}
-            />
-          </div>
-        </div>
+            <Separator className="border-border/60" />
 
-        <Separator className="border-border/60" />
+            {/* Motivo */}
+            <div className="space-y-3">
+              <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Motivo
+              </span>
 
-        {/* Motivo */}
-        <div className="space-y-3">
-          <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            Motivo
-          </span>
-
-          <FormField
-            control={form.control}
-            name="objective"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  Objetivo
-                </FormLabel>
-                <FormControl>
-                  <Textarea placeholder="Objetivo de la reunión" className="min-h-[80px]" {...field} />
-                </FormControl>
-                <FormMessage className="text-xs" />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <Separator className="border-border/60" />
-
-        {/* Quien Preside */}
-        <div className="space-y-3">
-          <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            Dirección
-          </span>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <FormField
-              control={form.control}
-              name="chaired_by"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">
-                    Presidida por
-                  </FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+              <FormField
+                control={form.control}
+                name="objective"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      Objetivo
+                    </FormLabel>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Seleccionar..." />
-                      </SelectTrigger>
+                      <Textarea placeholder="Objetivo de la reunión" className="min-h-[80px]" {...field} />
                     </FormControl>
-                    <SelectContent>
-                      {employeesLoading ? (
-                        <div className="flex justify-center py-2"><Loader2 className="size-4 animate-spin" /></div>
-                      ) : (
-                        employees?.map((e) => (
-                          <SelectItem key={e.id} value={String(e.id)}>
-                            {getEmployeeFullName(e)}
-                          </SelectItem>
-                        ))
-                      )}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage className="text-xs" />
-                </FormItem>
-              )}
-            />
-          </div>
-        </div>
+                    <FormMessage className="text-xs" />
+                  </FormItem>
+                )}
+              />
+            </div>
 
-        <Separator className="border-border/60" />
+            <Separator className="border-border/60" />
 
-        {/* Participantes */}
-        <div className="space-y-3">
+            {/* Quien Preside */}
+            <div className="space-y-3">
+              <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Dirección
+              </span>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <ComboboxField
+                  form={form}
+                  name="chaired_by"
+                  label="Presidida por"
+                  placeholder="Seleccionar..."
+                  options={employeeOptions}
+                  disabled={employeesLoading}
+                />
+              </div>
+            </div>
+          </>
+        )}
+
+        {step === 2 && (
+          <>
+            {/* Participantes */}
+            <div className="space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
               Participantes
@@ -415,31 +441,12 @@ export function CreateMeetingMinuteForm({
                 </div>
 
                 {!isExternal && (
-                  <FormField
-                    control={form.control}
+                  <ComboboxField
+                    form={form}
                     name={`attendees.${index}.employee_id`}
-                    render={({ field: f }) => (
-                      <FormItem className="flex flex-col">
-                        <FormLabel className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70 mb-1">
-                          Empleado
-                        </FormLabel>
-                        <Select onValueChange={f.onChange} value={f.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Seleccionar..." />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {employees?.map((e) => (
-                              <SelectItem key={e.id} value={String(e.id)}>
-                                {getEmployeeFullName(e)}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage className="text-xs" />
-                      </FormItem>
-                    )}
+                    label="Empleado"
+                    placeholder="Seleccionar..."
+                    options={employeeOptions}
                   />
                 )}
 
@@ -500,7 +507,11 @@ export function CreateMeetingMinuteForm({
             );
           })}
         </div>
+          </>
+        )}
 
+        {step === 3 && (
+          <>
         <Separator className="border-border/60" />
 
         {/* Puntos a Tratar */}
@@ -572,6 +583,8 @@ export function CreateMeetingMinuteForm({
                   description: "",
                   responsible_employee_id: "",
                   responsible_name: "",
+                  responsible_job_title: "",
+                  is_external: false,
                 })
               }
             >
@@ -585,82 +598,13 @@ export function CreateMeetingMinuteForm({
           )}
 
           {agreementFields.map((field, index) => (
-            <div
+            <AgreementItem
               key={field.id}
-              className="flex flex-col gap-3 p-3 border border-border/30 rounded-md"
-            >
-              <div className="flex items-start gap-2">
-                <FormField
-                  control={form.control}
-                  name={`agreements.${index}.description`}
-                  render={({ field: f }) => (
-                    <FormItem className="flex-1">
-                      <FormLabel className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70 mb-1">
-                        Descripción
-                      </FormLabel>
-                      <FormControl>
-                        <Textarea placeholder="Acuerdo..." className="min-h-[60px]" {...f} />
-                      </FormControl>
-                      <FormMessage className="text-xs" />
-                    </FormItem>
-                  )}
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="mt-6 shrink-0"
-                  onClick={() => removeAgreement(index)}
-                >
-                  <Trash2 className="size-4 text-destructive" />
-                </Button>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <FormField
-                  control={form.control}
-                  name={`agreements.${index}.responsible_employee_id`}
-                  render={({ field: f }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70 mb-1">
-                        Responsable
-                      </FormLabel>
-                      <Select onValueChange={f.onChange} value={f.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Empleado" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {employees?.map((e) => (
-                            <SelectItem key={e.id} value={String(e.id)}>
-                              {getEmployeeFullName(e)}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage className="text-xs" />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name={`agreements.${index}.responsible_name`}
-                  render={({ field: f }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70 mb-1">
-                        O responsable externo
-                      </FormLabel>
-                      <FormControl>
-                        <Input placeholder="Nombre externo" {...f} />
-                      </FormControl>
-                      <FormMessage className="text-xs" />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
+              form={form}
+              index={index}
+              employees={employees ?? []}
+              onRemove={() => removeAgreement(index)}
+            />
           ))}
         </div>
 
@@ -673,97 +617,29 @@ export function CreateMeetingMinuteForm({
           </span>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <FormField
-              control={form.control}
+            <ComboboxField
+              form={form}
               name="filled_out_by"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">
-                    Realizado por
-                  </FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Opcional" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {employeesLoading ? (
-                        <div className="flex justify-center py-2"><Loader2 className="size-4 animate-spin" /></div>
-                      ) : (
-                        employees?.map((e) => (
-                          <SelectItem key={e.id} value={String(e.id)}>
-                            {getEmployeeFullName(e)}
-                          </SelectItem>
-                        ))
-                      )}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage className="text-xs" />
-                </FormItem>
-              )}
+              label="Realizado por"
+              placeholder="Opcional"
+              options={employeeOptions}
+              disabled={employeesLoading}
             />
-
-            <FormField
-              control={form.control}
+            <ComboboxField
+              form={form}
               name="reviewed_by"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">
-                    Revisado por
-                  </FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Opcional" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {employeesLoading ? (
-                        <div className="flex justify-center py-2"><Loader2 className="size-4 animate-spin" /></div>
-                      ) : (
-                        employees?.map((e) => (
-                          <SelectItem key={e.id} value={String(e.id)}>
-                            {getEmployeeFullName(e)}
-                          </SelectItem>
-                        ))
-                      )}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage className="text-xs" />
-                </FormItem>
-              )}
+              label="Revisado por"
+              placeholder="Opcional"
+              options={employeeOptions}
+              disabled={employeesLoading}
             />
-
-            <FormField
-              control={form.control}
+            <ComboboxField
+              form={form}
               name="approved_by"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">
-                    Aprobado por
-                  </FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Opcional" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {employeesLoading ? (
-                        <div className="flex justify-center py-2"><Loader2 className="size-4 animate-spin" /></div>
-                      ) : (
-                        employees?.map((e) => (
-                          <SelectItem key={e.id} value={String(e.id)}>
-                            {getEmployeeFullName(e)}
-                          </SelectItem>
-                        ))
-                      )}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage className="text-xs" />
-                </FormItem>
-              )}
+              label="Aprobado por"
+              placeholder="Opcional"
+              options={employeeOptions}
+              disabled={employeesLoading}
             />
           </div>
         </div>
@@ -831,6 +707,28 @@ export function CreateMeetingMinuteForm({
             </>
           )}
         </Button>
+          </>
+        )}
+
+        {/* Navigation */}
+        <div className="flex items-center justify-between gap-3">
+          {step > 1 ? (
+            <Button type="button" variant="outline" onClick={() => setStep(step - 1)}>
+              <ChevronLeft className="size-4 mr-1" />
+              Anterior
+            </Button>
+          ) : (
+            <div />
+          )}
+          {step < 3 ? (
+            <Button type="button" onClick={() => setStep(step + 1)}>
+              Siguiente
+              <ChevronRight className="size-4 ml-1" />
+            </Button>
+          ) : (
+            <div />
+          )}
+        </div>
       </form>
     </Form>
   );
