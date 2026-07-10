@@ -19,6 +19,7 @@ export interface PurchaseOrderArticleQuoteOrder {
   is_not_quoted?: boolean;
   quantity: string | number;
   unit_price: string | number;
+  total: string | number;
   article_requisition_order: ArticleRequisitionOrderRef | null;
 }
 
@@ -30,6 +31,7 @@ export interface PurchaseOrderGeneralArticleQuoteOrder {
   unit_id?: number | null;
   quantity: string | number;
   unit_price: string | number;
+  total: string | number;
   brand_model?: string | null;
   reference?: string | null;
   lead_time?: string | null;
@@ -45,6 +47,10 @@ export interface PurchaseOrderArticle {
   id: number;
   purchase_order_id: number;
   article_quote_order_id: number;
+  /** Actual amount paid for this line item — may differ from article_quote_order.total. */
+  total?: string | number | null;
+  /** Required (by convention, not enforced by the backend) when total differs from the quoted total. */
+  total_justification?: string | null;
   shipping_tracking?: string | null;
   international_shipping_tracking?: string | null;
   article_quote_order: PurchaseOrderArticleQuoteOrder | null;
@@ -59,6 +65,10 @@ export interface PurchaseOrderGeneralArticle {
   id: number;
   purchase_order_id: number;
   general_article_quote_order_id: number;
+  /** Actual amount paid for this line item — may differ from general_article_quote_order.total. */
+  total?: string | number | null;
+  /** Required (by convention, not enforced by the backend) when total differs from the quoted total. */
+  total_justification?: string | null;
   shipping_tracking?: string | null;
   international_shipping_tracking?: string | null;
   general_article_quote_order: PurchaseOrderGeneralArticleQuoteOrder | null;
@@ -135,12 +145,18 @@ export interface PurchaseOrder {
 // the same quote_order_id.
 export interface CreatePurchaseOrderArticleData {
   article_quote_order_id: number;
+  total?: number | null;
+  /** Required (by convention, not enforced by the backend) when total differs from the quoted total. */
+  total_justification?: string | null;
   shipping_tracking?: string | null;
   international_shipping_tracking?: string | null;
 }
 
 export interface CreatePurchaseOrderGeneralArticleData {
   general_article_quote_order_id: number;
+  total?: number | null;
+  /** Required (by convention, not enforced by the backend) when total differs from the quoted total. */
+  total_justification?: string | null;
   shipping_tracking?: string | null;
   international_shipping_tracking?: string | null;
 }
@@ -150,8 +166,15 @@ export interface CreatePurchaseOrderData {
   location_id: number;
   purchase_date: string;
   observation?: string | null;
-  sub_total: number;
-  total: number;
+  /**
+   * Not used by the backend at creation — a quote spanning multiple vendors
+   * (or retailers, for general articles) splits into one PO per vendor, and
+   * each split PO's sub_total/total is computed server-side as the sum of
+   * only the articles routed into it. Kept optional for callers that still
+   * pass a value; it's ignored.
+   */
+  sub_total?: number;
+  total?: number;
   articles_purchase_orders?: CreatePurchaseOrderArticleData[];
   general_articles_purchase_orders?: CreatePurchaseOrderGeneralArticleData[];
 }
@@ -167,6 +190,9 @@ export interface CreatedPurchaseOrderRef {
 // PUT /{company}/purchase-order/{id}
 export interface UpdatePurchaseOrderArticleData {
   article_purchase_order_id: number;
+  total?: number | null;
+  /** Required (by convention, not enforced by the backend) when total differs from the quoted total. */
+  total_justification?: string | null;
   shipping_tracking?: string | null;
   international_shipping_tracking?: string | null;
 }
@@ -175,6 +201,8 @@ export interface UpdatePurchaseOrderData {
   tax?: number | null;
   wire_fee?: number | null;
   handling_fee?: number | null;
+  /** Sum of the line items' totals — recalculate on the frontend whenever an article's total changes. */
+  sub_total?: number | null;
   total: number;
   /** El backend deriva bank_account_id del método de pago cuando se envía payment_method_id. */
   payment_method_id?: number | null;

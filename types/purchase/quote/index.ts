@@ -37,6 +37,7 @@ export interface ArticleQuoteOrder {
   id: number;
   quantity: number;
   unit_price: string | number;
+  total: string | number;
   reference?: string | null;
   lead_time?: string | null;
   /** Reason for a quantity/unit change or exclusion made at quote time — stored on the quote article itself. */
@@ -55,6 +56,7 @@ export interface GeneralArticleQuoteOrder {
   id: number;
   quantity: number;
   unit_price: string | number;
+  total: string | number;
   brand_model?: string | null;
   reference?: string | null;
   lead_time?: string | null;
@@ -102,6 +104,7 @@ export interface CreateQuoteArticleData {
   article_requisition_order_id: number;
   quantity: number;
   unit_price: number;
+  total: number;
   vendor_id?: number | null;
   location_id?: number | null;
   condition_id?: number | null;
@@ -121,6 +124,7 @@ export interface CreateQuoteGeneralArticleData {
   general_article_requisition_order_id: number;
   quantity: number;
   unit_price: number;
+  total: number;
   /** Comercio / lugar de compra selected for this general article. */
   retailer_id?: number | null;
   location_id?: number | null;

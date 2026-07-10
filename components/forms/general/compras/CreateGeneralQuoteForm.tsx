@@ -208,6 +208,7 @@ export function CreateGeneralQuoteForm({
         is_not_quoted: !!a.not_quoted,
         quantity: a.not_quoted ? 0 : Number(a.quantity),
         unit_price: a.not_quoted ? 0 : Number(a.unit_price),
+        total: a.not_quoted ? 0 : (Number(a.quantity) || 0) * (Number(a.unit_price) || 0),
         unit_id: a.unit ? Number(a.unit) : undefined,
         retailer_id: a.retailer_id ? Number(a.retailer_id) : undefined,
         location_id: a.location_id ? Number(a.location_id) : undefined,

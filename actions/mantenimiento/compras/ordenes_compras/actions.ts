@@ -50,6 +50,7 @@ export const useCompletePurchase = () => {
           if (data.tax != null) formData.append("tax", String(data.tax))
           if (data.wire_fee != null) formData.append("wire_fee", String(data.wire_fee))
           if (data.handling_fee != null) formData.append("handling_fee", String(data.handling_fee))
+          if (data.sub_total != null) formData.append("sub_total", String(data.sub_total))
           formData.append("total", String(data.total))
           // El backend deriva bank_account_id del método de pago cuando se
           // envía payment_method_id; bank_account_id suelto queda por
@@ -66,6 +67,8 @@ export const useCompletePurchase = () => {
 
           data.articles_purchase_orders?.forEach((article, index) => {
             formData.append(`articles_purchase_orders[${index}][article_purchase_order_id]`, String(article.article_purchase_order_id))
+            if (article.total != null) formData.append(`articles_purchase_orders[${index}][total]`, String(article.total))
+            if (article.total_justification != null) formData.append(`articles_purchase_orders[${index}][total_justification]`, article.total_justification)
             if (article.shipping_tracking != null) formData.append(`articles_purchase_orders[${index}][shipping_tracking]`, article.shipping_tracking)
             if (article.international_shipping_tracking != null) formData.append(`articles_purchase_orders[${index}][international_shipping_tracking]`, article.international_shipping_tracking)
           })

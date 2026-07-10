@@ -127,16 +127,13 @@ const QuoteDropdownDialogs = ({
       quote.article_quote_order.find((a) => a.location)?.location?.id ??
       quote.general_article_quote_order.find((a) => a.location)?.location?.id
 
-    // El total con impuestos/tarifas aún no existe en este punto — se calcula
-    // al completar la compra (markAsPaid/update), no al crearla.
-    const subTotal = Number(quote.total)
-
+    // sub_total/total aren't sent here — a quote spanning multiple vendors
+    // (or retailers) splits into one PO per vendor, and the backend computes
+    // each split PO's sub_total/total from only the articles routed into it.
     const poData = {
       quote_order_id: Number(quote.id),
       location_id: Number(locationId),
       purchase_date: new Date().toISOString(),
-      sub_total: subTotal,
-      total: subTotal,
       articles_purchase_orders: quote.article_quote_order.map((a) => ({
         article_quote_order_id: a.id,
       })),
