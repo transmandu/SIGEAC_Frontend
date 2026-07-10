@@ -25,6 +25,12 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { UseFormReturn, Path, FieldValues } from "react-hook-form";
 
 export interface ComboboxOption {
@@ -87,34 +93,38 @@ export function ComboboxField<T extends FieldValues>({
               {label}
             </FormLabel>
             <Popover open={open} onOpenChange={setOpen}>
-              <PopoverTrigger asChild>
-                <FormControl>
-                  <Button
-                    data-tour={dataTour}
-                    variant="outline"
-                    role="combobox"
-                    disabled={disabled}
-                    className={cn(
-                      "w-full justify-between font-normal h-9",
-                      !field.value && "text-muted-foreground",
-                    )}
-                  >
-                    {selectedOption ? (
-                      <div className="flex items-center gap-2 overflow-hidden flex-1">
-                        <span className="truncate">{selectedOption.label}</span>
-                        {selectedOption.badge && (
-                          <span className="text-[10px] uppercase font-bold text-muted-foreground bg-muted/30 px-1.5 py-0.5 rounded shrink-0">
-                            {selectedOption.badge}
-                          </span>
-                        )}
-                      </div>
-                    ) : (
-                      <span>{disabled ? "Cargando..." : placeholder}</span>
-                    )}
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                  </Button>
-                </FormControl>
-              </PopoverTrigger>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          data-tour={dataTour}
+                          variant="outline"
+                          role="combobox"
+                          disabled={disabled}
+                          className={cn(
+                            "w-full justify-center font-normal h-9 px-3",
+                            !field.value && "text-muted-foreground",
+                          )}
+                        >
+                          <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                  </TooltipTrigger>
+                  {selectedOption && (
+                    <TooltipContent side="top" align="center">
+                      <p>{selectedOption.label}</p>
+                      {selectedOption.badge && (
+                        <p className="text-[10px] uppercase font-bold text-muted-foreground">
+                          {selectedOption.badge}
+                        </p>
+                      )}
+                    </TooltipContent>
+                  )}
+                </Tooltip>
+              </TooltipProvider>
 
               <PopoverContent className="w-[300px] p-0" align="start">
                 <Command>
