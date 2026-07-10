@@ -20,7 +20,9 @@ import { Menu } from "@/components/sidebar/Menu";
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetHeader,
+  SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
 
@@ -124,6 +126,10 @@ export function SheetMenu() {
       >
         {/* HEADER */}
         <SheetHeader>
+          <SheetTitle className="sr-only">Menú de navegación</SheetTitle>
+          <SheetDescription className="sr-only">
+            Seleccione una empresa y navegue por las secciones del sistema.
+          </SheetDescription>
           <div className="flex justify-center items-center mt-4 mb-2 px-4 py-4 bg-background rounded-md">
             <Link
               href={`/${selectedCompany?.slug ?? ""}/dashboard`}
