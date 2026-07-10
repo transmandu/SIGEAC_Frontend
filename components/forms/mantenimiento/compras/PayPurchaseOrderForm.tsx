@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useGetPaymentOptions } from "@/hooks/general/cuentas_bancarias/useGetPaymentOptions";
@@ -34,6 +35,7 @@ import { Building2, FileCheck2, Loader2, Paperclip, Trash2, Truck, Wallet } from
 import Image from "next/image";
 import { useMemo, useRef } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
 import { AmountInput } from "../../../misc/AmountInput";
 
@@ -152,6 +154,9 @@ const FormSchema = z.object({
     z.object({
       article_purchase_order_id: z.number(),
       label: z.string(),
+      quoted_total: z.number(),
+      total: z.string().regex(/^\d+(\.\d{0,2})?$/, "Total inválido"),
+      total_justification: z.string().optional(),
       shipping_tracking: z.string(),
       international_shipping_tracking: z.string(),
     })
@@ -181,6 +186,7 @@ export function PayPurchaseOrderForm({ onClose, po, isAeronautical = false }: Fo
         const quote = article.article_quote_order;
         const quantity = Number(quote?.quantity ?? 0);
         const unitPrice = Number(quote?.unit_price ?? 0);
+        const quotedTotal = quote?.total != null ? Number(quote.total) : quantity * unitPrice;
         return {
           article_purchase_order_id: article.id,
           label: quote?.article_requisition_order?.article_part_number ?? `Artículo #${article.id}`,
@@ -188,7 +194,9 @@ export function PayPurchaseOrderForm({ onClose, po, isAeronautical = false }: Fo
           batchCategory: article.batch?.category ?? null,
           quantity,
           unitPrice,
-          total: quantity * unitPrice,
+          quotedTotal,
+          total: article.total != null ? Number(article.total) : quotedTotal,
+          totalJustification: article.total_justification ?? "",
           unitLabel: article.unit?.label ?? null,
         };
       }),
@@ -196,6 +204,7 @@ export function PayPurchaseOrderForm({ onClose, po, isAeronautical = false }: Fo
         const quote = article.general_article_quote_order;
         const quantity = Number(quote?.quantity ?? 0);
         const unitPrice = Number(quote?.unit_price ?? 0);
+        const quotedTotal = quote?.total != null ? Number(quote.total) : quantity * unitPrice;
         return {
           article_purchase_order_id: article.id,
           label: quote?.general_article_requisition_order?.description ?? `Artículo #${article.id}`,
@@ -203,7 +212,9 @@ export function PayPurchaseOrderForm({ onClose, po, isAeronautical = false }: Fo
           batchCategory: null,
           quantity,
           unitPrice,
-          total: quantity * unitPrice,
+          quotedTotal,
+          total: article.total != null ? Number(article.total) : quotedTotal,
+          totalJustification: article.total_justification ?? "",
           unitLabel: null,
         };
       }),
@@ -228,13 +239,25 @@ export function PayPurchaseOrderForm({ onClose, po, isAeronautical = false }: Fo
       articles_purchase_orders: articleRows.map((article) => ({
         article_purchase_order_id: article.article_purchase_order_id,
         label: article.label,
+        quoted_total: article.quotedTotal,
+        total: article.total.toFixed(2),
+        total_justification: article.totalJustification,
         shipping_tracking: "",
         international_shipping_tracking: "",
       })),
     },
   });
 
-  const { tax, wire_fee, handling_fee, shipping_fee, international_shipping } = form.watch();
+  const { tax, wire_fee, handling_fee, shipping_fee, international_shipping, articles_purchase_orders } = form.watch();
+
+  const subTotal = useMemo(
+    () =>
+      (articles_purchase_orders ?? []).reduce((sum, article) => {
+        const value = Number(article.total);
+        return sum + (Number.isNaN(value) ? 0 : value);
+      }, 0),
+    [articles_purchase_orders]
+  );
   const selectedMethodId = form.watch("payment_method_id");
   const selectedCardId = form.watch("bank_card_id");
   const knowsShippingInfo = form.watch("knows_shipping_info");
@@ -270,14 +293,14 @@ export function PayPurchaseOrderForm({ onClose, po, isAeronautical = false }: Fo
 
   const total = useMemo(() => {
     return (
-      Number(po.sub_total) +
+      subTotal +
       Number(tax || 0) +
       effectiveWireFee +
       Number(handling_fee || 0) +
       Number(shipping_fee || 0) +
       Number(international_shipping || 0)
     );
-  }, [po.sub_total, tax, effectiveWireFee, handling_fee, shipping_fee, international_shipping]);
+  }, [subTotal, tax, effectiveWireFee, handling_fee, shipping_fee, international_shipping]);
 
   const onSubmit = async (data: FormSchemaType) => {
     // Si el método tiene tarjetas registradas, hay que indicar cuál se usó;
@@ -292,10 +315,23 @@ export function PayPurchaseOrderForm({ onClose, po, isAeronautical = false }: Fo
       return;
     }
 
+    const missingJustification = data.articles_purchase_orders.some(
+      (article) => Number(article.total) !== article.quoted_total && !article.total_justification?.trim()
+    );
+    if (missingJustification) {
+      toast.error("Debe justificar los artículos cuyo total difiere del monto cotizado.");
+      return;
+    }
+
     const wireFee = isAeronautical ? 0 : Number(data.wire_fee || 0);
 
+    const computedSubTotal = data.articles_purchase_orders.reduce(
+      (sum, article) => sum + Number(article.total || 0),
+      0
+    );
+
     const computedTotal =
-      Number(po.sub_total) +
+      computedSubTotal +
       Number(data.tax || 0) +
       wireFee +
       Number(data.handling_fee || 0) +
@@ -310,6 +346,7 @@ export function PayPurchaseOrderForm({ onClose, po, isAeronautical = false }: Fo
         handling_fee: Number(data.handling_fee || 0),
         shipping_fee: data.knows_shipping_info ? Number(data.shipping_fee || 0) : 0,
         international_shipping: data.knows_shipping_info ? Number(data.international_shipping || 0) : 0,
+        sub_total: computedSubTotal,
         total: computedTotal,
         // La tarjeta determina su cuenta; sin tarjeta va la cuenta elegida
         // (o ninguna, para métodos como Efectivo). El backend valida la coherencia.
@@ -324,6 +361,8 @@ export function PayPurchaseOrderForm({ onClose, po, isAeronautical = false }: Fo
         invoice: data.invoice,
         articles_purchase_orders: data.articles_purchase_orders.map((article) => ({
           article_purchase_order_id: article.article_purchase_order_id,
+          total: Number(article.total),
+          total_justification: article.total_justification || null,
           shipping_tracking: data.knows_shipping_info ? article.shipping_tracking || null : null,
           international_shipping_tracking: data.knows_shipping_info ? article.international_shipping_tracking || null : null,
         })),
@@ -413,15 +452,8 @@ export function PayPurchaseOrderForm({ onClose, po, isAeronautical = false }: Fo
                   </div>
 
                   {/* BODY */}
-                  <div className="relative px-3 py-2.5 pr-24">
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 flex flex-col items-end gap-0.5">
-                      <span className={LABEL_CLS}>Total</span>
-                      <span className="font-semibold tabular-nums leading-none">
-                        ${article.total.toFixed(2)}
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-[2fr_1fr_1fr] gap-x-3 gap-y-2.5">
+                  <div className="relative px-3 py-2.5">
+                    <div className="grid grid-cols-[2fr_1fr_1fr_1fr] gap-x-3 gap-y-2.5">
                       <div className="flex items-center gap-1.5 min-w-0">
                         <span className="text-[10px] px-1.5 py-[2px] rounded-md bg-teal-500/10 text-teal-700 border border-teal-500/20 shrink-0 select-none">
                           P/N
@@ -433,16 +465,69 @@ export function PayPurchaseOrderForm({ onClose, po, isAeronautical = false }: Fo
 
                       <div className="flex flex-col gap-0.5">
                         <span className={LABEL_CLS}>Cantidad</span>
-                        <span className="text-sm tabular-nums">
+                        <span className="flex h-7 items-center text-sm tabular-nums">
                           {article.quantity}{article.unitLabel ? ` ${article.unitLabel}` : ""}
                         </span>
                       </div>
 
                       <div className="flex flex-col gap-0.5">
                         <span className={LABEL_CLS}>Precio unitario</span>
-                        <span className="text-sm tabular-nums">${article.unitPrice.toFixed(2)}</span>
+                        <span className="flex h-7 items-center text-sm tabular-nums">${article.unitPrice.toFixed(2)}</span>
                       </div>
+
+                      <FormField
+                        control={form.control}
+                        name={`articles_purchase_orders.${index}.total`}
+                        render={({ field }) => {
+                          const currentValue = Number(
+                            form.watch(`articles_purchase_orders.${index}.total`)
+                          );
+                          const differs = !Number.isNaN(currentValue) && currentValue !== article.quotedTotal;
+                          return (
+                            <FormItem className="flex flex-col gap-0.5 space-y-0">
+                              <span className={cn(LABEL_CLS, differs && "text-amber-600 dark:text-amber-400")}>
+                                Total {differs && `(cotizado $${article.quotedTotal.toFixed(2)})`}
+                              </span>
+                              <FormControl>
+                                <AmountInput
+                                  className={cn(
+                                    INPUT_CLS,
+                                    "h-7",
+                                    differs && "border-amber-500/60 bg-amber-50/70 dark:bg-amber-900/20"
+                                  )}
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          );
+                        }}
+                      />
                     </div>
+
+                    {Number(form.watch(`articles_purchase_orders.${index}.total`)) !== article.quotedTotal && (
+                      <div className="mt-2.5 border-t border-amber-500/30 bg-amber-50/40 -mx-3 px-3 py-2 dark:bg-amber-900/10">
+                        <span className="select-none text-[10px] leading-none text-amber-700 dark:text-amber-400 uppercase">
+                          Justificación de la diferencia
+                        </span>
+                        <FormField
+                          control={form.control}
+                          name={`articles_purchase_orders.${index}.total_justification`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <Textarea
+                                  {...field}
+                                  placeholder="Explique el motivo de la diferencia con el monto cotizado..."
+                                  className="mt-1 min-h-[50px] resize-none border-amber-500/40 bg-background/70 text-sm"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    )}
 
                     {knowsShippingInfo && (
                       <div className="mt-2.5 grid grid-cols-2 gap-3 border-t border-border/40 pt-2.5">
@@ -760,7 +845,7 @@ export function PayPurchaseOrderForm({ onClose, po, isAeronautical = false }: Fo
                 Total general
               </span>
               <span className="text-[10px] text-muted-foreground/70 tabular-nums">
-                Subtotal ${Number(po.sub_total).toFixed(2)}
+                Subtotal ${subTotal.toFixed(2)}
               </span>
             </div>
             <span className="font-mono text-xl font-semibold tabular-nums leading-none">

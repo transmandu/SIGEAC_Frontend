@@ -25,7 +25,11 @@ const Field = ({ label, value, mono = false, pending = false }: { label: string;
 const PurchaseOrderGeneralArticleCard = ({ article }: PurchaseOrderGeneralArticleCardProps) => {
   const quoteArticle = article.general_article_quote_order;
   const req = quoteArticle?.general_article_requisition_order;
-  const amount = Number(quoteArticle?.quantity || 0) * Number(quoteArticle?.unit_price || 0);
+  const quotedTotal = quoteArticle?.total != null
+    ? Number(quoteArticle.total)
+    : Number(quoteArticle?.quantity || 0) * Number(quoteArticle?.unit_price || 0);
+  const amount = article.total != null ? Number(article.total) : quotedTotal;
+  const totalDiffers = article.total != null && Number(article.total) !== quotedTotal;
 
   return (
     <div className="rounded-lg border border-border/60 bg-background/70 overflow-hidden flex flex-col">
@@ -52,7 +56,7 @@ const PurchaseOrderGeneralArticleCard = ({ article }: PurchaseOrderGeneralArticl
           <Field label="Cantidad" value={quoteArticle?.quantity} />
           <Field label="Unidad" value={req?.unit?.label} />
           <Field label="P. Unitario" value={`$${Number(quoteArticle?.unit_price || 0).toFixed(2)}`} />
-          <Field label="Total" value={`$${amount.toFixed(2)}`} />
+          <Field label="Total" value={`$${amount.toFixed(2)}${totalDiffers ? ` (cotizado $${quotedTotal.toFixed(2)})` : ''}`} />
           <Field label="Lugar de compra" value={quoteArticle?.retailer?.name} />
           <Field
             label="Tracking Nacional"
@@ -70,7 +74,7 @@ const PurchaseOrderGeneralArticleCard = ({ article }: PurchaseOrderGeneralArticl
 
       </div>
 
-      {/* JUSTIFICACIÓN */}
+      {/* JUSTIFICACIÓN (cotización) */}
       {quoteArticle?.justification && (
         <div className="border-t border-border/50 bg-muted/20 px-2.5 py-1">
           <span className="select-none text-[9px] leading-none text-muted-foreground uppercase">
@@ -78,6 +82,18 @@ const PurchaseOrderGeneralArticleCard = ({ article }: PurchaseOrderGeneralArticl
           </span>
           <p className="mt-0.5 text-xs text-foreground/80 line-clamp-2">
             {quoteArticle.justification}
+          </p>
+        </div>
+      )}
+
+      {/* JUSTIFICACIÓN DE DIFERENCIA DE TOTAL (pago) */}
+      {article.total_justification && (
+        <div className="border-t border-amber-500/30 bg-amber-50/40 px-2.5 py-1 dark:bg-amber-900/10">
+          <span className="select-none text-[9px] leading-none text-amber-700 dark:text-amber-400 uppercase">
+            Justificación de diferencia de total
+          </span>
+          <p className="mt-0.5 text-xs text-foreground/80 line-clamp-2">
+            {article.total_justification}
           </p>
         </div>
       )}
