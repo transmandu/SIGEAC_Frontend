@@ -69,7 +69,7 @@ export function DataTable<TData, TValue>({
         <div className="flex items-center gap-2">
           <Button
             onClick={() => {
-              router.push(`/${selectedCompany?.slug}/sms/promocion/minuta_reunion/crear`);
+              router.push(`/${selectedCompany?.slug}/sms/promocion/minutas_reunion/crear`);
             }}
             variant="outline"
             size="sm"
