@@ -1,6 +1,7 @@
 "use client";
 
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
+import MeetingMinuteDropDownActions from "@/components/dropdowns/aerolinea/sms/MeetingMinuteDropDownActions";
 import { dateFormat } from "@/lib/utils";
 import { MeetingMinutes } from "@/types";
 import { ColumnDef } from "@tanstack/react-table";
@@ -67,8 +68,7 @@ export const columns: ColumnDef<MeetingMinutes>[] = [
   {
     id: "actions",
     cell: ({ row }) => (
-      <div></div>
-      // <SMSActivityDropDownActions smsActivity={row.original} />
+      <MeetingMinuteDropDownActions meetingMinute={row.original} />
     ),
   },
 ];
