@@ -72,14 +72,14 @@ const TaskCard = ({
           </div>
 
           <div className="grid grid-cols-2 gap-2 text-sm">
-            <div>
+            {/* <div>
               <p className="text-xs text-muted-foreground">Horas H/H:</p>
               <Badge variant="outline" className="font-mono text-xs">
                 {task.assigned_technicians?.reduce((sum, t) => sum + t.hours, 0).toFixed(1) ||
                  task.total_man_hours?.toFixed(1) ||
                  '8.0'} h
               </Badge>
-            </div>
+            </div> */}
             <div>
               <p className="text-xs text-muted-foreground">Inspector:</p>
               <p className="text-xs truncate">
