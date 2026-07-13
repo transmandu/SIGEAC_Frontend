@@ -78,7 +78,11 @@ export function FuelVehiclesTable({
                 >
                   <TableCell className="font-semibold">
                     <div className="flex items-center gap-1.5">
-                      {vehicle.plate}
+                      {vehicle.plate || (
+                        <span className="font-normal text-muted-foreground">
+                          Sin placa
+                        </span>
+                      )}
                       {isPendingFuelVehiclePlate(vehicle.plate) && (
                         <Badge
                           variant="destructive"

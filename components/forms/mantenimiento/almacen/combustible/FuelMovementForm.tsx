@@ -343,7 +343,7 @@ export function FuelMovementForm({
                         .join(" ");
                       return (
                         <SelectItem key={vehicle.id} value={vehicle.id.toString()}>
-                          {vehicle.plate}
+                          {vehicle.plate || "Sin placa"}
                           {vehicleLabel ? ` (${vehicleLabel})` : ""} -{" "}
                           {formatLiters(vehicle.current_balance_liters)}
                         </SelectItem>

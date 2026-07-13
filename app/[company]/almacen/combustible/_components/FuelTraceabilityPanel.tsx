@@ -78,7 +78,7 @@ export function FuelTraceabilityPanel({
                   <TableCell>
                     {vehicle ? (
                       <div className="flex flex-col">
-                        <span>{vehicle.plate}</span>
+                        <span>{vehicle.plate || "Sin placa"}</span>
                         {(vehicle.brand || vehicle.model || vehicle.color) && (
                           <span className="text-xs text-muted-foreground">
                             {[vehicle.brand, vehicle.model, vehicle.color]

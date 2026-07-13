@@ -342,7 +342,7 @@ export default function FuelWarehousePage() {
                       <SelectItem value="all">Todos</SelectItem>
                       {fuelVehicles.map((vehicle) => (
                         <SelectItem key={vehicle.id} value={vehicle.id.toString()}>
-                          {vehicle.plate} - {formatLiters(vehicle.current_balance_liters)}
+                          {vehicle.plate || "Sin placa"} - {formatLiters(vehicle.current_balance_liters)}
                         </SelectItem>
                       ))}
                     </SelectContent>

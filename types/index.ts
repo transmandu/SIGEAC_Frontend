@@ -1401,7 +1401,7 @@ export type FuelMovementType =
 
 export type FuelVehicle = {
   id: number;
-  plate: string;
+  plate: string | null;
   brand?: string | null;
   model?: string | null;
   color?: string | null;
