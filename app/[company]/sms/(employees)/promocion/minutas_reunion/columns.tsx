@@ -8,13 +8,14 @@ import { ColumnDef } from "@tanstack/react-table";
 
 export const columns: ColumnDef<MeetingMinutes>[] = [
   {
-    accessorKey: "Numero",
+    accessorKey: "minute_number",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Estado" />
+      <DataTableColumnHeader column={column} title="Nro de Minuta" />
     ),
-    meta: { title: "Estado" },
+    meta: { title: "minute_number" },
     cell: ({ row }) => (
       <div className="flex justify-center">
+        {row.original.minute_number}
       </div>
     ),
   },

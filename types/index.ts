@@ -1179,6 +1179,7 @@ export type SafetyBulletin = {
 
 export type MeetingMinutes = {
   id: number;
+  minute_number: string;
   date: Date;
   place: string;
   location_id: number;
