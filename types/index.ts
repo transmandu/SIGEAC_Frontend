@@ -1257,6 +1257,7 @@ export type GeneralArticle = {
   description: string;
   variant_type?: string | null;
   quantity: number;
+  minimum_quantity?: number | null;
   brand_model?: string;
   warehouse: Warehouse;
   general_primary_unit: Unit;

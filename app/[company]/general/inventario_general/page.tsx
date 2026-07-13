@@ -46,7 +46,10 @@ const InventarioGeneralPage = () => {
         col.id !== "acciones" &&
         (typeof col.header === "string"
           ? col.header.toLowerCase() !== "acciones"
-          : true),
+          : true) &&
+        (canSeeQuantity ||
+          (col.id !== "minimum_quantity" &&
+            (col as any).accessorKey !== "minimum_quantity")),
     );
 
     if (!canSeeQuantity) return filtered;
