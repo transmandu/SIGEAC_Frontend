@@ -1,4 +1,7 @@
-import { useDeleteMeetingMinute } from "@/actions/general/minutas_reunion/actions";
+import {
+  useDeleteMeetingMinute,
+  useDownloadMeetingMinutePdf,
+} from "@/actions/general/minutas_reunion/actions";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,7 +15,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { MeetingMinutes } from "@/types";
-import { ClipboardPen, Eye, Loader2, MoreHorizontal, Trash2 } from "lucide-react";
+import { ClipboardPen, Download, Eye, Loader2, MoreHorizontal, Trash2 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "../../../ui/button";
@@ -40,6 +43,7 @@ const MeetingMinuteDropDownActions = ({
   const [openEdit, setOpenEdit] = useState<boolean>(false);
 
   const { deleteMeetingMinute } = useDeleteMeetingMinute();
+  const { downloadMeetingMinutePdf } = useDownloadMeetingMinutePdf();
 
   const handleDelete = async () => {
     await deleteMeetingMinute.mutateAsync({
@@ -47,6 +51,23 @@ const MeetingMinuteDropDownActions = ({
       id: meetingMinute.id,
     });
     setOpenDelete(false);
+  };
+
+  const handleDownloadPdf = async () => {
+    try {
+      const blob = await downloadMeetingMinutePdf.mutateAsync({
+        company: selectedCompany!.slug,
+        id: meetingMinute.id,
+      });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `${meetingMinute.minute_number ?? meetingMinute.id}.pdf`;
+      anchor.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      // error handled by the hook
+    }
   };
 
   return (
@@ -61,6 +82,16 @@ const MeetingMinuteDropDownActions = ({
 
         <DropdownMenuContent align="center" className="flex gap-2 justify-center">
           <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenuItem onClick={handleDownloadPdf}>
+                  <Download className="size-5" />
+                </DropdownMenuItem>
+              </TooltipTrigger>
+              <TooltipContent side="top">
+                <p>Descargar PDF</p>
+              </TooltipContent>
+            </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
                 <DropdownMenuItem

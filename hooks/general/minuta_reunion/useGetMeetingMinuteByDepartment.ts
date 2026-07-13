@@ -7,7 +7,7 @@ export type MeetingMinuteDetail = {
   place: string;
   location_id: string;
   objective?: string;
-  topics?: string;
+  topics?: string | string[];
   photo?: string | null;
   document?: string | null;
   department_id: string;

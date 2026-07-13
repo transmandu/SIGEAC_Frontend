@@ -142,8 +142,9 @@ export function CreateMeetingMinuteForm({
     label: `${e.first_name} ${e.last_name}`.trim(),
   }));
 
-  const parseStringArray = (val: string | undefined | null): { value: string }[] => {
+  const parseStringArray = (val: string | string[] | undefined | null): { value: string }[] => {
     if (!val) return [];
+    if (Array.isArray(val)) return val.map((v) => ({ value: String(v) }));
     try {
       const parsed = JSON.parse(val);
       if (Array.isArray(parsed)) return parsed.map((v: string) => ({ value: String(v) }));
@@ -157,7 +158,7 @@ export function CreateMeetingMinuteForm({
       date: initialData?.date ? new Date(initialData.date) : undefined,
       place: initialData?.place ?? "",
       objective: typeof initialData?.objective === "string" ? initialData.objective : "",
-      topics: parseStringArray(initialData?.topics as string | undefined),
+      topics: parseStringArray(initialData?.topics),
       chaired_by: typeof initialData?.chaired_by === "object" ? String((initialData.chaired_by as any)?.id ?? "") : String(initialData?.chaired_by ?? ""),
       filled_out_by: typeof initialData?.filled_out_by === "object" ? String((initialData.filled_out_by as any)?.id ?? "") : String(initialData?.filled_out_by ?? ""),
       reviewed_by: typeof initialData?.reviewed_by === "object" ? String((initialData.reviewed_by as any)?.id ?? "") : String(initialData?.reviewed_by ?? ""),

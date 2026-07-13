@@ -1184,7 +1184,7 @@ export type MeetingMinutes = {
   place: string;
   location_id: number;
   objective?: string;
-  topics?: string;
+  topics?: string | string[];
   photo?: string;
   document?: string;
   chaired_by: Employee;

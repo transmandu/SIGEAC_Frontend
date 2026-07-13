@@ -83,3 +83,17 @@ export const useDeleteMeetingMinute = () => {
 
   return { deleteMeetingMinute: mutation };
 };
+
+export const useDownloadMeetingMinutePdf = () => {
+  const mutation = useMutation({
+    mutationFn: async ({ company, id }: { company: string; id: number }) => {
+      const { data } = await axiosInstance.get(
+        `/${company}/meetings/${id}/download-pdf`,
+        { responseType: "blob" },
+      );
+      return data as Blob;
+    },
+  });
+
+  return { downloadMeetingMinutePdf: mutation };
+};

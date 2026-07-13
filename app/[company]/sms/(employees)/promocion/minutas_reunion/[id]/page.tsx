@@ -197,7 +197,7 @@ const ShowMeetingMinute = () => {
                 </h2>
                 <div className="border-t border-border/60 pt-2">
                   <div className="divide-y divide-border/30 border border-border/40">
-                    {meeting.topics.split(",").map((topic, i) => (
+                    {(Array.isArray(meeting.topics) ? meeting.topics : []).map((topic: string, i: number) => (
                       <div key={i} className="px-3 py-3 text-sm transition-colors hover:bg-muted/20">
                         {topic.trim()}
                       </div>
