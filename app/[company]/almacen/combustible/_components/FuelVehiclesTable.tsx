@@ -17,6 +17,7 @@ import {
   formatLiters,
   getFuelStatusLabel,
   getFuelVehicleTypeLabel,
+  isPendingFuelVehiclePlate,
 } from "@/lib/fuel";
 import { cn } from "@/lib/utils";
 import { FuelVehicle } from "@/types";
@@ -46,6 +47,7 @@ export function FuelVehiclesTable({
         <TableHeader>
           <TableRow>
             <TableHead>Placa</TableHead>
+            <TableHead>Vehiculo</TableHead>
             <TableHead>Tipo</TableHead>
             <TableHead>Responsable</TableHead>
             <TableHead className="text-right">Capacidad</TableHead>
@@ -75,7 +77,28 @@ export function FuelVehiclesTable({
                   className={cn(isInactive && "text-muted-foreground")}
                 >
                   <TableCell className="font-semibold">
-                    {vehicle.plate}
+                    <div className="flex items-center gap-1.5">
+                      {vehicle.plate}
+                      {isPendingFuelVehiclePlate(vehicle.plate) && (
+                        <Badge
+                          variant="destructive"
+                          className="text-[10px] font-normal"
+                          title="Placa migrada de datos legacy: debe corregirse con la placa real"
+                        >
+                          Placa pendiente de corrección
+                        </Badge>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell
+                    className={cn(
+                      "max-w-[200px] truncate",
+                      !vehicle.brand && !vehicle.model && !vehicle.color && "text-muted-foreground",
+                    )}
+                  >
+                    {[vehicle.brand, vehicle.model, vehicle.color]
+                      .filter(Boolean)
+                      .join(" / ") || "-"}
                   </TableCell>
                   <TableCell>{getFuelVehicleTypeLabel(vehicle.type)}</TableCell>
                   <TableCell
@@ -154,7 +177,7 @@ export function FuelVehiclesTable({
             })
           ) : (
             <TableRow className="hover:bg-transparent">
-              <TableCell colSpan={9} className="h-36">
+              <TableCell colSpan={10} className="h-36">
                 <div className="flex flex-col items-center justify-center gap-1 text-center">
                   <Truck className="h-5 w-5 text-muted-foreground" />
                   <p className="text-sm font-medium">Sin vehiculos</p>

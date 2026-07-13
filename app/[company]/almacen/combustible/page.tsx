@@ -411,6 +411,7 @@ export default function FuelWarehousePage() {
               <FuelMovementsTable
                 company={company}
                 movements={fuelMovements}
+                vehicles={fuelVehicles}
                 isSuperUser={isSuperUser}
               />
             )}
@@ -425,7 +426,11 @@ export default function FuelWarehousePage() {
           </TabsContent>
 
           <TabsContent value="traceability">
-            <FuelTraceabilityPanel company={company} movements={fuelMovements} />
+            <FuelTraceabilityPanel
+              company={company}
+              movements={fuelMovements}
+              vehicles={fuelVehicles}
+            />
           </TabsContent>
         </Tabs>
       </div>
