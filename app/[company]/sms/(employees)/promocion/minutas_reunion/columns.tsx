@@ -12,15 +12,15 @@ export const columns: ColumnDef<MeetingMinutes>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Nro de Minuta" />
     ),
-    meta: { title: "minute_number" },
+    meta: { title: "Nro de Minuta" },
     cell: ({ row }) => (
-      <div className="flex justify-center">
+      <div className="flex justify-center font-bold">
         {row.original.minute_number}
       </div>
     ),
   },
   {
-    accessorKey: "employee",
+    accessorKey: "place",
     header: ({ column }) => (
       <DataTableColumnHeader filter column={column} title="Lugar" />
     ),
@@ -32,7 +32,7 @@ export const columns: ColumnDef<MeetingMinutes>[] = [
     ),
   },
   {
-    accessorKey: "base_course_id",
+    accessorKey: "date",
     header: ({ column }) => (
       <DataTableColumnHeader
         filter
@@ -68,6 +68,7 @@ export const columns: ColumnDef<MeetingMinutes>[] = [
 
   {
     id: "actions",
+    meta: { title: "Acciones" },
     cell: ({ row }) => (
       <MeetingMinuteDropDownActions meetingMinute={row.original} />
     ),
