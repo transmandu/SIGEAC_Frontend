@@ -1502,3 +1502,45 @@ export type ExternalPilot = {
   license_number: string;
   rank?: string;
 };
+
+export type ErrorReportStatus = "OPEN" | "IN_PROGRESS" | "RESOLVED";
+export type ErrorReportSeverity = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+
+export type ErrorReportImage = {
+  id: number;
+  image_url: string;
+};
+
+export type ErrorReport = {
+  id: number;
+  reported_by: string;
+  phone: string | null;
+  source: string;
+  module: string | null;
+  description: string;
+  severity: ErrorReportSeverity | null;
+  http_status: number | null;
+  http_status_label: string | null;
+  technical_cause: string | null;
+  diagnostic_steps: string[] | null;
+  duplicate_count: number;
+  images: ErrorReportImage[];
+  reported_at: string;
+  status: ErrorReportStatus;
+  resolved_by: string | null;
+  resolution: string | null;
+  resolved_at: string | null;
+  resolution_minutes: number | string | null;
+};
+
+export type ImportHistoryStatus = "queued" | "running" | "completed" | "paused_quota";
+
+export type ErrorReportImport = {
+  id: number;
+  status: ImportHistoryStatus;
+  stats: Record<string, number> | null;
+  resume_from: string | null;
+  error: string | null;
+  created_at: string;
+  updated_at: string;
+};

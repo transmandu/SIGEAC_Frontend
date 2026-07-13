@@ -1,5 +1,5 @@
 import type { Group, MenuContext } from "@/lib/menus/types";
-import { Blocks, Building2, KeyRound, User2 } from "lucide-react";
+import { Blocks, Building2, KeyRound, TriangleAlert, User2 } from "lucide-react";
 
 export function buildSystemGroup({ pathname }: MenuContext): Group {
     return {
@@ -50,6 +50,14 @@ export function buildSystemGroup({ pathname }: MenuContext): Group {
                         active: pathname === "/sistema/autorizaciones/autorizados",
                     },
                 ],
+            },
+            {
+                href: "/sistema/reportes",
+                label: "Reportes",
+                active: pathname.includes("/sistema/reportes"),
+                icon: TriangleAlert,
+                roles: ["SUPERUSER"],
+                submenus: [],
             },
             {
                 href: "/sistema/empresa/",
