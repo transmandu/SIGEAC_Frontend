@@ -104,11 +104,14 @@ export function ComboboxField<T extends FieldValues>({
                           role="combobox"
                           disabled={disabled}
                           className={cn(
-                            "w-full justify-center font-normal h-9 px-3",
+                            "w-full justify-between font-normal h-9 px-3",
                             !field.value && "text-muted-foreground",
                           )}
                         >
-                          <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
+                          <span className="truncate">
+                            {selectedOption ? selectedOption.label : ""}
+                          </span>
+                          <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50 ml-2" />
                         </Button>
                       </FormControl>
                     </PopoverTrigger>

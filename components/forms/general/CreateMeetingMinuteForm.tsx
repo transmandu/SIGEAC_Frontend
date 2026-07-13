@@ -162,7 +162,7 @@ export function CreateMeetingMinuteForm({
       filled_out_by: typeof initialData?.filled_out_by === "object" ? String((initialData.filled_out_by as any)?.id ?? "") : String(initialData?.filled_out_by ?? ""),
       reviewed_by: typeof initialData?.reviewed_by === "object" ? String((initialData.reviewed_by as any)?.id ?? "") : String(initialData?.reviewed_by ?? ""),
       approved_by: typeof initialData?.approved_by === "object" ? String((initialData.approved_by as any)?.id ?? "") : String(initialData?.approved_by ?? ""),
-      attendees: initialData?.attendaces?.map((a) => ({
+      attendees: initialData?.attendees?.map((a) => ({
         employee_id: a.employee_id ? String(a.employee_id) : "",
         attendee_name: a.attendee_name ?? "",
         job_title: a.job_title ?? "",

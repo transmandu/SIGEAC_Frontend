@@ -1192,7 +1192,7 @@ export type MeetingMinutes = {
   reviewed_by?: Employee | null;
   approved_by?: Employee | null;
   agreements?: MeetingAgreement[];
-  attendaces?: Attendace[];
+  attendees?: Attendace[];
 }
 
 export type MeetingAgreement = {
