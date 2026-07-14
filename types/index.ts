@@ -1215,6 +1215,8 @@ export interface WarehouseDashboard {
   returnToolsCount: number;
   restockCount: number;
   entryCount: number;
+  generalArticlesAvailablePercentage: number;
+  generalArticlesRestockCount: number;
   tools_need_calibration: {
     tool_id: number;
     batch_name: string;
@@ -1225,7 +1227,7 @@ export interface WarehouseDashboard {
   }[];
   toolsToReturn: any[];
   articlesOutOfStock: {
-    id: number;
+    id: number | string;
     description: string;
     part_number: string;
     serial: string | null;

@@ -25,7 +25,7 @@ import {
   Cell,
 } from "recharts";
 import { WarehouseDashboard } from "@/types";
-import { Package, Boxes, AlertTriangle } from "lucide-react";
+import { Package, Boxes, AlertTriangle, Archive } from "lucide-react";
 
 interface Props {
   data?: WarehouseDashboard;
@@ -133,10 +133,10 @@ export default function ArticlesSummary({
           </CardHeader>
 
           <CardContent>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 text-center">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6 text-center">
 
               <div>
-                <div className="text-2xl sm:text-3xl font-bold bg-gradient-to-b from-sky-600 to-cyan-500 bg-clip-text text-transparent">
+                <div className="text-lg sm:text-xl font-bold bg-gradient-to-b from-sky-600 to-cyan-500 bg-clip-text text-transparent">
                   {data.storedCount ?? 0}%
                 </div>
                 <p className="text-xs sm:text-sm text-slate-500">
@@ -145,7 +145,17 @@ export default function ArticlesSummary({
               </div>
 
               <div>
-                <div className="text-2xl sm:text-3xl font-bold bg-gradient-to-b from-teal-600 to-emerald-500 bg-clip-text text-transparent">
+                <div className="flex items-center justify-center gap-1 text-lg sm:text-xl font-bold bg-gradient-to-b from-fuchsia-600 to-pink-500 bg-clip-text text-transparent">
+                  <Archive className="size-3.5 sm:size-4 shrink-0" />
+                  {data.generalArticlesAvailablePercentage ?? 0}%
+                </div>
+                <p className="text-xs sm:text-sm text-slate-500">
+                  Artículos Generales
+                </p>
+              </div>
+
+              <div>
+                <div className="text-lg sm:text-xl font-bold bg-gradient-to-b from-teal-600 to-emerald-500 bg-clip-text text-transparent">
                   {data.dispatchCount ?? 0}
                 </div>
                 <p className="text-xs sm:text-sm text-slate-500">
@@ -154,7 +164,7 @@ export default function ArticlesSummary({
               </div>
 
               <div>
-                <div className="text-2xl sm:text-3xl font-bold bg-gradient-to-b from-slate-700 to-slate-500 dark:from-slate-200 dark:to-slate-400 bg-clip-text text-transparent">
+                <div className="text-lg sm:text-xl font-bold bg-gradient-to-b from-slate-700 to-slate-500 dark:from-slate-200 dark:to-slate-400 bg-clip-text text-transparent">
                   {data.dispatchAircraftCount ?? 0}
                 </div>
                 <p className="text-xs sm:text-sm text-slate-500">
@@ -163,7 +173,7 @@ export default function ArticlesSummary({
               </div>
 
               <div>
-                <div className="text-2xl sm:text-3xl font-bold bg-gradient-to-b from-amber-600 to-orange-500 bg-clip-text text-transparent">
+                <div className="text-lg sm:text-xl font-bold bg-gradient-to-b from-amber-600 to-orange-500 bg-clip-text text-transparent">
                   {data.dispatchWorkOrderCount ?? 0}
                 </div>
                 <p className="text-xs sm:text-sm text-slate-500">
@@ -190,7 +200,7 @@ export default function ArticlesSummary({
 
             <CardDescription className="mx-auto max-w-xs sm:max-w-md text-xs sm:text-sm">
               Listado de artículos sin disponibilidad<br />
-              Cantidad: {data.restockCount ?? 0}
+              Por Lote: {data.restockCount ?? 0} | Generales: {data.generalArticlesRestockCount ?? 0}
             </CardDescription>
           </CardHeader>
 
