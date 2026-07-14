@@ -337,11 +337,18 @@ export function FuelMovementForm({
                         No hay vehiculos activos
                       </SelectItem>
                     ) : null}
-                    {activeVehicles.map((vehicle) => (
-                      <SelectItem key={vehicle.id} value={vehicle.id.toString()}>
-                        {vehicle.plate} - {formatLiters(vehicle.current_balance_liters)}
-                      </SelectItem>
-                    ))}
+                    {activeVehicles.map((vehicle) => {
+                      const vehicleLabel = [vehicle.brand, vehicle.model]
+                        .filter(Boolean)
+                        .join(" ");
+                      return (
+                        <SelectItem key={vehicle.id} value={vehicle.id.toString()}>
+                          {vehicle.plate || "Sin placa"}
+                          {vehicleLabel ? ` (${vehicleLabel})` : ""} -{" "}
+                          {formatLiters(vehicle.current_balance_liters)}
+                        </SelectItem>
+                      );
+                    })}
                   </SelectContent>
                 </Select>
                 {selectedVehicle ? (

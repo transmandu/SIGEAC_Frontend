@@ -18,9 +18,10 @@ import {
   getFuelStatusLabel,
 } from "@/lib/fuel";
 import { cn } from "@/lib/utils";
-import { FuelMovement, FuelMovementType } from "@/types";
+import { FuelMovement, FuelMovementType, FuelVehicle } from "@/types";
 import { format } from "date-fns";
 import { Fuel } from "lucide-react";
+import { useMemo } from "react";
 
 // Color por flujo: entrada / despacho / consumo / anulacion
 const MOVEMENT_DOT_CLASS: Record<FuelMovementType, string> = {
@@ -38,12 +39,22 @@ const MOVEMENT_DOT_CLASS: Record<FuelMovementType, string> = {
 export function FuelMovementsTable({
   company,
   movements,
+  vehicles = [],
   isSuperUser = false,
 }: {
   company?: string;
   movements: FuelMovement[];
+  vehicles?: FuelVehicle[];
   isSuperUser?: boolean;
 }) {
+  // El vehiculo anidado en el movimiento puede venir sin brand/model/color
+  // (segun lo que exponga el backend); se completa con el listado de
+  // vehiculos ya cargado en la pagina, que si trae esos campos.
+  const vehiclesById = useMemo(
+    () => new Map(vehicles.map((vehicle) => [vehicle.id, vehicle])),
+    [vehicles],
+  );
+
   return (
     <div className="overflow-hidden rounded-md border bg-background">
       <Table>
@@ -62,6 +73,9 @@ export function FuelMovementsTable({
           {movements.length ? (
             movements.map((movement) => {
               const isAnnulled = movement.status === "annulled";
+              const vehicle = movement.vehicle
+                ? vehiclesById.get(movement.vehicle.id) ?? movement.vehicle
+                : null;
               return (
                 <TableRow
                   key={movement.id}
@@ -83,9 +97,20 @@ export function FuelMovementsTable({
                     </span>
                   </TableCell>
                   <TableCell>
-                    {movement.vehicle?.plate ||
-                      movement.third_party?.name ||
-                      "Almacen"}
+                    {vehicle ? (
+                      <div className="flex flex-col">
+                        <span>{vehicle.plate || "Sin placa"}</span>
+                        {(vehicle.brand || vehicle.model || vehicle.color) && (
+                          <span className="text-xs text-muted-foreground">
+                            {[vehicle.brand, vehicle.model, vehicle.color]
+                              .filter(Boolean)
+                              .join(" ")}
+                          </span>
+                        )}
+                      </div>
+                    ) : (
+                      movement.third_party?.name || "Almacen"
+                    )}
                   </TableCell>
                   <TableCell
                     className={cn(

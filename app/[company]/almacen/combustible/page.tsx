@@ -342,7 +342,7 @@ export default function FuelWarehousePage() {
                       <SelectItem value="all">Todos</SelectItem>
                       {fuelVehicles.map((vehicle) => (
                         <SelectItem key={vehicle.id} value={vehicle.id.toString()}>
-                          {vehicle.plate} - {formatLiters(vehicle.current_balance_liters)}
+                          {vehicle.plate || "Sin placa"} - {formatLiters(vehicle.current_balance_liters)}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -411,6 +411,7 @@ export default function FuelWarehousePage() {
               <FuelMovementsTable
                 company={company}
                 movements={fuelMovements}
+                vehicles={fuelVehicles}
                 isSuperUser={isSuperUser}
               />
             )}
@@ -425,7 +426,11 @@ export default function FuelWarehousePage() {
           </TabsContent>
 
           <TabsContent value="traceability">
-            <FuelTraceabilityPanel company={company} movements={fuelMovements} />
+            <FuelTraceabilityPanel
+              company={company}
+              movements={fuelMovements}
+              vehicles={fuelVehicles}
+            />
           </TabsContent>
         </Tabs>
       </div>

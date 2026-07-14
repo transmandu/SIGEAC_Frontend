@@ -29,8 +29,12 @@ export function DeleteFuelVehicleDialog({
   const [confirmPlate, setConfirmPlate] = useState("");
   const deleteVehicle = useDeleteFuelVehicle(company);
 
+  // Si el vehiculo no tiene placa cargada, se confirma con un identificador
+  // derivado del id para no bloquear el borrado.
+  const confirmTarget = vehicle.plate?.trim() || `VEHICULO-${vehicle.id}`;
+
   const canConfirm =
-    confirmPlate.trim().toUpperCase() === vehicle.plate.toUpperCase();
+    confirmPlate.trim().toUpperCase() === confirmTarget.toUpperCase();
 
   const handleDelete = async () => {
     if (!canConfirm) return;
@@ -62,7 +66,7 @@ export function DeleteFuelVehicleDialog({
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>
-            Eliminar vehiculo {vehicle.plate}
+            Eliminar vehiculo {vehicle.plate || `#${vehicle.id}`}
           </AlertDialogTitle>
           <AlertDialogDescription asChild>
             <div className="space-y-2 text-sm">
@@ -82,7 +86,7 @@ export function DeleteFuelVehicleDialog({
 
         <div className="space-y-2">
           <Label htmlFor={`confirm-plate-${vehicle.id}`}>
-            Escribe la placa <strong>{vehicle.plate}</strong> para confirmar
+            Escribe <strong>{confirmTarget}</strong> para confirmar
           </Label>
           <Input
             id={`confirm-plate-${vehicle.id}`}
@@ -90,7 +94,7 @@ export function DeleteFuelVehicleDialog({
             onChange={(event) =>
               setConfirmPlate(event.target.value.toUpperCase())
             }
-            placeholder={vehicle.plate}
+            placeholder={confirmTarget}
             className="uppercase"
             autoComplete="off"
           />

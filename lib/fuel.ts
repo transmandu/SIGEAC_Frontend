@@ -11,6 +11,15 @@ import {
 
 export const FUEL_ALLOWED_ROLES = ["SUPERUSER", "JEFE_ALMACEN"];
 
+// Formatos de placa venezolana vigentes (equivalente a la validacion del backend).
+export const FUEL_PLATE_REGEX =
+  /^(?:[A-Z]{3}[0-9]{3}|[A-Z]{2}[0-9]{3}[A-Z]{2}|[A-Z]{2}[0-9]{3}[A-Z]|[A-Z][0-9]{2}[A-Z]{2}[0-9][A-Z])$/;
+
+// Placas de vehiculos migrados desde datos legacy quedan como PEND-{id}
+// hasta que se corrija con la placa real.
+export const isPendingFuelVehiclePlate = (plate?: string | null) =>
+  /^PEND-\d+$/.test(plate ?? "");
+
 export const FUEL_QUERY_KEYS = {
   all: ["fuel"] as const,
   summary: (company?: string) => [...FUEL_QUERY_KEYS.all, "summary", company] as const,
@@ -112,16 +121,37 @@ export const getFuelStatusLabel = (
 
 export const getFuelErrorMessage = (error: unknown) => {
   const maybeAxiosError = error as {
-    response?: { data?: { code?: string; message?: string } };
+    response?: { status?: number; data?: { code?: string; message?: string } };
     message?: string;
   };
   const code = maybeAxiosError.response?.data?.code;
+  const backendMessage = maybeAxiosError.response?.data?.message;
+  // El backend ya devuelve un mensaje especifico por error (incluidos los 422),
+  // asi que se prioriza sobre el texto generico mapeado por codigo.
+  if (backendMessage) return backendMessage;
   if (code && FUEL_ERROR_MESSAGES[code]) return FUEL_ERROR_MESSAGES[code];
   return (
-    maybeAxiosError.response?.data?.message ||
     maybeAxiosError.message ||
     "No se pudo completar la operacion."
   );
+};
+
+// Mapea errores de validacion 422 del backend ({ errors: { campo: [mensaje] } })
+// a los campos del formulario, para dar feedback especifico por input.
+export const applyFuelValidationErrors = (
+  error: unknown,
+  setFieldError: (field: string, message: string) => void,
+) => {
+  const maybeAxiosError = error as {
+    response?: { status?: number; data?: { errors?: Record<string, string[]> } };
+  };
+  if (maybeAxiosError.response?.status !== 422) return false;
+  const errors = maybeAxiosError.response?.data?.errors;
+  if (!errors) return false;
+  Object.entries(errors).forEach(([field, messages]) => {
+    if (messages?.[0]) setFieldError(field, messages[0]);
+  });
+  return true;
 };
 
 export const normalizeFuelVehicleType = (

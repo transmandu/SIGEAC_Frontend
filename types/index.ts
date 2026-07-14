@@ -1416,7 +1416,10 @@ export type FuelMovementType =
 
 export type FuelVehicle = {
   id: number;
-  plate: string;
+  plate: string | null;
+  brand?: string | null;
+  model?: string | null;
+  color?: string | null;
   type: FuelVehicleType;
   responsible?: string | null;
   tank_capacity_liters: number;
@@ -1474,7 +1477,10 @@ export type FuelTraceabilityDetail = {
 };
 
 export type CreateFuelVehiclePayload = {
-  plate: string;
+  plate?: string | null;
+  brand?: string | null;
+  model?: string | null;
+  color?: string | null;
   type: FuelVehicleType;
   responsible?: string | null;
   tank_capacity_liters: number;
@@ -1486,7 +1492,10 @@ export type CreateFuelVehiclePayload = {
 // Actualizacion de vehiculo: mismos campos de configuracion que la creacion,
 // sin el saldo inicial (current_balance_liters no es editable directamente).
 export type UpdateFuelVehiclePayload = {
-  plate: string;
+  plate?: string | null;
+  brand?: string | null;
+  model?: string | null;
+  color?: string | null;
   type: FuelVehicleType;
   responsible?: string | null;
   tank_capacity_liters: number;
