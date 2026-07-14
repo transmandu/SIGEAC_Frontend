@@ -6,11 +6,22 @@ import { useGetConditions } from "@/hooks/administracion/useGetConditions";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
-
+import { useEffect } from "react";
+import { useTourContext } from "@/components/tour/TourProvider";
+import { condicionesSteps } from "@/components/tour/steps/ajustes/globales/condiciones";
 
 const ClientsPage = () => {
-const {selectedCompany} = useCompanyStore();
-const { data, isLoading, isError } = useGetConditions();
+  const { selectedCompany } = useCompanyStore();
+  const { data, isLoading, isError } = useGetConditions();
+  const { registerTour, unregisterTour } = useTourContext();
+
+  useEffect(() => {
+    if (data && data.length > 0) {
+      registerTour("condiciones", "Condiciones", condicionesSteps);
+    }
+
+    return () => unregisterTour("condiciones");
+  }, [registerTour, unregisterTour, data]);
 
   if (isLoading) {
     return <LoadingPage />;
@@ -19,11 +30,15 @@ const { data, isLoading, isError } = useGetConditions();
   return (
     <ContentLayout title="Condiciones">
       {" "}
-      <h1 className="text-5xl font-bold text-center mt-2">
+      <h1
+        className="text-5xl font-bold text-center mt-2"
+        data-tour="condiciones-title"
+      >
         Control de Codiciones
       </h1>
       <p className="text-sm text-muted-foreground text-center italic mt-2">
-        Aquí puede llevar el control de las condiciones registradas en el sistema.
+        Aquí puede llevar el control de las condiciones registradas en el
+        sistema.
       </p>
       {data && <DataTable columns={columns} data={data} />}
       {isError && (

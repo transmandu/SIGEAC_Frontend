@@ -1,16 +1,29 @@
-"use client"
+"use client";
 
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { z } from "zod"
-import { Button } from "@/components/ui/button"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useCreateShippingAgency } from "@/actions/ajustes/globales/agencias_envio/actions"
-import { useCompanyStore } from "@/stores/CompanyStore"
-import loadingGif from "@/public/loading2.gif"
-import Image from "next/image"
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useCreateShippingAgency } from "@/actions/ajustes/globales/agencias_envio/actions";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import loadingGif from "@/public/loading2.gif";
+import Image from "next/image";
 
 const FormSchema = z.object({
   name: z.string().min(2, { message: "El nombre es requerido" }),
@@ -19,15 +32,15 @@ const FormSchema = z.object({
   type: z.enum(["NATIONAL", "INTERNATIONAL"]),
   phone: z.string().optional(),
   email: z.string().optional(),
-})
+});
 
-type FormSchemaType = z.infer<typeof FormSchema>
+type FormSchemaType = z.infer<typeof FormSchema>;
 
 interface Props {
-  onClose: () => void
-  initialValues?: FormSchemaType
-  onSubmit?: (data: FormSchemaType) => Promise<void>
-  isLoading?: boolean
+  onClose: () => void;
+  initialValues?: FormSchemaType;
+  onSubmit?: (data: FormSchemaType) => Promise<void>;
+  isLoading?: boolean;
 }
 
 export function CreateShippingAgencyForm({
@@ -36,8 +49,10 @@ export function CreateShippingAgencyForm({
   onSubmit,
   isLoading: externalLoading,
 }: Props) {
-  const { selectedCompany } = useCompanyStore()
-  const { mutateAsync, isLoading: internalLoading } = useCreateShippingAgency(selectedCompany?.slug) as any
+  const { selectedCompany } = useCompanyStore();
+  const { mutateAsync, isLoading: internalLoading } = useCreateShippingAgency(
+    selectedCompany?.slug,
+  ) as any;
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
@@ -49,35 +64,37 @@ export function CreateShippingAgencyForm({
       phone: "",
       email: "",
     },
-  })
+  });
 
   const handleSubmit = async (data: FormSchemaType) => {
     if (onSubmit) {
-      await onSubmit(data)
-      onClose()
-      return
+      await onSubmit(data);
+      onClose();
+      return;
     }
     try {
-      await mutateAsync(data)
-      onClose()
+      await mutateAsync(data);
+      onClose();
     } catch (error) {
-      console.error("Error creating agency:", error)
+      console.error("Error creating agency:", error);
     }
-  }
+  };
 
-  const isLoading = onSubmit ? externalLoading : internalLoading
+  const isLoading = onSubmit ? externalLoading : internalLoading;
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="flex flex-col gap-4">
-
+      <form
+        onSubmit={form.handleSubmit(handleSubmit)}
+        className="flex flex-col gap-4"
+      >
         {/* Nombre + Código */}
         <div className="grid grid-cols-2 gap-4">
           <FormField
             control={form.control}
             name="name"
             render={({ field }) => (
-              <FormItem>
+              <FormItem data-tour="agencias-envio-crear-name">
                 <FormLabel>Nombre</FormLabel>
                 <FormControl>
                   <Input placeholder="Ej: DHL Express" {...field} />
@@ -91,7 +108,7 @@ export function CreateShippingAgencyForm({
             control={form.control}
             name="code"
             render={({ field }) => (
-              <FormItem>
+              <FormItem data-tour="agencias-envio-crear-code">
                 <FormLabel>Código</FormLabel>
                 <FormControl>
                   <Input placeholder="Ej: DHL001" {...field} />
@@ -107,10 +124,13 @@ export function CreateShippingAgencyForm({
           control={form.control}
           name="description"
           render={({ field }) => (
-            <FormItem>
+            <FormItem data-tour="agencias-envio-crear-description">
               <FormLabel>Descripción</FormLabel>
               <FormControl>
-                <Input placeholder="Describe brevemente la agencia (opcional)" {...field} />
+                <Input
+                  placeholder="Describe brevemente la agencia (opcional)"
+                  {...field}
+                />
               </FormControl>
               <FormMessage className="text-xs" />
             </FormItem>
@@ -122,7 +142,7 @@ export function CreateShippingAgencyForm({
           control={form.control}
           name="type"
           render={({ field }) => (
-            <FormItem>
+            <FormItem data-tour="agencias-envio-crear-type">
               <FormLabel>Tipo</FormLabel>
               <Select value={field.value} onValueChange={field.onChange}>
                 <SelectTrigger>
@@ -144,7 +164,7 @@ export function CreateShippingAgencyForm({
             control={form.control}
             name="phone"
             render={({ field }) => (
-              <FormItem>
+              <FormItem data-tour="agencias-envio-crear-phone">
                 <FormLabel>Teléfono</FormLabel>
                 <FormControl>
                   <Input placeholder="Ej: +1 305 123 4567" {...field} />
@@ -158,7 +178,7 @@ export function CreateShippingAgencyForm({
             control={form.control}
             name="email"
             render={({ field }) => (
-              <FormItem>
+              <FormItem data-tour="agencias-envio-crear-email">
                 <FormLabel>Correo electrónico</FormLabel>
                 <FormControl>
                   <Input placeholder="Ej: contacto@agencia.com" {...field} />
@@ -175,14 +195,23 @@ export function CreateShippingAgencyForm({
           variant={isLoading ? "outline" : "default"}
           className="bg-primary text-white hover:bg-blue-900 disabled:bg-slate-50 disabled:border-4 flex items-center justify-center gap-2"
           disabled={isLoading}
+          data-tour="agencias-envio-crear-submit"
         >
           {isLoading ? (
-            <Image src={loadingGif} width={20} height={20} alt="Cargando..." className="animate-spin" />
+            <Image
+              src={loadingGif}
+              width={20}
+              height={20}
+              alt="Cargando..."
+              className="animate-spin"
+            />
+          ) : onSubmit ? (
+            "Actualizar Agencia"
           ) : (
-            onSubmit ? "Actualizar Agencia" : "Crear Agencia"
+            "Crear Agencia"
           )}
         </Button>
       </form>
     </Form>
-  )
+  );
 }

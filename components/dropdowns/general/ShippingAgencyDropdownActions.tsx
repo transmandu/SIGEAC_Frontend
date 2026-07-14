@@ -1,35 +1,35 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useCompanyStore } from "@/stores/CompanyStore"
-import { ShippingAgency } from "@/types"
+import { useState } from "react";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { ShippingAgency } from "@/types";
 
 import {
   useUpdateShippingAgency,
-  useDeleteShippingAgency
-} from "@/actions/ajustes/globales/agencias_envio/actions"
+  useDeleteShippingAgency,
+} from "@/actions/ajustes/globales/agencias_envio/actions";
 
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu"
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
-  TooltipTrigger
-} from "@/components/ui/tooltip"
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
-import { Button } from "@/components/ui/button"
-import { MoreHorizontal, Edit3, Trash2, Loader2 } from "lucide-react"
+import { Button } from "@/components/ui/button";
+import { MoreHorizontal, Edit3, Trash2, Loader2 } from "lucide-react";
 
-import ShippingAgencyDropdownDialogs from "@/components/dialogs/general/ShippingAgencyDropdownDialogs"
+import ShippingAgencyDropdownDialogs from "@/components/dialogs/general/ShippingAgencyDropdownDialogs";
 
 const iconBase =
-  "size-[18px] transition-all duration-200 ease-out group-hover:scale-110"
+  "size-[18px] transition-all duration-200 ease-out group-hover:scale-110";
 
 const itemBase = `
   group
@@ -39,35 +39,39 @@ const itemBase = `
   transition-all duration-200 ease-out
   hover:bg-muted hover:shadow-sm
   active:scale-95
-`
+`;
 
-const ShippingAgencyDropdownActions = ({ agency }: { agency: ShippingAgency }) => {
-  const { selectedCompany } = useCompanyStore()
+const ShippingAgencyDropdownActions = ({
+  agency,
+}: {
+  agency: ShippingAgency;
+}) => {
+  const { selectedCompany } = useCompanyStore();
 
-  const updateMutation = useUpdateShippingAgency(selectedCompany?.slug)
-  const deleteMutation = useDeleteShippingAgency(selectedCompany?.slug)
+  const updateMutation = useUpdateShippingAgency(selectedCompany?.slug);
+  const deleteMutation = useDeleteShippingAgency(selectedCompany?.slug);
 
-  const [openDropdown, setOpenDropdown] = useState(false)
+  const [openDropdown, setOpenDropdown] = useState(false);
 
-  const [openEdit, setOpenEdit] = useState(false)
-  const [openDelete, setOpenDelete] = useState(false)
+  const [openEdit, setOpenEdit] = useState(false);
+  const [openDelete, setOpenDelete] = useState(false);
 
-  if (!selectedCompany) return null
+  if (!selectedCompany) return null;
 
   const handleDelete = async () => {
-    await deleteMutation.mutateAsync(agency.id)
-    setOpenDelete(false)
-  }
+    await deleteMutation.mutateAsync(agency.id);
+    setOpenDelete(false);
+  };
 
   const handleUpdate = async (data: any) => {
     await updateMutation.mutateAsync({
       ...data,
-      id: agency.id
-    })
-    setOpenEdit(false)
-  }
+      id: agency.id,
+    });
+    setOpenEdit(false);
+  };
 
-  const isDeleting = deleteMutation.status === "pending"
+  const isDeleting = deleteMutation.status === "pending";
 
   return (
     <TooltipProvider delayDuration={120}>
@@ -87,6 +91,7 @@ const ShippingAgencyDropdownActions = ({ agency }: { agency: ShippingAgency }) =
                 hover:shadow-sm
                 data-[state=open]:bg-muted
               "
+              data-tour="agencias-envio-actions"
             >
               <MoreHorizontal className="size-4" />
             </Button>
@@ -111,11 +116,14 @@ const ShippingAgencyDropdownActions = ({ agency }: { agency: ShippingAgency }) =
             <Tooltip>
               <TooltipTrigger asChild>
                 <span>
-                  <DropdownMenuItem asChild className="p-0 focus:bg-transparent">
+                  <DropdownMenuItem
+                    asChild
+                    className="p-0 focus:bg-transparent"
+                  >
                     <button
                       onClick={() => {
-                        setOpenDropdown(false)
-                        setOpenEdit(true)
+                        setOpenDropdown(false);
+                        setOpenEdit(true);
                       }}
                       className={`${itemBase} text-blue-600`}
                     >
@@ -132,11 +140,14 @@ const ShippingAgencyDropdownActions = ({ agency }: { agency: ShippingAgency }) =
             <Tooltip>
               <TooltipTrigger asChild>
                 <span>
-                  <DropdownMenuItem asChild className="p-0 focus:bg-transparent">
+                  <DropdownMenuItem
+                    asChild
+                    className="p-0 focus:bg-transparent"
+                  >
                     <button
                       onClick={() => {
-                        setOpenDropdown(false)
-                        setOpenDelete(true)
+                        setOpenDropdown(false);
+                        setOpenDelete(true);
                       }}
                       className={`${itemBase} text-red-600`}
                       disabled={isDeleting}
@@ -166,7 +177,7 @@ const ShippingAgencyDropdownActions = ({ agency }: { agency: ShippingAgency }) =
         />
       </>
     </TooltipProvider>
-  )
-}
+  );
+};
 
-export default ShippingAgencyDropdownActions
+export default ShippingAgencyDropdownActions;

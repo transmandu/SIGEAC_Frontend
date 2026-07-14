@@ -6,12 +6,22 @@ import { columns } from "./columns";
 import { useGetClients } from "@/hooks/general/clientes/useGetClients";
 import LoadingPage from "@/components/misc/LoadingPage";
 import { useCompanyStore } from "@/stores/CompanyStore";
-
+import { useEffect } from "react";
+import { useTourContext } from "@/components/tour/TourProvider";
+import { clientesSteps } from "@/components/tour/steps/ajustes/globales/clientes/clientes";
 
 // CAMBIAR ID POR CDI, RIF O LO QUE SEA
 const ClientsPage = () => {
-const {selectedCompany} = useCompanyStore();
-const { data, isLoading, isError } = useGetClients(selectedCompany?.slug);
+  const { selectedCompany } = useCompanyStore();
+  const { data, isLoading, isError } = useGetClients(selectedCompany?.slug);
+  const { registerTour, unregisterTour } = useTourContext();
+
+  useEffect(() => {
+    if (data && data.length > 0) {
+      registerTour("clientes", "Clientes", clientesSteps);
+    }
+    return () => unregisterTour("clientes");
+  }, [registerTour, unregisterTour, data]);
 
   if (isLoading) {
     return <LoadingPage />;
@@ -20,7 +30,10 @@ const { data, isLoading, isError } = useGetClients(selectedCompany?.slug);
   return (
     <ContentLayout title="Clientes">
       {" "}
-      <h1 className="text-5xl font-bold text-center mt-2">
+      <h1
+        className="text-5xl font-bold text-center mt-2"
+        data-tour="clientes-title"
+      >
         Control de Clientes
       </h1>
       <p className="text-sm text-muted-foreground text-center italic mt-2">

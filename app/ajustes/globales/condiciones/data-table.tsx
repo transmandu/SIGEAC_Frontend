@@ -57,7 +57,10 @@ export function DataTable<TData, TValue>({
     <div>
       <div className="flex items-center py-4">
         <div className="flex gap-x-2 items-center">
-          <CreateConditionDialog />
+          <div data-tour="condiciones-new">
+            <CreateConditionDialog />
+          </div>
+
           {isFiltered && (
             <Button
               variant="ghost"
@@ -71,7 +74,7 @@ export function DataTable<TData, TValue>({
         </div>
         <DataTableViewOptions table={table} />
       </div>
-      <div className="rounded-md border mb-4">
+      <div className="rounded-md border mb-4" data-tour="condiciones-table">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -83,7 +86,7 @@ export function DataTable<TData, TValue>({
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
-                            header.getContext()
+                            header.getContext(),
                           )}
                     </TableHead>
                   );
@@ -102,7 +105,7 @@ export function DataTable<TData, TValue>({
                     <TableCell key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}
@@ -121,7 +124,9 @@ export function DataTable<TData, TValue>({
           </TableBody>
         </Table>
       </div>
-      <DataTablePagination table={table} />
+      <div data-tour="condiciones-pagination">
+        <DataTablePagination table={table} />
+      </div>
     </div>
   );
 }

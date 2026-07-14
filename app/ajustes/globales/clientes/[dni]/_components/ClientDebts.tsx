@@ -65,7 +65,7 @@ const ClientDebts = () => {
       </div>
 
       {/* Tarjetas de resumen */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6" data-tour="clientes-detalle-debts-stats">
         <SummaryCard
           title="Deuda Total Acumulada"
           value={formatCurrency(totalDebt)}
