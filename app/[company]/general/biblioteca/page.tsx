@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState, useCallback, useMemo, useRef } from "react";
+import { useTourContext } from "@/components/tour/TourProvider";
+import { bibliotecaPageSteps } from "@/components/tour/steps/biblioteca/biblioteca-page";
 import useLibraryNotifications from "@/hooks/notifications/useLibraryNotifications";
 import { useParams } from "next/navigation";
 import { ContentLayout } from "@/components/layout/ContentLayout";
@@ -441,6 +443,13 @@ const BibliotecaPage = () => {
     }
   }, [departments, selectedDeptName]);
 
+  const { registerTour, unregisterTour } = useTourContext();
+
+  useEffect(() => {
+    registerTour("biblioteca-principal", "Biblioteca Digital", bibliotecaPageSteps);
+    return () => unregisterTour("biblioteca-principal");
+  }, [registerTour, unregisterTour]);
+
   return (
     <ContentLayout title="Biblioteca Digital">
       <div className="flex flex-col gap-y-4">
@@ -465,7 +474,7 @@ const BibliotecaPage = () => {
           <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
             {/* HEADER */}
             <div className="flex flex-col gap-2 mb-8">
-              <h1 className="text-5xl font-black text-center text-slate-900 dark:text-white uppercase tracking-tighter">
+              <h1 className="text-5xl font-black text-center text-slate-900 dark:text-white uppercase tracking-tighter" data-tour="biblioteca-title">
                 Biblioteca Digital
               </h1>
               <p className="text-[11px] font-bold tracking-[0.2em] text-slate-400 dark:text-slate-500 text-center uppercase">
@@ -480,6 +489,7 @@ const BibliotecaPage = () => {
                 {canManage && (
                   <>
                     <Button
+                      data-tour="biblioteca-subir-btn"
                       onClick={() => setIsModalOpen(true)}
                       variant="outline"
                       size="sm"
@@ -490,6 +500,7 @@ const BibliotecaPage = () => {
                     </Button>
 
                     <Button
+                      data-tour="biblioteca-historial-btn"
                       onClick={() => setAuditTarget('global')}
                       variant="outline"
                       size="sm"
@@ -501,6 +512,7 @@ const BibliotecaPage = () => {
 
                     {isDipDirector && (
                       <Button
+                        data-tour="biblioteca-solicitudes-btn"
                         onClick={() => { setShareRequestsOpen(true); setPendingRequestCount(0); }}
                         variant="outline"
                         size="sm"
@@ -518,6 +530,7 @@ const BibliotecaPage = () => {
 
                     {canViewDashboard && (
                       <Button
+                        data-tour="biblioteca-dashboard-btn"
                         onClick={() => setDashboardOpen(true)}
                         variant="outline"
                         size="sm"
@@ -533,7 +546,7 @@ const BibliotecaPage = () => {
 
               {/* BUSCADOR CON POPOVER DE FILTROS */}
               <div className="relative flex items-center w-full sm:w-80" ref={popoverRef}>
-                <div className="flex items-center w-full bg-white dark:bg-[#111214] border border-slate-300 dark:border-slate-800 rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500 transition-all overflow-hidden h-10">
+                <div className="flex items-center w-full bg-white dark:bg-[#111214] border border-slate-300 dark:border-slate-800 rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500 transition-all overflow-hidden h-10" data-tour="biblioteca-search-input">
                   <div className="pl-4">
                     <Search className="h-4 w-4 text-slate-400" />
                   </div>
@@ -546,6 +559,7 @@ const BibliotecaPage = () => {
                   />
                   {/* Botón de filtro con indicador */}
                   <button
+                    data-tour="biblioteca-filter-btn"
                     type="button"
                     onClick={() => setShowFilters(!showFilters)}
                     className={`flex items-center justify-center h-full px-3.5 border-l border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 transition-all text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 relative ${
@@ -563,7 +577,7 @@ const BibliotecaPage = () => {
                 {/* POPOVER DE FILTROS */}
                 {showFilters && (
                   <div className="absolute right-0 top-12 z-50 w-72 p-5 bg-white dark:bg-[#1a1c1e] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl animate-in fade-in slide-in-from-top-2 duration-200">
-                    <div className="flex items-center justify-between mb-4 pb-2 border-b border-slate-100 dark:border-slate-800">
+                    <div className="flex items-center justify-between mb-4 pb-2 border-b border-slate-100 dark:border-slate-800" data-tour="biblioteca-filter-limpiar">
                       <span className="text-[11px] font-black uppercase tracking-wider text-slate-855 dark:text-white">Filtros</span>
                       {(selectedCategory || selectedStatus || searchTerm) && (
                         <button
@@ -581,7 +595,7 @@ const BibliotecaPage = () => {
 
                     <div className="space-y-4">
                       {/* Categoría Selector */}
-                      <div className="space-y-1.5">
+                      <div className="space-y-1.5" data-tour="biblioteca-filter-categoria">
                         <label className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500">Categoría</label>
                         <select
                           value={selectedCategory}
@@ -596,7 +610,7 @@ const BibliotecaPage = () => {
                       </div>
 
                       {/* Estado Selector */}
-                      <div className="space-y-1.5">
+                      <div className="space-y-1.5" data-tour="biblioteca-filter-estado">
                         <label className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500">Estado</label>
                         <select
                           value={selectedStatus}
@@ -628,12 +642,12 @@ const BibliotecaPage = () => {
               <div className="flex min-h-[400px]">
                 {/* SIDEBAR - Carpetas */}
                 <div className="w-[380px] shrink-0 border-r border-slate-200 dark:border-slate-800 p-5 pt-8 flex flex-col">
-                  <div className="flex items-center gap-3 mb-6 border-b pb-6 border-slate-200 dark:border-slate-800 shrink-0">
+                  <div className="flex items-center gap-3 mb-6 border-b pb-6 border-slate-200 dark:border-slate-800 shrink-0" data-tour="biblioteca-carpetas-header">
                     <div className="p-2 bg-slate-800 dark:bg-slate-200 rounded-lg">
                       <FolderOpen className="h-5 w-5 text-white dark:text-slate-900" />
                     </div>
-                    <div>
-                      <h2 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-[0.1em]">
+                    <div >
+                      <h2 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-[0.1em]" >
                         Carpetas
                       </h2>
                       <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 tracking-wide">
@@ -641,7 +655,7 @@ const BibliotecaPage = () => {
                       </p>
                     </div>
                   </div>
-                  <div className="flex-1 overflow-y-auto max-h-[500px] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-200 dark:[&::-webkit-scrollbar-thumb]:bg-slate-700 [&::-webkit-scrollbar-thumb]:rounded-full pr-2">
+                  <div className="flex-1 overflow-y-auto max-h-[500px] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-200 dark:[&::-webkit-scrollbar-thumb]:bg-slate-700 [&::-webkit-scrollbar-thumb]:rounded-full pr-2" data-tour="biblioteca-folder-tree">
                     <FolderTree
                       departmentFolders={departmentFolders}
                       isMultiDept={isMultiDept}
@@ -659,6 +673,7 @@ const BibliotecaPage = () => {
                   </div>
                   {canManage && (
                     <button
+                      data-tour="biblioteca-nueva-carpeta-btn"
                       onClick={() => setCreateFolderOpen(true)}
                       className="mt-3 w-full flex items-center justify-center gap-2 py-2.5 text-[10px] font-bold uppercase tracking-widest text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 rounded-xl transition-all active:scale-[0.98] shrink-0"
                     >
@@ -669,8 +684,8 @@ const BibliotecaPage = () => {
                 </div>
 
                 {/* CONTENIDO - Documentos */}
-                <div className="flex-1 p-8">
-                  <div className="flex items-center gap-3 mb-6 border-b pb-6 border-slate-200 dark:border-slate-800">
+                <div className="flex-1 p-8" data-tour="biblioteca-documentos-header">
+                  <div  className="flex items-center gap-3 mb-6 border-b pb-6 border-slate-200 dark:border-slate-800">
                     <div className="p-2 bg-blue-600 rounded-lg">
                       <FolderOpen className="h-5 w-5 text-white" />
                     </div>
@@ -686,14 +701,14 @@ const BibliotecaPage = () => {
 
                   <div className="overflow-x-auto">
                     {!selectedDeptName ? (
-                      <div className="flex flex-col items-center justify-center py-16 text-center">
+                      <div data-tour="biblioteca-empty-folder" className="flex flex-col items-center justify-center py-16 text-center">
                         <FolderOpen className="h-12 w-12 text-slate-300 dark:text-slate-600 mb-4" />
                         <p className="text-sm font-bold text-slate-400 dark:text-slate-500">
                           Selecciona una carpeta del árbol para ver sus documentos
                         </p>
                       </div>
                     ) : filteredDocs.length === 0 ? (
-                      <div className="flex flex-col items-center justify-center py-16 text-center">
+                      <div data-tour="biblioteca-empty-docs" className="flex flex-col items-center justify-center py-16 text-center">
                         <FolderOpen className="h-12 w-12 text-slate-300 dark:text-slate-600 mb-4" />
                         <p className="text-sm font-bold text-slate-400 dark:text-slate-500">
                           No hay documentos en esta carpeta

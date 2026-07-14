@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useState, useEffect, useMemo } from "react";
 import { Trash2, FileText, Layers, ChevronDown } from "lucide-react";
@@ -6,6 +6,8 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import axiosInstance from "@/lib/axios";
 import { toast } from "sonner";
 import { useCallback } from "react";
+import { useTourContext } from "@/components/tour/TourProvider";
+import { bibliotecaEliminarSteps } from "@/components/tour/steps/biblioteca/biblioteca-eliminar";
 
 interface Version {
   id: number;
@@ -22,10 +24,19 @@ interface DeleteProps {
   onSuccess: () => Promise<void>;
 }
 
-export const DeleteDocumentDialog = ({ isOpen, onClose, doc, company, onSuccess }: DeleteProps) => {
-  const [deleteMode, setDeleteMode] = useState<'document' | 'version'>('document');
+export const DeleteDocumentDialog = ({
+  isOpen,
+  onClose,
+  doc,
+  company,
+  onSuccess,
+}: DeleteProps) => {
+  const [deleteMode, setDeleteMode] = useState<"document" | "version">(
+    "document",
+  );
   const [versionList, setVersionList] = useState<Version[]>([]);
-  const [selectedVersionToDelete, setSelectedVersionToDelete] = useState<string>("");
+  const [selectedVersionToDelete, setSelectedVersionToDelete] =
+    useState<string>("");
   const [loadingVersions, setLoadingVersions] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -34,7 +45,7 @@ export const DeleteDocumentDialog = ({ isOpen, onClose, doc, company, onSuccess 
 
     try {
       const response = await axiosInstance.get(
-        `/${company}/library/documents/${doc.id}/versions`
+        `/${company}/library/documents/${doc.id}/versions`,
       );
 
       const fetchedVersions = response.data?.data?.versions || [];
@@ -48,22 +59,38 @@ export const DeleteDocumentDialog = ({ isOpen, onClose, doc, company, onSuccess 
     }
   }, [company, doc?.id]);
 
+  const { registerTour, unregisterTour } = useTourContext();
+
+  useEffect(() => {
+    if (isOpen) {
+      registerTour(
+        "biblioteca-eliminar",
+        "Eliminar Documento",
+        bibliotecaEliminarSteps,
+      );
+    }
+    return () => unregisterTour("biblioteca-eliminar");
+  }, [isOpen, registerTour, unregisterTour]);
+
   const handleFinalDelete = async () => {
     setIsProcessing(true);
     let isActuallyDeleted = false;
 
     try {
-      if (deleteMode === 'document') {
+      if (deleteMode === "document") {
         await axiosInstance.delete(`/${company}/library/documents/${doc.id}`);
         toast.success("Documento eliminado correctamente");
       } else {
         if (!selectedVersionToDelete) return;
-        await axiosInstance.delete(`/${company}/library/versions/${selectedVersionToDelete}`);
+        await axiosInstance.delete(
+          `/${company}/library/versions/${selectedVersionToDelete}`,
+        );
         toast.success("Versión eliminada correctamente");
       }
       isActuallyDeleted = true;
     } catch (error: any) {
-      const msg = error.response?.data?.message || "Error al conectar con el servidor";
+      const msg =
+        error.response?.data?.message || "Error al conectar con el servidor";
       toast.error(msg);
     } finally {
       setIsProcessing(false);
@@ -79,9 +106,9 @@ export const DeleteDocumentDialog = ({ isOpen, onClose, doc, company, onSuccess 
   };
 
   const filteredVersions = useMemo(() => {
-    return versionList.filter(v => {
+    return versionList.filter((v) => {
       const vNum = String(v.version_number).toLowerCase();
-      return vNum !== 'v1.0' && vNum !== '1.0' && vNum !== '1';
+      return vNum !== "v1.0" && vNum !== "1.0" && vNum !== "1";
     });
   }, [versionList]);
 
@@ -89,7 +116,7 @@ export const DeleteDocumentDialog = ({ isOpen, onClose, doc, company, onSuccess 
     if (isOpen && doc?.id) {
       handleFetchVersions();
     } else {
-      setDeleteMode('document');
+      setDeleteMode("document");
       setSelectedVersionToDelete("");
       setVersionList([]);
     }
@@ -98,9 +125,11 @@ export const DeleteDocumentDialog = ({ isOpen, onClose, doc, company, onSuccess 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="bg-white dark:bg-[#1a1c1e] border-none text-slate-900 dark:text-white sm:max-w-[480px] rounded-2xl overflow-hidden p-0 outline-none shadow-2xl">
-        
         {/* Cabecera: bg-slate-50 y border-slate-200 */}
-        <div className="bg-slate-50 dark:bg-gray-800/40 px-6 py-5 border-b border-slate-200 dark:border-gray-700 flex justify-between items-center">
+        <div
+          className="bg-slate-50 dark:bg-gray-800/40 px-6 py-5 border-b border-slate-200 dark:border-gray-700 flex justify-between items-center"
+          data-tour="biblioteca-delete-title"
+        >
           <div className="flex items-center gap-2">
             <div className="p-1.5 bg-red-100 dark:bg-red-900/30 rounded-lg">
               <Trash2 className="h-5 w-5 text-red-600 dark:text-red-400" />
@@ -114,48 +143,67 @@ export const DeleteDocumentDialog = ({ isOpen, onClose, doc, company, onSuccess 
         <div className="p-6 space-y-5">
           {/* Texto secundario en slate-500 */}
           <p className="text-sm text-slate-500 dark:text-gray-400 leading-relaxed">
-            Selecciona qué nivel de información deseas remover para: <br/>
-            <span className="text-slate-900 dark:text-white font-bold tracking-tight">{doc?.title}</span>
+            Selecciona qué nivel de información deseas remover para: <br />
+            <span className="text-slate-900 dark:text-white font-bold tracking-tight">
+              {doc?.title}
+            </span>
           </p>
 
           <div className="space-y-3">
             {/* Opción de eliminar Versión */}
-            <div 
-              onClick={() => setDeleteMode('version')}
+            <div
+              data-tour="biblioteca-delete-version"
+              onClick={() => setDeleteMode("version")}
               className={`group p-4 border rounded-2xl cursor-pointer transition-all ${
-                deleteMode === 'version' 
-                ? 'border-orange-500 bg-orange-50/40 dark:bg-orange-500/10 shadow-sm' 
-                : 'border-slate-300 dark:border-gray-800 hover:border-slate-400 bg-white dark:bg-transparent'
+                deleteMode === "version"
+                  ? "border-orange-500 bg-orange-50/40 dark:bg-orange-500/10 shadow-sm"
+                  : "border-slate-300 dark:border-gray-800 hover:border-slate-400 bg-white dark:bg-transparent"
               }`}
             >
               <div className="flex items-start gap-3">
-                <div className={`mt-1 w-4 h-4 rounded-full border-2 flex items-center justify-center ${deleteMode === 'version' ? 'border-orange-500' : 'border-slate-300 dark:border-slate-600'}`}>
-                  {deleteMode === 'version' && <div className="w-2 h-2 bg-orange-500 rounded-full" />}
+                <div
+                  className={`mt-1 w-4 h-4 rounded-full border-2 flex items-center justify-center ${deleteMode === "version" ? "border-orange-500" : "border-slate-300 dark:border-slate-600"}`}
+                >
+                  {deleteMode === "version" && (
+                    <div className="w-2 h-2 bg-orange-500 rounded-full" />
+                  )}
                 </div>
                 <div className="flex-1">
                   <label className="text-[10px] font-bold uppercase tracking-widest text-orange-600 dark:text-orange-400 flex items-center gap-2 mb-1">
-                    <Layers className="h-3.5 w-3.5" /> Eliminar versión específica
+                    <Layers className="h-3.5 w-3.5" /> Eliminar versión
+                    específica
                   </label>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-tight mb-3">El registro principal se mantendrá activo con la versión anterior.</p>
-                  
-                  {deleteMode === 'version' && (
-                    <div className="relative animate-in fade-in zoom-in-95 duration-200">
-                      <select 
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-tight mb-3">
+                    El registro principal se mantendrá activo con la versión
+                    anterior.
+                  </p>
+
+                  {deleteMode === "version" && (
+                    <div
+                      className="relative animate-in fade-in zoom-in-95 duration-200"
+                      data-tour="biblioteca-delete-version-select"
+                    >
+                      <select
                         value={selectedVersionToDelete}
-                        onChange={(e) => setSelectedVersionToDelete(e.target.value)}
-                        disabled={isProcessing || loadingVersions} 
+                        onChange={(e) =>
+                          setSelectedVersionToDelete(e.target.value)
+                        }
+                        disabled={isProcessing || loadingVersions}
                         className="w-full h-10 pl-3 pr-10 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-[#111214] text-[11px] font-bold text-slate-700 dark:text-white outline-none appearance-none"
                       >
                         {loadingVersions ? (
                           <option value="">Cargando Versiones...</option>
                         ) : filteredVersions.length === 0 ? (
-                          <option value="">No hay versiones adicionales para eliminar</option>
+                          <option value="">
+                            No hay versiones adicionales para eliminar
+                          </option>
                         ) : (
                           <>
                             <option value="">Selecciona la versión...</option>
                             {filteredVersions.map((v) => (
                               <option key={v.id} value={v.id}>
-                                {v.version_label || v.version_number} — {v.change_log || 'Sin descripción'}
+                                {v.version_label || v.version_number} —{" "}
+                                {v.change_log || "Sin descripción"}
                               </option>
                             ))}
                           </>
@@ -169,46 +217,60 @@ export const DeleteDocumentDialog = ({ isOpen, onClose, doc, company, onSuccess 
             </div>
 
             {/* Opción de eliminar Documento Completo */}
-            <div 
-              onClick={() => setDeleteMode('document')}
+            <div
+              data-tour="biblioteca-delete-document"
+              onClick={() => setDeleteMode("document")}
               className={`group p-4 border rounded-2xl cursor-pointer transition-all ${
-                deleteMode === 'document' 
-                ? 'border-red-500 bg-red-50/40 dark:bg-red-500/10 shadow-sm' 
-                : 'border-slate-300 dark:border-gray-800 hover:border-slate-400 bg-white dark:bg-transparent'
+                deleteMode === "document"
+                  ? "border-red-500 bg-red-50/40 dark:bg-red-500/10 shadow-sm"
+                  : "border-slate-300 dark:border-gray-800 hover:border-slate-400 bg-white dark:bg-transparent"
               }`}
             >
               <div className="flex items-start gap-3">
-                <div className={`mt-1 w-4 h-4 rounded-full border-2 flex items-center justify-center ${deleteMode === 'document' ? 'border-red-500' : 'border-slate-300 dark:border-slate-600'}`}>
-                  {deleteMode === 'document' && <div className="w-2 h-2 bg-red-500 rounded-full" />}
+                <div
+                  className={`mt-1 w-4 h-4 rounded-full border-2 flex items-center justify-center ${deleteMode === "document" ? "border-red-500" : "border-slate-300 dark:border-slate-600"}`}
+                >
+                  {deleteMode === "document" && (
+                    <div className="w-2 h-2 bg-red-500 rounded-full" />
+                  )}
                 </div>
                 <div>
                   <label className="text-[10px] font-bold uppercase tracking-widest text-red-600 dark:text-red-400 flex items-center gap-2 mb-1">
-                    <FileText className="h-3.5 w-3.5" /> Eliminar documento completo
+                    <FileText className="h-3.5 w-3.5" /> Eliminar documento
+                    completo
                   </label>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-tight">Borrado permanente de todo el historial y archivos físicos.</p>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-tight">
+                    Borrado permanente de todo el historial y archivos físicos.
+                  </p>
                 </div>
               </div>
             </div>
           </div>
 
           <div className="flex gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
-            <button 
-              type="button" 
-              onClick={onClose} 
+            <button
+              data-tour="biblioteca-delete-cancel"
+              type="button"
+              onClick={onClose}
               className="flex-1 px-4 py-3 text-[10px] font-black text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 uppercase tracking-widest transition-colors"
             >
               CANCELAR
             </button>
-            <button 
+            <button
+              data-tour="biblioteca-delete-submit"
               onClick={handleFinalDelete}
-              disabled={isProcessing || (deleteMode === 'version' && (!selectedVersionToDelete || filteredVersions.length === 0))}
+              disabled={
+                isProcessing ||
+                (deleteMode === "version" &&
+                  (!selectedVersionToDelete || filteredVersions.length === 0))
+              }
               className={`flex-1 px-4 py-3 text-[10px] font-black text-white rounded-xl transition-all tracking-widest shadow-md active:scale-[0.98] ${
-                deleteMode === 'document' 
-                ? 'bg-red-600 hover:bg-red-700 shadow-red-100 dark:shadow-none' 
-                : 'bg-orange-600 hover:bg-orange-700 shadow-orange-100 dark:shadow-none'
+                deleteMode === "document"
+                  ? "bg-red-600 hover:bg-red-700 shadow-red-100 dark:shadow-none"
+                  : "bg-orange-600 hover:bg-orange-700 shadow-orange-100 dark:shadow-none"
               } disabled:opacity-50 disabled:cursor-not-allowed uppercase`}
             >
-              {isProcessing ? 'PROCESANDO...' : 'CONFIRMAR'}
+              {isProcessing ? "PROCESANDO..." : "CONFIRMAR"}
             </button>
           </div>
         </div>

@@ -1,10 +1,20 @@
-'use client';
+"use client";
 
 import { useState, useMemo, useEffect } from "react";
 import { useParams } from "next/navigation";
-import { MoreVertical, Trash2, Share2, History, UploadCloud, Download } from "lucide-react";
 import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger
+  MoreVertical,
+  Trash2,
+  Share2,
+  History,
+  UploadCloud,
+  Download,
+} from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import axiosInstance from "@/lib/axios";
 import { toast } from "sonner";
@@ -48,7 +58,14 @@ interface Props {
   onRefresh: () => Promise<void>;
 }
 
-export const LibraryDropdownActions = ({ doc, user, canManage, isDipDirector, onDelete, onRefresh }: Props) => {
+export const LibraryDropdownActions = ({
+  doc,
+  user,
+  canManage,
+  isDipDirector,
+  onDelete,
+  onRefresh,
+}: Props) => {
   const params = useParams();
   const company = params.company as string;
 
@@ -59,18 +76,22 @@ export const LibraryDropdownActions = ({ doc, user, canManage, isDipDirector, on
   const [uploadOpen, setUploadOpen] = useState(false);
   const [downloadOpen, setDownloadOpen] = useState(false);
 
-  const [selectedVersionId, setSelectedVersionId] = useState<number | null>(null);
+  const [selectedVersionId, setSelectedVersionId] = useState<number | null>(
+    null,
+  );
   const [versionList, setVersionList] = useState<any[]>([]);
   const [loadingVersions, setLoadingVersions] = useState(false);
 
   const canDownload = useMemo(() => {
     if (!user || !doc) return false;
     const docDeptName = doc.department?.name?.toUpperCase() || "";
-    const isSmsDoc = docDeptName.includes("SEGURIDAD OPERACIONAL") || docDeptName.includes("SMS");
+    const isSmsDoc =
+      docDeptName.includes("SEGURIDAD OPERACIONAL") ||
+      docDeptName.includes("SMS");
     if (!isSmsDoc) return false;
 
     const isSuperUser = user.roles?.some((role: Role) =>
-      ['SUPERUSER', 'ADMIN', 'ADMINISTRADOR'].includes(role.name.toUpperCase())
+      ["SUPERUSER", "ADMIN", "ADMINISTRADOR"].includes(role.name.toUpperCase()),
     );
     if (isSuperUser) return true;
 
@@ -79,10 +100,13 @@ export const LibraryDropdownActions = ({ doc, user, canManage, isDipDirector, on
     const checkJobTitle = (emp: Employee) => {
       const nameFromJob = emp.job_title?.name?.toUpperCase() || "";
       const nameFromPosition = emp.position?.toUpperCase() || "";
-      return nameFromJob.includes('DIRECTOR') || nameFromPosition.includes('DIRECTOR');
+      return (
+        nameFromJob.includes("DIRECTOR") ||
+        nameFromPosition.includes("DIRECTOR")
+      );
     };
     if (Array.isArray(employeeData)) {
-      isDirector = employeeData.some(emp => checkJobTitle(emp));
+      isDirector = employeeData.some((emp) => checkJobTitle(emp));
     } else if (employeeData) {
       isDirector = checkJobTitle(employeeData);
     }
@@ -93,7 +117,9 @@ export const LibraryDropdownActions = ({ doc, user, canManage, isDipDirector, on
     if (!company) return;
     setLoadingVersions(true);
     try {
-      const response = await axiosInstance.get(`/${company}/library/documents/${doc.id}/versions`);
+      const response = await axiosInstance.get(
+        `/${company}/library/documents/${doc.id}/versions`,
+      );
       setVersionList(response.data.data.versions || response.data.data || []);
       setHistoryOpen(true);
     } catch (error) {
@@ -117,44 +143,75 @@ export const LibraryDropdownActions = ({ doc, user, canManage, isDipDirector, on
           </button>
         </DropdownMenuTrigger>
 
-        <DropdownMenuContent align="end" className="w-52 bg-white dark:bg-[#1a1c1e] border-slate-200 dark:border-gray-700 text-slate-800 dark:text-white shadow-2xl">
-
+        <DropdownMenuContent
+          align="end"
+          className="w-52 bg-white dark:bg-[#1a1c1e] border-slate-200 dark:border-gray-700 text-slate-800 dark:text-white shadow-2xl"
+        >
           {canManage && (
             <>
-              <DropdownMenuItem onClick={() => setShareOpen(true)} className="gap-2 cursor-pointer">
-                <Share2 className="h-4 w-4 text-blue-500" />
-                <span className="text-xs font-medium">Compartir</span>
-              </DropdownMenuItem>
+              <div className="" data-tour="biblioteca-share-btn">
+                <DropdownMenuItem
+                  onClick={() => setShareOpen(true)}
+                  className="gap-2 cursor-pointer"
+                >
+                  <Share2 className="h-4 w-4 text-blue-500" />
+                  <span className="text-xs font-medium">Compartir</span>
+                </DropdownMenuItem>
+              </div>
               <div className="h-px bg-slate-200 dark:bg-gray-700 my-1" />
             </>
           )}
 
           {canManage && (
-            <DropdownMenuItem onClick={() => setUploadOpen(true)} className="gap-2 cursor-pointer">
-              <UploadCloud className="h-4 w-4 text-blue-500" />
-              <span className="text-xs font-medium">Subir nueva versión</span>
-            </DropdownMenuItem>
+            <div data-tour="biblioteca-upload-version-btn">
+              <DropdownMenuItem
+                onClick={() => setUploadOpen(true)}
+                className="gap-2 cursor-pointer"
+              >
+                <UploadCloud className="h-4 w-4 text-blue-500" />
+                <span className="text-xs font-medium">Subir nueva versión</span>
+              </DropdownMenuItem>
+            </div>
           )}
 
           {canDownload && (
-            <DropdownMenuItem onClick={() => setDownloadOpen(true)} className="gap-2 cursor-pointer">
-              <Download className="h-4 w-4 text-emerald-500" />
-              <span className="text-xs font-medium">Descargar PDF</span>
-            </DropdownMenuItem>
+            <div className="" data-tour="biblioteca-download-btn">
+              <DropdownMenuItem
+                onClick={() => setDownloadOpen(true)}
+                className="gap-2 cursor-pointer"
+              >
+                <Download className="h-4 w-4 text-emerald-500" />
+                <span className="text-xs font-medium">Descargar PDF</span>
+              </DropdownMenuItem>
+            </div>
           )}
 
-          <DropdownMenuItem onClick={handleFetchVersions} className="gap-2 cursor-pointer">
-            <History className={`h-4 w-4 text-purple-500 ${loadingVersions ? 'animate-spin' : ''}`} />
-            <span className="text-xs font-medium">Historial de versiones</span>
-          </DropdownMenuItem>
+          <div className="" data-tour="biblioteca-version-history-btn">
+            <DropdownMenuItem
+              onClick={handleFetchVersions}
+              className="gap-2 cursor-pointer"
+            >
+              <History
+                className={`h-4 w-4 text-purple-500 ${loadingVersions ? "animate-spin" : ""}`}
+              />
+              <span className="text-xs font-medium">
+                Historial de versiones
+              </span>
+            </DropdownMenuItem>
+          </div>
 
           {canManage && (
             <>
               <div className="h-px bg-slate-200 dark:bg-gray-700 my-1" />
-              <DropdownMenuItem onClick={() => setDeleteOpen(true)} className="gap-2 cursor-pointer text-red-500 focus:bg-red-500/10 focus:text-red-500">
-                <Trash2 className="h-4 w-4" />
-                <span className="text-xs font-bold">Eliminar</span>
-              </DropdownMenuItem>
+              <div className="" data-tour="biblioteca-delete-doc-btn">
+                <DropdownMenuItem
+                  onClick={() => setDeleteOpen(true)}
+                  className="gap-2 cursor-pointer text-red-500 focus:bg-red-500/10 focus:text-red-500"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  <span className="text-xs font-bold">Eliminar</span>
+                </DropdownMenuItem>
+              </div>
             </>
           )}
         </DropdownMenuContent>

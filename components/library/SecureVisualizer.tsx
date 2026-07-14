@@ -5,6 +5,8 @@ import { X, Loader2, ShieldCheck, Lock, Frown, RotateCcw } from 'lucide-react';
 import { Worker, Viewer } from '@react-pdf-viewer/core';
 import { defaultLayoutPlugin } from '@react-pdf-viewer/default-layout';
 import { Button } from "@/components/ui/button";
+import { useTourContext } from "@/components/tour/TourProvider";
+import { bibliotecaVisualizadorSteps } from "@/components/tour/steps/biblioteca/biblioteca-visualizador";
 
 // @ts-ignore - Ignorar error cosmético de TS en PC nueva
 import '@react-pdf-viewer/core/lib/styles/index.css';
@@ -20,6 +22,15 @@ export default function SecureViewer({ company, documentId, isOpen, onClose, isV
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const { registerTour, unregisterTour } = useTourContext();
+
+  useEffect(() => {
+    if (isOpen) {
+      registerTour("biblioteca-visualizador", "Visualizador Seguro", bibliotecaVisualizadorSteps);
+    }
+    return () => unregisterTour("biblioteca-visualizador");
+  }, [isOpen, registerTour, unregisterTour]);
 
   useEffect(() => {
     const updateTheme = () => {
@@ -59,7 +70,8 @@ export default function SecureViewer({ company, documentId, isOpen, onClose, isV
   const defaultLayoutPluginInstance = defaultLayoutPlugin({
     sidebarTabs: () => [],
     renderToolbar: (Toolbar) => (
-      <Toolbar>
+      <div className="" data-tour="biblioteca-viewer-toolbar">
+        <Toolbar>
         {(slots) => {
           const { Zoom, ZoomIn, ZoomOut, EnterFullScreen, NumberOfPages, CurrentPageInput } = slots;
           return (
@@ -77,6 +89,7 @@ export default function SecureViewer({ company, documentId, isOpen, onClose, isV
           );
         }}
       </Toolbar>
+      </div>
     ),
   });
 
@@ -133,7 +146,7 @@ export default function SecureViewer({ company, documentId, isOpen, onClose, isV
 
         {/* HEADER */}
         <div className={`p-4 border-b flex justify-between items-center ${currentTheme === 'dark' ? 'bg-[#1a1c1e] border-gray-800' : 'bg-gray-50 border-gray-200'}`}>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3" data-tour="biblioteca-viewer-title">
             <div className={`p-2 rounded-lg ${currentTheme === 'dark' ? 'bg-emerald-500/10' : 'bg-emerald-500/20'}`}>
               <ShieldCheck className="h-5 w-5 text-emerald-500" />
             </div>
@@ -142,7 +155,7 @@ export default function SecureViewer({ company, documentId, isOpen, onClose, isV
               <p className="text-[9px] text-gray-500 font-bold uppercase">Transmisión Protegida</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-red-500/10 hover:text-red-500 text-gray-500 rounded-xl transition-all">
+          <button onClick={onClose} className="p-2 hover:bg-red-500/10 hover:text-red-500 text-gray-500 rounded-xl transition-all" data-tour="biblioteca-viewer-close">
             <X className="h-6 w-6" />
           </button>
         </div>
@@ -206,7 +219,7 @@ export default function SecureViewer({ company, documentId, isOpen, onClose, isV
         </div>
 
         {/* FOOTER */}
-        <div className={`p-3 border-t flex justify-center items-center gap-4 ${currentTheme === 'dark' ? 'bg-[#1a1c1e] border-gray-800' : 'bg-gray-50 border-gray-200'}`}>
+        <div className={`p-3 border-t flex justify-center items-center gap-4 ${currentTheme === 'dark' ? 'bg-[#1a1c1e] border-gray-800' : 'bg-gray-50 border-gray-200'}`} data-tour="biblioteca-viewer-footer">
           <div className="flex items-center gap-2 text-[8px] font-bold uppercase text-gray-500 tracking-tighter">
             <Lock className="h-3 w-3" />© SIGEAC Digital Library - 2026
           </div>
