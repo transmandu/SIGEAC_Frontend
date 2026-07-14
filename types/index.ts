@@ -242,6 +242,20 @@ export interface ConsumableArticle extends Article {
   fabrication_date?: string;
 }
 
+/**
+ * Forma cruda que devuelve GET .../articles/low-stock-consumables: un Article
+ * con sus relaciones consumable/batch cargadas (no aplanado como ConsumableArticle).
+ * La cantidad actual vive en consumable.quantity, el mínimo en batch.min_quantity.
+ */
+export interface LowStockConsumableArticle extends Article {
+  consumable: {
+    id: number;
+    quantity: number;
+    primary_unit_id?: number;
+  };
+  batch: Pick<Batch, "id" | "name" | "min_quantity">;
+}
+
 export type Convertion = {
   id: number;
   registered_by: string;

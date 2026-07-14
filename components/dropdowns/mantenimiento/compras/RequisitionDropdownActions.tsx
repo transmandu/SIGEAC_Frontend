@@ -65,16 +65,29 @@ const RequisitionDropdownActions = ({
   const [openPriority, setOpenPriority] = useState(false)
 
   const userRoles = user?.roles?.map(role => role.name) || []
+  const isOwnRequisition = req.created_by?.id === user?.id
   const canChangePriority = ["JEFE_ALMACEN", "SUPERUSER"].some(role =>
     userRoles.includes(role)
   );
   const canSeeAllOptions = ["JEFE_COMPRAS", "ANALISTA_COMPRAS","ASISTENTE_COMPRAS", "SUPERUSER"].some(role =>
     userRoles.includes(role)
   );
+  // JEFE_ALMACEN puede eliminar cualquier solicitud de almacén, pero no
+  // cotizar ni rechazar (eso queda reservado a compras).
+  const canDeleteAny = ["JEFE_ALMACEN", "SUPERUSER"].some(role =>
+    userRoles.includes(role)
+  );
+  // ANALISTA_ALMACEN es de solo lectura: únicamente puede eliminar sus
+  // propias solicitudes, nada más.
+  const isReadOnlyWarehouseAnalyst =
+    userRoles.includes("ANALISTA_ALMACEN") && !canDeleteAny && !canSeeAllOptions
+  const canDelete = canDeleteAny || (isReadOnlyWarehouseAnalyst && isOwnRequisition)
 
   const canQuote =
+    canSeeAllOptions &&
     !(req.status === "APPROVED" || req.status === "REJECTED")
   const canReject =
+    canSeeAllOptions &&
     !(req.status === "REJECTED" || req.status === "APPROVED")
   const canChangePriorityStatus =
     !(req.status === "APPROVED" || req.status === "QUOTED")
@@ -269,6 +282,7 @@ const RequisitionDropdownActions = ({
             )}
 
             {/* ELIMINAR */}
+            {canDelete && (
             <Tooltip>
               <TooltipTrigger asChild>
                 <DropdownMenuItem
@@ -294,6 +308,7 @@ const RequisitionDropdownActions = ({
                 Eliminar solicitud
               </TooltipContent>
             </Tooltip>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
 

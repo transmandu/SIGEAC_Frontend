@@ -100,7 +100,7 @@ export interface Requisition {
   id: number;
   order_number: string;
   status: PurchaseStatus | string;
-  created_by: User;
+  created_by: User | null;
   requested_by: string;
   batch: {
     name: string;
@@ -157,7 +157,7 @@ export interface RequisitionByOrderNumber {
   status: string;
   priority?: PurchasePriority | string;
   type: RequisitionType;
-  created_by: User;
+  created_by: User | null;
   requested_by: string;
   updated_by?: string | null;
   received_by?: string | null;

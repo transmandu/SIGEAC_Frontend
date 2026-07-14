@@ -39,17 +39,34 @@ const RequisitionsPage = () => {
       'SUPERUSER',
       'ANALISTA_COMPRAS',
       'JEFE_COMPRAS',
-      'JEFE_ALMACEN',
       'JEFE_ADMINISTRACION',
     ],
     []
   );
 
+  const warehouseRoles = useMemo(
+    () => ['JEFE_ALMACEN', 'ANALISTA_ALMACEN'],
+    []
+  );
+
+  const userRoleNames = useMemo(
+    () => user?.roles?.map(role => role.name) ?? [],
+    [user]
+  );
+
   const hasFullAccess = useMemo(() => {
+    return userRoleNames.some(role => fullAccessRoles.includes(role));
+  }, [userRoleNames, fullAccessRoles]);
+
+  // JEFE_ALMACEN / ANALISTA_ALMACEN, cuando no tienen además un rol
+  // full-access (compras/administración), solo deben ver las solicitudes
+  // que se mueven dentro del módulo almacén (creadas por gente de almacén).
+  const isWarehouseOnly = useMemo(() => {
     return (
-      user?.roles?.some(role => fullAccessRoles.includes(role.name)) ?? false
+      !hasFullAccess &&
+      userRoleNames.some(role => warehouseRoles.includes(role))
     );
-  }, [user, fullAccessRoles]);
+  }, [hasFullAccess, userRoleNames, warehouseRoles]);
 
   const accessFilteredRequisitions = useMemo(() => {
     if (!requisitions) return [];
@@ -58,10 +75,22 @@ const RequisitionsPage = () => {
       return requisitions;
     }
 
+    if (isWarehouseOnly) {
+      return requisitions.filter(req => {
+        // Las solicitudes generadas automáticamente por stock mínimo no
+        // tienen un usuario creador (created_by = "SYSTEM" en el backend,
+        // por lo que llega como null), pero nacen del propio inventario de
+        // almacén, así que siempre deben ser visibles para estos roles.
+        if (!req.created_by) return true;
+
+        return req.created_by.roles?.some(role => warehouseRoles.includes(role.name));
+      });
+    }
+
     return requisitions.filter(req => {
       return req.created_by?.id === user?.id;
     });
-  }, [requisitions, hasFullAccess, user]);
+  }, [requisitions, hasFullAccess, isWarehouseOnly, warehouseRoles, user]);
 
   const totalAeronautical = useMemo(
     () => accessFilteredRequisitions.filter(req => req.type === 'AERONAUTICAL').length,

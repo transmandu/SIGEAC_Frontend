@@ -65,7 +65,7 @@ const RequisitionReportPdf = ({ requisition }: { requisition: Requisition }) => 
             <Text style={[styles.infoCell, styles.headerCellGray, { width: "25%" }]}>Solicitado por</Text>
             <Text style={[styles.infoCellNoRight, { width: "25%" }]}>{requisition.requested_by ?? "N/A"}</Text>
             <Text style={[styles.infoCell, styles.headerCellGray, { width: "25%" }]}>Creado por</Text>
-            <Text style={[styles.infoCellNoRight, { width: "25%" }]}>{requisition.created_by.first_name} {requisition.created_by.last_name}</Text>
+            <Text style={[styles.infoCellNoRight, { width: "25%" }]}>{requisition.created_by ? `${requisition.created_by.first_name} ${requisition.created_by.last_name}` : "SYSTEM"}</Text>
           </View>
 
           <View style={styles.infoRow}>

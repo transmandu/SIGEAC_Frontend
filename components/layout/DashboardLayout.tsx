@@ -6,6 +6,7 @@ import { useSidebarToggle } from "@/hooks/helpers/use-sidebar-toggle";
 import { Sidebar } from "./Sidebar";
 import Footer from "./Footer";
 import { CustomTourProvider } from "@/components/tour/TourProvider";
+import CriticalAlertsButton from "./CriticalAlertsButton";
 
 export default function DashboardLayout({
   children
@@ -39,6 +40,8 @@ export default function DashboardLayout({
       >
         <Footer />
       </footer>
+
+      <CriticalAlertsButton />
     </CustomTourProvider>
   );
 }

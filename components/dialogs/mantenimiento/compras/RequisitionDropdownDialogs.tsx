@@ -33,7 +33,7 @@ function transformApiData(apiData: any) {
     order_number: apiData.order_number,
     justification: apiData.justification,
     company: "",
-    created_by: apiData.created_by.id.toString(),
+    created_by: apiData.created_by?.id?.toString() ?? "",
     tax: "0",
     requested_by: apiData.requested_by,
 
