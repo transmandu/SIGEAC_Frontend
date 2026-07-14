@@ -3,7 +3,6 @@
 import { useEffect, useState, useMemo } from 'react';
 
 import { ContentLayout } from '@/components/layout/ContentLayout';
-import LoadingPage from '@/components/misc/LoadingPage';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -68,39 +67,43 @@ const RequisitionsPage = () => {
     );
   }, [hasFullAccess, userRoleNames, warehouseRoles]);
 
-  const accessFilteredRequisitions = useMemo(() => {
-    if (!requisitions) return [];
-
+  const canSeeRequisition = useMemo(() => {
     if (hasFullAccess) {
-      return requisitions;
+      return () => true;
     }
 
     if (isWarehouseOnly) {
-      return requisitions.filter(req => {
-        // Las solicitudes generadas automáticamente por stock mínimo no
-        // tienen un usuario creador (created_by = "SYSTEM" en el backend,
-        // por lo que llega como null), pero nacen del propio inventario de
-        // almacén, así que siempre deben ser visibles para estos roles.
-        if (!req.created_by) return true;
-
-        return req.created_by.roles?.some(role => warehouseRoles.includes(role.name));
-      });
+      // Las solicitudes generadas automáticamente por stock mínimo no
+      // tienen un usuario creador (created_by = "SYSTEM" en el backend,
+      // por lo que llega como null), pero nacen del propio inventario de
+      // almacén, así que siempre deben ser visibles para estos roles.
+      return (req: NonNullable<typeof requisitions>[number]) =>
+        !req.created_by ||
+        (req.created_by.roles?.some(role => warehouseRoles.includes(role.name)) ?? false);
     }
 
-    return requisitions.filter(req => {
-      return req.created_by?.id === user?.id;
-    });
-  }, [requisitions, hasFullAccess, isWarehouseOnly, warehouseRoles, user]);
+    return (req: NonNullable<typeof requisitions>[number]) => req.created_by?.id === user?.id;
+  }, [hasFullAccess, isWarehouseOnly, warehouseRoles, user]);
 
-  const totalAeronautical = useMemo(
-    () => accessFilteredRequisitions.filter(req => req.type === 'AERONAUTICAL').length,
-    [accessFilteredRequisitions]
-  );
+  const { accessFilteredRequisitions, totalAeronautical, totalGeneral } = useMemo(() => {
+    if (!requisitions) {
+      return { accessFilteredRequisitions: [], totalAeronautical: 0, totalGeneral: 0 };
+    }
 
-  const totalGeneral = useMemo(
-    () => accessFilteredRequisitions.filter(req => req.type === 'GENERAL').length,
-    [accessFilteredRequisitions]
-  );
+    const accessFilteredRequisitions = [];
+    let totalAeronautical = 0;
+    let totalGeneral = 0;
+
+    for (const req of requisitions) {
+      if (!canSeeRequisition(req)) continue;
+
+      accessFilteredRequisitions.push(req);
+      if (req.type === 'AERONAUTICAL') totalAeronautical++;
+      else if (req.type === 'GENERAL') totalGeneral++;
+    }
+
+    return { accessFilteredRequisitions, totalAeronautical, totalGeneral };
+  }, [requisitions, canSeeRequisition]);
 
   const filteredRequisitions = useMemo(() => {
     if (typeFilter === 'ALL') return accessFilteredRequisitions;
@@ -113,10 +116,6 @@ const RequisitionsPage = () => {
     [selectedCompany]
   )
   
-  if (isLoading) {
-    return <LoadingPage />;
-  }
-
   return (
     <ContentLayout title="Inventario">
       <div className="flex flex-col gap-y-2">
@@ -187,6 +186,7 @@ const RequisitionsPage = () => {
         <DataTable
           columns={columns}
           data={filteredRequisitions}
+          loading={isLoading}
         />
 
       </div>
