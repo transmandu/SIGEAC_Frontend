@@ -76,7 +76,7 @@ const UserRolesTab = ({ user }: { user: User }) => {
   const removingId = removeRole.isPending ? removeRole.variables?.roleId : null
 
   return (
-    <div className="space-y-4 p-1">
+    <div className="space-y-4 p-1" data-tour="cuenta-roles">
       {/* Roles globales (SUPERUSER) */}
       {globalRoles.length > 0 && (
         <div>
