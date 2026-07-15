@@ -16,8 +16,7 @@ import {
   Receipt,
   Trash2
 } from "lucide-react"
-import { PDFDownloadLink } from "@react-pdf/renderer"
-import RequisitionReportPdf from "@/components/pdf/almacen/RequisitionReportPdf"
+import DownloadRequisitionPdfDialog from "@/components/dialogs/mantenimiento/compras/DownloadRequisitionPdfDialog"
 import RequisitionDropdownDialogs from "@/components/dialogs/mantenimiento/compras/RequisitionDropdownDialogs"
 import { RequisitionByOrderNumber } from "@/hooks/mantenimiento/compras/useGetRequisitionByOrderNumber"
 
@@ -49,6 +48,7 @@ export default function RequisitionActions({
   const [openDelete, setOpenDelete] = useState(false)
   const [openConfirm, setOpenConfirm] = useState(false)
   const [openReject, setOpenReject] = useState(false)
+  const [openPdf, setOpenPdf] = useState(false)
 
   const status = req.status
 
@@ -123,22 +123,14 @@ export default function RequisitionActions({
         {/* PDF (siempre visible) */}
         <Tooltip>
           <TooltipTrigger asChild>
-            <div>
-              <PDFDownloadLink
-                fileName={`${req.order_number}.pdf`}
-                document={
-                  <RequisitionReportPdf requisition={req as any} />
-                }
-              >
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className={`${itemBase} text-blue-600`}
-                >
-                  <FileDown className={iconBase} />
-                </Button>
-              </PDFDownloadLink>
-            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setOpenPdf(true)}
+              className={`${itemBase} text-blue-600`}
+            >
+              <FileDown className={iconBase} />
+            </Button>
           </TooltipTrigger>
           <TooltipContent>Descargar PDF</TooltipContent>
         </Tooltip>
@@ -170,6 +162,12 @@ export default function RequisitionActions({
           setOpenReject={setOpenReject}
           onSuccessUpdate={handleSuccessUpdate}
           onSuccessDelete={handleSuccessDelete}
+        />
+
+        <DownloadRequisitionPdfDialog
+          req={req}
+          open={openPdf}
+          onOpenChange={setOpenPdf}
         />
       </div>
     </TooltipProvider>

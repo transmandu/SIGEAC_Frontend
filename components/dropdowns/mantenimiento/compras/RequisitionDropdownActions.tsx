@@ -24,8 +24,7 @@ import {
   Tag,
   Trash2
 } from "lucide-react"
-import { PDFDownloadLink } from "@react-pdf/renderer"
-import RequisitionReportPdf from "@/components/pdf/almacen/RequisitionReportPdf"
+import DownloadRequisitionPdfDialog from "@/components/dialogs/mantenimiento/compras/DownloadRequisitionPdfDialog"
 import RequisitionDropdownDialogs from "@/components/dialogs/mantenimiento/compras/RequisitionDropdownDialogs"
 import UpdateRequisitionPriorityDialog from "@/components/dialogs/mantenimiento/compras/UpdateRequisitionPriorityDialog"
 
@@ -63,6 +62,7 @@ const RequisitionDropdownActions = ({
   const [openConfirm, setOpenConfirm] = useState(false)
   const [openReject, setOpenReject] = useState(false)
   const [openPriority, setOpenPriority] = useState(false)
+  const [openPdf, setOpenPdf] = useState(false)
 
   const userRoles = user?.roles?.map(role => role.name) || []
   const isOwnRequisition = req.created_by?.id === user?.id
@@ -219,34 +219,31 @@ const RequisitionDropdownActions = ({
             )}
 
             {/* PDF */}
-            <PDFDownloadLink
-              fileName={`${req.order_number}.pdf`}
-              document={
-                <RequisitionReportPdf requisition={req} />
-              }
-            >
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <DropdownMenuItem
-                    asChild
-                    className="p-0 focus:bg-transparent"
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenuItem
+                  asChild
+                  className="p-0 focus:bg-transparent"
+                >
+                  <button
+                    onClick={() => {
+                      setOpenDropdown(false)
+                      setOpenPdf(true)
+                    }}
+                    className={`
+                      ${itemBase}
+                      text-blue-600
+                    `}
                   >
-                    <button
-                      className={`
-                        ${itemBase}
-                        text-blue-600
-                      `}
-                    >
-                      <FileDown className={iconBase} />
-                    </button>
-                  </DropdownMenuItem>
-                </TooltipTrigger>
+                    <FileDown className={iconBase} />
+                  </button>
+                </DropdownMenuItem>
+              </TooltipTrigger>
 
-                <TooltipContent>
-                  Descargar PDF
-                </TooltipContent>
-              </Tooltip>
-            </PDFDownloadLink>
+              <TooltipContent>
+                Descargar PDF
+              </TooltipContent>
+            </Tooltip>
 
             {/* CAMBIAR PRIORIDAD */}
             {canChangePriority && (
@@ -320,6 +317,12 @@ const RequisitionDropdownActions = ({
           setOpenConfirm={setOpenConfirm}
           openReject={openReject}
           setOpenReject={setOpenReject}
+        />
+
+        <DownloadRequisitionPdfDialog
+          req={req}
+          open={openPdf}
+          onOpenChange={setOpenPdf}
         />
 
         {canChangePriority && (
