@@ -17,6 +17,7 @@ import { ArrowRight, ChevronRight, Loader2, MapPin, Search } from 'lucide-react'
 import { memo, useMemo, useState } from 'react'
 import type { TransitArticle } from '@/types/purchase/in-transit'
 import { ArticleDetailDialog } from './ArticleDetailDialog'
+import { DownloadReportDialog } from './DownloadReportDialog'
 
 type StatusFilter = 'ALL' | 'TRANSIT' | 'RECEPTION'
 
@@ -243,9 +244,18 @@ export function ArticulosEnTransitoTab() {
             {/* Encabezado */}
             <div className="flex items-baseline justify-between">
                 <h2 className="text-lg font-semibold">Artículos en Tránsito</h2>
-                <span className="text-xs text-muted-foreground tabular-nums">
-                    {articles.length} {articles.length === 1 ? 'artículo' : 'artículos'}
-                </span>
+                <div className="flex items-center gap-3">
+                    <span className="text-xs text-muted-foreground tabular-nums">
+                        {articles.length} {articles.length === 1 ? 'artículo' : 'artículos'}
+                    </span>
+                    <DownloadReportDialog
+                        endpoint="articles-reception-pdf"
+                        title="Descargar Reporte de Artículos en Recepción"
+                        description="Selecciona el rango de fechas de recepción para filtrar los artículos."
+                        dateRangeLabel="Rango de Fechas de Recepción"
+                        fileNamePrefix="articulos_en_recepcion"
+                    />
+                </div>
             </div>
 
             {/* Filtros + búsqueda */}

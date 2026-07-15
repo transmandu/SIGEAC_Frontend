@@ -18,7 +18,6 @@ import { ShieldOff } from 'lucide-react'
 import { useState } from 'react'
 import { ArticulosEnTransitoTab } from './_components/ArticulosEnTransitoTab'
 import { RecepcionGeneralTab } from './_components/RecepcionGeneralTab'
-import { DownloadReportDialog } from './_components/DownloadReportDialog'
 
 const ALMACEN_ROLES = ['ALMACEN', 'JEFE_ALMACEN', 'ANALISTA_ALMACEN', 'SUPERUSER']
 
@@ -71,7 +70,6 @@ const RecepcionArticulosPage = () => {
                 {/* Encabezado */}
                 <div className="flex items-center justify-between">
                     <h1 className="text-2xl font-bold">Recepción de Artículos</h1>
-                    <DownloadReportDialog />
                 </div>
 
                 {/* Tabs */}

@@ -1211,6 +1211,13 @@ export interface WarehouseDashboard {
   dispatchCount: number;
   dispatchAircraftCount: number;
   dispatchWorkOrderCount: number;
+  dispatchByCategory: {
+    component: number;
+    part: number;
+    consumable: number;
+    tool: number;
+    general: number;
+  };
   tool_need_calibration_count: number;
   returnToolsCount: number;
   restockCount: number;

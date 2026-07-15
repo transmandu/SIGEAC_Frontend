@@ -33,6 +33,7 @@ import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { CalendarIcon, CheckCircle2, Loader2, PackageSearch, Search } from 'lucide-react'
 import { memo, useMemo, useState } from 'react'
+import { DownloadReportDialog } from './DownloadReportDialog'
 
 type StatusFilter = 'ALL' | GeneralArticleIntakeStatus
 
@@ -285,9 +286,28 @@ export function RecepcionGeneralTab() {
             {/* Encabezado */}
             <div className="flex items-baseline justify-between">
                 <h2 className="text-lg font-semibold">Recepción General</h2>
-                <span className="text-xs text-muted-foreground tabular-nums">
-                    {filtered.length} {filtered.length === 1 ? 'entrada' : 'entradas'}
-                </span>
+                <div className="flex items-center gap-3">
+                    <span className="text-xs text-muted-foreground tabular-nums">
+                        {filtered.length} {filtered.length === 1 ? 'entrada' : 'entradas'}
+                    </span>
+                    <DownloadReportDialog
+                        endpoint="{location_id}/general-article-intakes-pdf"
+                        requiresLocation
+                        title="Descargar Reporte de Recepción General"
+                        description="Selecciona el rango de fechas y el estado para filtrar las entradas."
+                        dateRangeLabel="Rango de Fechas"
+                        fileNamePrefix="recepcion_general"
+                        dateFieldOptions={[
+                            { value: 'arrived_at', label: 'Fecha de Llegada' },
+                            { value: 'confirmed_at', label: 'Fecha de Confirmación' },
+                        ]}
+                        statusOptions={[
+                            { value: 'ALL', label: 'Todas' },
+                            { value: 'PENDING', label: 'Pendientes' },
+                            { value: 'CONFIRMED', label: 'Confirmadas' },
+                        ]}
+                    />
+                </div>
             </div>
 
             {/* Filtros + búsqueda */}
