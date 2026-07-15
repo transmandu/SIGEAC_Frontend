@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import {
   ColumnDef,
@@ -10,13 +10,12 @@ import {
   getSortedRowModel,
   SortingState,
   useReactTable,
-} from "@tanstack/react-table"
+} from "@tanstack/react-table";
 
-
-import { DataTablePagination } from "@/components/tables/DataTablePagination"
-import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { DataTablePagination } from "@/components/tables/DataTablePagination";
+import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -24,26 +23,23 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import { ListRestart } from "lucide-react"
-import { useState } from "react"
-import { CreateCompanyDialog } from "@/components/dialogs/ajustes/CreateCompanyDialog"
-import { CreateUnitDialog } from "@/components/dialogs/ajustes/CreateUnitDialog"
+} from "@/components/ui/table";
+import { ListRestart } from "lucide-react";
+import { useState } from "react";
+import { CreateCompanyDialog } from "@/components/dialogs/ajustes/CreateCompanyDialog";
+import { CreateUnitDialog } from "@/components/dialogs/ajustes/CreateUnitDialog";
 
 interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[]
-  data: TData[]
+  columns: ColumnDef<TData, TValue>[];
+  data: TData[];
 }
 
 export function PrimaryDataTable<TData, TValue>({
   columns,
   data,
 }: DataTableProps<TData, TValue>) {
-
-  const [sorting, setSorting] = useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(
-    []
-  )
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
   const table = useReactTable({
     data,
@@ -56,11 +52,11 @@ export function PrimaryDataTable<TData, TValue>({
     getFilteredRowModel: getFilteredRowModel(),
     state: {
       sorting,
-      columnFilters
-    }
-  })
+      columnFilters,
+    },
+  });
 
-  const isFiltered = table.getState().columnFilters.length > 0
+  const isFiltered = table.getState().columnFilters.length > 0;
 
   return (
     <div>
@@ -76,10 +72,12 @@ export function PrimaryDataTable<TData, TValue>({
               <ListRestart className="ml-2 h-4 w-4" />
             </Button>
           )}
-          <CreateUnitDialog />
+          <div data-tour="unidades-primary-new">
+            <CreateUnitDialog />
+          </div>
         </div>
       </div>
-      <div className="rounded-md border mb-4">
+      <div className="rounded-md border mb-4" data-tour="unidades-primary-table">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -90,11 +88,11 @@ export function PrimaryDataTable<TData, TValue>({
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
                     </TableHead>
-                  )
+                  );
                 })}
               </TableRow>
             ))}
@@ -108,14 +106,20 @@ export function PrimaryDataTable<TData, TValue>({
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center text-muted-foreground">
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center text-muted-foreground"
+                >
                   No se ha encontrado ningún resultado...
                 </TableCell>
               </TableRow>
@@ -123,7 +127,9 @@ export function PrimaryDataTable<TData, TValue>({
           </TableBody>
         </Table>
       </div>
-      <DataTablePagination table={table} />
+      <div data-tour="unidades-primary-pagination">
+        <DataTablePagination table={table} />
+      </div>
     </div>
-  )
+  );
 }

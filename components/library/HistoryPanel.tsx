@@ -15,6 +15,7 @@ export default function TraceabilityPanel({ documentId, company, onClose, user }
   const [selectedQR, setSelectedQR] = useState<string | null>(null);
   const [isCopying, setIsCopying] = useState(false);
 
+
   // Lógica multitenant: Buscamos el rol por nombre en lugar de ID estático
   const isDirector = user?.role_name?.toLowerCase().includes('director');
   const isSuperUser = user?.role_name?.toLowerCase().includes('admin') || user?.role_name?.toLowerCase().includes('super');
@@ -108,7 +109,7 @@ export default function TraceabilityPanel({ documentId, company, onClose, user }
       
       {/* HEADER */}
       <div className="p-6 border-b border-slate-200 dark:border-gray-800 flex justify-between items-center bg-slate-100/50 dark:bg-white/[0.02]">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3" data-tour="biblioteca-trace-title">
           <div className="p-2 bg-blue-700 rounded-lg shadow-lg shadow-blue-500/30">
             <History className="h-5 w-5 text-white" />
           </div>
@@ -142,7 +143,7 @@ export default function TraceabilityPanel({ documentId, company, onClose, user }
             <p className="text-[10px] text-slate-600 font-semibold uppercase px-10 italic">Sin registros disponibles</p>
           </div>
         ) : (
-          <div className="relative border-l-2 border-slate-300 dark:border-gray-700 ml-4 space-y-8 pb-6">
+          <div className="relative border-l-2 border-slate-300 dark:border-gray-700 ml-4 space-y-8 pb-6" data-tour="biblioteca-trace-timeline">
             {logs.map((log, index) => {
               const active = isLinkActive(log.expires_at);
               const versionLabel = getVersionLabel(log);
@@ -164,6 +165,7 @@ export default function TraceabilityPanel({ documentId, company, onClose, user }
                         }
                     }}
                     className="bg-white dark:bg-white/[0.03] rounded-2xl p-4 border border-slate-300 dark:border-gray-800 shadow-sm transition-all hover:border-blue-400 hover:shadow-md cursor-pointer active:scale-[0.98]"
+                    data-tour="biblioteca-trace-qr-btn"
                   >
                     <div className="flex justify-between items-center mb-3 pb-2 border-b border-slate-100 dark:border-gray-800/50">
                       <div className="flex items-center gap-2">

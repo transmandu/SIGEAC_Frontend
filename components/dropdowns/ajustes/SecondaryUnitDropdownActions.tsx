@@ -26,7 +26,7 @@ const SecondaryUnitDropdownActions = ({ id }: { id: string | number }) => {
     <Dialog open={open} onOpenChange={setOpen}>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="h-8 w-8 p-0">
+          <Button variant="ghost" className="h-8 w-8 p-0" data-tour="unidades-secondary-actions">
             <span className="sr-only">Abrir menu</span>
             <MoreHorizontal className="h-4 w-4" />
           </Button>

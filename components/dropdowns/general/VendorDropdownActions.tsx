@@ -1,35 +1,35 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useCompanyStore } from "@/stores/CompanyStore"
-import { Vendor } from "@/types"
+import { useState } from "react";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { Vendor } from "@/types";
 
 import {
   useUpdateVendor,
-  useDeleteVendor
-} from "@/actions/ajustes/globales/proveedores/actions"
+  useDeleteVendor,
+} from "@/actions/ajustes/globales/proveedores/actions";
 
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu"
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
-  TooltipTrigger
-} from "@/components/ui/tooltip"
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
-import { Button } from "@/components/ui/button"
-import { MoreHorizontal, Edit3, Trash2, Loader2 } from "lucide-react"
+import { Button } from "@/components/ui/button";
+import { MoreHorizontal, Edit3, Trash2, Loader2 } from "lucide-react";
 
-import VendorDropdownDialogs from "@/components/dialogs/general/VendorDropdownDialogs"
+import VendorDropdownDialogs from "@/components/dialogs/general/VendorDropdownDialogs";
 
 const iconBase =
-  "size-[18px] transition-all duration-200 ease-out group-hover:scale-110"
+  "size-[18px] transition-all duration-200 ease-out group-hover:scale-110";
 
 const itemBase = `
   group
@@ -39,22 +39,22 @@ const itemBase = `
   transition-all duration-200 ease-out
   hover:bg-muted hover:shadow-sm
   active:scale-95
-`
+`;
 
 const VendorDropdownActions = ({ vendor }: { vendor: Vendor }) => {
-  const { selectedCompany } = useCompanyStore()
+  const { selectedCompany } = useCompanyStore();
 
-  const updateMutation = useUpdateVendor(selectedCompany?.slug)
-  const deleteMutation = useDeleteVendor(selectedCompany?.slug)
+  const updateMutation = useUpdateVendor(selectedCompany?.slug);
+  const deleteMutation = useDeleteVendor(selectedCompany?.slug);
 
-  const [openDropdown, setOpenDropdown] = useState(false)
+  const [openDropdown, setOpenDropdown] = useState(false);
 
-  const [openEdit, setOpenEdit] = useState(false)
-  const [openDelete, setOpenDelete] = useState(false)
+  const [openEdit, setOpenEdit] = useState(false);
+  const [openDelete, setOpenDelete] = useState(false);
 
-  if (!selectedCompany) return null
+  if (!selectedCompany) return null;
 
-  const isDeleting = deleteMutation.status === "pending"
+  const isDeleting = deleteMutation.status === "pending";
 
   return (
     <TooltipProvider delayDuration={120}>
@@ -74,6 +74,7 @@ const VendorDropdownActions = ({ vendor }: { vendor: Vendor }) => {
                 hover:shadow-sm
                 data-[state=open]:bg-muted
               "
+              data-tour="proveedores-actions"
             >
               <MoreHorizontal className="size-4" />
             </Button>
@@ -98,11 +99,14 @@ const VendorDropdownActions = ({ vendor }: { vendor: Vendor }) => {
             <Tooltip>
               <TooltipTrigger asChild>
                 <span>
-                  <DropdownMenuItem asChild className="p-0 focus:bg-transparent">
+                  <DropdownMenuItem
+                    asChild
+                    className="p-0 focus:bg-transparent"
+                  >
                     <button
                       onClick={() => {
-                        setOpenDropdown(false)
-                        setOpenEdit(true)
+                        setOpenDropdown(false);
+                        setOpenEdit(true);
                       }}
                       className={`${itemBase} text-blue-600`}
                     >
@@ -119,11 +123,14 @@ const VendorDropdownActions = ({ vendor }: { vendor: Vendor }) => {
             <Tooltip>
               <TooltipTrigger asChild>
                 <span>
-                  <DropdownMenuItem asChild className="p-0 focus:bg-transparent">
+                  <DropdownMenuItem
+                    asChild
+                    className="p-0 focus:bg-transparent"
+                  >
                     <button
                       onClick={() => {
-                        setOpenDropdown(false)
-                        setOpenDelete(true)
+                        setOpenDropdown(false);
+                        setOpenDelete(true);
                       }}
                       className={`${itemBase} text-red-600`}
                       disabled={isDeleting}
@@ -152,7 +159,7 @@ const VendorDropdownActions = ({ vendor }: { vendor: Vendor }) => {
         />
       </>
     </TooltipProvider>
-  )
-}
+  );
+};
 
-export default VendorDropdownActions
+export default VendorDropdownActions;
