@@ -91,9 +91,11 @@ const formSchema = z
     serial: z.string().optional(),
     model: z.string().optional(),
     description: z.string().optional(),
-    zone: z.string().min(1, "Campo requerido"),
-    manufacturer_id: z.string().min(1, "Seleccione un fabricante"),
-    batch_id: z.string().min(1, "Seleccione una descripción"),
+    zone: z.string().optional(),
+    manufacturer_id: z.string().optional(),
+    batch_id: z
+      .string({ message: "Debe ingresar un lote." })
+      .min(1, "Seleccione un lote"),
 
     // Calibración
     needs_calibration: z.boolean().optional(),
@@ -164,11 +166,16 @@ export default function CreateToolForm({
   const { updateArticle } = useUpdateArticle();
   const { uploadArticleDocuments } = useUploadArticleDocuments();
 
-  // Al editar, precarga los tipos de documento requeridos aún sin consignar.
+  // Al editar, precarga todos los requerimientos documentales (pendientes y
+  // ya consignados), estos últimos con su requirementId para que el
+  // selector muestre su estado real en vez de tratarlos como vacíos.
   const [documents, setDocuments] = useState<ArticleDocumentSelection[]>(() =>
     (initialData?.document_requirements ?? [])
-      .filter((req) => req.documents.length === 0 && typeof req.document_type?.id === "number")
-      .map((req) => ({ typeId: req.document_type!.id }))
+      .filter((req) => typeof req.document_type?.id === "number")
+      .map((req) => ({
+        typeId: req.document_type!.id,
+        requirementId: req.documents.length > 0 ? req.id : undefined,
+      }))
   );
   const { confirmIncoming } = useConfirmIncomingArticle();
 
@@ -394,7 +401,7 @@ export default function CreateToolForm({
                             "manufacturer_id",
                             manufacturer.id.toString(),
                             {
-                              shouldValidate: true,
+                              shouldValidate: true, shouldDirty: true,
                             },
                           );
                         }
@@ -460,7 +467,7 @@ export default function CreateToolForm({
                                   form.setValue(
                                     "manufacturer_id",
                                     manufacturer.id.toString(),
-                                    { shouldValidate: true },
+                                    { shouldValidate: true, shouldDirty: true },
                                   );
                                 }}
                               >
@@ -751,6 +758,7 @@ export default function CreateToolForm({
                     value={documents}
                     onChange={setDocuments}
                     disabled={busy}
+                    consignedRequirements={initialData?.document_requirements}
                   />
                 )}
               </div>
@@ -763,11 +771,13 @@ export default function CreateToolForm({
           <Button
             className="bg-primary text-white hover:bg-blue-900 disabled:bg-slate-100 disabled:text-slate-400"
             disabled={
-              busy ||
-              !selectedCompany ||
-              !form.getValues("part_number") ||
-              !form.getValues("batch_id") ||
-              !form.getValues("manufacturer_id")
+              isEditing
+                ? busy || !selectedCompany || !form.formState.isDirty
+                : busy ||
+                  !selectedCompany ||
+                  !form.getValues("part_number") ||
+                  !form.getValues("batch_id") ||
+                  !form.getValues("manufacturer_id")
             }
             type="submit"
           >

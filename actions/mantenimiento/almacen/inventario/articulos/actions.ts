@@ -62,6 +62,17 @@ export interface ArticleDocumentSelection {
     typeId: number;
     file?: File;
     isPhysical?: boolean;
+    /**
+     * Id del requerimiento ya existente al que pertenece esta selección
+     * (modo edición: el tipo ya estaba consignado o pendiente). Si no viene,
+     * se asume que el requerimiento aún no existe y hay que crearlo.
+     */
+    requirementId?: number;
+    /**
+     * Id del documento consignado que debe eliminarse antes de subir el
+     * nuevo archivo (reemplazo explícito de un documento ya existente).
+     */
+    replaceDocumentId?: number;
 }
 
 /**
@@ -247,6 +258,14 @@ export const useUploadArticleDocuments = () => {
 
                 if (!requirement) continue;
 
+                // Reemplazo explícito: elimina el documento anterior antes de
+                // consignar el nuevo, para no dejar dos documentos activos.
+                if (doc.replaceDocumentId) {
+                    await axiosInstance.delete(
+                        `/${company}/article-documents/${doc.replaceDocumentId}`
+                    );
+                }
+
                 const formData = new FormData();
                 if (doc.file) {
                     formData.append("file", doc.file);
@@ -327,6 +346,41 @@ export const useConsignRequirementDocuments = () => {
 
     return {
         consignRequirementDocuments: consignMutation,
+    };
+};
+
+/**
+ * Elimina un documento ya consignado (ArticleDocument), p. ej. antes de
+ * reemplazarlo por uno nuevo.
+ */
+export const useDeleteArticleDocument = () => {
+    const queryClient = useQueryClient();
+
+    const deleteMutation = useMutation({
+        mutationKey: ["article-documents"],
+        mutationFn: async ({
+            company,
+            documentId,
+        }: {
+            company: string;
+            documentId: number;
+        }) => {
+            await axiosInstance.delete(`/${company}/article-documents/${documentId}`);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["articles"] });
+            queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
+        },
+        onError: (error) => {
+            toast.error("Oops!", {
+                description: "No se pudo eliminar el documento consignado...",
+            });
+            console.log(error);
+        },
+    });
+
+    return {
+        deleteArticleDocument: deleteMutation,
     };
 };
 

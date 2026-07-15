@@ -3,7 +3,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -113,9 +113,7 @@ const formSchema = z
       .optional(),
     description: z.string().optional(),
     batch_name: z.string().optional(),
-    zone: z
-      .string({ message: "Debe ingresar la ubicación del artículo." })
-      .min(1, "Campo requerido"),
+    zone: z.string().optional(),
     expiration_date: z.string().optional(),
     fabrication_date: z.string().optional(),
     calendar_date: z.string().optional(),
@@ -129,7 +127,7 @@ const formSchema = z
       .min(0, "No puede ser negativo")
       .optional(),
     manufacturer_id: z.string().optional(),
-    condition_id: z.string().min(1, "Debe ingresar la condición del artículo."),
+    condition_id: z.string().optional(),
     batch_id: z
       .string({ message: "Debe ingresar un lote." })
       .min(1, "Seleccione un lote"),
@@ -256,6 +254,33 @@ export default function DirectRegisterComponentForm({
 
   const [enableBatchNameEdit, setEnableBatchNameEdit] = useState(false);
 
+  // Valores iniciales de los date pickers (estado local, fuera de RHF) para
+  // detectar cambios en modo edición: isDirty de RHF no los ve.
+  const initialDatesRef = useRef({
+    fabricationDate: initialData?.partComponent?.fabrication_date
+      ? parseISO(initialData.partComponent.fabrication_date).getTime()
+      : null,
+    caducateDate: initialData?.partComponent?.expiration_date
+      ? parseISO(initialData.partComponent.expiration_date).getTime()
+      : null,
+    inspectDate: initialData?.inspect_date
+      ? parseISO(initialData.inspect_date).getTime()
+      : null,
+    lifeLimitPartCalendar: initialData?.partComponent?.life_limit_part_calendar
+      ? parseISO(initialData.partComponent.life_limit_part_calendar).getTime()
+      : null,
+    hardTimeCalendar: initialData?.partComponent?.hard_time_calendar
+      ? parseISO(initialData.partComponent.hard_time_calendar).getTime()
+      : null,
+  });
+
+  const datesDirty =
+    (fabricationDate?.getTime() ?? null) !== initialDatesRef.current.fabricationDate ||
+    (caducateDate?.getTime() ?? null) !== initialDatesRef.current.caducateDate ||
+    (inspectDate?.getTime() ?? null) !== initialDatesRef.current.inspectDate ||
+    (lifeLimitPartCalendar?.getTime() ?? null) !== initialDatesRef.current.lifeLimitPartCalendar ||
+    (hardTimeCalendar?.getTime() ?? null) !== initialDatesRef.current.hardTimeCalendar;
+
   // Data hooks
   const {
     data: batches,
@@ -292,11 +317,16 @@ export default function DirectRegisterComponentForm({
   const { updateArticle } = useUpdateArticle();
   const { uploadArticleDocuments } = useUploadArticleDocuments();
 
-  // Al editar, precarga los tipos de documento requeridos aún sin consignar.
+  // Al editar, precarga todos los requerimientos documentales (pendientes y
+  // ya consignados), estos últimos con su requirementId para que el
+  // selector muestre su estado real en vez de tratarlos como vacíos.
   const [documents, setDocuments] = useState<ArticleDocumentSelection[]>(() =>
     (initialData?.document_requirements ?? [])
-      .filter((req) => req.documents.length === 0 && typeof req.document_type?.id === "number")
-      .map((req) => ({ typeId: req.document_type!.id }))
+      .filter((req) => typeof req.document_type?.id === "number")
+      .map((req) => ({
+        typeId: req.document_type!.id,
+        requirementId: req.documents.length > 0 ? req.id : undefined,
+      }))
   );
   const { confirmIncoming } = useConfirmIncomingArticle();
 
@@ -420,7 +450,7 @@ export default function DirectRegisterComponentForm({
     if (searchResults && searchResults.length > 0 && !isEditing) {
       const firstResult = searchResults[0];
       form.setValue("batch_id", firstResult.id.toString(), {
-        shouldValidate: true,
+        shouldValidate: true, shouldDirty: true,
       });
 
       // Notificar al usuario
@@ -898,7 +928,7 @@ export default function DirectRegisterComponentForm({
                           );
                           if (newBatch) {
                             form.setValue("batch_id", newBatch.id.toString(), {
-                              shouldValidate: true,
+                              shouldValidate: true, shouldDirty: true,
                             });
                           }
                         }}
@@ -987,13 +1017,13 @@ export default function DirectRegisterComponentForm({
                                       form.setValue(
                                         "batch_id",
                                         batch.id.toString(),
-                                        { shouldValidate: true },
+                                        { shouldValidate: true, shouldDirty: true },
                                       );
                                       if (isEditing && enableBatchNameEdit) {
                                         form.setValue(
                                           "batch_name",
                                           batch.name,
-                                          { shouldValidate: true },
+                                          { shouldValidate: true, shouldDirty: true },
                                         );
                                       }
                                     }}
@@ -1035,13 +1065,13 @@ export default function DirectRegisterComponentForm({
                                       form.setValue(
                                         "batch_id",
                                         batch.id.toString(),
-                                        { shouldValidate: true },
+                                        { shouldValidate: true, shouldDirty: true },
                                       );
                                       if (isEditing && enableBatchNameEdit) {
                                         form.setValue(
                                           "batch_name",
                                           batch.name,
-                                          { shouldValidate: true },
+                                          { shouldValidate: true, shouldDirty: true },
                                         );
                                       }
                                     }}
@@ -1255,7 +1285,7 @@ export default function DirectRegisterComponentForm({
                       <CreateResguardoAircraftDialog
                         onSuccess={(aircraftId) => {
                           form.setValue("aircraft_id", aircraftId, {
-                            shouldValidate: true,
+                            shouldValidate: true, shouldDirty: true,
                           });
                         }}
                         triggerButton={
@@ -1317,7 +1347,7 @@ export default function DirectRegisterComponentForm({
                                     form.setValue(
                                       "aircraft_id",
                                       aircraft.id.toString(),
-                                      { shouldValidate: true },
+                                      { shouldValidate: true, shouldDirty: true },
                                     );
                                   }}
                                 >
@@ -1368,7 +1398,7 @@ export default function DirectRegisterComponentForm({
                           form.setValue(
                             "manufacturer_id",
                             manufacturer.id.toString(),
-                            { shouldValidate: true },
+                            { shouldValidate: true, shouldDirty: true },
                           );
                         }
                       }}
@@ -1459,7 +1489,7 @@ export default function DirectRegisterComponentForm({
                                     form.setValue(
                                       "manufacturer_id",
                                       manufacturer.id.toString(),
-                                      { shouldValidate: true },
+                                      { shouldValidate: true, shouldDirty: true },
                                     );
                                   }}
                                 >
@@ -1797,6 +1827,7 @@ export default function DirectRegisterComponentForm({
                     value={documents}
                     onChange={setDocuments}
                     disabled={busy}
+                    consignedRequirements={initialData?.document_requirements}
                   />
                 </div>
               </>
@@ -1809,11 +1840,15 @@ export default function DirectRegisterComponentForm({
           <Button
             className="bg-primary text-white hover:bg-blue-900 disabled:bg-slate-100 disabled:text-slate-400"
             disabled={
-              busy ||
-              !selectedCompany ||
-              !form.getValues("part_number") ||
-              !form.getValues("batch_id") ||
-              caducateDate === undefined
+              isEditing
+                ? busy ||
+                  !selectedCompany ||
+                  (!form.formState.isDirty && !datesDirty)
+                : busy ||
+                  !selectedCompany ||
+                  !form.getValues("part_number") ||
+                  !form.getValues("batch_id") ||
+                  caducateDate === undefined
             }
             type="submit"
           >

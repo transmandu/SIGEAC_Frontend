@@ -14,7 +14,7 @@ import {
 import { useGetArticlesByStatus } from '@/hooks/mantenimiento/almacen/articulos/useGetArticlesByStatus'
 import { cn } from '@/lib/utils'
 import { ArrowRight, ChevronRight, Loader2, MapPin, Search } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { memo, useMemo, useState } from 'react'
 import type { TransitArticle } from '@/types/purchase/in-transit'
 import { ArticleDetailDialog } from './ArticleDetailDialog'
 
@@ -26,7 +26,7 @@ const TRANSIT_STATUS_LABELS: Record<string, string> = {
 }
 
 // ── Fila de artículo ───────────────────────────────────────────────────
-function ArticleRow({ article }: { article: TransitArticle }) {
+const ArticleRow = memo(function ArticleRow({ article }: { article: TransitArticle }) {
     const { updateArticleStatus } = useUpdateArticleStatus()
     const [pending, setPending] = useState(false)
     const [expanded, setExpanded] = useState(false)
@@ -194,7 +194,7 @@ function ArticleRow({ article }: { article: TransitArticle }) {
             )}
         </>
     )
-}
+})
 
 // ── Tab ──────────────────────────────────────────────────────────────
 export function ArticulosEnTransitoTab() {

@@ -32,7 +32,7 @@ import type { GeneralArticleIntake, GeneralArticleIntakeStatus } from '@/types/p
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { CalendarIcon, CheckCircle2, Loader2, PackageSearch, Search } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { memo, useMemo, useState } from 'react'
 
 type StatusFilter = 'ALL' | GeneralArticleIntakeStatus
 
@@ -166,7 +166,7 @@ function ConfirmIntakeAction({ intake }: { intake: GeneralArticleIntake }) {
 }
 
 // ── Fila de entrada ──────────────────────────────────────────────────────
-function IntakeRow({ intake }: { intake: GeneralArticleIntake }) {
+const IntakeRow = memo(function IntakeRow({ intake }: { intake: GeneralArticleIntake }) {
     const isPending = intake.status === 'PENDING'
 
     return (
@@ -244,7 +244,7 @@ function IntakeRow({ intake }: { intake: GeneralArticleIntake }) {
             </TableCell>
         </TableRow>
     )
-}
+})
 
 // ── Tab ──────────────────────────────────────────────────────────────────
 export function RecepcionGeneralTab() {

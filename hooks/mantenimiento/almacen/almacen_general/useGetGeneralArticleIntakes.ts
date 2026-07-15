@@ -21,5 +21,6 @@ export const useGetGeneralArticleIntakes = (status?: GeneralArticleIntakeStatus)
     queryKey: ['general-article-intakes', selectedCompany?.slug, selectedStation, status],
     queryFn: () => fetchGeneralArticleIntakes(selectedCompany!.slug, selectedStation, status),
     enabled: !!selectedCompany && !!selectedStation,
+    staleTime: 1000 * 60 * 5, // 5 minutos
   });
 };
