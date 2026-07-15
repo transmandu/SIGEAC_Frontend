@@ -8,6 +8,12 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/ui/tooltip'
+import {
     CheckCircle2,
     Eye,
     FileWarning,
@@ -156,15 +162,21 @@ export function ArticleDetailDialog({ article }: { article: TransitArticle }) {
 
     return (
         <>
-            <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                onClick={() => setOpen(true)}
-                title="Ver detalle"
-            >
-                <Eye className="size-4" />
-            </Button>
+            <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                            onClick={() => setOpen(true)}
+                        >
+                            <Eye className="size-4" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">Ver detalle</TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
 
             <Dialog open={open} onOpenChange={setOpen}>
                 <DialogContent
@@ -181,6 +193,7 @@ export function ArticleDetailDialog({ article }: { article: TransitArticle }) {
                             setPreviewDoc(null)
                         }
                     }}
+                    onOpenAutoFocus={(e) => e.preventDefault()}
                 >
                     <DialogTitle className="sr-only">Detalle del artículo {article.part_number}</DialogTitle>
                     <DialogDescription className="sr-only">
@@ -324,20 +337,25 @@ export function ArticleDetailDialog({ article }: { article: TransitArticle }) {
                                                             {req.documents.length > 0 && (
                                                                 <div className="flex flex-col items-end gap-1">
                                                                     {req.documents.map((doc, i) => (
-                                                                        <Button
-                                                                            key={doc.id}
-                                                                            variant="ghost"
-                                                                            size="icon"
-                                                                            className="h-6 w-6 text-muted-foreground hover:text-foreground"
-                                                                            title={
-                                                                                req.documents.length > 1
-                                                                                    ? `Ver documento ${i + 1}`
-                                                                                    : 'Ver documento'
-                                                                            }
-                                                                            onClick={() => setPreviewDoc(doc)}
-                                                                        >
-                                                                            <Eye className="size-3.5" />
-                                                                        </Button>
+                                                                        <TooltipProvider key={doc.id}>
+                                                                            <Tooltip>
+                                                                                <TooltipTrigger asChild>
+                                                                                    <Button
+                                                                                        variant="ghost"
+                                                                                        size="icon"
+                                                                                        className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                                                                                        onClick={() => setPreviewDoc(doc)}
+                                                                                    >
+                                                                                        <Eye className="size-3.5" />
+                                                                                    </Button>
+                                                                                </TooltipTrigger>
+                                                                                <TooltipContent side="top">
+                                                                                    {req.documents.length > 1
+                                                                                        ? `Ver documento ${i + 1}`
+                                                                                        : 'Ver documento'}
+                                                                                </TooltipContent>
+                                                                            </Tooltip>
+                                                                        </TooltipProvider>
                                                                     ))}
                                                                 </div>
                                                             )}
