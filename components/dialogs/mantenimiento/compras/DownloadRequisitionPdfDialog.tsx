@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
-import { Download, Loader2 } from 'lucide-react'
+import { Download, FileText, Loader2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -102,22 +102,57 @@ export default function DownloadRequisitionPdfDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg px-8 py-10">
-        <DialogHeader>
-          <DialogTitle>Descargar requisición {req.order_number}</DialogTitle>
-          <DialogDescription>
-            Seleccione el responsable del departamento receptor (Compras,
-            Administración o RRHH) que recibirá la solicitud.
-          </DialogDescription>
+      <DialogContent className="sm:max-w-lg p-0 gap-0 overflow-hidden">
+        {/* ===== Encabezado ===== */}
+        <DialogHeader className="px-6 pt-6 pb-5 border-b bg-muted/30">
+          <div className="flex items-start gap-3.5">
+            <div
+              className="
+                flex size-11 shrink-0 items-center justify-center
+                rounded-xl border bg-background shadow-sm
+                text-blue-600
+              "
+            >
+              <FileText className="size-5" />
+            </div>
+
+            <div className="min-w-0 space-y-1 text-left">
+              <DialogTitle className="text-base leading-snug">
+                Descargar requisición
+              </DialogTitle>
+              <div
+                className="
+                  inline-flex max-w-full items-center
+                  rounded-md border bg-background
+                  px-2 py-0.5
+                  font-mono text-xs font-medium tracking-wide
+                  text-muted-foreground
+                "
+                title={req.order_number}
+              >
+                <span className="truncate">{req.order_number}</span>
+              </div>
+              <DialogDescription className="text-xs leading-relaxed">
+                El documento incluye al receptor seleccionado en la sección
+                &ldquo;Departamento Receptor&rdquo; y su firma en
+                &ldquo;Recibe conforme&rdquo;.
+              </DialogDescription>
+            </div>
+          </div>
         </DialogHeader>
 
-        <div className="space-y-6 py-6">
+        {/* ===== Cuerpo ===== */}
+        <div className="px-6 py-6 space-y-4">
           <div className="space-y-2">
             <label className="text-sm font-medium">
               Departamento receptor
             </label>
+            <p className="text-xs text-muted-foreground">
+              Personal de Compras, Administración o RRHH que recibirá la
+              solicitud.
+            </p>
             <Select value={receiverId} onValueChange={setReceiverId}>
-              <SelectTrigger className="w-full">
+              <SelectTrigger className="w-full h-10">
                 <SelectValue
                   placeholder={
                     isReceiversLoading
@@ -151,9 +186,24 @@ export default function DownloadRequisitionPdfDialog({
               </SelectContent>
             </Select>
           </div>
+        </div>
 
+        {/* ===== Pie ===== */}
+        <div
+          className="
+            flex items-center justify-end gap-2
+            px-6 py-4 border-t bg-muted/30
+          "
+        >
           <Button
-            className="w-full gap-2"
+            variant="ghost"
+            onClick={() => onOpenChange(false)}
+            disabled={isPending}
+          >
+            Cancelar
+          </Button>
+          <Button
+            className="gap-2 min-w-[150px]"
             onClick={handleDownload}
             disabled={!receiverId || isPending}
           >
@@ -162,7 +212,7 @@ export default function DownloadRequisitionPdfDialog({
             ) : (
               <Download className="size-4" />
             )}
-            {isPending ? 'Generando...' : 'Descargar'}
+            {isPending ? 'Generando...' : 'Descargar PDF'}
           </Button>
         </div>
       </DialogContent>
