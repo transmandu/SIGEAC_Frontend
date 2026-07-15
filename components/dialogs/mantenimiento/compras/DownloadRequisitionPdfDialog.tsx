@@ -102,7 +102,7 @@ export default function DownloadRequisitionPdfDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-lg px-8 py-10">
         <DialogHeader>
           <DialogTitle>Descargar requisición {req.order_number}</DialogTitle>
           <DialogDescription>
@@ -111,7 +111,7 @@ export default function DownloadRequisitionPdfDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-2">
+        <div className="space-y-6 py-6">
           <div className="space-y-2">
             <label className="text-sm font-medium">
               Departamento receptor
