@@ -25,7 +25,7 @@ import { toast } from "sonner";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { QRCodeSVG } from "qrcode.react";
 import { useTourContext } from "@/components/tour/TourProvider";
-import { bibliotecaSolicitudesSteps } from "@/components/tour/steps/biblioteca/biblioteca-solicitudes";
+import { bibliotecaSolicitudesSteps } from "@/components/tour/steps/general/biblioteca/biblioteca-solicitudes";
 
 interface ShareRequestsPanelProps {
   company: string;

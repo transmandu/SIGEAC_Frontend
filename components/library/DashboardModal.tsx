@@ -19,7 +19,7 @@ import {
   CartesianGrid,
 } from "recharts";
 import { useTourContext } from "@/components/tour/TourProvider";
-import { bibliotecaDashboardSteps } from "@/components/tour/steps/biblioteca/biblioteca-dashboard";
+import { bibliotecaDashboardSteps } from "@/components/tour/steps/general/biblioteca/biblioteca-dashboard";
 
 interface DashboardModalProps {
   open: boolean;
@@ -406,7 +406,6 @@ export default function DashboardModal({
     return () => unregisterTour("biblioteca-dashboard");
   }, [open, registerTour, unregisterTour]);
 
-
   const isSuperUser = useMemo(() => {
     return (
       user?.roles?.some((role: any) =>
@@ -664,10 +663,13 @@ export default function DashboardModal({
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6" >
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
               {canViewCharts && chartData.length > 0 && (
-                <div className="col-span-1 lg:col-span-1 bg-white dark:bg-slate-900 rounded-[2rem] p-6 shadow-sm border border-slate-200/50 dark:border-white/5 flex flex-col justify-between" data-tour="biblioteca-dashboard-distribucion">
-                  <div >
+                <div
+                  className="col-span-1 lg:col-span-1 bg-white dark:bg-slate-900 rounded-[2rem] p-6 shadow-sm border border-slate-200/50 dark:border-white/5 flex flex-col justify-between"
+                  data-tour="biblioteca-dashboard-distribucion"
+                >
+                  <div>
                     <h3 className="text-[14px] font-black text-slate-800 dark:text-white tracking-tight">
                       Distribución Documental
                     </h3>

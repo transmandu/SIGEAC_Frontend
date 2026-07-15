@@ -24,7 +24,7 @@ import axiosInstance from "@/lib/axios";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { useTourContext } from "@/components/tour/TourProvider";
-import { bibliotecaShareSteps } from "@/components/tour/steps/biblioteca/biblioteca-share";
+import { bibliotecaShareSteps } from "@/components/tour/steps/general/biblioteca/biblioteca-share";
 
 interface ShareDialogProps {
   isOpen: boolean;

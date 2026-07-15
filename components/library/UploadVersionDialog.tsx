@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import axiosInstance from "@/lib/axios";
 import { useTourContext } from "@/components/tour/TourProvider";
-import { bibliotecaUploadVersionSteps } from "@/components/tour/steps/biblioteca/biblioteca-upload-version";
+import { bibliotecaUploadVersionSteps } from "@/components/tour/steps/general/biblioteca/biblioteca-upload-version";
 
 export const UploadVersionDialog = ({
   isOpen,

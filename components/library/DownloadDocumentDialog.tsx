@@ -7,7 +7,7 @@ import axiosInstance from "@/lib/axios";
 import { downloadDocumentFile } from "@/lib/Library/download-helper";
 import { toast } from "sonner";
 import { useTourContext } from "@/components/tour/TourProvider";
-import { bibliotecaDescargaSteps } from "@/components/tour/steps/biblioteca/biblioteca-descarga";
+import { bibliotecaDescargaSteps } from "@/components/tour/steps/general/biblioteca/biblioteca-descarga";
 
 interface Version {
   id: number;

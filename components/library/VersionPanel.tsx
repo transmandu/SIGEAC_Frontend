@@ -2,7 +2,7 @@
 
 import { History, X, Clock, User, Eye } from "lucide-react";
 import { useTourContext } from "@/components/tour/TourProvider";
-import { bibliotecaVersionesSteps } from "@/components/tour/steps/biblioteca/biblioteca-versiones";
+import { bibliotecaVersionesSteps } from "@/components/tour/steps/general/biblioteca/biblioteca-versiones";
 import { useEffect } from "react";
 
 interface Version {
@@ -33,7 +33,6 @@ export const HistoryPanel = ({
   docTitle,
   onViewVersion,
 }: HistoryPanelProps) => {
-  
   const { registerTour, unregisterTour } = useTourContext();
   useEffect(() => {
     if (isOpen) {

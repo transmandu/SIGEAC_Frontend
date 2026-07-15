@@ -15,7 +15,7 @@ import {
   Folder,
 } from "lucide-react";
 import { useTourContext } from "@/components/tour/TourProvider";
-import { bibliotecaUploadSteps } from "@/components/tour/steps/biblioteca/biblioteca-upload";
+import { bibliotecaUploadSteps } from "@/components/tour/steps/general/biblioteca/biblioteca-upload";
 
 interface UploadModalProps {
   company: string;

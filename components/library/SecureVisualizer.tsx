@@ -1,23 +1,29 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { X, Loader2, ShieldCheck, Lock, Frown, RotateCcw } from 'lucide-react';
-import { Worker, Viewer } from '@react-pdf-viewer/core';
-import { defaultLayoutPlugin } from '@react-pdf-viewer/default-layout';
+import { useState, useEffect, useRef, useCallback } from "react";
+import { X, Loader2, ShieldCheck, Lock, Frown, RotateCcw } from "lucide-react";
+import { Worker, Viewer } from "@react-pdf-viewer/core";
+import { defaultLayoutPlugin } from "@react-pdf-viewer/default-layout";
 import { Button } from "@/components/ui/button";
 import { useTourContext } from "@/components/tour/TourProvider";
-import { bibliotecaVisualizadorSteps } from "@/components/tour/steps/biblioteca/biblioteca-visualizador";
+import { bibliotecaVisualizadorSteps } from "@/components/tour/steps/general/biblioteca/biblioteca-visualizador";
 
 // @ts-ignore - Ignorar error cosmético de TS en PC nueva
-import '@react-pdf-viewer/core/lib/styles/index.css';
+import "@react-pdf-viewer/core/lib/styles/index.css";
 // @ts-ignore - Ignorar error cosmético de TS en PC nueva
-import '@react-pdf-viewer/default-layout/lib/styles/index.css';
+import "@react-pdf-viewer/default-layout/lib/styles/index.css";
 
-import libraryService from '@/lib/libraryService';
+import libraryService from "@/lib/libraryService";
 
-export default function SecureViewer({ company, documentId, isOpen, onClose, isVersionHistory = false }: any) {
+export default function SecureViewer({
+  company,
+  documentId,
+  isOpen,
+  onClose,
+  isVersionHistory = false,
+}: any) {
   const [fileUrl, setFileUrl] = useState<string | null>(null);
-  const [currentTheme, setCurrentTheme] = useState<'light' | 'dark'>('dark');
+  const [currentTheme, setCurrentTheme] = useState<"light" | "dark">("dark");
   const activeUrlRef = useRef<string | null>(null);
 
   const [loading, setLoading] = useState(true);
@@ -27,26 +33,33 @@ export default function SecureViewer({ company, documentId, isOpen, onClose, isV
 
   useEffect(() => {
     if (isOpen) {
-      registerTour("biblioteca-visualizador", "Visualizador Seguro", bibliotecaVisualizadorSteps);
+      registerTour(
+        "biblioteca-visualizador",
+        "Visualizador Seguro",
+        bibliotecaVisualizadorSteps,
+      );
     }
     return () => unregisterTour("biblioteca-visualizador");
   }, [isOpen, registerTour, unregisterTour]);
 
   useEffect(() => {
     const updateTheme = () => {
-      const isDark = document.documentElement.classList.contains('dark');
-      setCurrentTheme(isDark ? 'dark' : 'light');
+      const isDark = document.documentElement.classList.contains("dark");
+      setCurrentTheme(isDark ? "dark" : "light");
     };
     updateTheme();
     const observer = new MutationObserver(updateTheme);
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
     return () => observer.disconnect();
   }, []);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const isControl = e.ctrlKey || e.metaKey;
-      const forbiddenKeys = ['s', 'p', 'u', 'c'];
+      const forbiddenKeys = ["s", "p", "u", "c"];
       if (isControl && forbiddenKeys.includes(e.key.toLowerCase())) {
         e.preventDefault();
       }
@@ -57,13 +70,13 @@ export default function SecureViewer({ company, documentId, isOpen, onClose, isV
     };
 
     if (isOpen) {
-      window.addEventListener('keydown', handleKeyDown);
-      window.addEventListener('copy', handleCopy);
+      window.addEventListener("keydown", handleKeyDown);
+      window.addEventListener("copy", handleCopy);
     }
 
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('copy', handleCopy);
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("copy", handleCopy);
     };
   }, [isOpen]);
 
@@ -72,23 +85,30 @@ export default function SecureViewer({ company, documentId, isOpen, onClose, isV
     renderToolbar: (Toolbar) => (
       <div className="" data-tour="biblioteca-viewer-toolbar">
         <Toolbar>
-        {(slots) => {
-          const { Zoom, ZoomIn, ZoomOut, EnterFullScreen, NumberOfPages, CurrentPageInput } = slots;
-          return (
-            <div className="flex items-center justify-between w-full px-4">
-              <div className="flex items-center gap-2">
-                <ZoomOut /> <Zoom /> <ZoomIn />
+          {(slots) => {
+            const {
+              Zoom,
+              ZoomIn,
+              ZoomOut,
+              EnterFullScreen,
+              NumberOfPages,
+              CurrentPageInput,
+            } = slots;
+            return (
+              <div className="flex items-center justify-between w-full px-4">
+                <div className="flex items-center gap-2">
+                  <ZoomOut /> <Zoom /> <ZoomIn />
+                </div>
+                <div className="flex items-center gap-2 text-gray-400 text-xs font-bold">
+                  <CurrentPageInput /> / <NumberOfPages />
+                </div>
+                <div className="flex items-center">
+                  <EnterFullScreen />
+                </div>
               </div>
-              <div className="flex items-center gap-2 text-gray-400 text-xs font-bold">
-                <CurrentPageInput /> / <NumberOfPages />
-              </div>
-              <div className="flex items-center">
-                <EnterFullScreen />
-              </div>
-            </div>
-          );
-        }}
-      </Toolbar>
+            );
+          }}
+        </Toolbar>
       </div>
     ),
   });
@@ -104,7 +124,7 @@ export default function SecureViewer({ company, documentId, isOpen, onClose, isV
       const url = await libraryService.getFileBlob(
         company,
         documentId,
-        isVersionHistory
+        isVersionHistory,
       );
 
       if (activeUrlRef.current) {
@@ -114,7 +134,9 @@ export default function SecureViewer({ company, documentId, isOpen, onClose, isV
       activeUrlRef.current = url;
       setFileUrl(url);
     } catch (err) {
-      setError("No pudimos establecer una conexión segura para cargar este documento.");
+      setError(
+        "No pudimos establecer una conexión segura para cargar este documento.",
+      );
     } finally {
       setLoading(false);
     }
@@ -139,23 +161,47 @@ export default function SecureViewer({ company, documentId, isOpen, onClose, isV
   if (!isOpen) return null;
 
   return (
-    <div className={`fixed inset-0 z-[200] flex items-center justify-center p-2 md:p-6 backdrop-blur-sm transition-colors duration-300 ${currentTheme === 'dark' ? 'bg-black/95' : 'bg-slate-900/40'
-      }`}>
-      <div className={`relative w-full h-full max-w-7xl rounded-2xl overflow-hidden border flex flex-col shadow-2xl transition-all duration-300 ${currentTheme === 'dark' ? 'bg-[#111214] border-gray-800' : 'bg-white border-gray-300'
-        }`}>
-
+    <div
+      className={`fixed inset-0 z-[200] flex items-center justify-center p-2 md:p-6 backdrop-blur-sm transition-colors duration-300 ${
+        currentTheme === "dark" ? "bg-black/95" : "bg-slate-900/40"
+      }`}
+    >
+      <div
+        className={`relative w-full h-full max-w-7xl rounded-2xl overflow-hidden border flex flex-col shadow-2xl transition-all duration-300 ${
+          currentTheme === "dark"
+            ? "bg-[#111214] border-gray-800"
+            : "bg-white border-gray-300"
+        }`}
+      >
         {/* HEADER */}
-        <div className={`p-4 border-b flex justify-between items-center ${currentTheme === 'dark' ? 'bg-[#1a1c1e] border-gray-800' : 'bg-gray-50 border-gray-200'}`}>
-          <div className="flex items-center gap-3" data-tour="biblioteca-viewer-title">
-            <div className={`p-2 rounded-lg ${currentTheme === 'dark' ? 'bg-emerald-500/10' : 'bg-emerald-500/20'}`}>
+        <div
+          className={`p-4 border-b flex justify-between items-center ${currentTheme === "dark" ? "bg-[#1a1c1e] border-gray-800" : "bg-gray-50 border-gray-200"}`}
+        >
+          <div
+            className="flex items-center gap-3"
+            data-tour="biblioteca-viewer-title"
+          >
+            <div
+              className={`p-2 rounded-lg ${currentTheme === "dark" ? "bg-emerald-500/10" : "bg-emerald-500/20"}`}
+            >
               <ShieldCheck className="h-5 w-5 text-emerald-500" />
             </div>
             <div>
-              <h3 className={`text-xs font-black uppercase tracking-[0.2em] ${currentTheme === 'dark' ? 'text-white' : 'text-slate-900'}`}>Visualizador Seguro</h3>
-              <p className="text-[9px] text-gray-500 font-bold uppercase">Transmisión Protegida</p>
+              <h3
+                className={`text-xs font-black uppercase tracking-[0.2em] ${currentTheme === "dark" ? "text-white" : "text-slate-900"}`}
+              >
+                Visualizador Seguro
+              </h3>
+              <p className="text-[9px] text-gray-500 font-bold uppercase">
+                Transmisión Protegida
+              </p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-red-500/10 hover:text-red-500 text-gray-500 rounded-xl transition-all" data-tour="biblioteca-viewer-close">
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-red-500/10 hover:text-red-500 text-gray-500 rounded-xl transition-all"
+            data-tour="biblioteca-viewer-close"
+          >
             <X className="h-6 w-6" />
           </button>
         </div>
@@ -168,7 +214,9 @@ export default function SecureViewer({ company, documentId, isOpen, onClose, isV
           {loading && (
             <div className="absolute inset-0 flex flex-col items-center justify-center bg-inherit z-10">
               <Loader2 className="h-10 w-10 animate-spin text-emerald-500" />
-              <p className="mt-4 text-[10px] font-black uppercase tracking-widest text-gray-500 text-center px-4">Iniciando Virtualización AES-256...</p>
+              <p className="mt-4 text-[10px] font-black uppercase tracking-widest text-gray-500 text-center px-4">
+                Iniciando Virtualización AES-256...
+              </p>
             </div>
           )}
 
@@ -177,7 +225,9 @@ export default function SecureViewer({ company, documentId, isOpen, onClose, isV
               <div className="mb-6 p-6 rounded-full bg-amber-500/10 animate-pulse">
                 <Frown className="h-16 w-16 text-amber-500" />
               </div>
-              <h2 className={`text-xl font-bold mb-2 uppercase tracking-tight ${currentTheme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+              <h2
+                className={`text-xl font-bold mb-2 uppercase tracking-tight ${currentTheme === "dark" ? "text-white" : "text-gray-900"}`}
+              >
                 Algo salió mal...
               </h2>
               <p className="max-w-md text-sm text-gray-500 mb-10 font-medium italic leading-relaxed">
@@ -219,7 +269,10 @@ export default function SecureViewer({ company, documentId, isOpen, onClose, isV
         </div>
 
         {/* FOOTER */}
-        <div className={`p-3 border-t flex justify-center items-center gap-4 ${currentTheme === 'dark' ? 'bg-[#1a1c1e] border-gray-800' : 'bg-gray-50 border-gray-200'}`} data-tour="biblioteca-viewer-footer">
+        <div
+          className={`p-3 border-t flex justify-center items-center gap-4 ${currentTheme === "dark" ? "bg-[#1a1c1e] border-gray-800" : "bg-gray-50 border-gray-200"}`}
+          data-tour="biblioteca-viewer-footer"
+        >
           <div className="flex items-center gap-2 text-[8px] font-bold uppercase text-gray-500 tracking-tighter">
             <Lock className="h-3 w-3" />© SIGEAC Digital Library - 2026
           </div>

@@ -1,20 +1,34 @@
-'use client';
+"use client";
 
 import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { useTourContext } from "@/components/tour/TourProvider";
-import { bibliotecaPageSteps } from "@/components/tour/steps/biblioteca/biblioteca-page";
+import { bibliotecaPageSteps } from "@/components/tour/steps/general/biblioteca/biblioteca-page";
 import useLibraryNotifications from "@/hooks/notifications/useLibraryNotifications";
 import { useParams } from "next/navigation";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { Plus, Search, FolderOpen, Loader2, History, FolderPlus, Send, BarChart, SlidersHorizontal, X, Filter } from "lucide-react";
+import {
+  Plus,
+  Search,
+  FolderOpen,
+  Loader2,
+  History,
+  FolderPlus,
+  Send,
+  BarChart,
+  SlidersHorizontal,
+  X,
+  Filter,
+} from "lucide-react";
 import { useGetDepartments } from "@/hooks/sistema/departamento/useGetDepartment";
 import DocumentTable from "./DocumentTable";
 import UploadModal from "./UploadModal";
 import DocumentViewer from "@/components/library/SecureVisualizer";
 import TraceabilityPanel from "@/components/library/HistoryPanel";
-import FolderTree, { DepartmentFolderGroup } from "@/components/library/FolderTree";
+import FolderTree, {
+  DepartmentFolderGroup,
+} from "@/components/library/FolderTree";
 import CreateFolderDialog from "@/components/library/CreateFolderDialog";
 import RenameFolderDialog from "@/components/library/RenameFolderDialog";
 import DeleteFolderDialog from "@/components/library/DeleteFolderDialog";
@@ -33,14 +47,19 @@ const BibliotecaPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [selectedStatus, setSelectedStatus] = useState<string>("");
-  const [categoriesList, setCategoriesList] = useState<{ id: number; name: string }[]>([]);
+  const [categoriesList, setCategoriesList] = useState<
+    { id: number; name: string }[]
+  >([]);
   const [showFilters, setShowFilters] = useState(false);
 
   const popoverRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (popoverRef.current && !popoverRef.current.contains(event.target as Node)) {
+      if (
+        popoverRef.current &&
+        !popoverRef.current.contains(event.target as Node)
+      ) {
         setShowFilters(false);
       }
     };
@@ -53,42 +72,64 @@ const BibliotecaPage = () => {
   }, [showFilters]);
 
   const { data: rawDepartments = [] } = useGetDepartments(companySlug);
-  const [foldersMap, setFoldersMap] = useState<Record<number, FolderNode[]>>({});
+  const [foldersMap, setFoldersMap] = useState<Record<number, FolderNode[]>>(
+    {},
+  );
   const [selectedDeptName, setSelectedDeptName] = useState<string | null>(null);
-  const [selectedFolderPath, setSelectedFolderPath] = useState<string | null>(null);
+  const [selectedFolderPath, setSelectedFolderPath] = useState<string | null>(
+    null,
+  );
   const [loadingDeptIds, setLoadingDeptIds] = useState<number[]>([]);
   const [movingDocument, setMovingDocument] = useState(false);
 
-  const [groupedDocuments, setGroupedDocuments] = useState<Record<string, Document[]>>({});
+  const [groupedDocuments, setGroupedDocuments] = useState<
+    Record<string, Document[]>
+  >({});
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [viewingDocId, setViewingDocId] = useState<number | string | null>(null);
+  const [viewingDocId, setViewingDocId] = useState<number | string | null>(
+    null,
+  );
   const [isViewerOpen, setIsViewerOpen] = useState(false);
-  const [auditTarget, setAuditTarget] = useState<number | 'global' | null>(null);
+  const [auditTarget, setAuditTarget] = useState<number | "global" | null>(
+    null,
+  );
   const [shareRequestsOpen, setShareRequestsOpen] = useState(false);
   const [dashboardOpen, setDashboardOpen] = useState(false);
 
   const [createFolderOpen, setCreateFolderOpen] = useState(false);
   const [pendingRequestCount, setPendingRequestCount] = useState(0);
-  const [renameTarget, setRenameTarget] = useState<{ node: FolderNode; departmentId: number; departmentName: string } | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<{ node: FolderNode; departmentId: number; departmentName: string } | null>(null);
+  const [renameTarget, setRenameTarget] = useState<{
+    node: FolderNode;
+    departmentId: number;
+    departmentName: string;
+  } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{
+    node: FolderNode;
+    departmentId: number;
+    departmentName: string;
+  } | null>(null);
 
   const canManage = useMemo(() => {
     if (!user) return false;
-    const isSuperUser = user.roles?.some(role =>
-      ['SUPERUSER', 'ADMIN', 'ADMINISTRADOR'].includes(role.name.toUpperCase())
+    const isSuperUser = user.roles?.some((role) =>
+      ["SUPERUSER", "ADMIN", "ADMINISTRADOR"].includes(role.name.toUpperCase()),
     );
     const isDirector = user.employee?.some((emp: any) => {
       const cargoNombre = emp.job_title?.name || "";
-      return cargoNombre.toUpperCase().includes('DIRECTOR');
+      return cargoNombre.toUpperCase().includes("DIRECTOR");
     });
     return !!(isSuperUser || isDirector);
   }, [user]);
 
   const isSuperUser = useMemo(() => {
-    return user?.roles?.some(role =>
-      ['SUPERUSER', 'ADMIN', 'ADMINISTRADOR'].includes(role.name.toUpperCase())
-    ) ?? false;
+    return (
+      user?.roles?.some((role) =>
+        ["SUPERUSER", "ADMIN", "ADMINISTRADOR"].includes(
+          role.name.toUpperCase(),
+        ),
+      ) ?? false
+    );
   }, [user]);
 
   const userDeptId = useMemo(() => {
@@ -98,30 +139,40 @@ const BibliotecaPage = () => {
   const isDipDirector = useMemo(() => {
     if (isSuperUser) return true;
     if (!user) return false;
-    return user.employee?.some((emp: any) => {
-      const isDIP = emp.department?.acronym?.toUpperCase() === 'DIP';
-      const isDir = emp.job_title?.name?.toUpperCase().includes('DIRECTOR');
-      return isDIP && isDir;
-    }) ?? false;
+    return (
+      user.employee?.some((emp: any) => {
+        const isDIP = emp.department?.acronym?.toUpperCase() === "DIP";
+        const isDir = emp.job_title?.name?.toUpperCase().includes("DIRECTOR");
+        return isDIP && isDir;
+      }) ?? false
+    );
   }, [isSuperUser, user]);
 
   const isDirector = useMemo(() => {
     if (isSuperUser) return true;
-    return user?.employee?.some((emp: any) => {
-      const name = emp.job_title?.name || '';
-      return name.toUpperCase().includes('DIRECTOR');
-    }) ?? false;
+    return (
+      user?.employee?.some((emp: any) => {
+        const name = emp.job_title?.name || "";
+        return name.toUpperCase().includes("DIRECTOR");
+      }) ?? false
+    );
   }, [isSuperUser, user]);
 
   const canViewDashboard = isSuperUser || isDirector;
 
   const accessibleDepartmentIds = useMemo<number[]>(() => {
     if (!user) return [];
-    return user.employee?.map((emp: any) => Number(emp.department?.id)).filter((id: number) => !Number.isNaN(id)) ?? [];
+    return (
+      user.employee
+        ?.map((emp: any) => Number(emp.department?.id))
+        .filter((id: number) => !Number.isNaN(id)) ?? []
+    );
   }, [user]);
 
   const hasNestedDepartmentTree = useMemo(() => {
-    return rawDepartments.some((d: any) => Array.isArray(d.descendants) && d.descendants.length > 0);
+    return rawDepartments.some(
+      (d: any) => Array.isArray(d.descendants) && d.descendants.length > 0,
+    );
   }, [rawDepartments]);
 
   const collectAllowedDepartments = useCallback(
@@ -136,7 +187,7 @@ const BibliotecaPage = () => {
 
       return children;
     },
-    [accessibleDepartmentIds]
+    [accessibleDepartmentIds],
   );
 
   const buildFlatDepartmentTree = useCallback((departmentsList: any[]) => {
@@ -151,7 +202,10 @@ const BibliotecaPage = () => {
 
     const roots: any[] = [];
     Object.values(nodes).forEach((node) => {
-      const parentId = node.department_parent_id == null ? null : Number(node.department_parent_id);
+      const parentId =
+        node.department_parent_id == null
+          ? null
+          : Number(node.department_parent_id);
       if (parentId != null && nodes[parentId]) {
         nodes[parentId].descendants = nodes[parentId].descendants || [];
         nodes[parentId].descendants.push(node);
@@ -178,7 +232,15 @@ const BibliotecaPage = () => {
 
     const rootTree = buildFlatDepartmentTree(rawDepartments);
     return rootTree.flatMap(collectAllowedDepartments);
-  }, [rawDepartments, isSuperUser, isDipDirector, accessibleDepartmentIds, hasNestedDepartmentTree, collectAllowedDepartments, buildFlatDepartmentTree]);
+  }, [
+    rawDepartments,
+    isSuperUser,
+    isDipDirector,
+    accessibleDepartmentIds,
+    hasNestedDepartmentTree,
+    collectAllowedDepartments,
+    buildFlatDepartmentTree,
+  ]);
 
   const isMultiDept = useMemo(() => {
     return isSuperUser || departments.length > 1;
@@ -203,43 +265,51 @@ const BibliotecaPage = () => {
         });
       }
     });
-    return Array.from(uniqueNames).sort().map((name, index) => ({
-      id: index,
-      name: name
-    }));
+    return Array.from(uniqueNames)
+      .sort()
+      .map((name, index) => ({
+        id: index,
+        name: name,
+      }));
   }, [categoriesList, groupedDocuments]);
 
   const filteredDocs = useMemo(() => {
     let docs = currentDeptDocs;
 
-    if (selectedFolderPath === '/') {
-      docs = docs.filter(d => !d.folder_path || d.folder_path === '/');
+    if (selectedFolderPath === "/") {
+      docs = docs.filter((d) => !d.folder_path || d.folder_path === "/");
     } else if (selectedFolderPath) {
-      docs = docs.filter(d => d.folder_path === selectedFolderPath);
+      docs = docs.filter((d) => d.folder_path === selectedFolderPath);
     }
 
     if (searchTerm) {
-      docs = docs.filter(d =>
-        d.title.toLowerCase().includes(searchTerm.toLowerCase())
+      docs = docs.filter((d) =>
+        d.title.toLowerCase().includes(searchTerm.toLowerCase()),
       );
     }
 
     if (selectedCategory) {
-      docs = docs.filter(d => {
+      docs = docs.filter((d) => {
         const catName = d.category_name || (d as any).category?.name;
         return catName?.toLowerCase() === selectedCategory.toLowerCase();
       });
     }
 
     if (selectedStatus) {
-      docs = docs.filter(d => {
+      docs = docs.filter((d) => {
         const statusValue = (d as any).expiry_status || d.status;
         return statusValue?.toLowerCase() === selectedStatus.toLowerCase();
       });
     }
 
     return docs;
-  }, [currentDeptDocs, selectedFolderPath, searchTerm, selectedCategory, selectedStatus]);
+  }, [
+    currentDeptDocs,
+    selectedFolderPath,
+    searchTerm,
+    selectedCategory,
+    selectedStatus,
+  ]);
 
   const fetchDocs = useCallback(async () => {
     try {
@@ -253,7 +323,9 @@ const BibliotecaPage = () => {
 
   const fetchCategories = useCallback(async () => {
     try {
-      const response = await axiosInstance.get(`/${companySlug}/library/categories-list`);
+      const response = await axiosInstance.get(
+        `/${companySlug}/library/categories-list`,
+      );
       setCategoriesList(response.data || []);
     } catch (error) {
       console.error("Error al cargar categorías:", error);
@@ -262,7 +334,9 @@ const BibliotecaPage = () => {
 
   const refreshPendingCount = useCallback(async () => {
     try {
-      const res = await libraryService.getShareRequests(companySlug, { status: 'pending' });
+      const res = await libraryService.getShareRequests(companySlug, {
+        status: "pending",
+      });
       const list = Array.isArray(res) ? res : res.data || [];
       setPendingRequestCount(list.length);
     } catch {
@@ -272,10 +346,7 @@ const BibliotecaPage = () => {
 
   const initialLoad = useCallback(async () => {
     setLoading(true);
-    await Promise.all([
-      fetchDocs(),
-      fetchCategories(),
-    ]);
+    await Promise.all([fetchDocs(), fetchCategories()]);
     refreshPendingCount();
     setLoading(false);
   }, [fetchDocs, fetchCategories, refreshPendingCount]);
@@ -283,20 +354,23 @@ const BibliotecaPage = () => {
   const foldersMapRef = useRef(foldersMap);
   foldersMapRef.current = foldersMap;
 
-  const handleToggleDept = useCallback(async (deptId: number) => {
-    const existing = foldersMapRef.current[deptId];
-    if (existing && existing.length > 0) return;
+  const handleToggleDept = useCallback(
+    async (deptId: number) => {
+      const existing = foldersMapRef.current[deptId];
+      if (existing && existing.length > 0) return;
 
-    setLoadingDeptIds(prev => [...prev, deptId]);
-    try {
-      const res = await libraryService.getFolders(companySlug, deptId);
-      setFoldersMap(prev => ({ ...prev, [deptId]: res.folders || [] }));
-    } catch (error) {
-      console.error("Error al cargar carpetas:", error);
-    } finally {
-      setLoadingDeptIds(prev => prev.filter(id => id !== deptId));
-    }
-  }, [companySlug]);
+      setLoadingDeptIds((prev) => [...prev, deptId]);
+      try {
+        const res = await libraryService.getFolders(companySlug, deptId);
+        setFoldersMap((prev) => ({ ...prev, [deptId]: res.folders || [] }));
+      } catch (error) {
+        console.error("Error al cargar carpetas:", error);
+      } finally {
+        setLoadingDeptIds((prev) => prev.filter((id) => id !== deptId));
+      }
+    },
+    [companySlug],
+  );
 
   useEffect(() => {
     if (companySlug) {
@@ -317,13 +391,19 @@ const BibliotecaPage = () => {
         : [],
     });
 
-    const hasNestedDescendants = departments.some((d: any) => Array.isArray(d.descendants) && d.descendants.length > 0);
+    const hasNestedDescendants = departments.some(
+      (d: any) => Array.isArray(d.descendants) && d.descendants.length > 0,
+    );
     if (hasNestedDescendants) {
       const roots = departments.map(buildNode);
 
       try {
         // eslint-disable-next-line no-console
-        console.debug && console.debug('Built departmentFolders hierarchy from nested descendants:', roots);
+        console.debug &&
+          console.debug(
+            "Built departmentFolders hierarchy from nested descendants:",
+            roots,
+          );
       } catch {}
 
       return roots;
@@ -341,7 +421,7 @@ const BibliotecaPage = () => {
     });
 
     const roots: DepartmentFolderGroup[] = [];
-    Object.values(nodes).forEach(node => {
+    Object.values(nodes).forEach((node) => {
       const parentId = node.department_parent_id as number | null | undefined;
       if (parentId != null && nodes[parentId]) {
         nodes[parentId].descendants = nodes[parentId].descendants || [];
@@ -353,7 +433,11 @@ const BibliotecaPage = () => {
 
     try {
       // eslint-disable-next-line no-console
-      console.debug && console.debug('Built departmentFolders hierarchy from flat list:', roots);
+      console.debug &&
+        console.debug(
+          "Built departmentFolders hierarchy from flat list:",
+          roots,
+        );
     } catch {}
 
     return roots;
@@ -370,18 +454,27 @@ const BibliotecaPage = () => {
     }
   };
 
-  const handleDropDocument = async (documentId: number, folderPath: string, departmentName: string) => {
+  const handleDropDocument = async (
+    documentId: number,
+    folderPath: string,
+    departmentName: string,
+  ) => {
     setMovingDocument(true);
     try {
       await libraryService.moveDocument(companySlug, documentId, folderPath);
       toast.success("Documento movido exitosamente");
       setSelectedDeptName(departmentName);
       setSelectedFolderPath(folderPath);
-      await Promise.all([fetchDocs(), handleToggleDept(
-        departments.find(d => d.name === departmentName)?.id ?? 0
-      )]);
+      await Promise.all([
+        fetchDocs(),
+        handleToggleDept(
+          departments.find((d) => d.name === departmentName)?.id ?? 0,
+        ),
+      ]);
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Error al mover el documento");
+      toast.error(
+        error.response?.data?.message || "Error al mover el documento",
+      );
     } finally {
       setMovingDocument(false);
     }
@@ -392,35 +485,43 @@ const BibliotecaPage = () => {
     setSelectedFolderPath(folderPath);
   };
 
-  const handleFolderRefresh = useCallback(async (deptId: number) => {
-    try {
-      const res = await libraryService.getFolders(companySlug, deptId);
-      setFoldersMap(prev => ({ ...prev, [deptId]: res.folders || [] }));
-    } catch (error) {
-      console.error("Error al refrescar carpetas:", error);
-    }
-  }, [companySlug]);
+  const handleFolderRefresh = useCallback(
+    async (deptId: number) => {
+      try {
+        const res = await libraryService.getFolders(companySlug, deptId);
+        setFoldersMap((prev) => ({ ...prev, [deptId]: res.folders || [] }));
+      } catch (error) {
+        console.error("Error al refrescar carpetas:", error);
+      }
+    },
+    [companySlug],
+  );
 
-  useLibraryNotifications(user?.id ? Number(user.id) : undefined, refreshPendingCount);
+  useLibraryNotifications(
+    user?.id ? Number(user.id) : undefined,
+    refreshPendingCount,
+  );
 
   const handleDocRefresh = useCallback(async () => {
     await fetchDocs();
   }, [fetchDocs]);
 
   const breadcrumbText = useMemo(() => {
-    if (!selectedFolderPath || selectedFolderPath === '/') return 'Raíz';
-    return selectedFolderPath.replace(/\//g, ' > ').replace(/^ > /, '');
+    if (!selectedFolderPath || selectedFolderPath === "/") return "Raíz";
+    return selectedFolderPath.replace(/\//g, " > ").replace(/^ > /, "");
   }, [selectedFolderPath]);
 
   const currentDeptForDialog = useMemo(() => {
     if (!selectedDeptName) return null;
-    return departments.find(d => d.name === selectedDeptName) || null;
+    return departments.find((d) => d.name === selectedDeptName) || null;
   }, [selectedDeptName, departments]);
 
   const currentFoldersForDialog = useMemo(() => {
     if (!selectedDeptName) return [];
     // Find in recursive departmentFolders
-    const find = (list: DepartmentFolderGroup[]): DepartmentFolderGroup | null => {
+    const find = (
+      list: DepartmentFolderGroup[],
+    ): DepartmentFolderGroup | null => {
       for (const g of list) {
         if (g.departmentName === selectedDeptName) return g;
         if (g.descendants && g.descendants.length > 0) {
@@ -435,10 +536,7 @@ const BibliotecaPage = () => {
   }, [selectedDeptName, departmentFolders]);
 
   useEffect(() => {
-    if (
-      departments.length === 1 &&
-      !selectedDeptName
-    ) {
+    if (departments.length === 1 && !selectedDeptName) {
       setSelectedDeptName(departments[0].name);
     }
   }, [departments, selectedDeptName]);
@@ -446,7 +544,11 @@ const BibliotecaPage = () => {
   const { registerTour, unregisterTour } = useTourContext();
 
   useEffect(() => {
-    registerTour("biblioteca-principal", "Biblioteca Digital", bibliotecaPageSteps);
+    registerTour(
+      "biblioteca-principal",
+      "Biblioteca Digital",
+      bibliotecaPageSteps,
+    );
     return () => unregisterTour("biblioteca-principal");
   }, [registerTour, unregisterTour]);
 
@@ -458,14 +560,21 @@ const BibliotecaPage = () => {
             <div className="flex min-h-[400px]">
               <div className="w-[380px] shrink-0 border-r border-slate-200 dark:border-slate-800 p-5">
                 <div className="h-3 w-16 bg-slate-200 dark:bg-slate-700 rounded mb-4" />
-                {[1,2,3,4].map(i => (
-                  <div key={i} className="h-3 w-full bg-slate-200 dark:bg-slate-700 rounded mb-3" style={{ width: `${60 + i * 8}%` }} />
+                {[1, 2, 3, 4].map((i) => (
+                  <div
+                    key={i}
+                    className="h-3 w-full bg-slate-200 dark:bg-slate-700 rounded mb-3"
+                    style={{ width: `${60 + i * 8}%` }}
+                  />
                 ))}
               </div>
               <div className="flex-1 p-8">
                 <div className="h-5 w-40 bg-slate-200 dark:bg-slate-700 rounded mb-6" />
-                {[1,2,3].map(i => (
-                  <div key={i} className="h-12 w-full bg-slate-200 dark:bg-slate-700 rounded mb-3" />
+                {[1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    className="h-12 w-full bg-slate-200 dark:bg-slate-700 rounded mb-3"
+                  />
                 ))}
               </div>
             </div>
@@ -474,12 +583,17 @@ const BibliotecaPage = () => {
           <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
             {/* HEADER */}
             <div className="flex flex-col gap-2 mb-8">
-              <h1 className="text-5xl font-black text-center text-slate-900 dark:text-white uppercase tracking-tighter" data-tour="biblioteca-title">
+              <h1
+                className="text-5xl font-black text-center text-slate-900 dark:text-white uppercase tracking-tighter"
+                data-tour="biblioteca-title"
+              >
                 Biblioteca Digital
               </h1>
               <p className="text-[11px] font-bold tracking-[0.2em] text-slate-400 dark:text-slate-500 text-center uppercase">
                 Gestión de documentos técnicos y certificados de{" "}
-                <span className="text-blue-600 dark:text-blue-400">{companySlug}</span>
+                <span className="text-blue-600 dark:text-blue-400">
+                  {companySlug}
+                </span>
               </p>
             </div>
 
@@ -501,7 +615,7 @@ const BibliotecaPage = () => {
 
                     <Button
                       data-tour="biblioteca-historial-btn"
-                      onClick={() => setAuditTarget('global')}
+                      onClick={() => setAuditTarget("global")}
                       variant="outline"
                       size="sm"
                       className="w-fit flex items-center gap-1.5 rounded-xl border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:text-white font-bold text-[10px] uppercase tracking-widest px-5 h-10 shadow-sm transition-all active:scale-95"
@@ -513,7 +627,10 @@ const BibliotecaPage = () => {
                     {isDipDirector && (
                       <Button
                         data-tour="biblioteca-solicitudes-btn"
-                        onClick={() => { setShareRequestsOpen(true); setPendingRequestCount(0); }}
+                        onClick={() => {
+                          setShareRequestsOpen(true);
+                          setPendingRequestCount(0);
+                        }}
                         variant="outline"
                         size="sm"
                         className="w-fit flex items-center gap-1.5 rounded-xl border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:text-white font-bold text-[10px] uppercase tracking-widest px-5 h-10 shadow-sm transition-all active:scale-95"
@@ -522,7 +639,9 @@ const BibliotecaPage = () => {
                         Solicitudes
                         {pendingRequestCount > 0 && (
                           <span className="ml-1 px-1.5 py-0.5 text-[9px] font-bold text-white bg-red-500 rounded-full min-w-[18px] text-center leading-none">
-                            {pendingRequestCount > 99 ? '99+' : pendingRequestCount}
+                            {pendingRequestCount > 99
+                              ? "99+"
+                              : pendingRequestCount}
                           </span>
                         )}
                       </Button>
@@ -545,8 +664,14 @@ const BibliotecaPage = () => {
               </div>
 
               {/* BUSCADOR CON POPOVER DE FILTROS */}
-              <div className="relative flex items-center w-full sm:w-80" ref={popoverRef}>
-                <div className="flex items-center w-full bg-white dark:bg-[#111214] border border-slate-300 dark:border-slate-800 rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500 transition-all overflow-hidden h-10" data-tour="biblioteca-search-input">
+              <div
+                className="relative flex items-center w-full sm:w-80"
+                ref={popoverRef}
+              >
+                <div
+                  className="flex items-center w-full bg-white dark:bg-[#111214] border border-slate-300 dark:border-slate-800 rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500 transition-all overflow-hidden h-10"
+                  data-tour="biblioteca-search-input"
+                >
                   <div className="pl-4">
                     <Search className="h-4 w-4 text-slate-400" />
                   </div>
@@ -563,7 +688,9 @@ const BibliotecaPage = () => {
                     type="button"
                     onClick={() => setShowFilters(!showFilters)}
                     className={`flex items-center justify-center h-full px-3.5 border-l border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 transition-all text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 relative ${
-                      selectedCategory || selectedStatus ? "text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/10" : ""
+                      selectedCategory || selectedStatus
+                        ? "text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/10"
+                        : ""
                     }`}
                     title="Filtros avanzados"
                   >
@@ -577,8 +704,13 @@ const BibliotecaPage = () => {
                 {/* POPOVER DE FILTROS */}
                 {showFilters && (
                   <div className="absolute right-0 top-12 z-50 w-72 p-5 bg-white dark:bg-[#1a1c1e] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl animate-in fade-in slide-in-from-top-2 duration-200">
-                    <div className="flex items-center justify-between mb-4 pb-2 border-b border-slate-100 dark:border-slate-800" data-tour="biblioteca-filter-limpiar">
-                      <span className="text-[11px] font-black uppercase tracking-wider text-slate-855 dark:text-white">Filtros</span>
+                    <div
+                      className="flex items-center justify-between mb-4 pb-2 border-b border-slate-100 dark:border-slate-800"
+                      data-tour="biblioteca-filter-limpiar"
+                    >
+                      <span className="text-[11px] font-black uppercase tracking-wider text-slate-855 dark:text-white">
+                        Filtros
+                      </span>
                       {(selectedCategory || selectedStatus || searchTerm) && (
                         <button
                           onClick={() => {
@@ -595,23 +727,35 @@ const BibliotecaPage = () => {
 
                     <div className="space-y-4">
                       {/* Categoría Selector */}
-                      <div className="space-y-1.5" data-tour="biblioteca-filter-categoria">
-                        <label className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500">Categoría</label>
+                      <div
+                        className="space-y-1.5"
+                        data-tour="biblioteca-filter-categoria"
+                      >
+                        <label className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500">
+                          Categoría
+                        </label>
                         <select
                           value={selectedCategory}
                           onChange={(e) => setSelectedCategory(e.target.value)}
                           className="w-full h-9 px-3 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-[#111214] text-slate-700 dark:text-white text-[10px] font-bold tracking-wider uppercase focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all cursor-pointer"
                         >
                           <option value="">TODAS LAS CATEGORÍAS</option>
-                          {categoriesToDisplay.map(cat => (
-                            <option key={cat.id} value={cat.name}>{cat.name}</option>
+                          {categoriesToDisplay.map((cat) => (
+                            <option key={cat.id} value={cat.name}>
+                              {cat.name}
+                            </option>
                           ))}
                         </select>
                       </div>
 
                       {/* Estado Selector */}
-                      <div className="space-y-1.5" data-tour="biblioteca-filter-estado">
-                        <label className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500">Estado</label>
+                      <div
+                        className="space-y-1.5"
+                        data-tour="biblioteca-filter-estado"
+                      >
+                        <label className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500">
+                          Estado
+                        </label>
                         <select
                           value={selectedStatus}
                           onChange={(e) => setSelectedStatus(e.target.value)}
@@ -642,12 +786,15 @@ const BibliotecaPage = () => {
               <div className="flex min-h-[400px]">
                 {/* SIDEBAR - Carpetas */}
                 <div className="w-[380px] shrink-0 border-r border-slate-200 dark:border-slate-800 p-5 pt-8 flex flex-col">
-                  <div className="flex items-center gap-3 mb-6 border-b pb-6 border-slate-200 dark:border-slate-800 shrink-0" data-tour="biblioteca-carpetas-header">
+                  <div
+                    className="flex items-center gap-3 mb-6 border-b pb-6 border-slate-200 dark:border-slate-800 shrink-0"
+                    data-tour="biblioteca-carpetas-header"
+                  >
                     <div className="p-2 bg-slate-800 dark:bg-slate-200 rounded-lg">
                       <FolderOpen className="h-5 w-5 text-white dark:text-slate-900" />
                     </div>
-                    <div >
-                      <h2 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-[0.1em]" >
+                    <div>
+                      <h2 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-[0.1em]">
                         Carpetas
                       </h2>
                       <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 tracking-wide">
@@ -655,15 +802,30 @@ const BibliotecaPage = () => {
                       </p>
                     </div>
                   </div>
-                  <div className="flex-1 overflow-y-auto max-h-[500px] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-200 dark:[&::-webkit-scrollbar-thumb]:bg-slate-700 [&::-webkit-scrollbar-thumb]:rounded-full pr-2" data-tour="biblioteca-folder-tree">
+                  <div
+                    className="flex-1 overflow-y-auto max-h-[500px] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-200 dark:[&::-webkit-scrollbar-thumb]:bg-slate-700 [&::-webkit-scrollbar-thumb]:rounded-full pr-2"
+                    data-tour="biblioteca-folder-tree"
+                  >
                     <FolderTree
                       departmentFolders={departmentFolders}
                       isMultiDept={isMultiDept}
                       selectedDeptName={selectedDeptName}
                       selectedFolderPath={selectedFolderPath}
                       onSelect={handleSelectFolder}
-                      onRename={(node, deptId, deptName) => setRenameTarget({ node, departmentId: deptId, departmentName: deptName })}
-                      onDelete={(node, deptId, deptName) => setDeleteTarget({ node, departmentId: deptId, departmentName: deptName })}
+                      onRename={(node, deptId, deptName) =>
+                        setRenameTarget({
+                          node,
+                          departmentId: deptId,
+                          departmentName: deptName,
+                        })
+                      }
+                      onDelete={(node, deptId, deptName) =>
+                        setDeleteTarget({
+                          node,
+                          departmentId: deptId,
+                          departmentName: deptName,
+                        })
+                      }
                       onDropDocument={handleDropDocument}
                       onToggleDept={handleToggleDept}
                       loadingDeptIds={loadingDeptIds}
@@ -684,8 +846,11 @@ const BibliotecaPage = () => {
                 </div>
 
                 {/* CONTENIDO - Documentos */}
-                <div className="flex-1 p-8" data-tour="biblioteca-documentos-header">
-                  <div  className="flex items-center gap-3 mb-6 border-b pb-6 border-slate-200 dark:border-slate-800">
+                <div
+                  className="flex-1 p-8"
+                  data-tour="biblioteca-documentos-header"
+                >
+                  <div className="flex items-center gap-3 mb-6 border-b pb-6 border-slate-200 dark:border-slate-800">
                     <div className="p-2 bg-blue-600 rounded-lg">
                       <FolderOpen className="h-5 w-5 text-white" />
                     </div>
@@ -694,21 +859,30 @@ const BibliotecaPage = () => {
                         Documentos
                       </h2>
                       <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 tracking-wide">
-                        {selectedDeptName ? `${selectedDeptName} — ${breadcrumbText}` : 'Selecciona una carpeta'}
+                        {selectedDeptName
+                          ? `${selectedDeptName} — ${breadcrumbText}`
+                          : "Selecciona una carpeta"}
                       </p>
                     </div>
                   </div>
 
                   <div className="overflow-x-auto">
                     {!selectedDeptName ? (
-                      <div data-tour="biblioteca-empty-folder" className="flex flex-col items-center justify-center py-16 text-center">
+                      <div
+                        data-tour="biblioteca-empty-folder"
+                        className="flex flex-col items-center justify-center py-16 text-center"
+                      >
                         <FolderOpen className="h-12 w-12 text-slate-300 dark:text-slate-600 mb-4" />
                         <p className="text-sm font-bold text-slate-400 dark:text-slate-500">
-                          Selecciona una carpeta del árbol para ver sus documentos
+                          Selecciona una carpeta del árbol para ver sus
+                          documentos
                         </p>
                       </div>
                     ) : filteredDocs.length === 0 ? (
-                      <div data-tour="biblioteca-empty-docs" className="flex flex-col items-center justify-center py-16 text-center">
+                      <div
+                        data-tour="biblioteca-empty-docs"
+                        className="flex flex-col items-center justify-center py-16 text-center"
+                      >
                         <FolderOpen className="h-12 w-12 text-slate-300 dark:text-slate-600 mb-4" />
                         <p className="text-sm font-bold text-slate-400 dark:text-slate-500">
                           No hay documentos en esta carpeta
@@ -729,7 +903,10 @@ const BibliotecaPage = () => {
                         company={companySlug}
                         documents={filteredDocs}
                         onRefresh={handleDocRefresh}
-                        onView={(id: number) => { setViewingDocId(id); setIsViewerOpen(true); }}
+                        onView={(id: number) => {
+                          setViewingDocId(id);
+                          setIsViewerOpen(true);
+                        }}
                         onDelete={handleDeleteDocument}
                         canManage={canManage}
                         isDipDirector={isDipDirector}
@@ -753,7 +930,12 @@ const BibliotecaPage = () => {
         folders={currentFoldersForDialog}
       />
 
-      <DocumentViewer company={companySlug} documentId={viewingDocId} isOpen={isViewerOpen} onClose={() => setIsViewerOpen(false)} />
+      <DocumentViewer
+        company={companySlug}
+        documentId={viewingDocId}
+        isOpen={isViewerOpen}
+        onClose={() => setIsViewerOpen(false)}
+      />
 
       <CreateFolderDialog
         open={createFolderOpen}
@@ -794,10 +976,13 @@ const BibliotecaPage = () => {
 
       {auditTarget && (
         <div className="fixed inset-0 z-[100] flex justify-end overflow-hidden">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] animate-in fade-in duration-300" onClick={() => setAuditTarget(null)} />
+          <div
+            className="absolute inset-0 bg-black/40 backdrop-blur-[2px] animate-in fade-in duration-300"
+            onClick={() => setAuditTarget(null)}
+          />
           <div className="relative z-10 h-full">
             <TraceabilityPanel
-              documentId={auditTarget === 'global' ? null : auditTarget}
+              documentId={auditTarget === "global" ? null : auditTarget}
               company={companySlug}
               onClose={() => setAuditTarget(null)}
             />
@@ -807,11 +992,17 @@ const BibliotecaPage = () => {
 
       {shareRequestsOpen && (
         <div className="fixed inset-0 z-[100] flex justify-end overflow-hidden">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] animate-in fade-in duration-300" onClick={() => setShareRequestsOpen(false)} />
+          <div
+            className="absolute inset-0 bg-black/40 backdrop-blur-[2px] animate-in fade-in duration-300"
+            onClick={() => setShareRequestsOpen(false)}
+          />
           <div className="relative z-10 h-full">
             <ShareRequestsPanel
               company={companySlug}
-              onClose={() => { setShareRequestsOpen(false); refreshPendingCount(); }}
+              onClose={() => {
+                setShareRequestsOpen(false);
+                refreshPendingCount();
+              }}
               onRefresh={refreshPendingCount}
             />
           </div>
@@ -828,4 +1019,3 @@ const BibliotecaPage = () => {
 };
 
 export default BibliotecaPage;
-

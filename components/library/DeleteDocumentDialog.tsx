@@ -7,7 +7,7 @@ import axiosInstance from "@/lib/axios";
 import { toast } from "sonner";
 import { useCallback } from "react";
 import { useTourContext } from "@/components/tour/TourProvider";
-import { bibliotecaEliminarSteps } from "@/components/tour/steps/biblioteca/biblioteca-eliminar";
+import { bibliotecaEliminarSteps } from "@/components/tour/steps/general/biblioteca/biblioteca-eliminar";
 
 interface Version {
   id: number;
