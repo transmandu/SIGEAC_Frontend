@@ -1,29 +1,37 @@
-'use client'
+"use client";
 
-import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Search, SlidersHorizontal } from 'lucide-react'
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Search, SlidersHorizontal } from "lucide-react";
 
 type Props = {
-  search: string
-  setSearch: (value: string) => void
-  type: string
-  setType: (value: string) => void
-  placeholder?: string
-}
+  search: string;
+  setSearch: (value: string) => void;
+  type: string;
+  setType: (value: string) => void;
+  placeholder?: string;
+};
 
 const ShippingAgenciesToolBar = ({
   search,
   setSearch,
   type,
   setType,
-  placeholder = 'Buscar agencias/agentes de envío...',
+  placeholder = "Buscar agencias/agentes de envío...",
 }: Props) => {
   return (
-    <div className="flex flex-wrap items-center gap-2">
-
+    <div
+      className="flex flex-wrap items-center gap-2"
+      data-tour="agencias-envio-toolbar"
+    >
       <div className="relative w-64 sm:w-72">
-        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground"/>
+        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
 
         <Input
           value={search}
@@ -34,7 +42,7 @@ const ShippingAgenciesToolBar = ({
       </div>
 
       <div className="relative">
-        <SlidersHorizontal className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 z-10 size-3.5 text-muted-foreground"/>
+        <SlidersHorizontal className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 z-10 size-3.5 text-muted-foreground" />
 
         <Select value={type} onValueChange={setType}>
           <SelectTrigger className="h-8 w-[180px] pl-8 text-xs bg-white/80 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-700/60 transition-colors focus:ring-1 focus:ring-[#439A97]/40 data-[placeholder]:text-muted-foreground">
@@ -42,23 +50,16 @@ const ShippingAgenciesToolBar = ({
           </SelectTrigger>
 
           <SelectContent className="border-slate-200/60 dark:border-slate-700/60">
-            <SelectItem value="ALL">
-              Todos los tipos
-            </SelectItem>
+            <SelectItem value="ALL">Todos los tipos</SelectItem>
 
-            <SelectItem value="NATIONAL">
-              Nacional
-            </SelectItem>
+            <SelectItem value="NATIONAL">Nacional</SelectItem>
 
-            <SelectItem value="INTERNATIONAL">
-              Internacional
-            </SelectItem>
+            <SelectItem value="INTERNATIONAL">Internacional</SelectItem>
           </SelectContent>
         </Select>
       </div>
-
     </div>
-  )
-}
+  );
+};
 
-export default ShippingAgenciesToolBar
+export default ShippingAgenciesToolBar;

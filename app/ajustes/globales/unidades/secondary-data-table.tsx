@@ -72,10 +72,12 @@ export function SecondaryDataTable<TData, TValue>({
               <ListRestart className="ml-2 h-4 w-4" />
             </Button>
           )}
-          <CreateSecondaryUnitDialog />
+          <div data-tour="unidades-secondary-new">
+            <CreateSecondaryUnitDialog />
+          </div>
         </div>
       </div>
-      <div className="rounded-md border mb-4">
+      <div className="rounded-md border mb-4" data-tour="unidades-secondary-table">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (

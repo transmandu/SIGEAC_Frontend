@@ -39,16 +39,30 @@ interface EntityActionsProps {
   editTitle: string;
   entityId: number;
   renderEditForm: (onClose: () => void) => React.ReactNode;
+  dataTour?: string;
 }
 
-function EntityActions({ deleteMutation, deleteLabel, editTitle, entityId, renderEditForm }: EntityActionsProps) {
+function EntityActions({
+  deleteMutation,
+  deleteLabel,
+  editTitle,
+  entityId,
+  renderEditForm,
+  dataTour,
+}: EntityActionsProps) {
   const { user } = useAuth();
   const [openDelete, setOpenDelete] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
 
-  const ALLOWED_ROLES = ["SUPERUSER", "JEFE_ADMINISTRACION", "ANALISTA_ADMINISTRACION"];
+  const ALLOWED_ROLES = [
+    "SUPERUSER",
+    "JEFE_ADMINISTRACION",
+    "ANALISTA_ADMINISTRACION",
+  ];
 
-  const hasAccess = user?.roles?.some((role) => ALLOWED_ROLES.includes(role.name));
+  const hasAccess = user?.roles?.some((role) =>
+    ALLOWED_ROLES.includes(role.name),
+  );
 
   if (!hasAccess) {
     return null;
@@ -59,24 +73,34 @@ function EntityActions({ deleteMutation, deleteLabel, editTitle, entityId, rende
     setOpenDelete(false);
   };
 
+  const dropdown = (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" className="h-8 w-8 p-0">
+          <span className="sr-only">Abrir menú</span>
+          <MoreHorizontal className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="center" className="flex gap-2 justify-center">
+        <DropdownMenuItem
+          className="cursor-pointer"
+          onClick={() => setOpenEdit(true)}
+        >
+          <Pencil className="size-5" />
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          className="cursor-pointer"
+          onClick={() => setOpenDelete(true)}
+        >
+          <Trash2 className="size-5 text-red-500" />
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+
   return (
     <>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="h-8 w-8 p-0">
-            <span className="sr-only">Abrir menú</span>
-            <MoreHorizontal className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="center" className="flex gap-2 justify-center">
-          <DropdownMenuItem className="cursor-pointer" onClick={() => setOpenEdit(true)}>
-            <Pencil className="size-5" />
-          </DropdownMenuItem>
-          <DropdownMenuItem className="cursor-pointer" onClick={() => setOpenDelete(true)}>
-            <Trash2 className="size-5 text-red-500" />
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      {dataTour ? <div data-tour={dataTour}>{dropdown}</div> : dropdown}
 
       <Dialog open={openEdit} onOpenChange={setOpenEdit}>
         <DialogContent className="sm:max-w-[520px]">
@@ -111,7 +135,11 @@ function EntityActions({ deleteMutation, deleteLabel, editTitle, entityId, rende
               className="hover:bg-white hover:text-black hover:border hover:border-black transition-all"
               onClick={handleDelete}
             >
-              {deleteMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : <p>Confirmar</p>}
+              {deleteMutation.isPending ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <p>Confirmar</p>
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -124,24 +152,34 @@ export function BankDropdownActions({ bank }: { bank: Bank }) {
   const { deleteBank } = useDeleteBank();
   return (
     <EntityActions
+      dataTour="bancos-actions"
       deleteMutation={deleteBank}
       deleteLabel="¿Seguro que desea eliminar este banco?"
       editTitle="Editar Banco"
       entityId={bank.id}
-      renderEditForm={(onClose) => <CreateBankForm onClose={onClose} bank={bank} />}
+      renderEditForm={(onClose) => (
+        <CreateBankForm onClose={onClose} bank={bank} />
+      )}
     />
   );
 }
 
-export function BankAccountDropdownActions({ account }: { account: BankAccount }) {
+export function BankAccountDropdownActions({
+  account,
+}: {
+  account: BankAccount;
+}) {
   const { deleteBankAccount } = useDeleteBankAccount();
   return (
     <EntityActions
+      dataTour="cuentas-actions"
       deleteMutation={deleteBankAccount}
       deleteLabel="¿Seguro que desea eliminar esta cuenta? Se eliminarán también sus métodos de pago y tarjetas."
       editTitle="Editar Cuenta Bancaria"
       entityId={account.id}
-      renderEditForm={(onClose) => <CreateBankAccountForm onClose={onClose} account={account} />}
+      renderEditForm={(onClose) => (
+        <CreateBankAccountForm onClose={onClose} account={account} />
+      )}
     />
   );
 }
@@ -150,11 +188,14 @@ export function BankCardDropdownActions({ bankCard }: { bankCard: BankCard }) {
   const { deleteCard } = useDeleteBankCard();
   return (
     <EntityActions
+      dataTour="tarjetas-actions"
       deleteMutation={deleteCard}
       deleteLabel="¿Seguro que desea eliminar esta tarjeta?"
       editTitle="Editar Tarjeta"
       entityId={bankCard.id}
-      renderEditForm={(onClose) => <CreateBankCardForm onClose={onClose} bankCard={bankCard} />}
+      renderEditForm={(onClose) => (
+        <CreateBankCardForm onClose={onClose} bankCard={bankCard} />
+      )}
     />
   );
 }

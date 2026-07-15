@@ -124,7 +124,7 @@ const ManufacturerDropdownActions = ({ manufacturer }: { manufacturer: Manufactu
       {/* Dropdown Menu */}
       <DropdownMenu>
         <DropdownMenuTrigger>
-          <Button variant="ghost" className="h-8 w-8 p-0">
+          <Button variant="ghost" className="h-8 w-8 p-0" data-tour="fabricantes-actions">
             <span className="sr-only">Abrir menu</span>
             <MoreHorizontal className="h-4 w-4" />
           </Button>

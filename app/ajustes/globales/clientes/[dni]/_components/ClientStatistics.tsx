@@ -226,14 +226,14 @@ const ClientStatistics = () => {
       </div>
       {/* Encabezado */}
       <div className="space-y-3 mb-6">
-        <h1 className="text-5xl font-bold text-center">Reporte de Vuelos</h1>
+        <h1 className="text-5xl font-bold text-center" data-tour="clientes-detalle-title">Reporte de Vuelos</h1>
         <p className="text-4xl text-muted-foreground text-center font-medium">
           {clientDetails?.name}
         </p>
       </div>
 
       {/* Tarjetas de resumen */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6" data-tour="clientes-detalle-stats">
         <SummaryCard
           title="Monto Pagado Anual"
           value={formatCurrency(totalPayed)}
@@ -284,7 +284,7 @@ const ClientStatistics = () => {
       </div>
 
       {/* Gráfico de barras */}
-      <Card className="mb-6 overflow-hidden">
+      <Card className="mb-6 overflow-hidden" data-tour="clientes-detalle-chart">
         <CardHeader className="bg-muted/30">
           <CardTitle className="text-center">
             Vuelos por Mes {selectedYear}

@@ -1,34 +1,30 @@
-"use client"
+"use client";
 
-import { useState } from 'react'
-import { ThirdParty } from '@/types'
+import { useState } from "react";
+import { ThirdParty } from "@/types";
 
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+} from "@/components/ui/dropdown-menu";
 
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@/components/ui/tooltip'
+} from "@/components/ui/tooltip";
 
-import { Button } from '@/components/ui/button'
+import { Button } from "@/components/ui/button";
 
-import {
-  MoreHorizontal,
-  Pencil,
-  Trash2,
-} from 'lucide-react'
+import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 
-import ThirdPartyDropdownDialogs from '@/components/dialogs/general/ThirdPartyDropdownDialogs'
+import ThirdPartyDropdownDialogs from "@/components/dialogs/general/ThirdPartyDropdownDialogs";
 
 const iconBase =
-  'size-[18px] transition-all duration-200 ease-out group-hover:scale-110'
+  "size-[18px] transition-all duration-200 ease-out group-hover:scale-110";
 
 const itemBase = `
   group
@@ -44,24 +40,21 @@ const itemBase = `
   hover:bg-muted
   hover:shadow-sm
   active:scale-95
-`
+`;
 
 interface Props {
-  thirdParty: ThirdParty
+  thirdParty: ThirdParty;
 }
 
 const ThirdPartyDropdownActions = ({ thirdParty }: Props) => {
-  const [openDropdown, setOpenDropdown] = useState(false)
-  const [openEdit, setOpenEdit] = useState(false)
-  const [openDelete, setOpenDelete] = useState(false)
+  const [openDropdown, setOpenDropdown] = useState(false);
+  const [openEdit, setOpenEdit] = useState(false);
+  const [openDelete, setOpenDelete] = useState(false);
 
   return (
     <TooltipProvider delayDuration={120}>
       <>
-        <DropdownMenu
-          open={openDropdown}
-          onOpenChange={setOpenDropdown}
-        >
+        <DropdownMenu open={openDropdown} onOpenChange={setOpenDropdown}>
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
@@ -76,6 +69,7 @@ const ThirdPartyDropdownActions = ({ thirdParty }: Props) => {
                 hover:shadow-sm
                 data-[state=open]:bg-muted
               "
+              data-tour="terceros-actions"
             >
               <MoreHorizontal className="size-4" />
             </Button>
@@ -96,7 +90,6 @@ const ThirdPartyDropdownActions = ({ thirdParty }: Props) => {
               animate-in fade-in zoom-in-95 duration-200
             "
           >
-
             {/* EDIT */}
             <Tooltip>
               <TooltipTrigger asChild>
@@ -107,8 +100,8 @@ const ThirdPartyDropdownActions = ({ thirdParty }: Props) => {
                   >
                     <button
                       onClick={() => {
-                        setOpenDropdown(false)
-                        setOpenEdit(true)
+                        setOpenDropdown(false);
+                        setOpenEdit(true);
                       }}
                       className={`${itemBase} text-blue-600`}
                     >
@@ -118,9 +111,7 @@ const ThirdPartyDropdownActions = ({ thirdParty }: Props) => {
                 </span>
               </TooltipTrigger>
 
-              <TooltipContent>
-                Editar tercero
-              </TooltipContent>
+              <TooltipContent>Editar tercero</TooltipContent>
             </Tooltip>
 
             {/* DELETE */}
@@ -133,8 +124,8 @@ const ThirdPartyDropdownActions = ({ thirdParty }: Props) => {
                   >
                     <button
                       onClick={() => {
-                        setOpenDropdown(false)
-                        setOpenDelete(true)
+                        setOpenDropdown(false);
+                        setOpenDelete(true);
                       }}
                       className={`${itemBase} text-red-600`}
                     >
@@ -144,11 +135,8 @@ const ThirdPartyDropdownActions = ({ thirdParty }: Props) => {
                 </span>
               </TooltipTrigger>
 
-              <TooltipContent>
-                Eliminar tercero
-              </TooltipContent>
+              <TooltipContent>Eliminar tercero</TooltipContent>
             </Tooltip>
-
           </DropdownMenuContent>
         </DropdownMenu>
 
@@ -161,7 +149,7 @@ const ThirdPartyDropdownActions = ({ thirdParty }: Props) => {
         />
       </>
     </TooltipProvider>
-  )
-}
+  );
+};
 
-export default ThirdPartyDropdownActions
+export default ThirdPartyDropdownActions;

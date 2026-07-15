@@ -24,7 +24,7 @@ const CompanyInfoCard = ({ user }: {
   user: User
 }) => {
   return (
-    <Card>
+    <Card data-tour="cuenta-company-info">
       <CardHeader className="flex flex-col-reverse gap-2 md:flex-row md:justify-center md:text-start items-center text-center">
         <div>
           <CardTitle>Transmandu, C.A</CardTitle>

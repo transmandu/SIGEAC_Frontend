@@ -107,11 +107,12 @@ export default function DocumentRow({ doc, onView, onDelete, onRefresh, canManag
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
       className="group flex items-center gap-4 p-3 transition-colors border-l-2 border-l-transparent hover:border-l-blue-600 border-b border-slate-200 dark:border-transparent bg-white hover:bg-slate-100 dark:bg-transparent dark:hover:bg-white/5 cursor-grab active:cursor-grabbing"
+      data-tour="biblioteca-doc-row"
     >
       <div className={`p-2 rounded-lg ${fileDetails.bgColor} shrink-0 border border-current/10`}>
         <FileText className={`h-5 w-5 ${fileDetails.iconColor}`} strokeWidth={2}/>
       </div>
-      <div className="flex-1 min-w-0 flex flex-col gap-0.5">
+      <div className="flex-1 min-w-0 flex flex-col gap-0.5" data-tour="biblioteca-doc-title">
         <div className="flex items-center gap-2">
           <h4 className="text-[12px] font-semibold text-slate-950 dark:text-gray-100 truncate uppercase">
             {doc.title || "Sin título"}
@@ -135,14 +136,15 @@ export default function DocumentRow({ doc, onView, onDelete, onRefresh, canManag
         </span>
       </div>
 
-      <div className="hidden md:block shrink-0 px-2 w-32 text-center">
+      <div className="hidden md:block shrink-0 px-2 w-32 text-center" data-tour="biblioteca-doc-status">
         <span className={`px-2.5 py-1.5 rounded-full text-[8px] font-bold uppercase tracking-wider border ${statusInfo.classes} leading-none`}>
           {statusInfo.label}
         </span>
       </div>
 
-      <div className="flex items-center gap-1 shrink-0 ml-2">
+      <div className="flex items-center gap-1 shrink-0 ml-2" data-tour="biblioteca-doc-actions">
         <button
+          data-tour="biblioteca-doc-view-btn"
           onClick={() => onView(doc.id)}
           aria-label="Ver documento"
           title="Ver documento"
