@@ -26,12 +26,14 @@ interface DateFilterProps {
     from: string;
     to: string;
   };
+  buttonDataTour?: string;
 }
 
 const DateFilter = ({
   onDateChange,
   onReset,
   initialDate,
+  buttonDataTour,
 }: DateFilterProps) => {
   const defaultFrom = startOfMonth(new Date());
   const defaultTo = endOfDay(new Date());
@@ -49,7 +51,7 @@ const DateFilter = ({
 
   const [date, setDate] = useState<DateRange | undefined>(initialDateRange);
   const [tempDate, setTempDate] = useState<DateRange | undefined>(
-    initialDateRange
+    initialDateRange,
   );
 
   const handleApply = () => {
@@ -68,7 +70,7 @@ const DateFilter = ({
   };
 
   const convertDateRangeToPeriod = (
-    dateRange: DateRange | undefined
+    dateRange: DateRange | undefined,
   ): Period | undefined => {
     if (dateRange && dateRange.from && dateRange.to) {
       return { from: dateRange.from, to: dateRange.to };
@@ -87,12 +89,13 @@ const DateFilter = ({
           disabled={false}
           size={"sm"}
           variant={"outline"}
+          data-tour={buttonDataTour}
           className="lg:w-auto w-full h-9 rounded-md px-3 font-normal bg-primary hover:bg-primary/90 hover:text-white border-none focus:ring-offset-0 focus:ring-transparent outline-none text-white focus:bg-blue-700/50 transition"
         >
           <span>
             {convertDateRangeToPeriod(date || initialDateRange)
               ? formatDateRange(
-                  convertDateRangeToPeriod(date || initialDateRange)!
+                  convertDateRangeToPeriod(date || initialDateRange)!,
                 )
               : "Seleccionar rango"}
           </span>
