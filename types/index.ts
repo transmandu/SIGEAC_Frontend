@@ -756,7 +756,7 @@ export type ToolBox = {
   name: string;
   created_by: string;
   delivered_by: string;
-  employee: Employee;
+  employee: Employee | null;
   tool: {
     serial: string;
     article: ToolArticle;
