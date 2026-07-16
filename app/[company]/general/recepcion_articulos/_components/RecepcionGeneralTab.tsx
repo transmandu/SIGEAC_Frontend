@@ -73,6 +73,13 @@ function ConfirmIntakeAction({ intake }: { intake: GeneralArticleIntake }) {
         [user?.roles]
     )
 
+    const arrivedAt = useMemo(
+        () => (intake.arrived_at ? new Date(intake.arrived_at) : null),
+        [intake.arrived_at]
+    )
+
+    const isBeforeArrival = !!arrivedAt && confirmedAt < arrivedAt
+
     const handleOpenChange = (next: boolean) => {
         if (next) setConfirmedAt(new Date())
         setOpen(next)
@@ -155,6 +162,7 @@ function ConfirmIntakeAction({ intake }: { intake: GeneralArticleIntake }) {
                                         onSelect={handleDateSelect}
                                         locale={es}
                                         initialFocus
+                                        disabled={arrivedAt ? { before: arrivedAt } : undefined}
                                     />
                                 </PopoverContent>
                             </Popover>
@@ -166,6 +174,13 @@ function ConfirmIntakeAction({ intake }: { intake: GeneralArticleIntake }) {
                                 className="h-9 w-28 bg-background/70 text-sm"
                             />
                         </div>
+
+                        {isBeforeArrival && arrivedAt && (
+                            <p className="text-xs text-red-600 dark:text-red-400">
+                                La fecha y hora de confirmación no puede ser anterior a la llegada
+                                ({format(arrivedAt, "dd/MM/yyyy HH:mm", { locale: es })}).
+                            </p>
+                        )}
                     </div>
                 )}
 
@@ -174,7 +189,7 @@ function ConfirmIntakeAction({ intake }: { intake: GeneralArticleIntake }) {
                         Cancelar
                     </AlertDialogCancel>
                     <AlertDialogAction
-                        disabled={confirmGeneralArticleIntake.isPending}
+                        disabled={confirmGeneralArticleIntake.isPending || (canEditDate && isBeforeArrival)}
                         onClick={() =>
                             confirmGeneralArticleIntake.mutate({
                                 id: intake.id,

@@ -19,15 +19,15 @@ const RequiredDocumentsSection = ({ batches }: RequiredDocumentsSectionProps) =>
   }, [batches]);
 
   return (
-    <div className="relative rounded-xl border border-border/60 bg-gradient-to-b from-muted/30 to-muted/10 p-4 sm:p-5 shadow-sm">
-      <div className="flex items-center gap-2 mb-3 select-none">
+    <div className="relative flex h-full flex-col rounded-xl border border-border/60 bg-gradient-to-b from-muted/30 to-muted/10 p-4 sm:p-5 shadow-sm">
+      <div className="flex items-center gap-2 mb-3 select-none shrink-0">
         <FileBadge className="size-3 text-muted-foreground/70 shrink-0" />
         <span className="text-[9px] sm:text-[10px] font-semibold tracking-widest text-muted-foreground whitespace-nowrap">
           DOCUMENTOS REQUERIDOS
         </span>
       </div>
 
-      <div className="min-h-[80px] sm:min-h-[100px] max-h-[220px] overflow-y-auto">
+      <div className="h-[100px] sm:h-[120px] overflow-y-auto">
         {items.length > 0 ? (
           <ul className="space-y-2">
             {items.map((article, idx) => (
@@ -49,7 +49,7 @@ const RequiredDocumentsSection = ({ batches }: RequiredDocumentsSectionProps) =>
             ))}
           </ul>
         ) : (
-          <div className="flex h-full min-h-[80px] sm:min-h-[100px] flex-col items-center justify-center gap-1 text-muted-foreground/60 select-none">
+          <div className="flex h-full flex-col items-center justify-center gap-1 text-muted-foreground/60 select-none">
             <span className="text-[9px] sm:text-[10px] tracking-widest text-center">
               SIN DOCUMENTOS REQUERIDOS
             </span>

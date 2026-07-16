@@ -116,10 +116,10 @@ export const useRemoveRoleFromUser = () => {
     }: {
       userId: string
       roleId: number
-      companyId: number
+      companyId?: number | null
     }) => {
       await axiosInstance.delete(`/users/${userId}/roles`, {
-        data: { role_id: roleId, company_id: companyId },
+        data: { role_id: roleId, company_id: companyId ?? null },
       })
     },
     onSuccess: (_, { userId }) => {

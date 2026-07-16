@@ -72,6 +72,14 @@ const UserRolesTab = ({ user }: { user: User }) => {
     })
   }
 
+  const handleRemoveGlobal = (roleId: number) => {
+    removeRole.mutate({
+      userId: String(user.id),
+      roleId,
+      companyId: null,
+    })
+  }
+
   const isAdding = addRole.isPending
   const removingId = removeRole.isPending ? removeRole.variables?.roleId : null
 
@@ -93,6 +101,25 @@ const UserRolesTab = ({ user }: { user: User }) => {
                   <span className="text-sm font-medium">{role.label ?? role.name}</span>
                   <span className="font-mono text-[10px] text-muted-foreground">{role.name}</span>
                 </div>
+
+                {isSuperUser && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className={cn(
+                      'size-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10',
+                      removingId === role.id && 'pointer-events-none'
+                    )}
+                    onClick={() => handleRemoveGlobal(role.id)}
+                    disabled={removingId === role.id}
+                  >
+                    {removingId === role.id ? (
+                      <Loader2 className="size-3.5 animate-spin" />
+                    ) : (
+                      <X className="size-3.5" />
+                    )}
+                  </Button>
+                )}
               </li>
             ))}
           </ul>

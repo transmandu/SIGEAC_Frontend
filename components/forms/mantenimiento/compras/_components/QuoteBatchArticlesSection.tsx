@@ -27,6 +27,9 @@ import { Ban, ArrowRight, Clock } from "lucide-react";
 import type { Condition, Unit, Vendor } from "@/types";
 import { LEAD_TIME_UNITS, articleNeedsJustification } from "../CreateQuoteForm";
 import { RequiredIndicator } from "./RequiredIndicator";
+import { VendorCombobox } from "@/components/forms/general/compras/_components/VendorCombobox";
+import { UnitCombobox } from "@/components/forms/general/compras/_components/UnitCombobox";
+import { ConditionCombobox } from "@/components/forms/general/compras/_components/ConditionCombobox";
 
 interface LocationOption {
   id: number;
@@ -259,35 +262,19 @@ export function QuoteBatchArticlesSection({
                             )}
                           </div>
 
-                          <div className="space-y-0.5">
+                          <div className="space-y-0.5 min-w-0">
                             <span className={LABEL_CLS}>Proveedor<RequiredIndicator /></span>
-                            <Select
+                            <VendorCombobox
                               value={article.vendor_id?.toString() ?? ""}
-                              onValueChange={(val: string) =>
+                              onChange={(val) =>
                                 form.setValue(`articles.${index}.vendor_id`, val)
                               }
+                              vendors={vendors}
                               disabled={isNotQuoted}
-                            >
-                              <SelectTrigger className={cn(
-                                W_MEDIUM,
-                                "h-7 text-xs",
-                                !article.vendor_id && "text-muted-foreground",
-                                invalidCls(!isNotQuoted && !article.vendor_id)
-                              )}>
-                                <span className="truncate">
-                                  {article.vendor_id
-                                    ? vendors?.find(v => v.id.toString() === article.vendor_id)?.name
-                                    : "Sin proveedor"}
-                                </span>
-                              </SelectTrigger>
-                              <SelectContent>
-                                {vendors?.map((vendor) => (
-                                  <SelectItem key={vendor.id} value={vendor.id.toString()}>
-                                    {vendor.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                              invalid={invalidCls(!isNotQuoted && !article.vendor_id)}
+                              triggerClassName={cn(W_MEDIUM, "h-7 text-xs")}
+                              placeholder="Sin proveedor"
+                            />
                           </div>
 
                           <div className="space-y-0.5">
@@ -394,66 +381,34 @@ export function QuoteBatchArticlesSection({
                             </div>
                           </div>
 
-                          <div className="space-y-0.5">
+                          <div className="space-y-0.5 min-w-0">
                             <span className={LABEL_CLS}>Unidad<RequiredIndicator /></span>
-                            <Select
+                            <UnitCombobox
                               value={article.unit?.toString() ?? ""}
-                              onValueChange={(val: string) =>
+                              onChange={(val) =>
                                 form.setValue(`articles.${index}.unit`, val)
                               }
+                              units={units}
                               disabled={isNotQuoted}
-                            >
-                              <SelectTrigger className={cn(
-                                W_COMPACT,
-                                "h-7 text-xs",
-                                !article.unit && "text-muted-foreground",
-                                invalidCls(!isNotQuoted && !article.unit)
-                              )}>
-                                <span className="truncate">
-                                  {article.unit
-                                    ? units?.find(u => u.id.toString() === article.unit)?.label
-                                    : "—"}
-                                </span>
-                              </SelectTrigger>
-                              <SelectContent>
-                                {units?.map((unit) => (
-                                  <SelectItem key={unit.id} value={unit.id.toString()}>
-                                    {unit.label}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                              invalid={invalidCls(!isNotQuoted && !article.unit)}
+                              triggerClassName={cn(W_COMPACT, "h-7 text-xs")}
+                              placeholder="Sin unidad"
+                            />
                           </div>
 
-                          <div className="space-y-0.5">
+                          <div className="space-y-0.5 min-w-0">
                             <span className={LABEL_CLS}>Condición<RequiredIndicator /></span>
-                            <Select
+                            <ConditionCombobox
                               value={article.condition_id?.toString() ?? ""}
-                              onValueChange={(val: string) =>
+                              onChange={(val) =>
                                 form.setValue(`articles.${index}.condition_id`, val)
                               }
+                              conditions={conditions}
                               disabled={isNotQuoted}
-                            >
-                              <SelectTrigger className={cn(
-                                W_MEDIUM,
-                                "h-7 text-xs",
-                                !article.condition_id && "text-muted-foreground",
-                                invalidCls(!isNotQuoted && !article.condition_id)
-                              )}>
-                                <span className="truncate">
-                                  {article.condition_id
-                                    ? conditions?.find(c => c.id.toString() === article.condition_id)?.name
-                                    : "Sin condición"}
-                                </span>
-                              </SelectTrigger>
-                              <SelectContent>
-                                {conditions?.map((condition) => (
-                                  <SelectItem key={condition.id} value={condition.id.toString()}>
-                                    {condition.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                              invalid={invalidCls(!isNotQuoted && !article.condition_id)}
+                              triggerClassName={cn(W_MEDIUM, "h-7 text-xs")}
+                              placeholder="Sin condición"
+                            />
                           </div>
 
                           <div className="space-y-0.5">
