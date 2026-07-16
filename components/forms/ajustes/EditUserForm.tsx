@@ -4,6 +4,7 @@ import { useUpdateUser } from "@/actions/sistema/usuarios/actions";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { useAuth } from "@/contexts/AuthContext";
 import { useGetUsers } from "@/hooks/sistema/usuario/useGetUsers";
 import loadingGif from '@/public/loading2.gif';
 import { User } from "@/types";
@@ -20,9 +21,9 @@ const FormSchema = z.object({
   username: z.string().min(2, {
     message: "La contraseña debe tener al menos 5 caracteres.",
   }),
-  password: z.string().min(2, {
+  password: z.union([z.literal(""), z.string().min(5, {
     message: "La contraseña debe tener al menos 5 caracteres.",
-  }),
+  })]),
   email: z.string().email({
     message: "Debe ingresar un correo electrónico válido."
   }),
@@ -36,6 +37,8 @@ type FormSchemaType = z.infer<typeof FormSchema>
 export function EditUserForm({ user, onClose }: { user: User, onClose: () => void, }) {
 
   const { data: users } = useGetUsers();
+  const { user: currentUser } = useAuth();
+  const isSuperUser = currentUser?.roles?.some((r) => r.name === 'SUPERUSER') ?? false;
 
   const [showPwd, setShowPwd] = useState(false);
 
@@ -96,7 +99,15 @@ export function EditUserForm({ user, onClose }: { user: User, onClose: () => voi
         return;
       } else {
         clearErrors("username");
-        await updateUser.mutateAsync({ ...data, id: user.id.toString() });
+
+        const emailChanged = isSuperUser && data.email !== user.email;
+
+        await updateUser.mutateAsync({
+          username: data.username,
+          id: user.id.toString(),
+          ...(data.password ? { password: data.password } : {}),
+          ...(emailChanged ? { email: data.email } : {}),
+        });
       }
     } catch (error) {
       console.error("Error al crear usuario:", error);
@@ -126,7 +137,7 @@ export function EditUserForm({ user, onClose }: { user: User, onClose: () => voi
               <FormItem>
                 <FormLabel>Correo Electrónico</FormLabel>
                 <FormControl>
-                  <Input  {...field} />
+                  <Input disabled={!isSuperUser} {...field} />
                 </FormControl>
                 <FormMessage className="text-xs" />
               </FormItem>

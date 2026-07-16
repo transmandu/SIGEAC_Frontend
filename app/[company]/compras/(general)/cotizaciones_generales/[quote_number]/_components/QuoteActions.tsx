@@ -5,10 +5,11 @@ import { useRouter } from "next/navigation"
 import { useCompanyStore } from "@/stores/CompanyStore"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { ClipboardCheck, ClipboardX, Trash2, FileDown } from "lucide-react"
+import { ClipboardCheck, ClipboardX, Trash2, FileDown, PackagePlus } from "lucide-react"
 import QuoteDropdownDialogs from "@/components/dialogs/mantenimiento/compras/QuoteDropdownDialogs"
 import type { Quote } from "@/types/purchase"
 import PurchaseOrderLinkButton from "@/components/dropdowns/mantenimiento/compras/PurchaseOrderLinkButton"
+import CreateComplementaryQuoteDialog from "./CreateComplementaryQuoteDialog"
 
 /* =========================
    STYLES
@@ -40,6 +41,7 @@ export default function QuoteActions({
   const [openApprove, setOpenApprove] = useState(false)
   const [openReject, setOpenReject] = useState(false)
   const [openDelete, setOpenDelete] = useState(false)
+  const [openComplementary, setOpenComplementary] = useState(false)
 
   const status = quote.status
 
@@ -49,6 +51,14 @@ export default function QuoteActions({
 
   const canAct = isPending
   const canDelete = !isApproved
+
+  // Cotización complementaria: solo sobre una original APROBADA con
+  // artículos generales cotizados. Documenta la diferencia entre lo comprado
+  // realmente y lo amparado, sin editar los documentos ya pagados.
+  const canCreateComplementary =
+    isApproved &&
+    !quote.parent_quote_order &&
+    (quote.general_article_quote_order ?? []).some((i) => !i.is_not_quoted)
 
   const shouldFetchPO =
     isApproved && !!selectedCompany?.slug && !!quote.id
@@ -132,6 +142,23 @@ export default function QuoteActions({
           </Tooltip>
         )}
         
+        {/* COMPLEMENTARY QUOTE */}
+        {canCreateComplementary && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setOpenComplementary(true)}
+                className={`${itemBase} text-violet-600`}
+              >
+                <PackagePlus className={iconBase} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Crear cotización complementaria (diferencia comprada no documentada)</TooltipContent>
+          </Tooltip>
+        )}
+
         {/* PO LINK */}
         {isApproved && selectedCompany?.slug && (
           <PurchaseOrderLinkButton
@@ -157,6 +184,14 @@ export default function QuoteActions({
             router.push(`/${selectedCompany.slug}/compras/cotizaciones_generales`)
             router.refresh()
           }}
+        />
+
+        <CreateComplementaryQuoteDialog
+          quote={quote}
+          company={selectedCompany.slug}
+          open={openComplementary}
+          onOpenChange={setOpenComplementary}
+          onSuccess={onSuccessUpdate}
         />
 
       </div>

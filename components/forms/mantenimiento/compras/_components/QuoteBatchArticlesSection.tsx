@@ -366,7 +366,7 @@ export function QuoteBatchArticlesSection({
                                   onChange={field.onChange}
                                   ref={field.ref}
                                   disabled={isNotQuoted}
-                                  className={cn(W_WIDE, "h-7 text-sm", invalidCls(!isNotQuoted && !article.unit_price))}
+                                  className={cn(W_WIDE, "h-7 text-sm", invalidCls(!isNotQuoted && !(Number(article.unit_price) > 0)))}
                                 />
                               )}
                             />

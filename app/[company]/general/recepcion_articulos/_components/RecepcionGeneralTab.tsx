@@ -1,6 +1,6 @@
 'use client'
 
-import { useConfirmGeneralArticleIntake } from '@/actions/mantenimiento/almacen/inventario/articulos_generales/actions'
+import { useConfirmGeneralArticleIntake, useRejectGeneralArticleIntake } from '@/actions/mantenimiento/almacen/inventario/articulos_generales/actions'
 import {
     AlertDialog,
     AlertDialogAction,
@@ -25,17 +25,41 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table'
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { useAuth } from '@/contexts/AuthContext'
 import { useGetGeneralArticleIntakes } from '@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticleIntakes'
 import { cn } from '@/lib/utils'
 import type { GeneralArticleIntake, GeneralArticleIntakeStatus } from '@/types/purchase'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { CalendarIcon, CheckCircle2, Loader2, PackageSearch, Search } from 'lucide-react'
+import { Textarea } from '@/components/ui/textarea'
+import { CalendarIcon, ChevronRight, CheckCircle2, Loader2, PackageSearch, Search, XCircle } from 'lucide-react'
 import { memo, useMemo, useState } from 'react'
 import { DownloadReportDialog } from './DownloadReportDialog'
 
 type StatusFilter = 'ALL' | GeneralArticleIntakeStatus
+
+// ── Detección de discrepancia solicitado vs comprado ────────────────────
+// Solo hay algo que mostrar si la línea de compra viene de una requisición
+// (general_article_requisition_order) y la cantidad/unidad cotizada difiere
+// de la solicitada, o el comprador dejó una justificación explícita.
+function getRequisitionDiscrepancy(intake: GeneralArticleIntake) {
+    const quoteArticle = intake.general_article_quote_order
+    const requisitionArticle = quoteArticle?.general_article_requisition_order
+    if (!quoteArticle || !requisitionArticle) return null
+
+    const quantityDiffers = Number(requisitionArticle.quantity) !== Number(quoteArticle.quantity)
+    const unitDiffers = (requisitionArticle.unit?.id ?? null) !== (quoteArticle.unit?.id ?? null)
+
+    if (!quantityDiffers && !unitDiffers && !quoteArticle.justification) return null
+
+    return { requisitionArticle, quoteArticle, quantityDiffers, unitDiffers }
+}
 
 // ── Acción de confirmar una entrada ─────────────────────────────────────
 function ConfirmIntakeAction({ intake }: { intake: GeneralArticleIntake }) {
@@ -78,7 +102,7 @@ function ConfirmIntakeAction({ intake }: { intake: GeneralArticleIntake }) {
             <AlertDialogTrigger asChild>
                 <button
                     disabled={confirmGeneralArticleIntake.isPending}
-                    className="inline-flex h-7 items-center gap-1 rounded-md border border-emerald-200 bg-emerald-50 px-2 text-xs font-medium text-emerald-700 transition-colors hover:bg-emerald-100 disabled:opacity-50 dark:border-emerald-800/60 dark:bg-emerald-950/40 dark:text-emerald-400"
+                    className="inline-flex h-7 items-center gap-1 rounded-md border border-emerald-300 bg-emerald-100 px-2 text-xs font-semibold text-emerald-800 transition-colors hover:bg-emerald-200 disabled:opacity-50 dark:border-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300"
                 >
                     {confirmGeneralArticleIntake.isPending ? (
                         <Loader2 className="size-3 animate-spin" />
@@ -166,12 +190,197 @@ function ConfirmIntakeAction({ intake }: { intake: GeneralArticleIntake }) {
     )
 }
 
+// ── Acción de rechazar una entrada ──────────────────────────────────────
+// Para cuando la verificación física no coincide con lo registrado (artículo
+// o cantidad distintos). Exige justificación; el backend notifica al usuario
+// que registró la entrega para que revise y re-registre sobre la misma orden.
+function RejectIntakeAction({ intake }: { intake: GeneralArticleIntake }) {
+    const [open, setOpen] = useState(false)
+    const [reason, setReason] = useState('')
+    const { rejectGeneralArticleIntake } = useRejectGeneralArticleIntake()
+
+    const handleOpenChange = (next: boolean) => {
+        if (next) setReason('')
+        setOpen(next)
+    }
+
+    return (
+        <AlertDialog open={open} onOpenChange={handleOpenChange}>
+            <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <AlertDialogTrigger asChild>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                disabled={rejectGeneralArticleIntake.isPending}
+                                className="h-7 w-7 text-red-600 hover:text-red-700 hover:bg-red-100 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-950/60"
+                            >
+                                {rejectGeneralArticleIntake.isPending ? (
+                                    <Loader2 className="size-3.5 animate-spin" />
+                                ) : (
+                                    <XCircle className="size-3.5" />
+                                )}
+                            </Button>
+                        </AlertDialogTrigger>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">Rechazar</TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
+
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Rechazar recepción</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        Estás a punto de rechazar la entrada de{' '}
+                        <span className="font-semibold text-foreground">{intake.quantity}</span>{' '}
+                        {intake.unit?.label ?? 'unidad(es)'} de{' '}
+                        <span className="font-semibold text-foreground">{intake.description}</span>{' '}
+                        por no coincidir con lo verificado físicamente. No se modificará el stock,
+                        y el responsable de la entrega será notificado para que revise la
+                        discrepancia y vuelva a registrar la entrega cuando la resuelva.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+
+                <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                        <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                            Justificación del rechazo
+                        </span>
+                        <div className="h-px flex-1 bg-border/60" />
+                    </div>
+                    <Textarea
+                        value={reason}
+                        onChange={(e) => setReason(e.target.value)}
+                        placeholder="Ej.: El artículo recibido no corresponde al registrado / llegaron 24 unidades y la entrada indica 6..."
+                        className="min-h-24 bg-background/70 text-sm"
+                        maxLength={2000}
+                    />
+                </div>
+
+                <AlertDialogFooter>
+                    <AlertDialogCancel disabled={rejectGeneralArticleIntake.isPending}>
+                        Cancelar
+                    </AlertDialogCancel>
+                    <AlertDialogAction
+                        disabled={rejectGeneralArticleIntake.isPending || !reason.trim()}
+                        className="bg-red-600 text-white hover:bg-red-700"
+                        onClick={() =>
+                            rejectGeneralArticleIntake.mutate({
+                                id: intake.id,
+                                rejectionReason: reason.trim(),
+                            })
+                        }
+                    >
+                        Rechazar entrada
+                    </AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+    )
+}
+
+// ── Sub-row: comparación solicitado vs comprado + justificación de rechazo ─
+// Se muestra cuando hay discrepancia de requisición y/o la entrada fue
+// rechazada; cada bloque aparece solo si le corresponde a esta entrada.
+function IntakeDetailRow({
+    intake,
+    discrepancy,
+}: {
+    intake: GeneralArticleIntake
+    discrepancy: ReturnType<typeof getRequisitionDiscrepancy>
+}) {
+    return (
+        <TableRow className="hover:bg-transparent">
+            <TableCell colSpan={8} className="p-0 border-b border-border/40">
+                <div className={cn(
+                    'flex flex-col gap-3 pl-10 pr-4 py-3 text-xs',
+                    discrepancy ? 'bg-muted/20 border-l-2 border-amber-300 dark:border-amber-700/60' : 'bg-red-50/40 dark:bg-red-950/10 border-l-2 border-red-300 dark:border-red-700/60'
+                )}>
+                    {discrepancy && (
+                        <div className="flex flex-col gap-1.5">
+                            <span className="font-medium uppercase tracking-wide text-[10px] text-muted-foreground">
+                                Diferencia con lo solicitado
+                            </span>
+                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                                <span className={cn(discrepancy.quantityDiffers || discrepancy.unitDiffers ? 'text-foreground' : 'text-muted-foreground')}>
+                                    Solicitado:{' '}
+                                    <span className="font-semibold tabular-nums">{discrepancy.requisitionArticle.quantity}</span>{' '}
+                                    {discrepancy.requisitionArticle.unit?.label ?? ''}
+                                </span>
+                                <span className="text-muted-foreground">→</span>
+                                <span className={cn(discrepancy.quantityDiffers || discrepancy.unitDiffers ? 'text-foreground' : 'text-muted-foreground')}>
+                                    Comprado:{' '}
+                                    <span className="font-semibold tabular-nums">{discrepancy.quoteArticle.quantity}</span>{' '}
+                                    {discrepancy.quoteArticle.unit?.label ?? ''}
+                                </span>
+                            </div>
+                            {discrepancy.quoteArticle.justification && (
+                                <span className="italic text-muted-foreground">
+                                    Justificación de la compra: “{discrepancy.quoteArticle.justification}”
+                                </span>
+                            )}
+                        </div>
+                    )}
+
+                    {intake.status === 'REJECTED' && intake.rejection_reason && (
+                        <div className="flex flex-col gap-1.5">
+                            <span className="font-medium uppercase tracking-wide text-[10px] text-red-600/80 dark:text-red-400/80">
+                                Justificación del rechazo
+                            </span>
+                            <span className="text-muted-foreground">
+                                <span className="uppercase">{intake.rejected_by}</span>
+                                {intake.rejected_at && (
+                                    <> — {format(new Date(intake.rejected_at), "dd/MM/yyyy HH:mm", { locale: es })}</>
+                                )}
+                            </span>
+                            <span className="italic text-red-600/80 dark:text-red-400/80">
+                                “{intake.rejection_reason}”
+                            </span>
+                        </div>
+                    )}
+                </div>
+            </TableCell>
+        </TableRow>
+    )
+}
+
 // ── Fila de entrada ──────────────────────────────────────────────────────
 const IntakeRow = memo(function IntakeRow({ intake }: { intake: GeneralArticleIntake }) {
     const isPending = intake.status === 'PENDING'
+    const isRejected = intake.status === 'REJECTED'
+    const [expanded, setExpanded] = useState(false)
+    const discrepancy = useMemo(() => getRequisitionDiscrepancy(intake), [intake])
+    const hasRejectionDetail = isRejected && !!intake.rejection_reason
+    const canExpand = !!discrepancy || hasRejectionDetail
 
     return (
-        <TableRow className="hover:bg-muted/30 transition-colors">
+        <>
+        <TableRow
+            className={cn('hover:bg-muted/30 transition-colors', canExpand && 'cursor-pointer')}
+            onClick={canExpand ? () => setExpanded((v) => !v) : undefined}
+        >
+            {/* Expand toggle */}
+            <TableCell className="w-6 p-0 text-center">
+                {canExpand && (
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation()
+                            setExpanded((v) => !v)
+                        }}
+                        className="flex items-center justify-center rounded p-0.5 text-muted-foreground/50 hover:text-foreground transition-colors mx-auto"
+                    >
+                        <ChevronRight
+                            className={cn(
+                                'size-3.5 transition-transform duration-150',
+                                expanded && 'rotate-90',
+                                expanded && (discrepancy ? 'text-amber-600 dark:text-amber-500' : 'text-red-600 dark:text-red-500')
+                            )}
+                        />
+                    </button>
+                )}
+            </TableCell>
+
             <TableCell>
                 <div className="space-y-1 min-w-0">
                     <span className="text-sm font-medium">{intake.description}</span>
@@ -218,7 +427,9 @@ const IntakeRow = memo(function IntakeRow({ intake }: { intake: GeneralArticleIn
                         'text-[10px] font-medium uppercase tracking-wide',
                         isPending
                             ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800/60'
-                            : 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800/60'
+                            : isRejected
+                                ? 'bg-red-50 text-red-700 border-red-200 dark:bg-red-950/40 dark:text-red-400 dark:border-red-800/60'
+                                : 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800/60'
                     )}
                     variant="outline"
                 >
@@ -226,9 +437,24 @@ const IntakeRow = memo(function IntakeRow({ intake }: { intake: GeneralArticleIn
                 </Badge>
             </TableCell>
 
-            <TableCell>
+            <TableCell onClick={(e) => e.stopPropagation()}>
                 {isPending ? (
-                    <ConfirmIntakeAction intake={intake} />
+                    <div className="flex items-center gap-1.5">
+                        <ConfirmIntakeAction intake={intake} />
+                        <RejectIntakeAction intake={intake} />
+                    </div>
+                ) : isRejected ? (
+                    <span className="text-[11px] text-muted-foreground">
+                        Rechazado por:
+                        <br />
+                        <span className="uppercase">{intake.rejected_by}</span>
+                        {intake.rejected_at && (
+                            <>
+                                <br />
+                                El {format(new Date(intake.rejected_at), "dd/MM/yyyy HH:mm", { locale: es })}
+                            </>
+                        )}
+                    </span>
                 ) : (
                     <span className="text-[11px] text-muted-foreground">
                         Confirmado por:
@@ -244,6 +470,8 @@ const IntakeRow = memo(function IntakeRow({ intake }: { intake: GeneralArticleIn
                 )}
             </TableCell>
         </TableRow>
+        {expanded && canExpand && <IntakeDetailRow intake={intake} discrepancy={discrepancy} />}
+        </>
     )
 })
 
@@ -280,6 +508,7 @@ export function RecepcionGeneralTab() {
 
     const totalPending = intakes?.filter((i) => i.status === 'PENDING').length ?? 0
     const totalConfirmed = intakes?.filter((i) => i.status === 'CONFIRMED').length ?? 0
+    const totalRejected = intakes?.filter((i) => i.status === 'REJECTED').length ?? 0
 
     return (
         <div className="flex flex-col gap-y-3">
@@ -305,6 +534,7 @@ export function RecepcionGeneralTab() {
                             { value: 'ALL', label: 'Todas' },
                             { value: 'PENDING', label: 'Pendientes' },
                             { value: 'CONFIRMED', label: 'Confirmadas' },
+                            { value: 'REJECTED', label: 'Rechazadas' },
                         ]}
                     />
                 </div>
@@ -314,9 +544,10 @@ export function RecepcionGeneralTab() {
             <div className="flex items-center gap-2 flex-wrap">
                 <div className="flex rounded-md border border-border overflow-hidden">
                     {([
-                        { value: 'ALL', label: 'Todas', count: totalPending + totalConfirmed },
+                        { value: 'ALL', label: 'Todas', count: totalPending + totalConfirmed + totalRejected },
                         { value: 'PENDING', label: 'Pendientes', count: totalPending },
                         { value: 'CONFIRMED', label: 'Confirmadas', count: totalConfirmed },
+                        { value: 'REJECTED', label: 'Rechazadas', count: totalRejected },
                     ] as { value: StatusFilter; label: string; count: number }[]).map(({ value, label, count }) => (
                         <button
                             key={value}
@@ -328,7 +559,9 @@ export function RecepcionGeneralTab() {
                                         ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400'
                                         : value === 'CONFIRMED'
                                             ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400'
-                                            : 'bg-muted text-foreground'
+                                            : value === 'REJECTED'
+                                                ? 'bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-400'
+                                                : 'bg-muted text-foreground'
                                     : 'bg-background text-muted-foreground hover:bg-muted/50'
                             )}
                         >
@@ -359,6 +592,7 @@ export function RecepcionGeneralTab() {
                 <Table>
                     <TableHeader>
                         <TableRow>
+                            <TableHead className="w-6 p-0" />
                             <TableHead className="text-xs">Artículo</TableHead>
                             <TableHead className="text-xs">Cantidad</TableHead>
                             <TableHead className="text-xs">Solicitud de Compra</TableHead>
@@ -373,7 +607,7 @@ export function RecepcionGeneralTab() {
                             filtered.map((intake) => <IntakeRow key={intake.id} intake={intake} />)
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={7} className="h-24 text-center text-muted-foreground text-sm">
+                                <TableCell colSpan={8} className="h-24 text-center text-muted-foreground text-sm">
                                     <div className="flex flex-col items-center gap-2">
                                         <PackageSearch className="size-5 text-muted-foreground/50" />
                                         No se encontraron entradas

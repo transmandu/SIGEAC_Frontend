@@ -98,7 +98,6 @@ const FormSchema = z.object({
       { key: "part_number", message: "El número de parte es obligatorio." },
       { key: "vendor_id", message: "El proveedor es obligatorio." },
       { key: "condition_id", message: "La condición es obligatoria." },
-      { key: "unit_price", message: "El precio unitario es obligatorio." },
       { key: "location_id", message: "El destino es obligatorio." },
     ];
 
@@ -111,6 +110,14 @@ const FormSchema = z.object({
         });
       }
     });
+
+    if (!(Number(article.unit_price) > 0)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "El precio unitario debe ser mayor a 0 para artículos cotizados.",
+        path: ["articles", index, "unit_price"],
+      });
+    }
   });
 
   data.general_articles.forEach((article, index) => {
@@ -121,7 +128,6 @@ const FormSchema = z.object({
       { key: "brand_model", message: "La marca/modelo es obligatoria." },
       { key: "quantity", message: "La cantidad es obligatoria." },
       { key: "unit", message: "La unidad es obligatoria." },
-      { key: "unit_price", message: "El precio es obligatorio." },
       { key: "location_id", message: "El destino es obligatorio." },
     ];
 
@@ -134,6 +140,14 @@ const FormSchema = z.object({
         });
       }
     });
+
+    if (!(Number(article.unit_price) > 0)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "El precio debe ser mayor a 0 para artículos cotizados.",
+        path: ["general_articles", index, "unit_price"],
+      });
+    }
   });
 });
 

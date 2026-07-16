@@ -97,6 +97,16 @@ export interface Quote {
   };
   article_quote_order: ArticleQuoteOrder[];
   general_article_quote_order: GeneralArticleQuoteOrder[];
+  /**
+   * Original quote this one complements (null for regular quotes). A
+   * complementary quote documents the difference between what was actually
+   * purchased and what the original (already APPROVED/paid) chain covered —
+   * paid documents are never edited or deleted, the missing amount gets its
+   * own quote → PO → payment → intake cycle.
+   */
+  parent_quote_order?: { id: number; quote_number: string } | null;
+  /** Mandatory reason explaining why the undocumented difference exists. */
+  complementary_justification?: string | null;
 }
 
 // ── Create quote mutation payload ──────────────────────────────────────────
@@ -150,6 +160,22 @@ export interface CreateQuoteData {
   observation?: string | null;
   articles?: CreateQuoteArticleData[];
   general_articles?: CreateQuoteGeneralArticleData[];
+}
+
+// ── Create complementary quote mutation payload ────────────────────────────
+// POST /{company}/quote/{id}/complementary — only for APPROVED general quotes.
+// Each item references an item of the ORIGINAL quote; descriptive/purchase
+// data is inherited server-side, only the extra quantity and price are sent.
+export interface CreateComplementaryQuoteItemData {
+  general_article_quote_order_id: number;
+  quantity: number;
+  unit_price: number;
+}
+
+export interface CreateComplementaryQuoteData {
+  quote_date: string;
+  justification: string;
+  general_articles: CreateComplementaryQuoteItemData[];
 }
 
 // ── Update quote status mutation payload ───────────────────────────────────

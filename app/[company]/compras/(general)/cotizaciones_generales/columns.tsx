@@ -43,7 +43,7 @@ export const getColumns = (
     },
 
     cell: ({ row }) => (
-      <div className="flex justify-center w-full">
+      <div className="flex flex-col items-center gap-1 w-full">
         <Link
           href={`/${selectedCompany?.slug}/compras/cotizaciones_generales/${row.original.quote_number}`}
           className="
@@ -57,6 +57,14 @@ export const getColumns = (
         >
           {row.original.quote_number}
         </Link>
+        {row.original.parent_quote_order && (
+          <span
+            className="rounded border border-violet-500/40 bg-violet-500/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-violet-700 dark:text-violet-300"
+            title={`Complementaria de ${row.original.parent_quote_order.quote_number}`}
+          >
+            Complementaria
+          </span>
+        )}
       </div>
     ),
   },

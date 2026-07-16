@@ -43,11 +43,16 @@ export const useUpdateUser = () => {
   const createMutation = useMutation({
       mutationFn: async (data: {
         username: string,
-        email: string,
-        password: string,
+        email?: string,
+        password?: string,
         id: string,
       }) => {
-          const res = await axiosInstance.put(`/user/${data.id}`, data)
+          const { id, ...rest } = data
+          const payload: Record<string, string> = {}
+          if (rest.email) payload.email = rest.email
+          if (rest.password) payload.password = rest.password
+
+          const res = await axiosInstance.put(`/user/${id}`, payload)
           return res.data
         },
       onSuccess: () => {

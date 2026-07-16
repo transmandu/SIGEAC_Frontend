@@ -31,6 +31,7 @@ import { GeneralArticlesSection } from "./_components/GeneralArticlesSection"
 import { AdditionalInfoSection } from "./_components/AdditionalInfoSection"
 import { isHigherPriority, type Priority } from "./_components/priorityUtils"
 import { getStoragePathFromUrl } from "./_components/imageUtils"
+import { canAddRequisitionArticle } from "@/lib/purchases/requisition-article-limit"
 
 type WarehouseRequisitionType = "AERONAUTICAL" | "GENERAL"
 
@@ -319,12 +320,18 @@ export function CreateWarehouseRequisitionForm({
     }
   };
 
+  // Total distinct article line items across all selected batches (not
+  // quantity) — this is what the requisition-wide article cap counts against.
+  const totalBatchArticles = (batches: RequisitionBatchForm[]) =>
+    batches.reduce((sum, b) => sum + b.batch_articles.length, 0);
+
   // Batch handlers
   const handleBatchSelect = (batchName: string, batchId: string, batch_category: string) => {
     setSelectedBatches((prev) => {
       if (prev.some((b) => b.batch === batchId)) {
         return prev.filter((b) => b.batch !== batchId);
       }
+      if (!canAddRequisitionArticle(totalBatchArticles(prev))) return prev;
       return [
         ...prev,
         {
@@ -358,6 +365,7 @@ export function CreateWarehouseRequisitionForm({
       const existingBatch = prev.find((b) => b.batch === batchId);
 
       if (!existingBatch) {
+        if (!canAddRequisitionArticle(totalBatchArticles(prev))) return prev;
         return [
           ...prev,
           {
@@ -378,9 +386,11 @@ export function CreateWarehouseRequisitionForm({
         ];
       }
 
+      const emptyIndex = existingBatch.batch_articles.findIndex((a) => !a.part_number);
+      if (emptyIndex === -1 && !canAddRequisitionArticle(totalBatchArticles(prev))) return prev;
+
       return prev.map((b) => {
         if (b.batch !== batchId) return b;
-        const emptyIndex = b.batch_articles.findIndex((a) => !a.part_number);
         if (emptyIndex === -1) {
           return {
             ...b,
@@ -434,8 +444,9 @@ export function CreateWarehouseRequisitionForm({
   };
 
   const addBatchArticle = (batchId: string) => {
-    setSelectedBatches((prev) =>
-      prev.map((batch) => {
+    setSelectedBatches((prev) => {
+      if (!canAddRequisitionArticle(totalBatchArticles(prev))) return prev;
+      return prev.map((batch) => {
         if (batch.batch !== batchId) return batch;
         return {
           ...batch,
@@ -444,8 +455,8 @@ export function CreateWarehouseRequisitionForm({
             { part_number: "", quantity: 1, unit: getDefaultUnit(batch.batch_name), priority: "MEDIUM", aircraft_id: headerAircraftId, document_type_ids: [] },
           ],
         };
-      })
-    );
+      });
+    });
   };
 
   const removeBatchArticle = (batchId: string, articleIndex: number) => {
@@ -479,6 +490,7 @@ export function CreateWarehouseRequisitionForm({
       if (prev.some((a) => isSameGeneralArticle(a, article))) {
         return prev.filter((a) => !isSameGeneralArticle(a, article));
       }
+      if (!canAddRequisitionArticle(prev.length)) return prev;
       return [
         ...prev,
         {
@@ -526,17 +538,20 @@ export function CreateWarehouseRequisitionForm({
   };
 
   const addManualGeneralArticle = () => {
-    setSelectedGeneralArticles((prev) => [
-      ...prev,
-      {
-        description: "",
-        requested_date: new Date().toISOString(),
-        variant_type: "",
-        quantity: 0,
-        unit_id: undefined,
-        priority: "MEDIUM",
-      },
-    ]);
+    setSelectedGeneralArticles((prev) => {
+      if (!canAddRequisitionArticle(prev.length)) return prev;
+      return [
+        ...prev,
+        {
+          description: "",
+          requested_date: new Date().toISOString(),
+          variant_type: "",
+          quantity: 0,
+          unit_id: undefined,
+          priority: "MEDIUM",
+        },
+      ];
+    });
   };
 
   const onSubmit = async (data: FormSchemaType) => {

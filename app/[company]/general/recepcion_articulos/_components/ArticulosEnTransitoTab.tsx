@@ -47,12 +47,18 @@ const ArticleRow = memo(function ArticleRow({ article }: { article: TransitArtic
 
     return (
         <>
-            <TableRow className="hover:bg-muted/30 transition-colors">
+            <TableRow
+                className={cn('hover:bg-muted/30 transition-colors', hasExtra && 'cursor-pointer')}
+                onClick={hasExtra ? () => setExpanded((v) => !v) : undefined}
+            >
                 {/* Expand toggle */}
                 <TableCell className="w-6 p-0 text-center">
                     {hasExtra && (
                         <button
-                            onClick={() => setExpanded((v) => !v)}
+                            onClick={(e) => {
+                                e.stopPropagation()
+                                setExpanded((v) => !v)
+                            }}
                             className="flex items-center justify-center rounded p-0.5 text-muted-foreground/50 hover:text-foreground transition-colors mx-auto"
                         >
                             <ChevronRight className={cn(
@@ -130,12 +136,12 @@ const ArticleRow = memo(function ArticleRow({ article }: { article: TransitArtic
                 </TableCell>
 
                 {/* Detalle */}
-                <TableCell className="w-10 text-center">
+                <TableCell className="w-10 text-center" onClick={(e) => e.stopPropagation()}>
                     <ArticleDetailDialog article={article} />
                 </TableCell>
 
                 {/* Acciones */}
-                <TableCell className="text-center">
+                <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
                     {isReception && (
                         <Button
                             variant="outline"

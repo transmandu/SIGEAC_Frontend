@@ -147,7 +147,9 @@ export const getColumns = (): ColumnDef<GeneralArticleIntake>[] => [
     ),
 
     cell: ({ row }) => {
-      const isPending = row.original.status === 'PENDING'
+      const { status } = row.original
+      const isPending = status === 'PENDING'
+      const isRejected = status === 'REJECTED'
 
       return (
         <div className="flex justify-center w-full">
@@ -157,10 +159,12 @@ export const getColumns = (): ColumnDef<GeneralArticleIntake>[] => [
               'rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-sm transition-colors duration-150 cursor-default uppercase',
               isPending
                 ? 'border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300 hover:bg-amber-500/15'
-                : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/15'
+                : isRejected
+                  ? 'border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300 hover:bg-red-500/15'
+                  : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/15'
             )}
           >
-            {isPending ? 'Pendiente' : 'Confirmada'}
+            {isPending ? 'Pendiente' : isRejected ? 'Rechazada' : 'Confirmada'}
           </Badge>
         </div>
       )
@@ -178,12 +182,38 @@ export const getColumns = (): ColumnDef<GeneralArticleIntake>[] => [
     ),
 
     cell: ({ row }) => {
-      const { status, confirmed_by, confirmed_at } = row.original
+      const { status, confirmed_by, confirmed_at, rejected_by, rejected_at, rejection_reason } = row.original
 
       if (status === 'PENDING') {
         return (
           <div className="flex justify-center w-full">
             <span className="text-muted-foreground/40 text-xs">—</span>
+          </div>
+        )
+      }
+
+      if (status === 'REJECTED') {
+        return (
+          <div className="flex justify-center w-full">
+            <span className="text-[11px] text-muted-foreground text-center leading-snug">
+              Rechazado por:
+              <br />
+              <span className="uppercase font-medium">{rejected_by}</span>
+              {rejected_at && (
+                <>
+                  <br />
+                  El {format(new Date(rejected_at), 'dd/MM/yyyy HH:mm', { locale: es })}
+                </>
+              )}
+              {rejection_reason && (
+                <>
+                  <br />
+                  <span className="italic text-red-600/80 dark:text-red-400/80">
+                    “{rejection_reason}”
+                  </span>
+                </>
+              )}
+            </span>
           </div>
         )
       }

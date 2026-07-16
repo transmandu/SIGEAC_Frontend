@@ -190,30 +190,28 @@ export function DownloadReportDialog({
             <label className="text-sm font-medium">{dateRangeLabel}</label>
             <Popover open={datePopoverOpen} onOpenChange={setDatePopoverOpen}>
               <PopoverTrigger asChild>
-                <div className="flex justify-center w-full">
-                  <Button
-                    variant="outline"
-                    className="w-full justify-center text-center gap-2 h-11 px-4 border border-dashed border-slate-300/60 dark:border-slate-700/40 bg-background/60 backdrop-blur font-medium text-slate-700 dark:text-slate-200 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-900/40"
-                  >
-                    <CalendarDays className="w-4 h-4 text-muted-foreground" />
-                    {dateFrom && dateTo ? (
-                      dateFrom.getTime() === dateTo.getTime() ? (
-                        <span className="text-center whitespace-nowrap">
-                          {format(dateFrom, 'dd MMM yyyy', { locale: es })}
-                        </span>
-                      ) : (
-                        <span className="text-center whitespace-nowrap">
-                          {format(dateFrom, 'dd MMM yyyy', { locale: es })} —{' '}
-                          {format(dateTo, 'dd MMM yyyy', { locale: es })}
-                        </span>
-                      )
-                    ) : (
-                      <span className="text-center text-muted-foreground whitespace-nowrap">
-                        Seleccionar rango de fechas
+                <Button
+                  variant="outline"
+                  className="flex h-10 w-full items-center justify-start gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm font-normal ring-offset-background hover:bg-background"
+                >
+                  <CalendarDays className="size-4 shrink-0 text-muted-foreground" />
+                  {dateFrom && dateTo ? (
+                    dateFrom.getTime() === dateTo.getTime() ? (
+                      <span className="truncate">
+                        {format(dateFrom, 'dd MMM yyyy', { locale: es })}
                       </span>
-                    )}
-                  </Button>
-                </div>
+                    ) : (
+                      <span className="truncate">
+                        {format(dateFrom, 'dd MMM yyyy', { locale: es })} —{' '}
+                        {format(dateTo, 'dd MMM yyyy', { locale: es })}
+                      </span>
+                    )
+                  ) : (
+                    <span className="truncate text-muted-foreground">
+                      Seleccionar rango de fechas
+                    </span>
+                  )}
+                </Button>
               </PopoverTrigger>
 
               <PopoverContent

@@ -237,7 +237,10 @@ export interface RegisterGeneralArticlesDeliveryResponse {
 // only confirming it (GeneralArticleIntakeController::confirm) creates or
 // increments the matching general_articles row. The intake row itself is
 // never deleted — it's the permanent audit trail of who/when/how much.
-export type GeneralArticleIntakeStatus = 'PENDING' | 'CONFIRMED';
+// REJECTED marks a physical-verification mismatch (wrong item / wrong
+// quantity): the intake never touches stock, stays as incident history, and
+// the deliverer can re-register the delivery on the same PO once resolved.
+export type GeneralArticleIntakeStatus = 'PENDING' | 'CONFIRMED' | 'REJECTED';
 
 // Shaped by GeneralArticleIntakeResource — only what the frontend needs from
 // each relation, not the full purchase_order/quote_order/requisition_order
@@ -255,6 +258,26 @@ export interface GeneralArticleIntakePurchaseOrderRef {
 export interface GeneralArticleIntakeUnitRef {
   id: number;
   label: string;
+}
+
+// Snapshot of the requisition line this intake's purchase traces back to —
+// lets the frontend compare "solicitado" vs "comprado" without a second call.
+export interface GeneralArticleIntakeRequisitionRef {
+  id: number;
+  quantity: number;
+  unit?: GeneralArticleIntakeUnitRef | null;
+}
+
+// Quote-article line the intake's purchase order line was created from.
+// Present only when the purchase order line traces back to a requisition
+// (i.e. not for ad-hoc/direct purchases). `justification` is the reason the
+// buyer gave at quote time for changing quantity/unit vs. what was requested.
+export interface GeneralArticleIntakeQuoteOrderRef {
+  id: number;
+  quantity: number;
+  unit?: GeneralArticleIntakeUnitRef | null;
+  justification?: string | null;
+  general_article_requisition_order?: GeneralArticleIntakeRequisitionRef | null;
 }
 
 export interface GeneralArticleIntakeWarehouseRef {
@@ -277,10 +300,14 @@ export interface GeneralArticleIntake {
   registered_by: string;
   confirmed_by?: string | null;
   confirmed_at?: string | null;
+  rejected_by?: string | null;
+  rejected_at?: string | null;
+  rejection_reason?: string | null;
   observation?: string | null;
   unit?: GeneralArticleIntakeUnitRef | null;
   warehouse?: GeneralArticleIntakeWarehouseRef | null;
   purchase_order?: GeneralArticleIntakePurchaseOrderRef | null;
+  general_article_quote_order?: GeneralArticleIntakeQuoteOrderRef | null;
 }
 
 // GET /{company}/general-article-intakes/{location_id}?status=PENDING|CONFIRMED
@@ -293,4 +320,10 @@ export interface ConfirmGeneralArticleIntakeResponse {
   message: string;
   intake: GeneralArticleIntake;
   general_article: GeneralArticle;
+}
+
+// PATCH /{company}/general-article-intakes/{id}/reject
+export interface RejectGeneralArticleIntakeResponse {
+  message: string;
+  intake: GeneralArticleIntake;
 }

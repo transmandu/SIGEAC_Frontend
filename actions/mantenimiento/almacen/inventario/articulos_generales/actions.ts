@@ -2,7 +2,7 @@ import axiosInstance from "@/lib/axios";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import type { ConfirmGeneralArticleIntakeResponse } from "@/types/purchase";
+import type { ConfirmGeneralArticleIntakeResponse, RejectGeneralArticleIntakeResponse } from "@/types/purchase";
 
 export interface IUpdateArticleData {
     id: number
@@ -137,6 +137,43 @@ export const useConfirmGeneralArticleIntake = () => {
 
     return {
         confirmGeneralArticleIntake,
+    };
+};
+
+// Rechaza una entrada PENDING cuando la verificación física no coincide con
+// lo registrado (artículo o cantidad distintos). El intake queda REJECTED con
+// la justificación como historial permanente, nunca toca el stock, y el
+// backend notifica al usuario que registró la entrega para que la revise y
+// re-registre sobre la misma orden de compra cuando resuelva.
+export const useRejectGeneralArticleIntake = () => {
+    const queryClient = useQueryClient();
+    const { selectedCompany } = useCompanyStore();
+
+    const rejectGeneralArticleIntake = useMutation({
+        mutationKey: ["reject-general-article-intake", selectedCompany?.slug],
+        mutationFn: async ({ id, rejectionReason }: { id: number; rejectionReason: string }) => {
+            const { data } = await axiosInstance.patch<RejectGeneralArticleIntakeResponse>(
+                `/${selectedCompany?.slug}/general-article-intakes/${id}/reject`,
+                { rejection_reason: rejectionReason }
+            );
+            return data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["general-article-intakes"], exact: false });
+
+            toast.success("Entrada rechazada", {
+                description: "Se notificó al responsable de la entrega para que revise la discrepancia."
+            });
+        },
+        onError: (error: any) => {
+            toast.error("Error", {
+                description: error?.response?.data?.message || "No se pudo rechazar la entrada."
+            });
+        },
+    });
+
+    return {
+        rejectGeneralArticleIntake,
     };
 };
 
