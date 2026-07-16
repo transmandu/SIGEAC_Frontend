@@ -78,8 +78,8 @@ const FilterSelects = ({
             Solicitud de Compra
           </SelectItem>
 
-          <SelectItem value="vendor">
-            Proveedor
+          <SelectItem value="retailer">
+            Comercio
           </SelectItem>
         </SelectContent>
       </Select>

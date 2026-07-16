@@ -11,9 +11,20 @@ import { DataTable } from '../../data-table'
 import QuotesToolBar from './_components/QuotesToolBar'
 import GroupedQuotesTable from './_components/GroupedQuotesTable'
 import { isGeneralQuoteScope } from '@/lib/purchases/quote-scope'
+import QuoteSplitView, { useQuotePreview, useQuotePreviewSelectedId } from '@/components/side-panels/QuoteSplitView'
 
 const QuotesOrdersPage = () => {
+  return (
+    <QuoteSplitView>
+      <QuotesOrdersPageContent />
+    </QuoteSplitView>
+  )
+}
+
+const QuotesOrdersPageContent = () => {
   const { selectedCompany, selectedStation } = useCompanyStore()
+  const onPreview = useQuotePreview()
+  const selectedPreviewId = useQuotePreviewSelectedId()
 
   const {
     data: quotes,
@@ -61,7 +72,7 @@ const QuotesOrdersPage = () => {
         quote.quote_date
           ?.toLowerCase?.()
           .includes(q) ||
-        quote.vendor?.name
+        quote.retailer?.name
           ?.toLowerCase?.()
           .includes(q) ||
         quote.requisition_order?.justification
@@ -72,8 +83,8 @@ const QuotesOrdersPage = () => {
   }, [quotes, deferredSearch, status])
 
   const columns = useMemo(
-    () => getColumns(selectedCompany ?? undefined),
-    [selectedCompany]
+    () => getColumns(selectedCompany ?? undefined, onPreview ?? undefined, selectedPreviewId),
+    [selectedCompany, onPreview, selectedPreviewId]
   )
 
   return (

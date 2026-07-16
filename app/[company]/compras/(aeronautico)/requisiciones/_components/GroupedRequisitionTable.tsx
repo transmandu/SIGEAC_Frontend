@@ -1,49 +1,34 @@
 'use client'
 
 import { useMemo, useState, useEffect } from 'react'
-
-import GroupRow from './GroupRow'
+import RequisitionGroupRow from './RequisitionGroupRow'
 import GroupPagination from '@/components/misc/GroupPagination'
+import type { Requisition } from '@/types/purchase/requisition'
 
-type GroupableKey =
-  | 'retailer'
-  | 'requisition_order'
-
-type Props<T> = {
-  data: T[]
-  groupBy: GroupableKey
-  renderTable: (rows: T[]) => React.ReactNode
+type Props = {
+  data: Requisition[]
+  renderTable: (rows: Requisition[]) => React.ReactNode
 }
 
-type Group<T> = {
+type Group = {
   key: string
-  rows: T[]
+  rows: Requisition[]
 }
 
 const PAGE_SIZE = 15
 
 const formatGroupLabel = (value?: string | null) => {
-  if (!value || value.trim() === '') return 'Sin valor'
+  if (!value || value.trim() === '') return 'Sin solicitante'
   return value
 }
 
-const GroupedQuotesTable = <T extends Record<string, any>>({
-  data,
-  groupBy,
-  renderTable,
-}: Props<T>) => {
+const GroupedRequisitionTable = ({ data, renderTable }: Props) => {
 
-  const groups = useMemo<Group<T>[]>(() => {
-    const groupedMap = new Map<string, T[]>()
+  const groups = useMemo<Group[]>(() => {
+    const groupedMap = new Map<string, Requisition[]>()
 
     for (const item of data) {
-
-      const rawValue: string | undefined =
-        groupBy === 'retailer'
-          ? item.retailer?.name
-          : item.requisition_order?.order_number
-
-      const key = rawValue?.trim() || 'Sin valor'
+      const key = item.requested_by?.trim() || 'Sin solicitante'
 
       if (!groupedMap.has(key)) {
         groupedMap.set(key, [])
@@ -56,7 +41,7 @@ const GroupedQuotesTable = <T extends Record<string, any>>({
       key,
       rows,
     }))
-  }, [data, groupBy])
+  }, [data])
 
   const [pagination, setPagination] = useState({
     pageIndex: 0,
@@ -64,16 +49,12 @@ const GroupedQuotesTable = <T extends Record<string, any>>({
   })
 
   const totalPages = useMemo(() => {
-    return Math.max(1, Math.ceil(groups.length / pagination.pageSize))
-  }, [groups.length, pagination.pageSize])
+    return Math.max(1, Math.ceil(groups.length / PAGE_SIZE))
+  }, [groups.length])
 
   const paginatedGroups = useMemo(() => {
     const start = pagination.pageIndex * pagination.pageSize
-
-    return groups.slice(
-      start,
-      start + pagination.pageSize
-    )
+    return groups.slice(start, start + pagination.pageSize)
   }, [groups, pagination])
 
   const [expanded, setExpanded] = useState<Record<string, boolean>>({})
@@ -90,23 +71,20 @@ const GroupedQuotesTable = <T extends Record<string, any>>({
       pageIndex: 0,
       pageSize: PAGE_SIZE,
     })
-
     setExpanded({})
-  }, [groupBy, data])
+  }, [data])
 
   if (!groups.length) {
     return (
-      <div
-        className="
-          rounded-xl border
-          bg-white dark:bg-slate-900/60
-          border-slate-200 dark:border-slate-700/60
-          px-6 py-10
-          text-center
-        "
-      >
+      <div className="
+        rounded-xl border
+        bg-white dark:bg-slate-900/60
+        border-slate-200 dark:border-slate-700/60
+        px-6 py-10
+        text-center
+      ">
         <p className="text-sm text-muted-foreground">
-          No hay cotizaciones agrupadas disponibles.
+          No hay requisiciones agrupadas disponibles.
         </p>
       </div>
     )
@@ -115,7 +93,6 @@ const GroupedQuotesTable = <T extends Record<string, any>>({
   return (
     <div className="flex flex-col gap-4">
 
-      {/* GROUPS */}
       {paginatedGroups.map((group) => {
         const isOpen = expanded[group.key] ?? false
 
@@ -123,7 +100,7 @@ const GroupedQuotesTable = <T extends Record<string, any>>({
           <div
             key={group.key}
             className="
-              overflow-hidden
+              overflow-visible
               rounded-2xl border
               border-slate-200/80
               dark:border-slate-700/60
@@ -134,7 +111,7 @@ const GroupedQuotesTable = <T extends Record<string, any>>({
               dark:shadow-[0_4px_20px_rgba(0,0,0,0.25)]
             "
           >
-            <GroupRow
+            <RequisitionGroupRow
               title={formatGroupLabel(group.key)}
               count={group.rows.length}
               expanded={isOpen}
@@ -154,7 +131,6 @@ const GroupedQuotesTable = <T extends Record<string, any>>({
         pageIndex={pagination.pageIndex}
         pageSize={pagination.pageSize}
         pageCount={totalPages}
-        totalGroups={groups.length}
         onPageChange={(page: number) =>
           setPagination((prev) => ({
             ...prev,
@@ -167,10 +143,10 @@ const GroupedQuotesTable = <T extends Record<string, any>>({
             pageSize: size,
           })
         }
+        totalGroups={groups.length}
       />
-
     </div>
   )
 }
 
-export default GroupedQuotesTable
+export default GroupedRequisitionTable
