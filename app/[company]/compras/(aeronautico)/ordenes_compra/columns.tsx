@@ -121,13 +121,24 @@ export const getColumns = (
       title: "Proveedor",
     },
 
-    cell: ({ row }) => (
-      <div className="flex justify-center w-full">
-        <span className="text-sm font-medium text-center text-slate-700 dark:text-slate-200">
-          {row.original.vendor?.name ?? "—"}
-        </span>
-      </div>
-    ),
+    cell: ({ row }) => {
+      const name = row.original.vendor?.name
+
+      return (
+        <div className="flex justify-center w-full">
+          <span
+            className={cn(
+              "text-sm text-center",
+              name
+                ? "font-medium text-slate-700 dark:text-slate-200"
+                : "text-muted-foreground"
+            )}
+          >
+            {name ?? "N/A"}
+          </span>
+        </div>
+      )
+    },
   },
 
   {

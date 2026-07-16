@@ -19,6 +19,7 @@ import { DataTable } from '../../data-table'
 import { getColumns } from './columns'
 import PurchaseOrderSubRow from './_components/PurchaseOrderSubRow'
 import PurchaseOrderToolBar from './_components/PurchaseOrderToolBar'
+import GroupedPurchaseOrderTable from './_components/GroupedPurchaseOrderTable'
 
 const PurchaseOrdersPage = () => {
   const { selectedCompany, selectedStation } = useCompanyStore()
@@ -34,6 +35,7 @@ const PurchaseOrdersPage = () => {
 
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState('ALL')
+  const [groupBy, setGroupBy] = useState('NONE')
 
   const deferredSearch = useDeferredValue(search)
 
@@ -119,6 +121,8 @@ const PurchaseOrdersPage = () => {
             setSearch={setSearch}
             status={status}
             setStatus={setStatus}
+            groupBy={groupBy}
+            setGroupBy={setGroupBy}
           />
 
           <span className="text-xs text-muted-foreground tabular-nums">
@@ -127,6 +131,25 @@ const PurchaseOrdersPage = () => {
           </span>
         </div>
 
+        {groupBy === 'quote' || groupBy === 'retailer' ? (
+          <GroupedPurchaseOrderTable
+            data={filteredPO}
+            groupBy={groupBy}
+            renderTable={(rows) => (
+              <DataTable
+                columns={columns}
+                data={rows}
+                renderSubRow={(row) => (
+                  <PurchaseOrderSubRow row={row} />
+                )}
+                loading={isLoading}
+                emptyText="No se ha encontrado ningún resultado..."
+                overflowVisible
+                persistKey="ordenes_compra_generales"
+              />
+            )}
+          />
+        ) : (
           <DataTable
             columns={columns}
             data={filteredPO}
@@ -137,6 +160,7 @@ const PurchaseOrdersPage = () => {
             emptyText="No se ha encontrado ningún resultado..."
             persistKey="ordenes_compra_generales"
           />
+        )}
 
         {/* ERROR */}
         {isError && (

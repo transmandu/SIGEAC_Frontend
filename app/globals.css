@@ -189,6 +189,20 @@
   animation: fade-in 0.6s ease-out forwards;
 }
 
+@keyframes glow-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(67, 154, 151, 0.55);
+  }
+
+  70% {
+    box-shadow: 0 0 0 6px rgba(67, 154, 151, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(67, 154, 151, 0);
+  }
+}
+
 .table-sticky-right {
   position: sticky;
   right: 0;

@@ -1,19 +1,30 @@
 'use client'
 
 import { Row } from '@tanstack/react-table'
+import { Boxes } from 'lucide-react'
+
 import type { PurchaseOrder } from '@/types/purchase'
+import PurchaseOrderArticleCard from '../[order_number]/_components/PurchaseOrderArticleCard'
+import PurchaseOrderGeneralArticleCard from '../[order_number]/_components/PurchaseOrderGeneralArticleCard'
+
+const money = (value: number | string | null | undefined) => {
+  const n = Number(value ?? 0)
+  return `$${n.toFixed(2)}`
+}
 
 export default function PurchaseOrderSubRow({
   row,
 }: {
   row: Row<PurchaseOrder>
 }) {
-  const articles = row.original.article_purchase_order
-  const generalArticles = row.original.general_article_purchase_order
+  const po = row.original
+  const articles = po.article_purchase_order ?? []
+  const generalArticles = po.general_article_purchase_order ?? []
+  const totalArticles = articles.length + generalArticles.length
 
-  if (!articles?.length && !generalArticles?.length) {
+  if (totalArticles === 0) {
     return (
-      <div className="px-4 py-2">
+      <div className="px-4 py-6 text-center">
         <p className="text-[11px] text-muted-foreground/60 italic">
           Sin artículos registrados
         </p>
@@ -21,238 +32,58 @@ export default function PurchaseOrderSubRow({
     )
   }
 
-  const grid =
-    'grid grid-cols-[1fr_60px_90px_110px_110px] items-center'
+  const articlesTotal = articles.reduce((sum, item) => {
+    const quoteArticle = item.article_quote_order
+    const quotedTotal = quoteArticle?.total != null
+      ? Number(quoteArticle.total)
+      : Number(quoteArticle?.quantity || 0) * Number(quoteArticle?.unit_price || 0)
+    return sum + (item.total != null ? Number(item.total) : quotedTotal)
+  }, 0)
+
+  const generalArticlesTotal = generalArticles.reduce((sum, item) => {
+    const quoteArticle = item.general_article_quote_order
+    const quotedTotal = quoteArticle?.total != null
+      ? Number(quoteArticle.total)
+      : Number(quoteArticle?.quantity || 0) * Number(quoteArticle?.unit_price || 0)
+    return sum + (item.total != null ? Number(item.total) : quotedTotal)
+  }, 0)
+
+  const grandTotal = articlesTotal + generalArticlesTotal
 
   return (
-    <div className="px-4 py-2 space-y-2">
+    <div className="px-4 py-3 space-y-3">
 
+      {/* HEADER */}
+      <div className="flex items-center justify-between gap-3 pb-1">
+        <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground select-none">
+          <Boxes className="size-3.5 opacity-60" />
+          <span className="font-medium text-foreground/80">{totalArticles}</span>
+          {totalArticles === 1 ? 'artículo' : 'artículos'}
+        </div>
+
+        <div className="flex items-center gap-1.5 rounded-md border border-border/50 bg-muted/20 px-2 py-0.5">
+          <span className="text-[9px] uppercase tracking-wider text-muted-foreground">Subtotal</span>
+          <span className="text-xs font-semibold tabular-nums">{money(grandTotal)}</span>
+        </div>
+      </div>
+
+      {/* ARTÍCULOS */}
       <div
-        className={`
-          ${grid}
-          text-[10px]
-          uppercase tracking-wider
-          text-muted-foreground/60
-          border-b border-slate-200/40 dark:border-slate-700/50
-          pb-2
-        `}
+        className="
+          grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2
+          items-start
+          max-h-[420px] overflow-y-auto pr-1
+        "
       >
-        <div className="pl-2">
-          Artículo
-        </div>
+        {articles.map((article) => (
+          <PurchaseOrderArticleCard key={article.id} article={article} orderStatus={po.status} />
+        ))}
 
-        <div className="flex items-center justify-center w-full">
-          Cant.
-        </div>
-
-        <div className="flex items-center justify-center w-full">
-          P.Unit
-        </div>
-
-        <div className="flex items-center justify-center w-full">
-          Tracking Envío
-        </div>
-
-        <div className="flex items-center justify-center w-full">
-          Tracking Int&apos;l
-        </div>
+        {generalArticles.map((article) => (
+          <PurchaseOrderGeneralArticleCard key={article.id} article={article} orderStatus={po.status} />
+        ))}
       </div>
 
-      <div className="space-y-[4px]">
-
-        {articles?.map((article) => {
-          const reqArticle = article.article_quote_order?.article_requisition_order
-
-          return (
-            <div
-              key={article.id}
-              className={`
-                ${grid}
-                px-2 py-2
-                rounded-md
-
-                bg-slate-50/70
-                dark:bg-slate-900/40
-
-                border
-                border-slate-200/50
-                dark:border-slate-700/50
-
-                text-[11px]
-                text-slate-600
-                dark:text-slate-300
-
-                hover:bg-slate-100/70
-                dark:hover:bg-slate-800/50
-
-                transition-colors
-              `}
-            >
-
-              <div className="min-w-0 flex flex-col justify-center">
-
-                <div className="flex items-center gap-2 min-w-0">
-                  <span
-                    className="
-                      uppercase
-                      tracking-wide
-                      text-[9px]
-                      opacity-70
-                      shrink-0
-                      dark:text-slate-400
-                    "
-                  >
-                    P/N
-                  </span>
-
-                  <span
-                    className="
-                      font-medium
-                      text-[12px]
-                      text-slate-800
-                      dark:text-slate-100
-                      truncate
-                    "
-                  >
-                    {reqArticle?.article_part_number ?? '—'}
-                  </span>
-                </div>
-
-                <div
-                  className="
-                    flex items-center gap-2
-                    text-[10px]
-                    text-muted-foreground
-                    dark:text-slate-400
-                    mt-0.5
-                  "
-                >
-                  <span
-                    className="
-                      uppercase
-                      text-[9px]
-                      opacity-70
-                      shrink-0
-                    "
-                  >
-                    ALT
-                  </span>
-
-                  <span className="truncate">
-                    {reqArticle?.article_alt_part_number ?? 'Sin alterno'}
-                  </span>
-                </div>
-
-              </div>
-
-              <div className="flex items-center justify-center w-full tabular-nums">
-                {article.article_quote_order?.quantity ?? '—'}
-              </div>
-
-              <div className="flex items-center justify-center w-full tabular-nums text-muted-foreground dark:text-slate-400">
-                ${Number(article.article_quote_order?.unit_price || 0).toFixed(2)}
-              </div>
-
-              <div className="flex items-center justify-center w-full text-[10px] text-muted-foreground dark:text-slate-400">
-                {article.shipping_tracking ?? '—'}
-              </div>
-
-              <div className="flex items-center justify-center w-full text-[10px] text-muted-foreground dark:text-slate-400">
-                {article.international_shipping_tracking ?? '—'}
-              </div>
-
-            </div>
-          )
-        })}
-
-        {generalArticles?.map((article) => {
-          const reqArticle = article.general_article_quote_order?.general_article_requisition_order
-          const variantType = reqArticle?.variant_type
-          const brandModel = article.general_article_quote_order?.brand_model
-          const details = [variantType, brandModel].filter(Boolean).join(' · ')
-
-          return (
-            <div
-              key={article.id}
-              className={`
-                ${grid}
-                px-2 py-2
-                rounded-md
-
-                bg-slate-50/70
-                dark:bg-slate-900/40
-
-                border
-                border-slate-200/50
-                dark:border-slate-700/50
-
-                text-[11px]
-                text-slate-600
-                dark:text-slate-300
-
-                hover:bg-slate-100/70
-                dark:hover:bg-slate-800/50
-
-                transition-colors
-              `}
-            >
-
-              <div className="min-w-0 flex flex-col justify-center">
-                <div className="flex items-center gap-2 min-w-0">
-                  <span
-                    className="
-                      uppercase
-                      tracking-wide
-                      text-[9px]
-                      opacity-70
-                      shrink-0
-                      dark:text-slate-400
-                    "
-                  >
-                    GEN
-                  </span>
-
-                  <span
-                    className="
-                      font-medium
-                      text-[12px]
-                      text-slate-800
-                      dark:text-slate-100
-                      truncate
-                    "
-                  >
-                    {reqArticle?.description ?? '—'}
-                  </span>
-                </div>
-
-                {details && (
-                  <span className="mt-0.5 pl-[26px] text-[10px] text-muted-foreground dark:text-slate-400 truncate">
-                    {details}
-                  </span>
-                )}
-              </div>
-
-              <div className="flex items-center justify-center w-full tabular-nums">
-                {article.general_article_quote_order?.quantity ?? '—'}
-              </div>
-
-              <div className="flex items-center justify-center w-full tabular-nums text-muted-foreground dark:text-slate-400">
-                ${Number(article.general_article_quote_order?.unit_price || 0).toFixed(2)}
-              </div>
-
-              <div className="flex items-center justify-center w-full text-[10px] text-muted-foreground dark:text-slate-400">
-                {article.shipping_tracking ?? '—'}
-              </div>
-
-              <div className="flex items-center justify-center w-full text-[10px] text-muted-foreground dark:text-slate-400">
-                {article.international_shipping_tracking ?? '—'}
-              </div>
-
-            </div>
-          )
-        })}
-
-      </div>
     </div>
   )
 }

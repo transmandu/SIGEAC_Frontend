@@ -1,4 +1,4 @@
-import type { Unit, Location, BankAccount, BankCard, PaymentMethod, ShippingAgency, GeneralArticle, Retailer } from '@/types';
+import type { Unit, Location, BankAccount, BankCard, PaymentMethod, ShippingAgency, GeneralArticle, Retailer, Vendor } from '@/types';
 import type { ArticleRequisitionOrderRef, GeneralArticleRequisitionOrderRef } from '@/types/purchase/quote';
 
 // ── Purchase order status ───────────────────────────────────────────────────
@@ -20,6 +20,10 @@ export interface PurchaseOrderArticleQuoteOrder {
   quantity: string | number;
   unit_price: string | number;
   total: string | number;
+  /** Unidad fijada al cotizar — la que hereda el artículo al crearse en inventario. */
+  unit?: Unit | null;
+  condition?: { id: number; name: string } | null;
+  vendor?: Vendor | null;
   article_requisition_order: ArticleRequisitionOrderRef | null;
 }
 
@@ -39,6 +43,8 @@ export interface PurchaseOrderGeneralArticleQuoteOrder {
   is_not_quoted?: boolean;
   /** Comercio / lugar de compra where this general article was quoted. */
   retailer?: Retailer | null;
+  /** Unidad fijada al cotizar — la que hereda el artículo al crearse en inventario. */
+  unit?: Unit | null;
   general_article_requisition_order: GeneralArticleRequisitionOrderRef | null;
 }
 

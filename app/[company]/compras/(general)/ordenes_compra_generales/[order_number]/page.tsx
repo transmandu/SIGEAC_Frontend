@@ -198,6 +198,7 @@ const PurchaseOrderPage = () => {
                 <PurchaseOrderArticleCard
                   key={article.id}
                   article={article}
+                  orderStatus={data?.status}
                 />
               ))}
 
@@ -206,6 +207,7 @@ const PurchaseOrderPage = () => {
                 <PurchaseOrderGeneralArticleCard
                   key={article.id}
                   article={article}
+                  orderStatus={data?.status}
                 />
               ))}
 

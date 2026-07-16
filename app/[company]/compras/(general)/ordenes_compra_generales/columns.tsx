@@ -2,21 +2,7 @@
 
 import { ColumnDef } from "@tanstack/react-table"
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
-import { Input } from "@/components/ui/input"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { useAuth } from "@/contexts/AuthContext"
 import { cn } from "@/lib/utils"
@@ -25,10 +11,11 @@ import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import Link from "next/link"
 import PurchaseOrderDropdownActions from "@/components/dropdowns/mantenimiento/compras/PurchaseOrderDropdownActions"
-import { CalendarIcon, ChevronRight, Loader2 } from "lucide-react"
+import { ChevronRight, Loader2 } from "lucide-react"
 import { useMemo, useState } from "react"
 import { toast } from "sonner"
 import { useRegisterGeneralArticlesDelivery } from "@/actions/mantenimiento/compras/ordenes_compras/actions"
+import RegisterGeneralArticlesDeliveryDialog from "./_components/RegisterGeneralArticlesDeliveryDialog"
 
 const ArticlesCountAction = ({
   po,
@@ -38,7 +25,6 @@ const ArticlesCountAction = ({
   company?: string
 }) => {
   const [open, setOpen] = useState(false)
-  const [arrivedAt, setArrivedAt] = useState<Date>(() => new Date())
   const { registerGeneralArticlesDelivery } = useRegisterGeneralArticlesDelivery()
   const { user } = useAuth()
 
@@ -62,6 +48,7 @@ const ArticlesCountAction = ({
     <div
       className={cn(
         `
+          relative
           flex items-center justify-center
           px-2 py-0.5
           rounded-md
@@ -75,6 +62,10 @@ const ArticlesCountAction = ({
         canRegisterDelivery && hasPendingDelivery && "cursor-pointer hover:bg-emerald-50 hover:border-emerald-300/60 dark:hover:bg-emerald-950/30 dark:hover:border-emerald-700/50"
       )}
     >
+      {hasPendingDelivery && !registerGeneralArticlesDelivery.isPending && (
+        <span className="pointer-events-none absolute inset-0 rounded-md animate-[glow-pulse_6s_ease-in-out_infinite]" />
+      )}
+
       {registerGeneralArticlesDelivery.isPending ? (
         <Loader2 className="size-3 animate-spin" />
       ) : (
@@ -110,31 +101,11 @@ const ArticlesCountAction = ({
       return
     }
 
-    setArrivedAt(new Date())
     setOpen(true)
   }
 
-  const handleDateSelect = (day: Date | undefined) => {
-    if (!day) return
-    setArrivedAt((prev) => {
-      const next = new Date(day)
-      next.setHours(prev.getHours(), prev.getMinutes(), 0, 0)
-      return next
-    })
-  }
-
-  const handleTimeChange = (value: string) => {
-    const [hours, minutes] = value.split(":").map(Number)
-    if (Number.isNaN(hours) || Number.isNaN(minutes)) return
-    setArrivedAt((prev) => {
-      const next = new Date(prev)
-      next.setHours(hours, minutes, 0, 0)
-      return next
-    })
-  }
-
   return (
-    <AlertDialog open={open} onOpenChange={setOpen}>
+    <>
       <TooltipProvider delayDuration={120}>
         <Tooltip>
           <TooltipTrigger asChild>
@@ -155,79 +126,15 @@ const ArticlesCountAction = ({
         </Tooltip>
       </TooltipProvider>
 
-      <AlertDialogContent onClick={(e) => e.stopPropagation()}>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Registrar entrega de artículos</AlertDialogTitle>
-          <AlertDialogDescription>
-            Estás a punto de registrar la entrega física de{" "}
-            <span className="font-semibold text-foreground">{pendingGeneralArticles.length}</span>{" "}
-            {pendingGeneralArticles.length === 1 ? "artículo general" : "artículos generales"} de la orden{" "}
-            <span className="font-semibold text-foreground">{po.order_number}</span>.
-            Esto creará las entradas pendientes de verificación en almacén.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-              Fecha y hora de llegada
-            </span>
-            <div className="h-px flex-1 bg-border/60" />
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "h-9 flex-1 justify-start text-sm bg-background/70",
-                    !arrivedAt && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-3 w-3 opacity-60" />
-                  {format(arrivedAt, "dd MMM yyyy", { locale: es })}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  selected={arrivedAt}
-                  onSelect={handleDateSelect}
-                  locale={es}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
-
-            <Input
-              type="time"
-              value={format(arrivedAt, "HH:mm")}
-              onChange={(e) => handleTimeChange(e.target.value)}
-              className="h-9 w-28 bg-background/70 text-sm"
-            />
-          </div>
-        </div>
-
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={registerGeneralArticlesDelivery.isPending}>
-            Cancelar
-          </AlertDialogCancel>
-          <AlertDialogAction
-            disabled={registerGeneralArticlesDelivery.isPending}
-            onClick={() =>
-              registerGeneralArticlesDelivery.mutate({
-                id: po.id,
-                company: company!,
-                arrivedAt,
-              })
-            }
-          >
-            Confirmar
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+      {company && (
+        <RegisterGeneralArticlesDeliveryDialog
+          po={po}
+          company={company}
+          open={open}
+          onOpenChange={setOpen}
+        />
+      )}
+    </>
   )
 }
 
@@ -347,7 +254,7 @@ export const getColumns = (
       if (!name) {
         return (
           <div className="flex justify-center w-full">
-            <span className="text-sm text-muted-foreground">—</span>
+            <span className="text-sm text-muted-foreground">N/A</span>
           </div>
         )
       }
