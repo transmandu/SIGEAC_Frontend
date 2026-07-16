@@ -10,19 +10,21 @@ import {
 } from "lucide-react";
 
 const INVENTARIO_ARTICULOS_ROLES = [
-    "SUPERUSER",
-    "ANALISTA_COMPRAS",
-    "JEFE_COMPRAS",
-    "ANALISTA_PLANIFICACION",
-    "JEFE_PLANIFICACION",
-    "RRHH_ADMINISTRACION",
-    "JEFE_ADMINISTRACION",
-    "JEFE_CONTROL_CALIDAD",
-    "CONTADOR_ADMINISTRACION",
     "TESTER",
-    "ENGINEERING",
-    "TECNICO_MANTENIMIENTO_AERONAUTICO",
-    "JEFE_MANTENIMIENTO",
+
+    "JEFE_COMPRAS", "ANALISTA_COMPRAS",
+
+    "JEFE_PLANIFICACION", "ANALISTA_PLANIFICACION",
+
+    "JEFE_ADMINISTRACION", "RRHH_ADMINISTRACION", "ANALISTA_ADMINISTRACION", "CONTADOR_ADMINISTRACION",
+    
+    "JEFE_CONTROL_CALIDAD",
+    
+    "JEFE_MANTENIMIENTO", "TECNICO_MANTENIMIENTO_AERONAUTICO", "ENGINEERING",
+];
+
+const INVENTARIO_GENERAL_ROLES = [
+    "ASISTENTE_COMPRAS", "SERVICIOS_GENERALES",
 ];
 
 export function buildGeneralGroup({ pathname, currentCompany, userRoles }: MenuContext): Group {
@@ -115,7 +117,7 @@ export function buildGeneralGroup({ pathname, currentCompany, userRoles }: MenuC
                 label: "Inventario",
                 active: pathname.includes(inventarioHref),
                 icon: PackageSearch,
-                roles: INVENTARIO_ARTICULOS_ROLES,
+                roles: [...INVENTARIO_ARTICULOS_ROLES, ...INVENTARIO_GENERAL_ROLES],
                 submenus: [],
                 requiresOmac: true,
             },
