@@ -80,17 +80,17 @@ export function CreateObligatoryReportForm({
     .object({
       report_number: shouldEnableField
         ? z
-          .string()
-          .min(1, "El número de reporte es obligatorio")
-          .refine((val) => !isNaN(Number(val)), {
-            message: "El valor debe ser un número",
-          })
+            .string()
+            .min(1, "El número de reporte es obligatorio")
+            .refine((val) => !isNaN(Number(val)), {
+              message: "El valor debe ser un número",
+            })
         : z
-          .string()
-          .refine((val) => val === "" || !isNaN(Number(val)), {
-            message: "El valor debe ser un número o estar vacío",
-          })
-          .optional(),
+            .string()
+            .refine((val) => val === "" || !isNaN(Number(val)), {
+              message: "El valor debe ser un número o estar vacío",
+            })
+            .optional(),
       incident_location: z
         .string()
         .min(3, {
@@ -373,7 +373,10 @@ export function CreateObligatoryReportForm({
           Reporte Obligatorio de suceso
         </FormLabel>
 
-        <div className="flex gap-2 items-center justify-evenly">
+        <div
+          className="flex gap-2 items-center justify-evenly"
+          data-tour="obligatorio-ubicacion"
+        >
           {shouldEnableField && (
             <FormField
               control={form.control}
@@ -420,21 +423,27 @@ export function CreateObligatoryReportForm({
             )}
           />
         </div>
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Descripcion del Suceso</FormLabel>
-              <FormControl>
-                <Input placeholder="" {...field} />
-              </FormControl>
-              <FormMessage className="text-xs" />
-            </FormItem>
-          )}
-        />
 
-        <div className="flex gap-2 items-center justify-center">
+        <div data-tour="obligatorio-descripcion">
+          <FormField
+            control={form.control}
+            name="description"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Descripcion del Suceso</FormLabel>
+                <FormControl>
+                  <Input placeholder="" {...field} />
+                </FormControl>
+                <FormMessage className="text-xs" />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <div
+          className="flex gap-2 items-center justify-center"
+          data-tour="obligatorio-fechas"
+        >
           <FormField
             control={form.control}
             name="incident_date"
@@ -545,7 +554,10 @@ export function CreateObligatoryReportForm({
           />
         </div>
 
-        <div className="flex gap-2 justify-center items-center">
+        <div
+          className="flex gap-2 justify-center items-center"
+          data-tour="obligatorio-pilotos"
+        >
           <FormField
             control={form.control}
             name="pilot_id"
@@ -618,7 +630,10 @@ export function CreateObligatoryReportForm({
             )}
           />
         </div>
-        <div className="flex gap-4 justify-center items-center">
+        <div
+          className="flex gap-4 justify-center items-center"
+          data-tour="obligatorio-horas-vuelo"
+        >
           <FormField
             control={form.control}
             name="flight_time"
@@ -669,218 +684,225 @@ export function CreateObligatoryReportForm({
             )}
           />
         </div>
-        <FormField
-          control={form.control}
-          name="aircraft_id"
-          render={({ field }) => (
-            <FormItem className="w-full">
-              <FormLabel>Aeronave</FormLabel>
-              {isLoadingAircrafts ? (
-                <div className="flex items-center gap-2 p-2 border rounded-md bg-muted">
-                  <Loader2 className="h-4 w-4 animate-spin" />{" "}
-                  <span className="text-sm">Cargando Aeronaves...</span>
-                </div>
-              ) : (
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                  disabled={isLoadingAircrafts} // Deshabilitar durante carga
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar Matricula de la Aeronave" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {aircrafts?.map((aircraft) => (
-                      <SelectItem
-                        key={aircraft.id}
-                        value={aircraft.id.toString()}
-                      >
-                        <p className="font-bold">
-                          Matricula : {aircraft.acronym}{" "}
-                        </p>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-              <FormMessage />
-            </FormItem>
-          )}
-        />
 
-        <div className="flex gap-2 justify-center items-center">
+        <div data-tour="obligatorio-aeronave">
           <FormField
             control={form.control}
-            name="flight_number"
+            name="aircraft_id"
             render={({ field }) => (
               <FormItem className="w-full">
-                <FormLabel>Numero de vuelo</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Numero del vuelo"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage className="text-xs" />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="flight_origin"
-            render={({ field }) => (
-              <FormItem className="w-full">
-                <FormLabel>Origen de vuelo</FormLabel>
-                <FormControl>
-                  <Input placeholder="Salida del vuelo" {...field} />
-                </FormControl>
-                <FormMessage className="text-xs" />
+                <FormLabel>Aeronave</FormLabel>
+                {isLoadingAircrafts ? (
+                  <div className="flex items-center gap-2 p-2 border rounded-md bg-muted">
+                    <Loader2 className="h-4 w-4 animate-spin" />{" "}
+                    <span className="text-sm">Cargando Aeronaves...</span>
+                  </div>
+                ) : (
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    disabled={isLoadingAircrafts} // Deshabilitar durante carga
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccionar Matricula de la Aeronave" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {aircrafts?.map((aircraft) => (
+                        <SelectItem
+                          key={aircraft.id}
+                          value={aircraft.id.toString()}
+                        >
+                          <p className="font-bold">
+                            Matricula : {aircraft.acronym}{" "}
+                          </p>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+                <FormMessage />
               </FormItem>
             )}
           />
         </div>
 
-        <div className="flex gap-2 justify-center items-center">
-          <FormField
-            control={form.control}
-            name="flight_destiny"
-            render={({ field }) => (
-              <FormItem className="w-full">
-                <FormLabel>Destino de vuelo</FormLabel>
-                <FormControl>
-                  <Input placeholder="Destino del vuelo" {...field} />
-                </FormControl>
-                <FormMessage className="text-xs" />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="flight_alt_destiny"
-            render={({ field }) => (
-              <FormItem className="w-full">
-                <FormLabel>Destino alterno del vuelo</FormLabel>
-                <FormControl>
-                  <Input placeholder="Destino alterno del vuelo" {...field} />
-                </FormControl>
-                <FormMessage className="text-xs" />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        {!showOtherInput && (
-          <FormField
-            control={form.control}
-            name="incidents"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="m-2">Incidentes:</FormLabel>
-                <FormControl>
-                  <Popover open={open} onOpenChange={setOpen}>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        role="combobox"
-                        aria-expanded={open}
-                        className="w-[300px] justify-between"
-                      >
-                        {selectedValues && selectedValues.length > 0 ? (
-                          <p>({selectedValues.length}) seleccionados</p>
-                        ) : (
-                          "Seleccionar opciones..."
-                        )}
-                        <ChevronsUpDown className="opacity-50" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-[300px] p-0">
-                      <Command>
-                        <CommandInput placeholder="Buscar opciones..." />
-                        <CommandList>
-                          <CommandEmpty>
-                            No se encontraron opciones.
-                          </CommandEmpty>
-                          <CommandGroup>
-                            {OPTIONS_LIST.map((option) => (
-                              <CommandItem
-                                key={option}
-                                value={option}
-                                onSelect={(currentValue) => {
-                                  const isSelected =
-                                    selectedValues.includes(currentValue);
-                                  const newValues = isSelected
-                                    ? selectedValues.filter(
-                                      (v) => v !== currentValue,
-                                    )
-                                    : [...selectedValues, currentValue];
-
-                                  setSelectedValues(newValues);
-                                  field.onChange(
-                                    newValues.length > 0 ? newValues : [],
-                                  ); // Actualizar el valor del campo de formulario
-                                }}
-                              >
-                                {option}
-                                {selectedValues && (
-                                  <Check
-                                    className={cn(
-                                      "ml-auto",
-                                      selectedValues.includes(option)
-                                        ? "opacity-100"
-                                        : "opacity-0",
-                                    )}
-                                  />
-                                )}
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
-                </FormControl>
-                <FormMessage className="text-xs" />
-              </FormItem>
-            )}
-          />
-        )}
-
-        <FormField
-          control={form.control}
-          name="other_incidents" // Campo separado para "other_incidents"
-          render={() => (
-            <FormItem className="mt-4">
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                <FormControl>
-                  <Checkbox
-                    checked={showOtherInput}
-                    onCheckedChange={handleOtherCheckboxChange}
-                  />
-                </FormControl>
-                <FormLabel className="text-sm font-normal">
-                  Otros incidentes
-                </FormLabel>
-              </FormItem>
-              {showOtherInput && (
-                <FormItem className="mt-2">
+        <div data-tour="obligatorio-vuelo">
+          <div className="flex gap-2 justify-center items-center">
+            <FormField
+              control={form.control}
+              name="flight_number"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>Numero de vuelo</FormLabel>
                   <FormControl>
-                    <Input
-                      type="text"
-                      placeholder="Detalles del incidente"
-                      {...form.register("other_incidents")}
-                      onChange={handleOtherInputChange}
-                    />
+                    <Input placeholder="Numero del vuelo" {...field} />
                   </FormControl>
+                  <FormMessage className="text-xs" />
                 </FormItem>
               )}
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+            />
+            <FormField
+              control={form.control}
+              name="flight_origin"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>Origen de vuelo</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Salida del vuelo" {...field} />
+                  </FormControl>
+                  <FormMessage className="text-xs" />
+                </FormItem>
+              )}
+            />
+          </div>
 
-        <div className="flex justify-center items-center gap-2">
+          <div className="flex gap-2 justify-center items-center">
+            <FormField
+              control={form.control}
+              name="flight_destiny"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>Destino de vuelo</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Destino del vuelo" {...field} />
+                  </FormControl>
+                  <FormMessage className="text-xs" />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="flight_alt_destiny"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>Destino alterno del vuelo</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Destino alterno del vuelo" {...field} />
+                  </FormControl>
+                  <FormMessage className="text-xs" />
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>
+
+        <div data-tour="obligatorio-incidentes">
+          {!showOtherInput && (
+            <FormField
+              control={form.control}
+              name="incidents"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="m-2">Incidentes:</FormLabel>
+                  <FormControl>
+                    <Popover open={open} onOpenChange={setOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={open}
+                          className="w-[300px] justify-between"
+                        >
+                          {selectedValues && selectedValues.length > 0 ? (
+                            <p>({selectedValues.length}) seleccionados</p>
+                          ) : (
+                            "Seleccionar opciones..."
+                          )}
+                          <ChevronsUpDown className="opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[300px] p-0">
+                        <Command>
+                          <CommandInput placeholder="Buscar opciones..." />
+                          <CommandList>
+                            <CommandEmpty>
+                              No se encontraron opciones.
+                            </CommandEmpty>
+                            <CommandGroup>
+                              {OPTIONS_LIST.map((option) => (
+                                <CommandItem
+                                  key={option}
+                                  value={option}
+                                  onSelect={(currentValue) => {
+                                    const isSelected =
+                                      selectedValues.includes(currentValue);
+                                    const newValues = isSelected
+                                      ? selectedValues.filter(
+                                          (v) => v !== currentValue,
+                                        )
+                                      : [...selectedValues, currentValue];
+
+                                    setSelectedValues(newValues);
+                                    field.onChange(
+                                      newValues.length > 0 ? newValues : [],
+                                    ); // Actualizar el valor del campo de formulario
+                                  }}
+                                >
+                                  {option}
+                                  {selectedValues && (
+                                    <Check
+                                      className={cn(
+                                        "ml-auto",
+                                        selectedValues.includes(option)
+                                          ? "opacity-100"
+                                          : "opacity-0",
+                                      )}
+                                    />
+                                  )}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                  </FormControl>
+                  <FormMessage className="text-xs" />
+                </FormItem>
+              )}
+            />
+          )}
+
+          <FormField
+            control={form.control}
+            name="other_incidents" // Campo separado para "other_incidents"
+            render={() => (
+              <FormItem className="mt-4">
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                  <FormControl>
+                    <Checkbox
+                      checked={showOtherInput}
+                      onCheckedChange={handleOtherCheckboxChange}
+                    />
+                  </FormControl>
+                  <FormLabel className="text-sm font-normal">
+                    Otros incidentes
+                  </FormLabel>
+                </FormItem>
+                {showOtherInput && (
+                  <FormItem className="mt-2">
+                    <FormControl>
+                      <Input
+                        type="text"
+                        placeholder="Detalles del incidente"
+                        {...form.register("other_incidents")}
+                        onChange={handleOtherInputChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <div
+          className="flex justify-center items-center gap-2"
+          data-tour="obligatorio-archivos"
+        >
           <FormField
             control={form.control}
             name="image"
@@ -954,7 +976,9 @@ export function CreateObligatoryReportForm({
           <p className="text-muted-foreground">SIGEAC</p>
           <Separator className="flex-1" />
         </div>
-        <Button type="submit">Enviar reporte</Button>
+        <Button type="submit" data-tour="obligatorio-submit">
+          Enviar reporte
+        </Button>
       </form>
     </Form>
   );
