@@ -53,7 +53,7 @@ export default function QuoteActions({
   const canDelete = !isApproved
 
   // Cotización complementaria: solo sobre una original APROBADA con
-  // artículos generales cotizados. Documenta la diferencia entre lo comprado
+  // artículos generales cotizados. Registra la diferencia entre lo comprado
   // realmente y lo amparado, sin editar los documentos ya pagados.
   const canCreateComplementary =
     isApproved &&
@@ -155,7 +155,7 @@ export default function QuoteActions({
                 <PackagePlus className={iconBase} />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Crear cotización complementaria (diferencia comprada no documentada)</TooltipContent>
+            <TooltipContent>Crear cotización complementaria (diferencia comprada aún no registrada)</TooltipContent>
           </Tooltip>
         )}
 
