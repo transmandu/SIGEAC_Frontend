@@ -197,7 +197,7 @@ export const Calendar = ({ events, theme = "light" }: CalendarProps) => {
         );
       },
     }),
-    []
+    [],
   );
 
   // ✅ Refrescar eventos en el servicio solo cuando cambian
@@ -214,10 +214,12 @@ export const Calendar = ({ events, theme = "light" }: CalendarProps) => {
 
   return (
     <div className="w-full h-screen p-4">
-      <ScheduleXCalendar
-        calendarApp={calendar}
-        customComponents={customComponents}
-      />
+      <div data-tour="calendario-grid">
+        <ScheduleXCalendar
+          calendarApp={calendar}
+          customComponents={customComponents}
+        />
+      </div>
       <CreateCourseCalendarDialog
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}

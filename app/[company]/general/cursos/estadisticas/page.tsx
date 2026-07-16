@@ -10,12 +10,20 @@ import { format, startOfMonth } from "date-fns";
 import { Loader2 } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useTourContext } from "@/components/tour/TourProvider";
+import { estadisticasSteps } from "@/components/tour/steps/general/cursos/estadisticas";
 
 const CourseStatsPage = () => {
   const { selectedCompany, selectedStation } = useCompanyStore();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { registerTour, unregisterTour } = useTourContext();
+
+  useEffect(() => {
+    registerTour("estadisticas", "Estadísticas", estadisticasSteps);
+    return () => unregisterTour("estadisticas");
+  }, [registerTour, unregisterTour]);
 
   interface Params {
     from?: string;
@@ -46,7 +54,7 @@ const CourseStatsPage = () => {
 
   // Manejar cambio de fechas desde DataFilter
   const handleDateChange = (
-    dateRange: { from: Date; to: Date } | undefined
+    dateRange: { from: Date; to: Date } | undefined,
   ) => {
     if (!dateRange?.from || !dateRange?.to) return;
 
@@ -78,7 +86,7 @@ const CourseStatsPage = () => {
     params.from || format(startOfMonth(new Date()), "yyyy-MM-dd"),
     params.to || format(new Date(), "yyyy-MM-dd"),
     selectedStation ?? null,
-    selectedCompany?.slug
+    selectedCompany?.slug,
   );
 
   const pieChartData =
@@ -98,7 +106,10 @@ const CourseStatsPage = () => {
   return (
     <ContentLayout title="Gráficos Estadísticos de Cursos">
       <div className="flex flex-col space-y-4 mb-6">
-        <div className="flex justify-center items-center">
+        <div
+          className="flex justify-center items-center"
+          data-tour="estadisticas-header"
+        >
           <div className="flex flex-col w-full max-w-md">
             <Label className="text-lg font-semibold mb-2">
               Seleccionar Rango de Fechas:
@@ -107,6 +118,7 @@ const CourseStatsPage = () => {
             <DataFilter
               onDateChange={handleDateChange}
               onReset={handleReset}
+              buttonDataTour="estadisticas-filtro"
               initialDate={{
                 from:
                   params.from || format(startOfMonth(new Date()), "yyyy-MM-dd"),
@@ -118,7 +130,10 @@ const CourseStatsPage = () => {
       </div>
 
       <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-2 gap-4">
-        <div className="flex flex-col justify-center items-center p-4 rounded-lg shadow border">
+        <div
+          className="flex flex-col justify-center items-center p-4 rounded-lg shadow border"
+          data-tour="estadisticas-barras"
+        >
           {isLoadingBarChart ? (
             <div className="flex justify-center items-center h-48">
               <Loader2 className="size-24 animate-spin" />
@@ -142,7 +157,10 @@ const CourseStatsPage = () => {
           )}
         </div>
 
-        <div className="flex flex-col justify-center items-center p-4 rounded-lg shadow border">
+        <div
+          className="flex flex-col justify-center items-center p-4 rounded-lg shadow border"
+          data-tour="estadisticas-pastel"
+        >
           {isLoadingBarChart ? (
             <div className="flex justify-center items-center h-48">
               <Loader2 className="size-24 animate-spin" />

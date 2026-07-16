@@ -1,21 +1,38 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axiosInstance from "@/lib/axios";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useGetEmployeesByCompany } from "@/hooks/sistema/empleados/useGetEmployees";
 import { useGetEmployeeTrainingProfile } from "@/hooks/curso/useGetEmployeeTrainingProfile";
 import {
-  Loader2, Users, FileText, CheckCircle,
-  XCircle, Search, FileBadge, ChevronDown, ChevronUp, BookOpen, Calendar, Eye
+  Loader2,
+  Users,
+  FileText,
+  CheckCircle,
+  XCircle,
+  Search,
+  FileBadge,
+  ChevronDown,
+  ChevronUp,
+  BookOpen,
+  Calendar,
+  Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { useTourContext } from "@/components/tour/TourProvider";
+import { resumenSteps } from "@/components/tour/steps/general/cursos/resumen";
 
 type CourseSummary = {
   key: string;
@@ -27,7 +44,9 @@ type CourseSummary = {
 
 const getFirstValue = (source: any, paths: string[]) => {
   for (const path of paths) {
-    const value = path.split(".").reduce((current, key) => current?.[key], source);
+    const value = path
+      .split(".")
+      .reduce((current, key) => current?.[key], source);
 
     if (value !== undefined && value !== null && value !== "") {
       return value;
@@ -57,7 +76,7 @@ const getCourseKey = (item: any, fallback: string) => {
       "course.name",
       "courseExam.course.name",
       "exam.course.name",
-    ]) || fallback
+    ]) || fallback,
   );
 };
 
@@ -83,7 +102,7 @@ const getItemDate = (item: any) => {
       "courseExam.course.end_date",
       "exam.exam_date",
       "created_at",
-    ])
+    ]),
   );
 };
 
@@ -112,13 +131,19 @@ const openProtectedDocument = async (endpoint: string) => {
   }
 };
 
-const getCertificateUrl = (companySlug: string | undefined, document?: string | null) => {
+const getCertificateUrl = (
+  companySlug: string | undefined,
+  document?: string | null,
+) => {
   if (!companySlug || !document) return null;
 
   return `/${companySlug}/sms/certificates/serve/${encodeFilePath(document)}`;
 };
 
-const getExamDocumentUrl = (companySlug: string | undefined, documentPath?: string | null) => {
+const getExamDocumentUrl = (
+  companySlug: string | undefined,
+  documentPath?: string | null,
+) => {
   if (!companySlug || !documentPath) return null;
 
   const normalizedPath = documentPath.replace(/^\/+/, "");
@@ -153,8 +178,12 @@ const buildCourseSummaries = (profile: any): CourseSummary[] => {
     return course;
   };
 
-  const attendedCourses: any[] = Array.isArray(profile) ? [] : profile?.courses || [];
-  const certificates: any[] = Array.isArray(profile) ? [] : profile?.certificates || [];
+  const attendedCourses: any[] = Array.isArray(profile)
+    ? []
+    : profile?.courses || [];
+  const certificates: any[] = Array.isArray(profile)
+    ? []
+    : profile?.certificates || [];
   const exams: any[] = Array.isArray(profile) ? profile : profile?.exams || [];
 
   attendedCourses.forEach((courseAttendance: any, index: number) => {
@@ -162,7 +191,9 @@ const buildCourseSummaries = (profile: any): CourseSummary[] => {
   });
 
   certificates?.forEach((certificate: any, index: number) => {
-    ensureCourse(certificate, `certificate-${index}`).certificates.push(certificate);
+    ensureCourse(certificate, `certificate-${index}`).certificates.push(
+      certificate,
+    );
   });
 
   exams?.forEach((exam: any, index: number) => {
@@ -170,7 +201,10 @@ const buildCourseSummaries = (profile: any): CourseSummary[] => {
     course.exams.push(exam);
 
     if (course.name === "Curso no especificado") {
-      course.name = getCourseName(exam, exam.exam_name || "Curso no especificado");
+      course.name = getCourseName(
+        exam,
+        exam.exam_name || "Curso no especificado",
+      );
     }
   });
 
@@ -216,22 +250,33 @@ const CourseSummaryCard = ({
           <div className="space-y-3">
             {course.certificates.map((cert: any, index: number) => {
               const issueDate = getItemDate(cert);
-              const certificateUrl = getCertificateUrl(companySlug, cert.document);
+              const certificateUrl = getCertificateUrl(
+                companySlug,
+                cert.document,
+              );
 
               return (
-                <div key={cert.id || index} className="flex justify-between items-start gap-3 border-b border-gray-100 dark:border-gray-800/50 last:border-0 pb-3 last:pb-0">
+                <div
+                  key={cert.id || index}
+                  className="flex justify-between items-start gap-3 border-b border-gray-100 dark:border-gray-800/50 last:border-0 pb-3 last:pb-0"
+                >
                   <div>
                     <p className="font-medium text-sm text-gray-900 dark:text-gray-100">
                       {cert.name || cert.course_name || "Certificado"}
                     </p>
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      Emision: {issueDate ? format(issueDate, "dd/MM/yyyy") : "N/A"}
+                      Emision:{" "}
+                      {issueDate ? format(issueDate, "dd/MM/yyyy") : "N/A"}
                     </p>
                   </div>
                   <div className="flex flex-col items-end gap-2">
                     {cert.expiration_date && (
-                      <Badge variant="outline" className="h-6 whitespace-nowrap">
-                        Expira {format(new Date(cert.expiration_date), "dd/MM/yyyy")}
+                      <Badge
+                        variant="outline"
+                        className="h-6 whitespace-nowrap"
+                      >
+                        Expira{" "}
+                        {format(new Date(cert.expiration_date), "dd/MM/yyyy")}
                       </Badge>
                     )}
                     {certificateUrl && (
@@ -252,7 +297,9 @@ const CourseSummaryCard = ({
             })}
           </div>
         ) : (
-          <p className="text-sm text-muted-foreground italic py-2">No hay certificados registrados.</p>
+          <p className="text-sm text-muted-foreground italic py-2">
+            No hay certificados registrados.
+          </p>
         )}
       </div>
 
@@ -264,16 +311,27 @@ const CourseSummaryCard = ({
         {course.exams.length > 0 ? (
           <div className="space-y-3">
             {course.exams.map((exam: any, index: number) => {
-              const examDocumentUrl = getExamDocumentUrl(companySlug, exam.document_path);
+              const examDocumentUrl = getExamDocumentUrl(
+                companySlug,
+                exam.document_path,
+              );
 
               return (
-                <div key={exam.id || index} className="flex justify-between items-start gap-3 border-b border-gray-100 dark:border-gray-800/50 last:border-0 pb-3 last:pb-0">
+                <div
+                  key={exam.id || index}
+                  className="flex justify-between items-start gap-3 border-b border-gray-100 dark:border-gray-800/50 last:border-0 pb-3 last:pb-0"
+                >
                   <div>
                     <p className="font-medium text-sm text-gray-900 dark:text-gray-100">
-                      {exam.exam_name || exam.name || exam.courseExam?.name || exam.exam?.name || "Examen"}
+                      {exam.exam_name ||
+                        exam.name ||
+                        exam.courseExam?.name ||
+                        exam.exam?.name ||
+                        "Examen"}
                     </p>
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      Puntuacion: <span className="font-medium">{exam.score || "N/A"}</span>
+                      Puntuacion:{" "}
+                      <span className="font-medium">{exam.score || "N/A"}</span>
                     </p>
                   </div>
                   <div className="flex flex-col items-end gap-2">
@@ -282,7 +340,10 @@ const CourseSummaryCard = ({
                         <CheckCircle className="w-3 h-3" /> Aprobado
                       </Badge>
                     ) : (
-                      <Badge variant="destructive" className="bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/20 border-0 flex items-center gap-1">
+                      <Badge
+                        variant="destructive"
+                        className="bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/20 border-0 flex items-center gap-1"
+                      >
                         <XCircle className="w-3 h-3" /> Reprobado
                       </Badge>
                     )}
@@ -304,7 +365,9 @@ const CourseSummaryCard = ({
             })}
           </div>
         ) : (
-          <p className="text-sm text-muted-foreground italic py-2">No hay examenes registrados.</p>
+          <p className="text-sm text-muted-foreground italic py-2">
+            No hay examenes registrados.
+          </p>
         )}
       </div>
     </div>
@@ -315,24 +378,23 @@ const CourseSummaryCard = ({
 // Este componente se encarga de fetchear y mostrar los datos del empleado abierto
 const EmployeeProfileExpanded = ({
   employee,
-  companySlug
+  companySlug,
 }: {
   employee: any;
   companySlug: string | undefined;
 }) => {
   const [viewMode, setViewMode] = useState<"latest" | "all">("latest");
-  const { data: profile, isLoading, isError } = useGetEmployeeTrainingProfile(
-    companySlug,
-    employee.dni
-  );
+  const {
+    data: profile,
+    isLoading,
+    isError,
+  } = useGetEmployeeTrainingProfile(companySlug, employee.dni);
   const courseSummaries = buildCourseSummaries(profile);
-  const visibleCourses = viewMode === "latest"
-    ? courseSummaries.slice(0, 1)
-    : courseSummaries;
+  const visibleCourses =
+    viewMode === "latest" ? courseSummaries.slice(0, 1) : courseSummaries;
 
   return (
     <div className="p-6 bg-slate-50 dark:bg-slate-900/50 border-t border-gray-200 dark:border-gray-800 rounded-b-lg">
-
       {/* Encabezado del empleado (Estilo Dashboard como en tu foto) */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 pb-6 border-b border-gray-200 dark:border-gray-800 gap-4">
         <div className="flex items-center gap-4">
@@ -343,7 +405,8 @@ const EmployeeProfileExpanded = ({
               className="object-cover"
             />
             <AvatarFallback className="bg-blue-600 text-white font-bold text-2xl">
-              {employee.first_name?.charAt(0)}{employee.last_name?.charAt(0)}
+              {employee.first_name?.charAt(0)}
+              {employee.last_name?.charAt(0)}
             </AvatarFallback>
           </Avatar>
           <div>
@@ -366,7 +429,8 @@ const EmployeeProfileExpanded = ({
         </div>
       ) : isError ? (
         <div className="bg-red-100 text-red-700 p-4 rounded-lg flex items-center gap-2">
-          <XCircle className="w-5 h-5" /> Ha ocurrido un error al cargar el perfil del empleado.
+          <XCircle className="w-5 h-5" /> Ha ocurrido un error al cargar el
+          perfil del empleado.
         </div>
       ) : profile ? (
         <div className="space-y-4">
@@ -444,7 +508,11 @@ const EmployeeProfileExpanded = ({
 // --- PÁGINA PRINCIPAL ---
 const ResumenCapacitacionPage = () => {
   const { selectedCompany } = useCompanyStore();
-  const { data: employees, isLoading, isError } = useGetEmployeesByCompany(selectedCompany?.slug);
+  const {
+    data: employees,
+    isLoading,
+    isError,
+  } = useGetEmployeesByCompany(selectedCompany?.slug);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [expandedDni, setExpandedDni] = useState<string | null>(null);
@@ -460,11 +528,23 @@ const ResumenCapacitacionPage = () => {
     setExpandedDni(expandedDni === dni ? null : dni);
   };
 
+  const { registerTour, unregisterTour } = useTourContext();
+  useEffect(() => {
+    registerTour(
+      "resumen-capacitacion",
+      "Resumen de Capacitaciones",
+      resumenSteps,
+    );
+    return () => unregisterTour("resumen-capacitacion");
+  }, [registerTour, unregisterTour]);
+
   return (
     <ContentLayout title="Resumen de Capacitaciones">
       <div className="flex flex-col gap-6 w-full border border-gray-200 dark:border-gray-800 rounded-xl p-6 shadow-sm bg-white dark:bg-[#0b1120]">
-
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4 border-b pb-6 dark:border-gray-800">
+        <div
+          className="flex flex-col md:flex-row items-center justify-between gap-4 border-b pb-6 dark:border-gray-800"
+          data-tour="resumen-header"
+        >
           <div className="flex items-center gap-3 w-full">
             <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
               <Users className="w-6 h-6 text-blue-600 dark:text-blue-400" />
@@ -474,7 +554,8 @@ const ResumenCapacitacionPage = () => {
                 Directorio de Personal
               </h1>
               <p className="text-sm text-muted-foreground">
-                Haz clic en un empleado para desplegar su historial de capacitación.
+                Haz clic en un empleado para desplegar su historial de
+                capacitación.
               </p>
             </div>
           </div>
@@ -487,6 +568,7 @@ const ResumenCapacitacionPage = () => {
               className="pl-9 bg-gray-50 dark:bg-gray-900/50 border-gray-200 dark:border-gray-800 focus-visible:ring-blue-500"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              data-tour="resumen-search"
             />
           </div>
         </div>
@@ -511,10 +593,12 @@ const ResumenCapacitacionPage = () => {
                 return (
                   <div
                     key={emp.id || emp.dni}
-                    className={`border transition-all duration-200 rounded-lg ${isExpanded
-                      ? "border-blue-300 dark:border-blue-800/50 shadow-md ring-1 ring-blue-100 dark:ring-blue-900/30"
-                      : "border-gray-200 dark:border-gray-800 hover:border-blue-200 dark:hover:border-gray-700"
-                      }`}
+                    className={`border transition-all duration-200 rounded-lg ${
+                      isExpanded
+                        ? "border-blue-300 dark:border-blue-800/50 shadow-md ring-1 ring-blue-100 dark:ring-blue-900/30"
+                        : "border-gray-200 dark:border-gray-800 hover:border-blue-200 dark:hover:border-gray-700"
+                    }`}
+                    data-tour="resumen-lista"
                   >
                     {/* Fila colapsada / Encabezado clicable */}
                     <div
@@ -524,12 +608,15 @@ const ResumenCapacitacionPage = () => {
                       <div className="flex items-center gap-4">
                         <Avatar className="h-10 w-10 border border-gray-200 dark:border-gray-700 shadow-sm">
                           <AvatarImage
-                            src={emp?.photo_url ? `${emp.photo_url}?size=64` : ""}
+                            src={
+                              emp?.photo_url ? `${emp.photo_url}?size=64` : ""
+                            }
                             alt="Avatar"
                             className="object-cover"
                           />
                           <AvatarFallback className="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 font-semibold text-sm">
-                            {emp.first_name?.charAt(0)}{emp.last_name?.charAt(0)}
+                            {emp.first_name?.charAt(0)}
+                            {emp.last_name?.charAt(0)}
                           </AvatarFallback>
                         </Avatar>
                         <div>
@@ -543,7 +630,11 @@ const ResumenCapacitacionPage = () => {
                       </div>
 
                       <div className="flex items-center text-gray-400 hover:text-blue-500 transition-colors">
-                        {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                        {isExpanded ? (
+                          <ChevronUp className="w-5 h-5" />
+                        ) : (
+                          <ChevronDown className="w-5 h-5" />
+                        )}
                       </div>
                     </div>
 

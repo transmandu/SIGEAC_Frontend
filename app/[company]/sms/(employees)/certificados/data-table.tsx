@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -27,6 +27,8 @@ import { Plus, Search } from "lucide-react";
 
 import { DataTablePagination } from "@/components/tables/DataTablePagination";
 import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions";
+import { useTourContext } from "@/components/tour/TourProvider";
+import { getCertificadosSteps } from "@/components/tour/steps/general/cursos/certificados/certificados";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -44,13 +46,24 @@ export function DataTableCertificates<TData, TValue>({
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
+  const { registerTour, unregisterTour } = useTourContext();
+
+  const steps = useMemo(
+    () => getCertificadosSteps(data.length > 0),
+    [data.length],
+  );
+
+  useEffect(() => {
+    registerTour("certificados", "Certificados", steps);
+    return () => unregisterTour("certificados");
+  }, [steps, registerTour, unregisterTour]);
 
   /**
    * LÓGICA DE PERMISOS
    * Richard, al ser SUPERUSER según su JSON, ahora verá el botón correctamente.
    */
   const rolesPermitidos = ["JEFE_SMS", "ANALISTA_SMS", "SUPERUSER"];
-  
+
   const canCreate = user?.roles?.some((role: any) => {
     // Richard tiene objetos en roles, extraemos 'name' y comparamos en mayúsculas
     const roleName = typeof role === "string" ? role : role?.name;
@@ -77,12 +90,11 @@ export function DataTableCertificates<TData, TValue>({
 
   return (
     <>
-      <div className="flex flex-col gap-2 mb-4">
-        <h1 className="text-5xl font-bold text-center">
-          Certificados SMS
-        </h1>
+      <div className="flex flex-col gap-2 mb-4" data-tour="cert-header">
+        <h1 className="text-5xl font-bold text-center">Certificados SMS</h1>
         <p className="text-sm italic text-muted-foreground text-center">
-          Aquí se pueden visualizar los certificados de capacitación técnica cargados en el sistema
+          Aquí se pueden visualizar los certificados de capacitación técnica
+          cargados en el sistema
         </p>
       </div>
 
@@ -95,6 +107,7 @@ export function DataTableCertificates<TData, TValue>({
               variant="outline"
               size="sm"
               className="flex h-8 items-center gap-2"
+              data-tour="cert-create-btn"
             >
               <Plus className="h-4 w-4" />
               Nuevo Certificado
@@ -103,7 +116,7 @@ export function DataTableCertificates<TData, TValue>({
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="relative w-64">
+          <div className="relative w-64" data-tour="cert-search">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Buscar certificados..."
@@ -112,11 +125,13 @@ export function DataTableCertificates<TData, TValue>({
               className="pl-9 h-8 text-sm"
             />
           </div>
-          <DataTableViewOptions table={table} />
+          <div data-tour="cert-columns">
+            <DataTableViewOptions table={table} />
+          </div>
         </div>
       </div>
 
-      <div className="rounded-md border mb-4">
+      <div className="rounded-md border mb-4" data-tour="cert-table">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -127,7 +142,7 @@ export function DataTableCertificates<TData, TValue>({
                       ? null
                       : flexRender(
                           header.column.columnDef.header,
-                          header.getContext()
+                          header.getContext(),
                         )}
                   </TableHead>
                 ))}
@@ -145,7 +160,7 @@ export function DataTableCertificates<TData, TValue>({
                     <TableCell key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}
@@ -164,8 +179,10 @@ export function DataTableCertificates<TData, TValue>({
           </TableBody>
         </Table>
       </div>
-      
-      <DataTablePagination table={table} />
+
+      <div data-tour="cert-pagination">
+        <DataTablePagination table={table} />
+      </div>
     </>
   );
 }
