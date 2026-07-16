@@ -34,11 +34,13 @@ import {
 import { useAuth } from '@/contexts/AuthContext'
 import { useGetGeneralArticleIntakes } from '@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticleIntakes'
 import { cn } from '@/lib/utils'
+import { useCompanyStore } from '@/stores/CompanyStore'
 import type { GeneralArticleIntake, GeneralArticleIntakeStatus } from '@/types/purchase'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { Textarea } from '@/components/ui/textarea'
 import { CalendarIcon, ChevronRight, CheckCircle2, Loader2, PackageSearch, Search, XCircle } from 'lucide-react'
+import Link from 'next/link'
 import { memo, useMemo, useState } from 'react'
 import { DownloadReportDialog } from './DownloadReportDialog'
 
@@ -362,12 +364,14 @@ function IntakeDetailRow({
 
 // ── Fila de entrada ──────────────────────────────────────────────────────
 const IntakeRow = memo(function IntakeRow({ intake }: { intake: GeneralArticleIntake }) {
+    const { selectedCompany } = useCompanyStore()
     const isPending = intake.status === 'PENDING'
     const isRejected = intake.status === 'REJECTED'
     const [expanded, setExpanded] = useState(false)
     const discrepancy = useMemo(() => getRequisitionDiscrepancy(intake), [intake])
     const hasRejectionDetail = isRejected && !!intake.rejection_reason
     const canExpand = !!discrepancy || hasRejectionDetail
+    const requisitionOrderNumber = intake.purchase_order?.quote_order?.requisition_order?.order_number
 
     return (
         <>
@@ -420,10 +424,17 @@ const IntakeRow = memo(function IntakeRow({ intake }: { intake: GeneralArticleIn
                 </span>
             </TableCell>
 
-            <TableCell>
-                <span className="text-xs text-muted-foreground">
-                    {intake.purchase_order?.quote_order?.requisition_order?.order_number ?? '—'}
-                </span>
+            <TableCell onClick={(e) => e.stopPropagation()}>
+                {requisitionOrderNumber ? (
+                    <Link
+                        href={`/${selectedCompany?.slug}/general/requisiciones/${requisitionOrderNumber}`}
+                        className="text-xs text-muted-foreground hover:underline"
+                    >
+                        {requisitionOrderNumber}
+                    </Link>
+                ) : (
+                    <span className="text-xs text-muted-foreground">—</span>
+                )}
             </TableCell>
 
             <TableCell>

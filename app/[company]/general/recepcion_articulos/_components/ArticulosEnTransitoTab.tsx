@@ -13,7 +13,9 @@ import {
 } from '@/components/ui/table'
 import { useGetArticlesByStatus } from '@/hooks/mantenimiento/almacen/articulos/useGetArticlesByStatus'
 import { cn } from '@/lib/utils'
+import { useCompanyStore } from '@/stores/CompanyStore'
 import { ArrowRight, ChevronRight, Loader2, MapPin, Search } from 'lucide-react'
+import Link from 'next/link'
 import { memo, useMemo, useState } from 'react'
 import type { TransitArticle } from '@/types/purchase/in-transit'
 import { ArticleDetailDialog } from './ArticleDetailDialog'
@@ -28,6 +30,7 @@ const TRANSIT_STATUS_LABELS: Record<string, string> = {
 
 // ── Fila de artículo ───────────────────────────────────────────────────
 const ArticleRow = memo(function ArticleRow({ article }: { article: TransitArticle }) {
+    const { selectedCompany } = useCompanyStore()
     const { updateArticleStatus } = useUpdateArticleStatus()
     const [pending, setPending] = useState(false)
     const [expanded, setExpanded] = useState(false)
@@ -98,8 +101,17 @@ const ArticleRow = memo(function ArticleRow({ article }: { article: TransitArtic
                 </TableCell>
 
                 {/* N° de requisición */}
-                <TableCell className="text-center">
-                    <span className="text-sm font-medium">{article.requisition_order_number ?? 'N/A'}</span>
+                <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
+                    {article.requisition_order_number ? (
+                        <Link
+                            href={`/${selectedCompany?.slug}/general/requisiciones/${article.requisition_order_number}`}
+                            className="text-sm font-medium hover:underline"
+                        >
+                            {article.requisition_order_number}
+                        </Link>
+                    ) : (
+                        <span className="text-sm font-medium">N/A</span>
+                    )}
                 </TableCell>
 
                 <TableCell className="text-center">
@@ -316,7 +328,7 @@ export function ArticulosEnTransitoTab() {
                             <TableHead className="w-6 p-0" />
                             <TableHead className="text-xs text-center">N° de Parte / Alterno</TableHead>
                             <TableHead className="text-xs text-center">Descripción</TableHead>
-                            <TableHead className="text-xs text-center">N° de Requisición</TableHead>
+                            <TableHead className="text-xs text-center">Solicitud de Compra</TableHead>
                             <TableHead className="text-xs text-center">Fecha de Recepción</TableHead>
                             <TableHead className="text-xs text-center">Ubicación</TableHead>
                             <TableHead className="text-xs text-center">Estado</TableHead>
