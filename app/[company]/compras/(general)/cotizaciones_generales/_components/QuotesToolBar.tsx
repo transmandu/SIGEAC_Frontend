@@ -4,7 +4,8 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Search, SlidersHorizontal } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { Link2, Search, SlidersHorizontal } from 'lucide-react'
 
 type Props = {
   search: string
@@ -13,6 +14,8 @@ type Props = {
   setStatus: (value: string) => void
   groupBy: string
   setGroupBy: (value: string) => void
+  onlyComplementary: boolean
+  setOnlyComplementary: (value: boolean) => void
   placeholder?: string
 }
 
@@ -94,6 +97,8 @@ const QuotesToolBar = ({
   setStatus,
   groupBy,
   setGroupBy,
+  onlyComplementary,
+  setOnlyComplementary,
   placeholder = 'Buscar cotizaciones...',
 }: Props) => {
   return (
@@ -128,6 +133,20 @@ const QuotesToolBar = ({
             align="end"
             className="w-72 p-3 space-y-3 border-slate-200/60 dark:border-slate-700/60"
           >
+            <button
+              type="button"
+              onClick={() => setOnlyComplementary(!onlyComplementary)}
+              className={cn(
+                'flex w-full items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-medium transition-colors',
+                onlyComplementary
+                  ? 'border-[#439A97]/40 bg-[#439A97]/10 text-[#2f716f] dark:text-[#6fc2bf]'
+                  : 'border-slate-200/60 dark:border-slate-700/60 text-muted-foreground hover:bg-muted/50'
+              )}
+            >
+              <Link2 className="size-3.5" />
+              Solo complementarias
+            </button>
+
             <FilterSelects
               status={status}
               setStatus={setStatus}
@@ -140,6 +159,21 @@ const QuotesToolBar = ({
 
       {/* DESKTOP FILTERS */}
       <div className="hidden sm:flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setOnlyComplementary(!onlyComplementary)}
+            title="Mostrar solo cotizaciones complementarias"
+            className={cn(
+              'flex h-8 shrink-0 items-center gap-1.5 rounded-md border px-2.5 text-xs font-medium transition-colors',
+              onlyComplementary
+                ? 'border-[#439A97]/40 bg-[#439A97]/10 text-[#2f716f] dark:text-[#6fc2bf]'
+                : 'bg-white/80 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-700/60 text-muted-foreground hover:bg-muted/50'
+            )}
+          >
+            <Link2 className="size-3.5" />
+            Complementarias
+          </button>
+
           <FilterSelects
             status={status}
             setStatus={setStatus}

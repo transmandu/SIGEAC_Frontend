@@ -1,12 +1,14 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import {
   ArrowRight,
   Ban,
   CalendarDays,
   ChevronDown,
   FileText,
+  Link2,
   MapPin,
   MessageSquare,
   Scale,
@@ -18,6 +20,7 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { useCompanyStore } from '@/stores/CompanyStore'
 import type {
   ArticleQuoteOrder,
   GeneralArticleQuoteOrder,
@@ -328,6 +331,8 @@ const GeneralArticleRow = ({ article }: { article: GeneralArticleQuoteOrder }) =
 }
 
 export default function QuotePreviewPanel({ quote, onClose }: Props) {
+  const { selectedCompany } = useCompanyStore()
+
   if (!quote) return null
 
   const articles = quote.article_quote_order ?? []
@@ -374,6 +379,21 @@ export default function QuotePreviewPanel({ quote, onClose }: Props) {
         </Button>
       </div>
 
+      {quote.parent_quote_order && (
+        <div className="flex items-center gap-2 border-b border-violet-500/20 bg-violet-500/5 px-4 py-2">
+          <Link2 className="size-3.5 shrink-0 text-violet-600 dark:text-violet-400" />
+          <span className="text-xs text-violet-700 dark:text-violet-300">
+            Complementaria de{' '}
+            <Link
+              href={`/${selectedCompany?.slug}/compras/cotizaciones_generales/${quote.parent_quote_order.quote_number}`}
+              className="font-semibold underline underline-offset-2 decoration-1 hover:text-violet-900 dark:hover:text-violet-100 transition-colors"
+            >
+              {quote.parent_quote_order.quote_number}
+            </Link>
+          </span>
+        </div>
+      )}
+
       <div className="flex flex-col gap-5 overflow-y-auto px-4 py-4">
         {/* ── Resumen ─────────────────────────────────────── */}
         <div className="rounded-md border border-border/50 bg-muted/20 px-3 py-3">
@@ -392,6 +412,21 @@ export default function QuotePreviewPanel({ quote, onClose }: Props) {
             />
           </div>
         </div>
+
+        {/* ── Justificación de la complementaria ───────────── */}
+        {quote.parent_quote_order && quote.complementary_justification && (
+          <div className="rounded-md border border-violet-500/30 bg-violet-500/5 p-3">
+            <div className="flex items-center gap-2 mb-2 select-none">
+              <Link2 className="size-3.5 text-violet-600 dark:text-violet-400" />
+              <span className="text-[10px] font-semibold tracking-widest text-violet-700 dark:text-violet-300">
+                JUSTIFICACIÓN DEL COMPLEMENTO
+              </span>
+            </div>
+            <p className="text-sm text-foreground/80 whitespace-pre-wrap">
+              {quote.complementary_justification}
+            </p>
+          </div>
+        )}
 
         {/* ── Observación ─────────────────────────────────── */}
         {quote.observation && (

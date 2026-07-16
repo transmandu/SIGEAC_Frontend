@@ -10,7 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 
-import { Eye, Store } from 'lucide-react'
+import { Eye, Link2, Store } from 'lucide-react'
 
 import type { Quote } from '@/types/purchase'
 
@@ -65,9 +65,10 @@ export const getColumns = (
         </Link>
         {row.original.parent_quote_order && (
           <span
-            className="rounded border border-violet-500/40 bg-violet-500/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-violet-700 dark:text-violet-300"
+            className="inline-flex items-center gap-1 rounded border border-violet-500/40 bg-violet-500/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-violet-700 dark:text-violet-300"
             title={`Complementaria de ${row.original.parent_quote_order.quote_number}`}
           >
+            <Link2 className="size-2.5" />
             Complementaria
           </span>
         )}

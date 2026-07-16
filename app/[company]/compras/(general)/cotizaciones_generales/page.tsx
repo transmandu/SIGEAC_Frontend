@@ -38,6 +38,7 @@ const QuotesOrdersPageContent = () => {
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState('ALL')
   const [groupBy, setGroupBy] = useState<string>('NONE')
+  const [onlyComplementary, setOnlyComplementary] = useState(false)
 
   const deferredSearch = useDeferredValue(search)
 
@@ -52,6 +53,10 @@ const QuotesOrdersPageContent = () => {
       filtered = filtered.filter(
         (quote: any) => quote.status === status
       )
+    }
+
+    if (onlyComplementary) {
+      filtered = filtered.filter((quote: any) => !!quote.parent_quote_order)
     }
 
     if (!deferredSearch.trim()) {
@@ -80,7 +85,7 @@ const QuotesOrdersPageContent = () => {
           .includes(q)
       )
     })
-  }, [quotes, deferredSearch, status])
+  }, [quotes, deferredSearch, status, onlyComplementary])
 
   const columns = useMemo(
     () => getColumns(selectedCompany ?? undefined, onPreview ?? undefined, selectedPreviewId),
@@ -149,6 +154,8 @@ const QuotesOrdersPageContent = () => {
             setStatus={setStatus}
             groupBy={groupBy}
             setGroupBy={setGroupBy}
+            onlyComplementary={onlyComplementary}
+            setOnlyComplementary={setOnlyComplementary}
           />
 
           <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
