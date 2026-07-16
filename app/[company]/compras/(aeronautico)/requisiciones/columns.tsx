@@ -106,7 +106,8 @@ const StatusCell = ({ requisition }: { requisition: Requisition }) => {
 
 export const getColumns = (
   selectedCompany?: { slug: string },
-  onPreview?: (requisition: Requisition) => void
+  onPreview?: (requisition: Requisition) => void,
+  selectedPreviewId?: number | null
 ): ColumnDef<Requisition>[] => [
   {
     id: 'expander',
@@ -219,24 +220,31 @@ export const getColumns = (
     id: 'preview',
     size: 40,
     header: () => null,
-    cell: ({ row }) => (
-      <div className="flex justify-center px-0" onClick={(e) => e.stopPropagation()}>
-        <TooltipProvider delayDuration={120}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                type="button"
-                onClick={() => onPreview?.(row.original)}
-                className="flex items-center justify-center rounded-md p-1 text-muted-foreground transition-colors hover:text-blue-600 hover:bg-blue-500/10 dark:hover:text-blue-400"
-              >
-                <Eye className="size-4" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent>Vista previa de la requisición</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </div>
-    ),
+    cell: ({ row }) => {
+      const isActive = selectedPreviewId === row.original.id
+
+      return (
+        <div className="flex justify-center px-0" onClick={(e) => e.stopPropagation()}>
+          <TooltipProvider delayDuration={120}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  onClick={() => onPreview?.(row.original)}
+                  className={cn(
+                    'flex items-center justify-center rounded-md p-1 text-muted-foreground transition-colors hover:text-blue-600 hover:bg-blue-500/10 dark:hover:text-blue-400',
+                    isActive && 'text-blue-600 bg-blue-500/10 dark:text-blue-400'
+                  )}
+                >
+                  <Eye className="size-4" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>{isActive ? 'Cerrar vista previa' : 'Vista previa de la requisición'}</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+      )
+    },
     enableSorting: false,
     enableHiding: false,
   },

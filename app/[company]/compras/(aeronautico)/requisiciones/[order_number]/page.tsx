@@ -180,7 +180,7 @@ const RequisitionPage = () => {
               value={
                 data?.created_by
                   ? `${data.created_by.first_name} ${data.created_by.last_name}`.toUpperCase()
-                  : undefined
+                  : "SISTEMA"
               }
               icon={UserCheck}
             />

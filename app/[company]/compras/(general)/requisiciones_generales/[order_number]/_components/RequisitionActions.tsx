@@ -18,6 +18,7 @@ import {
 } from "lucide-react"
 import DownloadRequisitionPdfDialog from "@/components/dialogs/mantenimiento/compras/DownloadRequisitionPdfDialog"
 import RequisitionDropdownDialogs from "@/components/dialogs/mantenimiento/compras/RequisitionDropdownDialogs"
+import QuoteLinkButton from "@/components/dropdowns/mantenimiento/compras/QuoteLinkButton"
 import { RequisitionByOrderNumber } from "@/hooks/mantenimiento/compras/useGetRequisitionByOrderNumber"
 
 type Props = {
@@ -101,6 +102,17 @@ export default function RequisitionActions({
             </TooltipTrigger>
             <TooltipContent>{quoteTooltip}</TooltipContent>
           </Tooltip>
+        )}
+
+        {/* QUOTE LINK */}
+        {selectedCompany?.slug && (req.quotes?.length ?? 0) > 0 && (
+          <QuoteLinkButton
+            company={selectedCompany.slug}
+            quotes={req.quotes ?? []}
+            segment="cotizaciones_generales"
+            className={itemBase}
+            iconClassName={iconBase}
+          />
         )}
 
         {/* RECHAZAR */}

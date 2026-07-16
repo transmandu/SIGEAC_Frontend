@@ -18,7 +18,7 @@ interface ArticleCardProps {
 
 const ArticleCard = ({ article, batchName, batchCategory, onImageClick, requisitionStatus }: ArticleCardProps) => {
   const showApprovalDetails = (status?: string) => {
-    return status && status !== 'PENDING';
+    return status && status !== 'PENDING' && status !== 'REJECTED';
   };
 
   const showQuantityApproval =

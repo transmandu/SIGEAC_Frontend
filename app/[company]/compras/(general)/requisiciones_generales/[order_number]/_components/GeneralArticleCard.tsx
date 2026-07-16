@@ -16,7 +16,7 @@ interface GeneralArticleCardProps {
 
 const GeneralArticleCard = ({ article, onImageClick, requisitionStatus }: GeneralArticleCardProps) => {
   const showApprovalDetails = (status?: string) => {
-    return status && status !== 'PENDING';
+    return status && status !== 'PENDING' && status !== 'REJECTED';
   };
 
   const showQuantityApproval =

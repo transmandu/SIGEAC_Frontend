@@ -12,7 +12,7 @@ import type { Requisition } from '@/types/purchase'
 import RequisitionToolBar from './_components/RequisitionToolBar'
 import { CreateRequisitionDialog } from '@/components/dialogs/mantenimiento/compras/CreateRequisitionDialog'
 import RequisitionSubRow from './_components/RequisitionSubRow'
-import RequisitionSplitView, { useRequisitionPreview } from '@/components/side-panels/RequisitionSplitView'
+import RequisitionSplitView, { useRequisitionPreview, useRequisitionPreviewSelectedId } from '@/components/side-panels/RequisitionSplitView'
 
 const RequisitionsPage = () => {
   return (
@@ -25,6 +25,7 @@ const RequisitionsPage = () => {
 const RequisitionsPageContent = () => {
   const { selectedCompany, selectedStation } = useCompanyStore()
   const onPreview = useRequisitionPreview()
+  const selectedPreviewId = useRequisitionPreviewSelectedId()
 
   const {
     data: requisitions,
@@ -140,7 +141,7 @@ const RequisitionsPageContent = () => {
         </div>
 
         <DataTable
-          columns={getColumns(selectedCompany ?? undefined, onPreview ?? undefined)}
+          columns={getColumns(selectedCompany ?? undefined, onPreview ?? undefined, selectedPreviewId)}
           data={filteredRequisitions}
           renderSubRow={(row) => (
             <RequisitionSubRow

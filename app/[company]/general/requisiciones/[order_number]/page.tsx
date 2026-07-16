@@ -605,7 +605,7 @@ const RequisitionPage = () => {
               <p className="text-xs text-muted-foreground">Creado por</p>
               <p className="font-medium flex items-center gap-2 justify-center">
                 <User className="w-4 h-4" />
-                {data?.created_by ? `${data.created_by.first_name} ${data.created_by.last_name}`.trim().toUpperCase() : "SYSTEM"}
+                {data?.created_by ? `${data.created_by.first_name} ${data.created_by.last_name}`.trim().toUpperCase() : "SISTEMA"}
               </p>
             </div>
 

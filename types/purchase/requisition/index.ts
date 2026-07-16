@@ -93,6 +93,8 @@ export interface RequisitionQuote {
   article_vendors?: string[];
   article_retailers?: string[];
   updated_at: string;
+  /** Non-null when this quote complements an original (already APPROVED/paid) one. */
+  parent_quote_order_id?: number | null;
 }
 
 // ── Requisition (list view) ────────────────────────────────────────────────
