@@ -9,8 +9,11 @@ const fetchQuotes = async (companyId: string | null, locationId: string | null):
 
 export const useGetQuotes = (companyId: string | null, locationId: string | null) => {
   return useQuery<Quote[]>({
-    queryKey: ["quotes"],
+    // company/location forman parte de la key: sin ellos, cambiar de
+    // estación reutilizaba la caché de la anterior.
+    queryKey: ["quotes", companyId, locationId],
     queryFn: () => fetchQuotes(companyId, locationId),
-    enabled: !!companyId && !!locationId
+    enabled: !!companyId && !!locationId,
+    staleTime: 1000 * 60 * 2,
   });
 };

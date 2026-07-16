@@ -26,6 +26,9 @@ export const useGetRequisitionByOrderNumber = ({
     queryKey: ['requisition-order', company, order_number],
     queryFn: () => fetchRequisitionByOrderNumber({ company, order_number }),
     enabled: !!company && !!order_number,
+    // Las mutaciones invalidan por prefijo ['requisition-order'], así que
+    // la caché solo evita refetches al navegar de ida y vuelta.
+    staleTime: 1000 * 60 * 2,
   });
 };
 

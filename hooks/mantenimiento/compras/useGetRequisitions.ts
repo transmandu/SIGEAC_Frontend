@@ -15,6 +15,10 @@ export const useGetRequisition = (company?: string, location_id?: string, type?:
   return useQuery<Requisition[]>({
     queryKey: ["requisitions-orders", company, location_id, type],
     queryFn: () => fetchRequisition(company, location_id, type),
-    enabled: !!company && !!location_id
+    enabled: !!company && !!location_id,
+    // Volver a la página dentro de esta ventana usa la caché en vez de
+    // refetch-ear el listado completo; las mutaciones invalidan la key
+    // por prefijo, así que los cambios propios se reflejan al instante.
+    staleTime: 1000 * 60 * 2,
   });
 };
