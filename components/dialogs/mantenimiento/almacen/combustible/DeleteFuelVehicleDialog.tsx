@@ -21,11 +21,20 @@ import { useState } from "react";
 export function DeleteFuelVehicleDialog({
   company,
   vehicle,
+  open: openProp,
+  onOpenChange,
 }: {
   company?: string;
   vehicle: FuelVehicle;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) {
-  const [open, setOpen] = useState(false);
+  // When open/onOpenChange are supplied, the dialog is triggered from
+  // outside (e.g. a dropdown menu item) instead of its own default button.
+  const isControlled = openProp !== undefined;
+  const [openState, setOpenState] = useState(false);
+  const open = isControlled ? openProp : openState;
+  const setOpen = isControlled ? onOpenChange! : setOpenState;
   const [confirmPlate, setConfirmPlate] = useState("");
   const deleteVehicle = useDeleteFuelVehicle(company);
 
@@ -53,16 +62,18 @@ export function DeleteFuelVehicleDialog({
         }
       }}
     >
-      <AlertDialogTrigger asChild>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-8 gap-2 text-destructive hover:text-destructive"
-        >
-          <Trash2 className="h-4 w-4" />
-          Eliminar
-        </Button>
-      </AlertDialogTrigger>
+      {!isControlled && (
+        <AlertDialogTrigger asChild>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 gap-2 text-destructive hover:text-destructive"
+          >
+            <Trash2 className="h-4 w-4" />
+            Eliminar
+          </Button>
+        </AlertDialogTrigger>
+      )}
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>

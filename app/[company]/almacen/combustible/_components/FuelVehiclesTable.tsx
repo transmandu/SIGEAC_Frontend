@@ -3,8 +3,13 @@
 import { useUpdateFuelVehicleStatus } from "@/actions/mantenimiento/almacen/combustible/actions";
 import { DeleteFuelVehicleDialog } from "@/components/dialogs/mantenimiento/almacen/combustible/DeleteFuelVehicleDialog";
 import { EditFuelVehicleDialog } from "@/components/dialogs/mantenimiento/almacen/combustible/EditFuelVehicleDialog";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Table,
   TableBody,
@@ -16,12 +21,22 @@ import {
 import {
   formatLiters,
   getFuelStatusLabel,
-  getFuelVehicleTypeLabel,
+  getFuelTypeLabel,
+  getFuelVehicleTypeDisplay,
   isPendingFuelVehiclePlate,
 } from "@/lib/fuel";
 import { cn } from "@/lib/utils";
 import { FuelVehicle } from "@/types";
-import { Loader2, Power, PowerOff, Truck } from "lucide-react";
+import {
+  Loader2,
+  MoreHorizontal,
+  Pencil,
+  Power,
+  PowerOff,
+  Trash2,
+  Truck,
+} from "lucide-react";
+import { useState } from "react";
 
 export function FuelVehiclesTable({
   company,
@@ -37,25 +52,29 @@ export function FuelVehiclesTable({
     ? updateStatus.variables
     : null;
 
+  const [editVehicleId, setEditVehicleId] = useState<number | null>(null);
+  const [deleteVehicleId, setDeleteVehicleId] = useState<number | null>(null);
+
   const toggleStatus = (vehicle: FuelVehicle) => {
     updateStatus.mutate(vehicle.id);
   };
 
   return (
-    <div className="overflow-hidden rounded-md border bg-background">
+    <div className="overflow-hidden rounded-xl bg-card shadow-sm">
       <Table>
         <TableHeader>
-          <TableRow>
+          <TableRow className="hover:bg-transparent">
             <TableHead>Placa</TableHead>
             <TableHead>Vehiculo</TableHead>
             <TableHead>Tipo</TableHead>
+            <TableHead>Combustible</TableHead>
             <TableHead>Responsable</TableHead>
             <TableHead className="text-right">Capacidad</TableHead>
             <TableHead className="text-right">Saldo</TableHead>
             <TableHead className="text-right">km/L</TableHead>
             <TableHead className="text-right">KM inicial</TableHead>
             <TableHead>Estado</TableHead>
-            <TableHead className="text-right">Accion</TableHead>
+            <TableHead className="text-center">Accion</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -74,7 +93,7 @@ export function FuelVehiclesTable({
               return (
                 <TableRow
                   key={vehicle.id}
-                  className={cn(isInactive && "text-muted-foreground")}
+                  className={cn("group", isInactive && "text-muted-foreground")}
                 >
                   <TableCell className="font-semibold">
                     <div className="flex items-center gap-1.5">
@@ -84,13 +103,12 @@ export function FuelVehiclesTable({
                         </span>
                       )}
                       {isPendingFuelVehiclePlate(vehicle.plate) && (
-                        <Badge
-                          variant="destructive"
-                          className="text-[10px] font-normal"
+                        <span
+                          className="rounded-full bg-destructive/10 px-1.5 py-0.5 text-[10px] font-normal text-destructive"
                           title="Placa migrada de datos legacy: debe corregirse con la placa real"
                         >
-                          Placa pendiente de corrección
-                        </Badge>
+                          Placa pendiente
+                        </span>
                       )}
                     </div>
                   </TableCell>
@@ -104,7 +122,10 @@ export function FuelVehiclesTable({
                       .filter(Boolean)
                       .join(" / ") || "-"}
                   </TableCell>
-                  <TableCell>{getFuelVehicleTypeLabel(vehicle.type)}</TableCell>
+                  <TableCell>{getFuelVehicleTypeDisplay(vehicle)}</TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {getFuelTypeLabel(vehicle.fuel_type)}
+                  </TableCell>
                   <TableCell
                     className={cn(
                       "max-w-[220px] truncate",
@@ -142,46 +163,83 @@ export function FuelVehiclesTable({
                     {vehicle.initial_km ? `${vehicle.initial_km}` : "-"}
                   </TableCell>
                   <TableCell>
-                    <Badge variant={isInactive ? "secondary" : "default"}>
+                    <span className="inline-flex items-center gap-1.5">
+                      <span
+                        className={cn(
+                          "h-1.5 w-1.5 rounded-full",
+                          isInactive ? "bg-muted-foreground/50" : "bg-emerald-500",
+                        )}
+                      />
                       {getFuelStatusLabel(vehicle.status)}
-                    </Badge>
+                    </span>
                   </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-1">
-                      <EditFuelVehicleDialog
+                  <TableCell className="text-center">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <span className="sr-only">Abrir menu</span>
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          className="gap-2"
+                          onClick={() => setEditVehicleId(vehicle.id)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                          Editar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="gap-2"
+                          onClick={() => toggleStatus(vehicle)}
+                          disabled={updateStatus.isPending}
+                        >
+                          {pendingVehicleId === vehicle.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : isInactive ? (
+                            <Power className="h-4 w-4" />
+                          ) : (
+                            <PowerOff className="h-4 w-4" />
+                          )}
+                          {isInactive ? "Activar" : "Inactivar"}
+                        </DropdownMenuItem>
+                        {isSuperUser && (
+                          <DropdownMenuItem
+                            className="gap-2 text-destructive focus:text-destructive"
+                            onClick={() => setDeleteVehicleId(vehicle.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            Eliminar
+                          </DropdownMenuItem>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+
+                    <EditFuelVehicleDialog
+                      company={company}
+                      vehicle={vehicle}
+                      open={editVehicleId === vehicle.id}
+                      onOpenChange={(next) =>
+                        setEditVehicleId(next ? vehicle.id : null)
+                      }
+                    />
+                    {isSuperUser && (
+                      <DeleteFuelVehicleDialog
                         company={company}
                         vehicle={vehicle}
+                        open={deleteVehicleId === vehicle.id}
+                        onOpenChange={(next) =>
+                          setDeleteVehicleId(next ? vehicle.id : null)
+                        }
                       />
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 gap-2"
-                        onClick={() => toggleStatus(vehicle)}
-                        disabled={updateStatus.isPending}
-                      >
-                        {pendingVehicleId === vehicle.id ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : isInactive ? (
-                          <Power className="h-4 w-4" />
-                        ) : (
-                          <PowerOff className="h-4 w-4" />
-                        )}
-                        {isInactive ? "Activar" : "Inactivar"}
-                      </Button>
-                      {isSuperUser && (
-                        <DeleteFuelVehicleDialog
-                          company={company}
-                          vehicle={vehicle}
-                        />
-                      )}
-                    </div>
+                    )}
                   </TableCell>
                 </TableRow>
               );
             })
           ) : (
             <TableRow className="hover:bg-transparent">
-              <TableCell colSpan={10} className="h-36">
+              <TableCell colSpan={11} className="h-36">
                 <div className="flex flex-col items-center justify-center gap-1 text-center">
                   <Truck className="h-5 w-5 text-muted-foreground" />
                   <p className="text-sm font-medium">Sin vehiculos</p>

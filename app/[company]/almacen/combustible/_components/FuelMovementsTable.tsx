@@ -3,7 +3,6 @@
 import { AnnulFuelMovementDialog } from "@/components/dialogs/mantenimiento/almacen/combustible/AnnulFuelMovementDialog";
 import { DeleteFuelMovementDialog } from "@/components/dialogs/mantenimiento/almacen/combustible/DeleteFuelMovementDialog";
 import { FuelMovementDetailDialog } from "@/components/dialogs/mantenimiento/almacen/combustible/FuelMovementDetailDialog";
-import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -16,11 +15,13 @@ import {
   formatLiters,
   getFuelMovementLabel,
   getFuelStatusLabel,
+  getFuelTypeLabel,
 } from "@/lib/fuel";
 import { cn } from "@/lib/utils";
 import { FuelMovement, FuelMovementType, FuelVehicle } from "@/types";
 import { format } from "date-fns";
 import { Fuel } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import { useMemo } from "react";
 
 // Color por flujo: entrada / despacho / consumo / anulacion
@@ -56,30 +57,44 @@ export function FuelMovementsTable({
   );
 
   return (
-    <div className="overflow-hidden rounded-md border bg-background">
+    <div className="overflow-hidden rounded-xl bg-card shadow-sm">
       <Table>
         <TableHeader>
-          <TableRow>
+          <TableRow className="hover:bg-transparent">
             <TableHead>Fecha</TableHead>
             <TableHead>Tipo</TableHead>
             <TableHead>Destino / origen</TableHead>
+            <TableHead>Combustible</TableHead>
             <TableHead>Finalidad</TableHead>
             <TableHead className="text-right">Litros</TableHead>
             <TableHead>Estado</TableHead>
-            <TableHead className="text-right">Acciones</TableHead>
+            <TableHead className="text-center">Acciones</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {movements.length ? (
-            movements.map((movement) => {
+            <AnimatePresence initial={false} mode="popLayout">
+              {movements.map((movement, index) => {
               const isAnnulled = movement.status === "annulled";
               const vehicle = movement.vehicle
                 ? vehiclesById.get(movement.vehicle.id) ?? movement.vehicle
                 : null;
               return (
-                <TableRow
+                <motion.tr
                   key={movement.id}
-                  className={cn(isAnnulled && "text-muted-foreground")}
+                  layout
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{
+                    duration: 0.22,
+                    ease: "easeOut",
+                    delay: Math.min(index, 10) * 0.025,
+                  }}
+                  className={cn(
+                    "group border-b transition-colors hover:bg-muted/50",
+                    isAnnulled && "text-muted-foreground",
+                  )}
                 >
                   <TableCell className="font-medium">
                     {format(movement.operational_date, "dd/MM/yyyy")}
@@ -112,6 +127,9 @@ export function FuelMovementsTable({
                       movement.third_party?.name || "Almacen"
                     )}
                   </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {getFuelTypeLabel(movement.fuel_type)}
+                  </TableCell>
                   <TableCell
                     className={cn(
                       "max-w-[260px] truncate",
@@ -129,9 +147,15 @@ export function FuelMovementsTable({
                     {formatLiters(movement.liters)}
                   </TableCell>
                   <TableCell>
-                    <Badge variant={isAnnulled ? "destructive" : "secondary"}>
+                    <span className="inline-flex items-center gap-1.5">
+                      <span
+                        className={cn(
+                          "h-1.5 w-1.5 rounded-full",
+                          isAnnulled ? "bg-destructive" : "bg-emerald-500",
+                        )}
+                      />
                       {getFuelStatusLabel(movement.status)}
-                    </Badge>
+                    </span>
                   </TableCell>
                   <TableCell>
                     <div className="flex justify-end gap-1">
@@ -151,12 +175,13 @@ export function FuelMovementsTable({
                       )}
                     </div>
                   </TableCell>
-                </TableRow>
+                </motion.tr>
               );
-            })
+              })}
+            </AnimatePresence>
           ) : (
             <TableRow className="hover:bg-transparent">
-              <TableCell colSpan={7} className="h-36">
+              <TableCell colSpan={8} className="h-36">
                 <div className="flex flex-col items-center justify-center gap-1 text-center">
                   <Fuel className="h-5 w-5 text-muted-foreground" />
                   <p className="text-sm font-medium">Sin movimientos</p>
