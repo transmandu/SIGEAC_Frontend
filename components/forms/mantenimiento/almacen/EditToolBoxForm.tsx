@@ -256,18 +256,31 @@ export function EditToolBoxForm({ onClose, initialData }: FormProps) {
                         data && data.map((batch) => (
                           <CommandGroup key={batch.id.toString()} heading={batch.name}>
                             {
-                              batch.article.map((article) => (
-                                <CommandItem key={article.id} onSelect={() => {
-                                  handleToolSelect(article.id?.toString()!)
-                                }} className="gap-2">
-                                  <Wrench className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                                  <span className="flex-1 truncate">SN - {article.serial}</span>
-                                  <Check className={cn("h-4 w-4 shrink-0", isToolSelected(article.id!.toString()) ? "opacity-100" : "opacity-0")} />
-                                  <span className="hidden">
-                                    {article.serial} {batch.name}
-                                  </span>
-                                </CommandItem>
-                              ))
+                              batch.article.map((article) => {
+                                const isExpired = article.tool.status === "VENCIDO"
+                                return (
+                                  <CommandItem
+                                    key={article.id}
+                                    disabled={isExpired}
+                                    onSelect={() => {
+                                      handleToolSelect(article.id?.toString()!)
+                                    }}
+                                    className="gap-2"
+                                  >
+                                    <Wrench className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                                    <span className="flex-1 truncate">SN - {article.serial}</span>
+                                    {isExpired && (
+                                      <Badge variant="destructive" className="px-1.5 py-0 text-[10px] font-normal">
+                                        Vencida
+                                      </Badge>
+                                    )}
+                                    <Check className={cn("h-4 w-4 shrink-0", isToolSelected(article.id!.toString()) ? "opacity-100" : "opacity-0")} />
+                                    <span className="hidden">
+                                      {article.serial} {batch.name}
+                                    </span>
+                                  </CommandItem>
+                                )
+                              })
                             }
                           </CommandGroup>
                         ))

@@ -90,6 +90,10 @@ export type Article = {
   inspector?: string;
   inspect_date?: string;
   ata_code?: string;
+  needs_calibration?: boolean;
+  calibration_date?: string | null;
+  next_calibration?: string;
+  tool_status?: "CALIBRADO" | "EN CALIBRACION" | "VENCIDO" | "N/A" | string;
 };
 
 export type Bank = {

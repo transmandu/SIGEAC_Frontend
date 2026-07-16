@@ -264,37 +264,44 @@ export function ToolDispatchForm({ onClose }: FormProps) {
                             key={batch.batch_id}
                             heading={batch.name}
                           >
-                            {batch.articles.map((article) => (
-                              <CommandItem
-                                disabled={article.status === "InUse"}
-                                key={article.id}
-                                className="max-w-full"
-                                onSelect={() => {
-                                  handleArticleSelect(
-                                    article.id!,
-                                    article.serial ? article.serial : null,
-                                    batch.batch_id
-                                  );
-                                  setArticleSelected(article);
-                                }}
-                              >
-                                <Check
-                                  className={cn(
-                                    "mr-2 h-4 w-4",
-                                    articleSelected?.id === article.id
-                                      ? "opacity-100"
-                                      : "opacity-0"
-                                  )}
-                                />
-                                <p className="min-w-0 truncate font-medium">
-                                  <span className="text-muted-foreground">
-                                    SN:{" "}
-                                  </span>
-                                  {article.serial}{" "}
-                                  {article.status === "InUse" && "- En uso"}
-                                </p>
-                              </CommandItem>
-                            ))}
+                            {batch.articles.map((article) => {
+                              const isInUse = article.status === "InUse";
+                              const isExpired = article.tool_status === "VENCIDO";
+                              return (
+                                <CommandItem
+                                  disabled={isInUse || isExpired}
+                                  key={article.id}
+                                  className="max-w-full"
+                                  onSelect={() => {
+                                    handleArticleSelect(
+                                      article.id!,
+                                      article.serial ? article.serial : null,
+                                      batch.batch_id
+                                    );
+                                    setArticleSelected(article);
+                                  }}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      articleSelected?.id === article.id
+                                        ? "opacity-100"
+                                        : "opacity-0"
+                                    )}
+                                  />
+                                  <p className="min-w-0 truncate font-medium">
+                                    <span className="text-muted-foreground">
+                                      SN:{" "}
+                                    </span>
+                                    {article.serial}{" "}
+                                    {isInUse && "- En uso"}
+                                    {isExpired && (
+                                      <span className="text-destructive"> - Vencida</span>
+                                    )}
+                                  </p>
+                                </CommandItem>
+                              );
+                            })}
                           </CommandGroup>
                         ))}
                       </CommandList>
