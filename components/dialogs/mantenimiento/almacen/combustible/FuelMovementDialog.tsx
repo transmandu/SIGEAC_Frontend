@@ -23,23 +23,31 @@ export function FuelMovementDialog({
   vehicles,
   icon: Icon,
   variant = "outline",
+  size = "default",
   className,
+  iconClassName,
 }: {
   company?: string;
   type: FuelMovementType;
   summary?: FuelSummary;
   vehicles: FuelVehicle[];
   icon: LucideIcon;
-  variant?: "default" | "outline" | "secondary";
+  variant?: "default" | "outline" | "secondary" | "ghost";
+  size?: "default" | "sm";
   className?: string;
+  iconClassName?: string;
 }) {
   const [open, setOpen] = useState(false);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant={variant} className={cn("justify-start gap-2", className)}>
-          <Icon className="h-4 w-4 shrink-0 text-muted-foreground" />
+        <Button
+          variant={variant}
+          size={size}
+          className={cn("justify-start gap-2", className)}
+        >
+          <Icon className={cn("h-4 w-4 shrink-0 text-primary/70", iconClassName)} />
           {getFuelMovementLabel(type)}
         </Button>
       </DialogTrigger>

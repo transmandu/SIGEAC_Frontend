@@ -66,7 +66,7 @@ const ToolBoxDropdownActions = ({ id, initialData }: { id: number, initialData: 
       </Dialog>
 
       <Dialog open={openEdit} onOpenChange={setOpenEdit}>
-        <DialogContent className="w-[380px]">
+        <DialogContent className="sm:max-w-[480px]">
           <DialogHeader>
             <DialogTitle>Editar Caja de Herramientas</DialogTitle>
             <DialogDescription>

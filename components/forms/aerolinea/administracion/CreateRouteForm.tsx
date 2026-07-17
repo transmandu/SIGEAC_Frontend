@@ -10,13 +10,13 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { Button } from "../../../ui/button";
 import { Checkbox } from "../../../ui/checkbox";
-import { Input } from "../../../ui/input";
 import { Label } from "../../../ui/label";
+import { AIRPORT_CODE_REGEX, AirportCombobox } from "@/components/selects/AirportCombobox";
 
 const getFormSchema = (hasLayovers: boolean) =>
   z.object({
-    from: z.string(),
-    to: z.string(),
+    from: z.string().regex(AIRPORT_CODE_REGEX, "Código IATA (3 letras) o ICAO (4 letras) inválido"),
+    to: z.string().regex(AIRPORT_CODE_REGEX, "Código IATA (3 letras) o ICAO (4 letras) inválido"),
     layover: z.array(z.string()).superRefine((values, ctx) => {
       if (!hasLayovers) return true;
 
@@ -35,20 +35,13 @@ const getFormSchema = (hasLayovers: boolean) =>
             message: `La escala ${index + 1} no puede estar vacía.`,
             path: [index]
           });
+          return;
         }
 
-        if (/^\d+$/.test(value.trim())) {
+        if (!AIRPORT_CODE_REGEX.test(value.trim())) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: `La escala ${index + 1} no puede contener solo números.`,
-            path: [index]
-          });
-        }
-
-        if (value.length < 3) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: `La escala ${index + 1} debe tener al menos 3 caracteres.`,
+            message: `La escala ${index + 1} debe ser un código IATA (3 letras) o ICAO (4 letras).`,
             path: [index]
           });
         }
@@ -193,7 +186,11 @@ const RouteForm = ({ id, onClose, isEditing = false }: FormProps) => {
                   <FormItem className="w-auto">
                     <FormLabel>Origen</FormLabel>
                     <FormControl>
-                      <Input placeholder="Ingrese la salida" {...field} />
+                      <AirportCombobox
+                        value={field.value}
+                        onChange={(code) => field.onChange(code ?? "")}
+                        placeholder="Seleccione la salida"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -206,7 +203,11 @@ const RouteForm = ({ id, onClose, isEditing = false }: FormProps) => {
                   <FormItem className="w-auto">
                     <FormLabel>Destino</FormLabel>
                     <FormControl>
-                      <Input placeholder="Ingrese la llegada" {...field} />
+                      <AirportCombobox
+                        value={field.value}
+                        onChange={(code) => field.onChange(code ?? "")}
+                        placeholder="Seleccione la llegada"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -234,10 +235,10 @@ const RouteForm = ({ id, onClose, isEditing = false }: FormProps) => {
                 >
                   {layover.map((value, index) => (
                     <div key={index} className="flex items-center gap-2">
-                      <Input
-                        placeholder="Ingrese la escala"
+                      <AirportCombobox
                         value={value}
-                        onChange={(e) => handleInputChange(index, e.target.value)}
+                        onChange={(iata) => handleInputChange(index, iata ?? "")}
+                        placeholder="Seleccione la escala"
                       />
                       {form.formState.errors.layover?.[index] && (
                         <FormMessage>

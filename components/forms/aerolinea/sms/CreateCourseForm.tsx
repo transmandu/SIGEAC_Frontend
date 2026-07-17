@@ -157,7 +157,7 @@ export function CreateCourseForm({
               control={form.control}
               name="name"
               render={({ field }) => (
-                <FormItem className="w-full">
+                <FormItem className="w-full" data-tour="cursos-create-nombre">
                   <FormLabel>Nombre del Curso</FormLabel>
                   <FormControl>
                     <Input placeholder="" {...field} />
@@ -171,7 +171,7 @@ export function CreateCourseForm({
               control={form.control}
               name="course_type"
               render={({ field }) => (
-                <FormItem className="w-full">
+                <FormItem className="w-full" data-tour="cursos-create-tipo">
                   <FormLabel>Tipo de Curso</FormLabel>
                   <Select
                     onValueChange={field.onChange}
@@ -193,7 +193,10 @@ export function CreateCourseForm({
             />
           </div>
 
-          <div className="flex w-full justify-center items-center gap-10">
+          <div
+            className="flex w-full justify-center items-center gap-10"
+            data-tour="cursos-create-fechas"
+          >
             <FormField
               control={form.control}
               name="start_date"
@@ -207,7 +210,7 @@ export function CreateCourseForm({
                           variant={"outline"}
                           className={cn(
                             "w-full pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground"
+                            !field.value && "text-muted-foreground",
                           )}
                         >
                           {field.value ? (
@@ -263,7 +266,7 @@ export function CreateCourseForm({
                         // Validamos que el formato sea correcto
                         if (
                           e.target.value.match(
-                            /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/
+                            /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/,
                           )
                         ) {
                           field.onChange(e.target.value);
@@ -277,7 +280,10 @@ export function CreateCourseForm({
             />
           </div>
 
-          <div className="flex  justify-center items-center w-full gap-10">
+          <div
+            className="flex  justify-center items-center w-full gap-10"
+            data-tour="cursos-create-fin"
+          >
             <FormField
               control={form.control}
               name="end_date"
@@ -291,7 +297,7 @@ export function CreateCourseForm({
                           variant={"outline"}
                           className={cn(
                             "w-full pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground"
+                            !field.value && "text-muted-foreground",
                           )}
                         >
                           {field.value ? (
@@ -347,7 +353,7 @@ export function CreateCourseForm({
                         // Validamos que el formato sea correcto
                         if (
                           e.target.value.match(
-                            /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/
+                            /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/,
                           )
                         ) {
                           field.onChange(e.target.value);
@@ -365,7 +371,10 @@ export function CreateCourseForm({
             control={form.control}
             name="description"
             render={({ field }) => (
-              <FormItem className="w-full">
+              <FormItem
+                className="w-full"
+                data-tour="cursos-create-descripcion"
+              >
                 <FormLabel>Descripcion</FormLabel>
                 <FormControl>
                   <Textarea placeholder="" {...field} />
@@ -379,7 +388,7 @@ export function CreateCourseForm({
             control={form.control}
             name="instructor"
             render={({ field }) => (
-              <FormItem className="w-full">
+              <FormItem className="w-full" data-tour="cursos-create-instructor">
                 <FormLabel>Instructor</FormLabel>
                 <FormControl>
                   <Input placeholder="" {...field} />
@@ -395,7 +404,10 @@ export function CreateCourseForm({
           <p className="text-muted-foreground">SIGEAC</p>
           <Separator className="flex-1" />
         </div>
-        <Button disabled={createCourse.isPending}>
+        <Button
+          disabled={createCourse.isPending}
+          data-tour="cursos-create-submit"
+        >
           {createCourse.isPending ? (
             <Loader2 className="size-4 animate-spin" />
           ) : (

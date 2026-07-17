@@ -17,20 +17,31 @@ import { useState } from "react";
 export function EditFuelVehicleDialog({
   company,
   vehicle,
+  open: openProp,
+  onOpenChange,
 }: {
   company?: string;
   vehicle: FuelVehicle;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) {
-  const [open, setOpen] = useState(false);
+  // When open/onOpenChange are supplied, the dialog is triggered from
+  // outside (e.g. a dropdown menu item) instead of its own default button.
+  const isControlled = openProp !== undefined;
+  const [openState, setOpenState] = useState(false);
+  const open = isControlled ? openProp : openState;
+  const setOpen = isControlled ? onOpenChange! : setOpenState;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" className="h-8 gap-2">
-          <Pencil className="h-4 w-4" />
-          Editar
-        </Button>
-      </DialogTrigger>
+      {!isControlled && (
+        <DialogTrigger asChild>
+          <Button variant="ghost" size="sm" className="h-8 gap-2">
+            <Pencil className="h-4 w-4" />
+            Editar
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-[520px]">
         <DialogHeader>
           <DialogTitle>Editar vehiculo</DialogTitle>

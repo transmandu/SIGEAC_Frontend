@@ -41,9 +41,7 @@ export function FuelTraceabilityPanel({
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2">
-        <div className="rounded-md border bg-muted/50 p-2 text-primary">
-          <Route className="h-4 w-4" />
-        </div>
+        <Route className="h-4 w-4 text-primary/70" />
         <div>
           <p className="text-sm font-semibold">Despachos trazables</p>
           <p className="text-xs text-muted-foreground">
@@ -52,10 +50,10 @@ export function FuelTraceabilityPanel({
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-md border bg-background">
+      <div className="overflow-hidden rounded-xl bg-card shadow-sm">
         <Table>
           <TableHeader>
-            <TableRow>
+            <TableRow className="hover:bg-transparent">
               <TableHead>Fecha</TableHead>
               <TableHead>Tipo</TableHead>
               <TableHead>Destino</TableHead>

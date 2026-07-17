@@ -11,8 +11,10 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Course } from "@/types";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CreateCourseForm } from "@/components/forms/aerolinea/sms/CreateCourseForm";
+import { useTourContext } from "@/components/tour/TourProvider";
+import { cursosCrearSteps } from "@/components/tour/steps/general/cursos/cursos/crear";
 
 interface FormProps {
   title: string;
@@ -26,6 +28,15 @@ export default function CreateCourseDialog({
   initialData,
 }: FormProps) {
   const [open, setOpen] = useState(false);
+  const { registerTour, unregisterTour } = useTourContext();
+
+  useEffect(() => {
+    if (open) {
+      registerTour("cursos-crear", "Crear Cursos", cursosCrearSteps);
+      return () => unregisterTour("cursos-crear");
+    }
+  }, [registerTour, unregisterTour, open]);
+
   return (
     <>
       <Card className="flex">
@@ -41,7 +52,10 @@ export default function CreateCourseDialog({
             </Button>
           </DialogTrigger>
 
-          <DialogContent className="flex flex-col max-w-2xl m-2">
+          <DialogContent
+            className="flex flex-col max-w-2xl m-2"
+            data-tour="cursos-create-dialog"
+          >
             <DialogHeader>
               <DialogTitle></DialogTitle>
               <DialogDescription></DialogDescription>

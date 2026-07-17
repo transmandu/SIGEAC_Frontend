@@ -89,7 +89,7 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
       <Dialog open={open} onOpenChange={setOpen}>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
+            <Button variant="ghost" className="h-8 w-8 p-0" data-tour="cursos-actions">
               <span className="sr-only">Abrir menu</span>
               <MoreHorizontal className="h-4 w-4" />
             </Button>
@@ -117,7 +117,7 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
             <DropdownMenuItem
               onClick={() => {
                 router.push(
-                  `/${selectedCompany?.slug}/general/cursos/${course.id}`
+                  `/${selectedCompany?.slug}/general/cursos/${course.id}`,
                 );
               }}
             >
@@ -149,7 +149,7 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
             <DropdownMenuItem
               onClick={() => {
                 router.push(
-                  `/${selectedCompany?.slug}/general/cursos/${course.id}/examenes`
+                  `/${selectedCompany?.slug}/general/cursos/${course.id}/examenes`,
                 );
               }}
             >

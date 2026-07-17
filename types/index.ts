@@ -14,6 +14,15 @@ export type AdministrationCompany = {
   updated_at: string;
 };
 
+/** Registro del catalogo estatico de aeropuertos (public/data/airports.json). */
+export type Airport = {
+  iata: string;
+  icao: string;
+  name: string;
+  city: string;
+  country: string;
+};
+
 export type Aircraft = {
   id: number;
   client: Client;
@@ -90,6 +99,10 @@ export type Article = {
   inspector?: string;
   inspect_date?: string;
   ata_code?: string;
+  needs_calibration?: boolean;
+  calibration_date?: string | null;
+  next_calibration?: string;
+  tool_status?: "CALIBRADO" | "EN CALIBRACION" | "VENCIDO" | "N/A" | string;
 };
 
 export type Bank = {
@@ -770,7 +783,7 @@ export type ToolBox = {
   name: string;
   created_by: string;
   delivered_by: string;
-  employee: Employee;
+  employee: Employee | null;
   tool: {
     serial: string;
     article: ToolArticle;
@@ -1408,7 +1421,22 @@ export type CargoManifestItem = {
 
 export type FuelVehicleStatus = "active" | "inactive";
 
-export type FuelVehicleType = "car" | "truck" | "motorcycle" | "other";
+export type FuelVehicleType =
+  | "car"
+  | "truck"
+  | "motorcycle"
+  | "crane"
+  | "mule"
+  | "other";
+
+export type FuelType = "GASOLINE" | "DIESEL";
+
+// Saldos discriminados por tipo de combustible (breaking change del backend:
+// antes eran numeros planos).
+export type FuelBalanceByFuelType = {
+  GASOLINE: number;
+  DIESEL: number;
+};
 
 export type FuelMovementStatus = "active" | "annulled";
 
@@ -1430,6 +1458,8 @@ export type FuelVehicle = {
   model?: string | null;
   color?: string | null;
   type: FuelVehicleType;
+  type_other?: string | null;
+  fuel_type: FuelType;
   responsible?: string | null;
   tank_capacity_liters: number;
   current_balance_liters: number;
@@ -1441,12 +1471,15 @@ export type FuelVehicle = {
 };
 
 export type FuelSummary = {
-  warehouse_balance_liters: number;
-  vehicle_balance_liters: number;
-  vehicle_balance_liters_all: number;
+  warehouse_balance_liters: FuelBalanceByFuelType;
+  vehicle_balance_liters: FuelBalanceByFuelType;
+  vehicle_balance_liters_all: FuelBalanceByFuelType;
   active_vehicle_count: number;
   movement_count_for_period?: number;
-  has_active_warehouse_initial_balance?: boolean;
+  has_active_warehouse_initial_balance?: {
+    GASOLINE: boolean;
+    DIESEL: boolean;
+  };
 };
 
 export type FuelMovement = {
@@ -1456,6 +1489,7 @@ export type FuelMovement = {
   created_at?: string;
   created_by?: User | string | null;
   liters: number;
+  fuel_type: FuelType;
   vehicle?: FuelVehicle | null;
   vehicle_id?: number | null;
   third_party?: ThirdParty | null;
@@ -1491,6 +1525,8 @@ export type CreateFuelVehiclePayload = {
   model?: string | null;
   color?: string | null;
   type: FuelVehicleType;
+  type_other?: string | null;
+  fuel_type: FuelType;
   responsible?: string | null;
   tank_capacity_liters: number;
   initial_balance_liters: number;
@@ -1506,6 +1542,8 @@ export type UpdateFuelVehiclePayload = {
   model?: string | null;
   color?: string | null;
   type: FuelVehicleType;
+  type_other?: string | null;
+  fuel_type: FuelType;
   responsible?: string | null;
   tank_capacity_liters: number;
   km_per_liter?: number | null;
@@ -1516,6 +1554,9 @@ export type CreateFuelMovementPayload = {
   type: FuelMovementType;
   operational_date: string;
   liters: number;
+  // Solo se envia (y solo el backend lo exige) para WAREHOUSE_INITIAL_BALANCE
+  // y WAREHOUSE_DISPATCH_THIRD_PARTY; en el resto se deriva del vehiculo.
+  fuel_type?: FuelType | null;
   vehicle_id?: number | null;
   third_party_id?: string | number | null;
   dispatch_purpose?: string | null;
