@@ -54,6 +54,10 @@ export const useUpdateGeneralArticle = () => {
             queryClient.invalidateQueries({
                 queryKey: ["general-articles", selectedCompany?.slug]
             });
+            // Refrescamos las alertas de stock bajo, ya que la cantidad mínima pudo haber cambiado
+            queryClient.invalidateQueries({
+                queryKey: ["low-stock-general-articles", selectedCompany?.slug]
+            });
 
             toast.success("¡Actualizado!", {
                 description: "Las cantidades han sido actualizadas correctamente."
@@ -87,6 +91,7 @@ export const useUpdateGeneralArticleQuantity = () => {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["general-articles"] });
+            queryClient.invalidateQueries({ queryKey: ["low-stock-general-articles", selectedCompany?.slug] });
             toast.success("¡Actualizado!", {
                 description: "Las cantidades han sido actualizadas correctamente."
             });
