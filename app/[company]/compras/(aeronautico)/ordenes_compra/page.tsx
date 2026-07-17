@@ -17,12 +17,22 @@ import type { PurchaseOrder } from '@/types/purchase'
 import { isAeronauticalPurchaseOrder } from '@/lib/purchases/purchase-order-scope'
 import { DataTable } from '../../data-table'
 import { getColumns } from './columns'
-import PurchaseOrderSubRow from './_components/PurchaseOrderSubRow'
 import PurchaseOrderToolBar from './_components/PurchaseOrderToolBar'
 import GroupedPurchaseOrderTable from './_components/GroupedPurchaseOrderTable'
+import PurchaseOrderSplitView, { usePurchaseOrderPreview, usePurchaseOrderPreviewSelectedId } from '@/components/side-panels/PurchaseOrderSplitView'
 
 const PurchaseOrdersPage = () => {
+  return (
+    <PurchaseOrderSplitView>
+      <PurchaseOrdersPageContent />
+    </PurchaseOrderSplitView>
+  )
+}
+
+const PurchaseOrdersPageContent = () => {
   const { selectedCompany, selectedStation } = useCompanyStore()
+  const onPreview = usePurchaseOrderPreview()
+  const selectedPreviewId = usePurchaseOrderPreviewSelectedId()
 
   const {
     data: po,
@@ -62,8 +72,8 @@ const PurchaseOrdersPage = () => {
   }, [po, deferredSearch, status])
 
   const columns = useMemo(
-    () => getColumns(selectedCompany ?? undefined),
-    [selectedCompany]
+    () => getColumns(selectedCompany ?? undefined, onPreview ?? undefined, selectedPreviewId),
+    [selectedCompany, onPreview, selectedPreviewId]
   )
 
   return (
@@ -139,9 +149,6 @@ const PurchaseOrdersPage = () => {
               <DataTable
                 columns={columns}
                 data={rows}
-                renderSubRow={(row) => (
-                  <PurchaseOrderSubRow row={row} />
-                )}
                 loading={isLoading}
                 emptyText="No se ha encontrado ningún resultado..."
                 overflowVisible
@@ -153,9 +160,6 @@ const PurchaseOrdersPage = () => {
           <DataTable
             columns={columns}
             data={filteredPO}
-            renderSubRow={(row) => (
-              <PurchaseOrderSubRow row={row} />
-            )}
             loading={isLoading}
             emptyText="No se ha encontrado ningún resultado..."
             persistKey="ordenes_compra"

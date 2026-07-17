@@ -340,7 +340,7 @@ function DestinationFieldsRow({
           </PopoverTrigger>
           <PopoverContent className="p-0" matchTriggerWidth>
             <Command>
-              <CommandInput placeholder="Busque un autorizado o tercero..." />
+              <CommandInput placeholder="Busque un autorizado externo o tercero..." />
               <CommandList>
                 <CommandEmpty className="text-sm p-2 text-center text-muted-foreground">
                   No se han encontrado resultados.
@@ -352,7 +352,7 @@ function DestinationFieldsRow({
                     </CommandItem>
                   </CommandGroup>
                 )}
-                <CommandGroup heading="--- Autorizados ---">
+                <CommandGroup heading="--- Autorizados externos ---">
                   {authorizedEmployees?.map((authorizedEmployee) => {
                     const value = `${AUTH_PREFIX}${authorizedEmployee.id}`;
                     return (

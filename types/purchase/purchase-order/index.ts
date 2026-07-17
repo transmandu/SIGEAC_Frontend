@@ -79,7 +79,15 @@ export interface PurchaseOrderGeneralArticle {
   international_shipping_tracking?: string | null;
   general_article_quote_order: PurchaseOrderGeneralArticleQuoteOrder | null;
   /** Present once someone has registered this line's physical delivery (see registerGeneralArticlesDelivery). Null while still pending. */
-  general_article_intake?: { id: number; status: GeneralArticleIntakeStatus } | null;
+  general_article_intake?: {
+    id: number;
+    status: GeneralArticleIntakeStatus;
+    warehouse?: GeneralArticleIntakeWarehouseRef | null;
+    department?: GeneralArticleIntakeDepartmentRef | null;
+    employee?: GeneralArticleIntakeEmployeeRef | null;
+    third_party?: GeneralArticleIntakeThirdPartyRef | null;
+    authorized_employee?: GeneralArticleIntakeAuthorizedEmployeeRef | null;
+  } | null;
 }
 
 export interface PurchaseOrderQuoteRef {
@@ -246,7 +254,11 @@ export interface RegisterGeneralArticlesDeliveryResponse {
 // REJECTED marks a physical-verification mismatch (wrong item / wrong
 // quantity): the intake never touches stock, stays as incident history, and
 // the deliverer can re-register the delivery on the same PO once resolved.
-export type GeneralArticleIntakeStatus = 'PENDING' | 'CONFIRMED' | 'REJECTED';
+// DELIVERED is a direct delivery: the intake was handed straight to a
+// department/employee/authorized/third party (never a warehouse), so there is
+// no confirmation step and it never reaches inventory — its receipt is the
+// downloadable Nota de Entrega.
+export type GeneralArticleIntakeStatus = 'PENDING' | 'CONFIRMED' | 'REJECTED' | 'DELIVERED';
 
 // Shaped by GeneralArticleIntakeResource — only what the frontend needs from
 // each relation, not the full purchase_order/quote_order/requisition_order
@@ -287,9 +299,37 @@ export interface GeneralArticleIntakeQuoteOrderRef {
 }
 
 export interface GeneralArticleIntakeWarehouseRef {
+  id: number;
   location_id: number;
   name: string;
   type: string;
+}
+
+// Direct-delivery destinations — the same entities a general-article
+// requisition line can be affiliated to, so the whole thread
+// (requisition → purchase → delivery) stays linked. Mutually exclusive with
+// each other and with `warehouse`.
+export interface GeneralArticleIntakeDepartmentRef {
+  id: number;
+  name: string;
+}
+
+export interface GeneralArticleIntakeThirdPartyRef {
+  id: number;
+  name: string;
+}
+
+export interface GeneralArticleIntakeEmployeeRef {
+  id: number;
+  first_name: string;
+  last_name: string;
+  dni: string;
+}
+
+export interface GeneralArticleIntakeAuthorizedEmployeeRef {
+  id: number;
+  full_name: string;
+  dni: string;
 }
 
 // GET /{company}/{location_id}/general-article-intakes
@@ -312,6 +352,10 @@ export interface GeneralArticleIntake {
   observation?: string | null;
   unit?: GeneralArticleIntakeUnitRef | null;
   warehouse?: GeneralArticleIntakeWarehouseRef | null;
+  department?: GeneralArticleIntakeDepartmentRef | null;
+  third_party?: GeneralArticleIntakeThirdPartyRef | null;
+  employee?: GeneralArticleIntakeEmployeeRef | null;
+  authorized_employee?: GeneralArticleIntakeAuthorizedEmployeeRef | null;
   purchase_order?: GeneralArticleIntakePurchaseOrderRef | null;
   general_article_quote_order?: GeneralArticleIntakeQuoteOrderRef | null;
 }

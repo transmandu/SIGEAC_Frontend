@@ -2,8 +2,9 @@
 
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-import { ImageIcon } from 'lucide-react';
+import { ImageIcon, Plane } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import PriorityIndicator from './PriorityIndicator';
 import { articleStatusUI } from './utils/uiHelpers';
@@ -33,6 +34,25 @@ const ArticleCard = ({ article, batchName, batchCategory, onImageClick, requisit
 
   const imageSrc = getImageSrc();
   const isRejected = article.status === 'REJECTED' && requisitionStatus !== 'REJECTED';
+
+  const aircraftLabel =
+    typeof article.aircraft === 'string'
+      ? article.aircraft
+      : article.aircraft?.acronym ?? null;
+
+  // El único destino posible para un artículo aeronáutico es la aeronave
+  // (a diferencia del general, que puede ir a departamento/tercero/empleado/
+  // autorizado). Se arma como array para reutilizar el mismo patrón visual
+  // de chip + tooltip que GeneralArticleCard.
+  const destinationEntries = [
+    aircraftLabel && {
+      key: 'aircraft',
+      icon: Plane,
+      label: 'Aeronave',
+      value: aircraftLabel,
+      tooltip: `Aeronave: ${aircraftLabel}`,
+    },
+  ].filter(Boolean) as { key: string; icon: typeof Plane; label: string; value: string; tooltip: string }[];
 
   return (
     <div className="rounded-lg border border-border/60 bg-background/70 overflow-hidden mx-3">
@@ -112,6 +132,32 @@ const ArticleCard = ({ article, batchName, batchCategory, onImageClick, requisit
           <div className="flex flex-col gap-2 shrink-0">
             {/* ── FILA 1 ── */}
             <div className="flex items-start gap-4">
+              {/* DESTINO */}
+              {destinationEntries.length > 0 && (
+                <div className="flex flex-col items-center min-w-[80px]">
+                  <span className="h-4 w-full flex items-center justify-center text-[10px] tracking-wide text-muted-foreground mb-2 select-none">
+                    DESTINO
+                  </span>
+                  <div className="flex items-center justify-center w-full">
+                    <div className="flex flex-col items-center gap-1.5">
+                      {destinationEntries.map(({ key, icon: Icon, label, value, tooltip }) => (
+                        <Tooltip key={key}>
+                          <TooltipTrigger asChild>
+                            <span className="inline-flex items-center justify-center gap-1 text-[11px] text-muted-foreground bg-background/60 border border-border/40 rounded-full px-2 py-1 w-fit max-w-[110px] cursor-default">
+                              <Icon className="size-3 shrink-0 opacity-70" />
+                              <span className="truncate font-medium text-foreground/80">{value}</span>
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent side="top">
+                            {tooltip}
+                          </TooltipContent>
+                        </Tooltip>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* ESTATUS */}
               <div className="flex flex-col items-center min-w-[90px]">
                 <span className="h-4 w-full flex items-center justify-center text-[10px] tracking-wide text-muted-foreground mb-2 select-none">
@@ -239,6 +285,29 @@ const ArticleCard = ({ article, batchName, batchCategory, onImageClick, requisit
                 </div>
               </div>
             </div>
+
+            {destinationEntries.length > 0 && (
+              <div className="space-y-1">
+                <span className="text-[10px] tracking-wide text-muted-foreground">
+                  DESTINO
+                </span>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {destinationEntries.map(({ key, icon: Icon, label, value, tooltip }) => (
+                    <Tooltip key={key}>
+                      <TooltipTrigger asChild>
+                        <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground bg-background/60 border border-border/40 rounded-full px-2 py-1 w-fit max-w-[140px] cursor-default">
+                          <Icon className="size-3 shrink-0 opacity-70" />
+                          <span className="truncate font-medium text-foreground/80">{value}</span>
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent side="top">
+                        {tooltip}
+                      </TooltipContent>
+                    </Tooltip>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Attributes grid */}

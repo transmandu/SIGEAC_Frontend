@@ -2,9 +2,10 @@
 
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn, formatRequestedDate } from '@/lib/utils';
-import { Building2, CalendarDays, Handshake, ImageIcon, ShieldCheck, User } from 'lucide-react';
+import { Building2, CalendarDays, Handshake, ImageIcon, MapPin, ShieldCheck, User } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { articleStatusUI, priorityCardBadgeCls } from './utils/uiHelpers';
 
@@ -13,6 +14,68 @@ interface GeneralArticleCardProps {
   onImageClick: (image: string) => void;
   requisitionStatus?: string;
 }
+
+interface DestinationEntry {
+  key: string;
+  icon: typeof Building2;
+  label: string;
+  value: string;
+  tooltip: string;
+}
+
+const DestinationChip = ({ icon: Icon, value, tooltip }: DestinationEntry) => (
+  <Tooltip>
+    <TooltipTrigger asChild>
+      <span className="inline-flex items-center justify-center gap-1 text-[11px] text-muted-foreground bg-background/60 border border-border/40 rounded-full px-2 py-1 w-fit max-w-[150px] cursor-default">
+        <Icon className="size-3 shrink-0 opacity-70" />
+        <span className="truncate font-medium text-foreground/80">{value}</span>
+      </span>
+    </TooltipTrigger>
+    <TooltipContent side="top">
+      {tooltip}
+    </TooltipContent>
+  </Tooltip>
+);
+
+// Con hasta 2 destinos se muestran ambos chips directamente. Con más,
+// agruparlos todos detrás de un solo chip resumen ("N destinos") que abre
+// un popover con la lista completa evita que la card crezca o se desborde.
+const DestinationChips = ({ entries, wrap = false }: { entries: DestinationEntry[]; wrap?: boolean }) => {
+  if (entries.length === 0) return null;
+
+  if (entries.length <= 2) {
+    return (
+      <div className={cn('flex items-center gap-1.5', wrap ? 'flex-wrap' : 'flex-col')}>
+        {entries.map((entry) => (
+          <DestinationChip {...entry} key={entry.key} />
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className="inline-flex items-center justify-center gap-1 text-[11px] text-muted-foreground bg-background/60 border border-border/40 rounded-full px-2 py-1 w-fit cursor-pointer hover:bg-muted/60 transition-colors"
+        >
+          <MapPin className="size-3 shrink-0 opacity-70" />
+          <span className="font-medium text-foreground/80">{entries.length} destinos</span>
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="center" className="w-auto p-2 space-y-1.5">
+        {entries.map((entry) => (
+          <div key={entry.key} className="flex items-center gap-1.5 text-xs">
+            <entry.icon className="size-3.5 shrink-0 text-muted-foreground" />
+            <span className="font-medium text-foreground/80">{entry.label}:</span>
+            <span className="text-muted-foreground">{entry.value}</span>
+          </div>
+        ))}
+      </PopoverContent>
+    </Popover>
+  );
+};
 
 const GeneralArticleCard = ({ article, onImageClick, requisitionStatus }: GeneralArticleCardProps) => {
   const showApprovalDetails = (status?: string) => {
@@ -60,11 +123,11 @@ const GeneralArticleCard = ({ article, onImageClick, requisitionStatus }: Genera
     article.authorized_employee && {
       key: 'authorized_employee',
       icon: ShieldCheck,
-      label: 'Autorizado',
+      label: 'Solicitante autorizado',
       value: article.authorized_employee.full_name ?? article.authorized_employee.dni_employee,
-      tooltip: `Autorizado: ${article.authorized_employee.full_name ?? article.authorized_employee.dni_employee}`,
+      tooltip: `Solicitante autorizado: ${article.authorized_employee.full_name ?? article.authorized_employee.dni_employee}`,
     },
-  ].filter(Boolean) as { key: string; icon: typeof Building2; label: string; value: string; tooltip: string }[];
+  ].filter(Boolean) as DestinationEntry[];
 
   return (
     <div className="rounded-lg border border-border/60 bg-background/70 overflow-hidden mx-3">
@@ -104,7 +167,7 @@ const GeneralArticleCard = ({ article, onImageClick, requisitionStatus }: Genera
       {/* BODY */}
       <div className="px-3 py-3">
         {/* Desktop & Tablet: side-by-side layout */}
-        <div className="hidden md:grid grid-cols-[1fr_auto_auto] gap-5 items-center">
+        <div className="hidden md:grid grid-cols-[1fr_auto] gap-5 items-center">
           {/* IZQUIERDA */}
           <div className="min-w-0 space-y-2.5">
             <div className="space-y-1">
@@ -126,35 +189,20 @@ const GeneralArticleCard = ({ article, onImageClick, requisitionStatus }: Genera
             </div>
           </div>
 
-          {/* CENTRO: DESTINO */}
-          {destinationEntries.length > 0 && (
-            <div className="flex flex-col items-center gap-1.5 shrink-0 px-2">
-              <span className="text-[10px] tracking-wide text-muted-foreground select-none">
-                DESTINO
-              </span>
-              <div className="flex flex-col gap-1.5">
-                {destinationEntries.map(({ key, icon: Icon, label, value, tooltip }) => (
-                  <Tooltip key={key}>
-                    <TooltipTrigger asChild>
-                      <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground bg-background/60 border border-border/40 rounded-full px-2.5 py-1 w-[210px] cursor-default">
-                        <Icon className="size-3 shrink-0 opacity-70" />
-                        <span className="font-medium text-foreground/80 shrink-0">{label}:</span>
-                        <span className="truncate">{value}</span>
-                      </span>
-                    </TooltipTrigger>
-                    <TooltipContent side="top">
-                      {tooltip}
-                    </TooltipContent>
-                  </Tooltip>
-                ))}
-              </div>
-            </div>
-          )}
-
           {/* DERECHA */}
           <div className="flex flex-col gap-2 shrink-0">
             {/* FILA 1 */}
             <div className="flex items-start gap-4">
+              {/* DESTINO */}
+              {destinationEntries.length > 0 && (
+                <div className="flex flex-col items-center min-w-[90px]">
+                  <span className="h-4 w-full flex items-center justify-center text-[10px] tracking-wide text-muted-foreground mb-2 select-none">
+                    DESTINO
+                  </span>
+                  <DestinationChips entries={destinationEntries} />
+                </div>
+              )}
+
               {/* ESTATUS */}
               <div className="flex flex-col items-center min-w-[90px]">
                 <span className="h-4 w-full flex items-center justify-center text-[10px] tracking-wide text-muted-foreground mb-2 select-none">
@@ -280,22 +328,7 @@ const GeneralArticleCard = ({ article, onImageClick, requisitionStatus }: Genera
                 <span className="text-[10px] tracking-wide text-muted-foreground">
                   DESTINO
                 </span>
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  {destinationEntries.map(({ key, icon: Icon, label, value, tooltip }) => (
-                    <Tooltip key={key}>
-                      <TooltipTrigger asChild>
-                        <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground bg-background/60 border border-border/40 rounded-full px-2.5 py-1 max-w-[210px] cursor-default">
-                          <Icon className="size-3 shrink-0 opacity-70" />
-                          <span className="font-medium text-foreground/80 shrink-0">{label}:</span>
-                          <span className="truncate">{value}</span>
-                        </span>
-                      </TooltipTrigger>
-                      <TooltipContent side="top">
-                        {tooltip}
-                      </TooltipContent>
-                    </Tooltip>
-                  ))}
-                </div>
+                <DestinationChips entries={destinationEntries} wrap />
               </div>
             )}
           </div>

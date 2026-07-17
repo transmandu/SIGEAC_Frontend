@@ -369,7 +369,7 @@ export default function RequisitionPreviewPanel({ requisition, onClose }: Props)
                 },
                 article.authorized_employee && {
                   key: 'authorized_employee',
-                  label: 'Autorizado',
+                  label: 'Solicitante autorizado',
                   value:
                     article.authorized_employee.full_name ??
                     article.authorized_employee.dni_employee,

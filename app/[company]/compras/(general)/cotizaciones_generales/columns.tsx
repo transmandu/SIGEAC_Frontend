@@ -10,7 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 
-import { Eye, Link2, Store } from 'lucide-react'
+import { Link2, Store } from 'lucide-react'
 
 import type { Quote } from '@/types/purchase'
 
@@ -18,6 +18,7 @@ import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 
 import Link from 'next/link'
+import EyePreviewIcon from '@/components/misc/EyePreviewIcon'
 
 const QUOTE_STATUS_LABELS: Record<string, string> = {
   PENDING: 'PENDIENTE',
@@ -376,7 +377,7 @@ export const getColumns = (
                     isActive && 'border-blue-500/40 bg-blue-500/10 text-blue-600 dark:text-blue-400'
                   )}
                 >
-                  <Eye className="size-3.5" />
+                  <EyePreviewIcon active={isActive} className="size-3.5" />
                   {total} {total === 1 ? 'artículo' : 'artículos'}
                 </button>
               </TooltipTrigger>

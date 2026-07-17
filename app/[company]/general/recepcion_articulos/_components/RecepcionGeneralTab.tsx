@@ -506,7 +506,10 @@ export function RecepcionGeneralTab() {
     const [statusFilter, setStatusFilter] = useState<StatusFilter>('ALL')
     const [search, setSearch] = useState('')
 
-    const { data: intakes, isLoading } = useGetGeneralArticleIntakes()
+    // Solo entradas destinadas a un almacén: las entregas directas a
+    // departamento/empleado/autorizado/tercero nunca entran al inventario y
+    // se gestionan únicamente desde Compras → Recepción General.
+    const { data: intakes, isLoading } = useGetGeneralArticleIntakes(undefined, { warehouseOnly: true })
 
     const filtered = useMemo(() => {
         const all = intakes ?? []
@@ -546,7 +549,7 @@ export function RecepcionGeneralTab() {
                         {filtered.length} {filtered.length === 1 ? 'entrada' : 'entradas'}
                     </span>
                     <DownloadReportDialog
-                        endpoint="{location_id}/general-article-intakes-pdf"
+                        endpoint="{location_id}/general-article-intakes-pdf?destination=warehouse"
                         requiresLocation
                         title="Descargar Reporte de Recepción General"
                         description="Selecciona el rango de fechas y el estado para filtrar las entradas."

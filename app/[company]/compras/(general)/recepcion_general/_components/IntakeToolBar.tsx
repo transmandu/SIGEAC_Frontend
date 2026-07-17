@@ -39,6 +39,7 @@ const StatusSelect = ({
         <SelectItem value="PENDING">Pendientes</SelectItem>
         <SelectItem value="CONFIRMED">Confirmadas</SelectItem>
         <SelectItem value="REJECTED">Rechazadas</SelectItem>
+        <SelectItem value="DELIVERED">Entregadas</SelectItem>
       </SelectContent>
     </Select>
   </div>

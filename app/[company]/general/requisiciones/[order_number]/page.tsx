@@ -439,7 +439,7 @@ const GeneralArticleCard = ({ article }: { article: any }) => {
 
             {article.authorized_employee && (
               <div>
-                <p className="text-muted-foreground text-xs">Autorizado</p>
+                <p className="text-muted-foreground text-xs">Solicitante autorizado</p>
                 <p className="font-medium">
                   {article.authorized_employee.full_name ?? article.authorized_employee.dni_employee}
                 </p>

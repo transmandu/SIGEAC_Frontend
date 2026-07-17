@@ -123,8 +123,8 @@ const PurchaseOrderPage = () => {
           <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-x-4 sm:gap-x-6 md:gap-x-10 gap-y-3 md:gap-y-4 justify-items-center">
 
             <MetaItem
-              label="PROVEEDOR"
-              value={data?.vendor?.name}
+              label="LUGAR DE COMPRA"
+              value={data?.retailer?.name}
               icon={Truck}
             />
 

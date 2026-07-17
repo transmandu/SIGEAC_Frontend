@@ -47,6 +47,7 @@ export default function NotificationBell() {
     notifications,
     unreadCount,
     open,
+    scopeKey: selectedCompany?.slug,
   });
 
   useEffect(() => {
