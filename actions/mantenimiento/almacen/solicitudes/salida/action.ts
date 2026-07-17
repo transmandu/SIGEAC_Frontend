@@ -61,9 +61,11 @@ export const useCreateDispatchRequest = () => {
       }),
         router.refresh();
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast.error("Oops!", {
-        description: "No se pudo crear la solicitud...",
+        description:
+          error?.response?.data?.message ||
+          "No se pudo crear la solicitud...",
       });
       console.log(error);
     },
