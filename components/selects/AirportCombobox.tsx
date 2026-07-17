@@ -72,10 +72,18 @@ export function AirportCombobox({
     for (const airport of airports) {
       const match = matchAirport(airport, term);
       if (match) matches.push(match);
-      if (matches.length >= MAX_RESULTS) break;
     }
 
-    return matches;
+    // Venezuela primero: la aerolínea opera desde ahí, así que sus aeropuertos
+    // deben quedar arriba del listado sin importar el orden alfabético.
+    matches.sort((a, b) => {
+      const aIsVE = a.airport.country === "VE" ? 0 : 1;
+      const bIsVE = b.airport.country === "VE" ? 0 : 1;
+      if (aIsVE !== bIsVE) return aIsVE - bIsVE;
+      return a.airport.iata.localeCompare(b.airport.iata);
+    });
+
+    return matches.slice(0, MAX_RESULTS);
   }, [airports, search]);
 
   const customCode = useMemo(() => {
