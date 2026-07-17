@@ -8,6 +8,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { AIRPORT_CODE_REGEX, AirportCombobox } from "@/components/selects/AirportCombobox";
 import { useGetMaintenanceAircrafts } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CalendarIcon, Check, ChevronsUpDown, Loader2, Plus, X } from "lucide-react";
@@ -33,11 +34,18 @@ import {
 } from "@/actions/mantenimiento/planificacion/vuelos/actions";
 import { useCompanyStore } from "@/stores/CompanyStore";
 
+const airportCodeSchema = z
+  .string()
+  .optional()
+  .refine((v) => !v || AIRPORT_CODE_REGEX.test(v), {
+    message: "Código IATA (3 letras) o ICAO (4 letras) inválido",
+  });
+
 const flightEntrySchema = z.object({
   flight_number: z.string().optional(),
   aircraft_operator: z.string().optional(),
-  origin: z.string().optional(),
-  destination: z.string().optional(),
+  origin: airportCodeSchema,
+  destination: airportCodeSchema,
   flight_date: z.date({ required_error: "Seleccione una fecha" }),
   flight_hours: z.coerce.number().min(0, "Debe ser ≥ 0").optional(),
   flight_cycles: z.coerce.number().min(0, "Debe ser ≥ 0").optional(),
@@ -51,8 +59,8 @@ const createFormSchema = z.object({
 const editFormSchema = z.object({
   flight_number: z.string().optional(),
   aircraft_operator: z.string().optional(),
-  origin: z.string().optional(),
-  destination: z.string().optional(),
+  origin: airportCodeSchema,
+  destination: airportCodeSchema,
   flight_date: z.date({ required_error: "Seleccione una fecha" }),
   flight_hours: z.coerce.number().min(0, "Debe ser ≥ 0").optional(),
   flight_cycles: z.coerce.number().min(0, "Debe ser ≥ 0").optional(),
@@ -320,7 +328,10 @@ function EditForm({
               <FormItem>
                 <FormLabel>Salida</FormLabel>
                 <FormControl>
-                  <Input placeholder="EJ: PZO, CCS, etc..." {...field} />
+                  <AirportCombobox
+                    value={field.value}
+                    onChange={(code) => field.onChange(code ?? "")}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -333,7 +344,10 @@ function EditForm({
               <FormItem>
                 <FormLabel>Destino</FormLabel>
                 <FormControl>
-                  <Input placeholder="EJ: POR, CCS, etc..." {...field} />
+                  <AirportCombobox
+                    value={field.value}
+                    onChange={(code) => field.onChange(code ?? "")}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -448,7 +462,7 @@ function CreateForm({
       <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-5">
         <AircraftSelect control={form.control} name="aircraft_id" />
 
-        <div className="flex items-center justify-between border-b border-border/60 pb-2">
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border/60 bg-background pb-2 pt-1">
           <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
             Vuelos
           </span>
@@ -509,7 +523,11 @@ function CreateForm({
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <Input placeholder="PZO" className="h-8 text-sm" {...field} />
+                    <AirportCombobox
+                      value={field.value}
+                      onChange={(code) => field.onChange(code ?? "")}
+                      placeholder="PZO"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -521,7 +539,11 @@ function CreateForm({
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <Input placeholder="CCS" className="h-8 text-sm" {...field} />
+                    <AirportCombobox
+                      value={field.value}
+                      onChange={(code) => field.onChange(code ?? "")}
+                      placeholder="CCS"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -585,17 +607,19 @@ function CreateForm({
           </p>
         )}
 
-        <Button
-          className="bg-primary mt-2 text-white hover:bg-blue-900 disabled:bg-primary/70 w-full"
-          disabled={createFlightControl?.isPending}
-          type="submit"
-        >
-          {createFlightControl?.isPending ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <p>Crear Vuelos ({fields.length})</p>
-          )}
-        </Button>
+        <div className="sticky bottom-0 z-10 -mx-6 bg-background px-6 pb-1 pt-2">
+          <Button
+            className="bg-primary text-white hover:bg-blue-900 disabled:bg-primary/70 w-full"
+            disabled={createFlightControl?.isPending}
+            type="submit"
+          >
+            {createFlightControl?.isPending ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <p>Crear Vuelos ({fields.length})</p>
+            )}
+          </Button>
+        </div>
       </form>
     </Form>
   );

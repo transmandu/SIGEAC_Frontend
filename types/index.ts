@@ -14,6 +14,15 @@ export type AdministrationCompany = {
   updated_at: string;
 };
 
+/** Registro del catalogo estatico de aeropuertos (public/data/airports.json). */
+export type Airport = {
+  iata: string;
+  icao: string;
+  name: string;
+  city: string;
+  country: string;
+};
+
 export type Aircraft = {
   id: number;
   client: Client;
