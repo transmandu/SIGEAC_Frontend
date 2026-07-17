@@ -1,6 +1,5 @@
 import {
   Card,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle
@@ -39,13 +38,13 @@ const UserInfoCard = ({ user }: { user: User }) => {
               {fullName}
             </CardTitle>
 
-            <CardDescription className="flex flex-wrap justify-center gap-2">
+            <div className="flex flex-wrap justify-center gap-2">
               {user.roles?.map((role, index) => (
                 <Badge key={index} className="bg-black text-[10px]">
                   {role.name}
                 </Badge>
               ))}
-            </CardDescription>
+            </div>
           </div>
         </div>
       </CardHeader>

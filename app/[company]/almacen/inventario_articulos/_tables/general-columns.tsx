@@ -77,6 +77,25 @@ export const columns: ColumnDef<GeneralArticle>[] = [
         },
     },
     {
+        accessorKey: "minimum_quantity",
+        header: ({ column }) => (
+            <div className="flex justify-center">
+                <DataTableColumnHeader column={column} title="Cant. Mínima" />
+            </div>
+        ),
+        cell: ({ row }) => {
+            const minQty = row.original.minimum_quantity
+
+            return (
+                <div className="flex justify-center">
+                    <Badge variant="outline" className="tabular-nums px-2 py-1 text-xs">
+                        {minQty ?? "N/A"}
+                    </Badge>
+                </div>
+            )
+        },
+    },
+    {
         accessorKey: "quantity",
         header: ({ column }) => (
             <div className="flex justify-center">

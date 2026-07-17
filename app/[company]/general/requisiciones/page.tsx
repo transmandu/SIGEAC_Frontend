@@ -3,7 +3,6 @@
 import { useEffect, useState, useMemo } from 'react';
 
 import { ContentLayout } from '@/components/layout/ContentLayout';
-import LoadingPage from '@/components/misc/LoadingPage';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -39,39 +38,72 @@ const RequisitionsPage = () => {
       'SUPERUSER',
       'ANALISTA_COMPRAS',
       'JEFE_COMPRAS',
-      'JEFE_ALMACEN',
       'JEFE_ADMINISTRACION',
     ],
     []
   );
 
+  const warehouseRoles = useMemo(
+    () => ['JEFE_ALMACEN', 'ANALISTA_ALMACEN'],
+    []
+  );
+
+  const userRoleNames = useMemo(
+    () => user?.roles?.map(role => role.name) ?? [],
+    [user]
+  );
+
   const hasFullAccess = useMemo(() => {
+    return userRoleNames.some(role => fullAccessRoles.includes(role));
+  }, [userRoleNames, fullAccessRoles]);
+
+  // JEFE_ALMACEN / ANALISTA_ALMACEN, cuando no tienen además un rol
+  // full-access (compras/administración), solo deben ver las solicitudes
+  // que se mueven dentro del módulo almacén (creadas por gente de almacén).
+  const isWarehouseOnly = useMemo(() => {
     return (
-      user?.roles?.some(role => fullAccessRoles.includes(role.name)) ?? false
+      !hasFullAccess &&
+      userRoleNames.some(role => warehouseRoles.includes(role))
     );
-  }, [user, fullAccessRoles]);
+  }, [hasFullAccess, userRoleNames, warehouseRoles]);
 
-  const accessFilteredRequisitions = useMemo(() => {
-    if (!requisitions) return [];
-
+  const canSeeRequisition = useMemo(() => {
     if (hasFullAccess) {
-      return requisitions;
+      return () => true;
     }
 
-    return requisitions.filter(req => {
-      return req.created_by?.id === user?.id;
-    });
-  }, [requisitions, hasFullAccess, user]);
+    if (isWarehouseOnly) {
+      // Las solicitudes generadas automáticamente por stock mínimo no
+      // tienen un usuario creador (created_by = "SYSTEM" en el backend,
+      // por lo que llega como null), pero nacen del propio inventario de
+      // almacén, así que siempre deben ser visibles para estos roles.
+      return (req: NonNullable<typeof requisitions>[number]) =>
+        !req.created_by ||
+        (req.created_by.roles?.some(role => warehouseRoles.includes(role.name)) ?? false);
+    }
 
-  const totalAeronautical = useMemo(
-    () => accessFilteredRequisitions.filter(req => req.type === 'AERONAUTICAL').length,
-    [accessFilteredRequisitions]
-  );
+    return (req: NonNullable<typeof requisitions>[number]) => req.created_by?.id === user?.id;
+  }, [hasFullAccess, isWarehouseOnly, warehouseRoles, user]);
 
-  const totalGeneral = useMemo(
-    () => accessFilteredRequisitions.filter(req => req.type === 'GENERAL').length,
-    [accessFilteredRequisitions]
-  );
+  const { accessFilteredRequisitions, totalAeronautical, totalGeneral } = useMemo(() => {
+    if (!requisitions) {
+      return { accessFilteredRequisitions: [], totalAeronautical: 0, totalGeneral: 0 };
+    }
+
+    const accessFilteredRequisitions = [];
+    let totalAeronautical = 0;
+    let totalGeneral = 0;
+
+    for (const req of requisitions) {
+      if (!canSeeRequisition(req)) continue;
+
+      accessFilteredRequisitions.push(req);
+      if (req.type === 'AERONAUTICAL') totalAeronautical++;
+      else if (req.type === 'GENERAL') totalGeneral++;
+    }
+
+    return { accessFilteredRequisitions, totalAeronautical, totalGeneral };
+  }, [requisitions, canSeeRequisition]);
 
   const filteredRequisitions = useMemo(() => {
     if (typeFilter === 'ALL') return accessFilteredRequisitions;
@@ -84,10 +116,6 @@ const RequisitionsPage = () => {
     [selectedCompany]
   )
   
-  if (isLoading) {
-    return <LoadingPage />;
-  }
-
   return (
     <ContentLayout title="Inventario">
       <div className="flex flex-col gap-y-2">
@@ -158,6 +186,7 @@ const RequisitionsPage = () => {
         <DataTable
           columns={columns}
           data={filteredRequisitions}
+          loading={isLoading}
         />
 
       </div>

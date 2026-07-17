@@ -98,6 +98,21 @@ const QuotePage = () => {
                   {statusLabel(data?.status)}
                 </Badge>
 
+                {data?.parent_quote_order && (
+                  <Badge
+                    variant="outline"
+                    className="border-violet-500/40 bg-violet-500/10 text-violet-700 dark:text-violet-300 text-[10px] font-semibold uppercase tracking-wide"
+                  >
+                    Complementaria de{' '}
+                    <Link
+                      href={`/${selectedCompany?.slug}/compras/cotizaciones_generales/${data.parent_quote_order.quote_number}`}
+                      className="ml-1 underline underline-offset-2 hover:opacity-80"
+                    >
+                      {data.parent_quote_order.quote_number}
+                    </Link>
+                  </Badge>
+                )}
+
               </div>
 
               <p className="text-sm text-muted-foreground">
@@ -183,6 +198,16 @@ const QuotePage = () => {
               content={data?.observation}
               emptyMessage="SIN OBSERVACIONES"
             />
+
+            {/* JUSTIFICACIÓN DE LA COMPLEMENTARIA */}
+            {data?.parent_quote_order && (
+              <InfoSection
+                title="JUSTIFICACIÓN DE LA COTIZACIÓN COMPLEMENTARIA"
+                icon={FileText}
+                content={data?.complementary_justification}
+                emptyMessage="SIN JUSTIFICACIÓN"
+              />
+            )}
 
           </div>
         </div>

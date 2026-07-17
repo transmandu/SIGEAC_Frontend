@@ -202,7 +202,7 @@ export function RequisitionHeader({
                         <Tabs value={requesterTab} onValueChange={(v) => setRequesterTab(v as RequesterTab)}>
                           <TabsList className="grid w-full grid-cols-2 h-9 rounded-none">
                             <TabsTrigger value="employee" className="text-xs">Empleado</TabsTrigger>
-                            <TabsTrigger value="authorized" className="text-xs">Autorizado</TabsTrigger>
+                            <TabsTrigger value="authorized" className="text-xs">Autorizado externo</TabsTrigger>
                           </TabsList>
                         </Tabs>
                         {requesterTab === "employee" ? (

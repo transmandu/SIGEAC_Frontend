@@ -6,7 +6,7 @@ import GroupRow from './GroupRow'
 import GroupPagination from '@/components/misc/GroupPagination'
 
 type GroupableKey =
-  | 'vendor'
+  | 'retailer'
   | 'requisition_order'
 
 type Props<T> = {
@@ -39,8 +39,8 @@ const GroupedQuotesTable = <T extends Record<string, any>>({
     for (const item of data) {
 
       const rawValue: string | undefined =
-        groupBy === 'vendor'
-          ? item.vendor?.name
+        groupBy === 'retailer'
+          ? item.retailer?.name
           : item.requisition_order?.order_number
 
       const key = rawValue?.trim() || 'Sin valor'

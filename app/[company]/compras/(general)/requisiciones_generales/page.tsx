@@ -14,7 +14,7 @@ import { CreateRequisitionDialog } from '@/components/dialogs/mantenimiento/comp
 import { GenerateInProgressRequisitionsPdfButton } from '@/components/misc/GenerateInProgressRequisitionsPdfButton'
 import RequisitionSubRow from './_components/RequisitionSubRow'
 import GroupedRequisitionTable from './_components/GroupedRequisitionTable'
-import RequisitionSplitView, { useRequisitionPreview } from '@/components/side-panels/RequisitionSplitView'
+import RequisitionSplitView, { useRequisitionPreview, useRequisitionPreviewSelectedId } from '@/components/side-panels/RequisitionSplitView'
 
 const RequisitionsPage = () => {
   return (
@@ -27,6 +27,7 @@ const RequisitionsPage = () => {
 const RequisitionsPageContent = () => {
   const { selectedCompany, selectedStation } = useCompanyStore()
   const onPreview = useRequisitionPreview()
+  const selectedPreviewId = useRequisitionPreviewSelectedId()
 
   const {
     data: requisitions,
@@ -154,7 +155,7 @@ const RequisitionsPageContent = () => {
             data={filteredRequisitions}
             renderTable={(rows) => (
               <DataTable
-                columns={getColumns(selectedCompany ?? undefined, onPreview ?? undefined)}
+                columns={getColumns(selectedCompany ?? undefined, onPreview ?? undefined, selectedPreviewId)}
                 data={rows}
                 renderSubRow={(row) => (
                   <RequisitionSubRow
@@ -173,7 +174,7 @@ const RequisitionsPageContent = () => {
           />
         ) : (
           <DataTable
-            columns={getColumns(selectedCompany ?? undefined, onPreview ?? undefined)}
+            columns={getColumns(selectedCompany ?? undefined, onPreview ?? undefined, selectedPreviewId)}
             data={filteredRequisitions}
             renderSubRow={(row) => (
               <RequisitionSubRow

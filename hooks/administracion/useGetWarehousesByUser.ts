@@ -9,7 +9,7 @@ const fetchWarehousesByLocation = async ({company, location_id}: {company: strin
 
 export const useGetWarehousesByLocation = ({company, location_id}: {company: string | undefined, location_id: string | null}) => {
   return useQuery<Warehouse[]>({
-    queryKey: ['warehousesByLocation'],
+    queryKey: ['warehousesByLocation', company, location_id],
     queryFn: () => fetchWarehousesByLocation({company, location_id}),
     staleTime: 1000 * 60 * 5, // 5 minutos
     enabled: !!company && !!location_id,

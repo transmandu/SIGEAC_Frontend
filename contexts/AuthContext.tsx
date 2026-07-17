@@ -3,6 +3,7 @@
 import axiosInstance from "@/lib/axios";
 import { createCookie } from "@/lib/cookie";
 import { createSession, deleteSession } from "@/lib/session";
+import { getEcho } from "@/lib/echo";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { User } from "@/types";
 import {
@@ -72,6 +73,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       setUser(null);
       setError(null);
+
+      getEcho()?.disconnect();
+      if (typeof window !== "undefined") {
+        window.__echo = undefined;
+      }
 
       await deleteSession();
       reset();

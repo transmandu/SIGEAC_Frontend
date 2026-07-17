@@ -11,6 +11,7 @@ interface Params {
   notifications: Notification[]
   unreadCount: number
   open?: boolean
+  scopeKey?: string | number
 }
 
 const UNLOCK_EVENTS: (keyof WindowEventMap)[] = [
@@ -23,12 +24,14 @@ export function useNotificationEffects({
   notifications,
   unreadCount,
   open = false,
+  scopeKey,
 }: Params) {
   const { user } = useAuth()
 
   const prevIdsRef = useRef<string[]>([])
   const prevUnreadRef = useRef(0)
   const isFirstLoadRef = useRef(true)
+  const scopeKeyRef = useRef(scopeKey)
 
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const audioUnlockedRef = useRef(false)
@@ -47,12 +50,12 @@ export function useNotificationEffects({
 
     const audioPath = isDipSuperUser
       ? '/sounds/faaah.mp3'
-      : '/sounds/notification.mp3'
+      : '/sounds/notification-cabine.mp3'
 
     const audio = new Audio(audioPath)
 
     audio.preload = 'auto'
-    audio.volume = 0.5
+    audio.volume = 1
 
     audioRef.current = audio
     audioUnlockedRef.current = false
@@ -127,10 +130,14 @@ export function useNotificationEffects({
   useEffect(() => {
     const currentIds = notifications?.map(n => n.id) ?? []
 
-    if (isFirstLoadRef.current) {
+    const scopeChanged = scopeKeyRef.current !== scopeKey
+
+    if (isFirstLoadRef.current || scopeChanged) {
       prevIdsRef.current = currentIds
       prevUnreadRef.current = unreadCount
       isFirstLoadRef.current = false
+      scopeKeyRef.current = scopeKey
+      pendingPlayRef.current = false
       return
     }
 
@@ -170,5 +177,5 @@ export function useNotificationEffects({
 
     prevIdsRef.current = currentIds
     prevUnreadRef.current = unreadCount
-  }, [notifications, unreadCount, open])
+  }, [notifications, unreadCount, open, scopeKey])
 }

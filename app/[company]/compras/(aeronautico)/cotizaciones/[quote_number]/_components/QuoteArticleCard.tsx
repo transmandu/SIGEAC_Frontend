@@ -3,6 +3,7 @@
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import type { ArticleQuoteOrder } from '@/types/purchase/quote';
+import QuoteComparisonToggle from '@/components/misc/QuoteComparisonToggle';
 
 interface QuoteArticleCardProps {
   article: ArticleQuoteOrder;
@@ -14,6 +15,12 @@ const FIELDS_GRID_COLS = 'grid-cols-[55px_120px_90px_100px]';
 const QuoteArticleCard = ({ article }: QuoteArticleCardProps) => {
   const req = article.article_requisition_order;
   const amount = article.quantity * Number(article.unit_price);
+
+  const quantityChanged = req != null && Number(req.quantity) !== Number(article.quantity);
+  const unitChanged =
+    req?.unit?.label != null &&
+    article.unit?.label != null &&
+    req.unit.label !== article.unit.label;
 
   return (
     <div className="rounded-lg border border-border/60 bg-background/70 overflow-hidden mx-3">
@@ -187,17 +194,14 @@ const QuoteArticleCard = ({ article }: QuoteArticleCardProps) => {
         </div>
       </div>
 
-      {/* JUSTIFICACIÓN */}
-      {article.justification && (
-        <div className="border-t border-border/50 bg-muted/20 px-3 py-1.5">
-          <span className="select-none text-[9px] leading-none text-muted-foreground uppercase">
-            Justificación
-          </span>
-          <p className="mt-0.5 text-xs text-foreground/80">
-            {article.justification}
-          </p>
-        </div>
-      )}
+      {/* COMPARATIVA SOLICITADO VS. COTIZADO + JUSTIFICACIÓN */}
+      <QuoteComparisonToggle
+        fields={[
+          { label: 'Cantidad', requested: req?.quantity, quoted: article.quantity, changed: quantityChanged },
+          { label: 'Unidad', requested: req?.unit?.label, quoted: article.unit?.label, changed: unitChanged },
+        ]}
+        justification={article.justification}
+      />
 
     </div>
   );

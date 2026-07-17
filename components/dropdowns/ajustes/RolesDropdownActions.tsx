@@ -27,7 +27,7 @@ const RolesDropdownActions = ({ id }: { id: string | number }) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DropdownMenu>
-        <DropdownMenuTrigger>
+        <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="h-8 w-8 p-0">
             <span className="sr-only">Abrir menu</span>
             <MoreHorizontal className="h-4 w-4" />

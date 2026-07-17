@@ -1,30 +1,47 @@
 'use client';
 
 import { Badge } from '@/components/ui/badge';
-import type { PurchaseOrderArticle } from '@/types/purchase/purchase-order';
+import type { PurchaseOrderArticle, PurchaseOrderStatus } from '@/types/purchase/purchase-order';
 
 interface PurchaseOrderArticleCardProps {
   article: PurchaseOrderArticle;
+  orderStatus?: PurchaseOrderStatus;
 }
 
-const Field = ({ label, value, mono = false, pending = false }: { label: string; value?: string | number | null; mono?: boolean; pending?: boolean }) => (
-  <div className="flex flex-col items-start min-w-0">
-    <span className="text-[9px] uppercase tracking-wide text-muted-foreground select-none mb-0.5">
-      {label}
-    </span>
-    {pending ? (
-      <span className="text-xs text-muted-foreground/50 italic leading-none">Pendiente</span>
-    ) : (
-      <span className={`text-xs leading-none truncate w-full ${mono ? 'font-mono' : ''}`}>
-        {value ?? '—'}
-      </span>
-    )}
-  </div>
-);
+const Field = ({ label, value, mono = false, pending = false, completed = false }: { label: string; value?: string | number | null; mono?: boolean; pending?: boolean; completed?: boolean }) => {
+  const isEmpty = pending || value == null || value === '';
 
-const PurchaseOrderArticleCard = ({ article }: PurchaseOrderArticleCardProps) => {
+  return (
+    <div className="flex flex-col items-start min-w-0">
+      <span className="text-[9px] uppercase tracking-wide text-muted-foreground select-none mb-0.5">
+        {label}
+      </span>
+      {isEmpty ? (
+        completed ? (
+          <span className="text-xs text-muted-foreground/50 leading-none">N/A</span>
+        ) : pending ? (
+          <span className="text-xs text-muted-foreground/50 italic leading-none">Pendiente</span>
+        ) : (
+          <span className="text-xs text-muted-foreground/50 leading-none">—</span>
+        )
+      ) : (
+        <span className={`text-xs leading-none truncate w-full ${mono ? 'font-mono' : ''}`}>
+          {value}
+        </span>
+      )}
+    </div>
+  );
+};
+
+const PurchaseOrderArticleCard = ({ article, orderStatus }: PurchaseOrderArticleCardProps) => {
+  const isCompleted = orderStatus === 'COMPLETED';
+
   const quoteArticle = article.article_quote_order;
   const req = quoteArticle?.article_requisition_order;
+  const unitLabel = quoteArticle?.unit?.label ?? req?.unit?.label;
+  const conditionName = quoteArticle?.condition?.name;
+  const vendorName = quoteArticle?.vendor?.name;
+
   const quotedTotal = quoteArticle?.total != null
     ? Number(quoteArticle.total)
     : Number(quoteArticle?.quantity || 0) * Number(quoteArticle?.unit_price || 0);
@@ -44,12 +61,12 @@ const PurchaseOrderArticleCard = ({ article }: PurchaseOrderArticleCardProps) =>
             {req?.article_part_number || 'N/A'}
           </span>
         </div>
-        {article.batch?.category && (
+        {req?.batch?.category && (
           <Badge
             variant="secondary"
-            className="h-4 px-1.5 text-[9px] uppercase tracking-wide text-muted-foreground select-none shrink-0"
+            className="h-4 px-1.5 text-[9px] uppercase tracking-wide text-muted-foreground select-none shrink-0 hover:bg-secondary"
           >
-            {article.batch.category}
+            {req.batch.category}
           </Badge>
         )}
       </div>
@@ -58,23 +75,27 @@ const PurchaseOrderArticleCard = ({ article }: PurchaseOrderArticleCardProps) =>
       <div className="px-2.5 py-2 space-y-1.5">
 
         <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
-          <Field label="Descripción" value={article.batch?.name ?? req?.batch?.name ?? 'Sin Descripción'} />
-          <Field label="P/N Alterno" value={req?.article_alt_part_number} mono />
-          <Field label="Cantidad" value={quoteArticle?.quantity} />
-          <Field label="Unidad" value={article.unit?.label} />
-          <Field label="P. Unitario" value={`$${Number(quoteArticle?.unit_price || 0).toFixed(2)}`} />
-          <Field label="Total" value={`$${amount.toFixed(2)}${totalDiffers ? ` (cotizado $${quotedTotal.toFixed(2)})` : ''}`} />
+          <Field label="Descripción" value={req?.batch?.name ?? 'Sin Descripción'} completed={isCompleted} />
+          <Field label="P/N Alterno" value={req?.article_alt_part_number} mono completed={isCompleted} />
+          <Field label="Cantidad" value={quoteArticle?.quantity} completed={isCompleted} />
+          <Field label="Unidad" value={unitLabel} completed={isCompleted} />
+          <Field label="P. Unitario" value={`$${Number(quoteArticle?.unit_price || 0).toFixed(2)}`} completed={isCompleted} />
+          <Field label="Total" value={`$${amount.toFixed(2)}${totalDiffers ? ` (cotizado $${quotedTotal.toFixed(2)})` : ''}`} completed={isCompleted} />
+          <Field label="Proveedor" value={vendorName} completed={isCompleted} />
+          <Field label="Condición" value={conditionName} completed={isCompleted} />
           <Field
             label="Tracking Nacional"
             value={article.shipping_tracking}
             mono
             pending={!article.shipping_tracking}
+            completed={isCompleted}
           />
           <Field
             label="Tracking Int'l"
             value={article.international_shipping_tracking}
             mono
             pending={!article.international_shipping_tracking}
+            completed={isCompleted}
           />
         </div>
 

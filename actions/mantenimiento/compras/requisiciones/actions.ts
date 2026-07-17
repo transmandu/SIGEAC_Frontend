@@ -70,6 +70,42 @@ export const useUpdateRequisition = () => {
   }
 }
 
+type CreateRequisitionFromLowStockAlertParams =
+  | { source: 'general', generalArticleId: number, company: string }
+  | { source: 'consumable', articleId: number, company: string }
+
+export const useCreateRequisitionFromLowStockAlert = () => {
+  const queryClient = useQueryClient()
+
+  const createMutation = useMutation({
+    mutationFn: async (params: CreateRequisitionFromLowStockAlertParams) => {
+      const body = params.source === 'general'
+        ? { general_article_id: params.generalArticleId }
+        : { article_id: params.articleId }
+
+      await axiosInstance.post(`/${params.company}/requisition-order/from-low-stock-alert`, body)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['requisitions-orders'] })
+      queryClient.invalidateQueries({ queryKey: ['requisition-order'], exact: false })
+      queryClient.invalidateQueries({ queryKey: ['low-stock-general-articles'], exact: false })
+      queryClient.invalidateQueries({ queryKey: ['low-stock-consumable-articles'], exact: false })
+
+      toast.success("¡Solicitud creada!", {
+        description: "Se generó una solicitud de compra para el artículo."
+      })
+    },
+    onError: (error) => {
+      toast.error('Oops!', {
+        description: getRequisitionErrorMessage(error, 'No se pudo crear la solicitud de compra...')
+      })
+    },
+  })
+  return {
+    createRequisitionFromLowStockAlert: createMutation,
+  }
+}
+
 export const useDeleteRequisition = () => {
   const queryClient = useQueryClient()
 

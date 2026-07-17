@@ -22,15 +22,15 @@ const ImageViewer = ({ openImage, onClose }: ImageViewerProps) => {
       onClick={onClose}
     >
       <div
-        className="relative max-w-[90vw] max-h-[90vh]"
+        className="relative max-w-[70vw] max-h-[70vh]"
         onClick={(e) => e.stopPropagation()}
       >
         <Image
           src={getImageSrc()}
           alt="Imagen ampliada"
-          width={1400}
-          height={900}
-          className="object-contain max-w-full max-h-[90vh] rounded-lg shadow-2xl"
+          width={800}
+          height={600}
+          className="object-contain w-auto h-auto max-w-full max-h-[70vh] rounded-lg shadow-2xl"
         />
       </div>
     </div>

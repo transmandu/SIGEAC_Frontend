@@ -62,12 +62,8 @@ const ClientDropdownActions = ({ client }: { client: Client }) => {
   return (
     <>
       <DropdownMenu>
-        <DropdownMenuTrigger>
-          <Button
-            variant="ghost"
-            className="h-8 w-8 p-0"
-            data-tour="clientes-actions"
-          >
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="h-8 w-8 p-0" data-tour="clientes-actions">
             <span className="sr-only">Abrir menu</span>
             <MoreHorizontal className="h-4 w-4" />
           </Button>

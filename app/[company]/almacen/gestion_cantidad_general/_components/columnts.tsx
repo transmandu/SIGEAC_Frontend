@@ -75,6 +75,24 @@ export function buildGeneralInventoryColumns({
             },
         },
         {
+            accessorKey: "minimum_quantity",
+            header: ({ column }) => (
+                <div className="flex justify-center">
+                    <DataTableColumnHeader filter column={column} title="Cant. Mínima" />
+                </div>
+            ),
+            cell: ({ row }) => {
+                const minQty = row.original.minimum_quantity
+                return (
+                    <div className="flex justify-center">
+                        <Badge variant="outline" className="max-w-[240px] truncate">
+                            {minQty ?? "N/A"}
+                        </Badge>
+                    </div>
+                )
+            },
+        },
+        {
             id: "actual_quantity",
             header: ({ column }) => (
                 <div className="flex justify-center">

@@ -134,6 +134,20 @@ export const useMarkPurchaseOrderAsPaid = () => {
   }
 }
 
+// Destino de la entrega: por defecto el almacén (warehouseId, de tipo GENERAL
+// en la estación activa) — intake PENDING que el almacén confirma. Si en
+// cambio se afilia a un departamento/empleado/autorizado/tercero (mismas
+// entidades que la requisición general), la entrega es directa: el intake nace
+// DELIVERED, nunca entra al inventario y su comprobante es la Nota de Entrega.
+export type GeneralArticlesDeliveryDestination = {
+  locationId?: string | number
+  warehouseId?: number
+  departmentId?: number
+  employeeId?: number
+  authorizedEmployeeId?: number
+  thirdPartyId?: number
+}
+
 // El responsable de traer la mercancía llama esto cuando los artículos
 // generales de la orden llegan físicamente. Crea un GeneralArticleIntake en
 // PENDING por cada ítem general que aún no tenga uno (seguro de llamar más
@@ -144,10 +158,19 @@ export const useRegisterGeneralArticlesDelivery = () => {
   const queryClient = useQueryClient()
 
   const registerDeliveryMutation = useMutation({
-      mutationFn: async ({id, company, arrivedAt}: {id: number, company: string, arrivedAt?: Date}) => {
+      mutationFn: async ({id, company, arrivedAt, generalArticlePurchaseOrderIds, destination}: {id: number, company: string, arrivedAt?: Date, generalArticlePurchaseOrderIds?: number[], destination?: GeneralArticlesDeliveryDestination}) => {
           const {data} = await axiosInstance.patch<RegisterGeneralArticlesDeliveryResponse>(
             `/${company}/purchase-order/${id}/register-general-articles-delivery`,
-            arrivedAt ? { arrived_at: arrivedAt.toISOString() } : {}
+            {
+              ...(arrivedAt ? { arrived_at: arrivedAt.toISOString() } : {}),
+              ...(generalArticlePurchaseOrderIds ? { general_article_purchase_order_ids: generalArticlePurchaseOrderIds } : {}),
+              ...(destination?.locationId ? { location_id: Number(destination.locationId) } : {}),
+              ...(destination?.warehouseId ? { warehouse_id: destination.warehouseId } : {}),
+              ...(destination?.departmentId ? { department_id: destination.departmentId } : {}),
+              ...(destination?.employeeId ? { employee_id: destination.employeeId } : {}),
+              ...(destination?.authorizedEmployeeId ? { authorized_employee_id: destination.authorizedEmployeeId } : {}),
+              ...(destination?.thirdPartyId ? { third_party_id: destination.thirdPartyId } : {}),
+            }
           )
           return data
         },

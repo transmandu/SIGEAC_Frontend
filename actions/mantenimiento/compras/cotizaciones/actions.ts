@@ -1,7 +1,7 @@
 import axiosInstance from "@/lib/axios"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
-import type { CreateQuoteData, UpdateQuoteStatusData } from "@/types/purchase"
+import type { CreateComplementaryQuoteData, CreateQuoteData, UpdateQuoteStatusData } from "@/types/purchase"
 
 export const useCreateQuote = () => {
   const queryClient = useQueryClient()
@@ -27,6 +27,44 @@ export const useCreateQuote = () => {
   })
 
   return { createQuote: createMutation }
+}
+
+// Crea una cotización complementaria sobre una cotización general APROBADA,
+// para documentar la diferencia entre lo realmente comprado y lo que la
+// cadena original amparaba (p. ej. llegaron 24 unidades y solo se
+// cotizaron/pagaron 6). Los documentos pagados no se tocan: la complementaria
+// nace PENDING con justificación obligatoria y recorre el pipeline normal
+// (aprobación → orden de compra → pago → entrega → intake).
+export const useCreateComplementaryQuote = () => {
+  const queryClient = useQueryClient()
+
+  const createComplementaryMutation = useMutation({
+    mutationFn: async ({
+      quoteId,
+      data,
+      company,
+    }: {
+      quoteId: number
+      company: string
+      data: CreateComplementaryQuoteData
+    }) => {
+      await axiosInstance.post(`/${company}/quote/${quoteId}/complementary`, data)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['quotes'] })
+      queryClient.invalidateQueries({ queryKey: ['quote'], exact: false })
+      toast.success("¡Creada!", {
+        description: "La cotización complementaria fue creada y queda pendiente de aprobación.",
+      })
+    },
+    onError: (error: any) => {
+      toast.error("Oops!", {
+        description: error?.response?.data?.message || "No se pudo crear la cotización complementaria.",
+      })
+    },
+  })
+
+  return { createComplementaryQuote: createComplementaryMutation }
 }
 
 export const useUpdateQuoteStatus = () => {

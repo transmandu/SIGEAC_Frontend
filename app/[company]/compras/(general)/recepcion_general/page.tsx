@@ -43,7 +43,12 @@ const RecepcionGeneralPage = () => {
         i.description?.toLowerCase().includes(q) ||
         i.brand_model?.toLowerCase().includes(q) ||
         i.purchase_order?.quote_order?.requisition_order?.order_number?.toLowerCase().includes(q) ||
-        i.registered_by?.toLowerCase().includes(q)
+        i.registered_by?.toLowerCase().includes(q) ||
+        i.warehouse?.name?.toLowerCase().includes(q) ||
+        i.department?.name?.toLowerCase().includes(q) ||
+        i.third_party?.name?.toLowerCase().includes(q) ||
+        i.authorized_employee?.full_name?.toLowerCase().includes(q) ||
+        `${i.employee?.first_name ?? ''} ${i.employee?.last_name ?? ''}`.toLowerCase().includes(q)
     )
   }, [intakes, deferredSearch])
 

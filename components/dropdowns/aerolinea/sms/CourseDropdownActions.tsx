@@ -88,12 +88,8 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
     <>
       <Dialog open={open} onOpenChange={setOpen}>
         <DropdownMenu>
-          <DropdownMenuTrigger>
-            <Button
-              variant="ghost"
-              className="h-8 w-8 p-0"
-              data-tour="cursos-actions"
-            >
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-8 w-8 p-0" data-tour="cursos-actions">
               <span className="sr-only">Abrir menu</span>
               <MoreHorizontal className="h-4 w-4" />
             </Button>

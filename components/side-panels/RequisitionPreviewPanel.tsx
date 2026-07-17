@@ -7,6 +7,8 @@ import {
   UserCheck,
   UserPlus,
   CalendarDays,
+  Building2,
+  Handshake,
   X,
 } from 'lucide-react'
 
@@ -208,7 +210,7 @@ export default function RequisitionPreviewPanel({ requisition, onClose }: Props)
               value={
                 requisition.created_by
                   ? `${requisition.created_by.first_name} ${requisition.created_by.last_name}`.toUpperCase()
-                  : undefined
+                  : "SISTEMA"
               }
               icon={UserCheck}
             />
@@ -227,6 +229,20 @@ export default function RequisitionPreviewPanel({ requisition, onClose }: Props)
                 label="AERONAVE"
                 value={requisition.aircraft.acronym}
                 icon={Plane}
+              />
+            )}
+            {requisition.department && (
+              <MetaItem
+                label="DEPARTAMENTO"
+                value={requisition.department.name?.toUpperCase()}
+                icon={Building2}
+              />
+            )}
+            {requisition.third_party && (
+              <MetaItem
+                label="TERCERO"
+                value={requisition.third_party.name?.toUpperCase()}
+                icon={Handshake}
               />
             )}
           </div>
@@ -353,7 +369,7 @@ export default function RequisitionPreviewPanel({ requisition, onClose }: Props)
                 },
                 article.authorized_employee && {
                   key: 'authorized_employee',
-                  label: 'Autorizado',
+                  label: 'Solicitante autorizado',
                   value:
                     article.authorized_employee.full_name ??
                     article.authorized_employee.dni_employee,

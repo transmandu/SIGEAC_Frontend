@@ -255,6 +255,20 @@ export interface ConsumableArticle extends Article {
   fabrication_date?: string;
 }
 
+/**
+ * Forma cruda que devuelve GET .../articles/low-stock-consumables: un Article
+ * con sus relaciones consumable/batch cargadas (no aplanado como ConsumableArticle).
+ * La cantidad actual vive en consumable.quantity, el mínimo en batch.min_quantity.
+ */
+export interface LowStockConsumableArticle extends Article {
+  consumable: {
+    id: number;
+    quantity: number;
+    primary_unit_id?: number;
+  };
+  batch: Pick<Batch, "id" | "name" | "min_quantity">;
+}
+
 export type Convertion = {
   id: number;
   registered_by: string;
@@ -1210,10 +1224,19 @@ export interface WarehouseDashboard {
   dispatchCount: number;
   dispatchAircraftCount: number;
   dispatchWorkOrderCount: number;
+  dispatchByCategory: {
+    component: number;
+    part: number;
+    consumable: number;
+    tool: number;
+    general: number;
+  };
   tool_need_calibration_count: number;
   returnToolsCount: number;
   restockCount: number;
   entryCount: number;
+  generalArticlesAvailablePercentage: number;
+  generalArticlesRestockCount: number;
   tools_need_calibration: {
     tool_id: number;
     batch_name: string;
@@ -1224,7 +1247,7 @@ export interface WarehouseDashboard {
   }[];
   toolsToReturn: any[];
   articlesOutOfStock: {
-    id: number;
+    id: number | string;
     description: string;
     part_number: string;
     serial: string | null;
@@ -1270,6 +1293,7 @@ export type GeneralArticle = {
   description: string;
   variant_type?: string | null;
   quantity: number;
+  minimum_quantity?: number | null;
   brand_model?: string;
   warehouse: Warehouse;
   general_primary_unit: Unit;

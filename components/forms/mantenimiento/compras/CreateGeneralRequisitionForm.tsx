@@ -29,6 +29,7 @@ import { GeneralArticlesSection } from "./_components/GeneralArticlesSection";
 import { AdditionalInfoSection } from "./_components/AdditionalInfoSection";
 import { isHigherPriority, type Priority } from "./_components/priorityUtils";
 import { getStoragePathFromUrl } from "./_components/imageUtils";
+import { canAddRequisitionArticle } from "@/lib/purchases/requisition-article-limit";
 
 /* -------------------------------------------------------------------------- */
 /*                                   SCHEMA                                   */
@@ -188,6 +189,7 @@ export function CreateGeneralRequisitionForm({
       if (prev.some((a) => isSameGeneralArticle(a, article))) {
         return prev.filter((a) => !isSameGeneralArticle(a, article));
       }
+      if (!canAddRequisitionArticle(prev.length)) return prev;
       return [
         ...prev,
         {
@@ -237,16 +239,19 @@ export function CreateGeneralRequisitionForm({
   };
 
   const addManualGeneralArticle = () => {
-    setSelectedGeneralArticles((prev) => [
-      ...prev,
-      {
-        description: "",
-        variant_type: "",
-        quantity: 0,
-        unit_id: undefined,
-        priority: "MEDIUM",
-      },
-    ]);
+    setSelectedGeneralArticles((prev) => {
+      if (!canAddRequisitionArticle(prev.length)) return prev;
+      return [
+        ...prev,
+        {
+          description: "",
+          variant_type: "",
+          quantity: 0,
+          unit_id: undefined,
+          priority: "MEDIUM",
+        },
+      ];
+    });
   };
 
   /* ------------------------------- SUBMIT --------------------------------- */

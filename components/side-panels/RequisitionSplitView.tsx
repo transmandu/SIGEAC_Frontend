@@ -9,8 +9,14 @@ const RequisitionPreviewContext = createContext<
   ((requisition: Requisition) => void) | null
 >(null)
 
+const RequisitionPreviewSelectedContext = createContext<number | null>(null)
+
 export function useRequisitionPreview() {
   return useContext(RequisitionPreviewContext)
+}
+
+export function useRequisitionPreviewSelectedId() {
+  return useContext(RequisitionPreviewSelectedContext)
 }
 
 interface RequisitionSplitViewProps {
@@ -28,32 +34,34 @@ export default function RequisitionSplitView({ children }: RequisitionSplitViewP
 
   return (
     <RequisitionPreviewContext.Provider value={onPreview}>
-      <div
-        className={cn(
-          'transition-[margin-right] duration-300 ease-in-out',
-          selected && 'lg:mr-[420px]'
-        )}
-      >
-        {children}
-      </div>
-
-      {selected && (
+      <RequisitionPreviewSelectedContext.Provider value={selected?.id ?? null}>
         <div
-          className="
-            fixed right-0 top-0 bottom-0 z-[900]
-            hidden lg:flex flex-col
-            w-[420px]
-            border-l bg-background
-            shadow-[0_0_40px_rgba(0,0,0,0.12)]
-            animate-in slide-in-from-right duration-300 ease-in-out
-          "
+          className={cn(
+            'transition-[margin-right] duration-300 ease-in-out',
+            selected && 'lg:mr-[420px]'
+          )}
         >
-          <RequisitionPreviewPanel
-            requisition={selected}
-            onClose={() => setSelected(null)}
-          />
+          {children}
         </div>
-      )}
+
+        {selected && (
+          <div
+            className="
+              fixed right-0 top-0 bottom-0 z-[900]
+              hidden lg:flex flex-col
+              w-[420px]
+              border-l bg-background
+              shadow-[0_0_40px_rgba(0,0,0,0.12)]
+              animate-in slide-in-from-right duration-300 ease-in-out
+            "
+          >
+            <RequisitionPreviewPanel
+              requisition={selected}
+              onClose={() => setSelected(null)}
+            />
+          </div>
+        )}
+      </RequisitionPreviewSelectedContext.Provider>
     </RequisitionPreviewContext.Provider>
   )
 }

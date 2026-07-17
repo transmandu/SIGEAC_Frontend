@@ -1,12 +1,98 @@
 'use client'
 
+import { useState } from 'react'
 import { ColumnDef } from '@tanstack/react-table'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { DataTableColumnHeader } from '@/components/tables/DataTableHeader'
+import axiosInstance from '@/lib/axios'
 import { cn } from '@/lib/utils'
+import { useCompanyStore } from '@/stores/CompanyStore'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
+import { Building2, FileText, Handshake, Loader2, User, UserCog, Warehouse } from 'lucide-react'
 import type { GeneralArticleIntake } from '@/types/purchase'
+
+// Destino del intake, derivado de cuál referencia venga poblada (excluyentes
+// entre sí): almacén para el flujo normal, o la entidad de una entrega directa.
+const getDestination = (intake: GeneralArticleIntake) => {
+  if (intake.warehouse) {
+    return { label: intake.warehouse.name, type: 'Almacén', Icon: Warehouse }
+  }
+  if (intake.department) {
+    return { label: intake.department.name, type: 'Departamento', Icon: Building2 }
+  }
+  if (intake.employee) {
+    return {
+      label: `${intake.employee.first_name} ${intake.employee.last_name}`,
+      type: 'Empleado',
+      Icon: User,
+    }
+  }
+  if (intake.authorized_employee) {
+    return { label: intake.authorized_employee.full_name, type: 'Solicitante autorizado', Icon: UserCog }
+  }
+  if (intake.third_party) {
+    return { label: intake.third_party.name, type: 'Tercero', Icon: Handshake }
+  }
+  return null
+}
+
+// Botón azul de la Nota de Entrega: comprobante de una entrega directa (el
+// intake nunca pasó por almacén, así que este PDF es su único soporte).
+const DeliveryNoteButton = ({ intake }: { intake: GeneralArticleIntake }) => {
+  const { selectedCompany } = useCompanyStore()
+  const [downloading, setDownloading] = useState(false)
+
+  const handleDownload = async () => {
+    if (!selectedCompany?.slug || downloading) return
+    setDownloading(true)
+
+    try {
+      const res = await axiosInstance.get(
+        `/${selectedCompany.slug}/general-article-intakes/${intake.id}/delivery-note-pdf`,
+        { responseType: 'blob' }
+      )
+
+      const url = window.URL.createObjectURL(res.data)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `nota_entrega_${intake.id}.pdf`
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      window.URL.revokeObjectURL(url)
+    } catch {
+      // silent
+    } finally {
+      setDownloading(false)
+    }
+  }
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={handleDownload}
+          disabled={downloading}
+          className="
+            size-8 rounded-lg
+            border-blue-500/30 bg-blue-500/10 text-blue-700
+            hover:bg-blue-500/20 hover:text-blue-800
+            dark:border-blue-400/30 dark:bg-blue-400/10 dark:text-blue-300
+            dark:hover:bg-blue-400/20 dark:hover:text-blue-200
+          "
+        >
+          {downloading ? <Loader2 className="size-4 animate-spin" /> : <FileText className="size-4" />}
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>Descargar Nota de Entrega</TooltipContent>
+    </Tooltip>
+  )
+}
 
 export const getColumns = (): ColumnDef<GeneralArticleIntake>[] => [
 
@@ -147,7 +233,10 @@ export const getColumns = (): ColumnDef<GeneralArticleIntake>[] => [
     ),
 
     cell: ({ row }) => {
-      const isPending = row.original.status === 'PENDING'
+      const { status } = row.original
+      const isPending = status === 'PENDING'
+      const isRejected = status === 'REJECTED'
+      const isDelivered = status === 'DELIVERED'
 
       return (
         <div className="flex justify-center w-full">
@@ -157,10 +246,14 @@ export const getColumns = (): ColumnDef<GeneralArticleIntake>[] => [
               'rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-sm transition-colors duration-150 cursor-default uppercase',
               isPending
                 ? 'border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300 hover:bg-amber-500/15'
-                : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/15'
+                : isRejected
+                  ? 'border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300 hover:bg-red-500/15'
+                  : isDelivered
+                    ? 'border-blue-500/30 bg-blue-500/10 text-blue-700 dark:text-blue-300 hover:bg-blue-500/15'
+                    : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/15'
             )}
           >
-            {isPending ? 'Pendiente' : 'Confirmada'}
+            {isPending ? 'Pendiente' : isRejected ? 'Rechazada' : isDelivered ? 'Entregada' : 'Confirmada'}
           </Badge>
         </div>
       )
@@ -178,12 +271,53 @@ export const getColumns = (): ColumnDef<GeneralArticleIntake>[] => [
     ),
 
     cell: ({ row }) => {
-      const { status, confirmed_by, confirmed_at } = row.original
+      const { status, confirmed_by, confirmed_at, rejected_by, rejected_at, rejection_reason } = row.original
+
+      if (status === 'DELIVERED') {
+        const destination = getDestination(row.original)
+
+        return (
+          <div className="flex flex-col items-center justify-center gap-1.5 w-full">
+            <span className="text-[11px] text-muted-foreground text-center leading-snug">
+              Entrega directa
+              <br />
+              <span className="text-muted-foreground/70">{destination?.label ?? 'Sin paso por almacén'}</span>
+            </span>
+            <DeliveryNoteButton intake={row.original} />
+          </div>
+        )
+      }
 
       if (status === 'PENDING') {
         return (
           <div className="flex justify-center w-full">
             <span className="text-muted-foreground/40 text-xs">—</span>
+          </div>
+        )
+      }
+
+      if (status === 'REJECTED') {
+        return (
+          <div className="flex justify-center w-full">
+            <span className="text-[11px] text-muted-foreground text-center leading-snug">
+              Rechazado por:
+              <br />
+              <span className="uppercase font-medium">{rejected_by}</span>
+              {rejected_at && (
+                <>
+                  <br />
+                  El {format(new Date(rejected_at), 'dd/MM/yyyy HH:mm', { locale: es })}
+                </>
+              )}
+              {rejection_reason && (
+                <>
+                  <br />
+                  <span className="italic text-red-600/80 dark:text-red-400/80">
+                    “{rejection_reason}”
+                  </span>
+                </>
+              )}
+            </span>
           </div>
         )
       }

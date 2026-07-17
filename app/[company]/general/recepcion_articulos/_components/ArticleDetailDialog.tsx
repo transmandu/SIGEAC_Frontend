@@ -8,6 +8,12 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/ui/tooltip'
+import {
     CheckCircle2,
     Eye,
     FileWarning,
@@ -19,10 +25,13 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useCompanyStore } from '@/stores/CompanyStore'
 import { useGetArticleById } from '@/hooks/mantenimiento/almacen/articulos/useGetArticleById'
 import { EditTransitArticleDialog } from '@/app/[company]/compras/(aeronautico)/en_transito/_components/EditTransitArticleDialog'
+import SecureFileViewer from '@/components/library/SecureFileViewer'
+import axiosInstance from '@/lib/axios'
 import { cn } from '@/lib/utils'
 import type { TransitArticle } from '@/types/purchase/in-transit'
+import type { ArticleDocument } from '@/types'
 
-const EDIT_ROLES = ['JEFE_ALMACEN', 'ENGINEERING', 'JEFE_CONTROL_CALIDAD']
+const EDIT_ROLES = ['JEFE_ALMACEN', 'ANALISTA_ALMACEN']
 
 const TRANSIT_STATUS_LABELS: Record<string, string> = {
     TRANSIT: 'En tránsito',
@@ -84,6 +93,7 @@ function SheetSection({ index, title, children }: { index: number; title: string
 export function ArticleDetailDialog({ article }: { article: TransitArticle }) {
     const [open, setOpen] = useState(false)
     const [editOpen, setEditOpen] = useState(false)
+    const [previewDoc, setPreviewDoc] = useState<ArticleDocument | null>(null)
     const { user } = useAuth()
     const { selectedCompany } = useCompanyStore()
 
@@ -152,18 +162,39 @@ export function ArticleDetailDialog({ article }: { article: TransitArticle }) {
 
     return (
         <>
-            <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                onClick={() => setOpen(true)}
-                title="Ver detalle"
-            >
-                <Eye className="size-4" />
-            </Button>
+            <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                            onClick={() => setOpen(true)}
+                        >
+                            <Eye className="size-4" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">Ver detalle</TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
 
             <Dialog open={open} onOpenChange={setOpen}>
-                <DialogContent className="max-h-[85vh] gap-0 overflow-y-auto p-0 sm:max-w-[620px]">
+                <DialogContent
+                    className="max-h-[85vh] gap-0 overflow-y-auto p-0 sm:max-w-[620px]"
+                    // El visor de documentos se renderiza fuera del content de Radix,
+                    // así que sus clics cuentan como "interacción externa": sin estos
+                    // guards, cerrar el visor cerraría también esta ficha.
+                    onInteractOutside={(e) => {
+                        if (previewDoc) e.preventDefault()
+                    }}
+                    onEscapeKeyDown={(e) => {
+                        if (previewDoc) {
+                            e.preventDefault()
+                            setPreviewDoc(null)
+                        }
+                    }}
+                    onOpenAutoFocus={(e) => e.preventDefault()}
+                >
                     <DialogTitle className="sr-only">Detalle del artículo {article.part_number}</DialogTitle>
                     <DialogDescription className="sr-only">
                         Ficha de inventario del artículo {article.part_number}
@@ -262,6 +293,7 @@ export function ArticleDetailDialog({ article }: { article: TransitArticle }) {
                                                 <th className="px-3 py-1.5 text-right text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                                                     Estado
                                                 </th>
+                                                <th className="w-10 px-3 py-1.5" />
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-border/60">
@@ -301,6 +333,33 @@ export function ArticleDetailDialog({ article }: { article: TransitArticle }) {
                                                                 )}
                                                             </span>
                                                         </td>
+                                                        <td className="px-2 py-2 text-right">
+                                                            {req.documents.length > 0 && (
+                                                                <div className="flex flex-col items-end gap-1">
+                                                                    {req.documents.map((doc, i) => (
+                                                                        <TooltipProvider key={doc.id}>
+                                                                            <Tooltip>
+                                                                                <TooltipTrigger asChild>
+                                                                                    <Button
+                                                                                        variant="ghost"
+                                                                                        size="icon"
+                                                                                        className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                                                                                        onClick={() => setPreviewDoc(doc)}
+                                                                                    >
+                                                                                        <Eye className="size-3.5" />
+                                                                                    </Button>
+                                                                                </TooltipTrigger>
+                                                                                <TooltipContent side="top">
+                                                                                    {req.documents.length > 1
+                                                                                        ? `Ver documento ${i + 1}`
+                                                                                        : 'Ver documento'}
+                                                                                </TooltipContent>
+                                                                            </Tooltip>
+                                                                        </TooltipProvider>
+                                                                    ))}
+                                                                </div>
+                                                            )}
+                                                        </td>
                                                     </tr>
                                                 )
                                             })}
@@ -330,6 +389,21 @@ export function ArticleDetailDialog({ article }: { article: TransitArticle }) {
                     articleId={article.id}
                     open={editOpen}
                     onOpenChange={setEditOpen}
+                />
+            )}
+
+            {previewDoc && (
+                <SecureFileViewer
+                    isOpen={!!previewDoc}
+                    onClose={() => setPreviewDoc(null)}
+                    title={article.part_number}
+                    fetchBlobUrl={async () => {
+                        const { data } = await axiosInstance.get(
+                            `/${selectedCompany?.slug}/article-documents/${previewDoc.id}/view`,
+                            { responseType: 'blob' }
+                        )
+                        return URL.createObjectURL(data)
+                    }}
                 />
             )}
         </>

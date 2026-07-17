@@ -11,18 +11,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { CalendarIcon, Check, ChevronsUpDown, Loader2 } from "lucide-react";
-import { useState } from "react";
+import { CalendarIcon } from "lucide-react";
 import type { UseFormReturn } from "react-hook-form";
 import { Calendar } from "@/components/ui/calendar";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Select,
@@ -35,6 +26,7 @@ import { MarqueeBlockText } from "@/components/misc/MarqueeBlockText";
 import type { Vendor } from "@/types";
 import type { QuoteableRequisition } from "@/types/purchase/quote";
 import { RequiredIndicator } from "./RequiredIndicator";
+import { VendorCombobox } from "@/components/forms/general/compras/_components/VendorCombobox";
 
 interface LocationOption {
   id: number;
@@ -57,8 +49,6 @@ export function QuoteMetaSection({
   isVendorsLoading,
   locations,
 }: QuoteMetaSectionProps) {
-  const [openVendor, setOpenVendor] = useState(false);
-
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
 
@@ -179,55 +169,15 @@ export function QuoteMetaSection({
                   <div className="h-px flex-1 bg-border/60" />
                 </div>
 
-                <Popover open={openVendor} onOpenChange={setOpenVendor}>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant="outline"
-                        disabled={isVendorsLoading}
-                        className="h-9 w-full justify-between bg-background/70 text-sm"
-                      >
-                        {isVendorsLoading ? (
-                          <Loader2 className="size-3.5 animate-spin" />
-                        ) : field.value ? (
-                          vendors?.find(v => v.id.toString() === field.value)?.name
-                        ) : (
-                          "Seleccionar proveedor"
-                        )}
-                        <ChevronsUpDown className="h-3 w-3 opacity-40" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-
-                  <PopoverContent className="p-0" matchTriggerWidth>
-                    <Command>
-                      <CommandInput placeholder="Buscar proveedor..." />
-                      <CommandList>
-                        <CommandEmpty>Sin resultados</CommandEmpty>
-                        <CommandGroup>
-                          {vendors?.map((vendor) => (
-                            <CommandItem
-                              key={vendor.id}
-                              value={vendor.name}
-                              onSelect={() => {
-                                form.setValue("vendor_id", vendor.id.toString());
-                                setOpenVendor(false);
-                              }}
-                            >
-                              <Check
-                                className={cn(
-                                  "mr-2 h-3 w-3",
-                                  vendor.id.toString() === field.value ? "opacity-100" : "opacity-0"
-                                )}
-                              />
-                              {vendor.name}
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
+                <FormControl>
+                  <VendorCombobox
+                    value={field.value ?? ""}
+                    onChange={field.onChange}
+                    vendors={vendors}
+                    disabled={isVendorsLoading}
+                    triggerClassName="h-9 text-sm"
+                  />
+                </FormControl>
 
                 <FormMessage />
               </FormItem>

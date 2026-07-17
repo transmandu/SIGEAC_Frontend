@@ -42,6 +42,8 @@ interface QuoteGeneralArticlesSectionProps {
   units?: Unit[];
   locations?: LocationOption[];
   retailers?: Retailer[];
+  /** Todo artículo general se compra por medio de un comercio — el campo "Lugar de compra" siempre aplica en ese flujo. Los formularios que no lo usan (p. ej. el aeronáutico) simplemente omiten esta prop. */
+  showRetailerField?: boolean;
 }
 
 // ── Width scale shared across the operation rows ───────────────────────────
@@ -197,12 +199,117 @@ function BrandCombobox({
   );
 }
 
+// ── Inline variant/presentation combobox (suggestions only, free text) ─────
+interface VariantComboboxProps {
+  value: string;
+  onChange: (value: string) => void;
+  onBlur: () => void;
+  inputRef: React.Ref<HTMLInputElement>;
+  candidates: string[];
+  disabled: boolean;
+}
+
+function VariantCombobox({
+  value,
+  onChange,
+  onBlur,
+  inputRef,
+  candidates,
+  disabled,
+}: VariantComboboxProps) {
+  const [open, setOpen] = useState(false);
+  const anchorRef = useRef<HTMLDivElement>(null);
+  const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({});
+
+  const filtered = candidates.filter((c) => normalize(c).includes(normalize(value)));
+
+  const hasCandidates = candidates.length > 0;
+  const showDropdown = open && !disabled && filtered.length > 0;
+
+  useEffect(() => {
+    if (!showDropdown || !anchorRef.current) return;
+
+    function reposition() {
+      if (!anchorRef.current) return;
+      const rect = anchorRef.current.getBoundingClientRect();
+      setDropdownStyle({
+        position: "fixed",
+        top: rect.bottom + 4,
+        left: rect.left,
+        width: rect.width,
+        zIndex: 9999,
+      });
+    }
+
+    reposition();
+    window.addEventListener("scroll", reposition, true);
+    window.addEventListener("resize", reposition);
+    return () => {
+      window.removeEventListener("scroll", reposition, true);
+      window.removeEventListener("resize", reposition);
+    };
+  }, [showDropdown]);
+
+  return (
+    <div ref={anchorRef} className="relative">
+      <Input
+        ref={inputRef}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onFocus={() => setOpen(true)}
+        onBlur={() => {
+          setTimeout(() => {
+            setOpen(false);
+            onBlur();
+          }, 150);
+        }}
+        placeholder="N/A"
+        disabled={disabled}
+        className={cn("h-7 w-full text-sm", hasCandidates && "pr-6")}
+      />
+      {hasCandidates && (
+        <Sparkles className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 size-3 text-violet-400 opacity-70" />
+      )}
+
+      {showDropdown && createPortal(
+        <AnimatePresence>
+          <motion.div
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.1 }}
+            style={dropdownStyle}
+            className="min-w-[160px] overflow-hidden rounded-md border border-border bg-popover shadow-md"
+          >
+            {filtered.map((candidate) => (
+              <button
+                key={candidate}
+                type="button"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  onChange(candidate);
+                  setOpen(false);
+                }}
+                className="flex w-full flex-col gap-0.5 px-2.5 py-1.5 text-left text-xs hover:bg-accent hover:text-accent-foreground"
+              >
+                <span className="font-medium leading-none">{candidate}</span>
+              </button>
+            ))}
+          </motion.div>
+        </AnimatePresence>,
+        document.body
+      )}
+    </div>
+  );
+}
+
 // ── Main section ───────────────────────────────────────────────────────────
 export function QuoteGeneralArticlesSection({
   form,
   units,
   locations,
   retailers,
+  showRetailerField = false,
 }: QuoteGeneralArticlesSectionProps) {
   const { control } = form;
 
@@ -241,6 +348,21 @@ export function QuoteGeneralArticlesSection({
               (a) =>
                 normalize(a.description) === normalize(article.description) &&
                 normalize(a.variant_type) === normalize(article.variant_type)
+            );
+
+            // Distinct variant_type values already used for this same article
+            // description — shown only as a suggestion to avoid near-duplicate
+            // typos (e.g. "500ml" vs "500 ml") creating a different catalog entry.
+            const variantCandidates = Array.from(
+              new Map(
+                allGeneralArticles
+                  .filter(
+                    (a) =>
+                      normalize(a.description) === normalize(article.description) &&
+                      a.variant_type
+                  )
+                  .map((a) => [normalize(a.variant_type), a.variant_type as string])
+              ).values()
             );
 
             return (
@@ -326,16 +448,23 @@ export function QuoteGeneralArticlesSection({
 
                         {/* Fila 1: Variante · Cantidad · Precio unitario */}
                           <div className="space-y-0.5">
-                            <span className={LABEL_CLS}>Present. / Especif.<RequiredIndicator /></span>
+                            <span className={LABEL_CLS}>
+                              Present. / Especif.
+                              {variantCandidates.length > 0 && (
+                                <span className="ml-1 text-[9px] text-violet-500 select-none normal-case not-italic">sugerencias</span>
+                              )}
+                            </span>
                             <FormField
                               control={control}
                               name={`general_articles.${index}.variant_type`}
                               render={({ field }) => (
-                                <Input
-                                  {...field}
-                                  placeholder="N/A"
+                                <VariantCombobox
+                                  value={field.value ?? ""}
+                                  onChange={field.onChange}
+                                  onBlur={field.onBlur}
+                                  inputRef={field.ref}
+                                  candidates={variantCandidates}
                                   disabled={isNotQuoted}
-                                  className={cn("h-7 w-full text-sm", invalidCls(!isNotQuoted && !field.value))}
                                 />
                               )}
                             />
@@ -405,7 +534,7 @@ export function QuoteGeneralArticlesSection({
                                   onChange={field.onChange}
                                   ref={field.ref}
                                   disabled={isNotQuoted}
-                                  className={cn(W_WIDE, "h-7 text-sm", invalidCls(!isNotQuoted && !article.unit_price))}
+                                  className={cn(W_WIDE, "h-7 text-sm", invalidCls(!isNotQuoted && !(Number(article.unit_price) > 0)))}
                                 />
                               )}
                             />
@@ -461,7 +590,7 @@ export function QuoteGeneralArticlesSection({
                               disabled={isNotQuoted}
                               invalid={invalidCls(!isNotQuoted && !article.unit)}
                               triggerClassName="h-7 text-xs"
-                              placeholder="—"
+                              placeholder="Sin unidad"
                             />
                           </div>
 
@@ -496,7 +625,7 @@ export function QuoteGeneralArticlesSection({
                             </Select>
                           </div>
 
-                          {retailers ? (
+                          {showRetailerField ? (
                             <div className="space-y-0.5 min-w-0">
                               <span className={LABEL_CLS}>Lugar de compra<RequiredIndicator /></span>
                               <RetailerCombobox
