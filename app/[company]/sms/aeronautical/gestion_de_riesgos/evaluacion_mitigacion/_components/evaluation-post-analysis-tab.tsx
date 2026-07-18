@@ -1,14 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import { FileText, PencilLine, Plus } from 'lucide-react';
+import { FileText, LockOpen, Loader2, PencilLine, Plus } from 'lucide-react';
 
 import CreateMitigationPlanAnalysis from '@/components/forms/mantenimiento/sms/CreateMitigationPlanAnalysis';
 import CloseVoluntaryReportForm from '@/components/forms/mantenimiento/sms/CloseVoluntaryReportForm';
+import { useOpenVoluntaryReport } from '@/actions/mantenimiento/sms/reporte_voluntario/actions';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { TabsContent } from '@/components/ui/tabs';
+import { useCompanyStore } from '@/stores/CompanyStore';
 import { Analysis, HazardNotification, MitigationMeasure, MitigationPlan } from '@/types/sms/mantenimiento';
 
 import { EmptyWorkflowState, SummaryField } from './evaluation-workflow-shared';
@@ -36,11 +38,17 @@ export function EvaluationPostAnalysisTab({
     setIsPostAnalysisFormOpen,
 }: EvaluationPostAnalysisTabProps) {
     const [isCloseReportOpen, setIsCloseReportOpen] = useState(false);
+    const [isOpenReportOpen, setIsOpenReportOpen] = useState(false);
+    const { selectedCompany } = useCompanyStore();
+    const { openVoluntaryReport } = useOpenVoluntaryReport();
     const voluntaryReport =
         selectedNotification.voluntary_report;
     const voluntaryReportStatus = voluntaryReport?.status?.trim().toUpperCase();
     const canCloseReport = Boolean(
         voluntaryReport && voluntaryReportStatus !== 'CERRADO' && hasPostMitigationAnalysis
+    );
+    const canOpenReport = Boolean(
+        voluntaryReport && voluntaryReportStatus === 'CERRADO'
     );
     console.log('identification seleccionada ', selectedNotification)
     return (
@@ -99,15 +107,27 @@ export function EvaluationPostAnalysisTab({
                                         />
                                     </div>
 
-                                    {canCloseReport ? (
-                                        <div className="flex justify-end">
-                                            <Button
-                                                type="button"
-                                                variant="destructive"
-                                                onClick={() => setIsCloseReportOpen(true)}
-                                            >
-                                                Cerrar reporte
-                                            </Button>
+                                    {(canCloseReport || canOpenReport) ? (
+                                        <div className="flex justify-end gap-2">
+                                            {canCloseReport && (
+                                                <Button
+                                                    type="button"
+                                                    variant="destructive"
+                                                    onClick={() => setIsCloseReportOpen(true)}
+                                                >
+                                                    Cerrar reporte
+                                                </Button>
+                                            )}
+                                            {canOpenReport && (
+                                                <Button
+                                                    type="button"
+                                                    variant="default"
+                                                    onClick={() => setIsOpenReportOpen(true)}
+                                                >
+                                                    <LockOpen className="mr-2 h-4 w-4" />
+                                                    Abrir reporte
+                                                </Button>
+                                            )}
                                         </div>
                                     ) : null}
                                 </div>
@@ -159,6 +179,46 @@ export function EvaluationPostAnalysisTab({
                                     onCancel={() => setIsCloseReportOpen(false)}
                                 />
                             ) : null}
+                        </DialogContent>
+                    </Dialog>
+
+                    <Dialog open={isOpenReportOpen} onOpenChange={setIsOpenReportOpen}>
+                        <DialogContent className="sm:max-w-lg">
+                            <DialogHeader>
+                                <DialogTitle className="text-center">¿Abrir reporte voluntario?</DialogTitle>
+                                <DialogDescription className="text-center">
+                                    Al abrir el reporte, este volverá a estar disponible para gestión.
+                                    ¿Está seguro de que desea continuar?
+                                </DialogDescription>
+                            </DialogHeader>
+                            <div className="flex flex-col-reverse gap-2 pt-4 sm:flex-row sm:justify-end">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => setIsOpenReportOpen(false)}
+                                    disabled={openVoluntaryReport.isPending}
+                                >
+                                    Cancelar
+                                </Button>
+                                <Button
+                                    type="button"
+                                    disabled={openVoluntaryReport.isPending}
+                                    onClick={() => {
+                                        if (!voluntaryReport) return;
+                                        openVoluntaryReport.mutate(
+                                            { company: selectedCompany?.slug || null, id: voluntaryReport.id },
+                                            { onSuccess: () => setIsOpenReportOpen(false) },
+                                        );
+                                    }}
+                                >
+                                    {openVoluntaryReport.isPending ? (
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    ) : (
+                                        <LockOpen className="mr-2 h-4 w-4" />
+                                    )}
+                                    Confirmar
+                                </Button>
+                            </div>
                         </DialogContent>
                     </Dialog>
                 </>

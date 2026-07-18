@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { ContentLayout } from '@/components/layout/ContentLayout';
 import { useGetHazardNotifications } from '@/hooks/sms/mantenimiento/useGetHazardNotifications';
+import { useGetHazardNotificationByReportNumber } from '@/hooks/sms/mantenimiento/useGetHazardNotificationByReportNumber';
 import { useCompanyStore } from '@/stores/CompanyStore';
 
 import { EvaluationWorkflowPanel } from './_components/evaluation-workflow-panel';
@@ -29,8 +30,7 @@ const EvaluationMitigationPage = () => {
   const [selectedNotificationId, setSelectedNotificationId] = useState<number | null>(null);
   const [isNotificationSheetOpen, setIsNotificationSheetOpen] = useState(false);
   const reportNumberParam =
-    searchParams.get('report_number') ||
-    searchParams.get('reportNumber');
+    searchParams.get('report_number');
 
   const {
     data: notifications,
@@ -38,38 +38,25 @@ const EvaluationMitigationPage = () => {
     isError,
   } = useGetHazardNotifications(companySlug);
 
+  const {
+    data: notificationFromUrl,
+    isLoading: isLoadingDirect,
+  } = useGetHazardNotificationByReportNumber(companySlug, reportNumberParam);
+
   const sortedNotifications = useMemo(() => sortByNewestDate(notifications || []), [notifications]);
-
-  const selectedNotificationFromUrl = useMemo(() => {
-    if (!reportNumberParam) {
-      return null;
-    }
-
-    return (
-      sortedNotifications.find((notification) => {
-        const notificationReportNumber = getNotificationReportNumber(notification);
-
-        return (
-          String(notification.id) === reportNumberParam ||
-          notification.report_number === reportNumberParam ||
-          notificationReportNumber === reportNumberParam
-        );
-      }) || null
-    );
-  }, [reportNumberParam, sortedNotifications]);
 
   useEffect(() => {
     if (
-      selectedNotificationFromUrl?.id &&
-      selectedNotificationFromUrl.id !== selectedNotificationId
+      notificationFromUrl?.id &&
+      notificationFromUrl.id !== selectedNotificationId
     ) {
-      setSelectedNotificationId(selectedNotificationFromUrl.id);
+      setSelectedNotificationId(notificationFromUrl.id);
     }
-  }, [selectedNotificationFromUrl, selectedNotificationId]);
+  }, [notificationFromUrl, selectedNotificationId]);
 
   const selectedNotification =
     sortedNotifications.find((notification) => notification.id === selectedNotificationId) ||
-    selectedNotificationFromUrl ||
+    notificationFromUrl ||
     null;
 
   const currentMitigationPlan =

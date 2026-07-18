@@ -218,14 +218,15 @@ export const useCloseVoluntaryReport = () => {
   const closeMutation = useMutation({
     mutationKey: ["close-voluntary-report"],
     mutationFn: async ({ company, id, data }: CloseVoluntaryReportData) => {
-      await axiosInstance.post(`/${company}/sms/aeronautical/close-rvp/${id}`, data, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+      const response = await axiosInstance.post(`/${company}/sms/aeronautical/close-rvp/${id}`, data, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
+      return response.data; // Retorna { report_number: ... }
     },
-    onSuccess: (_, data) => {
-      queryClient.invalidateQueries({ queryKey: ["voluntary-reports", data.company] });
+    onSuccess: (_data, { company }) => {
+      queryClient.invalidateQueries({ queryKey: ["voluntary-reports", company] });
+      queryClient.invalidateQueries({ queryKey: ["hazard-notifications", company] });
+      queryClient.invalidateQueries({ queryKey: ["hazard-notification-by-report", company] });
       toast.success("¡Reporte cerrado!", {
         description: "El reporte voluntario ha sido cerrado correctamente.",
       });
@@ -244,5 +245,36 @@ export const useCloseVoluntaryReport = () => {
 
   return {
     closeVoluntaryReport: closeMutation,
+  };
+};
+
+export const useOpenVoluntaryReport = () => {
+  const queryClient = useQueryClient();
+
+  const openMutation = useMutation({
+    mutationKey: ["open-voluntary-report"],
+    mutationFn: async ({ company, id }: { company: string | null; id: string | number }) => {
+      const response = await axiosInstance.patch(`/${company}/sms/aeronautical/open-rvp/${id}`);
+      return response.data;
+    },
+    onSuccess: (_data, { company }) => {
+      queryClient.invalidateQueries({ queryKey: ["voluntary-reports", company] });
+      queryClient.invalidateQueries({ queryKey: ["hazard-notifications", company] });
+      queryClient.invalidateQueries({ queryKey: ["hazard-notification-by-report", company] });
+      toast.success("¡Reporte abierto!", {
+        description: "El reporte voluntario ha sido reabierto correctamente.",
+      });
+    },
+    onError: (error: any) => {
+      const serverMessage = error.response?.data?.error || "Error al abrir el reporte";
+      toast.error("Oops", {
+        description: serverMessage,
+      });
+      console.log(error);
+    },
+  });
+
+  return {
+    openVoluntaryReport: openMutation,
   };
 };
