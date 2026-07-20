@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { format } from "date-fns";
 import { Department } from "@/types";
 import {
@@ -23,11 +23,15 @@ import {
 } from "@/components/ui/tabs";
 
 import { RiFileExcel2Fill } from "react-icons/ri";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 
 import { useCompanyStore } from "@/stores/CompanyStore";
 
 import { useGetAircrafts } from "@/hooks/aerolinea/aeronaves/useGetAircrafts";
+import { useGetDispatchWorkOrders } from "@/hooks/mantenimiento/almacen/reportes/useGetDispatchWorkOrders";
 import { useGetDispatchReport } from "@/hooks/mantenimiento/almacen/reportes/useGetDispatchReport";
+import { useGetDispatchCostReport } from "@/hooks/mantenimiento/almacen/reportes/useGetDispatchCostReport";
 import { useGetBalanceAndTotalReport } from "@/hooks/mantenimiento/almacen/reportes/useGetBalanceAndTotalReport";
 import { useGetAuthorizedEmployees } from "@/hooks/sistema/autorizados/useGetAuthorizedEmployees";
 import { useGetThirdParties } from "@/hooks/general/terceros/useGetThirdParties";
@@ -41,12 +45,26 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 
 type DispatchType = "aeronautical" | "general";
 
-export function DispatchReportDialog() {
+const COST_REPORT_ROLES = ["ANALISTA_ADMINISTRACION", "JEFE_ADMINISTRACION"];
+
+interface DispatchReportDialogProps {
+  roleNames?: string[];
+}
+
+export function DispatchReportDialog({ roleNames = [] }: DispatchReportDialogProps) {
   const { selectedStation, selectedCompany } = useCompanyStore();
+
+  const canSeeCostReport = useMemo(
+    () => roleNames.some((role) => COST_REPORT_ROLES.includes(role)),
+    [roleNames]
+  );
 
   const [activeTab, setActiveTab] = useState("dispatch");
   const [open, setOpen] = useState(false);
   const [loadingDownload, setLoadingDownload] = useState(false);
+  // Para quienes tienen acceso, el reporte con costos es el modo por defecto;
+  // el checkbox permite desactivarlo y volver al reporte original.
+  const [withCosts, setWithCosts] = useState(canSeeCostReport);
 
   // ===================== FECHAS =====================
   const [startDate, setStartDate] = useState<Date | undefined>();
@@ -54,6 +72,7 @@ export function DispatchReportDialog() {
 
   // ===================== FILTROS BASE =====================
   const [aircraft, setAircraft] = useState<string | null>(null);
+  const [workOrder, setWorkOrder] = useState<string | null>(null);
   const [departmentId, setDepartmentId] = useState<string | null>(null);
   const [authorizedEmployeeId, setAuthorizedEmployeeId] = useState<string | null>(null);
   const [thirdPartyId, setThirdPartyId] = useState<string | null>(null);
@@ -71,14 +90,16 @@ export function DispatchReportDialog() {
     brand_model: ""
   });
 
-  const today = new Date();
-
   const { mutateAsync: getDispatch } = useGetDispatchReport();
+  const { mutateAsync: getDispatchCostReport } = useGetDispatchCostReport();
   const { mutateAsync: getBalance } = useGetBalanceAndTotalReport();
 
   // ===================== DATA =====================
   const { data: aircrafts, isLoading: isLoadingAircrafts } =
     useGetAircrafts(selectedCompany?.slug);
+
+  const { data: workOrders, isLoading: isLoadingWorkOrders } =
+    useGetDispatchWorkOrders(selectedCompany?.slug);
 
   const { data: departments, isLoading: isLoadingDepartments } =
     useGetDepartments(selectedCompany?.slug);
@@ -106,7 +127,6 @@ export function DispatchReportDialog() {
   const { data: generalArticles = [], isLoading: isLoadingGeneralArticles } =
     useGetGeneralArticles();
 
-  // 🔥 UNIFICACIÓN DE FUENTES
   const allArticles = [...articlesByStatus, ...generalArticles];
 
   // ===================== VALIDACIÓN FECHAS =====================
@@ -127,10 +147,12 @@ export function DispatchReportDialog() {
       setStartDate(undefined);
       setEndDate(undefined);
       setAircraft(null);
+      setWorkOrder(null);
       setDepartmentId(null);
       setAuthorizedEmployeeId(null);
       setThirdPartyId(null);
       setDispatchType(null);
+      setWithCosts(canSeeCostReport);
 
       setArticleFilters({
         part_number: "",
@@ -143,14 +165,24 @@ export function DispatchReportDialog() {
 
       setActiveTab("dispatch");
     }
-  }, [open]);
+  }, [open, canSeeCostReport]);
+
+  // Si se activan los costos estando en la tab Balance (que no aplica), volvemos a Salidas.
+  useEffect(() => {
+    if (withCosts && activeTab === "balance") {
+      setActiveTab("dispatch");
+    }
+  }, [withCosts, activeTab]);
 
   // ===================== PARAMS =====================
+  const selectedWorkOrder = workOrders?.find((ot) => ot.work_order === workOrder);
+
   const buildParams = () => ({
     location_id: selectedStation!,
     company: selectedCompany!.slug,
 
     aircraft_id: aircraft || undefined,
+    work_order: workOrder || undefined,
     department_id: departmentId || undefined,
     authorized_employee_id: authorizedEmployeeId || undefined,
     third_party_id: thirdPartyId || undefined,
@@ -165,9 +197,57 @@ export function DispatchReportDialog() {
     description: articleFilters.description || undefined,
     batch_id: articleFilters.batch_id || undefined,
     variant_type: articleFilters.variant_type || undefined,
-    brand_model: articleFilters.brand_model || undefined
-    
+    brand_model: articleFilters.brand_model || undefined,
   });
+
+  const buildCostParams = () => ({
+    location_id: selectedStation!,
+    company: selectedCompany!.slug,
+
+    aircraft_id: aircraft || undefined,
+    work_order_id: selectedWorkOrder?.work_order_id
+      ? String(selectedWorkOrder.work_order_id)
+      : undefined,
+    work_order: selectedWorkOrder?.work_order_id ? undefined : workOrder || undefined,
+    department_id: departmentId || undefined,
+    authorized_employee_id: authorizedEmployeeId || undefined,
+    third_party_id: thirdPartyId || undefined,
+    type: dispatchType || undefined,
+
+    from: format(startDate!, "yyyy-MM-dd"),
+    to: format(endDate!, "yyyy-MM-dd"),
+
+    part_number: articleFilters.part_number || undefined,
+    description: articleFilters.description || undefined,
+    variant_type: articleFilters.variant_type || undefined,
+    brand_model: articleFilters.brand_model || undefined,
+  });
+
+  // ===================== DOWNLOAD: REPORTE CON COSTOS (.xlsx) =====================
+  const handleDownloadCostReport = async () => {
+    if (!canDownload || loadingDownload) return;
+
+    try {
+      setLoadingDownload(true);
+
+      const blob = await getDispatchCostReport(buildCostParams());
+
+      if (!blob) return;
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+
+      link.href = url;
+      link.download = `dispatch-cost-report-${format(startDate!, "yyyyMMdd")}-${format(endDate!, "yyyyMMdd")}.xlsx`;
+
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 100);
+
+      setOpen(false);
+    } finally {
+      setLoadingDownload(false);
+    }
+  };
 
   // ===================== DOWNLOAD =====================
   const handleDownload = async (type: "dispatch" | "balance") => {
@@ -246,10 +326,10 @@ export function DispatchReportDialog() {
         onMouseLeave={() => setHovered(false)}
         onMouseMove={handleMouseMove}
         variant="outline"
-        className="relative overflow-hidden border border-dashed border-violet-400/50 dark:border-violet-300/30 bg-background/70 backdrop-blur text-violet-700 dark:text-violet-300 font-medium tracking-wide shadow-sm transition-all duration-200 hover:border-violet-500/60 dark:hover:border-violet-300/50 hover:bg-violet-50/50 dark:hover:bg-violet-950/20 hover:shadow-md hover:-translate-y-[1px] active:translate-y-0 active:shadow-sm focus-visible:ring-2 focus-visible:ring-violet-500/25 focus-visible:ring-offset-2"
+        className="relative overflow-hidden border border-dashed border-indigo-400/50 dark:border-indigo-300/30 bg-background/70 backdrop-blur text-indigo-700 dark:text-indigo-300 font-medium tracking-wide shadow-sm transition-all duration-200 hover:border-indigo-500/60 dark:hover:border-indigo-300/50 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/20 hover:shadow-md hover:-translate-y-[1px] active:translate-y-0 active:shadow-sm focus-visible:ring-2 focus-visible:ring-indigo-500/25 focus-visible:ring-offset-2"
         style={{
             backgroundImage: hovered
-            ? `radial-gradient(circle at ${pos.x}% ${pos.y}%, rgba(168,85,247,0.12), transparent 65%)`
+            ? `radial-gradient(circle at ${pos.x}% ${pos.y}%, rgba(99,102,241,0.12), transparent 65%)`
             : "none",
         }}
         >
@@ -277,25 +357,45 @@ export function DispatchReportDialog() {
                 </p>
 
                 <DialogDescription className="max-w-[430px] text-sm leading-relaxed">
-                  Genera reportes operativos, balances e históricos de
-                  solicitudes de salidas.
+                  {withCosts
+                    ? "Genera un reporte de salidas con precio unitario y total, separado por aeronave y tipo de artículo."
+                    : "Genera reportes operativos, balances e históricos de solicitudes de salidas."}
                 </DialogDescription>
               </div>
             </div>
           </DialogHeader>
         </div>
         <div className="px-6 py-5">
+          {canSeeCostReport && (
+            <div className="flex items-center justify-end gap-1.5 mb-3">
+              <Checkbox
+                id="disable-costs"
+                checked={!withCosts}
+                onCheckedChange={(checked) => setWithCosts(checked !== true)}
+                className="h-3.5 w-3.5"
+              />
+              <Label
+                htmlFor="disable-costs"
+                className="text-xs text-muted-foreground font-normal cursor-pointer"
+              >
+                Desactivar costos en el reporte
+              </Label>
+            </div>
+          )}
+
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid grid-cols-2 mb-4">
-              <TabsTrigger value="dispatch" className=" flex gap-2 text-xs rounded-lg transition-all duration-200 data-[state=active]:bg-background data-[state=active]:shadow-md data-[state=active]:shadow-blue-500/10 data-[state=active]:ring-1 data-[state=active]:ring-blue-500/ data-[state=active]:text-blue-600">
+            <TabsList className={`grid mb-4 ${withCosts ? "grid-cols-1" : "grid-cols-2"}`}>
+              <TabsTrigger value="dispatch" className="flex items-center justify-center gap-2 text-xs rounded-lg px-3 transition-all duration-200 data-[state=active]:bg-background data-[state=active]:shadow-md data-[state=active]:shadow-indigo-500/10 data-[state=active]:ring-1 data-[state=active]:ring-indigo-500/ data-[state=active]:text-indigo-600">
                 <FileText className="w-3.5 h-3.5" />
                 Salidas
               </TabsTrigger>
 
-              <TabsTrigger value="balance" className=" flex gap-2 text-xs rounded-lg transition-all duration-200 data-[state=active]:bg-background data-[state=active]:shadow-md data-[state=active]:shadow-blue-500/10 data-[state=active]:ring-1 data-[state=active]:ring-blue-500/ data-[state=active]:text-blue-600">
-                <Scale className="w-3.5 h-3.5" />
-                Balance
-              </TabsTrigger>
+              {!withCosts && (
+                <TabsTrigger value="balance" className="flex items-center justify-center gap-2 text-xs rounded-lg px-3 transition-all duration-200 data-[state=active]:bg-background data-[state=active]:shadow-md data-[state=active]:shadow-indigo-500/10 data-[state=active]:ring-1 data-[state=active]:ring-indigo-500/ data-[state=active]:text-indigo-600">
+                  <Scale className="w-3.5 h-3.5" />
+                  Balance
+                </TabsTrigger>
+              )}
             </TabsList>
 
             <DispatchReportFilters
@@ -308,6 +408,11 @@ export function DispatchReportDialog() {
               setAircraft={setAircraft}
               aircrafts={aircrafts}
               isLoadingAircrafts={isLoadingAircrafts}
+
+              workOrder={workOrder}
+              setWorkOrder={setWorkOrder}
+              workOrders={workOrders}
+              isLoadingWorkOrders={isLoadingWorkOrders}
 
               departmentId={departmentId}
               setDepartmentId={setDepartmentId}
@@ -332,17 +437,15 @@ export function DispatchReportDialog() {
               setArticleFilters={setArticleFilters}
 
               isDateRangeInvalid={isDateRangeInvalid}
-              workOrder={null}
-              setWorkOrder={() => {}}
               isPlanificacionOnlyFilters={false}
             />
 
             <TabsContent value="dispatch" className="mt-8">
-              <div className="grid grid-cols-[1fr_auto] gap-4 items-center">
+              {withCosts ? (
                 <Button
                   size="lg"
-                  className="h-12 rounded-2xl font-medium shadow-sm transition-all hover:shadow-md active:scale-[0.98]"
-                  onClick={() => handleDownload("dispatch")}
+                  className="w-full h-12 rounded-2xl font-medium shadow-sm transition-all hover:shadow-md active:scale-[0.98] bg-indigo-600 hover:bg-indigo-700 text-white"
+                  onClick={handleDownloadCostReport}
                   disabled={!canDownload || loadingDownload}
                 >
                   {loadingDownload ? (
@@ -351,75 +454,97 @@ export function DispatchReportDialog() {
                     <Download className="mr-2 h-5 w-5" />
                   )}
 
-                  Descargar Reporte
+                  Descargar Reporte con Costos
                   <span className="ml-2 text-xs font-normal opacity-80">
-                    PDF
+                    XLSX
                   </span>
                 </Button>
+              ) : (
+                <div className="grid grid-cols-[1fr_auto] gap-4 items-center">
+                  <Button
+                    size="lg"
+                    className="h-12 rounded-2xl font-medium shadow-sm transition-all hover:shadow-md active:scale-[0.98]"
+                    onClick={() => handleDownload("dispatch")}
+                    disabled={!canDownload || loadingDownload}
+                  >
+                    {loadingDownload ? (
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    ) : (
+                      <Download className="mr-2 h-5 w-5" />
+                    )}
 
-                <TooltipProvider>
-                  <Tooltip delayDuration={150}>
-                    <TooltipTrigger asChild>
-                      <Button
-                        size="lg"
-                        variant="outline"
-                        className="h-12 px-4 rounded-2xl border-green-200 bg-green-50/80 text-green-700 shadow-sm transition-all hover:bg-green-100 hover:border-green-300 hover:shadow-md active:scale-[0.98] dark:border-green-900 dark:bg-green-950/30 dark:text-green-400 dark:hover:bg-green-950/50"
-                        onClick={() => handleExcel("dispatch")}
-                        disabled={!canDownload || loadingDownload}
-                      >
-                        <RiFileExcel2Fill className="h-6 w-6 shrink-0" />
-                      </Button>
-                    </TooltipTrigger>
+                    Descargar Reporte
+                    <span className="ml-2 text-xs font-normal opacity-80">
+                      PDF
+                    </span>
+                  </Button>
 
-                    <TooltipContent side="top" align="center" sideOffset={10} avoidCollisions={false} className="z-[9999] whitespace-nowrap rounded-xl px-3 py-1.5">
-                      Descargar en Excel
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
+                  <TooltipProvider>
+                    <Tooltip delayDuration={150}>
+                      <TooltipTrigger asChild>
+                        <Button
+                          size="lg"
+                          variant="outline"
+                          className="h-12 px-4 rounded-2xl border-green-200 bg-green-50/80 text-green-700 shadow-sm transition-all hover:bg-green-100 hover:border-green-300 hover:shadow-md active:scale-[0.98] dark:border-green-900 dark:bg-green-950/30 dark:text-green-400 dark:hover:bg-green-950/50"
+                          onClick={() => handleExcel("dispatch")}
+                          disabled={!canDownload || loadingDownload}
+                        >
+                          <RiFileExcel2Fill className="h-6 w-6 shrink-0" />
+                        </Button>
+                      </TooltipTrigger>
+
+                      <TooltipContent side="top" align="center" sideOffset={10} avoidCollisions={false} className="z-[9999] whitespace-nowrap rounded-xl px-3 py-1.5">
+                        Descargar en Excel
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+              )}
             </TabsContent>
 
-            <TabsContent value="balance" className="mt-8">
-              <div className="grid grid-cols-[1fr_auto] gap-4 items-center">
-                <Button
-                  size="lg"
-                  className="h-12 rounded-2xl font-medium shadow-sm transition-all hover:shadow-md active:scale-[0.98]"
-                  onClick={() => handleDownload("balance")}
-                  disabled={!canDownload || loadingDownload}
-                >
-                  {loadingDownload ? (
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  ) : (
-                    <Download className="mr-2 h-5 w-5" />
-                  )}
+            {!withCosts && (
+              <TabsContent value="balance" className="mt-8">
+                <div className="grid grid-cols-[1fr_auto] gap-4 items-center">
+                  <Button
+                    size="lg"
+                    className="h-12 rounded-2xl font-medium shadow-sm transition-all hover:shadow-md active:scale-[0.98]"
+                    onClick={() => handleDownload("balance")}
+                    disabled={!canDownload || loadingDownload}
+                  >
+                    {loadingDownload ? (
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    ) : (
+                      <Download className="mr-2 h-5 w-5" />
+                    )}
 
-                  Descargar Balance
-                  <span className="ml-2 text-xs font-normal opacity-80">
-                    PDF
-                  </span>
-                </Button>
+                    Descargar Balance
+                    <span className="ml-2 text-xs font-normal opacity-80">
+                      PDF
+                    </span>
+                  </Button>
 
-                <TooltipProvider>
-                  <Tooltip delayDuration={150}>
-                    <TooltipTrigger asChild>
-                      <Button
-                        size="lg"
-                        variant="outline"
-                        className="h-12 px-4 rounded-2xl border-green-200 bg-green-50/80 text-green-700 shadow-sm transition-all hover:bg-green-100 hover:border-green-300 hover:shadow-md active:scale-[0.98] dark:border-green-900 dark:bg-green-950/30 dark:text-green-400 dark:hover:bg-green-950/50"
-                        onClick={() => handleExcel("balance")}
-                        disabled={!canDownload || loadingDownload}
-                      >
-                        <RiFileExcel2Fill className="h-6 w-6 shrink-0" />
-                      </Button>
-                    </TooltipTrigger>
+                  <TooltipProvider>
+                    <Tooltip delayDuration={150}>
+                      <TooltipTrigger asChild>
+                        <Button
+                          size="lg"
+                          variant="outline"
+                          className="h-12 px-4 rounded-2xl border-green-200 bg-green-50/80 text-green-700 shadow-sm transition-all hover:bg-green-100 hover:border-green-300 hover:shadow-md active:scale-[0.98] dark:border-green-900 dark:bg-green-950/30 dark:text-green-400 dark:hover:bg-green-950/50"
+                          onClick={() => handleExcel("balance")}
+                          disabled={!canDownload || loadingDownload}
+                        >
+                          <RiFileExcel2Fill className="h-6 w-6 shrink-0" />
+                        </Button>
+                      </TooltipTrigger>
 
-                    <TooltipContent  side="top" align="center" sideOffset={10} avoidCollisions={false} className="z-[9999] whitespace-nowrap rounded-xl px-3 py-1.5">
-                      Descargar en Excel
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-            </TabsContent>
+                      <TooltipContent  side="top" align="center" sideOffset={10} avoidCollisions={false} className="z-[9999] whitespace-nowrap rounded-xl px-3 py-1.5">
+                        Descargar en Excel
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+              </TabsContent>
+            )}
 
           </Tabs>
         </div>

@@ -37,29 +37,29 @@ function TintedCard({
 }
 
 export default function DispatchWarehouseReports({
-  companySlug,
+  roleNames,
 }: DispatchWarehouseReportsProps) {
-  const violetTone = "167,139,250";
+  const indigoTone = "99,102,241";
 
   return (
     <div className="flex justify-center items-center py-10">
 
-      <TintedCard tone={violetTone}>
+      <TintedCard tone={indigoTone}>
 
         <div
           className="pointer-events-none absolute inset-x-0 top-0 h-28"
           style={{
             background:
-              "radial-gradient(120% 80% at 50% 0%, rgba(167,139,250,0.08), transparent 72%)",
+              "radial-gradient(120% 80% at 50% 0%, rgba(99,102,241,0.08), transparent 72%)",
           }}
         />
 
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-violet-400/[0.02] via-transparent to-transparent" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-indigo-400/[0.02] via-transparent to-transparent" />
 
         <CardHeader className="relative text-center space-y-5 pb-6">
 
           <div className="flex justify-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-500/10 text-violet-500 dark:text-violet-300 ring-1 ring-violet-500/10">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-500 dark:text-indigo-300 ring-1 ring-indigo-500/10">
               <FileBarChart2 className="h-5 w-5" />
             </div>
           </div>
@@ -77,7 +77,7 @@ export default function DispatchWarehouseReports({
         </CardHeader>
 
         <CardContent className="relative flex justify-center pt-2 pb-8">
-          <DispatchReportDialog />
+          <DispatchReportDialog roleNames={roleNames} />
         </CardContent>
 
       </TintedCard>
