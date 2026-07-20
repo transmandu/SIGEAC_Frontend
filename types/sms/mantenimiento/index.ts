@@ -66,8 +66,6 @@ export type HazardNotification = {
     mitigation_plan?: MitigationPlan;
     analysis?: Analysis;
     risk_assessment?: RiskAssessment | null;
-    risk_assessments?: RiskAssessment[];
-    riskAssessment?: RiskAssessment | null;
 
 }
 
@@ -90,7 +88,6 @@ export interface MitigationMeasure {
     estimated_date: string;
     execution_date?: string;
     follow_up_controls?: FollowUpControl[];
-    follow_up_control?: FollowUpControl[];
 
 }
 
@@ -120,9 +117,7 @@ export interface RiskAssessmentQuestion {
     question: string;
     answer_type: 'yes_no' | 'select' | string;
     options?: string[] | null;
-    order?: number;
     sort_order?: number;
-    position?: number;
 }
 
 export interface RiskAssessmentAnswer {
@@ -150,7 +145,6 @@ export interface RiskAssessment {
     severity?: string | null;
     result?: string | null;
     answers?: RiskAssessmentAnswer[];
-    logs?: RiskAssessmentHistoryEntry[];
     history?: RiskAssessmentHistoryEntry[];
     created_at?: string;
     updated_at?: string;

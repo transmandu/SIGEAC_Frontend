@@ -977,7 +977,7 @@ export type MitigationMeasure = {
   estimated_date: Date;
   execution_date?: Date | null;
   mitigation_plan_id: number;
-  follow_up_control: FollowUpControl[];
+  follow_up_controls: FollowUpControl[];
 };
 
 export type MitigationPlan = {
