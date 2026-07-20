@@ -101,6 +101,38 @@ export const useUpdateQuoteStatus = () => {
   return { updateStatusQuote: updateStatusMutation }
 }
 
+// Solo SUPERUSER (ver gating en el dropdown de acciones). Elimina la
+// cotización junto con sus complementarias y cualquier orden de compra
+// generada por cualquiera de ellas, revirtiendo el inventario ya afectado.
+export const useCascadeDeleteQuote = () => {
+  const queryClient = useQueryClient()
+
+  const cascadeDeleteMutation = useMutation({
+    mutationFn: async ({ id, company }: { id: number; company: string }) => {
+      await axiosInstance.delete(`/${company}/quote/${id}/cascade`)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['quotes'] })
+      queryClient.invalidateQueries({ queryKey: ['quote'], exact: false })
+      queryClient.invalidateQueries({ queryKey: ['requisitions-orders'] })
+      queryClient.invalidateQueries({ queryKey: ['requisition-order'], exact: false })
+      queryClient.invalidateQueries({ queryKey: ['purchase-orders'] })
+      queryClient.invalidateQueries({ queryKey: ['purchase-order'], exact: false })
+      queryClient.invalidateQueries({ queryKey: ['general-article-intakes'], exact: false })
+      toast.success("¡Eliminada en cascada!", {
+        description: "La cotización y toda su cadena (complementarias, órdenes de compra e inventario asociado) fue eliminada.",
+      })
+    },
+    onError: (error: any) => {
+      toast.error("Oops!", {
+        description: error?.response?.data?.message || "Hubo un error al eliminar en cascada la cotización.",
+      })
+    },
+  })
+
+  return { cascadeDeleteQuote: cascadeDeleteMutation }
+}
+
 export const useDeleteQuote = () => {
   const queryClient = useQueryClient()
 

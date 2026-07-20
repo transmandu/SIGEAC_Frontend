@@ -132,6 +132,41 @@ export const useDeleteRequisition = () => {
   }
 }
 
+// Solo SUPERUSER (ver gating en el dropdown de acciones). Elimina la
+// requisición completa junto con todas sus cotizaciones (incluyendo
+// complementarias) y las órdenes de compra generadas por ellas, revirtiendo
+// cualquier inventario ya afectado (Articles, stock de artículos generales).
+export const useCascadeDeleteRequisition = () => {
+  const queryClient = useQueryClient()
+
+  const cascadeDeleteMutation = useMutation({
+    mutationFn: async ({ id, company }: { id: number, company: string }) => {
+      await axiosInstance.delete(`/${company}/requisition-order/${id}/cascade`)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['requisitions-orders'] })
+      queryClient.invalidateQueries({ queryKey: ['requisition-order'], exact: false })
+      queryClient.invalidateQueries({ queryKey: ['quotes'] })
+      queryClient.invalidateQueries({ queryKey: ['quote'], exact: false })
+      queryClient.invalidateQueries({ queryKey: ['purchase-orders'] })
+      queryClient.invalidateQueries({ queryKey: ['purchase-order'], exact: false })
+      queryClient.invalidateQueries({ queryKey: ['general-article-intakes'], exact: false })
+      toast.success("¡Eliminada en cascada!", {
+        description: `La requisición y toda su cadena (cotizaciones, órdenes de compra e inventario asociado) fue eliminada.`
+      })
+    },
+    onError: (error: any) => {
+      toast.error("Oops!", {
+        description: error?.response?.data?.message || "¡Hubo un error al eliminar en cascada la requisición!"
+      })
+    },
+  })
+
+  return {
+    cascadeDeleteRequisition: cascadeDeleteMutation,
+  }
+}
+
 export const useUpdateRequisitionPriority = () => {
   const queryClient = useQueryClient()
 

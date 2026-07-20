@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { useAuth } from "@/contexts/AuthContext"
 import { useCompanyStore } from "@/stores/CompanyStore"
 import { Button } from "@/components/ui/button"
 import {
@@ -11,6 +12,7 @@ import {
   TooltipTrigger
 } from "@/components/ui/tooltip"
 import {
+  AlertOctagon,
   ClipboardX,
   FileDown,
   Receipt,
@@ -44,9 +46,11 @@ export default function RequisitionActions({
   onSuccessUpdate
 }: Props) {
   const router = useRouter()
+  const { user } = useAuth()
   const { selectedCompany } = useCompanyStore()
 
   const [openDelete, setOpenDelete] = useState(false)
+  const [openCascadeDelete, setOpenCascadeDelete] = useState(false)
   const [openConfirm, setOpenConfirm] = useState(false)
   const [openReject, setOpenReject] = useState(false)
   const [openPdf, setOpenPdf] = useState(false)
@@ -59,6 +63,7 @@ export default function RequisitionActions({
 
   const canAct = !isFinal
   const canDelete = !isFinal
+  const isSuperUser = (user?.roles?.map((role) => role.name) || []).includes("SUPERUSER")
 
   const quoteTooltip =
     isApproved
@@ -164,10 +169,29 @@ export default function RequisitionActions({
           </Tooltip>
         )}
 
+        {/* CASCADE DELETE (SUPERUSER) */}
+        {isSuperUser && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setOpenCascadeDelete(true)}
+                className={`${itemBase} text-red-700`}
+              >
+                <AlertOctagon className={iconBase} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Eliminar en cascada (SuperUser)</TooltipContent>
+          </Tooltip>
+        )}
+
         <RequisitionDropdownDialogs
           req={req as any}
           openDelete={openDelete}
           setOpenDelete={setOpenDelete}
+          openCascadeDelete={openCascadeDelete}
+          setOpenCascadeDelete={setOpenCascadeDelete}
           openConfirm={openConfirm}
           setOpenConfirm={setOpenConfirm}
           openReject={openReject}

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useAuth } from "@/contexts/AuthContext"
 import { useCompanyStore } from "@/stores/CompanyStore"
 import {
   DropdownMenu,
@@ -16,6 +17,7 @@ import {
 } from "@/components/ui/tooltip"
 import { Button } from "@/components/ui/button"
 import {
+  AlertOctagon,
   ClipboardCheck,
   ClipboardX,
   FileDown,
@@ -49,17 +51,20 @@ const itemBase = `
 `
 
 const QuoteDropdownActions = ({ quote }: { quote: Quote }) => {
+  const { user } = useAuth()
   const { selectedCompany } = useCompanyStore()
 
   const [openDropdown, setOpenDropdown] = useState(false)
   const [openReject, setOpenReject] = useState(false)
   const [openApprove, setOpenApprove] = useState(false)
   const [openDelete, setOpenDelete] = useState(false)
+  const [openCascadeDelete, setOpenCascadeDelete] = useState(false)
   const [openComplementary, setOpenComplementary] = useState(false)
 
   const canDelete = quote.status !== "APPROVED"
   const canViewPO = quote.status === "APPROVED"
   const canApproveOrReject = quote.status === "PENDING"
+  const isSuperUser = (user?.roles?.map((role) => role.name) || []).includes("SUPERUSER")
 
   // Cotización complementaria: solo sobre una original APROBADA con
   // artículos generales cotizados. Registra la diferencia entre lo comprado
@@ -264,6 +269,34 @@ const QuoteDropdownActions = ({ quote }: { quote: Quote }) => {
                 </TooltipContent>
               </Tooltip>
             )}
+
+            {/* CASCADE DELETE (SUPERUSER) */}
+            {isSuperUser && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span>
+                    <DropdownMenuItem
+                      asChild
+                      className="p-0 focus:bg-transparent"
+                    >
+                      <button
+                        onClick={() => {
+                          setOpenDropdown(false)
+                          setOpenCascadeDelete(true)
+                        }}
+                        className={`${itemBase} text-red-700`}
+                      >
+                        <AlertOctagon className={iconBase} />
+                      </button>
+                    </DropdownMenuItem>
+                  </span>
+                </TooltipTrigger>
+
+                <TooltipContent>
+                  Eliminar en cascada (SuperUser)
+                </TooltipContent>
+              </Tooltip>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
 
@@ -275,6 +308,8 @@ const QuoteDropdownActions = ({ quote }: { quote: Quote }) => {
           setOpenReject={setOpenReject}
           openApprove={openApprove}
           setOpenApprove={setOpenApprove}
+          openCascadeDelete={openCascadeDelete}
+          setOpenCascadeDelete={setOpenCascadeDelete}
         />
 
         {selectedCompany?.slug && (

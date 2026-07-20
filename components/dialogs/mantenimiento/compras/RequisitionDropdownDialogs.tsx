@@ -1,6 +1,7 @@
 "use client"
 
 import {
+  useCascadeDeleteRequisition,
   useDeleteRequisition,
   useUpdateRequisitionStatus
 } from "@/actions/mantenimiento/compras/requisiciones/actions"
@@ -8,6 +9,7 @@ import { useAuth } from "@/contexts/AuthContext"
 import { useCompanyStore } from "@/stores/CompanyStore"
 import type { Requisition } from "@/types/purchase"
 import {
+    AlertOctagon,
     AlertTriangle,
   ClipboardX,
   Loader2,
@@ -61,6 +63,8 @@ type Props = {
   req: Requisition
   openDelete: boolean
   setOpenDelete: (open: boolean) => void
+  openCascadeDelete?: boolean
+  setOpenCascadeDelete?: (open: boolean) => void
   openConfirm: boolean
   setOpenConfirm: (open: boolean) => void
   openReject: boolean
@@ -84,6 +88,8 @@ const RequisitionDropdownDialogs = ({
   req,
   openDelete,
   setOpenDelete,
+  openCascadeDelete,
+  setOpenCascadeDelete,
   openConfirm,
   setOpenConfirm,
   openReject,
@@ -97,6 +103,9 @@ const RequisitionDropdownDialogs = ({
 
   const { deleteRequisition } =
     useDeleteRequisition()
+
+  const { cascadeDeleteRequisition } =
+    useCascadeDeleteRequisition()
 
   const { updateStatusRequisition } =
     useUpdateRequisitionStatus()
@@ -117,6 +126,17 @@ const RequisitionDropdownDialogs = ({
     })
 
     setOpenDelete(false)
+
+    onSuccessDelete?.()
+  }
+
+  const handleCascadeDelete = async (id: number) => {
+    await cascadeDeleteRequisition.mutateAsync({
+      id,
+      company: selectedCompany.slug
+    })
+
+    setOpenCascadeDelete?.(false)
 
     onSuccessDelete?.()
   }
@@ -218,6 +238,86 @@ const RequisitionDropdownDialogs = ({
             </div>
         </DialogContent>
         </Dialog>
+
+      {/* CASCADE DELETE (SUPERUSER) */}
+      {openCascadeDelete !== undefined && setOpenCascadeDelete && (
+        <Dialog open={openCascadeDelete} onOpenChange={setOpenCascadeDelete}>
+        <DialogContent className={dialogClass}>
+
+            <DialogHeader className="px-6 pt-8 pb-3 flex flex-col items-center text-center space-y-3">
+
+            <div
+                className="
+                flex items-center justify-center
+                size-12 rounded-2xl
+                border border-red-500/15
+                bg-red-500/[0.08]
+                "
+            >
+                <AlertOctagon className="size-5 text-red-600" />
+            </div>
+
+            <DialogTitle className="text-[16px] font-semibold tracking-tight">
+                Eliminar solicitud en cascada
+            </DialogTitle>
+
+            <DialogDescription className="text-sm text-muted-foreground text-center leading-relaxed max-w-sm">
+                La solicitud{" "}
+                <span className="font-medium text-foreground">
+                {req.order_number}
+                </span>{" "}
+                y toda su cadena serán eliminadas permanentemente.
+            </DialogDescription>
+            </DialogHeader>
+
+            {/* WARNING BOX */}
+            <div className="mx-6 mt-4 p-3 rounded-xl border border-red-500/20 bg-red-500/[0.05] text-sm text-red-600 flex gap-2 leading-relaxed">
+            <AlertTriangle className="size-4 mt-[2px]" />
+            <div>
+                Esta acción es <b>irreversible</b>. Se eliminarán también todas sus cotizaciones (incluyendo
+                complementarias) y las órdenes de compra generadas por ellas, revirtiendo el inventario
+                (artículos y stock) que ya se haya afectado, sin importar el estado en que se encuentren.
+            </div>
+            </div>
+
+            {/* ACTIONS */}
+            <div className="px-6 pb-6 pt-5 flex justify-end gap-2">
+
+            <Button
+                variant="outline"
+                onClick={() => setOpenCascadeDelete(false)}
+                className="
+                rounded-xl
+                border border-border/60
+                bg-background
+                hover:bg-muted
+                text-muted-foreground
+                hover:text-foreground
+                "
+            >
+                Cancelar
+            </Button>
+
+            <Button
+                variant="destructive"
+                onClick={() => handleCascadeDelete(req.id)}
+                disabled={cascadeDeleteRequisition.isPending}
+                className="
+                rounded-xl
+                bg-red-600/90
+                hover:bg-red-600
+                "
+            >
+                {cascadeDeleteRequisition.isPending && (
+                <Loader2 className="mr-2 size-4 animate-spin" />
+                )}
+                Eliminar en cascada
+            </Button>
+
+            </div>
+        </DialogContent>
+        </Dialog>
+      )}
 
       {/* REJECT */}
         <Dialog open={openReject} onOpenChange={setOpenReject}>

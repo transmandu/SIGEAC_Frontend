@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/tooltip"
 import { Button } from "@/components/ui/button"
 import {
+  AlertOctagon,
   ClipboardX,
   FileDown,
   MoreHorizontal,
@@ -59,6 +60,7 @@ const RequisitionDropdownActions = ({
 
   const [openDropdown, setOpenDropdown] = useState(false)
   const [openDelete, setOpenDelete] = useState(false)
+  const [openCascadeDelete, setOpenCascadeDelete] = useState(false)
   const [openConfirm, setOpenConfirm] = useState(false)
   const [openReject, setOpenReject] = useState(false)
   const [openPriority, setOpenPriority] = useState(false)
@@ -82,6 +84,7 @@ const RequisitionDropdownActions = ({
   const isReadOnlyWarehouseAnalyst =
     userRoles.includes("ANALISTA_ALMACEN") && !canDeleteAny && !canSeeAllOptions
   const canDelete = canDeleteAny || (isReadOnlyWarehouseAnalyst && isOwnRequisition)
+  const isSuperUser = userRoles.includes("SUPERUSER")
 
   const canQuote =
     canSeeAllOptions &&
@@ -306,6 +309,35 @@ const RequisitionDropdownActions = ({
               </TooltipContent>
             </Tooltip>
             )}
+
+            {/* ELIMINAR EN CASCADA (SUPERUSER) */}
+            {isSuperUser && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenuItem
+                  asChild
+                  className="p-0 focus:bg-transparent"
+                >
+                  <button
+                    onClick={() => {
+                      setOpenDropdown(false)
+                      setOpenCascadeDelete(true)
+                    }}
+                    className={`
+                      ${itemBase}
+                      text-red-700
+                    `}
+                  >
+                    <AlertOctagon className={iconBase} />
+                  </button>
+                </DropdownMenuItem>
+              </TooltipTrigger>
+
+              <TooltipContent>
+                Eliminar en cascada (SuperUser)
+              </TooltipContent>
+            </Tooltip>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
 
@@ -313,6 +345,8 @@ const RequisitionDropdownActions = ({
           req={req}
           openDelete={openDelete}
           setOpenDelete={setOpenDelete}
+          openCascadeDelete={openCascadeDelete}
+          setOpenCascadeDelete={setOpenCascadeDelete}
           openConfirm={openConfirm}
           setOpenConfirm={setOpenConfirm}
           openReject={openReject}

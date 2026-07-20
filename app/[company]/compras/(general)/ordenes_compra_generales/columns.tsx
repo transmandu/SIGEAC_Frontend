@@ -40,7 +40,11 @@ const ArticlesCountAction = ({
 
   const isEmpty = count === 0
   const generalArticles = po.general_article_purchase_order ?? []
-  const pendingGeneralArticles = generalArticles.filter((item) => !item.general_article_intake)
+  // Elegible si nunca se registró entrega o si la entrada fue rechazada por
+  // almacén y debe volver a entregarse (ver RegisterGeneralArticlesDeliveryDialog).
+  const pendingGeneralArticles = generalArticles.filter(
+    (item) => !item.general_article_intake || item.general_article_intake.status === 'REJECTED'
+  )
   const hasGeneralArticles = generalArticles.length > 0
   const hasPendingDelivery = pendingGeneralArticles.length > 0
   const canRegisterDelivery = hasGeneralArticles && !!company && canRegister

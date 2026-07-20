@@ -67,8 +67,13 @@ export default function RegisterGeneralArticlesDeliveryDialog({
   const { registerGeneralArticlesDelivery } = useRegisterGeneralArticlesDelivery()
   const { selectedStation } = useCompanyStore()
 
+  // Elegible para (re)registrar entrega si nunca se registró una, o si la
+  // última entrada fue rechazada por almacén (discrepancia física) y debe
+  // volver a entregarse sobre la misma línea de la orden.
   const pendingItems = useMemo(
-    () => (po.general_article_purchase_order ?? []).filter((item) => !item.general_article_intake),
+    () => (po.general_article_purchase_order ?? []).filter(
+      (item) => !item.general_article_intake || item.general_article_intake.status === 'REJECTED'
+    ),
     [po.general_article_purchase_order]
   )
 
