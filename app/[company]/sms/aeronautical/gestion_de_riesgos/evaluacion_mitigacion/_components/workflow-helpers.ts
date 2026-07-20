@@ -42,7 +42,7 @@ export const sortByNewestDate = (notifications: HazardNotification[]) =>
   );
 
 export const getMeasureControls = (measure: MitigationMeasure) =>
-  measure.follow_up_control || measure.follow_up_controls || [];
+  measure.follow_up_controls || [];
 
 export const getWorkflowStatus = (notification: HazardNotification): WorkflowStatus => {
   const mitigationPlan = notification.mitigation_plan;

@@ -11,7 +11,7 @@ const fetchVoluntaryReports = async (
 
 export const useGetVoluntaryReports = (company?: string) => {
   return useQuery<VoluntaryReport[]>({
-    queryKey: ["voluntary-reports"],
+    queryKey: ["voluntary-reports", company],
     queryFn: () => fetchVoluntaryReports(company),
     staleTime: 1000 * 60 * 5, // 5 minutos
     enabled: !!company,

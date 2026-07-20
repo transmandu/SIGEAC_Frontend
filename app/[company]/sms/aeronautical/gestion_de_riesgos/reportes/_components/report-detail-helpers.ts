@@ -96,14 +96,6 @@ export const normalizeHazardNotification = (raw: any): HazardNotificationLike | 
                             "followupcontrols",
                             "followup_controls",
                         ) ?? [],
-                    follow_up_control:
-                        getAny(
-                            measure,
-                            "follow_up_control",
-                            "follow_up_controls",
-                            "followupcontrols",
-                            "followup_controls",
-                        ) ?? [],
                 }),
             ) as MitigationMeasureLike[],
         }

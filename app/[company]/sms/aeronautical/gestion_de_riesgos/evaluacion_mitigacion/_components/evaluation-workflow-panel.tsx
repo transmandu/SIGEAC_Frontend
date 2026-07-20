@@ -25,7 +25,7 @@ export function EvaluationWorkflowPanel({
     const hasPlanAndAnalysis = Boolean(currentMitigationPlan && currentPlanAnalysis);
     const hasPostMitigationAnalysis = Boolean(currentPostMitigationAnalysis);
     const totalControls = currentMeasures.reduce((total, measure) => {
-        const controls = measure.follow_up_control || measure.follow_up_controls || [];
+        const controls = measure.follow_up_controls || [];
         return total + controls.length;
     }, 0);
     const defaultTab = getDefaultWorkflowTab(
@@ -46,8 +46,6 @@ export function EvaluationWorkflowPanel({
     const currentRiskAssessment =
         assessmentDraft ||
         selectedNotification.risk_assessment ||
-        selectedNotification.riskAssessment ||
-        selectedNotification.risk_assessments?.[0] ||
         null;
     const hasRiskAssessment = Boolean(currentRiskAssessment);
 

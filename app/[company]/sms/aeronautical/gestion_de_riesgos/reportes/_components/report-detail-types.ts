@@ -24,7 +24,6 @@ export type MitigationMeasureLike = Partial<MaintenanceMitigationMeasure> & {
     estimated_date?: string | Date;
     execution_date?: string | Date | null;
     follow_up_controls?: FollowUpControlLike[];
-    follow_up_control?: FollowUpControlLike[];
 };
 
 export type MitigationPlanLike = Partial<MaintenanceMitigationPlan> & {
