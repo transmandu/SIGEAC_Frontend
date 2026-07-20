@@ -10,10 +10,11 @@ import type { Requisition } from '@/types/purchase'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import Link from 'next/link'
-import { ChevronRight, Eye, Loader2 } from 'lucide-react'
+import { ChevronRight, Loader2 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useCompanyStore } from '@/stores/CompanyStore'
 import { useUpdateRequisitionStatus } from '@/actions/mantenimiento/compras/requisiciones/actions'
+import EyePreviewIcon from '@/components/misc/EyePreviewIcon'
 
 const STATUS_LABELS: Record<string, string> = {
   CREATED: 'CREADA',
@@ -106,7 +107,8 @@ const StatusCell = ({ requisition }: { requisition: Requisition }) => {
 
 export const getColumns = (
   selectedCompany?: { slug: string },
-  onPreview?: (requisition: Requisition) => void
+  onPreview?: (requisition: Requisition) => void,
+  selectedPreviewId?: number | null
 ): ColumnDef<Requisition>[] => [
   {
     id: 'expander',
@@ -166,6 +168,40 @@ export const getColumns = (
     ),
   },
   {
+    id: 'preview',
+    size: 40,
+    header: () => null,
+    cell: ({ row }) => {
+      const isActive = selectedPreviewId === row.original.id
+
+      return (
+        <div className="flex justify-center px-0" onClick={(e) => e.stopPropagation()}>
+          <TooltipProvider delayDuration={120}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  onClick={() => onPreview?.(row.original)}
+                  className={cn(
+                    'flex items-center justify-center rounded-md p-1 transition-all duration-200',
+                    isActive
+                      ? 'text-blue-600 dark:text-blue-400 drop-shadow-[0_0_6px_rgba(37,99,235,0.65)] dark:drop-shadow-[0_0_6px_rgba(96,165,250,0.7)]'
+                      : 'text-muted-foreground hover:text-blue-600 dark:hover:text-blue-400 hover:drop-shadow-[0_0_6px_rgba(37,99,235,0.55)] dark:hover:drop-shadow-[0_0_6px_rgba(96,165,250,0.6)]'
+                  )}
+                >
+                  <EyePreviewIcon active={isActive} className="size-4" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>{isActive ? 'Cerrar vista previa' : 'Vista previa de la requisición'}</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+      )
+    },
+    enableSorting: false,
+    enableHiding: false,
+  },
+  {
     accessorKey: 'justification',
     size: 340,
     header: ({ column }) => (
@@ -214,31 +250,6 @@ export const getColumns = (
         </span>
       </div>
     ),
-  },
-  {
-    id: 'preview',
-    size: 40,
-    header: () => null,
-    cell: ({ row }) => (
-      <div className="flex justify-center px-0" onClick={(e) => e.stopPropagation()}>
-        <TooltipProvider delayDuration={120}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                type="button"
-                onClick={() => onPreview?.(row.original)}
-                className="flex items-center justify-center rounded-md p-1 text-muted-foreground transition-colors hover:text-blue-600 hover:bg-blue-500/10 dark:hover:text-blue-400"
-              >
-                <Eye className="size-4" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent>Vista previa de la requisición</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </div>
-    ),
-    enableSorting: false,
-    enableHiding: false,
   },
   {
     accessorKey: 'status',

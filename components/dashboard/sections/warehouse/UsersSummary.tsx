@@ -1,11 +1,24 @@
 'use client'
 
-import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import { WarehouseDashboard } from '@/types'
 import { Users, Activity } from 'lucide-react'
+import { useOnlineUsersContext } from '@/contexts/OnlineUsersContext'
+import { PresenceStatus } from '@/hooks/notifications/useOnlineUsers'
+
+const presenceLabels: Record<PresenceStatus, string> = {
+  online: 'Activo',
+  standby: 'En espera',
+  offline: 'Inactivo',
+}
+
+const presenceStyles: Record<PresenceStatus, string> = {
+  online: 'bg-emerald-500/15 text-emerald-600',
+  standby: 'bg-amber-500/15 text-amber-600',
+  offline: 'bg-slate-500/15 text-slate-500',
+}
 
 interface Props {
   data?: WarehouseDashboard
@@ -76,12 +89,7 @@ export default function UsersSummary({
   currentUserRole
 }: Props) {
 
-  const [, tick] = useState(0)
-
-  useEffect(() => {
-    const interval = setInterval(() => tick(t => t + 1), 1000)
-    return () => clearInterval(interval)
-  }, [])
+  const { getPresenceStatus } = useOnlineUsersContext()
 
   if (isLoading) return <div className="text-center text-indigo-600 py-8">Cargando información...</div>
   if (isError || !data?.userStats?.length) return <div className="text-center text-red-500 py-8">Error al cargar información.</div>
@@ -98,20 +106,6 @@ export default function UsersSummary({
     dispatch: u.dispatch_count,
     incoming: u.incoming_count
   }))
-
-  const parseDate = (str: string | null) => {
-    if (!str) return null
-    const [d, t] = str.split(' ')
-    const [day, month, year] = d.split('-').map(Number)
-    const [h, m, s] = t.split(':').map(Number)
-    return new Date(year, month - 1, day, h, m, s)
-  }
-
-  const isActive = (lastUsed: string | null) => {
-    const parsed = parseDate(lastUsed)
-    if (!parsed) return false
-    return (Date.now() - parsed.getTime()) / 60000 <= 2
-  }
 
   return (
     /* =========================
@@ -164,12 +158,8 @@ export default function UsersSummary({
                             <TableCell className="text-center">{u.name}</TableCell>
                             <TableCell className="text-center">{u.job_title}</TableCell>
                             <TableCell className="text-center">
-                              <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                                isActive(u.last_used_at)
-                                  ? 'bg-emerald-500/15 text-emerald-600'
-                                  : 'bg-slate-500/15 text-slate-500'
-                              }`}>
-                                {isActive(u.last_used_at) ? 'Activo' : 'Inactivo'}
+                              <span className={`px-3 py-1 rounded-full text-xs font-medium ${presenceStyles[getPresenceStatus(u.id)]}`}>
+                                {presenceLabels[getPresenceStatus(u.id)]}
                               </span>
                             </TableCell>
                           </TableRow>

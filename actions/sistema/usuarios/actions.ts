@@ -43,11 +43,16 @@ export const useUpdateUser = () => {
   const createMutation = useMutation({
       mutationFn: async (data: {
         username: string,
-        email: string,
-        password: string,
+        email?: string,
+        password?: string,
         id: string,
       }) => {
-          const res = await axiosInstance.put(`/user/${data.id}`, data)
+          const { id, ...rest } = data
+          const payload: Record<string, string> = {}
+          if (rest.email) payload.email = rest.email
+          if (rest.password) payload.password = rest.password
+
+          const res = await axiosInstance.put(`/user/${id}`, payload)
           return res.data
         },
       onSuccess: () => {
@@ -111,10 +116,10 @@ export const useRemoveRoleFromUser = () => {
     }: {
       userId: string
       roleId: number
-      companyId: number
+      companyId?: number | null
     }) => {
       await axiosInstance.delete(`/users/${userId}/roles`, {
-        data: { role_id: roleId, company_id: companyId },
+        data: { role_id: roleId, company_id: companyId ?? null },
       })
     },
     onSuccess: (_, { userId }) => {

@@ -13,7 +13,6 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -32,14 +31,18 @@ import { useGetFuelVehicles } from "@/hooks/mantenimiento/almacen/combustible/us
 import {
   FUEL_ALLOWED_ROLES,
   FUEL_MOVEMENT_LABELS,
+  FUEL_TYPES,
   formatLiters,
 } from "@/lib/fuel";
+import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { FuelMovementType } from "@/types";
+import { FuelMovementType, FuelType } from "@/types";
 import {
   ArrowDownToLine,
   ArrowUpFromLine,
   CalendarMinus,
+  ChevronLeft,
+  ChevronRight,
   Droplets,
   Fuel,
   Route,
@@ -47,7 +50,8 @@ import {
   Truck,
   X,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { motion } from "motion/react";
+import { useEffect, useMemo, useState } from "react";
 import { FuelMovementsTable } from "./_components/FuelMovementsTable";
 import { FuelSummaryCards } from "./_components/FuelSummaryCards";
 import { FuelTraceabilityPanel } from "./_components/FuelTraceabilityPanel";
@@ -79,6 +83,11 @@ export default function FuelWarehousePage() {
   const [movementType, setMovementType] = useState<FuelMovementType | "all">(
     "all",
   );
+  const [movementFuelType, setMovementFuelType] = useState<FuelType | "all">(
+    "all",
+  );
+  const [movementPage, setMovementPage] = useState(1);
+  const [activeFuelTab, setActiveFuelTab] = useState("movements");
 
   const userRoles = user?.roles?.map((role) => role.name) ?? [];
   const canAccess = FUEL_ALLOWED_ROLES.some((role) => userRoles.includes(role));
@@ -89,7 +98,8 @@ export default function FuelWarehousePage() {
     dateTo !== "" ||
     vehicleId !== "all" ||
     thirdPartyId !== "all" ||
-    movementType !== "all";
+    movementType !== "all" ||
+    movementFuelType !== "all";
 
   const clearFilters = () => {
     setDateFrom("");
@@ -97,7 +107,24 @@ export default function FuelWarehousePage() {
     setVehicleId("all");
     setThirdPartyId("all");
     setMovementType("all");
+    setMovementFuelType("all");
   };
+
+  // Borde casi invisible en reposo; solo se tine de esmeralda cuando el
+  // campo tiene un valor activo o recibe foco, para que la vista descanse
+  // sobre los datos y no sobre las lineas de la cuadricula de filtros.
+  const filterFieldClass = (isActive: boolean) =>
+    cn(
+      "border-slate-200 transition-colors duration-200 dark:border-slate-800",
+      "focus:border-emerald-400 focus:ring-emerald-400/30 focus-visible:border-emerald-400 focus-visible:ring-emerald-400/30",
+      isActive && "border-emerald-400/70 ring-1 ring-emerald-400/20 dark:border-emerald-500/50",
+    );
+
+  // Se resetea a la primera pagina cada vez que cambia algun filtro (no al
+  // cambiar solo de pagina).
+  useEffect(() => {
+    setMovementPage(1);
+  }, [dateFrom, dateTo, vehicleId, thirdPartyId, movementType, movementFuelType]);
 
   const movementFilters = useMemo(
     () => ({
@@ -106,22 +133,62 @@ export default function FuelWarehousePage() {
       vehicle_id: vehicleId === "all" ? "" : vehicleId,
       third_party_id: thirdPartyId === "all" ? "" : thirdPartyId,
       type: movementType,
+      fuel_type: movementFuelType,
+      page: movementPage,
     }),
-    [dateFrom, dateTo, movementType, thirdPartyId, vehicleId],
+    [
+      dateFrom,
+      dateTo,
+      movementFuelType,
+      movementPage,
+      movementType,
+      thirdPartyId,
+      vehicleId,
+    ],
   );
 
   const { data: summary, isLoading: summaryLoading, isError: summaryError } =
     useGetFuelSummary(company);
   const { data: vehicles, isLoading: vehiclesLoading } =
     useGetFuelVehicles(company);
-  const { data: movements, isLoading: movementsLoading } = useGetFuelMovements(
-    company,
-    movementFilters,
-  );
+  const { data: movementsPage, isLoading: movementsLoading } =
+    useGetFuelMovements(company, movementFilters);
+  // Trazabilidad necesita ver todos los despachos, no solo la pagina actual
+  // de la pestana Movimientos: se consulta aparte con un limite alto.
+  const { data: traceabilityMovementsPage } = useGetFuelMovements(company, {
+    per_page: 200,
+  });
   const { data: thirdParties } = useGetThirdParties();
 
   const fuelVehicles = vehicles ?? [];
-  const fuelMovements = movements ?? [];
+  const fuelMovements = movementsPage?.movements ?? [];
+  const movementsPagination = movementsPage?.pagination;
+  const traceabilityMovements = traceabilityMovementsPage?.movements ?? [];
+
+  // El select de vehiculo del filtro solo debe ofrecer los vehiculos del
+  // combustible elegido en el filtro de Combustible.
+  const vehicleOptionsForFilter = useMemo(
+    () =>
+      movementFuelType === "all"
+        ? fuelVehicles
+        : fuelVehicles.filter(
+            (vehicle) => vehicle.fuel_type === movementFuelType,
+          ),
+    [fuelVehicles, movementFuelType],
+  );
+
+  // Si el vehiculo seleccionado deja de pertenecer al combustible filtrado,
+  // se limpia la seleccion para no dejar un filtro invisible/inconsistente.
+  useEffect(() => {
+    if (
+      vehicleId !== "all" &&
+      !vehicleOptionsForFilter.some(
+        (vehicle) => vehicle.id.toString() === vehicleId,
+      )
+    ) {
+      setVehicleId("all");
+    }
+  }, [vehicleId, vehicleOptionsForFilter]);
 
   if (authLoading || summaryLoading || vehiclesLoading) return <LoadingPage />;
 
@@ -158,158 +225,191 @@ export default function FuelWarehousePage() {
           </BreadcrumbList>
         </Breadcrumb>
 
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <div className="flex items-center gap-2">
-              <div className="rounded-md border bg-muted/50 p-2 text-primary">
-                <Fuel className="h-5 w-5" />
-              </div>
-              <h1 className="text-2xl font-semibold tracking-tight">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-2.5">
+            <Fuel className="h-5 w-5 text-primary/70" />
+            <div>
+              <h1 className="text-xl font-semibold tracking-tight">
                 Control de combustible
               </h1>
+              <p className="text-sm text-muted-foreground">
+                Inventario, saldo en vehiculos, despachos y consumo con
+                trazabilidad FIFO.
+              </p>
             </div>
-            <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
-              Gestiona inventario almacenado, saldo en vehiculos, despachos y
-              consumo diario con trazabilidad FIFO.
-            </p>
           </div>
           <CreateFuelVehicleDialog company={company} />
         </div>
 
         {summaryError ? (
-          <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+          <div className="rounded-xl bg-destructive/5 p-3 text-sm text-destructive">
             No se pudo cargar el resumen de combustible.
           </div>
         ) : null}
 
-        <FuelSummaryCards summary={summary} />
+        <FuelSummaryCards
+          summary={summary}
+          onViewVehicles={() => setActiveFuelTab("vehicles")}
+        />
 
-        {/* --- Acciones agrupadas por flujo: entradas → despachos → consumo --- */}
-        <Card>
-          <CardContent className="grid grid-cols-1 gap-6 p-5 lg:grid-cols-3 lg:gap-0 lg:divide-x lg:divide-border">
-            <div className="space-y-3 lg:pr-6">
-              <div>
-                <p className="text-sm font-semibold">Entradas</p>
-                <p className="text-xs text-muted-foreground">
-                  Suman combustible al inventario
-                </p>
-              </div>
-              <div className="space-y-1.5">
-                <FuelMovementDialog
-                  company={company}
-                  type="warehouse_initial_balance"
-                  summary={summary}
-                  vehicles={fuelVehicles}
-                  icon={Droplets}
-                  variant="outline"
-                  className="w-full"
-                />
-                <FuelMovementDialog
-                  company={company}
-                  type="external_refuel"
-                  summary={summary}
-                  vehicles={fuelVehicles}
-                  icon={Fuel}
-                  variant="outline"
-                  className="w-full"
-                />
-                <FuelMovementDialog
-                  company={company}
-                  type="warehouse_unload"
-                  summary={summary}
-                  vehicles={fuelVehicles}
-                  icon={ArrowDownToLine}
-                  variant="outline"
-                  className="w-full"
-                />
-              </div>
+        {/* --- Acciones rapidas agrupadas por flujo: entradas -> despachos -> consumo --- */}
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-3 sm:divide-x sm:divide-border">
+          <div className="space-y-2 sm:pr-6">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              Entradas
+            </p>
+            <div className="space-y-1.5">
+              <FuelMovementDialog
+                company={company}
+                type="warehouse_initial_balance"
+                summary={summary}
+                vehicles={fuelVehicles}
+                icon={Droplets}
+                iconClassName="text-emerald-600"
+                variant="outline"
+                className="w-full border-border/70 border-l-4 border-l-emerald-500 hover:border-emerald-600/40 hover:border-l-emerald-500 hover:bg-emerald-600/5"
+              />
+              <FuelMovementDialog
+                company={company}
+                type="external_refuel"
+                summary={summary}
+                vehicles={fuelVehicles}
+                icon={Fuel}
+                iconClassName="text-emerald-600"
+                variant="outline"
+                className="w-full border-border/70 border-l-4 border-l-emerald-500 hover:border-emerald-600/40 hover:border-l-emerald-500 hover:bg-emerald-600/5"
+              />
+              <FuelMovementDialog
+                company={company}
+                type="warehouse_unload"
+                summary={summary}
+                vehicles={fuelVehicles}
+                icon={ArrowDownToLine}
+                iconClassName="text-emerald-600"
+                variant="outline"
+                className="w-full border-border/70 border-l-4 border-l-emerald-500 hover:border-emerald-600/40 hover:border-l-emerald-500 hover:bg-emerald-600/5"
+              />
             </div>
+          </div>
 
-            <div className="space-y-3 lg:px-6">
-              <div>
-                <p className="text-sm font-semibold">Despachos</p>
-                <p className="text-xs text-muted-foreground">
-                  Salidas del almacen con trazabilidad FIFO
-                </p>
-              </div>
-              <div className="space-y-1.5">
-                <FuelMovementDialog
-                  company={company}
-                  type="warehouse_dispatch_vehicle"
-                  summary={summary}
-                  vehicles={fuelVehicles}
-                  icon={Truck}
-                  variant="outline"
-                  className="w-full"
-                />
-                <FuelMovementDialog
-                  company={company}
-                  type="warehouse_dispatch_third_party"
-                  summary={summary}
-                  vehicles={fuelVehicles}
-                  icon={ArrowUpFromLine}
-                  variant="outline"
-                  className="w-full"
-                />
-              </div>
+          <div className="space-y-2 sm:px-6">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              Despachos
+            </p>
+            <div className="space-y-1.5">
+              <FuelMovementDialog
+                company={company}
+                type="warehouse_dispatch_vehicle"
+                summary={summary}
+                vehicles={fuelVehicles}
+                icon={Truck}
+                iconClassName="text-sky-600"
+                variant="outline"
+                className="w-full border-border/70 border-l-4 border-l-sky-500 hover:border-sky-600/40 hover:border-l-sky-500 hover:bg-sky-600/5"
+              />
+              <FuelMovementDialog
+                company={company}
+                type="warehouse_dispatch_third_party"
+                summary={summary}
+                vehicles={fuelVehicles}
+                icon={ArrowUpFromLine}
+                iconClassName="text-sky-600"
+                variant="outline"
+                className="w-full border-border/70 border-l-4 border-l-sky-500 hover:border-sky-600/40 hover:border-l-sky-500 hover:bg-sky-600/5"
+              />
             </div>
+          </div>
 
-            <div className="space-y-3 lg:pl-6">
-              <div>
-                <p className="text-sm font-semibold">Consumo</p>
-                <p className="text-xs text-muted-foreground">
-                  Registro operativo de los vehiculos
-                </p>
-              </div>
-              <div className="space-y-1.5">
-                <FuelMovementDialog
-                  company={company}
-                  type="vehicle_daily_consumption"
-                  summary={summary}
-                  vehicles={fuelVehicles}
-                  icon={CalendarMinus}
-                  variant="outline"
-                  className="w-full"
-                />
-                <FuelMovementDialog
-                  company={company}
-                  type="vehicle_trip"
-                  summary={summary}
-                  vehicles={fuelVehicles}
-                  icon={Route}
-                  variant="outline"
-                  className="w-full"
-                />
-              </div>
+          <div className="space-y-2 sm:pl-6">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              Consumo
+            </p>
+            <div className="space-y-1.5">
+              <FuelMovementDialog
+                company={company}
+                type="vehicle_daily_consumption"
+                summary={summary}
+                vehicles={fuelVehicles}
+                icon={CalendarMinus}
+                iconClassName="text-amber-600"
+                variant="outline"
+                className="w-full border-border/70 border-l-4 border-l-amber-500 hover:border-amber-600/40 hover:border-l-amber-500 hover:bg-amber-600/5"
+              />
+              <FuelMovementDialog
+                company={company}
+                type="vehicle_trip"
+                summary={summary}
+                vehicles={fuelVehicles}
+                icon={Route}
+                iconClassName="text-amber-600"
+                variant="outline"
+                className="w-full border-border/70 border-l-4 border-l-amber-500 hover:border-amber-600/40 hover:border-l-amber-500 hover:bg-amber-600/5"
+              />
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* --- Tabs con datos --- */}
-        <Tabs defaultValue="movements" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="movements">
-              Movimientos
-              {fuelMovements.length > 0 && (
-                <span className="ml-1.5 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium tabular-nums leading-none">
-                  {fuelMovements.length}
-                </span>
+        <Tabs value={activeFuelTab} onValueChange={setActiveFuelTab} className="space-y-4">
+          <TabsList className="gap-1 rounded-full border border-slate-200/70 bg-slate-100/60 p-1 dark:border-slate-800 dark:bg-slate-800/40">
+            <TabsTrigger
+              value="movements"
+              className="relative z-0 rounded-full bg-transparent px-4 shadow-none transition-colors data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+            >
+              {activeFuelTab === "movements" && (
+                <motion.span
+                  layoutId="fuel-tabs-pill"
+                  className="absolute inset-0 rounded-full bg-background shadow-sm"
+                  transition={{ type: "spring", stiffness: 420, damping: 34 }}
+                />
               )}
+              <span className="relative z-10 inline-flex items-center">
+                Movimientos
+                {(movementsPagination?.total ?? 0) > 0 && (
+                  <span className="ml-1.5 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium tabular-nums leading-none">
+                    {movementsPagination?.total}
+                  </span>
+                )}
+              </span>
             </TabsTrigger>
-            <TabsTrigger value="vehicles">
-              Vehiculos
-              {fuelVehicles.length > 0 && (
-                <span className="ml-1.5 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium tabular-nums leading-none">
-                  {fuelVehicles.length}
-                </span>
+            <TabsTrigger
+              value="vehicles"
+              className="relative z-0 rounded-full bg-transparent px-4 shadow-none transition-colors data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+            >
+              {activeFuelTab === "vehicles" && (
+                <motion.span
+                  layoutId="fuel-tabs-pill"
+                  className="absolute inset-0 rounded-full bg-background shadow-sm"
+                  transition={{ type: "spring", stiffness: 420, damping: 34 }}
+                />
               )}
+              <span className="relative z-10 inline-flex items-center">
+                Vehiculos
+                {fuelVehicles.length > 0 && (
+                  <span className="ml-1.5 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium tabular-nums leading-none">
+                    {fuelVehicles.length}
+                  </span>
+                )}
+              </span>
             </TabsTrigger>
-            <TabsTrigger value="traceability">Trazabilidad</TabsTrigger>
+            <TabsTrigger
+              value="traceability"
+              className="relative z-0 rounded-full bg-transparent px-4 shadow-none transition-colors data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+            >
+              {activeFuelTab === "traceability" && (
+                <motion.span
+                  layoutId="fuel-tabs-pill"
+                  className="absolute inset-0 rounded-full bg-background shadow-sm"
+                  transition={{ type: "spring", stiffness: 420, damping: 34 }}
+                />
+              )}
+              <span className="relative z-10">Trazabilidad</span>
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="movements" className="space-y-4">
             <div className="space-y-2">
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-5">
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-6">
                 <div className="space-y-1.5">
                   <Label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                     Desde
@@ -318,6 +418,7 @@ export default function FuelWarehousePage() {
                     type="date"
                     value={dateFrom}
                     onChange={(event) => setDateFrom(event.target.value)}
+                    className={filterFieldClass(dateFrom !== "")}
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -328,21 +429,45 @@ export default function FuelWarehousePage() {
                     type="date"
                     value={dateTo}
                     onChange={(event) => setDateTo(event.target.value)}
+                    className={filterFieldClass(dateTo !== "")}
                   />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Combustible
+                  </Label>
+                  <Select
+                    value={movementFuelType}
+                    onValueChange={(value) =>
+                      setMovementFuelType(value as FuelType | "all")
+                    }
+                  >
+                    <SelectTrigger className={filterFieldClass(movementFuelType !== "all")}>
+                      <SelectValue placeholder="Combustible" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos</SelectItem>
+                      {FUEL_TYPES.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                     Vehiculo
                   </Label>
                   <Select value={vehicleId} onValueChange={setVehicleId}>
-                    <SelectTrigger>
+                    <SelectTrigger className={filterFieldClass(vehicleId !== "all")}>
                       <SelectValue placeholder="Vehiculo" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todos</SelectItem>
-                      {fuelVehicles.map((vehicle) => (
+                      {vehicleOptionsForFilter.map((vehicle) => (
                         <SelectItem key={vehicle.id} value={vehicle.id.toString()}>
-                          {vehicle.plate} - {formatLiters(vehicle.current_balance_liters)}
+                          {vehicle.plate || "Sin placa"} - {formatLiters(vehicle.current_balance_liters)}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -353,7 +478,7 @@ export default function FuelWarehousePage() {
                     Tercero
                   </Label>
                   <Select value={thirdPartyId} onValueChange={setThirdPartyId}>
-                    <SelectTrigger>
+                    <SelectTrigger className={filterFieldClass(thirdPartyId !== "all")}>
                       <SelectValue placeholder="Tercero" />
                     </SelectTrigger>
                     <SelectContent>
@@ -376,7 +501,7 @@ export default function FuelWarehousePage() {
                       setMovementType(value as FuelMovementType | "all")
                     }
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className={filterFieldClass(movementType !== "all")}>
                       <SelectValue placeholder="Tipo" />
                     </SelectTrigger>
                     <SelectContent>
@@ -389,6 +514,7 @@ export default function FuelWarehousePage() {
                     </SelectContent>
                   </Select>
                 </div>
+
               </div>
               {hasActiveFilters && (
                 <div className="flex justify-end">
@@ -408,11 +534,57 @@ export default function FuelWarehousePage() {
             {movementsLoading ? (
               <LoadingPage />
             ) : (
-              <FuelMovementsTable
-                company={company}
-                movements={fuelMovements}
-                isSuperUser={isSuperUser}
-              />
+              <>
+                <FuelMovementsTable
+                  company={company}
+                  movements={fuelMovements}
+                  vehicles={fuelVehicles}
+                  isSuperUser={isSuperUser}
+                />
+                {movementsPagination && movementsPagination.last_page > 1 && (
+                  <div className="flex items-center justify-between text-sm text-muted-foreground">
+                    <span>
+                      {movementsPagination.from ?? 0}-{movementsPagination.to ?? 0}{" "}
+                      de {movementsPagination.total}
+                    </span>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 gap-1 px-2"
+                        onClick={() =>
+                          setMovementPage((page) => Math.max(1, page - 1))
+                        }
+                        disabled={movementsPagination.current_page <= 1}
+                      >
+                        <ChevronLeft className="h-3.5 w-3.5" />
+                        Anterior
+                      </Button>
+                      <span className="px-1 tabular-nums">
+                        Pagina {movementsPagination.current_page} de{" "}
+                        {movementsPagination.last_page}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 gap-1 px-2"
+                        onClick={() =>
+                          setMovementPage((page) =>
+                            Math.min(movementsPagination.last_page, page + 1),
+                          )
+                        }
+                        disabled={
+                          movementsPagination.current_page >=
+                          movementsPagination.last_page
+                        }
+                      >
+                        Siguiente
+                        <ChevronRight className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </TabsContent>
 
@@ -425,7 +597,11 @@ export default function FuelWarehousePage() {
           </TabsContent>
 
           <TabsContent value="traceability">
-            <FuelTraceabilityPanel company={company} movements={fuelMovements} />
+            <FuelTraceabilityPanel
+              company={company}
+              movements={traceabilityMovements}
+              vehicles={fuelVehicles}
+            />
           </TabsContent>
         </Tabs>
       </div>

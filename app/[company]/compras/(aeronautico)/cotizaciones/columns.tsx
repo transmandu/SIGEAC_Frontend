@@ -7,6 +7,7 @@ import QuoteDropdownActions from '@/components/dropdowns/mantenimiento/compras/Q
 
 import { Badge } from '@/components/ui/badge'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 
 import { Truck } from 'lucide-react'
@@ -17,6 +18,7 @@ import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 
 import Link from 'next/link'
+import EyePreviewIcon from '@/components/misc/EyePreviewIcon'
 
 const QUOTE_STATUS_LABELS: Record<string, string> = {
   PENDING: 'PENDIENTE',
@@ -25,7 +27,9 @@ const QUOTE_STATUS_LABELS: Record<string, string> = {
 }
 
 export const getColumns = (
-  selectedCompany?: { slug: string }
+  selectedCompany?: { slug: string },
+  onPreview?: (quote: Quote) => void,
+  selectedPreviewId?: number | null
 ): ColumnDef<Quote>[] => [
   {
     accessorKey: 'quote_number',
@@ -228,12 +232,12 @@ export const getColumns = (
                   <div
                     key={name}
                     className="
-                      flex items-center gap-2 rounded-md px-2 py-1
+                      flex items-start gap-2 rounded-md px-2 py-1
                       text-sm text-slate-700 dark:text-slate-200
                     "
                   >
-                    <Truck className="size-3.5 text-muted-foreground/50 shrink-0" />
-                    <span className="truncate">{name}</span>
+                    <Truck className="size-3.5 mt-0.5 text-muted-foreground/50 shrink-0" />
+                    <span className="break-words">{name}</span>
                   </div>
                 ))}
               </div>
@@ -328,7 +332,7 @@ export const getColumns = (
 
   {
     accessorKey: 'article_quote_order',
-    size: 200,
+    size: 150,
 
     header: ({ column }) => (
       <div className="flex justify-center w-full">
@@ -347,18 +351,32 @@ export const getColumns = (
       const total =
         (row.original.article_quote_order?.length ?? 0) +
         (row.original.general_article_quote_order?.length ?? 0)
+      const isActive = selectedPreviewId === row.original.id
 
       return (
-        <div className="flex justify-center w-full">
-          <span
-            className="
-              text-sm
-              text-slate-600 dark:text-slate-300
-              text-center
-            "
-          >
-            Total de {total} artículo(s)
-          </span>
+        <div className="flex justify-center w-full" onClick={(e) => e.stopPropagation()}>
+          <TooltipProvider delayDuration={120}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  onClick={() => onPreview?.(row.original)}
+                  className={cn(
+                    'flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs font-medium transition-colors',
+                    'border-slate-500/30 bg-slate-500/10 text-slate-600 dark:text-slate-300',
+                    'hover:border-blue-500/40 hover:bg-blue-500/10 hover:text-blue-600 dark:hover:text-blue-400',
+                    isActive && 'border-blue-500/40 bg-blue-500/10 text-blue-600 dark:text-blue-400'
+                  )}
+                >
+                  <EyePreviewIcon active={isActive} className="size-3.5" />
+                  {total} {total === 1 ? 'artículo' : 'artículos'}
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>
+                {isActive ? 'Cerrar vista previa' : 'Vista previa de la cotización'}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
       )
     },

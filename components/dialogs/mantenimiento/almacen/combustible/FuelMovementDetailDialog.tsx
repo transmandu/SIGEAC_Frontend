@@ -15,6 +15,7 @@ import {
   formatLiters,
   getFuelMovementLabel,
   getFuelStatusLabel,
+  getFuelTypeLabel,
 } from "@/lib/fuel";
 import { FuelMovement } from "@/types";
 import { Eye, Loader2 } from "lucide-react";
@@ -62,6 +63,10 @@ export function FuelMovementDetailDialog({
           <div>
             <p className="text-xs text-muted-foreground">Litros</p>
             <p className="font-medium">{formatLiters(movement.liters)}</p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Combustible</p>
+            <p className="font-medium">{getFuelTypeLabel(movement.fuel_type)}</p>
           </div>
           <div>
             <p className="text-xs text-muted-foreground">Vehiculo</p>

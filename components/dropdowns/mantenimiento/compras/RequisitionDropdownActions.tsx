@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/tooltip"
 import { Button } from "@/components/ui/button"
 import {
+  AlertOctagon,
   ClipboardX,
   FileDown,
   MoreHorizontal,
@@ -24,8 +25,7 @@ import {
   Tag,
   Trash2
 } from "lucide-react"
-import { PDFDownloadLink } from "@react-pdf/renderer"
-import RequisitionReportPdf from "@/components/pdf/almacen/RequisitionReportPdf"
+import DownloadRequisitionPdfDialog from "@/components/dialogs/mantenimiento/compras/DownloadRequisitionPdfDialog"
 import RequisitionDropdownDialogs from "@/components/dialogs/mantenimiento/compras/RequisitionDropdownDialogs"
 import UpdateRequisitionPriorityDialog from "@/components/dialogs/mantenimiento/compras/UpdateRequisitionPriorityDialog"
 
@@ -60,21 +60,37 @@ const RequisitionDropdownActions = ({
 
   const [openDropdown, setOpenDropdown] = useState(false)
   const [openDelete, setOpenDelete] = useState(false)
+  const [openCascadeDelete, setOpenCascadeDelete] = useState(false)
   const [openConfirm, setOpenConfirm] = useState(false)
   const [openReject, setOpenReject] = useState(false)
   const [openPriority, setOpenPriority] = useState(false)
+  const [openPdf, setOpenPdf] = useState(false)
 
   const userRoles = user?.roles?.map(role => role.name) || []
+  const isOwnRequisition = req.created_by?.id === user?.id
   const canChangePriority = ["JEFE_ALMACEN", "SUPERUSER"].some(role =>
     userRoles.includes(role)
   );
   const canSeeAllOptions = ["JEFE_COMPRAS", "ANALISTA_COMPRAS","ASISTENTE_COMPRAS", "SUPERUSER"].some(role =>
     userRoles.includes(role)
   );
+  // JEFE_ALMACEN puede eliminar cualquier solicitud de almacén, pero no
+  // cotizar ni rechazar (eso queda reservado a compras).
+  const canDeleteAny = ["JEFE_ALMACEN", "SUPERUSER"].some(role =>
+    userRoles.includes(role)
+  );
+  // ANALISTA_ALMACEN es de solo lectura: únicamente puede eliminar sus
+  // propias solicitudes, nada más.
+  const isReadOnlyWarehouseAnalyst =
+    userRoles.includes("ANALISTA_ALMACEN") && !canDeleteAny && !canSeeAllOptions
+  const canDelete = canDeleteAny || (isReadOnlyWarehouseAnalyst && isOwnRequisition)
+  const isSuperUser = userRoles.includes("SUPERUSER")
 
   const canQuote =
+    canSeeAllOptions &&
     !(req.status === "APPROVED" || req.status === "REJECTED")
   const canReject =
+    canSeeAllOptions &&
     !(req.status === "REJECTED" || req.status === "APPROVED")
   const canChangePriorityStatus =
     !(req.status === "APPROVED" || req.status === "QUOTED")
@@ -206,34 +222,31 @@ const RequisitionDropdownActions = ({
             )}
 
             {/* PDF */}
-            <PDFDownloadLink
-              fileName={`${req.order_number}.pdf`}
-              document={
-                <RequisitionReportPdf requisition={req} />
-              }
-            >
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <DropdownMenuItem
-                    asChild
-                    className="p-0 focus:bg-transparent"
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenuItem
+                  asChild
+                  className="p-0 focus:bg-transparent"
+                >
+                  <button
+                    onClick={() => {
+                      setOpenDropdown(false)
+                      setOpenPdf(true)
+                    }}
+                    className={`
+                      ${itemBase}
+                      text-blue-600
+                    `}
                   >
-                    <button
-                      className={`
-                        ${itemBase}
-                        text-blue-600
-                      `}
-                    >
-                      <FileDown className={iconBase} />
-                    </button>
-                  </DropdownMenuItem>
-                </TooltipTrigger>
+                    <FileDown className={iconBase} />
+                  </button>
+                </DropdownMenuItem>
+              </TooltipTrigger>
 
-                <TooltipContent>
-                  Descargar PDF
-                </TooltipContent>
-              </Tooltip>
-            </PDFDownloadLink>
+              <TooltipContent>
+                Descargar PDF
+              </TooltipContent>
+            </Tooltip>
 
             {/* CAMBIAR PRIORIDAD */}
             {canChangePriority && (
@@ -269,6 +282,7 @@ const RequisitionDropdownActions = ({
             )}
 
             {/* ELIMINAR */}
+            {canDelete && (
             <Tooltip>
               <TooltipTrigger asChild>
                 <DropdownMenuItem
@@ -294,6 +308,36 @@ const RequisitionDropdownActions = ({
                 Eliminar solicitud
               </TooltipContent>
             </Tooltip>
+            )}
+
+            {/* ELIMINAR EN CASCADA (SUPERUSER) */}
+            {isSuperUser && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenuItem
+                  asChild
+                  className="p-0 focus:bg-transparent"
+                >
+                  <button
+                    onClick={() => {
+                      setOpenDropdown(false)
+                      setOpenCascadeDelete(true)
+                    }}
+                    className={`
+                      ${itemBase}
+                      text-red-700
+                    `}
+                  >
+                    <AlertOctagon className={iconBase} />
+                  </button>
+                </DropdownMenuItem>
+              </TooltipTrigger>
+
+              <TooltipContent>
+                Eliminar en cascada (SuperUser)
+              </TooltipContent>
+            </Tooltip>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
 
@@ -301,10 +345,18 @@ const RequisitionDropdownActions = ({
           req={req}
           openDelete={openDelete}
           setOpenDelete={setOpenDelete}
+          openCascadeDelete={openCascadeDelete}
+          setOpenCascadeDelete={setOpenCascadeDelete}
           openConfirm={openConfirm}
           setOpenConfirm={setOpenConfirm}
           openReject={openReject}
           setOpenReject={setOpenReject}
+        />
+
+        <DownloadRequisitionPdfDialog
+          req={req}
+          open={openPdf}
+          onOpenChange={setOpenPdf}
         />
 
         {canChangePriority && (

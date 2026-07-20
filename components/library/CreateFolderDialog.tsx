@@ -113,7 +113,7 @@ export default function CreateFolderDialog({
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
-          <div className="space-y-1.5">
+          <div className="space-y-1.5" data-tour="biblioteca-folder-create-name">
             <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-gray-400">
               Nombre de la carpeta
             </label>
@@ -129,7 +129,7 @@ export default function CreateFolderDialog({
 
           {/* Selector de departamento — solo para superusers que ven múltiples deptos */}
           {(isSuperUser || departments.length > 1) && (
-            <div className="space-y-1.5">
+            <div className="space-y-1.5" data-tour="biblioteca-folder-create-depto">
               <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-gray-400 flex items-center gap-2">
                 <Building2 className="h-3.5 w-3.5 text-blue-500" /> Departamento
               </label>
@@ -149,7 +149,7 @@ export default function CreateFolderDialog({
             </div>
           )}
 
-          <div className="space-y-1.5">
+          <div className="space-y-1.5" data-tour="biblioteca-folder-create-parent">
             <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-gray-400">
               Carpeta padre <span className="text-[10px] font-normal normal-case tracking-normal text-slate-400"></span>
             </label>
@@ -171,6 +171,7 @@ export default function CreateFolderDialog({
 
           <div className="flex gap-3 pt-4 border-t border-slate-200 dark:border-gray-700">
             <button
+              data-tour="biblioteca-folder-create-cancel"
               type="button"
               onClick={handleClose}
               className="flex-1 px-4 py-3 text-[10px] font-black text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 uppercase tracking-widest transition-colors"
@@ -178,6 +179,7 @@ export default function CreateFolderDialog({
               CANCELAR
             </button>
             <button
+              data-tour="biblioteca-folder-create-submit"
               type="submit"
               disabled={loading || !name.trim() || !selectedDeptId}
               className="flex-1 px-4 py-3 text-[10px] font-black text-white bg-blue-600 rounded-xl hover:bg-blue-700 disabled:opacity-50 shadow-lg shadow-blue-500/20 uppercase tracking-widest transition-all"

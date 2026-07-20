@@ -439,7 +439,7 @@ const GeneralArticleCard = ({ article }: { article: any }) => {
 
             {article.authorized_employee && (
               <div>
-                <p className="text-muted-foreground text-xs">Autorizado</p>
+                <p className="text-muted-foreground text-xs">Solicitante autorizado</p>
                 <p className="font-medium">
                   {article.authorized_employee.full_name ?? article.authorized_employee.dni_employee}
                 </p>
@@ -605,7 +605,7 @@ const RequisitionPage = () => {
               <p className="text-xs text-muted-foreground">Creado por</p>
               <p className="font-medium flex items-center gap-2 justify-center">
                 <User className="w-4 h-4" />
-                {`${data?.created_by.first_name ?? ''} ${data?.created_by.last_name ?? ''}`.trim().toUpperCase()}
+                {data?.created_by ? `${data.created_by.first_name} ${data.created_by.last_name}`.trim().toUpperCase() : "SISTEMA"}
               </p>
             </div>
 

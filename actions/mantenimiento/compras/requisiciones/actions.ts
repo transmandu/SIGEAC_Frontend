@@ -70,6 +70,42 @@ export const useUpdateRequisition = () => {
   }
 }
 
+type CreateRequisitionFromLowStockAlertParams =
+  | { source: 'general', generalArticleId: number, company: string }
+  | { source: 'consumable', articleId: number, company: string }
+
+export const useCreateRequisitionFromLowStockAlert = () => {
+  const queryClient = useQueryClient()
+
+  const createMutation = useMutation({
+    mutationFn: async (params: CreateRequisitionFromLowStockAlertParams) => {
+      const body = params.source === 'general'
+        ? { general_article_id: params.generalArticleId }
+        : { article_id: params.articleId }
+
+      await axiosInstance.post(`/${params.company}/requisition-order/from-low-stock-alert`, body)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['requisitions-orders'] })
+      queryClient.invalidateQueries({ queryKey: ['requisition-order'], exact: false })
+      queryClient.invalidateQueries({ queryKey: ['low-stock-general-articles'], exact: false })
+      queryClient.invalidateQueries({ queryKey: ['low-stock-consumable-articles'], exact: false })
+
+      toast.success("¡Solicitud creada!", {
+        description: "Se generó una solicitud de compra para el artículo."
+      })
+    },
+    onError: (error) => {
+      toast.error('Oops!', {
+        description: getRequisitionErrorMessage(error, 'No se pudo crear la solicitud de compra...')
+      })
+    },
+  })
+  return {
+    createRequisitionFromLowStockAlert: createMutation,
+  }
+}
+
 export const useDeleteRequisition = () => {
   const queryClient = useQueryClient()
 
@@ -93,6 +129,41 @@ export const useDeleteRequisition = () => {
 
   return {
     deleteRequisition: deleteMutation,
+  }
+}
+
+// Solo SUPERUSER (ver gating en el dropdown de acciones). Elimina la
+// requisición completa junto con todas sus cotizaciones (incluyendo
+// complementarias) y las órdenes de compra generadas por ellas, revirtiendo
+// cualquier inventario ya afectado (Articles, stock de artículos generales).
+export const useCascadeDeleteRequisition = () => {
+  const queryClient = useQueryClient()
+
+  const cascadeDeleteMutation = useMutation({
+    mutationFn: async ({ id, company }: { id: number, company: string }) => {
+      await axiosInstance.delete(`/${company}/requisition-order/${id}/cascade`)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['requisitions-orders'] })
+      queryClient.invalidateQueries({ queryKey: ['requisition-order'], exact: false })
+      queryClient.invalidateQueries({ queryKey: ['quotes'] })
+      queryClient.invalidateQueries({ queryKey: ['quote'], exact: false })
+      queryClient.invalidateQueries({ queryKey: ['purchase-orders'] })
+      queryClient.invalidateQueries({ queryKey: ['purchase-order'], exact: false })
+      queryClient.invalidateQueries({ queryKey: ['general-article-intakes'], exact: false })
+      toast.success("¡Eliminada en cascada!", {
+        description: `La requisición y toda su cadena (cotizaciones, órdenes de compra e inventario asociado) fue eliminada.`
+      })
+    },
+    onError: (error: any) => {
+      toast.error("Oops!", {
+        description: error?.response?.data?.message || "¡Hubo un error al eliminar en cascada la requisición!"
+      })
+    },
+  })
+
+  return {
+    cascadeDeleteRequisition: cascadeDeleteMutation,
   }
 }
 

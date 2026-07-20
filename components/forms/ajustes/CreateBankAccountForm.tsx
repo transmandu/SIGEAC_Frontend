@@ -64,7 +64,8 @@ export default function CreateBankAccountForm({ onClose, account }: FormProps) {
       account_type: account?.account_type ?? "",
       bank_id: account?.bank ? account.bank.id.toString() : "",
       company_ids: account?.companies?.map((company) => company.id) ?? [],
-      payment_method_ids: account?.payment_methods?.map((method) => method.id) ?? [],
+      payment_method_ids:
+        account?.payment_methods?.map((method) => method.id) ?? [],
     },
   });
   const { control } = form;
@@ -93,7 +94,7 @@ export default function CreateBankAccountForm({ onClose, account }: FormProps) {
             control={control}
             name="name"
             render={({ field }) => (
-              <FormItem className="w-full">
+              <FormItem className="w-full" data-tour="cuentas-crear-name">
                 <FormLabel>Nombre</FormLabel>
                 <FormControl>
                   <Input placeholder="EJ: Cuenta de TMD, etc..." {...field} />
@@ -109,7 +110,7 @@ export default function CreateBankAccountForm({ onClose, account }: FormProps) {
             control={form.control}
             name="bank_id"
             render={({ field }) => (
-              <FormItem className="w-full">
+              <FormItem className="w-full" data-tour="cuentas-crear-bank">
                 <FormLabel>Banco</FormLabel>
                 <Select
                   disabled={isBanksLoading}
@@ -141,7 +142,10 @@ export default function CreateBankAccountForm({ onClose, account }: FormProps) {
             control={control}
             name="account_number"
             render={({ field }) => (
-              <FormItem className="w-full">
+              <FormItem
+                className="w-full"
+                data-tour="cuentas-crear-account-number"
+              >
                 <FormLabel>Nro. de Cuenta</FormLabel>
                 <FormControl>
                   <Input placeholder="EJ: 0713 - XXXX, etc..." {...field} />
@@ -157,7 +161,10 @@ export default function CreateBankAccountForm({ onClose, account }: FormProps) {
             control={form.control}
             name="account_type"
             render={({ field }) => (
-              <FormItem className="w-full">
+              <FormItem
+                className="w-full"
+                data-tour="cuentas-crear-account-type"
+              >
                 <FormLabel>Tipo de Cuenta</FormLabel>
                 <Select
                   onValueChange={field.onChange}
@@ -182,7 +189,10 @@ export default function CreateBankAccountForm({ onClose, account }: FormProps) {
             control={form.control}
             name="account_owner"
             render={({ field }) => (
-              <FormItem className="w-full">
+              <FormItem
+                className="w-full"
+                data-tour="cuentas-crear-account-owner"
+              >
                 <FormLabel>Titular</FormLabel>
                 <Select
                   onValueChange={field.onChange}
@@ -208,10 +218,16 @@ export default function CreateBankAccountForm({ onClose, account }: FormProps) {
           control={form.control}
           name="payment_method_ids"
           render={({ field }) => (
-            <FormItem className="mt-2">
+            <FormItem
+              className="mt-2"
+              data-tour="cuentas-crear-payment-methods"
+            >
               <FormLabel>Métodos de pago habilitados</FormLabel>
               <FormControl>
-                <PaymentMethodMultiSelect value={field.value} onChange={field.onChange} />
+                <PaymentMethodMultiSelect
+                  value={field.value}
+                  onChange={field.onChange}
+                />
               </FormControl>
               <FormDescription>
                 Esta cuenta podrá usar estos métodos de pago.
@@ -224,10 +240,13 @@ export default function CreateBankAccountForm({ onClose, account }: FormProps) {
           control={form.control}
           name="company_ids"
           render={({ field }) => (
-            <FormItem className="mt-2">
+            <FormItem className="mt-2" data-tour="cuentas-crear-companies">
               <FormLabel>Compañías habilitadas</FormLabel>
               <FormControl>
-                <CompanyMultiSelect value={field.value} onChange={field.onChange} />
+                <CompanyMultiSelect
+                  value={field.value}
+                  onChange={field.onChange}
+                />
               </FormControl>
               <FormDescription>
                 Compañías que podrán operar con esta cuenta (una o varias).
@@ -240,6 +259,7 @@ export default function CreateBankAccountForm({ onClose, account }: FormProps) {
           className="bg-primary mt-2 text-white hover:bg-blue-900 disabled:bg-primary/70"
           disabled={isPending}
           type="submit"
+          data-tour="cuentas-crear-submit"
         >
           {isPending ? (
             <Loader2 className="size-4 animate-spin" />

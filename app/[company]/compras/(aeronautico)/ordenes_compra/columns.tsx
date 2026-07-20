@@ -3,13 +3,14 @@
 import { ColumnDef } from "@tanstack/react-table"
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
 import { Badge } from "@/components/ui/badge"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 import type { PurchaseOrder } from "@/types/purchase"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import Link from "next/link"
 import PurchaseOrderDropdownActions from "@/components/dropdowns/mantenimiento/compras/PurchaseOrderDropdownActions"
-import { ChevronRight } from "lucide-react"
+import EyePreviewIcon from "@/components/misc/EyePreviewIcon"
 
 const PO_STATUS_LABELS: Record<string, string> = {
   PENDING: 'PENDIENTE',
@@ -18,30 +19,10 @@ const PO_STATUS_LABELS: Record<string, string> = {
 }
 
 export const getColumns = (
-  selectedCompany?: { slug: string }
+  selectedCompany?: { slug: string },
+  onPreview?: (po: PurchaseOrder) => void,
+  selectedPreviewId?: number | null
 ): ColumnDef<PurchaseOrder>[] => [
-
-  {
-    id: "expander",
-    size: 50,
-
-    header: () => null,
-
-    cell: ({ row }) => (
-      <div className="flex justify-center w-full">
-        <ChevronRight
-          className={cn(
-            "size-3.5 text-muted-foreground/50 transition-transform duration-150",
-            row.getIsExpanded() &&
-              "rotate-90 text-emerald-600 dark:text-emerald-400"
-          )}
-        />
-      </div>
-    ),
-
-    enableSorting: false,
-    enableHiding: false,
-  },
 
   {
     accessorKey: "order_number",
@@ -76,6 +57,41 @@ export const getColumns = (
         </Link>
       </div>
     ),
+  },
+
+  {
+    id: "preview",
+    size: 40,
+    header: () => null,
+    cell: ({ row }) => {
+      const isActive = selectedPreviewId === row.original.id
+
+      return (
+        <div className="flex justify-center px-0" onClick={(e) => e.stopPropagation()}>
+          <TooltipProvider delayDuration={120}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  onClick={() => onPreview?.(row.original)}
+                  className={cn(
+                    'flex items-center justify-center rounded-md p-1 transition-all duration-200',
+                    isActive
+                      ? 'text-blue-600 dark:text-blue-400 drop-shadow-[0_0_6px_rgba(37,99,235,0.65)] dark:drop-shadow-[0_0_6px_rgba(96,165,250,0.7)]'
+                      : 'text-muted-foreground hover:text-blue-600 dark:hover:text-blue-400 hover:drop-shadow-[0_0_6px_rgba(37,99,235,0.55)] dark:hover:drop-shadow-[0_0_6px_rgba(96,165,250,0.6)]'
+                  )}
+                >
+                  <EyePreviewIcon active={isActive} className="size-4" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>{isActive ? 'Cerrar vista previa' : 'Vista previa de la orden de compra'}</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+      )
+    },
+    enableSorting: false,
+    enableHiding: false,
   },
 
   {
@@ -121,13 +137,24 @@ export const getColumns = (
       title: "Proveedor",
     },
 
-    cell: ({ row }) => (
-      <div className="flex justify-center w-full">
-        <span className="text-sm font-medium text-center text-slate-700 dark:text-slate-200">
-          {row.original.vendor?.name ?? "—"}
-        </span>
-      </div>
-    ),
+    cell: ({ row }) => {
+      const name = row.original.vendor?.name
+
+      return (
+        <div className="flex justify-center w-full">
+          <span
+            className={cn(
+              "text-sm text-center",
+              name
+                ? "font-medium text-slate-700 dark:text-slate-200"
+                : "text-muted-foreground"
+            )}
+          >
+            {name ?? "N/A"}
+          </span>
+        </div>
+      )
+    },
   },
 
   {

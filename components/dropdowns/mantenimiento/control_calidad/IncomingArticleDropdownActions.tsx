@@ -15,7 +15,7 @@ const IncomingArticleDropdownActions
   const { selectedCompany } = useCompanyStore()
   return (
       <DropdownMenu>
-        <DropdownMenuTrigger>
+        <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="h-8 w-8 p-0">
             <span className="sr-only">Abrir menu</span>
             <MoreHorizontal className="h-4 w-4" />

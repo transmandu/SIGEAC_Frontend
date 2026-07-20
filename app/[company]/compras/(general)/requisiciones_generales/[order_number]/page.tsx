@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import { useGetRequisitionByOrderNumber } from '@/hooks/mantenimiento/compras/useGetRequisitionByOrderNumber';
 import { useCompanyStore } from '@/stores/CompanyStore';
-import { FileText, MessageSquare, Plane, UserCheck, UserPlus, CalendarDays, Loader2 } from 'lucide-react';
+import { FileText, MessageSquare, Plane, UserCheck, UserPlus, CalendarDays, Loader2, Building2, Handshake } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -237,7 +237,7 @@ const RequisitionPage = () => {
               value={
                 data?.created_by
                   ? `${data.created_by.first_name} ${data.created_by.last_name}`.toUpperCase()
-                  : undefined
+                  : "SISTEMA"
               }
               icon={UserCheck}
             />
@@ -256,6 +256,20 @@ const RequisitionPage = () => {
                 label={aircraftList.length > 1 ? "AERONAVES" : "AERONAVE"}
                 value={aircraftList.join(", ")}
                 icon={Plane}
+              />
+            )}
+            {data?.department && (
+              <MetaItem
+                label="DEPARTAMENTO"
+                value={data.department.name?.toUpperCase()}
+                icon={Building2}
+              />
+            )}
+            {data?.third_party && (
+              <MetaItem
+                label="TERCERO"
+                value={data.third_party.name?.toUpperCase()}
+                icon={Handshake}
               />
             )}
           </div>

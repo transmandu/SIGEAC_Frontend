@@ -91,6 +91,17 @@ export function RequisitionHeader({
   const formatAuthorizedEmployeeLabel = (authorizedEmployee: AuthorizedEmployeeResponse) =>
     `${authorizedEmployee.employee_name}`;
 
+  // Departments come back as a tree (each with nested `descendants`), so the
+  // selector must flatten it to let the user pick any department, not just
+  // the top-level ones.
+  const flattenDepartments = (departments: Department[]): Department[] =>
+    departments.flatMap((department) => [
+      department,
+      ...flattenDepartments(department.descendants ?? []),
+    ]);
+
+  const allDepartments = departments ? flattenDepartments(departments) : [];
+
   return (
     <div className="rounded-lg border bg-card p-3 space-y-1.5">
       <div className="flex items-center gap-1.5">
@@ -191,7 +202,7 @@ export function RequisitionHeader({
                         <Tabs value={requesterTab} onValueChange={(v) => setRequesterTab(v as RequesterTab)}>
                           <TabsList className="grid w-full grid-cols-2 h-9 rounded-none">
                             <TabsTrigger value="employee" className="text-xs">Empleado</TabsTrigger>
-                            <TabsTrigger value="authorized" className="text-xs">Autorizado</TabsTrigger>
+                            <TabsTrigger value="authorized" className="text-xs">Autorizado externo</TabsTrigger>
                           </TabsList>
                         </Tabs>
                         {requesterTab === "employee" ? (
@@ -487,7 +498,7 @@ export function RequisitionHeader({
           control={form.control}
           name="department_id"
           render={({ field }) => {
-            const selectedDepartment = departments?.find((d) => d.id.toString() === field.value);
+            const selectedDepartment = allDepartments.find((d) => d.id.toString() === field.value);
             return (
               <FormItem className="w-full">
                 <FormLabel
@@ -531,7 +542,7 @@ export function RequisitionHeader({
                           </CommandGroup>
                         )}
                         <CommandGroup>
-                          {departments?.map((department) => (
+                          {allDepartments.map((department) => (
                             <CommandItem
                               value={`${department.id} ${department.name}`}
                               key={department.id}

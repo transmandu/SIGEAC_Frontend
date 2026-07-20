@@ -9,8 +9,11 @@ const fetchPurchaseOrders = async (companyId: string | null, locationId: string 
 
 export const useGetPurchaseOrders = (companyId: string | null, locationId: string | null) => {
   return useQuery<PurchaseOrder[]>({
-    queryKey: ["purchase-orders"],
+    // company/location forman parte de la key: sin ellos, cambiar de
+    // estación reutilizaba la caché de la anterior.
+    queryKey: ["purchase-orders", companyId, locationId],
     queryFn: () => fetchPurchaseOrders(companyId, locationId),
-    enabled: !!companyId && !!locationId
+    enabled: !!companyId && !!locationId,
+    staleTime: 1000 * 60 * 2,
   });
 };

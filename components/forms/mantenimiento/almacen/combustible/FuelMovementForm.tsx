@@ -23,11 +23,15 @@ import { useGetThirdParties } from "@/hooks/general/terceros/useGetThirdParties"
 import {
   FUEL_MOVEMENT_DESCRIPTIONS,
   FUEL_MOVEMENT_LABELS,
+  FUEL_TYPES,
   formatLiters,
+  getFuelTypeLabel,
+  movementRequiresFuelTypeSelection,
 } from "@/lib/fuel";
 import {
   FuelMovementType,
   FuelSummary,
+  FuelType,
   FuelVehicle,
   ThirdParty,
 } from "@/types";
@@ -46,6 +50,7 @@ const formSchema = z.object({
   third_party_id: z.string().optional(),
   dispatch_purpose: z.string().optional(),
   observation: z.string().optional(),
+  fuel_type: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -103,6 +108,7 @@ export function FuelMovementForm({
       third_party_id: "",
       dispatch_purpose: "",
       observation: "",
+      fuel_type: "",
     },
   });
 
@@ -116,6 +122,13 @@ export function FuelMovementForm({
 
     if (needsThirdParty(type) && !values.third_party_id) {
       form.setError("third_party_id", { message: "Debe seleccionar un tercero" });
+      return false;
+    }
+
+    if (movementRequiresFuelTypeSelection(type) && !values.fuel_type) {
+      form.setError("fuel_type", {
+        message: "Debe seleccionar el tipo de combustible",
+      });
       return false;
     }
 
@@ -169,13 +182,23 @@ export function FuelMovementForm({
       ["warehouse_dispatch_vehicle", "warehouse_dispatch_third_party"].includes(
         type,
       ) &&
-      summary &&
-      values.liters > Number(summary.warehouse_balance_liters)
+      summary
     ) {
-      form.setError("liters", {
-        message: `Disponible en almacen: ${formatLiters(summary.warehouse_balance_liters)}`,
-      });
-      return false;
+      // El stock de almacen esta discriminado por combustible: nunca se
+      // compara contra el total combinado (gasolina + gasoil).
+      const relevantFuelType: FuelType | undefined =
+        type === "warehouse_dispatch_third_party"
+          ? (values.fuel_type as FuelType | undefined)
+          : selectedVehicle?.fuel_type;
+      const available = relevantFuelType
+        ? Number(summary.warehouse_balance_liters[relevantFuelType] ?? 0)
+        : 0;
+      if (relevantFuelType && values.liters > available) {
+        form.setError("liters", {
+          message: `Disponible en almacen (${getFuelTypeLabel(relevantFuelType)}): ${formatLiters(available)}`,
+        });
+        return false;
+      }
     }
 
     if (
@@ -223,6 +246,9 @@ export function FuelMovementForm({
       type,
       operational_date: values.operational_date,
       liters: isOdometerTrip ? computedLiters : values.liters,
+      fuel_type: movementRequiresFuelTypeSelection(type)
+        ? (values.fuel_type as FuelType)
+        : null,
       vehicle_id: values.vehicle_id ? Number(values.vehicle_id) : null,
       third_party_id: values.third_party_id || null,
       dispatch_purpose: values.dispatch_purpose?.trim() || null,
@@ -318,6 +344,33 @@ export function FuelMovementForm({
           )}
         </div>
 
+        {movementRequiresFuelTypeSelection(type) ? (
+          <FormField
+            control={form.control}
+            name="fuel_type"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Tipo de combustible</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccione..." />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {FUEL_TYPES.map((fuelType) => (
+                      <SelectItem key={fuelType.value} value={fuelType.value}>
+                        {fuelType.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        ) : null}
+
         {needsVehicle(type) ? (
           <FormField
             control={form.control}
@@ -337,16 +390,24 @@ export function FuelMovementForm({
                         No hay vehiculos activos
                       </SelectItem>
                     ) : null}
-                    {activeVehicles.map((vehicle) => (
-                      <SelectItem key={vehicle.id} value={vehicle.id.toString()}>
-                        {vehicle.plate} - {formatLiters(vehicle.current_balance_liters)}
-                      </SelectItem>
-                    ))}
+                    {activeVehicles.map((vehicle) => {
+                      const vehicleLabel = [vehicle.brand, vehicle.model]
+                        .filter(Boolean)
+                        .join(" ");
+                      return (
+                        <SelectItem key={vehicle.id} value={vehicle.id.toString()}>
+                          {vehicle.plate || "Sin placa"}
+                          {vehicleLabel ? ` (${vehicleLabel})` : ""} -{" "}
+                          {formatLiters(vehicle.current_balance_liters)}
+                        </SelectItem>
+                      );
+                    })}
                   </SelectContent>
                 </Select>
                 {selectedVehicle ? (
                   <p className="text-xs text-muted-foreground">
-                    Capacidad {formatLiters(selectedVehicle.tank_capacity_liters)}
+                    Combustible: {getFuelTypeLabel(selectedVehicle.fuel_type)} · Capacidad{" "}
+                    {formatLiters(selectedVehicle.tank_capacity_liters)}
                   </p>
                 ) : null}
                 <FormMessage />

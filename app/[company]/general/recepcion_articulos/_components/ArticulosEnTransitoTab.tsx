@@ -13,10 +13,13 @@ import {
 } from '@/components/ui/table'
 import { useGetArticlesByStatus } from '@/hooks/mantenimiento/almacen/articulos/useGetArticlesByStatus'
 import { cn } from '@/lib/utils'
+import { useCompanyStore } from '@/stores/CompanyStore'
 import { ArrowRight, ChevronRight, Loader2, MapPin, Search } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import Link from 'next/link'
+import { memo, useMemo, useState } from 'react'
 import type { TransitArticle } from '@/types/purchase/in-transit'
 import { ArticleDetailDialog } from './ArticleDetailDialog'
+import { DownloadReportDialog } from './DownloadReportDialog'
 
 type StatusFilter = 'ALL' | 'TRANSIT' | 'RECEPTION'
 
@@ -26,7 +29,8 @@ const TRANSIT_STATUS_LABELS: Record<string, string> = {
 }
 
 // ── Fila de artículo ───────────────────────────────────────────────────
-function ArticleRow({ article }: { article: TransitArticle }) {
+const ArticleRow = memo(function ArticleRow({ article }: { article: TransitArticle }) {
+    const { selectedCompany } = useCompanyStore()
     const { updateArticleStatus } = useUpdateArticleStatus()
     const [pending, setPending] = useState(false)
     const [expanded, setExpanded] = useState(false)
@@ -46,12 +50,18 @@ function ArticleRow({ article }: { article: TransitArticle }) {
 
     return (
         <>
-            <TableRow className="hover:bg-muted/30 transition-colors">
+            <TableRow
+                className={cn('hover:bg-muted/30 transition-colors', hasExtra && 'cursor-pointer')}
+                onClick={hasExtra ? () => setExpanded((v) => !v) : undefined}
+            >
                 {/* Expand toggle */}
                 <TableCell className="w-6 p-0 text-center">
                     {hasExtra && (
                         <button
-                            onClick={() => setExpanded((v) => !v)}
+                            onClick={(e) => {
+                                e.stopPropagation()
+                                setExpanded((v) => !v)
+                            }}
                             className="flex items-center justify-center rounded p-0.5 text-muted-foreground/50 hover:text-foreground transition-colors mx-auto"
                         >
                             <ChevronRight className={cn(
@@ -91,8 +101,17 @@ function ArticleRow({ article }: { article: TransitArticle }) {
                 </TableCell>
 
                 {/* N° de requisición */}
-                <TableCell className="text-center">
-                    <span className="text-sm font-medium">{article.requisition_order_number ?? 'N/A'}</span>
+                <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
+                    {article.requisition_order_number ? (
+                        <Link
+                            href={`/${selectedCompany?.slug}/general/requisiciones/${article.requisition_order_number}`}
+                            className="text-sm font-medium hover:underline"
+                        >
+                            {article.requisition_order_number}
+                        </Link>
+                    ) : (
+                        <span className="text-sm font-medium">N/A</span>
+                    )}
                 </TableCell>
 
                 <TableCell className="text-center">
@@ -129,12 +148,12 @@ function ArticleRow({ article }: { article: TransitArticle }) {
                 </TableCell>
 
                 {/* Detalle */}
-                <TableCell className="w-10 text-center">
+                <TableCell className="w-10 text-center" onClick={(e) => e.stopPropagation()}>
                     <ArticleDetailDialog article={article} />
                 </TableCell>
 
                 {/* Acciones */}
-                <TableCell className="text-center">
+                <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
                     {isReception && (
                         <Button
                             variant="outline"
@@ -194,7 +213,7 @@ function ArticleRow({ article }: { article: TransitArticle }) {
             )}
         </>
     )
-}
+})
 
 // ── Tab ──────────────────────────────────────────────────────────────
 export function ArticulosEnTransitoTab() {
@@ -243,9 +262,18 @@ export function ArticulosEnTransitoTab() {
             {/* Encabezado */}
             <div className="flex items-baseline justify-between">
                 <h2 className="text-lg font-semibold">Artículos en Tránsito</h2>
-                <span className="text-xs text-muted-foreground tabular-nums">
-                    {articles.length} {articles.length === 1 ? 'artículo' : 'artículos'}
-                </span>
+                <div className="flex items-center gap-3">
+                    <span className="text-xs text-muted-foreground tabular-nums">
+                        {articles.length} {articles.length === 1 ? 'artículo' : 'artículos'}
+                    </span>
+                    <DownloadReportDialog
+                        endpoint="articles-reception-pdf"
+                        title="Descargar Reporte de Artículos en Recepción"
+                        description="Selecciona el rango de fechas de recepción para filtrar los artículos."
+                        dateRangeLabel="Rango de Fechas de Recepción"
+                        fileNamePrefix="articulos_en_recepcion"
+                    />
+                </div>
             </div>
 
             {/* Filtros + búsqueda */}
@@ -300,7 +328,7 @@ export function ArticulosEnTransitoTab() {
                             <TableHead className="w-6 p-0" />
                             <TableHead className="text-xs text-center">N° de Parte / Alterno</TableHead>
                             <TableHead className="text-xs text-center">Descripción</TableHead>
-                            <TableHead className="text-xs text-center">N° de Requisición</TableHead>
+                            <TableHead className="text-xs text-center">Solicitud de Compra</TableHead>
                             <TableHead className="text-xs text-center">Fecha de Recepción</TableHead>
                             <TableHead className="text-xs text-center">Ubicación</TableHead>
                             <TableHead className="text-xs text-center">Estado</TableHead>

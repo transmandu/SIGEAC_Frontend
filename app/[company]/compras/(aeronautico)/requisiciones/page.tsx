@@ -12,7 +12,8 @@ import type { Requisition } from '@/types/purchase'
 import RequisitionToolBar from './_components/RequisitionToolBar'
 import { CreateRequisitionDialog } from '@/components/dialogs/mantenimiento/compras/CreateRequisitionDialog'
 import RequisitionSubRow from './_components/RequisitionSubRow'
-import RequisitionSplitView, { useRequisitionPreview } from '@/components/side-panels/RequisitionSplitView'
+import GroupedRequisitionTable from './_components/GroupedRequisitionTable'
+import RequisitionSplitView, { useRequisitionPreview, useRequisitionPreviewSelectedId } from '@/components/side-panels/RequisitionSplitView'
 
 const RequisitionsPage = () => {
   return (
@@ -25,6 +26,7 @@ const RequisitionsPage = () => {
 const RequisitionsPageContent = () => {
   const { selectedCompany, selectedStation } = useCompanyStore()
   const onPreview = useRequisitionPreview()
+  const selectedPreviewId = useRequisitionPreviewSelectedId()
 
   const {
     data: requisitions,
@@ -40,6 +42,7 @@ const RequisitionsPageContent = () => {
   const [status, setStatus] = useState('ALL')
   const [type, setType] = useState('ALL')
   const [priority, setPriority] = useState('ALL')
+  const [groupBy, setGroupBy] = useState('NONE')
 
   const deferredSearch = useDeferredValue(search)
 
@@ -129,6 +132,8 @@ const RequisitionsPageContent = () => {
             setType={setType}
             priority={priority}
             setPriority={setPriority}
+            groupBy={groupBy}
+            setGroupBy={setGroupBy}
           />
 
           <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
@@ -139,22 +144,49 @@ const RequisitionsPageContent = () => {
           </span>
         </div>
 
-        <DataTable
-          columns={getColumns(selectedCompany ?? undefined, onPreview ?? undefined)}
-          data={filteredRequisitions}
-          renderSubRow={(row) => (
-            <RequisitionSubRow
-              requisition={row.original}
-              selectedCompany={selectedCompany}
-            />
-          )}
-          canExpandRow={(row) =>
-            !!row.original.quotes?.length
-          }
-          loading={isLoading}
-          toolbar={<CreateRequisitionDialog />}
-          persistKey="requisiciones"
-        />
+        <div className="flex items-center gap-2">
+          <CreateRequisitionDialog />
+        </div>
+
+        {groupBy === 'requested_by' ? (
+          <GroupedRequisitionTable
+            data={filteredRequisitions}
+            renderTable={(rows) => (
+              <DataTable
+                columns={getColumns(selectedCompany ?? undefined, onPreview ?? undefined, selectedPreviewId)}
+                data={rows}
+                renderSubRow={(row) => (
+                  <RequisitionSubRow
+                    requisition={row.original}
+                    selectedCompany={selectedCompany}
+                  />
+                )}
+                canExpandRow={(row) =>
+                  !!row.original.quotes?.length
+                }
+                loading={isLoading}
+                overflowVisible
+                persistKey="requisiciones"
+              />
+            )}
+          />
+        ) : (
+          <DataTable
+            columns={getColumns(selectedCompany ?? undefined, onPreview ?? undefined, selectedPreviewId)}
+            data={filteredRequisitions}
+            renderSubRow={(row) => (
+              <RequisitionSubRow
+                requisition={row.original}
+                selectedCompany={selectedCompany}
+              />
+            )}
+            canExpandRow={(row) =>
+              !!row.original.quotes?.length
+            }
+            loading={isLoading}
+            persistKey="requisiciones"
+          />
+        )}
 
         {isError && (
           <div className="rounded-lg border border-red-500/20 bg-red-500/5 px-4 py-3">

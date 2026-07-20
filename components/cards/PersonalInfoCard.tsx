@@ -14,7 +14,7 @@ const PersonalInfoCard = ({ user }: {
   user: User
 }) => {
   return (
-    <Card>
+    <Card data-tour="cuenta-user-info">
       <CardHeader>
         <CardTitle>Información Básica</CardTitle>
         <CardDescription>

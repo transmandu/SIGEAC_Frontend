@@ -1,17 +1,26 @@
-'use client';
+"use client";
 
-import { useDeferredValue, useMemo, useState } from 'react';
-import { ContentLayout } from '@/components/layout/ContentLayout';
-import LoadingPage from '@/components/misc/LoadingPage';
-import BackButton from '@/components/misc/BackButton';
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
-import { useCompanyStore } from '@/stores/CompanyStore';
-import { useGetVendors } from '@/hooks/general/proveedores/useGetVendors';
-import { getColumns } from './columns';
-import { DataTable } from './data-table';
-import { Vendor } from '@/types';
-import VendorsToolBar from './_components/VendorsToolBar';
-import VendorsSubRow from './_components/VendorsSubRow';
+import { useDeferredValue, useMemo, useState, useEffect } from "react";
+import { ContentLayout } from "@/components/layout/ContentLayout";
+import LoadingPage from "@/components/misc/LoadingPage";
+import BackButton from "@/components/misc/BackButton";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { useGetVendors } from "@/hooks/general/proveedores/useGetVendors";
+import { getColumns } from "./columns";
+import { DataTable } from "./data-table";
+import { Vendor } from "@/types";
+import VendorsToolBar from "./_components/VendorsToolBar";
+import VendorsSubRow from "./_components/VendorsSubRow";
+import { useTourContext } from "@/components/tour/TourProvider";
+import { proveedoresSteps } from "@/components/tour/steps/ajustes/globales/proveedores/proveedores";
 
 const VendorsPage = () => {
   const { selectedCompany } = useCompanyStore();
@@ -22,8 +31,16 @@ const VendorsPage = () => {
     isError,
   } = useGetVendors(selectedCompany?.slug);
 
-  const [search, setSearch] = useState('');
-  const [type, setType] = useState('ALL');
+  const [search, setSearch] = useState("");
+  const [type, setType] = useState("ALL");
+  const { registerTour, unregisterTour } = useTourContext();
+
+  useEffect(() => {
+    if (vendors && vendors?.length > 0) {
+      registerTour("proveedores", "Proverdores", proveedoresSteps);
+    }
+    return () => unregisterTour("proveedores");
+  }, [registerTour, unregisterTour, vendors]);
 
   const deferredSearch = useDeferredValue(search);
 
@@ -38,9 +55,7 @@ const VendorsPage = () => {
         vendor.phone?.toLowerCase?.().includes(q) ||
         vendor.address?.toLowerCase?.().includes(q);
 
-      const matchesType =
-        type === 'ALL' ||
-        vendor.type === type;
+      const matchesType = type === "ALL" || vendor.type === type;
 
       return matchesSearch && matchesType;
     });
@@ -48,7 +63,7 @@ const VendorsPage = () => {
 
   const columns = useMemo(
     () => getColumns(selectedCompany ?? undefined),
-    [selectedCompany]
+    [selectedCompany],
   );
 
   if (isLoading) {
@@ -62,9 +77,8 @@ const VendorsPage = () => {
   return (
     <ContentLayout title="Proveedores">
       <div className="flex flex-col gap-6">
-
         <div className="flex items-center gap-3">
-          <BackButton iconOnly tooltip="Volver" variant="secondary"/>
+          <BackButton iconOnly tooltip="Volver" variant="secondary" />
 
           <Breadcrumb>
             <BreadcrumbList>
@@ -76,9 +90,7 @@ const VendorsPage = () => {
 
               <BreadcrumbSeparator />
 
-              <BreadcrumbItem>
-                ...
-              </BreadcrumbItem>
+              <BreadcrumbItem>...</BreadcrumbItem>
 
               <BreadcrumbSeparator />
 
@@ -91,34 +103,37 @@ const VendorsPage = () => {
 
         <div className="flex flex-col gap-2 border-b pb-4">
           <div className="flex items-end justify-between">
-            <div className="flex flex-col">
+            <div className="flex flex-col" data-tour="proveedores-title">
               <h1 className="text-3xl font-semibold tracking-tight">
                 Proveedores
               </h1>
 
               <p className="text-sm text-muted-foreground">
-                Visualiza y administra los proveedores y beneficiarios registrados
-                dentro de la configuración global del sistema.
+                Visualiza y administra los proveedores y beneficiarios
+                registrados dentro de la configuración global del sistema.
               </p>
             </div>
           </div>
         </div>
 
         <div className="flex items-center justify-between gap-4 px-3 py-2 rounded-xl border bg-slate-200/40 border-slate-200/40 dark:bg-slate-800/70 dark:border-slate-700/60 backdrop-blur-md dark:shadow-[0_4px_20px_rgba(0,0,0,0.35)]">
-          <VendorsToolBar search={search} setSearch={setSearch} type={type} setType={setType}/>
+          <VendorsToolBar
+            search={search}
+            setSearch={setSearch}
+            type={type}
+            setType={setType}
+          />
 
           <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
-            {(vendors ?? []).length}{' '}
-            {(vendors ?? []).length === 1 ? 'proveedor' : 'proveedores'}
+            {(vendors ?? []).length}{" "}
+            {(vendors ?? []).length === 1 ? "proveedor" : "proveedores"}
           </span>
         </div>
 
         <DataTable
           columns={columns}
           data={filteredVendors}
-          renderSubRow={(vendor: Vendor) => (
-            <VendorsSubRow vendor={vendor} />
-          )}
+          renderSubRow={(vendor: Vendor) => <VendorsSubRow vendor={vendor} />}
         />
 
         {isError && (
@@ -128,7 +143,6 @@ const VendorsPage = () => {
             </p>
           </div>
         )}
-
       </div>
     </ContentLayout>
   );

@@ -8,20 +8,18 @@ import { Input } from "@/components/ui/input"
 import { useAuth } from "@/contexts/AuthContext"
 import { useGetBatchesWithInWarehouseArticles } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesWithInWarehouseArticles"
 import { useGetEmployeesForBox } from "@/hooks/mantenimiento/almacen/caja_herramientas/useGetEmployeeForBox"
-import { useGetEditToolBoxTools } from "@/hooks/mantenimiento/almacen/caja_herramientas/useGetToolBoxTools"
 import { cn } from "@/lib/utils"
 import { useCompanyStore } from "@/stores/CompanyStore"
 import { Article, Batch, ToolBox } from "@/types"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Check, ChevronsUpDown, Loader2 } from "lucide-react"
-import { useEffect, useState } from "react"
+import { Box, Check, ChevronsUpDown, Loader2, User, Wrench, X } from "lucide-react"
+import { useEffect, useMemo, useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
+import { Avatar, AvatarFallback } from "../../../ui/avatar"
 import { Badge } from "../../../ui/badge"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../../../ui/command"
 import { Popover, PopoverContent, PopoverTrigger } from "../../../ui/popover"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../ui/select"
-import { Separator } from "../../../ui/separator"
 
 const FormSchema = z.object({
   name: z.string().min(3, {
@@ -45,8 +43,21 @@ interface BatchesWithCountProp extends Batch {
   batch_id: number,
 }
 
-export function CreateToolBoxForm({ onClose, initialData }: FormProps) {
+const AVATAR_PALETTE = [
+  "bg-blue-500/15 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400",
+  "bg-emerald-500/15 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400",
+  "bg-amber-500/15 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400",
+  "bg-violet-500/15 text-violet-600 dark:bg-violet-500/20 dark:text-violet-400",
+  "bg-rose-500/15 text-rose-600 dark:bg-rose-500/20 dark:text-rose-400",
+  "bg-cyan-500/15 text-cyan-600 dark:bg-cyan-500/20 dark:text-cyan-400",
+]
 
+const getAvatarPalette = (seed: number) => AVATAR_PALETTE[seed % AVATAR_PALETTE.length]
+
+const getInitials = (firstName?: string, lastName?: string) =>
+  `${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase()
+
+export function CreateToolBoxForm({ onClose, initialData }: FormProps) {
 
   const { user } = useAuth()
 
@@ -54,7 +65,7 @@ export function CreateToolBoxForm({ onClose, initialData }: FormProps) {
 
   const [openArticles, setOpenArticles] = useState(false);
 
-  const [filteredBatches, setFilteredBatches] = useState<BatchesWithCountProp[]>([]);
+  const [openEmployee, setOpenEmployee] = useState(false);
 
   const { selectedStation, selectedCompany } = useCompanyStore()
 
@@ -62,7 +73,14 @@ export function CreateToolBoxForm({ onClose, initialData }: FormProps) {
 
   const { data: employees, isLoading: employeesLoading, isError: employeesError } = useGetEmployeesForBox(selectedStation ?? null, selectedCompany!.slug);
 
-  const { data: batches, isPending: isBatchesLoading, isError } = useGetBatchesWithInWarehouseArticles({location_id: Number(selectedStation!), company: selectedCompany!.slug, category: "herramienta"});
+  const { data: batches, isPending: isBatchesLoading, isError } = useGetBatchesWithInWarehouseArticles({location_id: Number(selectedStation!), company: selectedCompany!.slug, category: "tool"});
+
+  const filteredBatches: BatchesWithCountProp[] = batches ?? [];
+
+  const allArticles = useMemo(
+    () => filteredBatches.flatMap((batch) => batch.articles),
+    [filteredBatches]
+  );
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
@@ -70,7 +88,7 @@ export function CreateToolBoxForm({ onClose, initialData }: FormProps) {
       name: initialData?.name || "",
       created_by: initialData?.created_by || "",
       delivered_by: initialData?.delivered_by || "",
-      employee_dni: initialData?.employee.dni || "",
+      employee_dni: initialData?.employee?.dni || "",
     },
   })
 
@@ -83,20 +101,6 @@ export function CreateToolBoxForm({ onClose, initialData }: FormProps) {
   };
 
   const isToolSelected = (value: string) => selectedTools.includes(value);
-
-  // useEffect(() => {
-  //   if (selectedStation && selectedCompany) {
-  //     mutate({location_id: Number(selectedStation), company: selectedCompany!.slug})
-  //   }
-  // }, [selectedStation, mutate, selectedCompany])
-
-  // useEffect(() => {
-  //   if (batches) {
-  //     // Filtrar los batches por categoría
-  //     const filtered = batches.filter((batch) => batch.category === "herramienta");
-  //     setFilteredBatches(filtered);
-  //   }
-  // }, [batches]);
 
   useEffect(() => {
     form.setValue('tool_id', selectedTools);
@@ -114,15 +118,21 @@ export function CreateToolBoxForm({ onClose, initialData }: FormProps) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col space-y-3">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-5">
         <FormField
           control={form.control}
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Nombre de la Caja</FormLabel>
+              <div className="flex items-center justify-between">
+                <FormLabel>Nombre de la Caja</FormLabel>
+                <span className="text-xs text-muted-foreground">Obligatorio</span>
+              </div>
               <FormControl>
-                <Input placeholder="Ej: Caja de John Doe..." {...field} />
+                <div className="relative">
+                  <Input placeholder="Ej: Caja de Mecánica de Motor #4" className="pr-9" {...field} />
+                  <Box className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                </div>
               </FormControl>
               <FormMessage className="text-xs" />
             </FormItem>
@@ -131,90 +141,143 @@ export function CreateToolBoxForm({ onClose, initialData }: FormProps) {
         <FormField
           control={form.control}
           name="employee_dni"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Responsable</FormLabel>
-              <Select onValueChange={field.onChange}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue defaultValue={initialData?.employee.id.toString() || ""} placeholder="Seleccione al responsable..." />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {
-                    employeesLoading && <Loader2 className="size-4 animate-spin" />
-                  }
-                  {
-                    employees && employees.map((employee) => (
-                      <SelectItem key={employee.id} value={employee.dni}>{employee.first_name} {employee.last_name} - {employee.job_title.name}</SelectItem>
-                    ))
-                  }
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
+          render={({ field }) => {
+            const selectedEmployee = employees?.find((employee) => employee.dni === field.value)
+            return (
+              <FormItem className="flex flex-col">
+                <FormLabel>Técnico Responsable</FormLabel>
+                <Popover open={openEmployee} onOpenChange={setOpenEmployee}>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        disabled={employeesLoading}
+                        className="w-full justify-between font-normal"
+                      >
+                        {selectedEmployee ? (
+                          <span className="flex items-center gap-2 truncate">
+                            <Avatar className="h-5 w-5">
+                              <AvatarFallback className={cn("text-[9px] font-semibold", getAvatarPalette(selectedEmployee.id))}>
+                                {getInitials(selectedEmployee.first_name, selectedEmployee.last_name)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <span className="truncate">{selectedEmployee.first_name} {selectedEmployee.last_name}</span>
+                          </span>
+                        ) : (
+                          <span className="flex items-center gap-2 text-muted-foreground">
+                            <User className="h-4 w-4 shrink-0" />
+                            Seleccione al responsable...
+                          </span>
+                        )}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="p-0" align="start" matchTriggerWidth>
+                    <Command>
+                      <CommandInput placeholder="Buscar técnico..." />
+                      <CommandList>
+                        <CommandEmpty className="text-muted-foreground text-xs p-4 text-center">
+                          {employeesLoading ? <Loader2 className="mx-auto size-4 animate-spin" /> : "No se encontraron técnicos..."}
+                        </CommandEmpty>
+                        <CommandGroup>
+                          {
+                            employees && employees.map((employee) => (
+                              <CommandItem
+                                key={employee.id}
+                                value={`${employee.first_name} ${employee.last_name} ${employee.job_title.name}`}
+                                onSelect={() => {
+                                  field.onChange(employee.dni)
+                                  setOpenEmployee(false)
+                                }}
+                                className="gap-2"
+                              >
+                                <Avatar className="h-6 w-6">
+                                  <AvatarFallback className={cn("text-[10px] font-semibold", getAvatarPalette(employee.id))}>
+                                    {getInitials(employee.first_name, employee.last_name)}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <span className="flex-1 truncate">
+                                  <span className="block font-medium">{employee.first_name} {employee.last_name}</span>
+                                  <span className="block text-xs text-muted-foreground">{employee.job_title.name}</span>
+                                </span>
+                                <Check className={cn("h-4 w-4 shrink-0", field.value === employee.dni ? "opacity-100" : "opacity-0")} />
+                              </CommandItem>
+                            ))
+                          }
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
+              </FormItem>
+            )
+          }}
         />
         <FormField
           control={form.control}
           name="tool_id"
-          render={({ field }) => (
-            <FormItem className="flex flex-col mt-2.5">
-              <FormLabel>Herramientas a Ingresar</FormLabel>
+          render={() => (
+            <FormItem className="flex flex-col">
+              <div className="flex items-center justify-between">
+                <FormLabel>Herramientas a Ingresar</FormLabel>
+                {selectedTools.length > 0 && (
+                  <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                    {selectedTools.length} Seleccionadas
+                  </span>
+                )}
+              </div>
               <Popover open={openArticles} onOpenChange={setOpenArticles}>
                 <PopoverTrigger asChild>
                   <Button
                     disabled={isBatchesLoading}
                     variant="outline"
                     role="combobox"
-                    className="w-[200px] justify-between"
+                    className="w-full justify-between font-normal text-muted-foreground"
                   >
-                    {selectedTools?.length > 0 && (
-                      <>
-                        <Separator orientation="vertical" className="mx-2 h-4" />
-                        <Badge
-                          variant="secondary"
-                          className="rounded-sm px-1 font-normal lg:hidden"
-                        >
-                          {selectedTools.length}
-                        </Badge>
-                        <div className="hidden space-x-1 lg:flex">
-                          {selectedTools.length && (
-                            <Badge
-                              variant="secondary"
-                              className="rounded-sm px-1 font-normal"
-                            >
-                              {selectedTools.length} seleccionados
-                            </Badge>
-                          )
-                          }
-                        </div>
-                      </>
-                    )}
-                    {
-                      selectedTools.length <= 0 && "Seleccione..."
-                    }
+                    <span className="flex items-center gap-2">
+                      <Wrench className="h-4 w-4 shrink-0" />
+                      Buscar y agregar herramientas...
+                    </span>
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-[200px] p-0">
+                <PopoverContent className="p-0" align="start" matchTriggerWidth>
                   <Command>
                     <CommandInput placeholder="Buscar herramienta..." />
                     <CommandList>
-                      <CommandEmpty className="text-muted-foreground text-xs p-2 text-center">No se han encontrado herramientas disponibles...</CommandEmpty>
+                      <CommandEmpty className="text-muted-foreground text-xs p-4 text-center">No se han encontrado herramientas disponibles...</CommandEmpty>
                       {
                         filteredBatches?.map((batch) => (
                           <CommandGroup key={batch.batch_id} heading={batch.name}>
                             {
-                              batch.articles.map((article) => (
-                                <CommandItem key={article.id} onSelect={() => {
-                                  handleToolSelect(article.id?.toString()!)
-                                }}><Check className={cn("mr-2 h-4 w-4", isToolSelected(article.id!.toString()) ? "opacity-100" : "opacity-0")} />
-                                  SN - {article.serial}
-                                  <span className="hidden">
-                                    {article.serial} {batch.name}
-                                  </span></CommandItem>
-                              ))
+                              batch.articles.map((article) => {
+                                const isExpired = article.tool_status === "VENCIDO"
+                                return (
+                                  <CommandItem
+                                    key={article.id}
+                                    disabled={isExpired}
+                                    onSelect={() => {
+                                      handleToolSelect(article.id?.toString()!)
+                                    }}
+                                    className="gap-2"
+                                  >
+                                    <Wrench className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                                    <span className="flex-1 truncate">SN - {article.serial}</span>
+                                    {isExpired && (
+                                      <Badge variant="destructive" className="px-1.5 py-0 text-[10px] font-normal">
+                                        Vencida
+                                      </Badge>
+                                    )}
+                                    <Check className={cn("h-4 w-4 shrink-0", isToolSelected(article.id!.toString()) ? "opacity-100" : "opacity-0")} />
+                                    <span className="hidden">
+                                      {article.serial} {batch.name}
+                                    </span>
+                                  </CommandItem>
+                                )
+                              })
                             }
                           </CommandGroup>
                         ))
@@ -223,17 +286,39 @@ export function CreateToolBoxForm({ onClose, initialData }: FormProps) {
                   </Command>
                 </PopoverContent>
               </Popover>
+              {selectedTools.length > 0 && (
+                <div className="flex max-h-28 flex-wrap gap-1.5 overflow-y-auto rounded-md border border-dashed border-input p-2">
+                  {selectedTools.map((toolId) => {
+                    const article = allArticles.find((a) => a.id?.toString() === toolId)
+                    return (
+                      <Badge key={toolId} variant="secondary" className="gap-1 py-1 pl-2 pr-1 font-normal">
+                        <Wrench className="h-3 w-3 text-muted-foreground" />
+                        {article ? `SN - ${article.serial}` : toolId}
+                        <button
+                          type="button"
+                          onClick={() => handleToolSelect(toolId)}
+                          className="ml-1 rounded-full p-0.5 hover:bg-background/80"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </Badge>
+                    )
+                  })}
+                </div>
+              )}
               <FormMessage />
             </FormItem>
           )}
         />
-        <div className="flex justify-between items-center gap-x-4">
-          <Separator className="flex-1" />
-          <p className="text-muted-foreground">SIGEAC</p>
-          <Separator className="flex-1" />
+        <div className="flex justify-end gap-2 pt-2">
+          <Button type="button" variant="outline" onClick={onClose}>
+            Cancelar
+          </Button>
+          <Button disabled={createToolBox.isPending} className="gap-1.5">
+            {createToolBox.isPending ? <Loader2 className="animate-spin size-4" /> : <><Check className="h-4 w-4" /> Crear Caja</>}
+          </Button>
         </div>
-        <Button disabled={createToolBox.isPending}>{createToolBox.isPending ? <Loader2 className="animate-spin size-4" /> : "Crear Caja "}</Button>
       </form>
-    </Form >
+    </Form>
   )
 }

@@ -11,6 +11,8 @@ type Props = {
   setSearch: (value: string) => void
   status: string
   setStatus: (value: string) => void
+  groupBy: string
+  setGroupBy: (value: string) => void
   placeholder?: string
 }
 
@@ -53,11 +55,45 @@ const StatusFilter = ({
   </div>
 )
 
+const GroupFilter = ({
+  groupBy,
+  setGroupBy,
+}: {
+  groupBy: string
+  setGroupBy: (value: string) => void
+}) => (
+  <div className="relative sm:w-44 sm:shrink-0">
+    <SlidersHorizontal className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 z-10 size-3.5 text-muted-foreground"/>
+
+    <Select value={groupBy} onValueChange={setGroupBy}>
+      <SelectTrigger className={selectTriggerClass}>
+        <SelectValue placeholder="Agrupar por" />
+      </SelectTrigger>
+
+      <SelectContent className={selectContentClass}>
+        <SelectItem value="NONE">
+          Sin agrupación
+        </SelectItem>
+
+        <SelectItem value="quote">
+          Cotización
+        </SelectItem>
+
+        <SelectItem value="retailer">
+          Comercio
+        </SelectItem>
+      </SelectContent>
+    </Select>
+  </div>
+)
+
 const PurchaseOrderToolBar = ({
   search,
   setSearch,
   status,
   setStatus,
+  groupBy,
+  setGroupBy,
   placeholder = 'Buscar órdenes de compra...',
 }: Props) => {
   return (
@@ -96,6 +132,11 @@ const PurchaseOrderToolBar = ({
               status={status}
               setStatus={setStatus}
             />
+
+            <GroupFilter
+              groupBy={groupBy}
+              setGroupBy={setGroupBy}
+            />
           </PopoverContent>
         </Popover>
       </div>
@@ -105,6 +146,11 @@ const PurchaseOrderToolBar = ({
         <StatusFilter
           status={status}
           setStatus={setStatus}
+        />
+
+        <GroupFilter
+          groupBy={groupBy}
+          setGroupBy={setGroupBy}
         />
       </div>
 

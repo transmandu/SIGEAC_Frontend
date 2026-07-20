@@ -2,21 +2,7 @@
 
 import { ColumnDef } from "@tanstack/react-table"
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
-import { Input } from "@/components/ui/input"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { useAuth } from "@/contexts/AuthContext"
 import { cn } from "@/lib/utils"
@@ -25,10 +11,12 @@ import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import Link from "next/link"
 import PurchaseOrderDropdownActions from "@/components/dropdowns/mantenimiento/compras/PurchaseOrderDropdownActions"
-import { CalendarIcon, ChevronRight, Loader2 } from "lucide-react"
+import { Loader2 } from "lucide-react"
 import { useMemo, useState } from "react"
 import { toast } from "sonner"
 import { useRegisterGeneralArticlesDelivery } from "@/actions/mantenimiento/compras/ordenes_compras/actions"
+import RegisterGeneralArticlesDeliveryDialog from "./_components/RegisterGeneralArticlesDeliveryDialog"
+import EyePreviewIcon from "@/components/misc/EyePreviewIcon"
 
 const ArticlesCountAction = ({
   po,
@@ -38,7 +26,6 @@ const ArticlesCountAction = ({
   company?: string
 }) => {
   const [open, setOpen] = useState(false)
-  const [arrivedAt, setArrivedAt] = useState<Date>(() => new Date())
   const { registerGeneralArticlesDelivery } = useRegisterGeneralArticlesDelivery()
   const { user } = useAuth()
 
@@ -53,7 +40,11 @@ const ArticlesCountAction = ({
 
   const isEmpty = count === 0
   const generalArticles = po.general_article_purchase_order ?? []
-  const pendingGeneralArticles = generalArticles.filter((item) => !item.general_article_intake)
+  // Elegible si nunca se registró entrega o si la entrada fue rechazada por
+  // almacén y debe volver a entregarse (ver RegisterGeneralArticlesDeliveryDialog).
+  const pendingGeneralArticles = generalArticles.filter(
+    (item) => !item.general_article_intake || item.general_article_intake.status === 'REJECTED'
+  )
   const hasGeneralArticles = generalArticles.length > 0
   const hasPendingDelivery = pendingGeneralArticles.length > 0
   const canRegisterDelivery = hasGeneralArticles && !!company && canRegister
@@ -62,6 +53,7 @@ const ArticlesCountAction = ({
     <div
       className={cn(
         `
+          relative
           flex items-center justify-center
           px-2 py-0.5
           rounded-md
@@ -75,6 +67,10 @@ const ArticlesCountAction = ({
         canRegisterDelivery && hasPendingDelivery && "cursor-pointer hover:bg-emerald-50 hover:border-emerald-300/60 dark:hover:bg-emerald-950/30 dark:hover:border-emerald-700/50"
       )}
     >
+      {hasPendingDelivery && !registerGeneralArticlesDelivery.isPending && (
+        <span className="pointer-events-none absolute inset-0 rounded-md animate-[glow-pulse_6s_ease-in-out_infinite]" />
+      )}
+
       {registerGeneralArticlesDelivery.isPending ? (
         <Loader2 className="size-3 animate-spin" />
       ) : (
@@ -110,31 +106,11 @@ const ArticlesCountAction = ({
       return
     }
 
-    setArrivedAt(new Date())
     setOpen(true)
   }
 
-  const handleDateSelect = (day: Date | undefined) => {
-    if (!day) return
-    setArrivedAt((prev) => {
-      const next = new Date(day)
-      next.setHours(prev.getHours(), prev.getMinutes(), 0, 0)
-      return next
-    })
-  }
-
-  const handleTimeChange = (value: string) => {
-    const [hours, minutes] = value.split(":").map(Number)
-    if (Number.isNaN(hours) || Number.isNaN(minutes)) return
-    setArrivedAt((prev) => {
-      const next = new Date(prev)
-      next.setHours(hours, minutes, 0, 0)
-      return next
-    })
-  }
-
   return (
-    <AlertDialog open={open} onOpenChange={setOpen}>
+    <>
       <TooltipProvider delayDuration={120}>
         <Tooltip>
           <TooltipTrigger asChild>
@@ -155,79 +131,15 @@ const ArticlesCountAction = ({
         </Tooltip>
       </TooltipProvider>
 
-      <AlertDialogContent onClick={(e) => e.stopPropagation()}>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Registrar entrega de artículos</AlertDialogTitle>
-          <AlertDialogDescription>
-            Estás a punto de registrar la entrega física de{" "}
-            <span className="font-semibold text-foreground">{pendingGeneralArticles.length}</span>{" "}
-            {pendingGeneralArticles.length === 1 ? "artículo general" : "artículos generales"} de la orden{" "}
-            <span className="font-semibold text-foreground">{po.order_number}</span>.
-            Esto creará las entradas pendientes de verificación en almacén.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-              Fecha y hora de llegada
-            </span>
-            <div className="h-px flex-1 bg-border/60" />
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "h-9 flex-1 justify-start text-sm bg-background/70",
-                    !arrivedAt && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-3 w-3 opacity-60" />
-                  {format(arrivedAt, "dd MMM yyyy", { locale: es })}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  selected={arrivedAt}
-                  onSelect={handleDateSelect}
-                  locale={es}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
-
-            <Input
-              type="time"
-              value={format(arrivedAt, "HH:mm")}
-              onChange={(e) => handleTimeChange(e.target.value)}
-              className="h-9 w-28 bg-background/70 text-sm"
-            />
-          </div>
-        </div>
-
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={registerGeneralArticlesDelivery.isPending}>
-            Cancelar
-          </AlertDialogCancel>
-          <AlertDialogAction
-            disabled={registerGeneralArticlesDelivery.isPending}
-            onClick={() =>
-              registerGeneralArticlesDelivery.mutate({
-                id: po.id,
-                company: company!,
-                arrivedAt,
-              })
-            }
-          >
-            Confirmar
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+      {company && (
+        <RegisterGeneralArticlesDeliveryDialog
+          po={po}
+          company={company}
+          open={open}
+          onOpenChange={setOpen}
+        />
+      )}
+    </>
   )
 }
 
@@ -238,30 +150,10 @@ const PO_STATUS_LABELS: Record<string, string> = {
 }
 
 export const getColumns = (
-  selectedCompany?: { slug: string }
+  selectedCompany?: { slug: string },
+  onPreview?: (po: PurchaseOrder) => void,
+  selectedPreviewId?: number | null
 ): ColumnDef<PurchaseOrder>[] => [
-
-  {
-    id: "expander",
-    size: 50,
-
-    header: () => null,
-
-    cell: ({ row }) => (
-      <div className="flex justify-center w-full">
-        <ChevronRight
-          className={cn(
-            "size-3.5 text-muted-foreground/50 transition-transform duration-150",
-            row.getIsExpanded() &&
-              "rotate-90 text-emerald-600 dark:text-emerald-400"
-          )}
-        />
-      </div>
-    ),
-
-    enableSorting: false,
-    enableHiding: false,
-  },
 
   {
     accessorKey: "order_number",
@@ -296,6 +188,41 @@ export const getColumns = (
         </Link>
       </div>
     ),
+  },
+
+  {
+    id: "preview",
+    size: 40,
+    header: () => null,
+    cell: ({ row }) => {
+      const isActive = selectedPreviewId === row.original.id
+
+      return (
+        <div className="flex justify-center px-0" onClick={(e) => e.stopPropagation()}>
+          <TooltipProvider delayDuration={120}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  onClick={() => onPreview?.(row.original)}
+                  className={cn(
+                    'flex items-center justify-center rounded-md p-1 transition-all duration-200',
+                    isActive
+                      ? 'text-blue-600 dark:text-blue-400 drop-shadow-[0_0_6px_rgba(37,99,235,0.65)] dark:drop-shadow-[0_0_6px_rgba(96,165,250,0.7)]'
+                      : 'text-muted-foreground hover:text-blue-600 dark:hover:text-blue-400 hover:drop-shadow-[0_0_6px_rgba(37,99,235,0.55)] dark:hover:drop-shadow-[0_0_6px_rgba(96,165,250,0.6)]'
+                  )}
+                >
+                  <EyePreviewIcon active={isActive} className="size-4" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>{isActive ? 'Cerrar vista previa' : 'Vista previa de la orden de compra'}</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+      )
+    },
+    enableSorting: false,
+    enableHiding: false,
   },
 
   {
@@ -347,7 +274,7 @@ export const getColumns = (
       if (!name) {
         return (
           <div className="flex justify-center w-full">
-            <span className="text-sm text-muted-foreground">—</span>
+            <span className="text-sm text-muted-foreground">N/A</span>
           </div>
         )
       }

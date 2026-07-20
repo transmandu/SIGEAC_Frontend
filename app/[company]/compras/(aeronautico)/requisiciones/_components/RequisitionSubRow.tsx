@@ -1,6 +1,6 @@
 'use client'
 
-import { CalendarDays, CheckCircle2, Clock3, FileText, XCircle } from 'lucide-react'
+import { CalendarDays, CheckCircle2, Clock3, FileText, Link2, XCircle } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import type { Requisition } from '@/types/purchase'
@@ -13,6 +13,15 @@ const QUOTE_STATUS_LABELS: Record<string, string> = {
   REJECTED: 'RECHAZADA',
 }
 
+// Aprobada primero, luego su(s) complementaria(s), luego el resto en orden
+// de creación, y rechazadas siempre al final.
+const quoteSortRank = (quote: { status: string; parent_quote_order_id?: number | null }) => {
+  if (quote.status === 'APPROVED') return 0
+  if (quote.parent_quote_order_id) return 1
+  if (quote.status === 'REJECTED') return 3
+  return 2
+}
+
 interface Props {
   requisition: Requisition
   selectedCompany: { slug: string } | null
@@ -23,7 +32,9 @@ export default function RequisitionSubRow({
 }: Props) {
 
   const { selectedCompany } = useCompanyStore()
-  const quotes = requisition.quotes ?? []
+  const quotes = [...(requisition.quotes ?? [])].sort(
+    (a, b) => quoteSortRank(a) - quoteSortRank(b)
+  )
 
   return (
     <div className="flex flex-col gap-3">
@@ -61,13 +72,24 @@ export default function RequisitionSubRow({
                  <FileText className="h-4 w-4 text-slate-600 dark:text-slate-300" />
               </div>
               <div className="flex flex-col leading-tight">
-                <Link
-                    href={`/${selectedCompany?.slug}/compras/cotizaciones/${quote.quote_number}`}
-                    className="text-sm font-medium text-slate-800 dark:text-slate-100 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    {quote.quote_number}
-                  </Link>
+                  <div className="flex items-center gap-1.5">
+                    <Link
+                      href={`/${selectedCompany?.slug}/compras/cotizaciones/${quote.quote_number}`}
+                      className="text-sm font-medium text-slate-800 dark:text-slate-100 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {quote.quote_number}
+                    </Link>
+                    {quote.parent_quote_order_id && (
+                      <Badge
+                        variant="outline"
+                        className="rounded-md border-sky-500/30 bg-sky-500/10 px-1.5 py-0 text-[9px] font-semibold tracking-wide text-sky-700 dark:text-sky-300 gap-0.5"
+                      >
+                        <Link2 className="h-2.5 w-2.5" />
+                        Complementaria
+                      </Badge>
+                    )}
+                  </div>
                   <span className="text-[11px] text-muted-foreground truncate">
                     {vendorLabel}
                   </span>

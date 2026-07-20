@@ -14,6 +14,15 @@ export type AdministrationCompany = {
   updated_at: string;
 };
 
+/** Registro del catalogo estatico de aeropuertos (public/data/airports.json). */
+export type Airport = {
+  iata: string;
+  icao: string;
+  name: string;
+  city: string;
+  country: string;
+};
+
 export type Aircraft = {
   id: number;
   client: Client;
@@ -90,6 +99,10 @@ export type Article = {
   inspector?: string;
   inspect_date?: string;
   ata_code?: string;
+  needs_calibration?: boolean;
+  calibration_date?: string | null;
+  next_calibration?: string;
+  tool_status?: "CALIBRADO" | "EN CALIBRACION" | "VENCIDO" | "N/A" | string;
 };
 
 export type Bank = {
@@ -240,6 +253,20 @@ export interface ConsumableArticle extends Article {
   min_quantity?: number;
   expiration_date?: string;
   fabrication_date?: string;
+}
+
+/**
+ * Forma cruda que devuelve GET .../articles/low-stock-consumables: un Article
+ * con sus relaciones consumable/batch cargadas (no aplanado como ConsumableArticle).
+ * La cantidad actual vive en consumable.quantity, el mínimo en batch.min_quantity.
+ */
+export interface LowStockConsumableArticle extends Article {
+  consumable: {
+    id: number;
+    quantity: number;
+    primary_unit_id?: number;
+  };
+  batch: Pick<Batch, "id" | "name" | "min_quantity">;
 }
 
 export type Convertion = {
@@ -756,7 +783,7 @@ export type ToolBox = {
   name: string;
   created_by: string;
   delivered_by: string;
-  employee: Employee;
+  employee: Employee | null;
   tool: {
     serial: string;
     article: ToolArticle;
@@ -1197,10 +1224,19 @@ export interface WarehouseDashboard {
   dispatchCount: number;
   dispatchAircraftCount: number;
   dispatchWorkOrderCount: number;
+  dispatchByCategory: {
+    component: number;
+    part: number;
+    consumable: number;
+    tool: number;
+    general: number;
+  };
   tool_need_calibration_count: number;
   returnToolsCount: number;
   restockCount: number;
   entryCount: number;
+  generalArticlesAvailablePercentage: number;
+  generalArticlesRestockCount: number;
   tools_need_calibration: {
     tool_id: number;
     batch_name: string;
@@ -1211,7 +1247,7 @@ export interface WarehouseDashboard {
   }[];
   toolsToReturn: any[];
   articlesOutOfStock: {
-    id: number;
+    id: number | string;
     description: string;
     part_number: string;
     serial: string | null;
@@ -1257,6 +1293,7 @@ export type GeneralArticle = {
   description: string;
   variant_type?: string | null;
   quantity: number;
+  minimum_quantity?: number | null;
   brand_model?: string;
   warehouse: Warehouse;
   general_primary_unit: Unit;
@@ -1384,7 +1421,22 @@ export type CargoManifestItem = {
 
 export type FuelVehicleStatus = "active" | "inactive";
 
-export type FuelVehicleType = "car" | "truck" | "motorcycle" | "other";
+export type FuelVehicleType =
+  | "car"
+  | "truck"
+  | "motorcycle"
+  | "crane"
+  | "mule"
+  | "other";
+
+export type FuelType = "GASOLINE" | "DIESEL";
+
+// Saldos discriminados por tipo de combustible (breaking change del backend:
+// antes eran numeros planos).
+export type FuelBalanceByFuelType = {
+  GASOLINE: number;
+  DIESEL: number;
+};
 
 export type FuelMovementStatus = "active" | "annulled";
 
@@ -1401,8 +1453,13 @@ export type FuelMovementType =
 
 export type FuelVehicle = {
   id: number;
-  plate: string;
+  plate: string | null;
+  brand?: string | null;
+  model?: string | null;
+  color?: string | null;
   type: FuelVehicleType;
+  type_other?: string | null;
+  fuel_type: FuelType;
   responsible?: string | null;
   tank_capacity_liters: number;
   current_balance_liters: number;
@@ -1414,12 +1471,15 @@ export type FuelVehicle = {
 };
 
 export type FuelSummary = {
-  warehouse_balance_liters: number;
-  vehicle_balance_liters: number;
-  vehicle_balance_liters_all: number;
+  warehouse_balance_liters: FuelBalanceByFuelType;
+  vehicle_balance_liters: FuelBalanceByFuelType;
+  vehicle_balance_liters_all: FuelBalanceByFuelType;
   active_vehicle_count: number;
   movement_count_for_period?: number;
-  has_active_warehouse_initial_balance?: boolean;
+  has_active_warehouse_initial_balance?: {
+    GASOLINE: boolean;
+    DIESEL: boolean;
+  };
 };
 
 export type FuelMovement = {
@@ -1429,6 +1489,7 @@ export type FuelMovement = {
   created_at?: string;
   created_by?: User | string | null;
   liters: number;
+  fuel_type: FuelType;
   vehicle?: FuelVehicle | null;
   vehicle_id?: number | null;
   third_party?: ThirdParty | null;
@@ -1459,8 +1520,13 @@ export type FuelTraceabilityDetail = {
 };
 
 export type CreateFuelVehiclePayload = {
-  plate: string;
+  plate?: string | null;
+  brand?: string | null;
+  model?: string | null;
+  color?: string | null;
   type: FuelVehicleType;
+  type_other?: string | null;
+  fuel_type: FuelType;
   responsible?: string | null;
   tank_capacity_liters: number;
   initial_balance_liters: number;
@@ -1471,8 +1537,13 @@ export type CreateFuelVehiclePayload = {
 // Actualizacion de vehiculo: mismos campos de configuracion que la creacion,
 // sin el saldo inicial (current_balance_liters no es editable directamente).
 export type UpdateFuelVehiclePayload = {
-  plate: string;
+  plate?: string | null;
+  brand?: string | null;
+  model?: string | null;
+  color?: string | null;
   type: FuelVehicleType;
+  type_other?: string | null;
+  fuel_type: FuelType;
   responsible?: string | null;
   tank_capacity_liters: number;
   km_per_liter?: number | null;
@@ -1483,6 +1554,9 @@ export type CreateFuelMovementPayload = {
   type: FuelMovementType;
   operational_date: string;
   liters: number;
+  // Solo se envia (y solo el backend lo exige) para WAREHOUSE_INITIAL_BALANCE
+  // y WAREHOUSE_DISPATCH_THIRD_PARTY; en el resto se deriva del vehiculo.
+  fuel_type?: FuelType | null;
   vehicle_id?: number | null;
   third_party_id?: string | number | null;
   dispatch_purpose?: string | null;

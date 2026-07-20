@@ -2,7 +2,7 @@ import axiosInstance from "@/lib/axios";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import type { ConfirmGeneralArticleIntakeResponse } from "@/types/purchase";
+import type { ConfirmGeneralArticleIntakeResponse, RejectGeneralArticleIntakeResponse } from "@/types/purchase";
 
 export interface IUpdateArticleData {
     id: number
@@ -14,6 +14,7 @@ interface ArticleData {
     description?: string;
     brand_model: string;
     quantity: number;
+    minimum_quantity?: number;
     variant_type: string;
     primary_unit_id: string;
     warehouse_id: string;
@@ -26,6 +27,7 @@ interface updateArticleData {
     brand_model?: string;
     variant_type?: string;
     primary_unit_id?: string;
+    minimum_quantity?: number;
 }
 // PARA ACTULIZAR UN ARTICULO EXEPTO SU CANTIDAD.
 export const useUpdateGeneralArticle = () => {
@@ -51,6 +53,10 @@ export const useUpdateGeneralArticle = () => {
             // Refrescamos la lista de artículos
             queryClient.invalidateQueries({
                 queryKey: ["general-articles", selectedCompany?.slug]
+            });
+            // Refrescamos las alertas de stock bajo, ya que la cantidad mínima pudo haber cambiado
+            queryClient.invalidateQueries({
+                queryKey: ["low-stock-general-articles", selectedCompany?.slug]
             });
 
             toast.success("¡Actualizado!", {
@@ -85,6 +91,7 @@ export const useUpdateGeneralArticleQuantity = () => {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["general-articles"] });
+            queryClient.invalidateQueries({ queryKey: ["low-stock-general-articles", selectedCompany?.slug] });
             toast.success("¡Actualizado!", {
                 description: "Las cantidades han sido actualizadas correctamente."
             });
@@ -135,6 +142,43 @@ export const useConfirmGeneralArticleIntake = () => {
 
     return {
         confirmGeneralArticleIntake,
+    };
+};
+
+// Rechaza una entrada PENDING cuando la verificación física no coincide con
+// lo registrado (artículo o cantidad distintos). El intake queda REJECTED con
+// la justificación como historial permanente, nunca toca el stock, y el
+// backend notifica al usuario que registró la entrega para que la revise y
+// re-registre sobre la misma orden de compra cuando resuelva.
+export const useRejectGeneralArticleIntake = () => {
+    const queryClient = useQueryClient();
+    const { selectedCompany } = useCompanyStore();
+
+    const rejectGeneralArticleIntake = useMutation({
+        mutationKey: ["reject-general-article-intake", selectedCompany?.slug],
+        mutationFn: async ({ id, rejectionReason }: { id: number; rejectionReason: string }) => {
+            const { data } = await axiosInstance.patch<RejectGeneralArticleIntakeResponse>(
+                `/${selectedCompany?.slug}/general-article-intakes/${id}/reject`,
+                { rejection_reason: rejectionReason }
+            );
+            return data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["general-article-intakes"], exact: false });
+
+            toast.success("Entrada rechazada", {
+                description: "Se notificó al responsable de la entrega para que revise la discrepancia."
+            });
+        },
+        onError: (error: any) => {
+            toast.error("Error", {
+                description: error?.response?.data?.message || "No se pudo rechazar la entrada."
+            });
+        },
+    });
+
+    return {
+        rejectGeneralArticleIntake,
     };
 };
 

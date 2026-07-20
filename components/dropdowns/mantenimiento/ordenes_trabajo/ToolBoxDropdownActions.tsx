@@ -32,7 +32,7 @@ const ToolBoxDropdownActions = ({ id, initialData }: { id: number, initialData: 
   return (
     <>
       <DropdownMenu>
-        <DropdownMenuTrigger>
+        <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="h-8 w-8 p-0">
             <span className="sr-only">Abrir menu</span>
             <MoreHorizontal className="h-4 w-4" />
@@ -66,7 +66,7 @@ const ToolBoxDropdownActions = ({ id, initialData }: { id: number, initialData: 
       </Dialog>
 
       <Dialog open={openEdit} onOpenChange={setOpenEdit}>
-        <DialogContent className="w-[380px]">
+        <DialogContent className="sm:max-w-[480px]">
           <DialogHeader>
             <DialogTitle>Editar Caja de Herramientas</DialogTitle>
             <DialogDescription>

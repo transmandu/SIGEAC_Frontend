@@ -31,7 +31,8 @@ export default function DefaultDashboard({ companySlug }: DefaultDashboardProps)
             src="/dashboard-construction.png"
             alt="Panel en construcción"
             fill
-            priority
+            loading="lazy"
+            sizes="(min-width: 768px) 320px, 256px"
             draggable={false}
             onContextMenu={(e) => e.preventDefault()}
             className="object-contain drop-shadow-md opacity-95 dark:hidden pointer-events-none select-none"
@@ -42,7 +43,8 @@ export default function DefaultDashboard({ companySlug }: DefaultDashboardProps)
             src="/dashboard-construction-dark.png"
             alt="Panel en construcción modo oscuro"
             fill
-            priority
+            loading="lazy"
+            sizes="(min-width: 768px) 320px, 256px"
             draggable={false}
             onContextMenu={(e) => e.preventDefault()}
             className="object-contain drop-shadow-md opacity-95 hidden dark:block pointer-events-none select-none"

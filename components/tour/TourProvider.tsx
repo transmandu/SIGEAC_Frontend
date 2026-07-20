@@ -74,7 +74,11 @@ function TourInner({ children, tourKeyRef }: TourInnerProps) {
   const registerTour = useCallback(
     (key: string, label: string, steps: StepType[]) => {
       setAvailableTours((prev) => {
-        if (prev.some((t) => t.key === key)) return prev;
+        if (prev.some((t) => t.key === key)) {
+          return prev.map((t) =>
+            t.key === key ? { ...t, start: () => startTour(steps, key) } : t,
+          );
+        }
         return [...prev, { key, label, start: () => startTour(steps, key) }];
       });
     },
@@ -98,40 +102,56 @@ function TourInner({ children, tourKeyRef }: TourInnerProps) {
 function FloatingTourMenu() {
   const { availableTours } = useTourContext();
   const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   if (availableTours.length === 0) return null;
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          className="fixed bottom-4 right-4 z-50 rounded-full shadow-lg h-12 w-12"
-          size="icon"
-        >
-          <HelpCircle className="h-5 w-5" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent align="end" side="top" className="w-64 p-2">
-        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 px-2">
-          Tours disponibles
-        </p>
-        <div className="flex flex-col gap-1">
-          {availableTours.map((tour) => (
-            <Button
-              key={tour.key}
-              variant="ghost"
-              className="justify-start h-8 text-sm"
-              onClick={() => {
-                tour.start();
-                setOpen(false);
-              }}
-            >
-              {tour.label}
-            </Button>
-          ))}
+    <div
+      ref={ref}
+      data-tour-menu="true"
+      className="fixed bottom-4 right-4 z-[100] flex flex-col items-end gap-2 pointer-events-auto"
+    >
+      {open && (
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl w-64 p-2">
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 px-2">
+            Tours disponibles
+          </p>
+          <div className="flex flex-col gap-1">
+            {availableTours.map((tour) => (
+              <Button
+                key={tour.key}
+                variant="ghost"
+                className="justify-start h-8 text-sm"
+                onClick={() => {
+                  tour.start();
+                  setOpen(false);
+                }}
+              >
+                {tour.label}
+              </Button>
+            ))}
+          </div>
         </div>
-      </PopoverContent>
-    </Popover>
+      )}
+      <Button
+        size="icon"
+        className="rounded-full h-12 w-12 shadow-lg"
+        onClick={() => setOpen(!open)}
+      >
+        <HelpCircle className="h-5 w-5" />
+      </Button>
+    </div>
   );
 }
 
@@ -157,7 +177,9 @@ const tourStyles = {
     color: "var(--tour-color)",
   }),
   arrow: (_base: Record<string, unknown>, state?: Record<string, unknown>) => ({
-    color: state?.disabled ? "var(--tour-arrow-disabled)" : "var(--tour-arrow-enabled)",
+    color: state?.disabled
+      ? "var(--tour-arrow-disabled)"
+      : "var(--tour-arrow-enabled)",
     width: 16,
     height: 12,
     flex: "0 0 16px",
@@ -171,6 +193,14 @@ const tourStyles = {
   }),
 };
 
+function TourUiWrapper({ children }: { children?: React.ReactNode }) {
+  return (
+    <div data-tour-popover="true" style={{ pointerEvents: "auto" }}>
+      {children}
+    </div>
+  );
+}
+
 export function CustomTourProvider({ children }: CustomTourProviderProps) {
   const tourKeyRef = useRef<string | null>(null);
 
@@ -182,6 +212,7 @@ export function CustomTourProvider({ children }: CustomTourProviderProps) {
       showBadge
       disableInteraction={false}
       styles={tourStyles}
+      Wrapper={TourUiWrapper}
     >
       <TourInner tourKeyRef={tourKeyRef}>{children}</TourInner>
     </TourProvider>

@@ -1,24 +1,45 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useGetSMSCertificates } from "@/hooks/sms/useGetCertificates";
 import { useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { CreateCertificateForm } from "@/components/forms/general/CreateCertificateForm";
-import { DataTableCertificates } from "./data-table"; 
+import { DataTableCertificates } from "./data-table";
 import { getColumns, CertificateColumn } from "./columns";
+import { useTourContext } from "@/components/tour/TourProvider";
+import { certificadosCrearSteps } from "@/components/tour/steps/general/cursos/certificados/certificados-crear";
 
 const CertificatesPage = () => {
   const { selectedCompany } = useCompanyStore();
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
+  const { registerTour, unregisterTour } = useTourContext();
+
+  useEffect(() => {
+    if (open) {
+      registerTour(
+        "certificados-crear",
+        "Certificados - Crear",
+        certificadosCrearSteps,
+      );
+      return () => {
+        unregisterTour("certificados-crear");
+      };
+    }
+  }, [open, registerTour, unregisterTour]);
 
   // 1. Lógica de gestión
-  const isManagement = user?.roles?.some(role => 
-    ['JEFE_SMS', 'ANALISTA_SMS', 'SUPERUSER'].includes(role.name.toUpperCase())
+  const isManagement = user?.roles?.some((role) =>
+    ["JEFE_SMS", "ANALISTA_SMS", "SUPERUSER"].includes(role.name.toUpperCase()),
   );
 
   // 2. Generar columnas
@@ -27,29 +48,30 @@ const CertificatesPage = () => {
   }, [selectedCompany?.slug]);
 
   // 3. Obtención del DNI
-  const employeeDni = isManagement 
-    ? undefined 
+  const employeeDni = isManagement
+    ? undefined
     : user?.employee?.find(
-        (emp: any) => emp.company?.toLowerCase() === selectedCompany?.slug?.toLowerCase()
+        (emp: any) =>
+          emp.company?.toLowerCase() === selectedCompany?.slug?.toLowerCase(),
       )?.dni || user?.employee?.[0]?.dni;
 
-  const { data: rawCertificates, isLoading, isError } = useGetSMSCertificates(
-    selectedCompany?.slug, 
-    employeeDni 
-  );
+  const {
+    data: rawCertificates,
+    isLoading,
+    isError,
+  } = useGetSMSCertificates(selectedCompany?.slug, employeeDni);
 
   const certificates: CertificateColumn[] = useMemo(() => {
     if (!rawCertificates) return [];
     return rawCertificates.map((cert: any) => ({
       ...cert,
-      course: cert.course || { name: "Sin nombre" }
+      course: cert.course || { name: "Sin nombre" },
     }));
   }, [rawCertificates]);
 
   return (
     <ContentLayout title="Certificados">
       <div className="flex flex-col gap-y-4">
-        
         {isLoading && (
           <div className="flex w-full h-full justify-center items-center py-20">
             <Loader2 className="size-24 animate-spin text-muted-foreground" />
@@ -58,11 +80,11 @@ const CertificatesPage = () => {
 
         {!isLoading && !isError && (
           <div className="animate-in fade-in duration-500">
-            <DataTableCertificates 
-              columns={tableColumns} 
-              data={certificates} 
-              onOpenModal={() => setOpen(true)} 
-              user={user} 
+            <DataTableCertificates
+              columns={tableColumns}
+              data={certificates}
+              onOpenModal={() => setOpen(true)}
+              user={user}
             />
           </div>
         )}
@@ -76,13 +98,18 @@ const CertificatesPage = () => {
         {/* DIALOG DE CARGA CORREGIDO */}
         <Dialog open={open} onOpenChange={setOpen}>
           {/* Eliminamos bg-slate-900 y border-slate-800 para usar variables del tema */}
-          <DialogContent className="sm:max-w-[480px] bg-background border-border shadow-lg">
+          <DialogContent
+            className="sm:max-w-[480px] bg-background border-border shadow-lg"
+            data-tour="cert-create-dialog"
+          >
             <DialogHeader>
               <DialogTitle className="text-center text-xl font-bold text-foreground">
-                {isManagement ? "Cargar Certificado a Empleado" : "Subir mi Certificado"}
+                {isManagement
+                  ? "Cargar Certificado a Empleado"
+                  : "Subir mi Certificado"}
               </DialogTitle>
             </DialogHeader>
-            
+
             {isManagement ? (
               <CreateCertificateForm onClose={() => setOpen(false)} />
             ) : (

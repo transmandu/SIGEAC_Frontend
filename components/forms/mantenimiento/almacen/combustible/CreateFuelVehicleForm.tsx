@@ -19,8 +19,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { FUEL_VEHICLE_TYPES } from "@/lib/fuel";
-import { FuelVehicleType } from "@/types";
+import { applyFuelValidationErrors, FUEL_PLATE_REGEX, FUEL_TYPES, FUEL_VEHICLE_TYPES } from "@/lib/fuel";
+import { FuelType, FuelVehicleType } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -28,9 +28,23 @@ import { z } from "zod";
 
 const formSchema = z
   .object({
-    plate: z.string().min(1, "La placa es requerida"),
-    type: z.enum(["car", "truck", "motorcycle", "other"], {
+    plate: z
+      .string()
+      .max(20, "Maximo 20 caracteres")
+      .optional()
+      .transform((value) => (value ? value.toUpperCase().replace(/[\s-]/g, "") : value))
+      .refine((value) => !value || FUEL_PLATE_REGEX.test(value), {
+        message: "Formato de placa invalido (ej: AB123CD, AB123C, ABC123 o A71BR6D)",
+      }),
+    brand: z.string().max(100).optional(),
+    model: z.string().max(100).optional(),
+    color: z.string().max(50).optional(),
+    type: z.enum(["car", "truck", "motorcycle", "crane", "mule", "other"], {
       required_error: "Debe seleccionar un tipo",
+    }),
+    type_other: z.string().max(100).optional(),
+    fuel_type: z.enum(["GASOLINE", "DIESEL"], {
+      required_error: "Debe seleccionar el tipo de combustible",
     }),
     responsible: z.string().optional(),
     tank_capacity_liters: z.coerce
@@ -47,6 +61,13 @@ const formSchema = z
     {
       message: "El saldo inicial no puede superar la capacidad",
       path: ["initial_balance_liters"],
+    },
+  )
+  .refine(
+    (data) => data.type !== "other" || !!data.type_other?.trim(),
+    {
+      message: "Debe especificar el tipo de vehiculo",
+      path: ["type_other"],
     },
   );
 
@@ -65,7 +86,12 @@ export function CreateFuelVehicleForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
       plate: "",
+      brand: "",
+      model: "",
+      color: "",
       type: "truck",
+      type_other: "",
+      fuel_type: "GASOLINE",
       responsible: "",
       tank_capacity_liters: 0,
       initial_balance_liters: 0,
@@ -74,29 +100,43 @@ export function CreateFuelVehicleForm({
     },
   });
 
+  const watchedType = form.watch("type");
+
   const onSubmit = async (values: FormValues) => {
-    await createFuelVehicle.mutateAsync({
-      ...values,
-      plate: values.plate.trim().toUpperCase(),
-      type: values.type as FuelVehicleType,
-      responsible: values.responsible?.trim() || null,
-      km_per_liter: values.km_per_liter || null,
-      initial_km: values.initial_km || null,
-    });
-    form.reset();
-    onClose();
+    try {
+      await createFuelVehicle.mutateAsync({
+        ...values,
+        plate: values.plate?.trim().toUpperCase() || null,
+        brand: values.brand?.trim() || null,
+        model: values.model?.trim() || null,
+        color: values.color?.trim() || null,
+        type: values.type as FuelVehicleType,
+        type_other:
+          values.type === "other" ? values.type_other?.trim() || null : null,
+        fuel_type: values.fuel_type as FuelType,
+        responsible: values.responsible?.trim() || null,
+        km_per_liter: values.km_per_liter || null,
+        initial_km: values.initial_km || null,
+      });
+      form.reset();
+      onClose();
+    } catch (error) {
+      applyFuelValidationErrors(error, (field, message) =>
+        form.setError(field as keyof FormValues, { message }),
+      );
+    }
   };
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <FormField
             control={form.control}
             name="plate"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Placa</FormLabel>
+                <FormLabel>Placa (opcional)</FormLabel>
                 <FormControl>
                   <Input
                     placeholder="Ej: A12BC3"
@@ -132,6 +172,91 @@ export function CreateFuelVehicleForm({
                     ))}
                   </SelectContent>
                 </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="fuel_type"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Combustible</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccione..." />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {FUEL_TYPES.map((fuelType) => (
+                      <SelectItem key={fuelType.value} value={fuelType.value}>
+                        {fuelType.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        {watchedType === "other" ? (
+          <FormField
+            control={form.control}
+            name="type_other"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Especificar tipo</FormLabel>
+                <FormControl>
+                  <Input placeholder="Ej: Montacargas" maxLength={100} {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        ) : null}
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <FormField
+            control={form.control}
+            name="brand"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Marca (opcional)</FormLabel>
+                <FormControl>
+                  <Input placeholder="Ej: Toyota" maxLength={100} {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="model"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Modelo (opcional)</FormLabel>
+                <FormControl>
+                  <Input placeholder="Ej: Hilux" maxLength={100} {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="color"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Color (opcional)</FormLabel>
+                <FormControl>
+                  <Input placeholder="Ej: Blanco" maxLength={50} {...field} />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}

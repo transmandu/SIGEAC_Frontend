@@ -9,12 +9,15 @@ import { PrimaryDataTable } from "./primary-data-table";
 import { secondary_columns } from "./secondary-columns";
 import { SecondaryDataTable } from "./secondary-data-table";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useTourContext } from "@/components/tour/TourProvider";
+import { unidadesSteps } from "@/components/tour/steps/ajustes/globales/unidades";
+import { useTour } from "@reactour/tour";
 
 const UnitsPage = () => {
   const { selectedCompany } = useCompanyStore();
-  const [activeTab, setActiveTab] = useState("primary");
+  const [manualTab, setManualTab] = useState("primary");
 
   const {
     data: primaryUnits,
@@ -30,13 +33,31 @@ const UnitsPage = () => {
 
   console.log("data from console log", secondaryUnits);
 
+  const { registerTour, unregisterTour } = useTourContext();
+  const { currentStep, isOpen } = useTour();
+  const activeTab = isOpen
+    ? currentStep >= 6
+      ? "secondary"
+      : "primary"
+    : manualTab;
+
+  useEffect(() => {
+    if (primaryUnits && primaryUnits.length > 0) {
+      registerTour("unidades", "Unidades", unidadesSteps);
+    }
+    return () => unregisterTour("unidades");
+  }, [registerTour, unregisterTour, primaryUnits]);
+
   if (primaryLoading || secondaryLoading) {
     return <LoadingPage />;
   }
 
   return (
     <ContentLayout title="Unidades">
-      <h1 className="text-5xl font-bold text-center mt-2">
+      <h1
+        className="text-5xl font-bold text-center mt-2"
+        data-tour="unidades-title"
+      >
         Control de Unidades
       </h1>
       <p className="text-sm text-muted-foreground text-center italic mt-2">
@@ -47,16 +68,26 @@ const UnitsPage = () => {
       <div className="flex justify-center items-center mt-6">
         <Tabs
           value={activeTab}
-          onValueChange={setActiveTab}
+          onValueChange={setManualTab}
           className="w-full max-w-6xl"
         >
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList
+            className="grid w-full grid-cols-2"
+            data-tour="unidades-tabs"
+          >
             <TabsTrigger value="primary">Unidades Primarias</TabsTrigger>
             <TabsTrigger value="secondary">Unidades Secundarias</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="primary" className="mt-4">
-            <div className="bg-card rounded-lg border p-4">
+          <TabsContent
+            value="primary"
+            className="mt-4 data-[state=inactive]:hidden"
+            forceMount
+          >
+            <div
+              className="bg-card rounded-lg border p-4"
+              data-tour="unidades-primary-section"
+            >
               <h2 className="text-2xl font-semibold mb-4">
                 Unidades Primarias
               </h2>
@@ -70,8 +101,15 @@ const UnitsPage = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="secondary" className="mt-4">
-            <div className="bg-card rounded-lg border p-4">
+          <TabsContent
+            value="secondary"
+            className="mt-4 data-[state=inactive]:hidden"
+            forceMount
+          >
+            <div
+              className="bg-card rounded-lg border p-4"
+              data-tour="unidades-secondary-section"
+            >
               <h2 className="text-2xl font-semibold mb-4">
                 Unidades Secundarias
               </h2>

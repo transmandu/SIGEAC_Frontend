@@ -7,11 +7,14 @@ import { Badge } from '@/components/ui/badge';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import { useGetRequisitionByOrderNumber } from '@/hooks/mantenimiento/compras/useGetRequisitionByOrderNumber';
 import { useCompanyStore } from '@/stores/CompanyStore';
-import { FileText, MessageSquare, Plane, UserCheck, UserPlus, CalendarDays } from 'lucide-react';
+import { FileText, MessageSquare, Plane, UserCheck, UserPlus, CalendarDays, Loader2 } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useAuth } from '@/contexts/AuthContext';
+import { useUpdateRequisitionStatus } from '@/actions/mantenimiento/compras/requisiciones/actions';
+import { cn } from '@/lib/utils';
 import RequisitionActions from './_components/RequisitionActions';
-import PriorityIndicator from './_components/PriorityIndicator';
 import MetaItem from './_components/MetaItem';
 import InfoSection from './_components/InfoSection';
 import ImageAttachment from './_components/ImageAttachment';
@@ -19,7 +22,62 @@ import ArticleCard from './_components/ArticleCard';
 import ImageViewer from './_components/ImageViewer';
 import RequisitionOutOfScope from './_components/RequisitionOutOfScope';
 import RequiredDocumentsSection from './_components/RequiredDocumentsSection';
-import { statusBadgeCls, requisitionStatusLabel, requisitionTypeLabel, formatSolicitudDate } from './_components/utils/uiHelpers';
+import { statusBadgeCls, requisitionStatusLabel, requisitionTypeLabel, formatSolicitudDate, priorityPageBadgeCls, priorityLabel } from './_components/utils/uiHelpers';
+
+const NEXT_STATUS: Record<string, string> = {
+  CREATED: 'RECEIVED',
+  RECEIVED: 'IN_PROGRESS',
+}
+
+const ADVANCE_TOOLTIP: Record<string, string> = {
+  CREATED: 'Marcar esta requisición como recibida',
+  RECEIVED: 'Iniciar proceso de atención / ejecución',
+}
+
+function StatusBadge({ status, id, onSuccess }: { status?: string; id?: number; onSuccess: () => void }) {
+  const { user } = useAuth();
+  const { selectedCompany } = useCompanyStore();
+  const { updateStatusRequisition } = useUpdateRequisitionStatus();
+
+  const nextStatus = NEXT_STATUS[status ?? ''];
+  const isClickable = !!nextStatus && !!selectedCompany && !!id;
+
+  const badge = (
+    <Badge
+      className={cn(
+        statusBadgeCls(status),
+        isClickable ? 'cursor-pointer' : 'cursor-default'
+      )}
+      onClick={() => {
+        if (!isClickable || updateStatusRequisition.isPending) return;
+        updateStatusRequisition.mutate(
+          {
+            id: id!,
+            data: { status: nextStatus, updated_by: `${user?.first_name} ${user?.last_name}` },
+            company: selectedCompany!.slug,
+          },
+          { onSuccess }
+        );
+      }}
+    >
+      {updateStatusRequisition.isPending && <Loader2 className="mr-1 size-3 animate-spin" />}
+      {requisitionStatusLabel(status)}
+    </Badge>
+  );
+
+  if (!isClickable) return badge;
+
+  return (
+    <TooltipProvider delayDuration={120}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className="inline-flex">{badge}</span>
+        </TooltipTrigger>
+        <TooltipContent>{ADVANCE_TOOLTIP[status ?? '']}</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+}
 
 // ── Página ────────────────────────────────────────────────────────────
 const RequisitionPage = () => {
@@ -134,9 +192,7 @@ const RequisitionPage = () => {
                     ESTADO
                   </span>
 
-                  <Badge className={statusBadgeCls(data?.status)}>
-                    {requisitionStatusLabel(data?.status)}
-                  </Badge>
+                  <StatusBadge status={data?.status} id={data?.id} onSuccess={refetch} />
                 </div>
 
                 <div className="flex flex-col items-center justify-start gap-1 min-w-[70px] sm:min-w-[80px]">
@@ -144,7 +200,9 @@ const RequisitionPage = () => {
                     PRIORIDAD
                   </span>
 
-                  <PriorityIndicator priority={data?.priority} />
+                  <div className={priorityPageBadgeCls(data?.priority)}>
+                    {priorityLabel(data?.priority)}
+                  </div>
                 </div>
 
               </div>
@@ -180,7 +238,7 @@ const RequisitionPage = () => {
               value={
                 data?.created_by
                   ? `${data.created_by.first_name} ${data.created_by.last_name}`.toUpperCase()
-                  : undefined
+                  : "SISTEMA"
               }
               icon={UserCheck}
             />
@@ -208,7 +266,7 @@ const RequisitionPage = () => {
         <div className="w-full space-y-4 sm:space-y-6">
 
           {/* GRID PRINCIPAL */}
-          <div className="grid grid-cols-1 xl:grid-cols-[1fr_1fr_auto] gap-4 sm:gap-5 items-start">
+          <div className="grid grid-cols-1 xl:grid-cols-[1fr_1fr_auto] gap-4 sm:gap-5 items-stretch">
 
             {/* JUSTIFICACIÓN */}
             <InfoSection
@@ -227,7 +285,7 @@ const RequisitionPage = () => {
             />
 
             {/* DOCUMENTOS REQUERIDOS POR ÍTEM */}
-            <div className="w-full xl:w-[220px] shrink-0">
+            <div className="w-full h-full xl:w-[220px] shrink-0">
               <RequiredDocumentsSection batches={batches} />
             </div>
           </div>

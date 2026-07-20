@@ -119,7 +119,7 @@ export function CreateClientForm({ onClose, onCreated }: FormProps) {
             control={form.control}
             name="dni_type"
             render={({ field }) => (
-              <FormItem>
+              <FormItem data-tour="clientes-crear-dni-type">
                 <FormLabel>Documento</FormLabel>
                 <Select
                   onValueChange={field.onChange}
@@ -143,7 +143,7 @@ export function CreateClientForm({ onClose, onCreated }: FormProps) {
             control={form.control}
             name="dni"
             render={({ field }) => (
-              <FormItem className="w-full">
+              <FormItem className="w-full" data-tour="clientes-crear-dni">
                 <FormLabel>DNI</FormLabel>
                 <FormControl>
                   <Input
@@ -161,7 +161,7 @@ export function CreateClientForm({ onClose, onCreated }: FormProps) {
             control={form.control}
             name="name"
             render={({ field }) => (
-              <FormItem className="w-full">
+              <FormItem className="w-full" data-tour="clientes-crear-name">
                 <FormLabel>Nombre</FormLabel>
                 <FormControl>
                   <Input placeholder="Ingresa el nombre" {...field} />
@@ -176,7 +176,7 @@ export function CreateClientForm({ onClose, onCreated }: FormProps) {
             control={form.control}
             name="phone"
             render={({ field }) => (
-              <FormItem className="w-full">
+              <FormItem className="w-full" data-tour="clientes-crear-phone">
                 <FormLabel>Teléfono</FormLabel>
                 <FormControl>
                   <Input placeholder="Ej: +584247000001" {...field} />
@@ -189,7 +189,7 @@ export function CreateClientForm({ onClose, onCreated }: FormProps) {
             control={form.control}
             name="email"
             render={({ field }) => (
-              <FormItem className="w-full">
+              <FormItem className="w-full" data-tour="clientes-crear-email">
                 <FormLabel>E-mail</FormLabel>
                 <FormControl>
                   <Input
@@ -208,7 +208,7 @@ export function CreateClientForm({ onClose, onCreated }: FormProps) {
             control={form.control}
             name="address"
             render={({ field }) => (
-              <FormItem className="w-full">
+              <FormItem className="w-full" data-tour="clientes-crear-address">
                 <FormLabel>Dirección</FormLabel>
                 <FormControl className="w-[420px]">
                   <Input placeholder="Ingresa la dirección" {...field} />
@@ -224,7 +224,7 @@ export function CreateClientForm({ onClose, onCreated }: FormProps) {
             control={form.control}
             name="authorizing"
             render={({ field }) => (
-              <FormItem className="w-full">
+              <FormItem className="w-full" data-tour="clientes-crear-authorizing">
                 <FormLabel>Tipo de Cliente</FormLabel>
                 <Select
                   onValueChange={field.onChange}
@@ -272,7 +272,7 @@ export function CreateClientForm({ onClose, onCreated }: FormProps) {
             )}
           />
         )}
-        <Button type="submit" disabled={createClient.isPending}>
+        <Button type="submit" data-tour="clientes-crear-submit" disabled={createClient.isPending}>
           {createClient.isPending ? "Enviando..." : "Enviar"}
         </Button>
       </form>

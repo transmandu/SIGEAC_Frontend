@@ -50,7 +50,7 @@ interface Props {
   isLoadingAircrafts?: boolean;
   workOrder: string | null;
   setWorkOrder: (v: string | null) => void;
-  workOrders?: { id: number; work_order: string; work_order_id: number | null }[];
+  workOrders?: { id: number; work_order: string; work_order_id: number | null; aircraft_id: number | null }[];
   isLoadingWorkOrders?: boolean;
   departmentId: string | null;
   setDepartmentId: (v: string | null) => void;
@@ -127,6 +127,11 @@ export function DispatchReportFilters({
   const [descriptionSearch, setDescriptionSearch] = useState("");
   const [modelSearch, setModelSearch] = useState("");
   const [brandSearch, setBrandSearch] = useState("");
+  const [aircraftSearch, setAircraftSearch] = useState("");
+  const [workOrderSearch, setWorkOrderSearch] = useState("");
+  const [departmentSearch, setDepartmentSearch] = useState("");
+  const [employeeSearch, setEmployeeSearch] = useState("");
+  const [thirdPartySearch, setThirdPartySearch] = useState("");
 
   // ================= FILTRO LOCAL POR CAMPO =================
   const [calendarMonth, setCalendarMonth] = useState<Date>(
@@ -188,6 +193,11 @@ export function DispatchReportFilters({
     });
     return Array.from(set);
   }, [articles]);
+
+  const filteredWorkOrders = useMemo(() => {
+    if (!aircraft) return workOrders;
+    return workOrders.filter((ot) => String(ot.aircraft_id) === String(aircraft));
+  }, [workOrders, aircraft]);
 
   const safeValue = (value: any) => {
     const stringValue = String(value ?? "").trim();
@@ -548,17 +558,51 @@ export function DispatchReportFilters({
                   Aeronave
                 </div>
 
-                <Select value={aircraft || "all"} onValueChange={v => setAircraft(v === "all" ? null : v)}>
+                <Select
+                  value={aircraft || "all"}
+                  onValueChange={(v) => {
+                    const next = v === "all" ? null : v;
+                    setAircraft(next);
+
+                    if (
+                      workOrder &&
+                      !workOrders.some(
+                        (ot) =>
+                          ot.work_order === workOrder &&
+                          (!next || String(ot.aircraft_id) === String(next))
+                      )
+                    ) {
+                      setWorkOrder(null);
+                    }
+                  }}
+                >
                   <SelectTrigger disabled={isLoadingAircrafts}>
                     <SelectValue placeholder="Seleccionar aeronave" />
                   </SelectTrigger>
                   <SelectContent>
+                    <div className="p-2">
+                      <Input
+                        value={aircraftSearch}
+                        onChange={(e) => setAircraftSearch(e.target.value)}
+                        onKeyDown={(e) => e.stopPropagation()}
+                        placeholder="Buscar aeronave..."
+                        className="h-9"
+                      />
+                    </div>
+
                     <SelectItem value="all">Todas</SelectItem>
-                    {(aircrafts ?? []).map(a => (
-                      <SelectItem key={a.id} value={a.id.toString()}>
-                        {a.acronym ?? `#${a.id}`}
-                      </SelectItem>
-                    ))}
+                    {(aircrafts ?? [])
+                      .filter((a) =>
+                        (a.acronym ?? `#${a.id}`)
+                          .toString()
+                          .toLowerCase()
+                          .includes(aircraftSearch.toLowerCase())
+                      )
+                      .map(a => (
+                        <SelectItem key={a.id} value={a.id.toString()}>
+                          {a.acronym ?? `#${a.id}`}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -576,12 +620,28 @@ export function DispatchReportFilters({
                     <SelectValue placeholder="Seleccionar OT" />
                   </SelectTrigger>
                   <SelectContent>
+                    <div className="p-2">
+                      <Input
+                        value={workOrderSearch}
+                        onChange={(e) => setWorkOrderSearch(e.target.value)}
+                        onKeyDown={(e) => e.stopPropagation()}
+                        placeholder="Buscar OT..."
+                        className="h-9"
+                      />
+                    </div>
+
                     <SelectItem value="all">Todas</SelectItem>
-                    {workOrders.map((ot) => (
-                      <SelectItem key={`ot-${ot.id}`} value={ot.work_order}>
-                        {ot.work_order}
-                      </SelectItem>
-                    ))}
+                    {filteredWorkOrders
+                      .filter((ot) =>
+                        ot.work_order
+                          .toLowerCase()
+                          .includes(workOrderSearch.toLowerCase())
+                      )
+                      .map((ot) => (
+                        <SelectItem key={`ot-${ot.id}`} value={ot.work_order}>
+                          {ot.work_order}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -599,12 +659,26 @@ export function DispatchReportFilters({
                       <SelectValue placeholder="Seleccionar departamento" />
                     </SelectTrigger>
                     <SelectContent>
+                      <div className="p-2">
+                        <Input
+                          value={departmentSearch}
+                          onChange={(e) => setDepartmentSearch(e.target.value)}
+                          onKeyDown={(e) => e.stopPropagation()}
+                          placeholder="Buscar departamento..."
+                          className="h-9"
+                        />
+                      </div>
+
                       <SelectItem value="all">Todos</SelectItem>
-                      {(departments ?? []).map(d => (
-                        <SelectItem key={d.id} value={d.id.toString()}>
-                          {d.name}
-                        </SelectItem>
-                      ))}
+                      {(departments ?? [])
+                        .filter((d) =>
+                          d.name.toLowerCase().includes(departmentSearch.toLowerCase())
+                        )
+                        .map(d => (
+                          <SelectItem key={d.id} value={d.id.toString()}>
+                            {d.name}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -619,12 +693,28 @@ export function DispatchReportFilters({
                       <SelectValue placeholder="Seleccionar empresa" />
                     </SelectTrigger>
                     <SelectContent>
+                      <div className="p-2">
+                        <Input
+                          value={employeeSearch}
+                          onChange={(e) => setEmployeeSearch(e.target.value)}
+                          onKeyDown={(e) => e.stopPropagation()}
+                          placeholder="Buscar empresa..."
+                          className="h-9"
+                        />
+                      </div>
+
                       <SelectItem value="all">Todas</SelectItem>
-                      {(authorizedEmployees ?? []).map(emp => (
-                        <SelectItem key={emp.id} value={emp.id.toString()}>
-                          {emp.employee_name} - {(emp.from_company_db ?? "").toUpperCase()}
-                        </SelectItem>
-                      ))}
+                      {(authorizedEmployees ?? [])
+                        .filter((emp) =>
+                          `${emp.employee_name} ${(emp.from_company_db ?? "").toUpperCase()}`
+                            .toLowerCase()
+                            .includes(employeeSearch.toLowerCase())
+                        )
+                        .map(emp => (
+                          <SelectItem key={emp.id} value={emp.id.toString()}>
+                            {emp.employee_name} - {(emp.from_company_db ?? "").toUpperCase()}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -639,12 +729,26 @@ export function DispatchReportFilters({
                       <SelectValue placeholder="Seleccionar terceros" />
                     </SelectTrigger>
                     <SelectContent>
+                      <div className="p-2">
+                        <Input
+                          value={thirdPartySearch}
+                          onChange={(e) => setThirdPartySearch(e.target.value)}
+                          onKeyDown={(e) => e.stopPropagation()}
+                          placeholder="Buscar terceros..."
+                          className="h-9"
+                        />
+                      </div>
+
                       <SelectItem value="all">Todos</SelectItem>
-                      {(thirdParties ?? []).map(tp => (
-                        <SelectItem key={tp.id} value={tp.id.toString()}>
-                          {tp.name}
-                        </SelectItem>
-                      ))}
+                      {(thirdParties ?? [])
+                        .filter((tp) =>
+                          tp.name.toLowerCase().includes(thirdPartySearch.toLowerCase())
+                        )
+                        .map(tp => (
+                          <SelectItem key={tp.id} value={tp.id.toString()}>
+                            {tp.name}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                 </div>

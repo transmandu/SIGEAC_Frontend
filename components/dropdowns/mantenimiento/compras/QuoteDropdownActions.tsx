@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useAuth } from "@/contexts/AuthContext"
 import { useCompanyStore } from "@/stores/CompanyStore"
 import {
   DropdownMenu,
@@ -16,16 +17,19 @@ import {
 } from "@/components/ui/tooltip"
 import { Button } from "@/components/ui/button"
 import {
+  AlertOctagon,
   ClipboardCheck,
   ClipboardX,
   FileDown,
   MoreHorizontal,
+  PackagePlus,
   Trash2
 } from "lucide-react"
 import type { Quote } from "@/types/purchase"
 // import { PDFDownloadLink } from "@react-pdf/renderer"
 import QuoteDropdownDialogs from "@/components/dialogs/mantenimiento/compras/QuoteDropdownDialogs"
 import PurchaseOrderMenuLink from "@/components/dropdowns/mantenimiento/compras/PurchaseOrderMenuLink"
+import CreateComplementaryQuoteDialog from "@/app/[company]/compras/(general)/cotizaciones_generales/[quote_number]/_components/CreateComplementaryQuoteDialog"
 
 const iconBase =
   "size-[18px] transition-all duration-200 ease-out group-hover:scale-110"
@@ -47,16 +51,28 @@ const itemBase = `
 `
 
 const QuoteDropdownActions = ({ quote }: { quote: Quote }) => {
+  const { user } = useAuth()
   const { selectedCompany } = useCompanyStore()
 
   const [openDropdown, setOpenDropdown] = useState(false)
   const [openReject, setOpenReject] = useState(false)
   const [openApprove, setOpenApprove] = useState(false)
   const [openDelete, setOpenDelete] = useState(false)
+  const [openCascadeDelete, setOpenCascadeDelete] = useState(false)
+  const [openComplementary, setOpenComplementary] = useState(false)
 
   const canDelete = quote.status !== "APPROVED"
   const canViewPO = quote.status === "APPROVED"
   const canApproveOrReject = quote.status === "PENDING"
+  const isSuperUser = (user?.roles?.map((role) => role.name) || []).includes("SUPERUSER")
+
+  // Cotización complementaria: solo sobre una original APROBADA con
+  // artículos generales cotizados. Registra la diferencia entre lo comprado
+  // realmente y lo amparado, sin editar los documentos ya pagados.
+  const canCreateComplementary =
+    quote.status === "APPROVED" &&
+    !quote.parent_quote_order &&
+    (quote.general_article_quote_order ?? []).some((i) => !i.is_not_quoted)
 
   const shouldFetchPO = canViewPO && !!selectedCompany?.slug && !!quote.id
 
@@ -187,6 +203,34 @@ const QuoteDropdownActions = ({ quote }: { quote: Quote }) => {
               </Tooltip>
             {/* </PDFDownloadLink> */}
 
+            {/* COMPLEMENTARY QUOTE */}
+            {canCreateComplementary && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span>
+                    <DropdownMenuItem
+                      asChild
+                      className="p-0 focus:bg-transparent"
+                    >
+                      <button
+                        onClick={() => {
+                          setOpenDropdown(false)
+                          setOpenComplementary(true)
+                        }}
+                        className={`${itemBase} text-violet-600`}
+                      >
+                        <PackagePlus className={iconBase} />
+                      </button>
+                    </DropdownMenuItem>
+                  </span>
+                </TooltipTrigger>
+
+                <TooltipContent>
+                  Crear cotización complementaria
+                </TooltipContent>
+              </Tooltip>
+            )}
+
             {/* PO LINK */}
             {canViewPO && selectedCompany?.slug && (
               <PurchaseOrderMenuLink
@@ -225,6 +269,34 @@ const QuoteDropdownActions = ({ quote }: { quote: Quote }) => {
                 </TooltipContent>
               </Tooltip>
             )}
+
+            {/* CASCADE DELETE (SUPERUSER) */}
+            {isSuperUser && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span>
+                    <DropdownMenuItem
+                      asChild
+                      className="p-0 focus:bg-transparent"
+                    >
+                      <button
+                        onClick={() => {
+                          setOpenDropdown(false)
+                          setOpenCascadeDelete(true)
+                        }}
+                        className={`${itemBase} text-red-700`}
+                      >
+                        <AlertOctagon className={iconBase} />
+                      </button>
+                    </DropdownMenuItem>
+                  </span>
+                </TooltipTrigger>
+
+                <TooltipContent>
+                  Eliminar en cascada (SuperUser)
+                </TooltipContent>
+              </Tooltip>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
 
@@ -236,7 +308,18 @@ const QuoteDropdownActions = ({ quote }: { quote: Quote }) => {
           setOpenReject={setOpenReject}
           openApprove={openApprove}
           setOpenApprove={setOpenApprove}
+          openCascadeDelete={openCascadeDelete}
+          setOpenCascadeDelete={setOpenCascadeDelete}
         />
+
+        {selectedCompany?.slug && (
+          <CreateComplementaryQuoteDialog
+            quote={quote}
+            company={selectedCompany.slug}
+            open={openComplementary}
+            onOpenChange={setOpenComplementary}
+          />
+        )}
       </>
     </TooltipProvider>
   )

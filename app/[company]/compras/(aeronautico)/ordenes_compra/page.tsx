@@ -17,11 +17,22 @@ import type { PurchaseOrder } from '@/types/purchase'
 import { isAeronauticalPurchaseOrder } from '@/lib/purchases/purchase-order-scope'
 import { DataTable } from '../../data-table'
 import { getColumns } from './columns'
-import PurchaseOrderSubRow from './_components/PurchaseOrderSubRow'
 import PurchaseOrderToolBar from './_components/PurchaseOrderToolBar'
+import GroupedPurchaseOrderTable from './_components/GroupedPurchaseOrderTable'
+import PurchaseOrderSplitView, { usePurchaseOrderPreview, usePurchaseOrderPreviewSelectedId } from '@/components/side-panels/PurchaseOrderSplitView'
 
 const PurchaseOrdersPage = () => {
+  return (
+    <PurchaseOrderSplitView>
+      <PurchaseOrdersPageContent />
+    </PurchaseOrderSplitView>
+  )
+}
+
+const PurchaseOrdersPageContent = () => {
   const { selectedCompany, selectedStation } = useCompanyStore()
+  const onPreview = usePurchaseOrderPreview()
+  const selectedPreviewId = usePurchaseOrderPreviewSelectedId()
 
   const {
     data: po,
@@ -34,6 +45,7 @@ const PurchaseOrdersPage = () => {
 
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState('ALL')
+  const [groupBy, setGroupBy] = useState('NONE')
 
   const deferredSearch = useDeferredValue(search)
 
@@ -60,8 +72,8 @@ const PurchaseOrdersPage = () => {
   }, [po, deferredSearch, status])
 
   const columns = useMemo(
-    () => getColumns(selectedCompany ?? undefined),
-    [selectedCompany]
+    () => getColumns(selectedCompany ?? undefined, onPreview ?? undefined, selectedPreviewId),
+    [selectedCompany, onPreview, selectedPreviewId]
   )
 
   return (
@@ -119,6 +131,8 @@ const PurchaseOrdersPage = () => {
             setSearch={setSearch}
             status={status}
             setStatus={setStatus}
+            groupBy={groupBy}
+            setGroupBy={setGroupBy}
           />
 
           <span className="text-xs text-muted-foreground tabular-nums">
@@ -127,16 +141,30 @@ const PurchaseOrdersPage = () => {
           </span>
         </div>
 
+        {groupBy === 'quote' || groupBy === 'vendor' ? (
+          <GroupedPurchaseOrderTable
+            data={filteredPO}
+            groupBy={groupBy}
+            renderTable={(rows) => (
+              <DataTable
+                columns={columns}
+                data={rows}
+                loading={isLoading}
+                emptyText="No se ha encontrado ningún resultado..."
+                overflowVisible
+                persistKey="ordenes_compra"
+              />
+            )}
+          />
+        ) : (
           <DataTable
             columns={columns}
             data={filteredPO}
-            renderSubRow={(row) => (
-              <PurchaseOrderSubRow row={row} />
-            )}
             loading={isLoading}
             emptyText="No se ha encontrado ningún resultado..."
             persistKey="ordenes_compra"
           />
+        )}
 
         {/* ERROR */}
         {isError && (

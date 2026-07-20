@@ -15,11 +15,41 @@ type Props = {
   setType: (value: string) => void
   priority: string
   setPriority: (value: string) => void
+  groupBy: string
+  setGroupBy: (value: string) => void
   placeholder?: string
 }
 
 const selectTriggerClass = `h-8 w-full pl-8 text-xs bg-white/80 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-700/60 transition-colors focus:ring-1 focus:ring-[#439A97]/40 data-[placeholder]:text-muted-foreground [&>span]:truncate`
 const selectContentClass = `border-slate-200/60 dark:border-slate-700/60`
+
+const GroupFilter = ({
+  groupBy,
+  setGroupBy,
+}: {
+  groupBy: string
+  setGroupBy: (value: string) => void
+}) => (
+  <div className="relative sm:w-44 sm:shrink-0">
+    <SlidersHorizontal className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 z-10 size-3.5 text-muted-foreground"/>
+
+    <Select value={groupBy} onValueChange={setGroupBy}>
+      <SelectTrigger className={selectTriggerClass}>
+        <SelectValue placeholder="Agrupar por" />
+      </SelectTrigger>
+
+      <SelectContent className={selectContentClass}>
+        <SelectItem value="NONE">
+          Sin agrupación
+        </SelectItem>
+
+        <SelectItem value="requested_by">
+          Solicitante
+        </SelectItem>
+      </SelectContent>
+    </Select>
+  </div>
+)
 
 const FilterSelects = ({
   status,
@@ -27,7 +57,9 @@ const FilterSelects = ({
   type,
   setType,
   priority,
-  setPriority
+  setPriority,
+  groupBy,
+  setGroupBy,
 }: {
   status: string
   setStatus: (value: string) => void
@@ -35,6 +67,8 @@ const FilterSelects = ({
   setType: (value: string) => void
   priority: string
   setPriority: (value: string) => void
+  groupBy: string
+  setGroupBy: (value: string) => void
 }) => (
   <>
     {/* STATUS */}
@@ -91,6 +125,9 @@ const FilterSelects = ({
         </SelectContent>
       </Select>
     </div>
+
+    {/* GROUP BY */}
+    <GroupFilter groupBy={groupBy} setGroupBy={setGroupBy} />
   </>
 )
 
@@ -103,6 +140,8 @@ const RequisitionToolBar = ({
   setType,
   priority,
   setPriority,
+  groupBy,
+  setGroupBy,
   placeholder = 'Buscar requisiciones...',
 }: Props) => {
   return (
@@ -144,6 +183,8 @@ const RequisitionToolBar = ({
               setType={setType}
               priority={priority}
               setPriority={setPriority}
+              groupBy={groupBy}
+              setGroupBy={setGroupBy}
             />
           </PopoverContent>
         </Popover>
@@ -158,6 +199,8 @@ const RequisitionToolBar = ({
           setType={setType}
           priority={priority}
           setPriority={setPriority}
+          groupBy={groupBy}
+          setGroupBy={setGroupBy}
         />
       </div>
 

@@ -1,12 +1,12 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { MoreHorizontal, Loader2, Pencil, Trash2 } from "lucide-react"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
+import { useState } from "react";
+import { MoreHorizontal, Loader2, Pencil, Trash2 } from "lucide-react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,14 +14,14 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,7 +31,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
+} from "@/components/ui/alert-dialog";
 import {
   Form,
   FormControl,
@@ -40,25 +40,30 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { useCompanyStore } from "@/stores/CompanyStore"
-import { useUpdateRetailer, useDeleteRetailer } from "@/actions/ajustes/globales/comercios/actions"
-import { Retailer } from "@/types"
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import {
+  useUpdateRetailer,
+  useDeleteRetailer,
+} from "@/actions/ajustes/globales/comercios/actions";
+import { Retailer } from "@/types";
 
 const formSchema = z.object({
-  name: z.string().min(2, { message: "El nombre debe tener al menos 2 carácteres." }),
+  name: z
+    .string()
+    .min(2, { message: "El nombre debe tener al menos 2 carácteres." }),
   address: z.string().optional(),
   phone: z.string().optional(),
-})
+});
 
 export function RetailerDropdownActions({ retailer }: { retailer: Retailer }) {
-  const { selectedCompany } = useCompanyStore()
-  const { updateRetailer } = useUpdateRetailer()
-  const { deleteRetailer } = useDeleteRetailer()
+  const { selectedCompany } = useCompanyStore();
+  const { updateRetailer } = useUpdateRetailer();
+  const { deleteRetailer } = useDeleteRetailer();
 
-  const [editOpen, setEditOpen] = useState(false)
-  const [deleteOpen, setDeleteOpen] = useState(false)
+  const [editOpen, setEditOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -67,7 +72,7 @@ export function RetailerDropdownActions({ retailer }: { retailer: Retailer }) {
       address: retailer.address ?? "",
       phone: retailer.phone ?? "",
     },
-  })
+  });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
@@ -75,28 +80,30 @@ export function RetailerDropdownActions({ retailer }: { retailer: Retailer }) {
         id: retailer.id,
         ...values,
         company: selectedCompany!.slug,
-      })
-    } catch (error) {
-    }
-    setEditOpen(false)
-  }
+      });
+    } catch (error) {}
+    setEditOpen(false);
+  };
 
   const onDelete = async () => {
     try {
       await deleteRetailer.mutateAsync({
         id: retailer.id,
         company: selectedCompany!.slug,
-      })
-    } catch (error) {
-    }
-    setDeleteOpen(false)
-  }
+      });
+    } catch (error) {}
+    setDeleteOpen(false);
+  };
 
   return (
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="h-8 w-8 p-0">
+          <Button
+            variant="ghost"
+            className="h-8 w-8 p-0"
+            data-tour="comercios-actions"
+          >
             <span className="sr-only">Abrir menú</span>
             <MoreHorizontal className="h-4 w-4" />
           </Button>
@@ -121,7 +128,9 @@ export function RetailerDropdownActions({ retailer }: { retailer: Retailer }) {
         <DialogContent className="sm:max-w-[490px]">
           <DialogHeader>
             <DialogTitle>Editar Comercio</DialogTitle>
-            <DialogDescription>Actualice la información del comercio.</DialogDescription>
+            <DialogDescription>
+              Actualice la información del comercio.
+            </DialogDescription>
           </DialogHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -133,9 +142,14 @@ export function RetailerDropdownActions({ retailer }: { retailer: Retailer }) {
                     <FormItem className="w-full">
                       <FormLabel>Nombre del Comercio</FormLabel>
                       <FormControl>
-                        <Input placeholder="EJ: Ferretería EPA, Mercado Libre, etc..." {...field} />
+                        <Input
+                          placeholder="EJ: Ferretería EPA, Mercado Libre, etc..."
+                          {...field}
+                        />
                       </FormControl>
-                      <FormDescription>Tienda física o sitio en línea donde se compra.</FormDescription>
+                      <FormDescription>
+                        Tienda física o sitio en línea donde se compra.
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -172,7 +186,11 @@ export function RetailerDropdownActions({ retailer }: { retailer: Retailer }) {
                 disabled={updateRetailer?.isPending}
                 type="submit"
               >
-                {updateRetailer?.isPending ? <Loader2 className="size-4 animate-spin" /> : <p>Guardar cambios</p>}
+                {updateRetailer?.isPending ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <p>Guardar cambios</p>
+                )}
               </Button>
             </form>
           </Form>
@@ -185,24 +203,30 @@ export function RetailerDropdownActions({ retailer }: { retailer: Retailer }) {
           <AlertDialogHeader>
             <AlertDialogTitle>¿Eliminar este comercio?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta acción no se puede deshacer. Se eliminará <span className="font-semibold">{retailer.name}</span> del registro de comercios.
+              Esta acción no se puede deshacer. Se eliminará{" "}
+              <span className="font-semibold">{retailer.name}</span> del
+              registro de comercios.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               onClick={(e) => {
-                e.preventDefault()
-                onDelete()
+                e.preventDefault();
+                onDelete();
               }}
               disabled={deleteRetailer?.isPending}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {deleteRetailer?.isPending ? <Loader2 className="size-4 animate-spin" /> : "Eliminar"}
+              {deleteRetailer?.isPending ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                "Eliminar"
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </>
-  )
+  );
 }

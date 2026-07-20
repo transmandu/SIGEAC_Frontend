@@ -135,7 +135,18 @@ function DestinationFieldsRow({
     handleGeneralArticleChange(index, "third_party_id", undefined);
   };
 
-  const selectedDepartment = departments?.find((d) => d.id.toString() === article.department_id);
+  // Departments come back as a tree (each with nested `descendants`), so the
+  // selector must flatten it to let the user pick any department, not just
+  // the top-level ones.
+  const flattenDepartments = (departments: Department[]): Department[] =>
+    departments.flatMap((department) => [
+      department,
+      ...flattenDepartments(department.descendants ?? []),
+    ]);
+
+  const allDepartments = departments ? flattenDepartments(departments) : [];
+
+  const selectedDepartment = allDepartments.find((d) => d.id.toString() === article.department_id);
   const selectedEmployee = destinationEmployees?.find((e) => e.id.toString() === article.employee_id);
   const authorizedOrThirdPartyValue = getAuthorizedOrThirdPartyValue(article);
   const authorizedOrThirdPartyLabel = getAuthorizedOrThirdPartyLabel(article);
@@ -216,7 +227,7 @@ function DestinationFieldsRow({
                   </CommandGroup>
                 )}
                 <CommandGroup>
-                  {departments?.map((department) => (
+                  {allDepartments.map((department) => (
                     <CommandItem
                       value={`${department.id} ${department.name}`}
                       key={department.id}
@@ -329,7 +340,7 @@ function DestinationFieldsRow({
           </PopoverTrigger>
           <PopoverContent className="p-0" matchTriggerWidth>
             <Command>
-              <CommandInput placeholder="Busque un autorizado o tercero..." />
+              <CommandInput placeholder="Busque un autorizado externo o tercero..." />
               <CommandList>
                 <CommandEmpty className="text-sm p-2 text-center text-muted-foreground">
                   No se han encontrado resultados.
@@ -341,7 +352,7 @@ function DestinationFieldsRow({
                     </CommandItem>
                   </CommandGroup>
                 )}
-                <CommandGroup heading="--- Autorizados ---">
+                <CommandGroup heading="--- Autorizados externos ---">
                   {authorizedEmployees?.map((authorizedEmployee) => {
                     const value = `${AUTH_PREFIX}${authorizedEmployee.id}`;
                     return (
