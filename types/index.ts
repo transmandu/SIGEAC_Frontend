@@ -266,7 +266,7 @@ export interface LowStockConsumableArticle extends Article {
     quantity: number;
     primary_unit_id?: number;
   };
-  batch: Pick<Batch, "id" | "name" | "min_quantity">;
+  batch: Pick<Batch, "id" | "name" | "min_quantity" | "unit">;
 }
 
 export type Convertion = {
