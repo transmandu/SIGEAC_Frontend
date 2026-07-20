@@ -90,7 +90,6 @@ export const useDeleteVoluntaryReport = () => {
   const queryClient = useQueryClient();
 
   const deleteMutation = useMutation({
-    mutationKey: ["voluntary-reports"],
     mutationFn: async ({
       company,
       id,
@@ -98,14 +97,10 @@ export const useDeleteVoluntaryReport = () => {
       company: string | null;
       id: string | number;
     }) => {
-      await axiosInstance.delete(`/${company}/aeronautical/sms/voluntary-reports/${id}`);
+      await axiosInstance.delete(`/${company}/sms/aeronautical/voluntary-reports/${id}`);
     },
-    onSuccess: (_, data) => {
-      queryClient.invalidateQueries({
-        queryKey: ["danger-identifications", data.company],
-      });
-      queryClient.invalidateQueries({ queryKey: ["voluntary-reports"] });
-      queryClient.invalidateQueries({ queryKey: ["analysis"] });
+    onSuccess: (_, company) => {
+      queryClient.invalidateQueries({ queryKey: ["voluntary-reports", company] });
       toast.success("¡Eliminado!", {
         description: `¡El reporte ha sido eliminada correctamente!`,
       });
