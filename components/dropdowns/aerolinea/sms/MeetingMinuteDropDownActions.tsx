@@ -169,18 +169,18 @@ const MeetingMinuteDropDownActions = ({
 
       {/* DIALOGO DE EDITAR */}
       <Dialog open={openEdit} onOpenChange={setOpenEdit}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="w-[98vw] max-w-3xl max-h-[90vh] overflow-y-auto p-2 md:p-6">
           <DialogHeader>
             <DialogTitle className="text-center"></DialogTitle>
             <DialogDescription className="text-center p-2 mb-0 pb-0"></DialogDescription>
-
-            <CreateMeetingMinuteForm
-              key={openEdit ? meetingMinute.id : "closed"}
-              isEditing={true}
-              initialData={meetingMinute}
-              onClose={() => setOpenEdit(false)}
-            />
           </DialogHeader>
+
+          <CreateMeetingMinuteForm
+            key={openEdit ? meetingMinute.id : "closed"}
+            isEditing={true}
+            initialData={meetingMinute}
+            onClose={() => setOpenEdit(false)}
+          />
         </DialogContent>
       </Dialog>
     </>

@@ -264,7 +264,7 @@ export function CreateMeetingMinuteForm({
                 Información de la Reunión
               </span>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <FormField
                   control={form.control}
                   name="date"
