@@ -2,10 +2,11 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { useAuth } from "@/contexts/AuthContext"
 import { useCompanyStore } from "@/stores/CompanyStore"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { ClipboardCheck, ClipboardX, Trash2, FileDown, PackagePlus } from "lucide-react"
+import { AlertOctagon, ClipboardCheck, ClipboardX, Trash2, FileDown, PackagePlus } from "lucide-react"
 import QuoteDropdownDialogs from "@/components/dialogs/mantenimiento/compras/QuoteDropdownDialogs"
 import type { Quote } from "@/types/purchase"
 import PurchaseOrderLinkButton from "@/components/dropdowns/mantenimiento/compras/PurchaseOrderLinkButton"
@@ -36,11 +37,13 @@ export default function QuoteActions({
   onSuccessUpdate?: () => Promise<any>
 }) {
   const router = useRouter()
+  const { user } = useAuth()
   const { selectedCompany } = useCompanyStore()
 
   const [openApprove, setOpenApprove] = useState(false)
   const [openReject, setOpenReject] = useState(false)
   const [openDelete, setOpenDelete] = useState(false)
+  const [openCascadeDelete, setOpenCascadeDelete] = useState(false)
   const [openComplementary, setOpenComplementary] = useState(false)
 
   const status = quote.status
@@ -51,6 +54,7 @@ export default function QuoteActions({
 
   const canAct = isPending
   const canDelete = !isApproved
+  const isSuperUser = (user?.roles?.map((role) => role.name) || []).includes("SUPERUSER")
 
   // Cotización complementaria: solo sobre una original APROBADA con
   // artículos generales cotizados. Registra la diferencia entre lo comprado
@@ -159,6 +163,23 @@ export default function QuoteActions({
           </Tooltip>
         )}
 
+        {/* CASCADE DELETE (SUPERUSER) */}
+        {isSuperUser && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setOpenCascadeDelete(true)}
+                className={`${itemBase} text-red-700`}
+              >
+                <AlertOctagon className={iconBase} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Eliminar en cascada (SuperUser)</TooltipContent>
+          </Tooltip>
+        )}
+
         {/* PO LINK */}
         {isApproved && selectedCompany?.slug && (
           <PurchaseOrderLinkButton
@@ -179,6 +200,8 @@ export default function QuoteActions({
           setOpenReject={setOpenReject}
           openDelete={openDelete}
           setOpenDelete={setOpenDelete}
+          openCascadeDelete={openCascadeDelete}
+          setOpenCascadeDelete={setOpenCascadeDelete}
           onSuccessUpdate={onSuccessUpdate}
           onSuccessDelete={() => {
             router.push(`/${selectedCompany.slug}/compras/cotizaciones_generales`)

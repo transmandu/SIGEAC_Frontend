@@ -195,6 +195,43 @@ export const useRegisterGeneralArticlesDelivery = () => {
   }
 }
 
+// Solo SUPERUSER (ver gating en el dropdown de acciones). Elimina la orden de
+// compra completa sin importar su estado: si ya generó Articles (aeronáutico)
+// o confirmó un GeneralArticleIntake (general), revierte ese inventario en
+// vez de bloquear la operación.
+export const useCascadeDeletePurchaseOrder = () => {
+
+  const queryClient = useQueryClient()
+
+  const cascadeDeleteMutation = useMutation({
+      mutationFn: async ({id, company}: {id: number, company: string}) => {
+          await axiosInstance.delete(`/${company}/purchase-order/${id}/cascade`)
+        },
+      onSuccess: () => {
+          queryClient.invalidateQueries({queryKey: ['purchase-orders']})
+          queryClient.invalidateQueries({queryKey: ['purchase-order'], exact: false})
+          queryClient.invalidateQueries({queryKey: ['quotes']})
+          queryClient.invalidateQueries({queryKey: ['quote'], exact: false})
+          queryClient.invalidateQueries({queryKey: ['requisitions-orders']})
+          queryClient.invalidateQueries({queryKey: ['requisition-order'], exact: false})
+          queryClient.invalidateQueries({queryKey: ['general-article-intakes'], exact: false})
+          toast.success("¡Eliminada en cascada!", {
+              description: `La orden de compra y todo su inventario asociado fue eliminado, revirtiendo el stock correspondiente.`
+          })
+        },
+      onError: (error: any) => {
+          toast.error("Oops!", {
+            description: error?.response?.data?.message || "¡Hubo un error al eliminar en cascada la orden de compra!"
+        })
+        },
+      }
+  )
+
+  return {
+    cascadeDeletePurchaseOrder: cascadeDeleteMutation,
+  }
+}
+
 export const useMarkPurchaseOrderAsCompleted = () => {
 
   const queryClient = useQueryClient()

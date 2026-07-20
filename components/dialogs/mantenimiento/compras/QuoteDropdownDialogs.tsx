@@ -1,6 +1,7 @@
 "use client"
 
 import {
+  useCascadeDeleteQuote,
   useDeleteQuote,
   useUpdateQuoteStatus
 } from "@/actions/mantenimiento/compras/cotizaciones/actions"
@@ -10,6 +11,7 @@ import {
 import { useCompanyStore } from "@/stores/CompanyStore"
 import type { Quote } from "@/types/purchase"
 import {
+  AlertOctagon,
   AlertTriangle,
   ClipboardCheck,
   ClipboardX,
@@ -81,6 +83,8 @@ type Props = {
   setOpenApprove: (open: boolean) => void
   openDelete: boolean
   setOpenDelete: (open: boolean) => void
+  openCascadeDelete: boolean
+  setOpenCascadeDelete: (open: boolean) => void
   onSuccessUpdate?: () => void
   onSuccessDelete?: () => void
 }
@@ -93,6 +97,8 @@ const QuoteDropdownDialogs = ({
   setOpenApprove,
   openDelete,
   setOpenDelete,
+  openCascadeDelete,
+  setOpenCascadeDelete,
   onSuccessUpdate,
   onSuccessDelete
 }: Props) => {
@@ -101,6 +107,7 @@ const QuoteDropdownDialogs = ({
   const { updateStatusQuote } = useUpdateQuoteStatus()
   const { createPurchaseOrder } = useCreatePurchaseOrder()
   const { deleteQuote } = useDeleteQuote()
+  const { cascadeDeleteQuote } = useCascadeDeleteQuote()
 
   const [Observation, setObservation] = useState("")
 
@@ -162,8 +169,77 @@ const QuoteDropdownDialogs = ({
     onSuccessDelete?.()
   }
 
+  const handleCascadeDelete = async () => {
+    await cascadeDeleteQuote.mutateAsync({
+      id: quote.id,
+      company: selectedCompany.slug
+    })
+
+    setOpenCascadeDelete(false)
+
+    onSuccessDelete?.()
+  }
+
   return (
     <>
+    {/* =========================
+        CASCADE DELETE (SUPERUSER)
+    ========================= */}
+
+    <Dialog open={openCascadeDelete} onOpenChange={setOpenCascadeDelete}>
+      <DialogContent className={dialogClass}>
+        <DialogHeader className={header}>
+          <div className={iconBase("red")}>
+            <AlertOctagon className="size-5" />
+          </div>
+
+          <DialogTitle className={title}>
+            Eliminar cotización en cascada
+          </DialogTitle>
+
+          <DialogDescription className={description}>
+            La cotización{" "}
+            <span className="font-medium text-foreground">
+              {quote.quote_number}
+            </span>{" "}
+            y toda su cadena serán eliminadas permanentemente.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className={warningBox("red")}>
+          <AlertTriangle className="size-4 mt-[2px]" />
+
+          <div>
+            Esta acción es <b>irreversible</b>. Se eliminarán también sus cotizaciones complementarias
+            y cualquier orden de compra generada a partir de ellas, revirtiendo el inventario (artículos
+            y stock) que ya se haya afectado, sin importar el estado en que se encuentren.
+          </div>
+        </div>
+
+        <div className={footer}>
+          <Button
+            variant="outline"
+            onClick={() => setOpenCascadeDelete(false)}
+            className={cancelBtn}
+          >
+            Cancelar
+          </Button>
+
+          <Button
+            onClick={handleCascadeDelete}
+            disabled={cascadeDeleteQuote.isPending}
+            className={dangerBtn}
+          >
+            {cascadeDeleteQuote.isPending && (
+              <Loader2 className="mr-2 size-4 animate-spin" />
+            )}
+
+            Eliminar en cascada
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+
     {/* =========================
         DELETE
     ========================= */}

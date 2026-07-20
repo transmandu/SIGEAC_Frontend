@@ -2,11 +2,12 @@
 
 import { useState } from "react"
 import type { PurchaseOrder } from "@/types/purchase"
+import { useAuth } from "@/contexts/AuthContext"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 // import { PDFDownloadLink } from "@react-pdf/renderer"
 import { Button } from "@/components/ui/button"
-import { ClipboardCheck, FileDown, MoreHorizontal, Receipt, Wallet } from "lucide-react"
+import { AlertOctagon, ClipboardCheck, FileDown, MoreHorizontal, Receipt, Wallet } from "lucide-react"
 import PurchaseOrderDropdownDialogs from "@/components/dialogs/mantenimiento/compras/PurchaseOrderDropdownDialogs"
 import InvoicePreviewDialog from "@/components/dialogs/mantenimiento/compras/InvoicePreviewDialog"
 import { useCompanyStore } from "@/stores/CompanyStore"
@@ -17,15 +18,18 @@ const itemBase =
   `group relative flex items-center justify-center size-9 rounded-xl transition-all duration-200 ease-out hover:bg-muted hover:shadow-sm active:scale-95`
 
 const PurchaseOrderDropdownActions = ({ po }: { po: PurchaseOrder }) => {
+  const { user } = useAuth()
   const { selectedCompany } = useCompanyStore()
   const [openDropdown, setOpenDropdown] = useState(false)
   const [openApprove, setOpenApprove] = useState(false)
   const [openInvoice, setOpenInvoice] = useState(false)
+  const [openCascadeDelete, setOpenCascadeDelete] = useState(false)
 
   const canPay = po.status === "PENDING"
   const canComplete = po.status === "PAID"
   const canApprove = canPay || canComplete
   const hasInvoice = !!po.invoice
+  const isSuperUser = (user?.roles?.map((role) => role.name) || []).includes("SUPERUSER")
 
   return (
     <TooltipProvider delayDuration={120}>
@@ -142,6 +146,37 @@ const PurchaseOrderDropdownActions = ({ po }: { po: PurchaseOrder }) => {
                   </TooltipContent>
                 </Tooltip>
               {/* </PDFDownloadLink> */}
+
+              {/* CASCADE DELETE (SUPERUSER) */}
+              {isSuperUser && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span>
+                      <DropdownMenuItem
+                        asChild
+                        className="p-0 focus:bg-transparent"
+                      >
+                        <button
+                          onClick={() => {
+                            setOpenDropdown(false)
+                            setOpenCascadeDelete(true)
+                          }}
+                          className={`
+                            ${itemBase}
+                            text-red-700
+                          `}
+                        >
+                          <AlertOctagon className={iconBase} />
+                        </button>
+                      </DropdownMenuItem>
+                    </span>
+                  </TooltipTrigger>
+
+                  <TooltipContent>
+                    Eliminar en cascada (SuperUser)
+                  </TooltipContent>
+                </Tooltip>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
 
@@ -149,6 +184,8 @@ const PurchaseOrderDropdownActions = ({ po }: { po: PurchaseOrder }) => {
           po={po}
           openApprove={openApprove}
           setOpenApprove={setOpenApprove}
+          openCascadeDelete={openCascadeDelete}
+          setOpenCascadeDelete={setOpenCascadeDelete}
         />
 
         {hasInvoice && selectedCompany && (
