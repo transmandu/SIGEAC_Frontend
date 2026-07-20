@@ -5,12 +5,8 @@ import { useRouter } from "next/navigation";
 
 import CloseVoluntaryReportForm from "@/components/forms/mantenimiento/sms/CloseVoluntaryReportForm";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { getResult } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useState } from "react";
@@ -45,7 +41,6 @@ export function VoluntaryReportDropdownActions({ report, kind }: ReportDetailAct
     (closeResult === "TOLERABLE" || closeResult === "ACEPTABLE")
   );
 
-  console.log('can close report', canCloseReport, { mitigationAnalysis, closeResult, reportStatus: report.status });
   const handleAccept = async () => {
     const value = {
       company: selectedCompany!.slug,
@@ -55,12 +50,10 @@ export function VoluntaryReportDropdownActions({ report, kind }: ReportDetailAct
     setOpenAccept(false);
   };
 
-
   const href =
     kind === "RVP"
       ? `/${selectedCompany?.slug}/sms/aeronautical/gestion_de_riesgos/reportes/voluntarios/${report.id}`
       : `/${selectedCompany?.slug}/sms/aeronautical/gestion_de_riesgos/reportes/obligatorios/${report.id}`;
-
 
   const handleDelete = async (id: number | string) => {
     const value = {
@@ -70,50 +63,86 @@ export function VoluntaryReportDropdownActions({ report, kind }: ReportDetailAct
     await deleteVoluntaryReport.mutateAsync(value);
     setOpenDelete(false);
   };
+
   return (
     <>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="h-8 w-8 p-0">
-            <span className="sr-only">Abrir acciones</span>
-            <MoreHorizontal className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="min-w-40">
-          <DropdownMenuItem
-            onClick={() => {
-              router.push(href);
-            }}
-          >
-            <EyeIcon className="mr-2 h-4 w-4" />
-            Ver detalle
-          </DropdownMenuItem>
+      <TooltipProvider>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="ghost" className="h-8 w-8 p-0">
+              <span className="sr-only">Abrir acciones</span>
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent align="end" className="w-auto p-2 flex flex-row gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => router.push(href)}
+            >
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <EyeIcon className="h-4 w-4" />
+                </TooltipTrigger>
+                <TooltipContent side="bottom">Ver detalle</TooltipContent>
+              </Tooltip>
+            </Button>
 
-          {report &&
-            (report.status === "ABIERTO" ||
-              report.status === "EN_PROCESO") && (
-              <DropdownMenuItem onClick={() => setOpenDelete(true)}>
-                <Trash2 className="size-5 text-red-500" />
-                <p className="pl-2">Eliminar</p>
-              </DropdownMenuItem>
+            {report &&
+              (report.status === "ABIERTO" ||
+                report.status === "EN_PROCESO") && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => setOpenDelete(true)}
+                >
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Trash2 className="h-4 w-4 text-red-500" />
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom">Eliminar</TooltipContent>
+                  </Tooltip>
+                </Button>
+              )}
+
+            {report.status === "EN_PROCESO" && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => setOpenAccept(true)}
+                >
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <CheckCheck className="h-4 w-4 text-green-400" />
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom">Aceptar</TooltipContent>
+                  </Tooltip>
+                </Button>
             )}
 
-          {report.status === 'EN_PROCESO' &&
-            (<DropdownMenuItem onClick={() => setOpenAccept(true)}>
-              <CheckCheck className="size-5 text-green-400" />
-              <p className="pl-2">Aceptar</p>
-            </DropdownMenuItem>)}
+            {canCloseReport && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => setOpenCloseReport(true)}
+                >
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <LockKeyhole className="h-4 w-4" />
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom">Cerrar reporte</TooltipContent>
+                  </Tooltip>
+                </Button>
+            )}
+          </PopoverContent>
+        </Popover>
+      </TooltipProvider>
 
-          {canCloseReport && (
-            <DropdownMenuItem onClick={() => setOpenCloseReport(true)}>
-              <LockKeyhole className="size-5" />
-              <p className="pl-2">Cerrar reporte</p>
-            </DropdownMenuItem>
-          )}
-        </DropdownMenuContent>
-      </DropdownMenu>
-
-      {/* Delete dialog */}
+      {/* Accept dialog */}
       <Dialog open={openAccept} onOpenChange={setOpenAccept}>
         <DialogContent>
           <DialogHeader>
@@ -146,6 +175,7 @@ export function VoluntaryReportDropdownActions({ report, kind }: ReportDetailAct
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
       {/* Delete dialog */}
       <Dialog open={openDelete} onOpenChange={setOpenDelete}>
         <DialogContent>
@@ -180,6 +210,7 @@ export function VoluntaryReportDropdownActions({ report, kind }: ReportDetailAct
         </DialogContent>
       </Dialog>
 
+      {/* Close report dialog */}
       <Dialog open={openCloseReport} onOpenChange={setOpenCloseReport}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
