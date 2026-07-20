@@ -91,7 +91,7 @@ export function VoluntaryReportDropdownActions({ report, kind }: ReportDetailAct
 
           {report &&
             (report.status === "ABIERTO" ||
-              report.status === "PROCESO") && (
+              report.status === "EN_PROCESO") && (
               <DropdownMenuItem onClick={() => setOpenDelete(true)}>
                 <Trash2 className="size-5 text-red-500" />
                 <p className="pl-2">Eliminar</p>

@@ -99,7 +99,7 @@ export const useDeleteVoluntaryReport = () => {
     }) => {
       await axiosInstance.delete(`/${company}/sms/aeronautical/voluntary-reports/${id}`);
     },
-    onSuccess: (_, company) => {
+    onSuccess: (_, { company }) => {
       queryClient.invalidateQueries({ queryKey: ["voluntary-reports", company] });
       toast.success("¡Eliminado!", {
         description: `¡El reporte ha sido eliminada correctamente!`,
