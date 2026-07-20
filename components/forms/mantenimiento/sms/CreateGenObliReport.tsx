@@ -62,16 +62,17 @@ export function CreateGenObliReport({
     const FormSchema = z
         .object({
             incident_location_id: z.string().min(1, "Debes seleccionar una ubicación"),
-            report_location_id: z.string().min(1, "Debes seleccionar una ubicación"), description: z.string(),
+            report_location_id: z.string().min(1, "Debes seleccionar una ubicación"),
+            description: z.string().min(1, "La descripción es obligatoria"),
             name: z.string().min(1, "El nombre es requerido"),
             last_name: z.string().min(1, "El apellido es requerido"),
             phone: z.string().optional(),
             email: z.string().email("Formato de correo inválido").optional().or(z.literal("")),
             report_date: z
-                .date()
+                .date({ required_error: "La fecha de reporte es obligatoria" })
                 .refine((val) => !isNaN(val.getTime()), { message: "Fecha inválida" }),
             incident_date: z
-                .date()
+                .date({ required_error: "La fecha de incidente es obligatoria" })
                 .refine((val) => !isNaN(val.getTime()), { message: "Fecha inválida" }),
             incident_time: z.string().regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, {
                 message: "Formato de hora inválido (HH:mm)",

@@ -58,9 +58,9 @@ const FormSchema = z.object({
     // possible_consequences: z.string().min(1, "Debe agregar al menos una consecuencia"),
     // consequence_to_evaluate: z.string().min(1, "Seleccione la consecuencia principal"),
     analysis_of_root_causes: z.string().min(1, "Debe agregar al menos un análisis"),
-    report_type: z.string(),
-    report_number: z.string(),
-    location_id: z.string(),
+    report_type: z.string().min(1, "El tipo de reporte es obligatorio"),
+    report_number: z.string().min(1, "El número de reporte es obligatorio"),
+    location_id: z.string().min(1, "Seleccione una ubicación"),
 
 });
 

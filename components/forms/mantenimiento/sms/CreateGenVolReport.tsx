@@ -68,16 +68,16 @@ export function CreateGenVolReport({
 
     const FormSchema = z.object({
         identification_date: z
-            .date()
+            .date({ required_error: "La fecha de identificación es obligatoria" })
             .default(() => new Date())
-            .refine((val) => !isNaN(val.getTime()), { message: "Invalid Date" }),
+            .refine((val) => !isNaN(val.getTime()), { message: "Fecha inválida" }),
         report_date: z
-            .date()
+            .date({ required_error: "La fecha de reporte es obligatoria" })
             .default(() => new Date())
-            .refine((val) => !isNaN(val.getTime()), { message: "Invalid Date" }),
+            .refine((val) => !isNaN(val.getTime()), { message: "Fecha inválida" }),
 
-        location_id: z.string(),
-        identification_area: z.string(),
+        location_id: z.string().min(1, "Seleccione una ubicación"),
+        identification_area: z.string().min(1, "Seleccione el área de identificación"),
         description: z
             .string()
             .min(3, {
