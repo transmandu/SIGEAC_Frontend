@@ -87,13 +87,13 @@ export default function CloseVoluntaryReportForm({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
         <FormField
           control={form.control}
           name="close_date"
           render={({ field }) => (
             <FormItem className="flex flex-col">
-              <FormLabel>Fecha de cierre</FormLabel>
+              <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Fecha de cierre</FormLabel>
               <Popover>
                 <PopoverTrigger asChild>
                   <FormControl>
@@ -146,7 +146,7 @@ export default function CloseVoluntaryReportForm({
           name="management_doc"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Documento de gestión (PDF)</FormLabel>
+              <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Documento de gestión (PDF)</FormLabel>
               <FormControl>
                 <Input
                   type="file"
@@ -177,7 +177,7 @@ export default function CloseVoluntaryReportForm({
           </Button>
           <Button
             type="submit"
-            className="sm:min-w-52"
+            className="w-full h-10"
             disabled={closeVoluntaryReport.isPending}
           >
             {closeVoluntaryReport.isPending ? (

@@ -230,27 +230,27 @@ export function CreateGenObliReport({
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col space-y-6 w-full pb-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col space-y-5 w-full pb-4">
 
                 {/* Header */}
-                <div className="text-center pb-2 border-b">
-                    <FormLabel className="text-xl font-bold">
+                <div className="pb-2 border-b border-border/60">
+                    <FormLabel className="text-base font-semibold">
                         H74-SMS-002 REPORTE OBLIGATORIO HANGAR
                     </FormLabel>
                 </div>
                 {/* --- SECCIÓN 1: FECHAS Y HORAS --- */}
-                <div className="space-y-4 p-4 rounded-lg border">
-                    <h3 className="font-semibold text-md text-primary">1. Fechas y horas</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="space-y-3 p-4 rounded-lg border border-border/60">
+                    <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">1. Fechas y horas</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
 
                         {/* Bloque: Reporte */}
-                        <div className="flex flex-col gap-4">
+                        <div className="flex flex-col gap-3">
                             <FormField
                                 control={form.control}
                                 name="report_date"
                                 render={({ field }) => (
                                     <FormItem className="flex flex-col w-full">
-                                        <FormLabel>Fecha de Reporte</FormLabel>
+                                        <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Fecha de Reporte</FormLabel>
                                         <Popover>
                                             <PopoverTrigger asChild>
                                                 <FormControl>
@@ -298,7 +298,7 @@ export function CreateGenObliReport({
                                 name="report_time"
                                 render={({ field }) => (
                                     <FormItem className="w-full">
-                                        <FormLabel>Hora del Reporte</FormLabel>
+                                        <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Hora del Reporte</FormLabel>
                                         <FormControl>
                                             <Input
                                                 type="time"
@@ -317,13 +317,13 @@ export function CreateGenObliReport({
                         </div>
 
                         {/* Bloque: Incidente */}
-                        <div className="flex flex-col gap-4">
+                        <div className="flex flex-col gap-3">
                             <FormField
                                 control={form.control}
                                 name="incident_date"
                                 render={({ field }) => (
                                     <FormItem className="flex flex-col w-full">
-                                        <FormLabel>Fecha de Incidente</FormLabel>
+                                        <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Fecha de Incidente</FormLabel>
                                         <Popover>
                                             <PopoverTrigger asChild>
                                                 <FormControl>
@@ -371,7 +371,7 @@ export function CreateGenObliReport({
                                 name="incident_time"
                                 render={({ field }) => (
                                     <FormItem className="w-full">
-                                        <FormLabel>Hora del incidente</FormLabel>
+                                        <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Hora del incidente</FormLabel>
                                         <FormControl>
                                             <Input
                                                 type="time"
@@ -395,15 +395,15 @@ export function CreateGenObliReport({
 
 
                 {/* --- SECCIÓN 3: UBICACIONES --- */}
-                <div className="space-y-4 p-4 rounded-lg border">
-                    <h3 className="font-semibold text-md text-primary">2. Ubicaciones</h3>
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:items-start">
+                <div className="space-y-3 p-4 rounded-lg border border-border/60">
+                    <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">2. Ubicaciones</h3>
+                    <div className="grid grid-cols-1 gap-3 md:grid-cols-2 md:items-start">
                         <FormField
                             control={form.control}
                             name="incident_location_id"
                             render={({ field }) => (
                                 <FormItem className="w-full">
-                                    <FormLabel>Base del Incidente</FormLabel>
+                                    <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Base del Incidente</FormLabel>
                                     {isLocationsLoading ? (
                                         <div className="flex items-center gap-2 p-2 border rounded-md bg-muted">
                                             <Loader2 className="h-4 w-4 animate-spin " />
@@ -438,7 +438,7 @@ export function CreateGenObliReport({
                             name="report_location_id"
                             render={({ field }) => (
                                 <FormItem className="w-full">
-                                    <FormLabel>Base donde se genera</FormLabel>
+                                    <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Base donde se genera</FormLabel>
                                     {isLocationsLoading ? (
                                         <div className="flex items-center gap-2 p-2 border rounded-md bg-muted">
                                             <Loader2 className="h-4 w-4 animate-spin " />
@@ -470,15 +470,15 @@ export function CreateGenObliReport({
                         />                     </div>
                 </div>
                 {/* --- SECCIÓN 3: DATOS DEL REPORTANTE --- */}
-                <div className="space-y-4 bg-muted/30 p-4 rounded-lg border">
-                    <h3 className="font-semibold text-md text-primary">3. Datos del Reportante</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-3 p-4 rounded-lg border border-border/60">
+                    <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">3. Datos del Reportante</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <FormField
                             control={form.control}
                             name="name"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Nombre</FormLabel>
+                                    <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Nombre</FormLabel>
                                     <FormControl>
                                         <Input placeholder="Ej. Juan" {...field} />
                                     </FormControl>
@@ -491,7 +491,7 @@ export function CreateGenObliReport({
                             name="last_name"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Apellido</FormLabel>
+                                    <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Apellido</FormLabel>
                                     <FormControl>
                                         <Input placeholder="Ej. Pérez" {...field} />
                                     </FormControl>
@@ -504,11 +504,11 @@ export function CreateGenObliReport({
                             name="email"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Correo Electrónico (Opcional)</FormLabel>
+                                        <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Correo Electrónico (Opcional)</FormLabel>
                                     <FormControl>
                                         <Input type="email" placeholder="correo@ejemplo.com" {...field} />
                                     </FormControl>
-                                    <FormMessage />
+                                    <FormMessage className="text-xs" />
                                 </FormItem>
                             )}
                         />
@@ -517,7 +517,7 @@ export function CreateGenObliReport({
                             name="phone"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Teléfono (Opcional)</FormLabel>
+                                    <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Teléfono (Opcional)</FormLabel>
                                     <FormControl>
                                         <Input type="tel" placeholder="+58..." {...field} />
                                     </FormControl>
@@ -529,17 +529,17 @@ export function CreateGenObliReport({
                 </div>
 
                 {/* --- SECCIÓN 4: DETALLES DEL SUCESO --- */}
-                <div className="space-y-4 p-4 rounded-lg border">
-                    <h3 className="font-semibold text-md text-primary">4. Detalles del Suceso</h3>
+                <div className="space-y-3 p-4 rounded-lg border border-border/60">
+                    <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">4. Detalles del Suceso</h3>
 
-                    <div className="flex flex-col gap-4">
+                    <div className="flex flex-col gap-3">
                         {!showOtherInput && (
                             <FormField
                                 control={form.control}
                                 name="incidents"
                                 render={({ field }) => (
                                     <FormItem className="flex flex-col w-full">
-                                        <FormLabel>Incidentes</FormLabel>
+                                        <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Incidentes</FormLabel>
                                         <FormControl>
                                             <Popover open={open} onOpenChange={setOpen}>
                                                 <PopoverTrigger asChild>
@@ -635,7 +635,7 @@ export function CreateGenObliReport({
                             name="description"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Descripción Completa del Suceso</FormLabel>
+                                    <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Descripción Completa del Suceso</FormLabel>
                                     <FormControl>
                                         <Textarea className="min-h-[100px]" placeholder="Detalle lo ocurrido..." {...field} />
                                     </FormControl>
@@ -647,15 +647,15 @@ export function CreateGenObliReport({
                 </div>
 
                 {/* --- SECCIÓN 5: ADJUNTOS --- */}
-                <div className="space-y-4 bg-muted/30 p-4 rounded-lg border">
-                    <h3 className="font-semibold text-md text-primary">5. Evidencia Adjunta</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="space-y-3 p-4 rounded-lg border border-border/60">
+                    <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">5. Evidencia Adjunta</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <FormField
                             control={form.control}
                             name="image"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Imagen General (JPEG/PNG)</FormLabel>
+                                    <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Imagen General (JPEG/PNG)</FormLabel>
                                     <div className="flex items-center gap-4 mt-2">
                                         {field.value ? (
                                             <div className="relative h-16 w-16">
@@ -696,13 +696,12 @@ export function CreateGenObliReport({
 
                 {/* --- FOOTER / SUBMIT --- */}
                 <div className="flex flex-col gap-4 mt-4">
-                    <div className="flex justify-between items-center gap-x-4">
-                        <Separator className="flex-1" />
-                        <p className="text-muted-foreground text-sm font-medium tracking-widest">SIGEAC</p>
-                        <Separator className="flex-1" />
-                    </div>
-                    <Button type="submit" size="lg" className="w-full sm:w-auto self-center px-8">
-                        Enviar reporte
+                    <Button type="submit" className="w-full h-10">
+                        {createObligatoryReport.isPending ? (
+                            <Loader2 className="size-4 animate-spin" />
+                        ) : (
+                            "Enviar reporte"
+                        )}
                     </Button>
                 </div>
             </form>

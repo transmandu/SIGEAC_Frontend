@@ -367,13 +367,13 @@ export default function CreateMitigationPlanAnalysis({
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
         {!isAnalysisOnly && (
           <>
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-3 md:grid-cols-2">
               <FormField
                 control={form.control}
                 name="area_responsible"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Área responsable</FormLabel>
+                    <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Área responsable</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -399,7 +399,7 @@ export default function CreateMitigationPlanAnalysis({
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Descripción del plan</FormLabel>
+                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Descripción del plan</FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder="Describa el enfoque del plan de mitigación"
@@ -417,7 +417,7 @@ export default function CreateMitigationPlanAnalysis({
               name="possible_consequences"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Posibles consecuencias</FormLabel>
+                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Posibles consecuencias</FormLabel>
                   <FormControl>
                     <div className="space-y-3">
                       <input
@@ -467,8 +467,7 @@ export default function CreateMitigationPlanAnalysis({
                     </div>
                   </FormControl>
                   <FormDescription>
-                    Cada consecuencia se agrega con Enter y se guarda internamente
-                    separada por <span className="font-mono">~</span>.
+                    Cada consecuencia se agrega con Enter
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -480,7 +479,7 @@ export default function CreateMitigationPlanAnalysis({
               name="consequence_to_evaluate"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Consecuencia a evaluar</FormLabel>
+                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Consecuencia a evaluar</FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     value={field.value}
@@ -510,13 +509,13 @@ export default function CreateMitigationPlanAnalysis({
           </>
         )}
 
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-3 md:grid-cols-2">
           <FormField
             control={form.control}
             name="probability"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Probabilidad</FormLabel>
+                <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Probabilidad</FormLabel>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
@@ -545,7 +544,7 @@ export default function CreateMitigationPlanAnalysis({
             name="severity"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Severidad</FormLabel>
+                <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Severidad</FormLabel>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
@@ -603,7 +602,7 @@ export default function CreateMitigationPlanAnalysis({
               Cancelar
             </Button>
           )}
-          <Button type="submit" className="sm:min-w-60" disabled={isPending}>
+          <Button type="submit" className="w-full h-10" disabled={isPending}>
             {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {isAnalysisOnly
               ? analysis
