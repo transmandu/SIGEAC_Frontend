@@ -166,7 +166,19 @@ export default function CreateHazardNotification({
                     data: dataPayload,
                 });
 
-
+                form.reset({
+                    reception_date: new Date(),
+                    identification_area: "",
+                    danger_type: "",
+                    information_source_id: "",
+                    description: "",
+                    analysis_of_root_causes: "",
+                    report_type: reportType,
+                    report_number: "",
+                    location_id: "",
+                });
+                setAnalyses([]);
+                setNewAnalysis("");
             }
         } catch (error) {
             console.error("Error submitting form:", error);

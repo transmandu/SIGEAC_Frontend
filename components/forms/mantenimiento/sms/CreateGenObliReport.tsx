@@ -195,6 +195,24 @@ export function CreateGenObliReport({
         } catch (error) {
             console.error("Error al crear reporte:", error);
         }
+
+        form.reset({
+            report_date: new Date(),
+            report_time: "00:00",
+            incident_date: new Date(),
+            incident_time: "00:00",
+            incident_location_id: "",
+            report_location_id: "",
+            name: "",
+            last_name: "",
+            phone: "",
+            email: "",
+            incidents: [],
+            other_incidents: "",
+            description: "",
+        });
+        setSelectedValues([]);
+        setShowOtherInput(false);
         onClose();
     };
 

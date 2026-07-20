@@ -283,6 +283,8 @@ export default function CreateMitigationPlanAnalysis({
           id: analysis.id,
           data: analysisPayload,
         });
+        form.reset(getDefaultValues(null, null, suggestedAnalysis));
+        setConsequenceInput("");
         onSuccess?.();
         return;
       }
@@ -294,6 +296,8 @@ export default function CreateMitigationPlanAnalysis({
           mitigation_plan_id: targetMitigationPlanId.toString(),
         },
       });
+      form.reset(getDefaultValues(null, null, suggestedAnalysis));
+      setConsequenceInput("");
       onSuccess?.();
       return;
     }
@@ -321,6 +325,8 @@ export default function CreateMitigationPlanAnalysis({
           analysis: analysisPayload,
         },
       });
+      form.reset(getDefaultValues(null, null, suggestedAnalysis));
+      setConsequenceInput("");
       onSuccess?.();
       return;
     }
@@ -331,6 +337,8 @@ export default function CreateMitigationPlanAnalysis({
         id: analysis.id,
         data: analysisPayload,
       });
+      form.reset(getDefaultValues(null, null, suggestedAnalysis));
+      setConsequenceInput("");
       onSuccess?.();
       return;
     }
@@ -343,6 +351,8 @@ export default function CreateMitigationPlanAnalysis({
       },
     });
 
+    form.reset(getDefaultValues(null, null, suggestedAnalysis));
+    setConsequenceInput("");
     onSuccess?.();
   };
 

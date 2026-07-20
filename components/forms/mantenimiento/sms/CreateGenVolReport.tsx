@@ -241,6 +241,21 @@ export function CreateGenVolReport({
                 console.error("Error al crear el reporte:", error);
             }
         }
+
+        form.reset({
+            description: "",
+            possible_consequences: "",
+            location_id: "",
+            identification_area: "",
+            identification_date: new Date(),
+            report_date: new Date(),
+            reporter_name: "",
+            reporter_last_name: "",
+            reporter_email: "",
+            reporter_phone: "",
+        });
+        setIsAnonymous(false);
+        setConsequenceInput("");
         onClose();
     };
     const onError = (errors: any) => {
@@ -388,7 +403,7 @@ export function CreateGenVolReport({
                                     ) : (
                                         <Select
                                             onValueChange={field.onChange}
-                                            defaultValue={field.value}
+                                            value={field.value}
                                             disabled={isLocationsLoading}
                                         >
                                             <FormControl>
@@ -418,7 +433,7 @@ export function CreateGenVolReport({
                                     <FormLabel>Área de identificación del Peligro</FormLabel>
                                     <Select
                                         onValueChange={field.onChange}
-                                        defaultValue={field.value}
+                                        value={field.value}
                                     >
                                         <FormControl>
                                             <SelectTrigger>
