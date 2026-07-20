@@ -78,7 +78,7 @@ export interface PurchaseOrderGeneralArticle {
   shipping_tracking?: string | null;
   international_shipping_tracking?: string | null;
   general_article_quote_order: PurchaseOrderGeneralArticleQuoteOrder | null;
-  /** Present once someone has registered this line's physical delivery (see registerGeneralArticlesDelivery). Null while still pending. */
+  /** Present once someone has registered this line's physical delivery (see registerGeneralArticlesDelivery). Null while still pending. If status is REJECTED, the line is eligible for re-registration. */
   general_article_intake?: {
     id: number;
     status: GeneralArticleIntakeStatus;
