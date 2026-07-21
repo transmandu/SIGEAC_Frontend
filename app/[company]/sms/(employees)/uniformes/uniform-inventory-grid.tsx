@@ -11,10 +11,22 @@ import {
   X,
 } from "lucide-react";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { useDeleteUniformItem } from "@/actions/sms/uniforms/actions";
 import { UniformItem } from "@/hooks/sms/useGetUniforms";
 import { getUniformTypeIcon } from "@/components/sms/uniform-meta";
 
@@ -78,6 +90,21 @@ export function UniformInventoryGrid({
   const [search, setSearch] = useState("");
   const [lowStockOnly, setLowStockOnly] = useState(false);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+
+  // The delete confirmation lives here, outside the cards' AnimatePresence
+  // subtree: a row being removed by the post-delete refetch must not be able
+  // to unmount the dialog that triggered it.
+  const { selectedCompany } = useCompanyStore();
+  const deleteItem = useDeleteUniformItem();
+  const [deleteTarget, setDeleteTarget] = useState<UniformItem | null>(null);
+
+  const confirmDelete = () => {
+    if (!deleteTarget) return;
+    const { id } = deleteTarget;
+    const company = selectedCompany?.slug ?? "";
+    setDeleteTarget(null);
+    requestAnimationFrame(() => deleteItem.mutate({ company, id }));
+  };
 
   /** Distinct uniform types present in the data become the category tabs. */
   const categories = useMemo(() => {
@@ -329,6 +356,7 @@ export function UniformInventoryGrid({
               stack={stack}
               onEdit={onEdit}
               onRegisterMovement={onRegisterMovement}
+              onRequestDelete={setDeleteTarget}
             />
           ))}
         </div>
@@ -353,6 +381,30 @@ export function UniformInventoryGrid({
           </Button>
         </div>
       )}
+
+      <AlertDialog
+        open={deleteTarget !== null}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar artículo?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Sólo se puede eliminar un artículo sin movimientos registrados. Si
+              ya tiene historial, desactívelo en su lugar.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700"
+              onClick={confirmDelete}
+            >
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
@@ -381,10 +433,12 @@ function UniformStackCard({
   stack,
   onEdit,
   onRegisterMovement,
+  onRequestDelete,
 }: {
   stack: UniformStack;
   onEdit: (item: UniformItem) => void;
   onRegisterMovement: (item: UniformItem) => void;
+  onRequestDelete: (item: UniformItem) => void;
 }) {
   const [open, setOpen] = useState(false);
   const reduce = useReducedMotion();
@@ -513,9 +567,10 @@ function UniformStackCard({
           </div>
         </button>
 
-        {/* Collapsed: compact size availability strip */}
-        <AnimatePresence initial={false}>
-          {!open && (
+        {/* One presence tree for both panels: `mode="wait"` keeps the strip and
+            the ledger from animating over each other during the swap. */}
+        <AnimatePresence initial={false} mode="wait">
+          {!open ? (
             <motion.div key="strip" {...panel} className="overflow-hidden">
               <div className="flex flex-wrap gap-1.5 border-t border-border/60 px-4 py-2.5">
                 {stack.items.map((item) => (
@@ -523,12 +578,7 @@ function UniformStackCard({
                 ))}
               </div>
             </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Expanded: detailed per-size ledger */}
-        <AnimatePresence initial={false}>
-          {open && (
+          ) : (
             <motion.div key="ledger" {...panel} className="overflow-hidden">
               <div className="border-t border-border/60 bg-muted/10">
                 <div className="grid grid-cols-[44px_1fr_auto] items-center gap-3 px-4 pb-1 pt-2">
@@ -555,6 +605,7 @@ function UniformStackCard({
                       item={item}
                       onEdit={onEdit}
                       onRegisterMovement={onRegisterMovement}
+                      onRequestDelete={onRequestDelete}
                     />
                   </motion.div>
                 ))}
@@ -566,6 +617,7 @@ function UniformStackCard({
     </motion.div>
   );
 }
+
 
 /** Compact at-a-glance pill: talla + units, tinted by stock status. */
 function SizePill({ item }: { item: UniformItem }) {
@@ -596,10 +648,12 @@ function SizeRow({
   item,
   onEdit,
   onRegisterMovement,
+  onRequestDelete,
 }: {
   item: UniformItem;
   onEdit: (item: UniformItem) => void;
   onRegisterMovement: (item: UniformItem) => void;
+  onRequestDelete: (item: UniformItem) => void;
 }) {
   const signal = STOCK_SIGNAL[getStockStatus(item)];
 
@@ -637,6 +691,7 @@ function SizeRow({
         item={item}
         onEdit={onEdit}
         onRegisterMovement={onRegisterMovement}
+        onRequestDelete={onRequestDelete}
       />
     </div>
   );
