@@ -1234,7 +1234,12 @@ export interface WarehouseDashboard {
   tool_need_calibration_count: number;
   returnToolsCount: number;
   restockCount: number;
-  entryCount: number;
+  /** Intakes de artículos generales confirmados esta semana. */
+  generalArticleIntakeCount: number;
+  /** Artículos por lote con reception_date dentro de la semana. */
+  batchReceptionCount: number;
+  /** Suma de ambos: el sistema no tiene un concepto único de "entrada". */
+  incomingCount: number;
   generalArticlesAvailablePercentage: number;
   generalArticlesRestockCount: number;
   tools_need_calibration: {
