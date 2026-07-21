@@ -49,12 +49,14 @@ export const useLowStockAlerts = () => {
     const alerts = useMemo<CriticalAlert[]>(() => {
         const companySlug = selectedCompany?.slug;
 
-        const generalAlerts: CriticalAlert[] = generalArticles.map((article) => ({
+        const generalAlerts: CriticalAlert[] = generalArticles.map((article) => {
+            const unitLabel = article.general_primary_unit?.label ?? "";
+            return {
             id: `low-stock-general-article-${article.id}`,
             source: "low-stock-general-article",
             sourceId: article.id,
             title: "Un artículo del inventario está por debajo de su stock mínimo",
-            description: `${article.variant_type ? `${article.description} - ${article.variant_type}` : article.description}\nMínimo: ${article.minimum_quantity} · Cantidad restante: ${article.quantity}\n¿Deseas crear una solicitud de compra para este artículo?`,
+            description: `${article.variant_type ? `${article.description} - ${article.variant_type}` : article.description}\nMínimo: ${article.minimum_quantity} ${unitLabel} · Cantidad restante: ${article.quantity} ${unitLabel}\n¿Deseas crear una solicitud de compra para este artículo?`,
             severity: Number(article.quantity ?? 0) <= 0 ? "critical" : "warning",
             onConfirm: companySlug
                 ? () => createRequisitionFromLowStockAlert.mutate({
@@ -66,14 +68,17 @@ export const useLowStockAlerts = () => {
             isConfirming: createRequisitionFromLowStockAlert.isPending
                 && createRequisitionFromLowStockAlert.variables?.source === "general"
                 && createRequisitionFromLowStockAlert.variables.generalArticleId === article.id,
-        }));
+            };
+        });
 
-        const consumableAlerts: CriticalAlert[] = consumableArticles.map((article) => ({
+        const consumableAlerts: CriticalAlert[] = consumableArticles.map((article) => {
+            const unitLabel = article.batch.unit?.label ?? "";
+            return {
             id: `low-stock-consumable-article-${article.id}`,
             source: "low-stock-consumable-article",
             sourceId: article.id,
             title: "Un artículo del inventario está por debajo de su stock mínimo",
-            description: `${article.batch.name} - ${article.part_number}\nMínimo: ${article.batch.min_quantity} · Cantidad restante: ${article.consumable.quantity}\n¿Deseas crear una solicitud de compra para este artículo?`,
+            description: `${article.batch.name} - ${article.part_number}\nMínimo: ${article.batch.min_quantity} ${unitLabel} · Cantidad restante: ${article.consumable.quantity} ${unitLabel}\n¿Deseas crear una solicitud de compra para este artículo?`,
             severity: Number(article.consumable.quantity ?? 0) <= 0 ? "critical" : "warning",
             onConfirm: companySlug
                 ? () => createRequisitionFromLowStockAlert.mutate({
@@ -85,7 +90,8 @@ export const useLowStockAlerts = () => {
             isConfirming: createRequisitionFromLowStockAlert.isPending
                 && createRequisitionFromLowStockAlert.variables?.source === "consumable"
                 && createRequisitionFromLowStockAlert.variables.articleId === article.id,
-        }));
+            };
+        });
 
         return SHOW_CONSUMABLE_ALERTS ? [...generalAlerts, ...consumableAlerts] : generalAlerts;
     }, [generalArticles, consumableArticles, selectedCompany?.slug, createRequisitionFromLowStockAlert]);
