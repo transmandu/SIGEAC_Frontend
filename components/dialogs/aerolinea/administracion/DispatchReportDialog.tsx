@@ -44,8 +44,9 @@ import { DispatchReportFilters } from "@/components/dialogs/mantenimiento/almace
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 type DispatchType = "aeronautical" | "general";
+type ArticleCategory = "CONSUMABLE" | "PART" | "COMPONENT" | "TOOL";
 
-const COST_REPORT_ROLES = ["ANALISTA_ADMINISTRACION", "JEFE_ADMINISTRACION"];
+const COST_REPORT_ROLES = ["ANALISTA_ADMINISTRACION", "JEFE_ADMINISTRACION", "SUPERUSER"];
 
 interface DispatchReportDialogProps {
   roleNames?: string[];
@@ -79,6 +80,7 @@ export function DispatchReportDialog({ roleNames = [] }: DispatchReportDialogPro
 
   // ===================== TIPO DE DESPACHO =====================
   const [dispatchType, setDispatchType] = useState<DispatchType | null>(null);
+  const [articleCategory, setArticleCategory] = useState<ArticleCategory | null>(null);
 
   // ===================== FILTROS ARTÍCULOS =====================
   const [articleFilters, setArticleFilters] = useState({
@@ -152,6 +154,7 @@ export function DispatchReportDialog({ roleNames = [] }: DispatchReportDialogPro
       setAuthorizedEmployeeId(null);
       setThirdPartyId(null);
       setDispatchType(null);
+      setArticleCategory(null);
       setWithCosts(canSeeCostReport);
 
       setArticleFilters({
@@ -187,6 +190,7 @@ export function DispatchReportDialog({ roleNames = [] }: DispatchReportDialogPro
     authorized_employee_id: authorizedEmployeeId || undefined,
     third_party_id: thirdPartyId || undefined,
     type: dispatchType || undefined,
+    article_category: articleCategory || undefined,
 
     from: format(startDate!, "yyyy-MM-dd"),
     to: format(endDate!, "yyyy-MM-dd"),
@@ -213,6 +217,7 @@ export function DispatchReportDialog({ roleNames = [] }: DispatchReportDialogPro
     authorized_employee_id: authorizedEmployeeId || undefined,
     third_party_id: thirdPartyId || undefined,
     type: dispatchType || undefined,
+    article_category: articleCategory || undefined,
 
     from: format(startDate!, "yyyy-MM-dd"),
     to: format(endDate!, "yyyy-MM-dd"),
@@ -431,6 +436,8 @@ export function DispatchReportDialog({ roleNames = [] }: DispatchReportDialogPro
 
               dispatchType={dispatchType}
               setDispatchType={setDispatchType}
+              articleCategory={articleCategory}
+              setArticleCategory={setArticleCategory}
               articles={allArticles}
               isLoadingArticles={isLoadingArticles || isLoadingGeneralArticles}
               articleFilters={articleFilters}

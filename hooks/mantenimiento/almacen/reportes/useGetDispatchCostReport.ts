@@ -14,6 +14,7 @@ interface DispatchCostReportParams {
   authorized_employee_id?: string | null;
   third_party_id?: string | null;
   type?: "aeronautical" | "general" | null;
+  article_category?: "CONSUMABLE" | "PART" | "COMPONENT" | "TOOL" | null;
   part_number?: string | null;
   description?: string | null;
   brand_model?: string | null;
@@ -39,6 +40,7 @@ export const useGetDispatchCostReport = () => {
             authorized_employee_id: params.authorized_employee_id ?? undefined,
             third_party_id: params.third_party_id ?? undefined,
             type: params.type ?? undefined,
+            article_category: params.article_category ?? undefined,
             part_number: params.part_number ?? undefined,
             description: params.description ?? undefined,
             brand_model: params.brand_model ?? undefined,

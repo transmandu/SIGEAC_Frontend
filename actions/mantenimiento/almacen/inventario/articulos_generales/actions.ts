@@ -2,7 +2,11 @@ import axiosInstance from "@/lib/axios";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import type { ConfirmGeneralArticleIntakeResponse, RejectGeneralArticleIntakeResponse } from "@/types/purchase";
+import type { ConfirmGeneralArticleIntakeResponse, NeedsUnitConversionResponse, RejectGeneralArticleIntakeResponse } from "@/types/purchase";
+
+export function isNeedsUnitConversionResponse(data: unknown): data is NeedsUnitConversionResponse {
+    return !!data && typeof data === "object" && (data as any).needs_conversion === true;
+}
 
 export interface IUpdateArticleData {
     id: number
@@ -112,28 +116,51 @@ export const useUpdateGeneralArticleQuantity = () => {
 // Confirma físicamente la llegada de una entrada PENDING (GeneralArticleIntake).
 // Crea o incrementa el general_article correspondiente; el intake queda
 // como historial permanente con quién/cuándo lo confirmó.
+//
+// Si el artículo coincide con uno existente en todo menos la unidad y no hay
+// una Conversion registrada entre ambas, el backend responde 422 con
+// needs_conversion=true (ver isNeedsUnitConversionResponse) en vez de crear
+// un general_article duplicado. El caller debe entonces pedir la equivalencia
+// y reintentar pasando newConversionEquivalence, que el backend usa para
+// crear la Conversion y aplicarla en la misma operación.
 export const useConfirmGeneralArticleIntake = () => {
     const queryClient = useQueryClient();
     const { selectedCompany } = useCompanyStore();
 
     const confirmGeneralArticleIntake = useMutation({
         mutationKey: ["confirm-general-article-intake", selectedCompany?.slug],
-        mutationFn: async ({ id, confirmedAt }: { id: number; confirmedAt?: Date }) => {
+        mutationFn: async ({
+            id,
+            confirmedAt,
+            newConversionEquivalence,
+        }: {
+            id: number;
+            confirmedAt?: Date;
+            newConversionEquivalence?: number;
+        }) => {
             const { data } = await axiosInstance.patch<ConfirmGeneralArticleIntakeResponse>(
                 `/${selectedCompany?.slug}/general-article-intakes/${id}/confirm`,
-                confirmedAt ? { confirmed_at: confirmedAt.toISOString() } : {}
+                {
+                    ...(confirmedAt ? { confirmed_at: confirmedAt.toISOString() } : {}),
+                    ...(newConversionEquivalence
+                        ? { new_conversion: { equivalence: newConversionEquivalence } }
+                        : {}),
+                }
             );
             return data;
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["general-article-intakes"], exact: false });
             queryClient.invalidateQueries({ queryKey: ["general-articles"], exact: false });
+            queryClient.invalidateQueries({ queryKey: ["conversions-by-general-article"], exact: false });
 
             toast.success("¡Confirmado!", {
                 description: "La entrada fue confirmada y el stock se actualizó correctamente."
             });
         },
         onError: (error: any) => {
+            if (isNeedsUnitConversionResponse(error?.response?.data)) return;
+
             toast.error("Error", {
                 description: error?.response?.data?.message || "No se pudo confirmar la entrada."
             });

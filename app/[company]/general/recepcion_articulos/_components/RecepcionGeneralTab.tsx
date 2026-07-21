@@ -1,6 +1,7 @@
 'use client'
 
-import { useConfirmGeneralArticleIntake, useRejectGeneralArticleIntake } from '@/actions/mantenimiento/almacen/inventario/articulos_generales/actions'
+import { isNeedsUnitConversionResponse, useConfirmGeneralArticleIntake, useRejectGeneralArticleIntake } from '@/actions/mantenimiento/almacen/inventario/articulos_generales/actions'
+import type { NeedsUnitConversionCandidate } from '@/types/purchase'
 import {
     AlertDialog,
     AlertDialogAction,
@@ -32,7 +33,9 @@ import {
     TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { useAuth } from '@/contexts/AuthContext'
+import { useGetUnits } from '@/hooks/general/unidades/useGetPrimaryUnits'
 import { useGetGeneralArticleIntakes } from '@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticleIntakes'
+import { useGetIntakeConfirmationPreview } from '@/hooks/mantenimiento/almacen/almacen_general/useGetIntakeConfirmationPreview'
 import { cn } from '@/lib/utils'
 import { useCompanyStore } from '@/stores/CompanyStore'
 import type { GeneralArticleIntake, GeneralArticleIntakeStatus } from '@/types/purchase'
@@ -63,12 +66,135 @@ function getRequisitionDiscrepancy(intake: GeneralArticleIntake) {
     return { requisitionArticle, quoteArticle, quantityDiffers, unitDiffers }
 }
 
+// ── Panel inline para registrar la conversión de unidad faltante ────────
+// Se muestra cuando confirm() respondió needs_conversion=true: el intake
+// coincide con un general_article existente en todo menos la unidad, y no
+// hay ninguna Conversion registrada entre ambas para ese artículo. En vez de
+// crear un artículo duplicado, se captura la equivalencia aquí mismo y se
+// reintenta la confirmación con ella.
+function UnitConversionPanel({
+    intake,
+    candidate,
+    equivalence,
+    onEquivalenceChange,
+}: {
+    intake: GeneralArticleIntake
+    candidate: NeedsUnitConversionCandidate
+    equivalence: string
+    onEquivalenceChange: (value: string) => void
+}) {
+    const { selectedCompany } = useCompanyStore()
+    const { data: units, isLoading: unitsLoading, isError: unitsError } = useGetUnits(selectedCompany?.slug)
+
+    // El backend serializa estos ids como string en algunos casos (driver
+    // sqlsrv); se normaliza a number antes de comparar contra units[].id.
+    const intakeUnitLabel = intake.unit?.label ?? units?.find((u) => u.id === Number(candidate.intake_unit_id))?.label
+    const existingUnitLabel = units?.find((u) => u.id === Number(candidate.existing_unit_id))?.label
+
+    const parsedEquivalence = parseFloat(equivalence)
+    const preview = !Number.isNaN(parsedEquivalence) && parsedEquivalence > 0
+        ? (Number(intake.quantity) * parsedEquivalence)
+        : null
+
+    // intake.unit ya viene resuelto con el intake, así que intakeUnitLabel casi
+    // siempre está listo de inmediato. existingUnitLabel sí depende de
+    // useGetUnits (necesitamos el nombre de una unidad que no es la del intake).
+    // Solo mientras esa consulta sigue en vuelo mostramos el loader; si termina
+    // sin encontrar el id (unitsError, o la lista no lo contiene) avisamos en
+    // vez de quedarnos pegados en "cargando" para siempre.
+    if (!intakeUnitLabel || (unitsLoading && !existingUnitLabel)) {
+        return (
+            <div className="rounded-md border border-dashed border-amber-300 bg-amber-50/60 p-3 dark:border-amber-700/60 dark:bg-amber-950/20">
+                <p className="text-xs text-amber-800 dark:text-amber-300 flex items-center gap-1.5">
+                    <Loader2 className="size-3 animate-spin" />
+                    Cargando unidades...
+                </p>
+            </div>
+        )
+    }
+
+    if (!existingUnitLabel) {
+        return (
+            <div className="rounded-md border border-dashed border-red-300 bg-red-50/60 p-3 dark:border-red-700/60 dark:bg-red-950/20">
+                <p className="text-xs text-red-700 dark:text-red-400">
+                    {unitsError
+                        ? 'No se pudo cargar el catálogo de unidades. Intenta de nuevo.'
+                        : 'No se encontró la unidad existente del artículo. Verifica el catálogo de unidades.'}
+                </p>
+            </div>
+        )
+    }
+
+    return (
+        <div className="rounded-md border border-dashed border-amber-300 bg-amber-50/60 p-3 space-y-3 dark:border-amber-700/60 dark:bg-amber-950/20">
+            <p className="text-xs text-amber-800 dark:text-amber-300">
+                <span className="font-semibold">{candidate.description}</span> ya existe en el inventario, pero se
+                guarda en <span className="font-semibold uppercase">{existingUnitLabel}</span> y esta entrada llegó
+                cotizada en <span className="font-semibold uppercase">{intakeUnitLabel}</span>. Indica cuántos{' '}
+                {existingUnitLabel.toUpperCase()} tiene 1 {intakeUnitLabel.toUpperCase()} (revisa la ficha técnica o
+                empaque del producto) para guardarla junto con lo que ya hay, en vez de crear un artículo repetido.
+            </p>
+
+            {/* Fórmula explícita: "1 [unidad que llegó] = [input] [unidad que ya existe]" —
+                se pide en el sentido de la unidad conocida (la que compraste) hacia la
+                desconocida, que es como cualquier persona piensa una equivalencia real
+                (ej. "1 cuarto de galón tiene 0.946 litros"), no al revés. */}
+            <div className="flex items-center justify-center gap-2 rounded-md bg-background/70 border border-border/60 px-3 py-2.5">
+                <span className="text-sm font-semibold whitespace-nowrap">
+                    1 <span className="rounded bg-muted px-1.5 py-0.5 uppercase text-xs">{intakeUnitLabel}</span>
+                </span>
+                <span className="text-sm font-semibold text-muted-foreground">=</span>
+                <Input
+                    type="text"
+                    inputMode="decimal"
+                    placeholder="?"
+                    value={equivalence}
+                    onChange={(e) => onEquivalenceChange(e.target.value.replace(/[^\d.]/g, ''))}
+                    className="h-9 w-16 text-center text-sm font-semibold"
+                    autoFocus
+                />
+                <span className="text-sm font-semibold whitespace-nowrap">
+                    <span className="rounded bg-muted px-1.5 py-0.5 uppercase text-xs">{existingUnitLabel}</span>
+                </span>
+            </div>
+
+            <p className="text-xs text-muted-foreground text-center">
+                {preview !== null ? (
+                    <>
+                        Esta entrada de <span className="font-semibold text-foreground">{intake.quantity} {intakeUnitLabel.toUpperCase()}</span>{' '}
+                        se guardará como{' '}
+                        <span className="font-semibold text-foreground">{preview.toFixed(2)} {existingUnitLabel.toUpperCase()}</span>.
+                    </>
+                ) : (
+                    <>Escribe el número para ver cuánto quedará registrado en inventario.</>
+                )}
+            </p>
+        </div>
+    )
+}
+
 // ── Acción de confirmar una entrada ─────────────────────────────────────
 function ConfirmIntakeAction({ intake }: { intake: GeneralArticleIntake }) {
     const [open, setOpen] = useState(false)
     const [confirmedAt, setConfirmedAt] = useState<Date>(() => new Date())
+    const [equivalence, setEquivalence] = useState('')
     const { confirmGeneralArticleIntake } = useConfirmGeneralArticleIntake()
     const { user } = useAuth()
+
+    // Se consulta apenas se abre el diálogo (no al primer click en
+    // "Confirmar"), para que el panel de conversión aparezca de una vez si
+    // aplica. Antes esto se detectaba dejando fallar un primer intento de
+    // confirmar con 422, lo que obligaba a dos peticiones completas (cada
+    // una repitiendo las mismas consultas dentro de una transacción) para
+    // el mismo resultado.
+    const { data: preview, isLoading: previewLoading } = useGetIntakeConfirmationPreview(intake.id, open)
+    const previewCandidate = preview?.needs_conversion ? preview.candidate ?? null : null
+
+    // Si confirm() igual responde needs_conversion (ej. el preview quedó
+    // desactualizado por un cambio concurrente), este fallback sigue
+    // funcionando como red de seguridad.
+    const [fallbackCandidate, setFallbackCandidate] = useState<NeedsUnitConversionCandidate | null>(null)
+    const conversionCandidate = previewCandidate ?? fallbackCandidate
 
     const canEditDate = useMemo(
         () => (user?.roles ?? []).some((r) => r.name === 'JEFE_ALMACEN' || r.name === 'ANALISTA_ALMACEN' || r.name === 'SUPERUSER'),
@@ -83,9 +209,35 @@ function ConfirmIntakeAction({ intake }: { intake: GeneralArticleIntake }) {
     const isBeforeArrival = !!arrivedAt && confirmedAt < arrivedAt
 
     const handleOpenChange = (next: boolean) => {
-        if (next) setConfirmedAt(new Date())
+        if (next) {
+            setConfirmedAt(new Date())
+            setFallbackCandidate(null)
+            setEquivalence('')
+        }
         setOpen(next)
     }
+
+    const handleConfirm = () => {
+        confirmGeneralArticleIntake.mutate(
+            {
+                id: intake.id,
+                confirmedAt: canEditDate ? confirmedAt : undefined,
+                newConversionEquivalence: conversionCandidate ? parseFloat(equivalence) : undefined,
+            },
+            {
+                onSuccess: () => setOpen(false),
+                onError: (error: any) => {
+                    const responseData = error?.response?.data
+                    if (isNeedsUnitConversionResponse(responseData)) {
+                        setFallbackCandidate(responseData.candidate)
+                    }
+                },
+            }
+        )
+    }
+
+    const parsedEquivalence = parseFloat(equivalence)
+    const needsValidEquivalence = !!conversionCandidate && (Number.isNaN(parsedEquivalence) || parsedEquivalence <= 0)
 
     const handleDateSelect = (day: Date | undefined) => {
         if (!day) return
@@ -186,20 +338,37 @@ function ConfirmIntakeAction({ intake }: { intake: GeneralArticleIntake }) {
                     </div>
                 )}
 
+                {previewLoading && !conversionCandidate && (
+                    <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                        <Loader2 className="size-3 animate-spin" />
+                        Verificando artículo...
+                    </p>
+                )}
+
+                {conversionCandidate && (
+                    <UnitConversionPanel
+                        intake={intake}
+                        candidate={conversionCandidate}
+                        equivalence={equivalence}
+                        onEquivalenceChange={setEquivalence}
+                    />
+                )}
+
                 <AlertDialogFooter>
                     <AlertDialogCancel disabled={confirmGeneralArticleIntake.isPending}>
                         Cancelar
                     </AlertDialogCancel>
                     <AlertDialogAction
-                        disabled={confirmGeneralArticleIntake.isPending || (canEditDate && isBeforeArrival)}
-                        onClick={() =>
-                            confirmGeneralArticleIntake.mutate({
-                                id: intake.id,
-                                confirmedAt: canEditDate ? confirmedAt : undefined,
-                            })
-                        }
+                        disabled={confirmGeneralArticleIntake.isPending || previewLoading || (canEditDate && isBeforeArrival) || needsValidEquivalence}
+                        onClick={(e) => {
+                            // Radix cierra el diálogo al hacer click en Action; lo evitamos
+                            // porque handleConfirm puede necesitar mantenerlo abierto para
+                            // mostrar el panel de conversión si el backend lo pide.
+                            e.preventDefault()
+                            handleConfirm()
+                        }}
                     >
-                        Confirmar
+                        {conversionCandidate ? 'Convertir y confirmar' : 'Confirmar'}
                     </AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
