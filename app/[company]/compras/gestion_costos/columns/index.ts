@@ -11,6 +11,7 @@ export const getColumns = ({
   type,
   onCostChange,
   onViewHistory,
+  category,
 }: BuildColumnsArgs): ColumnDef<any>[] => {
   if (type === 'GENERAL') {
     return getGeneralCostColumns({
@@ -21,5 +22,7 @@ export const getColumns = ({
 
   return getArticleCostColumns({
     onCostChange,
+    // La unidad solo es relevante para Consumibles en aeronáutico
+    showUnit: category === 'CONSUMABLE',
   })
 }

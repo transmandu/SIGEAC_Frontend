@@ -368,6 +368,7 @@ export function EditArticleDialog({
                                 history={detail?.cost_history ?? []}
                                 currentCost={detail?.current_cost ?? 0}
                                 edits={costEdits}
+                                units={(units ?? []).map((u) => ({ id: u.id, label: u.label }))}
                                 onChange={setCostEdits}
                             />
                         )}

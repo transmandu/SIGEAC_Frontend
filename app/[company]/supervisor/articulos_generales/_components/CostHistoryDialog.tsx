@@ -22,9 +22,13 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
+import { Calendar } from "@/components/ui/calendar"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
 import type { CostChangeEdits, SupervisorCostHistoryEntry } from "@/types/supervisor"
-import { Lock, Plus, RotateCcw, Trash2 } from "lucide-react"
+import { format } from "date-fns"
+import { es } from "date-fns/locale"
+import { CalendarIcon, Lock, Plus, RotateCcw, Trash2 } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { DecimalInput } from "./DecimalInput"
 import SupervisorActionButton from "./SupervisorActionButton"
@@ -62,10 +66,15 @@ export function CostHistoryDialog({
 }) {
     // Estado local: solo se propaga al confirmar, para que cerrar con Cancelar
     // descarte lo tecleado sin ensuciar el asistente. Cada ajuste editable lleva
-    // su unit_id: la unidad en la que el supervisor afirma que está ese costo.
-    const [updated, setUpdated] = useState<Record<number, { cost: string; unit_id: number | null }>>({})
+    // su unit_id (unidad en que está el costo) y su changed_at (fecha del costo,
+    // editable a mano; null = conservar la que ya tenía / hoy si es nuevo).
+    const [updated, setUpdated] = useState<
+        Record<number, { cost: string; unit_id: number | null; changed_at: string | null }>
+    >({})
     const [deleted, setDeleted] = useState<number[]>([])
-    const [created, setCreated] = useState<{ cost: string; unit_id: number | null }[]>([])
+    const [created, setCreated] = useState<
+        { cost: string; unit_id: number | null; changed_at: string | null }[]
+    >([])
 
     // Unidad por defecto de un ajuste nuevo: la primera del grupo (normalmente la
     // base propuesta). El supervisor la ajusta si el costo es de otra unidad.
@@ -78,7 +87,11 @@ export function CostHistoryDialog({
             Object.fromEntries(
                 (edits.updated ?? []).map((row) => [
                     row.id,
-                    { cost: String(row.cost), unit_id: row.unit_id ?? null },
+                    {
+                        cost: String(row.cost),
+                        unit_id: row.unit_id ?? null,
+                        changed_at: row.changed_at ?? null,
+                    },
                 ]),
             ),
         )
@@ -87,6 +100,7 @@ export function CostHistoryDialog({
             (edits.created ?? []).map((row) => ({
                 cost: String(row.cost),
                 unit_id: row.unit_id ?? defaultUnitId,
+                changed_at: row.changed_at ?? null,
             })),
         )
     }, [open, edits, defaultUnitId])
@@ -107,13 +121,19 @@ export function CostHistoryDialog({
     const handleConfirm = () => {
         onApply({
             created: created
-                .map((row) => ({ cost: Number(row.cost), unit_id: row.unit_id }))
+                .map((row) => ({
+                    cost: Number(row.cost),
+                    unit_id: row.unit_id,
+                    changed_at: row.changed_at ?? undefined,
+                }))
                 .filter((row) => Number.isFinite(row.cost) && row.cost >= 0),
             updated: Object.entries(updated)
                 .map(([id, value]) => ({
                     id: Number(id),
                     cost: Number(value.cost),
                     unit_id: value.unit_id,
+                    // null = no tocar la fecha (conserva su changed_at original).
+                    changed_at: value.changed_at ?? undefined,
                 }))
                 .filter((row) => Number.isFinite(row.cost) && row.cost >= 0),
             deleted,
@@ -168,6 +188,9 @@ export function CostHistoryDialog({
                                             ? updated[changeId]?.unit_id ?? entry.unit_id ?? null
                                             : entry.unit_id ?? null
                                     }
+                                    changedAt={
+                                        changeId !== null ? updated[changeId]?.changed_at ?? null : null
+                                    }
                                     onValueChange={(value) => {
                                         if (changeId === null) return
                                         setUpdated((current) => ({
@@ -175,6 +198,7 @@ export function CostHistoryDialog({
                                             [changeId]: {
                                                 cost: value,
                                                 unit_id: current[changeId]?.unit_id ?? entry.unit_id ?? null,
+                                                changed_at: current[changeId]?.changed_at ?? null,
                                             },
                                         }))
                                     }}
@@ -185,6 +209,18 @@ export function CostHistoryDialog({
                                             [changeId]: {
                                                 cost: current[changeId]?.cost ?? String(entry.cost ?? ""),
                                                 unit_id: unitId,
+                                                changed_at: current[changeId]?.changed_at ?? null,
+                                            },
+                                        }))
+                                    }}
+                                    onDateChange={(iso) => {
+                                        if (changeId === null) return
+                                        setUpdated((current) => ({
+                                            ...current,
+                                            [changeId]: {
+                                                cost: current[changeId]?.cost ?? String(entry.cost ?? ""),
+                                                unit_id: current[changeId]?.unit_id ?? entry.unit_id ?? null,
+                                                changed_at: iso,
                                             },
                                         }))
                                     }}
@@ -252,9 +288,19 @@ export function CostHistoryDialog({
                                         </Select>
                                     )}
 
-                                    <span className="text-[11px] text-muted-foreground/70 flex-1">
-                                        por unidad · fecha de hoy
-                                    </span>
+                                    <div className="flex-1 flex items-center gap-1.5">
+                                        <span className="text-[11px] text-muted-foreground/70">por unidad ·</span>
+                                        <CostDateButton
+                                            iso={row.changed_at}
+                                            onChange={(iso) =>
+                                                setCreated((current) =>
+                                                    current.map((item, i) =>
+                                                        i === index ? { ...item, changed_at: iso } : item,
+                                                    ),
+                                                )
+                                            }
+                                        />
+                                    </div>
 
                                     <TooltipProvider>
                                         <Tooltip>
@@ -285,7 +331,10 @@ export function CostHistoryDialog({
                         size="sm"
                         className="self-start h-8 text-muted-foreground hover:text-foreground"
                         onClick={() =>
-                            setCreated((current) => [...current, { cost: "", unit_id: defaultUnitId }])
+                            setCreated((current) => [
+                                ...current,
+                                { cost: "", unit_id: defaultUnitId, changed_at: null },
+                            ])
                         }
                     >
                         <Plus className="mr-2 size-3.5" />
@@ -320,8 +369,10 @@ function CostEntryRow({
     units,
     value,
     unitId,
+    changedAt,
     onValueChange,
     onUnitChange,
+    onDateChange,
     onToggleDelete,
 }: {
     entry: SupervisorCostHistoryEntry
@@ -329,8 +380,11 @@ function CostEntryRow({
     units: { id: number; label: string }[]
     value: string
     unitId: number | null
+    // Fecha pendiente editada por el usuario (ISO), o null si conserva la suya.
+    changedAt: string | null
     onValueChange: (value: string) => void
     onUnitChange: (unitId: number) => void
+    onDateChange: (iso: string | null) => void
     onToggleDelete: () => void
 }) {
     const isPurchase = !entry.editable
@@ -390,11 +444,24 @@ function CostEntryRow({
                 </>
             )}
 
-            <div className="min-w-0 flex-1 flex flex-col">
-                <span className="text-[11px] text-muted-foreground/70 truncate">
-                    {formatSupervisorDateTime(entry.date)}
-                    {entry.by ? ` · ${entry.by}` : ""}
-                </span>
+            <div className="min-w-0 flex-1 flex flex-col gap-0.5">
+                {isPurchase ? (
+                    <span className="text-[11px] text-muted-foreground/70 truncate">
+                        {formatSupervisorDateTime(entry.date)}
+                        {entry.by ? ` · ${entry.by}` : ""}
+                    </span>
+                ) : (
+                    // La fecha de un ajuste manual es editable: es su fecha de
+                    // creación (por ella se ordena el historial), y a veces hay
+                    // que corregirla si una edición previa la movió.
+                    <CostDateButton
+                        // El valor mostrado prioriza lo que el usuario editó;
+                        // si no tocó nada, la fecha original del registro.
+                        iso={changedAt ?? entry.date}
+                        disabled={isDeleted}
+                        onChange={onDateChange}
+                    />
+                )}
                 {entry.purchase_order_number && (
                     <span className="text-[11px] text-muted-foreground/50 truncate">
                         OC {entry.purchase_order_number}
@@ -441,5 +508,59 @@ function CostEntryRow({
                 </Tooltip>
             </TooltipProvider>
         </div>
+    )
+}
+
+/**
+ * Editor compacto de la fecha de un ajuste de costo. Muestra la fecha vigente y,
+ * al abrir el calendario, permite reasignarla — útil cuando una edición previa
+ * movió la fecha de creación y hay que devolverla a su valor correcto.
+ *
+ * Emite la fecha como ISO (yyyy-MM-dd) para el backend; null cuando no hay valor.
+ */
+function CostDateButton({
+    iso,
+    disabled,
+    onChange,
+}: {
+    iso: string | null
+    disabled?: boolean
+    onChange: (iso: string | null) => void
+}) {
+    const parsed = iso ? new Date(iso) : undefined
+    const valid = parsed && !isNaN(parsed.getTime()) ? parsed : undefined
+
+    return (
+        <Popover>
+            <PopoverTrigger asChild>
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    disabled={disabled}
+                    className="h-6 -ml-1 px-1.5 gap-1.5 text-[11px] font-normal text-muted-foreground/80 hover:text-foreground justify-start"
+                >
+                    <CalendarIcon className="size-3" />
+                    {valid ? format(valid, "dd/MM/yyyy", { locale: es }) : "Sin fecha"}
+                </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0 z-[100]" align="start">
+                <Calendar
+                    locale={es}
+                    mode="single"
+                    selected={valid}
+                    onSelect={(date) => {
+                        if (!date) return
+                        // Se envía solo la fecha (sin hora): es la fecha de
+                        // creación del costo, la hora no aporta al ordenamiento.
+                        onChange(format(date, "yyyy-MM-dd"))
+                    }}
+                    initialFocus
+                    fromYear={1900}
+                    toYear={new Date().getFullYear() + 1}
+                    captionLayout="dropdown-buttons"
+                    disabled={(date) => date > new Date()}
+                />
+            </PopoverContent>
+        </Popover>
     )
 }

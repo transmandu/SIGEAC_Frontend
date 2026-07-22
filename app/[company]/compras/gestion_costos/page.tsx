@@ -238,8 +238,9 @@ const CostManagementPage = () => {
         type,
         onCostChange,
         onViewHistory: (row) => setHistoryRow(row),
+        category,
       }),
-    [type, onCostChange]
+    [type, onCostChange, category]
   )
 
   return (

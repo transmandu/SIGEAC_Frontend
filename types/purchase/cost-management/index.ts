@@ -65,6 +65,8 @@ export type DraftValue = string | number | undefined;
 
 export interface ArticleCostColumnsArgs {
   onCostChange: (id: number, value: string) => void;
+  /** Muestra la columna de unidad (solo aplica a Consumibles). */
+  showUnit?: boolean;
 }
 
 export interface GeneralCostColumnsArgs {
@@ -76,4 +78,6 @@ export interface BuildColumnsArgs {
   type: CostType;
   onCostChange: (id: number, value: string) => void;
   onViewHistory?: (row: GeneralCostRow) => void;
+  /** Categoría activa del tipo ARTICLE (para decidir columnas condicionales). */
+  category?: string;
 }
