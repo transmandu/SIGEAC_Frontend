@@ -139,16 +139,6 @@ export function getGeneralCostColumns({
           baseUnitId,
           row.original.conversions,
         )
-
-        // eslint-disable-next-line no-console
-        console.log('[COSTO-DEBUG]', row.original.description, {
-          cost: current,
-          rawUnitId,
-          baseUnitId,
-          latest,
-          conversions: row.original.conversions,
-          baseCost,
-        })
         const convertedFromUnit =
           hasCost &&
           rawUnitId != null &&
