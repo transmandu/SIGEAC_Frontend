@@ -16,10 +16,12 @@ interface IDispatchRequestAction {
     quantity?: number;
     serial?: string | null;
     batch_id?: number;
+    conversion_id?: number | null;
   }[];
   general_articles?: {
     general_article_id: number;
     quantity: number;
+    conversion_id?: number | null;
   }[];
   user_id: number;
   aircraft_id?: string;

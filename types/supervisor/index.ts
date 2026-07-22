@@ -97,8 +97,11 @@ export type SupervisorCostHistoryEntry = GeneralArticleCostHistoryEntry & {
  * misma transacción). Solo pueden referirse a registros editables.
  */
 export type CostChangeEdits = {
-    created?: { cost: number; changed_at?: string }[];
-    updated?: { id: number; cost: number; changed_at?: string }[];
+    // unit_id ancla en qué unidad está expresado el costo. Si difiere de la
+    // unidad base final de la fusión, el backend reexpresa el precio con la
+    // conversión (ej: un $9 capturado en CAJA se vuelve $0.09 en UNIDADES).
+    created?: { cost: number; unit_id?: number | null; changed_at?: string }[];
+    updated?: { id: number; cost: number; unit_id?: number | null; changed_at?: string }[];
     deleted?: number[];
 };
 

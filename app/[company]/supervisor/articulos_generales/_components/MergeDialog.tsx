@@ -663,6 +663,7 @@ export function MergeDialog({
                 onOpenChange={setCostDialogOpen}
                 history={costHistory}
                 edits={costEdits}
+                units={units}
                 onApply={(next) => {
                     setCostEdits(next)
                     // El preview mostrado ya no refleja el historial: se limpia

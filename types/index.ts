@@ -1287,6 +1287,10 @@ export type GeneralArticleCostHistoryEntry = {
   source: 'PURCHASE' | 'MANUAL' | 'SEED';
   cost: number | null;
   quantity: number | null;
+  // Unidad en la que está expresado este costo. En compras viene del intake;
+  // en ajustes manuales, de la unidad anclada del cambio de costo.
+  unit_id?: number | null;
+  unit_label?: string | null;
   date: string | null;
   by: string | null;
   purchase_order_number?: string | null;

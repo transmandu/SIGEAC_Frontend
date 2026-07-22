@@ -15,6 +15,13 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
 import { cn } from "@/lib/utils"
 import type { CostChangeEdits, SupervisorCostHistoryEntry } from "@/types/supervisor"
 import { Lock, Plus, RotateCcw, Trash2 } from "lucide-react"
@@ -42,31 +49,47 @@ export function CostHistoryDialog({
     onOpenChange,
     history,
     edits,
+    units,
     onApply,
 }: {
     open: boolean
     onOpenChange: (open: boolean) => void
     history: SupervisorCostHistoryEntry[]
     edits: CostChangeEdits
+    // Unidades del grupo en fusión, para anclar/corregir la unidad de un costo.
+    units: { id: number; label: string }[]
     onApply: (edits: CostChangeEdits) => void
 }) {
     // Estado local: solo se propaga al confirmar, para que cerrar con Cancelar
-    // descarte lo tecleado sin ensuciar el asistente.
-    const [updated, setUpdated] = useState<Record<number, string>>({})
+    // descarte lo tecleado sin ensuciar el asistente. Cada ajuste editable lleva
+    // su unit_id: la unidad en la que el supervisor afirma que está ese costo.
+    const [updated, setUpdated] = useState<Record<number, { cost: string; unit_id: number | null }>>({})
     const [deleted, setDeleted] = useState<number[]>([])
-    const [created, setCreated] = useState<{ cost: string }[]>([])
+    const [created, setCreated] = useState<{ cost: string; unit_id: number | null }[]>([])
+
+    // Unidad por defecto de un ajuste nuevo: la primera del grupo (normalmente la
+    // base propuesta). El supervisor la ajusta si el costo es de otra unidad.
+    const defaultUnitId = units[0]?.id ?? null
 
     useEffect(() => {
         if (!open) return
 
         setUpdated(
             Object.fromEntries(
-                (edits.updated ?? []).map((row) => [row.id, String(row.cost)]),
+                (edits.updated ?? []).map((row) => [
+                    row.id,
+                    { cost: String(row.cost), unit_id: row.unit_id ?? null },
+                ]),
             ),
         )
         setDeleted(edits.deleted ?? [])
-        setCreated((edits.created ?? []).map((row) => ({ cost: String(row.cost) })))
-    }, [open, edits])
+        setCreated(
+            (edits.created ?? []).map((row) => ({
+                cost: String(row.cost),
+                unit_id: row.unit_id ?? defaultUnitId,
+            })),
+        )
+    }, [open, edits, defaultUnitId])
 
     const changeIdOf = (entry: SupervisorCostHistoryEntry): number | null =>
         entry.entry_id.startsWith("change:")
@@ -84,11 +107,14 @@ export function CostHistoryDialog({
     const handleConfirm = () => {
         onApply({
             created: created
-                .map((row) => Number(row.cost))
-                .filter((cost) => Number.isFinite(cost) && cost >= 0)
-                .map((cost) => ({ cost })),
+                .map((row) => ({ cost: Number(row.cost), unit_id: row.unit_id }))
+                .filter((row) => Number.isFinite(row.cost) && row.cost >= 0),
             updated: Object.entries(updated)
-                .map(([id, value]) => ({ id: Number(id), cost: Number(value) }))
+                .map(([id, value]) => ({
+                    id: Number(id),
+                    cost: Number(value.cost),
+                    unit_id: value.unit_id,
+                }))
                 .filter((row) => Number.isFinite(row.cost) && row.cost >= 0),
             deleted,
         })
@@ -131,14 +157,36 @@ export function CostHistoryDialog({
                                     key={entry.entry_id}
                                     entry={entry}
                                     isDeleted={isDeleted}
+                                    units={units}
                                     value={
                                         changeId !== null
-                                            ? updated[changeId] ?? String(entry.cost ?? "")
+                                            ? updated[changeId]?.cost ?? String(entry.cost ?? "")
                                             : String(entry.cost ?? "")
+                                    }
+                                    unitId={
+                                        changeId !== null
+                                            ? updated[changeId]?.unit_id ?? entry.unit_id ?? null
+                                            : entry.unit_id ?? null
                                     }
                                     onValueChange={(value) => {
                                         if (changeId === null) return
-                                        setUpdated((current) => ({ ...current, [changeId]: value }))
+                                        setUpdated((current) => ({
+                                            ...current,
+                                            [changeId]: {
+                                                cost: value,
+                                                unit_id: current[changeId]?.unit_id ?? entry.unit_id ?? null,
+                                            },
+                                        }))
+                                    }}
+                                    onUnitChange={(unitId) => {
+                                        if (changeId === null) return
+                                        setUpdated((current) => ({
+                                            ...current,
+                                            [changeId]: {
+                                                cost: current[changeId]?.cost ?? String(entry.cost ?? ""),
+                                                unit_id: unitId,
+                                            },
+                                        }))
                                     }}
                                     onToggleDelete={() => {
                                         if (changeId === null) return
@@ -169,19 +217,43 @@ export function CostHistoryDialog({
 
                                     <DecimalInput
                                         placeholder="0.00"
-                                        className="h-8 w-32 bg-background border-border/60"
+                                        className="h-8 w-24 bg-background border-border/60"
                                         value={row.cost}
                                         onValueChange={(value) =>
                                             setCreated((current) =>
                                                 current.map((item, i) =>
-                                                    i === index ? { cost: value } : item,
+                                                    i === index ? { ...item, cost: value } : item,
                                                 ),
                                             )
                                         }
                                     />
 
+                                    {units.length > 0 && (
+                                        <Select
+                                            value={row.unit_id != null ? String(row.unit_id) : ""}
+                                            onValueChange={(value) =>
+                                                setCreated((current) =>
+                                                    current.map((item, i) =>
+                                                        i === index ? { ...item, unit_id: Number(value) } : item,
+                                                    ),
+                                                )
+                                            }
+                                        >
+                                            <SelectTrigger className="h-8 w-28 bg-background border-border/60 text-xs">
+                                                <SelectValue placeholder="Unidad" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {units.map((unit) => (
+                                                    <SelectItem key={unit.id} value={String(unit.id)}>
+                                                        {unit.label}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    )}
+
                                     <span className="text-[11px] text-muted-foreground/70 flex-1">
-                                        Se registrará con la fecha de hoy
+                                        por unidad · fecha de hoy
                                     </span>
 
                                     <TooltipProvider>
@@ -212,7 +284,9 @@ export function CostHistoryDialog({
                         variant="ghost"
                         size="sm"
                         className="self-start h-8 text-muted-foreground hover:text-foreground"
-                        onClick={() => setCreated((current) => [...current, { cost: "" }])}
+                        onClick={() =>
+                            setCreated((current) => [...current, { cost: "", unit_id: defaultUnitId }])
+                        }
                     >
                         <Plus className="mr-2 size-3.5" />
                         Añadir ajuste manual
@@ -243,14 +317,20 @@ export function CostHistoryDialog({
 function CostEntryRow({
     entry,
     isDeleted,
+    units,
     value,
+    unitId,
     onValueChange,
+    onUnitChange,
     onToggleDelete,
 }: {
     entry: SupervisorCostHistoryEntry
     isDeleted: boolean
+    units: { id: number; label: string }[]
     value: string
+    unitId: number | null
     onValueChange: (value: string) => void
+    onUnitChange: (unitId: number) => void
     onToggleDelete: () => void
 }) {
     const isPurchase = !entry.editable
@@ -267,21 +347,47 @@ function CostEntryRow({
             <span className={dependencyBadgeCls()}>{entry.source}</span>
 
             {isPurchase ? (
-                <span
-                    className={cn(
-                        "text-sm font-medium tabular-nums w-32",
-                        isDeleted && "line-through",
-                    )}
-                >
-                    {Number(entry.cost ?? 0).toFixed(2)}
-                </span>
+                <>
+                    <span
+                        className={cn(
+                            "text-sm font-medium tabular-nums w-24",
+                            isDeleted && "line-through",
+                        )}
+                    >
+                        {Number(entry.cost ?? 0).toFixed(2)}
+                    </span>
+                    {/* La unidad de una compra es inmutable: viene del intake. */}
+                    <span className="text-xs text-muted-foreground/70 w-28 truncate">
+                        {entry.unit_label ?? "—"}
+                    </span>
+                </>
             ) : (
-                <DecimalInput
-                    className="h-8 w-32 bg-background border-border/60"
-                    value={value}
-                    onValueChange={onValueChange}
-                    disabled={isDeleted}
-                />
+                <>
+                    <DecimalInput
+                        className="h-8 w-24 bg-background border-border/60"
+                        value={value}
+                        onValueChange={onValueChange}
+                        disabled={isDeleted}
+                    />
+                    {units.length > 0 && (
+                        <Select
+                            value={unitId != null ? String(unitId) : ""}
+                            onValueChange={(next) => onUnitChange(Number(next))}
+                            disabled={isDeleted}
+                        >
+                            <SelectTrigger className="h-8 w-28 bg-background border-border/60 text-xs">
+                                <SelectValue placeholder="Unidad" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {units.map((unit) => (
+                                    <SelectItem key={unit.id} value={String(unit.id)}>
+                                        {unit.label}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    )}
+                </>
             )}
 
             <div className="min-w-0 flex-1 flex flex-col">
