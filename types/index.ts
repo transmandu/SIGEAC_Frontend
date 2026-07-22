@@ -1527,3 +1527,195 @@ export type ExternalPilot = {
   license_number: string;
   rank?: string;
 };
+
+// ─── Change Request (Solicitud de Cambio) ──────────────────────────
+
+export type ChangeType =
+  | "facilities"
+  | "documentary"
+  | "staff"
+  | "equipment"
+  | "procedures"
+  | "technology"
+  | "other";
+
+export type ChangeStatus =
+  | "BORRADOR"
+  | "EN_REVISION"
+  | "APROBADO"
+  | "RECHAZADO"
+  | "EN_EJECUCION"
+  | "CERRADO";
+
+export type TolerabilityLevel = "acceptable" | "tolerable" | "intolerable";
+
+export type PhotographicStage = "before" | "after";
+
+export type ChangeRequiredItem = {
+  id: number;
+  change_request_id: number;
+  item_description: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ChangeFinancialResource = {
+  id: number;
+  change_request_id: number;
+  description: string;
+  estimated_value: number;
+  currency_unit: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ChangeRiskAssessment = {
+  id: number;
+  change_request_id: number;
+  hazard_description: string;
+  probability_value: number;
+  severity_value: number;
+  risk_index: number;
+  tolerability_level: TolerabilityLevel;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ChangeActivity = {
+  id: number;
+  change_request_id: number;
+  activity_description: string;
+  assigned_employee_id: number;
+  assignedEmployee: Employee;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ChangePhotographicRecord = {
+  id: number;
+  change_request_id: number;
+  stage: PhotographicStage;
+  image_url: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ChangeRequest = {
+  id: number;
+  status: ChangeStatus;
+  request_date: string;
+  department_id: number;
+  requested_by: number;
+  is_temporary: boolean;
+  temporary_duration: string | null;
+  change_type: ChangeType;
+  other_type_description: string | null;
+  description: string;
+  scope: string;
+  justification: string;
+  estimated_change_date: string | null;
+  mitigation_plan: string | null;
+  planned_changes: string | null;
+  cutoff_date: string | null;
+  stabilization_period: string | null;
+  project_lead_by: number | null;
+  reviewed_by: number | null;
+  approved_by: number | null;
+  created_at: string;
+  updated_at: string;
+  department: Department;
+  requestedBy: Employee;
+  projectLeadBy: Employee | null;
+  reviewedBy: Employee | null;
+  approvedBy: Employee | null;
+  requiredItems: ChangeRequiredItem[];
+  financialResources: ChangeFinancialResource[];
+  riskAssessments: ChangeRiskAssessment[];
+  activities: ChangeActivity[];
+  photographicRecords: ChangePhotographicRecord[];
+};
+
+export type StoreChangeRequestPayload = {
+  request_date: string;
+  department_id: number;
+  requested_by: number;
+  is_temporary: boolean;
+  temporary_duration?: string;
+  change_type: ChangeType;
+  other_type_description?: string;
+  description: string;
+  scope: string;
+  justification: string;
+  estimated_change_date?: string;
+  mitigation_plan?: string;
+  planned_changes?: string;
+  cutoff_date?: string;
+  stabilization_period?: string;
+  project_lead_by?: number;
+  reviewed_by?: number;
+  approved_by?: number;
+  required_items?: Array<{ item_description: string }>;
+  financial_resources?: Array<{
+    description: string;
+    estimated_value: number;
+    currency_unit?: string;
+  }>;
+  risk_assessments?: Array<{
+    hazard_description: string;
+    probability_value: number;
+    severity_value: number;
+  }>;
+  activities?: Array<{
+    activity_description: string;
+    assigned_employee_id: number;
+  }>;
+  photographic_records?: Array<{
+    stage: PhotographicStage;
+    image_url: string;
+  }>;
+};
+
+export type UpdateChangeRequestPayload = {
+  status?: ChangeStatus;
+  request_date?: string;
+  department_id?: number;
+  requested_by?: number;
+  is_temporary?: boolean;
+  temporary_duration?: string | null;
+  change_type?: ChangeType;
+  other_type_description?: string | null;
+  description?: string;
+  scope?: string;
+  justification?: string;
+  estimated_change_date?: string | null;
+  mitigation_plan?: string | null;
+  planned_changes?: string | null;
+  cutoff_date?: string | null;
+  stabilization_period?: string | null;
+  project_lead_by?: number | null;
+  reviewed_by?: number | null;
+  approved_by?: number | null;
+  required_items?: Array<{ id?: number; item_description: string }>;
+  financial_resources?: Array<{
+    id?: number;
+    description: string;
+    estimated_value: number;
+    currency_unit?: string;
+  }>;
+  risk_assessments?: Array<{
+    id?: number;
+    hazard_description: string;
+    probability_value: number;
+    severity_value: number;
+  }>;
+  activities?: Array<{
+    id?: number;
+    activity_description: string;
+    assigned_employee_id: number;
+  }>;
+  photographic_records?: Array<{
+    id?: number;
+    stage: PhotographicStage;
+    image_url: string;
+  }>;
+};
