@@ -17,14 +17,21 @@ import type { GeneralArticleConversion } from '@/types/purchase'
  */
 export function costInBaseUnit(
   cost: number,
-  fromUnitId: number | null | undefined,
-  baseUnitId: number | null | undefined,
+  fromUnitId: number | string | null | undefined,
+  baseUnitId: number | string | null | undefined,
   conversions: GeneralArticleConversion[] | undefined,
 ): number {
+  // El JSON del backend puede traer los IDs como string; se normalizan a número
+  // para que las comparaciones no fallen por tipo (5 vs "5").
+  const from = fromUnitId != null ? Number(fromUnitId) : null
+  const base = baseUnitId != null ? Number(baseUnitId) : null
+
   if (
-    fromUnitId == null ||
-    baseUnitId == null ||
-    fromUnitId === baseUnitId ||
+    from == null ||
+    base == null ||
+    Number.isNaN(from) ||
+    Number.isNaN(base) ||
+    from === base ||
     !conversions?.length
   ) {
     return cost
@@ -37,16 +44,23 @@ export function costInBaseUnit(
 
     if (!(equivalence > 0)) continue
 
+    // La unidad base siempre vale 1. Buscamos cuántas unidades base hay en 1
+    // unidad de origen (ej: 1 CAJA = 20 UNID, 1 ROLLO = 175 METROS) y dividimos
+    // el costo entre eso: $10 / 20 = $0.50 por unidad base.
+
     // equivalence = "1 primaria = equivalence secundarias".
-    if (primaryId === fromUnitId && secondaryId === baseUnitId) {
+    // origen=primaria, base=secundaria → 1 origen = equivalence base → /equiv.
+    if (primaryId === from && secondaryId === base) {
       return cost / equivalence
     }
 
-    if (primaryId === baseUnitId && secondaryId === fromUnitId) {
+    // origen=secundaria, base=primaria → 1 base = equivalence origen →
+    // 1 origen = 1/equivalence base → *equiv (inverso).
+    if (primaryId === base && secondaryId === from) {
       return cost * equivalence
     }
   }
 
-  // Sin conversión disponible: se conserva el costo crudo.
+  // Sin conversión disponible entre ambas unidades: se conserva el costo crudo.
   return cost
 }
