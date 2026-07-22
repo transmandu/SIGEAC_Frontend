@@ -7,6 +7,7 @@ import {
   FileText,
   Settings,
   ShieldAlert,
+  ShieldCheck,
   Shirt,
 } from "lucide-react";
 
@@ -99,6 +100,24 @@ export function buildSmsGroup({ pathname, currentCompany }: MenuContext): Group 
             active:
               pathname ===
               `/${currentCompany?.slug}/sms/estadisticas/actividades`,
+          },
+        ],
+      },
+      {
+        href: "",
+        label: "Aseguramiento de la Calidad",
+        active: pathname.includes(`/${currentCompany?.slug}/sms/aseguramiento_calidad`),
+        icon: ShieldCheck,
+        roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
+        requiresOmac: false,
+        submenus: [
+          {
+            href: `/${currentCompany?.slug}/sms/aseguramiento_calidad/gestion_de_cambio`,
+            label: "Gestion de Cambio",
+            roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
+            active:
+              pathname ===
+              `/${currentCompany?.slug}/sms/aseguramiento_calidad/gestion_de_cambio`,
           },
         ],
       },
