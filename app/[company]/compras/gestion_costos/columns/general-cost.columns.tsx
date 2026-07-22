@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/tooltip'
 import React from 'react'
 import type { GeneralCostRow, GeneralCostColumnsArgs } from '@/types/purchase'
+import { costInBaseUnit } from '../_utils/costInBaseUnit'
 
 export type { GeneralCostRow, GeneralCostColumnsArgs }
 
@@ -126,6 +127,29 @@ export function getGeneralCostColumns({
         const draft = costDrafts[id]
         const modified = !hasCost && isModified(id, costDrafts, current)
 
+        // El costo crudo más reciente puede estar en una unidad distinta a la
+        // base (ej: $10 · CAJA). La columna muestra el equivalente POR UNIDAD
+        // BASE ($0.50 · UNID); el sheet de historial conserva el costo crudo.
+        const latest = row.original.cost_history?.[0]
+        const rawUnitId = latest?.unit_id ?? null
+        const baseUnitId = row.original.primary_unit_id ?? null
+        const baseCost = costInBaseUnit(
+          Number(current ?? 0),
+          rawUnitId,
+          baseUnitId,
+          row.original.conversions,
+        )
+        const convertedFromUnit =
+          hasCost &&
+          rawUnitId != null &&
+          baseUnitId != null &&
+          rawUnitId !== baseUnitId &&
+          baseCost !== Number(current ?? 0)
+
+        const baseCostValue = Number.isInteger(baseCost)
+          ? String(baseCost)
+          : String(Number(baseCost.toFixed(4)))
+
         const currentValue =
           current !== undefined && current !== null ? String(current) : '0'
 
@@ -150,13 +174,27 @@ export function getGeneralCostColumns({
                     >
                       <span className="text-xs text-muted-foreground">$</span>
                       <span className="text-sm tabular-nums text-center text-foreground">
-                        {currentValue}
+                        {baseCostValue}
                       </span>
+                      {convertedFromUnit ? (
+                        <span className="text-[10px] text-muted-foreground">
+                          /{row.original.unit_label}
+                        </span>
+                      ) : null}
                       <Lock className="h-3 w-3 text-muted-foreground" />
                     </div>
                   </TooltipTrigger>
-                  <TooltipContent side="top" className="text-xs max-w-[220px] text-center">
-                    Este artículo ya tiene costo registrado. Solo cambia con una nueva compra.
+                  <TooltipContent side="top" className="text-xs max-w-[240px] text-center">
+                    {convertedFromUnit ? (
+                      <>
+                        Costo más reciente: ${currentValue}
+                        {latest?.unit_label ? ` · ${latest.unit_label}` : ''}.
+                        Equivale a ${baseCostValue} por {row.original.unit_label}.
+                        Solo cambia con una nueva compra.
+                      </>
+                    ) : (
+                      'Este artículo ya tiene costo registrado. Solo cambia con una nueva compra.'
+                    )}
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>

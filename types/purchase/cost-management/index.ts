@@ -51,6 +51,13 @@ export interface ArticleCostRow {
   condition_name?: string;
 }
 
+/** Conversión unidad-a-unidad de un artículo general (ej: 1 CAJA = 20 UNID). */
+export interface GeneralArticleConversion {
+  primary_unit: number;
+  secondary_unit: number;
+  equivalence: number;
+}
+
 export interface GeneralCostRow {
   id: number;
   description?: string;
@@ -59,6 +66,10 @@ export interface GeneralCostRow {
   unit_label?: string;
   cost?: number;
   cost_history?: import('@/types').GeneralArticleCostHistoryEntry[];
+  /** Unidad base del artículo: referencia para el equivalente por unidad. */
+  primary_unit_id?: number;
+  /** Conversiones registradas: reexpresan el costo crudo a la unidad base. */
+  conversions?: GeneralArticleConversion[];
 }
 
 export type DraftValue = string | number | undefined;

@@ -92,8 +92,13 @@ const GeneralCostHistorySheet = ({
                     {badge.label}
                   </Badge>
 
-                  <span className="text-sm font-semibold tabular-nums text-foreground">
+                  <span className="flex items-baseline gap-1 text-sm font-semibold tabular-nums text-foreground">
                     ${Number(entry.cost ?? 0).toFixed(2)}
+                    {entry.unit_label && (
+                      <span className="text-xs font-normal text-muted-foreground">
+                        / {entry.unit_label}
+                      </span>
+                    )}
                   </span>
                 </div>
 

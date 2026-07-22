@@ -540,6 +540,28 @@ const IntakeRow = memo(function IntakeRow({ intake }: { intake: GeneralArticleIn
     const discrepancy = useMemo(() => getRequisitionDiscrepancy(intake), [intake])
     const hasRejectionDetail = isRejected && !!intake.rejection_reason
     const canExpand = !!discrepancy || hasRejectionDetail
+
+    // Si la identidad histórica (lo que se escribió al recibir) difiere de la
+    // vigente (la del artículo vivo tras una fusión), se arma la etiqueta para
+    // el tooltip "Fusionado", que deja claro por qué el nombre mostrado cambió.
+    const mergedInfo = useMemo(() => {
+        const changed =
+            (intake.historical_description ?? intake.description) !== intake.description ||
+            (intake.historical_brand_model ?? intake.brand_model ?? '') !==
+                (intake.brand_model ?? '') ||
+            (intake.historical_variant_type ?? intake.variant_type ?? '') !==
+                (intake.variant_type ?? '')
+
+        if (!changed) return null
+
+        return [
+            intake.historical_description,
+            intake.historical_brand_model,
+            intake.historical_variant_type,
+        ]
+            .filter(Boolean)
+            .join(' · ')
+    }, [intake])
     const requisitionOrderNumber = intake.purchase_order?.quote_order?.requisition_order?.order_number
 
     return (
@@ -571,7 +593,29 @@ const IntakeRow = memo(function IntakeRow({ intake }: { intake: GeneralArticleIn
 
             <TableCell>
                 <div className="space-y-1 min-w-0">
-                    <span className="text-sm font-medium">{intake.description}</span>
+                    <div className="flex items-center gap-1.5">
+                        <span className="text-sm font-medium">{intake.description}</span>
+                        {mergedInfo && (
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Badge
+                                            variant="outline"
+                                            className="shrink-0 text-[9px] font-medium uppercase tracking-wide bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950/40 dark:text-sky-400 dark:border-sky-800/60"
+                                        >
+                                            Fusionado
+                                        </Badge>
+                                    </TooltipTrigger>
+                                    <TooltipContent side="top" className="max-w-xs">
+                                        Esta entrada se registró como{' '}
+                                        <span className="font-semibold">{mergedInfo}</span> y luego se fusionó
+                                        con el artículo actual. Se muestra la identidad vigente; el registro
+                                        de recepción original se conserva.
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                        )}
+                    </div>
                     {(intake.brand_model || intake.variant_type) && (
                         <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
                             {intake.brand_model && <span>{intake.brand_model}</span>}
@@ -691,6 +735,10 @@ export function RecepcionGeneralTab() {
             (i) =>
                 i.description?.toLowerCase().includes(q) ||
                 i.brand_model?.toLowerCase().includes(q) ||
+                // También por la identidad histórica: quien recuerde el nombre
+                // viejo (previo a una fusión) igual debe poder encontrar la fila.
+                i.historical_description?.toLowerCase().includes(q) ||
+                i.historical_brand_model?.toLowerCase().includes(q) ||
                 i.purchase_order?.quote_order?.requisition_order?.order_number?.toLowerCase().includes(q) ||
                 i.registered_by?.toLowerCase().includes(q)
         )

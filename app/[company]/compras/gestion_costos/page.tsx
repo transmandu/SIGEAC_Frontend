@@ -66,6 +66,8 @@ type BaseRow = {
   variant_type?: string
   unit_label?: string
   cost_history?: import('@/types').GeneralArticleCostHistoryEntry[]
+  primary_unit_id?: number
+  conversions?: import('@/types/purchase').GeneralArticleConversion[]
 }
 
 const ARTICLE_COST_ROLES = ['ANALISTA_COMPRAS', 'JEFE_COMPRAS', 'SUPERUSER', 'JEFE_ADMINISTRACION', 'ANALISTA_ADMINISTRACION']
@@ -153,6 +155,8 @@ const CostManagementPage = () => {
         cost: Number(a.cost ?? 0),
         unit_label: a.general_primary_unit?.label,
         cost_history: a.cost_history,
+        primary_unit_id: a.primary_unit_id ?? a.general_primary_unit?.id,
+        conversions: a.conversions,
       }))
     }
 
