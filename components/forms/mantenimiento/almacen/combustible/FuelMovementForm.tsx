@@ -26,6 +26,7 @@ import {
   FUEL_TYPES,
   formatLiters,
   getFuelTypeLabel,
+  getVehicleColorHex,
   movementRequiresFuelTypeSelection,
 } from "@/lib/fuel";
 import {
@@ -391,23 +392,45 @@ export function FuelMovementForm({
                       </SelectItem>
                     ) : null}
                     {activeVehicles.map((vehicle) => {
-                      const vehicleLabel = [vehicle.brand, vehicle.model]
+                      const vehicleLabel = [
+                        vehicle.brand,
+                        vehicle.model,
+                        vehicle.color,
+                      ]
                         .filter(Boolean)
                         .join(" ");
+                      const colorHex = getVehicleColorHex(vehicle.color);
                       return (
                         <SelectItem key={vehicle.id} value={vehicle.id.toString()}>
-                          {vehicle.plate || "Sin placa"}
-                          {vehicleLabel ? ` (${vehicleLabel})` : ""} -{" "}
-                          {formatLiters(vehicle.current_balance_liters)}
+                          <span className="inline-flex items-center gap-1.5">
+                            {colorHex ? (
+                              <span
+                                className="h-2 w-2 shrink-0 rounded-full border border-black/10"
+                                style={{ backgroundColor: colorHex }}
+                              />
+                            ) : null}
+                            {vehicle.plate || "Sin placa"}
+                            {vehicleLabel ? ` (${vehicleLabel})` : ""} -{" "}
+                            {formatLiters(vehicle.current_balance_liters)}
+                          </span>
                         </SelectItem>
                       );
                     })}
                   </SelectContent>
                 </Select>
                 {selectedVehicle ? (
-                  <p className="text-xs text-muted-foreground">
+                  <p className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                    {getVehicleColorHex(selectedVehicle.color) ? (
+                      <span
+                        className="h-2 w-2 shrink-0 rounded-full border border-black/10"
+                        style={{
+                          backgroundColor: getVehicleColorHex(selectedVehicle.color)!,
+                        }}
+                      />
+                    ) : null}
                     Combustible: {getFuelTypeLabel(selectedVehicle.fuel_type)} · Capacidad{" "}
                     {formatLiters(selectedVehicle.tank_capacity_liters)}
+                    {selectedVehicle.color ? ` · Color: ${selectedVehicle.color}` : ""}
                   </p>
                 ) : null}
                 <FormMessage />
