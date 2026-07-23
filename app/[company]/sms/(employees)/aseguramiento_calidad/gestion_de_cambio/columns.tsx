@@ -5,6 +5,7 @@ import { dateFormat } from "@/lib/utils";
 import { ChangeRequest, ChangeStatus } from "@/types";
 import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
+import ChangeManagementActions from "@/components/dropdowns/aerolinea/sms/ChangeManagementActions";
 
 const STATUS_STYLES: Record<
   ChangeStatus,
@@ -77,15 +78,15 @@ export const columns: ColumnDef<ChangeRequest>[] = [
     ),
   },
   {
-    accessorKey: "requestedBy",
+    accessorKey: "requested_by",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Solicitante" />
     ),
     meta: { title: "Solicitante" },
     cell: ({ row }) => (
       <div className="flex justify-center text-center">
-        {row.original.requestedBy?.first_name}{" "}
-        {row.original.requestedBy?.last_name}
+        {row.original.requested_by?.first_name}{" "}
+        {row.original.requested_by?.last_name}
       </div>
     ),
   },
@@ -140,5 +141,14 @@ export const columns: ColumnDef<ChangeRequest>[] = [
         {row.original.is_temporary ? "Sí" : "No"}
       </div>
     ),
+  },
+  {
+    id: "actions",
+    cell: ({ row }) => {
+      const changeManagement = row.original;
+      return (
+        <ChangeManagementActions changeManagement={changeManagement} />
+      );
+    },
   },
 ];
