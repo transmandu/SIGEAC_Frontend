@@ -98,7 +98,16 @@ export function CreateConditionForm({ onClose, onSuccess }: FormProps) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col space-y-3">
+      {/* stopPropagation: este form se renderiza dentro de otros formularios
+          (ej. cotización). React propaga el submit por su árbol aunque el
+          Dialog viva en un portal, y dispararía el submit del form padre. */}
+      <form
+        onSubmit={(e) => {
+          e.stopPropagation();
+          form.handleSubmit(onSubmit)(e);
+        }}
+        className="flex flex-col space-y-3"
+      >
         <FormField
           control={form.control}
           name="name"

@@ -162,12 +162,14 @@ function BrandCombobox({
         <Sparkles className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 size-3 text-violet-400 opacity-70" />
       )}
 
-      {showDropdown && createPortal(
+      {createPortal(
         <AnimatePresence>
+          {showDropdown && (
           <motion.div
+            key="brand-dropdown"
             initial={{ opacity: 0, y: -4 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
+            exit={{ opacity: 0, y: -4, pointerEvents: "none" }}
             transition={{ duration: 0.1 }}
             style={dropdownStyle}
             className="min-w-[160px] overflow-hidden rounded-md border border-border bg-popover shadow-md"
@@ -176,7 +178,7 @@ function BrandCombobox({
               <button
                 key={a.id}
                 type="button"
-                onMouseDown={(e) => {
+                onPointerDown={(e) => {
                   e.preventDefault();
                   onSelectCandidate(a);
                   setOpen(false);
@@ -192,6 +194,7 @@ function BrandCombobox({
               </button>
             ))}
           </motion.div>
+          )}
         </AnimatePresence>,
         document.body
       )}
@@ -271,12 +274,14 @@ function VariantCombobox({
         <Sparkles className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 size-3 text-violet-400 opacity-70" />
       )}
 
-      {showDropdown && createPortal(
+      {createPortal(
         <AnimatePresence>
+          {showDropdown && (
           <motion.div
+            key="variant-dropdown"
             initial={{ opacity: 0, y: -4 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
+            exit={{ opacity: 0, y: -4, pointerEvents: "none" }}
             transition={{ duration: 0.1 }}
             style={dropdownStyle}
             className="min-w-[160px] overflow-hidden rounded-md border border-border bg-popover shadow-md"
@@ -285,7 +290,7 @@ function VariantCombobox({
               <button
                 key={candidate}
                 type="button"
-                onMouseDown={(e) => {
+                onPointerDown={(e) => {
                   e.preventDefault();
                   onChange(candidate);
                   setOpen(false);
@@ -296,6 +301,7 @@ function VariantCombobox({
               </button>
             ))}
           </motion.div>
+          )}
         </AnimatePresence>,
         document.body
       )}

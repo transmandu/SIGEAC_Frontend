@@ -59,7 +59,15 @@ export default function CreateRetailerForm({ onClose, onCreated }: FormProps) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
+      {/* stopPropagation: este form se renderiza dentro de otros formularios
+          (ej. cotización). React propaga el submit por su árbol aunque el
+          Dialog viva en un portal, y dispararía el submit del form padre. */}
+      <form
+        onSubmit={(e) => {
+          e.stopPropagation();
+          form.handleSubmit(onSubmit)(e);
+        }}
+      >
         <div className="flex flex-col gap-2 justify-center">
           <FormField
             control={form.control}

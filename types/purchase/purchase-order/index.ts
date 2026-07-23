@@ -332,12 +332,27 @@ export interface GeneralArticleIntakeAuthorizedEmployeeRef {
   dni: string;
 }
 
+// Conversión aplicada al confirmar cuando el intake coincidía con un
+// general_article existente en todo menos la unidad (ver
+// GeneralArticleIntakeController::resolveUnitConversionCandidate).
+export interface GeneralArticleIntakeAppliedConversionRef {
+  id: number;
+  equivalence: number;
+}
+
 // GET /{company}/{location_id}/general-article-intakes
 export interface GeneralArticleIntake {
   id: number;
+  /** Identidad vigente: la del general_article vivo si el intake ya está vinculado; si no, la del propio intake. Tras una fusión refleja al superviviente. */
   description: string;
   variant_type?: string | null;
   brand_model?: string | null;
+  /** Datos descriptivos tal como se registró la recepción física, inmutables ante fusiones posteriores. */
+  historical_description?: string | null;
+  historical_variant_type?: string | null;
+  historical_brand_model?: string | null;
+  /** Artículo vivo al que quedó vinculado el intake (null mientras está PENDING sin emparejar). */
+  general_article_id?: number | null;
   cost?: number | null;
   image?: string | null;
   quantity: string | number;
@@ -358,6 +373,9 @@ export interface GeneralArticleIntake {
   authorized_employee?: GeneralArticleIntakeAuthorizedEmployeeRef | null;
   purchase_order?: GeneralArticleIntakePurchaseOrderRef | null;
   general_article_quote_order?: GeneralArticleIntakeQuoteOrderRef | null;
+  /** Cantidad ya convertida a la unidad del general_article existente — solo si applied_conversion no es null. */
+  converted_quantity?: number | null;
+  applied_conversion?: GeneralArticleIntakeAppliedConversionRef | null;
 }
 
 // GET /{company}/general-article-intakes/{location_id}?status=PENDING|CONFIRMED
@@ -370,6 +388,25 @@ export interface ConfirmGeneralArticleIntakeResponse {
   message: string;
   intake: GeneralArticleIntake;
   general_article: GeneralArticle;
+}
+
+// Respuesta 422 de confirm() cuando el intake coincide en todo con un
+// general_article existente menos la unidad, y no hay ninguna Conversion
+// registrada entre ambas para ese artículo. El frontend debe ofrecer crearla
+// (capturando equivalence) y reintentar confirm con new_conversion.
+export interface NeedsUnitConversionCandidate {
+  general_article_id: number;
+  description: string;
+  /** El driver sqlsrv a veces serializa esta FK como string — normalizar con Number() antes de comparar contra Unit.id. */
+  existing_unit_id: number | string;
+  /** Ver nota de existing_unit_id. */
+  intake_unit_id: number | string;
+}
+
+export interface NeedsUnitConversionResponse {
+  message: string;
+  needs_conversion: true;
+  candidate: NeedsUnitConversionCandidate;
 }
 
 // PATCH /{company}/general-article-intakes/{id}/reject

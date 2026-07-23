@@ -138,6 +138,33 @@ export const getFuelVehicleTypeDisplay = (vehicle?: {
 export const getFuelTypeLabel = (fuelType?: FuelType | string | null) =>
   FUEL_TYPES.find((item) => item.value === fuelType)?.label ?? "Gasolina";
 
+// Mapa de nombres de color en español (tal como se cargan en el vehiculo)
+// a un color hex aproximado, usado para pintar un punto identificativo en
+// los selects de vehiculo.
+const VEHICLE_COLOR_HEX: Record<string, string> = {
+  blanco: "#f8fafc",
+  negro: "#0f172a",
+  gris: "#64748b",
+  plata: "#cbd5e1",
+  plateado: "#cbd5e1",
+  rojo: "#ef4444",
+  vinotinto: "#7f1d1d",
+  azul: "#3b82f6",
+  celeste: "#38bdf8",
+  verde: "#22c55e",
+  amarillo: "#eab308",
+  naranja: "#f97316",
+  marron: "#78350f",
+  beige: "#e7d8c9",
+  dorado: "#d4af37",
+  morado: "#8b5cf6",
+};
+
+export const getVehicleColorHex = (color?: string | null) => {
+  if (!color) return null;
+  return VEHICLE_COLOR_HEX[color.trim().toLowerCase()] ?? null;
+};
+
 export const getFuelMovementLabel = (type?: FuelMovementType | string) =>
   type && type in FUEL_MOVEMENT_LABELS
     ? FUEL_MOVEMENT_LABELS[type as FuelMovementType]

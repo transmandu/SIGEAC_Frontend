@@ -641,6 +641,16 @@ const RequisitionPage = () => {
               </div>
             )}
 
+            {data?.work_order && (
+              <div className="text-center space-y-1">
+                <p className="text-xs text-muted-foreground">Orden de Trabajo</p>
+                <p className="font-medium flex items-center gap-2 justify-center">
+                  <FileText className="w-4 h-4" />
+                  {data.work_order}
+                </p>
+              </div>
+            )}
+
           </div>
 
           {/* JUSTIFICACIÓN + OBSERVACIÓN */}

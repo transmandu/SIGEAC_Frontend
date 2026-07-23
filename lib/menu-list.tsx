@@ -14,6 +14,7 @@ import { buildPurchasesGroups } from "@/lib/menus/purchases";
 import { buildQualityControlGroup } from "@/lib/menus/quality-control";
 import { buildSettingsGroup } from "@/lib/menus/settings";
 import { buildSmsGroup } from "@/lib/menus/sms";
+import { buildSupervisorGroup } from "@/lib/menus/supervisor";
 import type { Group } from "@/lib/menus/types";
 import { buildWarehouseGroup } from "@/lib/menus/warehouse";
 import type { Company } from "@/types";
@@ -44,6 +45,7 @@ export function getMenuList(
         buildEngineeringGroup(context),
         buildSettingsGroup(context),
         buildSystemGroup(context),
+        buildSupervisorGroup(context),
     ];
 
     return filterMenuGroups(fullMenu, { currentCompany, userRoles });

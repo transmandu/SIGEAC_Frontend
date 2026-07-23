@@ -90,8 +90,14 @@ export default function CreateVendorForm({
 
   return (
     <Form {...form}>
+      {/* stopPropagation: este form se renderiza dentro de otros formularios
+          (ej. cotización). React propaga el submit por su árbol aunque el
+          Dialog viva en un portal, y dispararía el submit del form padre. */}
       <form
-        onSubmit={form.handleSubmit(handleSubmit)}
+        onSubmit={(e) => {
+          e.stopPropagation();
+          form.handleSubmit(handleSubmit)(e);
+        }}
         className="flex flex-col gap-4"
       >
         <div className="grid grid-cols-2 gap-4">

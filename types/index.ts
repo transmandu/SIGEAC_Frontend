@@ -266,7 +266,7 @@ export interface LowStockConsumableArticle extends Article {
     quantity: number;
     primary_unit_id?: number;
   };
-  batch: Pick<Batch, "id" | "name" | "min_quantity">;
+  batch: Pick<Batch, "id" | "name" | "min_quantity" | "unit">;
 }
 
 export type Convertion = {
@@ -1004,7 +1004,7 @@ export type MitigationMeasure = {
   estimated_date: Date;
   execution_date?: Date | null;
   mitigation_plan_id: number;
-  follow_up_control: FollowUpControl[];
+  follow_up_controls: FollowUpControl[];
 };
 
 export type MitigationPlan = {
@@ -1234,7 +1234,12 @@ export interface WarehouseDashboard {
   tool_need_calibration_count: number;
   returnToolsCount: number;
   restockCount: number;
-  entryCount: number;
+  /** Intakes de artículos generales confirmados esta semana. */
+  generalArticleIntakeCount: number;
+  /** Artículos por lote con reception_date dentro de la semana. */
+  batchReceptionCount: number;
+  /** Suma de ambos: el sistema no tiene un concepto único de "entrada". */
+  incomingCount: number;
   generalArticlesAvailablePercentage: number;
   generalArticlesRestockCount: number;
   tools_need_calibration: {
@@ -1282,6 +1287,10 @@ export type GeneralArticleCostHistoryEntry = {
   source: 'PURCHASE' | 'MANUAL' | 'SEED';
   cost: number | null;
   quantity: number | null;
+  // Unidad en la que está expresado este costo. En compras viene del intake;
+  // en ajustes manuales, de la unidad anclada del cambio de costo.
+  unit_id?: number | null;
+  unit_label?: string | null;
   date: string | null;
   by: string | null;
   purchase_order_number?: string | null;

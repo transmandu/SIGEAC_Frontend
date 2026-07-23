@@ -171,6 +171,8 @@ export interface RequisitionByOrderNumber {
   aircraft?: Aircraft | null;
   department?: Department | null;
   third_party?: ThirdParty | null;
+  /** Free-text OT for this requisition (not a linked WorkOrder record). */
+  work_order?: string | null;
   batch?: RequisitionBatch[] | null;
   general_articles?: RequisitionGeneralArticle[] | null;
   quotes?: RequisitionQuote[] | null;
@@ -274,6 +276,8 @@ export interface CreateRequisitionData {
   type: 'AERONAUTICAL' | 'GENERAL';
   priority?: 'HIGH' | 'MEDIUM' | 'LOW';
   work_order_id?: string | number;
+  /** Free-text OT when the typed work order doesn't match an existing one. Mutually exclusive with work_order_id. */
+  work_order?: string;
   aircraft_id?: string | number;
   department_id?: string | number;
   third_party_id?: string | number;

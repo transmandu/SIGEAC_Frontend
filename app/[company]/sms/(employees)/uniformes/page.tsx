@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -338,6 +339,9 @@ const UniformesPage = () => {
             <DialogTitle className="text-center text-xl font-bold">
               Nuevo artículo de uniforme
             </DialogTitle>
+            <DialogDescription className="text-center text-sm text-muted-foreground">
+              Registre un artículo con su tipo, marca, talla y stock inicial.
+            </DialogDescription>
           </DialogHeader>
           <CreateUniformItemForm onClose={() => setCreateOpen(false)} />
         </DialogContent>
@@ -350,6 +354,9 @@ const UniformesPage = () => {
             <DialogTitle className="text-center text-xl font-bold">
               Registrar movimiento
             </DialogTitle>
+            <DialogDescription className="text-center text-sm text-muted-foreground">
+              Registre una entrada o entrega de uniformes y actualice el stock.
+            </DialogDescription>
           </DialogHeader>
           <RegisterUniformMovementForm
             key={movementItemId ?? "global"}
@@ -366,6 +373,9 @@ const UniformesPage = () => {
             <DialogTitle className="text-center text-xl font-bold">
               Editar artículo
             </DialogTitle>
+            <DialogDescription className="text-center text-sm text-muted-foreground">
+              Modifique los datos del artículo de uniforme seleccionado.
+            </DialogDescription>
           </DialogHeader>
           {editItem && (
             <EditUniformItemForm
@@ -383,6 +393,10 @@ const UniformesPage = () => {
             <DialogTitle className="text-center text-xl font-bold">
               {editType ? "Editar tipo de artículo" : "Nuevo tipo de artículo"}
             </DialogTitle>
+            <DialogDescription className="text-center text-sm text-muted-foreground">
+              Los tipos agrupan los artículos del inventario (camisas,
+              pantalones, botas, chalecos).
+            </DialogDescription>
           </DialogHeader>
           <UniformArticleTypeForm
             key={editType?.id ?? "new"}
@@ -399,6 +413,9 @@ const UniformesPage = () => {
             <DialogTitle className="text-center text-xl font-bold">
               {editBrand ? "Editar marca" : "Nueva marca"}
             </DialogTitle>
+            <DialogDescription className="text-center text-sm text-muted-foreground">
+              Las marcas identifican al fabricante de cada artículo de uniforme.
+            </DialogDescription>
           </DialogHeader>
           <UniformBrandForm
             key={editBrand?.id ?? "new"}

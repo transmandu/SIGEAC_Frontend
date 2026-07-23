@@ -215,7 +215,7 @@ export default function SecureFileViewer({ isOpen, onClose, title, fetchBlobUrl 
             </div>
           ) : (
             fileUrl && (
-              <div className="h-full">
+              <div className="absolute inset-0">
                 <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
                   <Viewer
                     fileUrl={fileUrl}

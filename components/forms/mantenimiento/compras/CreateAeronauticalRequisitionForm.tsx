@@ -35,6 +35,7 @@ const FormSchema = z.object({
   requested_by: z.string().min(1, "Debe ingresar quien lo solicita."),
   priority: z.enum(["HIGH", "MEDIUM", "LOW"]).optional(),
   work_order_id: z.string().optional(),
+  work_order: z.string().optional(),
   aircraft_id: z.string().optional(),
   image: z
     .instanceof(File)
@@ -407,6 +408,7 @@ export function CreateAeronauticalRequisitionForm({
       ...data,
       type: "AERONAUTICAL" as const,
       work_order_id: data.work_order_id ? Number(data.work_order_id) : undefined,
+      work_order: data.work_order_id ? undefined : data.work_order,
       aircraft_id: data.aircraft_id ? Number(data.aircraft_id) : undefined,
     };
 

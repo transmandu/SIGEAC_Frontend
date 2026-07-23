@@ -43,6 +43,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Department } from "@/types";
 
 type DispatchType = "aeronautical" | "general";
+type ArticleCategory = "CONSUMABLE" | "PART" | "COMPONENT" | "TOOL";
 
 export function DispatchReportDialog() {
   const { selectedStation, selectedCompany } = useCompanyStore();
@@ -71,6 +72,7 @@ export function DispatchReportDialog() {
 
   // ===================== TIPO DE DESPACHO =====================
   const [dispatchType, setDispatchType] = useState<DispatchType | null>(null);
+  const [articleCategory, setArticleCategory] = useState<ArticleCategory | null>(null);
 
   // ===================== FILTROS ARTÍCULOS =====================
   const [articleFilters, setArticleFilters] = useState({
@@ -147,6 +149,7 @@ export function DispatchReportDialog() {
       setAuthorizedEmployeeId(null);
       setThirdPartyId(null);
       setDispatchType(null);
+      setArticleCategory(null);
 
       setArticleFilters({
         part_number: "",
@@ -172,6 +175,7 @@ export function DispatchReportDialog() {
     authorized_employee_id: authorizedEmployeeId || undefined,
     third_party_id: thirdPartyId || undefined,
     type: dispatchType || undefined,
+    article_category: articleCategory || undefined,
 
     from: format(startDate!, "yyyy-MM-dd"),
     to: format(endDate!, "yyyy-MM-dd"),
@@ -348,6 +352,8 @@ export function DispatchReportDialog() {
 
               dispatchType={dispatchType}
               setDispatchType={setDispatchType}
+              articleCategory={articleCategory}
+              setArticleCategory={setArticleCategory}
 
               articles={allArticles}
               isLoadingArticles={isLoadingArticles || isLoadingGeneralArticles}

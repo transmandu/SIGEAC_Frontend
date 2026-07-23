@@ -46,6 +46,7 @@ const FormSchema = z.object({
   requested_by_authorized_employee_id: z.string().optional(),
   priority: z.enum(["HIGH", "MEDIUM", "LOW"]).optional(),
   work_order_id: z.string().optional(),
+  work_order: z.string().optional(),
   aircraft_id: z.string().optional(),
   image: z
     .instanceof(File)
@@ -559,6 +560,7 @@ export function CreateWarehouseRequisitionForm({
       ...data,
       type: requisitionType,
       work_order_id: data.work_order_id ? Number(data.work_order_id) : undefined,
+      work_order: data.work_order_id ? undefined : data.work_order,
       aircraft_id: data.aircraft_id ? Number(data.aircraft_id) : undefined,
       requested_by_authorized_employee_id: data.requested_by_authorized_employee_id
         ? Number(data.requested_by_authorized_employee_id)

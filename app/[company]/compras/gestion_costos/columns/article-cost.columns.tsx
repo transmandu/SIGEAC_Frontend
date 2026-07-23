@@ -30,7 +30,25 @@ const normalizeCostInput = (value: string) => {
 
 export function getArticleCostColumns({
   onCostChange,
+  showUnit = false,
 }: ArticleCostColumnsArgs): ColumnDef<ArticleCostRow>[] {
+
+  const unitColumn: ColumnDef<ArticleCostRow> = {
+    accessorKey: 'unit_label',
+    size: 120,
+    header: ({ column }) => (
+      <div className="flex justify-center w-full">
+        <DataTableColumnHeader column={column} title="Unidad" />
+      </div>
+    ),
+    cell: ({ row }) => (
+      <div className="flex justify-center w-full">
+        <span className="inline-flex items-center rounded-md border border-slate-200 dark:border-slate-700/60 bg-slate-100/70 dark:bg-slate-800/40 px-2 py-0.5 text-xs font-medium text-slate-600 dark:text-slate-300">
+          {row.original.unit_label ?? '—'}
+        </span>
+      </div>
+    ),
+  }
 
   return [
 
@@ -101,6 +119,8 @@ export function getArticleCostColumns({
         </div>
       ),
     },
+
+    ...(showUnit ? [unitColumn] : []),
 
     {
       accessorKey: 'cost',

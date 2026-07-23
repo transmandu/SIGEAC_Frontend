@@ -39,6 +39,15 @@ import { cn } from "@/lib/utils";
 
 type DispatchType = "aeronautical" | "general";
 
+export type ArticleCategory = "CONSUMABLE" | "PART" | "COMPONENT" | "TOOL";
+
+const ARTICLE_CATEGORIES: { value: ArticleCategory; label: string }[] = [
+  { value: "CONSUMABLE", label: "Consumible" },
+  { value: "PART", label: "Parte" },
+  { value: "COMPONENT", label: "Componente" },
+  { value: "TOOL", label: "Herramienta" },
+];
+
 interface Props {
   startDate?: Date;
   endDate?: Date;
@@ -66,6 +75,8 @@ interface Props {
   isLoadingThirdParties?: boolean;
   dispatchType: DispatchType | null;
   setDispatchType: (v: DispatchType | null) => void;
+  articleCategory: ArticleCategory | null;
+  setArticleCategory: (v: ArticleCategory | null) => void;
   isDateRangeInvalid: boolean;
   isPlanificacionOnlyFilters: boolean;
   articles?: any[];
@@ -110,6 +121,8 @@ export function DispatchReportFilters({
   isLoadingThirdParties,
   dispatchType,
   setDispatchType,
+  articleCategory,
+  setArticleCategory,
   isDateRangeInvalid,
   isPlanificacionOnlyFilters,
   articles = [],
@@ -243,6 +256,13 @@ export function DispatchReportFilters({
     !isPlanificacionOnlyFilters && dispatchType && {
       label: "Tipo",
       value: dispatchType === "aeronautical" ? "Aeronáutico" : "General",
+    },
+
+    !isPlanificacionOnlyFilters && articleCategory && {
+      label: "Categoría",
+      value:
+        ARTICLE_CATEGORIES.find((c) => c.value === articleCategory)?.label ??
+        articleCategory,
     },
   ].filter(Boolean) as { label: string; value: string }[];
 
@@ -551,7 +571,18 @@ export function DispatchReportFilters({
             </Button>
           </PopoverTrigger>
 
-          <PopoverContent className="w-[92vw] max-w-[340px] space-y-4 p-4">
+          <PopoverContent
+            side="bottom"
+            align="center"
+            collisionPadding={16}
+            className={cn(
+              "w-[92vw] max-w-[340px] space-y-4 p-4",
+              // En pantallas de poca altura el listado de filtros desbordaba el
+              // viewport: lo acotamos al espacio real que Radix deja libre y
+              // dejamos que scrollee internamente.
+              "max-h-[var(--radix-popover-content-available-height)] overflow-y-auto"
+            )}
+          >
 
               <div className="space-y-1">
                 <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
@@ -760,9 +791,15 @@ export function DispatchReportFilters({
 
                   <Select
                     value={dispatchType || "all"}
-                    onValueChange={(v) =>
-                      setDispatchType(v === "all" ? null : (v as DispatchType))
-                    }
+                    onValueChange={(v) => {
+                      const next = v === "all" ? null : (v as DispatchType);
+                      setDispatchType(next);
+
+                      // La categoría solo desglosa el aeronáutico.
+                      if (next === "general") {
+                        setArticleCategory(null);
+                      }
+                    }}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Seleccionar tipo" />
@@ -774,6 +811,40 @@ export function DispatchReportFilters({
                     </SelectContent>
                   </Select>
                 </div>
+
+                {dispatchType !== "general" && (
+                  <div className="space-y-1">
+                    <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+                      Categoría Aeronáutica
+                    </div>
+
+                    <Select
+                      value={articleCategory || "all"}
+                      onValueChange={(v) => {
+                        const next =
+                          v === "all" ? null : (v as ArticleCategory);
+                        setArticleCategory(next);
+
+                        // Elegir una categoría implica despachos aeronáuticos.
+                        if (next) {
+                          setDispatchType("aeronautical");
+                        }
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccionar categoría" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todas</SelectItem>
+                        {ARTICLE_CATEGORIES.map((c) => (
+                          <SelectItem key={c.value} value={c.value}>
+                            {c.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
               </>
             )}
 
@@ -836,7 +907,18 @@ export function DispatchReportFilters({
             </Button>
           </PopoverTrigger>
 
-          <PopoverContent className="w-[92vw] max-w-[340px] space-y-4 p-4">
+          <PopoverContent
+            side="bottom"
+            align="center"
+            collisionPadding={16}
+            className={cn(
+              "w-[92vw] max-w-[340px] space-y-4 p-4",
+              // En pantallas de poca altura el listado de filtros desbordaba el
+              // viewport: lo acotamos al espacio real que Radix deja libre y
+              // dejamos que scrollee internamente.
+              "max-h-[var(--radix-popover-content-available-height)] overflow-y-auto"
+            )}
+          >
             {/* ================= PART NUMBER ================= */}
             <div className="space-y-1">
               <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
