@@ -4,28 +4,16 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash2 } from "lucide-react";
-import { StoreChangeRequestPayload } from "@/types";
+import { ComboboxField } from "@/components/ui/ComboboxField";
+import { Loader2, Plus, Trash2 } from "lucide-react";
+import { Employee } from "@/types";
+import { ChangeRequestFormValues } from "./CreateChangeRequestForm";
 
-interface StepRisksProps {
-  form: UseFormReturn<StoreChangeRequestPayload>;
+interface StepPlanAndResourcesProps {
+  form: UseFormReturn<ChangeRequestFormValues>;
+  employees: Employee[];
+  isLoadingEmployees: boolean;
 }
-
-const SEVERITY_OPTIONS = [
-  { value: "1", label: "A — Catastrófico" },
-  { value: "2", label: "B — Peligroso" },
-  { value: "3", label: "C — Mayor" },
-  { value: "4", label: "D — Menor" },
-  { value: "5", label: "E — Insignificante" },
-];
-
-const PROBABILITY_OPTIONS = [
-  { value: "1", label: "1 — Extremadamente Improbable" },
-  { value: "2", label: "2 — Improbable" },
-  { value: "3", label: "3 — Remoto" },
-  { value: "4", label: "4 — Ocasional" },
-  { value: "5", label: "5 — Frecuente" },
-];
 
 const CURRENCY_OPTIONS = [
   { value: "USD", label: "USD — Dólar" },
@@ -36,16 +24,7 @@ const CURRENCY_OPTIONS = [
 const preventWheel = (e: React.WheelEvent<HTMLInputElement>) =>
   (e.target as HTMLInputElement).blur();
 
-export function StepRisks({ form }: StepRisksProps) {
-  const {
-    fields: riskFields,
-    append: appendRisk,
-    remove: removeRisk,
-  } = useFieldArray({
-    control: form.control,
-    name: "risk_assessments",
-  });
-
+export function StepPlanAndResources({ form, employees, isLoadingEmployees }: StepPlanAndResourcesProps) {
   const {
     fields: requiredItemFields,
     append: appendItem,
@@ -64,123 +43,45 @@ export function StepRisks({ form }: StepRisksProps) {
     name: "financial_resources",
   });
 
+  const {
+    fields: activityFields,
+    append: appendActivity,
+    remove: removeActivity,
+  } = useFieldArray({
+    control: form.control,
+    name: "activities",
+  });
+
+  const employeeOptions = employees.map((e) => ({
+    value: e.id,
+    label: `${e.first_name} ${e.last_name}`,
+    badge: e.dni,
+  }));
+
   return (
     <div className="flex flex-col gap-6">
-      {/* Riesgos */}
+      {/* Cambios Planificados */}
       <div className="flex flex-col gap-2">
-        <div className="flex items-center justify-between">
-          <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            Evaluación de Riesgos
-          </h3>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() =>
-              appendRisk({
-                hazard_description: "",
-                probability_value: 1,
-                severity_value: 1,
-              })
-            }
-          >
-            <Plus className="size-3 mr-1" />
-            Agregar
-          </Button>
-        </div>
-        {riskFields.map((field, index) => (
-          <div
-            key={field.id}
-            className="grid grid-cols-[1fr_180px_180px_auto] gap-3 items-start px-3 py-3 border border-border/30 rounded-md"
-          >
-            <FormField
-              control={form.control}
-              name={`risk_assessments.${index}.hazard_description`}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground/70">
-                    Peligro
-                  </FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Descripción del peligro"
-                      className="min-h-[60px]"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name={`risk_assessments.${index}.probability_value`}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground/70">
-                    Probabilidad
-                  </FormLabel>
-                  <Select
-                    onValueChange={(val) => field.onChange(Number(val))}
-                    value={field.value?.toString()}
-                  >
-                    <FormControl>
-                      <SelectTrigger className="h-8 font-mono text-sm">
-                        <SelectValue />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {PROBABILITY_OPTIONS.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name={`risk_assessments.${index}.severity_value`}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground/70">
-                    Severidad
-                  </FormLabel>
-                  <Select
-                    onValueChange={(val) => field.onChange(Number(val))}
-                    value={field.value?.toString()}
-                  >
-                    <FormControl>
-                      <SelectTrigger className="h-8 font-mono text-sm">
-                        <SelectValue />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {SEVERITY_OPTIONS.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="mt-5"
-              onClick={() => removeRisk(index)}
-            >
-              <Trash2 className="size-4 text-destructive" />
-            </Button>
-          </div>
-        ))}
+        <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+          Cambios Planificados
+        </h3>
+        <FormField
+          control={form.control}
+          name="planned_changes"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <Textarea
+                  placeholder="Describa los cambios planificados..."
+                  className="min-h-[80px]"
+                  {...field}
+                  value={field.value ?? ""}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
       </div>
 
       {/* Items Requeridos */}
@@ -324,6 +225,85 @@ export function StepRisks({ form }: StepRisksProps) {
               size="icon"
               className="mt-5"
               onClick={() => removeFinancial(index)}
+            >
+              <Trash2 className="size-4 text-destructive" />
+            </Button>
+          </div>
+        ))}
+      </div>
+
+      {/* Actividades de Implementación */}
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center justify-between">
+          <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            Actividades de Implementación
+          </h3>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() =>
+              appendActivity({
+                activity_description: "",
+                assigned_employee_id: 0,
+              })
+            }
+          >
+            <Plus className="size-3 mr-1" />
+            Agregar
+          </Button>
+        </div>
+        {activityFields.map((field, index) => (
+          <div
+            key={field.id}
+            className="grid grid-cols-[1fr_240px_auto] gap-3 items-start"
+          >
+            <FormField
+              control={form.control}
+              name={`activities.${index}.activity_description`}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground/70">
+                    Descripción
+                  </FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Descripción de la actividad"
+                      className="min-h-[60px]"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            {isLoadingEmployees ? (
+              <FormItem>
+                <FormLabel className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground/70">
+                  Responsable
+                </FormLabel>
+                <div className="flex items-center gap-2 h-8 px-3 border border-border/60 rounded-md">
+                  <Loader2 className="size-3 animate-spin text-muted-foreground" />
+                  <span className="text-xs text-muted-foreground">Cargando...</span>
+                </div>
+              </FormItem>
+            ) : (
+              <ComboboxField
+                form={form}
+                name={`activities.${index}.assigned_employee_id`}
+                label="Responsable"
+                placeholder="Asignar"
+                searchPlaceholder="Buscar..."
+                emptyText="No se encontraron empleados"
+                options={employeeOptions}
+              />
+            )}
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="mt-5"
+              onClick={() => removeActivity(index)}
             >
               <Trash2 className="size-4 text-destructive" />
             </Button>

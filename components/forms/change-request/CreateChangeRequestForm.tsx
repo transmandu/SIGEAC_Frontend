@@ -13,24 +13,21 @@ import { useCreateChangeRequest } from "@/actions/sms/gestion_de_cambio/actions"
 import { useGetDepartments } from "@/hooks/sistema/departamento/useGetDepartment";
 import { useGetEmployeesByCompany } from "@/hooks/sistema/empleados/useGetEmployees";
 import { StoreChangeRequestPayload } from "@/types";
-import { StepGeneral } from "./StepGeneral";
-import { StepClassification } from "./StepClassification";
-import { StepRisks } from "./StepRisks";
-import { StepPlan } from "./StepPlan";
+import { StepGeneralAndClassification } from "./StepGeneralAndClassification";
+import { StepPlanAndResources } from "./StepPlanAndResources";
+import { StepRisksAndDetails } from "./StepRisksAndDetails";
 
 const STEPS = [
-  { label: "General y Solicitante", step: 1 },
-  { label: "Clasificación y Detalles", step: 2 },
-  { label: "Riesgos y Mitigación", step: 3 },
-  { label: "Plan e Implementación", step: 4 },
+  { label: "General y Clasificación", step: 1 },
+  { label: "Plan y Recursos", step: 2 },
+  { label: "Riesgos y Detalles", step: 3 },
 ];
 
-const SEVERITY_MAP: Record<string, number> = {
-  A: 1,
-  B: 2,
-  C: 3,
-  D: 4,
-  E: 5,
+const TIME_UNIT_MULTIPLIER: Record<string, number> = {
+  days: 1,
+  weeks: 7,
+  months: 30,
+  years: 365,
 };
 
 const formSchema = z.object({
@@ -38,11 +35,8 @@ const formSchema = z.object({
   department_id: z.number().min(1, "El departamento es requerido"),
   requested_by: z.number().min(1, "El solicitante es requerido"),
   is_temporary: z.boolean(),
-  temporary_duration: z
-    .string()
-    .max(100, "Máximo 100 caracteres")
-    .nullable()
-    .optional(),
+  temporary_duration_value: z.number().optional(),
+  temporary_duration_unit: z.enum(["days", "weeks", "months", "years"]).optional(),
   change_type: z.string().min(1, "El tipo de cambio es requerido"),
   other_type_description: z
     .string()
@@ -65,11 +59,8 @@ const formSchema = z.object({
   mitigation_plan: z.string().nullable().optional(),
   planned_changes: z.string().nullable().optional(),
   cutoff_date: z.string().nullable().optional(),
-  stabilization_period: z
-    .string()
-    .max(100, "Máximo 100 caracteres")
-    .nullable()
-    .optional(),
+  stabilization_period_value: z.number().optional(),
+  stabilization_period_unit: z.enum(["days", "weeks", "months", "years"]).optional(),
   project_lead_by: z.number().nullable().optional(),
   reviewed_by: z.number().nullable().optional(),
   approved_by: z.number().nullable().optional(),
@@ -131,7 +122,13 @@ const formSchema = z.object({
     .optional(),
 });
 
-export { SEVERITY_MAP };
+export type ChangeRequestFormValues = z.infer<typeof formSchema>;
+
+function convertToDays(value: number | undefined, unit: string | undefined): string {
+  if (!value || !unit) return "";
+  const days = value * (TIME_UNIT_MULTIPLIER[unit] ?? 1);
+  return `${days} días`;
+}
 
 export function CreateChangeRequestForm() {
   const [step, setStep] = useState(1);
@@ -147,14 +144,15 @@ export function CreateChangeRequestForm() {
     isLoading: isLoadingEmployees,
   } = useGetEmployeesByCompany(selectedCompany?.slug);
 
-  const form = useForm<StoreChangeRequestPayload>({
+  const form = useForm<ChangeRequestFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       request_date: new Date().toISOString().split("T")[0],
       department_id: 0,
       requested_by: 0,
       is_temporary: false,
-      temporary_duration: null,
+      temporary_duration_value: undefined,
+      temporary_duration_unit: undefined,
       change_type: "" as StoreChangeRequestPayload["change_type"],
       other_type_description: null,
       description: "",
@@ -164,7 +162,8 @@ export function CreateChangeRequestForm() {
       mitigation_plan: null,
       planned_changes: null,
       cutoff_date: null,
-      stabilization_period: null,
+      stabilization_period_value: undefined,
+      stabilization_period_unit: undefined,
       project_lead_by: null,
       reviewed_by: null,
       approved_by: null,
@@ -176,10 +175,25 @@ export function CreateChangeRequestForm() {
     },
   });
 
-  const onSubmit = (data: StoreChangeRequestPayload) => {
+  const onSubmit = (data: ChangeRequestFormValues) => {
     if (!selectedCompany?.slug) return;
+
+    const {
+      temporary_duration_value,
+      temporary_duration_unit,
+      stabilization_period_value,
+      stabilization_period_unit,
+      ...rest
+    } = data;
+
+    const payload = {
+      ...rest,
+      temporary_duration: convertToDays(temporary_duration_value, temporary_duration_unit),
+      stabilization_period: convertToDays(stabilization_period_value, stabilization_period_unit),
+    } as StoreChangeRequestPayload;
+
     createChangeRequest.mutate(
-      { company: selectedCompany.slug, data },
+      { company: selectedCompany.slug, data: payload },
       {
         onSuccess: () => {
           router.push(
@@ -191,22 +205,27 @@ export function CreateChangeRequestForm() {
   };
 
   const handleNext = async () => {
-    let fieldsToValidate: (keyof StoreChangeRequestPayload)[] = [];
+    let fieldsToValidate: (keyof ChangeRequestFormValues)[] = [];
 
     if (step === 1) {
-      fieldsToValidate = ["request_date", "department_id", "requested_by"];
-    } else if (step === 2) {
       fieldsToValidate = [
+        "request_date",
+        "department_id",
+        "requested_by",
         "change_type",
         "description",
         "scope",
         "justification",
       ];
+    } else if (step === 2) {
+      fieldsToValidate = [
+        "planned_changes",
+      ];
     }
 
     const isValid = await form.trigger(fieldsToValidate);
     if (isValid) {
-      setStep((prev) => Math.min(prev + 1, 4));
+      setStep((prev) => Math.min(prev + 1, 3));
     }
   };
 
@@ -257,7 +276,7 @@ export function CreateChangeRequestForm() {
         {/* Step Content */}
         <div className="border border-border/60 rounded-md p-4">
           {step === 1 && (
-            <StepGeneral
+            <StepGeneralAndClassification
               form={form}
               departments={departments ?? []}
               employees={employees ?? []}
@@ -265,10 +284,15 @@ export function CreateChangeRequestForm() {
               isLoadingEmployees={isLoadingEmployees}
             />
           )}
-          {step === 2 && <StepClassification form={form} />}
-          {step === 3 && <StepRisks form={form} />}
-          {step === 4 && (
-            <StepPlan
+          {step === 2 && (
+            <StepPlanAndResources
+              form={form}
+              employees={employees ?? []}
+              isLoadingEmployees={isLoadingEmployees}
+            />
+          )}
+          {step === 3 && (
+            <StepRisksAndDetails
               form={form}
               employees={employees ?? []}
               isLoadingEmployees={isLoadingEmployees}
@@ -287,7 +311,7 @@ export function CreateChangeRequestForm() {
             <ChevronLeft className="size-4 mr-1" />
             Anterior
           </Button>
-          {step < 4 ? (
+          {step < 3 ? (
             <Button type="button" onClick={handleNext}>
               Siguiente
               <ChevronRight className="size-4 ml-1" />
