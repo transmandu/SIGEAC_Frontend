@@ -1585,8 +1585,7 @@ export type ChangeActivity = {
   id: number;
   change_request_id: number;
   activity_description: string;
-  assigned_employee_id: number;
-  assignedEmployee: Employee;
+  assigned_employee: Employee;
   created_at: string;
   updated_at: string;
 };
@@ -1604,8 +1603,8 @@ export type ChangeRequest = {
   id: number;
   status: ChangeStatus;
   request_date: string;
-  department_id: number;
-  requested_by: number;
+  department_id: string;
+  requested_by: Employee;
   is_temporary: boolean;
   temporary_duration: string | null;
   change_type: ChangeType;
@@ -1618,21 +1617,19 @@ export type ChangeRequest = {
   planned_changes: string | null;
   cutoff_date: string | null;
   stabilization_period: string | null;
-  project_lead_by: number | null;
-  reviewed_by: number | null;
-  approved_by: number | null;
+  project_lead_by: Employee | null;
+  reviewed_by: Employee | null;
+  approved_by: Employee | null;
+  registered_by: string | null;
+  updated_by: string | null;
   created_at: string;
   updated_at: string;
   department: Department;
-  requestedBy: Employee;
-  projectLeadBy: Employee | null;
-  reviewedBy: Employee | null;
-  approvedBy: Employee | null;
-  requiredItems: ChangeRequiredItem[];
-  financialResources: ChangeFinancialResource[];
-  riskAssessments: ChangeRiskAssessment[];
+  required_items: ChangeRequiredItem[];
+  financial_resources: ChangeFinancialResource[];
+  risk_assessments: ChangeRiskAssessment[];
   activities: ChangeActivity[];
-  photographicRecords: ChangePhotographicRecord[];
+  photographic_records: ChangePhotographicRecord[];
 };
 
 export type StoreChangeRequestPayload = {
