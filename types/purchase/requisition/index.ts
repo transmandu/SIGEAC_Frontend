@@ -171,6 +171,8 @@ export interface RequisitionByOrderNumber {
   aircraft?: Aircraft | null;
   department?: Department | null;
   third_party?: ThirdParty | null;
+  /** Free-text OT for this requisition (not a linked WorkOrder record). */
+  work_order?: string | null;
   batch?: RequisitionBatch[] | null;
   general_articles?: RequisitionGeneralArticle[] | null;
   quotes?: RequisitionQuote[] | null;
