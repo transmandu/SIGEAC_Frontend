@@ -1,17 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Sheet, FileText, Plus, Upload } from "lucide-react";
 import { useGetErrorReports, ErrorReportFilters as Filters } from "@/hooks/sistema/reportes/useGetErrorReports";
 import { useExportErrorReports } from "@/hooks/sistema/reportes/useExportErrorReports";
-import { columns } from "./columns";
+import { ErrorReport } from "@/types";
+import { getColumns } from "./columns";
 import { DataTable } from "./data-table";
 import ErrorReportFilters from "./_components/ErrorReportFilters";
+import ErrorReportKpiCards from "./_components/ErrorReportKpiCards";
 import ImportHistoryDialog from "./_components/ImportHistoryDialog";
 import ImportHistoryTable from "./_components/ImportHistoryTable";
+import ErrorReportDiagnosisDialog from "./_components/ErrorReportDiagnosisDialog";
 import CreateErrorReportDialog from "@/components/dialogs/sistema/CreateErrorReportDialog";
 
 const DEFAULT_PAGE_SIZE = 25;
@@ -23,9 +26,40 @@ export default function ReportesErrorPage() {
   });
   const [createOpen, setCreateOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [selectedReport, setSelectedReport] = useState<ErrorReport | null>(null);
+  const [diagnosisOpen, setDiagnosisOpen] = useState(false);
+  const [searchText, setSearchText] = useState("");
 
   const { data, isLoading } = useGetErrorReports(filters);
   const { exportErrorReports } = useExportErrorReports();
+
+  const visibleReports = useMemo(() => {
+    const reports = data?.reports ?? [];
+    const term = searchText.trim().toLowerCase();
+    if (!term) return reports;
+
+    return reports.filter((report) => {
+      const haystack = [
+        report.description,
+        report.module,
+        report.reported_by,
+        report.phone,
+        report.http_status,
+        report.http_status_label,
+      ]
+        .filter((value) => value !== null && value !== undefined)
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(term);
+    });
+  }, [data?.reports, searchText]);
+
+  const handleViewDiagnosis = (report: ErrorReport) => {
+    setSelectedReport(report);
+    setDiagnosisOpen(true);
+  };
+
+  const columns = useMemo(() => getColumns(handleViewDiagnosis), []);
 
   const handleFiltersChange = (patch: Partial<Filters>) => {
     setFilters((prev) => ({ ...prev, ...patch, page: 1 }));
@@ -55,6 +89,11 @@ export default function ReportesErrorPage() {
         </div>
 
         <TabsContent value="reportes" className="flex flex-col gap-4 mt-0">
+          <ErrorReportKpiCards
+            activeStatus={filters.status}
+            onSelect={(status) => handleFiltersChange({ status })}
+          />
+
           <div className="flex items-center justify-end flex-wrap gap-2">
             <Button variant="outline" size="sm" onClick={() => exportErrorReports("excel", exportFilters)}>
               <Sheet className="mr-2 h-4 w-4" />
@@ -70,16 +109,23 @@ export default function ReportesErrorPage() {
             </Button>
           </div>
 
-          <ErrorReportFilters filters={filters} onChange={handleFiltersChange} onReset={handleReset} />
+          <ErrorReportFilters
+            filters={filters}
+            onChange={handleFiltersChange}
+            onReset={handleReset}
+            searchValue={searchText}
+            onSearchChange={setSearchText}
+          />
 
           <DataTable
             columns={columns}
-            data={data?.reports ?? []}
+            data={visibleReports}
             loading={isLoading}
             pageIndex={(filters.page ?? 1) - 1}
             pageSize={filters.per_page ?? DEFAULT_PAGE_SIZE}
             pageCount={data?.pagination.last_page ?? 0}
             onPaginationChange={handlePaginationChange}
+            onRowClick={handleViewDiagnosis}
           />
         </TabsContent>
 
@@ -96,6 +142,14 @@ export default function ReportesErrorPage() {
 
       <CreateErrorReportDialog open={createOpen} onOpenChange={setCreateOpen} showAdvancedFields />
       <ImportHistoryDialog open={importOpen} onOpenChange={setImportOpen} />
+
+      {selectedReport && (
+        <ErrorReportDiagnosisDialog
+          open={diagnosisOpen}
+          onOpenChange={setDiagnosisOpen}
+          report={selectedReport}
+        />
+      )}
     </ContentLayout>
   );
 }

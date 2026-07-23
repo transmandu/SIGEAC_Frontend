@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import CreateErrorReportForm from "@/components/forms/sistema/CreateErrorReportForm";
 
 interface CreateErrorReportDialogProps {
@@ -23,14 +17,11 @@ export default function CreateErrorReportDialog({
 }: CreateErrorReportDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[480px]">
-        <DialogHeader>
-          <DialogTitle>Reportar un problema o sugerencia</DialogTitle>
-          <DialogDescription>
-            Cuéntanos qué error encontraste o qué te gustaría que mejoráramos en SIGEAC.
-          </DialogDescription>
-        </DialogHeader>
-        <CreateErrorReportForm onClose={() => onOpenChange(false)} showAdvancedFields={showAdvancedFields} />
+      <DialogContent className="flex max-h-[85vh] flex-col overflow-hidden rounded-2xl border-slate-200/80 p-0 sm:max-w-[560px] dark:border-slate-800/80">
+        <CreateErrorReportForm
+          onClose={() => onOpenChange(false)}
+          showAdvancedFields={showAdvancedFields}
+        />
       </DialogContent>
     </Dialog>
   );
