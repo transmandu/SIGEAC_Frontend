@@ -9,6 +9,8 @@ import { toast } from "sonner";
 interface CreateChangeRequestData {
   company: string;
   data: StoreChangeRequestPayload;
+  beforeImages?: File[];
+  afterImages?: File[];
 }
 
 interface UpdateChangeRequestData {
@@ -17,11 +19,55 @@ interface UpdateChangeRequestData {
   data: UpdateChangeRequestPayload;
 }
 
+function appendNestedFormData(formData: FormData, data: Record<string, unknown>, prefix = "") {
+  for (const [key, value] of Object.entries(data)) {
+    if (value === undefined || value === null) continue;
+
+    const fullKey = prefix ? `${prefix}[${key}]` : key;
+
+    if (value instanceof File) {
+      formData.append(fullKey, value);
+    } else if (Array.isArray(value)) {
+      value.forEach((item, index) => {
+        if (item instanceof File) {
+          formData.append(`${fullKey}[${index}]`, item);
+        } else if (typeof item === "object" && item !== null) {
+          appendNestedFormData(formData, item as Record<string, unknown>, `${fullKey}[${index}]`);
+        } else {
+          formData.append(`${fullKey}[${index}]`, String(item));
+        }
+      });
+    } else if (typeof value === "object") {
+      appendNestedFormData(formData, value as Record<string, unknown>, fullKey);
+    } else {
+      formData.append(fullKey, String(value));
+    }
+  }
+}
+
 export const useCreateChangeRequest = () => {
   const queryClient = useQueryClient();
   const createMutation = useMutation({
-    mutationFn: async ({ data, company }: CreateChangeRequestData) => {
-      await axiosInstance.post(`/${company}/sms/change-requests`, data);
+    mutationFn: async ({ data, company, beforeImages = [], afterImages = [] }: CreateChangeRequestData) => {
+      const formData = new FormData();
+
+      const { is_temporary, ...rest } = data as Record<string, unknown>;
+      appendNestedFormData(formData, rest);
+      formData.append("is_temporary", is_temporary ? "1" : "0");
+
+      beforeImages.forEach((file) => {
+        formData.append("photographic_records[][stage]", "before");
+        formData.append("photographic_records[][image_url]", file);
+      });
+
+      afterImages.forEach((file) => {
+        formData.append("photographic_records[][stage]", "after");
+        formData.append("photographic_records[][image_url]", file);
+      });
+
+      await axiosInstance.post(`/${company}/sms/change-requests`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
     },
     onSuccess: (_, data) => {
       queryClient.invalidateQueries({

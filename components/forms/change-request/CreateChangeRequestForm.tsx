@@ -16,11 +16,16 @@ import { StoreChangeRequestPayload } from "@/types";
 import { StepGeneralAndClassification } from "./StepGeneralAndClassification";
 import { StepPlanAndResources } from "./StepPlanAndResources";
 import { StepRisksAndDetails } from "./StepRisksAndDetails";
+import {
+  StepPhotographicRecords,
+  PhotographicImage,
+} from "./StepPhotographicRecords";
 
 const STEPS = [
   { label: "General y Clasificación", step: 1 },
   { label: "Plan y Recursos", step: 2 },
   { label: "Riesgos y Detalles", step: 3 },
+  { label: "Registro Fotográfico", step: 4 },
 ];
 
 const TIME_UNIT_MULTIPLIER: Record<string, number> = {
@@ -112,14 +117,6 @@ const formSchema = z.object({
       })
     )
     .optional(),
-  photographic_records: z
-    .array(
-      z.object({
-        stage: z.enum(["before", "after"]),
-        image_url: z.string().max(500, "Máximo 500 caracteres"),
-      })
-    )
-    .optional(),
 });
 
 export type ChangeRequestFormValues = z.infer<typeof formSchema>;
@@ -132,6 +129,8 @@ function convertToDays(value: number | undefined, unit: string | undefined): str
 
 export function CreateChangeRequestForm() {
   const [step, setStep] = useState(1);
+  const [beforeImages, setBeforeImages] = useState<PhotographicImage[]>([]);
+  const [afterImages, setAfterImages] = useState<PhotographicImage[]>([]);
   const router = useRouter();
   const { selectedCompany } = useCompanyStore();
   const { createChangeRequest } = useCreateChangeRequest();
@@ -171,7 +170,6 @@ export function CreateChangeRequestForm() {
       financial_resources: [],
       risk_assessments: [],
       activities: [],
-      photographic_records: [],
     },
   });
 
@@ -193,7 +191,12 @@ export function CreateChangeRequestForm() {
     } as StoreChangeRequestPayload;
 
     createChangeRequest.mutate(
-      { company: selectedCompany.slug, data: payload },
+      {
+        company: selectedCompany.slug,
+        data: payload,
+        beforeImages: beforeImages.map((img) => img.file),
+        afterImages: afterImages.map((img) => img.file),
+      },
       {
         onSuccess: () => {
           router.push(
@@ -218,14 +221,12 @@ export function CreateChangeRequestForm() {
         "justification",
       ];
     } else if (step === 2) {
-      fieldsToValidate = [
-        "planned_changes",
-      ];
+      fieldsToValidate = ["planned_changes"];
     }
 
     const isValid = await form.trigger(fieldsToValidate);
     if (isValid) {
-      setStep((prev) => Math.min(prev + 1, 3));
+      setStep((prev) => Math.min(prev + 1, 4));
     }
   };
 
@@ -298,6 +299,14 @@ export function CreateChangeRequestForm() {
               isLoadingEmployees={isLoadingEmployees}
             />
           )}
+          {step === 4 && (
+            <StepPhotographicRecords
+              beforeImages={beforeImages}
+              afterImages={afterImages}
+              onBeforeImagesChange={setBeforeImages}
+              onAfterImagesChange={setAfterImages}
+            />
+          )}
         </div>
 
         {/* Navigation */}
@@ -311,7 +320,7 @@ export function CreateChangeRequestForm() {
             <ChevronLeft className="size-4 mr-1" />
             Anterior
           </Button>
-          {step < 3 ? (
+          {step < 4 ? (
             <Button type="button" onClick={handleNext}>
               Siguiente
               <ChevronRight className="size-4 ml-1" />
