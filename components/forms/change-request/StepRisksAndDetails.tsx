@@ -16,11 +16,11 @@ interface StepRisksAndDetailsProps {
 }
 
 const SEVERITY_OPTIONS = [
-  { value: "1", label: "A — Catastrófico" },
-  { value: "2", label: "B — Peligroso" },
-  { value: "3", label: "C — Mayor" },
-  { value: "4", label: "D — Menor" },
-  { value: "5", label: "E — Insignificante" },
+  { value: "A", label: "A — Catastrófico" },
+  { value: "B", label: "B — Peligroso" },
+  { value: "C", label: "C — Mayor" },
+  { value: "D", label: "D — Menor" },
+  { value: "E", label: "E — Insignificante" },
 ];
 
 const PROBABILITY_OPTIONS = [
@@ -73,7 +73,7 @@ export function StepRisksAndDetails({ form, employees, isLoadingEmployees }: Ste
               appendRisk({
                 hazard_description: "",
                 probability_value: 1,
-                severity_value: 1,
+                severity_value: "E",
               })
             }
           >
@@ -143,7 +143,7 @@ export function StepRisksAndDetails({ form, employees, isLoadingEmployees }: Ste
                     Severidad
                   </FormLabel>
                   <Select
-                    onValueChange={(val) => field.onChange(Number(val))}
+                    onValueChange={field.onChange}
                     value={field.value?.toString()}
                   >
                     <FormControl>

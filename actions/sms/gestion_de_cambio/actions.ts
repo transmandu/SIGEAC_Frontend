@@ -17,6 +17,10 @@ interface UpdateChangeRequestData {
   company: string;
   id: number;
   data: UpdateChangeRequestPayload;
+  beforeImages?: File[];
+  afterImages?: File[];
+  existingBeforeRecordIds?: number[];
+  existingAfterRecordIds?: number[];
 }
 
 function appendNestedFormData(formData: FormData, data: Record<string, unknown>, prefix = "") {
@@ -92,11 +96,39 @@ export const useCreateChangeRequest = () => {
 export const useUpdateChangeRequest = () => {
   const queryClient = useQueryClient();
   const updateMutation = useMutation({
-    mutationFn: async ({ company, data, id }: UpdateChangeRequestData) => {
-      await axiosInstance.patch(
-        `/${company}/sms/change-requests/${id}`,
-        data
-      );
+    mutationFn: async ({ company, data, id, beforeImages = [], afterImages = [], existingBeforeRecordIds = [], existingAfterRecordIds = [] }: UpdateChangeRequestData) => {
+      const formData = new FormData();
+      formData.append("_method", "PATCH");
+
+      const { is_temporary, photographic_records, ...rest } = data as Record<string, unknown>;
+      appendNestedFormData(formData, rest);
+      formData.append("is_temporary", is_temporary ? "1" : "0");
+
+      existingBeforeRecordIds.forEach((recordId) => {
+        formData.append("photographic_records[][id]", String(recordId));
+        formData.append("photographic_records[][stage]", "before");
+        formData.append("photographic_records[][image_url]", "");
+      });
+
+      existingAfterRecordIds.forEach((recordId) => {
+        formData.append("photographic_records[][id]", String(recordId));
+        formData.append("photographic_records[][stage]", "after");
+        formData.append("photographic_records[][image_url]", "");
+      });
+
+      beforeImages.forEach((file) => {
+        formData.append("photographic_records[][stage]", "before");
+        formData.append("photographic_records[][image_url]", file);
+      });
+
+      afterImages.forEach((file) => {
+        formData.append("photographic_records[][stage]", "after");
+        formData.append("photographic_records[][image_url]", file);
+      });
+
+      await axiosInstance.post(`/${company}/sms/change-requests/${id}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
     },
     onSuccess: (_, data) => {
       queryClient.invalidateQueries({

@@ -99,9 +99,8 @@ const formSchema = z.object({
           .min(1, "Mínimo 1")
           .max(5, "Máximo 5"),
         severity_value: z
-          .number()
-          .min(1, "Mínimo 1")
-          .max(5, "Máximo 5"),
+          .string()
+          .min(1, "La severidad es requerida"),
       })
     )
     .optional(),

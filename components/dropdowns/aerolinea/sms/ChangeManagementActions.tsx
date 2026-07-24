@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { ChangeRequest } from "@/types";
-import { EyeIcon, Loader2, MoreHorizontal, Trash2 } from "lucide-react";
+import { EyeIcon, Loader2, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -63,6 +63,17 @@ const ChangeManagementActions = ({
           >
             <EyeIcon className="size-5" />
             <p className="pl-2">Ver</p>
+          </DropdownMenuItem>
+
+          <DropdownMenuItem
+            onClick={() => {
+              router.push(
+                `/${selectedCompany?.slug}/sms/aseguramiento_calidad/gestion_de_cambio/${changeManagement.id}/editar`
+              );
+            }}
+          >
+            <Pencil className="size-5" />
+            <p className="pl-2">Editar</p>
           </DropdownMenuItem>
 
           <DialogTrigger asChild>

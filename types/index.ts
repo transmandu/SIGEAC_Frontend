@@ -1574,7 +1574,7 @@ export type ChangeRiskAssessment = {
   change_request_id: number;
   hazard_description: string;
   probability_value: number;
-  severity_value: number;
+  severity_value: string;
   risk_index: number;
   tolerability_level: TolerabilityLevel;
   created_at: string;
@@ -1660,7 +1660,7 @@ export type StoreChangeRequestPayload = {
   risk_assessments?: Array<{
     hazard_description: string;
     probability_value: number;
-    severity_value: number;
+    severity_value: string;
   }>;
   activities?: Array<{
     activity_description: string;
@@ -1703,7 +1703,7 @@ export type UpdateChangeRequestPayload = {
     id?: number;
     hazard_description: string;
     probability_value: number;
-    severity_value: number;
+    severity_value: string;
   }>;
   activities?: Array<{
     id?: number;
