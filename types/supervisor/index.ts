@@ -70,6 +70,7 @@ export type MergeFinalValues = {
     brand_model: string | null;
     variant_type: string | null;
     minimum_quantity: number | null;
+    maximum_quantity: number | null;
     primary_unit_id: number;
     quantity: number;
 };
@@ -143,6 +144,7 @@ export type MergeRequest = {
         brand_model: string;
         variant_type: string;
         minimum_quantity: number;
+        maximum_quantity: number;
         primary_unit_id: number;
     }>;
     /**
@@ -172,6 +174,7 @@ export type BulkEditRow = {
     brand_model?: string | null;
     variant_type?: string | null;
     minimum_quantity?: number | null;
+    maximum_quantity?: number | null;
     quantity?: number;
     primary_unit_id?: number;
 };
@@ -212,6 +215,7 @@ export type ArticleFieldEdits = Partial<{
     brand_model: string | null;
     variant_type: string | null;
     minimum_quantity: number | null;
+    maximum_quantity: number | null;
     quantity: number;
     primary_unit_id: number;
 }>;

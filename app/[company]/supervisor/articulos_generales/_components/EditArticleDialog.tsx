@@ -59,6 +59,7 @@ export function EditArticleDialog({
     const [brandModel, setBrandModel] = useState("")
     const [variantType, setVariantType] = useState("")
     const [minimumQuantity, setMinimumQuantity] = useState("")
+    const [maximumQuantity, setMaximumQuantity] = useState("")
     const [quantity, setQuantity] = useState("")
     const [unitId, setUnitId] = useState<number | null>(null)
     const [stockUnlocked, setStockUnlocked] = useState(false)
@@ -80,6 +81,7 @@ export function EditArticleDialog({
         setBrandModel(article.brand_model ?? "")
         setVariantType(article.variant_type ?? "")
         setMinimumQuantity(article.minimum_quantity != null ? String(article.minimum_quantity) : "")
+        setMaximumQuantity(article.maximum_quantity != null ? String(article.maximum_quantity) : "")
         setQuantity(String(article.quantity ?? ""))
         setUnitId(article.primary_unit_id)
         setStockUnlocked(false)
@@ -115,6 +117,13 @@ export function EditArticleDialog({
             edits.minimum_quantity = minimumQuantity === "" ? null : Number(minimumQuantity)
         }
 
+        const currentMaximum =
+            article.maximum_quantity != null ? String(article.maximum_quantity) : ""
+
+        if (maximumQuantity !== currentMaximum) {
+            edits.maximum_quantity = maximumQuantity === "" ? null : Number(maximumQuantity)
+        }
+
         // Cantidad y unidad solo viajan si el supervisor abrió el bloque: así
         // una edición de texto nunca los toca.
         if (stockUnlocked) {
@@ -134,6 +143,7 @@ export function EditArticleDialog({
         brandModel,
         variantType,
         minimumQuantity,
+        maximumQuantity,
         quantity,
         unitId,
         stockUnlocked,
@@ -260,6 +270,20 @@ export function EditArticleDialog({
                                     onValueChange={setMinimumQuantity}
                                     className="h-9 bg-background/70 border-border/60"
                                 />
+                            </div>
+
+                            <div className="flex flex-col gap-1.5">
+                                <FieldLabel htmlFor="edit-maximum">Cantidad máxima</FieldLabel>
+                                <DecimalInput
+                                    id="edit-maximum"
+                                    placeholder="0.00"
+                                    value={maximumQuantity}
+                                    onValueChange={setMaximumQuantity}
+                                    className="h-9 bg-background/70 border-border/60"
+                                />
+                                <p className="text-[11px] text-muted-foreground">
+                                    Nivel de stock a reponer, no un tope de existencia.
+                                </p>
                             </div>
                         </div>
                     </section>

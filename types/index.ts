@@ -1303,6 +1303,8 @@ export type GeneralArticle = {
   variant_type?: string | null;
   quantity: number;
   minimum_quantity?: number | null;
+  /** Nivel al que repone la requisición automática, no un tope de existencia. */
+  maximum_quantity?: number | null;
   brand_model?: string;
   warehouse: Warehouse;
   general_primary_unit: Unit;

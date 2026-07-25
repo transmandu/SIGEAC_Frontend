@@ -41,15 +41,23 @@ const InventarioGeneralPage = () => {
 
   const columnsWithoutActions = useMemo(() => {
     const filtered = generalColumns.filter(
-      (col) =>
-        col.id !== "actions" &&
-        col.id !== "acciones" &&
-        (typeof col.header === "string"
-          ? col.header.toLowerCase() !== "acciones"
-          : true) &&
-        (canSeeQuantity ||
-          (col.id !== "minimum_quantity" &&
-            (col as any).accessorKey !== "minimum_quantity")),
+      (col) => {
+        const key = col.id ?? (col as any).accessorKey;
+
+        // Esta vista es de consulta: no muestra la imagen de referencia, y la
+        // unidad ya viaja junto a la cantidad en la celda de abajo.
+        if (["image", "unit"].includes(key)) return false;
+
+        return (
+          col.id !== "actions" &&
+          col.id !== "acciones" &&
+          (typeof col.header === "string"
+            ? col.header.toLowerCase() !== "acciones"
+            : true) &&
+          (canSeeQuantity ||
+            !["minimum_quantity", "maximum_quantity"].includes(key))
+        );
+      },
     );
 
     if (!canSeeQuantity) return filtered;

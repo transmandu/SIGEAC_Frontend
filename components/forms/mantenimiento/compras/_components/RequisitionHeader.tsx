@@ -1,5 +1,5 @@
 "use client"
-import { useRef, useState } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { cn } from "@/lib/utils"
@@ -8,8 +8,7 @@ import type { UseFormReturn } from "react-hook-form"
 import type { Employee, WorkOrder, Aircraft, Department, ThirdParty } from "@/types"
 import type { AuthorizedEmployeeResponse } from "@/hooks/sistema/autorizados/useGetAuthorizedEmployees"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
-import { Input } from "@/components/ui/input"
-import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { RequiredIndicator } from "./RequiredIndicator"
@@ -83,7 +82,6 @@ export function RequisitionHeader({
   const [requesterTab, setRequesterTab] = useState<RequesterTab>("employee");
   const [authorizedEmployeeSearch, setAuthorizedEmployeeSearch] = useState("");
   const [workOrderInputOpen, setWorkOrderInputOpen] = useState(false);
-  const workOrderInputRef = useRef<HTMLInputElement>(null);
 
   const filteredAuthorizedEmployees = (authorizedEmployees ?? []).filter((emp) => {
     const query = authorizedEmployeeSearch.toLowerCase().trim();
@@ -205,7 +203,8 @@ export function RequisitionHeader({
                         <Tabs value={requesterTab} onValueChange={(v) => setRequesterTab(v as RequesterTab)}>
                           <TabsList className="grid w-full grid-cols-2 h-9 rounded-none">
                             <TabsTrigger value="employee" className="text-xs">Empleado</TabsTrigger>
-                            <TabsTrigger value="authorized" className="text-xs">Autorizado externo</TabsTrigger>
+                            {/* Abreviado: el label completo no cabe en la mitad del popover */}
+                            <TabsTrigger value="authorized" className="text-xs">Empleado Ext.</TabsTrigger>
                           </TabsList>
                         </Tabs>
                         {requesterTab === "employee" ? (
@@ -410,37 +409,28 @@ export function RequisitionHeader({
           }}
         />}
 
-        {/* Work Order - Text input with type-ahead suggestions, like the dispatch forms */}
+        {/* Work Order - Searchable Select that also accepts free text */}
         {showAircraftWorkOrder && <FormField
           control={form.control}
           name="work_order_id"
           render={({ field }) => {
             const selectedWO = workOrders?.find((wo) => wo.id.toString() === field.value);
             const freeTextWorkOrder: string | undefined = form.watch("work_order");
-            const inputValue = workOrderInputOpen
-              ? (workOrderSearch ?? "")
-              : (selectedWO?.order_number ?? freeTextWorkOrder ?? "");
-
-            // Mirrors what's typed into work_order_id when it matches a real order,
-            // otherwise falls back to the free-text work_order field (like the dispatch forms).
-            const applyTypedValue = (value: string) => {
-              const trimmed = value.trim();
-              const matchedWO = trimmed
-                ? workOrders?.find((wo) => wo.order_number.toLowerCase() === trimmed.toLowerCase())
-                : undefined;
-
-              if (matchedWO) {
-                form.setValue("work_order_id", matchedWO.id.toString());
-                form.setValue("work_order", undefined);
-              } else {
-                form.setValue("work_order_id", undefined);
-                form.setValue("work_order", value || undefined);
-              }
-            };
+            const trimmedSearch = (workOrderSearch ?? "").trim();
 
             const selectWorkOrder = (wo: WorkOrder) => {
               form.setValue("work_order_id", wo.id.toString());
               form.setValue("work_order", undefined);
+              form.clearErrors("work_order_id");
+              setWorkOrderSearch?.("");
+              setWorkOrderInputOpen(false);
+            };
+
+            // Unlike the aircraft selector, an order that isn't registered yet can
+            // still be recorded as plain text (same as the dispatch forms).
+            const selectFreeText = (value: string) => {
+              form.setValue("work_order_id", undefined);
+              form.setValue("work_order", value);
               form.clearErrors("work_order_id");
               setWorkOrderSearch?.("");
               setWorkOrderInputOpen(false);
@@ -457,45 +447,56 @@ export function RequisitionHeader({
                   <RequiredIndicator show={workOrderRequired} />
                 </FormLabel>
                 <Popover open={workOrderInputOpen} onOpenChange={setWorkOrderInputOpen}>
-                  <PopoverAnchor asChild>
-                    <Input
-                      ref={workOrderInputRef}
+                  <PopoverTrigger asChild>
+                    <Button
                       disabled={isWorkOrdersLoading}
-                      placeholder="Ej: OT-000123"
-                      autoComplete="off"
-                      value={inputValue}
-                      onFocus={() => setWorkOrderInputOpen(true)}
-                      onChange={(e) => {
-                        setWorkOrderSearch?.(e.target.value);
-                        setWorkOrderInputOpen(true);
-                        applyTypedValue(e.target.value);
-                      }}
-                    />
-                  </PopoverAnchor>
-                  <PopoverContent
-                    className="p-0"
-                    matchTriggerWidth
-                    onOpenAutoFocus={(e) => e.preventDefault()}
-                    onCloseAutoFocus={(e) => e.preventDefault()}
-                    onFocusOutside={(e) => {
-                      // The input drives `open` via onFocus; without this, Radix sees
-                      // focus still sitting outside Content the instant it mounts and
-                      // immediately dismisses it, causing the suggestions to flash.
-                      if (e.target === workOrderInputRef.current) e.preventDefault();
-                    }}
-                    onInteractOutside={(e) => {
-                      if (e.target === workOrderInputRef.current) e.preventDefault();
-                    }}
-                  >
+                      variant="outline"
+                      role="combobox"
+                      className={cn(
+                        "w-full justify-between",
+                        !selectedWO && !freeTextWorkOrder && "text-muted-foreground"
+                      )}
+                    >
+                      <span className="truncate">
+                        {selectedWO?.order_number ?? freeTextWorkOrder ?? "Opcional..."}
+                      </span>
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="p-0" matchTriggerWidth>
                     <Command shouldFilter={false}>
+                      <CommandInput
+                        placeholder="Busque una orden de trabajo..."
+                        value={workOrderSearch}
+                        onValueChange={(v) => setWorkOrderSearch?.(v)}
+                      />
                       <CommandList>
                         <CommandEmpty className="text-sm p-2 text-center text-muted-foreground">
                           {isWorkOrdersLoading
                             ? "Cargando..."
-                            : workOrderSearch
-                              ? "No coincide con ninguna orden registrada, se guardará como texto."
-                              : "No hay órdenes de trabajo disponibles"}
+                            : trimmedSearch
+                              ? "No coincide con ninguna orden registrada."
+                              : "Escriba para buscar..."}
                         </CommandEmpty>
+                        {/* Lets the typed value be kept verbatim when no order matches it. */}
+                        {trimmedSearch && !workOrders?.some(
+                          (wo) => wo.order_number.toLowerCase() === trimmedSearch.toLowerCase()
+                        ) && (
+                          <CommandGroup>
+                            <CommandItem
+                              value={`free-text ${trimmedSearch}`}
+                              onSelect={() => selectFreeText(trimmedSearch)}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  freeTextWorkOrder === trimmedSearch ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              &quot;{trimmedSearch}&quot;
+                            </CommandItem>
+                          </CommandGroup>
+                        )}
                         <CommandGroup>
                           {filteredWorkOrders?.map((wo) => (
                             <CommandItem
