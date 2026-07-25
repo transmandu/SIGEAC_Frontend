@@ -65,6 +65,11 @@ export function CriticalAlertCard({
 
         <div className="min-w-0 flex-1 space-y-1.5">
           <p className="text-sm font-semibold leading-snug">{alert.title}</p>
+          {alert.label && (
+            <p className="text-xs font-semibold leading-snug text-foreground">
+              {alert.label}
+            </p>
+          )}
           {alert.description && (
             <p className="text-xs text-muted-foreground leading-snug whitespace-pre-line">
               {alert.description}

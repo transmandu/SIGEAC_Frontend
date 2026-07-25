@@ -50,7 +50,7 @@ export const useLowStockAlerts = () => {
         const companySlug = selectedCompany?.slug;
 
         const generalAlerts: CriticalAlert[] = generalArticles.map((article) => {
-            const unitLabel = article.general_primary_unit?.label ?? "";
+            const unitValue = article.general_primary_unit?.value ?? "";
 
             // Espejo de createFromLowStockAlert(): solo para anticipar la
             // cantidad en el texto, la cifra real la calcula el backend.
@@ -59,12 +59,20 @@ export const useLowStockAlerts = () => {
                 : Number(article.minimum_quantity ?? 0);
             const restockQuantity = Math.max(target - Number(article.quantity ?? 0), 1);
 
+            // Misma identidad visible que en el resto de compras: dos artículos
+            // pueden compartir descripción y variante y diferir solo por marca,
+            // así que la alerta debe decir cuál de los dos está bajo.
+            const articleLabel = [article.description, article.variant_type, article.brand_model]
+                .filter(Boolean)
+                .join(" - ");
+
             return {
             id: `low-stock-general-article-${article.id}`,
             source: "low-stock-general-article",
             sourceId: article.id,
             title: "Un artículo del inventario está por debajo de su stock mínimo",
-            description: `${article.variant_type ? `${article.description} - ${article.variant_type}` : article.description}\nMínimo: ${article.minimum_quantity} ${unitLabel} · Cantidad restante: ${article.quantity} ${unitLabel}\n¿Deseas crear una solicitud de compra por ${restockQuantity} ${unitLabel} para este artículo?`,
+            label: articleLabel,
+            description: `Mínimo: ${article.minimum_quantity} ${unitValue} · Cantidad restante: ${article.quantity} ${unitValue}\n¿Deseas crear una solicitud de compra por ${restockQuantity} ${unitValue} para este artículo?`,
             severity: Number(article.quantity ?? 0) <= 0 ? "critical" : "warning",
             onConfirm: companySlug
                 ? () => createRequisitionFromLowStockAlert.mutate({
@@ -80,13 +88,14 @@ export const useLowStockAlerts = () => {
         });
 
         const consumableAlerts: CriticalAlert[] = consumableArticles.map((article) => {
-            const unitLabel = article.batch.unit?.label ?? "";
+            const unitValue = article.batch.unit?.value ?? "";
             return {
             id: `low-stock-consumable-article-${article.id}`,
             source: "low-stock-consumable-article",
             sourceId: article.id,
             title: "Un artículo del inventario está por debajo de su stock mínimo",
-            description: `${article.batch.name} - ${article.part_number}\nMínimo: ${article.batch.min_quantity} ${unitLabel} · Cantidad restante: ${article.consumable.quantity} ${unitLabel}\n¿Deseas crear una solicitud de compra para este artículo?`,
+            label: [article.batch.name, article.part_number].filter(Boolean).join(" - "),
+            description: `Mínimo: ${article.batch.min_quantity} ${unitValue} · Cantidad restante: ${article.consumable.quantity} ${unitValue}\n¿Deseas crear una solicitud de compra para este artículo?`,
             severity: Number(article.consumable.quantity ?? 0) <= 0 ? "critical" : "warning",
             onConfirm: companySlug
                 ? () => createRequisitionFromLowStockAlert.mutate({
