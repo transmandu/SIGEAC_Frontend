@@ -23,6 +23,7 @@ interface ArticleData {
     variant_type: string;
     primary_unit_id: string;
     warehouse_id: string;
+    image?: File | null;
 }
 
 
@@ -44,14 +45,37 @@ export const useUpdateGeneralArticle = () => {
         mutationKey: ["general-article-update", selectedCompany?.slug],
         mutationFn: async ({
             id,
-            articleData
+            articleData,
+            image,
         }: {
             id: string | number; // Recibimos el id aquí
             articleData: updateArticleData;
+            image?: File | null;
         }) => {
-            const { data } = await axiosInstance.patch(
+            // Sin imagen se mantiene el PATCH en JSON de siempre.
+            if (!image) {
+                const { data } = await axiosInstance.patch(
+                    `/${selectedCompany?.slug}/general-articles/${id}`,
+                    { articleData }
+                );
+                return data;
+            }
+
+            // Con archivo hay que ir en multipart, que no admite PATCH real:
+            // se hace POST con _method spoofing (igual que en SMS).
+            const formData = new FormData();
+            formData.append("_method", "PATCH");
+            formData.append("image", image);
+
+            Object.entries(articleData).forEach(([key, value]) => {
+                if (value === undefined || value === null) return;
+                formData.append(`articleData[${key}]`, String(value));
+            });
+
+            const { data } = await axiosInstance.post(
                 `/${selectedCompany?.slug}/general-articles/${id}`,
-                { articleData }
+                formData,
+                { headers: { "Content-Type": "multipart/form-data" } }
             );
             return data;
         },
@@ -223,7 +247,14 @@ export const useCreateGeneralArticle = () => {
             company: string;
             data: ArticleData;
         }) => {
-            await axiosInstance.post(`/${company}/general-articles`, data, {
+            const formData = new FormData();
+
+            Object.entries(data).forEach(([key, value]) => {
+                if (value === undefined || value === null) return;
+                formData.append(key, value instanceof File ? value : String(value));
+            });
+
+            await axiosInstance.post(`/${company}/general-articles`, formData, {
                 headers: {
                     "Content-Type": "multipart/form-data",
                 },

@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
+import { Loader2, Image as ImageIcon, X } from "lucide-react";
+
+import { cn } from "@/lib/utils";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -28,6 +30,9 @@ import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits";
 import { useAddQuantityGeneralArticle } from "@/hooks/mantenimiento/almacen/almacen_general/useAddQuantityGeneralArticle";
 import { useGetGeneralArticles } from "@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticles";
 import { GeneralArticle } from "@/types";
+
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB, el mismo tope que valida el backend.
+const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 
 const formSchema = z.discriminatedUnion("mode", [
     z.object({
@@ -92,6 +97,12 @@ const CreateGeneralArticleForm = ({
     const [useExisting, setUseExisting] = useState(false);
     const [selectedArticle, setSelectedArticle] = useState<GeneralArticle | null>(null);
     const [query, setQuery] = useState("");
+    // La imagen vive fuera de react-hook-form: el form usa 'values', que se
+    // reevalúa en cada render y descartaría el File recién seleccionado.
+    const [imageFile, setImageFile] = useState<File | null>(null);
+    const [imageError, setImageError] = useState<string | null>(null);
+    const [isDraggingImage, setIsDraggingImage] = useState(false);
+    const imageInputRef = useRef<HTMLInputElement>(null);
 
     const { selectedCompany } = useCompanyStore();
     const { data: generalArticles } = useGetGeneralArticles();
@@ -123,6 +134,56 @@ const CreateGeneralArticleForm = ({
 
     const busy = createGeneralArticle?.isPending || addQuantityGeneralArticle?.isPending || updateGeneralArticle?.isPending;
 
+    // Preview del archivo nuevo. El URL se crea y se revoca dentro del mismo
+    // efecto: con useMemo, el doble montaje de StrictMode revocaba el blob de
+    // la primera pasada y la miniatura quedaba rota.
+    const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (!imageFile) {
+            setImagePreview(null);
+            return;
+        }
+
+        const url = URL.createObjectURL(imageFile);
+        setImagePreview(url);
+
+        return () => URL.revokeObjectURL(url);
+    }, [imageFile]);
+
+    // El archivo recién elegido tiene prioridad sobre la imagen ya guardada.
+    const currentImage = imagePreview ?? initialData?.image ?? null;
+
+    const handleImageChange = (file?: File) => {
+        if (!file) {
+            setImageFile(null);
+            setImageError(null);
+            if (imageInputRef.current) imageInputRef.current.value = "";
+            return;
+        }
+
+        // Se limpia el input al rechazar: si no, reelegir el mismo archivo
+        // corregido no dispararía onChange.
+        const reject = (message: string) => {
+            setImageFile(null);
+            setImageError(message);
+            if (imageInputRef.current) imageInputRef.current.value = "";
+        };
+
+        if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+            reject("Formato no válido. Use JPG, PNG o WEBP.");
+            return;
+        }
+
+        if (file.size > MAX_IMAGE_SIZE) {
+            reject("La imagen no debe superar los 5MB.");
+            return;
+        }
+
+        setImageError(null);
+        setImageFile(file);
+    };
+
     const filteredArticles = useMemo(() => {
         if (!generalArticles) return [];
         return generalArticles.filter((a) =>
@@ -142,6 +203,7 @@ const CreateGeneralArticleForm = ({
             } else if (values.mode === "edit") {
                 await updateGeneralArticle.mutateAsync({
                     id: initialData?.id!,
+                    image: imageFile,
                     articleData: {
                         description: values.description?.trim() || "",
                         brand_model: values.brand_model?.trim() || "N/A",
@@ -163,11 +225,18 @@ const CreateGeneralArticleForm = ({
                         quantity: parseFloat(values.quantity!.toFixed(2)),
                         minimum_quantity: values.minimum_quantity !== undefined ? parseFloat(values.minimum_quantity.toFixed(2)) : undefined,
                         maximum_quantity: values.maximum_quantity !== undefined ? parseFloat(values.maximum_quantity.toFixed(2)) : undefined,
+                        image: imageFile,
                     },
                 });
             }
             if (onClose) onClose();
-            else form.reset();
+            else {
+                form.reset();
+                setImageFile(null);
+                setImageError(null);
+                // El input nativo conserva el archivo aunque se limpie el estado.
+                if (imageInputRef.current) imageInputRef.current.value = "";
+            }
         } catch (error) {
             console.error("Error:", error);
         }
@@ -274,7 +343,7 @@ const CreateGeneralArticleForm = ({
                     />
                 </div>
 
-                <div className={currentMode === "add" ? "grid grid-cols-2 gap-4" : "grid grid-cols-4 gap-4"}>
+                <div className={currentMode === "add" ? "grid grid-cols-2 gap-4" : "grid grid-cols-5 gap-4"}>
                     <FormField
                         control={form.control}
                         name="quantity"
@@ -300,6 +369,9 @@ const CreateGeneralArticleForm = ({
                                         <FormControl>
                                             <Input type="number" {...field} />
                                         </FormControl>
+                                        <FormDescription className="text-xs">
+                                            Al bajar de este nivel se alerta el stock.
+                                        </FormDescription>
                                         <FormMessage />
                                     </FormItem>
                                 )}
@@ -353,6 +425,96 @@ const CreateGeneralArticleForm = ({
                             </FormItem>
                         )}
                     />
+
+                    {currentMode !== "add" && (
+                        <FormItem>
+                            <FormLabel>Imagen</FormLabel>
+                            {/* Input nativo oculto: en una celda estrecha el control
+                                por defecto desborda con el nombre del archivo. */}
+                            <input
+                                ref={imageInputRef}
+                                type="file"
+                                accept="image/jpeg, image/png, image/webp"
+                                onChange={(e) => handleImageChange(e.target.files?.[0])}
+                                className="hidden"
+                            />
+                            <div
+                                role="button"
+                                tabIndex={0}
+                                onClick={() => imageInputRef.current?.click()}
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter" || e.key === " ") {
+                                        e.preventDefault();
+                                        imageInputRef.current?.click();
+                                    }
+                                }}
+                                onDragOver={(e) => {
+                                    e.preventDefault();
+                                    setIsDraggingImage(true);
+                                }}
+                                onDragLeave={() => setIsDraggingImage(false)}
+                                onDrop={(e) => {
+                                    e.preventDefault();
+                                    setIsDraggingImage(false);
+                                    handleImageChange(e.dataTransfer.files?.[0]);
+                                }}
+                                className={cn(
+                                    // Mismas clases base que el componente Input para
+                                    // que la celda no se sienta ajena al formulario.
+                                    "flex h-10 w-full cursor-pointer items-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background transition-colors",
+                                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                                    isDraggingImage && "border-primary bg-primary/5",
+                                    imageError && "border-destructive",
+                                )}
+                            >
+                                {currentImage ? (
+                                    <img
+                                        src={currentImage}
+                                        alt="Imagen del artículo"
+                                        className="h-6 w-6 shrink-0 rounded-sm object-cover"
+                                    />
+                                ) : (
+                                    <ImageIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
+                                )}
+                                <span
+                                    className={cn(
+                                        "truncate",
+                                        imageFile ? "text-foreground" : "text-muted-foreground",
+                                    )}
+                                >
+                                    {imageFile
+                                        ? imageFile.name
+                                        : currentImage
+                                            ? "Cambiar imagen"
+                                            : "Subir imagen"}
+                                </span>
+
+                                {/* Quitar solo aplica al archivo nuevo: la imagen ya
+                                    guardada se reemplaza, no se borra desde aquí. */}
+                                {imageFile && (
+                                    <button
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleImageChange(undefined);
+                                        }}
+                                        className="ml-auto shrink-0 rounded p-0.5 text-muted-foreground hover:bg-muted hover:text-foreground"
+                                        aria-label="Quitar imagen"
+                                    >
+                                        <X className="h-3.5 w-3.5" />
+                                    </button>
+                                )}
+                            </div>
+                            <FormDescription className="text-xs">
+                                Opcional. Máx. 5MB.
+                            </FormDescription>
+                            {/* Mismo estilo que FormMessage, que aquí no aplica:
+                                el archivo no es un campo de react-hook-form. */}
+                            {imageError && (
+                                <p className="text-sm font-medium text-destructive">{imageError}</p>
+                            )}
+                        </FormItem>
+                    )}
                 </div>
 
                 <Separator className="my-2" />
