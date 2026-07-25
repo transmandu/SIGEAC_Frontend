@@ -36,6 +36,7 @@ const FIELD_LABELS: Record<string, string> = {
     variant_type: "Variante",
     quantity: "Cantidad",
     minimum_quantity: "Cantidad mínima",
+    maximum_quantity: "Cantidad máxima",
     primary_unit_id: "Unidad",
     merged_into_id: "Fusionado en",
 }

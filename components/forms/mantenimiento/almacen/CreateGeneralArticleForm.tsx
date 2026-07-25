@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import {
     Form,
     FormControl,
+    FormDescription,
     FormField,
     FormItem,
     FormLabel,
@@ -38,6 +39,7 @@ const formSchema = z.discriminatedUnion("mode", [
         warehouse_id: z.string().min(1),
         quantity: z.coerce.number().min(0, "Mínimo 0"),
         minimum_quantity: z.coerce.number().min(0, "Mínimo 0").optional(),
+        maximum_quantity: z.coerce.number().min(0, "Mínimo 0").optional(),
     }),
     z.object({
         mode: z.literal("edit"),
@@ -48,6 +50,7 @@ const formSchema = z.discriminatedUnion("mode", [
         warehouse_id: z.string().optional(),
         quantity: z.coerce.number().optional(),
         minimum_quantity: z.coerce.number().min(0, "Mínimo 0").optional(),
+        maximum_quantity: z.coerce.number().min(0, "Mínimo 0").optional(),
     }),
     z.object({
         mode: z.literal("add"),
@@ -58,7 +61,19 @@ const formSchema = z.discriminatedUnion("mode", [
         primary_unit_id: z.string().optional(),
         warehouse_id: z.string().optional(),
     }),
-]);
+])
+    // Un máximo por debajo del mínimo haría que la requisición pida ≤ 0.
+    .refine(
+        (values) =>
+            values.mode === "add" ||
+            values.maximum_quantity === undefined ||
+            values.minimum_quantity === undefined ||
+            values.maximum_quantity >= values.minimum_quantity,
+        {
+            message: "La cantidad máxima no puede ser menor que la mínima.",
+            path: ["maximum_quantity"],
+        },
+    );
 
 type FormValues = z.infer<typeof formSchema>;
 
@@ -99,6 +114,7 @@ const CreateGeneralArticleForm = ({
                 : (selectedArticle?.general_primary_unit?.id?.toString() ?? ""),
             quantity: isEditing ? (initialData?.quantity ?? 0) : 0,
             minimum_quantity: isEditing ? (initialData?.minimum_quantity ?? 0) : 0,
+            maximum_quantity: isEditing ? (initialData?.maximum_quantity ?? 0) : 0,
             warehouse_id: initialData?.warehouse?.id?.toString() ?? "2",
         },
     });
@@ -132,6 +148,7 @@ const CreateGeneralArticleForm = ({
                         variant_type: values.variant_type?.trim() || "N/A",
                         primary_unit_id: values.primary_unit_id || "",
                         minimum_quantity: values.minimum_quantity !== undefined ? parseFloat(values.minimum_quantity.toFixed(2)) : undefined,
+                        maximum_quantity: values.maximum_quantity !== undefined ? parseFloat(values.maximum_quantity.toFixed(2)) : undefined,
                     },
                 });
             } else {
@@ -145,6 +162,7 @@ const CreateGeneralArticleForm = ({
                         warehouse_id: values.warehouse_id!,
                         quantity: parseFloat(values.quantity!.toFixed(2)),
                         minimum_quantity: values.minimum_quantity !== undefined ? parseFloat(values.minimum_quantity.toFixed(2)) : undefined,
+                        maximum_quantity: values.maximum_quantity !== undefined ? parseFloat(values.maximum_quantity.toFixed(2)) : undefined,
                     },
                 });
             }
@@ -256,7 +274,7 @@ const CreateGeneralArticleForm = ({
                     />
                 </div>
 
-                <div className={currentMode === "add" ? "grid grid-cols-2 gap-4" : "grid grid-cols-3 gap-4"}>
+                <div className={currentMode === "add" ? "grid grid-cols-2 gap-4" : "grid grid-cols-4 gap-4"}>
                     <FormField
                         control={form.control}
                         name="quantity"
@@ -272,19 +290,38 @@ const CreateGeneralArticleForm = ({
                     />
 
                     {currentMode !== "add" && (
-                        <FormField
-                            control={form.control}
-                            name="minimum_quantity"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Cantidad Mínima</FormLabel>
-                                    <FormControl>
-                                        <Input type="number" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+                        <>
+                            <FormField
+                                control={form.control}
+                                name="minimum_quantity"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Cantidad Mínima</FormLabel>
+                                        <FormControl>
+                                            <Input type="number" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormField
+                                control={form.control}
+                                name="maximum_quantity"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Cantidad Máxima</FormLabel>
+                                        <FormControl>
+                                            <Input type="number" {...field} />
+                                        </FormControl>
+                                        <FormDescription className="text-xs">
+                                            Nivel de stock a reponer, no un tope de existencia.
+                                        </FormDescription>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </>
                     )}
 
                     <FormField

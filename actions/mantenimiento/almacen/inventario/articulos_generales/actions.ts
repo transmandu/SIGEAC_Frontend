@@ -19,6 +19,7 @@ interface ArticleData {
     brand_model: string;
     quantity: number;
     minimum_quantity?: number;
+    maximum_quantity?: number;
     variant_type: string;
     primary_unit_id: string;
     warehouse_id: string;
@@ -32,6 +33,7 @@ interface updateArticleData {
     variant_type?: string;
     primary_unit_id?: string;
     minimum_quantity?: number;
+    maximum_quantity?: number;
 }
 // PARA ACTULIZAR UN ARTICULO EXEPTO SU CANTIDAD.
 export const useUpdateGeneralArticle = () => {
