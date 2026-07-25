@@ -61,7 +61,7 @@ export const secondary_columns: ColumnDef<Convertion>[] = [
     ),
     cell: ({ row }) => (
       <div className="flex justify-center">
-        <SecondaryUnitDropdownActions id={row.original.id} />
+        <SecondaryUnitDropdownActions conversion={row.original} />
       </div>
     ),
   },

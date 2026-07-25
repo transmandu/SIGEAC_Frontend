@@ -23,11 +23,11 @@ export const columns: ColumnDef<Unit>[] = [
   {
     accessorKey: "actions",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Valor" />
+      <DataTableColumnHeader column={column} title="Acciones" />
     ),
     cell: ({ row }) => (
       <div className="flex justify-center">
-        <UnitDropdownActions id={row.original.id} />
+        <UnitDropdownActions unit={row.original} />
       </div>
     ),
   },

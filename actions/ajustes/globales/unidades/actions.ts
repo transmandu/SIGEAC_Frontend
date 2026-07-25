@@ -15,6 +15,14 @@ interface createSecondaryUnitSchema {
   equivalence: number;
 }
 
+interface updateUnitSchema extends createUnitSchema {
+  id: number | string;
+}
+
+interface updateSecondaryUnitSchema extends createSecondaryUnitSchema {
+  id: number | string;
+}
+
 export const useCreateUnit = () => {
   const { selectedCompany } = useCompanyStore();
   const queryClient = useQueryClient();
@@ -70,6 +78,68 @@ export const useCreateSecondaryUnit = () => {
 
   return {
     createSecondaryUnit: createMutation,
+  };
+};
+
+export const useUpdateUnit = () => {
+  const { selectedCompany } = useCompanyStore();
+  const queryClient = useQueryClient();
+
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, ...data }: updateUnitSchema): Promise<Unit> => {
+      const res = await axiosInstance.patch(`/${selectedCompany?.slug}/unit/${id}`, data);
+      return res.data?.Unit as Unit;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["units", selectedCompany?.slug],
+      });
+      // Las conversiones muestran el label/value de sus unidades, así que
+      // renombrar una primaria desactualiza también esa tabla.
+      queryClient.invalidateQueries({
+        queryKey: ["secondary-units", selectedCompany?.slug],
+      });
+      toast.success("¡Actualizado!", {
+        description: `¡La unidad se ha actualizado correctamente!`,
+      });
+    },
+    onError: () => {
+      toast.error("Oops!", {
+        description: "¡Hubo un error al actualizar la unidad!",
+      });
+    },
+  });
+
+  return {
+    updateUnit: updateMutation,
+  };
+};
+
+export const useUpdateSecondaryUnit = () => {
+  const { selectedCompany } = useCompanyStore();
+  const queryClient = useQueryClient();
+
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, ...data }: updateSecondaryUnitSchema) => {
+      await axiosInstance.patch(`/${selectedCompany?.slug}/conversion/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["secondary-units", selectedCompany?.slug],
+      });
+      toast.success("¡Actualizado!", {
+        description: `¡La conversión se ha actualizado correctamente!`,
+      });
+    },
+    onError: () => {
+      toast.error("Oops!", {
+        description: "¡Hubo un error al actualizar la conversión!",
+      });
+    },
+  });
+
+  return {
+    updateSecondaryUnit: updateMutation,
   };
 };
 
