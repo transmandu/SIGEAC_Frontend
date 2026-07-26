@@ -36,10 +36,20 @@ export const useMarkNotificationAsRead = (company: string) => {
       return { previous };
     },
 
-    onError: (_error, _id, context) => {
-      if (context?.previous) {
-        queryClient.setQueryData(queryKey, context.previous);
-      }
+    // Revertir entero descartaría lo leído en paralelo: solo se devuelve a no
+    // leída la notificación que falló.
+    onError: (_error, id, context) => {
+      const previous = context?.previous?.find(
+        (notification) => notification.id === id
+      );
+
+      queryClient.setQueryData<Notification[]>(queryKey, (old = []) =>
+        old.map((notification) =>
+          notification.id === id
+            ? { ...notification, read_at: previous?.read_at }
+            : notification
+        )
+      );
     },
   });
 };

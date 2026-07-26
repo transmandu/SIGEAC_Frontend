@@ -45,7 +45,7 @@ const getIntakeDestination = (intake: NonNullable<PurchaseOrderGeneralArticle['g
     }
   }
   if (intake.authorized_employee) {
-    return { label: intake.authorized_employee.full_name, type: 'Solicitante autorizado', Icon: UserCog }
+    return { label: intake.authorized_employee.full_name, type: 'Solicitante externo', Icon: UserCog }
   }
   if (intake.third_party) {
     return { label: intake.third_party.name, type: 'Tercero', Icon: Handshake }
