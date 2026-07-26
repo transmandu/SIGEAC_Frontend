@@ -123,9 +123,9 @@ const GeneralArticleCard = ({ article, onImageClick, requisitionStatus }: Genera
     article.authorized_employee && {
       key: 'authorized_employee',
       icon: ShieldCheck,
-      label: 'Solicitante autorizado',
+      label: 'Solicitante externo',
       value: article.authorized_employee.full_name ?? article.authorized_employee.dni_employee,
-      tooltip: `Solicitante autorizado: ${article.authorized_employee.full_name ?? article.authorized_employee.dni_employee}`,
+      tooltip: `Solicitante externo: ${article.authorized_employee.full_name ?? article.authorized_employee.dni_employee}`,
     },
   ].filter(Boolean) as DestinationEntry[];
 

@@ -49,7 +49,7 @@ const DESTINATION_OPTIONS: { value: DestinationType; label: string; Icon: typeof
   { value: "WAREHOUSE", label: "Almacén", Icon: WarehouseIcon },
   { value: "DEPARTMENT", label: "Departamento", Icon: Building2 },
   { value: "EMPLOYEE", label: "Empleado", Icon: User },
-  { value: "AUTHORIZED", label: "Solicitante autorizado", Icon: UserCog },
+  { value: "AUTHORIZED", label: "Solicitante externo", Icon: UserCog },
   { value: "THIRD_PARTY", label: "Tercero", Icon: Handshake },
 ]
 
