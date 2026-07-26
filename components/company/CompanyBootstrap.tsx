@@ -28,8 +28,7 @@ const CompanyBootstrap = () => {
     reset,
   } = useCompanyStore();
 
-  const { mutateAsync: getLocations, isPending: locationsLoading } =
-    useGetUserLocationsByCompanyId();
+  const { mutateAsync: getLocations } = useGetUserLocationsByCompanyId();
 
   const [hydrated, setHydrated] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
@@ -49,7 +48,11 @@ const CompanyBootstrap = () => {
 
   useEffect(() => {
     if (!hydrated || userLoading || !user) return;
-    if (navigatingRef.current || resolvedRef.current) return;
+    if (navigatingRef.current) return;
+
+    // resolvedRef solo frena el auto-resolve de estación; si el usuario ya
+    // eligió ambas cosas manualmente, el redirect (y su loading) debe correr.
+    if (resolvedRef.current && !(selectedCompany && selectedStation)) return;
 
     const getHistory = () => {
       if (typeof window === "undefined") return {};
@@ -76,6 +79,19 @@ const CompanyBootstrap = () => {
       );
     };
 
+    const forgetHistory = (companyId: number | string) => {
+      if (typeof window === "undefined") return;
+
+      const history = getHistory();
+
+      delete history[String(companyId)];
+
+      localStorage.setItem(
+        "company-station-history",
+        JSON.stringify(history)
+      );
+    };
+
     const bootstrap = async () => {
       if (selectedCompany && selectedStation) {
         setIsRedirecting(true);
@@ -86,6 +102,7 @@ const CompanyBootstrap = () => {
 
         if (!companyExists) {
           setIsRedirecting(false);
+          forgetHistory(selectedCompany.id);
           reset();
           return;
         }
@@ -95,6 +112,7 @@ const CompanyBootstrap = () => {
 
           if (!locations?.length) {
             setIsRedirecting(false);
+            forgetHistory(selectedCompany.id);
             reset();
             return;
           }
@@ -105,11 +123,13 @@ const CompanyBootstrap = () => {
 
           if (!stationExists) {
             setIsRedirecting(false);
+            forgetHistory(selectedCompany.id);
             reset();
             return;
           }
 
           setIsRedirecting(true);
+          saveHistory(selectedCompany.id, selectedStation);
 
           if (typeof window !== "undefined" && "requestAnimationFrame" in window) {
             requestAnimationFrame(() => requestAnimationFrame(() =>
@@ -191,11 +211,7 @@ const CompanyBootstrap = () => {
   }, [redirectTarget, router]);
 
   const shouldShowFullPageLoading =
-    !hydrated ||
-    userLoading ||
-    isRedirecting ||
-    navigatingRef.current ||
-    (selectedCompany && selectedStation && locationsLoading);
+    !hydrated || userLoading || isRedirecting || navigatingRef.current;
 
   /**
    * LOADING SCREEN
