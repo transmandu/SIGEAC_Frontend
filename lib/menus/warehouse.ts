@@ -84,7 +84,7 @@ export function buildWarehouseGroup({ pathname, currentCompany }: MenuContext): 
             {
                 href: `/${currentCompany?.slug}/almacen/combustible`,
                 label: "Combustible",
-                roles: ["JEFE_ALMACEN", "SUPERUSER"],
+                roles: ["JEFE_ALMACEN", "ANALISTA_ALMACEN", "SUPERUSER"],
                 active: pathname.includes(
                     `/${currentCompany?.slug}/almacen/combustible`,
                 ),
