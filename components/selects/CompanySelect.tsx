@@ -19,7 +19,7 @@ import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
 
 const BASE_TRIGGER =
-  "h-9 w-[180px] rounded-lg border border-border/85 bg-background text-sm text-foreground/90 transition-colors duration-200";
+  "h-9 w-[180px] rounded-lg border border-border/85 text-sm text-foreground/90 transition-colors duration-200";
 
 const CompanySelect = () => {
   const { user, loading: userLoading } = useAuth();

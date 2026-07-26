@@ -80,13 +80,10 @@ export function UserNav() {
                   ease: [0.22, 1, 0.36, 1],
                 }}
                 className={cn(
+                  "glass-control",
                   "relative flex items-center justify-center",
                   "h-9 w-9 p-0 rounded-full",
-                  "bg-background",
-                  "border border-border/80",
-                  "hover:border-border",
-                  "hover:bg-muted/70",
-                  "transition-all duration-200",
+                  "border",
                   "overflow-hidden"
                 )}
               >

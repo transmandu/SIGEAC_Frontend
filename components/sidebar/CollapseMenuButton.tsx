@@ -84,9 +84,9 @@ export function CollapseMenuButton({
             <div className="flex items-center">
               <span
                 className={cn(
-                  "mr-3 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-transparent bg-muted/30 text-muted-foreground transition-all duration-200 group-hover:border-border/60 group-hover:bg-background group-hover:text-foreground",
+                  "mr-3 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-transparent bg-muted/30 text-muted-foreground transition-all duration-200 group-hover:border-border/60 group-hover:bg-background/70 group-hover:text-foreground",
                   (active || isSubmenuActive) &&
-                    "border-border/80 bg-background text-foreground shadow-sm shadow-black/5"
+                    "glass-control text-foreground"
                 )}
               >
                 <Icon size={18} />
@@ -126,7 +126,7 @@ export function CollapseMenuButton({
             className={cn(
               "group relative m-1 h-10 w-[calc(100%-0.5rem)] justify-start rounded-xl border border-transparent bg-transparent px-3 text-muted-foreground transition-all duration-200",
               "hover:border-border/60 hover:bg-muted/35 hover:text-foreground",
-              active && "border-border/70 bg-background text-foreground"
+              active && "border-border/70 bg-background/65 backdrop-blur-sm text-foreground"
             )}
             asChild
           >
@@ -174,9 +174,9 @@ export function CollapseMenuButton({
                   <div className="flex items-center">
                     <span
                       className={cn(
-                        "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-transparent bg-muted/30 text-muted-foreground transition-all duration-200 group-hover:border-border/60 group-hover:bg-background group-hover:text-foreground",
+                        "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-transparent bg-muted/30 text-muted-foreground transition-all duration-200 group-hover:border-border/60 group-hover:bg-background/70 group-hover:text-foreground",
                         (active || isSubmenuActive) &&
-                          "border-border/80 bg-background text-foreground shadow-sm shadow-black/5",
+                          "glass-control text-foreground",
                         isOpen === false ? "mx-auto" : "mr-3"
                       )}
                     >

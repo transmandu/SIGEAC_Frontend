@@ -19,5 +19,9 @@ export function ContentLayout({ title, children }: ContentLayoutProps) {
 
   useLayoutEffect(() => registerTitle(title), [registerTitle, title]);
 
-  return <div className="container pt-8 pb-8 px-4 sm:px-8">{children}</div>;
+  return (
+    <div className="container relative z-0 pt-8 pb-8 px-4 sm:px-8">
+      {children}
+    </div>
+  );
 }
