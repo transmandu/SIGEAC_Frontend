@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { create } from "zustand"
 import { ImageOff, Loader2 } from "lucide-react"
+import Image from "next/image"
 
 import {
     Dialog,
@@ -72,13 +73,19 @@ export const ArticleImageViewer = () => {
                         </div>
                     ) : (
                         src && (
-                            <img
+                            <Image
                                 // key: fuerza remontar al cambiar de artículo para
                                 // que loading/error no queden pegados del anterior.
                                 key={src}
                                 src={src}
                                 alt={title}
-                                className="max-h-[70vh] w-auto rounded-md object-contain"
+                                width={1024}
+                                height={1024}
+                                sizes="(max-width: 768px) 100vw, 672px"
+                                // width/height son solo la relación de aspecto que
+                                // next/image exige; el tamaño real lo fija el style.
+                                style={{ width: "auto", height: "auto" }}
+                                className="max-h-[70vh] max-w-full rounded-md object-contain"
                                 onLoad={() => setIsLoading(false)}
                                 onError={() => {
                                     setIsLoading(false)

@@ -4,7 +4,9 @@ import { cn } from "@/lib/utils";
 import { useStore } from "@/hooks/helpers/use-store";
 import { useGuestSidebarToggle } from "@/hooks/helpers/use-guest-sidebar-toggle";
 import { GuestSidebar } from "./GuestSidebar";
+import { GuestNavbar } from "./GuestNavbar";
 import Footer from "./Footer";
+import { PageTitleProvider } from "@/contexts/PageTitleContext";
 
 export default function GuestDashboardLayout({
   children,
@@ -18,7 +20,7 @@ export default function GuestDashboardLayout({
   const { isOpen } = sidebar;
 
   return (
-    <>
+    <PageTitleProvider>
       <GuestSidebar />
 
       <main
@@ -27,6 +29,7 @@ export default function GuestDashboardLayout({
           isOpen === false ? "lg:ml-[90px]" : "lg:ml-72"
         )}
       >
+        <GuestNavbar />
         {children}
       </main>
 
@@ -38,6 +41,6 @@ export default function GuestDashboardLayout({
       >
         <Footer />
       </footer>
-    </>
+    </PageTitleProvider>
   );
 }

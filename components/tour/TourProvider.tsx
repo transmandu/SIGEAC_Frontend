@@ -5,6 +5,7 @@ import React, {
   createContext,
   useContext,
   useCallback,
+  useMemo,
   useRef,
   useEffect,
   useState,
@@ -86,13 +87,20 @@ function TourInner({ children, tourKeyRef }: TourInnerProps) {
   );
 
   const unregisterTour = useCallback((key: string) => {
-    setAvailableTours((prev) => prev.filter((t) => t.key !== key));
+    setAvailableTours((prev) =>
+      prev.some((t) => t.key === key)
+        ? prev.filter((t) => t.key !== key)
+        : prev,
+    );
   }, []);
 
+  const value = useMemo(
+    () => ({ startTour, availableTours, registerTour, unregisterTour }),
+    [startTour, availableTours, registerTour, unregisterTour],
+  );
+
   return (
-    <TourContext.Provider
-      value={{ startTour, availableTours, registerTour, unregisterTour }}
-    >
+    <TourContext.Provider value={value}>
       {children}
       <FloatingTourMenu />
     </TourContext.Provider>

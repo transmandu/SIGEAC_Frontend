@@ -119,6 +119,45 @@
 
 @layer components {
 
+  /* Sonner ancla el botón de cerrar al borde izquierdo y lo saca del toast con
+     un translate negativo. Lo reanclamos a la derecha y dentro del contenedor. */
+  [data-sonner-toaster] {
+    --toast-close-button-start: unset;
+    --toast-close-button-end: 0;
+    --toast-close-button-transform: none;
+  }
+
+  [data-sonner-toast] [data-close-button] {
+    top: 50%;
+    right: 8px;
+    height: 18px;
+    width: 18px;
+    translate: 0 -50%;
+    border-radius: 0.375rem;
+    border-color: transparent;
+    background: transparent;
+    opacity: 0;
+    transition: opacity 0.15s ease, background-color 0.2s ease, color 0.2s ease;
+  }
+
+  [data-sonner-toast] [data-close-button] svg {
+    height: 12px;
+    width: 12px;
+  }
+
+  /* El botón solo aparece al apuntar el toast; en táctil no hay hover, así que
+     se mantiene visible para que siga siendo descartable. */
+  [data-sonner-toast]:hover [data-close-button],
+  [data-sonner-toast] [data-close-button]:focus-visible {
+    opacity: 1;
+  }
+
+  @media (hover: none) {
+    [data-sonner-toast] [data-close-button] {
+      opacity: 1;
+    }
+  }
+
   /* Estilos generales de tablas */
   .tasks-table th {
     @apply font-semibold text-sm bg-muted/30;

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 import {
   PanelLeftOpen,
@@ -37,6 +38,16 @@ export function SheetMenu() {
     useCompanyStore();
 
   const [open, setOpen] = useState(false);
+
+  const pathname = usePathname();
+
+  /**
+   * El Navbar es persistente, así que este Sheet ya no se desmonta al
+   * navegar. Se cierra explícitamente al cambiar de ruta.
+   */
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>

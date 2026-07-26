@@ -5,12 +5,11 @@ import { SheetMenu } from "@/components/sidebar/SheetMenu";
 import CompanySelect from "../selects/CompanySelect";
 import { ThemeToggler } from "./ThemeToggler";
 import NotificationBell from '@/components/notifications/NotificationBell';
+import { usePageTitle } from '@/contexts/PageTitleContext';
 
-interface NavbarProps {
-  title: string;
-}
+export function Navbar() {
+  const { title } = usePageTitle();
 
-export function Navbar({ title }: NavbarProps) {
   return (
     <header className="sticky top-0 z-10 w-full bg-background/95 shadow backdrop-blur supports-[backdrop-filter]:bg-background/60 dark:shadow-secondary">
       <div className="relative mx-4 sm:mx-8 flex h-14 items-center">

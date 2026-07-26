@@ -58,6 +58,8 @@ export default function NotificationBell() {
         setShake(false);
       }, 700);
 
+      previousCount.current = unreadCount;
+
       return () => clearTimeout(timeout);
     }
 

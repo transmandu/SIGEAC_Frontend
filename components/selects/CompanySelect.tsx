@@ -9,12 +9,11 @@ import {
 } from "@/components/ui/select";
 
 import { useAuth } from "@/contexts/AuthContext";
-import { useGetUserLocationsByCompanyId } from "@/hooks/sistema/usuario/useGetUserLocationsByCompanyId";
+import { useUserLocationsByCompanyId } from "@/hooks/sistema/usuario/useGetUserLocationsByCompanyId";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { Company } from "@/types";
 
 import { Loader2 } from "lucide-react";
-import { useEffect } from "react";
 
 import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
@@ -33,16 +32,10 @@ const CompanySelect = () => {
   } = useCompanyStore();
 
   const {
-    mutate,
     data: locations,
-    isPending: locationsLoading,
+    isLoading: locationsLoading,
     isError,
-  } = useGetUserLocationsByCompanyId();
-
-  useEffect(() => {
-    if (!selectedCompany?.id) return;
-    mutate(selectedCompany.id);
-  }, [selectedCompany?.id, mutate]);
+  } = useUserLocationsByCompanyId(selectedCompany?.id);
 
   const handleCompanySelect = (companyId: string) => {
     const company = user?.companies?.find(

@@ -160,7 +160,7 @@ export default function FuelWarehousePage() {
   });
   const { data: thirdParties } = useGetThirdParties();
 
-  const fuelVehicles = vehicles ?? [];
+  const fuelVehicles = useMemo(() => vehicles ?? [], [vehicles]);
   const fuelMovements = movementsPage?.movements ?? [];
   const movementsPagination = movementsPage?.pagination;
   const traceabilityMovements = traceabilityMovementsPage?.movements ?? [];

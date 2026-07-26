@@ -468,6 +468,10 @@ const CreateGeneralArticleForm = ({
                                 )}
                             >
                                 {currentImage ? (
+                                    // Miniatura de 24px que suele ser un blob: local
+                                    // del archivo recién elegido; next/image no puede
+                                    // optimizar blobs, así que aquí <img> es lo correcto.
+                                    // eslint-disable-next-line @next/next/no-img-element
                                     <img
                                         src={currentImage}
                                         alt="Imagen del artículo"

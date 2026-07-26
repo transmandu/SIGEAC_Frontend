@@ -3,12 +3,11 @@
 import { GuestSheetMenu } from "@/components/sidebar/GuestSheetMenu";
 import { GuestUserNav } from "./GuestUserNav";
 import { ThemeToggler } from "./ThemeToggler";
+import { usePageTitle } from "@/contexts/PageTitleContext";
 
-interface GuestNavbarProps {
-  title: string;
-}
+export function GuestNavbar() {
+  const { title } = usePageTitle();
 
-export function GuestNavbar({ title }: GuestNavbarProps) {
   return (
     <header className="sticky top-0 z-10 w-full bg-background/95 shadow backdrop-blur supports-[backdrop-filter]:bg-background/60 dark:shadow-secondary">
       <div className="relative mx-4 sm:mx-8 flex h-14 items-center">
