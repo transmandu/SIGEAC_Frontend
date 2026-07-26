@@ -19,7 +19,7 @@ import MetaItem from './_components/MetaItem';
 import InfoSection from './_components/InfoSection';
 import ImageAttachment from './_components/ImageAttachment';
 import ArticleCard from './_components/ArticleCard';
-import ImageViewer from './_components/ImageViewer';
+import ImageViewer from '@/components/misc/ImageViewer';
 import RequisitionOutOfScope from './_components/RequisitionOutOfScope';
 import RequiredDocumentsSection from './_components/RequiredDocumentsSection';
 import { statusBadgeCls, requisitionStatusLabel, requisitionTypeLabel, formatSolicitudDate, priorityPageBadgeCls, priorityLabel } from './_components/utils/uiHelpers';
