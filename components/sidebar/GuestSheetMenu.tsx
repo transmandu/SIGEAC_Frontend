@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 import {
   PanelLeftOpen,
@@ -29,6 +30,16 @@ import Logo from "@/components/misc/Logo";
 export function GuestSheetMenu() {
   const [open, setOpen] = useState(false);
 
+  const pathname = usePathname();
+
+  /**
+   * El GuestNavbar es persistente, así que este Sheet ya no se desmonta
+   * al navegar. Se cierra explícitamente al cambiar de ruta.
+   */
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger className="lg:hidden" asChild>
@@ -41,16 +52,12 @@ export function GuestSheetMenu() {
             ease: [0.22, 1, 0.36, 1],
           }}
           className={cn(
+            "glass-control",
             "relative flex items-center justify-center",
             "h-9 w-9 rounded-lg",
-            "bg-background",
-            "border border-border/70",
+            "border",
             "text-foreground/80",
-            "hover:text-foreground",
-            "hover:bg-muted/60",
-            "hover:border-border",
-            "transition-colors duration-200",
-            "shadow-sm"
+            "hover:text-foreground"
           )}
         >
           <AnimatePresence mode="wait" initial={false}>
@@ -117,7 +124,7 @@ export function GuestSheetMenu() {
       >
         {/* HEADER */}
         <SheetHeader>
-          <div className="flex justify-center items-center mt-4 mb-2 px-4 py-4 bg-background rounded-md">
+          <div className="flex justify-center items-center mt-4 mb-2 px-4 py-4 rounded-md">
             <Link
               href="/"
               className="flex items-center justify-center"

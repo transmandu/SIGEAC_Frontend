@@ -4,6 +4,8 @@ import { fetchNotifications } from './fetchNotifications'
 import { getEcho } from '@/lib/echo'
 import { Notification } from '@/types/notifications/types'
 
+const EMPTY_NOTIFICATIONS: Notification[] = []
+
 export const useNotifications = (
   company?: string,
   userId?: string | number
@@ -56,7 +58,9 @@ export const useNotifications = (
     }
   }, [isReady, normalizedUserId, normalizedCompany, queryClient])
 
-  const notifications = query.data ?? []
+  // Referencia estable: un `?? []` inline crea un array nuevo por render y
+  // dispara efectos que dependan de `notifications`.
+  const notifications = query.data ?? EMPTY_NOTIFICATIONS
 
   const unreadCount = notifications.reduce(
     (acc, n) => acc + (n.read_at ? 0 : 1),

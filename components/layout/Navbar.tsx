@@ -5,14 +5,19 @@ import { SheetMenu } from "@/components/sidebar/SheetMenu";
 import CompanySelect from "../selects/CompanySelect";
 import { ThemeToggler } from "./ThemeToggler";
 import NotificationBell from '@/components/notifications/NotificationBell';
+import { usePageTitle } from '@/contexts/PageTitleContext';
+import { useScrollGlass } from '@/hooks/helpers/use-scroll-glass';
 
-interface NavbarProps {
-  title: string;
-}
+export function Navbar() {
+  const { title } = usePageTitle();
+  const { scrolled, targetRef } = useScrollGlass();
 
-export function Navbar({ title }: NavbarProps) {
   return (
-    <header className="sticky top-0 z-10 w-full bg-background/95 shadow backdrop-blur supports-[backdrop-filter]:bg-background/60 dark:shadow-secondary">
+    <header
+      ref={targetRef as React.RefObject<HTMLElement>}
+      data-scrolled={scrolled}
+      className="glass-surface sticky top-0 z-10 w-full"
+    >
       <div className="relative mx-4 sm:mx-8 flex h-14 items-center">
 
         {/* IZQUIERDA */}

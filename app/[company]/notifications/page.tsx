@@ -29,12 +29,14 @@ export default function NotificationsPage() {
 
   const { registerTour, unregisterTour } = useTourContext();
 
+  const hasNotifications = notifications.length > 0;
+
   useEffect(() => {
-    if (notifications && notifications.length > 0) {
-      registerTour("notificaciones", "Notificaciones", notificacionesSteps);
-    }
+    if (!hasNotifications) return;
+
+    registerTour("notificaciones", "Notificaciones", notificacionesSteps);
     return () => unregisterTour("notificaciones");
-  }, [registerTour, unregisterTour, notifications]);
+  }, [registerTour, unregisterTour, hasNotifications]);
 
   const filteredNotifications = useMemo(() => {
     if (!notifications) return [];

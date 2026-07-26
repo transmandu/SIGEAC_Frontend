@@ -8,6 +8,7 @@ import GeneralArticleDropDownActions from "@/components/dropdowns/mantenimiento/
 import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { ImageIcon, ImageOff, Loader2 } from "lucide-react"
+import Image from "next/image"
 import { useState } from "react"
 
 /**
@@ -57,10 +58,12 @@ const ArticleImageCell = ({ article }: { article: GeneralArticle }) => {
                         ) : (
                             // hasOpened evita pedir la imagen antes del primer clic.
                             hasOpened && (
-                                <img
+                                <Image
                                     src={image}
                                     alt={article.description?.trim() || "Artículo"}
-                                    className="max-h-full max-w-full object-contain"
+                                    fill
+                                    sizes="240px"
+                                    className="object-contain"
                                     onLoad={() => setIsLoading(false)}
                                     onError={() => {
                                         setIsLoading(false)
