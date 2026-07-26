@@ -33,7 +33,7 @@ export const getColumns = (companySlug: string): ColumnDef<CertificateColumn>[] 
         <div className="flex items-center gap-3">
           <Avatar className="h-10 w-10 border border-blue-200 shadow-sm">
             <AvatarImage 
-              src={emp?.photo_url ? `${emp.photo_url}?size=64` : ""} 
+              src={emp?.photo_url ?? ""}
               alt="Avatar" 
               className="object-cover"
             />
