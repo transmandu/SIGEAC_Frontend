@@ -1,6 +1,6 @@
 import axiosInstance from '@/lib/axios';
 import { useCompanyStore } from '@/stores/CompanyStore';
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { Aircraft, Unit } from "@/types";
 
 export interface IWarehouseArticle {
@@ -65,6 +65,11 @@ export interface WarehouseResponse {
     };
 }
 
+export interface ArticleSort {
+    id: string;
+    desc: boolean;
+}
+
 const fetchWarehouseArticlesByCategory = async (
     location_id: string | null,
     category: string,
@@ -74,6 +79,7 @@ const fetchWarehouseArticlesByCategory = async (
     per_page: number = 15,
     part_number?: string,
     is_hazardous?: boolean,
+    sort?: ArticleSort,
 ): Promise<WarehouseResponse> => {
     const params = new URLSearchParams({
         category,
@@ -83,6 +89,11 @@ const fetchWarehouseArticlesByCategory = async (
     });
     if (part_number?.trim()) params.set("part_number", part_number.trim());
     if (is_hazardous !== undefined) params.set("is_hazardous", String(is_hazardous));
+    // Con sort_by el backend pagina por artículo, no por batch.
+    if (sort) {
+        params.set("sort_by", sort.id);
+        params.set("sort_dir", sort.desc ? "desc" : "asc");
+    }
     const { data } = await axiosInstance.get(`/${company}/${location_id}/articles-by-category?${params.toString()}`);
 
     return {
@@ -106,14 +117,18 @@ export const useGetWarehouseArticlesByCategory = (
     enabled: boolean = true,
     status?: string,
     part_number?: string,
-    is_hazardous?: boolean
+    is_hazardous?: boolean,
+    sort?: ArticleSort
 ) => {
     const { selectedCompany, selectedStation } = useCompanyStore();
     return useQuery<WarehouseResponse, Error>({
-        queryKey: ["warehouse-articles", selectedCompany?.slug, selectedStation, page, per_page, category, status, part_number, is_hazardous],
-        queryFn: () => fetchWarehouseArticlesByCategory(selectedStation, category, selectedCompany?.slug, status, page, per_page, part_number, is_hazardous),
+        queryKey: ["warehouse-articles", selectedCompany?.slug, selectedStation, page, per_page, category, status, part_number, is_hazardous, sort?.id, sort?.desc],
+        queryFn: () => fetchWarehouseArticlesByCategory(selectedStation, category, selectedCompany?.slug, status, page, per_page, part_number, is_hazardous, sort),
         enabled: enabled && !!selectedCompany && !!selectedStation,
-        staleTime: 0,
+        // Mantiene la página anterior visible mientras llega la nueva: sin esto
+        // cada cambio de orden/página vacía la tabla y parpadea el loader.
+        placeholderData: keepPreviousData,
+        staleTime: 30_000,
         refetchOnMount: true,
         refetchOnWindowFocus: false,
     });

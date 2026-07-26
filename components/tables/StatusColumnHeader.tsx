@@ -6,6 +6,7 @@ import {
   ArrowDownNarrowWide,
   ArrowUpIcon,
   EyeOff,
+  RotateCcw,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ARTICLE_STATUS_OPTIONS } from "@/lib/warehouse/statuses";
 
 interface StatusColumnHeaderProps<TData, TValue> {
   column: Column<TData, TValue>;
@@ -23,26 +25,15 @@ interface StatusColumnHeaderProps<TData, TValue> {
   onValueChange?: (value: string | undefined) => void;
 }
 
-const statusOptions = [
-  { value: "incoming", label: "Entrante" },
-  { value: "dispatched", label: "Despachado" },
-  { value: "transit", label: "En Tránsito" },
-  { value: "quarantine", label: "Cuarentena" },
-  { value: "stored", label: "Almacenado" },
-  { value: "inuse", label: "En uso" },
-  { value: "sheltered", label: "Resguardo" },
-  { value: "reception", label: "Recepción Administrativa" },
-  { value: "intoolbox", label: "Caja de Herramientas" },
-  { value: "reserved", label: "Reservado" },
-  { value: "checking", label: "En Revisión" },
-  { value: "maintenance", label: "Mantenimiento" },
-];
+const statusOptions = ARTICLE_STATUS_OPTIONS;
 
 export function StatusColumnHeader<TData, TValue>({
   column,
   value,
   onValueChange,
 }: StatusColumnHeaderProps<TData, TValue>) {
+  const sorted = column.getIsSorted();
+
   const setStatus = (v: string | undefined) => {
     // Mantiene compatibilidad con el filtrado local de la tabla (fallback)
     column.setFilterValue(v);
@@ -83,6 +74,33 @@ export function StatusColumnHeader<TData, TValue>({
               </span>
             </DropdownMenuItem>
           ))}
+          <DropdownMenuSeparator />
+
+          <DropdownMenuItem onClick={() => column.toggleSorting(false)}>
+            <ArrowUpIcon className="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />
+            <span className={sorted === "asc" ? "font-bold" : undefined}>Ascendente</span>
+          </DropdownMenuItem>
+
+          <DropdownMenuItem onClick={() => column.toggleSorting(true)}>
+            <ArrowDownIcon className="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />
+            <span className={sorted === "desc" ? "font-bold" : undefined}>Descendente</span>
+          </DropdownMenuItem>
+
+          {(sorted || value) && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => {
+                  column.clearSorting()
+                  setStatus(undefined)
+                }}
+              >
+                <RotateCcw className="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />
+                Restablecer columna
+              </DropdownMenuItem>
+            </>
+          )}
+
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => column.toggleVisibility(false)}>
             <EyeOff className="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />

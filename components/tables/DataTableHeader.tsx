@@ -6,6 +6,7 @@ import {
   ArrowDownNarrowWide,
   ArrowUpIcon,
   EyeOff,
+  RotateCcw,
   Search,
   X,
 } from 'lucide-react';
@@ -28,6 +29,8 @@ interface DataTableColumnHeaderProps<TData, TValue>
   column: Column<TData, TValue>;
   title: string;
   filter?: boolean;
+  /** Opciones fijas en vez de texto libre. */
+  filterOptions?: { value: string; label: string }[];
   icon?: LucideIcon;
   align?: Align;
 }
@@ -35,12 +38,21 @@ interface DataTableColumnHeaderProps<TData, TValue>
 export function DataTableColumnHeader<TData, TValue>({
   column,
   filter = false,
+  filterOptions,
   title,
   icon: Icon,
   align = 'center',
   className,
 }: DataTableColumnHeaderProps<TData, TValue>) {
   const filterValue = (column.getFilterValue() as string) ?? '';
+  const hasOptions = !!filterOptions?.length;
+  const sorted = column.getIsSorted();
+  const hasActiveState = !!sorted || filterValue.length > 0;
+
+  const handleReset = () => {
+    column.clearSorting();
+    column.setFilterValue(undefined);
+  };
 
   const justify =
     align === 'left'
@@ -49,7 +61,10 @@ export function DataTableColumnHeader<TData, TValue>({
         ? 'justify-end'
         : 'justify-center';
 
-  if (!column.getCanSort()) {
+  const canSort = column.getCanSort();
+
+  // Sin orden ni filtro no hay menú que abrir: es solo un título.
+  if (!canSort && !filter && !hasOptions) {
     return (
       <div className={cn('flex items-center gap-2', justify, className)}>
         {Icon ? <Icon className="h-4 w-4 opacity-70" /> : null}
@@ -59,9 +74,9 @@ export function DataTableColumnHeader<TData, TValue>({
   }
 
   const SortIcon =
-    column.getIsSorted() === 'desc'
+    sorted === 'desc'
       ? ArrowDownIcon
-      : column.getIsSorted() === 'asc'
+      : sorted === 'asc'
         ? ArrowUpIcon
         : ArrowDownNarrowWide;
 
@@ -77,12 +92,33 @@ export function DataTableColumnHeader<TData, TValue>({
           >
             {Icon ? <Icon className="mr-2 h-4 w-4 opacity-70" /> : null}
             <span className="truncate">{title}</span>
-            <SortIcon className="ml-2 h-4 w-4 opacity-80" />
+            {canSort ? <SortIcon className="ml-2 h-4 w-4 opacity-80" /> : null}
           </Button>
         </DropdownMenuTrigger>
 
-        <DropdownMenuContent align="start" className="w-72">
-          {filter ? (
+        <DropdownMenuContent align="start" className="max-h-[420px] w-72 overflow-y-auto">
+          {hasOptions ? (
+            <>
+              <DropdownMenuItem onClick={() => column.setFilterValue(undefined)}>
+                <span className={filterValue ? 'font-medium' : 'font-bold'}>Todas</span>
+              </DropdownMenuItem>
+              {filterOptions!.map((option) => (
+                <DropdownMenuItem
+                  key={option.value}
+                  onClick={() => column.setFilterValue(option.value)}
+                >
+                  <span
+                    className={
+                      filterValue === option.value ? 'font-bold' : undefined
+                    }
+                  >
+                    {option.label}
+                  </span>
+                </DropdownMenuItem>
+              ))}
+              <DropdownMenuSeparator />
+            </>
+          ) : filter ? (
             <>
               <div className="p-2">
                 <div className="relative">
@@ -114,17 +150,35 @@ export function DataTableColumnHeader<TData, TValue>({
             </>
           ) : null}
 
-          <DropdownMenuItem onClick={() => column.toggleSorting(false)}>
-            <ArrowUpIcon className="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />
-            Ascendente
-          </DropdownMenuItem>
+          {canSort ? (
+            <>
+              <DropdownMenuItem onClick={() => column.toggleSorting(false)}>
+                <ArrowUpIcon className="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />
+                <span className={sorted === 'asc' ? 'font-bold' : undefined}>
+                  Ascendente
+                </span>
+              </DropdownMenuItem>
 
-          <DropdownMenuItem onClick={() => column.toggleSorting(true)}>
-            <ArrowDownIcon className="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />
-            Descendente
-          </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => column.toggleSorting(true)}>
+                <ArrowDownIcon className="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />
+                <span className={sorted === 'desc' ? 'font-bold' : undefined}>
+                  Descendente
+                </span>
+              </DropdownMenuItem>
 
-          <DropdownMenuSeparator />
+              <DropdownMenuSeparator />
+            </>
+          ) : null}
+
+          {hasActiveState ? (
+            <>
+              <DropdownMenuItem onClick={handleReset}>
+                <RotateCcw className="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />
+                Restablecer columna
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+            </>
+          ) : null}
 
           <DropdownMenuItem onClick={() => column.toggleVisibility(false)}>
             <EyeOff className="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />

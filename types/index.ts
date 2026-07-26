@@ -851,6 +851,7 @@ export type Employee = {
   end_date?: string | null;
   isActive: boolean;
   photo_url?: string | null;
+  photo_url_lg?: string | null;
   company?: string;
 };
 

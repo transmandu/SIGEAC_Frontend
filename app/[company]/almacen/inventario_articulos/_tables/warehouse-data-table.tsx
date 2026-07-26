@@ -32,6 +32,8 @@ interface ServerPagination {
   from: number
   to: number
   onPageChange: (page: number) => void
+  /** Con orden agrupado el total cuenta grupos, no artículos. */
+  unitLabel?: string
 }
 
 interface DataTableProps<TData, TValue> {
@@ -40,6 +42,13 @@ interface DataTableProps<TData, TValue> {
   onRowClick?: (row: TData) => void
   rowClassName?: (row: TData) => string
   serverPagination?: ServerPagination
+  /** Delega el orden al servidor: sin esto solo se ordena la página cargada. */
+  serverSorting?: {
+    sorting: SortingState
+    onSortingChange: (sorting: SortingState) => void
+  }
+  /** Refetch en curso con datos previos en pantalla. */
+  isFetching?: boolean
 }
 
 type ColMeta = {
@@ -53,18 +62,27 @@ export function DataTable<TData, TValue>({
   onRowClick,
   rowClassName,
   serverPagination,
+  serverSorting,
+  isFetching = false,
 }: DataTableProps<TData, TValue>) {
-  const [sorting, setSorting] = useState<SortingState>([])
+  const [localSorting, setLocalSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
+
+  const sorting = serverSorting ? serverSorting.sorting : localSorting
 
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-    onSortingChange: setSorting,
+    onSortingChange: (updater) => {
+      const next = typeof updater === "function" ? updater(sorting) : updater
+      if (serverSorting) serverSorting.onSortingChange(next)
+      else setLocalSorting(next)
+    },
     getSortedRowModel: getSortedRowModel(),
+    manualSorting: !!serverSorting,
     onColumnFiltersChange: setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
@@ -83,8 +101,18 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-md border overflow-x-auto">
-        <Table>
+      <div className="relative rounded-md border overflow-x-auto">
+        {isFetching && (
+          <div className="absolute inset-x-0 top-0 z-50 h-0.5 overflow-hidden bg-muted">
+            <div className="h-full w-1/4 animate-indeterminate bg-primary" />
+          </div>
+        )}
+        <Table
+          className={cn(
+            "transition-opacity",
+            isFetching && "opacity-60 pointer-events-none",
+          )}
+        >
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
@@ -145,7 +173,7 @@ export function DataTable<TData, TValue>({
       <div className="flex items-center justify-between px-2">
         <div className="flex-1 text-sm text-muted-foreground">
           {serverPagination
-            ? `${serverPagination.from}–${serverPagination.to} de ${serverPagination.total} artículo(s)`
+            ? `${serverPagination.from}–${serverPagination.to} de ${serverPagination.total} ${serverPagination.unitLabel ?? "artículo(s)"}`
             : `${table.getFilteredRowModel().rows.length} artículo(s) total(es)`}
         </div>
 

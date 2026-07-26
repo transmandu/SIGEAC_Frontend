@@ -57,7 +57,7 @@ const RecepcionArticulosPage = () => {
                             </BreadcrumbItem>
                             <BreadcrumbSeparator />
                             <BreadcrumbItem>
-                                <BreadcrumbLink>Compras</BreadcrumbLink>
+                                General
                             </BreadcrumbItem>
                             <BreadcrumbSeparator />
                             <BreadcrumbItem>

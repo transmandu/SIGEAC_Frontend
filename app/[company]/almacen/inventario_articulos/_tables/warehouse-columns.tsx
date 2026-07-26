@@ -10,6 +10,8 @@ import { WarehouseResponse } from "@/hooks/mantenimiento/almacen/articulos/useGe
 import { StatusColumnHeader } from "@/components/tables/StatusColumnHeader";
 import { Unit } from "@/types";
 import { formatCondition } from "@/lib/warehouse/conditions";
+import { formatStatusLabel } from "@/lib/warehouse/statuses";
+import { dateSortingFn, numericSortingFn, textSortingFn } from "@/lib/warehouse/sorting";
 import StatusCellWithPopover from "@/components/misc/StatusCellWithPopover";
 import { Aircraft } from "@/types";
 export interface IArticleSimple {
@@ -68,30 +70,39 @@ export const getStatusBadge = (status: string | null | undefined) => {
     const statusConfig: Record<
         string,
         {
-            label: string;
             variant: "default" | "secondary" | "destructive" | "outline" | "warning";
             icon: any;
         }
     > = {
-        stored: { label: "Disponible", variant: "default", icon: CheckCircle2 },
-        checking: { label: "Revision", variant: "warning", icon: Clock },
-        dispatched: { label: "Despachado", variant: "secondary", icon: Clock },
-        inuse: { label: "En Uso", variant: "warning", icon: Clock },
-        transit: { label: "En Tránsito", variant: "outline", icon: Clock },
-        maintenance: { label: "Mantenimiento", variant: "outline", icon: Clock },
+        STORED: { variant: "default", icon: CheckCircle2 },
+        CHECKING: { variant: "warning", icon: Clock },
+        QUARANTINE: { variant: "destructive", icon: Clock },
+        INCOMING: { variant: "outline", icon: Clock },
+        RECEPTION: { variant: "outline", icon: Clock },
+        WAITING_FOR_FORMAT: { variant: "warning", icon: Clock },
+        WAITING_TO_LOCATE: { variant: "warning", icon: Clock },
+        TO_DETERMINATE: { variant: "warning", icon: Clock },
+        RESERVED: { variant: "secondary", icon: Clock },
+        INTOOLBOX: { variant: "secondary", icon: Clock },
+        INUSE: { variant: "warning", icon: Clock },
+        DISPATCHED: { variant: "secondary", icon: Clock },
+        TRANSIT: { variant: "outline", icon: Clock },
+        SHELTERED: { variant: "outline", icon: Clock },
+        MAINTENANCE: { variant: "outline", icon: Clock },
     };
 
-    const config = statusConfig[status.toLowerCase()] || {
-        label: status,
+    const key = status.trim().toUpperCase();
+    const config = statusConfig[key] ?? {
         variant: "outline" as const,
         icon: XCircle,
     };
     const Icon = config.icon;
+    const label = formatStatusLabel(key);
 
     return (
         <Badge variant={config.variant} className="flex items-center gap-1 w-fit">
             <Icon className="h-3 w-3" />
-            {config.label}
+            {label}
         </Badge>
     );
 };
@@ -177,12 +188,41 @@ const parseDateLocal = (dateString: string): Date => {
     return parseISO(dateString);
 };
 
+const toDate = (value: string | Date | null | undefined): Date | null => {
+    if (!value) return null;
+    const date = value instanceof Date ? value : parseDateLocal(value);
+    return isNaN(date.getTime()) ? null : date;
+};
+
 // ✅ Columna cantidad (solo consumible y all)
 // Ahora: si es grupo, muestra __groupCount aquí (sin badge en PN)
 const quantityCol: ColumnDef<IArticleSimple> = {
     accessorKey: "quantity",
+    sortingFn: numericSortingFn((row) =>
+        row.__isGroup ? Number(row.__groupCount ?? 0) : Number(row.quantity ?? 0),
+    ),
+    // El texto se compara contra la cantidad mostrada, que en un grupo es el conteo.
+    filterFn: (row, _id, value) => {
+        const raw = String(value ?? "").trim();
+        if (!raw) return true;
+
+        const shown = row.original.__isGroup
+            ? Number(row.original.__groupCount ?? 0)
+            : Number(row.original.quantity ?? 0);
+
+        const range = raw.match(/^(<=|>=|<|>)\s*(\d+(?:\.\d+)?)$/);
+        if (range) {
+            const n = Number(range[2]);
+            if (range[1] === "<") return shown < n;
+            if (range[1] === "<=") return shown <= n;
+            if (range[1] === ">") return shown > n;
+            return shown >= n;
+        }
+
+        return String(shown).includes(raw);
+    },
     header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Cantidad" />
+        <DataTableColumnHeader filter column={column} title="Cantidad" />
     ),
     cell: ({ row }) => {
         const isGroup = !!row.original.__isGroup;
@@ -212,6 +252,7 @@ const buildBaseCols = (
 ): ColumnDef<IArticleSimple>[] => [
     {
         accessorKey: "part_number",
+        sortingFn: textSortingFn((row) => row.part_number),
         header: ({ column }) => (
             <DataTableColumnHeader filter column={column} title="Part Number" />
         ),
@@ -223,6 +264,14 @@ const buildBaseCols = (
     },
     {
         accessorKey: "serial",
+        // La celda cae a lot_number cuando no hay serial; ordenar/filtrar sigue lo mostrado.
+        sortingFn: textSortingFn((row) => row.serial || row.lot_number),
+        filterFn: (row, _id, value) => {
+            const raw = String(value ?? "").trim().toLowerCase();
+            if (!raw) return true;
+            const shown = row.original.serial || row.original.lot_number || "";
+            return shown.toLowerCase().includes(raw);
+        },
         header: ({ column }) => (
             <DataTableColumnHeader filter column={column} title="Serial / Lote" />
         ),
@@ -242,6 +291,7 @@ const buildBaseCols = (
     },
     {
         accessorKey: "batch_name",
+        sortingFn: textSortingFn((row) => row.batch_name),
         header: ({ column }) => (
             <DataTableColumnHeader filter column={column} title="Descripción" />
         ),
@@ -255,6 +305,20 @@ const buildBaseCols = (
     },
     {
         accessorKey: "condition",
+        // Se muestra traducida: ordenar por el código crudo daría otro orden.
+        sortingFn: textSortingFn(
+            (row) => formatCondition(row.condition)?.es ?? row.condition,
+        ),
+        filterFn: (row, _id, value) => {
+            const raw = String(value ?? "").trim().toLowerCase();
+            if (!raw) return true;
+            const c = formatCondition(row.original.condition);
+            const shown = [c?.es, c?.en, row.original.condition]
+                .filter(Boolean)
+                .join(" ")
+                .toLowerCase();
+            return shown.includes(raw);
+        },
         header: ({ column }) => (
             <DataTableColumnHeader filter column={column} title="Condición" />
         ),
@@ -297,6 +361,7 @@ const buildBaseCols = (
 
     {
         accessorKey: "status",
+        sortingFn: textSortingFn((row) => formatStatusLabel(row.status ?? "")),
         header: ({ column }) => (
             <StatusColumnHeader
                 column={column}
@@ -333,8 +398,9 @@ const buildBaseCols = (
     },
     {
         accessorKey: "zone",
+        sortingFn: textSortingFn((row) => row.zone),
         header: ({ column }) => (
-            <DataTableColumnHeader column={column} title="Ubicación" />
+            <DataTableColumnHeader filter column={column} title="Ubicación" />
         ),
         cell: ({ row }) => (
             <div className="text-center font-medium text-sm">
@@ -389,6 +455,7 @@ export const buildConsumibleCols = (
     quantityCol,
     {
         id: "expiration_date",
+        sortingFn: dateSortingFn((row) => toDate(row.consumable?.expiration_date)),
         header: ({ column }) => (
             <DataTableColumnHeader column={column} title="Proximo Vencimiento" />
         ),
@@ -450,6 +517,7 @@ export const buildConsumibleCols = (
     },
     {
         id: "shelf_life",
+        sortingFn: dateSortingFn((row) => toDate(row.consumable?.shelf_life)),
         header: ({ column }) => (
             <DataTableColumnHeader column={column} title="Shelf Life" />
         ),
@@ -540,9 +608,11 @@ export const buildHerramientaCols = (
 ): ColumnDef<IArticleSimple>[] => [
     ...buildBaseCols(statusFilter, onStatusFilterChange),
     {
-        accessorKey: "model",
+        id: "model",
+        accessorFn: (row) => row.tool?.model ?? "",
+        sortingFn: textSortingFn((row) => row.tool?.model),
         header: ({ column }) => (
-            <DataTableColumnHeader column={column} title="Modelo" />
+            <DataTableColumnHeader filter column={column} title="Modelo" />
         ),
         cell: ({ row }) => (
             <div className="text-center text-sm font-bold text-muted-foreground">
@@ -551,7 +621,11 @@ export const buildHerramientaCols = (
         ),
     },
     {
-        accessorKey: "calibration_date",
+        id: "calibration_date",
+        accessorFn: (row) => row.tool?.calibration_date ?? "",
+        sortingFn: dateSortingFn((row) =>
+            row.tool?.calibration_date ? parseDateLocal(row.tool.calibration_date) : null,
+        ),
         header: ({ column }) => (
             <DataTableColumnHeader column={column} title="Fech. Calibración" />
         ),
@@ -570,6 +644,14 @@ export const buildHerramientaCols = (
     },
     {
         id: "next_calibration",
+        sortingFn: dateSortingFn((row) =>
+            row.tool?.next_calibration && row.tool.calibration_date
+                ? addDays(
+                    parseDateLocal(row.tool.calibration_date),
+                    Number(row.tool.next_calibration),
+                )
+                : null,
+        ),
         header: ({ column }) => (
             <DataTableColumnHeader column={column} title="Prox. Cal." />
         ),
@@ -664,6 +746,40 @@ export const getColumnsByCategory = (
     if (cat === "PART") return buildComponenteCols(statusFilter, onStatusFilterChange);
     return buildAllCategoriesCols(statusFilter, onStatusFilterChange);
 };
+
+/**
+ * Agrupa artículos CONSECUTIVOS con la misma clave. A diferencia de
+ * groupByPartNumber, respeta el orden en que llegó la lista — necesario cuando
+ * el servidor ya la ordenó.
+ */
+export function groupSequentially(
+    list: IArticleSimple[],
+    keyOf: (article: IArticleSimple) => string | number,
+) {
+    const result: IArticleSimple[] = [];
+    let bucket: IArticleSimple[] = [];
+    let currentKey: string | number | null = null;
+
+    const flush = () => {
+        if (!bucket.length) return;
+        result.push(
+            bucket.length === 1
+                ? bucket[0]
+                : { ...bucket[0], __isGroup: true, __groupCount: bucket.length, subRows: bucket },
+        );
+        bucket = [];
+    };
+
+    for (const item of list) {
+        const key = keyOf(item);
+        if (currentKey !== null && key !== currentKey) flush();
+        currentKey = key;
+        bucket.push(item);
+    }
+
+    flush();
+    return result;
+}
 
 export function groupByPartNumber(list: IArticleSimple[]) {
     const byPn: Record<string, IArticleSimple[]> = {};
