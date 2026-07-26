@@ -31,6 +31,13 @@ export const useNotifications = (
     enabled: !!normalizedCompany,
     staleTime: Infinity,
     gcTime: 1000 * 60 * 30,
+    // La lista se mantiene al día por websocket y por los updates optimistas de
+    // marcar/limpiar. Un refetch al montar (el panel monta otra instancia de
+    // este hook sobre la misma key) llegaba con el read_at todavía sin commitear
+    // y revertía visualmente la notificación recién leída.
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   })
 
   useEffect(() => {
