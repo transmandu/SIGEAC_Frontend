@@ -107,6 +107,12 @@ export type CostChangeEdits = {
 };
 
 /**
+ * Corrección de la unidad de un costo venido de compras, propagada al hilo
+ * (cotización y requisición). Solo la unidad: el monto pagado no se toca.
+ */
+export type IntakeUnitEdits = { id: number; unit_id: number }[];
+
+/**
  * Costo vigente del superviviente hoy vs. el que tendrá tras la fusión. Puede
  * cambiar sin que el supervisor lo pida: el costo se deriva del registro más
  * reciente del historial combinado, así que un absorbido con una compra
@@ -154,6 +160,7 @@ export type MergeRequest = {
     conversions?: Record<number, number>;
     /** Ediciones del historial de costo a aplicar junto con la fusión. */
     cost_changes?: CostChangeEdits;
+    intake_units?: IntakeUnitEdits;
 };
 
 // ── Edición ──────────────────────────────────────────────────────────────────
@@ -236,6 +243,7 @@ export type UpdateArticleRequest = {
     article?: ArticleFieldEdits;
     conversions?: ConversionEdits;
     cost_changes?: CostChangeEdits;
+    intake_units?: IntakeUnitEdits;
 };
 
 // ── Recorrido del artículo ───────────────────────────────────────────────────

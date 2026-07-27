@@ -17,7 +17,7 @@ import {
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
-import type { CostChangeEdits, SupervisorCostHistoryEntry } from "@/types/supervisor"
+import type { CostChangeEdits, IntakeUnitEdits, SupervisorCostHistoryEntry } from "@/types/supervisor"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import { CalendarIcon, Lock, Plus, RotateCcw, Trash2 } from "lucide-react"
@@ -30,8 +30,10 @@ import { dependencyBadgeCls, formatSupervisorDateTime } from "./utils/uiHelpers"
  * Distingue dos orígenes con reglas distintas:
  *
  * - PURCHASE: entradas de compra (general_article_intakes) atadas a una orden
- *   pagada. Bloqueadas — editarlas rompería el rastro entre lo que se pagó y lo
- *   que entró al inventario.
+ *   pagada. El monto y el borrado están bloqueados — romperían el rastro entre
+ *   lo que se pagó y lo que entró. Sí se corrige la unidad: el error típico es
+ *   cotizar el precio de un paquete capturándolo como unidad suelta, y el
+ *   cambio se propaga a su línea de cotización.
  * - MANUAL / SEED: ajustes de precio. Editables, eliminables, y se pueden
  *   añadir nuevos.
  *
@@ -44,14 +46,18 @@ export function CostHistoryPanel({
     currentCost,
     edits,
     units = [],
+    intakeUnits = [],
     onChange,
+    onIntakeUnitsChange,
 }: {
     history: SupervisorCostHistoryEntry[]
     currentCost: number
     edits: CostChangeEdits
     // Unidades disponibles, para anclar/corregir la unidad de un costo.
     units?: { id: number; label: string }[]
+    intakeUnits?: IntakeUnitEdits
     onChange: (edits: CostChangeEdits) => void
+    onIntakeUnitsChange?: (edits: IntakeUnitEdits) => void
 }) {
     const updated = edits.updated ?? []
     const deleted = edits.deleted ?? []
@@ -61,6 +67,20 @@ export function CostHistoryPanel({
         entry.entry_id.startsWith("change:")
             ? Number(entry.entry_id.slice("change:".length))
             : null
+
+    const intakeIdOf = (entry: SupervisorCostHistoryEntry): number | null =>
+        entry.entry_id.startsWith("intake:")
+            ? Number(entry.entry_id.slice("intake:".length))
+            : null
+
+    const pendingIntakeUnit = (id: number) =>
+        intakeUnits.find((row) => row.id === id)?.unit_id
+
+    const setIntakeUnit = (id: number, unitId: number) =>
+        onIntakeUnitsChange?.([
+            ...intakeUnits.filter((row) => row.id !== id),
+            { id, unit_id: unitId },
+        ])
 
     const editableCount = history.filter((entry) => entry.editable).length
 
@@ -135,6 +155,7 @@ export function CostHistoryPanel({
             <div className="flex flex-col gap-1.5">
                 {history.map((entry) => {
                     const changeId = changeIdOf(entry)
+                    const intakeId = intakeIdOf(entry)
                     const isDeleted = changeId !== null && deleted.includes(changeId)
                     const isPurchase = !entry.editable
 
@@ -155,9 +176,41 @@ export function CostHistoryPanel({
                                     <span className="text-sm font-medium tabular-nums w-20">
                                         {Number(entry.cost ?? 0).toFixed(2)}
                                     </span>
-                                    <span className="text-xs text-muted-foreground/70 w-24 truncate">
-                                        {entry.unit_label ?? "—"}
-                                    </span>
+                                    {units.length > 0 && onIntakeUnitsChange ? (
+                                        <Select
+                                            value={String(
+                                                (intakeId !== null
+                                                    ? pendingIntakeUnit(intakeId) ?? entry.unit_id
+                                                    : entry.unit_id) ?? "",
+                                            )}
+                                            onValueChange={(value) => {
+                                                if (intakeId === null) return
+                                                setIntakeUnit(intakeId, Number(value))
+                                            }}
+                                        >
+                                            <SelectTrigger
+                                                className={cn(
+                                                    "h-8 w-24 bg-background border-border/60 text-xs",
+                                                    intakeId !== null &&
+                                                        pendingIntakeUnit(intakeId) !== undefined &&
+                                                        "border-sky-400/60 bg-sky-500/[0.06]",
+                                                )}
+                                            >
+                                                <SelectValue placeholder="Unidad" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {units.map((unit) => (
+                                                    <SelectItem key={unit.id} value={String(unit.id)}>
+                                                        {unit.label}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    ) : (
+                                        <span className="text-xs text-muted-foreground/70 w-24 truncate">
+                                            {entry.unit_label ?? "—"}
+                                        </span>
+                                    )}
                                 </>
                             ) : (
                                 <>
@@ -264,7 +317,7 @@ export function CostHistoryPanel({
                                     </TooltipTrigger>
                                     <TooltipContent className="max-w-xs">
                                         {isPurchase
-                                            ? "Proviene de una compra registrada: no se puede editar ni eliminar"
+                                            ? "Proviene de una compra registrada: el monto no se edita ni se elimina. Solo puede corregir la unidad, y el cambio se aplicará también a su cotización."
                                             : isDeleted
                                               ? "Restaurar"
                                               : "Marcar para eliminar"}
@@ -372,8 +425,9 @@ export function CostHistoryPanel({
 
             {editableCount === 0 && history.length > 0 && (
                 <p className="text-[11px] text-muted-foreground/60">
-                    Todo el historial proviene de compras registradas, así que no hay nada
-                    editable. Puede añadir un ajuste manual si necesita corregir el costo vigente.
+                    Todo el historial proviene de compras registradas: los montos no se
+                    editan. Puede corregir la unidad de cada entrada o añadir un ajuste
+                    manual si necesita cambiar el costo vigente.
                 </p>
             )}
         </div>

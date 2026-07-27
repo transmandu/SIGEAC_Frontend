@@ -29,6 +29,7 @@ import type {
     ArticleFieldEdits,
     ConversionEdits,
     CostChangeEdits,
+    IntakeUnitEdits,
     SupervisorGeneralArticle,
 } from "@/types/supervisor"
 import { AlertTriangle, Loader2, PencilLine } from "lucide-react"
@@ -67,6 +68,7 @@ export function EditArticleDialog({
     // confirmar: las tres áreas se persisten juntas en una transacción.
     const [conversionEdits, setConversionEdits] = useState<ConversionEdits>({})
     const [costEdits, setCostEdits] = useState<CostChangeEdits>({})
+    const [intakeUnitEdits, setIntakeUnitEdits] = useState<IntakeUnitEdits>([])
 
     const { selectedCompany } = useCompanyStore()
     const { updateArticle } = useUpdateSupervisorArticle()
@@ -87,6 +89,7 @@ export function EditArticleDialog({
         setStockUnlocked(false)
         setConversionEdits({})
         setCostEdits({})
+        setIntakeUnitEdits([])
     }, [open, article])
 
     /**
@@ -157,8 +160,9 @@ export function EditArticleDialog({
             (conversionEdits.deleted?.length ?? 0) +
             (costEdits.created?.length ?? 0) +
             (costEdits.updated?.length ?? 0) +
-            (costEdits.deleted?.length ?? 0),
-        [articleEdits, conversionEdits, costEdits],
+            (costEdits.deleted?.length ?? 0) +
+            intakeUnitEdits.length,
+        [articleEdits, conversionEdits, costEdits, intakeUnitEdits],
     )
 
     if (!article) return null
@@ -174,6 +178,7 @@ export function EditArticleDialog({
                 ...(Object.keys(articleEdits).length > 0 ? { article: articleEdits } : {}),
                 ...(hasEdits(conversionEdits) ? { conversions: conversionEdits } : {}),
                 ...(hasEdits(costEdits) ? { cost_changes: costEdits } : {}),
+                ...(intakeUnitEdits.length > 0 ? { intake_units: intakeUnitEdits } : {}),
             },
         })
 
@@ -216,7 +221,7 @@ export function EditArticleDialog({
                                     {detail.cost_history.length}
                                 </span>
                             )}
-                            {hasEdits(costEdits) && <PendingDot />}
+                            {(hasEdits(costEdits) || intakeUnitEdits.length > 0) && <PendingDot />}
                         </TabsTrigger>
                     </TabsList>
 
@@ -393,7 +398,9 @@ export function EditArticleDialog({
                                 currentCost={detail?.current_cost ?? 0}
                                 edits={costEdits}
                                 units={(units ?? []).map((u) => ({ id: u.id, label: u.label }))}
+                                intakeUnits={intakeUnitEdits}
                                 onChange={setCostEdits}
+                                onIntakeUnitsChange={setIntakeUnitEdits}
                             />
                         )}
                     </TabsContent>
