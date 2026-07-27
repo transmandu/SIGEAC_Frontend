@@ -49,6 +49,14 @@ interface DataTableProps<TData, TValue> {
   }
   /** Refetch en curso con datos previos en pantalla. */
   isFetching?: boolean
+  /**
+   * Delega ciertos filtros de columna al servidor. Sin esto solo se filtra la
+   * página cargada, que con paginado por servidor son unas pocas filas.
+   */
+  serverColumnFilters?: {
+    columnIds: string[]
+    onFiltersChange: (filters: Record<string, string>) => void
+  }
 }
 
 type ColMeta = {
@@ -64,12 +72,30 @@ export function DataTable<TData, TValue>({
   serverPagination,
   serverSorting,
   isFetching = false,
+  serverColumnFilters,
 }: DataTableProps<TData, TValue>) {
   const [localSorting, setLocalSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
 
   const sorting = serverSorting ? serverSorting.sorting : localSorting
+
+  const handleColumnFiltersChange: React.Dispatch<
+    React.SetStateAction<ColumnFiltersState>
+  > = (updater) => {
+    const next = typeof updater === "function" ? updater(columnFilters) : updater
+    setColumnFilters(next)
+
+    if (!serverColumnFilters) return
+
+    const delegated: Record<string, string> = {}
+    for (const id of serverColumnFilters.columnIds) {
+      const value = next.find((f) => f.id === id)?.value
+      const raw = String(value ?? "").trim()
+      if (raw) delegated[id] = raw
+    }
+    serverColumnFilters.onFiltersChange(delegated)
+  }
 
   const table = useReactTable({
     data,
@@ -83,7 +109,7 @@ export function DataTable<TData, TValue>({
     },
     getSortedRowModel: getSortedRowModel(),
     manualSorting: !!serverSorting,
-    onColumnFiltersChange: setColumnFilters,
+    onColumnFiltersChange: handleColumnFiltersChange,
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     initialState: {

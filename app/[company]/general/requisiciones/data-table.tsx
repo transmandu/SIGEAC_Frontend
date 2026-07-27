@@ -14,7 +14,8 @@ import {
 
 // import { CreateBatchDialog } from "@/components/dialogs/mantenimiento/almacen/CreateBatchDialog"
 import { DataTablePagination } from "@/components/tables/DataTablePagination"
-import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import {
   Table,
   TableBody,
@@ -23,34 +24,31 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { Search, X } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 // import { RegisterDispatchRequestDialog } from "@/components/dialogs/mantenimiento/almacen/RegisterDispatchRequestDialog"
 import { CreateRequisitionDialog } from "@/components/dialogs/general/CreateRequisitionDialog"
+import type { Requisition } from "@/types/purchase"
+import { requisitionGlobalFilter } from "./_lib/global-filter"
 
-interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[]
-  data: TData[]
+interface DataTableProps<TValue> {
+  columns: ColumnDef<Requisition, TValue>[]
+  data: Requisition[]
   loading?: boolean
 }
 
-export function DataTable<TData, TValue>({
+export function DataTable<TValue>({
   columns,
   data,
   loading = false,
-}: DataTableProps<TData, TValue>) {
+}: DataTableProps<TValue>) {
 
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(
     []
   )
-
-  const locations = [
-    {
-      label: 'Puerto Ordaz',
-      value: 'pzo'
-    }
-  ]
+  const [globalFilter, setGlobalFilter] = useState("")
 
   const table = useReactTable({
     data,
@@ -59,25 +57,45 @@ export function DataTable<TData, TValue>({
     getPaginationRowModel: getPaginationRowModel(),
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
+    onGlobalFilterChange: setGlobalFilter,
+    globalFilterFn: requisitionGlobalFilter,
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     state: {
       sorting,
-      columnFilters
+      columnFilters,
+      globalFilter,
     }
   })
 
   const router = useRouter();
 
-  const isFiltered = table.getState().columnFilters.length > 0
-
   return (
     <div>
-      <div className="flex items-center py-4">
-        <div className="flex gap-x-2 items-center">
-          <CreateRequisitionDialog />
+      <div className="flex flex-wrap items-center gap-2 pt-2 pb-3">
+        <CreateRequisitionDialog />
+
+        <div className="relative w-full sm:w-[360px] sm:ml-auto">
+          <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={globalFilter}
+            onChange={(e) => setGlobalFilter(e.target.value)}
+            placeholder="Buscar por artículo, N/P, lote o Nro. de solicitud..."
+            className="h-8 rounded-md border-border pl-8 pr-8 text-xs"
+          />
+          {globalFilter.length > 0 ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="absolute right-0.5 top-1/2 h-6 w-6 -translate-y-1/2"
+              onClick={() => setGlobalFilter("")}
+              aria-label="Limpiar búsqueda"
+            >
+              <X className="h-3.5 w-3.5 text-muted-foreground" />
+            </Button>
+          ) : null}
         </div>
-        <DataTableViewOptions table={table} />
       </div>
       <div className="rounded-md border mb-4">
         <Table>

@@ -5,6 +5,7 @@ import {
   ArrowDownIcon,
   ArrowDownNarrowWide,
   ArrowUpIcon,
+  Check,
   EyeOff,
   RotateCcw,
   Search,
@@ -24,21 +25,39 @@ import { cn } from '@/lib/utils';
 
 type Align = 'left' | 'center' | 'right';
 
+export interface FilterOption {
+  value: string;
+  label: string;
+}
+
 interface DataTableColumnHeaderProps<TData, TValue>
   extends React.HTMLAttributes<HTMLDivElement> {
   column: Column<TData, TValue>;
   title: string;
   filter?: boolean;
   /** Opciones fijas en vez de texto libre. */
-  filterOptions?: { value: string; label: string }[];
+  filterOptions?: FilterOption[];
+  /** Añade un buscador sobre la lista; útil a partir de ~8 opciones. */
+  searchableOptions?: boolean;
+  /** Texto de ayuda bajo el input de texto libre. */
+  filterHint?: string;
   icon?: LucideIcon;
   align?: Align;
 }
+
+const normalize = (value: string) =>
+  value
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .trim();
 
 export function DataTableColumnHeader<TData, TValue>({
   column,
   filter = false,
   filterOptions,
+  searchableOptions = false,
+  filterHint,
   title,
   icon: Icon,
   align = 'center',
@@ -48,6 +67,15 @@ export function DataTableColumnHeader<TData, TValue>({
   const hasOptions = !!filterOptions?.length;
   const sorted = column.getIsSorted();
   const hasActiveState = !!sorted || filterValue.length > 0;
+
+  const [optionSearch, setOptionSearch] = React.useState('');
+
+  const visibleOptions = React.useMemo(() => {
+    if (!filterOptions) return [];
+    const term = normalize(optionSearch);
+    if (!term) return filterOptions;
+    return filterOptions.filter((option) => normalize(option.label).includes(term));
+  }, [filterOptions, optionSearch]);
 
   const handleReset = () => {
     column.clearSorting();
@@ -80,9 +108,11 @@ export function DataTableColumnHeader<TData, TValue>({
         ? ArrowUpIcon
         : ArrowDownNarrowWide;
 
+  const showOptionSearch = hasOptions && searchableOptions;
+
   return (
     <div className={cn('flex items-center', justify, className)}>
-      <DropdownMenu>
+      <DropdownMenu onOpenChange={(open) => !open && setOptionSearch('')}>
         <DropdownMenuTrigger asChild>
           <Button
             type="button"
@@ -96,26 +126,71 @@ export function DataTableColumnHeader<TData, TValue>({
           </Button>
         </DropdownMenuTrigger>
 
-        <DropdownMenuContent align="start" className="max-h-[420px] w-72 overflow-y-auto">
+        <DropdownMenuContent
+          align="start"
+          className="max-h-[420px] w-72 overflow-y-auto"
+          // El typeahead de Radix roba las letras: escribir "A" saltaba a
+          // "Ascendente" en vez de llegar al input de filtro.
+          onKeyDown={(event) => event.stopPropagation()}
+        >
           {hasOptions ? (
             <>
-              <DropdownMenuItem onClick={() => column.setFilterValue(undefined)}>
-                <span className={filterValue ? 'font-medium' : 'font-bold'}>Todas</span>
+              {showOptionSearch ? (
+                <div className="p-2 pb-1">
+                  <div className="relative">
+                    <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      value={optionSearch}
+                      onChange={(e) => setOptionSearch(e.target.value)}
+                      placeholder="Buscar opción..."
+                      className="h-9 pl-8"
+                      // Radix devuelve el foco al item activo al abrir; sin esto
+                      // la primera tecla se pierde.
+                      onKeyDown={(e) => e.stopPropagation()}
+                    />
+                  </div>
+                </div>
+              ) : null}
+
+              <DropdownMenuItem
+                onSelect={(e) => {
+                  e.preventDefault();
+                  column.setFilterValue(undefined);
+                }}
+              >
+                <span className={cn('flex-1', filterValue ? 'font-medium' : 'font-bold')}>
+                  Todas
+                </span>
+                {!filterValue ? <Check className="ml-2 h-3.5 w-3.5" /> : null}
               </DropdownMenuItem>
-              {filterOptions!.map((option) => (
-                <DropdownMenuItem
-                  key={option.value}
-                  onClick={() => column.setFilterValue(option.value)}
-                >
-                  <span
-                    className={
-                      filterValue === option.value ? 'font-bold' : undefined
-                    }
+
+              {visibleOptions.length ? (
+                visibleOptions.map((option) => (
+                  <DropdownMenuItem
+                    key={option.value}
+                    onSelect={(e) => {
+                      e.preventDefault();
+                      column.setFilterValue(option.value);
+                    }}
                   >
-                    {option.label}
-                  </span>
-                </DropdownMenuItem>
-              ))}
+                    <span
+                      className={cn(
+                        'flex-1',
+                        filterValue === option.value ? 'font-bold' : undefined,
+                      )}
+                    >
+                      {option.label}
+                    </span>
+                    {filterValue === option.value ? (
+                      <Check className="ml-2 h-3.5 w-3.5" />
+                    ) : null}
+                  </DropdownMenuItem>
+                ))
+              ) : (
+                <p className="px-2 py-3 text-center text-xs text-muted-foreground">
+                  Sin coincidencias.
+                </p>
+              )}
               <DropdownMenuSeparator />
             </>
           ) : filter ? (
@@ -128,6 +203,7 @@ export function DataTableColumnHeader<TData, TValue>({
                     onChange={(e) => column.setFilterValue(e.target.value)}
                     placeholder={`Filtrar ${title.toLowerCase()}...`}
                     className="h-9 pl-8 pr-8"
+                    onKeyDown={(e) => e.stopPropagation()}
                   />
                   {filterValue.length > 0 ? (
                     <Button
@@ -143,7 +219,7 @@ export function DataTableColumnHeader<TData, TValue>({
                   ) : null}
                 </div>
                 <p className="mt-2 text-xs text-muted-foreground">
-                  Escribe para filtrar esta columna.
+                  {filterHint ?? 'Escribe para filtrar esta columna.'}
                 </p>
               </div>
               <DropdownMenuSeparator />

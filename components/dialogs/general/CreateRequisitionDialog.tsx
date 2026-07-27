@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -85,8 +86,9 @@ export function CreateRequisitionDialog() {
         <Button
           onClick={() => setOpen(true)}
           variant="outline"
-          className="flex items-center justify-center gap-2 h-8 border-dashed"
+          className="flex h-8 items-center justify-center gap-1.5 rounded-md border-border px-3 text-xs font-medium"
         >
+          <Plus className="h-3.5 w-3.5" />
           Nueva Solicitud
         </Button>
       </DialogTrigger>
