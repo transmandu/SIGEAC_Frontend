@@ -1566,8 +1566,9 @@ export type CreateFuelMovementPayload = {
   type: FuelMovementType;
   operational_date: string;
   liters: number;
-  // Solo se envia (y solo el backend lo exige) para WAREHOUSE_INITIAL_BALANCE
-  // y WAREHOUSE_DISPATCH_THIRD_PARTY; en el resto se deriva del vehiculo.
+  // Se envia (y el backend lo exige) para WAREHOUSE_INITIAL_BALANCE,
+  // WAREHOUSE_DISPATCH_THIRD_PARTY y EXTERNAL_REFUEL; en el resto se deriva
+  // del vehiculo. En EXTERNAL_REFUEL con GASOIL, vehicle_id va en null.
   fuel_type?: FuelType | null;
   vehicle_id?: number | null;
   third_party_id?: string | number | null;

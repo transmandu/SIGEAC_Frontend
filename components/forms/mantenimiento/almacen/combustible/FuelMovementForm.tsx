@@ -27,6 +27,7 @@ import {
   formatLiters,
   getFuelTypeLabel,
   getVehicleColorHex,
+  movementAllowsVehiclelessDiesel,
   movementRequiresFuelTypeSelection,
 } from "@/lib/fuel";
 import {
@@ -56,14 +57,18 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-const needsVehicle = (type: FuelMovementType) =>
-  [
+const needsVehicle = (type: FuelMovementType, fuelType?: string) => {
+  if (movementAllowsVehiclelessDiesel(type) && fuelType === "DIESEL") {
+    return false;
+  }
+  return [
     "external_refuel",
     "warehouse_unload",
     "warehouse_dispatch_vehicle",
     "vehicle_daily_consumption",
     "vehicle_trip",
   ].includes(type);
+};
 
 const needsThirdParty = (type: FuelMovementType) =>
   type === "warehouse_dispatch_third_party";
@@ -94,11 +99,6 @@ export function FuelMovementForm({
   const { data: thirdParties, isLoading: thirdPartiesLoading } =
     useGetThirdParties();
 
-  const activeVehicles = useMemo(
-    () => vehicles.filter((vehicle) => vehicle.status === "active"),
-    [vehicles],
-  );
-
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -113,10 +113,20 @@ export function FuelMovementForm({
     },
   });
 
+  const selectedFuelType = form.watch("fuel_type");
+
+  const activeVehicles = useMemo(() => {
+    const active = vehicles.filter((vehicle) => vehicle.status === "active");
+    if (movementRequiresFuelTypeSelection(type) && selectedFuelType) {
+      return active.filter((vehicle) => vehicle.fuel_type === selectedFuelType);
+    }
+    return active;
+  }, [vehicles, type, selectedFuelType]);
+
   const selectedVehicle = findVehicle(activeVehicles, form.watch("vehicle_id"));
 
   const validateMovement = (values: FormValues) => {
-    if (needsVehicle(type) && !values.vehicle_id) {
+    if (needsVehicle(type, values.fuel_type) && !values.vehicle_id) {
       form.setError("vehicle_id", { message: "Debe seleccionar un vehiculo" });
       return false;
     }
@@ -352,7 +362,15 @@ export function FuelMovementForm({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Tipo de combustible</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select
+                  onValueChange={(value) => {
+                    field.onChange(value);
+                    if (!needsVehicle(type, value)) {
+                      form.setValue("vehicle_id", "");
+                    }
+                  }}
+                  value={field.value}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Seleccione..." />
@@ -366,13 +384,18 @@ export function FuelMovementForm({
                     ))}
                   </SelectContent>
                 </Select>
+                {movementAllowsVehiclelessDiesel(type) ? (
+                  <p className="text-xs text-muted-foreground">
+                    El surtido de Gasoil no requiere seleccionar un vehiculo.
+                  </p>
+                ) : null}
                 <FormMessage />
               </FormItem>
             )}
           />
         ) : null}
 
-        {needsVehicle(type) ? (
+        {needsVehicle(type, selectedFuelType) ? (
           <FormField
             control={form.control}
             name="vehicle_id"
