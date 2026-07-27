@@ -70,6 +70,25 @@ export interface ArticleSort {
     desc: boolean;
 }
 
+/**
+ * Filtros de columna que resuelve el servidor. Con paginado por página, filtrar
+ * en la tabla solo alcanzaría las filas ya cargadas.
+ */
+export interface ArticleColumnFilters {
+    /** `conditions.name` crudo (ej: "AS REMOVED"). */
+    condition?: string;
+    /** `tools.status` (ej: "VENCIDO"). */
+    tool_status?: string;
+    /** Código de ubicación por tramos (ej: "C-1", "A-2-1"). */
+    zone?: string;
+    /** Part number o su alterno. */
+    part_number_col?: string;
+    /** Serial o número de lote. */
+    serial_col?: string;
+    /** Nombre del batch, que es lo que muestra la columna "Descripción". */
+    description_col?: string;
+}
+
 const fetchWarehouseArticlesByCategory = async (
     location_id: string | null,
     category: string,
@@ -80,6 +99,7 @@ const fetchWarehouseArticlesByCategory = async (
     part_number?: string,
     is_hazardous?: boolean,
     sort?: ArticleSort,
+    filters?: ArticleColumnFilters,
 ): Promise<WarehouseResponse> => {
     const params = new URLSearchParams({
         category,
@@ -89,6 +109,12 @@ const fetchWarehouseArticlesByCategory = async (
     });
     if (part_number?.trim()) params.set("part_number", part_number.trim());
     if (is_hazardous !== undefined) params.set("is_hazardous", String(is_hazardous));
+    if (filters?.condition?.trim()) params.set("condition", filters.condition.trim());
+    if (filters?.tool_status?.trim()) params.set("tool_status", filters.tool_status.trim());
+    if (filters?.zone?.trim()) params.set("zone", filters.zone.trim());
+    if (filters?.part_number_col?.trim()) params.set("part_number_col", filters.part_number_col.trim());
+    if (filters?.serial_col?.trim()) params.set("serial_col", filters.serial_col.trim());
+    if (filters?.description_col?.trim()) params.set("description_col", filters.description_col.trim());
     // Con sort_by el backend pagina por artículo, no por batch.
     if (sort) {
         params.set("sort_by", sort.id);
@@ -118,12 +144,13 @@ export const useGetWarehouseArticlesByCategory = (
     status?: string,
     part_number?: string,
     is_hazardous?: boolean,
-    sort?: ArticleSort
+    sort?: ArticleSort,
+    filters?: ArticleColumnFilters
 ) => {
     const { selectedCompany, selectedStation } = useCompanyStore();
     return useQuery<WarehouseResponse, Error>({
-        queryKey: ["warehouse-articles", selectedCompany?.slug, selectedStation, page, per_page, category, status, part_number, is_hazardous, sort?.id, sort?.desc],
-        queryFn: () => fetchWarehouseArticlesByCategory(selectedStation, category, selectedCompany?.slug, status, page, per_page, part_number, is_hazardous, sort),
+        queryKey: ["warehouse-articles", selectedCompany?.slug, selectedStation, page, per_page, category, status, part_number, is_hazardous, sort?.id, sort?.desc, filters?.condition, filters?.tool_status, filters?.zone, filters?.part_number_col, filters?.serial_col, filters?.description_col],
+        queryFn: () => fetchWarehouseArticlesByCategory(selectedStation, category, selectedCompany?.slug, status, page, per_page, part_number, is_hazardous, sort, filters),
         enabled: enabled && !!selectedCompany && !!selectedStation,
         // Mantiene la página anterior visible mientras llega la nueva: sin esto
         // cada cambio de orden/página vacía la tabla y parpadea el loader.

@@ -9,8 +9,13 @@ import ArticleDropdownActions from "@/components/dropdowns/mantenimiento/almacen
 import { WarehouseResponse } from "@/hooks/mantenimiento/almacen/articulos/useGetWarehouseArticlesByCategory";
 import { StatusColumnHeader } from "@/components/tables/StatusColumnHeader";
 import { Unit } from "@/types";
-import { formatCondition } from "@/lib/warehouse/conditions";
-import { formatStatusLabel } from "@/lib/warehouse/statuses";
+import { CONDITION_OPTIONS, formatCondition } from "@/lib/warehouse/conditions";
+import {
+    formatStatusLabel,
+    parseToolStatusFilter,
+    statusOptionLabel,
+} from "@/lib/warehouse/statuses";
+import { zoneMatches } from "@/lib/warehouse/zones";
 import { dateSortingFn, numericSortingFn, textSortingFn } from "@/lib/warehouse/sorting";
 import StatusCellWithPopover from "@/components/misc/StatusCellWithPopover";
 import { Aircraft } from "@/types";
@@ -179,6 +184,14 @@ export const flattenArticles = (
     );
 };
 
+/** Minúsculas y sin acentos: el almacén escribe indistintamente con y sin tilde. */
+const normalizeText = (value: string) =>
+    value
+        .normalize("NFD")
+        .replace(/[̀-ͯ]/g, "")
+        .toLowerCase()
+        .trim();
+
 // Helper parse local date
 const parseDateLocal = (dateString: string): Date => {
     if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
@@ -249,10 +262,26 @@ const quantityCol: ColumnDef<IArticleSimple> = {
 const buildBaseCols = (
     statusFilter?: string,
     onStatusFilterChange?: (value: string | undefined) => void,
+    showToolStatuses = false,
 ): ColumnDef<IArticleSimple>[] => [
     {
         accessorKey: "part_number",
         sortingFn: textSortingFn((row) => row.part_number),
+        // El alterno cuenta como el mismo artículo, igual que en el backend.
+        filterFn: (row, _id, value) => {
+            const raw = String(value ?? "").trim().toLowerCase();
+            if (!raw) return true;
+
+            const matches = (article: IArticleSimple) =>
+                [article.part_number, ...(article.alternative_part_number ?? [])]
+                    .filter(Boolean)
+                    .some((pn) => String(pn).toLowerCase().includes(raw));
+
+            return row.original.__isGroup
+                ? matches(row.original) ||
+                      (row.original.subRows ?? []).some(matches)
+                : matches(row.original);
+        },
         header: ({ column }) => (
             <DataTableColumnHeader filter column={column} title="Part Number" />
         ),
@@ -266,11 +295,20 @@ const buildBaseCols = (
         accessorKey: "serial",
         // La celda cae a lot_number cuando no hay serial; ordenar/filtrar sigue lo mostrado.
         sortingFn: textSortingFn((row) => row.serial || row.lot_number),
+        // La fila agrupada muestra "—", pero se queda si alguno de sus artículos
+        // tiene el serial buscado.
         filterFn: (row, _id, value) => {
             const raw = String(value ?? "").trim().toLowerCase();
             if (!raw) return true;
-            const shown = row.original.serial || row.original.lot_number || "";
-            return shown.toLowerCase().includes(raw);
+
+            const matches = (article: IArticleSimple) =>
+                (article.serial || article.lot_number || "")
+                    .toLowerCase()
+                    .includes(raw);
+
+            return row.original.__isGroup
+                ? (row.original.subRows ?? []).some(matches)
+                : matches(row.original);
         },
         header: ({ column }) => (
             <DataTableColumnHeader filter column={column} title="Serial / Lote" />
@@ -292,6 +330,19 @@ const buildBaseCols = (
     {
         accessorKey: "batch_name",
         sortingFn: textSortingFn((row) => row.batch_name),
+        // Acentos aparte: "DESCRIPCION" debe encontrar "Descripción".
+        filterFn: (row, _id, value) => {
+            const raw = normalizeText(String(value ?? ""));
+            if (!raw) return true;
+
+            const matches = (article: IArticleSimple) =>
+                normalizeText(article.batch_name ?? "").includes(raw);
+
+            return row.original.__isGroup
+                ? matches(row.original) ||
+                      (row.original.subRows ?? []).some(matches)
+                : matches(row.original);
+        },
         header: ({ column }) => (
             <DataTableColumnHeader filter column={column} title="Descripción" />
         ),
@@ -309,18 +360,25 @@ const buildBaseCols = (
         sortingFn: textSortingFn(
             (row) => formatCondition(row.condition)?.es ?? row.condition,
         ),
+        // El valor del selector es el `conditions.name` crudo; un grupo calza si
+        // alguno de sus artículos tiene la condición pedida.
         filterFn: (row, _id, value) => {
-            const raw = String(value ?? "").trim().toLowerCase();
-            if (!raw) return true;
-            const c = formatCondition(row.original.condition);
-            const shown = [c?.es, c?.en, row.original.condition]
-                .filter(Boolean)
-                .join(" ")
-                .toLowerCase();
-            return shown.includes(raw);
+            const wanted = String(value ?? "").trim().toUpperCase();
+            if (!wanted) return true;
+
+            const matches = (article: IArticleSimple) =>
+                String(article.condition ?? "").trim().toUpperCase() === wanted;
+
+            return row.original.__isGroup
+                ? (row.original.subRows ?? []).some(matches)
+                : matches(row.original);
         },
         header: ({ column }) => (
-            <DataTableColumnHeader filter column={column} title="Condición" />
+            <DataTableColumnHeader
+                column={column}
+                title="Condición"
+                filterOptions={CONDITION_OPTIONS}
+            />
         ),
         cell: ({ row }) => {
             const condition = row.original.condition;
@@ -362,11 +420,31 @@ const buildBaseCols = (
     {
         accessorKey: "status",
         sortingFn: textSortingFn((row) => formatStatusLabel(row.status ?? "")),
+        // Un mismo filtro cubre dos campos: los subestados de calibración viven
+        // en tools.status, el resto en articles.status.
+        filterFn: (row, _id, value) => {
+            const raw = String(value ?? "").trim();
+            if (!raw) return true;
+
+            const toolStatus = parseToolStatusFilter(raw);
+
+            const matches = (article: IArticleSimple) =>
+                toolStatus
+                    ? String(article.tool?.status ?? "").trim().toUpperCase() ===
+                      toolStatus.toUpperCase()
+                    : String(article.status ?? "").trim().toUpperCase() ===
+                      raw.toUpperCase();
+
+            return row.original.__isGroup
+                ? (row.original.subRows ?? []).some(matches)
+                : matches(row.original);
+        },
         header: ({ column }) => (
             <StatusColumnHeader
                 column={column}
                 value={statusFilter}
                 onValueChange={onStatusFilterChange}
+                showToolStatuses={showToolStatuses}
             />
         ),
         cell: ({ row }) => {
@@ -399,8 +477,23 @@ const buildBaseCols = (
     {
         accessorKey: "zone",
         sortingFn: textSortingFn((row) => row.zone),
+        // La ubicación vive en el artículo, no en el grupo: la fila agrupada
+        // muestra "—" pero debe quedarse si alguno de sus artículos calza.
+        filterFn: (row, _id, value) => {
+            const raw = String(value ?? "").trim();
+            if (!raw) return true;
+
+            return row.original.__isGroup
+                ? (row.original.subRows ?? []).some((a) => zoneMatches(a.zone, raw))
+                : zoneMatches(row.original.zone, raw);
+        },
         header: ({ column }) => (
-            <DataTableColumnHeader filter column={column} title="Ubicación" />
+            <DataTableColumnHeader
+                filter
+                column={column}
+                title="Ubicación"
+                filterHint="Por tramo: C-1, A-2, A-2-1. También sirve 'C1' o 'a 2'."
+            />
         ),
         cell: ({ row }) => (
             <div className="text-center font-medium text-sm">
@@ -606,7 +699,7 @@ export const buildHerramientaCols = (
     statusFilter?: string,
     onStatusFilterChange?: (value: string | undefined) => void,
 ): ColumnDef<IArticleSimple>[] => [
-    ...buildBaseCols(statusFilter, onStatusFilterChange),
+    ...buildBaseCols(statusFilter, onStatusFilterChange, true),
     {
         id: "model",
         accessorFn: (row) => row.tool?.model ?? "",
@@ -709,7 +802,9 @@ export const buildAllCategoriesCols = (
     statusFilter?: string,
     onStatusFilterChange?: (value: string | undefined) => void,
 ): ColumnDef<IArticleSimple>[] => [
-    ...buildBaseCols(statusFilter, onStatusFilterChange),
+    // "Todos" mezcla categorías, así que también trae herramientas: el selector
+    // de estado necesita sus subestados de calibración.
+    ...buildBaseCols(statusFilter, onStatusFilterChange, true),
     quantityCol,
     {
         id: "actions",

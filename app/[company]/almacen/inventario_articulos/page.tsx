@@ -36,6 +36,7 @@ import {
 import { DataTable } from "./_tables/warehouse-data-table"
 import { buildGeneralColumns, getUnitOptions } from "./_tables/general-columns"
 import { PartNumberGroupDialog } from "./_components/PartNumberGroupDialog"
+import { parseToolStatusFilter } from "@/lib/warehouse/statuses"
 
 type Category = "all" | "COMPONENT" | "PART" | "CONSUMABLE" | "TOOL"
 type InventoryTab = "aeronautic" | "general"
@@ -80,6 +81,9 @@ const InventarioArticulosPage = () => {
   const [consumableFilter, setConsumableFilter] = useState<"all" | "QUIMICOS">("all")
   const [statusFilter, setStatusFilter] = useState<string | undefined>(undefined)
 
+  // Filtros de columna que resuelve el backend sobre el inventario completo.
+  const [columnFilters, setColumnFilters] = useState<Record<string, string>>({})
+
   const [partNumberSearch, setPartNumberSearch] = useState("")
   const [debouncedSearch, setDebouncedSearch] = useState("")
   const [generalSearch, setGeneralSearch] = useState("")
@@ -112,6 +116,35 @@ const InventarioArticulosPage = () => {
     setApiPage(1)
   }
 
+  const handleColumnFiltersChange = (filters: Record<string, string>) => {
+    setColumnFilters(filters)
+    setApiPage(1)
+  }
+
+  // El selector de Estado mezcla `articles.status` con los subestados de
+  // calibración; el backend los recibe por parámetros distintos.
+  const toolStatusFilter = parseToolStatusFilter(statusFilter) ?? undefined
+  const articleStatusFilter = toolStatusFilter ? undefined : statusFilter
+
+  const serverColumnFilters = useMemo(
+    () => ({
+      condition: columnFilters.condition,
+      zone: columnFilters.zone,
+      tool_status: toolStatusFilter,
+      part_number_col: columnFilters.part_number,
+      serial_col: columnFilters.serial,
+      description_col: columnFilters.batch_name,
+    }),
+    [
+      columnFilters.condition,
+      columnFilters.zone,
+      columnFilters.part_number,
+      columnFilters.serial,
+      columnFilters.batch_name,
+      toolStatusFilter,
+    ],
+  )
+
   const handleSortingChange = (next: SortingState) => {
     setSorting(next)
     setApiPage(1)
@@ -137,10 +170,11 @@ const InventarioArticulosPage = () => {
     perPage,
     activeCategory,
     true,
-    statusFilter,
+    articleStatusFilter,
     debouncedSearch.trim() || undefined,
     activeCategory === "CONSUMABLE" && consumableFilter === "QUIMICOS",
     activeSort,
+    serverColumnFilters,
   )
 
   const articles = pagedArticles
@@ -167,6 +201,7 @@ const InventarioArticulosPage = () => {
     if (activeCategory !== "COMPONENT") setComponentCondition("all")
     if (activeCategory !== "CONSUMABLE") setConsumableFilter("all")
     setStatusFilter(undefined)
+    setColumnFilters({})
     setApiPage(1)
   }, [activeCategory])
 
@@ -270,6 +305,13 @@ const InventarioArticulosPage = () => {
             : undefined,
       }
     : undefined
+
+  // Condición y ubicación se resuelven en el servidor; el estado ya viaja por
+  // su propio parámetro desde StatusColumnHeader.
+  const tableServerFilters = {
+    columnIds: ["condition", "zone", "part_number", "serial", "batch_name"],
+    onFiltersChange: handleColumnFiltersChange,
+  }
 
   // Un input en pantalla, un estado por pestaña: cambiar de tab no arrastra el texto.
   const search =
@@ -435,6 +477,7 @@ const InventarioArticulosPage = () => {
                       data={currentData}
                       serverPagination={serverPagination}
                       serverSorting={{ sorting, onSortingChange: handleSortingChange }}
+                      serverColumnFilters={tableServerFilters}
                       isFetching={isFetchingArticles}
                       onRowClick={(row: any) => {
                         if (!row?.__isGroup || !row?.subRows?.length) return
@@ -473,6 +516,7 @@ const InventarioArticulosPage = () => {
                       data={currentData}
                       serverPagination={serverPagination}
                       serverSorting={{ sorting, onSortingChange: handleSortingChange }}
+                      serverColumnFilters={tableServerFilters}
                       isFetching={isFetchingArticles}
                       onRowClick={(row: any) => {
                         if (!row?.__isGroup || !row?.subRows?.length) return
@@ -505,6 +549,7 @@ const InventarioArticulosPage = () => {
                   ) : (
                     <DataTable columns={cols} data={currentData} serverPagination={serverPagination}
                       serverSorting={{ sorting, onSortingChange: handleSortingChange }}
+                      serverColumnFilters={tableServerFilters}
                       isFetching={isFetchingArticles} />
                   )}
                 </TabsContent>
@@ -518,6 +563,7 @@ const InventarioArticulosPage = () => {
                   ) : (
                     <DataTable columns={cols} data={currentData} serverPagination={serverPagination}
                       serverSorting={{ sorting, onSortingChange: handleSortingChange }}
+                      serverColumnFilters={tableServerFilters}
                       isFetching={isFetchingArticles} />
                   )}
                 </TabsContent>
@@ -534,6 +580,7 @@ const InventarioArticulosPage = () => {
                       data={currentData}
                       serverPagination={serverPagination}
                       serverSorting={{ sorting, onSortingChange: handleSortingChange }}
+                      serverColumnFilters={tableServerFilters}
                       isFetching={isFetchingArticles}
                       onRowClick={(row: any) => {
                         if (!row?.__isGroup || !row?.subRows?.length) return
