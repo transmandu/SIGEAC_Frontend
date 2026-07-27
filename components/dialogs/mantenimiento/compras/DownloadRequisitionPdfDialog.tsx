@@ -22,11 +22,24 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useCompanyStore } from '@/stores/CompanyStore'
+import { useAuth } from '@/contexts/AuthContext'
+import { useMyEmployee } from '@/hooks/sistema/usuario/useMyEmployee'
 import { useDownloadRequisitionPdf } from '@/hooks/mantenimiento/compras/useDownloadRequisitionPdf'
 import {
   useGetRequisitionPdfReceivers,
   type RequisitionPdfReceiver,
 } from '@/hooks/mantenimiento/compras/useGetRequisitionPdfReceivers'
+
+/**
+ * Personal de compras: recibe sus propias requisiciones, así que no elige a
+ * nadie en el select — firma con su propia ficha aunque esté afiliada a otra
+ * compañía distinta a la de la requisición.
+ */
+const SELF_RECEIVER_ROLES = [
+  'JEFE_COMPRAS',
+  'ANALISTA_COMPRAS',
+  'ASISTENTE_COMPRAS',
+]
 
 type Props = {
   req: {
@@ -49,7 +62,13 @@ export default function DownloadRequisitionPdfDialog({
   onOpenChange,
 }: Props) {
   const { selectedCompany } = useCompanyStore()
+  const { user } = useAuth()
   const [receiverId, setReceiverId] = useState<string>('')
+
+  const userRoles = user?.roles?.map((role) => role.name) ?? []
+  const isSelfReceiver = SELF_RECEIVER_ROLES.some((role) =>
+    userRoles.includes(role)
+  )
 
   // La selección no se conserva entre aperturas: cada descarga debe elegir
   // conscientemente al receptor.
@@ -57,8 +76,12 @@ export default function DownloadRequisitionPdfDialog({
     if (!open) setReceiverId('')
   }, [open])
 
+  const { data: myEmployee, isLoading: isMyEmployeeLoading } = useMyEmployee()
+
   const { data: receivers, isLoading: isReceiversLoading } =
-    useGetRequisitionPdfReceivers(open ? selectedCompany?.slug : undefined)
+    useGetRequisitionPdfReceivers(
+      open && !isSelfReceiver ? selectedCompany?.slug : undefined
+    )
 
   const { mutateAsync: downloadPdf, isPending } = useDownloadRequisitionPdf()
 
@@ -72,14 +95,18 @@ export default function DownloadRequisitionPdfDialog({
     return Array.from(groups.entries())
   }, [receivers])
 
+  const canDownload = isSelfReceiver ? !!myEmployee : !!receiverId
+
   const handleDownload = async () => {
-    if (!selectedCompany?.slug || !receiverId || isPending) return
+    if (!selectedCompany?.slug || !canDownload || isPending) return
 
     try {
       const blob = await downloadPdf({
         company: selectedCompany.slug,
         requisitionId: req.id,
-        receiverEmployeeId: Number(receiverId),
+        ...(isSelfReceiver
+          ? ({ receiverSelf: true } as const)
+          : { receiverEmployeeId: Number(receiverId) }),
       })
 
       const url = URL.createObjectURL(blob)
@@ -133,9 +160,9 @@ export default function DownloadRequisitionPdfDialog({
                 <span className="truncate">{req.order_number}</span>
               </div>
               <DialogDescription className="text-xs leading-relaxed">
-                El documento incluye al receptor seleccionado en la sección
-                &ldquo;Departamento Receptor&rdquo; y su firma en
-                &ldquo;Recibe conforme&rdquo;.
+                {isSelfReceiver
+                  ? 'El documento lo incluye a usted en la sección “Departamento Receptor” y su firma en “Recibe conforme”.'
+                  : 'El documento incluye al receptor seleccionado en la sección “Departamento Receptor” y su firma en “Recibe conforme”.'}
               </DialogDescription>
             </div>
           </div>
@@ -147,44 +174,90 @@ export default function DownloadRequisitionPdfDialog({
             <label className="text-sm font-medium">
               Departamento receptor
             </label>
-            <p className="text-xs text-muted-foreground">
-              Personal de Compras, Administración o RRHH que recibirá la
-              solicitud.
-            </p>
-            <Select value={receiverId} onValueChange={setReceiverId}>
-              <SelectTrigger className="w-full h-10">
-                <SelectValue
-                  placeholder={
-                    isReceiversLoading
-                      ? 'Cargando empleados...'
-                      : 'Seleccionar empleado'
-                  }
-                />
-              </SelectTrigger>
-              <SelectContent>
-                {receiversByDepartment.map(([department, employees]) => (
-                  <SelectGroup key={department}>
-                    <SelectLabel>{department}</SelectLabel>
-                    {employees.map((employee) => (
-                      <SelectItem
-                        key={employee.id}
-                        value={String(employee.id)}
-                      >
-                        {employee.first_name} {employee.last_name}
-                        {employee.job_title?.name
-                          ? ` — ${employee.job_title.name}`
-                          : ''}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                ))}
-                {!isReceiversLoading && !receivers?.length && (
-                  <div className="px-2 py-1.5 text-sm text-muted-foreground">
-                    No hay empleados disponibles
+
+            {isSelfReceiver ? (
+              <>
+                <p className="text-xs text-muted-foreground">
+                  Usted recibe esta solicitud y firma en &ldquo;Recibe
+                  conforme&rdquo;.
+                </p>
+
+                {isMyEmployeeLoading ? (
+                  <div
+                    className="
+                      flex h-10 items-center gap-2
+                      text-sm text-muted-foreground
+                    "
+                  >
+                    <Loader2 className="size-4 animate-spin" />
+                    Cargando sus datos...
                   </div>
+                ) : myEmployee ? (
+                  <div className="rounded-md border bg-muted/30 px-3 py-2.5">
+                    <p className="text-sm font-medium">
+                      {myEmployee.first_name} {myEmployee.last_name}
+                    </p>
+                    {(myEmployee.job_title?.name ||
+                      myEmployee.department?.name) && (
+                      <p className="text-xs text-muted-foreground">
+                        {[
+                          myEmployee.job_title?.name,
+                          myEmployee.department?.name,
+                        ]
+                          .filter(Boolean)
+                          .join(' — ')}
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-sm text-destructive">
+                    Su usuario no tiene una ficha de empleado activa, por lo que
+                    no puede firmar como receptor.
+                  </p>
                 )}
-              </SelectContent>
-            </Select>
+              </>
+            ) : (
+              <>
+                <p className="text-xs text-muted-foreground">
+                  Personal de Compras, Administración o RRHH que recibirá la
+                  solicitud.
+                </p>
+                <Select value={receiverId} onValueChange={setReceiverId}>
+                  <SelectTrigger className="w-full h-10">
+                    <SelectValue
+                      placeholder={
+                        isReceiversLoading
+                          ? 'Cargando empleados...'
+                          : 'Seleccionar empleado'
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {receiversByDepartment.map(([department, employees]) => (
+                      <SelectGroup key={department}>
+                        <SelectLabel>{department}</SelectLabel>
+                        {employees.map((employee) => (
+                          <SelectItem
+                            key={employee.id}
+                            value={String(employee.id)}
+                          >
+                            {employee.first_name} {employee.last_name}
+                            {employee.job_title?.name
+                              ? ` — ${employee.job_title.name}`
+                              : ''}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    ))}
+                    {!isReceiversLoading && !receivers?.length && (
+                      <div className="px-2 py-1.5 text-sm text-muted-foreground">
+                        No hay empleados disponibles
+                      </div>
+                    )}
+                  </SelectContent>
+                </Select>
+              </>
+            )}
           </div>
         </div>
 
@@ -205,7 +278,7 @@ export default function DownloadRequisitionPdfDialog({
           <Button
             className="gap-2 min-w-[150px]"
             onClick={handleDownload}
-            disabled={!receiverId || isPending}
+            disabled={!canDownload || isPending}
           >
             {isPending ? (
               <Loader2 className="size-4 animate-spin" />

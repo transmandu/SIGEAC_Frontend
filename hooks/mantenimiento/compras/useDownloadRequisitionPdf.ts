@@ -19,16 +19,34 @@ const extractErrorMessage = async (error: unknown): Promise<string> => {
   return 'No se pudo generar el PDF de la requisición.';
 };
 
-const fetchRequisitionPdf = async (
-  company: string,
-  requisitionId: number,
-  receiverEmployeeId: number
-): Promise<Blob> => {
+/**
+ * Quién firma como "Recibe conforme": un empleado elegido en el select, o el
+ * propio usuario (personal de compras). En este último caso se manda una
+ * bandera en vez del id porque su ficha puede estar en otra compañía y ese id
+ * no existe —o peor, es de otra persona— en el tenant de la requisición.
+ */
+type RequisitionPdfReceiverParam =
+  | { receiverEmployeeId: number; receiverSelf?: false }
+  | { receiverSelf: true; receiverEmployeeId?: never };
+
+type DownloadRequisitionPdfVariables = {
+  company: string;
+  requisitionId: number;
+} & RequisitionPdfReceiverParam;
+
+const fetchRequisitionPdf = async ({
+  company,
+  requisitionId,
+  receiverEmployeeId,
+  receiverSelf,
+}: DownloadRequisitionPdfVariables): Promise<Blob> => {
   try {
     const { data } = await axios.get(
       `/${company}/requisition-orders/${requisitionId}/pdf`,
       {
-        params: { receiver_employee_id: receiverEmployeeId },
+        params: receiverSelf
+          ? { receiver_self: 1 }
+          : { receiver_employee_id: receiverEmployeeId },
         responseType: 'blob',
       }
     );
@@ -39,12 +57,7 @@ const fetchRequisitionPdf = async (
 };
 
 export const useDownloadRequisitionPdf = () => {
-  return useMutation<
-    Blob,
-    Error,
-    { company: string; requisitionId: number; receiverEmployeeId: number }
-  >({
-    mutationFn: ({ company, requisitionId, receiverEmployeeId }) =>
-      fetchRequisitionPdf(company, requisitionId, receiverEmployeeId),
+  return useMutation<Blob, Error, DownloadRequisitionPdfVariables>({
+    mutationFn: fetchRequisitionPdf,
   });
 };
