@@ -7,6 +7,7 @@ import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import { RedirectHandler } from "@/components/misc/RedirectHandler";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const inter = Poppins({ subsets: ["latin"], weight: ["100", "300", "400", "500", "700", "900"] });
 
@@ -43,6 +44,7 @@ export default function RootLayout({
             </ThemeProvider>
           </AuthProvider>
         </QueryClientProvider>
+        <SpeedInsights />
       </body>
     </html>
   );
