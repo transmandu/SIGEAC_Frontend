@@ -18,6 +18,9 @@ import {
 import { zoneMatches } from "@/lib/warehouse/zones";
 import { dateSortingFn, numericSortingFn, textSortingFn } from "@/lib/warehouse/sorting";
 import StatusCellWithPopover from "@/components/misc/StatusCellWithPopover";
+import ArticleStatusSincePopover, {
+    tracksStatusSince,
+} from "@/components/misc/ArticleStatusSincePopover";
 import { Aircraft } from "@/types";
 export interface IArticleSimple {
     id: number;
@@ -31,6 +34,7 @@ export interface IArticleSimple {
     serial?: string;
     lot_number?: string;
     status: string;
+    status_since?: string | null;
     condition: string;
     is_hazardous?: boolean;
     batch_name: string;
@@ -136,6 +140,7 @@ export const flattenArticles = (
                 quantity: Number(article.quantity ?? 0),
 
                 status: article.status,
+                status_since: article.status_since ?? null,
                 condition: article.condition ? article.condition.name : "N/A",
                 article_type: article.article_type ?? "N/A",
                 batch_name: batch.name,
@@ -464,10 +469,22 @@ const buildBaseCols = (
             }
 
             const calibrating = row.original.tool?.status === "EN CALIBRACION";
+            const status = row.original.status?.toUpperCase();
+            const badge = getStatusBadge(status);
 
             return (
                 <div className="flex flex-col justify-center items-center space-y-2">
-                    {!calibrating && getStatusBadge(row.original.status?.toUpperCase())}
+                    {!calibrating &&
+                        (tracksStatusSince(status) ? (
+                            <ArticleStatusSincePopover
+                                statusLabel={statusOptionLabel(status ?? "")}
+                                statusSince={row.original.status_since}
+                            >
+                                {badge}
+                            </ArticleStatusSincePopover>
+                        ) : (
+                            badge
+                        ))}
 
                     {row.original.tool && <StatusCellWithPopover tool={row.original} />}
                 </div>

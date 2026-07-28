@@ -46,6 +46,8 @@ export interface IWarehouseArticle {
             name: string;
         };
         status: string; // "stored" | "dispatch" | etc.
+        /** Entrada al estado actual (ISO). Null si no hay movimiento que lo feche. */
+        status_since?: string | null;
         article_type?: string; // "componente" | "consumible" | "herramienta"
         cost: number | string;
         has_documentation?: boolean;
