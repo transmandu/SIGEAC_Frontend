@@ -7,11 +7,11 @@ import { useGetBatchesByLocationId } from "@/hooks/mantenimiento/almacen/renglon
 import { useSearchBatchesWithArticles, type BatchWithArticles } from "@/hooks/mantenimiento/almacen/renglones/useSearchBatchesWithArticles"
 import { useGetMaintenanceAircrafts } from '@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts'
 import { useGetWorkOrders } from '@/hooks/mantenimiento/planificacion/useGetWorkOrders'
-import { useGetUserDepartamentEmployees } from "@/hooks/sistema/empleados/useGetUserDepartamentEmployees"
-import { useGetEmployeesByCompany } from "@/hooks/sistema/empleados/useGetEmployees"
-import { useGetDepartments } from "@/hooks/sistema/departamento/useGetDepartment"
+import { useGetUserDepartamentEmployees } from "@/hooks/ajustes/empleados/useGetUserDepartamentEmployees"
+import { useGetEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetEmployees"
+import { useGetDepartments } from "@/hooks/ajustes/departamento/useGetDepartment"
 import { useGetThirdParties } from "@/hooks/general/terceros/useGetThirdParties"
-import { useGetAuthorizedEmployees } from "@/hooks/sistema/autorizados/useGetAuthorizedEmployees"
+import { useGetAuthorizedEmployees } from "@/hooks/ajustes/autorizados/useGetAuthorizedEmployees"
 import { useCompanyStore } from "@/stores/CompanyStore"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Loader2, Send, Plane, Package } from "lucide-react"

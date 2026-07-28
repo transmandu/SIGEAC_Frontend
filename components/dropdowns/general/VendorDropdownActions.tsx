@@ -7,7 +7,7 @@ import { Vendor } from "@/types";
 import {
   useUpdateVendor,
   useDeleteVendor,
-} from "@/actions/ajustes/globales/proveedores/actions";
+} from "@/actions/ajustes/proveedores/actions";
 
 import {
   DropdownMenu,

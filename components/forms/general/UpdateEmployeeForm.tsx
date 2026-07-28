@@ -1,13 +1,13 @@
 "use client";
 
-import { useUpdateEmployee } from "@/actions/sistema/empresas/empleados/actions";
+import { useUpdateEmployee } from "@/actions/ajustes/empleados/actions";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useGetJobTitles } from "@/hooks/sistema/cargo/useGetJobTitles";
-import { useGetDepartments } from "@/hooks/sistema/departamento/useGetDepartment";
+import { useGetJobTitles } from "@/hooks/ajustes/cargo/useGetJobTitles";
+import { useGetDepartments } from "@/hooks/ajustes/departamento/useGetDepartment";
 import { useGetLocationsByCompany } from "@/hooks/sistema/useGetLocationsByCompany";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useGetUsers } from "@/hooks/sistema/useGetUsers";

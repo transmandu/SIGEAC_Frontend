@@ -6,6 +6,8 @@ const PROTECTED_ROUTES = [
   '/transmandu',
   '/hangar74',
   '/ajustes',
+  '/sistema',
+  '/cuenta',
   '/planificacion',
   '/administracion'
 ];

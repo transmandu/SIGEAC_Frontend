@@ -13,7 +13,7 @@ import {
 import { Plus, Handshake } from "lucide-react";
 import CreateVendorForm from "@/components/forms/general/CreateVendorForm";
 import { useTourContext } from "@/components/tour/TourProvider";
-import { proveedoresCrearSteps } from "@/components/tour/steps/ajustes/globales/proveedores/proveedores-crear";
+import { proveedoresCrearSteps } from "@/components/tour/steps/ajustes/proveedores/proveedores-crear";
 
 interface CreateVendorDialogProps {
   open?: boolean;

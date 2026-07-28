@@ -17,7 +17,7 @@ import { ScrollArea } from "../../../ui/scroll-area"
 import { Separator } from "../../../ui/separator"
 import { Textarea } from "../../../ui/textarea"
 import { useCreateRequisition } from "@/actions/aerolinea/compras/requisiciones/actions"
-import { useGetUserDepartamentEmployees } from "@/hooks/sistema/empleados/useGetUserDepartamentEmployees"
+import { useGetUserDepartamentEmployees } from "@/hooks/ajustes/empleados/useGetUserDepartamentEmployees"
 
 const FormSchema = z.object({
   justification: z.string().min(2, { message: "La justificación debe ser válida." }),

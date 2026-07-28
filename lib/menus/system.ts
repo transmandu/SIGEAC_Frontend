@@ -1,16 +1,38 @@
 import type { Group, MenuContext } from "@/lib/menus/types";
-import { Blocks, Building2, KeyRound, User2 } from "lucide-react";
+import { Blocks, Building2, Landmark, User2, Users } from "lucide-react";
 
+const BANKING_ROLES = [
+    "SUPERUSER",
+    "JEFE_COMPRAS",
+    "ANALISTA_COMPRAS",
+    "ASISTENTE_COMPRAS",
+    "JEFE_ADMINISTRACION",
+    "ANALISTA_ADMINISTRACION",
+];
+
+/**
+ * Administración de master: todo lo que aquí vive se sirve desde endpoints sin
+ * middleware `tenant`, así que sigue siendo navegable sin compañía seleccionada.
+ * Lo que dependa del tenant va en `buildSettingsGroup`, no aquí.
+ */
 export function buildSystemGroup({ pathname }: MenuContext): Group {
     return {
         groupLabel: "Sistema",
         menus: [
             {
+                href: "/sistema/empresas",
+                label: "Empresas",
+                active: pathname.includes("/sistema/empresas"),
+                icon: Building2,
+                roles: ["SUPERUSER"],
+                submenus: [],
+            },
+            {
                 href: "/sistema/modulos",
                 label: "Módulos",
                 active: pathname.includes("/sistema/modulos"),
                 icon: Blocks,
-                roles: ["ADMIN", "SUPERUSER"],
+                roles: ["SUPERUSER"],
                 submenus: [],
             },
             {
@@ -18,7 +40,7 @@ export function buildSystemGroup({ pathname }: MenuContext): Group {
                 label: "Usuarios y Permisos",
                 active: pathname.includes("/sistema/usuarios_permisos"),
                 icon: User2,
-                roles: ["ADMIN", "SUPERUSER"],
+                roles: ["SUPERUSER"],
                 submenus: [
                     {
                         href: "/sistema/usuarios_permisos/usuarios",
@@ -33,63 +55,53 @@ export function buildSystemGroup({ pathname }: MenuContext): Group {
                 ],
             },
             {
-                href: "/sistema/autorizaciones/",
-                label: "Autorizaciones",
-                active: pathname.includes("/sistema/autorizaciones"),
-                icon: KeyRound,
-                roles: ["ADMIN", "SUPERUSER"],
+                href: "/sistema/banca/bancos",
+                label: "Banca",
+                active: pathname.includes("/sistema/banca"),
+                icon: Landmark,
+                // Lectura para roles de compras/administración; la gestión
+                // (crear/editar/eliminar) queda restringida a SUPERUSER en la UI y el backend.
+                roles: BANKING_ROLES,
                 submenus: [
                     {
-                        href: "/sistema/autorizaciones/autorizar",
-                        label: "Autorizar Empleados",
-                        active: pathname === "/sistema/autorizaciones/autorizar",
+                        href: "/sistema/banca/bancos",
+                        label: "Bancos",
+                        active: pathname.startsWith("/sistema/banca/bancos"),
+                        roles: BANKING_ROLES,
                     },
                     {
-                        href: "/sistema/autorizaciones/autorizados",
-                        label: "Empleados Autorizados",
-                        active: pathname === "/sistema/autorizaciones/autorizados",
+                        href: "/sistema/banca/cuentas",
+                        label: "Cuentas",
+                        active: pathname.startsWith("/sistema/banca/cuentas"),
+                        roles: BANKING_ROLES,
+                    },
+                    {
+                        href: "/sistema/banca/metodos_pago",
+                        label: "Métodos de Pago",
+                        active: pathname === "/sistema/banca/metodos_pago",
+                        roles: BANKING_ROLES,
+                    },
+                    {
+                        href: "/sistema/banca/tarjetas",
+                        label: "Tarjetas",
+                        active: pathname === "/sistema/banca/tarjetas",
+                        roles: BANKING_ROLES,
                     },
                 ],
             },
             {
-                href: "/sistema/empresa/",
-                label: "Empresa",
-                active: pathname.includes("/sistema/empresa/"),
-                icon: Building2,
-                roles: ["ADMIN", "SUPERUSER"],
-                submenus: [
-                    {
-                        href: "/sistema/empresa/empresas",
-                        label: "Administrar Empresas",
-                        roles: ["SUPERUSER"],
-                        active: pathname === "/sistema/empresas/empresas",
-                    },
-                    {
-                        href: "/sistema/empresa/ubicaciones",
-                        label: "Administrar Ubicaciones",
-                        active: pathname === "/sistema/empresas/ubicaciones",
-                    },
-                    {
-                        href: "/sistema/empresa/empleados",
-                        label: "Administrar Empleados",
-                        active: pathname === "/sistema/empresas/empleados",
-                    },
-                    {
-                        href: "/sistema/empresa/cargos",
-                        label: "Administrar Cargos",
-                        active: pathname === "/sistema/empresas/cargos",
-                    },
-                    {
-                        href: "/sistema/empresa/departamentos",
-                        label: "Administrar Departamentos",
-                        active: pathname === "/sistema/empresas/departamentos",
-                    },
-                    {
-                        href: "/sistema/empresa/almacenes",
-                        label: "Administrar Almacenes",
-                        active: pathname === "/sistema/empresas/almacenes",
-                    },
+                href: "/sistema/terceros",
+                label: "Terceros",
+                active: pathname.includes("/sistema/terceros"),
+                icon: Users,
+                roles: [
+                    "JEFE_ALMACEN",
+                    "ANALISTA_ALMACEN",
+                    "JEFE_PLANIFICACION",
+                    "ANALISTA_PLANIFICACION",
+                    "SUPERUSER",
                 ],
+                submenus: [],
             },
         ],
     };

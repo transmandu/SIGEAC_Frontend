@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useCreateVendor } from "@/actions/ajustes/globales/proveedores/actions";
+import { useCreateVendor } from "@/actions/ajustes/proveedores/actions";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { Loader2 } from "lucide-react";
 

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Loader2, Trash2, Edit3, AlertTriangle } from "lucide-react"
 import { Vendor } from "@/types"
 import { useCompanyStore } from "@/stores/CompanyStore"
-import { useDeleteVendor, useUpdateVendor } from "@/actions/ajustes/globales/proveedores/actions"
+import { useDeleteVendor, useUpdateVendor } from "@/actions/ajustes/proveedores/actions"
 import CreateVendorForm from "@/components/forms/general/CreateVendorForm"
 
 const dialogClass = "sm:max-w-[420px] rounded-3xl border border-border/50 bg-background/95 backdrop-blur-xl shadow-2xl overflow-hidden p-0"

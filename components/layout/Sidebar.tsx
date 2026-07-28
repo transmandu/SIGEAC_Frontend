@@ -45,7 +45,11 @@ export function Sidebar() {
             asChild
           >
             <Link
-              href={`/${selectedCompany?.slug}/dashboard`}
+              href={
+                selectedCompany && selectedStation
+                  ? `/${selectedCompany.slug}/dashboard`
+                  : "/inicio"
+              }
               className="flex items-center justify-center w-full"
             >
               <Logo width={120} height={120} />
@@ -53,12 +57,15 @@ export function Sidebar() {
           </Button>
         </div>
 
-        {selectedCompany && selectedStation ? (
-          <Menu isOpen={isOpen} />
-        ) : (
-          <p className="text-sm text-muted-foreground text-center mt-10">
-            Por favor, seleccione una <strong>Empresa</strong> y una{" "}
-            <strong>Estacion</strong>.
+        {/* Sin compañía el menú no se oculta: getMenuList ya devuelve solo los
+            grupos de master, que es justo lo que el SUPERUSER necesita para
+            administrar el sistema sin haber entrado a ninguna empresa. */}
+        <Menu isOpen={isOpen} />
+
+        {!(selectedCompany && selectedStation) && (
+          <p className="text-sm text-muted-foreground text-center mt-6 px-4">
+            Seleccione una <strong>Empresa</strong> y una{" "}
+            <strong>Estación</strong> para ver los módulos operativos.
           </p>
         )}
       </div>

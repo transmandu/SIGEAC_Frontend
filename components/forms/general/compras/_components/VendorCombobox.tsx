@@ -21,7 +21,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import CreateVendorForm from "@/components/forms/general/CreateVendorForm";
-import { useCreateVendor } from "@/actions/ajustes/globales/proveedores/actions";
+import { useCreateVendor } from "@/actions/ajustes/proveedores/actions";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import type { Vendor } from "@/types";
 

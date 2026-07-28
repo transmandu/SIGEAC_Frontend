@@ -32,24 +32,10 @@ axiosInstance.interceptors.request.use(
     }
 );
 
-// 2. Interceptor de Respuesta: Detecta si el servidor nos expulsó (Error 401)
-axiosInstance.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    const status = error.response?.status;
-    const url = error.config?.url;
-
-    const isAuthEndpoint =
-      url?.includes('/login') ||
-      url?.includes('/register');
-
-    if (status === 401 && !isAuthEndpoint) {
-      Cookies.remove('auth_token');
-      Cookies.remove('jwt');
-    }
-
-    return Promise.reject(error);
-  }
-);
+// El manejo del 401 (limpiar sesión y expulsar al login) vive en un único
+// interceptor registrado por AuthContext, que es quien puede además resetear el
+// estado de React y navegar.
+export const isAuthEndpoint = (url?: string) =>
+    !!url && (url.includes('/login') || url.includes('/register'));
 
 export default axiosInstance;

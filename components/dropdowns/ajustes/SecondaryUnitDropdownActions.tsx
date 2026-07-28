@@ -12,7 +12,7 @@ import {
 import {
   useDeleteSecondaryUnit,
   useUpdateSecondaryUnit,
-} from "@/actions/ajustes/globales/unidades/actions";
+} from "@/actions/ajustes/unidades/actions";
 import { Check, ChevronsUpDown, Loader2, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";

@@ -1,7 +1,7 @@
 "use client";
 
-import axiosInstance from "@/lib/axios";
-import { createCookie } from "@/lib/cookie";
+import axiosInstance, { isAuthEndpoint } from "@/lib/axios";
+import { createCookie, deleteCookie } from "@/lib/cookie";
 import { createSession, deleteSession } from "@/lib/session";
 import { getEcho } from "@/lib/echo";
 import { useCompanyStore } from "@/stores/CompanyStore";
@@ -145,24 +145,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   /* =========================================================
    * INTERCEPTOR
    * ========================================================= */
+  // `user` se lee por ref y no como dependencia: incluirlo re-registraba el
+  // interceptor en cada cambio de sesión.
+  const userRef = useRef<User | null>(null);
+  userRef.current = user;
+
   useEffect(() => {
     const interceptor = axiosInstance.interceptors.response.use(
       (response) => response,
       (error) => {
-        const url = error.config?.url;
+        if (error.response?.status !== 401 || isAuthEndpoint(error.config?.url)) {
+          return Promise.reject(error);
+        }
 
-        const isAuthRequest =
-          url?.includes("/login") ||
-          url?.includes("/register");
-
-        const hasSession = !!user;
-
-        if (
-          error.response?.status === 401 &&
-          hasSession &&
-          !isAuthRequest
-        ) {
+        if (userRef.current) {
           logout();
+        } else {
+          // 401 antes de que la sesión llegue a memoria (token expirado al
+          // recargar): no hay estado que limpiar ni de dónde expulsar, pero la
+          // cookie muerta debe irse para que el middleware mande al login.
+          deleteCookie("auth_token");
         }
 
         return Promise.reject(error);
@@ -172,7 +174,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => {
       axiosInstance.interceptors.response.eject(interceptor);
     };
-  }, [logout, user]);
+  }, [logout]);
 
   /* =========================================================
    * LOGIN MUTATION (FIX REAL DEL PROBLEMA)
