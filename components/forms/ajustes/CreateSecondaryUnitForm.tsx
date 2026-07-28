@@ -47,6 +47,13 @@ interface FormProps {
   onClose: () => void;
 }
 
+/**
+ * Una conversión se guarda y se lee en un solo sentido en todo el sistema:
+ * `1 <primaria> = equivalence <secundaria>`. El reporte de costos y la
+ * conversión de costo a unidad base dependen de esa dirección, así que el
+ * formulario la muestra explícita para no capturarla al revés.
+ */
+
 export default function CreateSecondaryUnitForm({ onClose }: FormProps) {
   const { selectedCompany } = useCompanyStore();
   const [primaryOpen, setPrimaryOpen] = useState(false);
@@ -92,6 +99,21 @@ export default function CreateSecondaryUnitForm({ onClose }: FormProps) {
     (unit) => unit.id.toString() === secondaryValue
   );
 
+  const equivalenceValue = Number(form.watch("equivalence"));
+
+  // Con la misma unidad de ambos lados la conversión es inservible: el reporte
+  // identifica la unidad despachada como "la que no es la base" y no podría
+  // distinguirlas.
+  const sameUnit =
+    !!primaryValue && !!secondaryValue && primaryValue === secondaryValue;
+
+  const isValid =
+    !!primaryValue &&
+    !!secondaryValue &&
+    !sameUnit &&
+    Number.isFinite(equivalenceValue) &&
+    equivalenceValue > 0;
+
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     // Intercambiar los valores antes de enviar al backend
     const payload = {
@@ -119,7 +141,7 @@ export default function CreateSecondaryUnitForm({ onClose }: FormProps) {
             render={({ field }) => (
               <FormItem className="flex flex-col">
                 <FormLabel className="text-sm font-medium">
-                  Unidad Primaria de Referencia
+                  Unidad Primaria — la unidad grande, de la que sale 1
                 </FormLabel>
                 <FormControl>
                   <Popover open={primaryOpen} onOpenChange={setPrimaryOpen}>
@@ -201,10 +223,10 @@ export default function CreateSecondaryUnitForm({ onClose }: FormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="text-sm font-medium">
-                  Valor de conversión por unidad
+                  Equivalencia — cuántas unidades secundarias salen de 1
+                  primaria
                 </FormLabel>
                 <FormControl>
-                  {/* ✅ CORRECCIÓN 3: CAMBIAMOS 'type="number"' a 'type="text"' */}
                   <Input
                     type="number"
                     inputMode="decimal" // Sugerencia para teclados móviles
@@ -225,12 +247,8 @@ export default function CreateSecondaryUnitForm({ onClose }: FormProps) {
                   />
                 </FormControl>
                 <FormDescription>
-                  {selectedPrimaryUnit && selectedSecondaryUnit && (
-                    <span className="block mt-1 text-sm text-muted-foreground italic">
-                      Ejemplo: 1 {selectedSecondaryUnit.label} ={" "}
-                      {field.value || 0} {selectedPrimaryUnit.label}
-                    </span>
-                  )}
+                  Ej.: si de 1 ROLLO se cortan 45 piezas, la primaria es ROLLO,
+                  la secundaria PIEZA y aquí va 45.
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -244,7 +262,7 @@ export default function CreateSecondaryUnitForm({ onClose }: FormProps) {
             render={({ field }) => (
               <FormItem className="flex flex-col">
                 <FormLabel className="text-sm font-medium">
-                  Unidad Secundaria
+                  Unidad Secundaria — la unidad pequeña que resulta
                 </FormLabel>
                 <FormControl>
                   <Popover open={secondaryOpen} onOpenChange={setSecondaryOpen}>
@@ -321,10 +339,42 @@ export default function CreateSecondaryUnitForm({ onClose }: FormProps) {
             )}
           />
 
+          {sameUnit && (
+            <div className="mt-4 rounded-lg border border-destructive/40 bg-destructive/[0.06] px-3 py-2.5">
+              <span className="text-sm text-destructive">
+                La unidad primaria y la secundaria deben ser distintas. Si
+                necesita subdividir una unidad, cree antes la unidad pequeña
+                (ej. PIEZA 20X20) en el catálogo de unidades.
+              </span>
+            </div>
+          )}
+
+          {/* Cómo queda guardada la conversión, en la misma dirección en que
+              la leen el despacho y el reporte de costos. */}
+          {selectedPrimaryUnit && selectedSecondaryUnit && !sameUnit && (
+            <div className="mt-4 rounded-lg border border-border/60 bg-muted/30 px-3 py-2.5">
+              <span className="block text-[11px] uppercase tracking-wide text-muted-foreground/70">
+                Se guardará como
+              </span>
+              <span className="block mt-1 text-sm font-medium tabular-nums">
+                1 {selectedPrimaryUnit.label} = {equivalenceValue || 0}{" "}
+                {selectedSecondaryUnit.label}
+              </span>
+              {equivalenceValue > 0 && (
+                <span className="block mt-1.5 text-xs text-muted-foreground">
+                  Al despachar 1 {selectedSecondaryUnit.label} se descuentan{" "}
+                  {Number((1 / equivalenceValue).toFixed(4))}{" "}
+                  {selectedPrimaryUnit.label}, y su costo es el de 1{" "}
+                  {selectedPrimaryUnit.label} dividido entre {equivalenceValue}.
+                </span>
+              )}
+            </div>
+          )}
+
           {/* Botón de envío */}
           <Button
             className="w-full bg-primary mt-4 text-white hover:bg-blue-900 disabled:bg-primary/70"
-            disabled={createSecondaryUnit?.isPending || !primaryValue}
+            disabled={createSecondaryUnit?.isPending || !isValid}
             type="submit"
           >
             {createSecondaryUnit?.isPending ? (
