@@ -48,6 +48,7 @@
     "@types/axios": "^0.14.0",
     "@types/js-cookie": "^3.0.6",
     "@types/react-big-calendar": "^1.16.2",
+    "@vercel/speed-insights": "^2.0.0",
     "axios": "^1.7.2",
     "bcrypt": "^5.1.1",
     "bcrypt-ts": "^5.0.2",
