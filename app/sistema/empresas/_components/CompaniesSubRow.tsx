@@ -1,6 +1,7 @@
 'use client'
 
 import Image from 'next/image'
+import { useState } from 'react'
 
 import {
     Building2,
@@ -8,6 +9,7 @@ import {
     Boxes,
     Plane,
     BadgeCheck,
+    Settings2,
 } from 'lucide-react'
 
 import {
@@ -16,7 +18,16 @@ import {
     PopoverTrigger,
 } from '@/components/ui/popover'
 
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/ui/tooltip'
+
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import ManageCompanyModulesDialog from '@/components/dialogs/ajustes/ManageCompanyModulesDialog'
 
 import { Company } from '@/types'
 import { cn } from '@/lib/utils'
@@ -78,6 +89,8 @@ export default function CompaniesSubRow({
 
     const modulesCount = company.modules?.length ?? 0
 
+    const [openModules, setOpenModules] = useState(false)
+
     return (
         <div className="flex flex-col gap-4">
 
@@ -124,6 +137,25 @@ export default function CompaniesSubRow({
                                     <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">
                                         Módulos asociados
                                     </span>
+
+                                    <TooltipProvider>
+                                        <Tooltip delayDuration={100}>
+                                            <TooltipTrigger asChild>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="ml-auto h-7 w-7"
+                                                    onClick={() => setOpenModules(true)}
+                                                >
+                                                    <Settings2 className="h-3.5 w-3.5" />
+                                                </Button>
+                                            </TooltipTrigger>
+
+                                            <TooltipContent>
+                                                <p>Administrar módulos</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
                                 </div>
 
                                 <div className="flex flex-wrap gap-1.5">
@@ -247,6 +279,12 @@ export default function CompaniesSubRow({
                 />
 
             </div>
+
+            <ManageCompanyModulesDialog
+                company={company}
+                open={openModules}
+                onOpenChange={setOpenModules}
+            />
 
         </div>
     )
