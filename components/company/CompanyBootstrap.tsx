@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plane, PlaneTakeoff } from "lucide-react";
+import Link from "next/link";
+import { Plane, PlaneTakeoff, Settings2 } from "lucide-react";
 import { motion } from "framer-motion";
 
 import { useAuth } from "@/contexts/AuthContext";
@@ -10,6 +11,8 @@ import { useGetUserLocationsByCompanyId } from "@/hooks/sistema/usuario/useGetUs
 import { useCompanyStore } from "@/stores/CompanyStore";
 
 import CompanySelect from "@/components/selects/CompanySelect";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 const CompanyBootstrap = () => {
   const router = useRouter();
@@ -19,6 +22,8 @@ const CompanyBootstrap = () => {
   const companyAutoSelectedRef = useRef(false);
 
   const { user, loading: userLoading } = useAuth();
+
+  const isSuperUser = user?.roles?.some((role) => role.name === "SUPERUSER");
 
   const {
     selectedCompany,
@@ -353,6 +358,53 @@ const CompanyBootstrap = () => {
           >
             <CompanySelect />
           </motion.div>
+
+          {isSuperUser && (
+            <motion.div
+              className="flex flex-col items-center gap-2 mt-4 w-full"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.25, ease: "easeOut", delay: 0.1 }}
+            >
+              <div className="flex items-center gap-3 w-full">
+                <span className="h-px flex-1 bg-border/60" />
+                <span className="text-[10px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+                  o
+                </span>
+                <span className="h-px flex-1 bg-border/60" />
+              </div>
+
+              {/* Mismo lenguaje visual que los selects de CompanySelect: la
+                  entrada al panel global es una opción más de esta pantalla. */}
+              <Button
+                asChild
+                variant="ghost"
+                className={cn(
+                  "h-9 w-[368px] rounded-lg text-sm font-normal",
+                  "bg-gradient-to-br from-background/70 to-background/40",
+                  "backdrop-blur-md",
+                  "border border-slate-400/60 dark:border-slate-600/60",
+                  "shadow-sm",
+                  "text-slate-700 dark:text-slate-200",
+                  "hover:border-blue-400/30 hover:bg-gradient-to-br",
+                  "hover:from-background/70 hover:to-background/40",
+                  "hover:shadow-md hover:shadow-blue-500/10",
+                  "transition-all duration-200",
+                  "active:scale-[0.99]"
+                )}
+              >
+                <Link href="/sistema/empresas">
+                  <Settings2 className="size-4" />
+                  Administrar el sistema
+                </Link>
+              </Button>
+
+              <p className="text-xs text-muted-foreground text-center">
+                Empresas, módulos, usuarios y roles. No requiere seleccionar una
+                empresa.
+              </p>
+            </motion.div>
+          )}
         </motion.div>
       </div>
     </motion.div>

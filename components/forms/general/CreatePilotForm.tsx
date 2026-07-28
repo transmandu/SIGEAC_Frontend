@@ -23,7 +23,7 @@ import { Pilot } from "@/types";
 import {
   useCreatePilot,
   useUpdatePilot,
-} from "@/actions/ajustes/globales/piloto/actions";
+} from "@/actions/ajustes/piloto/actions";
 import { useCompanyStore } from "@/stores/CompanyStore";
 
 const FormSchema = z.object({

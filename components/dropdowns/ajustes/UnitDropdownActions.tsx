@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-import { useDeleteUnit, useUpdateUnit } from "@/actions/ajustes/globales/unidades/actions";
+import { useDeleteUnit, useUpdateUnit } from "@/actions/ajustes/unidades/actions";
 import { Loader2, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";

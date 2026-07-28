@@ -1,5 +1,5 @@
 "use client";
-import { useCreateBank, useUpdateBank } from "@/actions/ajustes/banca/bancos/actions";
+import { useCreateBank, useUpdateBank } from "@/actions/sistema/banca/bancos/actions";
 import {
   Form,
   FormControl,

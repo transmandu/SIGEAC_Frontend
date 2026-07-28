@@ -30,7 +30,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../../ui/dialog";
-import { useDeleteClient } from "@/actions/ajustes/globales/clientes/actions";
+import { useDeleteClient } from "@/actions/ajustes/clientes/actions";
 import { useCompanyStore } from "@/stores/CompanyStore";
 
 const ClientDropdownActions = ({ client }: { client: Client }) => {
@@ -43,7 +43,7 @@ const ClientDropdownActions = ({ client }: { client: Client }) => {
   const router = useRouter();
 
   const handleViewStats = () => {
-    router.push(`/ajustes/globales/clientes/${client.dni}`);
+    router.push(`/${selectedCompany?.slug}/ajustes/clientes/${client.dni}`);
   };
 
   const handleDelete = (id: string) => {

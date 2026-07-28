@@ -22,7 +22,7 @@ import { Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import { useCreateThirdParty } from "@/actions/ajustes/globales/terceros/actions";
+import { useCreateThirdParty } from "@/actions/sistema/terceros/actions";
 
 const formSchema = z.object({
   name: z.string().min(3, {

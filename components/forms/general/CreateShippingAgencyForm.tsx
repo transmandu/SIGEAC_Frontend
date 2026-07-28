@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useCreateShippingAgency } from "@/actions/ajustes/globales/agencias_envio/actions";
+import { useCreateShippingAgency } from "@/actions/ajustes/agencias_envio/actions";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import loadingGif from "@/public/loading2.gif";
 import Image from "next/image";

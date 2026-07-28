@@ -30,7 +30,7 @@ import { useGetCategoriesByAccountant } from "@/hooks/aerolinea/categorias_cuent
 import { useGetAccountant } from "@/hooks/aerolinea/cuentas_contables/useGetAccountant";
 import { useGetBankAccounts } from "@/hooks/general/cuentas_bancarias/useGetBankAccounts";
 import { useGetVendors } from "@/hooks/general/proveedores/useGetVendors";
-import { useGetEmployeesByCompany } from "@/hooks/sistema/empleados/useGetEmployees";
+import { useGetEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetEmployees";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { zodResolver } from "@hookform/resolvers/zod";

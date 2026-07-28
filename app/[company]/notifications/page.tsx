@@ -17,7 +17,7 @@ import { useNotifications } from "@/hooks/notifications/useNotifications";
 import NotificationItem from "@/components/notifications/NotificationItem";
 import { useMemo, useState, useEffect } from "react";
 import { useTourContext } from "@/components/tour/TourProvider";
-import { notificacionesSteps } from "@/components/tour/steps/ajustes/banca/notificaciones";
+import { notificacionesSteps } from "@/components/tour/steps/sistema/banca/notificaciones";
 
 export default function NotificationsPage() {
   const { selectedCompany } = useCompanyStore();

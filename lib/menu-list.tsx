@@ -12,6 +12,7 @@ import { buildOperationGroup } from "@/lib/menus/operation";
 import { buildPlanificationGroup } from "@/lib/menus/planification";
 import { buildPurchasesGroups } from "@/lib/menus/purchases";
 import { buildQualityControlGroup } from "@/lib/menus/quality-control";
+import { buildProfileGroup } from "@/lib/menus/profile";
 import { buildSettingsGroup } from "@/lib/menus/settings";
 import { buildSmsGroup } from "@/lib/menus/sms";
 import { buildSupervisorGroup } from "@/lib/menus/supervisor";
@@ -31,6 +32,15 @@ export function getMenuList(
         userRoles,
     };
 
+    // Sin compañía solo sobreviven Perfil y Sistema, que son de master; el resto
+    // de los grupos depende del tenant y armaría hrefs sin slug al que apuntar.
+    if (!currentCompany) {
+        return filterMenuGroups(
+            [buildProfileGroup(context), buildSystemGroup(context)],
+            { currentCompany, userRoles },
+        );
+    }
+
     const fullMenu: Group[] = [
         buildDashboardGroup(context),
         buildGeneralGroup(context),
@@ -44,6 +54,7 @@ export function getMenuList(
         buildMaintenanceGroup(context),
         buildEngineeringGroup(context),
         buildSettingsGroup(context),
+        buildProfileGroup(context),
         buildSystemGroup(context),
         buildSupervisorGroup(context),
     ];

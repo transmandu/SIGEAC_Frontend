@@ -10,7 +10,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 
-import { useUpdateInformationSource } from "@/actions/ajustes/globales/tipos_fuente/actions";
+import { useUpdateInformationSource } from "@/actions/ajustes/tipos_fuente/actions";
 import { Input } from "@/components/ui/input";
 import { InformationSource } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";

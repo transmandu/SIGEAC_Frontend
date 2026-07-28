@@ -1,4 +1,4 @@
-import { useDeleteInformationSource } from "@/actions/ajustes/globales/tipos_fuente/actions";
+import { useDeleteInformationSource } from "@/actions/ajustes/tipos_fuente/actions";
 import {
   DropdownMenu,
   DropdownMenuContent,

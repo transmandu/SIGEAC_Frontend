@@ -13,7 +13,7 @@ import {
 import { Plus, Truck } from "lucide-react";
 import { CreateShippingAgencyForm } from "@/components/forms/general/CreateShippingAgencyForm";
 import { useTourContext } from "@/components/tour/TourProvider";
-import { agenciasEnvioCrearSteps } from "@/components/tour/steps/ajustes/globales/agencia-envios/agencias-envio-crear";
+import { agenciasEnvioCrearSteps } from "@/components/tour/steps/ajustes/agencia-envios/agencias-envio-crear";
 
 export function CreateShippingAgencyDialog() {
   const [open, setOpen] = useState(false);

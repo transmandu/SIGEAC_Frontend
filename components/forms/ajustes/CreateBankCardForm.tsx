@@ -1,5 +1,5 @@
 "use client";
-import { useCreateBankCard, useUpdateBankCard } from "@/actions/ajustes/banca/tarjetas/actions";
+import { useCreateBankCard, useUpdateBankCard } from "@/actions/sistema/banca/tarjetas/actions";
 import { CompanyMultiSelect } from "@/components/misc/CompanyMultiSelect";
 import {
   Form,
