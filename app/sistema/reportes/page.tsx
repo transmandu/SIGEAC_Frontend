@@ -16,10 +16,14 @@ import ImportHistoryDialog from "./_components/ImportHistoryDialog";
 import ImportHistoryTable from "./_components/ImportHistoryTable";
 import ErrorReportDiagnosisDialog from "./_components/ErrorReportDiagnosisDialog";
 import CreateErrorReportDialog from "@/components/dialogs/sistema/CreateErrorReportDialog";
+import { useAuth } from "@/contexts/AuthContext";
 
 const DEFAULT_PAGE_SIZE = 25;
 
 export default function ReportesErrorPage() {
+  const { user } = useAuth();
+  const isSuperUser = user?.roles?.some((role) => role.name === "SUPERUSER") ?? false;
+
   const [filters, setFilters] = useState<Filters>({
     page: 1,
     per_page: DEFAULT_PAGE_SIZE,
@@ -59,7 +63,10 @@ export default function ReportesErrorPage() {
     setDiagnosisOpen(true);
   };
 
-  const columns = useMemo(() => getColumns(handleViewDiagnosis), []);
+  const columns = useMemo(
+    () => getColumns(handleViewDiagnosis, isSuperUser),
+    [isSuperUser]
+  );
 
   const handleFiltersChange = (patch: Partial<Filters>) => {
     setFilters((prev) => ({ ...prev, ...patch, page: 1 }));
@@ -76,6 +83,34 @@ export default function ReportesErrorPage() {
   const exportFilters = { ...filters };
   delete exportFilters.page;
   delete exportFilters.per_page;
+
+  if (!isSuperUser) {
+    return (
+      <ContentLayout title="Reportes de Error">
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <h1 className="text-2xl font-bold">Reportes de Error</h1>
+            <Button size="sm" onClick={() => setCreateOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Crear reporte
+            </Button>
+          </div>
+
+          <DataTable
+            columns={columns}
+            data={visibleReports}
+            loading={isLoading}
+            pageIndex={(filters.page ?? 1) - 1}
+            pageSize={filters.per_page ?? DEFAULT_PAGE_SIZE}
+            pageCount={data?.pagination.last_page ?? 0}
+            onPaginationChange={handlePaginationChange}
+          />
+        </div>
+
+        <CreateErrorReportDialog open={createOpen} onOpenChange={setCreateOpen} />
+      </ContentLayout>
+    );
+  }
 
   return (
     <ContentLayout title="Reportes de Error">
@@ -105,7 +140,7 @@ export default function ReportesErrorPage() {
             </Button>
             <Button size="sm" onClick={() => setCreateOpen(true)}>
               <Plus className="mr-2 h-4 w-4" />
-              Crear reporte manual
+              Crear reporte
             </Button>
           </div>
 

@@ -3,7 +3,7 @@ import React from "react";
 
 const ReportesLayout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <ProtectedRoute roles={["SUPERUSER"]}>
+    <ProtectedRoute>
       {children}
     </ProtectedRoute>
   );

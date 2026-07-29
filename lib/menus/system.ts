@@ -1,5 +1,5 @@
 import type { Group, MenuContext } from "@/lib/menus/types";
-import { Blocks, Building2, Landmark, TriangleAlert, User2, Users } from "lucide-react";
+import { Blocks, Building2, HeartHandshake, HeartHandshakeIcon, Landmark, TriangleAlert, User2, Users } from "lucide-react";
 
 const BANKING_ROLES = [
     "SUPERUSER",
@@ -69,6 +69,7 @@ export function buildSystemGroup({ pathname }: MenuContext): Group {
                         active: pathname.startsWith("/sistema/banca/bancos"),
                         roles: BANKING_ROLES,
                     },
+                    {
                         href: "/sistema/autorizaciones/autorizar",
                         label: "Autorizar Empleados",
                         active: pathname === "/sistema/autorizaciones/autorizar",
@@ -84,8 +85,7 @@ export function buildSystemGroup({ pathname }: MenuContext): Group {
                 href: "/sistema/reportes",
                 label: "Reportes",
                 active: pathname.includes("/sistema/reportes"),
-                icon: TriangleAlert,
-                roles: ["SUPERUSER"],
+                icon: HeartHandshake,
                 submenus: [],
             },
             {

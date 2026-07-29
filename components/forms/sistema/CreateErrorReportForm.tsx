@@ -26,9 +26,14 @@ import { ImagePlus, Loader2, UploadCloud, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { ERROR_REPORT_MODULES, getDefaultErrorReportModule } from "@/lib/errorReportModules";
+import {
+  ERROR_REPORT_MODULES,
+  getAvailableErrorReportModules,
+  getDefaultErrorReportModule,
+} from "@/lib/errorReportModules";
 import { ERROR_REPORT_SEVERITIES } from "@/lib/errorReportSeverity";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCompanyStore } from "@/stores/CompanyStore";
 import { cn } from "@/lib/utils";
 import { ChipTone } from "@/app/sistema/reportes/_components/errorReportChips";
 
@@ -92,10 +97,16 @@ const HTTP_QUICK_PICKS = [
 export default function CreateErrorReportForm({ onClose, showAdvancedFields = false }: FormProps) {
   const { createErrorReport } = useCreateErrorReport();
   const { user } = useAuth();
+  const { selectedCompany } = useCompanyStore();
   const [images, setImages] = useState<File[]>([]);
   const [reportKind, setReportKind] = useState<ReportKind>("bug");
   const [isDragging, setIsDragging] = useState(false);
   const [customHttpOpen, setCustomHttpOpen] = useState(false);
+
+  // El panel de gestión (superuser) siempre puede reportar/reclasificar cualquier módulo.
+  const availableModules = showAdvancedFields
+    ? ERROR_REPORT_MODULES
+    : getAvailableErrorReportModules(selectedCompany?.modules);
 
   const defaultModule = showAdvancedFields ? "" : getDefaultErrorReportModule(user?.roles) ?? "";
 
@@ -211,7 +222,7 @@ export default function CreateErrorReportForm({ onClose, showAdvancedFields = fa
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {ERROR_REPORT_MODULES.map((option) => (
+                    {availableModules.map((option) => (
                       <SelectItem key={option.value} value={option.value}>
                         {option.label}
                       </SelectItem>

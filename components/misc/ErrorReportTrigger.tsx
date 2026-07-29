@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { TriangleAlert } from "lucide-react";
+import { HeartHandshake } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import {
@@ -50,12 +50,12 @@ export default function ErrorReportTrigger() {
                 "active:scale-95"
               )}
             >
-              <TriangleAlert className="h-4 w-4" />
+              <HeartHandshake className="h-4 w-4" />
             </button>
           </TooltipTrigger>
 
           <TooltipContent side="bottom" className="z-[1001]">
-            {isSuperUser ? "Gestión de reportes" : "Reportar un problema"}
+            {isSuperUser ? "Gestión de reportes de SIGEAC" : "Reportar un problema a IT"}
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>

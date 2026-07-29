@@ -23,9 +23,10 @@ const STATUS_ICON: Record<ErrorReport["status"], typeof AlertTriangle> = {
 };
 
 export function getColumns(
-  onViewDiagnosis: (report: ErrorReport) => void
+  onViewDiagnosis: (report: ErrorReport) => void,
+  isSuperUser: boolean
 ): ColumnDef<ErrorReport>[] {
-  return [
+  const columns: ColumnDef<ErrorReport>[] = [
     {
       accessorKey: "reported_at",
       header: "Fecha",
@@ -129,7 +130,10 @@ export function getColumns(
       header: "Reportado por",
       cell: ({ row }) => <span className="text-sm">{row.original.reported_by}</span>,
     },
-    {
+  ];
+
+  if (isSuperUser) {
+    columns.push({
       id: "actions",
       cell: ({ row }) => (
         <div
@@ -150,6 +154,8 @@ export function getColumns(
           </div>
         </div>
       ),
-    },
-  ];
+    });
+  }
+
+  return columns;
 }
