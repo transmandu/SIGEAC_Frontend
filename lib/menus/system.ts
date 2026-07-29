@@ -64,6 +64,11 @@ export function buildSystemGroup({ pathname }: MenuContext): Group {
                 roles: BANKING_ROLES,
                 submenus: [
                     {
+                        href: "/sistema/banca/bancos",
+                        label: "Bancos",
+                        active: pathname.startsWith("/sistema/banca/bancos"),
+                        roles: BANKING_ROLES,
+                    },
                         href: "/sistema/autorizaciones/autorizar",
                         label: "Autorizar Empleados",
                         active: pathname === "/sistema/autorizaciones/autorizar",
@@ -74,6 +79,14 @@ export function buildSystemGroup({ pathname }: MenuContext): Group {
                         active: pathname === "/sistema/autorizaciones/autorizados",
                     },
                 ],
+            },
+            {
+                href: "/sistema/reportes",
+                label: "Reportes",
+                active: pathname.includes("/sistema/reportes"),
+                icon: TriangleAlert,
+                roles: ["SUPERUSER"],
+                submenus: [],
             },
             {
                 href: "/sistema/empresa/",
