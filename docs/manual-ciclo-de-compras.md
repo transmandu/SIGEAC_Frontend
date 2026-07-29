@@ -748,6 +748,7 @@ aeronáutico**, que es justamente el de los artículos más caros.
 | PUT | `/{company}/update-article-cost/{id}` | **sobrescribe** el costo aeronáutico |
 | POST | `/{company}/bulk-update-article-cost` | sobrescritura en lote |
 | GET | `/{company}/supervisor/general-articles/combined-cost-history` | historial combinado de un grupo |
+| GET | `/{company}/supervisor/general-articles/{id}/timeline` | recorrido completo (ver §15) |
 
 ---
 
@@ -831,6 +832,31 @@ duplicado ya fusionado), con fallback al dato histórico del intake si el artíc
 existe. Ese criterio se aplica igual en pantalla y en el PDF.
 
 También permite corregir unidades de intakes, con snapshot y reversión.
+
+### Recorrido del artículo (timeline)
+
+`GET /{company}/supervisor/general-articles/{id}/timeline` unifica en una sola línea
+descendente cinco fuentes: ediciones auditadas (`AUDIT`), entradas de compra
+(`INTAKE`), ajustes de costo (`COST`), despachos (`DISPATCH`) y fusiones (`MERGE`).
+
+Es donde se responde **"¿esta compra se sumó al inventario, y cómo?"**:
+
+- El evento `INTAKE` muestra `quantity` + `unit` (lo **comprado**) y, cuando la
+  compra llegó en otra presentación, `converted_quantity` + `converted_unit` +
+  `equivalence` (lo **realmente sumado al stock**, ya en la unidad base). Sin esos
+  tres campos una entrada en unidad secundaria parecía no haber entrado.
+- El evento `AUDIT` de la confirmación registra el `quantity` antes → después, con
+  contexto `Entrada de compra · OC {n}`.
+
+Ese `AUDIT` existe porque la confirmación **no** usa `increment()`: emite un UPDATE
+directo que no dispara el evento `updating` de Eloquent, así que
+`GeneralArticleObserver` no veía las entradas y el stock subía sin dejar rastro. Se
+asigna y guarda el modelo para que quede auditado.
+
+El rastro solo existe desde la puesta en marcha de `general_article_audit_logs`: las
+confirmaciones anteriores no tienen evento `AUDIT` y no hay forma de reconstruirlo.
+La conversión de esas entradas viejas sí se muestra, porque
+`applied_conversion_id` / `converted_quantity` siempre se guardaron en el intake.
 
 ---
 
