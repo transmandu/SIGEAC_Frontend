@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/select"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { cn } from "@/lib/utils"
+import { cn, formatCost } from "@/lib/utils"
 import type { CostChangeEdits, IntakeUnitEdits, SupervisorCostHistoryEntry } from "@/types/supervisor"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
@@ -140,7 +140,7 @@ export function CostHistoryPanel({
                     Costo vigente
                 </span>
                 <span className="text-sm font-semibold tabular-nums">
-                    {Number(currentCost).toFixed(2)}
+                    {formatCost(currentCost)}
                 </span>
             </div>
 
@@ -174,7 +174,7 @@ export function CostHistoryPanel({
                             {isPurchase ? (
                                 <>
                                     <span className="text-sm font-medium tabular-nums w-20">
-                                        {Number(entry.cost ?? 0).toFixed(2)}
+                                        {formatCost(entry.cost)}
                                     </span>
                                     {units.length > 0 && onIntakeUnitsChange ? (
                                         <Select

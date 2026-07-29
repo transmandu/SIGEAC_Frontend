@@ -19,7 +19,8 @@ import {
     PencilLine,
     Receipt,
 } from "lucide-react"
-import { dependencyBadgeCls, formatSupervisorDateTime } from "./utils/uiHelpers"
+import { formatCost } from "@/lib/utils"
+import { dependencyBadgeCls, formatQuantity, formatSupervisorDateTime } from "./utils/uiHelpers"
 
 const TYPE_META: Record<TimelineEventType, { icon: React.ElementType; label: string }> = {
     AUDIT: { icon: PencilLine, label: "Edición" },
@@ -167,10 +168,10 @@ function EventDetail({ event }: { event: TimelineEvent }) {
                             {FIELD_LABELS[field] ?? field}
                         </span>
                         <span className="text-muted-foreground/60 line-through truncate max-w-[38%]">
-                            {formatValue(oldValues[field])}
+                            {formatValue(oldValues[field], field)}
                         </span>
                         <span className="text-muted-foreground/40 shrink-0">→</span>
-                        <span className="font-medium truncate">{formatValue(newValues[field])}</span>
+                        <span className="font-medium truncate">{formatValue(newValues[field], field)}</span>
                     </div>
                 ))}
             </div>
@@ -185,7 +186,7 @@ function EventDetail({ event }: { event: TimelineEvent }) {
         <div className="mt-1.5 flex flex-wrap gap-1.5">
             {pairs.map(([key, value]) => (
                 <span key={key} className={dependencyBadgeCls()}>
-                    {DETAIL_LABELS[key] ?? key}: {formatValue(value)}
+                    {DETAIL_LABELS[key] ?? key}: {formatValue(value, key)}
                 </span>
             ))}
         </div>
@@ -196,15 +197,41 @@ const DETAIL_LABELS: Record<string, string> = {
     quantity: "Cantidad",
     cost: "Costo",
     unit: "Unidad",
+    converted_quantity: "Sumado al stock",
+    converted_unit: "Unidad base",
+    equivalence: "Equivalencia",
     old_cost: "Costo anterior",
     new_cost: "Costo nuevo",
     merge_id: "Fusión",
     absorbed_count: "Absorbidos",
 }
 
-function formatValue(value: unknown): string {
+/**
+ * Solo estos campos se formatean como cantidad. Va por lista blanca y no por
+ * "parece un número": una descripción o una marca pueden ser dígitos puros
+ * ("3000") y no deben mostrarse como 3.000,00.
+ */
+const QUANTITY_FIELDS = new Set([
+    "quantity",
+    "minimum_quantity",
+    "maximum_quantity",
+    "converted_quantity",
+    "equivalence",
+])
+
+const COST_FIELDS = new Set(["cost", "old_cost", "new_cost"])
+
+function formatValue(value: unknown, field?: string): string {
     if (value === null || value === undefined || value === "") return "—"
-    if (typeof value === "number") return String(value)
+
+    const isNumeric =
+        typeof value === "number" ||
+        (typeof value === "string" && value.trim() !== "" && !Number.isNaN(Number(value)))
+
+    if (!isNumeric || !field) return String(value)
+
+    if (COST_FIELDS.has(field)) return formatCost(value as number | string)
+    if (QUANTITY_FIELDS.has(field)) return formatQuantity(value as number | string)
 
     return String(value)
 }

@@ -1,6 +1,7 @@
 import axiosInstance from "@/lib/axios";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { formatQuantity } from "@/lib/utils";
 import { toast } from "sonner";
 import type { ConfirmGeneralArticleIntakeResponse, NeedsUnitConversionResponse, RejectGeneralArticleIntakeResponse } from "@/types/purchase";
 
@@ -175,13 +176,17 @@ export const useConfirmGeneralArticleIntake = () => {
             );
             return data;
         },
-        onSuccess: () => {
+        onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey: ["general-article-intakes"], exact: false });
             queryClient.invalidateQueries({ queryKey: ["general-articles"], exact: false });
             queryClient.invalidateQueries({ queryKey: ["conversions-by-general-article"], exact: false });
 
+            const entry = data?.stock_entry;
+
             toast.success("¡Confirmado!", {
-                description: "La entrada fue confirmada y el stock se actualizó correctamente."
+                description: entry
+                    ? `Se realizó correctamente el ingreso de ${formatQuantity(entry.quantity)} ${entry.unit_label ?? ""} del artículo ${entry.description}, por favor verifique.`.replace(/\s+/g, " ")
+                    : "La entrada fue confirmada y el stock se actualizó correctamente."
             });
         },
         onError: (error: any) => {

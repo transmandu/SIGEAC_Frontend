@@ -31,7 +31,7 @@ import {
     useMergeGeneralArticles,
     useMergePreview,
 } from "@/hooks/supervisor/useSupervisorGeneralArticles"
-import { cn } from "@/lib/utils"
+import { cn, formatCost } from "@/lib/utils"
 import type {
     CostChangeEdits,
     IntakeUnitEdits,
@@ -559,7 +559,7 @@ export function MergeDialog({
                                 <span className="text-sm">
                                     Costo vigente{" "}
                                     <span className="tabular-nums font-medium">
-                                        {formatQuantity(survivorCurrentCost)}
+                                        {formatCost(survivorCurrentCost)}
                                     </span>
                                     {/* El costo resultante solo lo sabe el
                                         preview: depende de qué artículo
@@ -570,7 +570,7 @@ export function MergeDialog({
                                             <>
                                                 <ArrowRight className="inline size-3 mx-1.5 text-muted-foreground/40" />
                                                 <span className="tabular-nums font-semibold">
-                                                    {formatQuantity(preview.cost_summary.resulting)}
+                                                    {formatCost(preview.cost_summary.resulting)}
                                                 </span>
                                             </>
                                         )}

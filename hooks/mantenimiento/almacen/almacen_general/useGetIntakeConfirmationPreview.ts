@@ -3,9 +3,22 @@ import { useCompanyStore } from '@/stores/CompanyStore';
 import { useQuery } from '@tanstack/react-query';
 import type { NeedsUnitConversionCandidate } from '@/types/purchase';
 
+/** Conversión ya registrada: lo que se sumará al stock si se confirma. */
+export interface AppliedConversionPreview {
+  general_article_id: number;
+  existing_unit_id: number;
+  existing_unit_label: string | null;
+  intake_unit_id: number;
+  intake_unit_label: string | null;
+  equivalence: number;
+  converted_quantity: number;
+}
+
 interface ConfirmationPreviewResponse {
   needs_conversion: boolean;
   candidate?: NeedsUnitConversionCandidate;
+  applied_conversion?: AppliedConversionPreview;
+  misoriented_conversion?: boolean;
 }
 
 const fetchConfirmationPreview = async (

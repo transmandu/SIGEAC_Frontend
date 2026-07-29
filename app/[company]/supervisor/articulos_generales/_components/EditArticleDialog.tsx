@@ -38,6 +38,7 @@ import { ConversionsPanel } from "./ConversionsPanel"
 import { CostHistoryPanel } from "./CostHistoryPanel"
 import { DecimalInput } from "./DecimalInput"
 import SupervisorActionButton from "./SupervisorActionButton"
+import { formatQuantity } from "./utils/uiHelpers"
 
 /**
  * Edición individual de un artículo general.
@@ -361,7 +362,7 @@ export function EditArticleDialog({
                         ) : (
                             <div className="flex items-center gap-4 rounded-lg border border-border/60 bg-muted/20 px-3 py-2.5">
                                 <span className="text-sm tabular-nums">
-                                    {Number(article.quantity).toFixed(2)}{" "}
+                                    {formatQuantity(article.quantity)}{" "}
                                     <span className="text-muted-foreground/70">
                                         {article.general_primary_unit?.label ?? ""}
                                     </span>

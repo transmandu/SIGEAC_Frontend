@@ -388,6 +388,13 @@ export interface ConfirmGeneralArticleIntakeResponse {
   message: string;
   intake: GeneralArticleIntake;
   general_article: GeneralArticle;
+  /** Lo que entró al inventario, ya en la unidad base (no la comprada). */
+  stock_entry: {
+    quantity: number;
+    unit_label: string | null;
+    description: string;
+    resulting_quantity: number;
+  };
 }
 
 // Respuesta 422 de confirm() cuando el intake coincide en todo con un
