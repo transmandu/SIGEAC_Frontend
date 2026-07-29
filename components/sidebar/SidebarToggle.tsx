@@ -32,16 +32,12 @@ export function SidebarToggle({
         onClick={() => setIsOpen?.()}
         aria-label="Toggle sidebar"
         className={cn(
+          "glass-control",
           "relative flex items-center justify-center",
           "h-8 w-8 rounded-lg",
-          "bg-background",
-          "border border-border/70",
+          "border",
           "text-foreground/75",
-          "hover:text-foreground",
-          "hover:bg-muted/60",
-          "hover:border-border",
-          "shadow-sm",
-          "transition-colors duration-200"
+          "hover:text-foreground"
         )}
       >
         <motion.div

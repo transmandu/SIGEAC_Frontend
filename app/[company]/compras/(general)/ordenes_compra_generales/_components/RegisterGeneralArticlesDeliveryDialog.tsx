@@ -21,9 +21,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useGetWarehousesByLocation } from "@/hooks/administracion/useGetWarehousesByUser"
-import { useGetDepartments } from "@/hooks/sistema/departamento/useGetDepartment"
-import { useGetEmployeesByCompany } from "@/hooks/sistema/empleados/useGetEmployees"
-import { useGetAuthorizedEmployees } from "@/hooks/sistema/autorizados/useGetAuthorizedEmployees"
+import { useGetDepartments } from "@/hooks/ajustes/departamento/useGetDepartment"
+import { useGetEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetEmployees"
+import { useGetAuthorizedEmployees } from "@/hooks/ajustes/autorizados/useGetAuthorizedEmployees"
 import { useGetThirdParties } from "@/hooks/general/terceros/useGetThirdParties"
 import { useCompanyStore } from "@/stores/CompanyStore"
 import { cn } from "@/lib/utils"
@@ -49,7 +49,7 @@ const DESTINATION_OPTIONS: { value: DestinationType; label: string; Icon: typeof
   { value: "WAREHOUSE", label: "Almacén", Icon: WarehouseIcon },
   { value: "DEPARTMENT", label: "Departamento", Icon: Building2 },
   { value: "EMPLOYEE", label: "Empleado", Icon: User },
-  { value: "AUTHORIZED", label: "Solicitante autorizado", Icon: UserCog },
+  { value: "AUTHORIZED", label: "Solicitante externo", Icon: UserCog },
   { value: "THIRD_PARTY", label: "Tercero", Icon: Handshake },
 ]
 

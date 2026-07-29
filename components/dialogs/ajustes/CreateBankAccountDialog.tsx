@@ -13,7 +13,7 @@ import { useState, useEffect } from "react";
 import CreateBankAccountForm from "@/components/forms/ajustes/CreateBankAccountForm";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTourContext } from "@/components/tour/TourProvider";
-import { cuentasCrearSteps } from "@/components/tour/steps/ajustes/banca/cuentas-crear";
+import { cuentasCrearSteps } from "@/components/tour/steps/sistema/banca/cuentas-crear";
 
 export function CreateBankAccountDialog() {
   const { user } = useAuth();

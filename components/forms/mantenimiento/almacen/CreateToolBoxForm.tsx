@@ -75,7 +75,7 @@ export function CreateToolBoxForm({ onClose, initialData }: FormProps) {
 
   const { data: batches, isPending: isBatchesLoading, isError } = useGetBatchesWithInWarehouseArticles({location_id: Number(selectedStation!), company: selectedCompany!.slug, category: "tool"});
 
-  const filteredBatches: BatchesWithCountProp[] = batches ?? [];
+  const filteredBatches: BatchesWithCountProp[] = useMemo(() => batches ?? [], [batches]);
 
   const allArticles = useMemo(
     () => filteredBatches.flatMap((batch) => batch.articles),

@@ -4,7 +4,10 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 
-const ALLOWED_ROUTES = ['/login', '/register', '/ajustes', '/sistema', '/acceso_publico'];
+// Rutas que no viven bajo /{slug}: master (/sistema), el perfil propio
+// (/cuenta) y las públicas. Sin esto, tener compañía seleccionada expulsa al
+// dashboard desde cualquiera de ellas.
+const ALLOWED_ROUTES = ['/login', '/register', '/inicio', '/cuenta', '/sistema', '/acceso_publico', '/not-authorized'];
 
 export const RedirectHandler = () => {
     const router = useRouter();

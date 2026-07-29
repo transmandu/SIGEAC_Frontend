@@ -29,6 +29,7 @@ import type {
     ArticleFieldEdits,
     ConversionEdits,
     CostChangeEdits,
+    IntakeUnitEdits,
     SupervisorGeneralArticle,
 } from "@/types/supervisor"
 import { AlertTriangle, Loader2, PencilLine } from "lucide-react"
@@ -59,6 +60,7 @@ export function EditArticleDialog({
     const [brandModel, setBrandModel] = useState("")
     const [variantType, setVariantType] = useState("")
     const [minimumQuantity, setMinimumQuantity] = useState("")
+    const [maximumQuantity, setMaximumQuantity] = useState("")
     const [quantity, setQuantity] = useState("")
     const [unitId, setUnitId] = useState<number | null>(null)
     const [stockUnlocked, setStockUnlocked] = useState(false)
@@ -66,6 +68,7 @@ export function EditArticleDialog({
     // confirmar: las tres áreas se persisten juntas en una transacción.
     const [conversionEdits, setConversionEdits] = useState<ConversionEdits>({})
     const [costEdits, setCostEdits] = useState<CostChangeEdits>({})
+    const [intakeUnitEdits, setIntakeUnitEdits] = useState<IntakeUnitEdits>([])
 
     const { selectedCompany } = useCompanyStore()
     const { updateArticle } = useUpdateSupervisorArticle()
@@ -80,11 +83,13 @@ export function EditArticleDialog({
         setBrandModel(article.brand_model ?? "")
         setVariantType(article.variant_type ?? "")
         setMinimumQuantity(article.minimum_quantity != null ? String(article.minimum_quantity) : "")
+        setMaximumQuantity(article.maximum_quantity != null ? String(article.maximum_quantity) : "")
         setQuantity(String(article.quantity ?? ""))
         setUnitId(article.primary_unit_id)
         setStockUnlocked(false)
         setConversionEdits({})
         setCostEdits({})
+        setIntakeUnitEdits([])
     }, [open, article])
 
     /**
@@ -115,6 +120,13 @@ export function EditArticleDialog({
             edits.minimum_quantity = minimumQuantity === "" ? null : Number(minimumQuantity)
         }
 
+        const currentMaximum =
+            article.maximum_quantity != null ? String(article.maximum_quantity) : ""
+
+        if (maximumQuantity !== currentMaximum) {
+            edits.maximum_quantity = maximumQuantity === "" ? null : Number(maximumQuantity)
+        }
+
         // Cantidad y unidad solo viajan si el supervisor abrió el bloque: así
         // una edición de texto nunca los toca.
         if (stockUnlocked) {
@@ -134,6 +146,7 @@ export function EditArticleDialog({
         brandModel,
         variantType,
         minimumQuantity,
+        maximumQuantity,
         quantity,
         unitId,
         stockUnlocked,
@@ -147,8 +160,9 @@ export function EditArticleDialog({
             (conversionEdits.deleted?.length ?? 0) +
             (costEdits.created?.length ?? 0) +
             (costEdits.updated?.length ?? 0) +
-            (costEdits.deleted?.length ?? 0),
-        [articleEdits, conversionEdits, costEdits],
+            (costEdits.deleted?.length ?? 0) +
+            intakeUnitEdits.length,
+        [articleEdits, conversionEdits, costEdits, intakeUnitEdits],
     )
 
     if (!article) return null
@@ -164,6 +178,7 @@ export function EditArticleDialog({
                 ...(Object.keys(articleEdits).length > 0 ? { article: articleEdits } : {}),
                 ...(hasEdits(conversionEdits) ? { conversions: conversionEdits } : {}),
                 ...(hasEdits(costEdits) ? { cost_changes: costEdits } : {}),
+                ...(intakeUnitEdits.length > 0 ? { intake_units: intakeUnitEdits } : {}),
             },
         })
 
@@ -206,7 +221,7 @@ export function EditArticleDialog({
                                     {detail.cost_history.length}
                                 </span>
                             )}
-                            {hasEdits(costEdits) && <PendingDot />}
+                            {(hasEdits(costEdits) || intakeUnitEdits.length > 0) && <PendingDot />}
                         </TabsTrigger>
                     </TabsList>
 
@@ -260,6 +275,20 @@ export function EditArticleDialog({
                                     onValueChange={setMinimumQuantity}
                                     className="h-9 bg-background/70 border-border/60"
                                 />
+                            </div>
+
+                            <div className="flex flex-col gap-1.5">
+                                <FieldLabel htmlFor="edit-maximum">Cantidad máxima</FieldLabel>
+                                <DecimalInput
+                                    id="edit-maximum"
+                                    placeholder="0.00"
+                                    value={maximumQuantity}
+                                    onValueChange={setMaximumQuantity}
+                                    className="h-9 bg-background/70 border-border/60"
+                                />
+                                <p className="text-[11px] text-muted-foreground">
+                                    Nivel de stock a reponer, no un tope de existencia.
+                                </p>
                             </div>
                         </div>
                     </section>
@@ -369,7 +398,9 @@ export function EditArticleDialog({
                                 currentCost={detail?.current_cost ?? 0}
                                 edits={costEdits}
                                 units={(units ?? []).map((u) => ({ id: u.id, label: u.label }))}
+                                intakeUnits={intakeUnitEdits}
                                 onChange={setCostEdits}
+                                onIntakeUnitsChange={setIntakeUnitEdits}
                             />
                         )}
                     </TabsContent>

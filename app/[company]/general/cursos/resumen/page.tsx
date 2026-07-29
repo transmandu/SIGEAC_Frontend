@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import axiosInstance from "@/lib/axios";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { useGetEmployeesByCompany } from "@/hooks/sistema/empleados/useGetEmployees";
+import { useGetEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetEmployees";
 import { useGetEmployeeTrainingProfile } from "@/hooks/curso/useGetEmployeeTrainingProfile";
 import {
   Loader2,
@@ -400,7 +400,7 @@ const EmployeeProfileExpanded = ({
         <div className="flex items-center gap-4">
           <Avatar className="h-16 w-16 border-2 border-blue-200 shadow-md">
             <AvatarImage
-              src={employee?.photo_url ? `${employee.photo_url}?size=128` : ""}
+              src={employee?.photo_url ?? ""}
               alt="Avatar"
               className="object-cover"
             />
@@ -608,9 +608,7 @@ const ResumenCapacitacionPage = () => {
                       <div className="flex items-center gap-4">
                         <Avatar className="h-10 w-10 border border-gray-200 dark:border-gray-700 shadow-sm">
                           <AvatarImage
-                            src={
-                              emp?.photo_url ? `${emp.photo_url}?size=64` : ""
-                            }
+                            src={emp?.photo_url ?? ""}
                             alt="Avatar"
                             className="object-cover"
                           />

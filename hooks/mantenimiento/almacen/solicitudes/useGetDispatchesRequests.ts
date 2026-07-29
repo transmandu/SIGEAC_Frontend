@@ -1,4 +1,4 @@
-import { AuthorizedEmployee } from "@/app/sistema/autorizaciones/autorizados/columns";
+import { AuthorizedEmployee } from "@/app/[company]/ajustes/autorizaciones/autorizados/columns";
 import axios from "@/lib/axios";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { MaintenanceAircraft } from "@/types";

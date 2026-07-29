@@ -15,10 +15,13 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import type { Department, Employee, GeneralArticle, ThirdParty, Unit } from "@/types"
-import type { AuthorizedEmployeeResponse } from "@/hooks/sistema/autorizados/useGetAuthorizedEmployees"
+import type { AuthorizedEmployeeResponse } from "@/hooks/ajustes/autorizados/useGetAuthorizedEmployees"
 import type { RequisitionGeneralArticleForm } from "@/types/purchase"
 import { ArticleImageAttachment } from "./ArticleImageAttachment"
 import { RequiredIndicator } from "./RequiredIndicator"
+import { ActiveRequisitionWarning } from "./ActiveRequisitionWarning"
+import { getRequisitionArticleKey } from "@/hooks/mantenimiento/compras/useGetActiveGeneralArticleRequisitions"
+import type { ActiveGeneralArticleRequisition } from "@/types/purchase"
 
 interface GeneralArticlesSectionProps {
   form: UseFormReturn<any>;
@@ -45,6 +48,8 @@ interface GeneralArticlesSectionProps {
   enableCreateGeneralArticle?: boolean;
   addManualGeneralArticle?: () => void;
   size?: "default" | "lg";
+  /** Indexadas por getRequisitionArticleKey(). Sin esto no se muestra el aviso de "ya solicitado". */
+  activeRequisitionsByArticle?: Map<string, ActiveGeneralArticleRequisition[]>;
 }
 
 // Authorized employees and third parties are mutually exclusive in a single
@@ -426,6 +431,7 @@ export function GeneralArticlesSection({
   enableCreateGeneralArticle = false,
   addManualGeneralArticle,
   size = "default",
+  activeRequisitionsByArticle,
 }: GeneralArticlesSectionProps) {
   const isLg = size === "lg";
   const labelTextClass = cn(
@@ -578,6 +584,11 @@ export function GeneralArticlesSection({
                     getArticleKey(a.description, a.variant_type, a.brand_model) ===
                     getArticleKey(article.description, article.variant_type, article.brand_model)
                 );
+                // Se resuelve con lo escrito en la fila, así que también atrapa
+                // los artículos tecleados a mano.
+                const activeRequisitions = activeRequisitionsByArticle?.get(
+                  getRequisitionArticleKey(article.description, article.variant_type)
+                ) ?? [];
                 return (
                 <div
                   key={index}
@@ -606,6 +617,10 @@ export function GeneralArticlesSection({
                       </TooltipContent>
                     </Tooltip>
                   </div>
+
+                  {activeRequisitions.length > 0 && (
+                    <ActiveRequisitionWarning entries={activeRequisitions} compact className="mb-2" />
+                  )}
 
                   {isUnregistered ? (
                     <div className="flex items-center gap-2">

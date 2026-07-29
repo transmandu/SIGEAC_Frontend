@@ -30,9 +30,9 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { useGetAircrafts } from "@/hooks/aerolinea/aeronaves/useGetAircrafts";
 import { useGetDispatchReport } from "@/hooks/mantenimiento/almacen/reportes/useGetDispatchReport";
 import { useGetBalanceAndTotalReport } from "@/hooks/mantenimiento/almacen/reportes/useGetBalanceAndTotalReport";
-import { useGetAuthorizedEmployees } from "@/hooks/sistema/autorizados/useGetAuthorizedEmployees";
+import { useGetAuthorizedEmployees } from "@/hooks/ajustes/autorizados/useGetAuthorizedEmployees";
 import { useGetThirdParties } from "@/hooks/general/terceros/useGetThirdParties";
-import { useGetDepartments } from "@/hooks/sistema/departamento/useGetDepartment";
+import { useGetDepartments } from "@/hooks/ajustes/departamento/useGetDepartment";
 
 import { useGetArticlesByStatus } from "@/hooks/mantenimiento/almacen/articulos/useGetArticlesByStatus";
 import { useGetGeneralArticles } from "@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticles";

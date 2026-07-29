@@ -26,12 +26,11 @@ export function GuestSidebar() {
     >
       <SidebarToggle isOpen={isOpen} setIsOpen={setIsOpen} />
 
-      <div className="relative h-full flex flex-col px-3 py-4 overflow-y-auto shadow-md dark:shadow-zinc-800 mt-5">
+      <div className="glass-panel relative h-full flex flex-col px-3 py-4 overflow-y-auto">
         {/* LOGO CONTAINER */}
         <div
           className={cn(
             "flex justify-center items-center mb-1 mt-4",
-            "bg-background",
             "px-4 py-4"
           )}
         >

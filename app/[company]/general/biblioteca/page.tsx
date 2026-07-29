@@ -21,7 +21,7 @@ import {
   X,
   Filter,
 } from "lucide-react";
-import { useGetDepartments } from "@/hooks/sistema/departamento/useGetDepartment";
+import { useGetDepartments } from "@/hooks/ajustes/departamento/useGetDepartment";
 import DocumentTable from "./DocumentTable";
 import UploadModal from "./UploadModal";
 import DocumentViewer from "@/components/library/SecureVisualizer";

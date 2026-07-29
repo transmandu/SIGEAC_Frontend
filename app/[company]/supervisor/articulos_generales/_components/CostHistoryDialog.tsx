@@ -25,7 +25,7 @@ import {
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
-import type { CostChangeEdits, SupervisorCostHistoryEntry } from "@/types/supervisor"
+import type { CostChangeEdits, IntakeUnitEdits, SupervisorCostHistoryEntry } from "@/types/supervisor"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import { CalendarIcon, Lock, Plus, RotateCcw, Trash2 } from "lucide-react"
@@ -40,8 +40,10 @@ import { dependencyBadgeCls, formatSupervisorDateTime } from "./utils/uiHelpers"
  * Distingue dos orígenes con reglas distintas:
  *
  * - PURCHASE: son entradas de compra (general_article_intakes) atadas a una
- *   orden pagada. Se muestran bloqueadas — editarlas o borrarlas rompería el
- *   rastro entre lo que se pagó y lo que entró al inventario.
+ *   orden pagada. El monto y el borrado están bloqueados — romperían el rastro
+ *   entre lo que se pagó y lo que entró. Sí se corrige la unidad: el error
+ *   típico es cotizar el precio de un paquete capturándolo como unidad suelta,
+ *   y el cambio se propaga a su línea de cotización.
  * - MANUAL / SEED: ajustes y siembras de precio. El supervisor puede editarlos,
  *   eliminarlos y añadir nuevos.
  *
@@ -53,6 +55,7 @@ export function CostHistoryDialog({
     onOpenChange,
     history,
     edits,
+    intakeUnits,
     units,
     onApply,
 }: {
@@ -60,9 +63,10 @@ export function CostHistoryDialog({
     onOpenChange: (open: boolean) => void
     history: SupervisorCostHistoryEntry[]
     edits: CostChangeEdits
+    intakeUnits: IntakeUnitEdits
     // Unidades del grupo en fusión, para anclar/corregir la unidad de un costo.
     units: { id: number; label: string }[]
-    onApply: (edits: CostChangeEdits) => void
+    onApply: (edits: CostChangeEdits, intakeUnits: IntakeUnitEdits) => void
 }) {
     // Estado local: solo se propaga al confirmar, para que cerrar con Cancelar
     // descarte lo tecleado sin ensuciar el asistente. Cada ajuste editable lleva
@@ -75,6 +79,8 @@ export function CostHistoryDialog({
     const [created, setCreated] = useState<
         { cost: string; unit_id: number | null; changed_at: string | null }[]
     >([])
+    // Correcciones de unidad de entradas de compra, por intake_id.
+    const [intakeUnitById, setIntakeUnitById] = useState<Record<number, number>>({})
 
     // Unidad por defecto de un ajuste nuevo: la primera del grupo (normalmente la
     // base propuesta). El supervisor la ajusta si el costo es de otra unidad.
@@ -103,11 +109,19 @@ export function CostHistoryDialog({
                 changed_at: row.changed_at ?? null,
             })),
         )
-    }, [open, edits, defaultUnitId])
+        setIntakeUnitById(
+            Object.fromEntries(intakeUnits.map((row) => [row.id, row.unit_id])),
+        )
+    }, [open, edits, intakeUnits, defaultUnitId])
 
     const changeIdOf = (entry: SupervisorCostHistoryEntry): number | null =>
         entry.entry_id.startsWith("change:")
             ? Number(entry.entry_id.slice("change:".length))
+            : null
+
+    const intakeIdOf = (entry: SupervisorCostHistoryEntry): number | null =>
+        entry.entry_id.startsWith("intake:")
+            ? Number(entry.entry_id.slice("intake:".length))
             : null
 
     /** Solo los ya persistidos: los "new:" viven en el estado `created`. */
@@ -119,7 +133,7 @@ export function CostHistoryDialog({
     const editableCount = persisted.filter((entry) => entry.editable).length
 
     const handleConfirm = () => {
-        onApply({
+        const costChanges: CostChangeEdits = {
             created: created
                 .map((row) => ({
                     cost: Number(row.cost),
@@ -137,7 +151,13 @@ export function CostHistoryDialog({
                 }))
                 .filter((row) => Number.isFinite(row.cost) && row.cost >= 0),
             deleted,
-        })
+        }
+
+        const intakeUnitEdits: IntakeUnitEdits = Object.entries(intakeUnitById).map(
+            ([id, unitId]) => ({ id: Number(id), unit_id: unitId }),
+        )
+
+        onApply(costChanges, intakeUnitEdits)
 
         onOpenChange(false)
     }
@@ -150,9 +170,10 @@ export function CostHistoryDialog({
                         Historial de costo
                     </DialogTitle>
                     <DialogDescription className="text-sm text-muted-foreground">
-                        Los registros de compra no se editan: provienen de una orden pagada. Los
-                        ajustes manuales sí puede modificarlos, eliminarlos o añadir nuevos. Todo
-                        se aplica al confirmar la fusión.
+                        De los registros de compra solo puede corregir la unidad — el monto viene
+                        de una orden pagada — y el cambio alcanza también a su cotización. Los
+                        ajustes manuales puede modificarlos, eliminarlos o añadir nuevos. Todo se
+                        aplica al confirmar la fusión.
                     </DialogDescription>
                 </DialogHeader>
 
@@ -170,6 +191,7 @@ export function CostHistoryDialog({
 
                         {persisted.map((entry) => {
                             const changeId = changeIdOf(entry)
+                            const intakeId = intakeIdOf(entry)
                             const isDeleted = changeId !== null && deleted.includes(changeId)
 
                             return (
@@ -186,7 +208,12 @@ export function CostHistoryDialog({
                                     unitId={
                                         changeId !== null
                                             ? updated[changeId]?.unit_id ?? entry.unit_id ?? null
-                                            : entry.unit_id ?? null
+                                            : intakeId !== null
+                                              ? intakeUnitById[intakeId] ?? entry.unit_id ?? null
+                                              : entry.unit_id ?? null
+                                    }
+                                    unitCorrected={
+                                        intakeId !== null && intakeUnitById[intakeId] !== undefined
                                     }
                                     changedAt={
                                         changeId !== null ? updated[changeId]?.changed_at ?? null : null
@@ -203,6 +230,13 @@ export function CostHistoryDialog({
                                         }))
                                     }}
                                     onUnitChange={(unitId) => {
+                                        if (intakeId !== null) {
+                                            setIntakeUnitById((current) => ({
+                                                ...current,
+                                                [intakeId]: unitId,
+                                            }))
+                                            return
+                                        }
                                         if (changeId === null) return
                                         setUpdated((current) => ({
                                             ...current,
@@ -343,9 +377,9 @@ export function CostHistoryDialog({
 
                     {editableCount === 0 && created.length === 0 && persisted.length > 0 && (
                         <p className="text-[11px] text-muted-foreground/60">
-                            Todo el historial proviene de compras registradas, así que no hay nada
-                            editable. Puede añadir un ajuste manual si necesita corregir el costo
-                            vigente.
+                            Todo el historial proviene de compras registradas: los montos no se
+                            editan. Puede corregir la unidad de cada entrada o añadir un ajuste
+                            manual si necesita cambiar el costo vigente.
                         </p>
                     )}
                 </div>
@@ -369,6 +403,7 @@ function CostEntryRow({
     units,
     value,
     unitId,
+    unitCorrected,
     changedAt,
     onValueChange,
     onUnitChange,
@@ -380,6 +415,8 @@ function CostEntryRow({
     units: { id: number; label: string }[]
     value: string
     unitId: number | null
+    // Solo compras: marca el select cuando la unidad tiene corrección pendiente.
+    unitCorrected?: boolean
     // Fecha pendiente editada por el usuario (ISO), o null si conserva la suya.
     changedAt: string | null
     onValueChange: (value: string) => void
@@ -410,10 +447,32 @@ function CostEntryRow({
                     >
                         {Number(entry.cost ?? 0).toFixed(2)}
                     </span>
-                    {/* La unidad de una compra es inmutable: viene del intake. */}
-                    <span className="text-xs text-muted-foreground/70 w-28 truncate">
-                        {entry.unit_label ?? "—"}
-                    </span>
+                    {units.length > 0 ? (
+                        <Select
+                            value={unitId != null ? String(unitId) : ""}
+                            onValueChange={(next) => onUnitChange(Number(next))}
+                        >
+                            <SelectTrigger
+                                className={cn(
+                                    "h-8 w-28 bg-background border-border/60 text-xs",
+                                    unitCorrected && "border-sky-400/60 bg-sky-500/[0.06]",
+                                )}
+                            >
+                                <SelectValue placeholder="Unidad" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {units.map((unit) => (
+                                    <SelectItem key={unit.id} value={String(unit.id)}>
+                                        {unit.label}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    ) : (
+                        <span className="text-xs text-muted-foreground/70 w-28 truncate">
+                            {entry.unit_label ?? "—"}
+                        </span>
+                    )}
                 </>
             ) : (
                 <>

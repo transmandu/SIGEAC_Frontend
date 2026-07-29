@@ -12,7 +12,7 @@ import {
 import { useState, useEffect } from "react";
 import { CreateClientForm } from "@/components/forms/general/CreateClientForm";
 import { useTourContext } from "@/components/tour/TourProvider";
-import { clientesCrearSteps } from "@/components/tour/steps/ajustes/globales/clientes/clientes-crear";
+import { clientesCrearSteps } from "@/components/tour/steps/ajustes/clientes/clientes-crear";
 
 export function CreateClientDialog() {
   const [open, setOpen] = useState(false);

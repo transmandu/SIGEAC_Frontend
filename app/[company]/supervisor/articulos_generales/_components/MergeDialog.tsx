@@ -34,6 +34,7 @@ import {
 import { cn } from "@/lib/utils"
 import type {
     CostChangeEdits,
+    IntakeUnitEdits,
     MergePreview,
     MergeRequest,
     SupervisorGeneralArticle,
@@ -115,6 +116,7 @@ export function MergeDialog({
      * transacción que la fusión, así que cancelar el merge las descarta.
      */
     const [costEdits, setCostEdits] = useState<CostChangeEdits>({})
+    const [intakeUnitEdits, setIntakeUnitEdits] = useState<IntakeUnitEdits>([])
     const [costDialogOpen, setCostDialogOpen] = useState(false)
 
     const { mergePreview } = useMergePreview()
@@ -180,6 +182,7 @@ export function MergeDialog({
         // superviviente): apuntan a registros concretos del historial, que
         // sigue siendo el mismo grupo aunque cambie cuál fila sobrevive.
         setCostEdits({})
+        setIntakeUnitEdits([])
     }, [open, articles, adoptAsBase])
 
     // Cambiar la definición del resultado invalida el preview: obliga a
@@ -291,13 +294,15 @@ export function MergeDialog({
             {},
         ),
         cost_changes: costEdits,
+        intake_units: intakeUnitEdits,
     })
 
     /** Cuántas ediciones de historial hay pendientes, para el contador del botón. */
     const pendingCostEdits =
         (costEdits.created?.length ?? 0) +
         (costEdits.updated?.length ?? 0) +
-        (costEdits.deleted?.length ?? 0)
+        (costEdits.deleted?.length ?? 0) +
+        intakeUnitEdits.length
 
     const handlePreview = async () => {
         // Se congela lo enviado junto al resultado: es contra esta foto que se
@@ -663,9 +668,11 @@ export function MergeDialog({
                 onOpenChange={setCostDialogOpen}
                 history={costHistory}
                 edits={costEdits}
+                intakeUnits={intakeUnitEdits}
                 units={units}
-                onApply={(next) => {
+                onApply={(next, nextIntakeUnits) => {
                     setCostEdits(next)
+                    setIntakeUnitEdits(nextIntakeUnits)
                     // El preview mostrado ya no refleja el historial: se limpia
                     // para forzar recalcular antes de confirmar.
                     setPreview(null)

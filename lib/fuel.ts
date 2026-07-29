@@ -54,10 +54,22 @@ export const FUEL_TYPES: Array<{ value: FuelType; label: string }> = [
 
 // Tipos de movimiento sin vehiculo asociado: el combustible no se puede
 // derivar de un vehiculo, asi que el usuario debe indicarlo explicitamente.
+// external_refuel tambien lo requiere porque un surtido de GASOIL no va
+// asociado a un vehiculo (ver FUEL_MOVEMENT_TYPES_ALLOWING_VEHICLELESS_DIESEL).
 export const FUEL_MOVEMENT_TYPES_REQUIRING_FUEL_TYPE: FuelMovementType[] = [
   "warehouse_initial_balance",
   "warehouse_dispatch_third_party",
+  "external_refuel",
 ];
+
+// Tipos de movimiento donde, si el combustible seleccionado es GASOIL, el
+// vehiculo deja de ser obligatorio (el surtido de gasoil no se asocia a un
+// vehiculo especifico).
+export const FUEL_MOVEMENT_TYPES_ALLOWING_VEHICLELESS_DIESEL: FuelMovementType[] =
+  ["external_refuel"];
+
+export const movementAllowsVehiclelessDiesel = (type: FuelMovementType) =>
+  FUEL_MOVEMENT_TYPES_ALLOWING_VEHICLELESS_DIESEL.includes(type);
 
 export const movementRequiresFuelTypeSelection = (type: FuelMovementType) =>
   FUEL_MOVEMENT_TYPES_REQUIRING_FUEL_TYPE.includes(type);

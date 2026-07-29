@@ -70,6 +70,7 @@ export type MergeFinalValues = {
     brand_model: string | null;
     variant_type: string | null;
     minimum_quantity: number | null;
+    maximum_quantity: number | null;
     primary_unit_id: number;
     quantity: number;
 };
@@ -104,6 +105,12 @@ export type CostChangeEdits = {
     updated?: { id: number; cost: number; unit_id?: number | null; changed_at?: string }[];
     deleted?: number[];
 };
+
+/**
+ * Corrección de la unidad de un costo venido de compras, propagada al hilo
+ * (cotización y requisición). Solo la unidad: el monto pagado no se toca.
+ */
+export type IntakeUnitEdits = { id: number; unit_id: number }[];
 
 /**
  * Costo vigente del superviviente hoy vs. el que tendrá tras la fusión. Puede
@@ -143,6 +150,7 @@ export type MergeRequest = {
         brand_model: string;
         variant_type: string;
         minimum_quantity: number;
+        maximum_quantity: number;
         primary_unit_id: number;
     }>;
     /**
@@ -152,6 +160,7 @@ export type MergeRequest = {
     conversions?: Record<number, number>;
     /** Ediciones del historial de costo a aplicar junto con la fusión. */
     cost_changes?: CostChangeEdits;
+    intake_units?: IntakeUnitEdits;
 };
 
 // ── Edición ──────────────────────────────────────────────────────────────────
@@ -172,6 +181,7 @@ export type BulkEditRow = {
     brand_model?: string | null;
     variant_type?: string | null;
     minimum_quantity?: number | null;
+    maximum_quantity?: number | null;
     quantity?: number;
     primary_unit_id?: number;
 };
@@ -212,6 +222,7 @@ export type ArticleFieldEdits = Partial<{
     brand_model: string | null;
     variant_type: string | null;
     minimum_quantity: number | null;
+    maximum_quantity: number | null;
     quantity: number;
     primary_unit_id: number;
 }>;
@@ -232,6 +243,7 @@ export type UpdateArticleRequest = {
     article?: ArticleFieldEdits;
     conversions?: ConversionEdits;
     cost_changes?: CostChangeEdits;
+    intake_units?: IntakeUnitEdits;
 };
 
 // ── Recorrido del artículo ───────────────────────────────────────────────────

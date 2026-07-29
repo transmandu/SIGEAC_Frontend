@@ -10,13 +10,17 @@ import {
 } from "@/actions/mantenimiento/compras/requisiciones/actions";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { useGetUserDepartamentEmployees } from "@/hooks/sistema/empleados/useGetUserDepartamentEmployees";
-import { useGetEmployeesByCompany } from "@/hooks/sistema/empleados/useGetEmployees";
+import { useGetUserDepartamentEmployees } from "@/hooks/ajustes/empleados/useGetUserDepartamentEmployees";
+import { useGetEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetEmployees";
 import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits";
-import { useGetDepartments } from "@/hooks/sistema/departamento/useGetDepartment";
+import { useGetDepartments } from "@/hooks/ajustes/departamento/useGetDepartment";
 import { useGetThirdParties } from "@/hooks/general/terceros/useGetThirdParties";
-import { useGetAuthorizedEmployees } from "@/hooks/sistema/autorizados/useGetAuthorizedEmployees";
+import { useGetAuthorizedEmployees } from "@/hooks/ajustes/autorizados/useGetAuthorizedEmployees";
 import { useGetGeneralArticles } from "@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticles";
+import {
+  getRequisitionArticleKey,
+  useGetActiveGeneralArticleRequisitions,
+} from "@/hooks/mantenimiento/compras/useGetActiveGeneralArticleRequisitions";
 
 import { Form } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
@@ -26,6 +30,10 @@ import type { RequisitionGeneralArticleForm } from "@/types/purchase";
 import type { GeneralArticle } from "@/types";
 import { RequisitionHeader } from "./_components/RequisitionHeader";
 import { GeneralArticlesSection } from "./_components/GeneralArticlesSection";
+import {
+  DuplicateRequisitionDialog,
+  type DuplicateRequisitionConflict,
+} from "./_components/DuplicateRequisitionDialog";
 import { AdditionalInfoSection } from "./_components/AdditionalInfoSection";
 import { isHigherPriority, type Priority } from "./_components/priorityUtils";
 import { getStoragePathFromUrl } from "./_components/imageUtils";
@@ -113,10 +121,16 @@ export function CreateGeneralRequisitionForm({
   const { data: generalArticles, isLoading: isGeneralArticlesLoading } =
     useGetGeneralArticles();
 
+  // Al editar se desactiva: la requisición en curso saldría en conflicto consigo misma.
+  const { byArticle: activeRequisitionsByArticle } =
+    useGetActiveGeneralArticleRequisitions(!isEditing);
+
   const { createRequisition } = useCreateRequisition();
   const { updateRequisition } = useUpdateRequisition();
 
   const [selectedGeneralArticles, setSelectedGeneralArticles] = useState<RequisitionGeneralArticleForm[]>([]);
+  // Datos validados, en espera de que el usuario confirme los duplicados.
+  const [pendingSubmit, setPendingSubmit] = useState<FormSchemaType | null>(null);
 
   // Local search state for searchable selectors
   const [employeeSearch, setEmployeeSearch] = useState("");
@@ -256,7 +270,22 @@ export function CreateGeneralRequisitionForm({
 
   /* ------------------------------- SUBMIT --------------------------------- */
 
-  const onSubmit = async (data: FormSchemaType) => {
+  /** Al enviar y no al seleccionar, para atrapar también los escritos a mano. */
+  const findDuplicateConflicts = (data: FormSchemaType): DuplicateRequisitionConflict[] =>
+    data.general_articles.flatMap((article) => {
+      const entries = activeRequisitionsByArticle.get(
+        getRequisitionArticleKey(article.description, article.variant_type)
+      );
+
+      if (!entries?.length) return [];
+
+      return [{
+        label: [article.description, article.variant_type].filter(Boolean).join(" - "),
+        entries,
+      }];
+    });
+
+  const submitRequisition = async (data: FormSchemaType) => {
     if (!selectedCompany) return;
 
     const formattedData = {
@@ -282,6 +311,15 @@ export function CreateGeneralRequisitionForm({
     }
 
     onClose();
+  };
+
+  const onSubmit = async (data: FormSchemaType) => {
+    if (findDuplicateConflicts(data).length > 0) {
+      setPendingSubmit(data);
+      return;
+    }
+
+    await submitRequisition(data);
   };
 
   const isPending = createRequisition.isPending || updateRequisition.isPending;
@@ -331,6 +369,7 @@ export function CreateGeneralRequisitionForm({
           removeGeneralArticle={removeGeneralArticle}
           enableCreateGeneralArticle
           addManualGeneralArticle={addManualGeneralArticle}
+          activeRequisitionsByArticle={activeRequisitionsByArticle}
         />
 
         <AdditionalInfoSection form={form} />
@@ -348,6 +387,17 @@ export function CreateGeneralRequisitionForm({
           {isPending && <Loader2 className="size-4 animate-spin" />}
         </Button>
       </form>
+
+      <DuplicateRequisitionDialog
+        open={pendingSubmit !== null}
+        onOpenChange={(open) => !open && setPendingSubmit(null)}
+        conflicts={pendingSubmit ? findDuplicateConflicts(pendingSubmit) : []}
+        onConfirm={() => {
+          const data = pendingSubmit;
+          setPendingSubmit(null);
+          if (data) void submitRequisition(data);
+        }}
+      />
     </Form>
   );
 }

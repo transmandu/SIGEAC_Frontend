@@ -1,8 +1,8 @@
 "use client";
 
-import { useDeleteBank } from "@/actions/ajustes/banca/bancos/actions";
-import { useDeleteBankAccount } from "@/actions/ajustes/banca/cuentas/actions";
-import { useDeleteBankCard } from "@/actions/ajustes/banca/tarjetas/actions";
+import { useDeleteBank } from "@/actions/sistema/banca/bancos/actions";
+import { useDeleteBankAccount } from "@/actions/sistema/banca/cuentas/actions";
+import { useDeleteBankCard } from "@/actions/sistema/banca/tarjetas/actions";
 import CreateBankAccountForm from "@/components/forms/ajustes/CreateBankAccountForm";
 import CreateBankForm from "@/components/forms/ajustes/CreateBankForm";
 import CreateBankCardForm from "@/components/forms/ajustes/CreateBankCardForm";

@@ -28,12 +28,11 @@ export function Sidebar() {
     >
       <SidebarToggle isOpen={isOpen} setIsOpen={setIsOpen} />
 
-      <div className="relative h-full flex flex-col px-3 py-4 overflow-hidden shadow-md dark:shadow-zinc-800 mt-5">
+      <div className="glass-panel relative h-full flex flex-col px-3 py-4 overflow-hidden">
         {/* LOGO CONTAINER */}
         <div
           className={cn(
             "flex justify-center items-center mb-1 mt-4",
-            "bg-background",
             "px-4 py-4"
           )}
         >
@@ -46,7 +45,11 @@ export function Sidebar() {
             asChild
           >
             <Link
-              href={`/${selectedCompany?.slug}/dashboard`}
+              href={
+                selectedCompany && selectedStation
+                  ? `/${selectedCompany.slug}/dashboard`
+                  : "/inicio"
+              }
               className="flex items-center justify-center w-full"
             >
               <Logo width={120} height={120} />
@@ -54,12 +57,15 @@ export function Sidebar() {
           </Button>
         </div>
 
-        {selectedCompany && selectedStation ? (
-          <Menu isOpen={isOpen} />
-        ) : (
-          <p className="text-sm text-muted-foreground text-center mt-10">
-            Por favor, seleccione una <strong>Empresa</strong> y una{" "}
-            <strong>Estacion</strong>.
+        {/* Sin compañía el menú no se oculta: getMenuList ya devuelve solo los
+            grupos de master, que es justo lo que el SUPERUSER necesita para
+            administrar el sistema sin haber entrado a ninguna empresa. */}
+        <Menu isOpen={isOpen} />
+
+        {!(selectedCompany && selectedStation) && (
+          <p className="text-sm text-muted-foreground text-center mt-6 px-4">
+            Seleccione una <strong>Empresa</strong> y una{" "}
+            <strong>Estación</strong> para ver los módulos operativos.
           </p>
         )}
       </div>

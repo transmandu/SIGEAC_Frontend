@@ -43,7 +43,7 @@ export default function NotificationPanel({
     ? notifications.filter((notification) => !notification.read_at)
     : notifications;
 
-  const { mutate: markAllAsRead, isPending } =
+  const { mutate: markAllAsRead } =
     useMarkAllNotificationsAsRead(
       selectedCompany?.slug!
     );
@@ -150,8 +150,7 @@ export default function NotificationPanel({
                         <TooltipTrigger asChild>
                           <button
                             onClick={() => markAllAsRead()}
-                            disabled={isPending}
-                            className="flex h-9 w-9 items-center justify-center rounded-lg transition-colors hover:bg-muted disabled:opacity-50"
+                            className="flex h-9 w-9 items-center justify-center rounded-lg transition-colors hover:bg-muted"
                           >
                             <CheckCheck className="h-4 w-4 text-blue-500" />
                           </button>

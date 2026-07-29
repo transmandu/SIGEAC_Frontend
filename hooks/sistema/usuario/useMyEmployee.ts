@@ -32,7 +32,13 @@ export const useMyEmployee = () => {
     queryFn: () => fetchMyEmployee(companySlug!),
 
     staleTime: 1000 * 60 * 5,
-    refetchOnWindowFocus: false,
+
+    /**
+     * El Navbar es persistente, así que este hook nunca se remonta: sin esto
+     * nada renovaría la URL firmada de la foto y expiraría en una pestaña
+     * dejada abierta. Respeta staleTime, así que no refetchea en cada alt-tab.
+     */
+    refetchOnWindowFocus: true,
 
     retry: false,
   })

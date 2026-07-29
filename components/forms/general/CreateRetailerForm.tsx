@@ -1,5 +1,5 @@
 'use client';
-import { useCreateRetailer } from "@/actions/ajustes/globales/comercios/actions";
+import { useCreateRetailer } from "@/actions/ajustes/comercios/actions";
 import {
   Form,
   FormControl,

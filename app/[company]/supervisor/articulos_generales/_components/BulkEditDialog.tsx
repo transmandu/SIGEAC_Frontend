@@ -41,6 +41,7 @@ type DraftRow = {
     brand_model: string
     variant_type: string
     minimum_quantity: string
+    maximum_quantity: string
     quantity: string
     primary_unit_id: number | null
 }
@@ -84,6 +85,8 @@ export function BulkEditDialog({
                 variant_type: article.variant_type ?? "",
                 minimum_quantity:
                     article.minimum_quantity != null ? String(article.minimum_quantity) : "",
+                maximum_quantity:
+                    article.maximum_quantity != null ? String(article.maximum_quantity) : "",
                 quantity: String(article.quantity ?? ""),
                 primary_unit_id: article.primary_unit_id,
             })),
@@ -108,7 +111,9 @@ export function BulkEditDialog({
                     row.brand_model !== (original.brand_model ?? "") ||
                     row.variant_type !== (original.variant_type ?? "") ||
                     row.minimum_quantity !==
-                        (original.minimum_quantity != null ? String(original.minimum_quantity) : "")
+                        (original.minimum_quantity != null ? String(original.minimum_quantity) : "") ||
+                    row.maximum_quantity !==
+                        (original.maximum_quantity != null ? String(original.maximum_quantity) : "")
 
                 const stockChanged =
                     stockUnlocked &&
@@ -132,6 +137,7 @@ export function BulkEditDialog({
             brand_model: row.brand_model.trim() || null,
             variant_type: row.variant_type.trim() || null,
             minimum_quantity: row.minimum_quantity === "" ? null : Number(row.minimum_quantity),
+            maximum_quantity: row.maximum_quantity === "" ? null : Number(row.maximum_quantity),
             // Solo si el supervisor desbloqueó la columna: omitir y enviar null
             // no significan lo mismo para el backend.
             ...(stockUnlocked
@@ -190,6 +196,9 @@ export function BulkEditDialog({
                                         <th className="text-left px-2 py-2 text-[10px] font-medium uppercase tracking-wider text-muted-foreground/60 select-none w-24">
                                             Mínimo
                                         </th>
+                                        <th className="text-left px-2 py-2 text-[10px] font-medium uppercase tracking-wider text-muted-foreground/60 select-none w-24">
+                                            Máximo
+                                        </th>
                                         <th
                                             colSpan={2}
                                             className="text-left px-2 py-2 text-[10px] font-medium uppercase tracking-wider text-muted-foreground/60 select-none"
@@ -247,6 +256,20 @@ export function BulkEditDialog({
                                                             updateCell(
                                                                 row.id,
                                                                 "minimum_quantity",
+                                                                value,
+                                                            )
+                                                        }
+                                                        className="h-8 w-20 bg-background/70 border-border/60"
+                                                    />
+                                                </td>
+
+                                                <td className="px-2 py-1.5">
+                                                    <DecimalInput
+                                                        value={row.maximum_quantity}
+                                                        onValueChange={(value) =>
+                                                            updateCell(
+                                                                row.id,
+                                                                "maximum_quantity",
                                                                 value,
                                                             )
                                                         }

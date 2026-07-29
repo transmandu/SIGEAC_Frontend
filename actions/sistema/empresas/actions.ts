@@ -80,6 +80,45 @@ export const useUpdateCompany = () => {
 }
 
 /* =========================
+SYNC MODULES
+========================= */
+export const useSyncCompanyModules = () => {
+  const queryClient = useQueryClient()
+
+  const syncMutation = useMutation({
+    mutationFn: async ({
+      slug,
+      module_ids,
+    }: {
+      slug: string
+      module_ids: number[]
+    }) => {
+      await axiosInstance.put(`/company/${slug}/modules`, {
+        module_ids,
+      })
+    },
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["companies"] })
+
+      toast("¡Actualizado!", {
+        description: "Los módulos de la empresa fueron actualizados.",
+      })
+    },
+
+    onError: (error: any) => {
+      toast("Error", {
+        description:
+          error?.response?.data?.message ??
+          "No se pudieron actualizar los módulos.",
+      })
+    },
+  })
+
+  return { syncCompanyModules: syncMutation }
+}
+
+/* =========================
 DELETE
 ========================= */
 export const useDeleteCompany = () => {

@@ -20,6 +20,8 @@ const UNLOCK_EVENTS: (keyof WindowEventMap)[] = [
   'touchstart',
 ]
 
+const BASE_TITLE = 'SIGEAC'
+
 export function useNotificationEffects({
   notifications,
   unreadCount,
@@ -37,7 +39,6 @@ export function useNotificationEffects({
   const audioUnlockedRef = useRef(false)
   const pendingPlayRef = useRef(false)
 
-  const baseTitleRef = useRef('')
   const titleTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   /**
@@ -59,7 +60,6 @@ export function useNotificationEffects({
 
     audioRef.current = audio
     audioUnlockedRef.current = false
-    baseTitleRef.current = document.title
 
     /**
      * Unlock de audio (obligatorio por políticas del browser).
@@ -120,7 +120,7 @@ export function useNotificationEffects({
 
     titleTimeoutRef.current = setTimeout(() => {
       document.title =
-        count > 0 ? `(${count}) - SIGEAC` : baseTitleRef.current
+        count > 0 ? `(${count}) - SIGEAC` : BASE_TITLE
     }, 4000)
   }
 
@@ -171,7 +171,7 @@ export function useNotificationEffects({
         document.title =
           unreadCount > 0
             ? `(${unreadCount}) - SIGEAC`
-            : baseTitleRef.current
+            : BASE_TITLE
       }
     }
 

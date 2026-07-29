@@ -851,6 +851,7 @@ export type Employee = {
   end_date?: string | null;
   isActive: boolean;
   photo_url?: string | null;
+  photo_url_lg?: string | null;
   company?: string;
 };
 
@@ -1303,6 +1304,8 @@ export type GeneralArticle = {
   variant_type?: string | null;
   quantity: number;
   minimum_quantity?: number | null;
+  /** Nivel al que repone la requisición automática, no un tope de existencia. */
+  maximum_quantity?: number | null;
   brand_model?: string;
   warehouse: Warehouse;
   general_primary_unit: Unit;
@@ -1563,8 +1566,9 @@ export type CreateFuelMovementPayload = {
   type: FuelMovementType;
   operational_date: string;
   liters: number;
-  // Solo se envia (y solo el backend lo exige) para WAREHOUSE_INITIAL_BALANCE
-  // y WAREHOUSE_DISPATCH_THIRD_PARTY; en el resto se deriva del vehiculo.
+  // Se envia (y el backend lo exige) para WAREHOUSE_INITIAL_BALANCE,
+  // WAREHOUSE_DISPATCH_THIRD_PARTY y EXTERNAL_REFUEL; en el resto se deriva
+  // del vehiculo. En EXTERNAL_REFUEL con GASOIL, vehicle_id va en null.
   fuel_type?: FuelType | null;
   vehicle_id?: number | null;
   third_party_id?: string | number | null;

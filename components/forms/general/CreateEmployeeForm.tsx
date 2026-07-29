@@ -1,6 +1,6 @@
 "use client";
 
-import { useCreateEmployee } from "@/actions/sistema/empresas/empleados/actions";
+import { useCreateEmployee } from "@/actions/ajustes/empleados/actions";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -32,8 +32,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useAddModulesToUser } from '@/actions/sistema/usuarios/actions';
-import { useGetJobTitles } from '@/hooks/sistema/cargo/useGetJobTitles';
-import { useGetDepartments } from '@/hooks/sistema/departamento/useGetDepartment';
+import { useGetJobTitles } from '@/hooks/ajustes/cargo/useGetJobTitles';
+import { useGetDepartments } from '@/hooks/ajustes/departamento/useGetDepartment';
 import { useGetLocationsByCompanies } from '@/hooks/sistema/useGetLocationsByCompanies';
 import { useGetLocationsByCompany } from '@/hooks/sistema/useGetLocationsByCompany';
 import { useGetRoles } from '@/hooks/sistema/usuario/useGetRoles';

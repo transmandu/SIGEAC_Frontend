@@ -17,7 +17,7 @@ import { useNotifications } from "@/hooks/notifications/useNotifications";
 import NotificationItem from "@/components/notifications/NotificationItem";
 import { useMemo, useState, useEffect } from "react";
 import { useTourContext } from "@/components/tour/TourProvider";
-import { notificacionesSteps } from "@/components/tour/steps/ajustes/banca/notificaciones";
+import { notificacionesSteps } from "@/components/tour/steps/sistema/banca/notificaciones";
 
 export default function NotificationsPage() {
   const { selectedCompany } = useCompanyStore();
@@ -29,12 +29,14 @@ export default function NotificationsPage() {
 
   const { registerTour, unregisterTour } = useTourContext();
 
+  const hasNotifications = notifications.length > 0;
+
   useEffect(() => {
-    if (notifications && notifications.length > 0) {
-      registerTour("notificaciones", "Notificaciones", notificacionesSteps);
-    }
+    if (!hasNotifications) return;
+
+    registerTour("notificaciones", "Notificaciones", notificacionesSteps);
     return () => unregisterTour("notificaciones");
-  }, [registerTour, unregisterTour, notifications]);
+  }, [registerTour, unregisterTour, hasNotifications]);
 
   const filteredNotifications = useMemo(() => {
     if (!notifications) return [];

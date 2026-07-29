@@ -264,6 +264,21 @@ export interface RequisitionGeneralArticleForm {
   authorized_employee_id?: string;
 }
 
+/** A general article already travelling in an open requisition. */
+export interface ActiveGeneralArticleRequisition {
+  description: string;
+  variant_type?: string | null;
+  quantity: number;
+  unit_label?: string | null;
+  order_number: string;
+  order_status: string;
+  /** Requester's full name, or their DNI when no employee row matches. */
+  requested_by?: string | null;
+  /** 'SYSTEM' when the low-stock alert created it, rather than a person. */
+  created_by?: string | null;
+  created_at: string;
+}
+
 /** Mutation payload for creating / updating a requisition order. */
 export interface CreateRequisitionData {
   justification?: string;

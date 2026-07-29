@@ -18,7 +18,7 @@ import * as z from "zod"
 
 import { Loader2 } from "lucide-react"
 
-import { useUpdateDepartment } from "@/actions/sistema/empresas/departamento/actions"
+import { useUpdateDepartment } from "@/actions/ajustes/departamento/actions"
 import { useCompanyStore } from "@/stores/CompanyStore"
 import { Department } from "@/types"
 

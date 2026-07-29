@@ -7,11 +7,11 @@ import { useGetBatchesByLocationId } from "@/hooks/mantenimiento/almacen/renglon
 import { useSearchBatchesWithArticles, type BatchWithArticles } from "@/hooks/mantenimiento/almacen/renglones/useSearchBatchesWithArticles"
 import { useGetMaintenanceAircrafts } from '@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts'
 import { useGetWorkOrders } from '@/hooks/mantenimiento/planificacion/useGetWorkOrders'
-import { useGetUserDepartamentEmployees } from "@/hooks/sistema/empleados/useGetUserDepartamentEmployees"
-import { useGetEmployeesByCompany } from "@/hooks/sistema/empleados/useGetEmployees"
-import { useGetDepartments } from "@/hooks/sistema/departamento/useGetDepartment"
+import { useGetUserDepartamentEmployees } from "@/hooks/ajustes/empleados/useGetUserDepartamentEmployees"
+import { useGetEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetEmployees"
+import { useGetDepartments } from "@/hooks/ajustes/departamento/useGetDepartment"
 import { useGetThirdParties } from "@/hooks/general/terceros/useGetThirdParties"
-import { useGetAuthorizedEmployees } from "@/hooks/sistema/autorizados/useGetAuthorizedEmployees"
+import { useGetAuthorizedEmployees } from "@/hooks/ajustes/autorizados/useGetAuthorizedEmployees"
 import { useCompanyStore } from "@/stores/CompanyStore"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Loader2, Send, Plane, Package } from "lucide-react"
@@ -28,6 +28,14 @@ import { Separator } from "@/components/ui/separator"
 import { RequisitionHeader } from "./_components/RequisitionHeader"
 import { BatchArticlesSection } from "./_components/BatchArticlesSection"
 import { GeneralArticlesSection } from "./_components/GeneralArticlesSection"
+import {
+  DuplicateRequisitionDialog,
+  type DuplicateRequisitionConflict,
+} from "./_components/DuplicateRequisitionDialog"
+import {
+  getRequisitionArticleKey,
+  useGetActiveGeneralArticleRequisitions,
+} from "@/hooks/mantenimiento/compras/useGetActiveGeneralArticleRequisitions"
 import { AdditionalInfoSection } from "./_components/AdditionalInfoSection"
 import { isHigherPriority, type Priority } from "./_components/priorityUtils"
 import { getStoragePathFromUrl } from "./_components/imageUtils"
@@ -174,6 +182,12 @@ export function CreateWarehouseRequisitionForm({
 
   const [selectedBatches, setSelectedBatches] = useState<RequisitionBatchForm[]>([]);
   const [selectedGeneralArticles, setSelectedGeneralArticles] = useState<RequisitionGeneralArticleForm[]>([]);
+  // Datos validados, en espera de que el usuario confirme los duplicados.
+  const [pendingSubmit, setPendingSubmit] = useState<FormSchemaType | null>(null);
+
+  // Solo en modo GENERAL: el aeronáutico identifica sus artículos por part_number.
+  const { byArticle: activeRequisitionsByArticle } =
+    useGetActiveGeneralArticleRequisitions(requisitionType === "GENERAL");
 
   // Local search state for each searchable selector (keeps filtering stable during typing)
   const [employeeSearch, setEmployeeSearch] = useState("");
@@ -555,7 +569,25 @@ export function CreateWarehouseRequisitionForm({
     });
   };
 
-  const onSubmit = async (data: FormSchemaType) => {
+  /** Al enviar y no al seleccionar, para atrapar también los escritos a mano. */
+  const findDuplicateConflicts = (data: FormSchemaType): DuplicateRequisitionConflict[] => {
+    if (requisitionType !== "GENERAL") return [];
+
+    return (data.general_articles ?? []).flatMap((article) => {
+      const entries = activeRequisitionsByArticle.get(
+        getRequisitionArticleKey(article.description, article.variant_type)
+      );
+
+      if (!entries?.length) return [];
+
+      return [{
+        label: [article.description, article.variant_type].filter(Boolean).join(" - "),
+        entries,
+      }];
+    });
+  };
+
+  const submitRequisition = async (data: FormSchemaType) => {
     const formattedData = {
       ...data,
       type: requisitionType,
@@ -577,6 +609,15 @@ export function CreateWarehouseRequisitionForm({
 
     await createRequisition.mutateAsync({ data: formattedData, company: selectedCompany!.slug });
     onClose();
+  };
+
+  const onSubmit = async (data: FormSchemaType) => {
+    if (findDuplicateConflicts(data).length > 0) {
+      setPendingSubmit(data);
+      return;
+    }
+
+    await submitRequisition(data);
   };
 
   return (
@@ -698,6 +739,7 @@ export function CreateWarehouseRequisitionForm({
             enableCreateGeneralArticle
             addManualGeneralArticle={addManualGeneralArticle}
             size={itemLabelSize}
+            activeRequisitionsByArticle={activeRequisitionsByArticle}
           />
         )}
 
@@ -716,6 +758,17 @@ export function CreateWarehouseRequisitionForm({
           )}
         </Button>
       </form>
+
+      <DuplicateRequisitionDialog
+        open={pendingSubmit !== null}
+        onOpenChange={(open) => !open && setPendingSubmit(null)}
+        conflicts={pendingSubmit ? findDuplicateConflicts(pendingSubmit) : []}
+        onConfirm={() => {
+          const data = pendingSubmit;
+          setPendingSubmit(null);
+          if (data) void submitRequisition(data);
+        }}
+      />
     </Form>
   );
 }
