@@ -89,6 +89,4 @@ export const formatSupervisorDateTime = (date?: string | Date | null): string =>
   return `${formatSupervisorDate(d)} · ${format(d, 'HH:mm')}`;
 };
 
-/** Cantidades siempre a 2 decimales, para que las columnas alineen en tabular-nums. */
-export const formatQuantity = (value: number | string | null | undefined): string =>
-  Number(value ?? 0).toFixed(2);
+export { formatQuantity } from '@/lib/utils';

@@ -11,6 +11,7 @@ import { ImageIcon, ImageOff, Loader2 } from "lucide-react"
 import Image from "next/image"
 import { useState } from "react"
 import { numericSortingFn, textSortingFn } from "@/lib/warehouse/sorting"
+import { formatQuantity } from "@/lib/utils"
 
 /**
  * Popover por fila en vez de un Dialog global: permite recorrer el inventario
@@ -200,7 +201,7 @@ export const buildGeneralColumns = (
                         variant={isAvailable ? "default" : "destructive"}
                         className="tabular-nums px-2 py-1 text-xs"
                     >
-                        {isAvailable ? qty : "No Disponible"}
+                        {isAvailable ? formatQuantity(qty) : "No Disponible"}
                     </Badge>
                 </div>
             )

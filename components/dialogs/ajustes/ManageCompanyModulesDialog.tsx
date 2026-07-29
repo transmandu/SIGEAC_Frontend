@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { Boxes, Loader2 } from 'lucide-react'
+import { Boxes, Loader2, TriangleAlert } from 'lucide-react'
 
 import {
     Dialog,
@@ -59,6 +59,11 @@ const ManageCompanyModulesDialog = ({
         selected.length !== assignedIds.length ||
         selected.some((id) => !assignedIds.includes(id))
 
+    const removed = useMemo(
+        () => (company.modules ?? []).filter((m) => !selected.includes(m.id)),
+        [company.modules, selected]
+    )
+
     const handleSubmit = async () => {
         await syncCompanyModules.mutateAsync({
             slug: company.slug,
@@ -78,11 +83,30 @@ const ManageCompanyModulesDialog = ({
                     </DialogTitle>
 
                     <DialogDescription>
-                        Seleccione los módulos habilitados para esta empresa. Al
-                        quitar un módulo también se retira el acceso que los
-                        usuarios tuvieran a él en esta empresa.
+                        Seleccione los módulos habilitados para esta empresa.
                     </DialogDescription>
                 </DialogHeader>
+
+                {removed.length > 0 && (
+                    <div className="flex gap-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2.5">
+                        <TriangleAlert className="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-400" />
+
+                        <div className="flex flex-col gap-1 text-xs">
+                            <span className="font-medium text-amber-900 dark:text-amber-200">
+                                Va a quitar {removed.length}{' '}
+                                {removed.length === 1 ? 'módulo' : 'módulos'}
+                            </span>
+
+                            <span className="text-amber-800/90 dark:text-amber-200/80">
+                                Los usuarios perderán su acceso a{' '}
+                                {removed.map((m) => m.label).join(', ')} en esta
+                                empresa y habrá que reasignarlo a mano si lo
+                                vuelve a habilitar. Los datos ya registrados no
+                                se borran.
+                            </span>
+                        </div>
+                    </div>
+                )}
 
                 {isLoading && (
                     <div className="flex items-center justify-center py-10">

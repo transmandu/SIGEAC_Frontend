@@ -26,7 +26,7 @@ import { ArrowRight, ListChecks, Loader2, Wand2 } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { DecimalInput } from "./DecimalInput"
 import SupervisorActionButton from "./SupervisorActionButton"
-import { dependencyBadgeCls } from "./utils/uiHelpers"
+import { dependencyBadgeCls, formatQuantity } from "./utils/uiHelpers"
 
 const TEXT_FIELDS: { key: BulkTextField; label: string }[] = [
     { key: "description", label: "Descripción" },
@@ -288,7 +288,7 @@ export function BulkEditDialog({
                                                         />
                                                     ) : (
                                                         <span className="tabular-nums text-muted-foreground/70">
-                                                            {Number(row.quantity).toFixed(2)}
+                                                            {formatQuantity(row.quantity)}
                                                         </span>
                                                     )}
                                                 </td>

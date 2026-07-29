@@ -35,14 +35,14 @@ import {
 import { useAuth } from '@/contexts/AuthContext'
 import { useGetUnits } from '@/hooks/general/unidades/useGetPrimaryUnits'
 import { useGetGeneralArticleIntakes } from '@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticleIntakes'
-import { useGetIntakeConfirmationPreview } from '@/hooks/mantenimiento/almacen/almacen_general/useGetIntakeConfirmationPreview'
-import { cn } from '@/lib/utils'
+import { useGetIntakeConfirmationPreview, type AppliedConversionPreview } from '@/hooks/mantenimiento/almacen/almacen_general/useGetIntakeConfirmationPreview'
+import { cn, formatQuantity } from '@/lib/utils'
 import { useCompanyStore } from '@/stores/CompanyStore'
 import type { GeneralArticleIntake, GeneralArticleIntakeStatus } from '@/types/purchase'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { Textarea } from '@/components/ui/textarea'
-import { CalendarIcon, ChevronRight, CheckCircle2, Loader2, PackageSearch, Search, XCircle } from 'lucide-react'
+import { ArrowRight, CalendarIcon, ChevronRight, CheckCircle2, Loader2, PackageSearch, Search, XCircle } from 'lucide-react'
 import Link from 'next/link'
 import { memo, useMemo, useState } from 'react'
 import { DownloadReportDialog } from './DownloadReportDialog'
@@ -168,6 +168,43 @@ function UnitConversionPanel({
                 ) : (
                     <>Escribe el número para ver cuánto quedará registrado en inventario.</>
                 )}
+            </p>
+        </div>
+    )
+}
+
+// ── Conversión ya registrada: solo informa, no pide nada ────────────────
+function AppliedConversionNotice({
+    intake,
+    applied,
+}: {
+    intake: GeneralArticleIntake
+    applied: AppliedConversionPreview
+}) {
+    const intakeUnit = (applied.intake_unit_label ?? intake.unit?.label ?? '').toUpperCase()
+    const baseUnit = (applied.existing_unit_label ?? '').toUpperCase()
+
+    return (
+        <div className="rounded-md border border-dashed border-sky-300 bg-sky-50/60 p-3 space-y-2 dark:border-sky-700/60 dark:bg-sky-950/20">
+            <p className="text-xs text-sky-800 dark:text-sky-300">
+                Este artículo se guarda en <span className="font-semibold uppercase">{baseUnit}</span> y ya tiene una
+                equivalencia registrada, así que la conversión se aplicará sola.
+            </p>
+
+            <div className="flex items-center justify-center gap-2 rounded-md bg-background/70 border border-border/60 px-3 py-2.5 text-sm font-semibold">
+                <span className="whitespace-nowrap">
+                    {formatQuantity(intake.quantity)}{' '}
+                    <span className="rounded bg-muted px-1.5 py-0.5 uppercase text-xs">{intakeUnit}</span>
+                </span>
+                <ArrowRight className="size-3.5 text-muted-foreground/50 shrink-0" />
+                <span className="whitespace-nowrap">
+                    {formatQuantity(applied.converted_quantity)}{' '}
+                    <span className="rounded bg-muted px-1.5 py-0.5 uppercase text-xs">{baseUnit}</span>
+                </span>
+            </div>
+
+            <p className="text-[11px] text-muted-foreground text-center">
+                1 {intakeUnit} = {formatQuantity(applied.equivalence)} {baseUnit}
             </p>
         </div>
     )
@@ -351,6 +388,13 @@ function ConfirmIntakeAction({ intake }: { intake: GeneralArticleIntake }) {
                         candidate={conversionCandidate}
                         equivalence={equivalence}
                         onEquivalenceChange={setEquivalence}
+                    />
+                )}
+
+                {!conversionCandidate && preview?.applied_conversion && (
+                    <AppliedConversionNotice
+                        intake={intake}
+                        applied={preview.applied_conversion}
                     />
                 )}
 

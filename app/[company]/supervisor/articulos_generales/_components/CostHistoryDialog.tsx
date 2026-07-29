@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/select"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { cn } from "@/lib/utils"
+import { cn, formatCost } from "@/lib/utils"
 import type { CostChangeEdits, IntakeUnitEdits, SupervisorCostHistoryEntry } from "@/types/supervisor"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
@@ -445,7 +445,7 @@ function CostEntryRow({
                             isDeleted && "line-through",
                         )}
                     >
-                        {Number(entry.cost ?? 0).toFixed(2)}
+                        {formatCost(entry.cost)}
                     </span>
                     {units.length > 0 ? (
                         <Select

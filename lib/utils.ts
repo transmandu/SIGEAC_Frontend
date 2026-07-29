@@ -71,6 +71,30 @@ export function formatCurrency(value: number) {
     }).format(value);
 }
 
+/**
+ * Cantidades de inventario: mínimo 2 decimales y hasta 6, sin ceros de relleno.
+ * El stock guarda la precisión real de las conversiones entre unidades (10.001),
+ * pero un entero se sigue leyendo "10,00".
+ */
+export function formatQuantity(value: number | string | null | undefined): string {
+    return new Intl.NumberFormat("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 6,
+    }).format(Number(value ?? 0));
+}
+
+/**
+ * Costos: 2 decimales, y hasta 4 solo si el valor los tiene. Un costo por unidad
+ * base sale de dividir ($10 entre una caja de 3 = 3,3333), pero lo facturado es
+ * siempre de 2 y no debe mostrarse como "12,0000".
+ */
+export function formatCost(value: number | string | null | undefined): string {
+    return new Intl.NumberFormat("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 4,
+    }).format(Number(value ?? 0));
+}
+
 //función auxiliar para manejar la lógica de los símbolos
 export function getCurrencySymbol(coinType: string): string {
     const symbolMap: Record<string, string> = {
