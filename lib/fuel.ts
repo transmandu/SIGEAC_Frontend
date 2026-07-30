@@ -31,8 +31,20 @@ export const FUEL_QUERY_KEYS = {
     [...FUEL_QUERY_KEYS.all, "movements", company, filters] as const,
   movement: (company?: string, id?: number | null) =>
     [...FUEL_QUERY_KEYS.all, "movement", company, id] as const,
-  traceability: (company?: string, movementId?: number | null) =>
-    [...FUEL_QUERY_KEYS.all, "traceability", company, movementId] as const,
+  traceability: (
+    company?: string,
+    movementId?: number | null,
+    page?: number,
+    perPage?: number,
+  ) =>
+    [
+      ...FUEL_QUERY_KEYS.all,
+      "traceability",
+      company,
+      movementId,
+      page,
+      perPage,
+    ] as const,
 };
 
 export const FUEL_VEHICLE_TYPES: Array<{
@@ -337,7 +349,14 @@ export const normalizeFuelTraceability = (
 ): FuelTraceabilityDetail => ({
   ...detail,
   total_liters: Number(detail?.total_liters ?? 0),
-  fifo_rows: Array.isArray(detail?.fifo_rows)
-    ? detail.fifo_rows.map(normalizeFuelFifoRow)
-    : [],
+  fifo_rows: {
+    ...detail?.fifo_rows,
+    current_page: Number(detail?.fifo_rows?.current_page ?? 1),
+    last_page: Number(detail?.fifo_rows?.last_page ?? 1),
+    per_page: Number(detail?.fifo_rows?.per_page ?? 15),
+    total: Number(detail?.fifo_rows?.total ?? 0),
+    data: Array.isArray(detail?.fifo_rows?.data)
+      ? detail.fifo_rows.data.map(normalizeFuelFifoRow)
+      : [],
+  },
 });

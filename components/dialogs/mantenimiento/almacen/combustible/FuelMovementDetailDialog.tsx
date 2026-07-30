@@ -18,7 +18,7 @@ import {
   getFuelTypeLabel,
 } from "@/lib/fuel";
 import { FuelMovement } from "@/types";
-import { Eye, Loader2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Eye, Loader2 } from "lucide-react";
 import { useState } from "react";
 
 const hasTraceability = (movement: FuelMovement) =>
@@ -34,13 +34,23 @@ export function FuelMovementDetailDialog({
   movement: FuelMovement;
 }) {
   const [open, setOpen] = useState(false);
-  const { data: traceability, isLoading } = useGetFuelTraceability(
+  const [page, setPage] = useState(1);
+  const { data: traceability, isLoading, isFetching } = useGetFuelTraceability(
     company,
     open && hasTraceability(movement) ? movement.id : null,
+    page,
   );
 
+  const fifoRows = traceability?.fifo_rows;
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(nextOpen) => {
+        setOpen(nextOpen);
+        if (!nextOpen) setPage(1);
+      }}
+    >
       <DialogTrigger asChild>
         <Button variant="ghost" size="sm" className="h-8 gap-2">
           <Eye className="h-4 w-4" />
@@ -103,36 +113,68 @@ export function FuelMovementDetailDialog({
                 <Loader2 className="h-4 w-4 animate-spin" />
                 Cargando trazabilidad...
               </div>
-            ) : traceability?.fifo_rows?.length ? (
-              <div className="overflow-hidden rounded-md border">
-                <table className="w-full text-sm">
-                  <thead className="bg-muted/60">
-                    <tr>
-                      <th className="px-3 py-2 text-left font-medium">Entrada</th>
-                      <th className="px-3 py-2 text-left font-medium">Origen</th>
-                      <th className="px-3 py-2 text-right font-medium">Tomados</th>
-                      <th className="px-3 py-2 text-right font-medium">Saldo</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {traceability.fifo_rows.map((row) => (
-                      <tr key={`${row.entry_movement_id}-${row.liters_taken}`} className="border-t">
-                        <td className="px-3 py-2">
-                          #{row.entry_movement_id} - {row.entry_operational_date}
-                        </td>
-                        <td className="px-3 py-2">
-                          {row.source_vehicle?.plate ?? getFuelMovementLabel(row.entry_type)}
-                        </td>
-                        <td className="px-3 py-2 text-right">
-                          {formatLiters(row.liters_taken)}
-                        </td>
-                        <td className="px-3 py-2 text-right">
-                          {formatLiters(row.remaining_liters_after_dispatch)}
-                        </td>
+            ) : fifoRows?.data?.length ? (
+              <div className="space-y-2">
+                <div className="overflow-hidden rounded-md border">
+                  <table className="w-full text-sm">
+                    <thead className="bg-muted/60">
+                      <tr>
+                        <th className="px-3 py-2 text-left font-medium">Entrada</th>
+                        <th className="px-3 py-2 text-left font-medium">Origen</th>
+                        <th className="px-3 py-2 text-right font-medium">Tomados</th>
+                        <th className="px-3 py-2 text-right font-medium">Saldo</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {fifoRows.data.map((row) => (
+                        <tr key={`${row.entry_movement_id}-${row.liters_taken}`} className="border-t">
+                          <td className="px-3 py-2">
+                            #{row.entry_movement_id} - {row.entry_operational_date}
+                          </td>
+                          <td className="px-3 py-2">
+                            {row.source_vehicle?.plate ?? getFuelMovementLabel(row.entry_type)}
+                          </td>
+                          <td className="px-3 py-2 text-right">
+                            {formatLiters(row.liters_taken)}
+                          </td>
+                          <td className="px-3 py-2 text-right">
+                            {formatLiters(row.remaining_liters_after_dispatch)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {fifoRows.total > 0 && (
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <span>
+                      Página {fifoRows.current_page} de {fifoRows.last_page} - {fifoRows.total} entradas
+                    </span>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 w-7 p-0"
+                        disabled={fifoRows.current_page <= 1 || isFetching}
+                        onClick={() => setPage((p) => Math.max(1, p - 1))}
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 w-7 p-0"
+                        disabled={fifoRows.current_page >= fifoRows.last_page || isFetching}
+                        onClick={() =>
+                          setPage((p) => Math.min(fifoRows.last_page, p + 1))
+                        }
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
               <p className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">

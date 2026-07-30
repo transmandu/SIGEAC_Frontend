@@ -13,8 +13,10 @@ import {
 import { formatLiters, getFuelMovementLabel } from "@/lib/fuel";
 import { FuelMovement, FuelVehicle } from "@/types";
 import { format } from "date-fns";
-import { Route } from "lucide-react";
-import { useMemo } from "react";
+import { ChevronLeft, ChevronRight, Route } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+
+const DISPATCHES_PER_PAGE = 15;
 
 export function FuelTraceabilityPanel({
   company,
@@ -29,6 +31,20 @@ export function FuelTraceabilityPanel({
     ["warehouse_dispatch_vehicle", "warehouse_dispatch_third_party"].includes(
       movement.type,
     ),
+  );
+
+  const [page, setPage] = useState(1);
+  const lastPage = Math.max(1, Math.ceil(dispatches.length / DISPATCHES_PER_PAGE));
+
+  // Si el listado de despachos cambia (filtros, refetch) y la pagina actual
+  // queda fuera de rango, se vuelve a la primera.
+  useEffect(() => {
+    setPage((current) => Math.min(current, lastPage));
+  }, [lastPage]);
+
+  const paginatedDispatches = dispatches.slice(
+    (page - 1) * DISPATCHES_PER_PAGE,
+    page * DISPATCHES_PER_PAGE,
   );
 
   // El vehiculo anidado en el movimiento puede venir sin brand/model/color;
@@ -62,8 +78,8 @@ export function FuelTraceabilityPanel({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {dispatches.length ? (
-              dispatches.map((movement) => {
+            {paginatedDispatches.length ? (
+              paginatedDispatches.map((movement) => {
                 const vehicle = movement.vehicle
                   ? vehiclesById.get(movement.vehicle.id) ?? movement.vehicle
                   : null;
@@ -120,6 +136,41 @@ export function FuelTraceabilityPanel({
           </TableBody>
         </Table>
       </div>
+
+      {dispatches.length > 0 && (
+        <div className="flex items-center justify-between text-sm text-muted-foreground">
+          <span>
+            {(page - 1) * DISPATCHES_PER_PAGE + 1}-
+            {Math.min(page * DISPATCHES_PER_PAGE, dispatches.length)} de{" "}
+            {dispatches.length}
+          </span>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 gap-1 px-2"
+              onClick={() => setPage((current) => Math.max(1, current - 1))}
+              disabled={page <= 1}
+            >
+              <ChevronLeft className="h-3.5 w-3.5" />
+              Anterior
+            </Button>
+            <span className="px-1 tabular-nums">
+              Pagina {page} de {lastPage}
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 gap-1 px-2"
+              onClick={() => setPage((current) => Math.min(lastPage, current + 1))}
+              disabled={page >= lastPage}
+            >
+              Siguiente
+              <ChevronRight className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
