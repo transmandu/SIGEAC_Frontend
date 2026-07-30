@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useAuth } from "@/contexts/AuthContext";
 import CreateErrorReportDialog from "@/components/dialogs/sistema/CreateErrorReportDialog";
+import { ERROR_REPORT_VISIBLE_TO_NORMAL_USERS } from "@/lib/errorReportModules";
 
 export default function ErrorReportTrigger() {
   const router = useRouter();
@@ -20,6 +21,10 @@ export default function ErrorReportTrigger() {
   const [open, setOpen] = useState(false);
 
   const isSuperUser = user?.roles?.some((role) => role.name === "SUPERUSER");
+
+  if (!isSuperUser && !ERROR_REPORT_VISIBLE_TO_NORMAL_USERS) {
+    return null;
+  }
 
   const handleClick = () => {
     if (isSuperUser) {
