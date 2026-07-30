@@ -5,6 +5,7 @@ import { SheetMenu } from "@/components/sidebar/SheetMenu";
 import CompanySelect from "../selects/CompanySelect";
 import { ThemeToggler } from "./ThemeToggler";
 import NotificationBell from '@/components/notifications/NotificationBell';
+import ErrorReportTrigger from '@/components/misc/ErrorReportTrigger';
 import { usePageTitle } from '@/contexts/PageTitleContext';
 import { useScrollGlass } from '@/hooks/helpers/use-scroll-glass';
 
@@ -39,6 +40,7 @@ export function Navbar() {
         {/* DERECHA */}
         <div className="flex items-center gap-2 ml-auto flex-shrink-0 z-10">
           <ThemeToggler />
+          <ErrorReportTrigger />
           <NotificationBell />
           <UserNav />
         </div>

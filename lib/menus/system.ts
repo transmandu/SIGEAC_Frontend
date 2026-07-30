@@ -1,5 +1,6 @@
 import type { Group, MenuContext } from "@/lib/menus/types";
-import { Blocks, Building2, Landmark, User2, Users } from "lucide-react";
+import { Blocks, Building2, HeartHandshake, Landmark, User2, Users } from "lucide-react";
+import { ERROR_REPORT_VISIBLE_TO_NORMAL_USERS } from "@/lib/errorReportModules";
 
 const BANKING_ROLES = [
     "SUPERUSER",
@@ -69,6 +70,34 @@ export function buildSystemGroup({ pathname }: MenuContext): Group {
                         active: pathname.startsWith("/sistema/banca/bancos"),
                         roles: BANKING_ROLES,
                     },
+                    {
+                        href: "/sistema/autorizaciones/autorizar",
+                        label: "Autorizar Empleados",
+                        active: pathname === "/sistema/autorizaciones/autorizar",
+                    },
+                    {
+                        href: "/sistema/autorizaciones/autorizados",
+                        label: "Empleados Autorizados",
+                        active: pathname === "/sistema/autorizaciones/autorizados",
+                    },
+                ],
+            },
+            {
+                href: "/sistema/reportes",
+                label: "Reportes",
+                active: pathname.includes("/sistema/reportes"),
+                icon: HeartHandshake,
+                // Oculto para usuarios normales por ahora: ver ERROR_REPORT_VISIBLE_TO_NORMAL_USERS.
+                roles: ERROR_REPORT_VISIBLE_TO_NORMAL_USERS ? undefined : ["SUPERUSER"],
+                submenus: [],
+            },
+            {
+                href: "/sistema/empresa/",
+                label: "Empresa",
+                active: pathname.includes("/sistema/empresa/"),
+                icon: Building2,
+                roles: ["ADMIN", "SUPERUSER"],
+                submenus: [
                     {
                         href: "/sistema/banca/cuentas",
                         label: "Cuentas",

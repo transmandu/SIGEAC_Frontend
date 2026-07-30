@@ -1,0 +1,190 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import { ContentLayout } from "@/components/layout/ContentLayout";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Sheet, FileText, Plus, Upload } from "lucide-react";
+import { useGetErrorReports, ErrorReportFilters as Filters } from "@/hooks/sistema/reportes/useGetErrorReports";
+import { useExportErrorReports } from "@/hooks/sistema/reportes/useExportErrorReports";
+import { ErrorReport } from "@/types";
+import { getColumns } from "./columns";
+import { DataTable } from "./data-table";
+import ErrorReportFilters from "./_components/ErrorReportFilters";
+import ErrorReportKpiCards from "./_components/ErrorReportKpiCards";
+import ImportHistoryDialog from "./_components/ImportHistoryDialog";
+import ImportHistoryTable from "./_components/ImportHistoryTable";
+import ErrorReportDiagnosisDialog from "./_components/ErrorReportDiagnosisDialog";
+import CreateErrorReportDialog from "@/components/dialogs/sistema/CreateErrorReportDialog";
+import { useAuth } from "@/contexts/AuthContext";
+
+const DEFAULT_PAGE_SIZE = 25;
+
+export default function ReportesErrorPage() {
+  const { user } = useAuth();
+  const isSuperUser = user?.roles?.some((role) => role.name === "SUPERUSER") ?? false;
+
+  const [filters, setFilters] = useState<Filters>({
+    page: 1,
+    per_page: DEFAULT_PAGE_SIZE,
+  });
+  const [createOpen, setCreateOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
+  const [selectedReport, setSelectedReport] = useState<ErrorReport | null>(null);
+  const [diagnosisOpen, setDiagnosisOpen] = useState(false);
+  const [searchText, setSearchText] = useState("");
+
+  const { data, isLoading } = useGetErrorReports(filters);
+  const { exportErrorReports } = useExportErrorReports();
+
+  const visibleReports = useMemo(() => {
+    const reports = data?.reports ?? [];
+    const term = searchText.trim().toLowerCase();
+    if (!term) return reports;
+
+    return reports.filter((report) => {
+      const haystack = [
+        report.description,
+        report.module,
+        report.reported_by,
+        report.phone,
+        report.http_status,
+        report.http_status_label,
+      ]
+        .filter((value) => value !== null && value !== undefined)
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(term);
+    });
+  }, [data?.reports, searchText]);
+
+  const handleViewDiagnosis = (report: ErrorReport) => {
+    setSelectedReport(report);
+    setDiagnosisOpen(true);
+  };
+
+  const columns = useMemo(
+    () => getColumns(handleViewDiagnosis, isSuperUser),
+    [isSuperUser]
+  );
+
+  const handleFiltersChange = (patch: Partial<Filters>) => {
+    setFilters((prev) => ({ ...prev, ...patch, page: 1 }));
+  };
+
+  const handleReset = () => {
+    setFilters({ page: 1, per_page: DEFAULT_PAGE_SIZE });
+  };
+
+  const handlePaginationChange = (pageIndex: number, pageSize: number) => {
+    setFilters((prev) => ({ ...prev, page: pageIndex + 1, per_page: pageSize }));
+  };
+
+  const exportFilters = { ...filters };
+  delete exportFilters.page;
+  delete exportFilters.per_page;
+
+  if (!isSuperUser) {
+    return (
+      <ContentLayout title="Reportes de Error">
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <h1 className="text-2xl font-bold">Reportes de Error</h1>
+            <Button size="sm" onClick={() => setCreateOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Crear reporte
+            </Button>
+          </div>
+
+          <DataTable
+            columns={columns}
+            data={visibleReports}
+            loading={isLoading}
+            pageIndex={(filters.page ?? 1) - 1}
+            pageSize={filters.per_page ?? DEFAULT_PAGE_SIZE}
+            pageCount={data?.pagination.last_page ?? 0}
+            onPaginationChange={handlePaginationChange}
+          />
+        </div>
+
+        <CreateErrorReportDialog open={createOpen} onOpenChange={setCreateOpen} />
+      </ContentLayout>
+    );
+  }
+
+  return (
+    <ContentLayout title="Reportes de Error">
+      <Tabs defaultValue="reportes" className="flex flex-col gap-4">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <h1 className="text-2xl font-bold">Reportes de Error</h1>
+          <TabsList>
+            <TabsTrigger value="reportes">Reportes</TabsTrigger>
+            <TabsTrigger value="importaciones">Historial de importaciones</TabsTrigger>
+          </TabsList>
+        </div>
+
+        <TabsContent value="reportes" className="flex flex-col gap-4 mt-0">
+          <ErrorReportKpiCards
+            activeStatus={filters.status}
+            onSelect={(status) => handleFiltersChange({ status })}
+          />
+
+          <div className="flex items-center justify-end flex-wrap gap-2">
+            <Button variant="outline" size="sm" onClick={() => exportErrorReports("excel", exportFilters)}>
+              <Sheet className="mr-2 h-4 w-4" />
+              Exportar Excel
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => exportErrorReports("pdf", exportFilters)}>
+              <FileText className="mr-2 h-4 w-4" />
+              Exportar PDF
+            </Button>
+            <Button size="sm" onClick={() => setCreateOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Crear reporte
+            </Button>
+          </div>
+
+          <ErrorReportFilters
+            filters={filters}
+            onChange={handleFiltersChange}
+            onReset={handleReset}
+            searchValue={searchText}
+            onSearchChange={setSearchText}
+          />
+
+          <DataTable
+            columns={columns}
+            data={visibleReports}
+            loading={isLoading}
+            pageIndex={(filters.page ?? 1) - 1}
+            pageSize={filters.per_page ?? DEFAULT_PAGE_SIZE}
+            pageCount={data?.pagination.last_page ?? 0}
+            onPaginationChange={handlePaginationChange}
+            onRowClick={handleViewDiagnosis}
+          />
+        </TabsContent>
+
+        <TabsContent value="importaciones" className="flex flex-col gap-4 mt-0">
+          <div className="flex items-center justify-end">
+            <Button size="sm" onClick={() => setImportOpen(true)}>
+              <Upload className="mr-2 h-4 w-4" />
+              Importar historico WhatsApp
+            </Button>
+          </div>
+          <ImportHistoryTable />
+        </TabsContent>
+      </Tabs>
+
+      <CreateErrorReportDialog open={createOpen} onOpenChange={setCreateOpen} showAdvancedFields />
+      <ImportHistoryDialog open={importOpen} onOpenChange={setImportOpen} />
+
+      {selectedReport && (
+        <ErrorReportDiagnosisDialog
+          open={diagnosisOpen}
+          onOpenChange={setDiagnosisOpen}
+          report={selectedReport}
+        />
+      )}
+    </ContentLayout>
+  );
+}

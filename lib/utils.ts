@@ -12,6 +12,28 @@ export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
 }
 
+// El backend a veces devuelve URLs absolutas de assets (image_url, etc.) con un
+// host distinto al configurado actualmente en NEXT_PUBLIC_HOSTNAME (por ejemplo,
+// generadas cuando el servidor tenía otra IP). Como el resto de la app sí es
+// alcanzable en el host configurado, reescribimos solo el origin y conservamos
+// la ruta tal cual la mandó el backend, en vez de descartar la URL entera.
+export function normalizeAssetUrl(url: string | null | undefined): string | null {
+    if (!url) return null;
+
+    const hostname = process.env.NEXT_PUBLIC_HOSTNAME;
+    if (!hostname) return url;
+
+    try {
+        const target = new URL(url);
+        const base = new URL(hostname);
+        target.protocol = base.protocol;
+        target.host = base.host;
+        return target.toString();
+    } catch {
+        return url;
+    }
+}
+
 export const generateSlug = (name: string) => {
     return name
         .toLowerCase()
