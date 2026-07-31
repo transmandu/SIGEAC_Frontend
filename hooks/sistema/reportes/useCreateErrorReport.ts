@@ -3,6 +3,24 @@ import { ErrorReportSeverity } from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
+const getCreateErrorReportMessage = (error: unknown) => {
+  const maybeAxiosError = error as {
+    response?: {
+      status?: number;
+      data?: { message?: string; errors?: Record<string, string[]> };
+    };
+  };
+  const errors = maybeAxiosError.response?.data?.errors;
+  const firstValidationMessage = errors
+    ? Object.values(errors)[0]?.[0]
+    : undefined;
+  return (
+    firstValidationMessage ||
+    maybeAxiosError.response?.data?.message ||
+    "No se pudo registrar el reporte..."
+  );
+};
+
 interface CreateErrorReportData {
   description: string;
   module?: string;
@@ -39,9 +57,9 @@ export const useCreateErrorReport = () => {
         description: "Tu reporte fue registrado correctamente.",
       });
     },
-    onError: () => {
+    onError: (error) => {
       toast.error("Oops!", {
-        description: "No se pudo registrar el reporte...",
+        description: getCreateErrorReportMessage(error),
       });
     },
   });

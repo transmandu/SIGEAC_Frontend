@@ -157,17 +157,23 @@ export default function CreateErrorReportForm({ onClose, showAdvancedFields = fa
     const tag = REPORT_KINDS.find((k) => k.value === reportKind)?.tag;
     const description = tag ? `${tag} ${values.description}` : values.description;
 
-    await createErrorReport.mutateAsync({
-      description,
-      module: values.module,
-      severity: showSeverity && values.severity
-        ? (values.severity as "LOW" | "MEDIUM" | "HIGH" | "CRITICAL")
-        : undefined,
-      http_status: showHttpStatus && values.http_status
-        ? Number(values.http_status)
-        : undefined,
-      images: images.length > 0 ? images : undefined,
-    });
+    try {
+      await createErrorReport.mutateAsync({
+        description,
+        module: values.module,
+        severity: showSeverity && values.severity
+          ? (values.severity as "LOW" | "MEDIUM" | "HIGH" | "CRITICAL")
+          : undefined,
+        http_status: showHttpStatus && values.http_status
+          ? Number(values.http_status)
+          : undefined,
+        images: images.length > 0 ? images : undefined,
+      });
+    } catch {
+      // El toast de error ya lo muestra useCreateErrorReport (onError); aqui
+      // solo se evita que el rechazo de la promesa quede sin manejar.
+      return;
+    }
     form.reset();
     setImages([]);
     setReportKind("bug");
