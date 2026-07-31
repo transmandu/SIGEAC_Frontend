@@ -350,8 +350,8 @@ export default function ErrorReportDiagnosisDialog({
             <div className="flex flex-wrap justify-end gap-1.5">
               <Chip tone={statusChip.tone}>{statusChip.label}</Chip>
               {severityLabel && <Chip tone="amber">{severityLabel}</Chip>}
-              {report.duplicate_count > 0 && (
-                <Chip tone="slate">×{report.duplicate_count + 1}</Chip>
+              {report.duplicate_count > 1 && (
+                <Chip tone="slate">×{report.duplicate_count}</Chip>
               )}
             </div>
           </div>

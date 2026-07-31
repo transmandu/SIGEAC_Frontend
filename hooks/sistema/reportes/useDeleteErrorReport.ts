@@ -2,6 +2,16 @@ import axiosInstance from "@/lib/axios";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
+const getDeleteErrorReportMessage = (error: unknown) => {
+  const maybeAxiosError = error as {
+    response?: { data?: { message?: string } };
+  };
+  return (
+    maybeAxiosError.response?.data?.message ||
+    "No se pudo eliminar el reporte..."
+  );
+};
+
 export const useDeleteErrorReport = () => {
   const queryClient = useQueryClient();
 
@@ -16,9 +26,9 @@ export const useDeleteErrorReport = () => {
         description: "El reporte fue eliminado.",
       });
     },
-    onError: () => {
+    onError: (error) => {
       toast.error("Oops!", {
-        description: "No se pudo eliminar el reporte...",
+        description: getDeleteErrorReportMessage(error),
       });
     },
   });

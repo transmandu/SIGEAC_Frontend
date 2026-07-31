@@ -26,17 +26,22 @@ export default function ErrorReportActionsDropdown({ report }: { report: ErrorRe
   const { markErrorReportDuplicate } = useMarkErrorReportDuplicate();
 
   const isClosed = report.status === "RESOLVED";
-  const canDelete = report.status === "OPEN";
-
-  if (isClosed) return null;
 
   const handleDelete = async () => {
-    await deleteErrorReport.mutateAsync(report.id);
+    try {
+      await deleteErrorReport.mutateAsync(report.id);
+    } catch {
+      return;
+    }
     setDeleteOpen(false);
   };
 
   const handleDuplicate = async () => {
-    await markErrorReportDuplicate.mutateAsync(report.id);
+    try {
+      await markErrorReportDuplicate.mutateAsync(report.id);
+    } catch {
+      return;
+    }
     setDuplicateOpen(false);
   };
 
@@ -71,15 +76,14 @@ export default function ErrorReportActionsDropdown({ report }: { report: ErrorRe
               Marcar duplicado
             </DropdownMenuItem>
           )}
-          {canDelete && (
-            <DropdownMenuItem
-              className="text-destructive focus:text-destructive"
-              onClick={() => setDeleteOpen(true)}
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Eliminar
-            </DropdownMenuItem>
-          )}
+          {/* El superuser puede eliminar el reporte sin importar su estatus. */}
+          <DropdownMenuItem
+            className="text-destructive focus:text-destructive"
+            onClick={() => setDeleteOpen(true)}
+          >
+            <Trash2 className="mr-2 h-4 w-4" />
+            Eliminar
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 

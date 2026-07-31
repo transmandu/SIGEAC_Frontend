@@ -90,12 +90,12 @@ export function getColumns(
             <Chip tone={tone} icon={<Icon className="h-3 w-3" />}>
               {label}
             </Chip>
-            {duplicateCount > 0 && (
+            {duplicateCount > 1 && (
               <span
                 title="Reportes duplicados"
                 className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-500 dark:bg-slate-800 dark:text-slate-400"
               >
-                ×{duplicateCount + 1}
+                ×{duplicateCount}
               </span>
             )}
           </div>
