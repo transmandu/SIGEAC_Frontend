@@ -4,14 +4,6 @@ import { FuelMovementDialog } from "@/components/dialogs/mantenimiento/almacen/c
 import { CreateFuelVehicleDialog } from "@/components/dialogs/mantenimiento/almacen/combustible/CreateFuelVehicleDialog";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import LoadingPage from "@/components/misc/LoadingPage";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -56,6 +48,7 @@ import { FuelMovementsTable } from "./_components/FuelMovementsTable";
 import { FuelSummaryCards } from "./_components/FuelSummaryCards";
 import { FuelTraceabilityPanel } from "./_components/FuelTraceabilityPanel";
 import { FuelVehiclesTable } from "./_components/FuelVehiclesTable";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const movementFilterOptions: Array<{
   value: FuelMovementType;
@@ -211,19 +204,7 @@ export default function FuelWarehousePage() {
   return (
     <ContentLayout title="Combustible">
       <div className="space-y-5">
-        <Breadcrumb>
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink href={`/${company}/dashboard`}>Inicio</BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>Almacen</BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>Combustible</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
+        <PageHeader />
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2.5">

@@ -6,14 +6,6 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
 
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { MonthYearPicker } from "@/components/selects/MonthYearPicker";
@@ -24,6 +16,7 @@ import { useGetCargoManifestById } from "@/hooks/operaciones/cargo/useGetCargoMa
 import { useTourContext } from "@/components/tour/TourProvider";
 import { cargoManifiestoEditarSteps } from "@/components/tour/steps/cargo/manifiesto-editar";
 import { useEffect } from "react";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const EditarManifiestoPage = () => {
   const params = useParams();
@@ -83,53 +76,7 @@ const EditarManifiestoPage = () => {
     <ContentLayout title={`Editar Manifiesto ${manifest.manifest_number}`}>
       <div className="flex flex-col gap-4">
         {/* Breadcrumb */}
-        <Breadcrumb>
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink href={`/${company}/dashboard`}>
-                Inicio
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-
-            <BreadcrumbSeparator />
-
-            <BreadcrumbItem>Operaciones</BreadcrumbItem>
-
-            <BreadcrumbSeparator />
-
-            <BreadcrumbItem>
-              <BreadcrumbLink href={`/${company}/operaciones/cargo`}>
-                Carga
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-
-            <BreadcrumbSeparator />
-
-            <BreadcrumbItem>
-              <BreadcrumbLink
-                href={`/${company}/operaciones/cargo/manifiestos?month=${manifest.month}&year=${manifest.year}`}
-              >
-                Manifiestos
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-
-            <BreadcrumbSeparator />
-
-            <BreadcrumbItem>
-              <BreadcrumbLink
-                href={`/${company}/operaciones/cargo/manifiestos/${manifest.id}`}
-              >
-                {manifest.manifest_number}
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-
-            <BreadcrumbSeparator />
-
-            <BreadcrumbItem>
-              <BreadcrumbPage>Editar</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
+        <PageHeader />
 
         {/* Header */}
         <div className="flex items-center gap-4 mb-4">

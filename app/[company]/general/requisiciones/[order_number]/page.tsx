@@ -36,6 +36,7 @@ import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { PageHeader } from "@/components/layout/PageHeader";
 
 /* -------------------- TRADUCCIONES -------------------- */
 const STATUS_LABELS: Record<string, string> = {
@@ -521,6 +522,8 @@ const RequisitionPage = () => {
 
   return (
     <ContentLayout title="Inventario">
+      <PageHeader />
+
 
       {/* HEADER */}
       <div className="flex flex-col gap-y-2 mb-10">

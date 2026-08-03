@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { BankCard } from "@/types";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const BankAccountsPage = () => {
   const { selectedCompany } = useCompanyStore();
@@ -28,6 +29,8 @@ const BankAccountsPage = () => {
 
   return (
     <ContentLayout title={"Almacenes"}>
+      <PageHeader />
+
       <h1 className="text-4xl font-bold text-center mb-2">
         Control de Tarjetas
       </h1>

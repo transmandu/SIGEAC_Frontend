@@ -9,6 +9,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { useEffect } from "react";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { clientesSteps } from "@/components/tour/steps/ajustes/clientes/clientes";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 // CAMBIAR ID POR CDI, RIF O LO QUE SEA
 const ClientsPage = () => {
@@ -29,6 +30,8 @@ const ClientsPage = () => {
 
   return (
     <ContentLayout title="Clientes">
+      <PageHeader />
+
       {" "}
       <h1
         className="text-5xl font-bold text-center mt-2"

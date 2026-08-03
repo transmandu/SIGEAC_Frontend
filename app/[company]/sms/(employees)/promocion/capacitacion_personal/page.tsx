@@ -7,6 +7,7 @@ import { Loader2 } from "lucide-react";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const SMSTrainingPage = () => {
   const { selectedCompany } = useCompanyStore();
@@ -18,6 +19,8 @@ const SMSTrainingPage = () => {
 
   return (
     <ContentLayout title="Capacitacion de SMS">
+      <PageHeader />
+
       <div className="flex flex-col gap-y-2">
         {isLoading && (
           <div className="flex w-full h-full justify-center items-center">

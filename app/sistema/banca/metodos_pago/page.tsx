@@ -8,6 +8,7 @@ import { DataTable } from "./data-table";
 import { useEffect } from "react";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { metodosPagoSteps } from "@/components/tour/steps/sistema/banca/metodos-pago";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const PaymentMethodsPage = () => {
   const { data: paymentMethods, isLoading, error } = useGetPaymentMethods();
@@ -23,6 +24,8 @@ const PaymentMethodsPage = () => {
 
   return (
     <ContentLayout title={"Métodos de Pago"}>
+      <PageHeader />
+
       <div data-tour="metodos-pago-title">
         <h1 className="text-4xl font-bold text-center mb-2">
           Control de Métodos de Pago

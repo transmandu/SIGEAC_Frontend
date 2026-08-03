@@ -16,14 +16,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
 import { ArrowLeft } from "lucide-react";
 import CreateCargoManifestForm from "@/components/forms/operaciones/cargo/CreateCargoManifestForm";
 import { useGetAircrafts } from "@/hooks/aerolinea/aeronaves/useGetAircrafts";
@@ -31,6 +23,7 @@ import { useGetExternalAircraftSuggestions } from "@/hooks/operaciones/cargo/use
 import { useGetNextManifestNumber } from "@/hooks/operaciones/cargo/useGetNextManifestNumber";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { cargoManifiestoCrearSteps } from "@/components/tour/steps/cargo/manifiesto-crear";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const NuevoManifiestoPage = () => {
   const params = useParams();
@@ -96,35 +89,7 @@ const NuevoManifiestoPage = () => {
   return (
     <ContentLayout title="Nuevo Manifiesto de Carga">
       <div className="flex flex-col gap-4">
-        <Breadcrumb>
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink href={`/${company}/dashboard`}>
-                Inicio
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>Operaciones</BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbLink href={`/${company}/operaciones/cargo`}>
-                Carga
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbLink
-                href={`/${company}/operaciones/cargo/manifiestos?month=${month}&year=${year}`}
-              >
-                Manifiestos
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>Nuevo Manifiesto</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
+        <PageHeader />
 
         <div className="flex items-center gap-4">
           <Button

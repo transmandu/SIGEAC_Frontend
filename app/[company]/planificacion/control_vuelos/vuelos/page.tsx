@@ -15,6 +15,7 @@ import { getColumns } from "./columns";
 import { DataTable } from "./data-table";
 import { AircraftStatsBanner } from "./_components/AircraftStatsBanner";
 import { useGetAverageCyclesAndHours } from "@/hooks/aerolinea/vuelos/useGetAverageCyclesAndHours";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const FlightControlPage = () => {
   const { selectedCompany } = useCompanyStore();
@@ -74,6 +75,8 @@ const FlightControlPage = () => {
 
   return (
     <ContentLayout title="Control de vuelos">
+      <PageHeader />
+
       <div className="mx-auto w-full max-w-7xl space-y-6">
         <header className="space-y-1">
           <h1 className="text-4xl font-semibold tracking-tight text-center">

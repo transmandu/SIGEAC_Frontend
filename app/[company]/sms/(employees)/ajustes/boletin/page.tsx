@@ -6,6 +6,7 @@ import { columns } from "./columns";
 import { DataTable } from "./data-table";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useGetSafetyBulletins } from "@/hooks/sms/boletin/useGetSafetyBulletins";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const SurveyListPage = () => {
   const { selectedCompany } = useCompanyStore();
@@ -15,6 +16,8 @@ const SurveyListPage = () => {
   }
   return (
     <ContentLayout title="Boletines">
+      <PageHeader />
+
       <div className="flex flex-col gap-y-2">
         {data && <DataTable columns={columns} data={data} />}
         {isError && (

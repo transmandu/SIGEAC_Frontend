@@ -12,6 +12,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { estadisticasSteps } from "@/components/tour/steps/general/cursos/estadisticas";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const CourseStatsPage = () => {
   const { selectedCompany, selectedStation } = useCompanyStore();
@@ -105,6 +106,8 @@ const CourseStatsPage = () => {
 
   return (
     <ContentLayout title="Gráficos Estadísticos de Cursos">
+      <PageHeader />
+
       <div className="flex flex-col space-y-4 mb-6">
         <div
           className="flex justify-center items-center"

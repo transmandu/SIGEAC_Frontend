@@ -15,6 +15,7 @@ import { useParams } from "next/navigation";
 import { useEffect } from "react";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { cargoGuiaCrearSteps } from "@/components/tour/steps/cargo/guia-crear";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 export default function NewCargoShipmentPage() {
   const params = useParams();
@@ -29,6 +30,8 @@ export default function NewCargoShipmentPage() {
 
   return (
     <ContentLayout title="Registrar Carga">
+      <PageHeader />
+
       <div className="space-y-6">
         <div className="flex items-center gap-4">
           <Button asChild variant="outline" size="icon" className="h-9 w-9" data-tour="cargo-crear-btn-volver">

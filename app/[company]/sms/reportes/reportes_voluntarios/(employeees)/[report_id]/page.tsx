@@ -38,6 +38,7 @@ import Image from "next/image";
 import ImageZoom from "@/components/ui/ImageZoom";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const ShowVoluntaryReport = () => {
   const { report_id } = useParams<{ report_id: string }>();
@@ -443,6 +444,8 @@ const ShowVoluntaryReport = () => {
 
   return (
     <ContentLayout title="Detalles del Reporte Voluntario">
+      <PageHeader />
+
       {renderActionButtons()}
 
       {/* LOADING */}

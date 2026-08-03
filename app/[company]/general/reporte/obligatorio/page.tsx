@@ -7,6 +7,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { useEffect } from "react";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { obligatorioSteps } from "@/components/tour/steps/general/sms/obligatorios";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const CreateObligatoryReport = () => {
   const { selectedCompany } = useCompanyStore();
@@ -27,6 +28,8 @@ const CreateObligatoryReport = () => {
     : CreateObligatoryReportForm;
   return (
     <ContentLayout title="Creacion de Reporte Obligatorio">
+      <PageHeader />
+
       <div
         className="flex flex-col justify-center items-center"
         data-tour="obligatorio-header"

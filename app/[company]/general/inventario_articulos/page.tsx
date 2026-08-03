@@ -1,14 +1,6 @@
 "use client";
 
 import { ContentLayout } from "@/components/layout/ContentLayout";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -32,6 +24,7 @@ import {
 import { DataTable } from "./data-table";
 import { useGetWarehouseArticlesByCategory } from "@/hooks/mantenimiento/almacen/articulos/useGetWarehouseArticlesByCategory";
 import { columns as GeneralColums } from "../../almacen/inventario_articulos/_tables/general-columns";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const InventarioArticulosPage = () => {
   const { selectedCompany } = useCompanyStore();
@@ -161,19 +154,7 @@ const InventarioArticulosPage = () => {
     <ContentLayout title="Inventario">
       <div className="flex flex-col gap-y-4">
         {/* Breadcrumbs */}
-        <Breadcrumb>
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink href={`/${selectedCompany?.slug}/dashboard`}>
-                Inicio
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>Inventario General</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
+        <PageHeader />
 
         {/* Header */}
         <div className="text-center space-y-2">

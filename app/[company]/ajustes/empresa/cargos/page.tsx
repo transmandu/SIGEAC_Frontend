@@ -6,6 +6,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { Loader2 } from "lucide-react";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const JobTitlePage = () => {
 
@@ -18,6 +19,8 @@ const JobTitlePage = () => {
 
   return (
     <ContentLayout title="Cargos">
+      <PageHeader />
+
       <h1 className="font-bold text-4xl text-center">Gestión de Cargos</h1>
       <p className="text-muted-foreground text-sm italic text-center mb-2">
         Aquí puede ver el listado de los cargos registrados en el sistema.

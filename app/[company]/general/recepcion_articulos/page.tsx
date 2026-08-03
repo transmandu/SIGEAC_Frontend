@@ -2,15 +2,6 @@
 'use client'
 
 import { ContentLayout } from '@/components/layout/ContentLayout'
-import BackButton from '@/components/misc/BackButton'
-import {
-    Breadcrumb,
-    BreadcrumbItem,
-    BreadcrumbLink,
-    BreadcrumbList,
-    BreadcrumbPage,
-    BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useAuth } from '@/contexts/AuthContext'
 import { useCompanyStore } from '@/stores/CompanyStore'
@@ -18,6 +9,7 @@ import { ShieldOff } from 'lucide-react'
 import { useState } from 'react'
 import { ArticulosEnTransitoTab } from './_components/ArticulosEnTransitoTab'
 import { RecepcionGeneralTab } from './_components/RecepcionGeneralTab'
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const ALMACEN_ROLES = ['ALMACEN', 'JEFE_ALMACEN', 'ANALISTA_ALMACEN', 'SUPERUSER']
 
@@ -46,26 +38,7 @@ const RecepcionArticulosPage = () => {
             <div className="flex flex-col gap-y-3">
 
                 {/* Breadcrumb */}
-                <div className="flex items-center gap-2">
-                    <BackButton iconOnly tooltip="Volver" variant="secondary" />
-                    <Breadcrumb>
-                        <BreadcrumbList>
-                            <BreadcrumbItem>
-                                <BreadcrumbLink href={`/${selectedCompany?.slug ?? ''}/dashboard`}>
-                                    Inicio
-                                </BreadcrumbLink>
-                            </BreadcrumbItem>
-                            <BreadcrumbSeparator />
-                            <BreadcrumbItem>
-                                General
-                            </BreadcrumbItem>
-                            <BreadcrumbSeparator />
-                            <BreadcrumbItem>
-                                <BreadcrumbPage>Recepción de Artículos</BreadcrumbPage>
-                            </BreadcrumbItem>
-                        </BreadcrumbList>
-                    </Breadcrumb>
-                </div>
+                <PageHeader />
 
                 {/* Encabezado */}
                 <div className="flex items-center justify-between">

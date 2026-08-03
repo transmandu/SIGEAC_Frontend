@@ -12,16 +12,7 @@ import { DataTable } from "./data-table";
 import { EmployeeExpandedRow } from "./_components/EmployeeExpandedRow";
 
 import LoadingPage from "@/components/misc/LoadingPage";
-import BackButton from "@/components/misc/BackButton";
 
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
 
 import {
   Tabs,
@@ -29,6 +20,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const EmployeePage = () => {
   const { selectedCompany } = useCompanyStore();
@@ -61,27 +53,7 @@ const EmployeePage = () => {
       <div className="flex flex-col gap-y-2">
 
         {/* HEADER */}
-        <div className="flex items-center gap-2">
-          <BackButton iconOnly tooltip="Volver" variant="secondary" />
-
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbLink href={`/${selectedCompany?.slug ?? ""}/dashboard`}>
-                  Inicio
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbLink>Empleados</BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbPage>Listado</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-        </div>
+        <PageHeader />
 
         <div className="flex items-baseline justify-between">
           <h1 className="text-2xl font-bold">Gestión de Empleados</h1>

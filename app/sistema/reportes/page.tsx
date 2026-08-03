@@ -17,6 +17,7 @@ import ImportHistoryTable from "./_components/ImportHistoryTable";
 import ErrorReportDiagnosisDialog from "./_components/ErrorReportDiagnosisDialog";
 import CreateErrorReportDialog from "@/components/dialogs/sistema/CreateErrorReportDialog";
 import { useAuth } from "@/contexts/AuthContext";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const DEFAULT_PAGE_SIZE = 25;
 
@@ -87,6 +88,8 @@ export default function ReportesErrorPage() {
   if (!isSuperUser) {
     return (
       <ContentLayout title="Reportes de Error">
+        <PageHeader />
+
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between flex-wrap gap-2">
             <h1 className="text-2xl font-bold">Reportes de Error</h1>
@@ -114,6 +117,8 @@ export default function ReportesErrorPage() {
 
   return (
     <ContentLayout title="Reportes de Error">
+      <PageHeader />
+
       <Tabs defaultValue="reportes" className="flex flex-col gap-4">
         <div className="flex items-center justify-between flex-wrap gap-2">
           <h1 className="text-2xl font-bold">Reportes de Error</h1>

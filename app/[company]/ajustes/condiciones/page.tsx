@@ -9,6 +9,7 @@ import { DataTable } from "./data-table";
 import { useEffect } from "react";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { condicionesSteps } from "@/components/tour/steps/ajustes/condiciones";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const ClientsPage = () => {
   const { selectedCompany } = useCompanyStore();
@@ -29,6 +30,8 @@ const ClientsPage = () => {
 
   return (
     <ContentLayout title="Condiciones">
+      <PageHeader />
+
       {" "}
       <h1
         className="text-5xl font-bold text-center mt-2"

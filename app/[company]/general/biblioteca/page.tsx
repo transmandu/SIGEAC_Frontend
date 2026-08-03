@@ -37,6 +37,7 @@ import DashboardModal from "@/components/library/DashboardModal";
 import libraryService, { FolderNode, Document } from "@/lib/libraryService";
 import axiosInstance from "@/lib/axios";
 import { toast } from "sonner";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const BibliotecaPage = () => {
   const params = useParams();
@@ -554,6 +555,8 @@ const BibliotecaPage = () => {
 
   return (
     <ContentLayout title="Biblioteca Digital">
+      <PageHeader />
+
       <div className="flex flex-col gap-y-4">
         {loading ? (
           <div className="w-full rounded-[2rem] border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#1a1c1e] shadow-xl animate-pulse overflow-hidden">

@@ -1,10 +1,8 @@
 'use client';
 
 import { ContentLayout } from '@/components/layout/ContentLayout';
-import BackButton from '@/components/misc/BackButton';
 import LoadingPage from '@/components/misc/LoadingPage';
 import { Badge } from '@/components/ui/badge';
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import { useGetQuoteByQuoteNumber } from '@/hooks/mantenimiento/compras/useGetQuoteByQuoteNumber';
 import { useCompanyStore } from '@/stores/CompanyStore';
 import { CalendarDays, FileText, MessageSquare, Truck, User } from 'lucide-react';
@@ -17,6 +15,7 @@ import QuoteGeneralArticleCard from './_components/QuoteGeneralArticleCard';
 import QuoteOutOfScope from './_components/QuoteOutOfScope';
 import { statusBadgeCls, statusLabel, formatQuoteDate } from './_components/utils/uiHelpers';
 import { isGeneralQuoteScope } from '@/lib/purchases/quote-scope';
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const QuotePage = () => {
   const { selectedCompany } = useCompanyStore();
@@ -52,33 +51,7 @@ const QuotePage = () => {
       <div className="flex flex-col gap-6">
 
         {/* ── Breadcrumb ──────────────────────────────────────────────── */}
-        <div className="flex items-center gap-3">
-          <BackButton iconOnly tooltip="Volver" variant="secondary" />
-
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbLink href={`/${selectedCompany?.slug}/dashboard`}>
-                  Inicio
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-
-              <BreadcrumbSeparator />
-
-              <BreadcrumbItem>
-                <BreadcrumbLink href={`/${selectedCompany?.slug}/compras/cotizaciones_generales`}>
-                  Cotizaciones Generales
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-
-              <BreadcrumbSeparator />
-
-              <BreadcrumbItem>
-                <BreadcrumbPage>{quote_number}</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-        </div>
+        <PageHeader currentLabel={quote_number} />
 
         {/* ── Header ──────────────────────────────────────────────────── */}
         <div className="flex flex-col gap-2 border-b border-border/60 pb-4">

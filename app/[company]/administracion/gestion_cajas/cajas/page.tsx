@@ -5,6 +5,7 @@ import LoadingPage from "@/components/misc/LoadingPage";
 import { useGetCash } from "@/hooks/aerolinea/cajas/useGetCash";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const Cash = () => {
   const { data, isLoading, isError } = useGetCash();
@@ -15,6 +16,8 @@ const Cash = () => {
 
   return (
     <ContentLayout title="Caja">
+      <PageHeader />
+
       {" "}
       <h1 className="text-5xl font-bold text-center mt-2">Control de Cajas</h1>
       <p className="text-sm text-muted-foreground text-center italic mt-2">

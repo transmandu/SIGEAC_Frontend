@@ -8,6 +8,7 @@ import { useEffect } from "react";
 import { useTourContext } from "@/components/tour/TourProvider";
 
 import { voluntarioSteps } from "@/components/tour/steps/general/sms/voluntario";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const CreateVoluntaryReport = () => {
   const { selectedCompany } = useCompanyStore();
@@ -23,6 +24,8 @@ const CreateVoluntaryReport = () => {
     : CreateVoluntaryReportForm;
   return (
     <ContentLayout title="Creación de Reporte Voluntario">
+      <PageHeader />
+
       <div
         className="flex flex-col justify-center items-center"
         data-tour="voluntario-header"

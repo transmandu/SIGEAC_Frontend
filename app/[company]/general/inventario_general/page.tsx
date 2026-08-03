@@ -1,14 +1,6 @@
 "use client";
 
 import { ContentLayout } from "@/components/layout/ContentLayout";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +12,7 @@ import { Loader2, X } from "lucide-react";
 import { useState, useMemo } from "react";
 import { DataTable } from "./data-table";
 import { columns as generalColumns } from "../../almacen/inventario_articulos/_tables/general-columns";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const ROLES_WITH_QUANTITY_VISIBLE = ["ASISTENTE_COMPRAS", "SERVICIOS_GENERALES"];
 
@@ -113,19 +106,7 @@ const InventarioGeneralPage = () => {
   return (
     <ContentLayout title="Inventario General">
       <div className="flex flex-col gap-y-4">
-        <Breadcrumb>
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink href={`/${selectedCompany?.slug}/dashboard`}>
-                Inicio
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>Inventario General</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
+        <PageHeader />
 
         <div className="text-center space-y-2">
           <h1 className="text-4xl font-bold">Inventario General</h1>

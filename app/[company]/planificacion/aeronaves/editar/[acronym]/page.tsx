@@ -18,6 +18,7 @@ import LoadingPage from "@/components/misc/LoadingPage";
 import { useGetClients } from "@/hooks/general/clientes/useGetClients";
 import { useGetManufacturers } from "@/hooks/general/condiciones/useGetConditions";
 import { parseISO } from "date-fns";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 interface AircraftPart {
     id?: number; // ID para actualizaciones
@@ -317,6 +318,8 @@ export default function EditAircraftPage({ params }: { params: { acronym: string
     if (isError || !aircraft) {
         return (
             <ContentLayout title="Error">
+              <PageHeader />
+
                 <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
                     <h2 className="text-2xl font-bold text-destructive">Aeronave no encontrada</h2>
                     <p className="text-muted-foreground">No se pudo cargar la información de la aeronave {params.acronym}</p>
@@ -331,6 +334,8 @@ export default function EditAircraftPage({ params }: { params: { acronym: string
 
     return (
         <ContentLayout title={`Editar Aeronave: ${aircraft.acronym}`}>
+          <PageHeader />
+
             <div className="space-y-2">
                 <div className="flex items-center justify-between">
                     <div>

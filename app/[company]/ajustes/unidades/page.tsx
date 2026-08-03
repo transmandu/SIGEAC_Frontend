@@ -14,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { unidadesSteps } from "@/components/tour/steps/ajustes/unidades";
 import { useTour } from "@reactour/tour";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const UnitsPage = () => {
   const { selectedCompany } = useCompanyStore();
@@ -54,6 +55,8 @@ const UnitsPage = () => {
 
   return (
     <ContentLayout title="Unidades">
+      <PageHeader />
+
       <h1
         className="text-5xl font-bold text-center mt-2"
         data-tour="unidades-title"

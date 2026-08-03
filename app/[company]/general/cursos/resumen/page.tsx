@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/accordion";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { resumenSteps } from "@/components/tour/steps/general/cursos/resumen";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 type CourseSummary = {
   key: string;
@@ -540,6 +541,8 @@ const ResumenCapacitacionPage = () => {
 
   return (
     <ContentLayout title="Resumen de Capacitaciones">
+      <PageHeader />
+
       <div className="flex flex-col gap-6 w-full border border-gray-200 dark:border-gray-800 rounded-xl p-6 shadow-sm bg-white dark:bg-[#0b1120]">
         <div
           className="flex flex-col md:flex-row items-center justify-between gap-4 border-b pb-6 dark:border-gray-800"

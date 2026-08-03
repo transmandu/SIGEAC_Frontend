@@ -35,6 +35,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const ShowObligatoryReport = () => {
   const { obligatory_id } = useParams<{ obligatory_id: string }>();
@@ -52,6 +53,8 @@ const ShowObligatoryReport = () => {
 
   return (
     <ContentLayout title="Reportes Obligatorios">
+      <PageHeader />
+
       <div className="flex justify-evenly gap-2 flex-wrap">
         {/* Botón para crear identificación de peligro */}
         {obligatoryReport &&

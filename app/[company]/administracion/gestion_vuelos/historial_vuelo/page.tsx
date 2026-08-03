@@ -1,14 +1,6 @@
 'use client';
 
 import { ContentLayout } from '@/components/layout/ContentLayout';
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,6 +27,7 @@ import { es } from "date-fns/locale";
 import { Calendar as CalendarIcon, Clock, TrendingUp } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 /**
  * Página mejorada de Historial de Vuelos con UI/UX profesional
@@ -151,25 +144,7 @@ const HistorialVueloPage = () => {
     <ContentLayout title='Historial de Vuelo'>
       <div className='flex flex-col gap-y-6 w-full max-w-[calc(100vw-280px)]'>
         {/* Breadcrumbs */}
-        <Breadcrumb>
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink href={`/${selectedCompany?.slug}/dashboard`}>
-                Inicio
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbLink href={`/${selectedCompany?.slug}/administracion/gestion_vuelos/vuelos`}>
-                Gestión de Vuelos
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>Historial de Vuelo</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
+        <PageHeader />
 
         {/* Header con estadísticas */}
         <div className="space-y-4">

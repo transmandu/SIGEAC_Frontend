@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const ShowDangerIdentification = () => {
   const { identification_id } = useParams<{ identification_id: string }>();
@@ -64,6 +65,8 @@ const ShowDangerIdentification = () => {
 
   return (
     <ContentLayout title="Identificación de Peligro">
+      <PageHeader />
+
       {/* Botones de acción */}
       <div className="flex justify-evenly flex-wrap gap-4 mb-6">
         {dangerIdentification && status === "ABIERTO" && (

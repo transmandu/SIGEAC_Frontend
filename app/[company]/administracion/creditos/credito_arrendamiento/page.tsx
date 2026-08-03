@@ -5,6 +5,7 @@ import { columns } from "./columns";
 import LoadingPage from "@/components/misc/LoadingPage";
 import { DataTable } from "./date-table";
 import { useGetCreditRent } from "@/hooks/aerolinea/creditos/useGetCreditRent";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const CreditPage = () => {
   const { data, isLoading, isError } = useGetCreditRent();
@@ -14,6 +15,8 @@ const CreditPage = () => {
   }
   return (
     <ContentLayout title="Crédito">
+      <PageHeader />
+
       {" "}
       <h1 className="text-5xl font-bold text-center mt-2">
         Control de Pagos de un Arrendamiento

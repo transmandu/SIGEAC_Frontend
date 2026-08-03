@@ -5,6 +5,7 @@ import LoadingPage from "@/components/misc/LoadingPage";
 import { useGetCashMovements } from "@/hooks/aerolinea/movimientos/useGetMovement";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const CashMovement = () => {
   const { data, isLoading, isError } = useGetCashMovements();
@@ -14,6 +15,8 @@ const CashMovement = () => {
 
   return (
     <ContentLayout title="Movimientos">
+      <PageHeader />
+
       {" "}
       <h1 className="text-5xl font-bold text-center mt-2">
         Control de Movimientos

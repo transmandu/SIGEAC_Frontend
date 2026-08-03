@@ -5,6 +5,7 @@ import LoadingPage from "@/components/misc/LoadingPage";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
 import { useGetCategory } from "@/hooks/aerolinea/categorias_cuentas/useGetCategory";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const Category = () => {
   const { data, isLoading, isError } = useGetCategory();
@@ -14,6 +15,8 @@ const Category = () => {
 
   return (
     <ContentLayout title="Categoría">
+      <PageHeader />
+
       {" "}
       <h1 className="text-5xl font-bold text-center mt-2">
         Control de Categorías

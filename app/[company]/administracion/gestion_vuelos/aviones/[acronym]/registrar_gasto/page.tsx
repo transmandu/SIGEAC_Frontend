@@ -44,6 +44,7 @@ import { CalendarIcon, Loader2, MinusCircle, PlusCircle } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 // Esquemas Zod (igual que antes)
 const cash_movement_detailsSchema = z.object({
@@ -174,6 +175,8 @@ export default function AircraftExpensesPage() {
 
   return (
     <ContentLayout title="Registro de Gastos">
+      <PageHeader />
+
       <div className="space-y-6">
         <h1 className="text-5xl font-bold text-center">
           Registro de Gastos de Aeronave

@@ -36,6 +36,7 @@ import {
 import { useState, useEffect } from "react";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { cargoManifiestoDetalleSteps } from "@/components/tour/steps/cargo/manifiesto-detalle";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 export default function ManifestDetailPage() {
   const params = useParams();
@@ -58,6 +59,8 @@ export default function ManifestDetailPage() {
   if (isLoading) {
     return (
       <ContentLayout title="Detalle de Manifiesto">
+        <PageHeader />
+
         <div className="flex justify-center items-center h-screen">
           <Loader2 className="animate-spin size-12 text-primary" />
         </div>
@@ -68,6 +71,8 @@ export default function ManifestDetailPage() {
   if (isError || !manifest) {
     return (
       <ContentLayout title="Error">
+        <PageHeader />
+
         <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
           <p className="text-xl text-red-500 font-semibold">
             No se pudo encontrar el manifiesto especificado.
@@ -98,6 +103,8 @@ export default function ManifestDetailPage() {
 
   return (
     <ContentLayout title="Detalle del Manifiesto">
+      <PageHeader />
+
       <div className="flex flex-col gap-6 p-1 max-w-6xl mx-auto w-full pb-10">
         {/* Header */}
         <div className="flex items-center justify-between bg-muted/30 p-4 rounded-xl border" data-tour="cargo-manifiestos-detalle-header">

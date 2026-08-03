@@ -5,12 +5,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { ManagementReports } from "./_components/ManagementReports";
 import { AverageReportIndicator } from "./_components/AverageReportIndicator";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 export default function RiskIndicatorsPage() {
   const [activeTab, setActiveTab] = useState("ManagementReports");
 
   return (
     <ContentLayout title="Indicadores de Riesgo">
+      <PageHeader />
+
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="ManagementReports">

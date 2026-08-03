@@ -23,6 +23,7 @@ import {
   X,
 } from "lucide-react";
 import { useParams } from "next/navigation";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const ShowCourse = () => {
   const { course_id } = useParams<{ course_id: string }>();
@@ -61,6 +62,8 @@ const ShowCourse = () => {
 
   return (
     <ContentLayout title="Detalles del Curso">
+      <PageHeader />
+
       {/* Contenido principal */}
       <div className="w-full border border-gray-300 rounded-lg p-6 shadow-md dark:border-gray-700">
         <div className="flex items-center gap-3 mb-6">

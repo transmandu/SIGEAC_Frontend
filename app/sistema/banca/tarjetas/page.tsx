@@ -9,6 +9,7 @@ import { DataTable } from "./data-table";
 import { useEffect } from "react";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { tarjetasSteps } from "@/components/tour/steps/sistema/banca/tarjeras";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const BankAccountsPage = () => {
   const { selectedCompany } = useCompanyStore();
@@ -24,6 +25,8 @@ const BankAccountsPage = () => {
 
   return (
     <ContentLayout title={"Tarjetas"}>
+      <PageHeader />
+
       <div data-tour="tarjetas-title">
         <h1 className="text-4xl font-bold text-center mb-2">
           Control de Tarjetas

@@ -7,6 +7,7 @@ import { useGetCoursesForCalendar } from "@/hooks/curso/useGetCalendarCourses";
 import { Calendar } from "./_components/calendar";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { calendarioSteps } from "@/components/tour/steps/general/cursos/calendario";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const CalendarServicesPage = () => {
   const { theme } = useTheme();
@@ -28,6 +29,8 @@ const CalendarServicesPage = () => {
 
   return (
     <ContentLayout title="Cursos">
+      <PageHeader />
+
       <div
         className="flex flex-col text-center justify-center gap-2 mb-6"
         data-tour="calendario-header"

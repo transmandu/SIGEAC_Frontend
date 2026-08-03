@@ -9,6 +9,7 @@ import { ArrowLeft, Loader2, Plane,  PlaneIcon, } from "lucide-react"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
 import { formatCurrency, formatDate } from "@/lib/utils"
 import { useGetCreditStatisticsFlights } from "@/hooks/aerolinea/creditos/useGetCreditStatisticsFlights"
+import { PageHeader } from "@/components/layout/PageHeader"
 
 const CreditStatisticsFlightPage = () => {
   const router = useRouter()
@@ -111,13 +112,7 @@ const CreditStatisticsFlightPage = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* Encabezado */}
-      <div className="flex items-center mb-6">
-        <Button variant="outline" size="sm" className="mr-4" onClick={() => router.back()}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Volver
-        </Button>
-      </div>
+      <PageHeader className="mb-6" />
       <Card className="mb-8">
         <CardHeader>
           <div>

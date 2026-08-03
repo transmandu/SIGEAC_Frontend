@@ -1,14 +1,6 @@
 "use client";
 
 import { ContentLayout } from "@/components/layout/ContentLayout";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
 
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -24,6 +16,7 @@ import { IncomingArticle } from "./IncomingTypes";
 import { GenerateReceptionFormButton } from "./_components/GenerateReceptionFormButton";
 import { form_columns } from "./form_columns";
 import { w_columns } from "./w-columns";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 
 const IncomingControlPage = () => {
@@ -58,21 +51,7 @@ const IncomingControlPage = () => {
   return (
     <ContentLayout title="Inventario">
       <div className="flex flex-col gap-y-3">
-        <Breadcrumb>
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink href={`/${selectedCompany?.slug}/dashboard`}>
-                Inicio
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>General</BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>Control de Incoming</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
+        <PageHeader />
 
         <div className="text-center space-y-1">
           <h1 className="text-4xl font-bold">Control de Incoming</h1>

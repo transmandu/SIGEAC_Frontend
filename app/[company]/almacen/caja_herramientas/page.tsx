@@ -9,6 +9,7 @@ import { DataTable } from './data-table'
 import { columns } from './columns'
 import { useGetToolBoxes } from '@/hooks/mantenimiento/almacen/caja_herramientas/useGetToolBoxes'
 import LoadingPage from '@/components/misc/LoadingPage'
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const DispatchRequestPage = () => {
   const { selectedStation, selectedCompany } = useCompanyStore();
@@ -18,6 +19,8 @@ const DispatchRequestPage = () => {
   }
   return (
     <ContentLayout title='Salida'>
+      <PageHeader />
+
       <div className='flex flex-col gap-y-2'>
         {
           toolBoxes && <DataTable columns={columns} data={toolBoxes} />

@@ -3,14 +3,6 @@
 import { useEffect, useState, useMemo } from 'react';
 
 import { ContentLayout } from '@/components/layout/ContentLayout';
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb';
 
 import { useAuth } from '@/contexts/AuthContext';
 import { useCompanyStore } from '@/stores/CompanyStore';
@@ -20,6 +12,7 @@ import type { RequisitionType } from '@/types/purchase';
 
 import { getColumns } from './columns';
 import { DataTable } from './data-table';
+import { PageHeader } from "@/components/layout/PageHeader";
 
 type TypeFilter = 'ALL' | RequisitionType;
 
@@ -120,21 +113,7 @@ const RequisitionsPage = () => {
     <ContentLayout title="Inventario">
       <div className="flex flex-col gap-y-2">
 
-        <Breadcrumb>
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink href={`/${selectedCompany?.slug}/dashboard`}>
-                Inicio
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>General</BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>Solicitudes de Compra</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
+        <PageHeader />
 
         <h1 className="text-4xl font-bold text-center">
           Solicitudes de Compra

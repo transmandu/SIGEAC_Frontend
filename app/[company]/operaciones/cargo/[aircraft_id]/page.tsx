@@ -13,17 +13,10 @@ import { Button } from "@/components/ui/button";
 import { Plus, ArrowLeft, Plane, Download } from "lucide-react";
 import { MonthYearPicker } from "@/components/selects/MonthYearPicker";
 import { LoadingDataTable } from "@/components/tables/LoadingDataTable";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
 import { useExportCargoByAircraft } from "@/hooks/operaciones/cargo/useExportCargoByAircraft";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { cargoGuiaListaSteps } from "@/components/tour/steps/cargo/guia-lista";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const CargoByAircraftPage = () => {
   const params = useParams();
@@ -71,31 +64,7 @@ const CargoByAircraftPage = () => {
   return (
     <ContentLayout title="Registros de Carga">
       <div className="flex flex-col gap-4">
-        <Breadcrumb>
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink href={`/${company}/dashboard`}>
-                Inicio
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>Operaciones</BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbLink
-                href={`/${company}/operaciones/cargo?month=${month}&year=${year}`}
-              >
-                Carga
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>
-                {aircraft?.acronym || `Aeronave #${aircraft_id}`}
-              </BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
+        <PageHeader currentLabel={aircraft?.acronym || `Aeronave #${aircraft_id}`} />
 
         {/* Cabecera con nombre de la aeronave */}
         <div className="flex flex-col gap-2 text-center md:text-left">
