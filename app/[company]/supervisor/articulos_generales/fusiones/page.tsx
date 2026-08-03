@@ -1,7 +1,6 @@
 "use client"
 
 import { ContentLayout } from "@/components/layout/ContentLayout"
-import BackButton from "@/components/misc/BackButton"
 import LoadingPage from "@/components/misc/LoadingPage"
 import {
     AlertDialog,
@@ -15,14 +14,6 @@ import {
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Badge } from "@/components/ui/badge"
-import {
-    Breadcrumb,
-    BreadcrumbItem,
-    BreadcrumbLink,
-    BreadcrumbList,
-    BreadcrumbPage,
-    BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
 import { useGetMergeHistory, useUndoMerge } from "@/hooks/supervisor/useSupervisorGeneralArticles"
 import { useCompanyStore } from "@/stores/CompanyStore"
 import type { GeneralArticleMerge } from "@/types/supervisor"
@@ -34,6 +25,7 @@ import {
     formatSupervisorDateTime,
     mergeStatusBadgeCls,
 } from "../_components/utils/uiHelpers"
+import { PageHeader } from "@/components/layout/PageHeader";
 
 /**
  * Historial de fusiones de artículos generales.
@@ -54,35 +46,7 @@ export default function HistorialFusionesPage() {
             <div className="flex flex-col gap-6">
 
                 {/* ── Breadcrumb ──────────────────────────────────────────── */}
-                <div className="flex items-center gap-3">
-                    <BackButton iconOnly tooltip="Volver" variant="secondary" />
-
-                    <Breadcrumb>
-                        <BreadcrumbList>
-                            <BreadcrumbItem>
-                                <BreadcrumbLink href={`/${selectedCompany?.slug}/dashboard`}>
-                                    Inicio
-                                </BreadcrumbLink>
-                            </BreadcrumbItem>
-
-                            <BreadcrumbSeparator />
-
-                            <BreadcrumbItem>
-                                <BreadcrumbLink
-                                    href={`/${selectedCompany?.slug}/supervisor/articulos_generales`}
-                                >
-                                    Artículos Generales
-                                </BreadcrumbLink>
-                            </BreadcrumbItem>
-
-                            <BreadcrumbSeparator />
-
-                            <BreadcrumbItem>
-                                <BreadcrumbPage>Fusiones</BreadcrumbPage>
-                            </BreadcrumbItem>
-                        </BreadcrumbList>
-                    </Breadcrumb>
-                </div>
+                <PageHeader />
 
                 {/* ── Header ──────────────────────────────────────────────── */}
                 <div className="flex flex-col gap-2 border-b border-border/60 pb-4">

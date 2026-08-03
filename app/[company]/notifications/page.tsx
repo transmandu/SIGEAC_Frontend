@@ -1,16 +1,7 @@
 "use client";
 
 import { ContentLayout } from "@/components/layout/ContentLayout";
-import BackButton from "@/components/misc/BackButton";
 
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
 import NotificationsToolBar from "./_components/NotificationsToolBar";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useNotifications } from "@/hooks/notifications/useNotifications";
@@ -18,6 +9,7 @@ import NotificationItem from "@/components/notifications/NotificationItem";
 import { useMemo, useState, useEffect } from "react";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { notificacionesSteps } from "@/components/tour/steps/sistema/banca/notificaciones";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 export default function NotificationsPage() {
   const { selectedCompany } = useCompanyStore();
@@ -66,25 +58,7 @@ export default function NotificationsPage() {
     <ContentLayout title="Notificaciones">
       <div className="flex flex-col gap-6 h-[calc(100vh-8rem)]">
         {/* HEADER NAV */}
-        <div className="flex items-center gap-3 shrink-0">
-          <BackButton iconOnly tooltip="Volver" variant="secondary" />
-
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbLink href={`/${selectedCompany?.slug}/dashboard`}>
-                  Inicio
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-
-              <BreadcrumbSeparator />
-
-              <BreadcrumbItem>
-                <BreadcrumbPage>Notificaciones</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-        </div>
+        <PageHeader />
 
         {/* TITLE SECTION */}
         <div className="flex flex-col gap-2 border-b pb-4 shrink-0">

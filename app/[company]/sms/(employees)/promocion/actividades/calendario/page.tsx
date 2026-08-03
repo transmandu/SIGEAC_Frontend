@@ -5,6 +5,7 @@ import { useTheme } from "next-themes";
 import { Calendar } from "./_components/calendar";
 import { useEffect } from "react";
 import { useGetSMSActivitiesForCalendar } from "@/hooks/sms/useGetSMSActivitiesForCalendar";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const CalendarServicesPage = () => {
   const { theme } = useTheme();
@@ -20,6 +21,8 @@ const CalendarServicesPage = () => {
   
   return (
     <ContentLayout title="Planificación de Actividades SMS">
+      <PageHeader />
+
       <div className="flex flex-col text-center justify-center gap-2 mb-6">
         <h1 className="font-bold text-5xl">Calendario de Actividades SMS</h1>
         <p className="text-muted-foreground italic text-sm">

@@ -8,6 +8,7 @@ import { useState, useEffect } from "react";
 import { useTour } from "@reactour/tour";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { clientesDetalleSteps } from "@/components/tour/steps/ajustes/clientes/clientes-detalle";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 export default function ClientFlightReportPage() {
   const [manualTab, setManualTab] = useState("statistics");
@@ -30,6 +31,8 @@ export default function ClientFlightReportPage() {
 
   return (
     <ContentLayout title="Resumen de Cliente">
+      <PageHeader />
+
       <Tabs value={activeTab} onValueChange={setManualTab}>
         <TabsList data-tour="clientes-detalle-tabs">
           <TabsTrigger value="statistics">Estadisticas</TabsTrigger>

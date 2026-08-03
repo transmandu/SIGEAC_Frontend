@@ -9,6 +9,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { useEffect } from "react";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { cuentasSteps } from "@/components/tour/steps/sistema/banca/cuenta";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const BankAccountsPage = () => {
   const { selectedCompany } = useCompanyStore();
@@ -26,6 +27,8 @@ const BankAccountsPage = () => {
 
   return (
     <ContentLayout title={"Cuentas Bancarias"}>
+      <PageHeader />
+
       <div data-tour="cuentas-title">
         <h1 className="text-4xl font-bold text-center mb-2">
           Control de Cuentas

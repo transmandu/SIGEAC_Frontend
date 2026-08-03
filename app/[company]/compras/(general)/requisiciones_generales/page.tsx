@@ -2,8 +2,6 @@
 
 import { useMemo, useState, useDeferredValue } from 'react'
 import { ContentLayout } from '@/components/layout/ContentLayout'
-import BackButton from '@/components/misc/BackButton'
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
 import { useGetRequisition } from '@/hooks/mantenimiento/compras/useGetRequisitions'
 import { useCompanyStore } from '@/stores/CompanyStore'
 import { getColumns } from './columns'
@@ -15,6 +13,7 @@ import { GenerateInProgressRequisitionsPdfButton } from '@/components/misc/Gener
 import RequisitionSubRow from './_components/RequisitionSubRow'
 import GroupedRequisitionTable from './_components/GroupedRequisitionTable'
 import RequisitionSplitView, { useRequisitionPreview, useRequisitionPreviewSelectedId } from '@/components/side-panels/RequisitionSplitView'
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const RequisitionsPage = () => {
   return (
@@ -77,35 +76,7 @@ const RequisitionsPageContent = () => {
     <ContentLayout title="Requisiciones Generales">
       <div className="flex flex-col gap-6">
 
-        <div className="flex items-center gap-3">
-          <BackButton iconOnly tooltip="Volver" variant="secondary" />
-
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbLink
-                  href={`/${selectedCompany?.slug}/dashboard`}
-                >
-                  Inicio
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-
-              <BreadcrumbSeparator />
-
-              <BreadcrumbItem>
-                Compras
-              </BreadcrumbItem>
-
-              <BreadcrumbSeparator />
-
-              <BreadcrumbItem>
-                <BreadcrumbPage>
-                  Requisiciones Generales
-                </BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-        </div>
+        <PageHeader />
 
         <div className="flex flex-col gap-2 border-b pb-4">
           <div className="flex items-end justify-between">

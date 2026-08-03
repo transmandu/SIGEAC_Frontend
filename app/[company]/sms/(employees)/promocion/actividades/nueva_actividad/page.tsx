@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useCreateSMSActivity } from "@/actions/sms/sms_actividades/actions";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 type Step = 1 | 2;
 
@@ -125,6 +126,8 @@ const CreateSMSActivity = () => {
             : "Creación <D-d>Encuesta"
       }
     >
+      <PageHeader />
+
       {showWizard && <StepIndicator currentStep={step} />}
 
       <div className={step !== 1 ? "hidden" : ""}>

@@ -15,6 +15,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { PlanificationAircraftTab } from './_components/PlanificationAircraftTab';
 import { useGetMaintenanceAircrafts } from '@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts';
 import { useGetClients } from '@/hooks/general/clientes/useGetClients';
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const normalize = (v?: string | null) => (v ?? '').toLowerCase();
 
@@ -101,6 +102,8 @@ const AircraftsPage = () => {
 
   return (
     <ContentLayout title="Aeronaves">
+      <PageHeader />
+
       {/* Header */}
       <div className="flex flex-col text-center justify-center gap-2 mb-8">
         <h1 className="font-bold text-5xl">Gestión de Aeronaves</h1>

@@ -18,6 +18,7 @@ import {
   getNotificationSource,
   sortByNewestDate,
 } from './_components/workflow-helpers';
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const EvaluationMitigationPage = () => {
   const params = useParams<{ company: string }>();
@@ -86,6 +87,8 @@ const EvaluationMitigationPage = () => {
 
   return (
     <ContentLayout title="Evaluación y mitigación">
+      <PageHeader />
+
       <div className="space-y-6">
         <div className="flex flex-col gap-4 rounded-lg border bg-muted/20 p-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="space-y-1">

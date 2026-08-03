@@ -5,11 +5,14 @@ import { useGetWarehouses } from '@/hooks/administracion/useGetWarehouses';
 import { Loader2 } from 'lucide-react';
 import { columns } from './columns';
 import { DataTable } from './data-table';
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const WarehousesPage = () => {
   const { data: warehouses, isLoading, error } = useGetWarehouses();
   return (
     <ContentLayout title={'Almacenes'}>
+      <PageHeader />
+
       <h1 className='text-4xl font-bold text-center mb-2'>Control de Almácenes</h1>
       <p className='text-sm text-muted-foreground text-center'>
         Aquí puede observar todos los almacénes registrados. Filtre y/o busque sí desea un item en específico. <br /> Presione el boton de <strong>Crear</strong> en caso de querer crear un nuevo almácen.

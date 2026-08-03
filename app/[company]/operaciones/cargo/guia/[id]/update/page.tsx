@@ -10,6 +10,7 @@ import { parseISO } from "date-fns";
 import { useEffect } from "react";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { cargoGuiaCrearSteps } from "@/components/tour/steps/cargo/guia-crear";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 export default function UpdateCargoShipmentPage() {
   const params = useParams();
@@ -31,6 +32,8 @@ export default function UpdateCargoShipmentPage() {
 
   return (
     <ContentLayout title="Editar Carga">
+      <PageHeader />
+
       <div className="flex flex-col gap-4">
         <div className="flex items-center gap-4 mb-4">
           <Button asChild variant="outline" size="icon" className="h-9 w-9" data-tour="cargo-crear-btn-volver">

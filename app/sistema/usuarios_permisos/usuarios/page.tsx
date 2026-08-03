@@ -6,6 +6,7 @@ import { Loader2 } from 'lucide-react';
 import React from 'react'
 import { DataTable } from './data-table';
 import { columns } from './column';
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const UsersPage = () => {
 
@@ -13,6 +14,8 @@ const UsersPage = () => {
 
   return (
     <ContentLayout title='Usuarios'>
+      <PageHeader />
+
       <h1 className='text-4xl font-bold text-center mb-2'>Control de Usuarios</h1>
       <p className='text-sm text-muted-foreground text-center'>
         Aquí puede visualizar todos los usuarios registrados en el sistema. Utilice los filtros o el buscador para localizar un usuario específico. <br />

@@ -6,6 +6,7 @@ import { useGetSurveyResponses } from "@/hooks/sms/survey/useGetResponsesBySurve
 import { useParams } from "next/navigation";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const SurveyListPage = () => {
   const params = useParams();
@@ -16,6 +17,8 @@ const SurveyListPage = () => {
   }
   return (
     <ContentLayout title="Respuestas a la encuesta">
+      <PageHeader />
+
       <div className="flex flex-col gap-y-2">
         {data && <DataTable columns={columns} data={data} />}
         {isError && (

@@ -8,6 +8,7 @@ import { DataTable } from "./data-table";
 import { useEffect } from "react";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { bancosSteps } from "@/components/tour/steps/sistema/banca/banco";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const BanksPage = () => {
   const { data: banks, isLoading, error } = useGetBanks();
@@ -23,6 +24,8 @@ const BanksPage = () => {
 
   return (
     <ContentLayout title={"Bancos"}>
+      <PageHeader />
+
       <div data-tour="bancos-title">
         <h1 className="text-4xl font-bold text-center mb-2">
           Control de Bancos

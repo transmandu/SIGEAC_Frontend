@@ -1,5 +1,6 @@
 import type { Group, Menu, MenuContext } from "@/lib/menus/types";
-import { BellRing, UserRoundCog } from "lucide-react";
+import { BellRing, HeartHandshake, UserRoundCog } from "lucide-react";
+import { ERROR_REPORT_VISIBLE_TO_NORMAL_USERS } from "@/lib/errorReportModules";
 
 /**
  * Lo del usuario, no del sistema ni de la empresa. `Mi cuenta` vive en master y
@@ -11,9 +12,18 @@ export function buildProfileGroup({ pathname, currentCompany }: MenuContext): Gr
         {
             href: "/cuenta",
             label: "Mi Cuenta",
-            active: pathname.startsWith("/cuenta"),
+            active: pathname === "/cuenta",
             icon: UserRoundCog,
             roles: [],
+            submenus: [],
+        },
+        {
+            href: "/cuenta/reportes",
+            label: "Mis Reportes",
+            active: pathname.startsWith("/cuenta/reportes"),
+            icon: HeartHandshake,
+            // Oculto por ahora: ver ERROR_REPORT_VISIBLE_TO_NORMAL_USERS.
+            roles: ERROR_REPORT_VISIBLE_TO_NORMAL_USERS ? undefined : ["SUPERUSER"],
             submenus: [],
         },
     ];

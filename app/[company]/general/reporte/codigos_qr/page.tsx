@@ -6,6 +6,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { useEffect } from "react";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { qrSteps } from "@/components/tour/steps/general/sms/qr";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const QrCodePage = () => {
   const { selectedCompany } = useCompanyStore();
@@ -21,6 +22,8 @@ const QrCodePage = () => {
 
   return (
     <ContentLayout title="Códigos QR">
+      <PageHeader />
+
       {/* CONTENEDOR PRINCIPAL RESPONSIVE Y CENTRADO */}
       <h1
         className="text-center font-bold sm:text-xl text-base"

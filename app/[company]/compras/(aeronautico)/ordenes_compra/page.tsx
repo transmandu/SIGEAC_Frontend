@@ -2,15 +2,6 @@
 
 import { useMemo, useState, useDeferredValue } from 'react'
 import { ContentLayout } from '@/components/layout/ContentLayout'
-import BackButton from '@/components/misc/BackButton'
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb'
 import { useCompanyStore } from '@/stores/CompanyStore'
 import { useGetPurchaseOrders } from '@/hooks/mantenimiento/compras/useGetPurchaseOrders'
 import type { PurchaseOrder } from '@/types/purchase'
@@ -20,6 +11,7 @@ import { getColumns } from './columns'
 import PurchaseOrderToolBar from './_components/PurchaseOrderToolBar'
 import GroupedPurchaseOrderTable from './_components/GroupedPurchaseOrderTable'
 import PurchaseOrderSplitView, { usePurchaseOrderPreview, usePurchaseOrderPreviewSelectedId } from '@/components/side-panels/PurchaseOrderSplitView'
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const PurchaseOrdersPage = () => {
   return (
@@ -80,33 +72,7 @@ const PurchaseOrdersPageContent = () => {
     <ContentLayout title="Órdenes de Compra">
       <div className="flex flex-col gap-6">
 
-        <div className="flex items-center gap-3">
-          <BackButton iconOnly tooltip="Volver" variant="secondary" />
-
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbLink href={`/${selectedCompany?.slug}/dashboard`}>
-                  Inicio
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-
-              <BreadcrumbSeparator />
-
-              <BreadcrumbItem>
-                Compras
-              </BreadcrumbItem>
-
-              <BreadcrumbSeparator />
-
-              <BreadcrumbItem>
-                <BreadcrumbPage>
-                  Órdenes de Compra
-                </BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-        </div>
+        <PageHeader />
 
         <div className="flex flex-col gap-2 border-b pb-4">
           <h1 className="text-3xl font-semibold tracking-tight">

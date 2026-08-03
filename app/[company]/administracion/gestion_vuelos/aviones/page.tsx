@@ -6,6 +6,7 @@ import { columns } from "./columns";
 import { DataTable } from "./data-table";
 import LoadingPage from "@/components/misc/LoadingPage";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const AircraftPage = () => {
   const {selectedCompany} = useCompanyStore();
@@ -17,6 +18,8 @@ const AircraftPage = () => {
 
   return (
     <ContentLayout title="Aeronaves">
+      <PageHeader />
+
       {" "}
       <h1 className="text-5xl font-bold text-center mt-2">
         Control de Aeronaves

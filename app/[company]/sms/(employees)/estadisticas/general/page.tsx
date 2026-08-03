@@ -19,6 +19,7 @@ import { format, startOfMonth } from "date-fns";
 import { Loader2 } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const GeneralReportStats = () => {
   const { selectedCompany } = useCompanyStore();
@@ -153,6 +154,8 @@ const GeneralReportStats = () => {
 
   return (
     <ContentLayout title="Gráficos Estadísticos de Reportes">
+      <PageHeader />
+
       <div className="flex flex-col space-y-4 mb-6">
         <div className="flex justify-center items-center">
           <div className="flex flex-col w-full max-w-md">

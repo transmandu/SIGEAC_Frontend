@@ -34,6 +34,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import MultipleBarChartComponent from "@/components/charts/MultipleBarChartComponent";
 import { PieChartComponent } from "@/components/charts/PieChartComponent";
 import { Message } from "@/components/misc/Message";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const graphicsOptions = [
   {
@@ -222,6 +223,8 @@ const Statistics = () => {
 
   return (
     <ContentLayout title="Gráficos Estadísticos de los Reportes (Obligatorios)">
+      <PageHeader />
+
       <div className="flex flex-col space-y-4 mb-6">
         <div className="flex justify-center items-center">
           <div className="flex flex-col w-full max-w-md">

@@ -5,6 +5,7 @@ import LoadingPage from "@/components/misc/LoadingPage";
 import { useGetSurveys } from "@/hooks/sms/survey/useGetSurveys";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const SurveyListPage = () => {
   const { data, isLoading, isError } = useGetSurveys();
@@ -13,6 +14,8 @@ const SurveyListPage = () => {
   }
   return (
     <ContentLayout title="Encuestas">
+      <PageHeader />
+
       <div className="flex flex-col gap-y-2">
         {data && <DataTable columns={columns} data={data} />}
         {isError && (

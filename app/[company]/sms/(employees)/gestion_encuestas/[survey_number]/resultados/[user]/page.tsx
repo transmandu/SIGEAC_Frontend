@@ -12,6 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const SurveyResponsePage = () => {
   const { selectedCompany } = useCompanyStore();
@@ -89,6 +90,8 @@ const SurveyResponsePage = () => {
 
   return (
     <ContentLayout title="Respuestas a la encuesta">
+      <PageHeader />
+
       <div className="container mx-auto px-4 sm:px-6 py-6 max-w-4xl">
         {/* Header de la encuesta */}
         <Card className="mb-6">

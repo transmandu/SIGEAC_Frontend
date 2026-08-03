@@ -8,6 +8,7 @@ import { useGetVoluntaryReports } from "@/hooks/sms/useGetVoluntaryReports";
 import LoadingPage from "@/components/misc/LoadingPage";
 import { useGetMitigationTable } from "@/hooks/sms/useGetMitigationTable";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const MitigationMeasuresPage = () => {
   const { selectedCompany } = useCompanyStore();
@@ -19,6 +20,8 @@ const MitigationMeasuresPage = () => {
 
   return (
     <ContentLayout title="Medida de Mitigacion">
+      <PageHeader />
+
       <div className="flex flex-col gap-y-2">
         {data && <DataTable columns={columns} data={data} />}
         {isError && (

@@ -10,6 +10,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import { formatCurrency, formatDate } from "@/lib/utils"
 import { useGetCreditStatisticsRentings } from "@/hooks/aerolinea/creditos/useGetCreditStatisticsRentings"
 import { useCompanyStore } from "@/stores/CompanyStore"
+import { PageHeader } from "@/components/layout/PageHeader"
 
 const CreditStatisticsRentingPage = () => {
   const router = useRouter()
@@ -101,12 +102,7 @@ const CreditStatisticsRentingPage = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="flex items-center mb-6">
-        <Button variant="outline" size="sm" className="mr-4" onClick={() => router.back()}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Volver
-        </Button>
-      </div>
+      <PageHeader className="mb-6" />
       <Card className="mb-8">
         <CardHeader>
           <div>

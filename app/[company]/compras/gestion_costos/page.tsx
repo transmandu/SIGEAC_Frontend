@@ -9,16 +9,7 @@ import {
 } from 'react'
 
 import { ContentLayout } from '@/components/layout/ContentLayout'
-import BackButton from '@/components/misc/BackButton'
 
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb'
 
 import { useAuth } from '@/contexts/AuthContext'
 import { useCompanyStore } from '@/stores/CompanyStore'
@@ -42,6 +33,7 @@ import {
   useBulkUpdateArticleCost,
   useBulkUpdateGeneralCost,
 } from '@/actions/mantenimiento/compras/gestion_costos/actions'
+import { PageHeader } from "@/components/layout/PageHeader";
 
 type CostType = 'ARTICLE' | 'GENERAL'
 
@@ -251,27 +243,7 @@ const CostManagementPage = () => {
     <ContentLayout title="Gestión de Costos">
       <div className="flex flex-col gap-6">
 
-        <div className="flex items-center gap-3">
-          <BackButton iconOnly tooltip="Volver" variant="secondary" />
-
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbLink href={`/${selectedCompany?.slug}/dashboard`}>
-                  Inicio
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>Compras</BreadcrumbItem>
-              <BreadcrumbSeparator />
-
-              <BreadcrumbItem>
-                <BreadcrumbPage>Gestión de Costos</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-        </div>
+        <PageHeader />
 
         <div className="flex flex-col gap-2 border-b pb-4">
           <div className="flex items-end justify-between">

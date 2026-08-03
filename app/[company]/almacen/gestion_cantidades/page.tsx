@@ -2,14 +2,6 @@
 
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { Button } from "@/components/ui/button";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { Loader2, Package, Save } from "lucide-react";
 import React, { useCallback, useMemo } from "react";
@@ -26,6 +18,7 @@ import { useBackendPagination } from "./_components/hooks/usePagination";
 import { useGlobalSearch } from "./_components/hooks/useGlobalSearch";
 import { FilterPanel } from "./_components/FilterPanel";
 import LoadingPage from "@/components/misc/LoadingPage";
+import { PageHeader } from "@/components/layout/PageHeader";
 const GestionCantidadesPage = () => {
   const { selectedCompany, selectedStation } = useCompanyStore();
 
@@ -154,23 +147,7 @@ const GestionCantidadesPage = () => {
     <ContentLayout title="Gestión de Cantidades y Ubicaciones">
       <div className="flex flex-col gap-4">
         {/* Breadcrumbs */}
-        <Breadcrumb>
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink href={`/${selectedCompany?.slug}/dashboard`}>
-                Inicio
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>Almacén</BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>Inventario</BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>Gestión de Cantidades</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
+        <PageHeader />
 
         {/* Scroll target para paginación */}
         <div ref={scrollTargetRef} className="scroll-mt-4" />

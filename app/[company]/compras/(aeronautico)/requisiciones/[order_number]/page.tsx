@@ -2,9 +2,7 @@
 
 import { ContentLayout } from '@/components/layout/ContentLayout';
 import LoadingPage from '@/components/misc/LoadingPage';
-import BackButton from '@/components/misc/BackButton';
 import { Badge } from '@/components/ui/badge';
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import { useGetRequisitionByOrderNumber } from '@/hooks/mantenimiento/compras/useGetRequisitionByOrderNumber';
 import { useCompanyStore } from '@/stores/CompanyStore';
 import { FileText, MessageSquare, Plane, UserCheck, UserPlus, CalendarDays, Loader2 } from 'lucide-react';
@@ -23,6 +21,7 @@ import ImageViewer from '@/components/misc/ImageViewer';
 import RequisitionOutOfScope from './_components/RequisitionOutOfScope';
 import RequiredDocumentsSection from './_components/RequiredDocumentsSection';
 import { statusBadgeCls, requisitionStatusLabel, requisitionTypeLabel, formatSolicitudDate, priorityPageBadgeCls, priorityLabel } from './_components/utils/uiHelpers';
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const NEXT_STATUS: Record<string, string> = {
   CREATED: 'RECEIVED',
@@ -150,28 +149,7 @@ const RequisitionPage = () => {
       <div className="flex flex-col gap-4 sm:gap-6">
 
         {/* ── Breadcrumb ──────────────────────────────────────────────── */}
-        <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto">
-          <BackButton iconOnly tooltip="Volver" variant="secondary" />
-          <Breadcrumb>
-            <BreadcrumbList className="flex-nowrap">
-              <BreadcrumbItem>
-                <BreadcrumbLink href={`/${selectedCompany?.slug}/dashboard`}>
-                  Inicio
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbLink href={`/${selectedCompany?.slug}/compras/requisiciones`}>
-                  Solicitudes
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbPage className="truncate">{order_number}</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-        </div>
+        <PageHeader currentLabel={order_number} />
 
         {/* ── Header ──────────────────────────────────────────────────── */}
         <div className="flex flex-col gap-2 border-b border-border/60 pb-3 sm:pb-4">

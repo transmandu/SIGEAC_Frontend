@@ -5,6 +5,7 @@ import { DataTable } from "./data-table";
 import { columns } from "./columns";
 import { useGetRenting } from "@/hooks/aerolinea/rentas/useGetRenting";
 import LoadingPage from "@/components/misc/LoadingPage";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const RentingPage = () => {
   const { data, isLoading, isError } = useGetRenting();
@@ -15,6 +16,8 @@ const RentingPage = () => {
 
   return (
     <ContentLayout title="Arrendamiento">
+      <PageHeader />
+
       {" "}
       <h1 className="text-5xl font-bold text-center mt-2">
         Control de Arrendamientos

@@ -8,6 +8,7 @@ import { useParams } from "next/navigation";
 import { useEffect } from "react";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { cargoGuiaCrearSteps } from "@/components/tour/steps/cargo/guia-crear";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 export default function CreateGenericCargoPage() {
   const params = useParams();
@@ -21,6 +22,8 @@ export default function CreateGenericCargoPage() {
 
   return (
     <ContentLayout title="Nuevo Registro">
+      <PageHeader />
+
       <div className="flex items-center gap-4 mb-8">
         <Button asChild variant="outline" size="icon" className="h-9 w-9">
           <Link href={`/${company}/operaciones/cargo`}>

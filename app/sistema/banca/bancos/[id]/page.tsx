@@ -10,6 +10,7 @@ import { useEffect, useState } from 'react';
 import { BankAccount } from '@/types';
 import LoadingPage from '@/components/misc/LoadingPage';
 import { useCompanyStore } from '@/stores/CompanyStore';
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const BankAccountsPage = () => {
   const { selectedCompany } = useCompanyStore();
@@ -35,6 +36,8 @@ const BankAccountsPage = () => {
 
   return (
     <ContentLayout title="Almacenes">
+      <PageHeader />
+
       <h1 className="text-4xl font-bold text-center mb-2">Control de Cuentas</h1>
       <p className="text-sm text-muted-foreground text-center">
         Lleve un control de las diferentes cuentas que se han registrado.

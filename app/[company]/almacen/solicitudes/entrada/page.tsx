@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 
 import { useState } from 'react';
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const AgregarPage = () => {
   const [type, setType] = useState("consumable");
@@ -21,6 +22,8 @@ const AgregarPage = () => {
   }
   return (
     <ContentLayout title='TEST DE AGREGADO'>
+      <PageHeader />
+
       <div className='space-y-3 mb-4'>
         <h1 className='font-bold text-3xl'>Ingreso de Articulo</h1>
         <p className='text-sm text-muted-foreground'>Seleccione el tipo de articulo a registrar:</p>

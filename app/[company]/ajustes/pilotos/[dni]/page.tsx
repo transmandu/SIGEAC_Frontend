@@ -11,6 +11,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { useParams } from "next/navigation";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const ShowPilot = () => {
   const { dni } = useParams<{ dni: string }>();
@@ -19,6 +20,8 @@ const ShowPilot = () => {
 
   return (
     <ContentLayout title="Detalles del Piloto">
+      <PageHeader />
+
       <div className="flex flex-col justify-center items-center border border-gray-300 rounded-lg p-6 gap-y-4 shadow-md dark:border-gray-700">
         <div className="flex items-center gap-3">
           <User className="w-8 h-8 text-blue-600" />

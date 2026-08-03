@@ -8,6 +8,7 @@ import LoadingPage from '@/components/misc/LoadingPage'
 
 import { columns } from './columns'
 import { DataTable } from './data-table'
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const LocationsPage = () => {
   const { selectedCompany } = useCompanyStore()
@@ -26,6 +27,8 @@ const LocationsPage = () => {
 
   return (
     <ContentLayout title='Ubicaciones'>
+      <PageHeader />
+
       <div className='flex flex-col gap-y-2'>
 
         <div className='flex items-baseline justify-between'>

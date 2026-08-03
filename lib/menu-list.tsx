@@ -20,10 +20,15 @@ import type { Group } from "@/lib/menus/types";
 import { buildWarehouseGroup } from "@/lib/menus/warehouse";
 import type { Company } from "@/types";
 
-export function getMenuList(
+/**
+ * Todos los grupos sin filtrar por roles ni módulos. El sidebar siempre debe
+ * usar `getMenuList`; esto es para quien necesite el mapa completo de rutas a
+ * etiquetas, como las migajas de `PageHeader`.
+ */
+export function buildMenuGroups(
     pathname: string,
     currentCompany: Company | null,
-    userRoles: string[],
+    userRoles: string[] = [],
 ): Group[] {
     const context = {
         pathname,
@@ -35,13 +40,10 @@ export function getMenuList(
     // Sin compañía solo sobreviven Perfil y Sistema, que son de master; el resto
     // de los grupos depende del tenant y armaría hrefs sin slug al que apuntar.
     if (!currentCompany) {
-        return filterMenuGroups(
-            [buildProfileGroup(context), buildSystemGroup(context)],
-            { currentCompany, userRoles },
-        );
+        return [buildProfileGroup(context), buildSystemGroup(context)];
     }
 
-    const fullMenu: Group[] = [
+    return [
         buildDashboardGroup(context),
         buildGeneralGroup(context),
         buildDevelopmentGroup(context),
@@ -58,6 +60,15 @@ export function getMenuList(
         buildSystemGroup(context),
         buildSupervisorGroup(context),
     ];
+}
 
-    return filterMenuGroups(fullMenu, { currentCompany, userRoles });
+export function getMenuList(
+    pathname: string,
+    currentCompany: Company | null,
+    userRoles: string[],
+): Group[] {
+    return filterMenuGroups(buildMenuGroups(pathname, currentCompany, userRoles), {
+        currentCompany,
+        userRoles,
+    });
 }

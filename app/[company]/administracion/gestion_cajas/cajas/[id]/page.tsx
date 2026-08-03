@@ -12,6 +12,7 @@ import { formatCurrency, formatDate } from "@/lib/utils";
 import DateFilter from "@/components/forms/aerolinea/administracion/CreateFilterDates";
 import { useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const MovementsByAccountPage = () => {
   const router = useRouter();
@@ -110,19 +111,9 @@ const MovementsByAccountPage = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* Encabezado */}
-      <div className="flex items-center mb-6">
-        <Button
-          variant="outline"
-          size="sm"
-          className="mr-4"
-          onClick={() => router.back()}
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Volver
-        </Button>
-        <h1 className="text-xl font-semibold">Movimientos de Caja</h1>
-      </div>
+      <PageHeader className="mb-6" />
+
+      <h1 className="text-xl font-semibold mb-6">Movimientos de Caja</h1>
 
       {/* Alerta de error */}
       {isError && (

@@ -6,6 +6,7 @@ import { useGetAdministrationFlights } from "@/hooks/aerolinea/vuelos/useGetFlig
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const FlightPage = () => {
   
@@ -19,6 +20,8 @@ const FlightPage = () => {
 
   return (
     <ContentLayout title="Vuelos">
+      <PageHeader />
+
       {" "}
       <h1 className="text-5xl font-bold text-center mt-2">Control de Vuelos</h1>
       <p className="text-sm text-muted-foreground text-center italic mt-2">

@@ -3,15 +3,6 @@
 import { useDeferredValue, useMemo, useState, useEffect } from "react";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import LoadingPage from "@/components/misc/LoadingPage";
-import BackButton from "@/components/misc/BackButton";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useGetVendors } from "@/hooks/general/proveedores/useGetVendors";
 import { getColumns } from "./columns";
@@ -21,6 +12,7 @@ import VendorsToolBar from "./_components/VendorsToolBar";
 import VendorsSubRow from "./_components/VendorsSubRow";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { proveedoresSteps } from "@/components/tour/steps/ajustes/proveedores/proveedores";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const VendorsPage = () => {
   const { selectedCompany } = useCompanyStore();
@@ -77,29 +69,7 @@ const VendorsPage = () => {
   return (
     <ContentLayout title="Proveedores">
       <div className="flex flex-col gap-6">
-        <div className="flex items-center gap-3">
-          <BackButton iconOnly tooltip="Volver" variant="secondary" />
-
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbLink href={`/${selectedCompany?.slug}/dashboard`}>
-                  Inicio
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-
-              <BreadcrumbSeparator />
-
-              <BreadcrumbItem>...</BreadcrumbItem>
-
-              <BreadcrumbSeparator />
-
-              <BreadcrumbItem>
-                <BreadcrumbPage> Proveedores </BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-        </div>
+        <PageHeader />
 
         <div className="flex flex-col gap-2 border-b pb-4">
           <div className="flex items-end justify-between">

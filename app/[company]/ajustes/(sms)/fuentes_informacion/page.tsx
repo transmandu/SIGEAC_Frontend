@@ -6,6 +6,7 @@ import { useGetInformationSources } from "@/hooks/sms/useGetInformationSource";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const InformationSourcePage = () => {
   const { data, isLoading, isError } = useGetInformationSources();
@@ -14,6 +15,8 @@ const InformationSourcePage = () => {
   }
   return (
     <ContentLayout title="Fuentes de informacion">
+      <PageHeader />
+
       <div className="flex flex-col gap-y-2">
         {data && <DataTable columns={columns} data={data} />}
         {isError && (

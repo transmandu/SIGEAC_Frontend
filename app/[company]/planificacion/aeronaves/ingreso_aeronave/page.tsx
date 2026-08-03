@@ -18,6 +18,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { InfoItem } from "./_components/InfoItem";
 import { PartSummaryCard } from "./_components/PartSummaryCard";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 interface AircraftPart {
     category?: "ENGINE" | "APU" | "PROPELLER"; // Solo frontend
@@ -143,6 +144,8 @@ export default function NewAircraftPage() {
 
     return (
         <ContentLayout title="Registro de Aeronave">
+          <PageHeader />
+
             <div className="space-y-2">
                 <h1 className="text-2xl font-bold">Registro de Aeronave</h1>
 

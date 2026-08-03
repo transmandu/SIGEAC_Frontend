@@ -1,12 +1,11 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import Link from "next/link";
 import { Calendar, Clock, FileText } from "lucide-react";
 
 import { ContentLayout } from "@/components/layout/ContentLayout";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getBadgeStatusClass } from "@/lib/sms/utils";
 import { cn } from "@/lib/utils";
@@ -44,19 +43,19 @@ export function ReportDetailView({ kind, report, backHref, title }: ReportDetail
 
     return (
         <ContentLayout title={title}>
-            <div className="mb-6 flex items-center justify-between gap-3">
-                <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">
-                        {kind === "RVP" ? "Reporte voluntario" : "Reporte obligatorio"}
-                    </p>
-                    <h1 className="text-2xl font-semibold">
-                        {report ? getReportCode(report, kind) : "Cargando..."}
-                    </h1>
-                </div>
+            <PageHeader
+                className="mb-6"
+                backFallbackHref={backHref}
+                currentLabel={report ? getReportCode(report, kind) : undefined}
+            />
 
-                <Button asChild variant="outline">
-                    <Link href={backHref}>Volver</Link>
-                </Button>
+            <div className="mb-6 space-y-1">
+                <p className="text-sm text-muted-foreground">
+                    {kind === "RVP" ? "Reporte voluntario" : "Reporte obligatorio"}
+                </p>
+                <h1 className="text-2xl font-semibold">
+                    {report ? getReportCode(report, kind) : "Cargando..."}
+                </h1>
             </div>
 
             {!report ? (

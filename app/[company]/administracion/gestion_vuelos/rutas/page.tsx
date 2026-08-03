@@ -6,6 +6,7 @@ import { DataTable } from "./data-table";
 import { useGetRoute } from "@/hooks/aerolinea/rutas/useGetRoutes";
 import LoadingPage from "@/components/misc/LoadingPage";
 import { RouteDialog } from "@/components/dialogs/aerolinea/administracion/CreateRouteDialog";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const FehaPage = () => {
   const { data, isLoading, isError } = useGetRoute();
@@ -16,6 +17,8 @@ const FehaPage = () => {
 
   return (
     <ContentLayout title="Rutas">
+      <PageHeader />
+
       {" "}
       <h1 className="text-5xl font-bold text-center mt-2">Control de Rutas</h1>
       <p className="text-sm text-muted-foreground text-center italic mt-2">

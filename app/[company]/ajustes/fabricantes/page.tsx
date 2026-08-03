@@ -9,6 +9,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { useEffect } from "react";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { fabricantesSteps } from "@/components/tour/steps/ajustes/fabricantes";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const ManufacturersPage = () => {
   const { selectedCompany } = useCompanyStore();
@@ -29,6 +30,8 @@ const ManufacturersPage = () => {
 
   return (
     <ContentLayout title="Permisos">
+      <PageHeader />
+
       <h1
         className="text-5xl font-bold text-center mt-2"
         data-tour="fabricantes-title"

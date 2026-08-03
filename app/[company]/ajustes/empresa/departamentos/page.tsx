@@ -8,6 +8,7 @@ import { Loader2 } from "lucide-react";
 
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const flattenDepartments = (
   departments: Department[],
@@ -33,6 +34,8 @@ const DepartmentPage = () => {
 
   return (
     <ContentLayout title="Departamentos">
+      <PageHeader />
+
       <h1 className="font-bold text-4xl text-center">
         Gestión de Departamentos
       </h1>

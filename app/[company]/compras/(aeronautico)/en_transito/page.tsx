@@ -2,21 +2,13 @@
 
 import { useState, useDeferredValue, useMemo } from 'react'
 import { ContentLayout } from '@/components/layout/ContentLayout'
-import BackButton from '@/components/misc/BackButton'
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb'
 import { useCompanyStore } from '@/stores/CompanyStore'
 import { DataTable } from '../../data-table'
 import { getColumns } from './columns'
 import TransitToolbar from './_components/TransitToolBar'
 import { useTransitArticles } from './hooks/useTransitArticles'
 import type { TransitStatusFilter } from '@/types/purchase'
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const EnTransitoPage = () => {
   const { selectedCompany } = useCompanyStore()
@@ -62,35 +54,7 @@ const EnTransitoPage = () => {
     <ContentLayout title="Artículos en Tránsito">
       <div className="flex flex-col gap-6">
 
-        <div className="flex items-center gap-3">
-          <BackButton iconOnly tooltip="Volver" variant="secondary" />
-
-          <Breadcrumb>
-            <BreadcrumbList>
-
-              <BreadcrumbItem>
-                <BreadcrumbLink href={`/${selectedCompany?.slug}/dashboard`}>
-                  Inicio
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-
-              <BreadcrumbSeparator />
-
-              <BreadcrumbItem>
-                Compras
-              </BreadcrumbItem>
-
-              <BreadcrumbSeparator />
-
-              <BreadcrumbItem>
-                <BreadcrumbPage>
-                  Artículos en Tránsito
-                </BreadcrumbPage>
-              </BreadcrumbItem>
-
-            </BreadcrumbList>
-          </Breadcrumb>
-        </div>
+        <PageHeader />
 
         <div className="flex flex-col gap-2 border-b pb-4">
           <h1 className="text-3xl font-semibold tracking-tight">

@@ -24,6 +24,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { useUpdateCourseExamResult } from "@/actions/general/cursos/actions";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const ExamAttendanceRow = ({ attendance, company, examId }: { attendance: any; company: string; examId: string }) => {
   const [score, setScore] = useState(attendance.score || "");
@@ -134,6 +135,8 @@ const ManageExamsPage = () => {
 
   return (
     <ContentLayout title="Gestionar Exámenes">
+      <PageHeader />
+
       <div className="w-full border border-gray-300 rounded-lg p-6 shadow-md dark:border-gray-700 space-y-6">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">

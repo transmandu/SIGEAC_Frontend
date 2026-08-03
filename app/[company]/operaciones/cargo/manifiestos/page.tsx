@@ -7,14 +7,6 @@ import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { DayMonthYearPicker } from "@/components/selects/DayMonthYearPicker";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
 import { Loader2, Plus } from "lucide-react";
 import { DataTable } from "../data-table";
 import { getManifestColumns } from "./columns";
@@ -33,6 +25,7 @@ import {
   SelectLabel,
   SelectSeparator,
 } from "@/components/ui/select";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const ManifestosPage = () => {
   const params = useParams();
@@ -88,27 +81,7 @@ const ManifestosPage = () => {
   return (
     <ContentLayout title="Manifiestos de Carga">
       <div className="flex flex-col gap-4">
-        <Breadcrumb>
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink href={`/${company}/dashboard`}>
-                Inicio
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>Operaciones</BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbLink href={`/${company}/operaciones/cargo`}>
-                Carga
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>Manifiestos</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
+        <PageHeader />
 
         <div className="flex flex-col gap-2 text-center">
           <h1

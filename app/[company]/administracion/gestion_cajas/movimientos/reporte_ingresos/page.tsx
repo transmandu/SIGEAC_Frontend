@@ -19,6 +19,7 @@ import months from "@/components/cards/ConfigMonths";
 import MovementDetailsDialog from "@/components/dialogs/aerolinea/administracion/MovementDetailsDialog";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 type MonthlyData = {
   name: string;
@@ -260,6 +261,8 @@ const IncomeDashboard = () => {
 
   return (
     <ContentLayout title="Reporte de Ingresos">
+      <PageHeader />
+
       {/* Encabezado */}
       <div className="flex items-center mb-6">
         <Button

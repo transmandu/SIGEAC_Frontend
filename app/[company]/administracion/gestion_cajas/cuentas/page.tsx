@@ -5,6 +5,7 @@ import { DataTable } from "./data-table";
 import { columns } from "./columns";
 import LoadingPage from "@/components/misc/LoadingPage";
 import { useGetAccountant } from "@/hooks/aerolinea/cuentas_contables/useGetAccountant";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const ClientsPage = () => {
   const { data, isLoading, isError } = useGetAccountant();
@@ -15,6 +16,8 @@ const ClientsPage = () => {
 
   return (
     <ContentLayout title="Cuentas">
+      <PageHeader />
+
       {" "}
       <h1 className="text-5xl font-bold text-center mt-2">
         Control de Cuentas

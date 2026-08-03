@@ -5,6 +5,7 @@ import { columns } from "./columns";
 import LoadingPage from "@/components/misc/LoadingPage";
 import { DataTable } from "./data-table";
 import { useGetCreditSell } from "@/hooks/aerolinea/creditos/useGetCreditSell";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const CreditPage = () => {
   const { data, isLoading, isError } = useGetCreditSell();
@@ -14,6 +15,8 @@ const CreditPage = () => {
   }
   return (
     <ContentLayout title="Crédito">
+      <PageHeader />
+
       {" "}
       <h1 className="text-5xl font-bold text-center mt-2">
         Control de Crédito de las Ventas

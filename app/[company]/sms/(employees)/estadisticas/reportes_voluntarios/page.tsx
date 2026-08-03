@@ -20,6 +20,7 @@ import { format, startOfMonth } from "date-fns";
 import { Loader2 } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const graphicsOptions = [
   { id: "Todos", label: "Todos los gráficos" },
@@ -149,6 +150,8 @@ const Statistics = () => {
     selectedGraphics.includes("Todos") || selectedGraphics.includes(id);
   return (
     <ContentLayout title="Gráficos Estadísticos de los Reportes Voluntarios">
+      <PageHeader />
+
       <div className="flex flex-col space-y-4 mb-6">
         <div className="flex justify-center items-center">
           <div className="flex flex-col w-full max-w-md">

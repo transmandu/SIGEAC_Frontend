@@ -10,6 +10,7 @@ import { useTour } from "@reactour/tour";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { cuentaSteps } from "@/components/tour/steps/cuenta";
 import React from "react";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const AccountPage = () => {
   const { user, loading } = useAuth();
@@ -37,6 +38,8 @@ const AccountPage = () => {
   if (!user) {
     return (
       <ContentLayout title="Cuenta">
+        <PageHeader />
+
         <div className="flex items-center justify-center min-h-[300px] text-sm text-muted-foreground">
           Sesión finalizada
         </div>
@@ -45,6 +48,8 @@ const AccountPage = () => {
   }
   return (
     <ContentLayout title="Cuenta">
+      <PageHeader />
+
       <div className="space-y-3 mb-12" data-tour="cuenta-title">
         <h1 className="text-center text-5xl font-bold">Ajustes de Cuenta</h1>
         <p className="text-sm text-muted-foreground text-center">

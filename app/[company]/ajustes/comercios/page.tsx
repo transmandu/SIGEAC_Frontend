@@ -9,6 +9,7 @@ import { DataTable } from "./data-table";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { comerciosSteps } from "@/components/tour/steps/ajustes/comercios";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const RetailersPage = () => {
   const { selectedCompany } = useCompanyStore();
@@ -30,6 +31,8 @@ const RetailersPage = () => {
 
   return (
     <ContentLayout title="Comercios">
+      <PageHeader />
+
       <h1
         className="text-5xl font-bold text-center mt-2"
         data-tour="comercios-title"

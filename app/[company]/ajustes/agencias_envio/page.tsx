@@ -3,15 +3,6 @@
 import { useDeferredValue, useMemo, useState, useEffect } from "react";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import LoadingPage from "@/components/misc/LoadingPage";
-import BackButton from "@/components/misc/BackButton";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useGetShippingAgencies } from "@/hooks/general/agencias_envio/useGetShippingAgencies";
 import { getColumns } from "./columns";
@@ -21,6 +12,7 @@ import ShippingAgenciesToolBar from "./_components/ShippingAgenciesToolBar";
 import ShippingAgenciesSubRow from "./_components/ShippingAgenciesSubRow";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { agenciasEnvioSteps } from "@/components/tour/steps/ajustes/agencia-envios/agencia-envios";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const ShippingAgenciesPage = () => {
   const { selectedCompany } = useCompanyStore();
@@ -79,29 +71,7 @@ const ShippingAgenciesPage = () => {
   return (
     <ContentLayout title="Agentes de Envío">
       <div className="flex flex-col gap-6">
-        <div className="flex items-center gap-3">
-          <BackButton iconOnly tooltip="Volver" variant="secondary" />
-
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbLink href={`/${selectedCompany?.slug}/dashboard`}>
-                  Inicio
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-
-              <BreadcrumbSeparator />
-
-              <BreadcrumbItem>...</BreadcrumbItem>
-
-              <BreadcrumbSeparator />
-
-              <BreadcrumbItem>
-                <BreadcrumbPage> Agentes de Envío </BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-        </div>
+        <PageHeader />
 
         <div className="flex flex-col gap-2 border-b pb-4">
           <div className="flex items-end justify-between">

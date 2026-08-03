@@ -17,6 +17,7 @@ import { DataTableCertificates } from "./data-table";
 import { getColumns, CertificateColumn } from "./columns";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { certificadosCrearSteps } from "@/components/tour/steps/general/cursos/certificados/certificados-crear";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const CertificatesPage = () => {
   const { selectedCompany } = useCompanyStore();
@@ -71,6 +72,8 @@ const CertificatesPage = () => {
 
   return (
     <ContentLayout title="Certificados">
+      <PageHeader />
+
       <div className="flex flex-col gap-y-4">
         {isLoading && (
           <div className="flex w-full h-full justify-center items-center py-20">
