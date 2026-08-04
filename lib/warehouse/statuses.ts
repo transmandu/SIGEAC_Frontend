@@ -51,6 +51,35 @@ const STATUS_ES: Record<string, string> = {
   MAINTENANCE: "Mantenimiento",
 };
 
+/** Solo el español; para las vistas que no muestran el valor en inglés. */
+export const statusLabelEs = (status?: string | null) => {
+  if (!status) return "N/A";
+  const key = status.trim().toUpperCase();
+  return STATUS_ES[key] ?? formatStatusLabel(key);
+};
+
+/** Igual que statusLabelEs, en mayúsculas: "ALMACENADO". */
+export const statusLabelEsUpper = (status?: string | null) =>
+  statusLabelEs(status).toLocaleUpperCase("es");
+
+/** Estados de una entrada de artículo general (general_article_intakes). */
+const INTAKE_STATUS_ES: Record<string, string> = {
+  PENDING: "Pendiente",
+  CONFIRMED: "Confirmada",
+  REJECTED: "Rechazada",
+  DELIVERED: "Entregada",
+};
+
+export const intakeStatusLabelEs = (status?: string | null) => {
+  if (!status) return "N/A";
+  const key = status.trim().toUpperCase();
+  return INTAKE_STATUS_ES[key] ?? formatStatusLabel(key);
+};
+
+/** Igual que intakeStatusLabelEs, en mayúsculas: "CONFIRMADA". */
+export const intakeStatusLabelEsUpper = (status?: string | null) =>
+  intakeStatusLabelEs(status).toLocaleUpperCase("es");
+
 /** "Almacenado (Stored)" — el formato pedido para los selectores del header. */
 export const statusOptionLabel = (status: string) => {
   const key = status.trim().toUpperCase();

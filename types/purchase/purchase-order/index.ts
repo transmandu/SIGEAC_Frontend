@@ -372,6 +372,8 @@ export interface GeneralArticleIntake {
   employee?: GeneralArticleIntakeEmployeeRef | null;
   authorized_employee?: GeneralArticleIntakeAuthorizedEmployeeRef | null;
   purchase_order?: GeneralArticleIntakePurchaseOrderRef | null;
+  /** Comercio donde se compró: las compras generales usan retailer, no vendor. */
+  retailer?: { id: number; name: string } | null;
   general_article_quote_order?: GeneralArticleIntakeQuoteOrderRef | null;
   /** Cantidad ya convertida a la unidad del general_article existente — solo si applied_conversion no es null. */
   converted_quantity?: number | null;

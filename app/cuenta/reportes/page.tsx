@@ -28,12 +28,12 @@ export default function MisReportesPage() {
 
   return (
     <ContentLayout title="Mis Reportes">
-      <PageHeader />
+      <div className="flex flex-col gap-y-6">
+        <PageHeader />
 
-      <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <div>
-            <h1 className="text-2xl font-bold">Mis Reportes</h1>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-col gap-1">
+            <h1 className="text-3xl font-bold tracking-tight">Mis Reportes</h1>
             <p className="text-sm text-muted-foreground">
               Reporta un problema y sigue el estado de su resolución.
             </p>

@@ -133,6 +133,12 @@ export type BankAccount = {
   /** Métodos de pago (catálogo global) que esta cuenta puede usar. */
   payment_methods?: PaymentMethod[];
   bank_cards?: BankCard[];
+  /** La cuenta también pertenece a otras compañías. */
+  is_shared?: boolean;
+  can_delete?: boolean;
+  can_manage_companies?: boolean;
+  /** El rol actual solo ve los últimos 4 dígitos. */
+  number_masked?: boolean;
   registered_by?: string | null;
   updated_by?: string | null;
 };
@@ -183,6 +189,12 @@ export type BankCard = {
   payment_method?: PaymentMethod;
   /** Compañías para las que la tarjeta es válida. */
   companies?: Pick<Company, "id" | "name">[];
+  /** La tarjeta también pertenece a otras compañías. */
+  is_shared?: boolean;
+  can_delete?: boolean;
+  can_manage_companies?: boolean;
+  /** El rol actual solo ve los últimos 4 dígitos. */
+  number_masked?: boolean;
   registered_by?: string | null;
   updated_by?: string | null;
 };

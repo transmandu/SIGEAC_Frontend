@@ -5,8 +5,6 @@ const BankAccountLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <ProtectedRoute
       roles={[
-        "ANALISTA_ADMINISTRACION",
-        "JEFE_ADMINISTRACION",
         "ANALISTA_COMPRAS",
         "JEFE_COMPRAS",
         "ASISTENTE_COMPRAS",

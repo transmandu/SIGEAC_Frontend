@@ -29,9 +29,8 @@ import type { UseMutationResult } from "@tanstack/react-query";
 
 /**
  * Acciones (editar / eliminar) para las filas de bancos, cuentas, métodos de
- * pago y tarjetas. La gestión de estas entidades es exclusiva de SUPERUSER
- * (el backend además la restringe por rol), por lo que el menú se oculta
- * para el resto de los usuarios.
+ * pago y tarjetas. El menú se oculta para quien no es SUPERUSER ni personal
+ * de administración, y eliminar no se ofrece en los registros compartidos.
  */
 interface EntityActionsProps {
   deleteMutation: UseMutationResult<void, Error, string | number, unknown>;
@@ -40,6 +39,8 @@ interface EntityActionsProps {
   entityId: number;
   renderEditForm: (onClose: () => void) => React.ReactNode;
   dataTour?: string;
+  /** Falso cuando el registro es compartido: eliminarlo rompería a otras compañías. */
+  canDelete?: boolean;
 }
 
 function EntityActions({
@@ -49,6 +50,7 @@ function EntityActions({
   entityId,
   renderEditForm,
   dataTour,
+  canDelete = true,
 }: EntityActionsProps) {
   const { user } = useAuth();
   const [openDelete, setOpenDelete] = useState(false);
@@ -88,12 +90,14 @@ function EntityActions({
         >
           <Pencil className="size-5" />
         </DropdownMenuItem>
-        <DropdownMenuItem
-          className="cursor-pointer"
-          onClick={() => setOpenDelete(true)}
-        >
-          <Trash2 className="size-5 text-red-500" />
-        </DropdownMenuItem>
+        {canDelete && (
+          <DropdownMenuItem
+            className="cursor-pointer"
+            onClick={() => setOpenDelete(true)}
+          >
+            <Trash2 className="size-5 text-red-500" />
+          </DropdownMenuItem>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -177,6 +181,7 @@ export function BankAccountDropdownActions({
       deleteLabel="¿Seguro que desea eliminar esta cuenta? Se eliminarán también sus métodos de pago y tarjetas."
       editTitle="Editar Cuenta Bancaria"
       entityId={account.id}
+      canDelete={account.can_delete ?? true}
       renderEditForm={(onClose) => (
         <CreateBankAccountForm onClose={onClose} account={account} />
       )}
@@ -193,6 +198,7 @@ export function BankCardDropdownActions({ bankCard }: { bankCard: BankCard }) {
       deleteLabel="¿Seguro que desea eliminar esta tarjeta?"
       editTitle="Editar Tarjeta"
       entityId={bankCard.id}
+      canDelete={bankCard.can_delete ?? true}
       renderEditForm={(onClose) => (
         <CreateBankCardForm onClose={onClose} bankCard={bankCard} />
       )}
