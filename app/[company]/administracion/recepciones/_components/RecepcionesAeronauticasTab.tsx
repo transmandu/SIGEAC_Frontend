@@ -20,7 +20,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ColumnFilter, type SortDirection } from "./ColumnFilter";
 import { formatPeriodRange, PeriodFilter, type Period } from "./PeriodFilter";
 import { ReceptionStats } from "./ReceptionStats";
-import { PAGE_SIZES, TablePagination } from "./TablePagination";
+import { PAGE_SIZES, TablePagination } from "@/components/misc/TablePagination";
 
 const toApiDate = (date?: Date) =>
   date ? format(date, "yyyy-MM-dd") : undefined;
