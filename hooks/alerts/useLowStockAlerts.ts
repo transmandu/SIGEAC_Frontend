@@ -57,7 +57,7 @@ export const useLowStockAlerts = () => {
             const target = Number(article.maximum_quantity ?? 0) > 0
                 ? Number(article.maximum_quantity)
                 : Number(article.minimum_quantity ?? 0);
-            const restockQuantity = Math.max(target - Number(article.quantity ?? 0), 1);
+            const restockQuantity = Math.ceil(Math.max(target - Number(article.quantity ?? 0), 1));
 
             // Misma identidad visible que en el resto de compras: dos artículos
             // pueden compartir descripción y variante y diferir solo por marca,

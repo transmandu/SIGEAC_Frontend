@@ -16,10 +16,11 @@ import { useGetReceptionHistory } from "@/hooks/mantenimiento/almacen/articulos/
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { ListRestart, Loader2, PackageSearch, Search } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ColumnFilter, type SortDirection } from "./ColumnFilter";
 import { formatPeriodRange, PeriodFilter, type Period } from "./PeriodFilter";
 import { ReceptionStats } from "./ReceptionStats";
+import { PAGE_SIZES, TablePagination } from "./TablePagination";
 
 const toApiDate = (date?: Date) =>
   date ? format(date, "yyyy-MM-dd") : undefined;
@@ -34,6 +35,8 @@ export const RecepcionesAeronauticasTab = () => {
     key: "part_number" | "description" | "vendor";
     direction: SortDirection;
   } | null>(null);
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(PAGE_SIZES[0]);
 
   const { data, isLoading, isFetching, isError } = useGetReceptionHistory({
     from: toApiDate(period.from),
@@ -86,6 +89,16 @@ export const RecepcionesAeronauticasTab = () => {
         ),
     );
   }, [filtered, sortColumn]);
+
+  // Filtrar u ordenar cambia qué fila cae en cada página: volver al inicio.
+  useEffect(() => {
+    setPage(0);
+  }, [search, vendorFilter, partFilter, descriptionFilter, sortColumn, period]);
+
+  const paginated = useMemo(
+    () => sorted.slice(page * pageSize, page * pageSize + pageSize),
+    [sorted, page, pageSize],
+  );
 
   const breakdown = useMemo(() => {
     const distinct = (values: (string | null)[]) =>
@@ -279,7 +292,7 @@ export const RecepcionesAeronauticasTab = () => {
                 </TableCell>
               </TableRow>
             ) : (
-              sorted.map((article) => (
+              paginated.map((article) => (
                 <TableRow key={article.id}>
                   <TableCell className="text-center font-mono text-xs font-medium">
                     {article.part_number ?? "N/A"}
@@ -309,6 +322,19 @@ export const RecepcionesAeronauticasTab = () => {
             )}
           </TableBody>
         </Table>
+
+        {sorted.length > 0 && (
+          <TablePagination
+            page={page}
+            pageSize={pageSize}
+            totalRows={sorted.length}
+            onPageChange={setPage}
+            onPageSizeChange={(size) => {
+              setPageSize(size);
+              setPage(0);
+            }}
+          />
+        )}
       </div>
     </div>
   );
