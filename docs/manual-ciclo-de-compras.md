@@ -552,6 +552,11 @@ máximo dimensiona el pedido.
 
 > mínimo 10, máximo 20, existencia 8 → se piden **12**
 
+La cantidad sugerida **siempre se redondea al entero superior**, incluso con décimas
+menores a 0,50 (5,01 y 5,70 dan igual **6**). Se pierde precisión a propósito: compras
+cotiza sobre artículos que se venden por unidades enteras, y la cifra es una solicitud,
+no una medición.
+
 ### Tabla de puntos de mutación
 
 Esta es probablemente la tabla más útil del documento — cada lugar del sistema donde
@@ -790,7 +795,7 @@ flowchart TD
     U --> Q["createFromLowStockAlert"]
     Q --> CHK{"¿Ya hay requisición activa<br/>para description + variant_type?"}
     CHK -->|sí| ERR["422: ya existe solicitud activa"]
-    CHK -->|no| CALC["cantidad = max(objetivo − existencia, 1)<br/>objetivo = maximum_quantity<br/>o minimum_quantity si no hay máximo"]
+    CHK -->|no| CALC["cantidad = ceil(max(objetivo − existencia, 1))<br/>objetivo = maximum_quantity<br/>o minimum_quantity si no hay máximo"]
     CALC --> REQ["Requisición GENERAL<br/>created_by = SYSTEM<br/>requested_by = empleado real<br/>priority = HIGH si stock = 0"]
     style REQ fill:#e3f2fd,stroke:#1565c0
 ```
