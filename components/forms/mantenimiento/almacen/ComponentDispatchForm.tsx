@@ -77,7 +77,7 @@ export function ComponentDispatchForm({ onClose }: FormProps) {
         commitAeroQty, commitGenQty,
         setToMaxAero, setToMaxGen,
         convState, setConvState,
-        activeConversions, isActiveConversionLoading,
+        activeConversions, isActiveConversionLoading, activeBaseUnitLabel,
         closeConversion, openConversionForAero, openConversionForGeneral, applyConversion,
         handleAddAeronautical, handleAddGeneral,
         removeAeroRow, removeGenRow,
@@ -92,12 +92,13 @@ export function ComponentDispatchForm({ onClose }: FormProps) {
             isLoading={isActiveConversionLoading}
             selectedConversion={convState.selected}
             conversionInput={convState.input}
+            baseUnitLabel={activeBaseUnitLabel}
             onConversionChange={(conv) => setConvState((p) => ({ ...p, selected: conv, input: "" }))}
             onInputChange={(val) => setConvState((p) => ({ ...p, input: val }))}
             onApply={applyConversion}
             onClose={closeConversion}
         />
-    ), [activeConversions, isActiveConversionLoading, convState.selected, convState.input, applyConversion, closeConversion, setConvState])
+    ), [activeConversions, isActiveConversionLoading, activeBaseUnitLabel, convState.selected, convState.input, applyConversion, closeConversion, setConvState])
 
     return (
         <Form {...form}>

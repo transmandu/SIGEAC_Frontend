@@ -170,7 +170,14 @@ export const useConfirmGeneralArticleIntake = () => {
                 {
                     ...(confirmedAt ? { confirmed_at: confirmedAt.toISOString() } : {}),
                     ...(newConversionEquivalence
-                        ? { new_conversion: { equivalence: newConversionEquivalence } }
+                        ? {
+                            new_conversion: {
+                                // El almacenista lo declara desde la unidad que
+                                // compró hacia la que ya maneja el inventario.
+                                direction: 'base_per_unit',
+                                value: newConversionEquivalence,
+                            },
+                        }
                         : {}),
                 }
             );

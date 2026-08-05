@@ -53,9 +53,9 @@ export interface ArticleCostRow {
 
 /** Conversión unidad-a-unidad de un artículo general (ej: 1 CAJA = 20 UNID). */
 export interface GeneralArticleConversion {
-  primary_unit: number;
-  secondary_unit: number;
-  equivalence: number;
+  unit_id: number;
+  /** Cuántas unidades base equivalen a 1 unit_id. */
+  base_per_unit: number;
 }
 
 export interface GeneralCostRow {

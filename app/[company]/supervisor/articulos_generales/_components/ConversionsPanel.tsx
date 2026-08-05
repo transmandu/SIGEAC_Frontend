@@ -8,16 +8,14 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 import type { Unit } from "@/types"
-import type { ArticleConversion, ConversionEdits } from "@/types/supervisor"
-import { Check, Info, Plus, RotateCcw, Trash2, X } from "lucide-react"
+import type {
+    ArticleConversion,
+    ConversionDirection,
+    ConversionEdits,
+} from "@/types/supervisor"
+import { Check, Plus, RotateCcw, Trash2, X } from "lucide-react"
 import { useState } from "react"
 import { DecimalInput } from "./DecimalInput"
 import { dependencyBadgeCls } from "./utils/uiHelpers"
@@ -27,22 +25,23 @@ import { dependencyBadgeCls } from "./utils/uiHelpers"
  *
  * Nada se escribe aquí: los cambios se acumulan en `edits` y se persisten al
  * confirmar el diálogo, junto con los datos y el historial de costo, en una
- * sola transacción. Así el supervisor puede revisar todo lo que va a cambiar
- * antes de aplicarlo, y cancelar lo descarta por completo.
+ * sola transacción.
  *
- * Una `conversion` es una fila del catálogo compartido: el mismo registro puede
- * estar asociado a varios artículos. Cuando shared_with > 0, editar la
- * equivalencia no altera la fila — el backend crea una copia exclusiva para
- * este artículo (copy-on-write). El panel lo advierte antes de confirmar.
+ * Cada conversión pertenece a ESTE artículo: editarla no afecta a ningún otro.
+ * El usuario declara la equivalencia en la dirección que le resulte natural
+ * ("1 CAJA = 100 UNIDAD" o "1 LITRO = 1000 mL") y el backend la normaliza; por
+ * eso cada fila viaja con su `direction`.
  */
 export function ConversionsPanel({
     conversions,
     units,
+    baseUnitLabel,
     edits,
     onChange,
 }: {
     conversions: ArticleConversion[]
     units: Unit[]
+    baseUnitLabel: string
     edits: ConversionEdits
     onChange: (edits: ConversionEdits) => void
 }) {
@@ -54,20 +53,19 @@ export function ConversionsPanel({
     const updated = edits.updated ?? []
     const created = edits.created ?? []
 
-    /** Equivalencia pendiente de una conversión, si el supervisor la cambió. */
-    const pendingEquivalence = (id: number) =>
-        updated.find((row) => row.id === id)?.equivalence
+    /** Valor pendiente de una conversión, si el supervisor lo cambió. */
+    const pendingValue = (id: number) => updated.find((row) => row.id === id)?.value
 
     const commitEdit = (conversionId: number) => {
-        const equivalence = Number(editValue)
+        const value = Number(editValue)
 
-        if (!Number.isFinite(equivalence) || equivalence <= 0) return
+        if (!Number.isFinite(value) || value <= 0) return
 
         onChange({
             ...edits,
             updated: [
                 ...updated.filter((row) => row.id !== conversionId),
-                { id: conversionId, equivalence },
+                { id: conversionId, direction: "base_per_unit", value },
             ],
         })
 
@@ -96,7 +94,7 @@ export function ConversionsPanel({
                 {conversions.map((conversion) => {
                     const isEditing = editingId === conversion.id
                     const isDeleted = deleted.includes(conversion.id)
-                    const pending = pendingEquivalence(conversion.id)
+                    const pending = pendingValue(conversion.id)
 
                     return (
                         <div
@@ -111,7 +109,7 @@ export function ConversionsPanel({
                             )}
                         >
                             <span className="text-sm text-muted-foreground shrink-0">
-                                1 {conversion.primary_unit_label ?? "—"}
+                                1 {conversion.unit_label ?? "—"}
                             </span>
                             <span className="text-muted-foreground/50">=</span>
 
@@ -129,36 +127,18 @@ export function ConversionsPanel({
                                         isDeleted && "line-through",
                                     )}
                                 >
-                                    {pending ?? conversion.equivalence}
+                                    {pending ?? conversion.base_per_unit}
                                     {pending !== undefined && (
                                         <span className="ml-1.5 text-[11px] font-normal text-muted-foreground/60 line-through">
-                                            {conversion.equivalence}
+                                            {conversion.base_per_unit}
                                         </span>
                                     )}
                                 </span>
                             )}
 
                             <span className="text-sm text-muted-foreground truncate flex-1">
-                                {conversion.secondary_unit_label ?? "—"}
+                                {baseUnitLabel}
                             </span>
-
-                            {conversion.shared_with > 0 && (
-                                <TooltipProvider>
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <span className={dependencyBadgeCls()}>
-                                                <Info className="inline size-3 mr-1" />
-                                                Compartida
-                                            </span>
-                                        </TooltipTrigger>
-                                        <TooltipContent className="max-w-xs">
-                                            La usan {conversion.shared_with} artículo(s) más. Al
-                                            confirmar se creará una conversión propia para este
-                                            artículo, sin alterar la de los demás.
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
-                            )}
 
                             <div className="flex items-center gap-0.5 shrink-0">
                                 {isEditing ? (
@@ -182,20 +162,21 @@ export function ConversionsPanel({
                                     </>
                                 ) : (
                                     <>
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            className="h-8 text-[11px] text-muted-foreground hover:text-foreground"
-                                            disabled={isDeleted}
-                                            onClick={() => {
-                                                setEditingId(conversion.id)
-                                                setEditValue(
-                                                    String(pending ?? conversion.equivalence),
-                                                )
-                                            }}
-                                        >
-                                            Editar
-                                        </Button>
+                                        {!isDeleted && (
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-8 text-[11px] text-muted-foreground hover:text-foreground"
+                                                onClick={() => {
+                                                    setEditingId(conversion.id)
+                                                    setEditValue(
+                                                        String(pending ?? conversion.base_per_unit),
+                                                    )
+                                                }}
+                                            >
+                                                Editar
+                                            </Button>
+                                        )}
                                         <Button
                                             variant="ghost"
                                             size="icon"
@@ -222,12 +203,17 @@ export function ConversionsPanel({
                         className="flex items-center gap-3 rounded-lg border border-sky-400/40 bg-sky-500/[0.06] dark:border-sky-300/25 px-3 py-2.5"
                     >
                         <span className="text-sm text-muted-foreground shrink-0">
-                            1 {units.find((unit) => unit.id === row.primary_unit)?.label ?? "—"}
+                            1{" "}
+                            {row.direction === "base_per_unit"
+                                ? (units.find((unit) => unit.id === row.unit_id)?.label ?? "—")
+                                : baseUnitLabel}
                         </span>
                         <span className="text-muted-foreground/50">=</span>
-                        <span className="text-sm font-medium tabular-nums">{row.equivalence}</span>
+                        <span className="text-sm font-medium tabular-nums">{row.value}</span>
                         <span className="text-sm text-muted-foreground truncate flex-1">
-                            {units.find((unit) => unit.id === row.secondary_unit)?.label ?? "—"}
+                            {row.direction === "base_per_unit"
+                                ? baseUnitLabel
+                                : (units.find((unit) => unit.id === row.unit_id)?.label ?? "—")}
                         </span>
                         <span className={dependencyBadgeCls()}>Nueva</span>
                         <Button
@@ -250,6 +236,11 @@ export function ConversionsPanel({
             {adding ? (
                 <NewConversionRow
                     units={units}
+                    baseUnitLabel={baseUnitLabel}
+                    existingUnitIds={[
+                        ...conversions.map((row) => row.unit_id),
+                        ...created.map((row) => row.unit_id),
+                    ]}
                     onAdd={(row) => {
                         onChange({ ...edits, created: [...created, row] })
                         setAdding(false)
@@ -271,98 +262,119 @@ export function ConversionsPanel({
     )
 }
 
+/**
+ * Captura una conversión nueva. El selector de dirección deja que el usuario
+ * escriba la frase que conoce ("1 CAJA = 100 UNIDAD" o "1 LITRO = 1000 mL")
+ * sin tener que calcular ningún inverso.
+ */
 function NewConversionRow({
     units,
+    baseUnitLabel,
+    existingUnitIds,
     onAdd,
     onCancel,
 }: {
     units: Unit[]
-    onAdd: (row: { primary_unit: number; secondary_unit: number; equivalence: number }) => void
+    baseUnitLabel: string
+    existingUnitIds: number[]
+    onAdd: (row: {
+        unit_id: number
+        direction: ConversionDirection
+        value: number
+    }) => void
     onCancel: () => void
 }) {
-    const [primaryUnit, setPrimaryUnit] = useState<number | null>(null)
-    const [secondaryUnit, setSecondaryUnit] = useState<number | null>(null)
-    const [equivalence, setEquivalence] = useState("")
+    const [unitId, setUnitId] = useState<number | null>(null)
+    const [direction, setDirection] = useState<ConversionDirection>("base_per_unit")
+    const [value, setValue] = useState("")
 
-    const equivalenceValue = Number(equivalence)
+    const numericValue = Number(value)
+    const alreadyExists = unitId !== null && existingUnitIds.includes(unitId)
 
     const isValid =
-        !!primaryUnit &&
-        !!secondaryUnit &&
-        primaryUnit !== secondaryUnit &&
-        Number.isFinite(equivalenceValue) &&
-        equivalenceValue > 0
+        !!unitId && !alreadyExists && Number.isFinite(numericValue) && numericValue > 0
+
+    const unitLabel = units.find((unit) => unit.id === unitId)?.label ?? "unidad"
+    const leftLabel = direction === "base_per_unit" ? unitLabel : baseUnitLabel
+    const rightLabel = direction === "base_per_unit" ? baseUnitLabel : unitLabel
 
     return (
-        <div className="flex items-center gap-2 rounded-lg border border-sky-400/40 bg-sky-500/[0.06] dark:border-sky-300/25 px-3 py-2.5">
-            <span className="text-sm text-muted-foreground shrink-0">1</span>
-
-            <Select
-                value={String(primaryUnit ?? "")}
-                onValueChange={(value) => setPrimaryUnit(Number(value))}
-            >
-                <SelectTrigger className="h-8 w-[130px] text-xs bg-background border-border/60">
-                    <SelectValue placeholder="Unidad" />
-                </SelectTrigger>
-                <SelectContent>
-                    {units.map((unit) => (
-                        <SelectItem key={unit.id} value={String(unit.id)} className="text-xs">
-                            {unit.label}
-                        </SelectItem>
-                    ))}
-                </SelectContent>
-            </Select>
-
-            <span className="text-muted-foreground/50">=</span>
-
-            <DecimalInput
-                placeholder="0.00"
-                className="h-8 w-24 bg-background border-border/60"
-                value={equivalence}
-                onValueChange={setEquivalence}
-            />
-
-            <Select
-                value={String(secondaryUnit ?? "")}
-                onValueChange={(value) => setSecondaryUnit(Number(value))}
-            >
-                <SelectTrigger className="h-8 w-[130px] text-xs bg-background border-border/60">
-                    <SelectValue placeholder="Unidad" />
-                </SelectTrigger>
-                <SelectContent>
-                    {units.map((unit) => (
-                        <SelectItem key={unit.id} value={String(unit.id)} className="text-xs">
-                            {unit.label}
-                        </SelectItem>
-                    ))}
-                </SelectContent>
-            </Select>
-
-            <div className="flex items-center gap-0.5 ml-auto shrink-0">
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    className="size-8 text-muted-foreground hover:text-foreground"
-                    disabled={!isValid}
-                    onClick={() =>
-                        onAdd({
-                            primary_unit: primaryUnit!,
-                            secondary_unit: secondaryUnit!,
-                            equivalence: equivalenceValue,
-                        })
-                    }
+        <div className="flex flex-col gap-2 rounded-lg border border-sky-400/40 bg-sky-500/[0.06] dark:border-sky-300/25 px-3 py-2.5">
+            <div className="flex items-center gap-2">
+                <Select
+                    value={String(unitId ?? "")}
+                    onValueChange={(next) => setUnitId(Number(next))}
                 >
-                    <Check className="size-3.5" />
-                </Button>
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    className="size-8 text-muted-foreground hover:text-foreground"
-                    onClick={onCancel}
+                    <SelectTrigger className="h-8 w-[160px] text-xs bg-background border-border/60">
+                        <SelectValue placeholder="Unidad a convertir" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {units.map((unit) => (
+                            <SelectItem key={unit.id} value={String(unit.id)} className="text-xs">
+                                {unit.label}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+
+                <Select
+                    value={direction}
+                    onValueChange={(next) => setDirection(next as ConversionDirection)}
                 >
-                    <X className="size-3.5" />
-                </Button>
+                    <SelectTrigger className="h-8 w-[190px] text-xs bg-background border-border/60">
+                        <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="base_per_unit" className="text-xs">
+                            1 {unitLabel} = ? {baseUnitLabel}
+                        </SelectItem>
+                        <SelectItem value="units_per_base" className="text-xs">
+                            1 {baseUnitLabel} = ? {unitLabel}
+                        </SelectItem>
+                    </SelectContent>
+                </Select>
+
+                <div className="flex items-center gap-0.5 ml-auto shrink-0">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="size-8 text-muted-foreground hover:text-foreground"
+                        disabled={!isValid}
+                        onClick={() =>
+                            onAdd({ unit_id: unitId!, direction, value: numericValue })
+                        }
+                    >
+                        <Check className="size-3.5" />
+                    </Button>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="size-8 text-muted-foreground hover:text-foreground"
+                        onClick={onCancel}
+                    >
+                        <X className="size-3.5" />
+                    </Button>
+                </div>
             </div>
+
+            <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground shrink-0">1 {leftLabel}</span>
+                <span className="text-muted-foreground/50">=</span>
+                <DecimalInput
+                    placeholder="0.00"
+                    className="h-8 w-28 bg-background border-border/60"
+                    value={value}
+                    onValueChange={setValue}
+                />
+                <span className="text-sm text-muted-foreground truncate">{rightLabel}</span>
+            </div>
+
+            {alreadyExists && (
+                <span className="text-xs text-destructive">
+                    Este artículo ya tiene una conversión para esa unidad. Edite la existente
+                    en vez de crear otra.
+                </span>
+            )}
         </div>
     )
 }

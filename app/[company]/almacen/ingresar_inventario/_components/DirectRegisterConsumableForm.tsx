@@ -80,14 +80,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { useGetConditions } from "@/hooks/administracion/useGetConditions";
 import { useGetManufacturers } from "@/hooks/general/fabricantes/useGetManufacturers";
 import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits";
-import { useGetSecondaryUnits } from "@/hooks/general/unidades/useGetSecondaryUnits";
 import { useSearchBatchesByPartNumber } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByArticlePartNumber";
 import { useGetBatchesByCategory } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByCategory";
 
 import { CreateManufacturerDialog } from "@/components/dialogs/general/CreateManufacturerDialog";
 import { CreateBatchDialog } from "@/components/dialogs/mantenimiento/almacen/CreateBatchDialog";
 import { MultiInputField } from "@/components/misc/MultiInputField";
-import { useGetConversionByUnitConsmable } from "@/hooks/mantenimiento/almacen/articulos/useGetConvertionsByConsumableUnit";
 import { cn } from "@/lib/utils";
 import loadingGif from "@/public/loading2.gif";
 import { useCompanyStore } from "@/stores/CompanyStore";
@@ -98,7 +96,10 @@ import PreviewCreateConsumableDialog from "@/components/dialogs/mantenimiento/al
 import { DestinationUnknownField } from "@/components/forms/mantenimiento/almacen/DestinationUnknownField";
 import { getConditionLabel } from "@/lib/conditions";
 import { Condition } from "@/types";
-import { UnitsModal } from "./UnitsModal";
+import {
+    ConsumableConversionsField,
+    type ConsumableConversionInput,
+} from "@/components/forms/mantenimiento/almacen/ConsumableConversionsField";
 
 /* ------------------------------- Schema ------------------------------- */
 
@@ -150,9 +151,7 @@ const formSchema = z.object({
 
 export type FormValues = z.infer<typeof formSchema>;
 
-interface UnitSelection {
-    conversion_id: number;
-}
+
 
 /* ----------------------------- Helpers UI ----------------------------- */
 
@@ -697,8 +696,7 @@ export default function DirectRegisterConsumableForm({
         string | undefined
     >(undefined);
 
-    const [unitsModalOpen, setUnitsModalOpen] = useState(false);
-    const [selectedUnits, setSelectedUnits] = useState<UnitSelection[]>([]);
+    const [selectedUnits, setSelectedUnits] = useState<ConsumableConversionInput[]>([]);
 
     const {
         data: batches,
@@ -722,30 +720,11 @@ export default function DirectRegisterConsumableForm({
         selectedCompany?.slug,
     );
 
-    const { data: secondaryUnits, isLoading: secondaryUnitsLoading } =
-        useGetSecondaryUnits(selectedCompany?.slug);
 
     const [selectedPrimaryUnit, setSelectedPrimaryUnit] = useState<any | null>(
         initialData?.consumable?.primary_unit_id ? { id: initialData.consumable.primary_unit_id } : null,
     );
 
-    const { data: availableConversion, isLoading: isConversionLoading } =
-        useGetConversionByUnitConsmable(
-            selectedPrimaryUnit?.id || 0,
-            selectedCompany?.slug,
-        );
-
-    const primaryUnitsFromConversions = useMemo(() => {
-        if (!availableConversion) return [];
-        const unitMap = new Map();
-        availableConversion.forEach((conversion) => {
-            const unit = conversion.primary_unit;
-            if (!unitMap.has(unit.id)) {
-                unitMap.set(unit.id, unit);
-            }
-        });
-        return Array.from(unitMap.values());
-    }, [availableConversion]);
 
     const { data: searchResults, isFetching: isSearching } =
         useSearchBatchesByPartNumber(
@@ -822,16 +801,25 @@ export default function DirectRegisterConsumableForm({
     });
 
     // Conversiones iniciales (selectedUnits no está enlazado a RHF).
-    const initialConversionIdsRef = useRef(
-        new Set(
-            (initialData?.consumable?.conversions ?? []).map((conv: any) => Number(conv.id))
+    const initialConversionsRef = useRef(
+        new Map<number, number>(
+            (initialData?.consumable?.conversions ?? []).map((conv: any) => [
+                Number(conv.unit?.id ?? conv.unit_id),
+                Number(conv.base_per_unit),
+            ])
         )
     );
 
     const conversionsDirty = (() => {
-        const current = new Set(selectedUnits.map((u) => u.conversion_id));
-        if (current.size !== initialConversionIdsRef.current.size) return true;
-        return Array.from(current).some((id) => !initialConversionIdsRef.current.has(id));
+        const initial = initialConversionsRef.current;
+        if (selectedUnits.length !== initial.size) return true;
+        return selectedUnits.some((row) => {
+            const previous = initial.get(row.unit_id);
+            if (previous === undefined) return true;
+            const declared =
+                row.direction === "base_per_unit" ? row.value : 1 / row.value;
+            return Math.abs(declared - previous) > 1e-9;
+        });
     })();
 
     const datesDirty =
@@ -915,10 +903,11 @@ export default function DirectRegisterConsumableForm({
         if (!initialData) return;
 
         if (initialData.consumable?.conversions && Array.isArray(initialData.consumable.conversions)) {
-            const initialUnits: UnitSelection[] = initialData.consumable.conversions.map(
+            const initialUnits: ConsumableConversionInput[] = initialData.consumable.conversions.map(
                 (conv: any) => ({
-                    // Usamos conv.id porque en el JSON del backend el ID de la conversión es 'id'
-                    conversion_id: Number(conv.id),
+                    unit_id: Number(conv.unit?.id ?? conv.unit_id),
+                    direction: "base_per_unit" as const,
+                    value: Number(conv.base_per_unit),
                 })
             );
             setSelectedUnits(initialUnits);
@@ -1027,14 +1016,6 @@ export default function DirectRegisterConsumableForm({
         }
         calculateAndUpdateQuantity(secondaryQuantity, secondarySelected);
     }, [secondarySelected, secondaryQuantity, calculateAndUpdateQuantity]);
-
-    const handleConversionResult = (result: string) => {
-        const resultNumber = parseFloat(result);
-        if (!isNaN(resultNumber)) {
-            setSecondaryQuantity(resultNumber);
-            calculateAndUpdateQuantity(resultNumber, secondarySelected);
-        }
-    };
 
     useEffect(() => {
         if (!secondarySelected) {
@@ -1149,7 +1130,7 @@ export default function DirectRegisterConsumableForm({
             status: string;
             alternative_part_number?: string[];
             batch_name?: string;
-            conversions?: number[];
+            conversions?: ConsumableConversionInput[];
             primary_unit_id?: number;
         } = {
             ...valuesWithoutCaducateDate,
@@ -1170,9 +1151,7 @@ export default function DirectRegisterConsumableForm({
                         ? "1900-01-01"
                         : undefined,
             batch_name: enableBatchNameEdit ? values.batch_name : undefined,
-            conversions: selectedUnits.length > 0
-                ? selectedUnits.map(unit => unit.conversion_id)
-                : undefined,
+            conversions: selectedUnits,
             primary_unit_id: secondarySelected?.id,
         };
 
@@ -2067,25 +2046,18 @@ export default function DirectRegisterConsumableForm({
                                 )}
                             />
 
-                            <div className="col-span-1 md:col-span-2 xl:col-span-3">
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    onClick={() => setUnitsModalOpen(true)}
-                                    disabled={
-                                        busy || !secondaryUnits?.length || !selectedPrimaryUnit
-                                    }
-                                >
-                                    <Plus className="h-4 w-4 mr-2" />
-                                    Configurar Conversiones Adicionales
-                                </Button>
-                                <p className="text-sm text-muted-foreground mt-2">
-                                    {selectedUnits.length > 0
-                                        ? `${selectedUnits.length} conversión(es) configurada(s)`
-                                        : !selectedPrimaryUnit
-                                            ? "Seleccione primero una unidad primaria"
-                                            : "Configure conversiones de unidades adicionales para este artículo"}
+                            <div className="col-span-1 md:col-span-2 xl:col-span-3 space-y-2">
+                                <FormLabel>Conversiones de unidades</FormLabel>
+                                <p className="text-sm text-muted-foreground">
+                                    Declare a cuánto equivale este artículo en otras unidades.
                                 </p>
+                                <ConsumableConversionsField
+                                    units={units ?? []}
+                                    baseUnitId={selectedPrimaryUnit?.id}
+                                    value={selectedUnits}
+                                    onChange={setSelectedUnits}
+                                    disabled={busy}
+                                />
                             </div>
                         </div>
                     </SectionCard>
@@ -2224,18 +2196,6 @@ export default function DirectRegisterConsumableForm({
                 }}
             />
 
-            <UnitsModal
-                open={unitsModalOpen}
-                onOpenChange={setUnitsModalOpen}
-                secondaryUnits={secondaryUnits || []}
-                selectedUnits={selectedUnits}
-                onSelectedUnitsChange={setSelectedUnits}
-                primaryUnit={selectedPrimaryUnit}
-                allUnits={units}
-                availableConversionUnits={primaryUnitsFromConversions}
-                availableConversion={availableConversion}
-                onConversionResult={handleConversionResult}
-            />
         </>
     );
 }

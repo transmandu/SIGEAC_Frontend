@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Calculator, X } from "lucide-react"
+import type { Convertion } from "@/types"
 
 function sanitizeDecimal(raw: string) {
   const cleaned = raw.replace(/[^\d.]/g, "")
@@ -13,11 +14,13 @@ function sanitizeDecimal(raw: string) {
 }
 
 interface ConversionPanelProps {
-  conversions: any[] | undefined
+  conversions: Convertion[] | undefined
   isLoading: boolean
-  selectedConversion: any
+  selectedConversion: Convertion | null
   conversionInput: string
-  onConversionChange: (conv: any) => void
+  /** Unidad base del artículo: es la unidad en que queda la cantidad aplicada. */
+  baseUnitLabel?: string
+  onConversionChange: (conv: Convertion | null) => void
   onInputChange: (val: string) => void
   onApply: () => void
   onClose: () => void
@@ -28,6 +31,7 @@ export const ConversionPanel = memo(function ConversionPanel({
   isLoading,
   selectedConversion,
   conversionInput,
+  baseUnitLabel,
   onConversionChange,
   onInputChange,
   onApply,
@@ -50,7 +54,7 @@ export const ConversionPanel = memo(function ConversionPanel({
         <Select
           value={selectedConversion?.id?.toString() || ""}
           onValueChange={(value) => {
-            const conv = conversions?.find((c: any) => c.id.toString() === value)
+            const conv = conversions?.find((c) => c.id.toString() === value)
             onConversionChange(conv ?? null)
             onInputChange("")
           }}
@@ -60,9 +64,9 @@ export const ConversionPanel = memo(function ConversionPanel({
             <SelectValue placeholder={isLoading ? "Cargando..." : "Seleccione unidad origen"} />
           </SelectTrigger>
           <SelectContent>
-            {conversions?.map((conv: any) => (
+            {conversions?.map((conv) => (
               <SelectItem key={conv.id} value={conv.id.toString()}>
-                {conv.unit_primary.label} ({conv.unit_primary.value})
+                {conv.unit.label} ({conv.unit.value})
               </SelectItem>
             ))}
           </SelectContent>
@@ -85,9 +89,9 @@ export const ConversionPanel = memo(function ConversionPanel({
 
       {selectedConversion && conversionInput && (
         <p className="text-xs text-muted-foreground">
-          {conversionInput} {selectedConversion.unit_primary.label} ={" "}
-          {((parseFloat(conversionInput) || 0) / selectedConversion.equivalence).toFixed(6)}{" "}
-          {conversions?.[0]?.unit_secondary?.label ?? "unidades"}
+          {conversionInput} {selectedConversion.unit.label} ={" "}
+          {((parseFloat(conversionInput) || 0) * selectedConversion.base_per_unit).toFixed(6)}{" "}
+          {baseUnitLabel ?? "unidades"}
         </p>
       )}
 
