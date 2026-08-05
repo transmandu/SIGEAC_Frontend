@@ -449,6 +449,51 @@ La cadena requisición → cotización → orden de compra **no se modifica**. E
 responsable puede volver a registrar la entrega del mismo ítem cuando resuelva la
 discrepancia.
 
+### Coherencia temporal de las fechas
+
+Dos reglas de sentido físico en `GeneralArticleIntakeController::assertIntakeTimeline`,
+con **alcances distintos**:
+
+1. **Nada ocurre en el futuro** (`$againstClock`, solo en el registro y la confirmación
+   reales). La mercancía se registra cuando ya está ahí, así que una `arrived_at`
+   posterior a hoy solo puede ser un error de carga. Hacia atrás sí se permite:
+   registrar hoy algo que llegó ayer es lo normal.
+2. **Nada se verifica antes de llegar** (siempre). `confirmed_at` y `rejected_at` nunca
+   pueden quedar por debajo de `arrived_at`, o el registro queda en un estado imposible.
+
+La regla 1 **no aplica en la corrección**: ahí se arregla justamente un día mal
+tecleado (pusieron 19 y era 20), y compararlo contra el reloj impediría la corrección.
+La regla 2 sí se conserva siempre.
+
+Hay un minuto de tolerancia contra el desfase de reloj entre navegador y servidor.
+En el registro la regla 1 va además como validación (`before_or_equal`) en
+`registerGeneralArticlesDelivery`.
+
+### La corrección de una recepción (SUPERUSER)
+
+`PATCH /{company}/general-article-intakes/{id}` — ruta normal del intake, restringida
+a `SUPERUSER` por middleware. Nace del caso real de una llegada cargada con fecha
+equivocada y confirmada con otra igual de mala, pero deja editar **todo** el registro:
+identidad del artículo, cantidad, unidad, costo, almacén, fechas y notas.
+
+Es una edición **parcial** (`sometimes`): viaja solo lo que cambió, y un `null`
+explícito vacía un campo opcional. Las fechas se mueven libremente contra el reloj,
+pero conservan el orden entre ellas, evaluado sobre el estado **resultante**, no sobre
+lo enviado — mover la llegada hacia adelante choca con una confirmación vieja que
+quede por detrás.
+
+Lo importante: **si el intake ya estaba `CONFIRMED` y cambia lo que entró al
+inventario** (cantidad, unidad o almacén), el stock del `general_article` se reajusta
+en la misma transacción — se descuenta lo que esa entrada aportó y se suma lo nuevo,
+auditado vía `GeneralArticleObserver::withContext`. Sin eso, la recepción diría una
+cosa y el inventario otra. Al cambiar unidad o almacén se descarta la conversión
+aplicada al confirmar: se calculó contra otra unidad base, y recalcularla exigiría
+reemparejar el intake contra otro artículo, que ya es una reconfirmación.
+
+El reajuste queda etiquetado como «Corrección de recepción (SUPERUSER)» en el historial
+del artículo. Una entrega directa no puede convertirse en entrada de almacén ni al
+revés: son flujos distintos, con y sin paso por inventario.
+
 ### Para el desarrollador — concurrencia
 
 `createGeneralArticlesFromPurchaseOrder` tiene defensa en tres capas contra el doble

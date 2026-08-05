@@ -3,7 +3,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { formatQuantity } from "@/lib/utils";
 import { toast } from "sonner";
-import type { ConfirmGeneralArticleIntakeResponse, NeedsUnitConversionResponse, RejectGeneralArticleIntakeResponse } from "@/types/purchase";
+import type { ConfirmGeneralArticleIntakeResponse, NeedsUnitConversionResponse, RejectGeneralArticleIntakeResponse, UpdateGeneralArticleIntakePayload, UpdateGeneralArticleIntakeResponse } from "@/types/purchase";
 
 export function isNeedsUnitConversionResponse(data: unknown): data is NeedsUnitConversionResponse {
     return !!data && typeof data === "object" && (data as any).needs_conversion === true;
@@ -237,6 +237,46 @@ export const useRejectGeneralArticleIntake = () => {
 
     return {
         rejectGeneralArticleIntake,
+    };
+};
+
+// Corrección de una recepción ya registrada (fechas mal cargadas, sobre todo).
+// Si la entrada ya estaba confirmada y cambia lo que entró al inventario, el
+// backend reajusta el stock del artículo en la misma operación.
+export const useUpdateGeneralArticleIntake = () => {
+    const queryClient = useQueryClient();
+    const { selectedCompany } = useCompanyStore();
+
+    const updateGeneralArticleIntake = useMutation({
+        mutationKey: ["update-general-article-intake", selectedCompany?.slug],
+        mutationFn: async ({ id, payload }: { id: number; payload: UpdateGeneralArticleIntakePayload }) => {
+            const { data } = await axiosInstance.patch<UpdateGeneralArticleIntakeResponse>(
+                `/${selectedCompany?.slug}/general-article-intakes/${id}`,
+                payload
+            );
+            return data;
+        },
+        onSuccess: (data) => {
+            queryClient.invalidateQueries({ queryKey: ["general-article-intakes"], exact: false });
+            queryClient.invalidateQueries({ queryKey: ["general-articles"], exact: false });
+
+            const adjustment = data?.stock_adjustment;
+
+            toast.success("Recepción corregida", {
+                description: adjustment
+                    ? `El stock del artículo se reajustó a ${formatQuantity(adjustment.resulting_quantity)}, por favor verifique.`
+                    : "Los cambios se guardaron correctamente."
+            });
+        },
+        onError: (error: any) => {
+            toast.error("Error", {
+                description: error?.response?.data?.message || "No se pudo corregir la recepción."
+            });
+        },
+    });
+
+    return {
+        updateGeneralArticleIntake,
     };
 };
 

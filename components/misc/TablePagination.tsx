@@ -43,8 +43,8 @@ const NavButton = ({
 );
 
 /**
- * El historial crece sin techo, así que la tabla solo pinta una página a la vez.
- * Los controles de navegación se omiten cuando no hay a dónde ir.
+ * Paginación de filas en cliente, para tablas cuyo conjunto crece sin techo y
+ * no debe pintarse completo. Los controles se omiten cuando no hay a dónde ir.
  */
 export const TablePagination = ({
   page,

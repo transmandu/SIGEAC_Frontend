@@ -11,7 +11,9 @@ import { cn } from '@/lib/utils'
 import { useCompanyStore } from '@/stores/CompanyStore'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { Building2, FileText, Handshake, Loader2, User, UserCog, Warehouse } from 'lucide-react'
+import { Building2, FileText, Handshake, Loader2, Pencil, User, UserCog, Warehouse } from 'lucide-react'
+import { useAuth } from '@/contexts/AuthContext'
+import EditIntakeDialog from './_components/EditIntakeDialog'
 import type { GeneralArticleIntake } from '@/types/purchase'
 
 // Destino del intake, derivado de cuál referencia venga poblada (excluyentes
@@ -91,6 +93,44 @@ const DeliveryNoteButton = ({ intake }: { intake: GeneralArticleIntake }) => {
       </TooltipTrigger>
       <TooltipContent>Descargar Nota de Entrega</TooltipContent>
     </Tooltip>
+  )
+}
+
+// Corrección administrativa del registro (fechas mal cargadas, sobre todo).
+// Solo SUPERUSER, pero para él aparece en TODA fila: cualquier estado, almacén
+// o entrega directa. El backend repite el gate en la ruta.
+const EditIntakeButton = ({ intake }: { intake: GeneralArticleIntake }) => {
+  const { user } = useAuth()
+  const [open, setOpen] = useState(false)
+
+  const isSuperUser = (user?.roles?.map((role) => role.name) || []).includes('SUPERUSER')
+
+  if (!isSuperUser) return null
+
+  return (
+    <>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setOpen(true)}
+            className="
+              size-8 rounded-lg
+              border-amber-500/30 bg-amber-500/10 text-amber-700
+              hover:bg-amber-500/20 hover:text-amber-800
+              dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-300
+              dark:hover:bg-amber-400/20 dark:hover:text-amber-200
+            "
+          >
+            <Pencil className="size-4" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Corregir recepción</TooltipContent>
+      </Tooltip>
+
+      {open && <EditIntakeDialog intake={intake} open={open} onOpenChange={setOpen} />}
+    </>
   )
 }
 
@@ -338,5 +378,18 @@ export const getColumns = (): ColumnDef<GeneralArticleIntake>[] => [
         </div>
       )
     },
+  },
+
+  {
+    id: 'actions',
+    size: 80,
+
+    header: () => <div className="flex justify-center w-full text-xs font-medium">Acciones</div>,
+
+    cell: ({ row }) => (
+      <div className="flex justify-center w-full">
+        <EditIntakeButton intake={row.original} />
+      </div>
+    ),
   },
 ]
