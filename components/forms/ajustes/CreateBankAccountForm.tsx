@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useBankingPermissions } from "@/hooks/general/cuentas_bancarias/useBankingPermissions";
 import { useGetBanks } from "@/hooks/general/bancos/useGetBanks";
 import { BankAccount } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -54,7 +55,10 @@ export default function CreateBankAccountForm({ onClose, account }: FormProps) {
   const { createBankAccount } = useCreateBankAccount();
   const { updateBankAccount } = useUpdateBankAccount();
   const { data: banks, isLoading: isBanksLoading } = useGetBanks();
+  const { canManageCompanies, canSeeFullNumber } = useBankingPermissions();
   const isEditing = !!account;
+  // El número llega enmascarado: reenviarlo guardaría los puntos.
+  const lockNumber = isEditing && !canSeeFullNumber;
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -71,13 +75,22 @@ export default function CreateBankAccountForm({ onClose, account }: FormProps) {
   const { control } = form;
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    const { company_ids, account_number, ...rest } = values;
+
     const data = {
-      ...values,
+      ...rest,
+      account_number,
       bank_id: Number(values.bank_id),
+      ...(canManageCompanies ? { company_ids } : {}),
     };
 
     if (isEditing) {
-      await updateBankAccount.mutateAsync({ id: account.id, data });
+      // Sin permiso el número llega enmascarado: enviarlo guardaría los puntos.
+      const { account_number: masked, ...editable } = data;
+      await updateBankAccount.mutateAsync({
+        id: account.id,
+        data: lockNumber ? editable : data,
+      });
     } else {
       await createBankAccount.mutateAsync(data);
     }
@@ -138,25 +151,27 @@ export default function CreateBankAccountForm({ onClose, account }: FormProps) {
               </FormItem>
             )}
           />
-          <FormField
-            control={control}
-            name="account_number"
-            render={({ field }) => (
-              <FormItem
-                className="w-full"
-                data-tour="cuentas-crear-account-number"
-              >
-                <FormLabel>Nro. de Cuenta</FormLabel>
-                <FormControl>
-                  <Input placeholder="EJ: 0713 - XXXX, etc..." {...field} />
-                </FormControl>
-                <FormDescription>
-                  Número de la cuenta (últimos 4 dígitos).
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {!lockNumber && (
+            <FormField
+              control={control}
+              name="account_number"
+              render={({ field }) => (
+                <FormItem
+                  className="w-full"
+                  data-tour="cuentas-crear-account-number"
+                >
+                  <FormLabel>Nro. de Cuenta</FormLabel>
+                  <FormControl>
+                    <Input placeholder="EJ: 0713 - XXXX, etc..." {...field} />
+                  </FormControl>
+                  <FormDescription>
+                    Número de la cuenta (últimos 4 dígitos).
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
           <FormField
             control={form.control}
             name="account_type"
@@ -236,25 +251,27 @@ export default function CreateBankAccountForm({ onClose, account }: FormProps) {
             </FormItem>
           )}
         />
-        <FormField
-          control={form.control}
-          name="company_ids"
-          render={({ field }) => (
-            <FormItem className="mt-2" data-tour="cuentas-crear-companies">
-              <FormLabel>Compañías habilitadas</FormLabel>
-              <FormControl>
-                <CompanyMultiSelect
-                  value={field.value}
-                  onChange={field.onChange}
-                />
-              </FormControl>
-              <FormDescription>
-                Compañías que podrán operar con esta cuenta (una o varias).
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {canManageCompanies && (
+          <FormField
+            control={form.control}
+            name="company_ids"
+            render={({ field }) => (
+              <FormItem className="mt-2" data-tour="cuentas-crear-companies">
+                <FormLabel>Compañías habilitadas</FormLabel>
+                <FormControl>
+                  <CompanyMultiSelect
+                    value={field.value}
+                    onChange={field.onChange}
+                  />
+                </FormControl>
+                <FormDescription>
+                  Compañías que podrán operar con esta cuenta (una o varias).
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
         <Button
           className="bg-primary mt-2 text-white hover:bg-blue-900 disabled:bg-primary/70"
           disabled={isPending}

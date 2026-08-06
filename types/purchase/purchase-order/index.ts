@@ -372,6 +372,8 @@ export interface GeneralArticleIntake {
   employee?: GeneralArticleIntakeEmployeeRef | null;
   authorized_employee?: GeneralArticleIntakeAuthorizedEmployeeRef | null;
   purchase_order?: GeneralArticleIntakePurchaseOrderRef | null;
+  /** Comercio donde se compró: las compras generales usan retailer, no vendor. */
+  retailer?: { id: number; name: string } | null;
   general_article_quote_order?: GeneralArticleIntakeQuoteOrderRef | null;
   /** Cantidad ya convertida a la unidad del general_article existente — solo si applied_conversion no es null. */
   converted_quantity?: number | null;
@@ -420,4 +422,34 @@ export interface NeedsUnitConversionResponse {
 export interface RejectGeneralArticleIntakeResponse {
   message: string;
   intake: GeneralArticleIntake;
+}
+
+// PATCH /{company}/general-article-intakes/{id}
+// Corrección de una recepción (solo SUPERUSER). Edición parcial: se envía
+// únicamente lo que cambió; null explícito vacía un campo opcional.
+export interface UpdateGeneralArticleIntakePayload {
+  description?: string;
+  variant_type?: string | null;
+  brand_model?: string | null;
+  cost?: number | null;
+  quantity?: number;
+  unit_id?: number;
+  warehouse_id?: number | null;
+  arrived_at?: string;
+  confirmed_at?: string | null;
+  rejected_at?: string | null;
+  rejection_reason?: string | null;
+  observation?: string | null;
+}
+
+export interface UpdateGeneralArticleIntakeResponse {
+  message: string;
+  intake: GeneralArticleIntake;
+  /** Presente solo si la entrada estaba confirmada y el reajuste movió el stock. */
+  stock_adjustment: {
+    general_article_id: number;
+    previous_quantity: number;
+    new_quantity: number;
+    resulting_quantity: number;
+  } | null;
 }

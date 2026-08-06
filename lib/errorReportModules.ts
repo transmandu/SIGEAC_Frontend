@@ -1,11 +1,9 @@
 /**
- * Feature flag temporal: el botón "Reportar un problema" (navbar) y el ítem
- * "Reportes" del menú Sistema deben quedar ocultos para usuarios normales por
- * ahora. La funcionalidad ya está lista (ver CreateErrorReportForm,
- * app/sistema/reportes/page.tsx); para reactivarla a futuro basta con poner
- * esta bandera en `true`, no requiere revertir código.
+ * Controla si el usuario normal ve los puntos de entrada a reportes: el botón
+ * del navbar y "Mis Reportes" en el menú Perfil. La gestión (`/sistema/reportes`)
+ * es aparte y sigue siendo solo de SUPERUSER.
  */
-export const ERROR_REPORT_VISIBLE_TO_NORMAL_USERS = false;
+export const ERROR_REPORT_VISIBLE_TO_NORMAL_USERS = true;
 
 export const ERROR_REPORT_MODULES = [
   { value: "MANTENIMIENTO", label: "Mantenimiento" },

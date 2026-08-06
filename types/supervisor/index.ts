@@ -193,18 +193,18 @@ export type BulkEditRequest = {
 // ── Detalle editable de un artículo ──────────────────────────────────────────
 
 /**
- * Conversión asociada a un artículo. shared_with cuenta cuántos OTROS
- * artículos usan la misma fila: si es > 0, editar la equivalencia crea una
- * copia exclusiva en vez de alterar la de los demás.
+ * Conversión de un artículo hacia una unidad alterna. `base_per_unit` es
+ * siempre "cuántas unidades base equivalen a 1 unidad alterna", así que
+ * leerla nunca exige decidir si multiplicar o dividir. La fila pertenece a
+ * este artículo y a ningún otro: editarla no afecta a nadie más.
  */
 export type ArticleConversion = {
     id: number;
-    primary_unit: number;
-    secondary_unit: number;
-    equivalence: number;
-    primary_unit_label: string | null;
-    secondary_unit_label: string | null;
-    shared_with: number;
+    unit_id: number;
+    unit_label: string | null;
+    base_per_unit: number;
+    lectura: string;
+    preview: string;
 };
 
 /** Todo lo editable de un artículo, en una sola respuesta. */
@@ -227,10 +227,19 @@ export type ArticleFieldEdits = Partial<{
     primary_unit_id: number;
 }>;
 
-/** Altas, cambios de equivalencia y desvinculaciones pendientes. */
+/**
+ * Dirección en que el usuario declaró la equivalencia. El backend normaliza
+ * ambas a base_per_unit al guardar.
+ *
+ *   base_per_unit  → "1 <alterna> = value <base>"
+ *   units_per_base → "1 <base> = value <alterna>"
+ */
+export type ConversionDirection = "base_per_unit" | "units_per_base";
+
+/** Altas, cambios de equivalencia y bajas pendientes. */
 export type ConversionEdits = {
-    created?: { primary_unit: number; secondary_unit: number; equivalence: number }[];
-    updated?: { id: number; equivalence: number }[];
+    created?: { unit_id: number; direction: ConversionDirection; value: number }[];
+    updated?: { id: number; direction: ConversionDirection; value: number }[];
     deleted?: number[];
 };
 

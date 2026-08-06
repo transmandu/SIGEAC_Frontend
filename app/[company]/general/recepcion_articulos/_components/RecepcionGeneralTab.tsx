@@ -44,7 +44,8 @@ import { es } from 'date-fns/locale'
 import { Textarea } from '@/components/ui/textarea'
 import { ArrowRight, CalendarIcon, ChevronRight, CheckCircle2, Loader2, PackageSearch, Search, XCircle } from 'lucide-react'
 import Link from 'next/link'
-import { memo, useMemo, useState } from 'react'
+import { memo, useEffect, useMemo, useState } from 'react'
+import { PAGE_SIZES, TablePagination } from '@/components/misc/TablePagination'
 import { DownloadReportDialog } from './DownloadReportDialog'
 
 type StatusFilter = 'ALL' | GeneralArticleIntakeStatus
@@ -204,7 +205,7 @@ function AppliedConversionNotice({
             </div>
 
             <p className="text-[11px] text-muted-foreground text-center">
-                1 {intakeUnit} = {formatQuantity(applied.equivalence)} {baseUnit}
+                1 {intakeUnit} = {formatQuantity(applied.base_per_unit)} {baseUnit}
             </p>
         </div>
     )
@@ -762,6 +763,8 @@ const IntakeRow = memo(function IntakeRow({ intake }: { intake: GeneralArticleIn
 export function RecepcionGeneralTab() {
     const [statusFilter, setStatusFilter] = useState<StatusFilter>('ALL')
     const [search, setSearch] = useState('')
+    const [page, setPage] = useState(0)
+    const [pageSize, setPageSize] = useState(PAGE_SIZES[0])
 
     // Solo entradas destinadas a un almacén: las entregas directas a
     // departamento/empleado/autorizado/tercero nunca entran al inventario y
@@ -787,6 +790,16 @@ export function RecepcionGeneralTab() {
                 i.registered_by?.toLowerCase().includes(q)
         )
     }, [intakes, statusFilter, search])
+
+    // Cambiar de estado o buscar reordena el conjunto: volver a la primera página.
+    useEffect(() => {
+        setPage(0)
+    }, [statusFilter, search])
+
+    const paginated = useMemo(
+        () => filtered.slice(page * pageSize, page * pageSize + pageSize),
+        [filtered, page, pageSize]
+    )
 
     if (isLoading) {
         return (
@@ -894,7 +907,7 @@ export function RecepcionGeneralTab() {
                     </TableHeader>
                     <TableBody>
                         {filtered.length > 0 ? (
-                            filtered.map((intake) => <IntakeRow key={intake.id} intake={intake} />)
+                            paginated.map((intake) => <IntakeRow key={intake.id} intake={intake} />)
                         ) : (
                             <TableRow>
                                 <TableCell colSpan={8} className="h-24 text-center text-muted-foreground text-sm">
@@ -909,6 +922,19 @@ export function RecepcionGeneralTab() {
                         )}
                     </TableBody>
                 </Table>
+
+                {filtered.length > 0 && (
+                    <TablePagination
+                        page={page}
+                        pageSize={pageSize}
+                        totalRows={filtered.length}
+                        onPageChange={setPage}
+                        onPageSizeChange={(size) => {
+                            setPageSize(size)
+                            setPage(0)
+                        }}
+                    />
+                )}
             </div>
         </div>
     )

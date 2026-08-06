@@ -133,6 +133,12 @@ export type BankAccount = {
   /** Métodos de pago (catálogo global) que esta cuenta puede usar. */
   payment_methods?: PaymentMethod[];
   bank_cards?: BankCard[];
+  /** La cuenta también pertenece a otras compañías. */
+  is_shared?: boolean;
+  can_delete?: boolean;
+  can_manage_companies?: boolean;
+  /** El rol actual solo ve los últimos 4 dígitos. */
+  number_masked?: boolean;
   registered_by?: string | null;
   updated_by?: string | null;
 };
@@ -183,6 +189,12 @@ export type BankCard = {
   payment_method?: PaymentMethod;
   /** Compañías para las que la tarjeta es válida. */
   companies?: Pick<Company, "id" | "name">[];
+  /** La tarjeta también pertenece a otras compañías. */
+  is_shared?: boolean;
+  can_delete?: boolean;
+  can_manage_companies?: boolean;
+  /** El rol actual solo ve los últimos 4 dígitos. */
+  number_masked?: boolean;
   registered_by?: string | null;
   updated_by?: string | null;
 };
@@ -269,15 +281,20 @@ export interface LowStockConsumableArticle extends Article {
   batch: Pick<Batch, "id" | "name" | "min_quantity" | "unit">;
 }
 
+/**
+ * Conversión de un artículo hacia una unidad alterna, ya orientada hacia la
+ * unidad base: `base_per_unit` es cuántas unidades base hay en 1 unidad
+ * alterna, de modo que pasar a base es siempre una multiplicación.
+ *
+ *   1 CAJA = 100 UNIDAD (base UNIDAD)  → base_per_unit = 100
+ *   1 mL   = 0.001 LITRO (base LITRO)  → base_per_unit = 0.001
+ */
 export type Convertion = {
   id: number;
-  registered_by: string;
-  updated_by: string | null;
-  created_at: string;
-  updated_at: string;
-  secondary_unit: Unit;
-  primary_unit: Unit;
-  equivalence: number;
+  unit: Unit;
+  base_per_unit: number;
+  lectura: string;
+  preview: string;
 };
 
 export type Company = {

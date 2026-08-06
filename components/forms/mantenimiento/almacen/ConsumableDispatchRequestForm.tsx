@@ -58,7 +58,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
         commitAeroQty, commitGenQty,
         setToMaxAero, setToMaxGen,
         convState, setConvState,
-        activeConversions, isActiveConversionLoading,
+        activeConversions, isActiveConversionLoading, activeBaseUnitLabel,
         closeConversion, openConversionForAero, openConversionForGeneral, applyConversion,
         handleAddAeronautical, handleAddGeneral,
         removeAeroRow, removeGenRow,
@@ -73,12 +73,15 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
             isLoading={isActiveConversionLoading}
             selectedConversion={convState.selected}
             conversionInput={convState.input}
+            baseUnitLabel={activeBaseUnitLabel}
+            convertibleType={convState.target === "general" ? "general-articles" : "consumables"}
+            convertibleId={convState.target === "general" ? convState.generalArticleId : convState.articleId}
             onConversionChange={(conv) => setConvState((p) => ({ ...p, selected: conv, input: "" }))}
             onInputChange={(val) => setConvState((p) => ({ ...p, input: val }))}
             onApply={applyConversion}
             onClose={closeConversion}
         />
-    ), [activeConversions, isActiveConversionLoading, convState.selected, convState.input, applyConversion, closeConversion, setConvState])
+    ), [activeConversions, isActiveConversionLoading, activeBaseUnitLabel, convState, applyConversion, closeConversion, setConvState])
 
     return (
         <Form {...form}>

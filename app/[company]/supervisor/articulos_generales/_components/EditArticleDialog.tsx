@@ -383,6 +383,11 @@ export function EditArticleDialog({
                             <ConversionsPanel
                                 conversions={detail?.conversions ?? []}
                                 units={units ?? []}
+                                baseUnitLabel={
+                                    units?.find((unit) => unit.id === unitId)?.label ??
+                                    article.general_primary_unit?.label ??
+                                    "unidad base"
+                                }
                                 edits={conversionEdits}
                                 onChange={setConversionEdits}
                             />

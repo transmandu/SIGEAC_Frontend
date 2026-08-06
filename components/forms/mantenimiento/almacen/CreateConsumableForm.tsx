@@ -71,8 +71,8 @@ import { Separator } from "@/components/ui/separator";
 import { useGetConditions } from "@/hooks/administracion/useGetConditions";
 import { useGetManufacturers } from "@/hooks/general/fabricantes/useGetManufacturers";
 import { useGetBatchesByCategory } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByCategory";
-import { useGetConversionByUnitConsmable } from "@/hooks/mantenimiento/almacen/articulos/useGetConvertionsByConsumableUnit";
-import { Unit } from "@/types";
+import { useGetConversionByConsmable } from "@/hooks/mantenimiento/almacen/articulos/useGetConvertionsByConsumableId";
+import { Convertion, Unit } from "@/types";
 
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
@@ -171,19 +171,16 @@ const CreateConsumableForm = ({
         return batches?.find((b) => b.id === selectedBatchId);
     }, [batches, selectedBatchId]);
 
-    // Obtener conversiones específicas del consumible seleccionado
+    // Un consumible que aún no existe no tiene conversiones propias: al crear,
+    // la cantidad se captura directamente en la unidad base del lote. Las
+    // conversiones se registran después, desde el artículo ya creado.
     const { data: consumableConversions, isLoading: consumableConversionsLoading } =
-        useGetConversionByUnitConsmable(
-            selectedBatch?.unit?.id ?? 0,
+        useGetConversionByConsmable(
+            isEditing ? (initialData?.id ?? null) : null,
             selectedCompany?.slug
         );
 
-    type ConversionData = {
-        id: number;
-        primary_unit: Unit;
-        equivalence: number;
-        secondary_unit: Unit;
-    };
+    type ConversionData = Convertion;
 
     const [secondaryOpen, setSecondaryOpen] = useState(false);
     const [secondarySelected, setSecondarySelected] = useState<ConversionData | null>(null);
@@ -264,7 +261,7 @@ const CreateConsumableForm = ({
             !Number.isNaN(secondaryQuantity)
         ) {
             const qty =
-                (secondarySelected.equivalence ?? 1) *
+                (secondarySelected.base_per_unit ?? 1) *
                 secondaryQuantity;
             form.setValue("quantity", qty, {
                 shouldDirty: true,
@@ -806,7 +803,7 @@ const CreateConsumableForm = ({
                                                 className="justify-between"
                                             >
                                                 {secondarySelected
-                                                    ? `${secondarySelected.secondary_unit?.label || secondarySelected.secondary_unit?.value || "N/A"}`
+                                                    ? `${secondarySelected.unit?.label || secondarySelected.unit?.value || "N/A"}`
                                                     : consumableConversionsLoading
                                                         ? "Cargando..."
                                                         : !selectedBatchId
@@ -840,8 +837,11 @@ const CreateConsumableForm = ({
                                                                         found &&
                                                                         typeof secondaryQuantity === "number"
                                                                     ) {
+                                                                        // base_per_unit ya viene orientado hacia la
+                                                                        // unidad base: pasar a base es siempre
+                                                                        // multiplicar, sea la alterna mayor o menor.
                                                                         const calc =
-                                                                            (found.equivalence ?? 1) *
+                                                                            (found.base_per_unit ?? 1) *
                                                                             (secondaryQuantity ?? 0);
                                                                         form.setValue("quantity", calc, {
                                                                             shouldDirty: true,
@@ -853,7 +853,7 @@ const CreateConsumableForm = ({
                                                                     }
                                                                 }}
                                                             >
-                                                                {conversion.secondary_unit?.label || conversion.secondary_unit?.value || "N/A"}
+                                                                {conversion.unit?.label || conversion.unit?.value || "N/A"}
                                                                 <Check
                                                                     className={cn(
                                                                         "ml-auto",

@@ -54,17 +54,17 @@ const AeronauticalItemSchema = z.object({
     quantity: z.coerce.number(),
     serial: z.string().nullable().optional(),
     batch_id: z.coerce.number().optional(),
-    // Conversión aplicada al despachar en unidad distinta a la base. `quantity`
-    // se guarda SIEMPRE en unidad base; conversion_id permite al backend
-    // reconstruir la unidad y cantidad realmente despachadas (converted_quantity).
-    conversion_id: z.coerce.number().nullable().optional(),
+    // Unidad en que se capturó `quantity`. Omitirla significa "ya está en la
+    // unidad base". La conversión a base la hace el backend con el factor del
+    // artículo, que es el único que puede validarla y congelarla en el movimiento.
+    unit_id: z.coerce.number().nullable().optional(),
 })
 
 const GeneralItemSchema = z.object({
     general_article_id: z.coerce.number(),
     quantity: z.coerce.number(),
-    // Ver nota en AeronauticalItemSchema.conversion_id.
-    conversion_id: z.coerce.number().nullable().optional(),
+    // Ver nota en AeronauticalItemSchema.unit_id.
+    unit_id: z.coerce.number().nullable().optional(),
 })
 
 export const FormSchema = z
@@ -251,7 +251,7 @@ export function useDispatchForm(
 
     // Editar la cantidad a mano invalida cualquier conversión previamente
     // aplicada: el número escrito ya no proviene de esa equivalencia, así que
-    // se limpia conversion_id para no guardar un converted_quantity incoherente.
+    // se limpia unit_id: la cantidad escrita ya está en unidad base.
     const commitAeroQty = useCallback((index: number, fieldId: string) => {
         const key = aeroKey(fieldId)
         const max = watchedAero[index]?.article_id ? getAeroMax(Number(watchedAero[index].article_id)) : 0
@@ -259,7 +259,7 @@ export function useDispatchForm(
         const adjusted = validateAndClamp(key, raw, max)
         setQtyByKey((p) => ({ ...p, [key]: adjusted }))
         setValue(`aeronautical_articles.${index}.quantity`, parseFloat(adjusted || "0") || 0)
-        setValue(`aeronautical_articles.${index}.conversion_id`, null)
+        setValue(`aeronautical_articles.${index}.unit_id`, null)
     }, [qtyByKey, setValue, getAeroMax, validateAndClamp, watchedAero])
 
     const commitGenQty = useCallback((index: number, fieldId: string) => {
@@ -269,7 +269,7 @@ export function useDispatchForm(
         const adjusted = validateAndClamp(key, raw, max)
         setQtyByKey((p) => ({ ...p, [key]: adjusted }))
         setValue(`general_articles.${index}.quantity`, parseFloat(adjusted || "0") || 0)
-        setValue(`general_articles.${index}.conversion_id`, null)
+        setValue(`general_articles.${index}.unit_id`, null)
     }, [qtyByKey, setValue, getGenMax, validateAndClamp, watchedGen])
 
     const clearRowState = useCallback((key: string) => {
@@ -284,7 +284,7 @@ export function useDispatchForm(
         setQtyByKey((p) => ({ ...p, [key]: next }))
         setRowMsg(key, undefined)
         setValue(`aeronautical_articles.${index}.quantity`, parseFloat(next) || 0)
-        setValue(`aeronautical_articles.${index}.conversion_id`, null)
+        setValue(`aeronautical_articles.${index}.unit_id`, null)
     }, [watchedAero, getAeroMax, setRowMsg, setValue])
 
     const setToMaxGen = useCallback((index: number, fieldId: string) => {
@@ -294,7 +294,7 @@ export function useDispatchForm(
         setQtyByKey((p) => ({ ...p, [key]: next }))
         setRowMsg(key, undefined)
         setValue(`general_articles.${index}.quantity`, parseFloat(next) || 0)
-        setValue(`general_articles.${index}.conversion_id`, null)
+        setValue(`general_articles.${index}.unit_id`, null)
     }, [watchedGen, getGenMax, setRowMsg, setValue])
 
     // ── Conversion (7 states → 1) ─────────────────────────────────────────────
@@ -311,6 +311,17 @@ export function useDispatchForm(
 
     const activeConversions = convState.target === "general" ? genConversions : aeroConversions
     const isActiveConversionLoading = convState.target === "general" ? isGenConversionLoading : isAeroConversionLoading
+
+    // Unidad en la que queda la cantidad tras convertir: la del artículo activo.
+    const activeBaseUnitLabel = useMemo(() => {
+        if (convState.target === "general" && convState.generalArticleId != null) {
+            return genById.get(convState.generalArticleId)?.general_primary_unit?.label
+        }
+        if (convState.target === "aero" && convState.articleId != null) {
+            return aeroById.get(convState.articleId)?.unit ?? undefined
+        }
+        return undefined
+    }, [convState.target, convState.generalArticleId, convState.articleId, genById, aeroById])
 
     const closeConversion = useCallback(() => setConvState(CONV_INITIAL), [])
 
@@ -329,29 +340,46 @@ export function useDispatchForm(
         const { rowIndex, rowFieldId, target, articleId, generalArticleId, selected, input } = convState
         if (rowIndex == null || rowFieldId == null || !target || !selected || !input) return
 
-        // `quantity` viaja en unidad BASE del artículo (input / equivalence);
-        // conversion_id se guarda junto a la fila para que el backend registre
-        // converted_quantity y el reporte de costos reconstruya la unidad y la
-        // cantidad realmente despachadas.
-        const result = Number(((parseFloat(input) || 0) / selected.equivalence).toFixed(6))
-        const conversionId = selected?.id ?? null
+        // La cantidad viaja en la unidad elegida y el backend la convierte con
+        // el factor del artículo: convertir también aquí la aplicaría dos veces.
+        // `base_per_unit` está orientado hacia la base, así que el equivalente
+        // en base es siempre una multiplicación, sea la unidad mayor o menor
+        // (1 CAJA = 100 UNID → x100; 1 mL = 0.001 LITRO → x0.001). Sólo se usa
+        // para contrastar contra el stock disponible, que está en base.
+        const captured = parseFloat(input) || 0
+        const inBase = Number((captured * selected.base_per_unit).toFixed(6))
+        const unitId = selected?.unit?.id ?? null
+        const unitLabel = selected?.unit?.label ?? ""
+
+        const clampToStock = (max: number) => {
+            if (max <= 0 || inBase <= max) return { qty: captured, msg: undefined }
+
+            // El tope está en unidad base; se retrocede a la unidad capturada
+            // para que el usuario vea el ajuste en la unidad que él escribió.
+            const capped = Number((max / selected.base_per_unit).toFixed(6))
+            return {
+                qty: capped,
+                msg: {
+                    msg: `Conversión: se ajustó al máximo disponible (${capped} ${unitLabel}).`,
+                    level: "warn" as const,
+                },
+            }
+        }
 
         if (target === "aero" && articleId != null) {
-            const max = getAeroMax(articleId)
-            const finalQty = max > 0 && result > max ? max : result
+            const { qty, msg } = clampToStock(getAeroMax(articleId))
             const key = aeroKey(rowFieldId)
-            setRowMsg(key, max > 0 && result > max ? { msg: `Conversión: se ajustó al máximo disponible (${max}).`, level: "warn" } : undefined)
-            setQtyByKey((p) => ({ ...p, [key]: String(finalQty) }))
-            setValue(`aeronautical_articles.${rowIndex}.quantity`, finalQty)
-            setValue(`aeronautical_articles.${rowIndex}.conversion_id`, conversionId)
+            setRowMsg(key, msg)
+            setQtyByKey((p) => ({ ...p, [key]: String(qty) }))
+            setValue(`aeronautical_articles.${rowIndex}.quantity`, qty)
+            setValue(`aeronautical_articles.${rowIndex}.unit_id`, unitId)
         } else if (generalArticleId != null) {
-            const max = getGenMax(generalArticleId)
-            const finalQty = max > 0 && result > max ? max : result
+            const { qty, msg } = clampToStock(getGenMax(generalArticleId))
             const key = genKey(rowFieldId)
-            setRowMsg(key, max > 0 && result > max ? { msg: `Conversión: se ajustó al máximo disponible (${max}).`, level: "warn" } : undefined)
-            setQtyByKey((p) => ({ ...p, [key]: String(finalQty) }))
-            setValue(`general_articles.${rowIndex}.quantity`, finalQty)
-            setValue(`general_articles.${rowIndex}.conversion_id`, conversionId)
+            setRowMsg(key, msg)
+            setQtyByKey((p) => ({ ...p, [key]: String(qty) }))
+            setValue(`general_articles.${rowIndex}.quantity`, qty)
+            setValue(`general_articles.${rowIndex}.unit_id`, unitId)
         }
         closeConversion()
     }, [convState, getAeroMax, getGenMax, setRowMsg, setValue, closeConversion])
@@ -506,7 +534,7 @@ export function useDispatchForm(
         setToMaxAero, setToMaxGen,
         // conversion
         convState, setConvState,
-        activeConversions, isActiveConversionLoading,
+        activeConversions, isActiveConversionLoading, activeBaseUnitLabel,
         closeConversion,
         openConversionForAero, openConversionForGeneral,
         applyConversion,

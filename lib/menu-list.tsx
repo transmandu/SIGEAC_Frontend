@@ -2,6 +2,7 @@
 
 import { format } from "date-fns";
 import { buildSystemGroup } from "@/lib/menus/system";
+import { buildAdministrationGroup } from "@/lib/menus/administration";
 import { buildDashboardGroup } from "@/lib/menus/dashboard";
 import { buildDevelopmentGroup } from "@/lib/menus/development";
 import { buildEngineeringGroup } from "@/lib/menus/engineering";
@@ -55,6 +56,7 @@ export function buildMenuGroups(
         buildOperationGroup(context),
         buildMaintenanceGroup(context),
         buildEngineeringGroup(context),
+        buildAdministrationGroup(context),
         buildSettingsGroup(context),
         buildProfileGroup(context),
         buildSystemGroup(context),

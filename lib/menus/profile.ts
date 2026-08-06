@@ -22,7 +22,6 @@ export function buildProfileGroup({ pathname, currentCompany }: MenuContext): Gr
             label: "Mis Reportes",
             active: pathname.startsWith("/cuenta/reportes"),
             icon: HeartHandshake,
-            // Oculto por ahora: ver ERROR_REPORT_VISIBLE_TO_NORMAL_USERS.
             roles: ERROR_REPORT_VISIBLE_TO_NORMAL_USERS ? undefined : ["SUPERUSER"],
             submenus: [],
         },

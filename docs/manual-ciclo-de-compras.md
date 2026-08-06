@@ -449,6 +449,51 @@ La cadena requisición → cotización → orden de compra **no se modifica**. E
 responsable puede volver a registrar la entrega del mismo ítem cuando resuelva la
 discrepancia.
 
+### Coherencia temporal de las fechas
+
+Dos reglas de sentido físico en `GeneralArticleIntakeController::assertIntakeTimeline`,
+con **alcances distintos**:
+
+1. **Nada ocurre en el futuro** (`$againstClock`, solo en el registro y la confirmación
+   reales). La mercancía se registra cuando ya está ahí, así que una `arrived_at`
+   posterior a hoy solo puede ser un error de carga. Hacia atrás sí se permite:
+   registrar hoy algo que llegó ayer es lo normal.
+2. **Nada se verifica antes de llegar** (siempre). `confirmed_at` y `rejected_at` nunca
+   pueden quedar por debajo de `arrived_at`, o el registro queda en un estado imposible.
+
+La regla 1 **no aplica en la corrección**: ahí se arregla justamente un día mal
+tecleado (pusieron 19 y era 20), y compararlo contra el reloj impediría la corrección.
+La regla 2 sí se conserva siempre.
+
+Hay un minuto de tolerancia contra el desfase de reloj entre navegador y servidor.
+En el registro la regla 1 va además como validación (`before_or_equal`) en
+`registerGeneralArticlesDelivery`.
+
+### La corrección de una recepción (SUPERUSER)
+
+`PATCH /{company}/general-article-intakes/{id}` — ruta normal del intake, restringida
+a `SUPERUSER` por middleware. Nace del caso real de una llegada cargada con fecha
+equivocada y confirmada con otra igual de mala, pero deja editar **todo** el registro:
+identidad del artículo, cantidad, unidad, costo, almacén, fechas y notas.
+
+Es una edición **parcial** (`sometimes`): viaja solo lo que cambió, y un `null`
+explícito vacía un campo opcional. Las fechas se mueven libremente contra el reloj,
+pero conservan el orden entre ellas, evaluado sobre el estado **resultante**, no sobre
+lo enviado — mover la llegada hacia adelante choca con una confirmación vieja que
+quede por detrás.
+
+Lo importante: **si el intake ya estaba `CONFIRMED` y cambia lo que entró al
+inventario** (cantidad, unidad o almacén), el stock del `general_article` se reajusta
+en la misma transacción — se descuenta lo que esa entrada aportó y se suma lo nuevo,
+auditado vía `GeneralArticleObserver::withContext`. Sin eso, la recepción diría una
+cosa y el inventario otra. Al cambiar unidad o almacén se descarta la conversión
+aplicada al confirmar: se calculó contra otra unidad base, y recalcularla exigiría
+reemparejar el intake contra otro artículo, que ya es una reconfirmación.
+
+El reajuste queda etiquetado como «Corrección de recepción (SUPERUSER)» en el historial
+del artículo. Una entrega directa no puede convertirse en entrada de almacén ni al
+revés: son flujos distintos, con y sin paso por inventario.
+
 ### Para el desarrollador — concurrencia
 
 `createGeneralArticlesFromPurchaseOrder` tiene defensa en tres capas contra el doble
@@ -551,6 +596,11 @@ problema. Es el **nivel objetivo de reposición**: el mínimo dispara la alerta,
 máximo dimensiona el pedido.
 
 > mínimo 10, máximo 20, existencia 8 → se piden **12**
+
+La cantidad sugerida **siempre se redondea al entero superior**, incluso con décimas
+menores a 0,50 (5,01 y 5,70 dan igual **6**). Se pierde precisión a propósito: compras
+cotiza sobre artículos que se venden por unidades enteras, y la cifra es una solicitud,
+no una medición.
 
 ### Tabla de puntos de mutación
 
@@ -790,7 +840,7 @@ flowchart TD
     U --> Q["createFromLowStockAlert"]
     Q --> CHK{"¿Ya hay requisición activa<br/>para description + variant_type?"}
     CHK -->|sí| ERR["422: ya existe solicitud activa"]
-    CHK -->|no| CALC["cantidad = max(objetivo − existencia, 1)<br/>objetivo = maximum_quantity<br/>o minimum_quantity si no hay máximo"]
+    CHK -->|no| CALC["cantidad = ceil(max(objetivo − existencia, 1))<br/>objetivo = maximum_quantity<br/>o minimum_quantity si no hay máximo"]
     CALC --> REQ["Requisición GENERAL<br/>created_by = SYSTEM<br/>requested_by = empleado real<br/>priority = HIGH si stock = 0"]
     style REQ fill:#e3f2fd,stroke:#1565c0
 ```
