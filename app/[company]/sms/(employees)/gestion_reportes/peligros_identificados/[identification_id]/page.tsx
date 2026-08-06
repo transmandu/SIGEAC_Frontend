@@ -28,23 +28,11 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useTourContext } from "@/components/tour/TourProvider";
-import { peligrosDetalleSteps } from "@/components/tour/steps/sms/gestion de reportes/peligro-identificado-detalle";
+
 
 const ShowDangerIdentification = () => {
   const { identification_id } = useParams<{ identification_id: string }>();
   const { selectedCompany } = useCompanyStore();
-  const { registerTour, unregisterTour } = useTourContext();
-
-  useEffect(() => {
-    registerTour(
-      "identificacion-peligros-detalle",
-      "Detalle de Indentificación de Peligros",
-      peligrosDetalleSteps,
-    );
-
-    return () => unregisterTour("identificacion-peligros-detalle");
-  }, [registerTour, unregisterTour]);
 
   const {
     data: dangerIdentification,

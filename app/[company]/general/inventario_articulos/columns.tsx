@@ -76,7 +76,7 @@ export const getStatusBadge = (status: string | null | undefined) => {
 };
 
 export const flattenArticles = (
-  data: WarehouseResponse | undefined
+  data: WarehouseResponse | undefined,
 ): IArticleSimple[] => {
   if (!data?.batches) return [];
   console.log(data.batches);
@@ -90,13 +90,8 @@ export const flattenArticles = (
       description: article.description,
       zone: article.zone,
       unit: article.unit ?? undefined,
-      // Normalizar cantidad: 0, null o undefined -> 1
-      quantity:
-        article.quantity === 0 ||
-        article.quantity === null ||
-        article.quantity === undefined
-          ? 1
-          : article.quantity,
+      // ✅ No normalizar 0 -> 1
+      quantity: Number(article.quantity ?? 0),
       status: article.status,
       condition: article.condition ? article.condition.name : "N/A",
       article_type: article.article_type ?? "N/A",
@@ -112,7 +107,7 @@ export const flattenArticles = (
             next_calibration: article.tool.next_calibration,
           }
         : undefined,
-    }))
+    })),
   );
 };
 
@@ -129,13 +124,16 @@ const baseCols: ColumnDef<IArticleSimple>[] = [
     ),
   },
   {
-    accessorKey: 'alternative_part_number',
-    header: ({ column }) => <DataTableColumnHeader filter column={column} title="Alt. Part Number" />,
+    accessorKey: "alternative_part_number",
+    header: ({ column }) => (
+      <DataTableColumnHeader filter column={column} title="Alt. Part Number" />
+    ),
     cell: ({ row }) => (
       <div className="font-bold text-center text-base">
-        {row.original.alternative_part_number && row.original.alternative_part_number.length > 0
-          ? row.original.alternative_part_number.join('/ ')
-          : 'N/A'}
+        {row.original.alternative_part_number &&
+        row.original.alternative_part_number.length > 0
+          ? row.original.alternative_part_number.join("/ ")
+          : "N/A"}
       </div>
     ),
   },
@@ -187,6 +185,7 @@ const baseCols: ColumnDef<IArticleSimple>[] = [
       );
     },
   },
+
   {
     accessorKey: "status",
     header: ({ column }) => (
@@ -209,7 +208,7 @@ const baseCols: ColumnDef<IArticleSimple>[] = [
                     ? "bg-yellow-500"
                     : descalibrated
                       ? "bg-red-500"
-                      : ""
+                      : "",
               )}
             >
               {row.original.tool.status
@@ -241,7 +240,7 @@ export const componenteCols: ColumnDef<IArticleSimple>[] = [
   //   id: "actions",
   //   header: "Acciones",
   //   cell: ({ row }) => {
-  //     const item = row.original;  
+  //     const item = row.original;
   //     if (item.status === "stored") {
   //       return <ArticleDropdownActions id={item.id} />;
   //     }
@@ -253,37 +252,33 @@ export const componenteCols: ColumnDef<IArticleSimple>[] = [
 // Columnas extra para CONSUMIBLE
 export const consumibleCols: ColumnDef<IArticleSimple>[] = [
   ...baseCols,
-  // {
-  //   accessorKey: "min_quantity",
-  //   header: ({ column }) => (
-  //     <DataTableColumnHeader column={column} title="Cant. Mínima" />
-  //   ),
-  //   cell: ({ row }) => (
-  //     <div className="text-center font-medium text-sm">
-  //       {row.original.min_quantity || (
-  //         <span className="text-muted-foreground">0</span>
-  //       )}
-  //     </div>
-  //   ),
-  // },
-  // {
-  //   id: "actions",
-  //   header: "Acciones",
-  //   cell: ({ row }) => {
-  //     const item = row.original;  
-  //     if (item.status === "stored") {
-  //       return <ArticleDropdownActions id={item.id} />;
-  //     }
-  //     return null;
-  //   },
-  // },
+  {
+    id: "quantity_value",
+    accessorFn: (row) => row.quantity,
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Cantidad" />
+    ),
+    cell: ({ row }) => {
+      const q = Number(row.original.quantity ?? 0);
+      return (
+        <div className="flex justify-center">
+          <Badge
+            variant={q > 5 ? "default" : q > 0 ? "secondary" : "destructive"}
+            className="text-base font-bold px-3 py-1 tabular-nums"
+          >
+            {q} und
+          </Badge>
+        </div>
+      );
+    },
+  },
 ];
 
 // Agregar esta función helper después de los imports o antes de las columnas
 const parseDateLocal = (dateString: string): Date => {
   // Si la fecha viene como "YYYY-MM-DD" sin hora, parsearla como fecha local
   if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
-    const [year, month, day] = dateString.split('-').map(Number);
+    const [year, month, day] = dateString.split("-").map(Number);
     return new Date(year, month - 1, day);
   }
   // Si tiene hora, usar parseISO
@@ -301,7 +296,10 @@ export const herramientaCols: ColumnDef<IArticleSimple>[] = [
     cell: ({ row }) => (
       <div className="text-center text-sm font-bold text-muted-foreground">
         {row.original.tool?.calibration_date
-          ? format(parseDateLocal(row.original.tool.calibration_date), "dd/MM/yyyy")
+          ? format(
+              parseDateLocal(row.original.tool.calibration_date),
+              "dd/MM/yyyy",
+            )
           : "N/A"}
       </div>
     ),
@@ -319,9 +317,9 @@ export const herramientaCols: ColumnDef<IArticleSimple>[] = [
             ? format(
                 addDays(
                   parseDateLocal(row.original.tool.calibration_date),
-                  Number(row.original.tool.next_calibration)
+                  Number(row.original.tool.next_calibration),
                 ),
-                "dd/MM/yyyy"
+                "dd/MM/yyyy",
               )
             : "N/A"}
         </div>
@@ -332,7 +330,7 @@ export const herramientaCols: ColumnDef<IArticleSimple>[] = [
   //   id: "actions",
   //   header: "Acciones",
   //   cell: ({ row }) => {
-  //     const item = row.original;  
+  //     const item = row.original;
   //     if (item.status === "stored") {
   //       return <ArticleDropdownActions id={item.id} />;
   //     }
@@ -343,7 +341,7 @@ export const herramientaCols: ColumnDef<IArticleSimple>[] = [
 
 // Columnas por categoría
 export const getColumnsByCategory = (
-  cat: "COMPONENT" | "CONSUMABLE" | "TOOL" | "PART"
+  cat: "COMPONENT" | "CONSUMABLE" | "TOOL" | "PART",
 ): ColumnDef<IArticleSimple>[] => {
   if (cat === "TOOL") return herramientaCols;
   if (cat === "CONSUMABLE") return consumibleCols;

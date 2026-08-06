@@ -14,7 +14,11 @@ import { DataTable } from "./data-table";
 import { columns as generalColumns } from "../../almacen/inventario_articulos/_tables/general-columns";
 import { PageHeader } from "@/components/layout/PageHeader";
 
-const ROLES_WITH_QUANTITY_VISIBLE = ["ASISTENTE_COMPRAS", "SERVICIOS_GENERALES", 'INGENIERIA'];
+const ROLES_WITH_QUANTITY_VISIBLE = [
+  "ASISTENTE_COMPRAS",
+  "SERVICIOS_GENERALES",
+  "INGENIERIA",
+];
 
 const InventarioGeneralPage = () => {
   const { selectedCompany } = useCompanyStore();
@@ -33,25 +37,23 @@ const InventarioGeneralPage = () => {
   );
 
   const columnsWithoutActions = useMemo(() => {
-    const filtered = generalColumns.filter(
-      (col) => {
-        const key = col.id ?? (col as any).accessorKey;
+    const filtered = generalColumns.filter((col) => {
+      const key = col.id ?? (col as any).accessorKey;
 
-        // Esta vista es de consulta: no muestra la imagen de referencia, y la
-        // unidad ya viaja junto a la cantidad en la celda de abajo.
-        if (["image", "unit"].includes(key)) return false;
+      // Esta vista es de consulta: no muestra la imagen de referencia, y la
+      // unidad ya viaja junto a la cantidad en la celda de abajo.
+      if (["image", "unit"].includes(key)) return false;
 
-        return (
-          col.id !== "actions" &&
-          col.id !== "acciones" &&
-          (typeof col.header === "string"
-            ? col.header.toLowerCase() !== "acciones"
-            : true) &&
-          (canSeeQuantity ||
-            !["minimum_quantity", "maximum_quantity"].includes(key))
-        );
-      },
-    );
+      return (
+        col.id !== "actions" &&
+        col.id !== "acciones" &&
+        (typeof col.header === "string"
+          ? col.header.toLowerCase() !== "acciones"
+          : true) &&
+        (canSeeQuantity ||
+          !["minimum_quantity", "maximum_quantity"].includes(key))
+      );
+    });
 
     if (!canSeeQuantity) return filtered;
 
@@ -79,7 +81,10 @@ const InventarioGeneralPage = () => {
 
           return (
             <div className="flex justify-center">
-              <Badge variant="secondary" className="tabular-nums px-2 py-1 text-xs">
+              <Badge
+                variant="secondary"
+                className="tabular-nums px-2 py-1 text-xs"
+              >
                 {qty} {unitLabel ?? ""}
               </Badge>
             </div>
