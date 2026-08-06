@@ -38,9 +38,6 @@ import Image from "next/image";
 import ImageZoom from "@/components/ui/ImageZoom";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useEffect } from "react";
-import { useTourContext } from "@/components/tour/TourProvider";
-import { voluntarioDetalleSteps } from "@/components/tour/steps/sms/reportes/voluntario-detalle";
 
 const ShowVoluntaryReport = () => {
   const { report_id } = useParams<{ report_id: string }>();
@@ -448,17 +445,6 @@ const ShowVoluntaryReport = () => {
       )}
     </div>
   );
-
-  const { registerTour, unregisterTour } = useTourContext();
-
-  useEffect(() => {
-    registerTour(
-      "sms-voluntario-detalle",
-      "Detalles de Reporte Voluntario",
-      voluntarioDetalleSteps,
-    );
-    return () => unregisterTour("sms-voluntario-detalle");
-  }, [registerTour, unregisterTour]);
 
   // ==========================================================
   // MAIN RETURN

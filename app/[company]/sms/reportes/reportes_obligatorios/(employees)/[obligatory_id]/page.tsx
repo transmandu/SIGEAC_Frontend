@@ -35,9 +35,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { useEffect } from "react";
-import { useTourContext } from "@/components/tour/TourProvider";
-import { obligatorioDetalleSteps } from "@/components/tour/steps/sms/reportes/obligatorio-detalla";
 
 const ShowObligatoryReport = () => {
   const { obligatory_id } = useParams<{ obligatory_id: string }>();
@@ -52,17 +49,6 @@ const ShowObligatoryReport = () => {
     company: selectedCompany?.slug,
     id: obligatory_id,
   });
-
-  const { registerTour, unregisterTour } = useTourContext();
-
-  useEffect(() => {
-    registerTour(
-      "sms-obligatorio-detalle",
-      "Detalles del Reporte Obligatorio",
-      obligatorioDetalleSteps,
-    );
-    return () => unregisterTour("sms-obligatorio-detalle");
-  }, [registerTour, unregisterTour]);
 
   return (
     <ContentLayout title="Reportes Obligatorios">
