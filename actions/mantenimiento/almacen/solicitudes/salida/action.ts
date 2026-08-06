@@ -11,17 +11,19 @@ interface IDispatchRequestAction {
   requested_by: string;
   category: string;
   status?: string;
+  // `unit_id` es la unidad en que se capturó `quantity`; omitirlo significa que
+  // ya viene en la unidad base del artículo. El backend hace la conversión.
   aeronautical_articles?: {
     article_id: number;
     quantity?: number;
     serial?: string | null;
     batch_id?: number;
-    conversion_id?: number | null;
+    unit_id?: number | null;
   }[];
   general_articles?: {
     general_article_id: number;
     quantity: number;
-    conversion_id?: number | null;
+    unit_id?: number | null;
   }[];
   user_id: number;
   aircraft_id?: string;

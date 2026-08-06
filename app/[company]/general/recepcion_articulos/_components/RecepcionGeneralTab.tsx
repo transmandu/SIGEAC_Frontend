@@ -205,7 +205,7 @@ function AppliedConversionNotice({
             </div>
 
             <p className="text-[11px] text-muted-foreground text-center">
-                1 {intakeUnit} = {formatQuantity(applied.equivalence)} {baseUnit}
+                1 {intakeUnit} = {formatQuantity(applied.base_per_unit)} {baseUnit}
             </p>
         </div>
     )

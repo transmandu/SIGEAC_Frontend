@@ -10,7 +10,8 @@ export interface AppliedConversionPreview {
   existing_unit_label: string | null;
   intake_unit_id: number;
   intake_unit_label: string | null;
-  equivalence: number;
+  base_per_unit: number;
+  lectura?: string;
   converted_quantity: number;
 }
 

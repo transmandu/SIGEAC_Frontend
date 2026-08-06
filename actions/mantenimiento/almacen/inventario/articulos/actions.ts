@@ -28,7 +28,8 @@ interface ArticleData {
     fabrication_date?: string;
     calendar_date?: string;
     image?: File | string;
-    conversions?: number[];
+    /** Equivalencias del artículo: { unit_id, direction, value }. */
+    conversions?: { unit_id: number; direction: string; value: number }[];
     primary_unit_id?: number;
     life_limit_part_calendar?: string;
     life_limit_part_hours?: string | number;

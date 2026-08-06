@@ -1,0 +1,362 @@
+"use client";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+    useGetAllUnitConversions,
+    useMutateUnitConversionRow,
+    type UnitConversionRow,
+} from "@/hooks/mantenimiento/almacen/articulos/useArticleUnitConversions";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import type { ConversionDirection } from "@/types/supervisor";
+import { AlertTriangle, Check, Loader2, Pencil, Trash2, X } from "lucide-react";
+import { useMemo, useState } from "react";
+
+const TYPE_LABEL: Record<UnitConversionRow["convertible_type"], string> = {
+    general_article: "Artículo general",
+    consumable: "Consumible",
+};
+
+/**
+ * Todas las conversiones registradas y a qué artículo pertenecen.
+ *
+ * Existe para poder auditarlas: una equivalencia invertida no falla, produce
+ * un número plausible en la unidad equivocada, así que hace falta verlas
+ * juntas para detectar la que está mal.
+ */
+export function ConversionsRegistryPanel() {
+    const { selectedCompany } = useCompanyStore();
+    const { data: rows, isLoading, isError } = useGetAllUnitConversions(selectedCompany?.slug);
+    const { updateConversion, deleteConversion } = useMutateUnitConversionRow(
+        selectedCompany?.slug,
+    );
+
+    const [search, setSearch] = useState("");
+    const [typeFilter, setTypeFilter] = useState<"all" | UnitConversionRow["convertible_type"]>("all");
+    const [editingId, setEditingId] = useState<number | null>(null);
+    const [editValue, setEditValue] = useState("");
+    const [editDirection, setEditDirection] = useState<ConversionDirection>("base_per_unit");
+    const [pendingDelete, setPendingDelete] = useState<UnitConversionRow | null>(null);
+
+    const filtered = useMemo(() => {
+        const term = search.trim().toLowerCase();
+
+        return (rows ?? []).filter((row) => {
+            if (typeFilter !== "all" && row.convertible_type !== typeFilter) return false;
+            if (!term) return true;
+
+            return [
+                row.article?.description,
+                row.article?.part_number,
+                row.unit?.label,
+                row.base_unit?.label,
+                row.lectura,
+            ]
+                .filter(Boolean)
+                .some((field) => String(field).toLowerCase().includes(term));
+        });
+    }, [rows, search, typeFilter]);
+
+    const startEdit = (row: UnitConversionRow) => {
+        setEditingId(row.id);
+        setEditDirection("base_per_unit");
+        setEditValue(String(row.base_per_unit));
+    };
+
+    const commitEdit = (row: UnitConversionRow) => {
+        const value = Number(editValue);
+        if (!Number.isFinite(value) || value <= 0) return;
+
+        updateConversion.mutate(
+            { row, direction: editDirection, value },
+            { onSuccess: () => setEditingId(null) },
+        );
+    };
+
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center py-16 text-muted-foreground">
+                <Loader2 className="mr-2 size-4 animate-spin" />
+                Cargando conversiones...
+            </div>
+        );
+    }
+
+    if (isError) {
+        return (
+            <p className="py-16 text-center text-sm text-muted-foreground">
+                No se pudieron cargar las conversiones.
+            </p>
+        );
+    }
+
+    return (
+        <div className="space-y-4">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <Input
+                    placeholder="Buscar por artículo, unidad o equivalencia..."
+                    value={search}
+                    onChange={(event) => setSearch(event.target.value)}
+                    className="sm:max-w-xs"
+                />
+                <Select
+                    value={typeFilter}
+                    onValueChange={(next) => setTypeFilter(next as typeof typeFilter)}
+                >
+                    <SelectTrigger className="sm:w-[190px]">
+                        <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">Todos los artículos</SelectItem>
+                        <SelectItem value="general_article">Artículos generales</SelectItem>
+                        <SelectItem value="consumable">Consumibles</SelectItem>
+                    </SelectContent>
+                </Select>
+                <span className="text-sm text-muted-foreground sm:ml-auto">
+                    {filtered.length} de {rows?.length ?? 0}
+                </span>
+            </div>
+
+            <div className="rounded-lg border">
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Artículo</TableHead>
+                            <TableHead>Tipo</TableHead>
+                            <TableHead>Unidad base</TableHead>
+                            <TableHead>Equivalencia</TableHead>
+                            <TableHead className="text-right">Acciones</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {filtered.length === 0 ? (
+                            <TableRow>
+                                <TableCell
+                                    colSpan={5}
+                                    className="h-28 text-center text-sm text-muted-foreground"
+                                >
+                                    {rows?.length
+                                        ? "Ninguna conversión coincide con la búsqueda."
+                                        : "Aún no hay conversiones registradas. Se crean desde cada artículo."}
+                                </TableCell>
+                            </TableRow>
+                        ) : (
+                            filtered.map((row) => {
+                                const isEditing = editingId === row.id;
+
+                                return (
+                                    <TableRow key={row.id}>
+                                        <TableCell className="font-medium">
+                                            <div className="flex items-center gap-2">
+                                                {row.orphaned && (
+                                                    <TooltipProvider>
+                                                        <Tooltip>
+                                                            <TooltipTrigger asChild>
+                                                                <AlertTriangle className="size-4 shrink-0 text-amber-500" />
+                                                            </TooltipTrigger>
+                                                            <TooltipContent className="max-w-xs">
+                                                                El artículo dueño de esta conversión ya
+                                                                no existe. Puede eliminarla sin riesgo.
+                                                            </TooltipContent>
+                                                        </Tooltip>
+                                                    </TooltipProvider>
+                                                )}
+                                                <span>
+                                                    {row.article?.description ?? "—"}
+                                                    {row.article?.part_number && (
+                                                        <span className="ml-1.5 text-xs font-normal text-muted-foreground">
+                                                            ({row.article.part_number})
+                                                        </span>
+                                                    )}
+                                                </span>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="text-sm text-muted-foreground">
+                                            {TYPE_LABEL[row.convertible_type]}
+                                        </TableCell>
+                                        <TableCell className="text-sm">
+                                            {row.base_unit?.label ?? "—"}
+                                        </TableCell>
+                                        <TableCell>
+                                            {isEditing ? (
+                                                <div className="flex flex-col gap-2">
+                                                    <Select
+                                                        value={editDirection}
+                                                        onValueChange={(next) =>
+                                                            setEditDirection(next as ConversionDirection)
+                                                        }
+                                                    >
+                                                        <SelectTrigger className="h-8 w-[210px] text-xs">
+                                                            <SelectValue />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value="base_per_unit" className="text-xs">
+                                                                1 {row.unit?.label} = ? {row.base_unit?.label}
+                                                            </SelectItem>
+                                                            <SelectItem value="units_per_base" className="text-xs">
+                                                                1 {row.base_unit?.label} = ? {row.unit?.label}
+                                                            </SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
+                                                    <Input
+                                                        autoFocus
+                                                        type="number"
+                                                        inputMode="decimal"
+                                                        min="0"
+                                                        step="any"
+                                                        className="h-8 w-40"
+                                                        value={editValue}
+                                                        onChange={(event) => setEditValue(event.target.value)}
+                                                    />
+                                                </div>
+                                            ) : (
+                                                <span className="text-sm tabular-nums">
+                                                    {row.lectura ??
+                                                        `1 ${row.unit?.label ?? "?"} = ${row.base_per_unit}`}
+                                                </span>
+                                            )}
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            <div className="flex items-center justify-end gap-0.5">
+                                                {isEditing ? (
+                                                    <>
+                                                        <TooltipProvider>
+                                                            <Tooltip>
+                                                                <TooltipTrigger asChild>
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        size="icon"
+                                                                        className="size-8"
+                                                                        onClick={() => commitEdit(row)}
+                                                                    >
+                                                                        <Check className="size-3.5" />
+                                                                    </Button>
+                                                                </TooltipTrigger>
+                                                                <TooltipContent>Guardar</TooltipContent>
+                                                            </Tooltip>
+                                                        </TooltipProvider>
+                                                        <TooltipProvider>
+                                                            <Tooltip>
+                                                                <TooltipTrigger asChild>
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        size="icon"
+                                                                        className="size-8"
+                                                                        onClick={() => setEditingId(null)}
+                                                                    >
+                                                                        <X className="size-3.5" />
+                                                                    </Button>
+                                                                </TooltipTrigger>
+                                                                <TooltipContent>Cancelar</TooltipContent>
+                                                            </Tooltip>
+                                                        </TooltipProvider>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        {!row.orphaned && (
+                                                            <TooltipProvider>
+                                                                <Tooltip>
+                                                                    <TooltipTrigger asChild>
+                                                                        <Button
+                                                                            variant="ghost"
+                                                                            size="icon"
+                                                                            className="size-8"
+                                                                            onClick={() => startEdit(row)}
+                                                                        >
+                                                                            <Pencil className="size-3.5" />
+                                                                        </Button>
+                                                                    </TooltipTrigger>
+                                                                    <TooltipContent>
+                                                                        Editar equivalencia
+                                                                    </TooltipContent>
+                                                                </Tooltip>
+                                                            </TooltipProvider>
+                                                        )}
+                                                        <TooltipProvider>
+                                                            <Tooltip>
+                                                                <TooltipTrigger asChild>
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        size="icon"
+                                                                        className="size-8"
+                                                                        onClick={() => setPendingDelete(row)}
+                                                                    >
+                                                                        <Trash2 className="size-3.5" />
+                                                                    </Button>
+                                                                </TooltipTrigger>
+                                                                <TooltipContent>Eliminar</TooltipContent>
+                                                            </Tooltip>
+                                                        </TooltipProvider>
+                                                    </>
+                                                )}
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                );
+                            })
+                        )}
+                    </TableBody>
+                </Table>
+            </div>
+
+            <AlertDialog
+                open={!!pendingDelete}
+                onOpenChange={(next) => !next && setPendingDelete(null)}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>¿Eliminar esta conversión?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {pendingDelete?.lectura ?? "La equivalencia se eliminará."}
+                            {" "}Los movimientos ya registrados conservan el factor con que se
+                            calcularon, pero el artículo dejará de poder despacharse en{" "}
+                            {pendingDelete?.unit?.label ?? "esa unidad"}.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={() => {
+                                if (pendingDelete) deleteConversion.mutate(pendingDelete);
+                                setPendingDelete(null);
+                            }}
+                        >
+                            Eliminar
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        </div>
+    );
+}

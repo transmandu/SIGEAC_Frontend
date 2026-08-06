@@ -25,6 +25,7 @@ interface ArticleData {
     primary_unit_id: string;
     warehouse_id: string;
     image?: File | null;
+    conversions?: ArticleConversionInput[];
 }
 
 
@@ -37,6 +38,13 @@ interface updateArticleData {
     minimum_quantity?: number;
     maximum_quantity?: number;
 }
+
+/** Equivalencia declarada para el artículo: 1 unit_id = value <unidad base>. */
+interface ArticleConversionInput {
+    unit_id: number;
+    direction: string;
+    value: number;
+}
 // PARA ACTULIZAR UN ARTICULO EXEPTO SU CANTIDAD.
 export const useUpdateGeneralArticle = () => {
     const queryClient = useQueryClient();
@@ -48,16 +56,18 @@ export const useUpdateGeneralArticle = () => {
             id,
             articleData,
             image,
+            conversions,
         }: {
             id: string | number; // Recibimos el id aquí
             articleData: updateArticleData;
             image?: File | null;
+            conversions?: ArticleConversionInput[];
         }) => {
             // Sin imagen se mantiene el PATCH en JSON de siempre.
             if (!image) {
                 const { data } = await axiosInstance.patch(
                     `/${selectedCompany?.slug}/general-articles/${id}`,
-                    { articleData }
+                    { articleData, ...(conversions ? { conversions } : {}) }
                 );
                 return data;
             }
@@ -71,6 +81,13 @@ export const useUpdateGeneralArticle = () => {
             Object.entries(articleData).forEach(([key, value]) => {
                 if (value === undefined || value === null) return;
                 formData.append(`articleData[${key}]`, String(value));
+            });
+
+            // multipart no anida objetos: cada conversión viaja con índice.
+            conversions?.forEach((row, index) => {
+                formData.append(`conversions[${index}][unit_id]`, String(row.unit_id));
+                formData.append(`conversions[${index}][direction]`, row.direction);
+                formData.append(`conversions[${index}][value]`, String(row.value));
             });
 
             const { data } = await axiosInstance.post(
@@ -170,7 +187,14 @@ export const useConfirmGeneralArticleIntake = () => {
                 {
                     ...(confirmedAt ? { confirmed_at: confirmedAt.toISOString() } : {}),
                     ...(newConversionEquivalence
-                        ? { new_conversion: { equivalence: newConversionEquivalence } }
+                        ? {
+                            new_conversion: {
+                                // El almacenista lo declara desde la unidad que
+                                // compró hacia la que ya maneja el inventario.
+                                direction: 'base_per_unit',
+                                value: newConversionEquivalence,
+                            },
+                        }
                         : {}),
                 }
             );
@@ -296,6 +320,18 @@ export const useCreateGeneralArticle = () => {
 
             Object.entries(data).forEach(([key, value]) => {
                 if (value === undefined || value === null) return;
+
+                // multipart no anida objetos: las conversiones van con índice,
+                // el resto se serializa plano como siempre.
+                if (key === "conversions") {
+                    (value as ArticleConversionInput[]).forEach((row, index) => {
+                        formData.append(`conversions[${index}][unit_id]`, String(row.unit_id));
+                        formData.append(`conversions[${index}][direction]`, row.direction);
+                        formData.append(`conversions[${index}][value]`, String(row.value));
+                    });
+                    return;
+                }
+
                 formData.append(key, value instanceof File ? value : String(value));
             });
 
