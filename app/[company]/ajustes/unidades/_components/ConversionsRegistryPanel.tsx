@@ -77,8 +77,8 @@ export function ConversionsRegistryPanel() {
             if (!term) return true;
 
             return [
-                row.article?.description,
-                row.article?.part_number,
+                row.article?.name,
+                row.article?.detail,
                 row.unit?.label,
                 row.base_unit?.label,
                 row.lectura,
@@ -193,10 +193,10 @@ export function ConversionsRegistryPanel() {
                                                     </TooltipProvider>
                                                 )}
                                                 <span>
-                                                    {row.article?.description ?? "—"}
-                                                    {row.article?.part_number && (
+                                                    {row.article?.name ?? "—"}
+                                                    {row.article?.detail && (
                                                         <span className="ml-1.5 text-xs font-normal text-muted-foreground">
-                                                            ({row.article.part_number})
+                                                            ({row.article.detail})
                                                         </span>
                                                     )}
                                                 </span>

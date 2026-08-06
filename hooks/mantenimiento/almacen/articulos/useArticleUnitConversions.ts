@@ -73,7 +73,12 @@ export type UnitConversionRow = {
   convertible_id: number;
   /** Id con el que se direcciona el artículo en el resto del módulo. */
   route_id?: number | string;
-  article: { description?: string | null; part_number?: string | null } | null;
+  /**
+   * Nombre real del artículo y su precisión. En consumibles es el renglón
+   * (batch.name) con su número de parte; en generales, la descripción con
+   * variante y marca.
+   */
+  article: { name?: string | null; detail?: string | null } | null;
   base_unit: Unit | null;
   unit: Unit | null;
   base_per_unit: number;
