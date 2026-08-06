@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import CreateAnalysesDialog from "@/components/dialogs/aerolinea/sms/CreateAnalysesDialog";
 import CreateDangerIdentificationDialog from "@/components/dialogs/aerolinea/sms/CreateDangerIdentificationDialog";
 import DeleteDangerIdentificationDialog from "@/components/dialogs/aerolinea/sms/DeleteDangerIdentificationDialog";
@@ -28,7 +28,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { PageHeader } from "@/components/layout/PageHeader";
+
 
 const ShowDangerIdentification = () => {
   const { identification_id } = useParams<{ identification_id: string }>();
@@ -56,8 +56,8 @@ const ShowDangerIdentification = () => {
   const reportType = dangerIdentification?.voluntary_report
     ? "RVP"
     : dangerIdentification?.obligatory_report
-    ? "ROS"
-    : "N/A";
+      ? "ROS"
+      : "N/A";
 
   if (isLoading) {
     return <LoadingPage />;
@@ -65,8 +65,6 @@ const ShowDangerIdentification = () => {
 
   return (
     <ContentLayout title="Identificación de Peligro">
-      <PageHeader />
-
       {/* Botones de acción */}
       <div className="flex justify-evenly flex-wrap gap-4 mb-6">
         {dangerIdentification && status === "ABIERTO" && (
@@ -128,7 +126,10 @@ const ShowDangerIdentification = () => {
       </div>
 
       {/* Contenido principal */}
-      <div className="flex flex-col justify-center items-center border border-gray-300 rounded-lg p-8 gap-6 shadow-md dark:border-gray-700">
+      <div
+        className="flex flex-col justify-center items-center border border-gray-300 rounded-lg p-8 gap-6 shadow-md dark:border-gray-700"
+        data-tour="peligros-detalle-header"
+      >
         <div className="flex items-center gap-3">
           <AlertTriangle className="w-10 h-10 text-yellow-600" />
           <h1 className="text-3xl font-bold text-center text-gray-800 dark:text-white">
@@ -139,7 +140,10 @@ const ShowDangerIdentification = () => {
         {dangerIdentification && (
           <div className="w-full space-y-6">
             {/* Información básica del peligro */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div
+              className="grid grid-cols-1 md:grid-cols-3 gap-6"
+              data-tour="peligros-detalle-info-basica"
+            >
               <div className="border border-gray-300 dark:border-gray-600 p-6 rounded-lg space-y-3">
                 <div className="flex items-center justify-center gap-3">
                   <AlertTriangle className="w-6 h-6 text-gray-600 dark:text-gray-300 flex-shrink-0" />
@@ -171,7 +175,10 @@ const ShowDangerIdentification = () => {
               </div>
             </div>
 
-            <div className="flex gap-2">
+            <div
+              className="flex gap-2"
+              data-tour="peligros-detalle-fuente-desc"
+            >
               {/* Fuente de información */}
               {dangerIdentification.information_source && (
                 <div className="border border-gray-300 dark:border-gray-600 p-6 rounded-lg w-full">
@@ -219,7 +226,10 @@ const ShowDangerIdentification = () => {
               </div>
             </div>
 
-            <div className="flex gap-2">
+            <div
+              className="flex gap-2"
+              data-tour="peligros-detalle-consecuencias-defensas"
+            >
               {/* Consecuencias */}
               {dangerIdentification.possible_consequences && (
                 <div className="border border-gray-300 dark:border-gray-600 p-6 rounded-lg w-full">
@@ -266,7 +276,10 @@ const ShowDangerIdentification = () => {
             </div>
 
             {/* Análisis de causa raíz */}
-            <div className="border border-gray-300 dark:border-gray-600 p-6 rounded-lg">
+            <div
+              className="border border-gray-300 dark:border-gray-600 p-6 rounded-lg"
+              data-tour="peligros-detalle-causa-raiz"
+            >
               <h3 className="text-xl font-semibold mb-4 flex items-center gap-3">
                 <AlertCircle className="w-6 h-6" />
                 Análisis de Causa Raíz

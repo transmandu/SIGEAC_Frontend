@@ -9,7 +9,7 @@ import { useGetRiskCountByDateRange } from "@/hooks/sms/useGetRiskByDateRange";
 import { useGetVoluntaryReportingStatsByYear } from "@/hooks/sms/useGetVoluntaryReportingStatisticsByYear";
 import { Loader2, Check, ChevronsUpDown, X } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { format, startOfMonth } from "date-fns";
 import { useGetIdentificationStatsBySourceName } from "@/hooks/sms/useGetIdentificationStatsBySourceName";
 import { useGetIdentificationStatsBySourceType } from "@/hooks/sms/useGetIdentificationStatsBySourceType";
@@ -34,7 +34,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import MultipleBarChartComponent from "@/components/charts/MultipleBarChartComponent";
 import { PieChartComponent } from "@/components/charts/PieChartComponent";
 import { Message } from "@/components/misc/Message";
-import { PageHeader } from "@/components/layout/PageHeader";
+
 
 const graphicsOptions = [
   {
@@ -118,7 +118,7 @@ const Statistics = () => {
       selectedCompany?.slug!,
       currentParams.from,
       currentParams.to,
-      "obligatory"
+      "obligatory",
     );
 
   const { data: dynamicData, isLoading: isLoadingDynamicData } =
@@ -126,7 +126,7 @@ const Statistics = () => {
       selectedCompany?.slug!,
       currentParams.from,
       currentParams.to,
-      "obligatory"
+      "obligatory",
     );
 
   const { data: pieCharData, isLoading: isLoadingPieCharData } =
@@ -134,7 +134,7 @@ const Statistics = () => {
       selectedCompany?.slug!,
       currentParams.from,
       currentParams.to,
-      "obligatory"
+      "obligatory",
     );
 
   const { data: riskData, isLoading: isLoadingRisk } =
@@ -142,7 +142,7 @@ const Statistics = () => {
       selectedCompany?.slug!,
       currentParams.from,
       currentParams.to,
-      "obligatory"
+      "obligatory",
     );
 
   const { data: postRiskData, isLoading: isLoadingPostRisk } =
@@ -150,7 +150,7 @@ const Statistics = () => {
       selectedCompany?.slug!,
       currentParams.from,
       currentParams.to,
-      "obligatory"
+      "obligatory",
     );
 
   const { data: reportsBySourceName, isLoading: isLoadingSourceName } =
@@ -158,7 +158,7 @@ const Statistics = () => {
       selectedCompany?.slug!,
       currentParams.from,
       currentParams.to,
-      "obligatory"
+      "obligatory",
     );
 
   const { data: reportsBySourceType, isLoading: isLoadingSourceType } =
@@ -166,12 +166,12 @@ const Statistics = () => {
       selectedCompany?.slug!,
       currentParams.from,
       currentParams.to,
-      "obligatory"
+      "obligatory",
     );
 
   // Manejar cambio de fechas desde DateFilter
   const handleDateChange = (
-    dateRange: { from: Date; to: Date } | undefined
+    dateRange: { from: Date; to: Date } | undefined,
   ) => {
     if (!dateRange?.from || !dateRange?.to) return;
 
@@ -221,12 +221,18 @@ const Statistics = () => {
   const shouldShow = (id: string) =>
     selectedGraphics.includes("Todos") || selectedGraphics.includes(id);
 
-  return (
-    <ContentLayout title="Gráficos Estadísticos de los Reportes (Obligatorios)">
-      <PageHeader />
 
+
+  return (
+    <ContentLayout
+      title="Gráficos Estadísticos de los Reportes (Obligatorios)"
+      data-tour="stats-obligatorios-header"
+    >
       <div className="flex flex-col space-y-4 mb-6">
-        <div className="flex justify-center items-center">
+        <div
+          className="flex justify-center items-center"
+          data-tour="stats-obligatorios-date-filter"
+        >
           <div className="flex flex-col w-full max-w-md">
             <Label className="text-lg font-semibold mb-2">
               Seleccionar Rango de Fechas:
@@ -243,7 +249,10 @@ const Statistics = () => {
           </div>
         </div>
 
-        <div className="flex flex-col space-y-2">
+        <div
+          className="flex flex-col space-y-2"
+          data-tour="stats-obligatorios-graphics-selector"
+        >
           <Label className="text-lg font-semibold">
             Seleccionar Gráficos a Mostrar:
           </Label>
@@ -287,7 +296,7 @@ const Statistics = () => {
                               "mr-2 h-4 w-4",
                               selectedGraphics.includes(option.id)
                                 ? "opacity-100"
-                                : "opacity-0"
+                                : "opacity-0",
                             )}
                           />
                           <div className="flex flex-col">
@@ -342,12 +351,15 @@ const Statistics = () => {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {shouldShow("bar-chart") && (
-          <div className="p-4 rounded-lg shadow border">
+          <div
+            className="p-4 rounded-lg shadow border"
+            data-tour="stats-oblig-chart-bar"
+          >
             {isLoadingBarChart ? (
               <div className="flex justify-center items-center h-48">
                 <Loader2 className="size-24 animate-spin" />
               </div>
-            ) : barChartData && barChartData.total !==0 ? (
+            ) : barChartData && barChartData.total !== 0 ? (
               <BarChartComponent
                 data={barChartData}
                 title="Peligros Identificados vs Gestionados"
@@ -366,7 +378,10 @@ const Statistics = () => {
         )}
 
         {shouldShow("tipo") && (
-          <div className="p-4 rounded-lg shadow border">
+          <div
+            className="p-4 rounded-lg shadow border"
+            data-tour="stats-oblig-chart-tipo"
+          >
             {isLoadingDynamicData ? (
               <div className="flex justify-center items-center h-48">
                 <Loader2 className="size-24 animate-spin" />
@@ -388,7 +403,10 @@ const Statistics = () => {
         )}
 
         {shouldShow("area-bar") && (
-          <div className="p-4 rounded-lg shadow border">
+          <div
+            className="p-4 rounded-lg shadow border"
+            data-tour="stats-oblig-chart-area"
+          >
             {isLoadingPieCharData ? (
               <div className="flex justify-center items-center h-48">
                 <Loader2 className="size-24 animate-spin" />
@@ -410,7 +428,10 @@ const Statistics = () => {
         )}
 
         {shouldShow("metodo-id") && (
-          <div className="p-4 rounded-lg shadow border">
+          <div
+            className="p-4 rounded-lg shadow border"
+            data-tour="stats-oblig-chart-metodo"
+          >
             {isLoadingSourceType ? (
               <div className="flex justify-center items-center h-48">
                 <Loader2 className="size-24 animate-spin" />
@@ -432,7 +453,10 @@ const Statistics = () => {
         )}
 
         {shouldShow("fuente-id") && (
-          <div className="p-4 rounded-lg shadow border">
+          <div
+            className="p-4 rounded-lg shadow border"
+            data-tour="stats-oblig-chart-fuente"
+          >
             {isLoadingSourceName ? (
               <div className="flex justify-center items-center h-48">
                 <Loader2 className="size-24 animate-spin" />
@@ -454,7 +478,10 @@ const Statistics = () => {
         )}
 
         {shouldShow("pre-riesgo") && (
-          <div className="p-4 rounded-lg shadow border">
+          <div
+            className="p-4 rounded-lg shadow border"
+            data-tour="stats-oblig-chart-pre-riesgo-pie"
+          >
             {isLoadingRisk ? (
               <div className="flex justify-center items-center h-48">
                 <Loader2 className="size-24 animate-spin" />
@@ -476,7 +503,10 @@ const Statistics = () => {
         )}
 
         {shouldShow("pre-riesgo-bar") && (
-          <div className="p-4 rounded-lg shadow border">
+          <div
+            className="p-4 rounded-lg shadow border"
+            data-tour="stats-oblig-chart-pre-riesgo-bar"
+          >
             {isLoadingRisk ? (
               <div className="flex justify-center items-center h-48">
                 <Loader2 className="size-24 animate-spin" />
@@ -498,7 +528,10 @@ const Statistics = () => {
         )}
 
         {shouldShow("post-riesgo") && (
-          <div className="p-4 rounded-lg shadow border">
+          <div
+            className="p-4 rounded-lg shadow border"
+            data-tour="stats-oblig-chart-post-riesgo-pie"
+          >
             {isLoadingPostRisk ? (
               <div className="flex justify-center items-center h-48">
                 <Loader2 className="size-24 animate-spin" />
@@ -520,7 +553,10 @@ const Statistics = () => {
         )}
 
         {shouldShow("post-riesgo-bar") && (
-          <div className="p-4 rounded-lg shadow border">
+          <div
+            className="p-4 rounded-lg shadow border"
+            data-tour="stats-oblig-chart-post-riesgo-bar"
+          >
             {isLoadingPostRisk ? (
               <div className="flex justify-center items-center h-48">
                 <Loader2 className="size-24 animate-spin" />

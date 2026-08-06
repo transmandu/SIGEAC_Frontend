@@ -38,7 +38,6 @@ import Image from "next/image";
 import ImageZoom from "@/components/ui/ImageZoom";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { PageHeader } from "@/components/layout/PageHeader";
 
 const ShowVoluntaryReport = () => {
   const { report_id } = useParams<{ report_id: string }>();
@@ -82,7 +81,10 @@ const ShowVoluntaryReport = () => {
     if (!voluntaryReport) return null;
 
     return (
-      <div className="flex flex-wrap gap-3 justify-center mb-10">
+      <div
+        className="flex flex-wrap gap-3 justify-center mb-10"
+        data-tour="voluntario-detalle-acciones"
+      >
         {voluntaryReport.status === "ABIERTO" && (
           <>
             {!voluntaryReport.danger_identification_id ? (
@@ -131,8 +133,8 @@ const ShowVoluntaryReport = () => {
     const formatFriendlyDate = (dateString: string | null | undefined) => {
       if (!dateString) return null;
       // Evitamos problemas de zona horaria picando la cadena directamente
-      const soloFecha = dateString.split(' ')[0]; // Extrae "2026-04-10"
-      const [year, month, day] = soloFecha.split('-');
+      const soloFecha = dateString.split(" ")[0]; // Extrae "2026-04-10"
+      const [year, month, day] = soloFecha.split("-");
       return `${day}-${month}-${year}`;
     };
 
@@ -140,7 +142,7 @@ const ShowVoluntaryReport = () => {
     const reportData = voluntaryReport as any;
 
     return (
-      <Card>
+      <Card data-tour="voluntario-detalle-info">
         <CardHeader className="pb-3">
           <h3 className="text-lg font-semibold flex items-center gap-2">
             <FileText className="w-5 h-5" />
@@ -168,8 +170,12 @@ const ShowVoluntaryReport = () => {
               <p className="text-sm font-medium">Fecha del Reporte</p>
               <p className="font-medium">
                 {/* Ajustado para usar el valor de reportData */}
-                {reportData?.report_date 
-                  ? format(new Date(reportData.report_date.replace(/-/g, '/')), "PPP", { locale: es })
+                {reportData?.report_date
+                  ? format(
+                      new Date(reportData.report_date.replace(/-/g, "/")),
+                      "PPP",
+                      { locale: es },
+                    )
                   : "N/A"}
               </p>
             </div>
@@ -200,7 +206,9 @@ const ShowVoluntaryReport = () => {
             <div className="flex items-center gap-3 pt-3 mt-2 border-t border-dashed">
               <CalendarCheck className="w-5 h-5 flex-shrink-0 text-green-600" />
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Fecha de Cierre</p>
+                <p className="text-sm font-medium text-muted-foreground">
+                  Fecha de Cierre
+                </p>
                 <p className="font-semibold text-green-700">
                   {formatFriendlyDate(reportData.close_date)}
                 </p>
@@ -213,7 +221,7 @@ const ShowVoluntaryReport = () => {
   };
 
   const renderLocationInfo = () => (
-    <Card>
+    <Card data-tour="voluntario-detalle-ubicacion">
       <CardHeader className="pb-3">
         <h3 className="text-lg font-semibold flex items-center gap-2">
           <MapPin className="w-5 h-5" />
@@ -242,7 +250,7 @@ const ShowVoluntaryReport = () => {
   );
 
   const renderIdentificationDate = () => (
-    <Card>
+    <Card data-tour="voluntario-detalle-fecha">
       <CardHeader className="pb-3">
         <h3 className="text-lg font-semibold flex items-center gap-2">
           <Calendar className="w-5 h-5" />
@@ -309,7 +317,7 @@ const ShowVoluntaryReport = () => {
       !voluntaryReport?.reporter_last_name;
 
     return (
-      <Card>
+      <Card data-tour="voluntario-detalle-reportante">
         <CardHeader className="pb-3">
           <h3 className="text-lg font-semibold flex items-center gap-2">
             <User className="w-5 h-5" />
@@ -356,8 +364,8 @@ const ShowVoluntaryReport = () => {
   };
 
   const renderAttachments = () => (
-    <div className="space-y-4">
-      {voluntaryReport?.imageUrl &&(
+    <div className="space-y-4" data-tour="voluntario-detalle-archivos">
+      {voluntaryReport?.imageUrl && (
         <Card>
           <CardHeader className="pb-3 flex flex-row items-center justify-between">
             <h3 className="text-lg font-semibold">Imagen Adjunta</h3>
@@ -444,8 +452,6 @@ const ShowVoluntaryReport = () => {
 
   return (
     <ContentLayout title="Detalles del Reporte Voluntario">
-      <PageHeader />
-
       {renderActionButtons()}
 
       {/* LOADING */}
@@ -464,7 +470,10 @@ const ShowVoluntaryReport = () => {
             {renderIdentificationDate()}
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div
+            className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+            data-tour="voluntario-detalle-descripcion"
+          >
             {renderDescription()}
             {renderConsequences()}
           </div>

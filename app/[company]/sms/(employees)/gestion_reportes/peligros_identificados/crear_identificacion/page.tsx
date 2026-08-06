@@ -1,9 +1,9 @@
-'use client'
+"use client";
 
 import { useSearchParams } from "next/navigation";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import CreateDangerIdentificationForm from "@/components/forms/aerolinea/sms/CreateIdentificationForm";
-import { PageHeader } from "@/components/layout/PageHeader";
+import { useEffect } from "react";
 
 export default function CreateDangerIdentificationPage() {
   const searchParams = useSearchParams();
@@ -15,16 +15,7 @@ export default function CreateDangerIdentificationPage() {
 
   return (
     <ContentLayout title="Crear Identificación de Peligro">
-      <PageHeader />
-
-      
-        
-          <CreateDangerIdentificationForm
-            id={Number(reporteId)}
-            reportType="RVP"
-          />
-        
-      
+      <CreateDangerIdentificationForm id={Number(reporteId)} reportType="RVP" />
     </ContentLayout>
   );
 }
