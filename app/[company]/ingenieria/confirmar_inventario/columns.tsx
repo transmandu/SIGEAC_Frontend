@@ -163,11 +163,19 @@ const baseCols: ColumnDef<IArticleSimple>[] = [
       <DataTableColumnHeader column={column} title="Estado" />
     ),
     cell: ({ row }) => {
+      const isStored = row.original.status?.toLowerCase() === "stored";
+      const q = Number(row.original.quantity ?? 0);
+      const isOutOfStock = isStored && q <= 0;
+
       return (
         <div className="flex flex-col justify-center items-center space-y-2">
-          <Badge className="bg-yellow-500">
-            {row.original.status?.toUpperCase()}
-          </Badge>
+          {isOutOfStock ? (
+            <Badge variant="destructive">SIN STOCK</Badge>
+          ) : (
+            <Badge className="bg-yellow-500">
+              {row.original.status?.toUpperCase()}
+            </Badge>
+          )}
         </div>
       );
     },

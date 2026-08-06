@@ -35,7 +35,16 @@ export interface IArticleSimple {
   };
 }
 
-export const getStatusBadge = (status: string | null | undefined) => {
+export const getStatusBadge = (status: string | null | undefined, quantity?: number) => {
+  if (status?.toLowerCase() === "stored" && quantity !== undefined && quantity <= 0) {
+    return (
+      <Badge variant="destructive" className="flex items-center gap-1 w-fit">
+        <XCircle className="h-3 w-3" />
+        Sin stock
+      </Badge>
+    );
+  }
+
   if (!status) {
     return (
       <Badge variant="outline" className="flex items-center gap-1 w-fit">
@@ -197,7 +206,7 @@ const baseCols: ColumnDef<IArticleSimple>[] = [
       const descalibrated = row.original.tool?.status === "VENCIDO";
       return (
         <div className="flex flex-col justify-center items-center space-y-2">
-          {!calibrating && getStatusBadge(row.original.status?.toUpperCase())}
+          {!calibrating && getStatusBadge(row.original.status?.toUpperCase(), row.original.quantity)}
           {row.original.tool && (
             <Badge
               className={cn(
