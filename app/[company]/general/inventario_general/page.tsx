@@ -14,7 +14,7 @@ import { DataTable } from "./data-table";
 import { columns as generalColumns } from "../../almacen/inventario_articulos/_tables/general-columns";
 import { PageHeader } from "@/components/layout/PageHeader";
 
-const ROLES_WITH_QUANTITY_VISIBLE = ["ASISTENTE_COMPRAS", "SERVICIOS_GENERALES"];
+const ROLES_WITH_QUANTITY_VISIBLE = ["ASISTENTE_COMPRAS", "SERVICIOS_GENERALES", 'INGENIERIA'];
 
 const InventarioGeneralPage = () => {
   const { selectedCompany } = useCompanyStore();
