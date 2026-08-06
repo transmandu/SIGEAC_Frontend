@@ -20,8 +20,7 @@ import { format, startOfMonth } from "date-fns";
 import { Loader2 } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState, useEffect } from "react";
-import { useTourContext } from "@/components/tour/TourProvider";
-import { statsVoluntariosSteps } from "@/components/tour/steps/sms/estadisticas/reportes-voluntarios";
+
 
 const graphicsOptions = [
   { id: "Todos", label: "Todos los gráficos" },
@@ -147,17 +146,7 @@ const Statistics = () => {
     router.push(`${pathname}?${newParams.toString()}`, { scroll: false });
   };
 
-  const { registerTour, unregisterTour } = useTourContext();
 
-  useEffect(() => {
-    registerTour(
-      "sms-stats-voluntarios",
-      "Reportes Volutarios",
-      statsVoluntariosSteps,
-    );
-
-    return () => unregisterTour("sms-stats-voluntarios");
-  }, [registerTour, unregisterTour]);
 
   const shouldShow = (id: string) =>
     selectedGraphics.includes("Todos") || selectedGraphics.includes(id);

@@ -19,8 +19,7 @@ import { format, startOfMonth } from "date-fns";
 import { Loader2 } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState, useEffect } from "react";
-import { useTourContext } from "@/components/tour/TourProvider";
-import { statsGeneralSteps } from "@/components/tour/steps/sms/estadisticas/general";
+
 
 const GeneralReportStats = () => {
   const { selectedCompany } = useCompanyStore();
@@ -153,16 +152,7 @@ const GeneralReportStats = () => {
   const shouldShow = (id: string) =>
     selectedGraphics.includes("Todos") || selectedGraphics.includes(id);
 
-  const { registerTour, unregisterTour } = useTourContext();
 
-  useEffect(() => {
-    registerTour(
-      "sms-stats-general",
-      "Estadísticas Generales",
-      statsGeneralSteps,
-    );
-    return () => unregisterTour("sms-stats-general");
-  }, [registerTour, unregisterTour]);
 
   return (
     <ContentLayout title="Gráficos Estadísticos de Reportes">

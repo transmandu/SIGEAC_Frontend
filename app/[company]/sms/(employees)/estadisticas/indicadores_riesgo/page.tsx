@@ -5,29 +5,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { ManagementReports } from "./_components/ManagementReports";
 import { AverageReportIndicator } from "./_components/AverageReportIndicator";
-import { useTourContext } from "@/components/tour/TourProvider";
-import { useTour } from "@reactour/tour";
-import { indicadoresRiesgoSteps } from "@/components/tour/steps/sms/estadisticas/indicadores-riesgo";
+
 
 export default function RiskIndicatorsPage() {
   const [manualTab, setManualTab] = useState("ManagementReports");
-  const { currentStep, isOpen } = useTour();
-  const activeTab = isOpen
-    ? currentStep >= 6
-      ? "AverageIncidents"
-      : "ManagementReports"
-    : manualTab;
-
-  const { registerTour, unregisterTour } = useTourContext();
-
-  useEffect(() => {
-    registerTour(
-      "sms-indicadores-riesgos",
-      "Indicadores de Riesgo",
-      indicadoresRiesgoSteps,
-    );
-    return () => unregisterTour("sms-indicadores-riesgos");
-  }, [registerTour, unregisterTour]);
+  const activeTab = manualTab;
 
   return (
     <ContentLayout title="Indicadores de Riesgo" data-tour="indicadores-header">

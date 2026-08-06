@@ -34,8 +34,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import MultipleBarChartComponent from "@/components/charts/MultipleBarChartComponent";
 import { PieChartComponent } from "@/components/charts/PieChartComponent";
 import { Message } from "@/components/misc/Message";
-import { useTourContext } from "@/components/tour/TourProvider";
-import { statsObligatoriosSteps } from "@/components/tour/steps/sms/estadisticas/reportes-obligatorios";
+
 
 const graphicsOptions = [
   {
@@ -222,16 +221,7 @@ const Statistics = () => {
   const shouldShow = (id: string) =>
     selectedGraphics.includes("Todos") || selectedGraphics.includes(id);
 
-  const { registerTour, unregisterTour } = useTourContext();
 
-  useEffect(() => {
-    registerTour(
-      "sms-stats-obligatorio",
-      "Reportes Obligatorios",
-      statsObligatoriosSteps,
-    );
-    return () => unregisterTour("sms-stats-obligatorio");
-  }, [registerTour, unregisterTour]);
 
   return (
     <ContentLayout
