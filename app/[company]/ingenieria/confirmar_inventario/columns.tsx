@@ -124,12 +124,13 @@ const baseCols: ColumnDef<IArticleSimple>[] = [
     ),
     cell: ({ row }) => {
       const q = row.original.quantity ?? 0;
-      const isAvailable = q > 0;
+      const isStored = row.original.status?.toLowerCase() === "stored";
+      const isAvailable = q > 0 && isStored;
       return (
         <div className="flex justify-center">
           <Badge
             variant={isAvailable ? "default" : "destructive"}
-            className="text-base font-bold px-3 py-1"
+            className="text-sm font-bold px-3 py-1 whitespace-nowrap"
           >
             {isAvailable ? "Disponible" : "No Disponible"}
           </Badge>
