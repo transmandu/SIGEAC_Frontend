@@ -24,6 +24,26 @@ const conversionsKey = (
   company?: string,
 ) => ["article-unit-conversions", company, type, id];
 
+/**
+ * Las conversiones de un artículo se leen desde tres claves distintas (la del
+ * CRUD, la del panel de despacho y la del registro global). Tras escribir hay
+ * que invalidarlas todas: refrescar sólo la propia dejaba el panel de despacho
+ * mostrando "sin conversiones" hasta recargar la página.
+ */
+const invalidateConversions = (
+  queryClient: ReturnType<typeof useQueryClient>,
+  company?: string,
+) => {
+  [
+    "article-unit-conversions",
+    "conversions-by-general-article",
+    "conversions-by-consumable",
+    "unit-conversions",
+  ].forEach((key) =>
+    queryClient.invalidateQueries({ queryKey: [key, company], exact: false }),
+  );
+};
+
 const fetchConversions = async (
   type: ConvertibleType,
   id: number,
@@ -45,6 +65,94 @@ export const useGetArticleUnitConversions = (
     queryFn: () => fetchConversions(type, id!, company!),
     enabled: !!id && !!company,
   });
+
+/** Una conversión del tenant junto al artículo al que pertenece. */
+export type UnitConversionRow = {
+  id: number;
+  convertible_type: "general_article" | "consumable";
+  convertible_id: number;
+  /** Id con el que se direcciona el artículo en el resto del módulo. */
+  route_id?: number | string;
+  article: { description?: string | null; part_number?: string | null } | null;
+  base_unit: Unit | null;
+  unit: Unit | null;
+  base_per_unit: number;
+  lectura: string | null;
+  /** El artículo dueño ya no existe: la fila quedó colgada. */
+  orphaned: boolean;
+  registered_by?: string | null;
+  updated_by?: string | null;
+  updated_at?: string | null;
+};
+
+/** Todas las conversiones del tenant, para el panel de revisión. */
+export const useGetAllUnitConversions = (company?: string) =>
+  useQuery<UnitConversionRow[], Error>({
+    queryKey: ["unit-conversions", company],
+    queryFn: async () => {
+      const { data } = await axios.get(`/${company}/unit-conversions`);
+      return data;
+    },
+    enabled: !!company,
+  });
+
+/**
+ * Edita o elimina una conversión desde el panel global, donde el artículo se
+ * conoce por la fila y no por la ruta en que se está navegando.
+ */
+export const useMutateUnitConversionRow = (company?: string) => {
+  const queryClient = useQueryClient();
+
+  const invalidate = () => invalidateConversions(queryClient, company);
+
+  const pathFor = (row: UnitConversionRow) =>
+    `/${company}/articles/${
+      row.convertible_type === "consumable" ? "consumables" : "general-articles"
+    }/${row.route_id ?? row.convertible_id}/unit-conversions/${row.id}`;
+
+  const update = useMutation({
+    mutationFn: async ({
+      row,
+      ...payload
+    }: {
+      row: UnitConversionRow;
+      direction: ConversionDirection;
+      value: number;
+    }) => {
+      const { data } = await axios.patch(pathFor(row), payload);
+      return data;
+    },
+    onSuccess: (data) => {
+      invalidate();
+      toast.success("Conversión actualizada", {
+        description: data?.conversion?.lectura,
+      });
+    },
+    onError: (error: any) => {
+      toast.error("No se pudo actualizar la conversión", {
+        description: error?.response?.data?.message,
+      });
+    },
+  });
+
+  const remove = useMutation({
+    mutationFn: async (row: UnitConversionRow) => {
+      const { data } = await axios.delete(pathFor(row));
+      return data;
+    },
+    onSuccess: () => {
+      invalidate();
+      toast.success("Conversión eliminada");
+    },
+    onError: (error: any) => {
+      toast.error("No se pudo eliminar la conversión", {
+        description: error?.response?.data?.message,
+      });
+    },
+  });
+
+  return { updateConversion: update, deleteConversion: remove };
+};
 
 /**
  * El backend responde 409 con `created: false` cuando el artículo ya tiene una
@@ -71,7 +179,7 @@ export const useCreateArticleUnitConversion = (
       return data;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: conversionsKey(type, id, company) });
+      invalidateConversions(queryClient, company);
       toast.success("Conversión creada", { description: data?.conversion?.lectura });
     },
     onError: (error: any) => {
@@ -113,7 +221,7 @@ export const useUpdateArticleUnitConversion = (
       return data;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: conversionsKey(type, id, company) });
+      invalidateConversions(queryClient, company);
       toast.success("Conversión actualizada", { description: data?.conversion?.lectura });
     },
     onError: (error: any) => {
@@ -139,7 +247,7 @@ export const useDeleteArticleUnitConversion = (
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: conversionsKey(type, id, company) });
+      invalidateConversions(queryClient, company);
       toast.success("Conversión eliminada");
     },
     onError: (error: any) => {

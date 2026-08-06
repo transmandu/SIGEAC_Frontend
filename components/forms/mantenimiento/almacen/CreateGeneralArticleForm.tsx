@@ -30,6 +30,11 @@ import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits";
 import { useAddQuantityGeneralArticle } from "@/hooks/mantenimiento/almacen/almacen_general/useAddQuantityGeneralArticle";
 import { useGetGeneralArticles } from "@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticles";
 import { GeneralArticle } from "@/types";
+import {
+    ConsumableConversionsField,
+    type ConsumableConversionInput,
+} from "@/components/forms/mantenimiento/almacen/ConsumableConversionsField";
+import { useGetConversionByGeneralArticle } from "@/hooks/mantenimiento/almacen/articulos/useGetConvertionsByGeneralArticleId";
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB, el mismo tope que valida el backend.
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
@@ -131,6 +136,28 @@ const CreateGeneralArticleForm = ({
     });
 
     const currentMode = form.watch("mode");
+    const watchedUnitId = form.watch("primary_unit_id");
+
+    // Equivalencias del artículo. Viven fuera de RHF porque son una lista y no
+    // un campo: se envían junto al resto del payload al guardar.
+    const [conversions, setConversions] = useState<ConsumableConversionInput[]>([]);
+
+    const { data: existingConversions } = useGetConversionByGeneralArticle(
+        isEditing ? (initialData?.id ?? null) : null,
+        selectedCompany?.slug,
+    );
+
+    useEffect(() => {
+        if (!existingConversions) return;
+
+        setConversions(
+            existingConversions.map((row) => ({
+                unit_id: Number(row.unit.id),
+                direction: "base_per_unit" as const,
+                value: row.base_per_unit,
+            })),
+        );
+    }, [existingConversions]);
 
     const busy = createGeneralArticle?.isPending || addQuantityGeneralArticle?.isPending || updateGeneralArticle?.isPending;
 
@@ -212,6 +239,7 @@ const CreateGeneralArticleForm = ({
                         minimum_quantity: values.minimum_quantity !== undefined ? parseFloat(values.minimum_quantity.toFixed(2)) : undefined,
                         maximum_quantity: values.maximum_quantity !== undefined ? parseFloat(values.maximum_quantity.toFixed(2)) : undefined,
                     },
+                    conversions,
                 });
             } else {
                 await createGeneralArticle.mutateAsync({
@@ -226,6 +254,7 @@ const CreateGeneralArticleForm = ({
                         minimum_quantity: values.minimum_quantity !== undefined ? parseFloat(values.minimum_quantity.toFixed(2)) : undefined,
                         maximum_quantity: values.maximum_quantity !== undefined ? parseFloat(values.maximum_quantity.toFixed(2)) : undefined,
                         image: imageFile,
+                        conversions,
                     },
                 });
             }
@@ -343,7 +372,9 @@ const CreateGeneralArticleForm = ({
                     />
                 </div>
 
-                <div className={currentMode === "add" ? "grid grid-cols-2 gap-4" : "grid grid-cols-5 gap-4"}>
+                {/* Cantidad y unidad describen el stock; los niveles de alerta y la
+                    imagen van aparte para que las ayudas no desalineen la fila. */}
+                <div className={currentMode === "add" ? "grid grid-cols-2 gap-4" : "grid grid-cols-2 md:grid-cols-3 gap-4 items-start"}>
                     <FormField
                         control={form.control}
                         name="quantity"
@@ -357,44 +388,6 @@ const CreateGeneralArticleForm = ({
                             </FormItem>
                         )}
                     />
-
-                    {currentMode !== "add" && (
-                        <>
-                            <FormField
-                                control={form.control}
-                                name="minimum_quantity"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Cantidad Mínima</FormLabel>
-                                        <FormControl>
-                                            <Input type="number" {...field} />
-                                        </FormControl>
-                                        <FormDescription className="text-xs">
-                                            Al bajar de este nivel se alerta el stock.
-                                        </FormDescription>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-
-                            <FormField
-                                control={form.control}
-                                name="maximum_quantity"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Cantidad Máxima</FormLabel>
-                                        <FormControl>
-                                            <Input type="number" {...field} />
-                                        </FormControl>
-                                        <FormDescription className="text-xs">
-                                            Nivel de stock a reponer, no un tope de existencia.
-                                        </FormDescription>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </>
-                    )}
 
                     <FormField
                         control={form.control}
@@ -520,6 +513,60 @@ const CreateGeneralArticleForm = ({
                         </FormItem>
                     )}
                 </div>
+
+                {currentMode !== "add" && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
+                        <FormField
+                            control={form.control}
+                            name="minimum_quantity"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Cantidad Mínima</FormLabel>
+                                    <FormControl>
+                                        <Input type="number" {...field} />
+                                    </FormControl>
+                                    <FormDescription className="text-xs">
+                                        Al bajar de este nivel se alerta el stock.
+                                    </FormDescription>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
+                        <FormField
+                            control={form.control}
+                            name="maximum_quantity"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Cantidad Máxima</FormLabel>
+                                    <FormControl>
+                                        <Input type="number" {...field} />
+                                    </FormControl>
+                                    <FormDescription className="text-xs">
+                                        Nivel de stock a reponer, no un tope de existencia.
+                                    </FormDescription>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
+                        {/* En la misma retícula que los niveles de stock: es un
+                            campo más del artículo, no un bloque aparte. */}
+                        <FormItem className="sm:col-span-2">
+                            <FormLabel>Conversiones de unidades</FormLabel>
+                            <ConsumableConversionsField
+                                units={units ?? []}
+                                baseUnitId={watchedUnitId ? Number(watchedUnitId) : undefined}
+                                value={conversions}
+                                onChange={setConversions}
+                                disabled={busy}
+                            />
+                            <FormDescription className="text-xs">
+                                Opcional. Permite recibir y despachar en otras unidades.
+                            </FormDescription>
+                        </FormItem>
+                    </div>
+                )}
 
                 <Separator className="my-2" />
 
