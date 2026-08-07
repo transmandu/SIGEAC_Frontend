@@ -17,7 +17,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 const ROLES_WITH_QUANTITY_VISIBLE = [
   "ASISTENTE_COMPRAS",
   "SERVICIOS_GENERALES",
-  "INGENIERIA",
+  "ENGINEERING",
 ];
 
 const InventarioGeneralPage = () => {

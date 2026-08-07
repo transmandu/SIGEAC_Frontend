@@ -19,6 +19,7 @@ export interface IWarehouseArticle {
         description?: string;
         zone: string;
         quantity: number;
+        stock?: number;
         min_quantity?: number | string; // Directamente en el artículo
         unit?: Unit;
         aircraft?: Aircraft; // Si el artículo está asociado a una aeronave

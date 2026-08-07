@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { useAuth } from "@/contexts/AuthContext";
 import { useGetGeneralArticles } from "@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticles";
 import {
   Drill,
@@ -18,6 +19,7 @@ import {
 import { useEffect, useState, useMemo } from "react";
 import {
   flattenArticles,
+  aggregateByPartNumber,
   getColumnsByCategory,
   IArticleSimple,
 } from "./columns";
@@ -26,8 +28,11 @@ import { useGetWarehouseArticlesByCategory } from "@/hooks/mantenimiento/almacen
 import { columns as GeneralColums } from "../../almacen/inventario_articulos/_tables/general-columns";
 import { PageHeader } from "@/components/layout/PageHeader";
 
+const ROLES_WITH_QUANTITY_VISIBLE = ["ENGINEERING", "SUPERUSER"];
+
 const InventarioArticulosPage = () => {
   const { selectedCompany } = useCompanyStore();
+  const { user } = useAuth();
 
   const [activeMainTab, setActiveMainTab] = useState("aeronautic");
 
@@ -76,19 +81,23 @@ const InventarioArticulosPage = () => {
     return "Búsqueda General - Buscar por Descripcion";
   }, [activeMainTab]);
 
+  const canSeeQuantity =
+    user?.roles?.some((r) => ROLES_WITH_QUANTITY_VISIBLE.includes(r.name)) ??
+    false;
+
   // 1. Columnas Aeronáuticas filtradas
   const aeroColsWithoutActions = useMemo(() => {
     const rawCols = getColumnsByCategory(activeCategory as any);
-    // Filtramos cualquier columna que tenga el id 'actions', 'acciones' o que su header sea 'Acciones'
     return rawCols.filter(
       (col) =>
         col.id !== "actions" &&
         col.id !== "acciones" &&
+        (canSeeQuantity ? true : col.id !== "quantity_value") &&
         (typeof col.header === "string"
           ? col.header.toLowerCase() !== "acciones"
           : true),
     );
-  }, [activeCategory]);
+  }, [activeCategory, canSeeQuantity]);
 
   // 2. Columnas Generales filtradas
   const generalColsWithoutActions = useMemo(() => {
@@ -120,6 +129,11 @@ const InventarioArticulosPage = () => {
 
     if (activeCategory === "CONSUMABLE" && consumableFilter === "QUIMICOS") {
       filtered = filtered.filter((a: any) => a.is_hazardous === true);
+    }
+
+    // Agrupar por PN y sumar cantidades para componentes y partes
+    if (activeCategory === "COMPONENT" || activeCategory === "PART") {
+      return aggregateByPartNumber(filtered);
     }
 
     return filtered;

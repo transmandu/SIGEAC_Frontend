@@ -120,6 +120,27 @@ export const flattenArticles = (
   );
 };
 
+/**
+ * Agrupa artículos por part_number y suma sus cantidades.
+ * Se usa para COMPONENT y PART donde cada serial tiene quantity=1
+ * pero el usuario quiere ver el total disponible por PN.
+ */
+export const aggregateByPartNumber = (list: IArticleSimple[]): IArticleSimple[] => {
+  const byPn: Record<string, IArticleSimple[]> = {};
+
+  for (const item of list) {
+    const pn = (item.part_number || "__NO_PN__").trim();
+    if (!byPn[pn]) byPn[pn] = [];
+    byPn[pn].push(item);
+  }
+
+  return Object.values(byPn).map((items) => ({
+    ...items[0],
+    quantity: items.reduce((sum, a) => sum + Number(a.quantity ?? 0), 0),
+    serial: items.length > 1 ? `${items.length} seriales` : items[0].serial,
+  }));
+};
+
 const baseCols: ColumnDef<IArticleSimple>[] = [
   {
     accessorKey: "part_number",
@@ -230,17 +251,26 @@ const baseCols: ColumnDef<IArticleSimple>[] = [
       );
     },
   },
-  // {
-  //   accessorKey: "zone",
-  //   header: ({ column }) => (
-  //     <DataTableColumnHeader filter column={column} title="Ubicación" />
-  //   ),
-  //   cell: ({ row }) => (
-  //     <div className="text-center font-medium">
-  //       {row.original.zone || <span className="text-muted-foreground">Sin asignar</span>}
-  //     </div>
-  //   )
-  // },
+  {
+    id: "quantity_value",
+    accessorFn: (row) => row.quantity,
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Cantidad" />
+    ),
+    cell: ({ row }) => {
+      const q = Number(row.original.quantity ?? 0);
+      return (
+        <div className="flex justify-center">
+          <Badge
+            variant={q > 5 ? "default" : q > 0 ? "secondary" : "destructive"}
+            className="text-base font-bold px-3 py-1 tabular-nums"
+          >
+            {q} u
+          </Badge>
+        </div>
+      );
+    },
+  },
 ];
 
 // Columnas para COMPONENTE
@@ -262,27 +292,8 @@ export const componenteCols: ColumnDef<IArticleSimple>[] = [
 // Columnas extra para CONSUMIBLE
 export const consumibleCols: ColumnDef<IArticleSimple>[] = [
   ...baseCols,
-  {
-    id: "quantity_value",
-    accessorFn: (row) => row.quantity,
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Cantidad" />
-    ),
-    cell: ({ row }) => {
-      const q = Number(row.original.quantity ?? 0);
-      return (
-        <div className="flex justify-center">
-          <Badge
-            variant={q > 5 ? "default" : q > 0 ? "secondary" : "destructive"}
-            className="text-base font-bold px-3 py-1 tabular-nums"
-          >
-            {q} und
-          </Badge>
-        </div>
-      );
-    },
-  },
 ];
+
 
 // Agregar esta función helper después de los imports o antes de las columnas
 const parseDateLocal = (dateString: string): Date => {

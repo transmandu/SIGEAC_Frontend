@@ -10,6 +10,7 @@ import { useGetGeneralArticles } from "@/hooks/mantenimiento/almacen/almacen_gen
 import { useGetWarehouseArticlesByCategory } from "@/hooks/mantenimiento/almacen/articulos/useGetWarehouseArticlesByCategory"
 import { useInventoryExport } from "@/hooks/mantenimiento/almacen/reportes/useGetWarehouseReports"
 import { useCompanyStore } from "@/stores/CompanyStore"
+import { useAuth } from "@/contexts/AuthContext"
 import { TooltipArrow } from "@radix-ui/react-tooltip"
 import type { SortingState } from "@tanstack/react-table"
 import { parseISO } from "date-fns"
@@ -56,6 +57,10 @@ const normalize = (value: string) =>
 
 const InventarioArticulosPage = () => {
   const { selectedCompany } = useCompanyStore()
+  const { user } = useAuth()
+  const isEngineering = (user?.roles?.map((role) => role.name) ?? []).some((role) =>
+    ["ENGINEERING", "SUPERUSER"].includes(role),
+  )
   const [activeTab, setActiveTab] = useState<InventoryTab>("aeronautic")
   const [activeCategory, setActiveCategory] = useState<Category>("all")
   const { exporting, exportPdf, exportExcel } = useInventoryExport()
@@ -200,8 +205,8 @@ const InventarioArticulosPage = () => {
 
   // Columns memo
   const cols = useMemo(
-    () => getColumnsByCategory(activeCategory, statusFilter, handleStatusFilterChange),
-    [activeCategory, statusFilter],
+    () => getColumnsByCategory(activeCategory, statusFilter, handleStatusFilterChange, isEngineering),
+    [activeCategory, statusFilter, isEngineering],
   )
 
   // Datos + filtros memo
