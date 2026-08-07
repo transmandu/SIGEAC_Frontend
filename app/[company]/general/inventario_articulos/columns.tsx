@@ -122,8 +122,8 @@ export const flattenArticles = (
 
 /**
  * Agrupa artículos por part_number y suma sus cantidades.
- * Se usa para COMPONENT y PART donde cada serial tiene quantity=1
- * pero el usuario quiere ver el total disponible por PN.
+ * Solo cuenta artículos en estado `stored` para la cantidad,
+ * evitando mostrar unidades de artículos despachados o en mantenimiento.
  */
 export const aggregateByPartNumber = (list: IArticleSimple[]): IArticleSimple[] => {
   const byPn: Record<string, IArticleSimple[]> = {};
@@ -134,11 +134,26 @@ export const aggregateByPartNumber = (list: IArticleSimple[]): IArticleSimple[] 
     byPn[pn].push(item);
   }
 
-  return Object.values(byPn).map((items) => ({
-    ...items[0],
-    quantity: items.reduce((sum, a) => sum + Number(a.quantity ?? 0), 0),
-    serial: items.length > 1 ? `${items.length} seriales` : items[0].serial,
-  }));
+  return Object.values(byPn).map((items) => {
+    const storedItems = items.filter(
+      (a) => (a.status ?? "").toLowerCase() === "stored",
+    );
+    const storedQty = storedItems.reduce(
+      (sum, a) => sum + Number(a.quantity ?? 0),
+      0,
+    );
+
+    // Usar un artículo stored como fila representativa (para que el badge de
+    // disponibilidad sea coherente), si no hay ninguno usar el primero.
+    const representative = storedItems[0] ?? items[0];
+
+    return {
+      ...representative,
+      quantity: storedQty,
+      serial:
+        items.length > 1 ? `${items.length} seriales` : items[0].serial,
+    };
+  });
 };
 
 const baseCols: ColumnDef<IArticleSimple>[] = [
