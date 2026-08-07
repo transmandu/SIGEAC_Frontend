@@ -29,6 +29,7 @@ export interface IArticleSimple {
     description?: string;
     unit?: Unit;
     quantity: number;
+    stock?: number;
     zone: string;
     article_type: string;
     serial?: string;
@@ -138,6 +139,7 @@ export const flattenArticles = (
 
                 // ✅ No normalizar 0 -> 1
                 quantity: Number(article.quantity ?? 0),
+                stock: article.stock ?? undefined,
 
                 status: article.status,
                 status_since: article.status_since ?? null,
@@ -217,16 +219,22 @@ const toDate = (value: string | Date | null | undefined): Date | null => {
 const quantityCol: ColumnDef<IArticleSimple> = {
     accessorKey: "quantity",
     sortingFn: numericSortingFn((row) =>
-        row.__isGroup ? Number(row.__groupCount ?? 0) : Number(row.quantity ?? 0),
+        row.stock != null
+            ? Number(row.stock)
+            : row.__isGroup
+                ? Number(row.__groupCount ?? 0)
+                : Number(row.quantity ?? 0),
     ),
     // El texto se compara contra la cantidad mostrada, que en un grupo es el conteo.
     filterFn: (row, _id, value) => {
         const raw = String(value ?? "").trim();
         if (!raw) return true;
 
-        const shown = row.original.__isGroup
-            ? Number(row.original.__groupCount ?? 0)
-            : Number(row.original.quantity ?? 0);
+        const shown = row.original.stock != null
+            ? Number(row.original.stock)
+            : row.original.__isGroup
+                ? Number(row.original.__groupCount ?? 0)
+                : Number(row.original.quantity ?? 0);
 
         const range = raw.match(/^(<=|>=|<|>)\s*(\d+(?:\.\d+)?)$/);
         if (range) {
@@ -245,9 +253,11 @@ const quantityCol: ColumnDef<IArticleSimple> = {
     cell: ({ row }) => {
         const isGroup = !!row.original.__isGroup;
 
-        const q = isGroup
-            ? Number(row.original.__groupCount ?? 0)
-            : Number(row.original.quantity ?? 0);
+        const q = row.original.stock != null
+            ? Number(row.original.stock)
+            : isGroup
+                ? Number(row.original.__groupCount ?? 0)
+                : Number(row.original.quantity ?? 0);
 
         const unit = row.original.unit?.value ?? "u";
 
@@ -530,8 +540,10 @@ const buildBaseCols = (
 export const buildComponenteCols = (
     statusFilter?: string,
     onStatusFilterChange?: (value: string | undefined) => void,
+    showQuantity = true,
 ): ColumnDef<IArticleSimple>[] => [
     ...buildBaseCols(statusFilter, onStatusFilterChange),
+    ...(showQuantity ? [quantityCol] : []),
     {
         id: "actions",
         header: () => (
@@ -851,11 +863,12 @@ export const getColumnsByCategory = (
     cat: "all" | "COMPONENT" | "PART" | "CONSUMABLE" | "TOOL",
     statusFilter?: string,
     onStatusFilterChange?: (value: string | undefined) => void,
+    showQuantity = true,
 ): ColumnDef<IArticleSimple>[] => {
     if (cat === "TOOL") return buildHerramientaCols(statusFilter, onStatusFilterChange);
     if (cat === "CONSUMABLE") return buildConsumibleCols(statusFilter, onStatusFilterChange);
-    if (cat === "COMPONENT") return buildComponenteCols(statusFilter, onStatusFilterChange);
-    if (cat === "PART") return buildComponenteCols(statusFilter, onStatusFilterChange);
+    if (cat === "COMPONENT") return buildComponenteCols(statusFilter, onStatusFilterChange, showQuantity);
+    if (cat === "PART") return buildComponenteCols(statusFilter, onStatusFilterChange, showQuantity);
     return buildAllCategoriesCols(statusFilter, onStatusFilterChange);
 };
 
