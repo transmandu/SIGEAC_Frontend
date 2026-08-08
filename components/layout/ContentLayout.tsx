@@ -1,8 +1,9 @@
 "use client";
 
-import { useLayoutEffect } from "react";
+import { useEffect, useLayoutEffect } from "react";
 
 import { usePageTitle } from "@/contexts/PageTitleContext";
+import { setPageTitle } from "@/lib/document-title";
 
 interface ContentLayoutProps {
   title: string;
@@ -18,6 +19,10 @@ export function ContentLayout({ title, children }: ContentLayoutProps) {
   const { registerTitle } = usePageTitle();
 
   useLayoutEffect(() => registerTitle(title), [registerTitle, title]);
+
+  // Sin cleanup a propósito: el layout saliente desmonta antes de que monte el
+  // entrante, y limpiar aquí dejaría la pestaña en "SIGEAC" pelado un instante.
+  useEffect(() => setPageTitle(title), [title]);
 
   return (
     <div className="container relative z-0 pt-8 pb-8 px-4 sm:px-8">
