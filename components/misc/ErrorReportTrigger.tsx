@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { HeartHandshake } from "lucide-react";
+import { motion } from "motion/react";
 
 import { cn } from "@/lib/utils";
 import {
@@ -43,19 +44,23 @@ export default function ErrorReportTrigger() {
               onClick={handleClick}
               aria-label="Reportar un problema"
               className={cn(
+                "glass-control",
                 "relative flex items-center justify-center",
                 "h-9 w-9 rounded-full",
-                "bg-background",
-                "border border-border/80",
+                "border",
                 "text-foreground/90",
                 "hover:text-foreground",
-                "hover:bg-muted/70",
-                "hover:border-border",
-                "transition-all duration-200",
-                "active:scale-95"
+                "active:scale-95",
+                open && "bg-muted/60"
               )}
             >
-              <HeartHandshake className="h-4 w-4" />
+              <motion.div
+                whileHover={{ scale: 1.12, rotate: -8 }}
+                whileTap={{ scale: 0.9 }}
+                transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+              >
+                <HeartHandshake className="h-4 w-4" />
+              </motion.div>
             </button>
           </TooltipTrigger>
 

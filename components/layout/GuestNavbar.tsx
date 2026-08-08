@@ -3,11 +3,10 @@
 import { GuestSheetMenu } from "@/components/sidebar/GuestSheetMenu";
 import { GuestUserNav } from "./GuestUserNav";
 import { ThemeToggler } from "./ThemeToggler";
-import { usePageTitle } from "@/contexts/PageTitleContext";
+import { PageTitle } from "./PageTitle";
 import { useScrollGlass } from "@/hooks/helpers/use-scroll-glass";
 
 export function GuestNavbar() {
-  const { title } = usePageTitle();
   const { scrolled, targetRef } = useScrollGlass();
 
   return (
@@ -22,9 +21,7 @@ export function GuestNavbar() {
         <div className="flex items-center gap-4 flex-shrink-0 max-w-[40%] overflow-hidden z-0">
           <GuestSheetMenu />
 
-          <h1 className="hidden md:block text-xs sm:text-sm font-bold truncate max-w-[220px] lg:max-w-[320px]">
-            {title}
-          </h1>
+          <PageTitle />
         </div>
 
         {/* DERECHA */}
