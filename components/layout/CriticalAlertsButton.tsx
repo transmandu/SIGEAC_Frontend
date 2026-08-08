@@ -1,7 +1,7 @@
 "use client";
 
 import { useLayoutEffect, useRef, useState } from "react";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Eye, EyeOff, Truck } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 
 import { cn } from "@/lib/utils";
@@ -15,12 +15,15 @@ import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from "@/compon
 
 import { useCriticalAlerts } from "@/hooks/alerts/useCriticalAlerts";
 import { useDismissedAlertsStore } from "@/hooks/alerts/useDismissedAlertsStore";
+import { useAlertFiltersStore } from "@/hooks/alerts/useAlertFiltersStore";
 import { CriticalAlert } from "@/hooks/alerts/types";
 import { CriticalAlertCard } from "./CriticalAlertCard";
 
 export default function CriticalAlertsButton() {
-  const { alerts, count } = useCriticalAlerts();
+  const { alerts, count, isCountActionable, actionableCount, inTransitCount } = useCriticalAlerts();
   const dismiss = useDismissedAlertsStore((state) => state.dismiss);
+  const hideInTransit = useAlertFiltersStore((state) => state.hideInTransit);
+  const toggleInTransit = useAlertFiltersStore((state) => state.toggleInTransit);
   const hasAlerts = count > 0;
   const [open, setOpen] = useState(false);
   const [rollOffset, setRollOffset] = useState({ x: 0, y: 0 });
@@ -114,7 +117,11 @@ export default function CriticalAlertsButton() {
                 }}
                 whileHover={open ? undefined : { scale: 1.06, y: -2 }}
                 whileTap={open ? undefined : { scale: 0.94 }}
-                aria-label="Alertas críticas"
+                aria-label={
+                  isCountActionable
+                    ? `Alertas críticas: ${actionableCount} sin reponer`
+                    : `Alertas: ${inTransitCount} en camino, nada pendiente de pedir`
+                }
                 className={cn(
                   "flex items-center justify-center",
                   "fixed bottom-6 right-6 z-[1003]",
@@ -122,10 +129,15 @@ export default function CriticalAlertsButton() {
                   "backdrop-blur-md",
                   "shadow-[0_8px_30px_rgba(0,0,0,0.18)]",
                   "ring-1 transition-colors duration-300",
-                  "bg-gradient-to-br from-red-500 to-rose-600 text-white ring-red-400/40 hover:from-red-500 hover:to-rose-500"
+                  // Sin nada accionable el botón deja de gritar: todo lo bajo
+                  // de stock ya está comprado y solo falta que llegue.
+                  isCountActionable
+                    ? "bg-gradient-to-br from-red-500 to-rose-600 text-white ring-red-400/40 hover:from-red-500 hover:to-rose-500"
+                    : "bg-gradient-to-br from-sky-500 to-blue-600 text-white ring-sky-400/40 hover:from-sky-500 hover:to-blue-500"
                 )}
               >
-                {!open && (
+                {/* El latido solo acompaña a lo que exige acción. */}
+                {!open && isCountActionable && (
                   <motion.span
                     className="absolute inset-0 rounded-full bg-red-500/50"
                     animate={{ scale: [1, 1.35, 1], opacity: [0.55, 0, 0.55] }}
@@ -133,7 +145,9 @@ export default function CriticalAlertsButton() {
                   />
                 )}
 
-                <AlertTriangle className="relative h-6 w-6 drop-shadow-sm" />
+                {isCountActionable
+                  ? <AlertTriangle className="relative h-6 w-6 drop-shadow-sm" />
+                  : <Truck className="relative h-6 w-6 drop-shadow-sm" />}
 
                 <motion.span
                   key={count}
@@ -145,9 +159,10 @@ export default function CriticalAlertsButton() {
                     "min-w-5 h-5 px-1",
                     "flex items-center justify-center",
                     "rounded-full",
-                    "bg-white text-red-600",
+                    "bg-white",
+                    isCountActionable ? "text-red-600 ring-red-500/30" : "text-sky-600 ring-sky-500/30",
                     "text-[11px] font-bold",
-                    "shadow-sm ring-2 ring-red-500/30"
+                    "shadow-sm ring-2"
                   )}
                 >
                   {count > 99 ? "99+" : count}
@@ -157,7 +172,11 @@ export default function CriticalAlertsButton() {
           </TooltipTrigger>
 
           <TooltipContent side="left" className="z-[1002]">
-            {`${count} situación${count === 1 ? "" : "es"} crítica${count === 1 ? "" : "s"} requieren atención`}
+            {isCountActionable
+              ? `${actionableCount} artículo${actionableCount === 1 ? "" : "s"} sin reponer${
+                  inTransitCount > 0 ? ` · ${inTransitCount} en camino` : ""
+                }`
+              : `${inTransitCount} artículo${inTransitCount === 1 ? "" : "s"} bajo mínimo, ya en camino`}
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
@@ -191,28 +210,71 @@ export default function CriticalAlertsButton() {
           transition: `opacity 0.3s cubic-bezier(0.22,1,0.36,1) ${open ? `${ROLL_DURATION_S - 0.1}s` : "0s"}, transform 0.3s cubic-bezier(0.22,1,0.36,1) ${open ? `${ROLL_DURATION_S - 0.1}s` : "0s"}`,
         }}
       >
-        <div className="shrink-0 border-b bg-gradient-to-r from-red-500/10 to-rose-500/10 px-4 py-3">
+        <div
+          className={cn(
+            "shrink-0 border-b px-4 py-3",
+            isCountActionable
+              ? "bg-gradient-to-r from-red-500/10 to-rose-500/10"
+              : "bg-gradient-to-r from-sky-500/10 to-blue-500/10"
+          )}
+        >
           <p className="text-sm font-semibold">Alertas críticas</p>
           <p className="text-xs text-muted-foreground">
-            Situaciones que requieren tu atención
+            {actionableCount > 0
+              ? `${actionableCount} sin reponer${inTransitCount > 0 ? ` · ${inTransitCount} en camino` : ""}`
+              : "Todo lo bajo de mínimo ya está comprado"}
           </p>
+
+          {/* Solo tiene sentido cuando hay algo que ocultar; si no, es un
+              control muerto. */}
+          {inTransitCount > 0 && (
+            <button
+              type="button"
+              onClick={toggleInTransit}
+              className={cn(
+                "mt-2 inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1",
+                "text-[11px] font-medium transition-colors",
+                hideInTransit
+                  ? "border-sky-500/40 bg-sky-500/10 text-sky-700 hover:bg-sky-500/15"
+                  : "border-border bg-background/60 text-muted-foreground hover:bg-muted"
+              )}
+            >
+              {hideInTransit ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+              {hideInTransit
+                ? `Mostrar ${inTransitCount} en camino`
+                : `Ocultar ${inTransitCount} en camino`}
+            </button>
+          )}
         </div>
 
         {/* ScrollArea de Radix necesita una altura definida (su viewport usa h-full);
             con max-h + flex la altura es indefinida y nunca desborda. Scroll nativo. */}
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
           <div className="flex flex-col gap-2 p-3">
-            <AnimatePresence initial={false}>
-              {alerts.map((alert) => (
-                <CriticalAlertCard
-                  key={alert.id}
-                  alert={alert}
-                  onConfirm={handleConfirm}
-                  onDismiss={handleDismiss}
-                  isConfirming={alert.isConfirming}
-                />
-              ))}
-            </AnimatePresence>
+            {/* Con el filtro activo y solo alertas en camino la lista queda
+                vacía: sin esto el panel se abriría en blanco, como si fallara. */}
+            {alerts.length === 0 ? (
+              <div className="flex flex-col items-center gap-1 px-4 py-8 text-center">
+                <Truck className="h-6 w-6 text-sky-600" />
+                <p className="text-sm font-medium">Nada pendiente de pedir</p>
+                <p className="text-xs text-muted-foreground">
+                  {inTransitCount} artículo{inTransitCount === 1 ? "" : "s"} bajo mínimo
+                  {inTransitCount === 1 ? " está" : " están"} en camino.
+                </p>
+              </div>
+            ) : (
+              <AnimatePresence initial={false}>
+                {alerts.map((alert) => (
+                  <CriticalAlertCard
+                    key={alert.id}
+                    alert={alert}
+                    onConfirm={handleConfirm}
+                    onDismiss={handleDismiss}
+                    isConfirming={alert.isConfirming}
+                  />
+                ))}
+              </AnimatePresence>
+            )}
           </div>
         </div>
       </PopoverContent>

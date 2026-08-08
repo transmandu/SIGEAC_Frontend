@@ -886,6 +886,17 @@ Detalles importantes:
   tarjeta enlaza a `/{company}/general/requisiciones/{order_number}` (el listado, si
   hay varias solicitudes en curso: apuntar a una sola sería arbitrario). El backend
   sigue exponiendo `purchase_order_number` en `in_transit` para quien lo necesite.
+- **El contador del botón mide lo accionable, no el total.** Mostrar todo hacía que
+  el número subiera por artículos ya comprados, y revisar la lista para descubrir que
+  no había nada que hacer. El badge cuenta solo las alertas sin nada en camino y las
+  ordena primero; si no queda ninguna, cae al número de las que vienen en camino y el
+  botón pasa de rojo a azul (icono de camión), comunicando "hay stock bajo, pero ya
+  está pedido". Sin alertas de ningún tipo el botón no se renderiza, como antes.
+- **Filtro "Ocultar N en camino"**, en la cabecera del panel y persistido por usuario
+  en `localStorage` (`criticalAlertsFilters`, ver `useAlertFiltersStore`). Solo aparece
+  cuando hay algo que ocultar. Por defecto las de tránsito **se ven**: ocultarlas de
+  entrada reintroduciría el bug corregido — quien va a pedir no vería que ya se compró.
+  Es una salida voluntaria al ruido, no el comportamiento por defecto.
 - **Caducidad (`purchase.in_transit_ttl_days`, por defecto 15 días).** Sin este tope,
   una requisición aprobada y luego abandonada silenciaría el artículo para siempre:
   cambiaríamos un falso positivo por un falso negativo, que es peor. Vencido el plazo,
