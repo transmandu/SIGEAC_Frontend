@@ -12,7 +12,9 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 const inter = Poppins({ subsets: ["latin"], weight: ["100", "300", "400", "500", "700", "900"] });
 
 export const metadata: Metadata = {
-  title: "SIGEAC",
+  // El "| Página" lo agrega document-title.ts en runtime; las páginas cliente
+  // no pueden exportar metadata, así que aquí solo va el fallback.
+  title: { default: "SIGEAC", template: "SIGEAC · %s" },
   description: "Sistema de Gestión Aeronáutica Civil",
   icons: {
     icon: "/logo.png",

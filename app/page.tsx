@@ -8,7 +8,8 @@ import Link from "next/link";
 const APP_VERSION = "v2.0.2";
 
 export const metadata: Metadata = {
-  title: "SIGEAC | Inicio",
+  // `template` no aplica al segmento que lo define, así que aquí va completo.
+  title: "SIGEAC · Inicio",
   description: "Sistema de Gestión Aeronáutica Civil",
 };
 

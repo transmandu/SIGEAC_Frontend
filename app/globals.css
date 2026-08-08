@@ -383,13 +383,104 @@
       0 3px 12px -2px hsl(var(--primary) / 0.28);
   }
 
+  /* ----------------------------------------------------------------
+     Login: superficie de la tarjeta y panel lateral
+     ---------------------------------------------------------------- */
+
+  /* La tarjeta es el color de superficie de la app, sin velos encima: los
+     grises poco saturados sobre el azul se leían sucios. Todo el relieve
+     viene de la sombra y del borde de luz superior, no de capas traslúcidas. */
+  .login-card {
+    background-color: hsl(var(--card));
+    border: 1px solid hsl(var(--border) / 0.7);
+    box-shadow:
+      inset 0 1px 0 0 hsl(0 0% 100% / 0.9),
+      0 1px 2px 0 hsl(226 30% 20% / 0.06),
+      0 16px 36px -12px hsl(226 35% 20% / 0.22);
+  }
+
+  .dark .login-card {
+    background-color: hsl(226 42% 14%);
+    border-color: hsl(226 25% 32%);
+    box-shadow:
+      inset 0 1px 0 0 hsl(0 0% 100% / 0.07),
+      0 1px 2px 0 hsl(0 0% 0% / 0.3),
+      0 16px 36px -12px hsl(0 0% 0% / 0.55);
+  }
+
+  @media (max-width: 1023.98px) {
+    .login-card {
+      box-shadow:
+        inset 0 1px 0 0 hsl(0 0% 100% / 0.9),
+        0 6px 20px -12px hsl(226 35% 20% / 0.20);
+    }
+
+    .dark .login-card {
+      box-shadow:
+        inset 0 1px 0 0 hsl(0 0% 100% / 0.06),
+        0 6px 20px -12px hsl(0 0% 0% / 0.5);
+    }
+  }
+
+  /* Lado azul: color plano, borde recto. Solo desde lg. */
+  @media (min-width: 1024px) {
+    .login-panel {
+      background-color: hsl(var(--primary));
+    }
+
+    .dark .login-panel {
+      background-color: hsl(var(--primary) / 0.7);
+    }
+  }
+
+  /* Fila con acción pendiente: latido suave en ámbar. No parpadeo duro, que
+     resulta agresivo en una tabla que se mira mucho rato. */
+  @keyframes row-pending-pulse {
+    0%, 100% {
+      background-color: hsl(38 92% 50% / 0.06);
+      box-shadow: inset 3px 0 0 0 hsl(38 92% 50% / 0.5);
+    }
+    50% {
+      background-color: hsl(38 92% 50% / 0.16);
+      box-shadow: inset 3px 0 0 0 hsl(38 92% 50% / 0.95);
+    }
+  }
+
+  .row-pending {
+    animation: row-pending-pulse 2.4s ease-in-out infinite;
+  }
+
+  .dark .row-pending {
+    animation-name: row-pending-pulse-dark;
+  }
+
+  @keyframes row-pending-pulse-dark {
+    0%, 100% {
+      background-color: hsl(38 92% 50% / 0.08);
+      box-shadow: inset 3px 0 0 0 hsl(38 92% 55% / 0.45);
+    }
+    50% {
+      background-color: hsl(38 92% 50% / 0.18);
+      box-shadow: inset 3px 0 0 0 hsl(38 92% 60% / 0.9);
+    }
+  }
+
   /* El brillo animado se desactiva si el usuario pidió menos movimiento. */
   @media (prefers-reduced-motion: reduce) {
+
+    /* Sin animación, pero la fila debe seguir distinguiéndose. */
+    .row-pending {
+      animation: none;
+      background-color: hsl(38 92% 50% / 0.12);
+      box-shadow: inset 3px 0 0 0 hsl(38 92% 50% / 0.8);
+    }
+
 
     .glass-surface,
     .glass-surface::before,
     .glass-surface::after,
-    .glass-control {
+    .glass-control,
+    .login-card {
       transition: none;
     }
   }

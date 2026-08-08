@@ -48,9 +48,11 @@ export async function decryptJWT(session: string | undefined = '') {
   }
 
 // Función para crear una sesión
-export async function createSession(userId: string) {
+export async function createSession(userId: number | string) {
     const expires = new Date(Date.now() + cookieConfig.duration) // Duración en milisegundos (24 horas)
-    const session = await encryptJWT({ userId, expires })
+    // El id llega numérico de la API; en el JWT se guarda como texto para que
+    // el claim tenga siempre el mismo tipo al leerlo.
+    const session = await encryptJWT({ userId: String(userId), expires })
     cookies().set(cookieConfig.name, session, {
         secure: true,
         httpOnly: true,
