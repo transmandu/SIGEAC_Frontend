@@ -15,7 +15,7 @@ El frontend depende de endpoints backend para:
 - movimientos;
 - anulaciones;
 - trazabilidad FIFO;
-- terceros existentes en `/third-parties`.
+- terceros existentes en `/{company}/third-parties`.
 
 Si el backend no esta disponible al iniciar, se debe implementar la capa de tipos, hooks y pantallas contra contratos esperados, dejando los nombres de endpoints aislados en actions/hooks para facilitar ajuste posterior.
 

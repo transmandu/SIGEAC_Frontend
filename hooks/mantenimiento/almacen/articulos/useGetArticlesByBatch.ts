@@ -45,16 +45,6 @@ export interface IArticleByBatch {
   consumable?: {
     article_id: number,
     is_managed: boolean,
-    convertions: {
-      id: number,
-      secondary_unit: string,
-      convertion_rate: number,
-      quantity_unit: number,
-      unit: {
-        label: string,
-        value: string,
-      },
-    }[],
     shell_time: {
       expiration_date: Date,
       fabrication_date: Date,

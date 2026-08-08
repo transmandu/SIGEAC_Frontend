@@ -1,4 +1,5 @@
 import axiosInstance from "@/lib/axios";
+import { useCompanyStore } from "@/stores/CompanyStore";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -7,20 +8,18 @@ interface ThirdPartySchema {
   type: string;
 }
 
-
 export const useCreateThirdParty = () => {
   const queryClient = useQueryClient();
+  const { selectedCompany } = useCompanyStore();
+  const slug = selectedCompany?.slug;
+
   const createMutation = useMutation({
     mutationKey: ["third-parties"],
     mutationFn: async (data: ThirdPartySchema) => {
-      await axiosInstance.post(`/third-parties`, data, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      await axiosInstance.post(`/${slug}/third-parties`, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["third-parties"] });
+      queryClient.invalidateQueries({ queryKey: ["third-parties", slug] });
       toast.success("¡Creado!", {
         description: ` El tercero ha sido creado correctamente.`,
       });
@@ -39,6 +38,8 @@ export const useCreateThirdParty = () => {
 
 export const useUpdateThirdParty = () => {
   const queryClient = useQueryClient();
+  const { selectedCompany } = useCompanyStore();
+  const slug = selectedCompany?.slug;
 
   const updateMutation = useMutation({
     mutationFn: async ({
@@ -48,10 +49,10 @@ export const useUpdateThirdParty = () => {
       id: number | string;
       data: Partial<ThirdPartySchema>;
     }) => {
-      await axiosInstance.put(`/third-parties/${id}`, data);
+      await axiosInstance.put(`/${slug}/third-parties/${id}`, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["third-parties"] });
+      queryClient.invalidateQueries({ queryKey: ["third-parties", slug] });
       toast.success("¡Actualizado!", {
         description: `El tercero ha sido actualizado correctamente.`,
       });
@@ -70,13 +71,15 @@ export const useUpdateThirdParty = () => {
 
 export const useDeleteThirdParty = () => {
   const queryClient = useQueryClient();
+  const { selectedCompany } = useCompanyStore();
+  const slug = selectedCompany?.slug;
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number | string) => {
-      await axiosInstance.delete(`/third-parties/${id}`);
+      await axiosInstance.delete(`/${slug}/third-parties/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["third-parties"] });
+      queryClient.invalidateQueries({ queryKey: ["third-parties", slug] });
       toast.success("¡Eliminado!", {
         description: `¡El tercero ha sido eliminado correctamente!`,
       });

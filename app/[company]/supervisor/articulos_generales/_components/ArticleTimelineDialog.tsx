@@ -199,7 +199,7 @@ const DETAIL_LABELS: Record<string, string> = {
     unit: "Unidad",
     converted_quantity: "Sumado al stock",
     converted_unit: "Unidad base",
-    equivalence: "Equivalencia",
+    base_per_unit: "Equivalencia",
     old_cost: "Costo anterior",
     new_cost: "Costo nuevo",
     merge_id: "Fusión",
@@ -216,7 +216,7 @@ const QUANTITY_FIELDS = new Set([
     "minimum_quantity",
     "maximum_quantity",
     "converted_quantity",
-    "equivalence",
+    "base_per_unit",
 ])
 
 const COST_FIELDS = new Set(["cost", "old_cost", "new_cost"])

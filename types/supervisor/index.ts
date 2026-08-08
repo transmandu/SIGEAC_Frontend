@@ -18,16 +18,7 @@ export type SupervisorGeneralArticle = GeneralArticle & {
     cost_changes_count: number;
     conversions_count: number;
     dispatches_count: number;
-    conversions?: SupervisorConversion[];
-};
-
-export type SupervisorConversion = {
-    id: number;
-    primary_unit: number;
-    secondary_unit: number;
-    equivalence: number;
-    general_primary_unit?: Unit;
-    general_secondary_unit?: Unit;
+    conversions?: ArticleConversion[];
 };
 
 /**
@@ -52,8 +43,9 @@ export type MergeQuantityBreakdown = {
     original_quantity: number;
     original_unit_id: number;
     converted_quantity: number;
-    conversion_id: number | null;
-    equivalence: number | null;
+    /** Cuántas unidades base equivalen a 1 unidad de origen. */
+    base_per_unit: number | null;
+    source?: string;
 };
 
 /** Unidad sin Conversion disponible hacia la unidad final: bloquea la fusión. */

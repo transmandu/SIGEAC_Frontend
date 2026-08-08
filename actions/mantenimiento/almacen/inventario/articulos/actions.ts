@@ -5,9 +5,6 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { toast } from "sonner";
 
-interface UnitSelection {
-  conversion_id: number;
-}
 interface ArticleData {
     serial?: string | string[];
     part_number: string;

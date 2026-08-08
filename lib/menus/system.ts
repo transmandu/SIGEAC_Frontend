@@ -1,5 +1,5 @@
 import type { Group, MenuContext } from "@/lib/menus/types";
-import { Blocks, Building2, HeartHandshake, Landmark, User2, Users } from "lucide-react";
+import { Blocks, Building2, HeartHandshake, Landmark, User2 } from "lucide-react";
 
 /**
  * Administración de master: todo lo que aquí vive se sirve desde endpoints sin
@@ -111,20 +111,6 @@ export function buildSystemGroup({ pathname }: MenuContext): Group {
                 active: pathname.includes("/sistema/reportes"),
                 icon: HeartHandshake,
                 roles: ["SUPERUSER"],
-                submenus: [],
-            },
-            {
-                href: "/sistema/terceros",
-                label: "Terceros",
-                active: pathname.includes("/sistema/terceros"),
-                icon: Users,
-                roles: [
-                    "JEFE_ALMACEN",
-                    "ANALISTA_ALMACEN",
-                    "JEFE_PLANIFICACION",
-                    "ANALISTA_PLANIFICACION",
-                    "SUPERUSER",
-                ],
                 submenus: [],
             },
         ],

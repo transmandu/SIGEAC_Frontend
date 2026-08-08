@@ -118,7 +118,6 @@ const formSchema = z.object({
     image: z.instanceof(File).optional(),
     has_documentation: z.boolean().optional(),
     // auxiliares para conversión secundaria
-    convertion_id: z.number().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -304,7 +303,6 @@ const CreateConsumableForm = ({
             fabrication_date: fabricationDate
                 ? format(fabricationDate, "yyyy-MM-dd")
                 : undefined,
-            convertion_id: secondarySelected?.id,
         };
 
         if (isEditing && initialData) {
@@ -846,9 +844,6 @@ const CreateConsumableForm = ({
                                                                         form.setValue("quantity", calc, {
                                                                             shouldDirty: true,
                                                                             shouldValidate: true,
-                                                                        });
-                                                                        form.setValue("convertion_id", found.id, {
-                                                                            shouldDirty: true,
                                                                         });
                                                                     }
                                                                 }}

@@ -525,7 +525,7 @@ export function MergeDialog({
                                                     {formatQuantity(
                                                         preview!.quantity_breakdown.find(
                                                             (row) => row.original_unit_id === entry.unitId,
-                                                        )?.equivalence ?? 0,
+                                                        )?.base_per_unit ?? 0,
                                                     )}
                                                 </span>
                                             )}
@@ -745,8 +745,8 @@ function MergePreviewPanel({
                                         <span className="font-medium">
                                             {formatQuantity(row.converted_quantity)}
                                         </span>
-                                        {row.equivalence && (
-                                            <span className={dependencyBadgeCls()}>×{row.equivalence}</span>
+                                        {row.base_per_unit && (
+                                            <span className={dependencyBadgeCls()}>×{row.base_per_unit}</span>
                                         )}
                                     </>
                                 )}

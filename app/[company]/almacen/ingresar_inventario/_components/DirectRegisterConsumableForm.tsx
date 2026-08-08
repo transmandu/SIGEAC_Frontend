@@ -140,7 +140,6 @@ const formSchema = z.object({
         .string({ message: "Debe ingresar un lote." })
         .min(1, "Seleccione un lote"),
     image: z.instanceof(File).optional(),
-    conversion_id: z.number().optional(),
     primary_unit_id: z.number().optional(),
     has_documentation: z.boolean().optional(),
     destination_unknown: z.boolean().optional(),

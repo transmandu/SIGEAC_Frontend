@@ -86,6 +86,18 @@ export function buildSettingsGroup({ pathname, currentCompany }: MenuContext): G
                         ],
                     },
                     {
+                        href: `/${slug}/ajustes/terceros`,
+                        label: "Terceros",
+                        active: pathname === `/${slug}/ajustes/terceros`,
+                        roles: [
+                            "JEFE_ALMACEN",
+                            "ANALISTA_ALMACEN",
+                            "JEFE_PLANIFICACION",
+                            "ANALISTA_PLANIFICACION",
+                            "SUPERUSER",
+                        ],
+                    },
+                    {
                         href: `/${slug}/ajustes/condiciones`,
                         label: "Condiciones",
                         active: pathname === `/${slug}/ajustes/condiciones`,

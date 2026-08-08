@@ -67,7 +67,7 @@ Los vehiculos inactivos permanecen visibles en historial y reportes, pero no pue
 Los despachos especiales usaran el catalogo reutilizable existente de terceros:
 
 - Hook actual: `useGetThirdParties`.
-- Endpoint actual de lectura: `/third-parties`.
+- Endpoint actual de lectura: `/{company}/third-parties`.
 - Tipo compartido actual: `ThirdParty`.
 - Campos minimos requeridos: `id`, `name`, `type`.
 
