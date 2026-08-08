@@ -1315,6 +1315,30 @@ export type GeneralArticleCostHistoryEntry = {
   requisition_order_number?: string | null;
 };
 
+/**
+ * Compra ya en curso para un artículo: existe entre la aprobación de la
+ * solicitud y la confirmación del intake, intervalo en el que el inventario
+ * sigue bajo pero la reposición ya está pedida. La alerta lo muestra en vez
+ * de ocultarse, que es lo que permitía volver a comprar lo mismo.
+ */
+export type InTransitDetail = {
+  requisition_number: string | null;
+  requisition_status: string;
+  purchase_order_number?: string | null;
+  intake_status?: string | null;
+  quantity: number | string | null;
+  unit_label?: string | null;
+  approved_at?: string | null;
+  /** Días desde la aprobación; null mientras la solicitud sigue abierta. */
+  days_waiting?: number | null;
+  stage:
+    | "REQUISITION_OPEN"
+    | "APPROVED_WITHOUT_PURCHASE_ORDER"
+    | "PURCHASE_ORDER_PLACED"
+    | "INTAKE_PENDING"
+    | "INTAKE_REJECTED";
+};
+
 export type GeneralArticle = {
   id: number;
   description: string;
@@ -1329,6 +1353,8 @@ export type GeneralArticle = {
   cost?: number;
   image?: string | null;
   cost_history?: GeneralArticleCostHistoryEntry[];
+  /** Solo lo carga el endpoint de low-stock. */
+  in_transit?: InTransitDetail[];
 };
 
 export interface SMSCertificate {
