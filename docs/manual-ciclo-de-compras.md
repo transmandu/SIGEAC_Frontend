@@ -836,28 +836,74 @@ representa *lo que se solicitó*, no lo que se compró.
 flowchart TD
     S["Stock cae por debajo del mínimo<br/>(despacho, ajuste, etc.)"] --> B["LowStockAlertBroadcaster<br/>(siempre POST-commit)"]
     B --> A["Alerta en el botón<br/>de alertas críticas"]
-    A --> U{"Usuario presiona 'Sí'"}
+    A --> T{"InTransitStockService:<br/>¿hay compra en curso?"}
+    T -->|sí| INT["Alerta EN TRÁNSITO (azul)<br/>muestra SC, cantidad y días<br/>+ enlace a la solicitud<br/>botón: 'Pedir igual'"]
+    T -->|no| RED["Alerta roja/ámbar<br/>botón: 'Sí'"]
+    INT --> U{"Usuario confirma"}
+    RED --> U
     U --> Q["createFromLowStockAlert"]
-    Q --> CHK{"¿Ya hay requisición activa<br/>para description + variant_type?"}
-    CHK -->|sí| ERR["422: ya existe solicitud activa"]
+    Q --> CHK{"¿En tránsito y<br/>sin acknowledge_in_transit?"}
+    CHK -->|sí| ERR["409 + detalle in_transit<br/>(no es error: pide confirmar)"]
     CHK -->|no| CALC["cantidad = ceil(max(objetivo − existencia, 1))<br/>objetivo = maximum_quantity<br/>o minimum_quantity si no hay máximo"]
     CALC --> REQ["Requisición GENERAL<br/>created_by = SYSTEM<br/>requested_by = empleado real<br/>priority = HIGH si stock = 0"]
     style REQ fill:#e3f2fd,stroke:#1565c0
+    style INT fill:#e1f5fe,stroke:#0277bd
 ```
+
+### El intervalo ciego entre aprobar y recibir
+
+El inventario **solo sube cuando el intake se confirma**, pero la requisición pasa a
+`APPROVED` mucho antes (al crearse la orden de compra). Medir "ya hay pedido en curso"
+contra el status de la requisición dejaba un hueco: aprobada la solicitud, el artículo
+seguía por debajo del mínimo y la alerta **reaparecía**, mientras el aviso de
+`activeRequisitions` **desaparecía** — justo la combinación que llevaba a comprar dos
+veces lo mismo.
+
+`APPROVED` y `REJECTED` no son equivalentes aunque el código viejo los agrupara: en
+`REJECTED` la alerta *debe* volver (nadie va a comprar eso); en `APPROVED` *no debe*,
+porque ya viene en camino.
+
+**`InTransitStockService` es el único dueño del criterio.** Una línea está en tránsito si:
+
+1. la requisición sigue abierta (status distinto de `APPROVED`/`REJECTED`), **o**
+2. fue aprobada, no ha vencido el TTL, y no existe todavía un intake `CONFIRMED`
+   o `DELIVERED` recorriendo `requisición → cotización → OC → intake`.
+
+`DELIVERED` liquida la línea sin sumar stock (entrega directa, nunca pasa por almacén).
+`REJECTED` **no** liquida: esa mercancía no va a entrar, así que la línea sigue contando
+como pendiente hasta que se re-entregue.
 
 Detalles importantes:
 
-- El match de "ya hay solicitud activa" es **por texto** (`description` +
-  `variant_type`), no por `general_article_id`. Distintas marcas o unidades que
-  comparten esos dos campos cuentan como *el mismo pedido*.
-- "Activa" = requisición con status distinto de `APPROVED`/`REJECTED`.
+- El match sigue siendo **por texto** (`description` + `variant_type`), no por
+  `general_article_id`. Distintas marcas o unidades que comparten esos dos campos
+  cuentan como *el mismo pedido*.
+- **La alerta ya no se oculta**: el artículo en tránsito aparece en azul con la
+  cantidad, los días de espera y la **solicitud de compra** que lo pidió. Ocultarlo
+  era lo que permitía re-pedir a ciegas — quien iba a solicitar no veía nada.
+- **La referencia visible es la SC, no la OC.** Almacén origina y sigue la solicitud;
+  la orden de compra es un documento de compras que nunca llega a sus manos. La
+  tarjeta enlaza a `/{company}/general/requisiciones/{order_number}` (el listado, si
+  hay varias solicitudes en curso: apuntar a una sola sería arbitrario). El backend
+  sigue exponiendo `purchase_order_number` en `in_transit` para quien lo necesite.
+- **Caducidad (`purchase.in_transit_ttl_days`, por defecto 15 días).** Sin este tope,
+  una requisición aprobada y luego abandonada silenciaría el artículo para siempre:
+  cambiaríamos un falso positivo por un falso negativo, que es peor. Vencido el plazo,
+  el artículo vuelve a alertar en rojo.
+- **Re-pedir se advierte, no se bloquea.** Sin `acknowledge_in_transit` el backend
+  responde `409` con el detalle; el frontend lo muestra y reintenta si el usuario
+  confirma. Puede ser legítimo: lo comprado no alcanza, o urge y la compra se demora.
+- El rechazo de un intake dispara `LowStockAlertBroadcaster`: reabre el tránsito y la
+  alerta debe volver a sonar en el acto, sin esperar al refetch.
 - `created_by = 'SYSTEM'` (la originó la alerta) pero `requested_by` es el empleado
   real que presionó el botón — la trazabilidad humana se conserva.
 - El equivalente aeronáutico existe para consumibles, pero **usa
   `batches.min_quantity` y no tiene concepto de máximo**: repone solo hasta el mínimo.
+  Su recepción no pasa por `general_article_intakes` sino por el status del propio
+  `Article`, así que sobre él solo se aplica la regla de requisición abierta + TTL.
 - `activeRequisitions` devuelve **un renglón por requisición y no un total**, porque
   las unidades pueden diferir entre ellas (1 GALÓN y 3 METRO del mismo artículo) y
-  la suma no significaría nada.
+  la suma no significaría nada. Ahora incluye también las aprobadas aún no recibidas.
 
 ---
 
@@ -1140,8 +1186,8 @@ $requisitionOrder->delete();
 ```
 
 Los `GeneralArticleRequisitionOrder` no se eliminan. Quedan filas huérfanas
-apuntando a una requisición inexistente. Como el chequeo de "ya hay requisición
-activa" del low-stock hace join contra `requisition_orders`, esas huérfanas no
+apuntando a una requisición inexistente. Como el criterio de tránsito
+(`InTransitStockService`) hace join contra `requisition_orders`, esas huérfanas no
 bloquean nada, pero ensucian la base y pueden romper reportes.
 
 #### 🟡 Bajo — `update()` del despacho y `store()` reasignan `$category`
