@@ -10,10 +10,15 @@ import { useEffect } from "react";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { cuentasSteps } from "@/components/tour/steps/sistema/banca/cuenta";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { SelectCompanyState } from "@/components/misc/SelectCompanyState";
 
 const BankAccountsPage = () => {
   const { selectedCompany } = useCompanyStore();
-  const { data: accounts, isLoading, error } = useGetBankAccounts();
+  const {
+    data: accounts,
+    isLoading,
+    error,
+  } = useGetBankAccounts(selectedCompany?.id);
 
   const { registerTour, unregisterTour } = useTourContext();
 
@@ -38,19 +43,24 @@ const BankAccountsPage = () => {
           para operar con ellas.
         </p>
       </div>
-      {isLoading && (
+      {!selectedCompany && (
+        <SelectCompanyState resource="Las cuentas bancarias" />
+      )}
+      {selectedCompany && isLoading && (
         <div className="grid mt-72 place-content-center">
           <Loader2 className="w-12 h-12 animate-spin" />
         </div>
       )}
-      {error && (
+      {selectedCompany && error && (
         <div className="grid mt-72 place-content-center">
           <p className="text-sm text-muted-foreground">
             Ha ocurrido un error al cargar las cuentas...
           </p>
         </div>
       )}
-      {accounts && <DataTable columns={columns} data={accounts} />}
+      {selectedCompany && accounts && (
+        <DataTable columns={columns} data={accounts} />
+      )}
     </ContentLayout>
   );
 };

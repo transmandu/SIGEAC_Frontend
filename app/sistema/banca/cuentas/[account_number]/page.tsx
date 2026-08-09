@@ -10,10 +10,15 @@ import { useParams } from "next/navigation";
 import { BankCard } from "@/types";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { SelectCompanyState } from "@/components/misc/SelectCompanyState";
 
 const BankAccountsPage = () => {
   const { selectedCompany } = useCompanyStore();
-  const { data: cards, isLoading, error } = useGetBankCards();
+  const {
+    data: cards,
+    isLoading,
+    error,
+  } = useGetBankCards(selectedCompany?.id);
   const [filteredCards, setFilteredCards] = useState<BankCard[]>([]);
   const params = useParams();
   const account_number = params?.account_number ?? ""; // Asegurar que siempre haya un valor
@@ -37,19 +42,22 @@ const BankAccountsPage = () => {
       <p className="text-sm text-muted-foreground text-center">
         Lleve un control de las diferentes cuentas que se han registrado.
       </p>
-      {isLoading && (
+      {!selectedCompany && <SelectCompanyState resource="Las tarjetas" />}
+      {selectedCompany && isLoading && (
         <div className="grid mt-72 place-content-center">
           <Loader2 className="w-12 h-12 animate-spin" />
         </div>
       )}
-      {error && (
+      {selectedCompany && error && (
         <div className="grid mt-72 place-content-center">
           <p className="text-sm text-muted-foreground">
             Ha ocurrido un error al cargar las tarjetas...
           </p>
         </div>
       )}
-      {cards && <DataTable columns={columns} data={filteredCards} />}
+      {selectedCompany && cards && (
+        <DataTable columns={columns} data={filteredCards} />
+      )}
     </ContentLayout>
   );
 };

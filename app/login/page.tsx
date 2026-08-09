@@ -19,13 +19,18 @@ const Login = () => {
     clearLoggingOut();
   }, [clearLoggingOut]);
 
-  const rise = (delay: number) =>
+  /**
+   * Solo opacidad y una escala mínima. Animar `filter: blur()` obligaba al
+   * navegador a rasterizar la tarjeta con sus sombras en un búfer aparte: al
+   * llegar a 0 recomponía de golpe y parecía un fallo de render.
+   */
+  const fadeIn = (delay: number) =>
     reduceMotion
       ? { initial: { opacity: 0 }, animate: { opacity: 1 }, transition: { duration: 0.2 } }
       : {
-          initial: { opacity: 0, y: 16, filter: "blur(6px)" },
-          animate: { opacity: 1, y: 0, filter: "blur(0px)" },
-          transition: { duration: 0.5, delay, ease: [0.22, 1, 0.36, 1] as const },
+          initial: { opacity: 0, scale: 0.985 },
+          animate: { opacity: 1, scale: 1 },
+          transition: { duration: 0.45, delay, ease: [0.22, 1, 0.36, 1] as const },
         };
 
   return (
@@ -44,7 +49,7 @@ const Login = () => {
 
           {/* IZQUIERDA — logo centrado en su mitad */}
           <motion.div
-            {...rise(0.05)}
+            {...fadeIn(0)}
             className="flex w-full shrink-0 items-center justify-center px-6 pt-20 pb-6 lg:w-1/2 lg:px-12 lg:py-0"
           >
             {/* 22rem es el tope nítido: el archivo mide 712px y en pantallas
@@ -61,7 +66,7 @@ const Login = () => {
             <div className="login-panel absolute inset-0" aria-hidden />
 
             <motion.div
-              {...rise(0.15)}
+              {...fadeIn(0.08)}
               className="login-card relative z-10 w-full max-w-[31rem] rounded-2xl p-6 sm:p-9 lg:p-12"
             >
               <div className="hidden lg:flex w-full justify-end">
