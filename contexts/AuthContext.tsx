@@ -114,7 +114,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
 
       deleteCookie("auth_token");
+
+      // reset() solo limpia el estado en memoria de ESTA pestaña. La compañía
+      // vive en localStorage (zustand persist), así que sin borrar la clave la
+      // siguiente cuenta heredaba la empresa y la estación de la anterior.
       reset();
+      useCompanyStore.persist.clearStorage();
 
       queryClient.removeQueries();
 
