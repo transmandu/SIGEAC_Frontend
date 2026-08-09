@@ -11,6 +11,7 @@ import { BankAccount } from '@/types';
 import LoadingPage from '@/components/misc/LoadingPage';
 import { useCompanyStore } from '@/stores/CompanyStore';
 import { PageHeader } from "@/components/layout/PageHeader";
+import { SelectCompanyState } from "@/components/misc/SelectCompanyState";
 
 const BankAccountsPage = () => {
   const { selectedCompany } = useCompanyStore();
@@ -20,7 +21,7 @@ const BankAccountsPage = () => {
     data: accounts,
     isLoading,
     error,
-  } = useGetBankAccounts();
+  } = useGetBankAccounts(selectedCompany?.id);
   const [filteredAccounts, setFilteredAccounts] = useState<BankAccount[]>([]);
 
   useEffect(() => {
@@ -30,7 +31,7 @@ const BankAccountsPage = () => {
     }
   }, [accounts, id]); // Se ejecutará cada vez que `accounts` o `id` cambien
 
-  if (isLoading) {
+  if (selectedCompany && isLoading) {
     return <LoadingPage />;
   }
 
@@ -43,15 +44,21 @@ const BankAccountsPage = () => {
         Lleve un control de las diferentes cuentas que se han registrado.
       </p>
 
-      {error && (
+      {!selectedCompany && (
+        <SelectCompanyState resource="Las cuentas bancarias" />
+      )}
+
+      {selectedCompany && error && (
         <div className="grid mt-72 place-content-center">
           <p className="text-sm text-muted-foreground">
-            Ha ocurrido un error al cargar los almacenes...
+            Ha ocurrido un error al cargar las cuentas...
           </p>
         </div>
       )}
 
-      <DataTable columns={columns} data={filteredAccounts} />
+      {selectedCompany && (
+        <DataTable columns={columns} data={filteredAccounts} />
+      )}
     </ContentLayout>
   );
 };

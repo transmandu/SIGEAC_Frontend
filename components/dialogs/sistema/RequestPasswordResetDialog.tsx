@@ -43,17 +43,27 @@ const EASE = [0.22, 1, 0.36, 1] as const;
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /**
+   * Correo de la sesión. Desde el login no se conoce y hay que pedirlo, pero
+   * dentro del sistema ya se sabe quién solicita: se envía sin preguntarlo.
+   */
+  email?: string;
 }
 
-export default function RequestPasswordResetDialog({ open, onOpenChange }: Props) {
+export default function RequestPasswordResetDialog({
+  open,
+  onOpenChange,
+  email,
+}: Props) {
   const reduceMotion = useReducedMotion();
   const [sent, setSent] = useState(false);
+  const isAuthenticated = Boolean(email);
 
   const { mutateAsync, isPending } = useRequestPasswordReset();
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
-    defaultValues: { email: "", note: "" },
+    defaultValues: { email: email ?? "", note: "" },
   });
 
   // Al reabrir se limpia el estado; si no, el usuario vería la confirmación
@@ -63,11 +73,11 @@ export default function RequestPasswordResetDialog({ open, onOpenChange }: Props
 
     const timeout = setTimeout(() => {
       setSent(false);
-      form.reset();
+      form.reset({ email: email ?? "", note: "" });
     }, 200);
 
     return () => clearTimeout(timeout);
-  }, [open, form]);
+  }, [open, form, email]);
 
   const onSubmit = async (data: FormSchemaType) => {
     try {
@@ -125,7 +135,9 @@ export default function RequestPasswordResetDialog({ open, onOpenChange }: Props
               <DialogDescription className="text-left text-xs">
                 {sent
                   ? "El administrador fue notificado."
-                  : "Confirme su correo para solicitar una nueva contraseña."}
+                  : isAuthenticated
+                    ? "Se solicitará una nueva contraseña para su cuenta."
+                    : "Confirme su correo para solicitar una nueva contraseña."}
               </DialogDescription>
             </div>
           </div>
@@ -148,8 +160,9 @@ export default function RequestPasswordResetDialog({ open, onOpenChange }: Props
               </motion.div>
 
               <p className="text-sm text-muted-foreground">
-                Si el correo corresponde a una cuenta, un administrador se
-                encargará de asignarle una nueva contraseña y se la comunicará.
+                {isAuthenticated
+                  ? "Un administrador le asignará una nueva contraseña y se la comunicará."
+                  : "Si el correo corresponde a una cuenta, un administrador se encargará de asignarle una nueva contraseña y se la comunicará."}
               </p>
 
               <Button
@@ -166,28 +179,35 @@ export default function RequestPasswordResetDialog({ open, onOpenChange }: Props
                   onSubmit={form.handleSubmit(onSubmit)}
                   className="flex flex-col gap-4"
                 >
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Correo electrónico</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                            <Input
-                              {...field}
-                              type="email"
-                              autoComplete="email"
-                              placeholder="usuario@sigeac.com"
-                              className="h-10 rounded-lg pl-9"
-                            /> 
-                          </div>
-                        </FormControl>
-                        <FormMessage className="text-xs" />
-                      </FormItem>
-                    )}
-                  />
+                  {isAuthenticated ? (
+                    <div className="flex items-center gap-2.5 rounded-lg border border-border/70 bg-muted/40 px-3 py-2.5">
+                      <Mail className="h-4 w-4 shrink-0 text-muted-foreground" />
+                      <span className="truncate text-sm">{email}</span>
+                    </div>
+                  ) : (
+                    <FormField
+                      control={form.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Correo electrónico</FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                              <Input
+                                {...field}
+                                type="email"
+                                autoComplete="email"
+                                placeholder="usuario@sigeac.com"
+                                className="h-10 rounded-lg pl-9"
+                              />
+                            </div>
+                          </FormControl>
+                          <FormMessage className="text-xs" />
+                        </FormItem>
+                      )}
+                    />
+                  )}
 
                   <FormField
                     control={form.control}

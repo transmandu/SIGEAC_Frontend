@@ -66,7 +66,11 @@ export const useRequestPasswordReset = () => {
   });
 };
 
-/** Resumen de pendientes: alimenta el contador y el parpadeo de las filas. */
+/**
+ * Resumen de pendientes: alimenta el contador y el parpadeo de las filas.
+ * Sin polling: las solicitudes las crea un tercero desde el login, así que
+ * se refresca al volver a la pestaña y tras resolver o descartar una.
+ */
 export const usePendingPasswordResets = (enabled = true) => {
   return useQuery<PendingSummary>({
     queryKey: ["password-reset-requests", "pending"],
@@ -77,7 +81,7 @@ export const usePendingPasswordResets = (enabled = true) => {
       return response.data;
     },
     enabled,
-    refetchInterval: 60_000,
+    staleTime: 30_000,
   });
 };
 

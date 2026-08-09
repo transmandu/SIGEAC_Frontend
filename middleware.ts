@@ -13,6 +13,13 @@ const PROTECTED_ROUTES = [
 ];
 
 
+// Formato de Sanctum: "<id>|<hash>", con o sin el prefijo "Bearer ".
+const isUsableToken = (token: string) => {
+  const raw = token.startsWith('Bearer ') ? token.slice(7) : token;
+
+  return raw.trim().length > 0 && raw.includes('|');
+};
+
 export default async function middleware(req: NextRequest) {
   const currentPath = req.nextUrl.pathname;
 
@@ -26,23 +33,17 @@ export default async function middleware(req: NextRequest) {
   if (isProtectedRoute) {
     const authToken = req.cookies.get('auth_token')?.value;
 
-    if (!authToken) {
-      // 5. Guardar la URL solicitada para redirigir después del login
+    // El token es opaco (Sanctum), así que aquí sólo se comprueba que exista y
+    // tenga forma utilizable. La validación real la hace el backend en cada
+    // request, y el 401 resultante expulsa la sesión desde AuthContext.
+    if (!authToken || !isUsableToken(authToken)) {
       const loginUrl = new URL('/login', req.nextUrl.origin);
       loginUrl.searchParams.set('from', currentPath);
 
-      return NextResponse.redirect(loginUrl);
-    }
-
-    // 6. Verificación adicional del token si es necesario
-    try {
-      // Aquí podrías validar el token con una API
-      // const isValid = await verifyToken(authToken);
-      // if (!isValid) throw new Error('Invalid token');
-    } catch (error) {
-      // 7. Limpiar cookie inválida
-      const response = NextResponse.redirect(new URL('/login', req.nextUrl));
-      response.cookies.delete('auth_token');
+      const response = NextResponse.redirect(loginUrl);
+      if (authToken) {
+        response.cookies.delete('auth_token');
+      }
 
       return response;
     }
