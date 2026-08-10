@@ -19,6 +19,7 @@ import {
   useUpdateDangerIdentification,
 } from "@/actions/sms/peligros_identificados/actions";
 import { Calendar } from "@/components/ui/calendar";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Popover,
   PopoverContent,
@@ -54,11 +55,11 @@ const FormSchema = z.object({
     .refine((val) => !isNaN(val.getTime()), { message: "Invalid Date" }),
   current_defenses: z
     .string()
-    .min(3, {
-      message: "Las defensas actuales deben tener al menos 3 caracteres",
+    .min(1, {
+      message: "Agregue al menos una defensa o marque 'No aplica'",
     })
-    .max(1000, {
-      message: "Las defensas actuales no deben exceder los 245 caracteres",
+    .max(2000, {
+      message: "Las defensas actuales no deben exceder los 2000 caracteres",
     }),
   description: z
     .string()
@@ -66,11 +67,11 @@ const FormSchema = z.object({
     .max(1000, { message: "La descripcion no debe exceder los 245 caracteres" }),
   possible_consequences: z
     .string()
-    .min(3, {
-      message: "Las posibles consecuencias deben tener al menos 3 caracteres",
+    .min(1, {
+      message: "Agregue al menos una consecuencia",
     })
-    .max(1000, {
-      message: "Las posibles consecuencias no deben exceder los 245 caracteres",
+    .max(2000, {
+      message: "Las posibles consecuencias no deben exceder los 2000 caracteres",
     }),
   consequence_to_evaluate: z
     .string()
@@ -83,16 +84,20 @@ const FormSchema = z.object({
   danger_type: z.string().min(1, "Este campo es obligatorio"),
   root_cause_analysis: z
     .string()
-    .min(3, {
-      message: "El analisis causa raiz debe tener al menos 3 caracteres",
+    .min(1, {
+      message: "Agregue al menos un análisis o marque 'No aplica'",
     })
-    .max(900, {
-      message: "El analisis causa raiz no debe exceder los 900 caracteres",
+    .max(2000, {
+      message: "El analisis causa raiz no debe exceder los 2000 caracteres",
     }),
   information_source_id: z.string(),
 });
 
 type FormSchemaType = z.infer<typeof FormSchema>;
+
+// Las columnas son NOT NULL y el backend valida required|string,
+// asi que "N/A" es el marcador de "no aplica" en vez de cadena vacia.
+const NOT_APPLICABLE = "N/A";
 
 interface FormProps {
   id: number | string;
@@ -118,12 +123,14 @@ export default function CreateDangerIdentificationForm({
 
   const [defenses, setDefenses] = useState<string[]>([]);
   const [newDefense, setNewDefense] = useState("");
+  const [noDefenses, setNoDefenses] = useState(false);
 
   const [consequences, setConsequences] = useState<string[]>([]);
   const [newConsequence, setNewConsequence] = useState("");
 
   const [analyses, setAnalyses] = useState<string[]>([]);
   const [newAnalysis, setNewAnalysis] = useState("");
+  const [noAnalyses, setNoAnalyses] = useState(false);
 
   const AREAS = [
     "OPERACIONES",
@@ -165,9 +172,23 @@ export default function CreateDangerIdentificationForm({
               .filter(Boolean)
           : [];
 
-      setDefenses(splitAndFilter(initialData.current_defenses));
+      const isNA = (str: string | undefined) =>
+        str?.trim().toUpperCase() === NOT_APPLICABLE;
+
+      setNoDefenses(isNA(initialData.current_defenses));
+      setNoAnalyses(isNA(initialData.root_cause_analysis));
+
+      setDefenses(
+        isNA(initialData.current_defenses)
+          ? []
+          : splitAndFilter(initialData.current_defenses)
+      );
       setConsequences(splitAndFilter(initialData.possible_consequences));
-      setAnalyses(splitAndFilter(initialData.root_cause_analysis));
+      setAnalyses(
+        isNA(initialData.root_cause_analysis)
+          ? []
+          : splitAndFilter(initialData.root_cause_analysis)
+      );
     }
   }, [initialData]);
 
@@ -175,19 +196,35 @@ export default function CreateDangerIdentificationForm({
     if (newDefense.trim()) {
       const updated = [...defenses, newDefense.trim()];
       setDefenses(updated);
-      form.setValue("current_defenses", updated.join(","));
+      form.setValue("current_defenses", updated.join(","), {
+        shouldValidate: true,
+      });
       setNewDefense("");
     }
   };
   const removeDefense = (index: number) => {
     const updated = defenses.filter((_, i) => i !== index);
     setDefenses(updated);
-    form.setValue("current_defenses", updated.join(","));
+    form.setValue("current_defenses", updated.join(","), {
+      shouldValidate: true,
+    });
   };
-  const handleDefenseKeyPress = (e: React.KeyboardEvent) => {
+  const handleDefenseKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       e.preventDefault();
       addDefense();
+    }
+  };
+  const toggleNoDefenses = (checked: boolean) => {
+    setNoDefenses(checked);
+    if (checked) {
+      setDefenses([]);
+      setNewDefense("");
+      form.setValue("current_defenses", NOT_APPLICABLE, {
+        shouldValidate: true,
+      });
+    } else {
+      form.setValue("current_defenses", "", { shouldValidate: false });
     }
   };
 
@@ -195,16 +232,25 @@ export default function CreateDangerIdentificationForm({
     if (newConsequence.trim()) {
       const updated = [...consequences, newConsequence.trim()];
       setConsequences(updated);
-      form.setValue("possible_consequences", updated.join(","));
+      form.setValue("possible_consequences", updated.join(","), {
+        shouldValidate: true,
+      });
       setNewConsequence("");
     }
   };
   const removeConsequence = (index: number) => {
+    const removed = consequences[index];
     const updated = consequences.filter((_, i) => i !== index);
     setConsequences(updated);
-    form.setValue("possible_consequences", updated.join(","));
+    form.setValue("possible_consequences", updated.join(","), {
+      shouldValidate: true,
+    });
+    // La consecuencia a evaluar sale de esta lista: si se borra la elegida, queda huerfana.
+    if (form.getValues("consequence_to_evaluate") === removed) {
+      form.setValue("consequence_to_evaluate", "");
+    }
   };
-  const handleConsequenceKeyPress = (e: React.KeyboardEvent) => {
+  const handleConsequenceKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       e.preventDefault();
       addConsequence();
@@ -215,19 +261,35 @@ export default function CreateDangerIdentificationForm({
     if (newAnalysis.trim()) {
       const updated = [...analyses, newAnalysis.trim()];
       setAnalyses(updated);
-      form.setValue("root_cause_analysis", updated.join(","));
+      form.setValue("root_cause_analysis", updated.join(","), {
+        shouldValidate: true,
+      });
       setNewAnalysis("");
     }
   };
   const removeAnalysis = (index: number) => {
     const updated = analyses.filter((_, i) => i !== index);
     setAnalyses(updated);
-    form.setValue("root_cause_analysis", updated.join(","));
+    form.setValue("root_cause_analysis", updated.join(","), {
+      shouldValidate: true,
+    });
   };
-  const handleAnalysisKeyPress = (e: React.KeyboardEvent) => {
+  const handleAnalysisKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       e.preventDefault();
       addAnalysis();
+    }
+  };
+  const toggleNoAnalyses = (checked: boolean) => {
+    setNoAnalyses(checked);
+    if (checked) {
+      setAnalyses([]);
+      setNewAnalysis("");
+      form.setValue("root_cause_analysis", NOT_APPLICABLE, {
+        shouldValidate: true,
+      });
+    } else {
+      form.setValue("root_cause_analysis", "", { shouldValidate: false });
     }
   };
 
@@ -375,17 +437,32 @@ export default function CreateDangerIdentificationForm({
         <FormItem>
           <FormLabel>Defensas Actuales</FormLabel>
           <div className="space-y-2">
-            <div className="flex gap-2">
-              <Input
-                placeholder="Escriba una defensa"
-                value={newDefense}
-                onChange={(e) => setNewDefense(e.target.value)}
-                onKeyPress={handleDefenseKeyPress}
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="no-defenses"
+                checked={noDefenses}
+                onCheckedChange={(checked) => toggleNoDefenses(checked === true)}
               />
-              <Button type="button" onClick={addDefense} size="icon">
-                <Plus className="h-4 w-4" />
-              </Button>
+              <label
+                htmlFor="no-defenses"
+                className="text-sm text-muted-foreground cursor-pointer"
+              >
+                No aplica / no existen defensas actuales
+              </label>
             </div>
+            {!noDefenses && (
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Escriba una defensa"
+                  value={newDefense}
+                  onChange={(e) => setNewDefense(e.target.value)}
+                  onKeyDown={handleDefenseKeyDown}
+                />
+                <Button type="button" onClick={addDefense} size="icon">
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
             <div className="flex flex-wrap gap-2 pt-2">
               {defenses.map((item, index) => (
                 <div
@@ -411,10 +488,11 @@ export default function CreateDangerIdentificationForm({
           control={form.control}
           name="current_defenses"
           render={({ field }) => (
-            <FormItem className="hidden">
+            <FormItem>
               <FormControl>
                 <Input type="hidden" {...field} />
               </FormControl>
+              <FormMessage className="text-xs" />
             </FormItem>
           )}
         />
@@ -428,7 +506,7 @@ export default function CreateDangerIdentificationForm({
                 placeholder="Escriba una consecuencia"
                 value={newConsequence}
                 onChange={(e) => setNewConsequence(e.target.value)}
-                onKeyPress={handleConsequenceKeyPress}
+                onKeyDown={handleConsequenceKeyDown}
               />
               <Button type="button" onClick={addConsequence} size="icon">
                 <Plus className="h-4 w-4" />
@@ -459,10 +537,11 @@ export default function CreateDangerIdentificationForm({
           control={form.control}
           name="possible_consequences"
           render={({ field }) => (
-            <FormItem className="hidden">
+            <FormItem>
               <FormControl>
                 <Input type="hidden" {...field} />
               </FormControl>
+              <FormMessage className="text-xs" />
             </FormItem>
           )}
         />
@@ -474,10 +553,20 @@ export default function CreateDangerIdentificationForm({
           render={({ field }) => (
             <FormItem className="w-full">
               <FormLabel>Consecuencia a Evaluar</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select
+                onValueChange={field.onChange}
+                value={field.value}
+                disabled={consequences.length === 0}
+              >
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Consecuencia a Evaluar" />
+                    <SelectValue
+                      placeholder={
+                        consequences.length === 0
+                          ? "Agregue primero una consecuencia"
+                          : "Consecuencia a Evaluar"
+                      }
+                    />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
@@ -567,17 +656,32 @@ export default function CreateDangerIdentificationForm({
         <FormItem>
           <FormLabel>Análisis Causa Raíz</FormLabel>
           <div className="space-y-2">
-            <div className="flex gap-2">
-              <Input
-                placeholder="Escriba un 'porqué' del análisis"
-                value={newAnalysis}
-                onChange={(e) => setNewAnalysis(e.target.value)}
-                onKeyPress={handleAnalysisKeyPress}
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="no-analyses"
+                checked={noAnalyses}
+                onCheckedChange={(checked) => toggleNoAnalyses(checked === true)}
               />
-              <Button type="button" onClick={addAnalysis} size="icon">
-                <Plus className="h-4 w-4" />
-              </Button>
+              <label
+                htmlFor="no-analyses"
+                className="text-sm text-muted-foreground cursor-pointer"
+              >
+                No aplica análisis causa raíz
+              </label>
             </div>
+            {!noAnalyses && (
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Escriba un 'porqué' del análisis"
+                  value={newAnalysis}
+                  onChange={(e) => setNewAnalysis(e.target.value)}
+                  onKeyDown={handleAnalysisKeyDown}
+                />
+                <Button type="button" onClick={addAnalysis} size="icon">
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
             <div className="flex flex-wrap gap-2 pt-2">
               {analyses.map((item, index) => (
                 <div
@@ -603,10 +707,11 @@ export default function CreateDangerIdentificationForm({
           control={form.control}
           name="root_cause_analysis"
           render={({ field }) => (
-            <FormItem className="hidden">
+            <FormItem>
               <FormControl>
                 <Input type="hidden" {...field} />
               </FormControl>
+              <FormMessage className="text-xs" />
             </FormItem>
           )}
         />

@@ -119,6 +119,12 @@ export type FormSchemaType = z.infer<typeof FormSchema>
 export const aeroKey = (id: string) => `A:${id}`
 export const genKey = (id: string) => `G:${id}`
 
+// Debe coincidir con UnitConversionService::PRECISION del backend: si aquí se
+// redondea más corto, una cantidad que el frontend da por buena puede exceder
+// el stock al convertirla allá (1 mL sobre base GALON = 0.000264200793, que
+// con 6 decimales quedaba en 0.000264).
+const CONVERSION_PRECISION = 12
+
 const flattenDepartments = (departments: Department[]): Department[] =>
     departments.flatMap((department) => [
     department,
@@ -347,7 +353,7 @@ export function useDispatchForm(
         // (1 CAJA = 100 UNID → x100; 1 mL = 0.001 LITRO → x0.001). Sólo se usa
         // para contrastar contra el stock disponible, que está en base.
         const captured = parseFloat(input) || 0
-        const inBase = Number((captured * selected.base_per_unit).toFixed(6))
+        const inBase = Number((captured * selected.base_per_unit).toFixed(CONVERSION_PRECISION))
         const unitId = selected?.unit?.id ?? null
         const unitLabel = selected?.unit?.label ?? ""
 
@@ -356,7 +362,11 @@ export function useDispatchForm(
 
             // El tope está en unidad base; se retrocede a la unidad capturada
             // para que el usuario vea el ajuste en la unidad que él escribió.
-            const capped = Number((max / selected.base_per_unit).toFixed(6))
+            // Se trunca en vez de redondear: al redondear hacia arriba, el
+            // valor propuesto vuelve a convertirse en algo mayor al stock y el
+            // backend rechazaría el despacho que el propio ajuste sugirió.
+            const factor = 10 ** CONVERSION_PRECISION
+            const capped = Math.floor((max / selected.base_per_unit) * factor) / factor
             return {
                 qty: capped,
                 msg: {
