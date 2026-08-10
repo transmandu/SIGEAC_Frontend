@@ -58,8 +58,8 @@ const FormSchema = z.object({
     .min(1, {
       message: "Agregue al menos una defensa o marque 'No aplica'",
     })
-    .max(1000, {
-      message: "Las defensas actuales no deben exceder los 1000 caracteres",
+    .max(2000, {
+      message: "Las defensas actuales no deben exceder los 2000 caracteres",
     }),
   description: z
     .string()
@@ -70,8 +70,8 @@ const FormSchema = z.object({
     .min(1, {
       message: "Agregue al menos una consecuencia",
     })
-    .max(1000, {
-      message: "Las posibles consecuencias no deben exceder los 1000 caracteres",
+    .max(2000, {
+      message: "Las posibles consecuencias no deben exceder los 2000 caracteres",
     }),
   consequence_to_evaluate: z
     .string()
@@ -87,8 +87,8 @@ const FormSchema = z.object({
     .min(1, {
       message: "Agregue al menos un análisis o marque 'No aplica'",
     })
-    .max(900, {
-      message: "El analisis causa raiz no debe exceder los 900 caracteres",
+    .max(2000, {
+      message: "El analisis causa raiz no debe exceder los 2000 caracteres",
     }),
   information_source_id: z.string(),
 });
