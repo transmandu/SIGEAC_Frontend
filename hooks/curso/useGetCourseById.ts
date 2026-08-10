@@ -29,7 +29,7 @@ export const useGetCourseById = ({
   return useQuery<Course>({
     queryKey: ["course-by-id", id],
     queryFn: () => fetchCoursesById(value),
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    staleTime: 1000 * 60 * 5,
     enabled: !!company,
   });
 };

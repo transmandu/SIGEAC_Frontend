@@ -163,3 +163,33 @@ export const useDeleteDispatchRequest = () => {
     deleteDispatchRequest: deleteMutation,
   };
 };
+
+// Devuelve al almacén un artículo ya despachado: la herramienta vuelve a
+// ALMACENADO y el componente queda en resguardo (lo decide el backend según
+// la categoría). Solo aplica a lo que no se consume.
+export const useReturnToWarehouse = (company?: string) => {
+  const queryClient = useQueryClient();
+
+  return useMutation<any, Error, number>({
+    mutationKey: ["update-status", company],
+    mutationFn: async (article_id: number) => {
+      const { data } = await axiosInstance.put(
+        `/${company}/update-status-items/${article_id}`
+      );
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["dispatched-articles", company],
+      });
+      toast("¡Devuelto!", {
+        description: `¡El artículo ha regresado correctamente!`,
+      });
+    },
+    onError: (error) => {
+      toast("Hey", {
+        description: `No se logró retornar el artículo: ${error}`,
+      });
+    },
+  });
+};

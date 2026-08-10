@@ -118,7 +118,6 @@ export function EditAircraftForm({ aircraft, onClose }: EditAircraftFormProps) {
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      // Cargar los valores actuales del avión
       brand: aircraft.brand,
       model: aircraft.model,
       serial: aircraft.serial,

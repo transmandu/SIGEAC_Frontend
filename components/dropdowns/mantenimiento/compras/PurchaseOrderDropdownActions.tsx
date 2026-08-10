@@ -5,7 +5,6 @@ import type { PurchaseOrder } from "@/types/purchase"
 import { useAuth } from "@/contexts/AuthContext"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-// import { PDFDownloadLink } from "@react-pdf/renderer"
 import { Button } from "@/components/ui/button"
 import { AlertOctagon, ClipboardCheck, FileDown, MoreHorizontal, Receipt, Wallet } from "lucide-react"
 import PurchaseOrderDropdownDialogs from "@/components/dialogs/mantenimiento/compras/PurchaseOrderDropdownDialogs"
@@ -117,13 +116,7 @@ const PurchaseOrderDropdownActions = ({ po }: { po: PurchaseOrder }) => {
                   </TooltipContent>
                 </Tooltip>
               )}
-              {/* PDF */}
-              {/* <PDFDownloadLink
-                fileName={`${quote.quote_number}.pdf`}
-                document={
-                  < quote={quote} />
-                }
-              > */}
+              {/* Descarga del PDF pendiente de implementar. */}
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <DropdownMenuItem
@@ -145,7 +138,6 @@ const PurchaseOrderDropdownActions = ({ po }: { po: PurchaseOrder }) => {
                     ¡Próximamente!
                   </TooltipContent>
                 </Tooltip>
-              {/* </PDFDownloadLink> */}
 
               {/* CASCADE DELETE (SUPERUSER) */}
               {isSuperUser && (

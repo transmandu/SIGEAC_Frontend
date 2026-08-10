@@ -50,7 +50,6 @@ export function DefineEndDateForm({ renting, onClose }: DefineEndDateFormProps) 
     },
   });
 
-  // Función de validación personalizada
   const validateEndDate = (date: Date) => {
     const startDate = renting.start_date;
 
@@ -61,7 +60,6 @@ export function DefineEndDateForm({ renting, onClose }: DefineEndDateFormProps) 
   };
 
   const onSubmit = async (formData: FormSchemaType) => {
-    // Validación adicional antes de enviar
     const validationResult = validateEndDate(formData.end_date!);
     if (typeof validationResult === "string") {
       form.setError("end_date", { message: validationResult });

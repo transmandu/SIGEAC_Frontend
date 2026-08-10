@@ -10,7 +10,7 @@ import { useTransition } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useCompanyStore } from '@/stores/CompanyStore';
-import { useMarkNotificationAsRead } from '@/hooks/notifications/useMarkNotificationAsRead';
+import { useMarkNotificationAsRead } from '@/actions/notifications/actions';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const ITEM_COLORS = [

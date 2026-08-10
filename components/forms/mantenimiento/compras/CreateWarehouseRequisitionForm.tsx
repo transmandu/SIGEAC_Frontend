@@ -189,7 +189,6 @@ export function CreateWarehouseRequisitionForm({
   const { byArticle: activeRequisitionsByArticle } =
     useGetActiveGeneralArticleRequisitions(requisitionType === "GENERAL");
 
-  // Local search state for each searchable selector (keeps filtering stable during typing)
   const [employeeSearch, setEmployeeSearch] = useState("");
   const [aircraftSearch, setAircraftSearch] = useState("");
   const [workOrderSearch, setWorkOrderSearch] = useState("");
@@ -204,7 +203,6 @@ export function CreateWarehouseRequisitionForm({
     debouncedArticleSearch || undefined
   );
 
-  // Memoized filtered lists for each searchable selector
   const filteredEmployees = useMemo(() => {
     if (!employees) return [];
     const query = employeeSearch.toLowerCase().trim();
@@ -292,9 +290,8 @@ export function CreateWarehouseRequisitionForm({
     form.setValue("general_articles", selectedGeneralArticles.length > 0 ? selectedGeneralArticles : undefined, { shouldValidate: form.formState.isSubmitted });
   }, [selectedBatches, selectedGeneralArticles, form]);
 
-  // Aircraft Sync: the header aircraft is the default for batch items. We only
-  // propagate it to items that were still following the header's previous
-  // value (or had none), so manual per-item overrides are never clobbered.
+  // La aeronave de la cabecera baja a los renglones, pero solo a los que aún
+  // seguían el valor anterior: si el usuario cambió uno a mano, no se pisa.
   const headerAircraftId = form.watch("aircraft_id");
   const previousHeaderAircraftId = useRef<string | undefined>(undefined);
 
@@ -315,8 +312,8 @@ export function CreateWarehouseRequisitionForm({
     }
   }, [headerAircraftId]);
 
-  // Priority Escalation: an item's priority can only raise the header's
-  // priority, never lower it, and never touches other items.
+  // La prioridad de un renglón solo puede subir la de la cabecera, nunca
+  // bajarla, y no afecta a los demás renglones.
   const escalateHeaderPriority = (priority?: Priority) => {
     const currentPriority = form.getValues("priority") as Priority | undefined;
     if (isHigherPriority(priority, currentPriority)) {
@@ -324,8 +321,8 @@ export function CreateWarehouseRequisitionForm({
     }
   };
 
-  // Switching the requisition type clears the other side's selection, so a
-  // user can never submit a requisition mixing batch and general articles.
+  // Cambiar de tipo limpia la selección del otro: una requisición nunca puede
+  // mezclar artículos de renglón con generales.
   const handleRequisitionTypeChange = (next: WarehouseRequisitionType) => {
     setRequisitionType(next);
     if (next === "AERONAUTICAL") {
@@ -335,12 +332,11 @@ export function CreateWarehouseRequisitionForm({
     }
   };
 
-  // Total distinct article line items across all selected batches (not
-  // quantity) — this is what the requisition-wide article cap counts against.
+  // Cuenta renglones distintos, no cantidades: es contra esto que se aplica el
+  // tope de artículos por requisición.
   const totalBatchArticles = (batches: RequisitionBatchForm[]) =>
     batches.reduce((sum, b) => sum + b.batch_articles.length, 0);
 
-  // Batch handlers
   const handleBatchSelect = (batchName: string, batchId: string, batch_category: string) => {
     setSelectedBatches((prev) => {
       if (prev.some((b) => b.batch === batchId)) {
@@ -358,9 +354,8 @@ export function CreateWarehouseRequisitionForm({
     });
   };
 
-  // Article search handler: selecting an article by part_number loads its
-  // associated batch (adding it if not already selected) and fills the
-  // part_number/alt_part_number/unit into an empty row, or appends a new one.
+  // Elegir un artículo por part_number arrastra su renglón (lo agrega si no
+  // estaba) y rellena la primera fila vacía, o crea una nueva.
   const handleArticleSelect = (
     batch: BatchWithArticles["batch"],
     article: BatchWithArticles["articles"][number]
@@ -488,10 +483,9 @@ export function CreateWarehouseRequisitionForm({
     setSelectedBatches((prev) => prev.filter((batch) => batch.batch !== batchId));
   };
 
-  // General article handlers. Two articles can share a description and
-  // variant_type but differ by brand_model (e.g. same item from two brands,
-  // only one with a catalog image), so identity (and toggle-off matching)
-  // must always compare all three fields together, never description alone.
+  // Dos artículos generales pueden compartir descripción y variante y diferir
+  // solo en la marca, así que la identidad compara siempre los tres campos
+  // juntos — nunca la descripción sola.
   const isSameGeneralArticle = (
     a: { description: string; variant_type?: string | null; brand_model?: string | null },
     b: { description: string; variant_type?: string | null; brand_model?: string | null }
@@ -516,9 +510,9 @@ export function CreateWarehouseRequisitionForm({
           quantity: 0,
           unit_id: undefined,
           priority: "MEDIUM",
-          // Prefills the article's existing image so the user isn't forced to
-          // re-upload the same picture; existing_image_path tells the backend
-          // to reuse the stored file instead of treating it as a new upload.
+          // Precarga la imagen que ya tiene el artículo para no obligar a
+          // resubirla: existing_image_path le dice al backend que reutilice
+          // la guardada en vez de tratarla como archivo nuevo.
           image: article.image ?? undefined,
           existing_image_path: getStoragePathFromUrl(article.image),
         },
@@ -537,9 +531,8 @@ export function CreateWarehouseRequisitionForm({
     setSelectedGeneralArticles((prev) =>
       prev.map((article, i) => {
         if (i !== index) return article;
-        // Once the user removes the prefilled image or attaches a new file,
-        // it's no longer the catalog's existing image, so the backend must
-        // not be told to reuse the old stored path.
+        // Si el usuario quita la imagen precargada o sube otra, ya no es la del
+        // catálogo: hay que dejar de pedirle al backend que reutilice la vieja.
         if (field === "image") {
           return { ...article, image: value, existing_image_path: undefined };
         }
@@ -599,10 +592,9 @@ export function CreateWarehouseRequisitionForm({
         : undefined,
       general_articles: data.general_articles?.map((article) => ({
         ...article,
-        // `image` only carries a File (new upload) or, for preview purposes,
-        // the catalog article's existing URL string — the backend's image
-        // validation rule rejects anything that isn't an actual uploaded
-        // file, so a reused image must travel solely via existing_image_path.
+        // `image` solo lleva un File nuevo, o la URL del catálogo para la vista
+        // previa. El backend rechaza todo lo que no sea archivo subido, así que
+        // una imagen reutilizada viaja únicamente por existing_image_path.
         image: article.image instanceof File ? article.image : undefined,
       })),
     };

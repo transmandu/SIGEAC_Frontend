@@ -25,7 +25,6 @@ const formSchema = z.object({
     }),
   total_amount: z.string().refine(
     (val) => {
-      // Convertir el valor a número y verificar que sea positivo
       const number = parseFloat(val);
       return !isNaN(number) && number >= 0;
     },
@@ -83,7 +82,6 @@ export function CreateCashForm({ onClose }: FormProps) {
                   placeholder="0.00"
                   {...field}
                   onChange={(e) => {
-                    // Validar que solo se ingresen números y un punto decimal
                     const value = e.target.value;
                     const regex = /^(\d+)?([.]?\d{0,2})?$/;
 
@@ -92,7 +90,6 @@ export function CreateCashForm({ onClose }: FormProps) {
                     }
                   }}
                   onBlur={(e) => {
-                    // Formatear el valor al salir del input
                     const value = e.target.value;
                     if (value) {
                       const number = parseFloat(value);

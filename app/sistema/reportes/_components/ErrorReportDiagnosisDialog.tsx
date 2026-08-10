@@ -31,9 +31,7 @@ import { ErrorReport } from "@/types";
 import { normalizeAssetUrl } from "@/lib/utils";
 import { getErrorReportSeverityLabel } from "@/lib/errorReportSeverity";
 import { ERROR_REPORT_MODULES } from "@/lib/errorReportModules";
-import { useUpdateErrorReportDiagnosis } from "@/hooks/sistema/reportes/useUpdateErrorReportDiagnosis";
-import { useAddErrorReportImages } from "@/hooks/sistema/reportes/useAddErrorReportImages";
-import { useDeleteErrorReportImage } from "@/hooks/sistema/reportes/useDeleteErrorReportImage";
+import { useAddErrorReportImages, useDeleteErrorReportImage, useUpdateErrorReportDiagnosis } from "@/actions/sistema/reportes/actions";
 import { Chip, STATUS_CHIP, sourceTone, httpStatusTone } from "./errorReportChips";
 
 interface ErrorReportDiagnosisDialogProps {

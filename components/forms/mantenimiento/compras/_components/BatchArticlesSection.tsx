@@ -95,9 +95,9 @@ export function BatchArticlesSection({
   );
   const priorityColClass = isLg ? "w-40" : "w-28";
 
-  // Mirrors the zod rule requiring at least one document_type per batch
-  // article; red styling only kicks in after a submit attempt, so a freshly
-  // added row doesn't look broken before the user has had a chance to pick.
+  // Refleja la regla de zod: cada artículo necesita al menos un tipo de
+  // documento. El rojo aparece solo tras intentar enviar, para que una fila
+  // recién agregada no se vea como error antes de que la llenen.
   const isSubmitted = form.formState.isSubmitted;
   const isDocumentTypesInvalid = (article: { document_type_ids?: number[] }) =>
     isSubmitted && !(article.document_type_ids && article.document_type_ids.length > 0);

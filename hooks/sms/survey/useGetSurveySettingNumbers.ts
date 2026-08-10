@@ -7,7 +7,6 @@ import { useQuery } from "@tanstack/react-query";
   SMS_SURVEY: string;
 }
 
-// Tipo para la respuesta del hook useGetSurvey
 export type SurveyResponse = SurveyNumbers;
 
 const fetchSurveySettingNumbers = async (
@@ -23,7 +22,7 @@ export const useGetSurveySettingNumbers = (
   return useQuery<SurveyNumbers>({
     queryKey: ["survey-setting", company],
     queryFn: () => fetchSurveySettingNumbers(company),
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    staleTime: 1000 * 60 * 5,
     enabled: !!company 
   });
 };

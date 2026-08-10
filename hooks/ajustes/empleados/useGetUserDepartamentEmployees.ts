@@ -11,7 +11,7 @@ export const useGetUserDepartamentEmployees = (company?: string) => {
   return useQuery<Employee[], Error>({
     queryFn: () => fetchUserDepartamentEmployees(company),
     queryKey: ['departament-employees', company],
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    staleTime: 1000 * 60 * 5,
     enabled: !!company,
     refetchOnWindowFocus: false,
   });

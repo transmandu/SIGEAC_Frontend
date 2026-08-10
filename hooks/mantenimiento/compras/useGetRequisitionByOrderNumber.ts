@@ -32,4 +32,4 @@ export const useGetRequisitionByOrderNumber = ({
   });
 };
 
-export type { RequisitionByOrderNumber };
+export type { RequisitionByOrderNumber };

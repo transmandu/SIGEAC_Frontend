@@ -13,7 +13,7 @@ export const useGetMitigationTable = (company?: string) => {
   return useQuery<MitigationTable[]>({
     queryKey: ["analysis", company],
     queryFn: () => fetchMitigationTable(company),
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    staleTime: 1000 * 60 * 5,
     enabled: !!company,
   });
 };

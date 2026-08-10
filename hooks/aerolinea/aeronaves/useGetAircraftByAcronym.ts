@@ -13,7 +13,7 @@ export const useGetAircraftByAcronym = (acronym: string, company?: string) => {
   return useQuery<Aircraft>({
     queryKey: ["aircrafts", acronym],
     queryFn: () => fetchAircraftByAcronym(acronym),
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    staleTime: 1000 * 60 * 5,
     enabled: !!acronym && !!company,
   })
 }

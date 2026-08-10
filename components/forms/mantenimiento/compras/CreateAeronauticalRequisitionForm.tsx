@@ -119,7 +119,6 @@ export function CreateAeronauticalRequisitionForm({
 
   const [selectedBatches, setSelectedBatches] = useState<RequisitionBatchForm[]>([]);
 
-  // Local search state for each searchable selector (keeps filtering stable during typing)
   const [employeeSearch, setEmployeeSearch] = useState("");
   const [aircraftSearch, setAircraftSearch] = useState("");
   const [workOrderSearch, setWorkOrderSearch] = useState("");
@@ -133,7 +132,6 @@ export function CreateAeronauticalRequisitionForm({
     debouncedArticleSearch || undefined
   );
 
-  // Memoized filtered lists for each searchable selector
   const filteredEmployees = useMemo(() => {
     if (!employees) return [];
     const query = employeeSearch.toLowerCase().trim();
@@ -209,9 +207,8 @@ export function CreateAeronauticalRequisitionForm({
     form.setValue("articles", selectedBatches, { shouldValidate: form.formState.isSubmitted });
   }, [selectedBatches, form]);
 
-  // Aircraft Sync: the header aircraft is the default for batch items. We only
-  // propagate it to items that were still following the header's previous
-  // value (or had none), so manual per-item overrides are never clobbered.
+  // La aeronave de la cabecera baja a los renglones, pero solo a los que aún
+  // seguían el valor anterior: si el usuario cambió uno a mano, no se pisa.
   const headerAircraftId = form.watch("aircraft_id");
   const previousHeaderAircraftId = useRef<string | undefined>(undefined);
 
@@ -232,8 +229,8 @@ export function CreateAeronauticalRequisitionForm({
     }
   }, [headerAircraftId]);
 
-  // Priority Escalation: an item's priority can only raise the header's
-  // priority, never lower it, and never touches other items.
+  // La prioridad de un renglón solo puede subir la de la cabecera, nunca
+  // bajarla, y no afecta a los demás renglones.
   const escalateHeaderPriority = (priority?: Priority) => {
     const currentPriority = form.getValues("priority") as Priority | undefined;
     if (isHigherPriority(priority, currentPriority)) {
@@ -241,12 +238,11 @@ export function CreateAeronauticalRequisitionForm({
     }
   };
 
-  // Total distinct article line items across all selected batches (not
-  // quantity) — this is what the requisition-wide article cap counts against.
+  // Cuenta renglones distintos, no cantidades: es contra esto que se aplica el
+  // tope de artículos por requisición.
   const totalBatchArticles = (batches: RequisitionBatchForm[]) =>
     batches.reduce((sum, b) => sum + b.batch_articles.length, 0);
 
-  // Batch handlers
   const handleBatchSelect = (batchName: string, batchId: string, batch_category: string) => {
     setSelectedBatches((prev) => {
       if (prev.some((b) => b.batch === batchId)) {
@@ -264,9 +260,8 @@ export function CreateAeronauticalRequisitionForm({
     });
   };
 
-  // Article search handler: selecting an article by part_number loads its
-  // associated batch (adding it if not already selected) and fills the
-  // part_number/alt_part_number/unit into an empty row, or appends a new one.
+  // Elegir un artículo por part_number arrastra su renglón (lo agrega si no
+  // estaba) y rellena la primera fila vacía, o crea una nueva.
   const handleArticleSelect = (
     batch: BatchWithArticles["batch"],
     article: BatchWithArticles["articles"][number]

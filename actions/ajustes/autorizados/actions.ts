@@ -2,6 +2,9 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "@/lib/axios";
 import { toast } from "sonner";
 
+// Autoriza a un empleado de otra empresa a operar en la destino, sin copiarlo
+// como empleado propio. El 204 significa que ya pertenecía a la destino y no
+// hacía falta autorización, por eso no es un error.
 export const useCreateAuthorizedEmployee = () => {
   const queryClient = useQueryClient();
 
@@ -33,6 +36,32 @@ export const useCreateAuthorizedEmployee = () => {
         return;
       }
       toast.error("Ha ocurrido un error al crear la autorización.");
+    },
+  });
+};
+
+// El backend responde 403 si quien elimina no es la empresa de origen.
+export const useDeleteAuthorizedEmployee = (companySlug?: string) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: number) => {
+      await axios.delete(`/${companySlug}/authorized-employees/${id}`);
+    },
+
+    onSuccess: async () => {
+      toast.success("Autorización eliminada correctamente.");
+      await queryClient.invalidateQueries({
+        queryKey: ["authorized-employees-from-company", companySlug],
+      });
+    },
+
+    onError: (error: any) => {
+      if (error.response?.status === 403) {
+        toast.error("Solo la empresa de origen puede eliminar esta autorización.");
+        return;
+      }
+      toast.error("Ha ocurrido un error al eliminar la autorización.");
     },
   });
 };

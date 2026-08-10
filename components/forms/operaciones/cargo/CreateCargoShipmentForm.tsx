@@ -192,9 +192,6 @@ export default function CreateCargoShipmentForm({
       })),
   ];
 
-  // ── Sugerencias de aeronaves externas ──────────────────────────────────────────
-  // ─────────────────────────────────────────────────────────────────────────
-
   return (
     <>
       <Form {...form}>

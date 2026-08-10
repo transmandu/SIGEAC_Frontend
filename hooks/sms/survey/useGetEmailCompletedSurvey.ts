@@ -44,7 +44,7 @@ export const useGetEmailCompletedSurvey = ({
   return useQuery<boolean>({
     queryKey: ["survey-is-completed", company, id, email],
     queryFn: () => fetchCompletedSurvey({ id, email, company }),
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    staleTime: 1000 * 60 * 5,
     enabled: isEnabled,
     retry: false, // Evitar reintentos si hay error de CORS
   });

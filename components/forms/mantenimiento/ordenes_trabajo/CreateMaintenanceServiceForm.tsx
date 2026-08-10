@@ -70,13 +70,10 @@ const tasksFormSchema = z.object({
   }),
 });
 
-// Tipo para el servicio
 type ServiceFormType = z.infer<typeof serviceSchema>;
 
-// Tipo para las tareas
 type TasksFormType = z.infer<typeof tasksFormSchema>;
 
-// Tipo para el objeto final que se enviará al backend
 type MaintenanceServicePayload = {
   service: ServiceFormType;
   tasks: TasksFormType["tasks"];
@@ -175,7 +172,6 @@ export function CreateMaintenanceServiceForm({ onClose }: CreateMaintenanceServi
 
       onClose()
     }
-    // console.log(payload)
   };
 
   return (

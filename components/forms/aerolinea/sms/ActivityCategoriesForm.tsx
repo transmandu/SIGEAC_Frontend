@@ -76,7 +76,6 @@ export function ActivityCategoriesForm() {
     setEditingCategory(null);
   };
 
-  // Se remueve el parámetro 'e' ya que se detiene antes de entrar aquí
   const onSubmit = async (values: FormSchemaType) => {
     if (!selectedCompany?.slug) return;
 

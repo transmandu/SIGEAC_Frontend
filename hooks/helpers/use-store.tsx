@@ -14,4 +14,4 @@ export const useStore = <T, F>(
   }, [result]);
 
   return data;
-};
+};

@@ -35,7 +35,7 @@ export const useGetObligatoryReportAverage = (
       from_first,
       to_first,
       from_second,
-      to_second, // ✅ AGREGAR TODOS LOS PARÁMETROS A LA QUERY KEY
+      to_second,
     ],
     queryFn: () =>
       fetchObligatoryReportAverage(
@@ -45,7 +45,7 @@ export const useGetObligatoryReportAverage = (
         from_second,
         to_second
       ),
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    staleTime: 1000 * 60 * 5,
     enabled: !!company,
   });
 };

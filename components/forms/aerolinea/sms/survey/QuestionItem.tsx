@@ -1,4 +1,3 @@
-// components/survey/QuestionItem.tsx
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
@@ -20,7 +19,6 @@ interface QuestionItemProps {
   form: UseFormReturn<any>;
 }
 
-// Función auxiliar (puede ir en este archivo o en uno de utils)
 function isAnswerProvided(answer: any, questionType: string): boolean {
   if (!answer) return false;
 
@@ -34,7 +32,6 @@ function isAnswerProvided(answer: any, questionType: string): boolean {
 export function QuestionItem({ question, index, form }: QuestionItemProps) {
   const { type, text, is_required, options, id } = question;
 
-  // Verificar si esta pregunta tiene error de validación
   const formErrors = form.formState.errors.responses;
   const hasError =
     formErrors &&

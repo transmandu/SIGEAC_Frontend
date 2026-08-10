@@ -13,7 +13,7 @@ export const useGetCreditRent = (company?: string) => {
   return useQuery<Credit[]>({
     queryKey: ['credit-rent-payment', company],
     queryFn: () => fetchCreditRent(company),
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    staleTime: 1000 * 60 * 5,
     enabled: !!company
   });
 };

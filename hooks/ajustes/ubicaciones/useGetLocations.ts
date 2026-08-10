@@ -12,6 +12,6 @@ export const useGetLocations = () => {
   return useQuery<Location[]>({
     queryKey: ['locations'],
     queryFn: fetchLocations,
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    staleTime: 1000 * 60 * 5,
   });
 };

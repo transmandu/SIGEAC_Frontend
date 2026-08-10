@@ -82,4 +82,4 @@ export const useNotifications = (
     unreadCount,
     latestNotification,
   }
-}
+}

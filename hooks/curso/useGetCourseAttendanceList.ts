@@ -37,9 +37,9 @@ export const useGetCourseAttendanceList = ({
   course_id: string;
 }) => {
   return useQuery<AttendanceData[], Error>({
-    queryKey: ["sms-course-attendance-list",course_id], // Incluye el course_id en la clave
+    queryKey: ["sms-course-attendance-list",course_id],
     queryFn: () => fetchAttendanceList({ company, course_id }),
-    staleTime: 1000 * 60 * 5, // 5 minutos
-    enabled: !!company, // Solo ejecuta si course_id tiene valor
+    staleTime: 1000 * 60 * 5,
+    enabled: !!company,
   });
 };

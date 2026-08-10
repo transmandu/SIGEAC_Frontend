@@ -194,9 +194,7 @@ export const useUpdateSurvey = () => {
   };
 };
 
-// ============================================
-// QUESTION-LEVEL CRUD HOOKS
-// ============================================
+// De aquí en adelante se opera sobre preguntas sueltas de una encuesta ya creada.
 
 interface UpdateQuestionData {
   company: string;

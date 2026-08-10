@@ -30,7 +30,7 @@ export function CreateBankAccountDialog() {
   }, [registerTour, unregisterTour, open]);
 
   // La gestión de cuentas (incluida su habilitación por compañía) es
-  // exclusiva de ADMINISTRAC (el backend también lo exige).IÓN
+  // exclusiva de ADMINISTRACIÓN (el backend también lo exige).
   const ALLOWED_ROLES = [
     "SUPERUSER",
     "JEFE_ADMINISTRACION",

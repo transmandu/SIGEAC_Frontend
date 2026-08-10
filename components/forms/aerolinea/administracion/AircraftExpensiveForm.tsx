@@ -43,7 +43,6 @@ import { Label } from "../../../ui/label";
 import { Separator } from "../../../ui/separator";
 import { Textarea } from "../../../ui/textarea";
 
-// Esquema para los gastos
 const cash_movement_detailsSchema = z.object({
   accountant_id: z.string({
     required_error: "La cuenta es requerida",
@@ -65,7 +64,6 @@ const cash_movement_detailsSchema = z.object({
   ),
 });
 
-// Esquema para los movimientos
 const movementSchema = z.object({
   cash_id: z.string({
     required_error: "La caja es requerida",
@@ -105,7 +103,6 @@ const movementSchema = z.object({
   }),
 });
 
-// Esquema principal del formulario
 const formSchema = z.object({
   date: z.date({
     required_error: "La fecha es requerida",
@@ -145,7 +142,6 @@ export function AircraftExpensiveForm({ acronym, onClose }: FormProps) {
     selectedCompany?.slug
   );
 
-  // Get accountant_id from form values to fetch categories
   const accountantId = form.watch(
     "movements.0.cash_movement_details.0.accountant_id"
   );
@@ -397,7 +393,6 @@ export function AircraftExpensiveForm({ acronym, onClose }: FormProps) {
                             placeholder="0.00"
                             {...field}
                             onChange={(e) => {
-                              // Validar que solo se ingresen números y un punto decimal
                               const value = e.target.value;
                               const regex = /^(\d+)?([.]?\d{0,2})?$/;
 
@@ -406,7 +401,6 @@ export function AircraftExpensiveForm({ acronym, onClose }: FormProps) {
                               }
                             }}
                             onBlur={(e) => {
-                              // Formatear el valor al salir del input
                               const value = e.target.value;
                               if (value) {
                                 const number = Number.parseFloat(value);
@@ -527,7 +521,8 @@ export function AircraftExpensiveForm({ acronym, onClose }: FormProps) {
                     {form
                       .watch(`movements.${movementIndex}.cash_movement_details`)
                       ?.map((cash_movement_details, expenseIndex) => {
-                        // Get the current accountant_id for this cash_movement_details to filter categories
+                        // Las categorías dependen de la cuenta elegida en esta
+                        // línea, no de la del movimiento.
                         const currentAccountantId = form.watch(
                           `movements.${movementIndex}.cash_movement_details.${expenseIndex}.accountant_id`
                         );
@@ -572,7 +567,6 @@ export function AircraftExpensiveForm({ acronym, onClose }: FormProps) {
                                     <Select
                                       onValueChange={(value) => {
                                         field.onChange(value);
-                                        // Reset category when accountant changes
                                         form.setValue(
                                           `movements.${movementIndex}.cash_movement_details.${expenseIndex}.category_id`,
                                           ""
@@ -673,7 +667,6 @@ export function AircraftExpensiveForm({ acronym, onClose }: FormProps) {
                                         placeholder="0.00"
                                         {...field}
                                         onChange={(e) => {
-                                          // Validar que solo se ingresen números y un punto decimal
                                           const value = e.target.value;
                                           const regex =
                                             /^(\d+)?([.]?\d{0,2})?$/;
@@ -686,7 +679,6 @@ export function AircraftExpensiveForm({ acronym, onClose }: FormProps) {
                                           }
                                         }}
                                         onBlur={(e) => {
-                                          // Formatear el valor al salir del input
                                           const value = e.target.value;
                                           if (value) {
                                             const number =

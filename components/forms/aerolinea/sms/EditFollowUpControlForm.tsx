@@ -76,8 +76,6 @@ export function EditFollowUpControlForm({ onClose, initialData }: FormProps) {
     plan_id: string;
     medida_id: string;
   }>();
-  console.log("plan id ", plan_id);
-  console.log("measuer id", medida_id);
   const { updateFollowUpControl } = useUpdateFollowUpControl();
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),

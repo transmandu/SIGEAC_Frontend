@@ -165,7 +165,6 @@ export function AddToSMSActivity({ onClose, initialData }: FormProps) {
     updateFormValues(newSelections);
   };
 
-  // Filtrar empleados basado en la búsqueda
   const filteredEmployees = employeeSelections.filter((employee) => {
     const searchLower = searchQuery.toLowerCase();
     return (

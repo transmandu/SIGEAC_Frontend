@@ -31,6 +31,7 @@ export const useGetPurchaseOrderByQuoteId = ({
       return data.purchase_orders ?? [];
     },
     enabled: enabled && !!company && !!quoteId,
-    retry: false, // 👈 CRÍTICO (evita tus 3 requests)
+    // Una cotización sin orden responde 404: reintentar solo multiplica la llamada.
+    retry: false,
   });
-};
+};

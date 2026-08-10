@@ -11,7 +11,7 @@ export const useGetUserActivity = (id: string, company?: string) => {
   return useQuery<ActivityReport>({
     queryKey: ["user-activity", id],
     queryFn: () => fetchUserActivity(id, company  ),
-    enabled: !!id && !!company, // Solo ejecuta la consulta si hay un ID y una compañía
+    enabled: !!id && !!company,
     refetchOnMount: true,
   });
 };

@@ -272,7 +272,6 @@ export function CreateCreditForm({ onClose }: FormProps) {
                   placeholder="0.00"
                   {...field}
                   onChange={(e) => {
-                    // Validar que solo se ingresen números y un punto decimal
                     const value = e.target.value;
                     const regex = /^(\d+)?([.]?\d{0,2})?$/;
 
@@ -281,7 +280,6 @@ export function CreateCreditForm({ onClose }: FormProps) {
                     }
                   }}
                   onBlur={(e) => {
-                    // Formatear el valor al salir del input
                     const value = e.target.value;
                     if (value) {
                       const number = parseFloat(value);

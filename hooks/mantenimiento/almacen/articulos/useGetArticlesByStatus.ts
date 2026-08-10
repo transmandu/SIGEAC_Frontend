@@ -12,7 +12,7 @@ export const useGetArticlesByStatus = (status: string) => {
     return useQuery<any[]>({
         queryKey: ['articles', selectedCompany?.slug, status],
         queryFn: () => fetchArticles(status, selectedCompany?.slug),
-        staleTime: 1000 * 60 * 5, // 5 minutos
-        enabled: !!selectedCompany?.slug, // Solo ejecutar si el slug de la empresa está disponible
+        staleTime: 1000 * 60 * 5,
+        enabled: !!selectedCompany?.slug,
     });
 };

@@ -38,7 +38,6 @@ const DateFilter = ({
   const defaultFrom = startOfMonth(new Date());
   const defaultTo = endOfDay(new Date());
 
-  // Convertir fechas iniciales de string a Date
   const initialDateRange = initialDate
     ? {
         from: parseISO(initialDate.from),

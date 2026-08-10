@@ -19,4 +19,4 @@ export const useGuestSidebarToggle = create(
       storage: createJSONStorage(() => localStorage)
     }
   )
-);
+);

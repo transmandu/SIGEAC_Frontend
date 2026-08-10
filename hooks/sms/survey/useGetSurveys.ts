@@ -19,7 +19,7 @@ export const useGetSurveys = () => {
   return useQuery<Survey[]>({
     queryKey: ["surveys", selectedCompany?.slug, selectedStation],
     queryFn: () => fetchSurveys(selectedCompany?.slug, selectedStation!),
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    staleTime: 1000 * 60 * 5,
     enabled: !!selectedCompany?.slug && !!selectedStation, 
   });
 };

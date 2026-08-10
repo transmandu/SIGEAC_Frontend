@@ -34,6 +34,6 @@ export const useGetCourseEnrolledEmployees = ({
   return useQuery<EnrolledEmployees>({
     queryKey: ["employees-course",course_id],
     queryFn: () => fetchGetEnrolledEmployees(value),
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    staleTime: 1000 * 60 * 5,
   });
 };

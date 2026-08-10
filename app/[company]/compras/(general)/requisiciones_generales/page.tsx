@@ -8,7 +8,7 @@ import { getColumns } from './columns'
 import { DataTable } from '../../data-table'
 import type { Requisition } from '@/types/purchase'
 import RequisitionToolBar from './_components/RequisitionToolBar'
-import { CreateRequisitionDialog } from '@/components/dialogs/mantenimiento/compras/CreateRequisitionDialog'
+import { PurchasesRequisitionDialog } from '@/components/dialogs/mantenimiento/compras/PurchasesRequisitionDialog'
 import { GenerateInProgressRequisitionsPdfButton } from '@/components/misc/GenerateInProgressRequisitionsPdfButton'
 import RequisitionSubRow from './_components/RequisitionSubRow'
 import GroupedRequisitionTable from './_components/GroupedRequisitionTable'
@@ -117,7 +117,7 @@ const RequisitionsPageContent = () => {
         </div>
 
         <div className="flex items-center gap-2">
-          <CreateRequisitionDialog />
+          <PurchasesRequisitionDialog />
           <GenerateInProgressRequisitionsPdfButton />
         </div>
 

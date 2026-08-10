@@ -38,8 +38,6 @@ interface FormProps {
   initialData?: Pilot;
   isEditing?: boolean;
 }
-// { onClose }: FormProps
-// lo de arriba va en prop
 export function CreatePilotForm({
   onClose,
   initialData,

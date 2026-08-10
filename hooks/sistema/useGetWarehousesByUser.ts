@@ -11,6 +11,6 @@ export const useGetWarehousesByUser = () => {
   return useQuery<Warehouse[]>({
     queryKey: ['warehousesByUser'],
     queryFn: fetchWarehousesByUser,
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    staleTime: 1000 * 60 * 5,
   });
 };

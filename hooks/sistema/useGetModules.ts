@@ -12,6 +12,6 @@ export const useGetModules = () => {
   return useQuery<Module[]>({
     queryKey: ["modules"],
     queryFn: fetchModules,
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    staleTime: 1000 * 60 * 5,
   });
 };

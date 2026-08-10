@@ -25,6 +25,7 @@ import {
 import { getResult } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { MitigationTable } from "@/types";
+import { toast } from "sonner";
 import {
   ClipboardList,
   ClipboardPenLine,
@@ -252,7 +253,7 @@ const MitigationTableDropdownActions = ({
                 onClick={() =>
                   mitigationTable.mitigation_plan?.id
                     ? handleDelete(mitigationTable.mitigation_plan.id)
-                    : console.log("El id de mitigation_plan es undefined")
+                    : toast.error("Este registro no tiene plan de mitigación asociado.")
                 }
               >
                 {deleteMitigationPlan.isPending ? (
@@ -397,7 +398,7 @@ const MitigationTableDropdownActions = ({
                       mitigationTable.mitigation_plan.id,
                       mitigationTable.mitigation_plan.analysis.result
                     )
-                    : console.log("El id de mitigation_plan es undefined")
+                    : toast.error("Este registro no tiene plan de mitigación asociado.")
                 }
               >
                 {closeReportByMitigationId.isPending ? (
@@ -440,7 +441,7 @@ const MitigationTableDropdownActions = ({
                       mitigationTable.mitigation_plan.id,
                       mitigationTable.mitigation_plan.analysis.result
                     )
-                    : console.log("El id de mitigation_plan es undefined")
+                    : toast.error("Este registro no tiene plan de mitigación asociado.")
                 }
               >
                 {openReportByMitigationId.isPending ? (

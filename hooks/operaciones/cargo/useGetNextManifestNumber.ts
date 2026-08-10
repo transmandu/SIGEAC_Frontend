@@ -30,4 +30,4 @@ export const useGetNextManifestNumber = (
       fetchNextManifestNumber(company, month, year, aircraftId, externalAircraft),
     enabled: !!company && !!month && !!year && (!!aircraftId || !!externalAircraft),
   });
-};
+};

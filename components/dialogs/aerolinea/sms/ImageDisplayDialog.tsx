@@ -46,14 +46,12 @@ function ImageDisplayDialog({
     fileName,
   });
 
-  // Cuando se abre el diálogo, activamos la query
   useEffect(() => {
     if (isOpen && selectedCompany?.slug && fileName) {
       refetch();
     }
   }, [isOpen, selectedCompany?.slug, fileName, refetch]);
 
-  // Manejar la URL local para cleanup
   useEffect(() => {
     if (imageUrl) {
       if (localImageUrl && localImageUrl !== imageUrl) {
@@ -63,7 +61,6 @@ function ImageDisplayDialog({
     }
   }, [imageUrl, localImageUrl]);
 
-  // Cleanup al desmontar
   useEffect(() => {
     return () => {
       if (localImageUrl) {
@@ -78,14 +75,12 @@ function ImageDisplayDialog({
     const link = document.createElement("a");
     link.href = localImageUrl;
 
-    // Extraer solo el nombre del archivo sin la ruta
     let downloadName = fileName;
     if (fileName.includes("/") || fileName.includes("\\")) {
       const parts = fileName.split(/[\/\\]/);
       downloadName = parts[parts.length - 1];
     }
 
-    // Asegurar extensión
     if (!downloadName.includes(".")) {
       downloadName = `${downloadName}.jpg`;
     }

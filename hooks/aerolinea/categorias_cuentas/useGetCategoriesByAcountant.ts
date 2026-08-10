@@ -13,7 +13,7 @@ export const useGetCategoriesByAccountant = (id: string, company?: string) => {
   return useQuery<Category[]>({
     queryKey: ["categories-accountant", id, company],
     queryFn: () => fetchCategoriesByAcountant(id, company),
-    staleTime: 1000 * 60 * 5, // 5 minutos
-    enabled: !!id && !!company, // Solo ejecuta la consulta si hay un ID
+    staleTime: 1000 * 60 * 5,
+    enabled: !!id && !!company,
   })
 }

@@ -27,7 +27,6 @@ const DateFilter = () => {
   const defaultTo = new Date();
   const defaultFrom = subDays(defaultTo, 31);
 
-  // Validar y parsear las fechas
   const paramState = {
     from: from && isValid(parseISO(from)) ? parseISO(from) : defaultFrom,
     to: to && isValid(parseISO(to)) ? parseISO(to) : defaultTo,

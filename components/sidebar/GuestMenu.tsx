@@ -36,7 +36,6 @@ const guestMenuItems = [
 export function GuestMenu({ isOpen }: GuestMenuProps) {
   const pathname = usePathname();
 
-  // Calculate the minimum height for the menu container
   const menuContainerHeight = useMemo(() => {
     return isOpen === undefined
       ? "calc(100vh - 48px - 36px - 16px - 32px)"

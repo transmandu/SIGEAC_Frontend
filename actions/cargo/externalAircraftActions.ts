@@ -3,8 +3,10 @@
 import axiosInstance from "@/lib/axios";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { number, string } from "zod";
 
+// Las aeronaves externas no son una entidad: viven como texto libre en cada
+// guía. Por eso renombrarlas o borrarlas es una operación masiva acotada a un
+// mes/año, que reescribe todas las guías que las mencionan.
 export const useManageExternalAircraft = (company?: string) => {
   const queryClient = useQueryClient();
 

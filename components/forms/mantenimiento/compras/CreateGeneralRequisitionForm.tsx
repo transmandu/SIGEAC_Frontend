@@ -132,7 +132,6 @@ export function CreateGeneralRequisitionForm({
   // Datos validados, en espera de que el usuario confirme los duplicados.
   const [pendingSubmit, setPendingSubmit] = useState<FormSchemaType | null>(null);
 
-  // Local search state for searchable selectors
   const [employeeSearch, setEmployeeSearch] = useState("");
   const [generalArticleSearch, setGeneralArticleSearch] = useState("");
 
@@ -186,10 +185,9 @@ export function CreateGeneralRequisitionForm({
 
   /* ------------------------------- HANDLERS ------------------------------- */
 
-  // Two articles can share a description and variant_type but differ by
-  // brand_model (e.g. same item from two brands, only one with a catalog
-  // image), so identity (and toggle-off matching) must always compare all
-  // three fields together, never description alone.
+  // Dos artículos generales pueden compartir descripción y variante y diferir
+  // solo en la marca, así que la identidad compara siempre los tres campos
+  // juntos — nunca la descripción sola.
   const isSameGeneralArticle = (
     a: { description: string; variant_type?: string | null; brand_model?: string | null },
     b: { description: string; variant_type?: string | null; brand_model?: string | null }
@@ -213,9 +211,9 @@ export function CreateGeneralRequisitionForm({
           quantity: 0,
           unit_id: undefined,
           priority: "MEDIUM",
-          // Prefills the article's existing image so the user isn't forced to
-          // re-upload the same picture; existing_image_path tells the backend
-          // to reuse the stored file instead of treating it as a new upload.
+          // Precarga la imagen que ya tiene el artículo para no obligar a
+          // resubirla: existing_image_path le dice al backend que reutilice
+          // la guardada en vez de tratarla como archivo nuevo.
           image: article.image ?? undefined,
           existing_image_path: getStoragePathFromUrl(article.image),
         },
@@ -237,9 +235,8 @@ export function CreateGeneralRequisitionForm({
     setSelectedGeneralArticles((prev) =>
       prev.map((article, i) => {
         if (i !== index) return article;
-        // Once the user removes the prefilled image or attaches a new file,
-        // it's no longer the catalog's existing image, so the backend must
-        // not be told to reuse the old stored path.
+        // Si el usuario quita la imagen precargada o sube otra, ya no es la del
+        // catálogo: hay que dejar de pedirle al backend que reutilice la vieja.
         if (field === "image") {
           return { ...article, image: value, existing_image_path: undefined };
         }
@@ -296,10 +293,9 @@ export function CreateGeneralRequisitionForm({
       general_articles: data.general_articles.map((article) => ({
         ...article,
         requested_date: article.requested_date ?? new Date().toISOString(),
-        // `image` only carries a File (new upload) or, for preview purposes,
-        // the catalog article's existing URL string — the backend's image
-        // validation rule rejects anything that isn't an actual uploaded
-        // file, so a reused image must travel solely via existing_image_path.
+        // `image` solo lleva un File nuevo, o la URL del catálogo para la vista
+        // previa. El backend rechaza todo lo que no sea archivo subido, así que
+        // una imagen reutilizada viaja únicamente por existing_image_path.
         image: article.image instanceof File ? article.image : undefined,
       })),
     };

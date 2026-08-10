@@ -11,6 +11,9 @@ export type GenerateReceptionFormPayload = {
   download: boolean;
 };
 
+// El flag download (checkbox en la UI) parte el endpoint en dos: con true solo
+// devuelve el PDF del formato H74-036 como blob y no toca los artículos; con
+// false es cuando el backend los pasa a WAITING_TO_LOCATE.
 export function useGenerateIncomingFormat() {
   const { selectedCompany } = useCompanyStore();
   const queryClient = useQueryClient();
@@ -63,7 +66,7 @@ function downloadBlob(blob: Blob, filename: string) {
 
 function filenameFromDisposition(disposition?: string) {
   if (!disposition) return null;
-  // attachment; filename="xxx.pdf"  | filename*=UTF-8''xxx.pdf
+  // El backend puede mandarlo como filename="x.pdf" o filename*=UTF-8''x.pdf.
   const match = /filename\*?=(?:UTF-8''|")?([^;"\n]+)"?/i.exec(disposition);
   return match?.[1] ? decodeURIComponent(match[1]) : null;
 }

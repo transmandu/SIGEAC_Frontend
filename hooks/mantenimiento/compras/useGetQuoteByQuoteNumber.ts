@@ -13,4 +13,4 @@ export const useGetQuoteByQuoteNumber = (company: string | null, quote_number: s
     queryFn: () => fetchQuoteByQuoteNumber(company, quote_number),
     enabled: !!company && !!quote_number,
   });
-};
+};

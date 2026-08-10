@@ -28,7 +28,7 @@ const fetchFlightsByDateRange = async (
   return data;
 };
 
-//IF YOU DO NOT HAVE A DATE RANGE, THIS WILL CALCULATE ALL RECORDS
+// Sin rango de fechas devuelve todo el histórico.
 export const useGetFlightsByDateRange = (
   company?: string,
   acronym?: string,

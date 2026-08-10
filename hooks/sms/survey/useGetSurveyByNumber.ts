@@ -30,7 +30,6 @@ import { useQuery } from "@tanstack/react-query";
   questions: SurveyQuestion[];
 }
 
-// Tipo para la respuesta del hook useGetSurvey
 export type SurveyResponse = Survey;
 const fetchSurveyByNumber = async ({
   survey_number,
@@ -55,7 +54,7 @@ export const useGetSurveyByNumber = ({
   return useQuery<Survey>({
     queryKey: ["survey-by-number", company, survey_number],
     queryFn: () => fetchSurveyByNumber({ survey_number, company }),
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    staleTime: 1000 * 60 * 5,
     enabled: !!company && !!survey_number,
   });
 };

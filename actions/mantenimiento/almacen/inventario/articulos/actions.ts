@@ -125,26 +125,22 @@ export const useCreateArticle = () => {
       company: string;
       data: ArticleData;
     }) => {
-      // 1. CREAMOS EL FORMDATA REAL
+      // Va en multipart por la imagen: los arrays se aplanan con [] y las
+      // fechas se normalizan, porque FormData solo transporta strings y File.
       const formData = new FormData();
 
-      // 2. MAPEAMOS LOS DATOS AL FORMDATA
       Object.entries(data).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
-          // Si el valor es un array (como alternative_part_number), lo metemos uno a uno o como JSON
           if (Array.isArray(value)) {
             value.forEach((item) => formData.append(`${key}[]`, item));
           } else if (value instanceof File) {
-            // Si es un archivo (imagen/certificado), se adjunta tal cual
             formData.append(key, value);
           } else {
-            // Convertimos todo lo demás a string para el envío de formulario
             formData.append(key, serializeFormValue(value));
           }
         }
       });
 
-      // 3. ENVIAMOS EL FORMDATA (Axios pondrá los headers automáticamente)
       return await axiosInstance.post(`/${company}/article`, formData);
     },
     onSuccess: (_, data) => {
@@ -179,7 +175,6 @@ export const useCreateToReviewArticle = () => {
       company: string;
       data: ConsumableArticle | ComponentArticle | ToolArticle;
     }) => {
-      // 1. Convertimos el objeto data a FormData real
       const formData = new FormData();
 
       Object.entries(data).forEach(([key, value]) => {
@@ -194,7 +189,6 @@ export const useCreateToReviewArticle = () => {
         }
       });
 
-      // 2. Enviamos el formData (Axios gestiona los límites automáticamente)
       await axiosInstance.post(`/${company}/article`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
@@ -237,7 +231,9 @@ export const useUploadArticleDocuments = () => {
         }) => {
             if (documents.length === 0) return;
 
-            // 1. Registra los tipos de documento que se esperan del artículo
+            // Dos pasos obligados: primero se declaran los tipos esperados y de
+            // ahí salen los requirements, contra los que se sube cada archivo.
+            // Un tipo sin archivo queda como pendiente, que es lo que se audita.
             const { data } = await axiosInstance.post(
                 `/${company}/articles/${articleId}/document-requirements`,
                 { document_type_ids: documents.map((doc) => doc.typeId) }
@@ -246,7 +242,6 @@ export const useUploadArticleDocuments = () => {
             const requirements: { id: number; article_document_type_id: number }[] =
                 data?.Requirements ?? [];
 
-            // 2. Consigna cada requerimiento que tenga archivo o constancia física
             for (const doc of documents) {
                 if (!doc.file && !doc.isPhysical) continue;
 
@@ -557,7 +552,7 @@ export const useEditArticle = () => {
       });
 
       return await axiosInstance.post(
-        `/${company}/update-article-warehouse/${data.id}`,
+        `/${company}/update-article/${data.id}`,
         formData,
         {
           headers: {

@@ -48,11 +48,11 @@ type ArticleCategory = "CONSUMABLE" | "PART" | "COMPONENT" | "TOOL";
 
 const COST_REPORT_ROLES = ["ANALISTA_ADMINISTRACION", "JEFE_ADMINISTRACION", "SUPERUSER"];
 
-interface DispatchReportDialogProps {
+interface AdministrationDispatchReportDialogProps {
   roleNames?: string[];
 }
 
-export function DispatchReportDialog({ roleNames = [] }: DispatchReportDialogProps) {
+export function AdministrationDispatchReportDialog({ roleNames = [] }: AdministrationDispatchReportDialogProps) {
   const { selectedStation, selectedCompany } = useCompanyStore();
 
   const canSeeCostReport = useMemo(
@@ -67,22 +67,18 @@ export function DispatchReportDialog({ roleNames = [] }: DispatchReportDialogPro
   // el checkbox permite desactivarlo y volver al reporte original.
   const [withCosts, setWithCosts] = useState(canSeeCostReport);
 
-  // ===================== FECHAS =====================
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [endDate, setEndDate] = useState<Date | undefined>();
 
-  // ===================== FILTROS BASE =====================
   const [aircraft, setAircraft] = useState<string | null>(null);
   const [workOrder, setWorkOrder] = useState<string | null>(null);
   const [departmentId, setDepartmentId] = useState<string | null>(null);
   const [authorizedEmployeeId, setAuthorizedEmployeeId] = useState<string | null>(null);
   const [thirdPartyId, setThirdPartyId] = useState<string | null>(null);
 
-  // ===================== TIPO DE DESPACHO =====================
   const [dispatchType, setDispatchType] = useState<DispatchType | null>(null);
   const [articleCategory, setArticleCategory] = useState<ArticleCategory | null>(null);
 
-  // ===================== FILTROS ARTÍCULOS =====================
   const [articleFilters, setArticleFilters] = useState({
     part_number: "",
     alternative_part_number: "",
@@ -96,7 +92,6 @@ export function DispatchReportDialog({ roleNames = [] }: DispatchReportDialogPro
   const { mutateAsync: getDispatchCostReport } = useGetDispatchCostReport();
   const { mutateAsync: getBalance } = useGetBalanceAndTotalReport();
 
-  // ===================== DATA =====================
   const { data: aircrafts, isLoading: isLoadingAircrafts } =
     useGetAircrafts(selectedCompany?.slug);
 
@@ -122,7 +117,6 @@ export function DispatchReportDialog({ roleNames = [] }: DispatchReportDialogPro
   const { data: thirdParties, isLoading: isLoadingThirdParties } =
     useGetThirdParties();
 
-  // ===================== ARTÍCULOS =====================
   const { data: articlesByStatus = [], isLoading: isLoadingArticles } =
     useGetArticlesByStatus("STORED");
 
@@ -131,7 +125,6 @@ export function DispatchReportDialog({ roleNames = [] }: DispatchReportDialogPro
 
   const allArticles = [...articlesByStatus, ...generalArticles];
 
-  // ===================== VALIDACIÓN FECHAS =====================
   const isDateRangeInvalid =
     !!startDate &&
     !!endDate &&
@@ -177,7 +170,6 @@ export function DispatchReportDialog({ roleNames = [] }: DispatchReportDialogPro
     }
   }, [withCosts, activeTab]);
 
-  // ===================== PARAMS =====================
   const selectedWorkOrder = workOrders?.find((ot) => ot.work_order === workOrder);
 
   const buildParams = () => ({
@@ -195,7 +187,6 @@ export function DispatchReportDialog({ roleNames = [] }: DispatchReportDialogPro
     from: format(startDate!, "yyyy-MM-dd"),
     to: format(endDate!, "yyyy-MM-dd"),
 
-    // ===================== ARTÍCULOS =====================
     part_number: articleFilters.part_number || undefined,
     alternative_part_number: articleFilters.alternative_part_number || undefined,
     description: articleFilters.description || undefined,
@@ -228,7 +219,6 @@ export function DispatchReportDialog({ roleNames = [] }: DispatchReportDialogPro
     brand_model: articleFilters.brand_model || undefined,
   });
 
-  // ===================== DOWNLOAD: REPORTE CON COSTOS (.xlsx) =====================
   const handleDownloadCostReport = async () => {
     if (!canDownload || loadingDownload) return;
 
@@ -254,7 +244,6 @@ export function DispatchReportDialog({ roleNames = [] }: DispatchReportDialogPro
     }
   };
 
-  // ===================== DOWNLOAD =====================
   const handleDownload = async (type: "dispatch" | "balance") => {
     if (!canDownload || loadingDownload) return;
 

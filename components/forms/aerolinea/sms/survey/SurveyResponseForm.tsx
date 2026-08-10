@@ -1,4 +1,3 @@
-// components/survey/SurveyResponseForm.tsx
 "use client";
 
 import { useCreateSurveyAnswers } from "@/actions/sms/survey/actions";
@@ -44,7 +43,6 @@ type SurveyResponseType = {
     }[];
 };
 
-// Componente principal
 export default function SurveyResponseForm() {
     const params = useParams();
     const company = params.company as string;
@@ -62,13 +60,11 @@ export default function SurveyResponseForm() {
         company,
     });
 
-    // Hook para validación de email (usuarios anónimos)
     const emailValidation = useEmailValidation(
         survey?.id?.toString() || "",
         company
     );
 
-    // Hook para verificar si el usuario autenticado ya respondió
     // Reutilizamos useGetEmailCompletedSurvey pasando el username como identificador
     // El backend busca en columnas email OR user_id, por lo que funciona para ambos casos
     const { data: authUserHasCompleted, isLoading: authCheckLoading } = useGetEmailCompletedSurvey({
@@ -86,7 +82,6 @@ export default function SurveyResponseForm() {
     const [showResults, setShowResults] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
 
-    // Crear esquema de validación
     const surveyResponseSchema = survey
         ? createSurveyValidator(survey, user, emailValidation)
         : z.object({
@@ -118,7 +113,6 @@ export default function SurveyResponseForm() {
         mode: "onChange",
     });
 
-    // Sincronizar el email del formulario con el hook de validación
     useEffect(() => {
         const subscription = form.watch((value, { name }) => {
             if (name === "email" && value.email) {
@@ -128,7 +122,6 @@ export default function SurveyResponseForm() {
         return () => subscription.unsubscribe();
     }, [form, emailValidation]);
 
-    // Inicializar formulario cuando survey esté listo
     useEffect(() => {
         if (survey?.questions && !isSubmitted) {
             const responses = survey.questions.map((question: any) => ({
@@ -247,7 +240,6 @@ export default function SurveyResponseForm() {
     );
 }
 
-// Componentes auxiliares pequeños
 function LoadingState() {
     return (
         <div className="flex justify-center items-center min-h-[400px]">
@@ -313,7 +305,6 @@ function SuccessState({
                 <p className="text-green-700 mb-4">Revisa tus resultados.</p>
                 <div className="flex gap-4 sm:flex-col items-center justify-center">
                     <Button
-                        // Cuando se hace clic, debe abrir el diálogo de resultados
                         onClick={() => onShowResultsChange(true)}
                         variant="default"
                         className="bg-green-600 text-white hover:bg-green-700"

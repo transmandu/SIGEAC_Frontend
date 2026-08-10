@@ -171,7 +171,6 @@ export default function CreateDangerIdentificationForm({
     }
   }, [initialData]);
 
-  // --- DEFENSAS ---
   const addDefense = () => {
     if (newDefense.trim()) {
       const updated = [...defenses, newDefense.trim()];
@@ -192,7 +191,6 @@ export default function CreateDangerIdentificationForm({
     }
   };
 
-  // --- CONSECUENCIAS ---
   const addConsequence = () => {
     if (newConsequence.trim()) {
       const updated = [...consequences, newConsequence.trim()];
@@ -213,7 +211,6 @@ export default function CreateDangerIdentificationForm({
     }
   };
 
-  // --- ANÁLISIS ---
   const addAnalysis = () => {
     if (newAnalysis.trim()) {
       const updated = [...analyses, newAnalysis.trim()];
@@ -234,11 +231,9 @@ export default function CreateDangerIdentificationForm({
     }
   };
 
-  // --- ENVÍO ---
   const onSubmit = async (data: FormSchemaType) => {
     try {
       if (initialData && isEditing) {
-        // Actualización
         await updateDangerIdentification.mutateAsync({
           company: selectedCompany!.slug,
           id: initialData.id.toString(),
@@ -246,7 +241,6 @@ export default function CreateDangerIdentificationForm({
         });
         onClose?.();
       } else {
-        // Creación
         const response = await createDangerIdentification.mutateAsync({
           company: selectedCompany!.slug,
           id, // id del reporte padre

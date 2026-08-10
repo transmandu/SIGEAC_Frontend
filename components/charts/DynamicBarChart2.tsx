@@ -15,7 +15,6 @@ import { useState } from "react";
 import { COLORS } from "@/lib/utils";
 import { TickItem } from "recharts/types/util/types";
 
-// Definición de la interfaz para las props del componente
 interface DynamicBarChartProps {
   data: pieChartData[];
   title?: string;
@@ -69,7 +68,6 @@ const CustomizedAxisTick = ({
     </g>
   );
 };
-// Array de colores para las barras
 
 const DynamicBarChart = ({
   data,

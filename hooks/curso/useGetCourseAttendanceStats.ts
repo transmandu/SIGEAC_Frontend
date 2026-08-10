@@ -20,9 +20,9 @@ const fetchCourseAttendanceStats = async (course_id: string, company?: string) =
 export const useGetCourseAttendanceStats = (course_id: string) => {
   const { selectedCompany } = useCompanyStore();
   return useQuery<CourseAttendanceStats>({
-    queryKey: ["course-attendance-stats",course_id], // Incluye el ID en la clave de la query
-    queryFn: () => fetchCourseAttendanceStats(course_id, selectedCompany?.slug), // Pasa el ID a la función fetchUser
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    queryKey: ["course-attendance-stats",course_id],
+    queryFn: () => fetchCourseAttendanceStats(course_id, selectedCompany?.slug),
+    staleTime: 1000 * 60 * 5,
     enabled: !!selectedCompany?.slug,
   });
 };

@@ -50,8 +50,6 @@ interface FormProps {
     initialData?: VoluntaryReport;
     isEditing?: boolean;
 }
-// { onClose }: FormProps
-// lo de arriba va en prop
 export function CreateGeneralVoluntaryReportForm({
     onClose,
     isEditing,
@@ -136,7 +134,6 @@ export function CreateGeneralVoluntaryReportForm({
                 "Solo se permiten archivos PDF"
             )
             .optional(),
-        // Otros campos del esquema@/components.
     });
 
     type FormSchemaType = z.infer<typeof FormSchema>;
@@ -171,7 +168,6 @@ export function CreateGeneralVoluntaryReportForm({
                 ? addDays(new Date(initialData.report_date), 1)
                 : new Date(),
 
-            // Campos del reporter - solo se asignan si existen en initialData
             ...(initialData?.reporter_name && {
                 reporter_name: initialData.reporter_name,
             }),
@@ -188,7 +184,6 @@ export function CreateGeneralVoluntaryReportForm({
     });
 
     const onSubmit = async (data: FormSchemaType) => {
-        //console.log("DATA THIS IS THE DATA FROM SUBMIT RVP", data);
         if (isAnonymous) {
             data.reporter_name = "";
             data.reporter_last_name = "";
@@ -218,9 +213,6 @@ export function CreateGeneralVoluntaryReportForm({
             try {
                 await createVoluntaryReport.mutateAsync(value);
                 router.push(`${process.env.NEXT_PUBLIC_URL}login`);
-                // router.push(
-                //   `localhost:3000/acceso_publico/${company}}/sms/crear_reporte/voluntario`
-                // );
             } catch (error) {
                 console.error("Error al crear el reporte:", error);
             }
@@ -470,10 +462,9 @@ export function CreateGeneralVoluntaryReportForm({
                     <Checkbox
                         checked={isAnonymous}
                         onCheckedChange={(checked) => {
-                            // Asegurarse de que el valor sea un booleano
+                            // El Checkbox puede emitir "indeterminate", no solo boolean.
                             if (typeof checked === "boolean") {
                                 setIsAnonymous(checked);
-                                console.log(checked);
                             }
                         }}
                         value={isAnonymous.toString()} // Convertimos el booleano a string

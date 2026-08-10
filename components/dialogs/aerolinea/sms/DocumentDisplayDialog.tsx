@@ -28,7 +28,6 @@ function DocumentDisplayDialog({
 
   const actualFileName = typeof fileName === "string" ? fileName.trim() : null;
 
-  // Hook para documentos privados - siempre se inicializa pero no se ejecuta hasta que se necesite
   const {
     data: privateDocumentUrl,
     isLoading,
@@ -40,7 +39,6 @@ function DocumentDisplayDialog({
     enabled: !isPublic && isOpen,
   });
 
-  // Generar URL para documentos públicos
   const getPublicDocumentUrl = (): string => {
     if (!actualFileName) return "";
     const baseUrl = process.env.NEXT_PUBLIC_STORAGE_BASE_URL || "";
@@ -50,7 +48,6 @@ function DocumentDisplayDialog({
     return `${baseUrl}${cleanFileName}`;
   };
 
-  // Refetch cuando se abre para documentos privados
   useEffect(() => {
     if (
       isOpen &&
@@ -75,7 +72,6 @@ function DocumentDisplayDialog({
     hasFetched,
   ]);
 
-  // Determinar la URL a usar
   const documentUrl = isPublic
     ? getPublicDocumentUrl()
     : isOpen

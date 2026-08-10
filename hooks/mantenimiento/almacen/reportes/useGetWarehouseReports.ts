@@ -1,4 +1,3 @@
-// hooks/useInventoryExport.ts
 "use client";
 import axiosInstance from "@/lib/axios";
 import { useCompanyStore } from "@/stores/CompanyStore";
@@ -52,9 +51,8 @@ export function useInventoryExport(): UseInventoryExportReturn {
       part_number: p.search?.trim() || undefined,
       date_from: p.dateFrom || undefined,
       date_to: p.dateTo || undefined,
-      ...p.filters, // condition, group, etc.
+      ...p.filters,
     };
-    // limpia null/undefined
     Object.keys(params).forEach(
       (k) => (params[k] == null || params[k] === "") && delete params[k]
     );

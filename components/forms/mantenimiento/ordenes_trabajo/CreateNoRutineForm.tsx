@@ -74,7 +74,6 @@ const CreateNoRutineForm = ({ id, onClose }: { id: string, onClose: () => void }
   const needsTask = form.watch('nonRoutine.needs_task')
 
   const nextStep = async () => {
-    // Validar el paso actual antes de avanzar
     if (step === 1) {
       const valid = await form.trigger('nonRoutine')
       if (!valid) return

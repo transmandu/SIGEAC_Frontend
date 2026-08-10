@@ -16,7 +16,7 @@ export const useGetNewReports = (company?: string) => {
   return useQuery<NewReports>({
     queryKey: ["new-reports", company],
     queryFn: () => fetchNewReports(company),
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    staleTime: 1000 * 60 * 5,
     enabled: !!company,
   });
 };

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCreateErrorReport } from "@/hooks/sistema/reportes/useCreateErrorReport";
+import { useCreateErrorReport } from "@/actions/sistema/reportes/actions";
 import {
   Form,
   FormControl,

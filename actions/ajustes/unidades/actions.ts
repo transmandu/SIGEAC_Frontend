@@ -55,8 +55,7 @@ export const useUpdateUnit = () => {
       queryClient.invalidateQueries({
         queryKey: ["units", selectedCompany?.slug],
       });
-      // Las conversiones muestran el label/value de sus unidades, así que
-      // renombrar una primaria desactualiza también esa tabla.
+      // Las conversiones muestran el label de su unidad: renombrarla las desactualiza.
       queryClient.invalidateQueries({
         queryKey: ["secondary-units", selectedCompany?.slug],
       });

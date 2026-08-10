@@ -14,7 +14,9 @@ const fetchDailyActivity = async ({
   const { data } = await axiosInstance.get(`/${company}/daily-activities`, {
     params: { date, user_id }
   });
-  if (!data[0]) throw new Error("No se encontró el reporte diario"); // Mejor manejo de casos vacíos
+  // El endpoint devuelve array vacío en vez de 404; se convierte en error para
+  // distinguir "no hay reporte" de un fallo real (ver retry más abajo).
+  if (!data[0]) throw new Error("No se encontró el reporte diario");
   return data[0];
 };
 
@@ -28,15 +30,15 @@ export const useGetDailyActivityReport = ({
   company?: string
 }) => {
   return useQuery<ActivityReport>({
-    queryKey: ["daily-activity", date, user_id], // Incluye todos los parámetros en la clave
-    queryFn: () => fetchDailyActivity({ date, user_id }),
-    enabled: !!user_id && !!date && !!company, // Habilita solo si tenemos ambos valores
+    queryKey: ["daily-activity", date, user_id, company],
+    queryFn: () => fetchDailyActivity({ date, user_id, company }),
+    enabled: !!user_id && !!date && !!company,
+    // "No hay reporte" no se reintenta: reintentar no lo haría aparecer.
     retry: (failureCount, error) => {
-      // No reintentar para errores 404 (no encontrado)
       return error.message !== "No se encontró el reporte diario" && failureCount < 2;
     },
-    staleTime: 5 * 60 * 1000, // Datos frescos por 5 minutos
-    gcTime: 10 * 60 * 1000, // Mantener en caché por 10 minutos
-    refetchOnWindowFocus: false // Evita recargas innecesarias
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false 
   });
 };

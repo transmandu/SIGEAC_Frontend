@@ -10,6 +10,9 @@ import { toast } from "sonner";
  *
  * `type` distingue el tipo de artículo; `id` es el general_article_id o, para
  * consumibles, el article_id (igual que el resto del módulo de almacén).
+ *
+ * Vive en hooks/ pese a incluir mutaciones: la lectura y su CRUD se usan
+ * siempre juntos desde el mismo diálogo.
  */
 export type ConvertibleType = "general-articles" | "consumables";
 

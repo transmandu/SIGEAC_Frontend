@@ -13,7 +13,7 @@ export const useGetFlightById = (id: string, company?: string) => {
   return useQuery<Flight>({
     queryKey: ["flights", id, company],
     queryFn: () => fetchFlightsById(id, company),
-    staleTime: 1000 * 60 * 5, // 5 minutos
-    enabled: !!id, // Solo ejecuta la consulta si hay un ID
+    staleTime: 1000 * 60 * 5,
+    enabled: !!id,
   })
 }

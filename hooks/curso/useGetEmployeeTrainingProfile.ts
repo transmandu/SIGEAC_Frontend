@@ -5,9 +5,6 @@ export const useGetEmployeeTrainingProfile = (company: string | undefined, dni: 
   return useQuery({
     queryKey: ["employee-training-profile", company, dni],
     queryFn: async () => {
-      // The prefix might be /general/{company} or just /{company}
-      // According to backend route: Route::get('/{company}/employee-training-profile/{dni}', ...)
-      // With the 'general' prefix from the group: /general/{company}/employee-training-profile/{dni}
       const { data } = await axiosInstance.get(`/general/${company}/employee-training-profile/${dni}`);
       return data;
     },

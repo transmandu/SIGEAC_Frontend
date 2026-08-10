@@ -1,6 +1,6 @@
 "use client"
 
-import { useCreateUser } from "@/actions/aerolinea/usuarios/actions";
+import { useCreateUser } from "@/actions/sistema/usuarios/actions";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -148,7 +148,6 @@ export function CreateUserFromEmployeeForm({ defaultValues, onSubmit }: CreateUs
     );
   };
 
-  // Usar useEffect para actualizar el valor del formulario
   useEffect(() => {
     form.setValue('roles', selectedRoles);
   }, [selectedRoles, form]);
@@ -321,17 +320,16 @@ export function CreateUserFromEmployeeForm({ defaultValues, onSubmit }: CreateUs
               control={form.control}
               name="companies_locations"
               render={({ field }) => {
+                // El valor es una lista de { companyID, locationID[] }: una
+                // empresa desaparece de la lista al quedarse sin ubicaciones.
                 const handleLocationChange = (companyID: number, locationID: number, isSelected: boolean | string) => {
-                  // Parse the current value or initialize it
                   const currentValue = field.value || [];
 
-                  // Find the company entry in the array
                   const companyIndex = currentValue.findIndex(
                     (item) => item.companyID === companyID
                   );
 
                   if (companyIndex === -1 && isSelected) {
-                    // Add a new company with the location if it doesn't exist
                     currentValue.push({
                       companyID,
                       locationID: [locationID],
@@ -339,24 +337,20 @@ export function CreateUserFromEmployeeForm({ defaultValues, onSubmit }: CreateUs
                   } else if (companyIndex !== -1) {
                     const company = currentValue[companyIndex];
                     if (isSelected) {
-                      // Add the locationID if it's not already included
                       if (!company.locationID.includes(locationID)) {
                         company.locationID.push(locationID);
                       }
                     } else {
-                      // Remove the locationID if deselected
                       company.locationID = company.locationID.filter(
                         (id) => id !== locationID
                       );
 
-                      // Remove the company entry if no locations are left
                       if (company.locationID.length === 0) {
                         currentValue.splice(companyIndex, 1);
                       }
                     }
                   }
 
-                  // Update the form state
                   field.onChange([...currentValue]);
                 };
 

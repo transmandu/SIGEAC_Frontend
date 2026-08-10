@@ -9,6 +9,9 @@ export interface ItemState {
   removed: boolean;
 }
 
+// Estado local del editor de manifiesto: nada se persiste hasta que el diálogo
+// llama a la mutación. Peso y unidades no son independientes — van ligados por
+// weightPerUnit, así que tocar uno recalcula el otro.
 export function useManifestEditor(manifest: CargoManifest) {
   const [itemStates, setItemStates] = useState<Map<number, ItemState>>(() => {
     const map = new Map<number, ItemState>();
@@ -31,6 +34,8 @@ export function useManifestEditor(manifest: CargoManifest) {
     maxAvailableUnits: number,
     weightPerUnit: number,
   ) => {
+    // El peso se ajusta al múltiplo de unidades más cercano: no se puede
+    // manifestar media caja, así que lo tecleado se cuantiza.
     const calculatedUnits = Math.max(1, Math.round(value / weightPerUnit));
 
     setItemStates((prev) => {
@@ -133,6 +138,8 @@ export function useManifestEditor(manifest: CargoManifest) {
     });
   };
 
+  // Un manifiesto mezcla ítems de varias guías; la UI los presenta agrupados
+  // por guía, no en la lista plana que devuelve el backend.
   const shipmentGroups = useMemo(() => {
     const groups = new Map<
       number,

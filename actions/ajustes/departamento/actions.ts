@@ -9,9 +9,6 @@ interface DepartmentFormSchema {
   company?: string
 }
 
-/* =========================
-   CREATE
-========================= */
 export const useCreateDepartment = () => {
   const queryClient = useQueryClient()
 
@@ -37,9 +34,6 @@ export const useCreateDepartment = () => {
   return { createDepartment: createMutation }
 }
 
-/* =========================
-   UPDATE (CORREGIDO)
-========================= */
 export const useUpdateDepartment = () => {
   const queryClient = useQueryClient()
 
@@ -72,9 +66,6 @@ export const useUpdateDepartment = () => {
   return { updateDepartment: updateMutation }
 }
 
-/* =========================
-   DELETE
-========================= */
 export const useDeleteDepartment = () => {
   const queryClient = useQueryClient()
 

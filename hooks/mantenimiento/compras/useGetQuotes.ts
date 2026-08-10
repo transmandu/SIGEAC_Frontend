@@ -16,4 +16,4 @@ export const useGetQuotes = (companyId: string | null, locationId: string | null
     enabled: !!companyId && !!locationId,
     staleTime: 1000 * 60 * 2,
   });
-};
+};

@@ -102,9 +102,7 @@ export const useDeleteWorkOrder = () => {
   };
 };
 
-// ─────────────────────────────────────────────────────
-// UPDATE WORK ORDER (campos principales)
-// ─────────────────────────────────────────────────────
+// Edita la cabecera de la orden. Las tareas se editan una a una más abajo.
 interface UpdateWOData {
   description?: string;
   elaborated_by?: string;
@@ -156,9 +154,6 @@ export const useUpdateWorkOrder = () => {
   return { updateWorkOrder: updateMutation };
 };
 
-// ─────────────────────────────────────────────────────
-// UPDATE WORK ORDER TASK (editar tarea individual)
-// ─────────────────────────────────────────────────────
 interface UpdateWOTaskData {
   description_task?: string;
   ata?: string;
@@ -192,9 +187,6 @@ export const useUpdateWorkOrderTask = () => {
   return { updateWorkOrderTask: updateTaskMutation };
 };
 
-// ─────────────────────────────────────────────────────
-// DELETE WORK ORDER TASK (eliminar tarea)
-// ─────────────────────────────────────────────────────
 export const useDeleteWorkOrderTask = () => {
   const queryClient = useQueryClient();
 
@@ -223,9 +215,6 @@ export const useDeleteWorkOrderTask = () => {
   return { deleteWorkOrderTask: deleteTaskMutation };
 };
 
-// ─────────────────────────────────────────────────────
-// ADD WORK ORDER TASK (agregar tarea nueva a orden existente)
-// ─────────────────────────────────────────────────────
 interface AddWOTaskData {
   description_task: string;
   ata: string;
@@ -268,7 +257,6 @@ export const useAddWorkOrderTask = () => {
   return { addWorkOrderTask: addTaskMutation };
 };
 
-// Agrega esta interfaz y este hook NUEVO al final del archivo actions.ts
 
 export const useCloseWorkOrder = () => {
   const queryClient = useQueryClient();

@@ -43,8 +43,7 @@ export const useUpdateRequisition = () => {
   const updateMutation = useMutation({
     mutationFn: async ({ data, id, company }: { id: string | number, data: CreateRequisitionData, company: string }) => {
       const formData = buildRequisitionFormData(data)
-      // Laravel can't parse multipart bodies on a native PUT request, so the
-      // method is spoofed via _method and sent as POST instead.
+      // multipart no admite PUT real: se envía POST y Laravel lo reinterpreta con _method.
       formData.append('_method', 'PUT')
       await axiosInstance.post(`/${company}/requisition-order/${id}`, formData, {
         headers: {
@@ -149,10 +148,8 @@ export const useDeleteRequisition = () => {
   }
 }
 
-// Solo SUPERUSER (ver gating en el dropdown de acciones). Elimina la
-// requisición completa junto con todas sus cotizaciones (incluyendo
-// complementarias) y las órdenes de compra generadas por ellas, revirtiendo
-// cualquier inventario ya afectado (Articles, stock de artículos generales).
+// Solo SUPERUSER. Arrastra toda la cadena aguas abajo (cotizaciones,
+// complementarias y órdenes de compra), revirtiendo el inventario ya afectado.
 export const useCascadeDeleteRequisition = () => {
   const queryClient = useQueryClient()
 

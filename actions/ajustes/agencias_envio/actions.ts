@@ -16,7 +16,6 @@ export interface UpdateShippingAgencySchema extends CreateShippingAgencySchema {
   id: number
 }
 
-// Crear agencia de envío
 
 export const useCreateShippingAgency = (companySlug?: string) => {
   const queryClient = useQueryClient()
@@ -44,7 +43,6 @@ export const useCreateShippingAgency = (companySlug?: string) => {
   })
 }
 
-// Actualizar agencia de envío
 
 export const useUpdateShippingAgency = (companySlug?: string) => {
   const queryClient = useQueryClient()
@@ -72,7 +70,6 @@ export const useUpdateShippingAgency = (companySlug?: string) => {
   })
 }
 
-// Eliminar agencia de envío
 
 export const useDeleteShippingAgency = (companySlug?: string) => {
   const queryClient = useQueryClient()

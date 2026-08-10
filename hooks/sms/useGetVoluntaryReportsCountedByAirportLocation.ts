@@ -21,9 +21,9 @@ export const useGetVoluntaryReportsCountedByAirportLocation = (
   return useQuery<pieChartData[]>({
     queryKey: [
       "voluntary-reports-counted-by-airport-location",
-    ], // Incluye el ID en la clave de la query
+    ],
     queryFn: () =>
-      fetcVoluntaryReportsCountedByAirportLocation(company, from, to), // Pasa el ID a la función fetchUser
-    staleTime: 1000 * 60 * 5, // 5 minutos
+      fetcVoluntaryReportsCountedByAirportLocation(company, from, to),
+    staleTime: 1000 * 60 * 5,
   });
 };

@@ -52,7 +52,6 @@ export function EditAccountantForm({
       category: accountant?.category?.id.toString(),
     },
   });
-  //prueba a ver
   const OnSubmit = async (formData: FormSchemaType) => {
     const data = {
       id: accountant.id.toString(),

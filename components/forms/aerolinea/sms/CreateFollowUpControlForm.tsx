@@ -90,7 +90,6 @@ export default function CreateFollowUpControlForm({ onClose, id }: FormProps) {
         mitigation_measure_id: id,
       },
     };
-    console.log(values);
     await createFollowUpControl.mutateAsync(values);
 
     onClose();

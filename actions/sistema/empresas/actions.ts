@@ -7,9 +7,6 @@ import {
 
 import { toast } from "sonner"
 
-/* =========================
-CREATE
-========================= */
 export const useCreateCompany = () => {
   const queryClient = useQueryClient()
 
@@ -42,9 +39,6 @@ export const useCreateCompany = () => {
   }
 }
 
-/* =========================
-UPDATE
-========================= */
 export const useUpdateCompany = () => {
   const queryClient = useQueryClient()
 
@@ -79,9 +73,6 @@ export const useUpdateCompany = () => {
   return { updateCompany: updateMutation }
 }
 
-/* =========================
-SYNC MODULES
-========================= */
 export const useSyncCompanyModules = () => {
   const queryClient = useQueryClient()
 
@@ -118,9 +109,6 @@ export const useSyncCompanyModules = () => {
   return { syncCompanyModules: syncMutation }
 }
 
-/* =========================
-DELETE
-========================= */
 export const useDeleteCompany = () => {
   const queryClient = useQueryClient()
 

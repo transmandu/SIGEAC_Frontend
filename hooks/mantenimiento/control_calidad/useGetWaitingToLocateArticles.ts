@@ -13,7 +13,7 @@ export const useGetWaitingToLocateArticles = () => {
   return useQuery<IncomingArticle[]>({
     queryKey: ['waiting-to-locate-articles', selectedCompany?.slug],
     queryFn: () => fetchToLocateArticles(selectedCompany?.slug),
-    staleTime: 1000 * 60 * 5, // 5 minutos
-    enabled: !!selectedCompany?.slug, // Solo ejecutar si el slug de la empresa está disponible
+    staleTime: 1000 * 60 * 5,
+    enabled: !!selectedCompany?.slug,
   });
 };

@@ -36,8 +36,7 @@ interface EditingState {
     isEditingSurveyInfo: boolean;
 }
 
-// ─── ToggleGroup ────────────────────────────────────────────────────────────
-// Defined outside the parent to avoid re-creation on every render
+// Vive fuera del padre para no recrearse en cada render.
 function ToggleGroup<T extends string>({
     options,
     value,
@@ -68,8 +67,8 @@ function ToggleGroup<T extends string>({
     );
 }
 
-// ─── QuestionEditor ──────────────────────────────────────────────────────────
-// Defined OUTSIDE SurveyQuestionsManager so React never unmounts it on re-render
+// Vive fuera de SurveyQuestionsManager a propósito: definido dentro, React lo
+// trataría como componente nuevo en cada render y el input perdería el foco.
 interface QuestionEditorProps {
     surveyType: "QUIZ" | "SURVEY";
     questionText: string;
@@ -215,7 +214,6 @@ function QuestionEditor({
     );
 }
 
-// ─── SurveyQuestionsManager ──────────────────────────────────────────────────
 export function SurveyQuestionsManager({ surveyData, onClose }: Props) {
     const isReadOnly = (surveyData.answers_count ?? 0) > 0;
 
@@ -232,12 +230,10 @@ export function SurveyQuestionsManager({ surveyData, onClose }: Props) {
 
     const [expandedQuestions, setExpandedQuestions] = useState<Set<string>>(new Set());
 
-    // Survey info form state
     const [surveyTitle, setSurveyTitle] = useState(surveyData.title);
     const [surveyDescription, setSurveyDescription] = useState(surveyData.description);
     const [surveyType, setSurveyType] = useState<"QUIZ" | "SURVEY">(surveyData.type);
 
-    // Question form state — lifted here, passed down to QuestionEditor
     const [questionText, setQuestionText] = useState("");
     const [questionType, setQuestionType] = useState<"SINGLE" | "MULTIPLE" | "OPEN">("SINGLE");
     const [questionRequired, setQuestionRequired] = useState(true);
@@ -302,7 +298,6 @@ export function SurveyQuestionsManager({ surveyData, onClose }: Props) {
             });
             cancelEdit();
         } catch {
-            // Error already handled by onError in the hook (toast shown)
         }
     };
 
@@ -317,7 +312,6 @@ export function SurveyQuestionsManager({ surveyData, onClose }: Props) {
                     question_id: Number(questionId),
                 });
             } catch {
-                // Error already handled by onError in the hook
             }
         }
     };
@@ -340,7 +334,6 @@ export function SurveyQuestionsManager({ surveyData, onClose }: Props) {
             });
             cancelEdit();
         } catch {
-            // Error already handled by onError in the hook
         }
     };
 
@@ -355,11 +348,9 @@ export function SurveyQuestionsManager({ surveyData, onClose }: Props) {
             });
             setEditing({ ...editing, isEditingSurveyInfo: false });
         } catch {
-            // Error already handled by onError in the hook
         }
     };
 
-    // Shared props for QuestionEditor
     const editorProps: Omit<QuestionEditorProps, "onSave" | "onCancel" | "saveLabel" | "isNew"> = {
         surveyType,
         questionText,

@@ -13,7 +13,7 @@ export const useGetConditions = () => {
   return useQuery<Condition[]>({
     queryKey: ["conditions"],
     queryFn: () => fetchConditions(selectedCompany?.slug),
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    staleTime: 1000 * 60 * 5,
     enabled: !!selectedCompany,
   });
 };

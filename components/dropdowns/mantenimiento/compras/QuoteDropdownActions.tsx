@@ -26,7 +26,6 @@ import {
   Trash2
 } from "lucide-react"
 import type { Quote } from "@/types/purchase"
-// import { PDFDownloadLink } from "@react-pdf/renderer"
 import QuoteDropdownDialogs from "@/components/dialogs/mantenimiento/compras/QuoteDropdownDialogs"
 import PurchaseOrderMenuLink from "@/components/dropdowns/mantenimiento/compras/PurchaseOrderMenuLink"
 import CreateComplementaryQuoteDialog from "@/app/[company]/compras/(general)/cotizaciones_generales/[quote_number]/_components/CreateComplementaryQuoteDialog"
@@ -173,13 +172,7 @@ const QuoteDropdownActions = ({ quote }: { quote: Quote }) => {
               </Tooltip>
             )}
 
-            {/* PDF */}
-            {/* <PDFDownloadLink
-              fileName={`${quote.quote_number}.pdf`}
-              document={
-                < quote={quote} />
-              }
-            > */}
+            {/* Descarga del PDF pendiente de implementar. */}
               <Tooltip>
                 <TooltipTrigger asChild>
                   <DropdownMenuItem
@@ -201,7 +194,6 @@ const QuoteDropdownActions = ({ quote }: { quote: Quote }) => {
                   ¡Próximamente!
                 </TooltipContent>
               </Tooltip>
-            {/* </PDFDownloadLink> */}
 
             {/* COMPLEMENTARY QUOTE */}
             {canCreateComplementary && (

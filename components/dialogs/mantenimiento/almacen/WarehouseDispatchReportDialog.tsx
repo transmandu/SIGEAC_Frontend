@@ -45,7 +45,7 @@ import { Department } from "@/types";
 type DispatchType = "aeronautical" | "general";
 type ArticleCategory = "CONSUMABLE" | "PART" | "COMPONENT" | "TOOL";
 
-export function DispatchReportDialog() {
+export function WarehouseDispatchReportDialog() {
   const { selectedStation, selectedCompany } = useCompanyStore();
   const { user } = useAuth();
 
@@ -59,22 +59,18 @@ export function DispatchReportDialog() {
   const [open, setOpen] = useState(false);
   const [loadingDownload, setLoadingDownload] = useState(false);
 
-  // ===================== FECHAS =====================
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [endDate, setEndDate] = useState<Date | undefined>();
 
-  // ===================== FILTROS BASE =====================
   const [aircraft, setAircraft] = useState<string | null>(null);
   const [workOrder, setWorkOrder] = useState<string | null>(null);
   const [departmentId, setDepartmentId] = useState<string | null>(null);
   const [authorizedEmployeeId, setAuthorizedEmployeeId] = useState<string | null>(null);
   const [thirdPartyId, setThirdPartyId] = useState<string | null>(null);
 
-  // ===================== TIPO DE DESPACHO =====================
   const [dispatchType, setDispatchType] = useState<DispatchType | null>(null);
   const [articleCategory, setArticleCategory] = useState<ArticleCategory | null>(null);
 
-  // ===================== FILTROS ARTÍCULOS =====================
   const [articleFilters, setArticleFilters] = useState({
     part_number: "",
     alternative_part_number: "",
@@ -89,7 +85,6 @@ export function DispatchReportDialog() {
   const { mutateAsync: getDispatch } = useGetDispatchReport();
   const { mutateAsync: getBalance } = useGetBalanceAndTotalReport();
 
-  // ===================== DATA =====================
   const { data: aircrafts, isLoading: isLoadingAircrafts } =
     useGetAircrafts(selectedCompany?.slug);
 
@@ -113,20 +108,19 @@ export function DispatchReportDialog() {
   const { data: thirdParties, isLoading: isLoadingThirdParties } =
     useGetThirdParties();
 
-  // ===================== ARTÍCULOS =====================
   const { data: articlesByStatus = [], isLoading: isLoadingArticles } =
     useGetArticlesByStatus("STORED");
 
   const { data: generalArticles = [], isLoading: isLoadingGeneralArticles } =
     useGetGeneralArticles();
 
-  // 🔥 UNIFICACIÓN DE FUENTES
+  // Aeronáuticos y generales son dos tablas distintas en el backend; el reporte
+  // los trata como una sola lista.
   const allArticles = [...articlesByStatus, ...generalArticles];
 
   const { data: workOrders = [], isLoading: isLoadingWorkOrders } =
     useGetDispatchWorkOrders(selectedCompany?.slug);
 
-  // ===================== VALIDACIÓN FECHAS =====================
   const isDateRangeInvalid =
     !!startDate &&
     !!endDate &&
@@ -164,7 +158,6 @@ export function DispatchReportDialog() {
     }
   }, [open]);
 
-  // ===================== PARAMS =====================
   const buildParams = () => ({
     location_id: selectedStation!,
     company: selectedCompany!.slug,
@@ -180,7 +173,6 @@ export function DispatchReportDialog() {
     from: format(startDate!, "yyyy-MM-dd"),
     to: format(endDate!, "yyyy-MM-dd"),
 
-    // ===================== ARTÍCULOS =====================
     part_number: articleFilters.part_number || undefined,
     alternative_part_number: articleFilters.alternative_part_number || undefined,
     description: articleFilters.description || undefined,
@@ -190,7 +182,6 @@ export function DispatchReportDialog() {
     
   });
 
-  // ===================== DOWNLOAD =====================
   const handleDownload = async (type: "dispatch" | "balance") => {
     if (!canDownload || loadingDownload) return;
 

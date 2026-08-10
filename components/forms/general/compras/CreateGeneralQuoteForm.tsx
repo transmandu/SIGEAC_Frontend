@@ -142,8 +142,8 @@ export function CreateGeneralQuoteForm({
   const headerLocationId = useWatch({ control: form.control, name: "location_id" });
   const headerRetailerId = useWatch({ control: form.control, name: "retailer_id" });
 
-  // Cascade the header location to every article whenever it changes.
-  // Per-article selects remain editable afterward — this only sets the default.
+  // La ubicación de la cabecera baja a todos los artículos como valor por
+  // defecto; cada uno sigue siendo editable después.
   useEffect(() => {
     if (!headerLocationId) return;
     form.getValues("general_articles").forEach((_, index) => {
@@ -152,9 +152,8 @@ export function CreateGeneralQuoteForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [headerLocationId]);
 
-  // Cascade the header retailer (lugar de compra) to every article whenever it
-  // changes — mirrors how the aeronautical form cascades its header vendor.
-  // Per-article selects remain editable afterward for multi-retailer quotes.
+  // El lugar de compra de la cabecera baja a todos los artículos como valor
+  // por defecto; se puede cambiar por artículo si la cotización mezcla varios.
   useEffect(() => {
     if (!headerRetailerId) return;
     form.getValues("general_articles").forEach((_, index) => {

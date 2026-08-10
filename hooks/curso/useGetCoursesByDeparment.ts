@@ -15,7 +15,7 @@ export const useGetCoursesByDeparment = (company?: string) => {
   return useQuery<Course[]>({
     queryKey: ["department-courses"],
     queryFn: () => fetchCoursesByDepartment(company),
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    staleTime: 1000 * 60 * 5,
     enabled: !!company,
   });
 };

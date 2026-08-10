@@ -7,6 +7,8 @@ const fetchModulesByCompanyId = async (id: number): Promise<Module[]> => {
   return response.data;
 };
 
+// Lectura vía POST: el backend recibe el filtro en el body. Usa useMutation
+// porque se dispara a demanda, no porque modifique algo.
 export const useGetModulesByCompanyId = () => {
   return useMutation<Module[], Error, number>({
     mutationFn: fetchModulesByCompanyId,

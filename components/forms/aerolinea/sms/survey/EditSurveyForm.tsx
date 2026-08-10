@@ -45,13 +45,11 @@ interface FormProps {
   initialData?: Survey;
 }
 
-// Esquema para las opciones de preguntas
 const OptionSchema = z.object({
   text: z.string().min(1, "La opción no puede estar vacía"),
   is_correct: z.boolean().optional(),
 });
 
-// Esquema para las preguntas
 const QuestionSchema = z
   .object({
     text: z.string().min(3, "La pregunta debe tener al menos 3 caracteres"),
@@ -83,7 +81,6 @@ const QuestionSchema = z
     }
   );
 
-// Esquema principal del formulario
 const FormSchema = z.object({
   title: z.string().min(3, "El nombre debe tener al menos 3 caracteres."),
   description: z.string().min(3, "La descripción es obligatoria."),
@@ -95,7 +92,6 @@ const FormSchema = z.object({
 
 type FormSchemaType = z.infer<typeof FormSchema>;
 
-// Componente para el input de opción
 interface OptionInputProps {
   questionIndex: number;
   optionIndex: number;
@@ -184,7 +180,6 @@ function OptionInput({
   );
 }
 
-// Componente individual para cada pregunta
 interface QuestionItemProps {
   questionIndex: number;
   field: FieldArrayWithId<FormSchemaType, "questions", "id">;
@@ -596,7 +591,6 @@ export function EditSurveyForm({ onClose, initialData }: FormProps) {
   };
 
   const onSubmit = async (data: FormSchemaType) => {
-    // Preparar los datos para enviar
     const formPayload = {
       title: data.title,
       type: data.type,
@@ -625,7 +619,6 @@ export function EditSurveyForm({ onClose, initialData }: FormProps) {
 
     try {
       if (initialData) {
-        // Modo edición
         await updateSurvey.mutateAsync({
           company: selectedCompany!.slug,
           location_id: selectedStation!,
@@ -633,7 +626,6 @@ export function EditSurveyForm({ onClose, initialData }: FormProps) {
           data: formPayload,
         });
       } else {
-        // Modo creación
         await createSurvey.mutateAsync(formPayload);
       }
       form.reset();
@@ -661,15 +653,6 @@ export function EditSurveyForm({ onClose, initialData }: FormProps) {
       form.setValue("questions", updatedQuestions);
     }
   }, [surveyType, form]);
-
-  // Agregar console.log para debug
-  useEffect(() => {
-    const subscription = form.watch((value, { name, type }) => {
-      //console.log("Form values:", value);
-      //console.log("Form errors:", form.formState.errors);
-    });
-    return () => subscription.unsubscribe();
-  }, [form.watch, form.formState.errors, form]);
 
   return (
     <Form {...form}>

@@ -26,7 +26,7 @@ export const useGetCoursesForCalendar = () => {
   return useQuery<calendarCourse[]>({
     queryKey: ["course-calendar"],
     queryFn: () => fetchCourseForCalendar(selectedCompany?.slug),
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    staleTime: 1000 * 60 * 5,
     enabled: !!selectedCompany?.slug,
   });
 };

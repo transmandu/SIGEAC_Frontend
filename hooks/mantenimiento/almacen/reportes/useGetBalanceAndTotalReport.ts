@@ -14,7 +14,7 @@ interface BalanceParams {
   type?: "aeronautical" | "general" | null;
   from: string;
   to: string;
-  format?: "pdf" | "excel"; // <-- PDF o Excel
+  format?: "pdf" | "excel";
   part_number?: string | null;
   alternative_part_number?: string | null;
   description?: string | null;
@@ -23,6 +23,8 @@ interface BalanceParams {
   brand_model?: string | null;
 }
 
+// Es una consulta, no una mutación: usa useMutation porque el reporte se pide
+// a demanda con los filtros del formulario y no debe cachearse ni auto-refetch.
 export const useGetBalanceAndTotalReport = () => {
   return useMutation({
     retry: false,

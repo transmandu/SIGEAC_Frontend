@@ -44,7 +44,7 @@ export function useSerialScale(): SerialScaleReturn {
   const bufferRef = useRef<string>("");
   const samplesRef = useRef<{ weight: number; timestamp: number }[]>([]);
 
-  // ── Helpers de estabilidad ─────────────────────────────────────
+  // Helpers de estabilidad
   const checkStability = useCallback((samples: typeof samplesRef.current) => {
     const now = Date.now();
     const windowed = samples.filter(
@@ -100,7 +100,7 @@ export function useSerialScale(): SerialScaleReturn {
   );
 
 
-  // ── Simulación ────────────────────────────────────────────────
+  // Simulación
   const connectSimulator = useCallback(async () => {
     const sim = new ScaleSimulator();
 
@@ -118,7 +118,7 @@ export function useSerialScale(): SerialScaleReturn {
     }));
   }, [processChunk]);
 
-  // ── Hardware real ─────────────────────────────────────────────
+  // Hardware real
   const connectReal = useCallback(async () => {
     if (!navigator.serial) {
       throw new Error(
@@ -170,7 +170,7 @@ export function useSerialScale(): SerialScaleReturn {
     }
   }, [processChunk]);
 
-  // ── Auto-connect con puertos previamente autorizados ────────────
+  // Auto-connect con puertos previamente autorizados
   const attemptAutoConnect = useCallback(async () => {
     if (SIMULATED || !navigator.serial) return;
     const ports = await navigator.serial.getPorts();
@@ -218,14 +218,14 @@ export function useSerialScale(): SerialScaleReturn {
     } catch (err: any) {}
   }, [processChunk]);
 
-  // ── Auto-connect al montar (solo una vez) ──────────────────────
+  // Auto-connect al montar (solo una vez)
   useEffect(() => {
     if (SIMULATED || !navigator.serial) return;
     attemptAutoConnect();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ── Eventos de conexión/desconexión física ──────────────────────
+  // Eventos de conexión/desconexión física
   useEffect(() => {
     if (SIMULATED || !navigator.serial) return;
 
@@ -261,7 +261,7 @@ export function useSerialScale(): SerialScaleReturn {
     };
   }, [attemptAutoConnect]);
 
-  // ── Conectar / Desconectar manuales ─────────────────────────────
+  // Conectar / Desconectar manuales
   const connect = useCallback(async () => {
     setState((prev) => ({ ...prev, status: "connecting", error: null }));
     try {
@@ -311,7 +311,7 @@ export function useSerialScale(): SerialScaleReturn {
     });
   }, []);
 
-  // ── Captura con trazabilidad ────────────────────────────────────
+  // Captura con trazabilidad
   const captureStableWeight = useCallback((): ScaleCaptureResult | null => {
     if (!state.isStable || !state.reading) return null;
     return {

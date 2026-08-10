@@ -45,6 +45,6 @@ export const useGetEnrolledStatus = ({
   return useQuery<EmplooyesEnrolled>({
     queryKey: ["enrollment-status-by-activity",activity_id],
     queryFn: () => fetchGetEnrolledStatus({ company, activity_id }),
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    staleTime: 1000 * 60 * 5,
   });
 };

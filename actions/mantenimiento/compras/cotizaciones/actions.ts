@@ -101,9 +101,8 @@ export const useUpdateQuoteStatus = () => {
   return { updateStatusQuote: updateStatusMutation }
 }
 
-// Solo SUPERUSER (ver gating en el dropdown de acciones). Elimina la
-// cotización junto con sus complementarias y cualquier orden de compra
-// generada por cualquiera de ellas, revirtiendo el inventario ya afectado.
+// Solo SUPERUSER. Arrastra complementarias y las órdenes de compra nacidas de
+// cualquiera de ellas, revirtiendo el inventario ya afectado.
 export const useCascadeDeleteQuote = () => {
   const queryClient = useQueryClient()
 

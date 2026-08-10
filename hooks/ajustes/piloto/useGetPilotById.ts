@@ -9,8 +9,8 @@ const fetcPilotByDni = async (dni: string) => {
 
 export const useGetPilotByDni = (dni: string) => {
   return useQuery<Pilot>({
-    queryKey: ["pilots", dni], // Incluye el ID en la clave de la query
-    queryFn: () => fetcPilotByDni(dni), // Pasa el ID a la función fetchUser
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    queryKey: ["pilots", dni],
+    queryFn: () => fetcPilotByDni(dni),
+    staleTime: 1000 * 60 * 5,
   });
 };

@@ -25,8 +25,6 @@ interface FormProps {
   onClose: () => void;
   initialData: ObligatoryReport;
 }
-// { onClose }: FormProps
-// lo de arriba va en prop
 export function AcceptObligatoryReport({ onClose, initialData }: FormProps) {
   const { acceptObligatoryReport } = useAcceptObligatoryReport();
   const { selectedCompany } = useCompanyStore();

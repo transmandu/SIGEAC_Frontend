@@ -47,7 +47,6 @@ export function CreditPaymentForm({ onClose, credit }: FormProps) {
   const { data: accounts, isLoading: isAccLoading } = useGetBankAccounts(
     selectedCompany?.id,
   );
-  // Calcular el monto pendiente por pagar
   const pendingAmount = Number(credit.debt) - Number(credit.payed_amount || 0);
   const formSchema = z
     .object({

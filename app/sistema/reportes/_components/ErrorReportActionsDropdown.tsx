@@ -10,9 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, Copy, MoreHorizontal, Trash2 } from "lucide-react";
 import { ErrorReport } from "@/types";
-import { useSetErrorReportInProgress } from "@/hooks/sistema/reportes/useSetErrorReportInProgress";
-import { useDeleteErrorReport } from "@/hooks/sistema/reportes/useDeleteErrorReport";
-import { useMarkErrorReportDuplicate } from "@/hooks/sistema/reportes/useMarkErrorReportDuplicate";
+import { useDeleteErrorReport, useMarkErrorReportDuplicate, useSetErrorReportInProgress } from "@/actions/sistema/reportes/actions";
 import ResolveErrorReportDialog from "./ResolveErrorReportDialog";
 import ConfirmErrorReportActionDialog from "./ConfirmErrorReportActionDialog";
 

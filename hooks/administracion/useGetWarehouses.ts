@@ -13,7 +13,7 @@ export const useGetWarehouses = () => {
   return useQuery<Warehouse[]>({
     queryKey: ['warehouses'],
     queryFn: ()=> fetchWarehouses(selectedCompany!.slug),
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    staleTime: 1000 * 60 * 5,
     enabled: !!selectedCompany
   });
 };

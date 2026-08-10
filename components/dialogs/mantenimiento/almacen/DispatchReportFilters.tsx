@@ -146,7 +146,6 @@ export function DispatchReportFilters({
   const [employeeSearch, setEmployeeSearch] = useState("");
   const [thirdPartySearch, setThirdPartySearch] = useState("");
 
-  // ================= FILTRO LOCAL POR CAMPO =================
   const [calendarMonth, setCalendarMonth] = useState<Date>(
     new Date(new Date().getFullYear(), new Date().getMonth(), 1)
   );
@@ -217,7 +216,6 @@ export function DispatchReportFilters({
     return stringValue.length > 0 ? stringValue : null;
   };
 
-  // ================= RESUMEN FILTRO GENERAL =================
   const generalSelectedFilters = [
     aircraft && {
       label: "Aeronave",
@@ -268,7 +266,6 @@ export function DispatchReportFilters({
 
   const generalSelectedCount = generalSelectedFilters.length;
 
-  // ================= RESUMEN FILTRO ARTÍCULOS =================
   const articleSelectedFilters = [
     articleFilters.part_number && {
       label: "Part Number",

@@ -14,6 +14,8 @@ const fetchLocationsByCompanyId = async (company_id: number): Promise<locationsB
     return data.companies_location;
 };
 
+// Lectura vía POST: el backend recibe el filtro en el body. Usa useMutation
+// porque se dispara a demanda, no porque modifique algo.
 export const useGetLocationsByCompanyId = () => {
     return useMutation<locationsByCompanyId[], Error, number>({
         mutationFn: fetchLocationsByCompanyId,

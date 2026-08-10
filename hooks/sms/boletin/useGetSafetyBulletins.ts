@@ -11,7 +11,7 @@ export const useGetSafetyBulletins = (company?: string) => {
   return useQuery<SafetyBulletin[]>({
     queryKey: ["safety-bulletins", company],
     queryFn: () => fetchSafetyBulletins(company),
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    staleTime: 1000 * 60 * 5,
     enabled: !!company,
   });
 };

@@ -15,4 +15,4 @@ export const fetchNotifications = async (
   )
 
   return data
-}
+}
