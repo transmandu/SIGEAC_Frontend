@@ -66,6 +66,14 @@ export const useCreateDispatchRequest = () => {
         router.refresh();
     },
     onError: (error: any) => {
+      // Ver nota en useUpdateStatusDispatchRequest: el stock en pantalla quedó
+      // desactualizado, se refresca antes de que el usuario reintente.
+      if (error?.response?.data?.insufficient_stock) {
+        queryClient.invalidateQueries({ queryKey: ["batches-in-warehouse"] });
+        queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
+        queryClient.invalidateQueries({ queryKey: ["general-articles"] });
+      }
+
       toast.error("Oops!", {
         description:
           error?.response?.data?.message ||
@@ -112,9 +120,20 @@ export const useUpdateStatusDispatchRequest = () => {
           description: "¡La solicitud ha sido actualizada!",
         });
     },
-    onError: (error) => {
+    onError: (error: any) => {
+      // Un 422 con `insufficient_stock` significa que la existencia cambió
+      // desde que se cargó la pantalla: el stock que se muestra ya es viejo,
+      // así que se refresca para que el reintento parta del real.
+      if (error?.response?.data?.insufficient_stock) {
+        queryClient.invalidateQueries({ queryKey: ["batches-in-warehouse"] });
+        queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
+        queryClient.invalidateQueries({ queryKey: ["general-articles"] });
+      }
+
       toast.error("Oops!", {
-        description: "No se pudo crear la solicitud...",
+        description:
+          error?.response?.data?.message ||
+          "No se pudo actualizar la solicitud...",
       });
       console.log(error);
     },
