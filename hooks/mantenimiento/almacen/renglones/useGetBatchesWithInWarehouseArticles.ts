@@ -39,4 +39,4 @@ export const useGetBatchesWithInWarehouseArticles = ({
     queryFn: () => fetchBatchesWithInWarehouseArticles({ location_id, company, category }),
     enabled: !!location_id && !!company && !!category,
   });
-};
+};

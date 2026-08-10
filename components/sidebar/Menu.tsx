@@ -71,7 +71,6 @@ export function Menu({ isOpen }: MenuProps) {
         return getMenuList(pathname, selectedCompany, userRoles);
     }, [pathname, selectedCompany, user?.roles]);
 
-    // Calculate the minimum height for the menu container
     const menuContainerHeight = useMemo(() => {
         return isOpen === undefined
             ? "calc(100vh - 48px - 36px - 16px - 32px)"

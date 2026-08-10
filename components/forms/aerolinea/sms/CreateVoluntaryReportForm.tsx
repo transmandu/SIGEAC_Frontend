@@ -17,8 +17,8 @@ import { z } from "zod";
 import {
   useCreateVoluntaryReport,
   useUpdateVoluntaryReport,
-  useGetNextReportNumber,
 } from "@/actions/sms/reporte_voluntario/actions";
+import { useGetNextReportNumber } from "@/hooks/sms/reporte_voluntario/useGetNextReportNumber";
 import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -166,7 +166,6 @@ export function CreateVoluntaryReportForm({
         "Solo se permiten archivos PDF",
       )
       .optional(),
-    // Otros campos del esquema@/components.
   });
 
   type FormSchemaType = z.infer<typeof FormSchema>;
@@ -189,7 +188,6 @@ export function CreateVoluntaryReportForm({
         ? addDays(new Date(initialData.report_date), 1)
         : new Date(),
 
-      // Campos del reporter - solo se asignan si existen en initialData
       ...(initialData?.reporter_name && {
         reporter_name: initialData.reporter_name,
       }),
@@ -216,7 +214,6 @@ export function CreateVoluntaryReportForm({
         setIsAnonymous(false);
       }
 
-      // Inicializar las consecuencias si hay datos iniciales
       if (initialData.possible_consequences) {
         const initialConsequences = initialData.possible_consequences
           .split(",")
@@ -232,28 +229,23 @@ export function CreateVoluntaryReportForm({
     }
   }, [initialData, isEditing, nextNumberData, form]); // Only run when these values change
 
-  // Agregar una consecuencia
   const addConsequence = () => {
     if (newConsequence.trim() !== "") {
       setConsequences([...consequences, newConsequence.trim()]);
       setNewConsequence("");
 
-      // Actualizar el campo del formulario
       const updatedConsequences = [...consequences, newConsequence.trim()];
       form.setValue("possible_consequences", updatedConsequences.join(","));
     }
   };
 
-  // Eliminar una consecuencia
   const removeConsequence = (index: number) => {
     const updatedConsequences = consequences.filter((_, i) => i !== index);
     setConsequences(updatedConsequences);
 
-    // Actualizar el campo del formulario
     form.setValue("possible_consequences", updatedConsequences.join(","));
   };
 
-  // Manejar la tecla Enter en el input
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       e.preventDefault();

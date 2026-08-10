@@ -37,7 +37,6 @@ export default function CourseListDialog({
   const searchParams = useSearchParams();
   const { selectedCompany, selectedStation } = useCompanyStore();
   const router = useRouter();
-  //const searchStatus = searchParams.get("searchStatus");
   const from = searchParams.get("from");
   const to = searchParams.get("to");
 
@@ -58,7 +57,6 @@ export default function CourseListDialog({
     refetchCharData();
   }, [from, to, refetchCharData]);
 
-  console.log("from", from, "to", to);
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex flex-col max-w-2xl m-2">

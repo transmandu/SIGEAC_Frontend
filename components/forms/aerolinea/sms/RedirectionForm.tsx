@@ -41,8 +41,9 @@ type FormSchemaType = z.infer<typeof FormSchema>;
 interface FormProps {
   onClose: () => void;
 }
-// { onClose }: FormProps
-// lo de arriba va en prop
+
+// SIN IMPLEMENTAR: valida y cierra, pero no envía nada al backend. Falta la
+// mutación que redirija el reporte.
 export default function RedirectionForm({ onClose }: FormProps) {
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
@@ -53,7 +54,6 @@ export default function RedirectionForm({ onClose }: FormProps) {
   });
 
   const onSubmit = (data: FormSchemaType) => {
-    console.log(data);
     onClose();
   };
 

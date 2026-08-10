@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 import { ErrorReport } from "@/types";
 import { ERROR_REPORT_MODULES } from "@/lib/errorReportModules";
-import { useResolveErrorReport } from "@/hooks/sistema/reportes/useResolveErrorReport";
+import { useResolveErrorReport } from "@/actions/sistema/reportes/actions";
 import { Chip, STATUS_CHIP } from "./errorReportChips";
 
 interface ResolveErrorReportDialogProps {

@@ -7,7 +7,7 @@ type NotificationProps = {
     status?: string,
 }
 
-const NotificationItem = ({title, description, status}: NotificationProps) => {
+const AlertCard = ({title, description, status}: NotificationProps) => {
   return (
     <Alert className="dark:bg-slate-700" variant={status === 'error' ? 'destructive' : status === 'warning' ? 'warning' : status === 'success' ? "success" : status === 'inProgress' ? "inProgress" : 'default'}>
       {
@@ -30,4 +30,4 @@ const NotificationItem = ({title, description, status}: NotificationProps) => {
   )
 }
 
-export default NotificationItem
+export default AlertCard

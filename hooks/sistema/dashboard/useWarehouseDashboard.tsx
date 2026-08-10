@@ -16,4 +16,4 @@ export const useGetWarehouseDashboard = (company: string, location_id: string) =
     enabled: !!company && location_id !== undefined,
     staleTime: 1000 * 60 * 5,
   })
-}
+}

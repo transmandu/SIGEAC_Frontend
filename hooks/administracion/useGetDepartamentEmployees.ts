@@ -7,6 +7,8 @@ const fetchDepartamentEmployees = async (location_id: number): Promise<Employee[
   return data;
 };
 
+// Lectura vía POST: el backend recibe el filtro en el body. Usa useMutation
+// porque se dispara a demanda, no porque modifique algo.
 export const useGetDepartamentEmployees = () => {
   return useMutation<Employee[], Error, number>({
     mutationFn: fetchDepartamentEmployees,

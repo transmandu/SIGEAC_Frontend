@@ -19,4 +19,4 @@ export const useGetLocationsByCompanies = () => {
       return data.companies_location;
     },
   });
-};
+};

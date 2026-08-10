@@ -11,7 +11,7 @@ export const useGetCategory = (company?: string) => {
   return useQuery<Category[]>({
     queryKey: ["category"],
     queryFn: () => fetchCategory(company),
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    staleTime: 1000 * 60 * 5,
     enabled: !!company,
   });
 };

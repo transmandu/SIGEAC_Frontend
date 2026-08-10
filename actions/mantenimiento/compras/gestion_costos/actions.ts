@@ -3,9 +3,6 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import type { UpdateCostPayload, BulkUpdateItem, BulkUpdatePayload } from "@/types/purchase"
 
-/* =========================
-   API CALLS
-========================= */
 const invalidateArticles = (queryClient: any) => {
   queryClient.invalidateQueries({
     queryKey: ["warehouse-articles"],
@@ -24,7 +21,6 @@ const invalidateGeneral = (queryClient: any) => {
   })
 }
 
-// 🔹 ARTICLE
 const updateArticleCost = async ({ company, id, cost }: UpdateCostPayload) => {
   const { data } = await axiosInstance.put(
     `/${company}/update-article-cost/${id}`,
@@ -41,7 +37,6 @@ const bulkUpdateArticleCost = async ({ company, updates }: BulkUpdatePayload) =>
   return data
 }
 
-// 🔹 GENERAL ARTICLE
 const updateGeneralCost = async ({ company, id, cost }: UpdateCostPayload) => {
   const { data } = await axiosInstance.put(
     `/${company}/update-general-cost/${id}`,
@@ -58,9 +53,6 @@ const bulkUpdateGeneralCost = async ({ company, updates }: BulkUpdatePayload) =>
   return data
 }
 
-/* =========================
-   HOOKS (React Query)
-========================= */
 
 export const useUpdateArticleCost = () => {
   const queryClient = useQueryClient()

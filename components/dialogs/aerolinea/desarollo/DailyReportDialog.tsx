@@ -60,7 +60,6 @@ export const DailyReportDialog = ({
   }, [manualTime, form]);
 
   const handleSubmit = async (data: z.infer<typeof FormSchema>) => {
-    // Solución al error de tipos - creamos un nuevo tipo que incluye el report_id
     const submissionData = {
       ...data,
       activity_report_id: report_id,

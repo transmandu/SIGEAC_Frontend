@@ -39,8 +39,6 @@ import { ConversionPanel } from "./_components/ConversionPanel"
 import { ArticleRowCard } from "./_components/ArticleRowCard"
 import { aeroKey, genKey, useDispatchForm } from "./_hooks/useDispatchForm"
 
-// ⚠️ Ajusta las rutas de importación de _components y _hooks según tu proyecto
-
 interface FormProps {
     onClose: () => void
 }

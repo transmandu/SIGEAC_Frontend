@@ -192,7 +192,7 @@ export const useUpdateSMSActivity = () => {
   const updateSMSActivityMutation = useMutation({
     mutationFn: async ({ company, id, data }: updateSMSActivityData) => {
       const formData = new FormData();
-      // Spoofing PATCH via POST since multipart/form-data doesn't work with PATCH in some servers
+      // multipart no admite PATCH real: se envía POST y Laravel lo reinterpreta con _method.
       formData.append("_method", "PATCH");
       formData.append("activity_name", data.activity_name);
       formData.append("title", data.title);

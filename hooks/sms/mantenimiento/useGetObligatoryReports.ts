@@ -15,7 +15,7 @@ export const useGetObligatoryReports = (company?: string) => {
     return useQuery<ObligatoryReport[]>({
         queryKey: ["obligatory-reports"],
         queryFn: () => fetchObligatoryReports(company),
-        staleTime: 1000 * 60 * 5, // 5 minutos
+        staleTime: 1000 * 60 * 5,
         enabled: !!company,
     });
 };

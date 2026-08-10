@@ -1,10 +1,8 @@
 import axiosInstance from "@/lib/axios"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
+import { Employee } from "@/types"
 
-/* =========================
-   TYPES
-========================= */
 
 export interface CreateEmployeeSchema {
   first_name: string
@@ -28,9 +26,6 @@ export interface UpdateEmployeePayload {
   data: FormData
 }
 
-/* =========================
-   CREATE
-========================= */
 
 export const useCreateEmployee = () => {
   const queryClient = useQueryClient()
@@ -67,9 +62,6 @@ export const useCreateEmployee = () => {
   })
 }
 
-/* =========================
-   UPDATE
-========================= */
 
   export const useUpdateEmployee = () => {
     const queryClient = useQueryClient()
@@ -77,7 +69,8 @@ export const useCreateEmployee = () => {
     return useMutation({
       mutationFn: async ({ id, company, data }: UpdateEmployeePayload) => {
 
-        // 🔒 VALIDACIÓN CRÍTICA
+        // Un id o company inválidos armarían una URL que apunta a otro registro
+        // (o a otra empresa) en vez de fallar, así que se corta antes de enviar.
         if (typeof id !== "number" || Number.isNaN(id)) {
           throw new Error(`Invalid employee id: ${id}`)
         }
@@ -123,9 +116,6 @@ export const useCreateEmployee = () => {
     })
   }
 
-/* =========================
-   DELETE
-========================= */
 
 export const useDeleteEmployee = () => {
   const queryClient = useQueryClient()
@@ -154,6 +144,73 @@ export const useDeleteEmployee = () => {
 
     onError: (error: any) => {
       toast.error(error?.message ?? "Error al eliminar")
+    }
+  })
+}
+
+interface ToggleEmployeeStatusParams {
+  company: string
+  id: number
+}
+
+// Baja lógica: el empleado deja de aparecer en los listados activos pero
+// conserva su historial. useReactivateEmployee lo revierte.
+export const useDeactivateEmployee = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ company, id }: ToggleEmployeeStatusParams) => {
+      const { data } = await axiosInstance.patch(
+        `/${company}/employees/${id}/deactivate`
+      )
+
+      return data as { message: string; employee: Employee }
+    },
+
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["employees", variables.company]
+      })
+
+      queryClient.invalidateQueries({
+        queryKey: ["employees-inactive", variables.company]
+      })
+
+      toast.success(data?.message ?? "Empleado desactivado correctamente")
+    },
+
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message ?? "Error al desactivar empleado")
+    }
+  })
+}
+
+export const useReactivateEmployee = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ company, id }: ToggleEmployeeStatusParams) => {
+      const { data } = await axiosInstance.patch(
+        `/${company}/employees/${id}/reactivate`
+      )
+
+      return data as { message: string; employee: Employee }
+    },
+
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["employees", variables.company]
+      })
+
+      queryClient.invalidateQueries({
+        queryKey: ["employees-inactive", variables.company]
+      })
+
+      toast.success(data?.message ?? "Empleado reactivado correctamente")
+    },
+
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message ?? "Error al reactivar empleado")
     }
   })
 }

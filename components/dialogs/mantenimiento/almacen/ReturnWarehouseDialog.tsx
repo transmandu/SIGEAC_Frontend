@@ -9,7 +9,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { useReturnToWarehouse } from "@/hooks/mantenimiento/almacen/articulos/useReturnToWarehouse";
+import { useReturnToWarehouse } from "@/actions/mantenimiento/almacen/solicitudes/salida/action";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { IterationCw, Loader2 } from "lucide-react";
 import { useState } from "react";

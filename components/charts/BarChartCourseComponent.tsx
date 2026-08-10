@@ -45,7 +45,6 @@ const BarChartCourseComponent = ({
   const { theme } = useTheme();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [message, setMessage] = useState("");
-  console.log("ASISTENCIAS STATS", data);
   if (!data.attended && !data.not_attended) {
     return (
       <p className=" text-center text-lg text-muted-foreground">
@@ -63,6 +62,8 @@ const BarChartCourseComponent = ({
         },
       ]
     : [];
+  // Las barras son clicables y preparan el detalle, pero el diálogo que lo
+  // mostraba está deshabilitado: por ahora el clic no abre nada.
   const handleClick = (message: string) => {
     if (message === "ABIERTO") {
       setMessage("Planificados");
@@ -127,11 +128,6 @@ const BarChartCourseComponent = ({
         )}
       </ResponsiveContainer>
 
-      {/* <CourseListDialog
-        title={`Detalles de cursos ${message}`}
-        open={isDialogOpen}
-        onOpenChange={setIsDialogOpen}
-      /> */}
     </>
   );
 };

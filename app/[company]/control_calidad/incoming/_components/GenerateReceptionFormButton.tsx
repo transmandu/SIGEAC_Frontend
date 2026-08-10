@@ -11,7 +11,7 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useGenerateIncomingFormat } from "@/hooks/mantenimiento/control_calidad/useGenerateIncomingFormat";
+import { useGenerateIncomingFormat } from "@/actions/mantenimiento/control_calidad/actions";
 import { toast } from "sonner";
 import { IncomingArticle } from "../IncomingTypes";
 

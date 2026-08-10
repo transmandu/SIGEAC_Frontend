@@ -13,7 +13,7 @@ export const useGetEmployesByDepartment = (acronym: string, location_id: string,
   return useQuery<Employee[]>({
     queryKey: ["employees-by-department", acronym, location_id, company],
     queryFn: () => fetchEmployesByDepartment(acronym, location_id, company),
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    staleTime: 1000 * 60 * 5,
     enabled: !!acronym && !!company,
   });
 };

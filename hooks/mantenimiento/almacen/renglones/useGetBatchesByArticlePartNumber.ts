@@ -28,6 +28,6 @@ export const useSearchBatchesByPartNumber = (
     queryKey: ["search-batches", company, location_id, part_number , category],
     queryFn: () => searchBatchesByPartNumber(company!, location_id!, part_number!, category!),
     enabled: !!company && !!location_id && !!part_number && !!category,
-    staleTime: 5 * 60 * 1000, // 5 minutos de cache
+    staleTime: 5 * 60 * 1000,
   });
 };

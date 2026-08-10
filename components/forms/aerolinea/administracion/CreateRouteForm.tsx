@@ -1,4 +1,5 @@
- import { useCreateRoute, useGetRoute, useUpdateRoute, } from "@/actions/aerolinea/rutas/actions";
+ import { useCreateRoute, useUpdateRoute, } from "@/actions/aerolinea/rutas/actions";
+import { useGetRouteById } from "@/hooks/aerolinea/rutas/useGetRouteById";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, } from "@/components/ui/form";
 import { cn } from "@/lib/utils";
 import { Route } from "@/types";
@@ -65,7 +66,7 @@ const RouteForm = ({ id, onClose, isEditing = false }: FormProps) => {
   const [checked, setChecked] = useState(false);
   const { updateRoute } = useUpdateRoute();
   const { createRoute } = useCreateRoute();
-  const { data } = useGetRoute(id ?? null);
+  const { data } = useGetRouteById(id ?? null);
   const formSchema = useMemo(() => getFormSchema(checked), [checked]);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -76,7 +77,6 @@ const RouteForm = ({ id, onClose, isEditing = false }: FormProps) => {
   });
 
     const layover = form.watch("layover") || [];
-  console.log(layover);
   const [layoverFields, setScaleFields] = useState<layoverField[]>([
     {
       id: Date.now(),
@@ -112,7 +112,6 @@ const RouteForm = ({ id, onClose, isEditing = false }: FormProps) => {
     form.setValue("layover", newLayovers);
   };
 
-  // Modificación en el useEffect de inicialización
   useEffect(() => {
     if (data) {
       setInitialValues(data);

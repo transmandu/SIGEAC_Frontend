@@ -24,7 +24,6 @@ interface DialogProps {
 
 const PermissionsDialog = ({ permissions, roleName }: DialogProps) => {
   const router = useRouter();
-  // Agrupamos permisos por módulo
   const groupedByModule = permissions.reduce((acc, permission) => {
     permission.modules.forEach(module => {
       if (!acc[module.id]) {

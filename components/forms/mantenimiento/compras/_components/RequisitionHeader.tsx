@@ -13,9 +13,9 @@ import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { RequiredIndicator } from "./RequiredIndicator"
 
-// Regular employees and authorized (cross-company) employees live in two
-// separate tables/id spaces, so the requester combobox is split into two
-// tabs rather than one merged, ambiguous list.
+// Los empleados propios y los autorizados de otra empresa viven en tablas
+// distintas con ids que pueden coincidir, así que el selector se parte en dos
+// pestañas en vez de mezclarlos en una lista ambigua.
 type RequesterTab = "employee" | "authorized";
 
 interface RequisitionHeaderProps {
@@ -92,9 +92,8 @@ export function RequisitionHeader({
   const formatAuthorizedEmployeeLabel = (authorizedEmployee: AuthorizedEmployeeResponse) =>
     `${authorizedEmployee.employee_name}`;
 
-  // Departments come back as a tree (each with nested `descendants`), so the
-  // selector must flatten it to let the user pick any department, not just
-  // the top-level ones.
+  // Los departamentos llegan como árbol (con `descendants` anidados); se
+  // aplanan para poder elegir cualquiera, no solo los de primer nivel.
   const flattenDepartments = (departments: Department[]): Department[] =>
     departments.flatMap((department) => [
       department,
@@ -426,8 +425,8 @@ export function RequisitionHeader({
               setWorkOrderInputOpen(false);
             };
 
-            // Unlike the aircraft selector, an order that isn't registered yet can
-            // still be recorded as plain text (same as the dispatch forms).
+            // A diferencia del selector de aeronave, una orden que aún no está
+            // registrada se puede dejar como texto libre (igual que en despacho).
             const selectFreeText = (value: string) => {
               form.setValue("work_order_id", undefined);
               form.setValue("work_order", value);

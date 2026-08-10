@@ -13,7 +13,7 @@ export const useGetCashById = (id: string, company?: string) => {
   return useQuery<Cash>({
     queryKey: ["cash", id, company],
     queryFn: () => fetchCashById(id, company),
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    staleTime: 1000 * 60 * 5,
     enabled: !!id && !!company,
   })
 }

@@ -21,4 +21,4 @@ export const useGetRequisition = (company?: string, location_id?: string, type?:
     // por prefijo, así que los cambios propios se reflejan al instante.
     staleTime: 1000 * 60 * 2,
   });
-};
+};

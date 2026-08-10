@@ -349,16 +349,17 @@ export function QuoteGeneralArticlesSection({
               article.original_quantity !== undefined &&
               Number(article.quantity) !== Number(article.original_quantity);
 
-            // Articles in the catalog that match this row's description + variant
+            // Los del catálogo que coinciden en descripción y variante: se ofrecen
+            // como alternativas de marca para esta fila.
             const brandCandidates = allGeneralArticles.filter(
               (a) =>
                 normalize(a.description) === normalize(article.description) &&
                 normalize(a.variant_type) === normalize(article.variant_type)
             );
 
-            // Distinct variant_type values already used for this same article
-            // description — shown only as a suggestion to avoid near-duplicate
-            // typos (e.g. "500ml" vs "500 ml") creating a different catalog entry.
+            // Variantes ya usadas para esta misma descripción. Son solo
+            // sugerencias, para evitar que un "500ml" contra "500 ml" cree una
+            // entrada distinta en el catálogo.
             const variantCandidates = Array.from(
               new Map(
                 allGeneralArticles

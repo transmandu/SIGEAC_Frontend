@@ -552,7 +552,6 @@ export function useDispatchForm(
         handleAddAeronautical, handleAddGeneral,
         removeAeroRow, removeGenRow,
         handleDispatchTypeChange,
-        // validation flags
         hasBlockingQtyError, hasInvalidQty,
         aeronauticalCount: aeroFA.fields.length,
         generalCount: genFA.fields.length,

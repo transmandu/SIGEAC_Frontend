@@ -25,7 +25,7 @@ import { CreateGeneralRequisitionForm } from '@/components/forms/mantenimiento/c
 
 type Role = string
 
-export function CreateRequisitionDialog() {
+export function GeneralModuleRequisitionDialog() {
   const { user } = useAuth()
   const [open, setOpen] = useState(false)
 

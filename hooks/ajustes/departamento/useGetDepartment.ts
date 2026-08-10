@@ -15,4 +15,4 @@ export const useGetDepartments = (company: string | undefined) => {
     queryFn: () => fetchDepartments(company),
     enabled: !!company,
   });
-};
+};

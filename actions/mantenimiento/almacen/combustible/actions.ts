@@ -181,8 +181,8 @@ export const useAnnulFuelMovement = (company?: string) => {
   });
 };
 
-// Eliminacion definitiva de un movimiento. Solo SUPERUSER (validado en el backend)
-// y solo sobre movimientos ya anulados.
+// Borrado definitivo, no el flujo normal: eso es anular, que deja el reverso
+// asentado. Solo SUPERUSER y solo sobre movimientos ya anulados (lo valida el backend).
 export const useDeleteFuelMovement = (company?: string) => {
   const queryClient = useQueryClient();
 

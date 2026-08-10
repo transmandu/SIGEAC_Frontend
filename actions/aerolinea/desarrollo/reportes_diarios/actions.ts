@@ -2,7 +2,6 @@ import axiosInstance from "@/lib/axios";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-// Interfaces para los tipos de datos
 interface CreateActivitySchema {
   description: string;
   manual_start_time?: boolean;

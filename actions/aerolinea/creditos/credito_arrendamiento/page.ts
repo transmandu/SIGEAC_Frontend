@@ -7,7 +7,8 @@ export const useCreateCreditRent = () => {
   const queryCreditRent = useQueryClient()
   const createMutation = useMutation({
     mutationFn: async ({data, company}: {data: any, company?: string}) => {
-          await axiosInstance.post(`/${company}/credits-with-rents`, data) //todos los creditos con un id de renta vinculado
+          // El endpoint es el de créditos con renta vinculada, no el genérico.
+          await axiosInstance.post(`/${company}/credits-with-rents`, data)
         },
         onSuccess: () => {
           queryCreditRent.invalidateQueries({queryKey: ['credit-rent']})

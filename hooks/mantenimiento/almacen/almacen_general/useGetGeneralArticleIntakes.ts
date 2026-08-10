@@ -37,7 +37,7 @@ export const useGetGeneralArticleIntakes = (
     queryKey: ['general-article-intakes', selectedCompany?.slug, selectedStation, status, warehouseOnly, range.from, range.to],
     queryFn: () => fetchGeneralArticleIntakes(selectedCompany!.slug, selectedStation, status, warehouseOnly, range),
     enabled: !!selectedCompany && !!selectedStation,
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    staleTime: 1000 * 60 * 5,
     placeholderData: keepPreviousData,
   });
 };

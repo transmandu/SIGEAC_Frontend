@@ -11,16 +11,17 @@ export const useCreateCreditPayment = (options?: { onSuccess?: () => void }) => 
       return response.data;
     },
     onSuccess: () => {
-      // Invalidar todas las queries relacionadas
+      // Un pago baja el saldo del crédito, y ese saldo se muestra en cuentas por
+      // pagar y en las vistas por origen (vuelo y renta), no solo aquí.
       queryClient.invalidateQueries({ queryKey: ['credit-payment'] });
-      queryClient.invalidateQueries({ queryKey: ['credits'] }); //query de cuentas por pagar
-      queryClient.invalidateQueries({ queryKey: ['credit-flight-payment'] }); //query de credito de vuelos
-      queryClient.invalidateQueries({ queryKey: ['credit-rent-payment'] });  //query de credito de renta
+      queryClient.invalidateQueries({ queryKey: ['credits'] });
+      queryClient.invalidateQueries({ queryKey: ['credit-flight-payment'] });
+      queryClient.invalidateQueries({ queryKey: ['credit-rent-payment'] });
 
       toast.success("Pago registrado correctamente");
 
       if (options?.onSuccess) {
-        options.onSuccess(); // Ejecutar callback opcional
+        options.onSuccess();
       }
     },
     onError: (error) => {

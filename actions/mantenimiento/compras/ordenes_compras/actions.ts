@@ -15,8 +15,7 @@ export const useCreatePurchaseOrder = () => {
           queryClient.invalidateQueries({queryKey: ['purchase-orders']})
           queryClient.invalidateQueries({queryKey: ['purchase-order'], exact: false})
           queryClient.invalidateQueries({queryKey: ['purchaseOrderByQuote'], exact: false})
-          // Crear la OC aprueba la cotización y avanza la requisición en el
-          // backend, así que refrescamos esas vistas también.
+          // Crear la OC aprueba la cotización y avanza la requisición en el backend.
           queryClient.invalidateQueries({queryKey: ['quotes']})
           queryClient.invalidateQueries({queryKey: ['quote'], exact: false})
           queryClient.invalidateQueries({queryKey: ['requisitions-orders']})
@@ -52,9 +51,8 @@ export const useCompletePurchase = () => {
           if (data.handling_fee != null) formData.append("handling_fee", String(data.handling_fee))
           if (data.sub_total != null) formData.append("sub_total", String(data.sub_total))
           formData.append("total", String(data.total))
-          // El backend deriva bank_account_id del método de pago cuando se
-          // envía payment_method_id; bank_account_id suelto queda por
-          // compatibilidad con órdenes previas a la reingeniería de pagos.
+          // Con payment_method_id el backend deriva la cuenta; bank_account_id
+          // suelto es compatibilidad con órdenes anteriores al rediseño de pagos.
           if (data.payment_method_id != null) formData.append("payment_method_id", String(data.payment_method_id))
           if (data.bank_account_id != null) formData.append("bank_account_id", String(data.bank_account_id))
           if (data.bank_card_id != null) formData.append("bank_card_id", String(data.bank_card_id))
@@ -148,11 +146,9 @@ export type GeneralArticlesDeliveryDestination = {
   thirdPartyId?: number
 }
 
-// El responsable de traer la mercancía llama esto cuando los artículos
-// generales de la orden llegan físicamente. Crea un GeneralArticleIntake en
-// PENDING por cada ítem general que aún no tenga uno (seguro de llamar más
-// de una vez sobre la misma orden, p. ej. entregas parciales/escalonadas).
-// Pagar la orden (useMarkPurchaseOrderAsPaid) ya NO dispara esto automáticamente.
+// Lo llama quien trae la mercancía cuando los artículos generales llegan.
+// Crea un intake por cada ítem que aún no tenga uno, así que es seguro repetirlo
+// sobre la misma orden (entregas parciales). Pagar la orden ya no lo dispara solo.
 export const useRegisterGeneralArticlesDelivery = () => {
 
   const queryClient = useQueryClient()
@@ -195,10 +191,8 @@ export const useRegisterGeneralArticlesDelivery = () => {
   }
 }
 
-// Solo SUPERUSER (ver gating en el dropdown de acciones). Elimina la orden de
-// compra completa sin importar su estado: si ya generó Articles (aeronáutico)
-// o confirmó un GeneralArticleIntake (general), revierte ese inventario en
-// vez de bloquear la operación.
+// Solo SUPERUSER. Borra la orden en cualquier estado: si ya generó inventario
+// (Articles o un intake confirmado), lo revierte en vez de bloquear.
 export const useCascadeDeletePurchaseOrder = () => {
 
   const queryClient = useQueryClient()

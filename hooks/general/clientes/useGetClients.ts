@@ -13,7 +13,7 @@ export const useGetClients = (company: string | undefined) => {
   return useQuery<Client[]>({
     queryKey: ["clients", company],
     queryFn: () => fetchClients(company),
-    staleTime: 1000 * 60 * 2, // 5 minutos
+    staleTime: 1000 * 60 * 2,
     enabled: !!company,
   });
 };

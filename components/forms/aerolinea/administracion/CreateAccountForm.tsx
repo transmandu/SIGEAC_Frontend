@@ -1,6 +1,7 @@
 "use client";
 
-import { useCreateAccount, useUpdateAccount, useGetAccount } from "@/actions/aerolinea/cuentas/actions";
+import { useCreateAccount, useUpdateAccount } from "@/actions/aerolinea/cuentas/actions";
+import { useGetAccountById } from "@/hooks/aerolinea/cuentas_contables/useGetAccountById";
 import { useEffect, useState, useMemo } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -68,7 +69,7 @@ const AccountForm = ({ id, onClose, isEditing = false }: FormProps) => {
     const {selectedCompany} = useCompanyStore();
     const { updateAccount } = useUpdateAccount();
     const { createAccount } = useCreateAccount();
-    const { data } = useGetAccount(id ?? null);
+    const { data } = useGetAccountById(id ?? "", selectedCompany?.slug);
 
   const formSchema = useMemo(() => getFormSchema(checked), [checked]);
 

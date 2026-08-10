@@ -1,4 +1,3 @@
-// hooks/useGetSMSDocument.ts
 import axiosInstance from "@/lib/axios";
 import { useQuery } from "@tanstack/react-query";
 
@@ -6,7 +5,7 @@ interface UseGetDocumentProps {
   company?: string;
   fileName: string;
   origin?: string;
-  enabled?: boolean; // <-- Nueva propiedad opcional
+  enabled?: boolean;
 }
 
 const fetchDocument = async ({
@@ -22,11 +21,11 @@ const fetchDocument = async ({
 
   const contentType = response.headers["content-type"] || response.data.type;
 
-  // Creamos el blob
   const blob = new Blob([response.data], {
     type: contentType || "application/pdf",
   });
 
+  // Devuelve una object URL, no el archivo: quien la consuma debe revocarla.
   return URL.createObjectURL(blob);
 };
 
@@ -38,7 +37,6 @@ export const useGetDocument = (props: UseGetDocumentProps) => {
     queryFn: () => fetchDocument(props),
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 10,
-    // Ahora combina la lógica interna con la que viene por props
     enabled: enabled && !!company && !!fileName,
   });
 };

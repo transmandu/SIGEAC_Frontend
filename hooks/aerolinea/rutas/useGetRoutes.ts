@@ -13,7 +13,7 @@ export const useGetRoute = (company?: string) => {
   return useQuery<Route[]>({
     queryKey: ['routes'],
     queryFn: () => fetchRoute(company),
-    staleTime: 1000 * 60 * 5, // 5 minutos
-    enabled: !!company, // Solo ejecuta la consulta si hay una empresa
+    staleTime: 1000 * 60 * 5,
+    enabled: !!company,
   });
 };

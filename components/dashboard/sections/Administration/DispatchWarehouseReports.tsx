@@ -8,7 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { DispatchReportDialog } from "@/components/dialogs/aerolinea/administracion/DispatchReportDialog";
+import { AdministrationDispatchReportDialog } from "@/components/dialogs/aerolinea/administracion/AdministrationDispatchReportDialog";
 
 interface DispatchWarehouseReportsProps {
   companySlug: string;
@@ -77,7 +77,7 @@ export default function DispatchWarehouseReports({
         </CardHeader>
 
         <CardContent className="relative flex justify-center pt-2 pb-8">
-          <DispatchReportDialog roleNames={roleNames} />
+          <AdministrationDispatchReportDialog roleNames={roleNames} />
         </CardContent>
 
       </TintedCard>

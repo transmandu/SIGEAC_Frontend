@@ -30,7 +30,7 @@ import { CreateAeronauticalRequisitionForm } from '@/components/forms/mantenimie
 import { CreateWarehouseRequisitionForm } from '@/components/forms/mantenimiento/compras/CreateWarehouseRequisitionForm'
 import { CreateGeneralRequisitionForm } from '@/components/forms/mantenimiento/compras/CreateGeneralRequisitionForm'
 
-export function CreateRequisitionDialog() {
+export function PurchasesRequisitionDialog() {
   const [open, setOpen] = useState(false)
 
   const [hovered, setHovered] = useState(false)

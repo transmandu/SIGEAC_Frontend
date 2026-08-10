@@ -15,7 +15,6 @@ export interface UpdateVendorSchema extends CreateVendorSchema {
   id: number | string
 }
 
-// Crear proveedor/beneficiario
 
 export const useCreateVendor = (companySlug?: string) => {
   const queryClient = useQueryClient()
@@ -40,7 +39,6 @@ export const useCreateVendor = (companySlug?: string) => {
   })
 }
 
-// Actualizar proveedor/beneficiario
 
 export const useUpdateVendor = (companySlug?: string) => {
   const queryClient = useQueryClient()
@@ -65,7 +63,6 @@ export const useUpdateVendor = (companySlug?: string) => {
   })
 }
 
-// Eliminar proveedor/beneficiario
 
 export const useDeleteVendor = (companySlug?: string) => {
   const queryClient = useQueryClient()

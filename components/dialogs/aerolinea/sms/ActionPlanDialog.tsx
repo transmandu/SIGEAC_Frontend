@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-// Asumiendo que estos son los imports correctos de tus componentes shadcn/ui
 import {
   Dialog,
   DialogContent,

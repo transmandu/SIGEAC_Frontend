@@ -42,4 +42,4 @@ export const useGetEmployeesList = (company: string | undefined) => {
     },
     enabled: !!company,
   });
-};
+};

@@ -51,11 +51,10 @@ export function useSmsReport(onSuccess?: () => void, company: string = "transman
         }
       );
 
-      // Verificamos si el archivo no llegó vacío
       const blob = new Blob([response.data], { type: "application/pdf" });
       if (blob.size === 0) throw new Error("empty_file");
 
-      // Crear link temporal para la descarga automática
+      // El PDF llega como blob: se fuerza la descarga con un <a> temporal.
       const downloadUrl = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = downloadUrl;
@@ -118,4 +117,4 @@ export function useSmsReport(onSuccess?: () => void, company: string = "transman
     handleGenerate,
     canGenerate // Úsalo para la propiedad 'disabled' del botón
   };
-}
+}

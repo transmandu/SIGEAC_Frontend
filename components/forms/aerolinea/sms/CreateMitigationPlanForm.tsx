@@ -108,7 +108,6 @@ export default function CreateMitigationPlanForm({
         },
       };
       await createMitigationPlan.mutateAsync(value);
-      console.log(data);
     }
     onClose();
   };

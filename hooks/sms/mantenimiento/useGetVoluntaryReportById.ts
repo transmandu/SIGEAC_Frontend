@@ -1,4 +1,3 @@
-// hooks/useGetVoluntaryReportById.ts
 import axiosInstance from "@/lib/axios";
 import { Location } from "@/types";
 import { HazardNotification } from "@/types/sms/mantenimiento";

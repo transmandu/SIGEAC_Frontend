@@ -23,6 +23,6 @@ export const useGetPostRiskCountByDateRange = (
   return useQuery<pieChartData[]>({
     queryKey: ["post-risk-count-by-date-range", company, from, to, reportType],
     queryFn: () => fetchPostRiskCountByDateRange(company, from, to, reportType),
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    staleTime: 1000 * 60 * 5,
   });
 };

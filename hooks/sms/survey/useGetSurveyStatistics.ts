@@ -34,7 +34,7 @@ export const useGetSurveyStats = (survey_number: string) => {
     queryKey: ["survey-responses", selectedCompany?.slug, survey_number], // Agrega survey_number al queryKey
     queryFn: () =>
       fetchSurveyStats({ company: selectedCompany?.slug, survey_number }),
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    staleTime: 1000 * 60 * 5,
     enabled: !!selectedCompany?.slug && !!survey_number,
   });
 };

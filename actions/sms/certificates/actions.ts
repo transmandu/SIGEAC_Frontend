@@ -48,7 +48,7 @@ export const useUpdateSMSCertificate = () => {
 
   return useMutation({
     mutationFn: async ({ company, id, data }: { company: string; id: number; data: FormData }) => {
-      // Importante: Laravel requiere _method para procesar archivos en PUT/PATCH vía FormData
+      // multipart no admite PUT real: se envía POST y Laravel lo reinterpreta con _method.
       data.append("_method", "PUT");
       
       return await axiosInstance.post(`/${company}/sms/certificates/${id}`, data, {

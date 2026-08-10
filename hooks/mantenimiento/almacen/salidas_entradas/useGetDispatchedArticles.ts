@@ -40,7 +40,7 @@ export const useGetDispatchedArticles = ({
     queryKey: ['dispatched-articles', company],
     queryFn: () =>
       fetchDispatchedArticles({company: company!, location_id: location_id!}),
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    staleTime: 1000 * 60 * 5,
     enabled: !!company && !!location_id,
   });
 };

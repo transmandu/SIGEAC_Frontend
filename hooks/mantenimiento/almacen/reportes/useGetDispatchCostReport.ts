@@ -23,6 +23,8 @@ interface DispatchCostReportParams {
   to?: string;
 }
 
+// Es una consulta, no una mutación: usa useMutation porque el reporte se pide
+// a demanda con los filtros del formulario y no debe cachearse ni auto-refetch.
 export const useGetDispatchCostReport = () => {
   return useMutation({
     retry: false,

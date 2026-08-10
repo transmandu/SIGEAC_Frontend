@@ -23,9 +23,9 @@ export const useGetDangerIdentificationById = ({
   id: string;
 }) => {
   return useQuery<DangerIdentification>({
-    queryKey: ["danger-identification", id], // Incluye el ID en la clave de la query
-    queryFn: () => fetDangerIdentificationById({ company, id }), // Pasa el ID a la función fetchUser
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    queryKey: ["danger-identification", id],
+    queryFn: () => fetDangerIdentificationById({ company, id }),
+    staleTime: 1000 * 60 * 5,
     enabled: !!company,
   });
 };

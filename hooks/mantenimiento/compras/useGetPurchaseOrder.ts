@@ -13,4 +13,4 @@ export const useGetPurchaseOrder = (company: string | undefined, order_number: s
     queryFn: () => fetchPurchaseOrder(company, order_number),
     enabled: !!company && !!order_number
   });
-};
+};

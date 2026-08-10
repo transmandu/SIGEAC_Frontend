@@ -29,6 +29,6 @@ export const useGetBatchesByCategory = (category: string) => {
         selectedCompany?.slug
       ),
     enabled: !!selectedCompany && !!category && !!selectedStation,
-    staleTime: 5 * 60 * 1000, // 5 minutos de cache
+    staleTime: 5 * 60 * 1000,
   });
 };

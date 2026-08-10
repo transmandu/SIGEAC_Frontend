@@ -13,6 +13,6 @@ export const useGetRoles = (companyId?: number | string) => {
   return useQuery<Role[]>({
     queryKey: ['roles', companyId],
     queryFn: () => fetchRoles(companyId),
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    staleTime: 1000 * 60 * 5,
   });
 };

@@ -252,8 +252,8 @@ export function CreateQuoteForm({
   const headerVendorId = useWatch({ control: form.control, name: "vendor_id" });
   const headerLocationId = useWatch({ control: form.control, name: "location_id" });
 
-  // Cascade the header vendor/location to every article whenever they change.
-  // Per-article selects remain editable afterward — this only sets the default.
+  // El proveedor y la ubicación de la cabecera bajan a todos los artículos
+  // como valor por defecto; cada uno sigue siendo editable después.
   useEffect(() => {
     if (!headerVendorId) return;
     form.getValues("articles").forEach((_, index) => {

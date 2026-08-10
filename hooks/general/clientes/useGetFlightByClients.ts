@@ -41,7 +41,6 @@ export interface Flight {
     };
 }
 
-// Definir la estructura de datos que devuelve el endpoint
 export interface ClientStatistics {
     statistics: {
         total_payed_annual: {
@@ -85,7 +84,7 @@ export const useGetFlightsByClient = ({dni, company}: {dni: string, company: str
   return useQuery<ClientStatistics>({
     queryKey: ["flights", dni, company],
     queryFn: () => fetchFlightsByClient({dni, company}),
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    staleTime: 1000 * 60 * 5,
     enabled: !!dni &&  !!company,
   });
 };

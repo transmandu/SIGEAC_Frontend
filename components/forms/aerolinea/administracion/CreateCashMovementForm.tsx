@@ -106,7 +106,6 @@ export function CreateCashMovementForm({ onClose }: FormProps) {
     defaultValues: {},
   });
 
-  // Obtener accountant_id para usar en el hook de categorías
   const accountantId = form.watch("accountant_id");
 
   const { createCashMovement } = useCreateCashMovement();
@@ -127,10 +126,8 @@ export function CreateCashMovementForm({ onClose }: FormProps) {
     useGetCategoriesByAccountant(accountantId || "");
 
   useEffect(() => {
-    // Observar cambios en la caja seleccionada
     const subscription = form.watch((value, { name }) => {
       if (name === "cash_id") {
-        // Encontrar la caja seleccionada
         const selectedCash = cashes?.find(
           (cash) => cash.id.toString() === value.cash_id
         );
@@ -671,7 +668,6 @@ export function CreateCashMovementForm({ onClose }: FormProps) {
                     className="pl-8"
                     {...field}
                     onChange={(e) => {
-                      // Validar que solo se ingresen números y un punto decimal
                       const value = e.target.value;
                       const regex = /^(\d+)?([.]?\d{0,2})?$/;
 
@@ -680,7 +676,6 @@ export function CreateCashMovementForm({ onClose }: FormProps) {
                       }
                     }}
                     onBlur={(e) => {
-                      // Formatear el valor al salir del input
                       const value = e.target.value;
                       if (value) {
                         const number = parseFloat(value);

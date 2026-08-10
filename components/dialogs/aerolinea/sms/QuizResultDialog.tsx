@@ -1,4 +1,3 @@
-// components/quiz-results-dialog.tsx
 import {
   Dialog,
   DialogContent,
@@ -54,13 +53,11 @@ export function QuizResultsDialog({
     if (open && results.score === 100) {
       setShowConfetti(true);
 
-      // Obtener dimensiones de la ventana
       setWindowDimensions({
         width: window.innerWidth,
         height: window.innerHeight,
       });
 
-      // Detener el confeti después de 5 segundos
       const timer = setTimeout(() => {
         setShowConfetti(false);
       }, 5000);
@@ -73,7 +70,6 @@ export function QuizResultsDialog({
 
   const isPerfectScore = results.score === 100;
 
-  // Renderizar el confetti usando portal para que esté por encima del dialog
   const confettiElement =
     showConfetti && mounted
       ? createPortal(

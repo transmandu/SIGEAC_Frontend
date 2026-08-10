@@ -1,9 +1,7 @@
 import axiosInstance from "@/lib/axios";
 import { useQuery } from "@tanstack/react-query";
 
-// Interface para artículos con información detallada incluyendo batch
 export interface ArticleSearchResult {
-  // Información del artículo
   id: number;
   part_number: string;
   alternative_part_number: string[];
@@ -19,7 +17,6 @@ export interface ArticleSearchResult {
   image?: string;
   certificates?: string[];
 
-  // Información del batch relacionado
   batch: {
     id: number;
     name: string;
@@ -32,7 +29,6 @@ export interface ArticleSearchResult {
     warehouse_id: number;
   };
 
-  // Información específica del tipo de artículo
   article_type: "CONSUMABLE" | "COMPONENT" | "TOOL";
   tool?: {
     id: number;
@@ -83,6 +79,6 @@ export const useSearchArticlesByPartNumber = (
     queryKey: ["search-articles", company, location_id, part_number],
     queryFn: () => searchArticlesByPartNumber(company!, location_id!, part_number!),
     enabled: !!company && !!location_id && !!part_number,
-    staleTime: 5 * 60 * 1000, // 5 minutos de cache
+    staleTime: 5 * 60 * 1000,
   });
 };

@@ -87,7 +87,6 @@ export default function CreateAnalysisForm({
 
   const [currentSelection, setCurrentSelection] = useState("");
 
-  // Actualizar la selección actual cuando cambian los valores
   const watchedProbability = form.watch("probability");
   const watchedSeverity = form.watch("severity");
 
@@ -150,7 +149,6 @@ export default function CreateAnalysisForm({
     onClose();
   };
 
-  // Obtener valores actuales del formulario
   const currentProbability = form.watch("probability");
   const currentSeverity = form.watch("severity");
 

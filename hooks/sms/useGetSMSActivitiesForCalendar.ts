@@ -26,7 +26,7 @@ export const useGetSMSActivitiesForCalendar = () => {
   return useQuery<SMSActivities[]>({
     queryKey: ["sms-calendar-activities"],
     queryFn: () => fetchSMSActivitiesForCalendar(selectedCompany?.slug),
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    staleTime: 1000 * 60 * 5,
     enabled: !!selectedCompany?.slug,
   });
 };

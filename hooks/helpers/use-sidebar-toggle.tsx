@@ -19,4 +19,4 @@ export const useSidebarToggle = create(
       storage: createJSONStorage(() => localStorage)
     }
   )
-);
+);

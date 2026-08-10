@@ -94,7 +94,6 @@ export function AddSMSActivityAttendanceForm({
     },
   });
 
-  // Ahora 'form' completo es la dependencia de useCallback
   const updateFormValues = useCallback(
     (selections: EmployeeSelection[]) => {
       const added = selections.filter((e) => e.isSelected && !e.wasEnrolled);
@@ -158,7 +157,6 @@ export function AddSMSActivityAttendanceForm({
     updateFormValues(newSelections);
   };
 
-  // Filtrar empleados basado en la búsqueda
   const filteredEmployees = employeeSelections.filter((employee) => {
     const searchLower = searchQuery.toLowerCase();
     return (

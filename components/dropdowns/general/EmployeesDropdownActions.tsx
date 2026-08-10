@@ -36,8 +36,7 @@ import { Employee } from "@/types"
 import { useCompanyStore } from "@/stores/CompanyStore"
 
 import { useDeleteEmployee } from "@/actions/ajustes/empleados/actions"
-import { useDeactivateEmployee } from "@/hooks/ajustes/empleados/useDeactivateEmployee"
-import { useReactivateEmployee } from "@/hooks/ajustes/empleados/useReactivateEmployee"
+import { useDeactivateEmployee, useReactivateEmployee } from "@/actions/ajustes/empleados/actions"
 
 import { UpdateEmployeeForm } from "@/components/forms/general/UpdateEmployeeForm"
 

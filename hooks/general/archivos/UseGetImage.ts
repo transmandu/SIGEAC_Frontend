@@ -25,7 +25,6 @@ const fetchImage = async ({
     }
   );
 
-  // Verificar que sea una imagen
   if (!response.data.type.startsWith("image/")) {
     throw new Error("El archivo no es una imagen válida");
   }
@@ -40,8 +39,8 @@ export const useGetImage = (props: UseGetImageProps) => {
   return useQuery<string, Error>({
     queryKey: ["image", company, origin, fileName],
     queryFn: () => fetchImage(props),
-    staleTime: 1000 * 60 * 5, // 5 minutos
-    gcTime: 1000 * 60 * 10, // 10 minutos (cache)
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 10,
     enabled: !!company && !!fileName,
   });
 };

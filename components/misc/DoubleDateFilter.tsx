@@ -29,7 +29,6 @@ const DoubleDateFilter = ({
   onDateChange,
   onReset, 
 }: DoubleDateFilterProps) => {
-  // Inicializar estados SOLO con las props iniciales
   const [firstRange, setFirstRange] = useState<{ from?: Date; to?: Date }>(
     () => {
       if (initialFirstRange) {
@@ -60,19 +59,16 @@ const DoubleDateFilter = ({
       return;
     }
 
-    // Determinar fechas para el primer selector
     const fromFirst = startOfMonth(firstRange.from);
     const toFirst = firstRange.to
       ? endOfMonth(firstRange.to)
       : endOfMonth(firstRange.from);
 
-    // Determinar fechas para el segundo selector
     const fromSecond = startOfMonth(secondRange.from);
     const toSecond = secondRange.to
       ? endOfMonth(secondRange.to)
       : endOfMonth(secondRange.from);
 
-    // Formatear fechas como strings
     const ranges = {
       firstRange: {
         start: format(fromFirst, "yyyy-MM-dd"),
@@ -84,7 +80,6 @@ const DoubleDateFilter = ({
       },
     };
 
-    // SOLO llamar a la función de callback
     onDateChange(ranges);
   };
 
@@ -120,7 +115,6 @@ const DoubleDateFilter = ({
     setFirstRange({});
     setSecondRange({});
 
-    // Si se proporcionó onReset, llamarlo
     if (onReset) {
       onReset();
     }

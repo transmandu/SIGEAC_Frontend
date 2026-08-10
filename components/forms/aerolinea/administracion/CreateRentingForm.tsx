@@ -67,7 +67,6 @@ const formSchema = z
     deadline: z.date({
       required_error: "La fecha límite es requerida",
     }),
-    //reference_pick: z.string(),
     client_id: z.string({
       message: "Debe elegir un cliente.",
     }),
@@ -310,7 +309,6 @@ export function CreateRentingForm({ onClose }: FormProps) {
                       className="pl-8"
                       {...field}
                       onChange={(e) => {
-                        // Validar que solo se ingresen números y un punto decimal
                         const value = e.target.value;
                         const regex = /^(\d+)?([.]?\d{0,2})?$/;
 
@@ -319,7 +317,6 @@ export function CreateRentingForm({ onClose }: FormProps) {
                         }
                       }}
                       onBlur={(e) => {
-                        // Formatear el valor al salir del input
                         const value = e.target.value;
                         if (value) {
                           const number = parseFloat(value);
@@ -351,7 +348,6 @@ export function CreateRentingForm({ onClose }: FormProps) {
                       className="pl-8"
                       {...field}
                       onChange={(e) => {
-                        // Validar que solo se ingresen números y un punto decimal
                         const value = e.target.value;
                         const regex = /^(\d+)?([.]?\d{0,2})?$/;
 
@@ -360,7 +356,6 @@ export function CreateRentingForm({ onClose }: FormProps) {
                         }
                       }}
                       onBlur={(e) => {
-                        // Formatear el valor al salir del input
                         const value = e.target.value;
                         if (value) {
                           const number = parseFloat(value);

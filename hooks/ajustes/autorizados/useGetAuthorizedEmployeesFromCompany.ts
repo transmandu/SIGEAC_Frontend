@@ -30,4 +30,4 @@ export const useGetAuthorizedEmployeesFromCompany = (companySlug?: string) => {
     },
     enabled: !!companySlug,
   });
-};
+};

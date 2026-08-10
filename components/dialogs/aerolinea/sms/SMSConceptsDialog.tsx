@@ -31,13 +31,10 @@ export function SMSConceptsDialog({
   open,
   onOpenChange,
 }: SMSConceptsDialogProps) {
-  // Estado interno solo si no se proveen las props controladas
   const [internalOpen, setInternalOpen] = useState(false);
 
-  // Usa el estado controlado si se pasan las props, sino usa el interno
   const isOpen = open !== undefined ? open : internalOpen;
 
-  // Función para manejar el cambio de estado
   const handleOpenChange = (newOpen: boolean) => {
     if (onOpenChange) {
       onOpenChange(newOpen);
@@ -46,7 +43,6 @@ export function SMSConceptsDialog({
     }
   };
 
-  // Colores sutiles para las cards (alternando)
   const cardColors = [
     "border-l-4 border-l-blue-200 dark:bg-blue-950/10 dark:border-l-blue-800",
     "border-l-4 border-l-green-200  dark:bg-green-950/10 dark:border-l-green-800",

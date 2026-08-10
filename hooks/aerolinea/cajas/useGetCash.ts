@@ -13,7 +13,7 @@ export const useGetCash = (company?: string) => {
   return useQuery<Cash[]>({
     queryKey: ['cashes'],
     queryFn:  () => fetchCash(company),
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    staleTime: 1000 * 60 * 5,
     enabled: !!company,
   });
 };

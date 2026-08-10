@@ -101,7 +101,6 @@ export function CreateAdministrationQuoteForm({
     }
   }, [selectedCompany, mutate]);
 
-  // Actualizar amount cuando cambia quantity o unit_price
   useEffect(() => {
     const subscription = form.watch((value, { name }) => {
       // Solo actualizamos si cambia un unit_price
@@ -141,17 +140,8 @@ export function CreateAdministrationQuoteForm({
       quote_date: data.quote_date,
     };
 
-    // await createQuote.mutateAsync(formattedData);
-    // await updateStatusRequisition.mutateAsync({
-    //   id: req.id,
-    //   data: {
-    //     status: "cotizado",
-    //     updated_by: `${user?.first_name} ${user?.last_name}`,
-    //     company: selectedCompany!.split(" ").join("").toLowerCase(),
-    //   }
-    // });
-    console.log(formattedData);
-    //onClose();
+    // SIN IMPLEMENTAR: el payload se arma pero no se envía. Falta llamar a
+    // createQuote y marcar la requisición como cotizada.
   };
 
   return (

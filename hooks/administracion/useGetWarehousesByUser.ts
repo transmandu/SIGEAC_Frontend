@@ -11,7 +11,7 @@ export const useGetWarehousesByLocation = ({company, location_id}: {company: str
   return useQuery<Warehouse[]>({
     queryKey: ['warehousesByLocation', company, location_id],
     queryFn: () => fetchWarehousesByLocation({company, location_id}),
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    staleTime: 1000 * 60 * 5,
     enabled: !!company && !!location_id,
   });
 };

@@ -25,6 +25,8 @@ interface DispatchReportParams {
   brand_model?: string | null;
 }
 
+// Es una consulta, no una mutación: usa useMutation porque el reporte se pide
+// a demanda con los filtros del formulario y no debe cachearse ni auto-refetch.
 export const useGetDispatchReport = () => {
   return useMutation({
     retry: false,

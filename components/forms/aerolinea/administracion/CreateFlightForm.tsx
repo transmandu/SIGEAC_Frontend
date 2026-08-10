@@ -455,7 +455,6 @@ export function FlightForm({ onClose }: FormProps) {
               <Input
                 defaultValue={"0"}
                 onChange={(e) => {
-                  // Validar que solo se ingresen números y puntos
                   const value = e.target.value;
                   if (/^[0-9]*\.?[0-9]*$/.test(value)) {
                     setKg(value);

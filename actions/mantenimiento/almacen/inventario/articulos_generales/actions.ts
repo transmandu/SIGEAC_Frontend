@@ -45,7 +45,6 @@ interface ArticleConversionInput {
     direction: string;
     value: number;
 }
-// PARA ACTULIZAR UN ARTICULO EXEPTO SU CANTIDAD.
 export const useUpdateGeneralArticle = () => {
     const queryClient = useQueryClient();
     const { selectedCompany } = useCompanyStore();
@@ -58,12 +57,11 @@ export const useUpdateGeneralArticle = () => {
             image,
             conversions,
         }: {
-            id: string | number; // Recibimos el id aquí
+            id: string | number;
             articleData: updateArticleData;
             image?: File | null;
             conversions?: ArticleConversionInput[];
         }) => {
-            // Sin imagen se mantiene el PATCH en JSON de siempre.
             if (!image) {
                 const { data } = await axiosInstance.patch(
                     `/${selectedCompany?.slug}/general-articles/${id}`,
@@ -72,8 +70,7 @@ export const useUpdateGeneralArticle = () => {
                 return data;
             }
 
-            // Con archivo hay que ir en multipart, que no admite PATCH real:
-            // se hace POST con _method spoofing (igual que en SMS).
+            // multipart no admite PATCH real: se hace POST y Laravel lo reinterpreta con _method.
             const formData = new FormData();
             formData.append("_method", "PATCH");
             formData.append("image", image);
@@ -98,11 +95,10 @@ export const useUpdateGeneralArticle = () => {
             return data;
         },
         onSuccess: () => {
-            // Refrescamos la lista de artículos
             queryClient.invalidateQueries({
                 queryKey: ["general-articles", selectedCompany?.slug]
             });
-            // Refrescamos las alertas de stock bajo, ya que la cantidad mínima pudo haber cambiado
+            // La cantidad mínima pudo cambiar, y es la que dispara la alerta.
             queryClient.invalidateQueries({
                 queryKey: ["low-stock-general-articles", selectedCompany?.slug]
             });
@@ -121,6 +117,45 @@ export const useUpdateGeneralArticle = () => {
     return {
         updateGeneralArticle,
     };
+};
+
+export interface IAddQuantityGeneralArticle {
+    id: number;
+    quantity: number;
+}
+
+// Suma sobre la existencia actual; no la fija. Para corregir el total se usa
+// useUpdateGeneralArticleQuantity, que reemplaza el valor.
+export const useAddQuantityGeneralArticle = () => {
+    const queryClient = useQueryClient();
+    const { selectedCompany } = useCompanyStore();
+
+    const mutation = useMutation({
+        mutationKey: ["add-quantity-general-article"],
+        mutationFn: async ({ id, quantity }: IAddQuantityGeneralArticle) => {
+            if (!selectedCompany?.slug) throw new Error("No hay compañía seleccionada");
+            await axiosInstance.patch(
+                `/${selectedCompany.slug}/add-quantity-general-article/${id}`,
+                { quantity }
+            );
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["general-articles"] });
+            toast.success("¡Cantidad actualizada!", {
+                description: "La cantidad del artículo se actualizó correctamente.",
+            });
+        },
+        onError: (error: any) => {
+            toast.error("Error", {
+                description:
+                    error?.response?.data?.message ||
+                    "No se pudo actualizar la cantidad del artículo.",
+            });
+            console.error(error);
+        },
+    });
+
+    return { addQuantityGeneralArticle: mutation };
 };
 
 export const useUpdateGeneralArticleQuantity = () => {
@@ -157,16 +192,11 @@ export const useUpdateGeneralArticleQuantity = () => {
 };
 
 
-// Confirma físicamente la llegada de una entrada PENDING (GeneralArticleIntake).
-// Crea o incrementa el general_article correspondiente; el intake queda
-// como historial permanente con quién/cuándo lo confirmó.
+// Es lo que mueve el stock: hasta aquí el intake era solo papel.
 //
-// Si el artículo coincide con uno existente en todo menos la unidad y no hay
-// una Conversion registrada entre ambas, el backend responde 422 con
-// needs_conversion=true (ver isNeedsUnitConversionResponse) en vez de crear
-// un general_article duplicado. El caller debe entonces pedir la equivalencia
-// y reintentar pasando newConversionEquivalence, que el backend usa para
-// crear la Conversion y aplicarla en la misma operación.
+// Si el artículo ya existe pero en otra unidad y falta la Conversion, el backend
+// responde 422 con needs_conversion en vez de duplicarlo. El caller pide entonces
+// la equivalencia y reintenta con newConversionEquivalence.
 export const useConfirmGeneralArticleIntake = () => {
     const queryClient = useQueryClient();
     const { selectedCompany } = useCompanyStore();
@@ -189,8 +219,8 @@ export const useConfirmGeneralArticleIntake = () => {
                     ...(newConversionEquivalence
                         ? {
                             new_conversion: {
-                                // El almacenista lo declara desde la unidad que
-                                // compró hacia la que ya maneja el inventario.
+                                // Fijo: el almacenista declara desde la unidad comprada
+                                // hacia la que ya maneja el inventario, nunca al revés.
                                 direction: 'base_per_unit',
                                 value: newConversionEquivalence,
                             },
@@ -214,6 +244,7 @@ export const useConfirmGeneralArticleIntake = () => {
             });
         },
         onError: (error: any) => {
+            // No es un fallo: el caller abre el diálogo para pedir la equivalencia.
             if (isNeedsUnitConversionResponse(error?.response?.data)) return;
 
             toast.error("Error", {
@@ -227,11 +258,9 @@ export const useConfirmGeneralArticleIntake = () => {
     };
 };
 
-// Rechaza una entrada PENDING cuando la verificación física no coincide con
-// lo registrado (artículo o cantidad distintos). El intake queda REJECTED con
-// la justificación como historial permanente, nunca toca el stock, y el
-// backend notifica al usuario que registró la entrega para que la revise y
-// re-registre sobre la misma orden de compra cuando resuelva.
+// Para cuando lo que llegó físicamente no es lo registrado. Nunca toca el stock:
+// el intake queda REJECTED como historial y el backend avisa a quien registró la
+// entrega para que la re-registre sobre la misma orden de compra.
 export const useRejectGeneralArticleIntake = () => {
     const queryClient = useQueryClient();
     const { selectedCompany } = useCompanyStore();
@@ -264,9 +293,9 @@ export const useRejectGeneralArticleIntake = () => {
     };
 };
 
-// Corrección de una recepción ya registrada (fechas mal cargadas, sobre todo).
-// Si la entrada ya estaba confirmada y cambia lo que entró al inventario, el
-// backend reajusta el stock del artículo en la misma operación.
+// Corrección de una recepción ya registrada (típicamente fechas mal cargadas).
+// Si el intake ya estaba confirmado, el backend reajusta el stock en la misma
+// operación: de ahí que la respuesta traiga stock_adjustment.
 export const useUpdateGeneralArticleIntake = () => {
     const queryClient = useQueryClient();
     const { selectedCompany } = useCompanyStore();
@@ -321,8 +350,7 @@ export const useCreateGeneralArticle = () => {
             Object.entries(data).forEach(([key, value]) => {
                 if (value === undefined || value === null) return;
 
-                // multipart no anida objetos: las conversiones van con índice,
-                // el resto se serializa plano como siempre.
+                // multipart no anida objetos: las conversiones van con índice.
                 if (key === "conversions") {
                     (value as ArticleConversionInput[]).forEach((row, index) => {
                         formData.append(`conversions[${index}][unit_id]`, String(row.unit_id));

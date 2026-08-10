@@ -28,7 +28,7 @@ import { Search, X } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 // import { RegisterDispatchRequestDialog } from "@/components/dialogs/mantenimiento/almacen/RegisterDispatchRequestDialog"
-import { CreateRequisitionDialog } from "@/components/dialogs/general/CreateRequisitionDialog"
+import { GeneralModuleRequisitionDialog } from "@/components/dialogs/general/GeneralModuleRequisitionDialog"
 import type { Requisition } from "@/types/purchase"
 import { requisitionGlobalFilter } from "./_lib/global-filter"
 
@@ -73,7 +73,7 @@ export function DataTable<TValue>({
   return (
     <div>
       <div className="flex flex-wrap items-center gap-2 pt-2 pb-3">
-        <CreateRequisitionDialog />
+        <GeneralModuleRequisitionDialog />
 
         <div className="relative w-full sm:w-[360px] sm:ml-auto">
           <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />

@@ -37,7 +37,6 @@ export function ImageGalleryDialog({
   const handleOpenChange = (open: boolean) => {
     setIsOpen(open);
     if (!open) {
-      // Reset to initial index when closed
       setTimeout(() => setCurrentIndex(initialIndex), 300);
     }
   };

@@ -2,7 +2,6 @@ import { useQuery } from "@tanstack/react-query";
 import axiosInstance from "@/lib/axios";
 import { CashMovement } from "@/types";
 
-// Definir la estructura de datos que devuelve el endpoint
 export interface AircraftStatistics {
   statistics: {
     total_annual_income: {
@@ -46,7 +45,7 @@ export const useGetAircraftStatistics = (aircraftAcronym: string, company?: stri
   return useQuery<AircraftStatistics>({
     queryKey: ["flights", aircraftAcronym, company],
     queryFn: () => fetchFlightsByAircraft(aircraftAcronym, company),
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    staleTime: 1000 * 60 * 5,
     enabled: !!aircraftAcronym && !!company,
   });
 };

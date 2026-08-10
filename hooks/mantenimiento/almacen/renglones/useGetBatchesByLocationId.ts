@@ -13,6 +13,8 @@ const fetchBatchesByLocationId = async ({
   return data;
 };
 
+// Lectura vía POST: el backend recibe el filtro en el body. Usa useMutation
+// porque se dispara a demanda, no porque modifique algo.
 export const useGetBatchesByLocationId = () => {
   return useMutation<Batch[], Error, { location_id: number; company?: string }>({
     mutationKey: ["batches", "company"],

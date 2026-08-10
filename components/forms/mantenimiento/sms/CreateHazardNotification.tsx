@@ -9,7 +9,6 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { CalendarIcon, Loader2, Plus, X } from "lucide-react";
 
-// UI Components
 import { Button } from "@/components/ui/button";
 import {
     Form,
@@ -38,7 +37,6 @@ import { useGetInformationSources } from "@/hooks/sms/useGetInformationSource";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { cn } from "@/lib/utils";
 
-// Types
 import { HazardNotification } from "@/types/sms/mantenimiento";
 import { UpdateHazardNotification, useCreateHazardNotification } from "@/actions/mantenimiento/sms/notificacion_peligro/actions";
 import { useGetLocationsByCompany } from "@/hooks/sistema/useGetLocationsByCompany";
@@ -87,7 +85,6 @@ export default function CreateHazardNotification({
 
     const { data: informationSources, isLoading: isLoadingSources } = useGetInformationSources();
 
-    // Llamada a los hooks según tu archivo de actions
     const { createHazardNotification } = useCreateHazardNotification();
     const { updateHazardNotification } = UpdateHazardNotification();
     const { data: locations, isLoading: isLocationsLoading } = useGetLocationsByCompany(selectedCompany!.slug);

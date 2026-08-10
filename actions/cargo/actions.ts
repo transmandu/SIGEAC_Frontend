@@ -2,7 +2,6 @@ import axiosInstance from "@/lib/axios";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-// Crear registro de carga
 export const useCreateCargoShipment = (company: string) => {
   const queryClient = useQueryClient();
   const createMutation = useMutation({
@@ -30,7 +29,6 @@ export const useCreateCargoShipment = (company: string) => {
   return { createCargoShipment: createMutation };
 };
 
-//Eliminar registro de carga
 export const useDeleteCargoShipment = (company: string) => {
   const queryClient = useQueryClient();
   const deleteMutation = useMutation({
@@ -58,7 +56,6 @@ export const useDeleteCargoShipment = (company: string) => {
   return { deleteCargoShipment: deleteMutation };
 };
 
-// Actualizar registro de carga
 export const useUpdateCargoShipment = (company: string) => {
   const queryClient = useQueryClient();
   const updateMutation = useMutation({

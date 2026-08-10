@@ -33,22 +33,19 @@ export const useGetWorkOrderEmployees = ({
 }) => {
   const isEnabled = !!company && !!location_id;
 
-  // console.log(
-  //   `useGetWorkOrderEmployees - company: ${company}, enabled: ${isEnabled}`
-  // );
-
   return useQuery<Employee[]>({
-    queryKey: ["employees", company], // Cambiado para usar la misma key que otros hooks de empleados
+    // Comparte key con el resto de hooks de empleados para reaprovechar caché.
+    queryKey: ["employees", company],
     queryFn: () =>
       fetchWorkOrderEmployees({
         company: company!,
         location_id: location_id!,
         acronym,
       }),
-    enabled: isEnabled, // Solo se ejecuta cuando company esté definido
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    enabled: isEnabled,
+    staleTime: 1000 * 60 * 5,
     retry: (failureCount, error) => {
-      // No reintentar si es un error de validación
+      // Falta un parámetro, no falló la red: reintentar daría el mismo error.
       if (error.message === "Company is required") {
         return false;
       }

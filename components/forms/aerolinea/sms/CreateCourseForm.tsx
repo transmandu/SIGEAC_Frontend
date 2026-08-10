@@ -263,7 +263,6 @@ export function CreateCourseForm({
                       type="time"
                       {...field}
                       onChange={(e) => {
-                        // Validamos que el formato sea correcto
                         if (
                           e.target.value.match(
                             /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/,
@@ -350,7 +349,6 @@ export function CreateCourseForm({
                       type="time"
                       {...field}
                       onChange={(e) => {
-                        // Validamos que el formato sea correcto
                         if (
                           e.target.value.match(
                             /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/,

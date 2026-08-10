@@ -16,4 +16,4 @@ export const useGetPurchaseOrders = (companyId: string | null, locationId: strin
     enabled: !!companyId && !!locationId,
     staleTime: 1000 * 60 * 2,
   });
-};
+};

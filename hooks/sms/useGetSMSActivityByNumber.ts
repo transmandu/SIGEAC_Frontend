@@ -57,7 +57,7 @@ export const useGetSMSActivityByNumber = ({
   const query = useQuery<SMSActivity>({
     queryKey: ["sms-activity", activityNumber],
     queryFn: () => fetchSMSActivityByNumber({ company, activityNumber }),
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    staleTime: 1000 * 60 * 5,
     enabled: !!company,
   });
 

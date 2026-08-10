@@ -20,8 +20,8 @@ import { useState, useEffect } from "react";
 import {
   useCreateObligatoryReport,
   useUpdateObligatoryReport,
-  useGetNextReportNumber,
 } from "@/actions/sms/reporte_obligatorio/actions";
+import { useGetNextReportNumber } from "@/hooks/sms/reporte_obligatorio/useGetNextReportNumber";
 import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -205,7 +205,6 @@ export function CreateObligatoryReportForm({
     return []; // Devuelve un array vacío si initialData?.incidents es null o undefined
   });
 
-  // No estoy seguro si esto va aca lol
   const { selectedCompany } = useCompanyStore();
   const { data: pilots, isLoading: isLoadingPilots } = useGetPilots(
     selectedCompany?.slug,
@@ -645,7 +644,6 @@ export function CreateObligatoryReportForm({
                     type="time"
                     {...field}
                     onChange={(e) => {
-                      // Validamos que el formato sea correcto
                       if (
                         e.target.value.match(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/)
                       ) {
@@ -670,7 +668,6 @@ export function CreateObligatoryReportForm({
                     type="time"
                     {...field}
                     onChange={(e) => {
-                      // Validamos que el formato sea correcto
                       if (
                         e.target.value.match(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/)
                       ) {
