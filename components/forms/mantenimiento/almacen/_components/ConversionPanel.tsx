@@ -100,7 +100,7 @@ export const ConversionPanel = memo(function ConversionPanel({
           />
 
           <Button type="button" className="h-10 shrink-0" onClick={onApply} disabled={!selectedConversion || !conversionInput}>
-            Aplicar
+            Usar esta cantidad
           </Button>
         </div>
       )}

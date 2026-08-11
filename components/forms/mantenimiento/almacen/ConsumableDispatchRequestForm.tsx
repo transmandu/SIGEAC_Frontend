@@ -54,7 +54,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
         aeroSelectedSet, genSelectedSet,
         aeroById, genById,
         getAeroMax, getGenMax,
-        qtyByKey, setQtyByKey, msgByKey,
+        qtyByKey, setQtyByKey, msgByKey, convByKey,
         commitAeroQty, commitGenQty,
         setToMaxAero, setToMaxGen,
         convState, setConvState,
@@ -613,6 +613,8 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                                         showConversionPanel={convState.target === "aero" && convState.rowFieldId === f.id && !!article && article.unit !== "u"}
                                         conversionPanelNode={conversionPanelNode}
                                         accentClass="border-l-blue-500/50"
+                                        baseUnitLabel={article?.unit ?? undefined}
+                                        conversion={convByKey[key]}
                                         onQtyChange={(val) => setQtyByKey((p) => ({ ...p, [key]: val }))}
                                         onCommit={() => commitAeroQty(index, f.id)}
                                         onSetMax={() => setToMaxAero(index, f.id)}
@@ -646,6 +648,8 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                                         showConversionPanel={convState.target === "general" && convState.rowFieldId === f.id && !!ga}
                                         conversionPanelNode={conversionPanelNode}
                                         accentClass="border-l-amber-500/50"
+                                        baseUnitLabel={ga?.general_primary_unit?.label ?? undefined}
+                                        conversion={convByKey[key]}
                                         onQtyChange={(val) => setQtyByKey((p) => ({ ...p, [key]: val }))}
                                         onCommit={() => commitGenQty(index, f.id)}
                                         onSetMax={() => setToMaxGen(index, f.id)}
