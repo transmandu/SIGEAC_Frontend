@@ -46,8 +46,8 @@ const FormSchema = z.object({
   description: z
     .string()
     .min(5, { message: "La descripción debe tener al menos 5 caracteres" })
-    .max(200, {
-      message: "La descripción no puede exceder los 200 caracteres",
+    .max(1000, {
+      message: "La descripción no puede exceder los 1000 caracteres",
     }),
 
   responsible: z
