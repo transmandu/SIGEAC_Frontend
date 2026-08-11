@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/select";
 import { ArrowLeft } from "lucide-react";
 import CreateCargoManifestForm from "@/components/forms/operaciones/cargo/CreateCargoManifestForm";
-import { useGetAircrafts } from "@/hooks/aerolinea/aeronaves/useGetAircrafts";
+import { useGetAircrafts } from "@/hooks/general/aeronaves/useGetAircrafts";
 import { useGetExternalAircraftSuggestions } from "@/hooks/operaciones/cargo/useGetExternalAircraftSuggestions";
 import { useGetNextManifestNumber } from "@/hooks/operaciones/cargo/useGetNextManifestNumber";
 import { useTourContext } from "@/components/tour/TourProvider";

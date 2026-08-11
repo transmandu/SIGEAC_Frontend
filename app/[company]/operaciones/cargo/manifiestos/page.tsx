@@ -11,7 +11,7 @@ import { Loader2, Plus } from "lucide-react";
 import { DataTable } from "../data-table";
 import { getManifestColumns } from "./columns";
 import { useAuth } from "@/contexts/AuthContext";
-import { useGetAircrafts } from "@/hooks/aerolinea/aeronaves/useGetAircrafts";
+import { useGetAircrafts } from "@/hooks/general/aeronaves/useGetAircrafts";
 import { useGetExternalAircraftSuggestions } from "@/hooks/operaciones/cargo/useGetExternalAircraftSuggestions";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { cargoManifiestosSteps } from "@/components/tour/steps/cargo/manifiestos";

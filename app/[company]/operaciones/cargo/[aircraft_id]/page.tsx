@@ -3,7 +3,7 @@
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { useGetCargoShipmentsByAircraft } from "@/hooks/operaciones/cargo/useGetCargoShipmentsByAircraft";
-import { useGetAircrafts } from "@/hooks/aerolinea/aeronaves/useGetAircrafts";
+import { useGetAircrafts } from "@/hooks/general/aeronaves/useGetAircrafts";
 import { getColumns } from "../columns";
 import { DataTable } from "../data-table";
 import { useState, useEffect } from "react";
