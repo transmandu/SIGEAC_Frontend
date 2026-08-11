@@ -5,7 +5,7 @@ import { ContentLayout } from "@/components/layout/ContentLayout";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { useGetAircraftAcronyms } from "@/hooks/aerolinea/aeronaves/useGetAircraftAcronyms";
+import { useGetAircraftAcronyms } from "@/hooks/general/aeronaves/useGetAircraftAcronyms";
 import { useGetFlightsByDateRange } from "@/hooks/aerolinea/vuelos/useGetFlightsByDateRange";
 
 import { DataTable } from "./data-table";

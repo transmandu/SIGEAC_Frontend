@@ -16,8 +16,8 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import AddClientBalanceForm from "../../forms/aerolinea/administracion/AddClientBalanceForm";
-import { EditClientForm } from "../../forms/aerolinea/administracion/EditClientForm";
+import AddClientBalanceForm from "@/components/forms/general/clientes/AddClientBalanceForm";
+import { EditClientForm } from "@/components/forms/general/clientes/EditClientForm";
 import { Avatar, AvatarFallback } from "../../ui/avatar";
 import { Badge } from "../../ui/badge";
 import { Button } from "../../ui/button";
