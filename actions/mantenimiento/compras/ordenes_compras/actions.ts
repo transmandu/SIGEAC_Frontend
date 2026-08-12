@@ -8,6 +8,8 @@ export const useCreatePurchaseOrder = () => {
   const queryClient = useQueryClient()
 
   const createMutation = useMutation({
+      // Sin reintentos: un POST repetido de esta ruta crea órdenes duplicadas.
+      retry: false,
       mutationFn: async ({data, company}: {data: CreatePurchaseOrderData, company: string}) => {
           await axiosInstance.post(`/${company}/purchase-order`, data)
         },
@@ -24,11 +26,28 @@ export const useCreatePurchaseOrder = () => {
               description: `La orden de compra ha sido creada correctamente.`
           })
         },
-      onError: (error) => {
+      onError: (error: any) => {
+          // 409 = la cotización ya generó sus órdenes (doble clic o request repetido).
+          // No es un fallo: el trabajo ya está hecho, así que se refresca para que
+          // la vista muestre las órdenes que sí existen.
+          if (error?.response?.status === 409) {
+            queryClient.invalidateQueries({queryKey: ['purchase-orders']})
+            queryClient.invalidateQueries({queryKey: ['purchaseOrderByQuote'], exact: false})
+            queryClient.invalidateQueries({queryKey: ['quotes']})
+            queryClient.invalidateQueries({queryKey: ['quote'], exact: false})
+
+            toast.warning("Esta cotización ya fue aprobada", {
+              description: error?.response?.data?.message
+                || "La cotización ya tiene sus órdenes de compra generadas."
+            })
+
+            return
+          }
+
           toast.error('Oops!', {
-            description: 'No se pudo crear la orden de compra...'
+            description: error?.response?.data?.message
+              || 'No se pudo crear la orden de compra...'
           })
-          console.log(error)
         },
       }
   )

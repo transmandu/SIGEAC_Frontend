@@ -130,6 +130,11 @@ const QuoteDropdownDialogs = ({
   }
 
   const handleApprove = async () => {
+    // El guard de reentrada va antes que cualquier await: el `disabled` del botón
+    // no llega a repintar entre dos clics seguidos, y cada POST que se cuela crea
+    // una orden de compra más.
+    if (createPurchaseOrder.isPending) return
+
     const locationId =
       quote.article_quote_order.find((a) => a.location)?.location?.id ??
       quote.general_article_quote_order.find((a) => a.location)?.location?.id
@@ -149,14 +154,20 @@ const QuoteDropdownDialogs = ({
       })),
     }
 
-    await createPurchaseOrder.mutateAsync({
-      data: poData,
-      company: selectedCompany.slug
-    })
+    try {
+      await createPurchaseOrder.mutateAsync({
+        data: poData,
+        company: selectedCompany.slug
+      })
 
-    setOpenApprove(false)
-
-    onSuccessUpdate?.()
+      onSuccessUpdate?.()
+    } catch {
+      // El hook ya reportó el error (incluido el 409) por toast.
+    } finally {
+      // Se cierra pase lo que pase: dejarlo abierto tras un error solo invita a
+      // insistir con el botón.
+      setOpenApprove(false)
+    }
   }
   const handleDelete = async () => {
     await deleteQuote.mutateAsync({
@@ -370,7 +381,15 @@ const QuoteDropdownDialogs = ({
           APPROVE
       ========================= */}
 
-      <Dialog open={openApprove} onOpenChange={setOpenApprove}>
+      <Dialog
+        open={openApprove}
+        onOpenChange={(open) => {
+          // Cerrar con Escape o clic afuera mientras se genera la orden dejaría
+          // reabrir y aprobar de nuevo sobre un POST todavía en vuelo.
+          if (createPurchaseOrder.isPending) return
+          setOpenApprove(open)
+        }}
+      >
         <DialogContent className={dialogClass}>
           <DialogHeader className={header}>
             <div className={iconBase("green")}>
@@ -396,19 +415,20 @@ const QuoteDropdownDialogs = ({
             <Button
               variant="outline"
               onClick={() => setOpenApprove(false)}
+              disabled={createPurchaseOrder.isPending}
               className={cancelBtn}
             >
               Cancelar
             </Button>
             <Button
               onClick={handleApprove}
-              disabled={updateStatusQuote.isPending}
+              disabled={createPurchaseOrder.isPending}
               className={successBtn}
             >
-              {updateStatusQuote.isPending && (
+              {createPurchaseOrder.isPending && (
                 <Loader2 className="mr-2 size-4 animate-spin" />
               )}
-              Aprobar
+              {createPurchaseOrder.isPending ? "Generando orden..." : "Aprobar"}
             </Button>
 
           </div>
