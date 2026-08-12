@@ -32,6 +32,7 @@ const FollowUpControlDialog = ({
   showTrigger = true,
 }: FollowUpControlDialogProps) => {
   const { selectedCompany } = useCompanyStore();
+  const safeFollowUpControls = followUpControls ?? [];
 
   // Función auxiliar para no repetir la lógica de normalización
   const getNormalizedDate = (dateInput: any) => {
@@ -54,9 +55,9 @@ const FollowUpControlDialog = ({
         </DialogHeader>
 
         <div className="border rounded-lg p-4 shadow-md">
-          {followUpControls.length > 0 ? (
+          {safeFollowUpControls.length > 0 ? (
             <ul>
-              {followUpControls.map((control, index) => (
+              {safeFollowUpControls.map((control, index) => (
                 <li key={control.id} className="mb-2">
                   <ul className="font-semibold">
                     {index + 1} ) {control.description}
@@ -86,6 +87,7 @@ const FollowUpControlDialog = ({
               Ver más
             </Button>
           </div>
+          
         </Link>
       </DialogContent>
     );
@@ -93,7 +95,7 @@ const FollowUpControlDialog = ({
 
   const defaultTrigger = (
     <Badge className="flex flex-col justify-center h-8 bg-blue-300 rounded-full text-black cursor-pointer">
-      {followUpControls.length ? (
+      {safeFollowUpControls.length ? (
         <span className="font-semibold">Controles de Seguimiento</span>
       ) : (
         <div className="flex flex-col justify-center text-center">
@@ -114,9 +116,9 @@ const FollowUpControlDialog = ({
         </DialogHeader>
 
         <div className="border rounded-lg p-4 shadow-md">
-          {followUpControls.length > 0 ? (
+          {safeFollowUpControls.length > 0 ? (
             <ul>
-              {followUpControls.map((control, index) => (
+              {safeFollowUpControls.map((control, index) => (
                 <li key={control.id} className="mb-2">
                   <ul className="font-semibold">
                     {index + 1} ) {control.description}
