@@ -14,7 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-import { History, Loader2, Pencil, Search, Trash2, X } from "lucide-react";
+import { FileText, History, Loader2, Pencil, Search, Trash2, X } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import * as React from "react";
 
@@ -26,6 +26,7 @@ import ArticleStatusSincePopover, {
   tracksStatusSince,
 } from "@/components/misc/ArticleStatusSincePopover";
 import ArticleStatusHistoryDialog from "@/components/misc/ArticleStatusHistoryDialog";
+import ArticleDocumentsDialog from "@/components/misc/ArticleDocumentsDialog";
 import {
   Tooltip,
   TooltipContent,
@@ -83,6 +84,8 @@ export function PartNumberGroupDialog({
   const [historyArticleId, setHistoryArticleId] = useState<
     string | number | null
   >(null);
+  const [documentsArticle, setDocumentsArticle] =
+    useState<IArticleSimple | null>(null);
 
   const filtered = React.useMemo(() => {
     if (!q) return rows;
@@ -96,6 +99,7 @@ export function PartNumberGroupDialog({
     if (!open) {
       setQuery("");
       setHistoryArticleId(null);
+      setDocumentsArticle(null);
     }
   }, [open]);
 
@@ -316,6 +320,27 @@ export function PartNumberGroupDialog({
 
                             {/* Acciones (solo icono) */}
                             <div className="px-3 py-2 flex justify-center">
+                              {(r.has_documentation ||
+                                (r.certificates?.length ?? 0) > 0) && (
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-8 w-8 p-2"
+                                      onClick={() => setDocumentsArticle(r)}
+                                      aria-label="Ver documentación"
+                                    >
+                                      <FileText className="h-4 w-4" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    Ver documentación
+                                  </TooltipContent>
+                                </Tooltip>
+                              )}
+
                               <Tooltip>
                                 <TooltipTrigger asChild>
                                   <Button
@@ -396,6 +421,15 @@ export function PartNumberGroupDialog({
             articleId={historyArticleId}
             open
             onOpenChange={(next) => !next && setHistoryArticleId(null)}
+          />
+        )}
+
+        {documentsArticle && (
+          <ArticleDocumentsDialog
+            articleId={documentsArticle.id}
+            partNumber={documentsArticle.part_number}
+            open
+            onOpenChange={(next) => !next && setDocumentsArticle(null)}
           />
         )}
 
