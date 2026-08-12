@@ -14,6 +14,21 @@ const axiosInstance = axios.create({
     },
 });
 
+// El id del socket identifica a la sesión que originó un cambio, para que los
+// eventos que el servidor emite de vuelta no la hagan refetchear encima de su
+// propio update optimista. Se lee de window y no de lib/echo porque echo importa
+// este módulo: importarlo aquí cerraría el ciclo.
+const getSocketId = (): string | null => {
+    if (typeof window === 'undefined') return null;
+
+    try {
+        return window.__echo?.socketId() ?? null;
+    } catch {
+        // socketId() lanza si el socket todavía no conectó.
+        return null;
+    }
+};
+
 // 1. Interceptor de Petición: Asegura que el token lleve el formato correcto
 axiosInstance.interceptors.request.use(
     (config) => {
@@ -23,6 +38,12 @@ axiosInstance.interceptors.request.use(
             // Laravel necesita que el header empiece con "Bearer "
             const authHeader = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
             config.headers.Authorization = authHeader;
+        }
+
+        const socketId = getSocketId();
+
+        if (socketId) {
+            config.headers['X-Socket-Id'] = socketId;
         }
 
         return config;

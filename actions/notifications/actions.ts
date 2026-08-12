@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import axiosInstance from '@/lib/axios';
+import { broadcastQueryInvalidation } from '@/lib/cross-tab-sync';
 import { Notification } from '@/types/notifications/types';
 
 // Marcar como leída se refleja al instante en la campana: se actualiza la caché
@@ -37,6 +38,12 @@ export const useMarkNotificationAsRead = (company: string) => {
       );
 
       return { previous };
+    },
+
+    // El update optimista es local; las otras pestañas refetchean una vez que
+    // el servidor confirmó el read_at.
+    onSuccess: () => {
+      broadcastQueryInvalidation(queryKey);
     },
 
     // Revertir entero descartaría lo leído en paralelo: solo se devuelve a no
@@ -88,6 +95,10 @@ export const useMarkAllNotificationsAsRead = (company: string) => {
       );
 
       return { previous };
+    },
+
+    onSuccess: () => {
+      broadcastQueryInvalidation(queryKey);
     },
 
     // Aquí sí se revierte todo el listado: la operación era atómica.

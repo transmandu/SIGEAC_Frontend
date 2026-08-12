@@ -2,7 +2,7 @@
 
 import axiosInstance, { isAuthEndpoint } from "@/lib/axios";
 import { createCookie, deleteCookie, hasAuthCookie } from "@/lib/cookie";
-import { getEcho } from "@/lib/echo";
+import { resetEcho } from "@/lib/echo";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { User } from "@/types";
 import {
@@ -108,10 +108,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setError(null);
       setHasToken(false);
 
-      getEcho()?.disconnect();
-      if (typeof window !== "undefined") {
-        window.__echo = undefined;
-      }
+      resetEcho();
 
       deleteCookie("auth_token");
 
