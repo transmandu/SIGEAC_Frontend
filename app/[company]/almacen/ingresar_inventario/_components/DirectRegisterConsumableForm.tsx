@@ -30,6 +30,7 @@ import {
     useConfirmIncomingArticle,
     useCreateArticle,
     useUpdateArticle,
+    useSyncArticleDocumentRequirements,
     useUploadArticleDocuments,
 } from "@/actions/mantenimiento/almacen/inventario/articulos/actions";
 
@@ -739,6 +740,7 @@ export default function DirectRegisterConsumableForm({
     const { updateArticle } = useUpdateArticle();
     const { confirmIncoming } = useConfirmIncomingArticle();
     const { uploadArticleDocuments } = useUploadArticleDocuments();
+    const { syncArticleDocumentRequirements } = useSyncArticleDocumentRequirements();
 
     // Al editar, precarga todos los requerimientos documentales (pendientes y
     // ya consignados), estos últimos con su requirementId para que el
@@ -751,6 +753,18 @@ export default function DirectRegisterConsumableForm({
     // botón de guardar no se entera de que el usuario adjuntó un archivo.
     const initialDocumentsRef = useRef(buildDocumentSelectionFromArticle(initialData));
     const documentsDirty = isDocumentSelectionDirty(documents, initialDocumentsRef.current);
+
+    // Anclado al id del artículo a propósito: el efecto grande depende de
+    // units (React Query) y al refrescarse pisaba el archivo que el usuario
+    // acababa de seleccionar.
+    const articleId = initialData?.id;
+    useEffect(() => {
+        if (!articleId) return;
+        const reloaded = buildDocumentSelectionFromArticle(initialData);
+        initialDocumentsRef.current = reloaded;
+        setDocuments(reloaded);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [articleId]);
 
     const [secondaryOpen, setSecondaryOpen] = useState(false);
     const [secondarySelected, setSecondarySelected] = useState<any | null>(
@@ -984,10 +998,6 @@ export default function DirectRegisterConsumableForm({
         setFabricationDate(fabricationDateParsed);
         setShelfDate(shelfLifeDate);
 
-        const reloadedDocuments = buildDocumentSelectionFromArticle(initialData);
-        initialDocumentsRef.current = reloadedDocuments;
-        setDocuments(reloadedDocuments);
-
         if (initialData?.consumable?.primary_unit_id) {
             const unitObj =
                 units?.find((unit) => unit.id === Number(initialData?.consumable?.primary_unit_id)) ?? {
@@ -1050,7 +1060,9 @@ export default function DirectRegisterConsumableForm({
         isConditionsLoading ||
         createArticle.isPending ||
         confirmIncoming.isPending ||
-        updateArticle.isPending;
+        updateArticle.isPending ||
+        uploadArticleDocuments.isPending ||
+        syncArticleDocumentRequirements.isPending;
 
     const batchNameById = useMemo(() => {
         const map = new Map<string, string>();
@@ -1167,11 +1179,19 @@ export default function DirectRegisterConsumableForm({
                 company: selectedCompany.slug,
             });
 
-            if (values.has_documentation && documents.length > 0) {
+            const keptDocuments = values.has_documentation ? documents : [];
+
+            await syncArticleDocumentRequirements.mutateAsync({
+                company: selectedCompany.slug,
+                keptTypeIds: keptDocuments.map((doc) => doc.typeId),
+                existingRequirements: initialData.document_requirements ?? [],
+            });
+
+            if (keptDocuments.length > 0) {
                 await uploadArticleDocuments.mutateAsync({
                     company: selectedCompany.slug,
                     articleId: Number(initialData.id),
-                    documents,
+                    documents: keptDocuments,
                 });
             }
 

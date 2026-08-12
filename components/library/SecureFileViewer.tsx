@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Loader2, ShieldCheck, Lock, Frown, RotateCcw } from 'lucide-react';
 import { Worker, Viewer } from '@react-pdf-viewer/core';
 import { defaultLayoutPlugin } from '@react-pdf-viewer/default-layout';
@@ -150,7 +151,10 @@ export default function SecureFileViewer({ isOpen, onClose, title, fetchBlobUrl,
 
   if (!isOpen) return null;
 
-  return (
+  // Al portal del body: montado dentro del layout, cualquier ancestro con
+  // transform/filter convierte el `fixed` en relativo a ese ancestro y el
+  // visor sale recortado por el sidebar/navbar en vez de cubrir la pantalla.
+  return createPortal(
     // pointer-events-auto: si el visor se abre encima de un dialog modal de
     // Radix, este pone pointer-events:none en el body; sin re-activarlos aquí,
     // el visor queda visible pero inclickeable (no se puede cerrar).
@@ -254,6 +258,7 @@ export default function SecureFileViewer({ isOpen, onClose, title, fetchBlobUrl,
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

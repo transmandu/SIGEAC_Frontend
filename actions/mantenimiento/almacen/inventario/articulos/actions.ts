@@ -263,6 +263,57 @@ export const useCreateToReviewArticle = () => {
     };
 };
 
+/**
+ * Sincroniza los requerimientos del artículo con la selección del formulario:
+ * elimina de la BD los tipos que el usuario quitó (o todos, si desmarcó la
+ * casilla de documentación). Sin esto el requerimiento sobrevive y al reabrir
+ * el formulario la casilla vuelve a marcarse sola.
+ */
+export const useSyncArticleDocumentRequirements = () => {
+    const queryClient = useQueryClient();
+
+    const syncMutation = useMutation({
+        mutationKey: ["article-documents"],
+        mutationFn: async ({
+            company,
+            keptTypeIds,
+            existingRequirements,
+        }: {
+            company: string;
+            /** Tipos que deben permanecer; el resto se elimina. */
+            keptTypeIds: number[];
+            existingRequirements: ArticleDocumentRequirementSummary[];
+        }) => {
+            const kept = new Set(keptTypeIds);
+
+            const removable = existingRequirements.filter(
+                (req) =>
+                    typeof req.document_type?.id === "number" &&
+                    !kept.has(req.document_type.id)
+            );
+
+            for (const requirement of removable) {
+                await axiosInstance.delete(
+                    `/${company}/article-document-requirements/${requirement.id}`
+                );
+            }
+        },
+        onSuccess: () => {
+            invalidateArticleDocuments(queryClient);
+        },
+        onError: (error) => {
+            toast.error("Oops!", {
+                description: "No se pudo actualizar la documentación esperada...",
+            });
+            console.log(error);
+        },
+    });
+
+    return {
+        syncArticleDocumentRequirements: syncMutation,
+    };
+};
+
 export const useUploadArticleDocuments = () => {
     const queryClient = useQueryClient();
 

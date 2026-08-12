@@ -74,9 +74,7 @@ const ArticleDocumentsDialog = ({
 
   return (
     <>
-      {/* El visor se monta fuera del Dialog: apilarlos deja el visor detrás del
-          overlay de Radix, así que mientras hay preview el diálogo se repliega. */}
-      <Dialog open={open && !previewDoc} onOpenChange={onOpenChange}>
+      <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Documentación del artículo</DialogTitle>

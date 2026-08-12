@@ -47,6 +47,7 @@ import {
     useConfirmIncomingArticle,
     useCreateArticle,
     useUpdateArticle,
+    useSyncArticleDocumentRequirements,
     useUploadArticleDocuments,
 } from "@/actions/mantenimiento/almacen/inventario/articulos/actions";
 
@@ -315,6 +316,7 @@ export default function DirectRegisterPartForm({
     const { createArticle } = useCreateArticle();
     const { updateArticle } = useUpdateArticle();
     const { uploadArticleDocuments } = useUploadArticleDocuments();
+    const { syncArticleDocumentRequirements } = useSyncArticleDocumentRequirements();
 
     // Al editar, precarga todos los requerimientos documentales (pendientes y
     // ya consignados), estos últimos con su requirementId para que el
@@ -479,7 +481,9 @@ export default function DirectRegisterPartForm({
         isConditionsLoading ||
         createArticle.isPending ||
         confirmIncoming.isPending ||
-        updateArticle.isPending;
+        updateArticle.isPending ||
+        uploadArticleDocuments.isPending ||
+        syncArticleDocumentRequirements.isPending;
 
     const normalizeUpper = (s?: string) => s?.trim().toUpperCase() ?? "";
 
@@ -636,11 +640,19 @@ export default function DirectRegisterPartForm({
                 id: initialData.id,
             });
 
-            if (values.has_documentation && documents.length > 0) {
+            const keptDocuments = values.has_documentation ? documents : [];
+
+            await syncArticleDocumentRequirements.mutateAsync({
+                company: selectedCompany.slug,
+                keptTypeIds: keptDocuments.map((doc) => doc.typeId),
+                existingRequirements: initialData.document_requirements ?? [],
+            });
+
+            if (keptDocuments.length > 0) {
                 await uploadArticleDocuments.mutateAsync({
                     company: selectedCompany.slug,
                     articleId: Number(initialData.id),
-                    documents,
+                    documents: keptDocuments,
                 });
             }
 

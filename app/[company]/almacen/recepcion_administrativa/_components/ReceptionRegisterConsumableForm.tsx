@@ -742,6 +742,16 @@ export default function ReceptionRegisterConsumableForm({
     const [documents, setDocuments] = useState<ArticleDocumentSelection[]>(() =>
         buildDocumentSelectionFromArticle(initialData)
     );
+
+    // Anclado al id del artículo a propósito: el efecto grande depende de
+    // units (React Query) y al refrescarse pisaba el archivo que el usuario
+    // acababa de seleccionar.
+    const articleId = initialData?.id;
+    useEffect(() => {
+        if (!articleId) return;
+        setDocuments(buildDocumentSelectionFromArticle(initialData));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [articleId]);
     const { confirmIncoming } = useConfirmIncomingArticle();
 
     const [secondaryOpen, setSecondaryOpen] = useState(false);
@@ -932,8 +942,6 @@ export default function ReceptionRegisterConsumableForm({
         setCaducateDate(expirationDate);
         setFabricationDate(fabricationDateParsed);
         setShelfDate(shelfLifeDate);
-
-        setDocuments(buildDocumentSelectionFromArticle(initialData));
 
         if (initialData.primary_unit_id) {
             const unitObj =
