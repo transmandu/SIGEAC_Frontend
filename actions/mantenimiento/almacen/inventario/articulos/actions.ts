@@ -1,6 +1,6 @@
 import axiosInstance from "@/lib/axios";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { ComponentArticle, ConsumableArticle, ToolArticle } from "@/types";
+import { ArticleDocumentRequirementSummary, ComponentArticle, ConsumableArticle, ToolArticle } from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -72,6 +72,34 @@ export interface ArticleDocumentSelection {
      */
     replaceDocumentId?: number;
 }
+
+/**
+ * Invalida todo lo que depende de la documentación de un artículo: los
+ * listados, el detalle que precarga el formulario de edición (`article`) y el
+ * checklist que carga el diálogo de documentación.
+ */
+const invalidateArticleDocuments = (queryClient: ReturnType<typeof useQueryClient>) => {
+    queryClient.invalidateQueries({ queryKey: ["articles"] });
+    queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
+    queryClient.invalidateQueries({ queryKey: ["article"] });
+    queryClient.invalidateQueries({ queryKey: ["article-document-requirements"] });
+};
+
+/**
+ * Precarga la selección documental a partir de los requerimientos ya
+ * registrados del artículo (modo edición). Los que tienen documento consignado
+ * llevan su requirementId, que es lo que permite al selector mostrar el estado
+ * real (preview + reemplazar) en vez de un input vacío.
+ */
+export const buildDocumentSelectionFromArticle = (
+    article?: { document_requirements?: ArticleDocumentRequirementSummary[] }
+): ArticleDocumentSelection[] =>
+    (article?.document_requirements ?? [])
+        .filter((req) => typeof req.document_type?.id === "number")
+        .map((req) => ({
+            typeId: req.document_type!.id,
+            requirementId: req.documents.length > 0 ? req.id : undefined,
+        }));
 
 /**
  * Extrae los ids de los artículos creados de la respuesta de POST /article.
@@ -272,8 +300,7 @@ export const useUploadArticleDocuments = () => {
             }
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["articles"] });
-            queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
+            invalidateArticleDocuments(queryClient);
         },
         onError: (error) => {
             toast.error("Oops!", {
@@ -326,8 +353,7 @@ export const useConsignRequirementDocuments = () => {
             }
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["articles"] });
-            queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
+            invalidateArticleDocuments(queryClient);
         },
         onError: (error) => {
             toast.error("Oops!", {
@@ -361,8 +387,7 @@ export const useDeleteArticleDocument = () => {
             await axiosInstance.delete(`/${company}/article-documents/${documentId}`);
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["articles"] });
-            queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
+            invalidateArticleDocuments(queryClient);
         },
         onError: (error) => {
             toast.error("Oops!", {

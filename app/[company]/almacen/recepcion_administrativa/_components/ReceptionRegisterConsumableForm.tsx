@@ -27,6 +27,7 @@ import {
 
 import {
     ArticleDocumentSelection,
+    buildDocumentSelectionFromArticle,
     extractCreatedArticleIds,
     useConfirmIncomingArticle,
     useCreateArticle,
@@ -738,7 +739,9 @@ export default function ReceptionRegisterConsumableForm({
     const { updateArticle } = useUpdateArticle();
     const { uploadArticleDocuments } = useUploadArticleDocuments();
 
-    const [documents, setDocuments] = useState<ArticleDocumentSelection[]>([]);
+    const [documents, setDocuments] = useState<ArticleDocumentSelection[]>(() =>
+        buildDocumentSelectionFromArticle(initialData)
+    );
     const { confirmIncoming } = useConfirmIncomingArticle();
 
     const [secondaryOpen, setSecondaryOpen] = useState(false);
@@ -842,7 +845,9 @@ export default function ReceptionRegisterConsumableForm({
                 ? Number(initialData.consumable.min_quantity)
                 : undefined,
             primary_unit_id: initialData?.primary_unit_id || undefined,
-            has_documentation: initialData?.has_documentation || false,
+            has_documentation:
+                (initialData?.has_documentation ?? false) ||
+                (initialData?.document_requirements?.length ?? 0) > 0,
             destination_unknown: false,
             shelf_life: initialData?.consumable?.shelf_life || undefined,
             sender: (initialData as any)?.article_detail?.sender || "",
@@ -911,7 +916,9 @@ export default function ReceptionRegisterConsumableForm({
                     : undefined,
 
             primary_unit_id: initialData?.primary_unit_id || undefined,
-            has_documentation: initialData.has_documentation ?? false,
+            has_documentation:
+                (initialData?.has_documentation ?? false) ||
+                (initialData?.document_requirements?.length ?? 0) > 0,
             destination_unknown: false,
             sender: (initialData as any)?.article_detail?.sender ?? "",
             origin: (initialData as any)?.article_detail?.origin ?? "",
@@ -925,6 +932,8 @@ export default function ReceptionRegisterConsumableForm({
         setCaducateDate(expirationDate);
         setFabricationDate(fabricationDateParsed);
         setShelfDate(shelfLifeDate);
+
+        setDocuments(buildDocumentSelectionFromArticle(initialData));
 
         if (initialData.primary_unit_id) {
             const unitObj =
@@ -2070,6 +2079,7 @@ export default function ReceptionRegisterConsumableForm({
                                         value={documents}
                                         onChange={setDocuments}
                                         disabled={busy}
+                                        consignedRequirements={initialData?.document_requirements}
                                     />
                                 )}
                             </div>

@@ -22,6 +22,7 @@ import {
 
 import {
     ArticleDocumentSelection,
+    buildDocumentSelectionFromArticle,
     extractCreatedArticleIds,
     useConfirmIncomingArticle,
     useCreateArticle,
@@ -158,7 +159,9 @@ const CreateConsumableForm = ({
     const { updateArticle } = useUpdateArticle();
     const { uploadArticleDocuments } = useUploadArticleDocuments();
 
-    const [documents, setDocuments] = useState<ArticleDocumentSelection[]>([]);
+    const [documents, setDocuments] = useState<ArticleDocumentSelection[]>(() =>
+        buildDocumentSelectionFromArticle(initialData)
+    );
     const { confirmIncoming } = useConfirmIncomingArticle();
 
     const [selectedBatchId, setSelectedBatchId] = useState<number | undefined>(
@@ -221,6 +224,9 @@ const CreateConsumableForm = ({
             is_managed: initialData?.consumable?.is_managed
                 ? initialData.consumable.is_managed === "1" || initialData.consumable.is_managed === true
                 : true,
+            has_documentation:
+                (initialData?.has_documentation ?? false) ||
+                (initialData?.document_requirements?.length ?? 0) > 0,
         },
     });
 
@@ -249,7 +255,11 @@ const CreateConsumableForm = ({
             is_managed: initialData?.consumable?.is_managed
                 ? initialData.consumable.is_managed === "1" || initialData.consumable.is_managed === true
                 : true,
+            has_documentation:
+                (initialData.has_documentation ?? false) ||
+                (initialData.document_requirements?.length ?? 0) > 0,
         });
+        setDocuments(buildDocumentSelectionFromArticle(initialData));
     }, [initialData, form]);
 
     // conversión secundaria -> quantity
@@ -1069,6 +1079,7 @@ const CreateConsumableForm = ({
                                         value={documents}
                                         onChange={setDocuments}
                                         disabled={busy}
+                                        consignedRequirements={initialData?.document_requirements}
                                     />
                                 )}
                             </div>

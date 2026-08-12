@@ -18,6 +18,12 @@ interface SecureFileViewerProps {
   title?: string;
   /** Resuelve el archivo a mostrar como una Object URL de blob. */
   fetchBlobUrl: () => Promise<string>;
+  /**
+   * Renderiza el blob como imagen en vez de PDF. Necesario donde se aceptan
+   * adjuntos jpg/png (documentación de artículos): el visor de PDF no los
+   * puede montar.
+   */
+  isImage?: boolean;
 }
 
 /**
@@ -25,7 +31,7 @@ interface SecureFileViewerProps {
  * desacoplado de libraryService): recibe cómo resolver el blob en vez de asumir
  * el endpoint de la Biblioteca, para poder reutilizarse en otros módulos.
  */
-export default function SecureFileViewer({ isOpen, onClose, title, fetchBlobUrl }: SecureFileViewerProps) {
+export default function SecureFileViewer({ isOpen, onClose, title, fetchBlobUrl, isImage }: SecureFileViewerProps) {
   const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [currentTheme, setCurrentTheme] = useState<'light' | 'dark'>('dark');
   const activeUrlRef = useRef<string | null>(null);
@@ -216,14 +222,26 @@ export default function SecureFileViewer({ isOpen, onClose, title, fetchBlobUrl 
           ) : (
             fileUrl && (
               <div className="absolute inset-0">
-                <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
-                  <Viewer
-                    fileUrl={fileUrl}
-                    plugins={[defaultLayoutPluginInstance]}
-                    theme={currentTheme}
-                    defaultScale={1.0}
-                  />
-                </Worker>
+                {isImage ? (
+                  <div className="flex h-full w-full items-center justify-center overflow-auto p-4">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={fileUrl}
+                      alt={title ?? 'Documento'}
+                      draggable={false}
+                      className="max-h-full max-w-full object-contain select-none"
+                    />
+                  </div>
+                ) : (
+                  <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
+                    <Viewer
+                      fileUrl={fileUrl}
+                      plugins={[defaultLayoutPluginInstance]}
+                      theme={currentTheme}
+                      defaultScale={1.0}
+                    />
+                  </Worker>
+                )}
               </div>
             )
           )}

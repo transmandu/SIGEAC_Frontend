@@ -24,6 +24,7 @@ import {
 
 import {
     ArticleDocumentSelection,
+    buildDocumentSelectionFromArticle,
     extractCreatedArticleIds,
     useConfirmIncomingArticle,
     useCreateArticle,
@@ -742,12 +743,7 @@ export default function DirectRegisterConsumableForm({
     // ya consignados), estos últimos con su requirementId para que el
     // selector muestre su estado real en vez de tratarlos como vacíos.
     const [documents, setDocuments] = useState<ArticleDocumentSelection[]>(() =>
-        (initialData?.document_requirements ?? [])
-            .filter((req) => typeof req.document_type?.id === "number")
-            .map((req) => ({
-                typeId: req.document_type!.id,
-                requirementId: req.documents.length > 0 ? req.id : undefined,
-            }))
+        buildDocumentSelectionFromArticle(initialData)
     );
 
     const [secondaryOpen, setSecondaryOpen] = useState(false);
@@ -981,6 +977,8 @@ export default function DirectRegisterConsumableForm({
         setCaducateDate(expirationDate);
         setFabricationDate(fabricationDateParsed);
         setShelfDate(shelfLifeDate);
+
+        setDocuments(buildDocumentSelectionFromArticle(initialData));
 
         if (initialData?.consumable?.primary_unit_id) {
             const unitObj =

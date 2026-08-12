@@ -21,6 +21,7 @@ import { Separator } from "@/components/ui/separator";
 
 import {
   ArticleDocumentSelection,
+  buildDocumentSelectionFromArticle,
   extractCreatedArticleIds,
   useCreateArticle,
   useUpdateArticle,
@@ -114,7 +115,9 @@ export default function ReceptionRegisterComponentForm({ initialData, isEditing 
   const { updateArticle } = useUpdateArticle();
   const { uploadArticleDocuments } = useUploadArticleDocuments();
 
-  const [documents, setDocuments] = useState<ArticleDocumentSelection[]>([]);
+  const [documents, setDocuments] = useState<ArticleDocumentSelection[]>(() =>
+    buildDocumentSelectionFromArticle(initialData)
+  );
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -126,7 +129,9 @@ export default function ReceptionRegisterComponentForm({ initialData, isEditing 
       manufacturer_id: initialData?.manufacturer?.id?.toString() || "",
       condition_id: initialData?.condition?.id?.toString() || "",
       description: initialData?.description || "",
-      has_documentation: initialData?.has_documentation ?? false,
+      has_documentation:
+        (initialData?.has_documentation ?? false) ||
+        (initialData?.document_requirements?.length ?? 0) > 0,
       destination_unknown: false,
       reception_date: initialData?.reception_date || "",
       sender: (initialData as any)?.article_detail?.sender || "",
@@ -146,7 +151,9 @@ export default function ReceptionRegisterComponentForm({ initialData, isEditing 
       manufacturer_id: initialData.manufacturer?.id?.toString() ?? "",
       condition_id: initialData.condition?.id?.toString() ?? "",
       description: initialData.description ?? "",
-      has_documentation: initialData.has_documentation ?? false,
+      has_documentation:
+        (initialData?.has_documentation ?? false) ||
+        (initialData?.document_requirements?.length ?? 0) > 0,
       destination_unknown: false,
       reception_date: initialData.reception_date ?? "",
       sender: (initialData as any)?.article_detail?.sender ?? "",
@@ -154,6 +161,7 @@ export default function ReceptionRegisterComponentForm({ initialData, isEditing 
       destination: (initialData as any)?.article_detail?.destination ?? "",
       justification: (initialData as any)?.article_detail?.justification ?? "",
     });
+    setDocuments(buildDocumentSelectionFromArticle(initialData));
   }, [initialData, form]);
 
   const busy =
@@ -673,6 +681,7 @@ export default function ReceptionRegisterComponentForm({ initialData, isEditing 
                   value={documents}
                   onChange={setDocuments}
                   disabled={busy}
+                  consignedRequirements={initialData?.document_requirements}
                 />
               )}
             </div>

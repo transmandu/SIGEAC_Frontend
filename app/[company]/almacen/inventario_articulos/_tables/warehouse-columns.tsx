@@ -292,7 +292,14 @@ const actionsCol: ColumnDef<IArticleSimple> = {
 
         return (
             <div className="sticky right-0 bg-background z-50 flex justify-center">
-                <ArticleDropdownActions id={item.id} status={item.status} />
+                <ArticleDropdownActions
+                    id={item.id}
+                    status={item.status}
+                    hasDocumentation={
+                        item.has_documentation || (item.certificates?.length ?? 0) > 0
+                    }
+                    partNumber={item.part_number}
+                />
             </div>
         );
     },

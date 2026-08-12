@@ -22,6 +22,7 @@ import {
 
 import {
   ArticleDocumentSelection,
+  buildDocumentSelectionFromArticle,
   extractCreatedArticleIds,
   useConfirmIncomingArticle,
   useCreateArticle,
@@ -404,15 +405,21 @@ export default function DirectRegisterToolForm({
   const { updateArticle } = useUpdateArticle();
   const { uploadArticleDocuments } = useUploadArticleDocuments();
 
-  // Al editar, precarga los tipos de documento requeridos aún sin consignar.
+  // Al editar, precarga todos los requerimientos documentales (pendientes y
+  // ya consignados), estos últimos con su requirementId para que el
+  // selector muestre su estado real en vez de tratarlos como vacíos.
   const [documents, setDocuments] = useState<ArticleDocumentSelection[]>(() =>
-    (initialData?.document_requirements ?? [])
-      .filter((req) => req.documents.length === 0 && typeof req.document_type?.id === "number")
-      .map((req) => ({ typeId: req.document_type!.id }))
+    buildDocumentSelectionFromArticle(initialData)
   );
   const { confirmIncoming } = useConfirmIncomingArticle();
 
   const [enableBatchNameEdit, setEnableBatchNameEdit] = useState(false);
+
+  // El artículo llega como `batch` (endpoint show) o `batches` según el origen.
+  const currentBatch = useMemo(
+    () => initialData?.batch ?? initialData?.batches,
+    [initialData]
+  );
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -423,8 +430,8 @@ export default function DirectRegisterToolForm({
       description: initialData?.description || "",
       zone: initialData?.zone || "",
       manufacturer_id: initialData?.manufacturer?.id?.toString() || "",
-      batch_id: initialData?.batch?.id?.toString() || "",
-      batch_name: initialData?.batch?.name || "",
+      batch_id: currentBatch?.id?.toString() || "",
+      batch_name: currentBatch?.name || "",
       needs_calibration: initialData?.tool?.needs_calibration ?? false,
       calibration_date: initialData?.tool?.calibration_date
         ? parseISO(initialData.tool.calibration_date)
@@ -459,8 +466,8 @@ export default function DirectRegisterToolForm({
       description: initialData.description || "",
       zone: initialData.zone || "",
       manufacturer_id: initialData.manufacturer?.id?.toString() || "",
-      batch_id: initialData.batch?.id?.toString() || "",
-      batch_name: initialData.batches?.name || "",
+      batch_id: currentBatch?.id?.toString() || "",
+      batch_name: currentBatch?.name || "",
       needs_calibration: initialData.tool?.needs_calibration ?? false,
       calibration_date: initialData.tool?.calibration_date
         ? parseISO(initialData.tool.calibration_date)
@@ -474,7 +481,8 @@ export default function DirectRegisterToolForm({
         (initialData.document_requirements?.length ?? 0) > 0,
       destination_unknown: false,
     });
-  }, [initialData, form]);
+    setDocuments(buildDocumentSelectionFromArticle(initialData));
+  }, [initialData, form, currentBatch]);
 
   // Autocompletar descripción cuando encuentra resultados de búsqueda
   useEffect(() => {
@@ -1250,6 +1258,7 @@ export default function DirectRegisterToolForm({
                   value={documents}
                   onChange={setDocuments}
                   disabled={busy}
+                  consignedRequirements={initialData?.document_requirements}
                 />
               )}
             </div>

@@ -7,7 +7,7 @@ import {
 
 import { useDeleteArticle } from "@/actions/mantenimiento/almacen/inventario/articulos/actions";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { History, Loader2, MoreHorizontal, SquarePen, Trash2 } from "lucide-react";
+import { FileText, History, Loader2, MoreHorizontal, SquarePen, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -28,17 +28,24 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import ArticleStatusHistoryDialog from "@/components/misc/ArticleStatusHistoryDialog";
+import ArticleDocumentsDialog from "@/components/misc/ArticleDocumentsDialog";
 import { canModifyArticle } from "@/lib/warehouse/statuses";
 
 const ArticleDropdownActions = ({
   id,
   status,
+  hasDocumentation,
+  partNumber,
 }: {
   id: string | number;
   status?: string | null;
+  /** Si el artículo declara documentación, se ofrece verla. */
+  hasDocumentation?: boolean;
+  partNumber?: string;
 }) => {
   const [open, setOpen] = useState<boolean>(false);
   const [openHistory, setOpenHistory] = useState<boolean>(false);
+  const [openDocuments, setOpenDocuments] = useState<boolean>(false);
   const router = useRouter();
   const { selectedCompany } = useCompanyStore();
   const { deleteArticle } = useDeleteArticle();
@@ -86,6 +93,20 @@ const ArticleDropdownActions = ({
                   </DropdownMenuItem>
                 </TooltipTrigger>
                 <TooltipContent>Editar artículo</TooltipContent>
+              </Tooltip>
+            )}
+
+            {hasDocumentation && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuItem
+                    className="cursor-pointer"
+                    onSelect={() => setOpenDocuments(true)}
+                  >
+                    <FileText className="size-5" />
+                  </DropdownMenuItem>
+                </TooltipTrigger>
+                <TooltipContent>Ver documentación</TooltipContent>
               </Tooltip>
             )}
 
@@ -157,6 +178,15 @@ const ArticleDropdownActions = ({
         open={openHistory}
         onOpenChange={setOpenHistory}
       />
+
+      {hasDocumentation && (
+        <ArticleDocumentsDialog
+          articleId={id}
+          partNumber={partNumber}
+          open={openDocuments}
+          onOpenChange={setOpenDocuments}
+        />
+      )}
     </>
   );
 };

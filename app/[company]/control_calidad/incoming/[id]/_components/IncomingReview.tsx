@@ -32,8 +32,10 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/contexts/AuthContext";
 import { useGetIncomingChecks } from "@/hooks/mantenimiento/control_calidad/useGetIncomingInspectionChecks";
+import SecureFileViewer from "@/components/library/SecureFileViewer";
 import axiosInstance from "@/lib/axios";
 import { cn } from "@/lib/utils";
+import { isImageDocument } from "@/lib/warehouse/documents";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import type { ArticleDocument, ArticleDocumentRequirementSummary } from "@/types";
 import { format } from "date-fns";
@@ -45,6 +47,7 @@ import {
   Check,
   ChevronDown,
   ClipboardCheck,
+  Eye,
   Factory,
   FileDown,
   Flame,
@@ -458,6 +461,7 @@ function ChecklistContent({
 
 export function IncomingReview({ article }: { article: any }) {
   const { selectedCompany, selectedStation } = useCompanyStore();
+  const [previewDoc, setPreviewDoc] = useState<ArticleDocument | null>(null);
   const router = useRouter();
   const { confirmIncoming } = useConfirmIncomingArticle();
   const { sendToQuarantine } = useSendToQuarantine();
@@ -804,16 +808,26 @@ export function IncomingReview({ article }: { article: any }) {
                                 </span>
                               )}
                               {doc.file_path && (
-                                <button
-                                  type="button"
-                                  onClick={() => handleDownloadDocument(doc)}
-                                  className="inline-flex items-center gap-1 rounded-full border border-emerald-300/60 bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700 hover:bg-emerald-100 dark:border-emerald-700/40 dark:bg-emerald-950/30 dark:text-emerald-400 dark:hover:bg-emerald-900/40"
-                                >
-                                  <FileDown className="h-3 w-3" />
-                                  <span className="max-w-[140px] truncate">
-                                    {doc.file_path.split("/").pop()}
-                                  </span>
-                                </button>
+                                <>
+                                  <button
+                                    type="button"
+                                    onClick={() => setPreviewDoc(doc)}
+                                    className="inline-flex items-center gap-1 rounded-full border border-emerald-300/60 bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700 hover:bg-emerald-100 dark:border-emerald-700/40 dark:bg-emerald-950/30 dark:text-emerald-400 dark:hover:bg-emerald-900/40"
+                                  >
+                                    <Eye className="h-3 w-3" />
+                                    <span className="max-w-[140px] truncate">
+                                      {doc.file_path.split("/").pop()}
+                                    </span>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDownloadDocument(doc)}
+                                    aria-label="Descargar documento"
+                                    className="inline-flex items-center rounded-full border border-emerald-300/60 bg-emerald-50 p-1 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-700/40 dark:bg-emerald-950/30 dark:text-emerald-400 dark:hover:bg-emerald-900/40"
+                                  >
+                                    <FileDown className="h-3 w-3" />
+                                  </button>
+                                </>
                               )}
                             </span>
                           ))}
@@ -1129,6 +1143,22 @@ export function IncomingReview({ article }: { article: any }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {previewDoc && (
+        <SecureFileViewer
+          isOpen={!!previewDoc}
+          onClose={() => setPreviewDoc(null)}
+          title={previewDoc.file_path?.split("/").pop()}
+          isImage={isImageDocument(previewDoc.file_path)}
+          fetchBlobUrl={async () => {
+            const { data } = await axiosInstance.get(
+              `/${selectedCompany?.slug}/article-documents/${previewDoc.id}/view`,
+              { responseType: "blob" }
+            );
+            return URL.createObjectURL(data);
+          }}
+        />
+      )}
     </>
   );
 }

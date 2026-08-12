@@ -19,9 +19,16 @@ import {
     PopoverTrigger,
 } from "@/components/ui/popover";
 import SecureFileViewer from "@/components/library/SecureFileViewer";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
 import axiosInstance from "@/lib/axios";
 import { useGetArticleDocumentTypes } from "@/hooks/mantenimiento/almacen/articulos/useGetArticleDocumentTypes";
 import { cn } from "@/lib/utils";
+import { isImageDocument } from "@/lib/warehouse/documents";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import type { ArticleDocument, ArticleDocumentRequirementSummary } from "@/types";
 import { Check, CheckCircle2, ChevronsUpDown, Eye, FileUpIcon, Loader2, RefreshCw, X } from "lucide-react";
@@ -222,16 +229,23 @@ const ArticleDocumentsSelector = ({
                                 </span>
                                 <div className="flex items-center gap-1">
                                     {existingDocument.file_path && (
-                                        <Button
-                                            type="button"
-                                            variant="ghost"
-                                            size="icon"
-                                            className="h-6 w-6"
-                                            title="Ver documento"
-                                            onClick={() => setPreviewDoc(existingDocument)}
-                                        >
-                                            <Eye className="size-3.5" />
-                                        </Button>
+                                        <TooltipProvider>
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="h-6 w-6"
+                                                        aria-label="Ver documento"
+                                                        onClick={() => setPreviewDoc(existingDocument)}
+                                                    >
+                                                        <Eye className="size-3.5" />
+                                                    </Button>
+                                                </TooltipTrigger>
+                                                <TooltipContent>Ver documento</TooltipContent>
+                                            </Tooltip>
+                                        </TooltipProvider>
                                     )}
                                     <Button
                                         type="button"
@@ -322,6 +336,8 @@ const ArticleDocumentsSelector = ({
                 <SecureFileViewer
                     isOpen={!!previewDoc}
                     onClose={() => setPreviewDoc(null)}
+                    title={previewDoc.file_path?.split("/").pop()}
+                    isImage={isImageDocument(previewDoc.file_path)}
                     fetchBlobUrl={async () => {
                         const { data } = await axiosInstance.get(
                             `/${selectedCompany?.slug}/article-documents/${previewDoc.id}/view`,

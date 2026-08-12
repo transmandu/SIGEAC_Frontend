@@ -41,6 +41,7 @@ import { Separator } from "@/components/ui/separator";
 
 import {
   ArticleDocumentSelection,
+  buildDocumentSelectionFromArticle,
   extractCreatedArticleIds,
   useConfirmIncomingArticle,
   useCreateArticle,
@@ -321,14 +322,15 @@ export default function DirectRegisterComponentForm({
   // ya consignados), estos últimos con su requirementId para que el
   // selector muestre su estado real en vez de tratarlos como vacíos.
   const [documents, setDocuments] = useState<ArticleDocumentSelection[]>(() =>
-    (initialData?.document_requirements ?? [])
-      .filter((req) => typeof req.document_type?.id === "number")
-      .map((req) => ({
-        typeId: req.document_type!.id,
-        requirementId: req.documents.length > 0 ? req.id : undefined,
-      }))
+      buildDocumentSelectionFromArticle(initialData)
   );
   const { confirmIncoming } = useConfirmIncomingArticle();
+
+  // El artículo llega como `batch` (endpoint show) o `batches` según el origen.
+  const currentBatch = useMemo(
+    () => initialData?.batch ?? initialData?.batches,
+    [initialData]
+  );
 
   // Form
   const form = useForm<FormValues>({
@@ -341,8 +343,8 @@ export default function DirectRegisterComponentForm({
           : [initialData.serial]
         : [],
       alternative_part_number: initialData?.alternative_part_number || [],
-      batch_id: initialData?.batch?.id?.toString() || "",
-      batch_name: initialData?.batch?.name || "",
+      batch_id: currentBatch?.id?.toString() || "",
+      batch_name: currentBatch?.name || "",
       manufacturer_id: initialData?.manufacturer?.id?.toString() || "",
       condition_id: initialData?.condition?.id?.toString() || "",
       description: initialData?.description || "",
@@ -404,8 +406,8 @@ export default function DirectRegisterComponentForm({
           : [initialData.serial]
         : [],
       alternative_part_number: initialData.alternative_part_number ?? [],
-      batch_id: initialData.batch?.id?.toString() ?? "",
-      batch_name: initialData.batch?.name ?? "",
+      batch_id: currentBatch?.id?.toString() ?? "",
+      batch_name: currentBatch?.name ?? "",
       manufacturer_id: initialData.manufacturer?.id?.toString() ?? "",
       condition_id: initialData.condition?.id?.toString() ?? "",
       description: initialData.description ?? "",
@@ -443,7 +445,8 @@ export default function DirectRegisterComponentForm({
         : undefined,
       ata_code: initialData?.ata_code || "",
     });
-  }, [initialData, form]);
+    setDocuments(buildDocumentSelectionFromArticle(initialData));
+  }, [initialData, form, currentBatch]);
 
   // Autocompletar descripción cuando encuentra resultados de búsqueda
   useEffect(() => {
@@ -617,7 +620,7 @@ export default function DirectRegisterComponentForm({
         updateData.batch_name = values.batch_name;
         // Mantener el batch_id original para que el backend sepa qué batch modificar
         updateData.batch_id =
-          initialData.batches?.id?.toString() || values.batch_id;
+          currentBatch?.id?.toString() || values.batch_id;
       } else {
         // Solo reasignar este artículo a otro batch (NO afecta a otros artículos)
         if (!values.batch_id) {

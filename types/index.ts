@@ -86,6 +86,11 @@ export type Article = {
   cost?: number;
   unit?: string;
   quantity?: number;
+  /**
+   * Lote del artículo según los endpoints de listado. El endpoint `show`
+   * (`/article/{id}`) lo devuelve como `batch`, no aquí: al editar hay que
+   * leer `initialData.batch ?? initialData.batches` o el campo queda vacío.
+   */
   batches?: Batch;
   batch_id?: number;
   vendor_id?: string;
