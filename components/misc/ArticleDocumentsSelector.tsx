@@ -28,7 +28,8 @@ import {
 import axiosInstance from "@/lib/axios";
 import { useGetArticleDocumentTypes } from "@/hooks/mantenimiento/almacen/articulos/useGetArticleDocumentTypes";
 import { cn } from "@/lib/utils";
-import { isImageDocument } from "@/lib/warehouse/documents";
+import { isImageDocument, validateDocumentFile } from "@/lib/warehouse/documents";
+import { toast } from "sonner";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import type { ArticleDocument, ArticleDocumentRequirementSummary } from "@/types";
 import { Check, CheckCircle2, ChevronsUpDown, Eye, FileUpIcon, Loader2, RefreshCw, X } from "lucide-react";
@@ -93,6 +94,16 @@ const ArticleDocumentsSelector = ({
     };
 
     const setFile = (typeId: number, file?: File) => {
+        // Se valida aquí y no al guardar: el backend rechazaba el archivo
+        // recién en el submit, con un error que no decía el motivo.
+        if (file) {
+            const error = validateDocumentFile(file);
+            if (error) {
+                toast.error("Archivo no válido", { description: error });
+                return;
+            }
+        }
+
         onChange(
             value.map((doc) => (doc.typeId === typeId ? { ...doc, file } : doc))
         );

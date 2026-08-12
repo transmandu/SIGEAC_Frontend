@@ -51,6 +51,36 @@ export default function SecureFileViewer({ isOpen, onClose, title, fetchBlobUrl,
     return () => observer.disconnect();
   }, []);
 
+  // Cuando el visor se abre desde dentro de un Dialog de Radix, ese Dialog
+  // sigue montado: su overlay oscurece el visor por encima y su lock de scroll
+  // impide desplazar el documento. Se neutraliza mientras dura el preview.
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const hidden = Array.from(
+      document.querySelectorAll<HTMLElement>('[data-dialog-overlay]')
+    );
+
+    hidden.forEach((el) => {
+      el.style.display = 'none';
+    });
+
+    // Radix reaplica su lock en el body mientras el diálogo sigue abierto, así
+    // que aquí hace falta `important` para poder scrollear el documento.
+    const previousOverflow = document.body.style.overflow;
+    const previousPointerEvents = document.body.style.pointerEvents;
+    document.body.style.setProperty('overflow', 'auto', 'important');
+    document.body.style.setProperty('pointer-events', 'auto', 'important');
+
+    return () => {
+      hidden.forEach((el) => {
+        el.style.display = '';
+      });
+      document.body.style.overflow = previousOverflow;
+      document.body.style.pointerEvents = previousPointerEvents;
+    };
+  }, [isOpen]);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const isControl = e.ctrlKey || e.metaKey;
@@ -158,7 +188,14 @@ export default function SecureFileViewer({ isOpen, onClose, title, fetchBlobUrl,
     // pointer-events-auto: si el visor se abre encima de un dialog modal de
     // Radix, este pone pointer-events:none en el body; sin re-activarlos aquí,
     // el visor queda visible pero inclickeable (no se puede cerrar).
-    <div className={`pointer-events-auto fixed inset-0 z-[200] flex items-center justify-center p-2 md:p-6 backdrop-blur-sm transition-colors duration-300 ${currentTheme === 'dark' ? 'bg-black/95' : 'bg-slate-900/40'
+    <div
+      // El visor vive en el portal del body, fuera del DialogContent: sin
+      // frenar la propagación, cada clic le llega al Dialog padre como "click
+      // fuera" y lo cierra por debajo del visor.
+      onPointerDown={(e) => e.stopPropagation()}
+      onMouseDown={(e) => e.stopPropagation()}
+      onClick={(e) => e.stopPropagation()}
+      className={`pointer-events-auto fixed inset-0 z-[200] flex items-center justify-center p-2 md:p-6 backdrop-blur-sm transition-colors duration-300 ${currentTheme === 'dark' ? 'bg-black/95' : 'bg-slate-900/40'
       }`}>
       <div className={`relative w-full h-full max-w-7xl rounded-2xl overflow-hidden border flex flex-col shadow-2xl transition-all duration-300 ${currentTheme === 'dark' ? 'bg-[#111214] border-gray-800' : 'bg-white border-gray-300'
         }`}>

@@ -314,6 +314,31 @@ export const useSyncArticleDocumentRequirements = () => {
     };
 };
 
+/**
+ * El 422 de Laravel trae el motivo real (tipo de archivo no permitido, pesa
+ * más de 10 MB...). Sin esto el usuario solo veía "no se pudo guardar" y no
+ * había forma de saber por qué el archivo fue rechazado.
+ */
+const describeDocumentUploadError = (error: any): string => {
+    const response = error?.response;
+
+    if (response?.status === 413) {
+        return "El archivo es demasiado grande. El máximo permitido es 10 MB.";
+    }
+
+    const validationErrors = response?.data?.errors;
+
+    if (validationErrors && typeof validationErrors === "object") {
+        const first = Object.values(validationErrors).flat()[0];
+        if (typeof first === "string") return first;
+    }
+
+    const message = response?.data?.message;
+    if (typeof message === "string" && message.length > 0) return message;
+
+    return "No se pudo guardar la documentación del artículo...";
+};
+
 export const useUploadArticleDocuments = () => {
     const queryClient = useQueryClient();
 
@@ -375,7 +400,7 @@ export const useUploadArticleDocuments = () => {
         },
         onError: (error) => {
             toast.error("Oops!", {
-                description: "No se pudo guardar la documentación del artículo...",
+                description: describeDocumentUploadError(error),
             });
             console.log(error);
         },
