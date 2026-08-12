@@ -25,6 +25,7 @@ import {
 import {
     ArticleDocumentSelection,
     buildDocumentSelectionFromArticle,
+    isDocumentSelectionDirty,
     extractCreatedArticleIds,
     useConfirmIncomingArticle,
     useCreateArticle,
@@ -746,6 +747,11 @@ export default function DirectRegisterConsumableForm({
         buildDocumentSelectionFromArticle(initialData)
     );
 
+    // La documentación vive fuera de react-hook-form: sin este contraste el
+    // botón de guardar no se entera de que el usuario adjuntó un archivo.
+    const initialDocumentsRef = useRef(buildDocumentSelectionFromArticle(initialData));
+    const documentsDirty = isDocumentSelectionDirty(documents, initialDocumentsRef.current);
+
     const [secondaryOpen, setSecondaryOpen] = useState(false);
     const [secondarySelected, setSecondarySelected] = useState<any | null>(
         initialData?.consumable?.primary_unit_id ? { id: initialData.consumable.primary_unit_id } : null,
@@ -978,7 +984,9 @@ export default function DirectRegisterConsumableForm({
         setFabricationDate(fabricationDateParsed);
         setShelfDate(shelfLifeDate);
 
-        setDocuments(buildDocumentSelectionFromArticle(initialData));
+        const reloadedDocuments = buildDocumentSelectionFromArticle(initialData);
+        initialDocumentsRef.current = reloadedDocuments;
+        setDocuments(reloadedDocuments);
 
         if (initialData?.consumable?.primary_unit_id) {
             const unitObj =
@@ -2148,7 +2156,7 @@ export default function DirectRegisterConsumableForm({
                                 isEditing
                                     ? busy ||
                                       !selectedCompany ||
-                                      (!form.formState.isDirty && !datesDirty)
+                                      (!form.formState.isDirty && !datesDirty && !documentsDirty)
                                     : busy ||
                                       !selectedCompany ||
                                       !form.getValues("part_number") ||

@@ -42,6 +42,7 @@ import { Separator } from "@/components/ui/separator";
 import {
     ArticleDocumentSelection,
     buildDocumentSelectionFromArticle,
+    isDocumentSelectionDirty,
     extractCreatedArticleIds,
     useConfirmIncomingArticle,
     useCreateArticle,
@@ -321,6 +322,11 @@ export default function DirectRegisterPartForm({
     const [documents, setDocuments] = useState<ArticleDocumentSelection[]>(() =>
         buildDocumentSelectionFromArticle(initialData)
     );
+
+    // La documentación vive fuera de react-hook-form: sin este contraste el
+    // botón de guardar no se entera de que el usuario adjuntó un archivo.
+    const initialDocumentsRef = useRef(buildDocumentSelectionFromArticle(initialData));
+    const documentsDirty = isDocumentSelectionDirty(documents, initialDocumentsRef.current);
     const { confirmIncoming } = useConfirmIncomingArticle();
 
     // Form
@@ -437,7 +443,9 @@ export default function DirectRegisterPartForm({
             ata_code: initialData?.ata_code || "",
             aircraft_id: initialData?.partComponent?.aircraft_id?.toString() ?? "",
         });
-        setDocuments(buildDocumentSelectionFromArticle(initialData));
+        const reloadedDocuments = buildDocumentSelectionFromArticle(initialData);
+        initialDocumentsRef.current = reloadedDocuments;
+        setDocuments(reloadedDocuments);
     }, [initialData, form]);
 
     // Autocompletar descripción cuando encuentra resultados de búsqueda
@@ -1831,7 +1839,7 @@ export default function DirectRegisterPartForm({
                             isEditing
                                 ? busy ||
                                   !selectedCompany ||
-                                  (!form.formState.isDirty && !datesDirty)
+                                  (!form.formState.isDirty && !datesDirty && !documentsDirty)
                                 : busy ||
                                   !selectedCompany ||
                                   !form.getValues("part_number") ||

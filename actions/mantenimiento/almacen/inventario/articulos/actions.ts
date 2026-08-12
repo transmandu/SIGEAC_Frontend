@@ -102,6 +102,26 @@ export const buildDocumentSelectionFromArticle = (
         }));
 
 /**
+ * ¿La selección documental cambió respecto a lo que el artículo ya tenía?
+ * Los documentos viven fuera de react-hook-form, así que `formState.isDirty`
+ * no los ve: sin esto, adjuntar un archivo no habilita el botón de guardar.
+ */
+export const isDocumentSelectionDirty = (
+    current: ArticleDocumentSelection[],
+    initial: ArticleDocumentSelection[]
+): boolean => {
+    if (current.some((doc) => doc.file || doc.isPhysical || doc.replaceDocumentId)) {
+        return true;
+    }
+
+    if (current.length !== initial.length) return true;
+
+    const initialTypeIds = new Set(initial.map((doc) => doc.typeId));
+
+    return current.some((doc) => !initialTypeIds.has(doc.typeId));
+};
+
+/**
  * Extrae los ids de los artículos creados de la respuesta de POST /article.
  * El backend devuelve un array (o un objeto único para consumibles ya
  * existentes) con la forma { Article: { article: { id, ... }, ... }, ... }.

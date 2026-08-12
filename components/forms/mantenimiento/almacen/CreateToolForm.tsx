@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
@@ -23,6 +23,7 @@ import {
 import {
   ArticleDocumentSelection,
   buildDocumentSelectionFromArticle,
+  isDocumentSelectionDirty,
   extractCreatedArticleIds,
   useConfirmIncomingArticle,
   useCreateArticle,
@@ -173,6 +174,10 @@ export default function CreateToolForm({
   const [documents, setDocuments] = useState<ArticleDocumentSelection[]>(() =>
       buildDocumentSelectionFromArticle(initialData)
   );
+  // La documentación vive fuera de react-hook-form: sin este contraste el
+  // botón de guardar no se entera de que el usuario adjuntó un archivo.
+  const initialDocumentsRef = useRef(buildDocumentSelectionFromArticle(initialData));
+  const documentsDirty = isDocumentSelectionDirty(documents, initialDocumentsRef.current);
   const { confirmIncoming } = useConfirmIncomingArticle();
 
   const form = useForm<FormValues>({
@@ -226,7 +231,9 @@ export default function CreateToolForm({
         (initialData.has_documentation ?? false) ||
         (initialData.document_requirements?.length ?? 0) > 0,
     });
-    setDocuments(buildDocumentSelectionFromArticle(initialData));
+    const reloaded = buildDocumentSelectionFromArticle(initialData);
+    initialDocumentsRef.current = reloaded;
+    setDocuments(reloaded);
   }, [initialData, form]);
 
   const busy =
@@ -769,7 +776,9 @@ export default function CreateToolForm({
             className="bg-primary text-white hover:bg-blue-900 disabled:bg-slate-100 disabled:text-slate-400"
             disabled={
               isEditing
-                ? busy || !selectedCompany || !form.formState.isDirty
+                ? busy ||
+                  !selectedCompany ||
+                  (!form.formState.isDirty && !documentsDirty)
                 : busy ||
                   !selectedCompany ||
                   !form.getValues("part_number") ||
