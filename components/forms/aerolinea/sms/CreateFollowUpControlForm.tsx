@@ -15,7 +15,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { es } from "date-fns/locale";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Loader2 } from "lucide-react";
 
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -241,7 +241,13 @@ export default function CreateFollowUpControlForm({ onClose, id }: FormProps) {
           <p className="text-muted-foreground">SIGEAC</p>
           <Separator className="flex-1" />
         </div>
-        <Button>Enviar </Button>
+        <Button disabled={createFollowUpControl.isPending}>
+          {createFollowUpControl.isPending ? (
+            <Loader2 className="animate-spin size-4" />
+          ) : (
+            "Enviar"
+          )}
+        </Button>
       </form>
     </Form>
   );
