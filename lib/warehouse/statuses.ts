@@ -88,6 +88,44 @@ export const statusOptionLabel = (status: string) => {
   return es ? `${es} (${en})` : en;
 };
 
+/**
+ * Estados en que el artículo está bajo control del almacén y por tanto se puede
+ * editar o eliminar. En el resto está despachado, en tránsito o en revisión de
+ * calidad: modificarlo ahí desincronizaría el inventario con lo que hay en piso.
+ *
+ * INTOOLBOX entra porque la herramienta en caja sigue siendo del almacén.
+ */
+const MODIFIABLE_STATUSES = new Set([
+  "STORED",
+  "CHECKING",
+  "INTOOLBOX",
+]);
+
+/** El estado llega en mayúsculas de BD, pero hay vistas que lo pasan en minúsculas. */
+export const canModifyArticle = (status?: string | null) =>
+  MODIFIABLE_STATUSES.has(String(status ?? "").trim().toUpperCase());
+
+/**
+ * Hitos que `movements` registra pero que no son un `articles.status`: vienen del
+ * ciclo de despacho. Aparecen en el historial de estados junto a los estados.
+ */
+const MOVEMENT_MILESTONE_ES: Record<string, string> = {
+  REGISTERED: "Registrado",
+  RETURNED: "Devuelto",
+  CANCELLED: "Cancelado",
+  DELETED: "Eliminado",
+};
+
+export const isMovementMilestone = (value?: string | null) =>
+  !!value && value.trim().toUpperCase() in MOVEMENT_MILESTONE_ES;
+
+/** Etiqueta de una entrada del historial, sea un estado o un hito de movimiento. */
+export const timelineEntryLabel = (value: string) => {
+  const key = value.trim().toUpperCase();
+  const es = MOVEMENT_MILESTONE_ES[key];
+  return es ? `${es} (${formatStatusLabel(key)})` : statusOptionLabel(key);
+};
+
 /** Estado de calibración de la herramienta: vive en `tools.status`, no en el artículo. */
 export const TOOL_STATUSES = ["CALIBRADO", "VENCIDO", "EN CALIBRACION"] as const;
 

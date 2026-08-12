@@ -274,6 +274,31 @@ const quantityCol: ColumnDef<IArticleSimple> = {
     },
 };
 
+/**
+ * Las cuatro categorías comparten la misma columna de acciones. El menú se
+ * muestra en cualquier estado —el historial siempre se puede consultar— y es el
+ * propio dropdown el que decide qué ítems ofrece según el estado y el rol.
+ */
+const actionsCol: ColumnDef<IArticleSimple> = {
+    id: "actions",
+    header: () => (
+        <div className="sticky right-0 bg-background z-50 text-center">
+            Acciones
+        </div>
+    ),
+    cell: ({ row }) => {
+        const item = row.original;
+        if (item.__isGroup) return null;
+
+        return (
+            <div className="sticky right-0 bg-background z-50 flex justify-center">
+                <ArticleDropdownActions id={item.id} status={item.status} />
+            </div>
+        );
+    },
+    meta: { sticky: "right", className: "bg-background" } as any,
+};
+
 const buildBaseCols = (
     statusFilter?: string,
     onStatusFilterChange?: (value: string | undefined) => void,
@@ -544,28 +569,7 @@ export const buildComponenteCols = (
 ): ColumnDef<IArticleSimple>[] => [
     ...buildBaseCols(statusFilter, onStatusFilterChange),
     ...(showQuantity ? [quantityCol] : []),
-    {
-        id: "actions",
-        header: () => (
-            <div className="sticky right-0 bg-background z-50 text-center">
-                Acciones
-            </div>
-        ),
-        cell: ({ row }) => {
-            const item = row.original;
-            if (item.__isGroup) return null;
-
-            if (item.status === "stored" || item.status === "checking") {
-                return (
-                    <div className="sticky right-0 bg-background z-50 flex justify-center">
-                        <ArticleDropdownActions id={item.id} />
-                    </div>
-                );
-            }
-            return null;
-        },
-        meta: { sticky: "right", className: "bg-background" } as any,
-    },
+    actionsCol,
 ];
 
 // CONSUMIBLE (con cantidad)
@@ -699,28 +703,7 @@ export const buildConsumibleCols = (
             );
         },
     },
-    {
-        id: "actions",
-        header: () => (
-            <div className="sticky right-0 bg-background z-50 text-center">
-                Acciones
-            </div>
-        ),
-        cell: ({ row }) => {
-            const item = row.original;
-            if (item.__isGroup) return null;
-
-            if (item.status === "stored" || item.status === "checking") {
-                return (
-                    <div className="sticky right-0 bg-background z-50 flex justify-center">
-                        <ArticleDropdownActions id={item.id} />
-                    </div>
-                );
-            }
-            return null;
-        },
-        meta: { sticky: "right", className: "bg-background" } as any,
-    },
+    actionsCol,
 ];
 
 // HERRAMIENTA (sin cantidad)
@@ -802,28 +785,7 @@ export const buildHerramientaCols = (
             );
         },
     },
-    {
-        id: "actions",
-        header: () => (
-            <div className="sticky right-0 bg-background z-50 text-center">
-                Acciones
-            </div>
-        ),
-        cell: ({ row }) => {
-            const item = row.original;
-            if (item.__isGroup) return null;
-
-            if (item.status === "stored" || item.status === "checking") {
-                return (
-                    <div className="sticky right-0 bg-background z-50 flex justify-center">
-                        <ArticleDropdownActions id={item.id} />
-                    </div>
-                );
-            }
-            return null;
-        },
-        meta: { sticky: "right", className: "bg-background" } as any,
-    },
+    actionsCol,
 ];
 
 // ALL (con cantidad porque mezcla categorías)
@@ -835,28 +797,7 @@ export const buildAllCategoriesCols = (
     // de estado necesita sus subestados de calibración.
     ...buildBaseCols(statusFilter, onStatusFilterChange, true),
     quantityCol,
-    {
-        id: "actions",
-        header: () => (
-            <div className="sticky right-0 bg-background z-50 text-center">
-                Acciones
-            </div>
-        ),
-        cell: ({ row }) => {
-            const item = row.original;
-            if (item.__isGroup) return null;
-
-            if (item.status === "stored" || item.status === "checking") {
-                return (
-                    <div className="sticky right-0 bg-background z-50 flex justify-center">
-                        <ArticleDropdownActions id={item.id} />
-                    </div>
-                );
-            }
-            return null;
-        },
-        meta: { sticky: "right", className: "bg-background" } as any,
-    },
+    actionsCol,
 ];
 
 export const getColumnsByCategory = (

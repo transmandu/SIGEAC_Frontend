@@ -7,7 +7,7 @@ import {
 
 import { useDeleteArticle } from "@/actions/mantenimiento/almacen/inventario/articulos/actions";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { Loader2, MoreHorizontal, SquarePen, Trash2 } from "lucide-react";
+import { History, Loader2, MoreHorizontal, SquarePen, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -21,15 +21,31 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useAuth } from "@/contexts/AuthContext";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import ArticleStatusHistoryDialog from "@/components/misc/ArticleStatusHistoryDialog";
+import { canModifyArticle } from "@/lib/warehouse/statuses";
 
-const ArticleDropdownActions = ({ id }: { id: string | number }) => {
+const ArticleDropdownActions = ({
+  id,
+  status,
+}: {
+  id: string | number;
+  status?: string | null;
+}) => {
   const [open, setOpen] = useState<boolean>(false);
+  const [openHistory, setOpenHistory] = useState<boolean>(false);
   const router = useRouter();
   const { selectedCompany } = useCompanyStore();
   const { deleteArticle } = useDeleteArticle();
   const { user } = useAuth();
 
  const roles = user?.roles?.map((r) => r.name) ?? [];
+  const canModify = canModifyArticle(status);
 
   const handleDelete = (id: number | string) => {
     deleteArticle.mutate(
@@ -41,37 +57,67 @@ const ArticleDropdownActions = ({ id }: { id: string | number }) => {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="h-8 w-8 p-0">
-            <span className="sr-only">Abrir menu</span>
-            <MoreHorizontal className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent
-          align="center"
-          className="flex gap-2 justify-center"
-        >
-          <DropdownMenuItem
-            className="cursor-pointer"
-            onClick={() => {
-              router.push(
-                `/${selectedCompany?.slug}/almacen/inventario_articulos/editar/${id}`,
-              );
-            }}
+    <>
+      <Dialog open={open} onOpenChange={setOpen}>
+      <TooltipProvider>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-8 w-8 p-0">
+              <span className="sr-only">Abrir menu</span>
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            align="center"
+            className="flex gap-2 justify-center"
           >
-            <SquarePen className="size-5" />
-          </DropdownMenuItem>
-          <DialogTrigger asChild>
-            {roles.includes("SUPERUSER") || roles.includes("JEFE_ALMACEN") ? (
-              <DropdownMenuItem className="cursor-pointer">
-                <Trash2 className="size-5 text-red-500" />
-              </DropdownMenuItem>
+            {canModify && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuItem
+                    className="cursor-pointer"
+                    onClick={() => {
+                      router.push(
+                        `/${selectedCompany?.slug}/almacen/inventario_articulos/editar/${id}`,
+                      );
+                    }}
+                  >
+                    <SquarePen className="size-5" />
+                  </DropdownMenuItem>
+                </TooltipTrigger>
+                <TooltipContent>Editar artículo</TooltipContent>
+              </Tooltip>
+            )}
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onSelect={() => setOpenHistory(true)}
+                >
+                  <History className="size-5" />
+                </DropdownMenuItem>
+              </TooltipTrigger>
+              <TooltipContent>Historial de estados</TooltipContent>
+            </Tooltip>
+
+            {canModify &&
+            (roles.includes("SUPERUSER") || roles.includes("JEFE_ALMACEN")) ? (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DialogTrigger asChild>
+                    <DropdownMenuItem className="cursor-pointer">
+                      <Trash2 className="size-5 text-red-500" />
+                    </DropdownMenuItem>
+                  </DialogTrigger>
+                </TooltipTrigger>
+                <TooltipContent>Eliminar artículo</TooltipContent>
+              </Tooltip>
             ) : null}
-          </DialogTrigger>
-        </DropdownMenuContent>
-      </DropdownMenu>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </TooltipProvider>
+
       <DialogContent>
         <DialogHeader>
           <DialogTitle className="text-center">
@@ -103,7 +149,15 @@ const ArticleDropdownActions = ({ id }: { id: string | number }) => {
           </Button>
         </DialogFooter>
       </DialogContent>
-    </Dialog>
+      </Dialog>
+
+      {/* Hermano del diálogo de borrado, no hijo: son dos diálogos independientes. */}
+      <ArticleStatusHistoryDialog
+        articleId={id}
+        open={openHistory}
+        onOpenChange={setOpenHistory}
+      />
+    </>
   );
 };
 

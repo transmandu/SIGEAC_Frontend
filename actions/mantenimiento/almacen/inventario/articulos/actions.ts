@@ -449,6 +449,8 @@ export const useUpdateArticleStatus = () => {
       queryClient.invalidateQueries({ queryKey: ["checking-articles"] });
       queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
       queryClient.invalidateQueries({ queryKey: ["articles"] });
+      // El cambio de estado deja un movimiento nuevo: la cronología ya no vale.
+      queryClient.invalidateQueries({ queryKey: ["article-status-history"] });
       if (company) {
         queryClient.invalidateQueries({ queryKey: ["articles", company, "TRANSIT"] });
         queryClient.invalidateQueries({ queryKey: ["articles", company, "RECEPTION"] });
@@ -762,6 +764,7 @@ export const useUpdateToolArticleStatus = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['warehouse-articles'] });
+      queryClient.invalidateQueries({ queryKey: ['article-status-history'] });
       toast.success('¡Actualizado!', {
         description: `El Material ha sido actualizado correctamente.`,
       });

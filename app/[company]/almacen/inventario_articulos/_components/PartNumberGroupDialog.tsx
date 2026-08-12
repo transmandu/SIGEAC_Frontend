@@ -14,13 +14,23 @@ import {
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-import { Loader2, Pencil, Search, Trash2, X } from "lucide-react";
+import { History, Loader2, Pencil, Search, Trash2, X } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import * as React from "react";
 
 import { useDeleteArticle } from "@/actions/mantenimiento/almacen/inventario/articulos/actions";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatCondition } from "@/lib/warehouse/conditions";
+import { canModifyArticle, statusOptionLabel } from "@/lib/warehouse/statuses";
+import ArticleStatusSincePopover, {
+  tracksStatusSince,
+} from "@/components/misc/ArticleStatusSincePopover";
+import ArticleStatusHistoryDialog from "@/components/misc/ArticleStatusHistoryDialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useState } from "react";
 import { getStatusBadge, type IArticleSimple } from "../_tables/warehouse-columns";
 
@@ -70,6 +80,9 @@ export function PartNumberGroupDialog({
 }: Props) {
   const [query, setQuery] = React.useState("");
   const q = query.trim().toLowerCase();
+  const [historyArticleId, setHistoryArticleId] = useState<
+    string | number | null
+  >(null);
 
   const filtered = React.useMemo(() => {
     if (!q) return rows;
@@ -80,7 +93,10 @@ export function PartNumberGroupDialog({
   const shown = filtered?.length ?? 0;
 
   React.useEffect(() => {
-    if (!open) setQuery("");
+    if (!open) {
+      setQuery("");
+      setHistoryArticleId(null);
+    }
   }, [open]);
 
   const router = useRouter();
@@ -266,7 +282,16 @@ export function PartNumberGroupDialog({
                             </div>
 
                             <div className="px-3 py-2 flex justify-center">
-                              {getStatusBadge(r.status?.toUpperCase())}
+                              {tracksStatusSince(r.status) ? (
+                                <ArticleStatusSincePopover
+                                  statusLabel={statusOptionLabel(r.status ?? "")}
+                                  statusSince={r.status_since}
+                                >
+                                  {getStatusBadge(r.status?.toUpperCase())}
+                                </ArticleStatusSincePopover>
+                              ) : (
+                                getStatusBadge(r.status?.toUpperCase())
+                              )}
                             </div>
 
                             <div className="px-3 py-2 text-center text-sm font-medium">
@@ -291,33 +316,69 @@ export function PartNumberGroupDialog({
 
                             {/* Acciones (solo icono) */}
                             <div className="px-3 py-2 flex justify-center">
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 p-2"
-                                onClick={() => goEdit(r.id)}
-                                aria-label="Editar artículo"
-                              >
-                                <Pencil className="h-4 w-4" />
-                              </Button>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 p-2"
+                                    onClick={() => setHistoryArticleId(r.id)}
+                                    aria-label="Historial de estados"
+                                  >
+                                    <History className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  Historial de estados
+                                </TooltipContent>
+                              </Tooltip>
 
-                              {(roles.includes("SUPERUSER") ||
-                                roles.includes("JEFE_ALMACEN")) && (
-                                <Button
-                                  type="button"
-                                  disabled={deleteArticle.isPending}
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-8 w-8 p-2"
-                                  onClick={() => {
-                                    setArticleIdToDelete(r.id);
-                                    setOpenDeleteArt(true);
-                                  }}
-                                >
-                                  <Trash2 className="h-5 w-5 text-red-500" />
-                                </Button>
+                              {canModifyArticle(r.status) && (
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-8 w-8 p-2"
+                                      onClick={() => goEdit(r.id)}
+                                      aria-label="Editar artículo"
+                                    >
+                                      <Pencil className="h-4 w-4" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    Editar artículo
+                                  </TooltipContent>
+                                </Tooltip>
                               )}
+
+                              {canModifyArticle(r.status) &&
+                                (roles.includes("SUPERUSER") ||
+                                  roles.includes("JEFE_ALMACEN")) && (
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button
+                                        type="button"
+                                        disabled={deleteArticle.isPending}
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-8 w-8 p-2"
+                                        onClick={() => {
+                                          setArticleIdToDelete(r.id);
+                                          setOpenDeleteArt(true);
+                                        }}
+                                        aria-label="Eliminar artículo"
+                                      >
+                                        <Trash2 className="h-5 w-5 text-red-500" />
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      Eliminar artículo
+                                    </TooltipContent>
+                                  </Tooltip>
+                                )}
                             </div>
                           </div>
                         );
@@ -330,15 +391,23 @@ export function PartNumberGroupDialog({
           )}
         </div>
 
+        {historyArticleId !== null && (
+          <ArticleStatusHistoryDialog
+            articleId={historyArticleId}
+            open
+            onOpenChange={(next) => !next && setHistoryArticleId(null)}
+          />
+        )}
+
         {/* Delete dialog */}
         <Dialog open={openDeleteArt} onOpenChange={setOpenDeleteArt}>
           <DialogContent>
             <DialogHeader>
               <DialogTitle className="text-center">
-                ¿Seguro que desea eliminar el reporte?
+                ¿Seguro que desea eliminar el artículo?
               </DialogTitle>
               <DialogDescription className="text-center p-2 mb-0 pb-0">
-                Esta acción es irreversible y eliminará por completo el reporte.
+                Esta acción es irreversible y eliminará por completo el artículo.
               </DialogDescription>
             </DialogHeader>
             <DialogFooter className="flex flex-col-reverse gap-2 md:gap-0">
