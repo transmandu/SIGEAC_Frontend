@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "@/lib/utils";
 import { Article, Batch, Convertion } from "@/types";
 import { useState } from "react";
 import {
@@ -70,12 +71,29 @@ interface IRegisterArticleProps {
     category?: string;
     /** Al editar: reemplaza la redirección post-guardado (útil dentro de diálogos). */
     onEditSuccess?: () => void;
+    /**
+     * Rótulo del botón de guardado. El formulario se reutiliza desde flujos que
+     * no son "ingresar al almacén" (corregir un artículo en cuarentena, editar
+     * uno en tránsito), donde el texto por defecto describe algo que no ocurre.
+     */
+    submitLabel?: string;
+    /** Título del formulario; por defecto describe crear o editar un artículo. */
+    title?: string;
+    /**
+     * Oculta el bloque de acciones del formulario y notifica su estado. Lo usan
+     * los flujos que lo embeben en un diálogo y montan el botón en el footer,
+     * fuera del área que se desplaza; el submit se dispara por `requestSubmit()`.
+     */
+    onStateChange?: (state: { busy: boolean; canSave: boolean }) => void;
 }
 
 const DirectRegisterArticleForm = ({
     isEditing = false,
     initialData,
     onEditSuccess,
+    submitLabel,
+    title,
+    onStateChange,
 }: IRegisterArticleProps) => {
     const [type, setType] = useState(
         initialData?.batch.category.toUpperCase() ?? "COMPONENTE",
@@ -84,41 +102,43 @@ const DirectRegisterArticleForm = ({
         setType(data);
     }
     return (
-        <div className="space-y-3 mb-4">
+        // Sin margen inferior cuando el contexto pone su propio pie: dejaría un
+        // hueco entre el formulario y el footer del diálogo.
+        <div className={cn("space-y-3", !onStateChange && "mb-4")}>
             <h1 className="font-bold text-3xl">
-                {isEditing ? "Edicion de Articulo" : "Carga de Articulo"}
+                {title ?? (isEditing ? "Edicion de Articulo" : "Carga de Articulo")}
             </h1>
             {!isEditing && (
                 <p className="text-sm text-muted-foreground">
                     Seleccione el tipo de articulo a registrar:
                 </p>
             )}
-            <Select
-                disabled={isEditing}
-                value={type}
-                onValueChange={handleTypeSelect}
-            >
-                <SelectTrigger className="w-[230px]">
-                    <SelectValue placeholder="Seleccionar..." />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="CONSUMIBLE">CONSUMIBLE</SelectItem>
-                    <SelectItem value="HERRAMIENTA">HERRAMIENTA</SelectItem>
-                    <SelectItem value="COMPONENTE">COMPONENTE</SelectItem>
-                    <SelectItem value="PARTE">PARTE</SelectItem>
-                </SelectContent>
-            </Select>
+            {/* Al editar la categoría no puede cambiar: el selector solo ocupa
+                espacio deshabilitado. */}
+            {!isEditing && (
+                <Select value={type} onValueChange={handleTypeSelect}>
+                    <SelectTrigger className="w-[230px]">
+                        <SelectValue placeholder="Seleccionar..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="CONSUMIBLE">CONSUMIBLE</SelectItem>
+                        <SelectItem value="HERRAMIENTA">HERRAMIENTA</SelectItem>
+                        <SelectItem value="COMPONENTE">COMPONENTE</SelectItem>
+                        <SelectItem value="PARTE">PARTE</SelectItem>
+                    </SelectContent>
+                </Select>
+            )}
             {type === "CONSUMIBLE" && (
-                <DirectRegisterConsumableForm isEditing={isEditing} initialData={initialData} onEditSuccess={onEditSuccess} />
+                <DirectRegisterConsumableForm isEditing={isEditing} initialData={initialData} onEditSuccess={onEditSuccess} submitLabel={submitLabel} onStateChange={onStateChange} />
             )}
             {type === "HERRAMIENTA" && (
-                <CreateToolForm isEditing={isEditing} initialData={initialData} onEditSuccess={onEditSuccess} />
+                <CreateToolForm isEditing={isEditing} initialData={initialData} onEditSuccess={onEditSuccess} submitLabel={submitLabel} onStateChange={onStateChange} />
             )}
             {type === "COMPONENTE" && (
-                <DirectRegisterComponentForm isEditing={isEditing} initialData={initialData} onEditSuccess={onEditSuccess} />
+                <DirectRegisterComponentForm isEditing={isEditing} initialData={initialData} onEditSuccess={onEditSuccess} submitLabel={submitLabel} onStateChange={onStateChange} />
             )}
             {type === "PARTE" && (
-                <DirectRegisterPartForm isEditing={isEditing} initialData={initialData} onEditSuccess={onEditSuccess} />
+                <DirectRegisterPartForm isEditing={isEditing} initialData={initialData} onEditSuccess={onEditSuccess} submitLabel={submitLabel} onStateChange={onStateChange} />
             )}
         </div>
     );

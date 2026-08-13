@@ -45,7 +45,8 @@ interface SendToQuarantinePayload {
   reason: string;
   quarantine_entry_date: string
   quarantine_exit_date?: string;
-
+  /** Username del inspector que retiene; el backend lo exige y lo valida contra master. */
+  inspector: string;
 }
 
 
@@ -579,6 +580,7 @@ export const useUpdateArticleStatus = () => {
         queryClient.invalidateQueries({ queryKey: ["articles", company, "WAITING_FOR_FORMAT"] });
         queryClient.invalidateQueries({ queryKey: ["articles", company, "WAITING_TO_LOCATE"] });
         queryClient.invalidateQueries({ queryKey: ["articles", company, "QUARANTINE"] });
+        queryClient.invalidateQueries({ queryKey: ["articles", company, "PENDING_REINSPECTION"] });
         queryClient.invalidateQueries({ queryKey: ["articles", company, "TO_DETERMINATE"] });
         queryClient.invalidateQueries({ queryKey: ["articles", company, "STORED"] });
       }
@@ -625,8 +627,13 @@ export const useConfirmIncomingArticle = () => {
       if (company) {
         queryClient.invalidateQueries({ queryKey: ["articles", company, "INCOMING"] });
         queryClient.invalidateQueries({ queryKey: ["articles", company, "WAITING_FOR_FORMAT"] });
+        // Una re-inspección entra por aquí: aprobar cierra la retención y
+        // rechazar la reabre, así que ambos lados del ciclo quedan obsoletos.
+        queryClient.invalidateQueries({ queryKey: ["articles", company, "QUARANTINE"] });
+        queryClient.invalidateQueries({ queryKey: ["articles", company, "PENDING_REINSPECTION"] });
       }
       queryClient.invalidateQueries({ queryKey: ["incoming-inspections"] });
+      queryClient.invalidateQueries({ queryKey: ["quarantine-articles"] });
 
       toast.success("¡Inspección creada!", {
         description: "El artículo fue enviado correctamente.",
@@ -850,6 +857,8 @@ export const useSendToQuarantine = () => {
       }
       queryClient.invalidateQueries({ queryKey: ["incoming-articles"] });
       queryClient.invalidateQueries({ queryKey: ["quarantine-articles"] });
+      // El paso a cuarentena deja un movimiento nuevo en la cronología.
+      queryClient.invalidateQueries({ queryKey: ["article-status-history"] });
 
       toast.warning("¡Enviado a cuarentena!", {
         description: "El artículo fue enviado a cuarentena correctamente.",

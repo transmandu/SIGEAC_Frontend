@@ -195,11 +195,17 @@ export default function DirectRegisterPartForm({
     initialData,
     isEditing,
     onEditSuccess,
+    submitLabel,
+    onStateChange,
 }: {
     initialData?: EditingArticle;
     isEditing?: boolean;
     /** Al editar: reemplaza la redirección post-guardado (útil dentro de diálogos). */
     onEditSuccess?: () => void;
+    /** Rótulo del botón de guardado, para flujos que no son ingresar al almacén. */
+    submitLabel?: string;
+    /** Oculta las acciones y reporta el estado; ver DirectRegisterComponentForm. */
+    onStateChange?: (state: { busy: boolean; canSave: boolean }) => void;
 }) {
     const { user } = useAuth();
     const userRoles = user?.roles?.map((role) => role.name) || [];
@@ -484,6 +490,18 @@ export default function DirectRegisterPartForm({
         updateArticle.isPending ||
         uploadArticleDocuments.isPending ||
         syncArticleDocumentRequirements.isPending;
+
+    // Espeja la condición del botón propio, para los contextos que lo montan fuera.
+    const canSave = isEditing
+        ? !!selectedCompany && (form.formState.isDirty || datesDirty || documentsDirty)
+        : !!selectedCompany &&
+          !!form.getValues("part_number") &&
+          !!form.getValues("batch_id") &&
+          caducateDate !== undefined;
+
+    useEffect(() => {
+        onStateChange?.({ busy, canSave });
+    }, [busy, canSave, onStateChange]);
 
     const normalizeUpper = (s?: string) => s?.trim().toUpperCase() ?? "";
 
@@ -1844,42 +1862,34 @@ export default function DirectRegisterPartForm({
                 </SectionCard>
 
                 {/* Acciones */}
-                <div className="flex items-center gap-3">
-                    <Button
-                        className="bg-primary text-white hover:bg-blue-900 disabled:bg-slate-100 disabled:text-slate-400"
-                        disabled={
-                            isEditing
-                                ? busy ||
-                                  !selectedCompany ||
-                                  (!form.formState.isDirty && !datesDirty && !documentsDirty)
-                                : busy ||
-                                  !selectedCompany ||
-                                  !form.getValues("part_number") ||
-                                  !form.getValues("batch_id") ||
-                                  caducateDate === undefined
-                        }
-                        type="submit"
-                    >
-                        {busy ? (
-                            <Image
-                                className="text-black"
-                                src={loadingGif}
-                                width={170}
-                                height={170}
-                                alt="Cargando..."
-                            />
-                        ) : (
-                            <span>{isEditing ? "Confirmar ingreso" : "Crear artículo"}</span>
-                        )}
-                    </Button>
+                {!onStateChange && (
+                    <div className="flex items-center gap-3">
+                        <Button
+                            className="bg-primary text-white hover:bg-blue-900 disabled:bg-slate-100 disabled:text-slate-400"
+                            disabled={busy || !canSave}
+                            type="submit"
+                        >
+                            {busy ? (
+                                <Image
+                                    className="text-black"
+                                    src={loadingGif}
+                                    width={170}
+                                    height={170}
+                                    alt="Cargando..."
+                                />
+                            ) : (
+                                <span>{submitLabel ?? (isEditing ? "Guardar cambios" : "Crear artículo")}</span>
+                            )}
+                        </Button>
 
-                    {busy && (
-                        <div className="inline-flex items-center text-sm text-muted-foreground gap-2">
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                            Procesando…
-                        </div>
-                    )}
-                </div>
+                        {busy && (
+                            <div className="inline-flex items-center text-sm text-muted-foreground gap-2">
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                Procesando…
+                            </div>
+                        )}
+                    </div>
+                )}
             </form>
             <PreviewCreateComponentDialog
                 open={openPreview}

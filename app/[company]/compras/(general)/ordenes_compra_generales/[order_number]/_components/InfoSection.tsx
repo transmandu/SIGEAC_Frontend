@@ -1,4 +1,5 @@
 import { ElementType } from 'react';
+import LinkifiedText from '@/components/misc/LinkifiedText';
 
 interface InfoSectionProps {
   title: string;
@@ -10,7 +11,7 @@ interface InfoSectionProps {
 
 const InfoSection = ({ title, icon: Icon, content, emptyMessage, compact }: InfoSectionProps) => {
   return (
-    <div className={`relative mx-auto rounded-xl border border-border/60 bg-gradient-to-b from-muted/30 to-muted/10 shadow-sm ${compact ? 'max-w-2xl p-4' : 'p-5'}`}>
+    <div className={`relative mx-auto min-w-0 rounded-xl border border-border/60 bg-gradient-to-b from-muted/30 to-muted/10 shadow-sm ${compact ? 'max-w-2xl p-4' : 'p-5'}`}>
       <div className="flex items-center gap-3 mb-3 select-none">
         <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground whitespace-nowrap">
           {title}
@@ -20,8 +21,8 @@ const InfoSection = ({ title, icon: Icon, content, emptyMessage, compact }: Info
 
       <div className={`flex items-center justify-center ${compact ? 'min-h-[56px]' : 'min-h-[100px]'}`}>
         {content?.trim() ? (
-          <p className="w-full indent-5 text-sm leading-relaxed text-foreground/80 whitespace-pre-wrap">
-            {content}
+          <p className="w-full min-w-0 indent-5 text-sm leading-relaxed text-foreground/80 whitespace-pre-wrap">
+            <LinkifiedText text={content} />
           </p>
         ) : (
           <div className="flex flex-col items-center gap-1.5 text-muted-foreground/60 select-none">

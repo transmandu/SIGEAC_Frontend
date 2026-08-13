@@ -7,6 +7,7 @@ export const ARTICLE_STATUSES = [
   "RECEPTION",
   "CHECKING",
   "QUARANTINE",
+  "PENDING_REINSPECTION",
   "WAITING_FOR_FORMAT",
   "WAITING_TO_LOCATE",
   "TO_DETERMINATE",
@@ -37,6 +38,7 @@ const STATUS_ES: Record<string, string> = {
   RECEPTION: "Recepción",
   CHECKING: "Revisión",
   QUARANTINE: "Cuarentena",
+  PENDING_REINSPECTION: "Pendiente de re-inspección",
   WAITING_FOR_FORMAT: "En espera de formato",
   WAITING_TO_LOCATE: "En espera de ubicación",
   TO_DETERMINATE: "Destino indeterminado",
@@ -94,6 +96,11 @@ export const statusOptionLabel = (status: string) => {
  * calidad: modificarlo ahí desincronizaría el inventario con lo que hay en piso.
  *
  * INTOOLBOX entra porque la herramienta en caja sigue siendo del almacén.
+ *
+ * Los dos estados del ciclo de cuarentena quedan fuera a propósito: ahí el
+ * artículo se corrige desde el submódulo de compras, que registra qué cambió
+ * para que el inspector lo verifique. Editarlo por el camino del almacén se
+ * saltaría ese registro.
  */
 const MODIFIABLE_STATUSES = new Set([
   "STORED",

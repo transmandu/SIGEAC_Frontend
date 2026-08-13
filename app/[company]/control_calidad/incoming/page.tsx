@@ -40,11 +40,18 @@ const IncomingControlPage = () => {
     isLoading: isWaitingForFormLoading,
   } = useGetArticlesByStatus("WAITING_FOR_FORMAT");
 
-
+  // Corregidos por compras y a la espera de que el inspector los re-inspeccione:
+  // es trabajo pendiente de calidad, así que vive en su propio tablero y no solo
+  // en la vista de cuarentena.
+  const {
+    data: pendingReinspectionArticles,
+    isLoading: isReinspectionLoading,
+  } = useGetArticlesByStatus("PENDING_REINSPECTION");
 
   const waitingForFormCount = waitingForFormArticles?.length ?? 0;
   const incomingCount = incomingArticles?.length ?? 0;
   const waitingCount = waitingToLocateArticles?.length ?? 0;
+  const reinspectionCount = pendingReinspectionArticles?.length ?? 0;
 
   if (isIncomingLoading && isWaitingLoading) return <LoadingPage />;
 
@@ -79,6 +86,13 @@ const IncomingControlPage = () => {
               En espera por ubicar
               <Badge variant="secondary">{waitingCount}</Badge>
             </TabsTrigger>
+
+            <TabsTrigger value="reinspection" className="gap-2">
+              Re-inspección
+              <Badge variant={reinspectionCount > 0 ? "default" : "secondary"}>
+                {reinspectionCount}
+              </Badge>
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="incoming">
@@ -94,6 +108,18 @@ const IncomingControlPage = () => {
               <LoadingPage />
             ) : (
               <DataTable groupBy="order_number" columns={w_columns} data={waitingToLocateArticles ?? []} />
+            )}
+          </TabsContent>
+
+          <TabsContent value="reinspection">
+            {isReinspectionLoading ? (
+              <LoadingPage />
+            ) : (
+              <DataTable
+                groupBy="order_number"
+                columns={columns}
+                data={pendingReinspectionArticles ?? []}
+              />
             )}
           </TabsContent>
 

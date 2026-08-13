@@ -1,90 +1,66 @@
 "use client";
 
 import { ContentLayout } from "@/components/layout/ContentLayout";
-
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-
-import { ShieldAlert, PackageSearch } from "lucide-react";
-
-import { useCompanyStore } from "@/stores/CompanyStore";
-import { columns } from "./columns";
-import { DataTable } from "./data-table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 import LoadingPage from "@/components/misc/LoadingPage";
-import { useGetArticlesByStatus } from "@/hooks/mantenimiento/almacen/articulos/useGetArticlesByStatus";
-import { useMemo } from "react";
-import { PageHeader } from "@/components/layout/PageHeader";
+import { useQuarantineLegalDays } from "@/hooks/general/useCompanySettings";
+import { useGetQuarantineArticles } from "@/hooks/mantenimiento/control_calidad/useGetQuarantineArticles";
+import { formatQuarantineDate, quarantineRisk } from "@/lib/warehouse/quarantine";
+import type { QuarantineStatusFilter } from "@/types/quarantine";
+import { PackageSearch, ShieldAlert, ShieldCheck } from "lucide-react";
+import { useMemo, useState } from "react";
 
-const LEGAL_LIMIT_DAYS = 40;
-
-const parseYMD = (dateStr: string) => {
-  const [y, m, d] = dateStr.split("-").map(Number);
-  return new Date(y, (m ?? 1) - 1, d ?? 1);
-};
-
-const formatDateES = (dateStr?: string | null) => {
-  if (!dateStr) return "-";
-  const dt = parseYMD(dateStr);
-  return dt.toLocaleDateString("es-ES", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
-};
-
-const daysBetween = (from: Date, to: Date) => {
-  const ms = to.getTime() - from.getTime();
-  return Math.floor(ms / (1000 * 60 * 60 * 24));
-};
+import { getColumns } from "./columns";
+import { DataTable } from "./data-table";
 
 const QuarantineControlPage = () => {
-  const { selectedCompany } = useCompanyStore();
+  const [status, setStatus] = useState<QuarantineStatusFilter>("UNRESOLVED");
 
-  const {
-    data: quarantineArticles,
-    isLoading: isQuarantineLoading,
-  } = useGetArticlesByStatus("QUARANTINE");
+  const legalDays = useQuarantineLegalDays();
 
-  const { data: incomingArticles } = useGetArticlesByStatus("INCOMING");
+  const { data: records, isLoading } = useGetQuarantineArticles(status);
+  // Las métricas describen todo el ciclo, no solo lo que el filtro deja ver.
+  const { data: allRecords } = useGetQuarantineArticles("ALL");
 
-  // ✅ Hook SIEMPRE se ejecuta (aunque quarantineArticles sea undefined)
-  const closestToExpire = useMemo(() => {
-    const items = quarantineArticles ?? [];
-    const now = new Date();
+  const metrics = useMemo(() => {
+    const list = allRecords ?? [];
 
-    const scored = items
-      .map((a: any) => {
-        const q = a?.quarantine?.[0];
-        const entryStr: string | undefined = q?.quarantine_entry_date;
-        if (!entryStr) return null;
+    const open = list.filter((record) => record.status === "OPEN");
+    const pending = list.filter((record) => record.status === "PENDING_REINSPECTION");
 
-        const entry = parseYMD(entryStr);
-        const expire = new Date(entry);
-        expire.setDate(expire.getDate() + LEGAL_LIMIT_DAYS);
+    // El más próximo a vencer entre los que siguen esperando corrección: es el
+    // que puede obligar a reclamarle a compras.
+    const closestToExpire = [...open]
+      .map((record) => ({
+        record,
+        risk: quarantineRisk(record.quarantine_entry_date, legalDays, record.days_in_quarantine),
+      }))
+      .filter((entry) => entry.risk.remaining !== null)
+      .sort((a, b) => (a.risk.remaining ?? 0) - (b.risk.remaining ?? 0))[0];
 
-        const remaining = daysBetween(now, expire);
-        return { article: a, entryStr, expire, remaining };
-      })
-      .filter(Boolean) as Array<{
-      article: any;
-      entryStr: string;
-      expire: Date;
-      remaining: number;
-    }>;
+    return {
+      openCount: open.length,
+      pendingCount: pending.length,
+      closestToExpire,
+    };
+  }, [allRecords, legalDays]);
 
-    if (scored.length === 0) return null;
+  const columns = useMemo(() => getColumns(legalDays), [legalDays]);
 
-    scored.sort((x, y) => x.remaining - y.remaining);
-    return scored[0];
-  }, [quarantineArticles]);
+  if (isLoading) return <LoadingPage />;
 
-  // ✅ return condicional DESPUÉS de declarar hooks
-  if (isQuarantineLoading) return <LoadingPage />;
-
-  const quarantineCount = quarantineArticles?.length ?? 0;
-  const incomingCount = incomingArticles?.length ?? 0;
+  const visibleCount = records?.length ?? 0;
 
   return (
     <ContentLayout title="Inventario">
@@ -100,16 +76,32 @@ const QuarantineControlPage = () => {
 
               <div className="space-y-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <h1 className="text-2xl font-bold md:text-3xl">
-                    Control de Cuarentena
-                  </h1>
+                  <h1 className="text-2xl font-bold md:text-3xl">Control de Cuarentena</h1>
                 </div>
 
                 <p className="text-sm text-muted-foreground">
-                  Artículos retenidos por control de calidad. Usa la búsqueda y
-                  filtros para ubicar un ítem y revisar su estado.
+                  Artículos retenidos por control de calidad. La re-inspección se habilita
+                  cuando Compras corrige el hallazgo y lo declara.
                 </p>
               </div>
+            </div>
+
+            <div className="w-full md:w-64">
+              <Select
+                value={status}
+                onValueChange={(value) => setStatus(value as QuarantineStatusFilter)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Estado" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="UNRESOLVED">En el ciclo (sin resolver)</SelectItem>
+                  <SelectItem value="PENDING_REINSPECTION">Listos para re-inspección</SelectItem>
+                  <SelectItem value="OPEN">Esperando a compras</SelectItem>
+                  <SelectItem value="RESOLVED">Resueltos</SelectItem>
+                  <SelectItem value="ALL">Todos</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </div>
@@ -118,27 +110,28 @@ const QuarantineControlPage = () => {
           <Card className="rounded-2xl">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Total en cuarentena
+                Esperando a compras
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">{quarantineCount}</div>
+              <div className="text-3xl font-bold">{metrics.openCount}</div>
               <p className="mt-1 text-xs text-muted-foreground">
-                Ítems actualmente retenidos
+                Retenidos, sin corrección declarada
               </p>
             </CardContent>
           </Card>
 
           <Card className="rounded-2xl">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Pendiente de decisión
+              <CardTitle className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
+                <ShieldCheck className="h-3.5 w-3.5" />
+                Listos para re-inspección
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">{incomingCount}</div>
+              <div className="text-3xl font-bold">{metrics.pendingCount}</div>
               <p className="mt-1 text-xs text-muted-foreground">
-                en flujo de incoming (sin decisión final).
+                Compras ya corrigió; puede re-inspeccionarse
               </p>
             </CardContent>
           </Card>
@@ -150,52 +143,54 @@ const QuarantineControlPage = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {!closestToExpire ? (
+              {!metrics.closestToExpire ? (
                 <p className="text-sm text-muted-foreground">
-                  No hay artículos con fecha de ingreso registrada.
+                  No hay artículos esperando corrección.
                 </p>
               ) : (
                 <>
                   <div className="flex items-start gap-2">
-                    <PackageSearch className="h-5 w-5 mt-0.5" />
+                    <PackageSearch className="mt-0.5 h-5 w-5" />
                     <div className="space-y-1">
                       <p className="text-sm">
                         <span className="font-semibold">
-                          {closestToExpire.article.part_number}
+                          {metrics.closestToExpire.record.article?.part_number ?? "Sin parte"}
                         </span>
                         <span className="text-muted-foreground">
-                          {" "}
-                          · {closestToExpire.article.batch?.name ?? "Sin batch"}
+                          {" · "}
+                          {metrics.closestToExpire.record.article?.batch?.name ?? "Sin descripción"}
                         </span>
                       </p>
 
                       <p className="text-xs text-muted-foreground">
-                        Ingreso: {formatDateES(closestToExpire.entryStr)}
-                        {" · "}
-                        Vence:{" "}
-                        {closestToExpire.expire.toLocaleDateString("es-ES")}
+                        Ingreso:{" "}
+                        {formatQuarantineDate(
+                          metrics.closestToExpire.record.quarantine_entry_date,
+                        )}
                       </p>
                     </div>
                   </div>
 
                   <div className="mt-4">
-                    {closestToExpire.remaining >= 0 ? (
-                      <p className="text-xs text-muted-foreground">
-                        Vence en{" "}
-                        <span className="font-semibold tabular-nums">
-                          {closestToExpire.remaining}
-                        </span>{" "}
-                        días
-                      </p>
-                    ) : (
-                      <p className="text-xs text-muted-foreground">
-                        Vencido por{" "}
-                        <span className="font-semibold tabular-nums">
-                          {Math.abs(closestToExpire.remaining)}
-                        </span>{" "}
-                        días
-                      </p>
-                    )}
+                    <p className="text-xs text-muted-foreground">
+                      {(metrics.closestToExpire.risk.remaining ?? 0) >= 0 ? (
+                        <>
+                          Vence en{" "}
+                          <span className="font-semibold tabular-nums">
+                            {metrics.closestToExpire.risk.remaining}
+                          </span>{" "}
+                          días
+                        </>
+                      ) : (
+                        <>
+                          Vencido por{" "}
+                          <span className="font-semibold tabular-nums">
+                            {Math.abs(metrics.closestToExpire.risk.remaining ?? 0)}
+                          </span>{" "}
+                          días
+                        </>
+                      )}
+                    </p>
                   </div>
                 </>
               )}
@@ -208,9 +203,9 @@ const QuarantineControlPage = () => {
         <Card className="rounded-2xl">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between gap-3">
-              <CardTitle className="text-base">Artículos en cuarentena</CardTitle>
+              <CardTitle className="text-base">Artículos en el ciclo de cuarentena</CardTitle>
               <Badge variant="secondary" className="rounded-full">
-                {quarantineCount}
+                {visibleCount}
               </Badge>
             </div>
             <p className="text-sm text-muted-foreground">
@@ -219,7 +214,7 @@ const QuarantineControlPage = () => {
           </CardHeader>
 
           <CardContent>
-            <DataTable columns={columns} data={quarantineArticles ?? []} />
+            <DataTable columns={columns} data={records ?? []} />
           </CardContent>
         </Card>
       </div>

@@ -87,6 +87,7 @@ export const getStatusBadge = (status: string | null | undefined) => {
         STORED: { variant: "default", icon: CheckCircle2 },
         CHECKING: { variant: "warning", icon: Clock },
         QUARANTINE: { variant: "destructive", icon: Clock },
+        PENDING_REINSPECTION: { variant: "warning", icon: Clock },
         INCOMING: { variant: "outline", icon: Clock },
         RECEPTION: { variant: "outline", icon: Clock },
         WAITING_FOR_FORMAT: { variant: "warning", icon: Clock },

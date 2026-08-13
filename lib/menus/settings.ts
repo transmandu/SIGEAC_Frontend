@@ -160,6 +160,12 @@ export function buildSettingsGroup({ pathname, currentCompany }: MenuContext): G
                         label: "Administrar Almacenes",
                         active: pathname === `/${slug}/ajustes/empresa/almacenes`,
                     },
+                    {
+                        href: `/${slug}/ajustes/empresa/operaciones`,
+                        label: "Ajustes Operativos",
+                        active: pathname === `/${slug}/ajustes/empresa/operaciones`,
+                        roles: ["SUPERUSER"],
+                    },
                 ],
             },
             {

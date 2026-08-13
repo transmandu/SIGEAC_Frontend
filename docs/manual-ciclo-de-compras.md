@@ -350,6 +350,9 @@ stateDiagram-v2
     TRANSIT --> RECEPTION: llega físicamente<br/>(consignados los documentos)
     RECEPTION --> STORED: inspección de entrada OK
     RECEPTION --> QUARANTINE: inspección falla
+    QUARANTINE --> PENDING_REINSPECTION: compras corrige y lo declara
+    PENDING_REINSPECTION --> STORED: re-inspección OK
+    PENDING_REINSPECTION --> QUARANTINE: re-inspección falla<br/>(nuevo ciclo)
     STORED --> DISPATCHED: despacho (componente/parte)
     STORED --> INUSE: despacho (herramienta)
     STORED --> STORED: despacho (consumible, resta cantidad)
@@ -359,13 +362,129 @@ stateDiagram-v2
 
 Pantallas involucradas: `compras/en_transito`, `almacen/ingreso/en_recepcion`,
 `almacen/recepcion_administrativa`, `ingenieria/confirmar_inventario`,
-`compras/destino_indeterminado`.
+`compras/destino_indeterminado`, `compras/cuarentena`,
+`control_calidad/cuarentena`.
 
 El artículo aeronáutico arrastra requisitos documentales (`article_documents`,
 `article_document_requirements`, `article_document_types`) que se materializan en
 `markAsPaid` desde lo que la requisición exigía, y se consignan antes de pasar el
-artículo a RECEPTION. También existe inspección de entrada
-(`incoming_inspections`) y cuarentena (`quarantine_articles`).
+artículo a RECEPTION.
+
+### El ciclo de cuarentena
+
+Cuando la inspección de entrada (`incoming_inspections`) falla, el artículo pasa
+a QUARANTINE y se abre un registro en `quarantine_articles`. **Sacarlo de
+cuarentena es trabajo de compras, no de calidad**: el inspector describe el
+hallazgo, pero quien corrige el documento faltante o el dato errado es
+`JEFE_COMPRAS` / `ANALISTA_COMPRAS` desde `compras/cuarentena`.
+
+Los tres estados del registro (`quarantine_articles.status`):
+
+| Estado | Significado | Quién actúa |
+|---|---|---|
+| `OPEN` | Retenido, esperando corrección | Compras |
+| `PENDING_REINSPECTION` | Corregido y declarado; el artículo queda en `PENDING_REINSPECTION` | Calidad |
+| `RESOLVED` | Re-inspección aprobada; salió del ciclo | — |
+
+El pase a re-inspección es **explícito** y de un solo gesto: el diálogo de
+`compras/cuarentena` tiene un único botón, "Enviar a re-inspección", que guarda
+lo que haya cambiado y a continuación avanza el ciclo. La nota de corrección es
+obligatoria: es lo que el inspector verifica.
+
+El diálogo embebe `RegisterArticleForm` completo —cada categoría necesita sus
+propios campos (vida límite y hard time en componentes, lote y vencimiento en
+consumibles, calibración en herramientas) y solo ese formulario los conoce.
+
+Para que el botón viva en el footer del diálogo y no al final del formulario, el
+formulario acepta `onStateChange`: con él oculta su propio bloque de acciones y
+reporta `{ busy, canSave }` hacia arriba. El diálogo dibuja el botón fuera del
+área desplazable y dispara el guardado con `requestSubmit()` sobre el `<form>`.
+El rótulo distingue los dos casos sin partir la acción en dos botones:
+
+| Estado | Botón |
+|---|---|
+| Nota escrita, artículo editado | Guardar y enviar a re-inspección |
+| Nota escrita, sin cambios en el artículo | Enviar a re-inspección |
+| Guardado, pero el pase falló | Reintentar envío a re-inspección |
+
+**El guardado y el pase no comparten transacción.** El guardado del artículo son
+N requests encadenados desde el cliente: `update-article`, un DELETE por
+requerimiento a retirar, un POST para declarar tipos y un POST por documento. Es
+así porque los archivos van en multipart y el id del requerimiento no se conoce
+hasta que el backend lo crea. Para que eso no deje la corrección a medias:
+
+- Antes de guardar se consulta `can-send-to-reinspection`. Si el registro ya no
+  admite el pase (resuelto, inexistente), no se toca el artículo.
+- Si el pase falla **después** de guardar, el diálogo no se cierra: avisa que los
+  cambios ya quedaron guardados y el botón reintenta solo el pase.
+- `send-to-reinspection` es idempotente: sobre un registro ya en
+  `PENDING_REINSPECTION` devuelve 200 con el estado actual en vez de 409, para
+  que un reintento tras una respuesta perdida no obligue a deshacer nada. No
+  duplica el ciclo.
+
+### El camino atómico (disponible, aún sin adoptar)
+
+`POST /{company}/quarantine-articles/{id}/resolve` hace lo mismo en **un solo
+request y una sola transacción**: actualiza el artículo (vía
+`UpdateArticleAction`), consigna la documentación (vía
+`ArticleDocumentSyncService`, que resuelve requerimientos y reemplazos sin
+llamadas intermedias) y avanza el ciclo. Si algo falla, no queda nada guardado
+— verificado forzando un fallo a mitad: el `part_number` volvió a su valor
+original y el registro siguió en `OPEN`.
+
+Es POST y no PATCH porque lleva archivos: PHP no puebla `$_FILES` en PATCH
+multipart.
+
+No lo usa nadie todavía. El diálogo embebe `RegisterArticleForm`, que guarda con
+sus propios hooks, y adoptarlo exige desacoplar ese formulario. El servicio y el
+endpoint quedan probados para cuando se haga.
+
+El historial de intentos vive en la fila expandible del listado, no en el
+diálogo: ahí compite con la corrección, que es a lo que se entra.
+
+Cada ida y vuelta queda en `quarantine_article_cycles`: motivo del inspector →
+corrección de compras → veredicto. Un rechazo abre un **ciclo nuevo sobre el
+mismo registro**, no un registro nuevo, para que el plazo legal siga corriendo
+desde la retención original y la reincidencia sea demostrable.
+
+El plazo legal se configura por empresa en `company_settings.quarantine_legal_days`
+(editable por SUPERUSER en `ajustes/empresa/operaciones`, 40 días por defecto).
+Alimenta los días restantes de las vistas, la alerta crítica de compras y la
+priorización del recordatorio diario (`quarantine:send-reminders`), que avisa por
+correo lo vencido primero.
+
+Ambos módulos ven los dos lados del ciclo — a compras le importa qué ya corrigió
+y a calidad qué sigue trabado — pero la acción está acotada: el re-incoming solo
+se ofrece sobre `PENDING_REINSPECTION`.
+
+`PENDING_REINSPECTION` es un `articles.status` como cualquier otro, así que
+aparece en el filtro de estados del inventario, en el historial de estados
+(`STATUS_MOVEMENT_VERBS` lo reconoce por su verbo `PENDIENTE DE RE-INSPECCION`) y
+tiene su propia pestaña en `control_calidad/incoming`. **No** es editable desde
+almacén (`canModifyArticle`): durante el ciclo el artículo se corrige solo desde
+compras, que registra qué cambió para que el inspector lo verifique.
+
+### Avisos del ciclo
+
+El ciclo notifica en las dos direcciones; ninguna de las dos puede tumbar la
+operación que la origina (fallan a log, nunca revierten la transición):
+
+| Cuándo | A quién | Canales |
+|---|---|---|
+| El inspector retiene (o rechaza una corrección) | Compras aeronáuticas + SUPERUSER | in-app + correo inmediato |
+| Compras declara la corrección | Calidad (`JEFE_CONTROL_CALIDAD`, `INSPECTOR`) + SUPERUSER | in-app + correo inmediato |
+| Diario 08:00 VET, lo que sigue `OPEN` | Compras | digest, vencidos primero |
+| Semanal, lo que espera inspección | Calidad | digest que **incluye** `PENDING_REINSPECTION`, en bloque aparte |
+
+El recordatorio semanal de incoming (`ArticleIncomingReminderService`) cuenta los
+dos estados: un artículo en re-inspección olvidado cuesta más caro que un
+incoming olvidado, porque su plazo legal de cuarentena sigue corriendo.
+
+> **Cuidado al comparar `Article::status` en PHP**: el modelo tiene un accessor
+> que lo devuelve en **minúsculas** aunque en BD esté en mayúsculas. Las
+> consultas SQL no se ven afectadas, pero cualquier `$article->status === 'X'`
+> debe normalizar con `strtoupper()`. `QuarantineArticle::status` no tiene ese
+> accessor y se compara tal cual.
 
 ---
 

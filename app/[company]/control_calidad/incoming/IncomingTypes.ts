@@ -35,4 +35,6 @@ export interface IncomingArticle {
   serial: string,
   ata_code: string,
   order_number?: string | null
+  /** INCOMING o PENDING_REINSPECTION: la misma vista sirve a los dos. */
+  status?: string
 }

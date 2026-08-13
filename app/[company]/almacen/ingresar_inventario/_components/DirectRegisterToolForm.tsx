@@ -367,9 +367,12 @@ function DatePickerField({
 export default function DirectRegisterToolForm({
   initialData,
   isEditing,
+  submitLabel,
 }: {
   initialData?: EditingArticle;
   isEditing?: boolean;
+  /** Rótulo del botón de guardado, para flujos que no son ingresar al almacén. */
+  submitLabel?: string;
 }) {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -1288,7 +1291,7 @@ export default function DirectRegisterToolForm({
               />
             ) : (
               <span>
-                {isEditing ? "Confirmar ingreso" : "Crear herramienta"}
+                {submitLabel ?? (isEditing ? "Guardar cambios" : "Crear herramienta")}
               </span>
             )}
           </Button>

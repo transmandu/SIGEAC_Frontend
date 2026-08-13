@@ -8,6 +8,7 @@ import {
     HelpCircle,
     Plane,
     Boxes,
+    ShieldAlert,
 } from "lucide-react";
 
 const isActivePath = (pathname: string, href: string): boolean =>
@@ -70,6 +71,20 @@ export function buildPurchasesGroups({ pathname, currentCompany, userRoles }: Me
             label: "Art. en Tránsito",
             active: isActivePath(pathname, `/${currentCompany?.slug}/compras/en_transito`),
             icon: Truck,
+            roles: [
+                "ANALISTA_COMPRAS",
+                "JEFE_COMPRAS",
+                "SUPERUSER",
+                "JEFE_ADMINISTRACION",
+            ],
+            requiresOmac: true,
+            submenus: [],
+        },
+        {
+            href: `/${currentCompany?.slug}/compras/cuarentena`,
+            label: "Cuarentena",
+            active: isActivePath(pathname, `/${currentCompany?.slug}/compras/cuarentena`),
+            icon: ShieldAlert,
             roles: [
                 "ANALISTA_COMPRAS",
                 "JEFE_COMPRAS",

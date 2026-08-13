@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useLowStockAlerts } from "./useLowStockAlerts";
+import { useQuarantineAlerts } from "./useQuarantineAlerts";
 import { useDismissedAlertsStore } from "./useDismissedAlertsStore";
 import { useAlertFiltersStore } from "./useAlertFiltersStore";
 import { CriticalAlert } from "./types";
@@ -13,13 +14,14 @@ const isActionable = (alert: CriticalAlert) => alert.severity !== "in-transit";
 
 export const useCriticalAlerts = () => {
     const { alerts: lowStockAlerts, isLoading: isLoadingLowStock } = useLowStockAlerts();
+    const { alerts: quarantineAlerts, isLoading: isLoadingQuarantine } = useQuarantineAlerts();
     const dismissedAt = useDismissedAlertsStore((state) => state.dismissedAt);
     const hideInTransit = useAlertFiltersStore((state) => state.hideInTransit);
 
     // Nuevas fuentes de alertas críticas se agregan aquí como entradas adicionales.
     const allAlerts = useMemo<CriticalAlert[]>(() => {
-        return [...lowStockAlerts];
-    }, [lowStockAlerts]);
+        return [...lowStockAlerts, ...quarantineAlerts];
+    }, [lowStockAlerts, quarantineAlerts]);
 
     const visibleAlerts = useMemo<CriticalAlert[]>(() => {
         const today = new Date().toDateString();
@@ -55,6 +57,6 @@ export const useCriticalAlerts = () => {
         isCountActionable: actionableCount > 0,
         actionableCount,
         inTransitCount,
-        isLoading: isLoadingLowStock,
+        isLoading: isLoadingLowStock || isLoadingQuarantine,
     };
 };
