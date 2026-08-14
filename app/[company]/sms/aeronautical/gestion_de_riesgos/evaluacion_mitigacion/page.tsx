@@ -87,7 +87,7 @@ const EvaluationMitigationPage = () => {
 
   return (
     <ContentLayout title="Evaluación y mitigación">
-      <PageHeader />
+      <PageHeader className="mb-6" />
 
       <div className="space-y-6">
         <div className="flex flex-col gap-4 rounded-lg border bg-muted/20 p-4 lg:flex-row lg:items-center lg:justify-between">

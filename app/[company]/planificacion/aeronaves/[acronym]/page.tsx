@@ -148,7 +148,7 @@ export default function AircraftDetailsPage() {
 
   return (
     <ContentLayout title={`Detalles de Aeronave: ${acronym}`}>
-      <PageHeader />
+      <PageHeader className="mb-6" />
 
       <TooltipProvider>
         {

@@ -28,7 +28,7 @@ const CreateObligatoryReport = () => {
     : CreateObligatoryReportForm;
   return (
     <ContentLayout title="Creacion de Reporte Obligatorio">
-      <PageHeader />
+      <PageHeader className="mb-6" />
 
       <div
         className="flex flex-col justify-center items-center"

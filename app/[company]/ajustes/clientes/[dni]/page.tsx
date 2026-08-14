@@ -31,7 +31,7 @@ export default function ClientFlightReportPage() {
 
   return (
     <ContentLayout title="Resumen de Cliente">
-      <PageHeader />
+      <PageHeader className="mb-6" />
 
       <Tabs value={activeTab} onValueChange={setManualTab}>
         <TabsList data-tour="clientes-detalle-tabs">

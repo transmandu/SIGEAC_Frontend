@@ -17,7 +17,7 @@ const SurveyListPage = () => {
   }
   return (
     <ContentLayout title="Encuestas">
-      <PageHeader />
+      <PageHeader className="mb-6" />
 
       <div className="flex flex-col gap-y-2">
         {data && <DataTable columns={columns} data={data} />}

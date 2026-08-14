@@ -24,7 +24,7 @@ const CreateVoluntaryReport = () => {
     : CreateVoluntaryReportForm;
   return (
     <ContentLayout title="Creación de Reporte Voluntario">
-      <PageHeader />
+      <PageHeader className="mb-6" />
 
       <div
         className="flex flex-col justify-center items-center"

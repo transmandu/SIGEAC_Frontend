@@ -43,7 +43,7 @@ export default function GestionInventarioGeneralPage() {
   return (
     <ContentLayout title="Inventario General">
       <div className="flex flex-col gap-4">
-        <PageHeader />
+        <PageHeader className="mb-2" />
 
         <div className="flex flex-col gap-2 text-center md:text-left">
           <h1 className="text-2xl font-semibold flex items-center justify-center md:justify-start gap-2">

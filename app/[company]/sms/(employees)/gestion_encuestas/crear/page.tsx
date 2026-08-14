@@ -7,7 +7,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 const CreateSurvey = () => {
   return (
     <ContentLayout title="Crear encuesta">
-      <PageHeader />
+      <PageHeader className="mb-6" />
 
       <div className="flex flex-col justify-center items-center">
         <CreateSurveyForm onClose={() => false}></CreateSurveyForm>

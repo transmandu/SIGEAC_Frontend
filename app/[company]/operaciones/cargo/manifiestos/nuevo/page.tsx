@@ -89,7 +89,7 @@ const NuevoManifiestoPage = () => {
   return (
     <ContentLayout title="Nuevo Manifiesto de Carga">
       <div className="flex flex-col gap-4">
-        <PageHeader />
+        <PageHeader className="mb-2" />
 
         <div className="flex items-center gap-4">
           <Button

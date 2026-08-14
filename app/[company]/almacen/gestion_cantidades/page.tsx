@@ -147,7 +147,7 @@ const GestionCantidadesPage = () => {
     <ContentLayout title="Gestión de Cantidades y Ubicaciones">
       <div className="flex flex-col gap-4">
         {/* Breadcrumbs */}
-        <PageHeader />
+        <PageHeader className="mb-2" />
 
         {/* Scroll target para paginación */}
         <div ref={scrollTargetRef} className="scroll-mt-4" />

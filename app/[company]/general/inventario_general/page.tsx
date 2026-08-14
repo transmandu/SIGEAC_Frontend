@@ -111,7 +111,7 @@ const InventarioGeneralPage = () => {
   return (
     <ContentLayout title="Inventario General">
       <div className="flex flex-col gap-y-4">
-        <PageHeader />
+        <PageHeader className="mb-2" />
 
         <div className="text-center space-y-2">
           <h1 className="text-4xl font-bold">Inventario General</h1>

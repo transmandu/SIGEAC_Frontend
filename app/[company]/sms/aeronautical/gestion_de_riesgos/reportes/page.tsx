@@ -9,7 +9,7 @@ export default function ReportsPage() {
     const title = "Gestión de Reportes";
     return (
         <ContentLayout title={title}>
-          <PageHeader />
+          <PageHeader className="mb-6" />
 
             <Tabs defaultValue="voluntarios" className="w-full">
                 <TabsList className="grid w-full grid-cols-2 mb-6">

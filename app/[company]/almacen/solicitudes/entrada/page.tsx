@@ -22,7 +22,7 @@ const AgregarPage = () => {
   }
   return (
     <ContentLayout title='TEST DE AGREGADO'>
-      <PageHeader />
+      <PageHeader className="mb-6" />
 
       <div className='space-y-3 mb-4'>
         <h1 className='font-bold text-3xl'>Ingreso de Articulo</h1>

@@ -16,7 +16,7 @@ const AdministrativeReceptionPage = () => {
 
   return (
     <ContentLayout title='Recepción Administrativa'>
-      <PageHeader />
+      <PageHeader className="mb-6" />
       <ReceptionRegisterArticleForm isEditing={false} />
     </ContentLayout>
   )

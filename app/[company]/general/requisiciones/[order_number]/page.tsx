@@ -522,7 +522,7 @@ const RequisitionPage = () => {
 
   return (
     <ContentLayout title="Inventario">
-      <PageHeader />
+      <PageHeader className="mb-6" />
 
 
       {/* HEADER */}

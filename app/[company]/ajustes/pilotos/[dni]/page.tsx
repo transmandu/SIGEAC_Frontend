@@ -20,7 +20,7 @@ const ShowPilot = () => {
 
   return (
     <ContentLayout title="Detalles del Piloto">
-      <PageHeader />
+      <PageHeader className="mb-6" />
 
       <div className="flex flex-col justify-center items-center border border-gray-300 rounded-lg p-6 gap-y-4 shadow-md dark:border-gray-700">
         <div className="flex items-center gap-3">

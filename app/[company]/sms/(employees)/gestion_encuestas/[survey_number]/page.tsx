@@ -52,7 +52,7 @@ const ShowSurvey = () => {
   if (isLoading) {
     return (
       <ContentLayout title="Cargando encuesta...">
-        <PageHeader />
+        <PageHeader className="mb-6" />
 
         <div className="flex justify-center items-center min-h-64">
           <Loader2 className="size-8 animate-spin text-gray-500" />
@@ -64,7 +64,7 @@ const ShowSurvey = () => {
   if (isError || !surveyData) {
     return (
       <ContentLayout title="Encuesta">
-        <PageHeader />
+        <PageHeader className="mb-6" />
 
         <div className="border border-gray-200 rounded-lg p-6 flex items-center gap-4 bg-gray-50">
           <AlertCircle className="w-6 h-6 text-gray-500" />
@@ -76,7 +76,7 @@ const ShowSurvey = () => {
 
   return (
     <ContentLayout title={surveyData.title}>
-      <PageHeader />
+      <PageHeader className="mb-6" />
 
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header minimalista */}

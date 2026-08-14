@@ -32,7 +32,7 @@ const WorkOrderPage = () => {
 
   return (
     <ContentLayout title='Orden de Trabajo'>
-      <PageHeader />
+      <PageHeader className="mb-6" />
 
       <Tabs defaultValue="overview">
         <TabsList>

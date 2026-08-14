@@ -86,7 +86,7 @@ const SMSActivityStatsPage = () => {
 
   return (
     <ContentLayout title="Dashboard de Actividades SMS">
-      <PageHeader />
+      <PageHeader className="mb-6" />
 
       <div className="mb-6">
         <Collapsible open={isFilterOpen} onOpenChange={setIsFilterOpen}>

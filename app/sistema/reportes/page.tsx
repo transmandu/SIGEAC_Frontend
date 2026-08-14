@@ -88,7 +88,7 @@ export default function ReportesErrorPage() {
   if (!isSuperUser) {
     return (
       <ContentLayout title="Reportes de Error">
-        <PageHeader />
+        <PageHeader className="mb-6" />
 
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between flex-wrap gap-2">
@@ -117,7 +117,7 @@ export default function ReportesErrorPage() {
 
   return (
     <ContentLayout title="Reportes de Error">
-      <PageHeader />
+      <PageHeader className="mb-6" />
 
       <Tabs defaultValue="reportes" className="flex flex-col gap-4">
         <div className="flex items-center justify-between flex-wrap gap-2">

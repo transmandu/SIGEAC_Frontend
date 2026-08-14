@@ -22,7 +22,7 @@ const QrCodePage = () => {
 
   return (
     <ContentLayout title="Códigos QR">
-      <PageHeader />
+      <PageHeader className="mb-6" />
 
       {/* CONTENEDOR PRINCIPAL RESPONSIVE Y CENTRADO */}
       <h1

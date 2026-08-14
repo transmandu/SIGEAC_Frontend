@@ -30,7 +30,7 @@ export default function CreateExternalCargoPage() {
 
   return (
     <ContentLayout title="Nuevo Registro">
-      <PageHeader />
+      <PageHeader className="mb-6" />
 
       <div className="flex items-center gap-4 mb-6">
         <Button asChild variant="outline" size="icon" className="h-9 w-9" data-tour="cargo-crear-btn-volver">

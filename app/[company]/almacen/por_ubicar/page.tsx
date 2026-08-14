@@ -28,7 +28,7 @@ const IncomingControlPage = () => {
   return (
     <ContentLayout title="Inventario">
       <div className="flex flex-col gap-y-3">
-        <PageHeader />
+        <PageHeader className="mb-3" />
 
         <div className="text-center space-y-1">
           <h1 className="text-4xl font-bold">Control de Ubicación</h1>

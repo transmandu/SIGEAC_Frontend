@@ -318,7 +318,7 @@ export default function EditAircraftPage({ params }: { params: { acronym: string
     if (isError || !aircraft) {
         return (
             <ContentLayout title="Error">
-              <PageHeader />
+              <PageHeader className="mb-6" />
 
                 <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
                     <h2 className="text-2xl font-bold text-destructive">Aeronave no encontrada</h2>
@@ -334,7 +334,7 @@ export default function EditAircraftPage({ params }: { params: { acronym: string
 
     return (
         <ContentLayout title={`Editar Aeronave: ${aircraft.acronym}`}>
-          <PageHeader />
+          <PageHeader className="mb-6" />
 
             <div className="space-y-2">
                 <div className="flex items-center justify-between">

@@ -16,7 +16,7 @@ const AgregarPage = () => {
 
   return (
     <ContentLayout title='Ingreso de Inv.'>
-      <PageHeader />
+      <PageHeader className="mb-6" />
       <DirectRegisterArticleForm isEditing={false} />
     </ContentLayout>
   )

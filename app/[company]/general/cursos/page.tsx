@@ -20,7 +20,7 @@ const CoursePage = () => {
 
   return (
     <ContentLayout title="Cursos">
-      <PageHeader />
+      <PageHeader className="mb-6" />
 
       <div className="flex flex-col gap-y-2">
         {isLoading && (

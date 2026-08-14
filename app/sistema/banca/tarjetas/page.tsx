@@ -30,7 +30,7 @@ const BankAccountsPage = () => {
 
   return (
     <ContentLayout title={"Tarjetas"}>
-      <PageHeader />
+      <PageHeader className="mb-6" />
 
       <div data-tour="tarjetas-title">
         <h1 className="text-4xl font-bold text-center mb-2">

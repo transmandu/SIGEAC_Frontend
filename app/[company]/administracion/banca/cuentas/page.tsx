@@ -26,7 +26,7 @@ const CompanyBankAccountsPage = () => {
 
   return (
     <ContentLayout title="Cuentas Bancarias">
-      <PageHeader />
+      <PageHeader className="mb-4" />
 
       <h1 className="text-4xl font-bold text-center mt-2">Cuentas Bancarias</h1>
       <p className="text-sm text-muted-foreground text-center italic mt-2">

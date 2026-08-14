@@ -144,7 +144,7 @@ export default function NewAircraftPage() {
 
     return (
         <ContentLayout title="Registro de Aeronave">
-          <PageHeader />
+          <PageHeader className="mb-6" />
 
             <div className="space-y-2">
                 <h1 className="text-2xl font-bold">Registro de Aeronave</h1>

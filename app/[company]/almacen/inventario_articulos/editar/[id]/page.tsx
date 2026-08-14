@@ -21,7 +21,7 @@ const ConfirmIncomingPage = () => {
   }
   return (
     <ContentLayout title="Editar Articulo">
-      <PageHeader />
+      <PageHeader className="mb-6" />
 
       <RegisterArticleForm
         isEditing

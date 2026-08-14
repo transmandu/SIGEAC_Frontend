@@ -24,7 +24,7 @@ const CalendarServicesPage = () => {
 
   return (
     <ContentLayout title="Planificación de Servicios">
-      <PageHeader />
+      <PageHeader className="mb-6" />
 
       <div className='flex flex-col text-center justify-center gap-2 mb-6'>
         <h1 className='font-bold text-5xl'>Calendario de Servicios / OT</h1>

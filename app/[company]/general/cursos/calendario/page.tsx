@@ -29,7 +29,7 @@ const CalendarServicesPage = () => {
 
   return (
     <ContentLayout title="Cursos">
-      <PageHeader />
+      <PageHeader className="mb-6" />
 
       <div
         className="flex flex-col text-center justify-center gap-2 mb-6"

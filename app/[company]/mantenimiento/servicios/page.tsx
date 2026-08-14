@@ -14,7 +14,7 @@ const AircraftsPage = () => {
   if (isLoading) return <LoadingPage />
   return (
     <ContentLayout title='Aeronaves'>
-      <PageHeader />
+      <PageHeader className="mb-6" />
 
       <div className='flex flex-col text-center justify-center gap-2'>
         <h1 className='font-bold text-5xl'>Gestión de Servicios</h1>

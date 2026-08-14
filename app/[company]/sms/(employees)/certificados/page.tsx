@@ -72,7 +72,7 @@ const CertificatesPage = () => {
 
   return (
     <ContentLayout title="Certificados">
-      <PageHeader />
+      <PageHeader className="mb-6" />
 
       <div className="flex flex-col gap-y-4">
         {isLoading && (

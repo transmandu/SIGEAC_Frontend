@@ -38,7 +38,7 @@ const RecepcionArticulosPage = () => {
             <div className="flex flex-col gap-y-3">
 
                 {/* Breadcrumb */}
-                <PageHeader />
+                <PageHeader className="mb-3" />
 
                 {/* Encabezado */}
                 <div className="flex items-center justify-between">

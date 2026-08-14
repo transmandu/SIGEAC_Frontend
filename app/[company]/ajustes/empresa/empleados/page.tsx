@@ -53,7 +53,7 @@ const EmployeePage = () => {
       <div className="flex flex-col gap-y-2">
 
         {/* HEADER */}
-        <PageHeader />
+        <PageHeader className="mb-4" />
 
         <div className="flex items-baseline justify-between">
           <h1 className="text-2xl font-bold">Gestión de Empleados</h1>

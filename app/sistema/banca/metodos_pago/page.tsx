@@ -24,7 +24,7 @@ const PaymentMethodsPage = () => {
 
   return (
     <ContentLayout title={"Métodos de Pago"}>
-      <PageHeader />
+      <PageHeader className="mb-6" />
 
       <div data-tour="metodos-pago-title">
         <h1 className="text-4xl font-bold text-center mb-2">

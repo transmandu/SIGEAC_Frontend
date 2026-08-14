@@ -16,7 +16,7 @@ const AgregarPage = () => {
 
   return (
     <ContentLayout title='Registro de Articulo'>
-      <PageHeader />
+      <PageHeader className="mb-6" />
       <RegisterArticleForm isEditing={false} />
     </ContentLayout>
   )

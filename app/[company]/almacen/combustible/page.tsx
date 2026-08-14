@@ -204,7 +204,7 @@ export default function FuelWarehousePage() {
   return (
     <ContentLayout title="Combustible">
       <div className="space-y-5">
-        <PageHeader />
+        <PageHeader className="mb-1" />
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2.5">

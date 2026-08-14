@@ -30,7 +30,7 @@ export default function NewCargoShipmentPage() {
 
   return (
     <ContentLayout title="Registrar Carga">
-      <PageHeader />
+      <PageHeader className="mb-6" />
 
       <div className="space-y-6">
         <div className="flex items-center gap-4">

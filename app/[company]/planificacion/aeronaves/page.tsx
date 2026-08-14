@@ -102,7 +102,7 @@ const AircraftsPage = () => {
 
   return (
     <ContentLayout title="Aeronaves">
-      <PageHeader />
+      <PageHeader className="mb-6" />
 
       {/* Header */}
       <div className="flex flex-col text-center justify-center gap-2 mb-8">

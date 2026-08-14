@@ -20,7 +20,7 @@ const DangerIdentificationsPage = () => {
 
   return (
     <ContentLayout title="Peligros Identificados">
-      <PageHeader />
+      <PageHeader className="mb-6" />
 
       <div className="flex flex-col gap-y-2">
         {data && <DataTable columns={columns} data={data} />}

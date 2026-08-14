@@ -75,7 +75,7 @@ const FlightControlPage = () => {
 
   return (
     <ContentLayout title="Control de vuelos">
-      <PageHeader />
+      <PageHeader className="mb-6" />
 
       <div className="mx-auto w-full max-w-7xl space-y-6">
         <header className="space-y-1">

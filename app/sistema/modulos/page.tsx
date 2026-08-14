@@ -11,7 +11,7 @@ const ModulePage = () => {
   const { data: modules, isLoading, error } = useGetModules();
   return (
     <ContentLayout title="Modulos">
-      <PageHeader />
+      <PageHeader className="mb-6" />
 
       <h1 className="font-bold text-4xl text-center">Gestión de Modulos</h1>
       <p className="text-muted-foreground text-sm italic text-center mb-2">

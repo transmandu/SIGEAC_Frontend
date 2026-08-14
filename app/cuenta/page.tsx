@@ -52,7 +52,7 @@ const AccountPage = () => {
   if (!user) {
     return (
       <ContentLayout title="Mi perfil">
-        <PageHeader />
+        <PageHeader className="mb-6" />
         <div className="flex min-h-[300px] items-center justify-center text-sm text-muted-foreground">
           Sesión finalizada
         </div>
@@ -62,7 +62,7 @@ const AccountPage = () => {
 
   return (
     <ContentLayout title="Mi perfil">
-      <PageHeader />
+      <PageHeader className="mb-2" />
 
       <div className="mx-auto mt-4 max-w-5xl space-y-6" data-tour="cuenta-title">
         <div data-tour="cuenta-user-card">

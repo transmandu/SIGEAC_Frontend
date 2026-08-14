@@ -135,7 +135,7 @@ const ManageExamsPage = () => {
 
   return (
     <ContentLayout title="Gestionar Exámenes">
-      <PageHeader />
+      <PageHeader className="mb-6" />
 
       <div className="w-full border border-gray-300 rounded-lg p-6 shadow-md dark:border-gray-700 space-y-6">
         <div className="flex items-center justify-between mb-6">

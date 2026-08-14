@@ -5,7 +5,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 export default function WorkOrderPage() {
   return (
     <ContentLayout title='Creacion de WO'>
-      <PageHeader />
+      <PageHeader className="mb-6" />
 
       {/* <ServiceWorkOrderForm /> */}
       <NonServiceWorkOrderForm />

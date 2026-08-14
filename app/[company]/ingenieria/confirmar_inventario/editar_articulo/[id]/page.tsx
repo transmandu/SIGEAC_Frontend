@@ -20,7 +20,7 @@ const ConfirmInventory = () => {
   }
   return (
     <ContentLayout title="Confirmar Ingreso">
-      <PageHeader />
+      <PageHeader className="mb-6" />
 
       <DirectRegisterArticleForm isEditing initialData={data} category={data?.batches?.category} />
     </ContentLayout>

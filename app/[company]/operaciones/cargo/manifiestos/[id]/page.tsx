@@ -59,7 +59,7 @@ export default function ManifestDetailPage() {
   if (isLoading) {
     return (
       <ContentLayout title="Detalle de Manifiesto">
-        <PageHeader />
+        <PageHeader className="mb-6" />
 
         <div className="flex justify-center items-center h-screen">
           <Loader2 className="animate-spin size-12 text-primary" />
@@ -71,7 +71,7 @@ export default function ManifestDetailPage() {
   if (isError || !manifest) {
     return (
       <ContentLayout title="Error">
-        <PageHeader />
+        <PageHeader className="mb-6" />
 
         <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
           <p className="text-xl text-red-500 font-semibold">
@@ -103,7 +103,7 @@ export default function ManifestDetailPage() {
 
   return (
     <ContentLayout title="Detalle del Manifiesto">
-      <PageHeader />
+      <PageHeader className="mb-6" />
 
       <div className="flex flex-col gap-6 p-1 max-w-6xl mx-auto w-full pb-10">
         {/* Header */}

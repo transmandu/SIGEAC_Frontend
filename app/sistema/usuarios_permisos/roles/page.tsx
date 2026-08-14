@@ -12,7 +12,7 @@ const RolesPage = () => {
   const { data: roles, error, isLoading } = useGetRoles();
   return (
     <ContentLayout title='Roles'>
-      <PageHeader />
+      <PageHeader className="mb-6" />
 
       <h1 className='text-2xl font-bold'>Listado de Roles</h1>
       {

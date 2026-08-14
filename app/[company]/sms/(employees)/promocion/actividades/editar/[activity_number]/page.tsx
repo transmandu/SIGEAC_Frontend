@@ -24,7 +24,7 @@ const EditSMSActivityPage = () => {
 
   return (
     <ContentLayout title="Editar Actividad SMS">
-      <PageHeader />
+      <PageHeader className="mb-6" />
 
       {isLoading && <LoadingPage />}
 

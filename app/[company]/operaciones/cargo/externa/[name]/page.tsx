@@ -52,7 +52,7 @@ const ExternalAircraftCargoPage = () => {
   return (
     <ContentLayout title="Registros de Carga">
       <div className="flex flex-col gap-4">
-        <PageHeader />
+        <PageHeader className="mb-2" />
 
         <div className="flex flex-col gap-2 text-center">
           <div className="flex items-center justify-center gap-3">

@@ -147,7 +147,7 @@ const UniformesPage = () => {
 
   return (
     <ContentLayout title="Uniformes">
-      <PageHeader />
+      <PageHeader className="mb-6" />
 
       {/* Page header */}
       <div className="mb-6 flex flex-col gap-3 border-b pb-4 sm:flex-row sm:items-end sm:justify-between">

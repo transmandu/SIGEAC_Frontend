@@ -43,7 +43,7 @@ const DailyActivitiesPage = () => {
   return (
     <ContentLayout title="Registro de Actividades">
       <div className="flex flex-col gap-y-2">
-        <PageHeader />
+        <PageHeader className="mb-4" />
         <h1 className="text-4xl font-bold text-center">Registro de Actividades</h1>
         <p className="text-sm text-muted-foreground text-center italic">
           Aquí puede registrar las actividades realizadas por la Jefatura de Desarrollo.<br />

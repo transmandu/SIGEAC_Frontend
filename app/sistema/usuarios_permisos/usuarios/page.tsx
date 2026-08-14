@@ -14,7 +14,7 @@ const UsersPage = () => {
 
   return (
     <ContentLayout title='Usuarios'>
-      <PageHeader />
+      <PageHeader className="mb-6" />
 
       <h1 className='text-4xl font-bold text-center mb-2'>Control de Usuarios</h1>
       <p className='text-sm text-muted-foreground text-center'>

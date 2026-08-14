@@ -50,7 +50,7 @@ const DispatchRequestPage = () => {
   return (
     <ContentLayout title='Salida'>
       <div className='flex flex-col gap-y-2'>
-        <PageHeader />
+        <PageHeader className="mb-4" />
         {
           isDispatchesLoading && (
             <div className='flex w-full h-full justify-center items-center'>

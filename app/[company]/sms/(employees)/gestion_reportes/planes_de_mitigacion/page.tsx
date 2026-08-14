@@ -19,7 +19,7 @@ const MitigationPlanPage = () => {
 
   return (
     <ContentLayout title="Planes de Mitigacion">
-      <PageHeader />
+      <PageHeader className="mb-6" />
 
       <div className="flex flex-col gap-y-2">
         {isLoading && (

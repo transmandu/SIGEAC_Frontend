@@ -35,7 +35,7 @@ const DailyActivitiesPage = () => {
   return (
     <ContentLayout title="Gestión de Actividades">
       <div className="flex flex-col gap-y-2">
-        <PageHeader />
+        <PageHeader className="mb-4" />
         <h1 className="text-4xl font-bold text-center">Actividades Diarias</h1>
         <p className="text-sm text-muted-foreground text-center italic mb-6">
           Aquí puede observar todos las actividades realizadas por la Jefatura

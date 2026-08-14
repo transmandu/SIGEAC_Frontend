@@ -20,7 +20,7 @@ const ConfirmIncomingPage = () => {
   }
   return (
     <ContentLayout title='Confirmar Ingreso'>
-      <PageHeader />
+      <PageHeader className="mb-6" />
 
       {data?.batches?.category}
       <RegisterArticleForm isEditing initialData={data} category={data?.batches?.category} />

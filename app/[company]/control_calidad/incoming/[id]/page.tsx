@@ -14,7 +14,7 @@ const IncomingPage = () => {
   if(isLoading) return <LoadingPage />;
   return (
     <ContentLayout title='Incoming'>
-      <PageHeader />
+      <PageHeader className="mb-6" />
 
       {
         article ? (

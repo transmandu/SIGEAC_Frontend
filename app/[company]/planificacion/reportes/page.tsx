@@ -5,7 +5,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 const ReportesPage = () => {
   return (
     <ContentLayout title='Reportes'>
-      <PageHeader />
+      <PageHeader className="mb-6" />
 ReportesPage</ContentLayout>
   )
 }

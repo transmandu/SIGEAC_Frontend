@@ -106,7 +106,7 @@ const CourseStatsPage = () => {
 
   return (
     <ContentLayout title="Gráficos Estadísticos de Cursos">
-      <PageHeader />
+      <PageHeader className="mb-6" />
 
       <div className="flex flex-col space-y-4 mb-6">
         <div

@@ -27,7 +27,7 @@ const LocationsPage = () => {
 
   return (
     <ContentLayout title='Ubicaciones'>
-      <PageHeader />
+      <PageHeader className="mb-6" />
 
       <div className='flex flex-col gap-y-2'>
 

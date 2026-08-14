@@ -30,7 +30,7 @@ const ClientsPage = () => {
 
   return (
     <ContentLayout title="Condiciones">
-      <PageHeader />
+      <PageHeader className="mb-6" />
 
       {" "}
       <h1

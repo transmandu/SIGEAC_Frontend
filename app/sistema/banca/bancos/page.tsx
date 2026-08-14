@@ -24,7 +24,7 @@ const BanksPage = () => {
 
   return (
     <ContentLayout title={"Bancos"}>
-      <PageHeader />
+      <PageHeader className="mb-6" />
 
       <div data-tour="bancos-title">
         <h1 className="text-4xl font-bold text-center mb-2">

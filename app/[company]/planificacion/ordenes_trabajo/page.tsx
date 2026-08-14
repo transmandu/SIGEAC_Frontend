@@ -19,7 +19,7 @@ const WorkOrdersPage = () => {
 
   return (
     <ContentLayout title='Ordenes de Trabajo'>
-      <PageHeader />
+      <PageHeader className="mb-6" />
 
       <div className='flex flex-col gap-y-2'>
         <h1 className='text-5xl font-bold text-center'>Gestión de Ord. de Trabajo</h1>

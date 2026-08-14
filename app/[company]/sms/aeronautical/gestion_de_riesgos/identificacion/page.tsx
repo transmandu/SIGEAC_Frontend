@@ -115,7 +115,7 @@ const Identification = () => {
 
     return (
         <ContentLayout title="Notificación de peligro">
-          <PageHeader />
+          <PageHeader className="mb-6" />
 
             <div className="grid gap-6 xl:grid-cols-[380px_minmax(0,1fr)]">
                 <ReportSelectionPanel

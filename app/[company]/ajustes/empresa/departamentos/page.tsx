@@ -34,7 +34,7 @@ const DepartmentPage = () => {
 
   return (
     <ContentLayout title="Departamentos">
-      <PageHeader />
+      <PageHeader className="mb-6" />
 
       <h1 className="font-bold text-4xl text-center">
         Gestión de Departamentos

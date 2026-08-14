@@ -126,7 +126,7 @@ const CreateSMSActivity = () => {
             : "Creación <D-d>Encuesta"
       }
     >
-      <PageHeader />
+      <PageHeader className="mb-6" />
 
       {showWizard && <StepIndicator currentStep={step} />}
 

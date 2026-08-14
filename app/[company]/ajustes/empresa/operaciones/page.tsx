@@ -47,7 +47,7 @@ const OperationalSettingsPage = () => {
   return (
     <ProtectedLayout roles={['SUPERUSER']}>
       <ContentLayout title="Ajustes operativos">
-        <PageHeader />
+        <PageHeader className="mb-6" />
 
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-1">

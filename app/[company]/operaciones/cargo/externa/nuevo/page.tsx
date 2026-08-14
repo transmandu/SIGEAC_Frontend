@@ -29,7 +29,7 @@ export default function CreateExternalCargoPage() {
 
   return (
     <ContentLayout title="Nuevo Registro">
-      <PageHeader />
+      <PageHeader className="mb-6" />
 
       <div className="flex flex-col gap-4">
         <div className="flex items-center gap-4">

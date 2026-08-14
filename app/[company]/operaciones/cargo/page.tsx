@@ -131,7 +131,7 @@ const CargoPage = () => {
   return (
     <ContentLayout title="Carga">
       <div className="flex flex-col gap-4">
-        <PageHeader />
+        <PageHeader className="mb-2" />
 
         <div className="flex flex-col gap-2 text-center md:text-left">
           <h1

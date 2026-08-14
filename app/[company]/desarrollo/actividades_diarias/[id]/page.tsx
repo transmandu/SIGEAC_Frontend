@@ -31,7 +31,7 @@ const ActivityReportsByIdPage = ({ params }: { params: { id: string } }) => {
   return (
     <ContentLayout title="Actividades Diarias">
       <div className="flex flex-col gap-y-2">
-        <PageHeader />
+        <PageHeader className="mb-4" />
         <h1 className="text-4xl font-bold text-center">
           Actividades Diarias <br /> {report?.user.first_name}{" "}
           {report?.user.last_name} -{" "}

@@ -541,7 +541,7 @@ const ResumenCapacitacionPage = () => {
 
   return (
     <ContentLayout title="Resumen de Capacitaciones">
-      <PageHeader />
+      <PageHeader className="mb-6" />
 
       <div className="flex flex-col gap-6 w-full border border-gray-200 dark:border-gray-800 rounded-xl p-6 shadow-sm bg-white dark:bg-[#0b1120]">
         <div

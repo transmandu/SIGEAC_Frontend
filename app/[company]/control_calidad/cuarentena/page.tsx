@@ -65,7 +65,7 @@ const QuarantineControlPage = () => {
   return (
     <ContentLayout title="Inventario">
       <div className="flex flex-col gap-4">
-        <PageHeader />
+        <PageHeader className="mb-2" />
 
         <div className="rounded-2xl border bg-card p-5 md:p-6">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">

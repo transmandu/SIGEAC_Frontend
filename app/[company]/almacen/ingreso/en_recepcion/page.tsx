@@ -22,7 +22,7 @@ const InventarioPage = () => {
   return (
     <ContentLayout title='Inventario'>
       <div className='flex flex-col gap-y-2'>
-        <PageHeader />
+        <PageHeader className="mb-4" />
         <h1 className='text-5xl font-bold text-center'>Articulos En Recepción</h1>
         <p className='text-sm text-muted-foreground text-center italic mb-0'>
           Aquí puede observar todos los articulos que se encuentran fuera de almacén. <br />Filtre y/o busque sí desea un articulo en específico.

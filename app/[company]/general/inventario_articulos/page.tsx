@@ -168,7 +168,7 @@ const InventarioArticulosPage = () => {
     <ContentLayout title="Inventario">
       <div className="flex flex-col gap-y-4">
         {/* Breadcrumbs */}
-        <PageHeader />
+        <PageHeader className="mb-2" />
 
         {/* Header */}
         <div className="text-center space-y-2">

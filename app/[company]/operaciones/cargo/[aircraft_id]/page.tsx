@@ -64,7 +64,7 @@ const CargoByAircraftPage = () => {
   return (
     <ContentLayout title="Registros de Carga">
       <div className="flex flex-col gap-4">
-        <PageHeader currentLabel={aircraft?.acronym || `Aeronave #${aircraft_id}`} />
+        <PageHeader className="mb-2" currentLabel={aircraft?.acronym || `Aeronave #${aircraft_id}`} />
 
         {/* Cabecera con nombre de la aeronave */}
         <div className="flex flex-col gap-2 text-center md:text-left">

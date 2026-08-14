@@ -30,7 +30,7 @@ const ManufacturersPage = () => {
 
   return (
     <ContentLayout title="Permisos">
-      <PageHeader />
+      <PageHeader className="mb-6" />
 
       <h1
         className="text-5xl font-bold text-center mt-2"
