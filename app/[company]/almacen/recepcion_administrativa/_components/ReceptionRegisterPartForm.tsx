@@ -419,7 +419,9 @@ export default function ReceptionRegisterPartForm({
       destination: (initialData as any)?.article_detail?.destination ?? "",
       justification: (initialData as any)?.article_detail?.justification ?? "",
     });
-    setDocuments(buildDocumentSelectionFromArticle(initialData));
+    setDocuments((current) =>
+      buildDocumentSelectionFromArticle(initialData, current)
+    );
   }, [initialData, form, currentBatch]);
 
   // Autocompletar descripción cuando encuentra resultados de búsqueda

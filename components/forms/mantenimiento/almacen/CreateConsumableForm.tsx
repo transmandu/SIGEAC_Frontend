@@ -259,7 +259,9 @@ const CreateConsumableForm = ({
                 (initialData.has_documentation ?? false) ||
                 (initialData.document_requirements?.length ?? 0) > 0,
         });
-        setDocuments(buildDocumentSelectionFromArticle(initialData));
+        setDocuments((current) =>
+            buildDocumentSelectionFromArticle(initialData, current)
+        );
     }, [initialData, form]);
 
     // conversión secundaria -> quantity

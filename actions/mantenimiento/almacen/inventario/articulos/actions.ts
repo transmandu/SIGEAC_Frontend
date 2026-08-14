@@ -93,14 +93,38 @@ const invalidateArticleDocuments = (queryClient: ReturnType<typeof useQueryClien
  * real (preview + reemplazar) en vez de un input vacío.
  */
 export const buildDocumentSelectionFromArticle = (
-    article?: { document_requirements?: ArticleDocumentRequirementSummary[] }
-): ArticleDocumentSelection[] =>
-    (article?.document_requirements ?? [])
+    article?: { document_requirements?: ArticleDocumentRequirementSummary[] },
+    /**
+     * Selección actual del formulario. El archivo adjunto vive solo en memoria
+     * y el servidor todavía no lo conoce: sin conservarlo, un refetch mientras
+     * el usuario tenía un archivo elegido lo descartaba en silencio y el submit
+     * no subía nada.
+     */
+    current: ArticleDocumentSelection[] = []
+): ArticleDocumentSelection[] => {
+    const pendingByTypeId = new Map(
+        current
+            .filter((doc) => doc.file || doc.isPhysical || doc.replaceDocumentId)
+            .map((doc) => [doc.typeId, doc])
+    );
+
+    const fromArticle = (article?.document_requirements ?? [])
         .filter((req) => typeof req.document_type?.id === "number")
-        .map((req) => ({
-            typeId: req.document_type!.id,
-            requirementId: req.documents.length > 0 ? req.id : undefined,
-        }));
+        .map((req) => {
+            const typeId = req.document_type!.id;
+            const pending = pendingByTypeId.get(typeId);
+            pendingByTypeId.delete(typeId);
+
+            return {
+                ...pending,
+                typeId,
+                requirementId: req.documents.length > 0 ? req.id : undefined,
+            };
+        });
+
+    // Tipos que el usuario agregó y que el artículo aún no tiene registrados.
+    return [...fromArticle, ...Array.from(pendingByTypeId.values())];
+};
 
 /**
  * ¿La selección documental cambió respecto a lo que el artículo ya tenía?
@@ -374,13 +398,9 @@ export const useUploadArticleDocuments = () => {
                     (req) => req.article_document_type_id === doc.typeId
                 );
 
-                if (!requirement) continue;
-
-                // Reemplazo explícito: elimina el documento anterior antes de
-                // consignar el nuevo, para no dejar dos documentos activos.
-                if (doc.replaceDocumentId) {
-                    await axiosInstance.delete(
-                        `/${company}/article-documents/${doc.replaceDocumentId}`
+                if (!requirement) {
+                    throw new Error(
+                        `No se pudo registrar el documento "${doc.typeId}": el requerimiento no fue creado en el servidor.`
                     );
                 }
 
@@ -394,6 +414,14 @@ export const useUploadArticleDocuments = () => {
                     `/${company}/article-document-requirements/${requirement.id}/documents`,
                     formData
                 );
+
+                // El anterior se borra recién cuando el nuevo quedó consignado:
+                // al revés, una subida fallida dejaba al artículo sin ninguno.
+                if (doc.replaceDocumentId) {
+                    await axiosInstance.delete(
+                        `/${company}/article-documents/${doc.replaceDocumentId}`
+                    );
+                }
             }
         },
         onSuccess: () => {

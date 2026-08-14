@@ -484,7 +484,9 @@ export default function DirectRegisterToolForm({
         (initialData.document_requirements?.length ?? 0) > 0,
       destination_unknown: false,
     });
-    setDocuments(buildDocumentSelectionFromArticle(initialData));
+    setDocuments((current) =>
+      buildDocumentSelectionFromArticle(initialData, current)
+    );
   }, [initialData, form, currentBatch]);
 
   // Autocompletar descripción cuando encuentra resultados de búsqueda

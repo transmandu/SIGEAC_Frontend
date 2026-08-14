@@ -161,7 +161,9 @@ export default function ReceptionRegisterComponentForm({ initialData, isEditing 
       destination: (initialData as any)?.article_detail?.destination ?? "",
       justification: (initialData as any)?.article_detail?.justification ?? "",
     });
-    setDocuments(buildDocumentSelectionFromArticle(initialData));
+    setDocuments((current) =>
+      buildDocumentSelectionFromArticle(initialData, current)
+    );
   }, [initialData, form]);
 
   const busy =

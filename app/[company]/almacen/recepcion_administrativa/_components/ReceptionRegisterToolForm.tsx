@@ -489,7 +489,9 @@ export default function ReceptionRegisterToolForm({
         ? addDays(new Date(initialData.reception_date), 1)
         : undefined,
     });
-    setDocuments(buildDocumentSelectionFromArticle(initialData));
+    setDocuments((current) =>
+      buildDocumentSelectionFromArticle(initialData, current)
+    );
   }, [initialData, form, currentBatch]);
 
   const [inspectDate, setInspectDate] = useState<Date | null | undefined>(

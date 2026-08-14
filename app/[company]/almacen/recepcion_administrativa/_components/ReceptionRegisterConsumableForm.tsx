@@ -749,7 +749,9 @@ export default function ReceptionRegisterConsumableForm({
     const articleId = initialData?.id;
     useEffect(() => {
         if (!articleId) return;
-        setDocuments(buildDocumentSelectionFromArticle(initialData));
+        setDocuments((current) =>
+            buildDocumentSelectionFromArticle(initialData, current)
+        );
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [articleId]);
     const { confirmIncoming } = useConfirmIncomingArticle();
