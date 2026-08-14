@@ -69,7 +69,7 @@ const PurchaseOrdersPageContent = () => {
   )
 
   return (
-    <ContentLayout title="Órdenes de Compra">
+    <ContentLayout title="Órdenes de Compra Generales">
       <div className="flex flex-col gap-6">
 
         <PageHeader />

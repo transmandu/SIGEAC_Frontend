@@ -5,7 +5,7 @@ import { ContentLayout } from "@/components/layout/ContentLayout";
 
 const CreateObligatoryReport = () => {
   return (
-    <ContentLayout title="Creacion de Reporte Obligatorio">
+    <ContentLayout title="Creación de Reporte Obligatorio">
       <div className="flex flex-col justify-center items-center">
         <CreateObligatoryReportForm
           onClose={() => false}

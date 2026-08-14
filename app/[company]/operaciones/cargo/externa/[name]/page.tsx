@@ -50,7 +50,7 @@ const ExternalAircraftCargoPage = () => {
   const columns = getColumns(isCurrentMonth, company, canWrite);
 
   return (
-    <ContentLayout title="Registros de Carga">
+    <ContentLayout title="Carga Externa">
       <div className="flex flex-col gap-4">
         <PageHeader className="mb-2" />
 

@@ -21,7 +21,7 @@ const AgregarPage = () => {
     setType(data);
   }
   return (
-    <ContentLayout title='TEST DE AGREGADO'>
+    <ContentLayout title="Ingreso de Artículo">
       <PageHeader className="mb-6" />
 
       <div className='space-y-3 mb-4'>

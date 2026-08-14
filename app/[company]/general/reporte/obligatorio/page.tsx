@@ -27,7 +27,7 @@ const CreateObligatoryReport = () => {
     ? CreateGenObliReport
     : CreateObligatoryReportForm;
   return (
-    <ContentLayout title="Creacion de Reporte Obligatorio">
+    <ContentLayout title="Creación de Reporte Obligatorio">
       <PageHeader className="mb-6" />
 
       <div

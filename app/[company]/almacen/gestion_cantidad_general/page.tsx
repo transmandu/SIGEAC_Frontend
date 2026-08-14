@@ -32,7 +32,7 @@ export default function GestionInventarioGeneralPage() {
 
   if (isError) {
     return (
-      <ContentLayout title="Inventario General">
+      <ContentLayout title="Gestión de Cantidades">
         <div className="py-10 text-center">
           <p className="text-sm text-muted-foreground">No se pudieron cargar los artículos.</p>
         </div>

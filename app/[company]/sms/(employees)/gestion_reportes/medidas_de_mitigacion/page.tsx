@@ -19,7 +19,7 @@ const MitigationMeasuresPage = () => {
   }
 
   return (
-    <ContentLayout title="Medida de Mitigacion">
+    <ContentLayout title="Medidas de Mitigación">
       <PageHeader className="mb-6" />
 
       <div className="flex flex-col gap-y-2">

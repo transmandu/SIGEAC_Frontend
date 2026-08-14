@@ -18,7 +18,7 @@ const MitigationPlanPage = () => {
   } = useGetMitigationTable(selectedCompany?.slug);
 
   return (
-    <ContentLayout title="Planes de Mitigacion">
+    <ContentLayout title="Planes de Mitigación">
       <PageHeader className="mb-6" />
 
       <div className="flex flex-col gap-y-2">

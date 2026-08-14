@@ -29,7 +29,7 @@ const ManufacturersPage = () => {
   }, [registerTour, unregisterTour, manufacturers]);
 
   return (
-    <ContentLayout title="Permisos">
+    <ContentLayout title="Fabricantes">
       <PageHeader className="mb-6" />
 
       <h1

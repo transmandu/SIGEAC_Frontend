@@ -18,7 +18,7 @@ const WorkOrdersPage = () => {
   if (isLoading) return <LoadingPage />
 
   return (
-    <ContentLayout title='Ordenes de Trabajo'>
+    <ContentLayout title="Órdenes de Trabajo">
       <PageHeader className="mb-6" />
 
       <div className='flex flex-col gap-y-2'>

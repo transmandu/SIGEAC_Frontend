@@ -33,7 +33,7 @@ const DailyActivitiesPage = () => {
   }
 
   return (
-    <ContentLayout title="Gestión de Actividades">
+    <ContentLayout title="Actividades Diarias">
       <div className="flex flex-col gap-y-2">
         <PageHeader className="mb-4" />
         <h1 className="text-4xl font-bold text-center">Actividades Diarias</h1>

@@ -521,7 +521,7 @@ const RequisitionPage = () => {
   };
 
   return (
-    <ContentLayout title="Inventario">
+    <ContentLayout title="Detalle de Requisición">
       <PageHeader className="mb-6" />
 
 

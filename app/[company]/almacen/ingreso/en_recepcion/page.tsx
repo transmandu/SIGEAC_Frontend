@@ -20,7 +20,7 @@ const InventarioPage = () => {
   const { data: articles, isLoading: isArticlesLoading, isError } = useGetInReceptionArticles(selectedStation ?? null, selectedCompany?.slug);
 
   return (
-    <ContentLayout title='Inventario'>
+    <ContentLayout title="Artículos en Recepción">
       <div className='flex flex-col gap-y-2'>
         <PageHeader className="mb-4" />
         <h1 className='text-5xl font-bold text-center'>Articulos En Recepción</h1>

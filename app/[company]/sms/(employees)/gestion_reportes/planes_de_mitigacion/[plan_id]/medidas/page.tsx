@@ -20,7 +20,7 @@ const MitigationMeasurePage = () => {
   } = useGetMitigationMeasure({ company: selectedCompany?.slug, plan_id });
 
   return (
-    <ContentLayout title="Medidas de Mitigacion">
+    <ContentLayout title="Medidas de Mitigación">
       <PageHeader className="mb-6" />
 
       <div className="flex flex-col gap-y-2">

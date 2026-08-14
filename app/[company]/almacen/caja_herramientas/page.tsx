@@ -18,7 +18,7 @@ const DispatchRequestPage = () => {
     return <LoadingPage />
   }
   return (
-    <ContentLayout title='Salida'>
+    <ContentLayout title="Caja de Herramientas">
       <PageHeader className="mb-6" />
 
       <div className='flex flex-col gap-y-2'>

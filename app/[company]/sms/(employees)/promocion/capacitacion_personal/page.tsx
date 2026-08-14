@@ -18,7 +18,7 @@ const SMSTrainingPage = () => {
   } = useGetSMSTraining(selectedCompany?.slug);
 
   return (
-    <ContentLayout title="Capacitacion de SMS">
+    <ContentLayout title="Capacitación de SMS">
       <PageHeader className="mb-6" />
 
       <div className="flex flex-col gap-y-2">

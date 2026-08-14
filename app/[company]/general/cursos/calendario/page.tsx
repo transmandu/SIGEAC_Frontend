@@ -28,7 +28,7 @@ const CalendarServicesPage = () => {
   if (error) return <div>Error al cargar eventos {error.message}</div>;
 
   return (
-    <ContentLayout title="Cursos">
+    <ContentLayout title="Calendario de Cursos">
       <PageHeader className="mb-6" />
 
       <div

@@ -40,27 +40,28 @@ export function PageTitle({ className }: { className?: string }) {
     const after = (ms: number, fn: () => void) =>
       timers.current.push(setTimeout(fn, ms));
 
-    // El "" intermedio de la navegación no es un destino: se ignora y el
-    // título saliente sigue montado para poder recogerse.
-    if (!title || title === shownRef.current) return;
+    if (title === shownRef.current && !loading) return;
 
     clear();
 
-    // Primera pintura o motion reducido: sin secuencia.
-    if (!shownRef.current || reduceMotion) {
+    // El "" de una navegación es transitorio y el título saliente sigue montado
+    // para recogerse; pero si la página de destino no publica ninguno, hay que
+    // vaciar igual o el loader se queda girando para siempre.
+    const settle = () => {
       setShown(title);
       setLoading(false);
-      return;
+    };
+
+    // Primera pintura o motion reducido: sin secuencia.
+    if ((!shownRef.current && title) || reduceMotion) {
+      settle();
+      return clear;
     }
 
     // Si el loader ya está en pantalla solo falta cumplir su mínimo.
     if (loading) {
-      const rest = Math.max(0, LOADER_MS - (Date.now() - loaderAt.current));
-      after(rest, () => {
-        setShown(title);
-        setLoading(false);
-      });
-      return;
+      after(Math.max(0, LOADER_MS - (Date.now() - loaderAt.current)), settle);
+      return clear;
     }
 
     // Recoger a la izquierda, mostrar el loader, desplegar el nuevo.
@@ -68,10 +69,7 @@ export function PageTitle({ className }: { className?: string }) {
       loaderAt.current = Date.now();
       setLoading(true);
     });
-    after(RETRACT_MS + LOADER_MS, () => {
-      setShown(title);
-      setLoading(false);
-    });
+    after(RETRACT_MS + LOADER_MS, settle);
 
     return clear;
   }, [title, loading, reduceMotion]);

@@ -110,7 +110,7 @@ const RequisitionsPage = () => {
   )
   
   return (
-    <ContentLayout title="Inventario">
+    <ContentLayout title="Solicitudes de Compra">
       <div className="flex flex-col gap-y-2">
 
         <PageHeader className="mb-4" />

@@ -165,7 +165,7 @@ const InventarioArticulosPage = () => {
   const handleClearSearch = () => setPartNumberSearch("");
 
   return (
-    <ContentLayout title="Inventario">
+    <ContentLayout title="Inventario General">
       <div className="flex flex-col gap-y-4">
         {/* Breadcrumbs */}
         <PageHeader className="mb-2" />

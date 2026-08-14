@@ -63,7 +63,7 @@ const QuarantineControlPage = () => {
   const visibleCount = records?.length ?? 0;
 
   return (
-    <ContentLayout title="Inventario">
+    <ContentLayout title="Control de Cuarentena">
       <div className="flex flex-col gap-4">
         <PageHeader className="mb-2" />
 

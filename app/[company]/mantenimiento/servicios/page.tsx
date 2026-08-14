@@ -13,7 +13,7 @@ const AircraftsPage = () => {
   const { data: services, isLoading } = useGetMaintenanceServices(selectedCompany?.slug)
   if (isLoading) return <LoadingPage />
   return (
-    <ContentLayout title='Aeronaves'>
+    <ContentLayout title="Servicios">
       <PageHeader className="mb-6" />
 
       <div className='flex flex-col text-center justify-center gap-2'>

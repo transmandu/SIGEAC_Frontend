@@ -26,7 +26,7 @@ const IncomingControlPage = () => {
   if (isWaitingLoading) return <LoadingPage />;
 
   return (
-    <ContentLayout title="Inventario">
+    <ContentLayout title="Control de Ubicación">
       <div className="flex flex-col gap-y-3">
         <PageHeader className="mb-3" />
 

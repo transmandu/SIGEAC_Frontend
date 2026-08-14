@@ -4,7 +4,7 @@ import ServiceWorkOrderForm from './_components/ServiceWorkOrderForm';
 import { PageHeader } from "@/components/layout/PageHeader";
 export default function WorkOrderPage() {
   return (
-    <ContentLayout title='Creacion de WO'>
+    <ContentLayout title="Nueva Orden de Trabajo">
       <PageHeader className="mb-6" />
 
       {/* <ServiceWorkOrderForm /> */}

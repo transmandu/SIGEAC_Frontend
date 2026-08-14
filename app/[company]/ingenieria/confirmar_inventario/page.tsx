@@ -133,7 +133,7 @@ const InventarioArticulosPage = () => {
   };
 
   return (
-    <ContentLayout title="Inventario">
+    <ContentLayout title="Inventario Registrado">
       <TooltipProvider>
         <div className="flex flex-col gap-y-4">
           {/* Breadcrumbs */}

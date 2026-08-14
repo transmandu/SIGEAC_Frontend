@@ -56,7 +56,7 @@ const IncomingControlPage = () => {
   if (isIncomingLoading && isWaitingLoading) return <LoadingPage />;
 
   return (
-    <ContentLayout title="Inventario">
+    <ContentLayout title="Control de Incoming">
       <div className="flex flex-col gap-y-3">
         <PageHeader className="mb-3" />
 

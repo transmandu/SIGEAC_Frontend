@@ -33,7 +33,7 @@ const BankAccountsPage = () => {
   }, [cards, account_number]); // Se ejecutará cada vez que `accounts` o `id` cambien
 
   return (
-    <ContentLayout title={"Almacenes"}>
+    <ContentLayout title="Detalle de Cuenta">
       <PageHeader className="mb-6" />
 
       <h1 className="text-4xl font-bold text-center mb-2">

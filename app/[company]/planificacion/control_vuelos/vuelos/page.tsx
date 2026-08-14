@@ -74,7 +74,7 @@ const FlightControlPage = () => {
   if (isLoading || isAircraftsLoading) return <LoadingPage />;
 
   return (
-    <ContentLayout title="Control de vuelos">
+    <ContentLayout title="Control de Horas de Vuelo">
       <PageHeader className="mb-6" />
 
       <div className="mx-auto w-full max-w-7xl space-y-6">
