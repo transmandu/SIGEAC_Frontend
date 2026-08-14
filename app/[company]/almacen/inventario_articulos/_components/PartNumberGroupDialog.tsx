@@ -115,6 +115,7 @@ export function PartNumberGroupDialog({
 
   const { user } = useAuth();
   const roles = user?.roles?.map((r) => r.name) ?? [];
+  const isSuperUser = roles.includes("SUPERUSER");
 
   const handleDelete = () => {
     if (articleIdToDelete === null) return;
@@ -359,7 +360,7 @@ export function PartNumberGroupDialog({
                                 </TooltipContent>
                               </Tooltip>
 
-                              {canModifyArticle(r.status) && (
+                              {canModifyArticle(r.status, isSuperUser) && (
                                 <Tooltip>
                                   <TooltipTrigger asChild>
                                     <Button
@@ -379,8 +380,8 @@ export function PartNumberGroupDialog({
                                 </Tooltip>
                               )}
 
-                              {canModifyArticle(r.status) &&
-                                (roles.includes("SUPERUSER") ||
+                              {canModifyArticle(r.status, isSuperUser) &&
+                                (isSuperUser ||
                                   roles.includes("JEFE_ALMACEN")) && (
                                   <Tooltip>
                                     <TooltipTrigger asChild>

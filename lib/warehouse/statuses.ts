@@ -108,9 +108,14 @@ const MODIFIABLE_STATUSES = new Set([
   "INTOOLBOX",
 ]);
 
-/** El estado llega en mayúsculas de BD, pero hay vistas que lo pasan en minúsculas. */
-export const canModifyArticle = (status?: string | null) =>
-  MODIFIABLE_STATUSES.has(String(status ?? "").trim().toUpperCase());
+/**
+ * El estado llega en mayúsculas de BD, pero hay vistas que lo pasan en minúsculas.
+ *
+ * `override` deja pasar cualquier estado: es para el SUPERUSER, que corrige el
+ * inventario justo cuando el artículo quedó atascado fuera del almacén.
+ */
+export const canModifyArticle = (status?: string | null, override = false) =>
+  override || MODIFIABLE_STATUSES.has(String(status ?? "").trim().toUpperCase());
 
 /**
  * Hitos que `movements` registra pero que no son un `articles.status`: vienen del

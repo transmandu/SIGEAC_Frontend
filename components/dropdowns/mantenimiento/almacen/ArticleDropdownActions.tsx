@@ -52,7 +52,8 @@ const ArticleDropdownActions = ({
   const { user } = useAuth();
 
  const roles = user?.roles?.map((r) => r.name) ?? [];
-  const canModify = canModifyArticle(status);
+  const isSuperUser = roles.includes("SUPERUSER");
+  const canModify = canModifyArticle(status, isSuperUser);
 
   const handleDelete = (id: number | string) => {
     deleteArticle.mutate(
@@ -123,7 +124,7 @@ const ArticleDropdownActions = ({
             </Tooltip>
 
             {canModify &&
-            (roles.includes("SUPERUSER") || roles.includes("JEFE_ALMACEN")) ? (
+            (isSuperUser || roles.includes("JEFE_ALMACEN")) ? (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <DialogTrigger asChild>
