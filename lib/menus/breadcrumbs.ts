@@ -59,6 +59,9 @@ function findTrail(pathname: string, currentCompany: Company | null): Crumb[] | 
     return (best as Match | null)?.trail ?? null;
 }
 
+/** Un id crudo (33, 1204) no dice nada al usuario; sí lo hace COT-00123. */
+const isOpaqueId = (segment: string) => /^\d+$/.test(decodeURIComponent(segment));
+
 function humanizeSegment(segment: string): string {
     const decoded = decodeURIComponent(segment);
 
@@ -94,7 +97,7 @@ export function buildBreadcrumbTrail(
         const segments = normalize(pathname)
             .split("/")
             .filter(Boolean)
-            .filter((segment) => !isRouteGroup(segment));
+            .filter((segment) => !isRouteGroup(segment) && !isOpaqueId(segment));
 
         // El slug de la compañía ya está representado por "Inicio".
         const relevant =
@@ -113,5 +116,11 @@ export function buildBreadcrumbTrail(
         .filter(Boolean)
         .filter((segment) => !isRouteGroup(segment));
 
-    return [home, ...trail, ...rest.map((segment) => ({ label: humanizeSegment(segment) }))];
+    // El id se omite salvo que sea la migaja actual: ahí la página le pone
+    // nombre con currentLabel, y quitarla dejaría el rastro en la sección padre.
+    const relevant = rest.filter(
+        (segment, index) => !isOpaqueId(segment) || index === rest.length - 1,
+    );
+
+    return [home, ...trail, ...relevant.map((segment) => ({ label: humanizeSegment(segment) }))];
 }

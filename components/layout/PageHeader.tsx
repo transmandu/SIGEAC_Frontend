@@ -1,8 +1,9 @@
 "use client";
 
 import { Fragment, useMemo } from "react";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ChevronRight } from "lucide-react";
+import * as PopoverPrimitive from "@radix-ui/react-popover";
 import BackButton from "@/components/misc/BackButton";
 import {
     Breadcrumb,
@@ -14,11 +15,10 @@ import {
     BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
 import { buildBreadcrumbTrail, type Crumb } from "@/lib/menus/breadcrumbs";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
@@ -66,6 +66,8 @@ export function PageHeader({
         };
     }, [crumbs]);
 
+    const hiddenLabels = hidden.map((crumb) => crumb.label).join(" / ");
+
     return (
         <div className={cn("flex items-center gap-3", className)}>
             {!hideBackButton && (
@@ -104,30 +106,46 @@ export function PageHeader({
                                 {index === 0 && hidden.length > 0 && (
                                     <>
                                         <BreadcrumbItem>
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger
-                                                    className="flex items-center transition-colors hover:text-foreground"
-                                                    aria-label="Mostrar rutas intermedias"
+                                            {/* Muestra el tramo recorrido; no navega a ningún lado. */}
+                                            <Popover>
+                                                <PopoverTrigger
+                                                    aria-label={`Ver ruta intermedia: ${hiddenLabels}`}
+                                                    className="flex items-center rounded-sm transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                                                 >
                                                     <BreadcrumbEllipsis className="h-4 w-4" />
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="start">
-                                                    {hidden.map((item, hiddenIndex) => (
-                                                        <DropdownMenuItem
-                                                            key={`${item.label}-${hiddenIndex}`}
-                                                            asChild={Boolean(item.href)}
-                                                        >
-                                                            {item.href ? (
-                                                                <Link href={item.href}>
-                                                                    {item.label}
-                                                                </Link>
-                                                            ) : (
-                                                                <span>{item.label}</span>
-                                                            )}
-                                                        </DropdownMenuItem>
-                                                    ))}
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
+                                                </PopoverTrigger>
+
+                                                <PopoverContent
+                                                    align="center"
+                                                    side="bottom"
+                                                    sideOffset={10}
+                                                    collisionPadding={12}
+                                                    className="w-auto max-w-sm px-3 py-2.5"
+                                                >
+                                                    {/* Ancla visual: sin ella el panel flota sin origen claro. */}
+                                                    <PopoverPrimitive.Arrow
+                                                        width={12}
+                                                        height={6}
+                                                        className="fill-popover"
+                                                    />
+
+                                                    <p className="text-xs font-medium text-muted-foreground">
+                                                        Ruta intermedia
+                                                    </p>
+
+                                                    <ol className="mt-1.5 space-y-1 text-sm">
+                                                        {hidden.map((item, hiddenIndex) => (
+                                                            <li
+                                                                key={`${item.label}-${hiddenIndex}`}
+                                                                className="flex items-center gap-1.5 whitespace-nowrap"
+                                                            >
+                                                                <ChevronRight className="size-3 shrink-0 text-muted-foreground" />
+                                                                {item.label}
+                                                            </li>
+                                                        ))}
+                                                    </ol>
+                                                </PopoverContent>
+                                            </Popover>
                                         </BreadcrumbItem>
 
                                         <BreadcrumbSeparator />
