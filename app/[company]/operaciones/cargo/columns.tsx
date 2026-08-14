@@ -213,22 +213,22 @@ export const getColumns = (
         { label: string; variant: string; className: string }
       > = {
         pending: {
-          label: "Pendiente",
+          label: "PENDIENTE",
           variant: "outline",
           className: "text-muted-foreground",
         },
         partial: {
-          label: "Parcial",
+          label: "PARCIAL",
           variant: "warning",
           className: "",
         },
         manifested: {
-          label: "Manifestado",
+          label: "MANIFESTADO",
           variant: "default",
           className: "bg-green-600 hover:bg-green-600/80",
         },
         modified: {
-          label: "Modificado",
+          label: "MODIFICADO",
           variant: "default",
           className: "bg-orange-500 hover:bg-orange-500/80",
         },

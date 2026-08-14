@@ -70,10 +70,14 @@ export function getColumns(
       header: "Severidad",
       cell: ({ row }) => {
         const severityLabel = getErrorReportSeverityLabel(row.original.severity);
-        return severityLabel ? (
-          <Chip tone="indigo">{severityLabel}</Chip>
-        ) : (
-          <span className="text-xs text-muted-foreground">Sin clasificar</span>
+        return (
+          <div className="flex justify-center">
+            {severityLabel ? (
+              <Chip tone="indigo">{severityLabel}</Chip>
+            ) : (
+              <span className="text-xs text-muted-foreground">Sin clasificar</span>
+            )}
+          </div>
         );
       },
     },
@@ -86,14 +90,14 @@ export function getColumns(
         const { label, tone } = STATUS_CHIP[status];
         const Icon = STATUS_ICON[status];
         return (
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center justify-center gap-1.5">
             <Chip tone={tone} icon={<Icon className="h-3 w-3" />}>
               {label}
             </Chip>
             {duplicateCount > 1 && (
               <span
                 title="Reportes duplicados"
-                className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-500 dark:bg-slate-800 dark:text-slate-400"
+                className="select-none rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-500 dark:bg-slate-800 dark:text-slate-400"
               >
                 ×{duplicateCount}
               </span>
@@ -107,21 +111,25 @@ export function getColumns(
       header: "Código HTTP",
       cell: ({ row }) => {
         const label = row.original.http_status_label;
-        return label ? (
-          <TooltipProvider disableHoverableContent>
-            <Tooltip delayDuration={200}>
-              <TooltipTrigger asChild>
-                <span>
-                  <Chip tone={httpStatusTone(row.original.http_status)}>
-                    {row.original.http_status}
-                  </Chip>
-                </span>
-              </TooltipTrigger>
-              <TooltipContent className="max-w-sm whitespace-pre-wrap">{label}</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        ) : (
-          <span className="text-xs text-muted-foreground">—</span>
+        return (
+          <div className="flex justify-center">
+            {label ? (
+              <TooltipProvider disableHoverableContent>
+                <Tooltip delayDuration={200}>
+                  <TooltipTrigger asChild>
+                    <span>
+                      <Chip tone={httpStatusTone(row.original.http_status)}>
+                        {row.original.http_status}
+                      </Chip>
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-sm whitespace-pre-wrap">{label}</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            ) : (
+              <span className="text-xs text-muted-foreground">—</span>
+            )}
+          </div>
         );
       },
     },

@@ -88,7 +88,7 @@ export default function SupervisarArticulosGeneralesPage() {
                                 </h1>
 
                                 {!!candidates?.length && (
-                                    <Badge className="rounded-md border border-sky-500/30 bg-sky-500/10 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-sky-700 shadow-sm select-none hover:bg-sky-500/15 dark:text-sky-300 dark:hover:text-sky-200">
+                                    <Badge className="rounded-md border border-sky-500/30 bg-sky-500/10 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-sky-700 shadow-sm select-none dark:text-sky-300">
                                         {candidates.length} POSIBLES DUPLICADOS
                                     </Badge>
                                 )}

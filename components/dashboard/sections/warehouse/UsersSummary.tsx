@@ -9,7 +9,7 @@ import { useOnlineUsersContext } from '@/contexts/OnlineUsersContext'
 import { PresenceStatus } from '@/hooks/notifications/useOnlineUsers'
 
 const presenceLabels: Record<PresenceStatus, string> = {
-  online: 'Activo',
+  online: 'ACTIVO',
   standby: 'En espera',
   offline: 'Inactivo',
 }

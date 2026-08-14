@@ -92,15 +92,7 @@ export const getColumns = (): ColumnDef<Company>[] => [
     cell: ({ row }) => (
       <div className="flex justify-center w-full">
         <Badge
-          className="
-            rounded-md
-            border
-            border-blue-500/20
-            bg-blue-500/10
-            text-blue-700
-            dark:text-blue-300
-            hover:bg-blue-500/10
-          "
+          className="rounded-md border border-blue-500/20 bg-blue-500/10 text-blue-700 dark:text-blue-300"
         >
           {row.original.acronym ?? '—'}
         </Badge>

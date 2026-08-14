@@ -155,16 +155,16 @@ export const AircraftDropdownActions = ({
                 <div>
                   <h2 className="text-xl font-bold">{aircraft.model}</h2>
                   <div className="flex items-center gap-3 mt-1">
-                    <Badge className="bg-white text-gray-800 hover:bg-gray-100">
+                    <Badge className="bg-white text-gray-800">
                       {aircraft.acronym}
                     </Badge>
                     <Badge
                       className={`text-white ${
                         aircraft.status === "EN POSESION"
-                          ? "bg-green-700 hover:bg-green-800"
+                          ? "bg-green-700"
                           : aircraft.status === "RENTADO"
-                            ? "bg-amber-600 hover:bg-amber-700"
-                            : "bg-gray-700 hover:bg-gray-800"
+                            ? "bg-amber-600"
+                            : "bg-gray-700"
                       }`}
                     >
                       {aircraft.status}

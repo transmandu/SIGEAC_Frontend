@@ -25,9 +25,9 @@ import {
 import LoadingPage from "@/components/misc/LoadingPage"
 
 const priorityOptions = [
-  { value: "HIGH", label: "Alta", icon: ArrowUp, className: "text-red-500" },
-  { value: "MEDIUM", label: "Media", icon: Minus, className: "text-amber-500" },
-  { value: "LOW", label: "Baja", icon: ArrowDown, className: "text-green-500" },
+  { value: "HIGH", label: "ALTA", icon: ArrowUp, className: "text-red-500" },
+  { value: "MEDIUM", label: "MEDIA", icon: Minus, className: "text-amber-500" },
+  { value: "LOW", label: "BAJA", icon: ArrowDown, className: "text-green-500" },
 ]
 
 const PriorityOptionLabel = ({ value }: { value: string }) => {

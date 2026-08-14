@@ -24,8 +24,8 @@ import { DownloadReportDialog } from './DownloadReportDialog'
 type StatusFilter = 'ALL' | 'TRANSIT' | 'RECEPTION'
 
 const TRANSIT_STATUS_LABELS: Record<string, string> = {
-    TRANSIT: 'En tránsito',
-    RECEPTION: 'En recepción',
+    TRANSIT: 'EN TRÁNSITO',
+    RECEPTION: 'EN RECEPCIÓN',
 }
 
 // ── Fila de artículo ───────────────────────────────────────────────────
@@ -138,7 +138,7 @@ const ArticleRow = memo(function ArticleRow({ article }: { article: TransitArtic
                 {/* Estado */}
                 <TableCell className="text-center">
                     <span className={cn(
-                        'text-[10px] font-medium px-1.5 py-0.5 rounded border uppercase tracking-wide',
+                        'select-none inline-block whitespace-nowrap text-[10px] font-medium px-1.5 py-0.5 rounded border tracking-wide',
                         isReception
                             ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800/60'
                             : 'bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950/40 dark:text-sky-400 dark:border-sky-800/60'

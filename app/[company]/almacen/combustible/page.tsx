@@ -347,7 +347,7 @@ export default function FuelWarehousePage() {
               <span className="relative z-10 inline-flex items-center">
                 Movimientos
                 {(movementsPagination?.total ?? 0) > 0 && (
-                  <span className="ml-1.5 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium tabular-nums leading-none">
+                  <span className="select-none ml-1.5 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium tabular-nums leading-none">
                     {movementsPagination?.total}
                   </span>
                 )}
@@ -367,7 +367,7 @@ export default function FuelWarehousePage() {
               <span className="relative z-10 inline-flex items-center">
                 Vehiculos
                 {fuelVehicles.length > 0 && (
-                  <span className="ml-1.5 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium tabular-nums leading-none">
+                  <span className="select-none ml-1.5 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium tabular-nums leading-none">
                     {fuelVehicles.length}
                   </span>
                 )}

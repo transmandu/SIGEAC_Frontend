@@ -188,8 +188,8 @@ const SurveyResponsePage = () => {
                                   <Badge
                                     className={`whitespace-nowrap self-start sm:self-auto ${
                                       option.is_correct
-                                        ? "bg-green-500 hover:bg-green-600 text-white"
-                                        : "bg-red-500 hover:bg-red-600 text-white"
+                                        ? "bg-green-500 text-white"
+                                        : "bg-red-500 text-white"
                                     }`}
                                   >
                                     {option.is_correct

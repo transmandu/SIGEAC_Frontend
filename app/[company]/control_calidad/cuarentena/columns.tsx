@@ -19,10 +19,10 @@ import {
 } from "lucide-react"
 
 function riskBadge(state: ReturnType<typeof quarantineRisk>["state"]) {
-  if (state === "expired") return { variant: "destructive" as const, label: "Vencido" }
-  if (state === "warning") return { variant: "secondary" as const, label: "Por vencer" }
-  if (state === "ok") return { variant: "outline" as const, label: "En plazo" }
-  return { variant: "outline" as const, label: "Sin fecha" }
+  if (state === "expired") return { variant: "destructive" as const, label: "VENCIDO" }
+  if (state === "warning") return { variant: "secondary" as const, label: "POR VENCER" }
+  if (state === "ok") return { variant: "outline" as const, label: "EN PLAZO" }
+  return { variant: "outline" as const, label: "SIN FECHA" }
 }
 
 export const getColumns = (legalDays: number): ColumnDef<QuarantineRecord>[] => [
@@ -224,7 +224,7 @@ export const getColumns = (legalDays: number): ColumnDef<QuarantineRecord>[] => 
         <div className="flex justify-center">
           <Badge
             className={cn(
-              "gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-sm",
+              "select-none gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-sm",
               isOpen && "border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300",
               isPending && "border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300",
               !isOpen && !isPending &&
@@ -234,17 +234,17 @@ export const getColumns = (legalDays: number): ColumnDef<QuarantineRecord>[] => 
             {isOpen ? (
               <>
                 <ShieldAlert className="h-3.5 w-3.5" />
-                En cuarentena
+                EN CUARENTENA
               </>
             ) : isPending ? (
               <>
                 <ShieldCheck className="h-3.5 w-3.5" />
-                Listo para re-inspección
+                LISTO PARA RE-INSPECCIÓN
               </>
             ) : (
               <>
                 <CheckCircle2 className="h-3.5 w-3.5" />
-                Resuelto
+                RESUELTO
               </>
             )}
           </Badge>

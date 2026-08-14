@@ -352,31 +352,13 @@ export const getColumns = (
                 cursor-default
               `,
 
-              paid && `
-                border-yellow-500/30
-                bg-yellow-500/10
-                text-yellow-700
-                dark:text-yellow-300
-                hover:bg-yellow-500/15
-              `,
+              paid && `border-yellow-500/30 bg-yellow-500/10 text-yellow-700 dark:text-yellow-300`,
 
-              completed && `
-                border-emerald-500/30
-                bg-emerald-500/10
-                text-emerald-700
-                dark:text-emerald-300
-                hover:bg-emerald-500/15
-              `,
+              completed && `border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300`,
 
               !paid &&
                 !completed &&
-                `
-                  border-red-500/30
-                  bg-red-500/10
-                  text-red-700
-                  dark:text-red-300
-                  hover:bg-red-500/15
-                `
+                `border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300`
             )}
           >
             {PO_STATUS_LABELS[status] ?? status}

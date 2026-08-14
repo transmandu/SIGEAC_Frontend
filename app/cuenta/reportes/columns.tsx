@@ -65,9 +65,11 @@ export const columns: ColumnDef<ErrorReport>[] = [
       const { label, tone } = STATUS_CHIP[row.original.status];
       const Icon = STATUS_ICON[row.original.status];
       return (
-        <Chip tone={tone} icon={<Icon className="h-3 w-3" />}>
-          {label}
-        </Chip>
+        <div className="flex justify-center">
+          <Chip tone={tone} icon={<Icon className="h-3 w-3" />}>
+            {label}
+          </Chip>
+        </div>
       );
     },
   },

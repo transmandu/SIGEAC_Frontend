@@ -452,7 +452,7 @@ const buildBaseCols = (
                         </>
                     ) : (
                         <span className="text-muted-foreground font-bold">
-                            Sin condición
+                            SIN CONDICIÓN
                         </span>
                     )}
                     {(c?.en === 'Safekeeping' || c?.en === 'As Removed') && (

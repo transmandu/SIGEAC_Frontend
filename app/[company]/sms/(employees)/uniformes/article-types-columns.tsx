@@ -145,9 +145,9 @@ export const getArticleTypesColumns = (
     header: "Estado",
     cell: ({ row }) =>
       row.original.active ? (
-        <Badge className="bg-green-600 hover:bg-green-600">Activo</Badge>
+        <Badge className="bg-green-600">ACTIVO</Badge>
       ) : (
-        <Badge variant="secondary">Inactivo</Badge>
+        <Badge variant="secondary">INACTIVO</Badge>
       ),
   },
   {

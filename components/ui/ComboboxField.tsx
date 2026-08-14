@@ -103,7 +103,7 @@ export function ComboboxField<T extends FieldValues>({
                       <div className="flex items-center gap-2 overflow-hidden flex-1">
                         <span className="truncate">{selectedOption.label}</span>
                         {selectedOption.badge && (
-                          <span className="text-[10px] uppercase font-bold text-muted-foreground bg-muted/30 px-1.5 py-0.5 rounded shrink-0">
+                          <span className="select-none text-[10px] uppercase font-bold text-muted-foreground bg-muted/30 px-1.5 py-0.5 rounded shrink-0">
                             {selectedOption.badge}
                           </span>
                         )}
@@ -146,7 +146,7 @@ export function ComboboxField<T extends FieldValues>({
                                   {option.label}
                                 </span>
                                 {option.badge && (
-                                  <span className="shrink-0 text-[10px] uppercase font-bold text-muted-foreground bg-muted/50 px-1.5 py-0.5 rounded border border-border/50">
+                                  <span className="select-none shrink-0 text-[10px] uppercase font-bold text-muted-foreground bg-muted/50 px-1.5 py-0.5 rounded border border-border/50">
                                     {option.badge.replace(/_/g, " ")}
                                   </span>
                                 )}

@@ -45,7 +45,7 @@ interface ShipmentAvailable {
 }
 
 const statusConfig: Record<string, { label: string; className: string }> = {
-  pending: { label: "Pendiente", className: "bg-muted text-muted-foreground" },
+  pending: { label: "PENDIENTE", className: "bg-muted text-muted-foreground" },
   partial: { label: "Parcial", className: "bg-yellow-100 text-yellow-800" },
   modified: { label: "Modificado", className: "bg-orange-100 text-orange-800" },
   manifested: {

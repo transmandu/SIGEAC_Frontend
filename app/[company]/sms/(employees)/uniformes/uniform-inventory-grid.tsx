@@ -417,7 +417,7 @@ function FilterChip({
   onClear: () => void;
 }) {
   return (
-    <span className="inline-flex items-center gap-1 rounded border bg-muted px-2 py-1 text-xs font-medium text-foreground">
+    <span className="select-none inline-flex items-center gap-1 rounded border bg-muted px-2 py-1 text-xs font-medium text-foreground">
       {label}
       <button
         onClick={onClear}
@@ -547,13 +547,13 @@ function UniformStackCard({
             </div>
             <div className="ml-auto flex items-center gap-1.5">
               {stack.lowStockCount > 0 && (
-                <span className="inline-flex items-center gap-1 rounded border border-amber-200 bg-amber-100 px-1.5 py-0.5 text-[11px] font-medium text-amber-700 dark:border-amber-800 dark:bg-amber-950/50 dark:text-amber-400">
+                <span className="select-none inline-flex items-center gap-1 rounded border border-amber-200 bg-amber-100 px-1.5 py-0.5 text-[11px] font-medium text-amber-700 dark:border-amber-800 dark:bg-amber-950/50 dark:text-amber-400">
                   <AlertTriangle className="size-3" />
                   {stack.lowStockCount} bajo
                 </span>
               )}
               {outOfStock > 0 && (
-                <span className="inline-flex items-center gap-1 rounded border border-destructive/30 bg-destructive/10 px-1.5 py-0.5 text-[11px] font-medium text-destructive">
+                <span className="select-none inline-flex items-center gap-1 rounded border border-destructive/30 bg-destructive/10 px-1.5 py-0.5 text-[11px] font-medium text-destructive">
                   {outOfStock} agotada{outOfStock === 1 ? "" : "s"}
                 </span>
               )}

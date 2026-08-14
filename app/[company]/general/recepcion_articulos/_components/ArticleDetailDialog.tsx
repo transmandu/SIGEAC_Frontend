@@ -34,8 +34,8 @@ import type { ArticleDocument } from '@/types'
 const EDIT_ROLES = ['JEFE_ALMACEN', 'ANALISTA_ALMACEN']
 
 const TRANSIT_STATUS_LABELS: Record<string, string> = {
-    TRANSIT: 'En tránsito',
-    RECEPTION: 'En recepción',
+    TRANSIT: 'EN TRÁNSITO',
+    RECEPTION: 'EN RECEPCIÓN',
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -216,7 +216,7 @@ export function ArticleDetailDialog({ article }: { article: TransitArticle }) {
                             </div>
                             <span
                                 className={cn(
-                                    'shrink-0 rounded border px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide',
+                                    'select-none shrink-0 rounded border px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide',
                                     isReception
                                         ? 'border-amber-300 bg-amber-100 text-amber-800 dark:border-amber-800/60 dark:bg-amber-950/50 dark:text-amber-400'
                                         : 'border-sky-300 bg-sky-100 text-sky-800 dark:border-sky-800/60 dark:bg-sky-950/50 dark:text-sky-400'

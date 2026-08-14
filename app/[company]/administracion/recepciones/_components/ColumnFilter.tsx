@@ -94,7 +94,7 @@ export const ColumnFilter = ({
             />
           )}
           {active && (
-            <span className="rounded bg-primary/10 px-1 text-[10px] font-semibold tabular-nums text-primary">
+            <span className="select-none rounded bg-primary/10 px-1 text-[10px] font-semibold tabular-nums text-primary">
               {selected.length}
             </span>
           )}

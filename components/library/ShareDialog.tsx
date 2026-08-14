@@ -356,7 +356,7 @@ export default function ShareDialog({
                             </span>
                           </div>
                           <div className="flex items-center gap-4">
-                            <span className="flex items-center gap-1.5 text-[9px] font-bold bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-2.5 py-1 rounded-full uppercase border border-blue-100 dark:border-blue-800/50">
+                            <span className="select-none flex items-center gap-1.5 text-[9px] font-bold bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-2.5 py-1 rounded-full uppercase border border-blue-100 dark:border-blue-800/50">
                               <History className="h-3 w-3" />
                               {share.version?.version_label ||
                                 share.version?.version_number ||

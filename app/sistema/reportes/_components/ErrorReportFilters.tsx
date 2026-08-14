@@ -23,7 +23,7 @@ import { ErrorReportFilters as Filters } from "@/hooks/sistema/reportes/useGetEr
 import { cn } from "@/lib/utils";
 
 const STATUS_OPTIONS = [
-  { value: "OPEN", label: "Abierto" },
+  { value: "OPEN", label: "ABIERTO" },
   { value: "IN_PROGRESS", label: "En progreso" },
   { value: "RESOLVED", label: "Resuelto" },
 ];
@@ -202,7 +202,7 @@ export default function ErrorReportFilters({
           >
             <XCircle className="h-3.5 w-3.5" />
             Limpiar filtros
-            <span className="ml-0.5 rounded-full bg-slate-200/80 px-1.5 py-0.5 text-[10px] font-semibold text-slate-600 dark:bg-slate-700/60 dark:text-slate-300">
+            <span className="select-none ml-0.5 rounded-full bg-slate-200/80 px-1.5 py-0.5 text-[10px] font-semibold text-slate-600 dark:bg-slate-700/60 dark:text-slate-300">
               {activeFilterCount}
             </span>
           </Button>

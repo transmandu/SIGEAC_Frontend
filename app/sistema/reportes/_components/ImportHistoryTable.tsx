@@ -16,10 +16,10 @@ import { format } from "date-fns";
 import { AlertTriangle } from "lucide-react";
 
 const STATUS_LABEL: Record<ImportHistoryStatus, string> = {
-  queued: "En cola",
-  running: "Procesando",
-  completed: "Completado",
-  paused_quota: "Pausado por cuota de IA",
+  queued: "EN COLA",
+  running: "PROCESANDO",
+  completed: "COMPLETADO",
+  paused_quota: "PAUSADO POR CUOTA DE IA",
 };
 
 const STATUS_VARIANT: Record<ImportHistoryStatus, "default" | "secondary" | "warning"> = {

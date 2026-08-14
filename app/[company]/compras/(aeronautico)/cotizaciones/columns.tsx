@@ -289,38 +289,13 @@ export const getColumns = (
                 hover:translate-y-0
               `,
 
-              pending && `
-                border-yellow-500/30
-                bg-yellow-500/10
-                text-yellow-700
-                dark:text-yellow-300
+              pending && `border-yellow-500/30 bg-yellow-500/10 text-yellow-700 dark:text-yellow-300`,
 
-                hover:bg-yellow-500/15
-                hover:text-yellow-700
-                dark:hover:text-yellow-200
-              `,
-
-              approved && `
-                border-emerald-500/30
-                bg-emerald-500/10
-                text-emerald-700
-                dark:text-emerald-300
-
-                hover:bg-emerald-500/15
-                dark:hover:text-emerald-200
-              `,
+              approved && `border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300`,
 
               !pending &&
                 !approved &&
-                `
-                  border-red-500/30
-                  bg-red-500/10
-                  text-red-700
-                  dark:text-red-300
-
-                  hover:bg-red-500/15
-                  dark:hover:text-red-200
-                `
+                `border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300`
             )}
           >
             {QUOTE_STATUS_LABELS[status] ?? status?.toUpperCase?.() ?? 'N/A'}

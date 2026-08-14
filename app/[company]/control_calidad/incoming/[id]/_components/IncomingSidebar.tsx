@@ -374,7 +374,7 @@ export function IncomingSidebar({
                                       </span>
 
                                       {item.requiredForAccept ? (
-                                        <span className="inline-flex items-center rounded-full border border-amber-300/60 bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold text-amber-800">
+                                        <span className="select-none inline-flex items-center rounded-full border border-amber-300/60 bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold text-amber-800">
                                           referencia crítica
                                         </span>
                                       ) : null}

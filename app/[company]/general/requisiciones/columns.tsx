@@ -137,7 +137,7 @@ export const getColumns = (
       const config = {
         HIGH: { label: "ALTA", dot: "bg-red-500" },
         MEDIUM: { label: "MEDIA", dot: "bg-yellow-500" },
-        LOW: { label: "Baja", dot: "bg-green-500" },
+        LOW: { label: "BAJA", dot: "bg-green-500" },
       } as const;
 
       const value = config[priority as keyof typeof config] ?? {

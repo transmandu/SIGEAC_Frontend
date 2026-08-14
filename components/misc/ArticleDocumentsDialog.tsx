@@ -130,7 +130,7 @@ const ArticleDocumentsDialog = ({
                         {req.documents.map((doc) => (
                           <span key={doc.id} className="flex items-center gap-1">
                             {doc.is_physical && (
-                              <span className="inline-flex items-center rounded-full border border-amber-300/60 bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-700 dark:border-amber-600/40 dark:bg-amber-950/30 dark:text-amber-400">
+                              <span className="select-none inline-flex items-center rounded-full border border-amber-300/60 bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-700 dark:border-amber-600/40 dark:bg-amber-950/30 dark:text-amber-400">
                                 Físico
                               </span>
                             )}

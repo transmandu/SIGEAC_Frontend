@@ -40,7 +40,7 @@ const statusBadgeClass = (status?: string) => {
   const approved = status === 'APPROVED'
 
   return cn(
-    'rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-sm',
+    'select-none whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-sm',
     created && 'border-slate-500/30 bg-slate-500/10 text-slate-700 dark:text-slate-300',
     received && 'border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300',
     process && 'border-yellow-500/30 bg-yellow-500/10 text-yellow-700 dark:text-yellow-300',
@@ -57,7 +57,7 @@ const PRIORITY_LABELS: Record<string, string> = {
 
 const priorityBadgeClass = (priority?: string) =>
   cn(
-    'rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide',
+    'select-none whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide',
     priority === 'LOW' && 'border-green-500/30 bg-green-500/10 text-green-700 dark:text-green-300',
     priority === 'MEDIUM' && 'border-orange-500/30 bg-orange-500/10 text-orange-700 dark:text-orange-300',
     priority === 'HIGH' && 'border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300',
@@ -116,7 +116,7 @@ const ArticleRow = ({
       <div className="flex items-start justify-between gap-2">
         <span className="text-sm font-semibold leading-snug break-words">{title}</span>
         {typeBadge && (
-          <span className="shrink-0 rounded bg-muted/60 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide text-muted-foreground/80">
+          <span className="select-none shrink-0 rounded bg-muted/60 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide text-muted-foreground/80">
             {typeBadge}
           </span>
         )}

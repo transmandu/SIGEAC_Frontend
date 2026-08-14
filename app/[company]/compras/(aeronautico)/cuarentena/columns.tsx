@@ -134,7 +134,7 @@ export const getColumns = (legalDays: number): ColumnDef<QuarantineRecord>[] => 
         <div className="flex w-full justify-start">
           <div className="min-w-0 space-y-1">
             <div className="flex items-center gap-2">
-              <span className="rounded-md border border-emerald-200/50 bg-emerald-100/60 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-widest text-emerald-700 dark:border-emerald-800/40 dark:bg-emerald-900/30 dark:text-emerald-300">
+              <span className="select-none rounded-md border border-emerald-200/50 bg-emerald-100/60 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-widest text-emerald-700 dark:border-emerald-800/40 dark:bg-emerald-900/30 dark:text-emerald-300">
                 P/N
               </span>
               <span className="rounded px-1 py-0.5 text-[13px] font-semibold tracking-tight text-slate-900 dark:text-slate-100">
@@ -262,7 +262,7 @@ export const getColumns = (legalDays: number): ColumnDef<QuarantineRecord>[] => 
         <div className="flex w-full flex-col items-center gap-1">
           <Badge
             className={cn(
-              'rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-sm',
+              'select-none whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-sm',
               expired && 'border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300',
               warning && 'border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300',
               !expired && !warning && 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
@@ -305,10 +305,10 @@ export const getColumns = (legalDays: number): ColumnDef<QuarantineRecord>[] => 
         <div className="flex w-full justify-center">
           <Badge
             className={cn(
-              'gap-1 rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-sm transition-colors duration-150',
-              isOpen && 'border-red-500/30 bg-red-500/10 text-red-700 hover:bg-red-500/15 dark:text-red-300',
-              isPending && 'border-sky-500/30 bg-sky-500/10 text-sky-700 hover:bg-sky-500/15 dark:text-sky-300',
-              !isOpen && !isPending && 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 hover:bg-emerald-500/15 dark:text-emerald-300',
+              'gap-1 whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-sm transition-colors duration-150',
+              isOpen && 'border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300',
+              isPending && 'border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300',
+              !isOpen && !isPending && 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
             )}
           >
             {isOpen ? (

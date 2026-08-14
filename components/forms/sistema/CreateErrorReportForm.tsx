@@ -348,7 +348,7 @@ export default function CreateErrorReportForm({ onClose, showAdvancedFields = fa
                         })
                       }
                       className={cn(
-                        "rounded-full border px-3 py-1 text-xs font-medium transition-all",
+                        "select-none rounded-full border px-3 py-1 text-xs font-medium transition-all",
                         active
                           ? SEVERITY_ACTIVE_CLASS[tone]
                           : "border-slate-200/80 bg-slate-50/60 text-muted-foreground hover:border-slate-300 dark:border-slate-800/80 dark:bg-slate-900/30"
@@ -382,7 +382,7 @@ export default function CreateErrorReportForm({ onClose, showAdvancedFields = fa
                         setCustomHttpOpen(false);
                       }}
                       className={cn(
-                        "rounded-full border px-3 py-1 font-mono text-xs font-medium transition-all",
+                        "select-none rounded-full border px-3 py-1 font-mono text-xs font-medium transition-all",
                         active
                           ? "border-indigo-400 bg-indigo-500 text-white shadow-sm shadow-indigo-500/30"
                           : "border-slate-200/80 bg-slate-50/60 text-muted-foreground hover:border-slate-300 dark:border-slate-800/80 dark:bg-slate-900/30"
@@ -401,7 +401,7 @@ export default function CreateErrorReportForm({ onClose, showAdvancedFields = fa
                     setCustomHttpOpen((v) => !v);
                   }}
                   className={cn(
-                    "rounded-full border px-3 py-1 text-xs font-medium transition-all",
+                    "select-none rounded-full border px-3 py-1 text-xs font-medium transition-all",
                     customHttpOpen
                       ? "border-indigo-400 bg-indigo-500 text-white shadow-sm shadow-indigo-500/30"
                       : "border-slate-200/80 bg-slate-50/60 text-muted-foreground hover:border-slate-300 dark:border-slate-800/80 dark:bg-slate-900/30"
@@ -414,7 +414,7 @@ export default function CreateErrorReportForm({ onClose, showAdvancedFields = fa
                     type="button"
                     onClick={() => form.setValue("http_status", "")}
                     className={cn(
-                      "rounded-full border px-3 py-1 text-xs font-medium transition-all",
+                      "select-none rounded-full border px-3 py-1 text-xs font-medium transition-all",
                       !httpStatus
                         ? "border-slate-400 bg-slate-600 text-white shadow-sm shadow-slate-500/30"
                         : "border-slate-200/80 bg-slate-50/60 text-muted-foreground hover:border-slate-300 dark:border-slate-800/80 dark:bg-slate-900/30"

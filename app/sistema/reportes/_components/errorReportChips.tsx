@@ -32,7 +32,9 @@ export function Chip({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium leading-none",
+        "inline-flex w-fit select-none items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-1 text-xs font-medium leading-none",
+        // Mismo criterio que el Badge: el hover ajusta el propio color.
+        "transition-[filter] duration-150 hover:brightness-95 dark:hover:contrast-125",
         CHIP_TONES[tone]
       )}
     >
@@ -43,9 +45,9 @@ export function Chip({
 }
 
 export const STATUS_CHIP: Record<ErrorReport["status"], { label: string; tone: ChipTone }> = {
-  OPEN: { label: "Abierto", tone: "rose" },
-  IN_PROGRESS: { label: "En progreso", tone: "amber" },
-  RESOLVED: { label: "Resuelto", tone: "emerald" },
+  OPEN: { label: "ABIERTO", tone: "rose" },
+  IN_PROGRESS: { label: "EN PROGRESO", tone: "amber" },
+  RESOLVED: { label: "RESUELTO", tone: "emerald" },
 };
 
 export function sourceTone(source: string): ChipTone {

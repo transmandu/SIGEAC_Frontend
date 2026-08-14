@@ -47,7 +47,7 @@ export default function RequisitionSubRow({
             Requisición {requisition.order_number}
           </span>
         </div>
-        <Badge variant="outline" className="rounded-md px-2 py-0.5 text-[11px] font-medium bg-background/60">
+        <Badge variant="outline" className="select-none rounded-md px-2 py-0.5 text-[11px] font-medium bg-background/60">
           {quotes.length} {quotes.length === 1 ? 'cotización' : 'cotizaciones'}
         </Badge>
       </div>
@@ -83,7 +83,7 @@ export default function RequisitionSubRow({
                     {quote.parent_quote_order_id && (
                       <Badge
                         variant="outline"
-                        className="rounded-md border-sky-500/30 bg-sky-500/10 px-1.5 py-0 text-[9px] font-semibold tracking-wide text-sky-700 dark:text-sky-300 gap-0.5"
+                        className="select-none rounded-md border-sky-500/30 bg-sky-500/10 px-1.5 py-0 text-[9px] font-semibold tracking-wide text-sky-700 dark:text-sky-300 gap-0.5"
                       >
                         <Link2 className="h-2.5 w-2.5" />
                         Complementaria
@@ -105,13 +105,13 @@ export default function RequisitionSubRow({
                 </div>
                 <Badge
                   className={cn(
-                    `rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-sm transition-colors duration-150 cursor-default`,
+                    `whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-sm transition-colors duration-150 cursor-default`,
 
-                    approved && `border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/15 dark:hover:text-emerald-200`,
+                    approved && `border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300`,
 
-                    rejected && `border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300 hover:bg-red-500/15 dark:hover:text-red-200`,
+                    rejected && `border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300`,
 
-                    pending && `border-yellow-500/30 bg-yellow-500/10 text-yellow-700 dark:text-yellow-300 hover:bg-yellow-500/15 dark:hover:text-yellow-200`
+                    pending && `border-yellow-500/30 bg-yellow-500/10 text-yellow-700 dark:text-yellow-300`
                   )}
                 >
                   <div className="flex items-center gap-1">

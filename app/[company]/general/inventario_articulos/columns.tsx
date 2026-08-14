@@ -49,7 +49,7 @@ export const getStatusBadge = (status: string | null | undefined, quantity?: num
     return (
       <Badge variant="outline" className="flex items-center gap-1 w-fit">
         <XCircle className="h-3 w-3" />
-        Sin estado
+        SIN ESTADO
       </Badge>
     );
   }
@@ -259,7 +259,7 @@ const baseCols: ColumnDef<IArticleSimple>[] = [
             >
               {row.original.tool.status
                 ? row.original.tool.status
-                : "Sin estado"}
+                : "SIN ESTADO"}
             </Badge>
           )}
         </div>

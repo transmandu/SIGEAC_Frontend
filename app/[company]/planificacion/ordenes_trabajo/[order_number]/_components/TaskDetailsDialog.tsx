@@ -298,7 +298,7 @@ export const TaskDetailsDialog = ({
                         className={
                           selectedTask.status === "ABIERTO"
                             ? "cursor-pointer"
-                            : "bg-red-500 hover:bg-red-600 cursor-pointer"
+                            : "bg-red-500 cursor-pointer"
                         }
                       >
                         {selectedTask.status}

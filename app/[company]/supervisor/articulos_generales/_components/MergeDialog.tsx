@@ -728,7 +728,7 @@ function MergePreviewPanel({
                                     ) : null}
                                 </span>
                                 {row.is_survivor && (
-                                    <Badge className="rounded-md border border-sky-500/30 bg-sky-500/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-sky-700 shadow-none select-none shrink-0 hover:bg-sky-500/15 dark:text-sky-300">
+                                    <Badge className="rounded-md border border-sky-500/30 bg-sky-500/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-sky-700 shadow-none select-none shrink-0 dark:text-sky-300">
                                         Sobrevive
                                     </Badge>
                                 )}

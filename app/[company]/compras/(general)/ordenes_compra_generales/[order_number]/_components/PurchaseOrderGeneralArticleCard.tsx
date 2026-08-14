@@ -34,10 +34,10 @@ const Field = ({ label, value, mono = false, pending = false, completed = false 
 };
 
 const INTAKE_STATUS_LABELS: Record<string, string> = {
-  PENDING: 'Por confirmar',
-  CONFIRMED: 'Confirmada',
-  REJECTED: 'Rechazada',
-  DELIVERED: 'Entregada',
+  PENDING: 'POR CONFIRMAR',
+  CONFIRMED: 'CONFIRMADA',
+  REJECTED: 'RECHAZADA',
+  DELIVERED: 'ENTREGADA',
 };
 
 const IntakeStatusBadge = ({ status }: { status?: string }) => {
@@ -45,7 +45,7 @@ const IntakeStatusBadge = ({ status }: { status?: string }) => {
     return (
       <Badge
         variant="secondary"
-        className="h-4 px-1.5 text-[9px] uppercase tracking-wide text-muted-foreground select-none shrink-0 hover:bg-secondary"
+        className="h-4 px-1.5 text-[9px] uppercase tracking-wide text-muted-foreground select-none shrink-0"
       >
         Sin entrega
       </Badge>
@@ -60,12 +60,12 @@ const IntakeStatusBadge = ({ status }: { status?: string }) => {
     <Badge
       className={`h-4 px-1.5 text-[9px] font-semibold uppercase tracking-wide shrink-0 border shadow-none transition-colors duration-150 cursor-default ${
         confirmed
-          ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/15'
+          ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
           : rejected
-          ? 'border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300 hover:bg-red-500/15'
+          ? 'border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300'
           : delivered
-          ? 'border-blue-500/30 bg-blue-500/10 text-blue-700 dark:text-blue-300 hover:bg-blue-500/15'
-          : 'border-yellow-500/30 bg-yellow-500/10 text-yellow-700 dark:text-yellow-300 hover:bg-yellow-500/15'
+          ? 'border-blue-500/30 bg-blue-500/10 text-blue-700 dark:text-blue-300'
+          : 'border-yellow-500/30 bg-yellow-500/10 text-yellow-700 dark:text-yellow-300'
       }`}
     >
       {INTAKE_STATUS_LABELS[status] ?? status}
@@ -98,7 +98,7 @@ const PurchaseOrderGeneralArticleCard = ({ article, orderStatus }: PurchaseOrder
           <IntakeStatusBadge status={article.general_article_intake?.status} />
           <Badge
             variant="secondary"
-            className="h-4 px-1.5 text-[9px] uppercase tracking-wide text-muted-foreground select-none shrink-0 hover:bg-secondary"
+            className="h-4 px-1.5 text-[9px] uppercase tracking-wide text-muted-foreground select-none shrink-0"
           >
             General
           </Badge>

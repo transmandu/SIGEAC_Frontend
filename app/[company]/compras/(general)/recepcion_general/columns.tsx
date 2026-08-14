@@ -283,17 +283,17 @@ export const getColumns = (): ColumnDef<GeneralArticleIntake>[] => [
           <Badge
             variant="outline"
             className={cn(
-              'rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-sm transition-colors duration-150 cursor-default uppercase',
+              'whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-sm transition-colors duration-150 cursor-default uppercase',
               isPending
-                ? 'border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300 hover:bg-amber-500/15'
+                ? 'border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300'
                 : isRejected
-                  ? 'border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300 hover:bg-red-500/15'
+                  ? 'border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300'
                   : isDelivered
-                    ? 'border-blue-500/30 bg-blue-500/10 text-blue-700 dark:text-blue-300 hover:bg-blue-500/15'
-                    : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/15'
+                    ? 'border-blue-500/30 bg-blue-500/10 text-blue-700 dark:text-blue-300'
+                    : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
             )}
           >
-            {isPending ? 'Pendiente' : isRejected ? 'Rechazada' : isDelivered ? 'Entregada' : 'Confirmada'}
+            {isPending ? 'PENDIENTE' : isRejected ? 'RECHAZADA' : isDelivered ? 'ENTREGADA' : 'CONFIRMADA'}
           </Badge>
         </div>
       )

@@ -7,10 +7,10 @@ import { cn } from "@/lib/utils"
 import type { ActiveGeneralArticleRequisition } from "@/types/purchase"
 
 const STATUS_LABELS: Record<string, string> = {
-  CREATED: "Creada",
-  RECEIVED: "Recibida",
-  IN_PROGRESS: "En proceso",
-  QUOTED: "Cotizada",
+  CREATED: "CREADA",
+  RECEIVED: "RECIBIDA",
+  IN_PROGRESS: "EN PROCESO",
+  QUOTED: "COTIZADA",
 }
 
 /** `compact` es la variante en línea del formulario; la extendida va en el diálogo. */

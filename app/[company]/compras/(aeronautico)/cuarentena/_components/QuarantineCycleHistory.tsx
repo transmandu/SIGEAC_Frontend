@@ -26,7 +26,7 @@ const formatDateTime = (value?: string | null) => {
 const OutcomeBadge = ({ outcome }: { outcome: QuarantineCycle['outcome'] }) => {
   if (!outcome) {
     return (
-      <Badge className="rounded-md border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-amber-700 shadow-sm dark:text-amber-300">
+      <Badge className="select-none rounded-md border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-amber-700 shadow-sm dark:text-amber-300">
         En curso
       </Badge>
     )
@@ -37,7 +37,7 @@ const OutcomeBadge = ({ outcome }: { outcome: QuarantineCycle['outcome'] }) => {
   return (
     <Badge
       className={cn(
-        'rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-sm',
+        'select-none whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-sm',
         approved
           ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
           : 'border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300',

@@ -211,19 +211,19 @@ export default function ShareRequestsPanel({
     switch (status) {
       case "approved":
         return (
-          <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-1 rounded-full border border-emerald-200">
+          <span className="select-none flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-1 rounded-full border border-emerald-200">
             <CheckCircle2 className="h-3 w-3" /> APROBADA
           </span>
         );
       case "rejected":
         return (
-          <span className="flex items-center gap-1 text-[10px] font-bold text-red-600 bg-red-50 dark:bg-red-500/10 px-2 py-1 rounded-full border border-red-200">
+          <span className="select-none flex items-center gap-1 text-[10px] font-bold text-red-600 bg-red-50 dark:bg-red-500/10 px-2 py-1 rounded-full border border-red-200">
             <XCircle className="h-3 w-3" /> RECHAZADA
           </span>
         );
       default:
         return (
-          <span className="flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 dark:bg-amber-500/10 px-2 py-1 rounded-full border border-amber-200">
+          <span className="select-none flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 dark:bg-amber-500/10 px-2 py-1 rounded-full border border-amber-200">
             <Clock className="h-3 w-3" /> PENDIENTE
           </span>
         );
@@ -330,7 +330,7 @@ export default function ShareRequestsPanel({
                     <h3 className="text-[13px] font-black text-slate-800 dark:text-white uppercase tracking-tight leading-tight flex-1">
                       {req.document?.title || req.document_title || "Documento"}
                     </h3>
-                    <span className="shrink-0 inline-flex items-center px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-[10px] font-bold text-slate-600 dark:text-slate-300">
+                    <span className="select-none shrink-0 inline-flex items-center px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-[10px] font-bold text-slate-600 dark:text-slate-300">
                       {req.version?.version_label ||
                         req.version?.version_number ||
                         "Última"}
@@ -643,11 +643,11 @@ export default function ShareRequestsPanel({
                       <ShieldAlert className="h-3 w-3" /> Nivel:
                     </span>
                     {isReadOnlyAccess(selectedDetails.read_only) ? (
-                      <span className="flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-100 dark:bg-amber-900/30 px-2 py-0.5 rounded-full">
+                      <span className="select-none flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-100 dark:bg-amber-900/30 px-2 py-0.5 rounded-full">
                         <Eye className="h-3 w-3" /> Solo Lectura
                       </span>
                     ) : (
-                      <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30 px-2 py-0.5 rounded-full">
+                      <span className="select-none flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30 px-2 py-0.5 rounded-full">
                         <CheckCircle2 className="h-3 w-3" /> Permite Descarga
                       </span>
                     )}

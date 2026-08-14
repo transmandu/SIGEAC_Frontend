@@ -42,7 +42,7 @@ export const columns: ColumnDef<IncomingArticle>[] = [
         meta: { title: "Nro. Parte" },
         cell: ({ row }) => (
             <div className="flex items-center justify-center">
-                <span className="rounded-md border bg-muted/30 px-2 py-1 text-xs font-mono font-semibold">
+                <span className="select-none rounded-md border bg-muted/30 px-2 py-1 text-xs font-mono font-semibold">
                     {row.original.part_number}
                 </span>
             </div>
@@ -109,7 +109,7 @@ export const columns: ColumnDef<IncomingArticle>[] = [
             return (
                 <div className="flex items-center justify-center">
                     {ata ? (
-                        <span className="rounded-md border px-2 py-1 text-xs font-medium">
+                        <span className="select-none rounded-md border px-2 py-1 text-xs font-medium">
                             {ata}
                         </span>
                     ) : (

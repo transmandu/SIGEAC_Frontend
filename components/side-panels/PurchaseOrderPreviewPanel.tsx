@@ -71,7 +71,7 @@ const statusBadgeClass = (status?: string) => {
   const completed = status === 'COMPLETED'
 
   return cn(
-    'rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-sm',
+    'select-none whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-sm',
     paid && 'border-yellow-500/30 bg-yellow-500/10 text-yellow-700 dark:text-yellow-300',
     completed && 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
     !paid && !completed && 'border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300'
@@ -79,10 +79,10 @@ const statusBadgeClass = (status?: string) => {
 }
 
 const INTAKE_STATUS_LABELS: Record<string, string> = {
-  PENDING: 'Por confirmar',
-  CONFIRMED: 'Confirmada',
-  REJECTED: 'Rechazada',
-  DELIVERED: 'Entregada',
+  PENDING: 'POR CONFIRMAR',
+  CONFIRMED: 'CONFIRMADA',
+  REJECTED: 'RECHAZADA',
+  DELIVERED: 'ENTREGADA',
 }
 
 const intakeBadgeClass = (status?: string) => {
@@ -157,7 +157,7 @@ const BatchArticleRow = ({ article, isCompleted }: { article: PurchaseOrderArtic
           </span>
 
           {batchCategory && (
-            <span className="inline-block shrink-0 rounded bg-muted/60 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide text-muted-foreground/80">
+            <span className="select-none inline-block shrink-0 rounded bg-muted/60 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide text-muted-foreground/80">
               {batchCategory}
             </span>
           )}

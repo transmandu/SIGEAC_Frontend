@@ -76,7 +76,7 @@ export function QuarantineDocumentsSection({
 
               <Badge
                 className={cn(
-                  'gap-1 rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-sm',
+                  'select-none gap-1 whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-sm',
                   resolved
                     ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
                     : consigned

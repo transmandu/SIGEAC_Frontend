@@ -188,7 +188,7 @@ export function ResolveQuarantineDialog({ record, open, onOpenChange }: Props) {
           >
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2">
-                <span className="rounded-md border border-emerald-200/50 bg-emerald-100/60 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-widest text-emerald-700 dark:border-emerald-800/40 dark:bg-emerald-900/30 dark:text-emerald-300">
+                <span className="select-none rounded-md border border-emerald-200/50 bg-emerald-100/60 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-widest text-emerald-700 dark:border-emerald-800/40 dark:bg-emerald-900/30 dark:text-emerald-300">
                   P/N
                 </span>
                 <span className="text-[13px] font-semibold tracking-tight text-slate-900 dark:text-slate-100">
@@ -203,12 +203,12 @@ export function ResolveQuarantineDialog({ record, open, onOpenChange }: Props) {
 
               <div className="flex items-center gap-2">
                 {cycles.length > 1 && (
-                  <Badge className="rounded-md border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold text-amber-700 shadow-sm dark:text-amber-300">
+                  <Badge className="select-none rounded-md border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold text-amber-700 shadow-sm dark:text-amber-300">
                     Intento {cycles.length}
                   </Badge>
                 )}
                 {record.is_overdue && (
-                  <Badge className="gap-1 rounded-md border border-red-500/30 bg-red-500/10 px-2 py-0.5 text-[10px] font-semibold text-red-700 shadow-sm dark:text-red-300">
+                  <Badge className="select-none gap-1 rounded-md border border-red-500/30 bg-red-500/10 px-2 py-0.5 text-[10px] font-semibold text-red-700 shadow-sm dark:text-red-300">
                     <AlertTriangle className="size-3" />
                     Plazo vencido
                   </Badge>

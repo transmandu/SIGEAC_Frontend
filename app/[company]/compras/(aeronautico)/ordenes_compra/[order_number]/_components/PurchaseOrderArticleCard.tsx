@@ -64,7 +64,7 @@ const PurchaseOrderArticleCard = ({ article, orderStatus }: PurchaseOrderArticle
         {req?.batch?.category && (
           <Badge
             variant="secondary"
-            className="h-4 px-1.5 text-[9px] uppercase tracking-wide text-muted-foreground select-none shrink-0 hover:bg-secondary"
+            className="h-4 px-1.5 text-[9px] uppercase tracking-wide text-muted-foreground select-none shrink-0"
           >
             {req.batch.category}
           </Badge>

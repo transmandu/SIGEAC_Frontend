@@ -117,7 +117,7 @@ export default function DocumentRow({ doc, onView, onDelete, onRefresh, canManag
           <h4 className="text-[12px] font-semibold text-slate-950 dark:text-gray-100 truncate uppercase">
             {doc.title || "Sin título"}
             {latestVersion && (
-              <span className="ml-2 text-[9px] font-bold text-slate-500 dark:text-gray-400 bg-slate-100 dark:bg-gray-800 px-1.5 py-0.5 rounded tracking-wider border border-slate-300 dark:border-gray-600">
+              <span className="select-none ml-2 text-[9px] font-bold text-slate-500 dark:text-gray-400 bg-slate-100 dark:bg-gray-800 px-1.5 py-0.5 rounded tracking-wider border border-slate-300 dark:border-gray-600">
                     {latestVersion.version_label || latestVersion.version_number}
               </span>
             )}

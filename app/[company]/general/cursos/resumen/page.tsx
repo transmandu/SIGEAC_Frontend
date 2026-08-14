@@ -337,13 +337,13 @@ const CourseSummaryCard = ({
                   </div>
                   <div className="flex flex-col items-end gap-2">
                     {exam.approved ? (
-                      <Badge className="bg-green-500/10 text-green-600 dark:text-green-400 hover:bg-green-500/20 border-0 flex items-center gap-1">
+                      <Badge className="bg-green-500/10 text-green-600 dark:text-green-400 border-0 flex items-center gap-1">
                         <CheckCircle className="w-3 h-3" /> Aprobado
                       </Badge>
                     ) : (
                       <Badge
                         variant="destructive"
-                        className="bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/20 border-0 flex items-center gap-1"
+                        className="bg-red-500/10 text-red-600 dark:text-red-400 border-0 flex items-center gap-1"
                       >
                         <XCircle className="w-3 h-3" /> Reprobado
                       </Badge>

@@ -109,11 +109,7 @@ export default function CompaniesSubRow({
                             <button type="button">
                                 <Badge
                                     variant="outline"
-                                    className="
-                cursor-pointer rounded-md px-2 py-0.5 text-[11px]
-                font-medium bg-background/60 transition-colors
-                hover:bg-slate-100 dark:hover:bg-slate-800
-                "
+                                    className="cursor-pointer rounded-md px-2 py-0.5 text-[11px] font-medium bg-background/60 transition-colors"
                                 >
                                     {modulesCount}{' '}
                                     {modulesCount === 1 ? 'módulo' : 'módulos'}
@@ -250,27 +246,13 @@ export default function CompaniesSubRow({
                     value={
                         company.isOMAC ? (
                             <Badge
-                                className="
-                  mt-1 w-fit rounded-md
-                  border-blue-500/30
-                  bg-blue-500/10
-                  text-blue-700
-                  dark:text-blue-300
-                  hover:bg-blue-500/10
-                "
+                                className="mt-1 w-fit rounded-md border-blue-500/30 bg-blue-500/10 text-blue-700 dark:text-blue-300"
                             >
                                 OMAC
                             </Badge>
                         ) : (
                             <Badge
-                                className="
-                  mt-1 w-fit rounded-md
-                  border-slate-500/30
-                  bg-slate-500/10
-                  text-slate-700
-                  dark:text-slate-300
-                  hover:bg-slate-500/10
-                "
+                                className="mt-1 w-fit rounded-md border-slate-500/30 bg-slate-500/10 text-slate-700 dark:text-slate-300"
                             >
                                 Operador General
                             </Badge>

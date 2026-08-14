@@ -45,7 +45,7 @@ export const getColumns = (companySlug: string): ColumnDef<CertificateColumn>[] 
             <span className="font-bold text-sm uppercase text-foreground leading-tight">
               {`${emp.last_name}, ${emp.first_name}`}
             </span>
-            <span className="text-[10px] font-mono text-blue-600 dark:text-blue-400 font-bold bg-blue-50 dark:bg-blue-950/40 px-1.5 py-0.5 rounded-sm w-fit mt-1 border border-blue-200 dark:border-blue-900/30">
+            <span className="select-none text-[10px] font-mono text-blue-600 dark:text-blue-400 font-bold bg-blue-50 dark:bg-blue-950/40 px-1.5 py-0.5 rounded-sm w-fit mt-1 border border-blue-200 dark:border-blue-900/30">
               {emp.dni}
             </span>
           </div>

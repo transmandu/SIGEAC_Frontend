@@ -45,7 +45,7 @@ const statusBadgeClass = (status?: string) => {
   const approved = status === 'APPROVED'
 
   return cn(
-    'rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-sm',
+    'select-none whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-sm',
     pending && 'border-yellow-500/30 bg-yellow-500/10 text-yellow-700 dark:text-yellow-300',
     approved && 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
     !pending && !approved && 'border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300'
@@ -132,12 +132,12 @@ const BatchArticleRow = ({ article }: { article: ArticleQuoteOrder }) => {
           {(req?.batch?.category || isNotQuoted) && (
             <div className="flex items-center gap-1.5 flex-wrap">
               {req?.batch?.category && (
-                <span className="shrink-0 rounded bg-muted/60 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide text-muted-foreground/80">
+                <span className="select-none shrink-0 rounded bg-muted/60 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide text-muted-foreground/80">
                   {req.batch.category}
                 </span>
               )}
               {isNotQuoted && (
-                <span className="inline-flex items-center gap-1 rounded bg-red-500/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-red-600 dark:text-red-400">
+                <span className="select-none inline-flex items-center gap-1 rounded bg-red-500/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-red-600 dark:text-red-400">
                   <Ban className="size-2.5" />
                   No cotizado
                 </span>
@@ -254,7 +254,7 @@ const GeneralArticleRow = ({ article }: { article: GeneralArticleQuoteOrder }) =
               {req?.description ?? 'N/A'}
             </span>
             {isNotQuoted && (
-              <span className="inline-flex items-center gap-1 rounded bg-red-500/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-red-600 dark:text-red-400">
+              <span className="select-none inline-flex items-center gap-1 rounded bg-red-500/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-red-600 dark:text-red-400">
                 <Ban className="size-2.5" />
                 No cotizado
               </span>
@@ -364,7 +364,7 @@ export default function QuotePreviewPanel({ quote, onClose }: Props) {
             <span className="font-semibold truncate">{quote.quote_number}</span>
             <Badge className={statusBadgeClass(quote.status)}>{statusLabel(quote.status)}</Badge>
             {quote.parent_quote_order && (
-              <span className="rounded border border-violet-500/40 bg-violet-500/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-violet-700 dark:text-violet-300">
+              <span className="select-none rounded border border-violet-500/40 bg-violet-500/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-violet-700 dark:text-violet-300">
                 Complementaria
               </span>
             )}

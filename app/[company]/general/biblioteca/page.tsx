@@ -641,7 +641,7 @@ const BibliotecaPage = () => {
                         <Send className="h-4 w-4" />
                         Solicitudes
                         {pendingRequestCount > 0 && (
-                          <span className="ml-1 px-1.5 py-0.5 text-[9px] font-bold text-white bg-red-500 rounded-full min-w-[18px] text-center leading-none">
+                          <span className="select-none ml-1 px-1.5 py-0.5 text-[9px] font-bold text-white bg-red-500 rounded-full min-w-[18px] text-center leading-none">
                             {pendingRequestCount > 99
                               ? "99+"
                               : pendingRequestCount}

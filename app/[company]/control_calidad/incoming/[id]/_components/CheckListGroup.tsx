@@ -33,7 +33,7 @@ export function ChecklistGroupUI({
                   <p className="text-sm font-medium leading-5">
                     {it.label}
                     {it.requiredForAccept ? (
-                      <span className="ml-2 text-[10px] font-semibold text-amber-700 border border-amber-300/50 bg-amber-500/10 px-2 py-0.5 rounded-full">
+                      <span className="select-none ml-2 text-[10px] font-semibold text-amber-700 border border-amber-300/50 bg-amber-500/10 px-2 py-0.5 rounded-full">
                         requerido
                       </span>
                     ) : null}
