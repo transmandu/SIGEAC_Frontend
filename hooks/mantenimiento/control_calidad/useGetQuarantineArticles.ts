@@ -27,7 +27,7 @@ const fetchQuarantineArticles = async (
  */
 export const useGetQuarantineArticles = (
   status: QuarantineStatusFilter = "ALL",
-  options?: { scopeToStation?: boolean },
+  options?: { scopeToStation?: boolean; enabled?: boolean },
 ) => {
   const { selectedCompany, selectedStation } = useCompanyStore();
 
@@ -37,6 +37,9 @@ export const useGetQuarantineArticles = (
     queryKey: ["quarantine-articles", selectedCompany?.slug, status, locationId ?? "all"],
     queryFn: () => fetchQuarantineArticles(selectedCompany?.slug, status, locationId),
     staleTime: 1000 * 60 * 2,
-    enabled: !!selectedCompany?.slug,
+    // El llamador puede apagarla: las alertas la montan en todo el layout y sin
+    // esto pedía cuarentena para cualquier usuario, incluso los tenants que no
+    // llevan el ciclo y responden 404.
+    enabled: (options?.enabled ?? true) && !!selectedCompany?.slug,
   });
 };

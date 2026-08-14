@@ -1,7 +1,7 @@
 "use client";
 
 import { useLayoutEffect, useRef, useState } from "react";
-import { AlertTriangle, Eye, EyeOff, Truck } from "lucide-react";
+import { AlertTriangle, Biohazard, Eye, EyeOff, Truck } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 
 import { cn } from "@/lib/utils";
@@ -19,8 +19,52 @@ import { useAlertFiltersStore } from "@/hooks/alerts/useAlertFiltersStore";
 import { CriticalAlert } from "@/hooks/alerts/types";
 import { CriticalAlertCard } from "./CriticalAlertCard";
 
+/**
+ * Cómo se nombra lo pendiente según qué alertas tiene este usuario. Los roles
+ * de almacén y los de compras casi no se solapan, así que el panel adopta el
+ * vocabulario de lo que hay delante en vez de asumir siempre el de stock.
+ */
+const TONE_COPY = {
+  restock: {
+    summary: (n: number) => `${n} artículo${n === 1 ? "" : "s"} sin reponer`,
+    /** Forma corta para cuando varios tonos comparten el resumen. */
+    short: (n: number) => `${n} sin reponer`,
+    empty: "Todo lo bajo de mínimo ya está comprado",
+  },
+  hazard: {
+    summary: (n: number) => `${n} artículo${n === 1 ? "" : "s"} retenido${n === 1 ? "" : "s"} en cuarentena`,
+    short: (n: number) => `${n} en cuarentena`,
+    empty: "Sin artículos retenidos",
+  },
+  mixed: {
+    summary: (n: number) => `${n} alerta${n === 1 ? "" : "s"} pendiente${n === 1 ? "" : "s"}`,
+    short: (n: number) => `${n} pendiente${n === 1 ? "" : "s"}`,
+    empty: "Nada pendiente",
+  },
+} as const;
+
 export default function CriticalAlertsButton() {
-  const { alerts, count, isCountActionable, actionableCount, inTransitCount } = useCriticalAlerts();
+  const {
+    alerts,
+    count,
+    isCountActionable,
+    actionableCount,
+    inTransitCount,
+    tone,
+    toneCounts,
+  } = useCriticalAlerts();
+
+  const isHazardTone = tone === "hazard";
+  const copy = TONE_COPY[tone];
+
+  // Con varias clases a la vista el resumen las separa; si no, basta el tono.
+  // Se arma recorriendo lo que llegó, así un tono nuevo aparece sin tocar esto.
+  const summary = tone === "mixed"
+    ? Object.entries(toneCounts)
+        .filter(([, n]) => (n ?? 0) > 0)
+        .map(([key, n]) => TONE_COPY[key as keyof typeof TONE_COPY].short(n ?? 0))
+        .join(" · ")
+    : copy.summary(actionableCount);
   const dismiss = useDismissedAlertsStore((state) => state.dismiss);
   const hideInTransit = useAlertFiltersStore((state) => state.hideInTransit);
   const toggleInTransit = useAlertFiltersStore((state) => state.toggleInTransit);
@@ -119,7 +163,7 @@ export default function CriticalAlertsButton() {
                 whileTap={open ? undefined : { scale: 0.94 }}
                 aria-label={
                   isCountActionable
-                    ? `Alertas críticas: ${actionableCount} sin reponer`
+                    ? `Alertas críticas: ${summary}`
                     : `Alertas: ${inTransitCount} en camino, nada pendiente de pedir`
                 }
                 className={cn(
@@ -131,23 +175,30 @@ export default function CriticalAlertsButton() {
                   "ring-1 transition-colors duration-300",
                   // Sin nada accionable el botón deja de gritar: todo lo bajo
                   // de stock ya está comprado y solo falta que llegue.
-                  isCountActionable
-                    ? "bg-gradient-to-br from-red-500 to-rose-600 text-white ring-red-400/40 hover:from-red-500 hover:to-rose-500"
-                    : "bg-gradient-to-br from-sky-500 to-blue-600 text-white ring-sky-400/40 hover:from-sky-500 hover:to-blue-500"
+                  !isCountActionable
+                    ? "bg-gradient-to-br from-sky-500 to-blue-600 text-white ring-sky-400/40 hover:from-sky-500 hover:to-blue-500"
+                    : isHazardTone
+                      ? "bg-gradient-to-br from-red-600 to-red-800 text-white ring-red-500/50 hover:from-red-600 hover:to-red-700"
+                      : "bg-gradient-to-br from-red-500 to-rose-600 text-white ring-red-400/40 hover:from-red-500 hover:to-rose-500"
                 )}
               >
                 {/* El latido solo acompaña a lo que exige acción. */}
                 {!open && isCountActionable && (
                   <motion.span
-                    className="absolute inset-0 rounded-full bg-red-500/50"
+                    className={cn(
+                      "absolute inset-0 rounded-full",
+                      isHazardTone ? "bg-red-700/50" : "bg-red-500/50"
+                    )}
                     animate={{ scale: [1, 1.35, 1], opacity: [0.55, 0, 0.55] }}
                     transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
                   />
                 )}
 
-                {isCountActionable
-                  ? <AlertTriangle className="relative h-6 w-6 drop-shadow-sm" />
-                  : <Truck className="relative h-6 w-6 drop-shadow-sm" />}
+                {!isCountActionable
+                  ? <Truck className="relative h-6 w-6 drop-shadow-sm" />
+                  : isHazardTone
+                    ? <Biohazard className="relative h-6 w-6 drop-shadow-sm" />
+                    : <AlertTriangle className="relative h-6 w-6 drop-shadow-sm" />}
 
                 <motion.span
                   key={count}
@@ -160,7 +211,11 @@ export default function CriticalAlertsButton() {
                     "flex items-center justify-center",
                     "rounded-full",
                     "bg-white",
-                    isCountActionable ? "text-red-600 ring-red-500/30" : "text-sky-600 ring-sky-500/30",
+                    !isCountActionable
+                      ? "text-sky-600 ring-sky-500/30"
+                      : isHazardTone
+                        ? "text-red-700 ring-red-600/40"
+                        : "text-red-600 ring-red-500/30",
                     "text-[11px] font-bold",
                     "shadow-sm ring-2"
                   )}
@@ -173,9 +228,7 @@ export default function CriticalAlertsButton() {
 
           <TooltipContent side="left" className="z-[1002]">
             {isCountActionable
-              ? `${actionableCount} artículo${actionableCount === 1 ? "" : "s"} sin reponer${
-                  inTransitCount > 0 ? ` · ${inTransitCount} en camino` : ""
-                }`
+              ? `${summary}${inTransitCount > 0 ? ` · ${inTransitCount} en camino` : ""}`
               : `${inTransitCount} artículo${inTransitCount === 1 ? "" : "s"} bajo mínimo, ya en camino`}
           </TooltipContent>
         </Tooltip>
@@ -213,16 +266,18 @@ export default function CriticalAlertsButton() {
         <div
           className={cn(
             "shrink-0 border-b px-4 py-3",
-            isCountActionable
-              ? "bg-gradient-to-r from-red-500/10 to-rose-500/10"
-              : "bg-gradient-to-r from-sky-500/10 to-blue-500/10"
+            !isCountActionable
+              ? "bg-gradient-to-r from-sky-500/10 to-blue-500/10"
+              : isHazardTone
+                ? "bg-gradient-to-r from-red-600/15 to-red-800/10"
+                : "bg-gradient-to-r from-red-500/10 to-rose-500/10"
           )}
         >
           <p className="text-sm font-semibold">Alertas críticas</p>
           <p className="text-xs text-muted-foreground">
             {actionableCount > 0
-              ? `${actionableCount} sin reponer${inTransitCount > 0 ? ` · ${inTransitCount} en camino` : ""}`
-              : "Todo lo bajo de mínimo ya está comprado"}
+              ? `${summary}${inTransitCount > 0 ? ` · ${inTransitCount} en camino` : ""}`
+              : copy.empty}
           </p>
 
           {/* Solo tiene sentido cuando hay algo que ocultar; si no, es un

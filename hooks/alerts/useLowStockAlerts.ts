@@ -106,6 +106,11 @@ export const useLowStockAlerts = () => {
             id: `low-stock-general-article-${article.id}`,
             source: "low-stock-general-article",
             sourceId: article.id,
+            // Lo agotado pesa más que lo que solo está bajo mínimo; lo que ya
+            // viene en camino no compite por atención.
+            weight: inTransit.length > 0 ? 0 : Number(article.quantity ?? 0) <= 0 ? 20 : 10,
+            // Ya está comprado: informa, pero no cuenta como pendiente.
+            countsAsPending: inTransit.length === 0,
             title: inTransit.length > 0
                 ? "Artículo bajo mínimo, con una compra ya en camino"
                 : "Un artículo del inventario está por debajo de su stock mínimo",
@@ -154,6 +159,7 @@ export const useLowStockAlerts = () => {
             id: `low-stock-consumable-article-${article.id}`,
             source: "low-stock-consumable-article",
             sourceId: article.id,
+            weight: Number(article.consumable.quantity ?? 0) <= 0 ? 20 : 10,
             title: "Un artículo del inventario está por debajo de su stock mínimo",
             label: [article.batch.name, article.part_number].filter(Boolean).join(" - "),
             description: `Mínimo: ${article.batch.min_quantity} ${unitValue} · Cantidad restante: ${article.consumable.quantity} ${unitValue}\n¿Deseas crear una solicitud de compra para este artículo?`,

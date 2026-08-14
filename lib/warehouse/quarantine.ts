@@ -80,6 +80,42 @@ export const quarantineRisk = (
   return { days, remaining, state: "ok" };
 };
 
+/**
+ * Tramo de consumo del plazo legal, en pasos de 20%. El 5 es el vencido: no es
+ * "el último tramo" sino un estado distinto — ahí la exposición ante el ente ya
+ * ocurrió y la alerta deja de anticiparla.
+ */
+export type QuarantineHazardTier = 0 | 1 | 2 | 3 | 4 | 5;
+
+export type QuarantineHazard = QuarantineRisk & {
+  tier: QuarantineHazardTier;
+  /** Fracción del plazo consumida, recortada a 1 para dibujar la barra. */
+  progress: number;
+  isExpired: boolean;
+};
+
+export const quarantineHazard = (
+  entryDate: string | null | undefined,
+  legalDays: number,
+  elapsedFromServer?: number | null,
+): QuarantineHazard => {
+  const risk = quarantineRisk(entryDate, legalDays, elapsedFromServer);
+
+  if (risk.days === null || legalDays <= 0) {
+    return { ...risk, tier: 0, progress: 0, isExpired: false };
+  }
+
+  const ratio = risk.days / legalDays;
+  const isExpired = ratio >= 1;
+
+  return {
+    ...risk,
+    tier: isExpired ? 5 : (Math.min(4, Math.floor(ratio * 5)) as QuarantineHazardTier),
+    progress: Math.min(1, ratio),
+    isExpired,
+  };
+};
+
 export const QUARANTINE_STATUS_ES: Record<QuarantineStatus, string> = {
   OPEN: "En cuarentena",
   PENDING_REINSPECTION: "Pendiente de re-inspección",
