@@ -12,7 +12,7 @@ import { tarjetasSteps } from "@/components/tour/steps/sistema/banca/tarjeras";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { SelectCompanyState } from "@/components/misc/SelectCompanyState";
 
-const BankAccountsPage = () => {
+const BankCardsPage = () => {
   const { selectedCompany } = useCompanyStore();
   const {
     data: cards,
@@ -61,4 +61,4 @@ const BankAccountsPage = () => {
   );
 };
 
-export default BankAccountsPage;
+export default BankCardsPage;

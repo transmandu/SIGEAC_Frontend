@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/select";
 import { PageHeader } from "@/components/layout/PageHeader";
 
-const ManifestosPage = () => {
+const ManifestsPage = () => {
   const params = useParams();
   const company = params.company as string;
   const searchParams = useSearchParams();
@@ -182,4 +182,4 @@ const ManifestosPage = () => {
   );
 };
 
-export default ManifestosPage;
+export default ManifestsPage;

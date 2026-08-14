@@ -15,7 +15,7 @@ import {
 import { useState } from 'react';
 import { PageHeader } from "@/components/layout/PageHeader";
 
-const AgregarPage = () => {
+const ArticleEntryPage = () => {
   const [type, setType] = useState("consumable");
   function handleTypeSelect(data: string) {
     setType(data);
@@ -51,4 +51,4 @@ const AgregarPage = () => {
   )
 }
 
-export default AgregarPage
+export default ArticleEntryPage

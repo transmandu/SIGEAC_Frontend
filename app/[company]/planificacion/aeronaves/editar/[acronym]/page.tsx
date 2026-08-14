@@ -16,7 +16,7 @@ import { AircraftPartsInfoForm } from "@/components/forms/mantenimiento/aeronave
 import { useUpdateMaintenanceAircraft } from "@/actions/mantenimiento/planificacion/aeronaves/actions";
 import LoadingPage from "@/components/misc/LoadingPage";
 import { useGetClients } from "@/hooks/general/clientes/useGetClients";
-import { useGetManufacturers } from "@/hooks/general/condiciones/useGetConditions";
+import { useGetManufacturers } from "@/hooks/general/fabricantes/useGetManufacturers";
 import { parseISO } from "date-fns";
 import { PageHeader } from "@/components/layout/PageHeader";
 

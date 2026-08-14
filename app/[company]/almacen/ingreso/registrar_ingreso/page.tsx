@@ -11,7 +11,7 @@ import {
 import { useCompanyStore } from "@/stores/CompanyStore"
 import { PageHeader } from "@/components/layout/PageHeader";
 
-const AgregarPage = () => {
+const RegisterArticlePage = () => {
   const { selectedCompany } = useCompanyStore();
 
   return (
@@ -22,4 +22,4 @@ const AgregarPage = () => {
   )
 }
 
-export default AgregarPage
+export default RegisterArticlePage

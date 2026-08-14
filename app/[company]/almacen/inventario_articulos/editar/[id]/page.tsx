@@ -8,7 +8,7 @@ import { useCompanyStore } from '@/stores/CompanyStore';
 import { redirect, useParams, useRouter } from 'next/navigation';
 import { PageHeader } from "@/components/layout/PageHeader";
 
-const ConfirmIncomingPage = () => {
+const EditArticlePage = () => {
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const { selectedCompany } = useCompanyStore();
@@ -35,4 +35,4 @@ const ConfirmIncomingPage = () => {
   );
 };
 
-export default ConfirmIncomingPage;
+export default EditArticlePage;

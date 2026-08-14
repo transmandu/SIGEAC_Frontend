@@ -3,7 +3,7 @@
 import { useCreateMaintenanceAircraft, AircraftPartAPI } from "@/actions/mantenimiento/planificacion/aeronaves/actions";
 import { useCreateClient } from "@/actions/ajustes/clientes/actions";
 import { useGetClients } from "@/hooks/general/clientes/useGetClients";
-import { useGetManufacturers } from "@/hooks/general/condiciones/useGetConditions";
+import { useGetManufacturers } from "@/hooks/general/fabricantes/useGetManufacturers";
 import { AircraftPartsInfoForm } from "@/components/forms/mantenimiento/aeronaves/AircraftPartsForm";
 import { AircraftInfoForm } from "@/components/forms/mantenimiento/aeronaves/AircraftInfoForm";
 import { ContentLayout } from "@/components/layout/ContentLayout";

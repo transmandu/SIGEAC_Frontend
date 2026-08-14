@@ -11,7 +11,7 @@ import { useCompanyStore } from "@/stores/CompanyStore"
 import DirectRegisterArticleForm from "./_components/DirectRegisterArticleForm"
 import { PageHeader } from "@/components/layout/PageHeader";
 
-const AgregarPage = () => {
+const AddInventoryPage = () => {
   const { selectedCompany } = useCompanyStore();
 
   return (
@@ -22,4 +22,4 @@ const AgregarPage = () => {
   )
 }
 
-export default AgregarPage
+export default AddInventoryPage

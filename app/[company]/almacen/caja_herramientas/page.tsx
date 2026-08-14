@@ -11,7 +11,7 @@ import { useGetToolBoxes } from '@/hooks/mantenimiento/almacen/caja_herramientas
 import LoadingPage from '@/components/misc/LoadingPage'
 import { PageHeader } from "@/components/layout/PageHeader";
 
-const DispatchRequestPage = () => {
+const ToolBoxPage = () => {
   const { selectedStation, selectedCompany } = useCompanyStore();
   const { data: toolBoxes, isLoading, isError } = useGetToolBoxes(selectedStation ?? null, selectedCompany?.slug)
   if (isLoading) {
@@ -30,4 +30,4 @@ const DispatchRequestPage = () => {
   )
 }
 
-export default DispatchRequestPage
+export default ToolBoxPage

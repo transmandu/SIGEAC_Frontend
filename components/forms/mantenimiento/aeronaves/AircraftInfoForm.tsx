@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { useGetManufacturers } from "@/hooks/general/condiciones/useGetConditions"
+import { useGetManufacturers } from "@/hooks/general/fabricantes/useGetManufacturers"
 import { useGetLocationsByCompanyId } from "@/hooks/sistema/useGetLocationsByCompanyId"
 import { useGetClients } from "@/hooks/general/clientes/useGetClients"
 import { cn } from "@/lib/utils"

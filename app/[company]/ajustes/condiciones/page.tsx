@@ -11,7 +11,7 @@ import { useTourContext } from "@/components/tour/TourProvider";
 import { condicionesSteps } from "@/components/tour/steps/ajustes/condiciones";
 import { PageHeader } from "@/components/layout/PageHeader";
 
-const ClientsPage = () => {
+const ConditionsPage = () => {
   const { selectedCompany } = useCompanyStore();
   const { data, isLoading, isError } = useGetConditions();
   const { registerTour, unregisterTour } = useTourContext();
@@ -53,4 +53,4 @@ const ClientsPage = () => {
   );
 };
 
-export default ClientsPage;
+export default ConditionsPage;

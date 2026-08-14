@@ -8,7 +8,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { useGetSafetyBulletins } from "@/hooks/sms/boletin/useGetSafetyBulletins";
 import { PageHeader } from "@/components/layout/PageHeader";
 
-const SurveyListPage = () => {
+const BulletinSettingsPage = () => {
   const { selectedCompany } = useCompanyStore();
   const { data, isLoading, isError } = useGetSafetyBulletins(selectedCompany?.slug);
   if (isLoading) {
@@ -30,4 +30,4 @@ const SurveyListPage = () => {
   );
 };
 
-export default SurveyListPage;
+export default BulletinSettingsPage;

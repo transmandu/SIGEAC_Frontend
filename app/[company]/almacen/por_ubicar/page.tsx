@@ -15,7 +15,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 
 
 
-const IncomingControlPage = () => {
+const ArticlesToPlacePage = () => {
   const { selectedCompany } = useCompanyStore();
 
   const {
@@ -49,4 +49,4 @@ const IncomingControlPage = () => {
   );
 };
 
-export default IncomingControlPage;
+export default ArticlesToPlacePage;

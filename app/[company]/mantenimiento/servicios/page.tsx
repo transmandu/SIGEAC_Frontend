@@ -8,7 +8,7 @@ import { DataTable } from './data-table'
 import { useCompanyStore } from '@/stores/CompanyStore'
 import { PageHeader } from "@/components/layout/PageHeader";
 
-const AircraftsPage = () => {
+const ServicesPage = () => {
   const { selectedCompany } = useCompanyStore();
   const { data: services, isLoading } = useGetMaintenanceServices(selectedCompany?.slug)
   if (isLoading) return <LoadingPage />
@@ -29,4 +29,4 @@ const AircraftsPage = () => {
   )
 }
 
-export default AircraftsPage
+export default ServicesPage
