@@ -15,8 +15,20 @@ const Login = () => {
 
   useDocumentTitle("Login");
 
+  // El overlay de cierre se levanta cuando esta página ya está PINTADA, no al
+  // montarse: el efecto corre antes del paint, así que destapaba la pantalla con
+  // el login todavía en blanco. Los dos rAF esperan al primer frame real.
   useEffect(() => {
-    clearLoggingOut();
+    let raf2 = 0;
+
+    const raf1 = requestAnimationFrame(() => {
+      raf2 = requestAnimationFrame(() => clearLoggingOut());
+    });
+
+    return () => {
+      cancelAnimationFrame(raf1);
+      cancelAnimationFrame(raf2);
+    };
   }, [clearLoggingOut]);
 
   /**

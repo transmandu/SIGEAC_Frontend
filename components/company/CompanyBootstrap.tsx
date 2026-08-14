@@ -3,14 +3,16 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Plane, PlaneTakeoff, Settings2 } from "lucide-react";
+import { PlaneTakeoff, Settings2 } from "lucide-react";
 import { motion } from "framer-motion";
 
 import { useAuth } from "@/contexts/AuthContext";
 import { useGetUserLocationsByCompanyId } from "@/hooks/sistema/usuario/useGetUserLocationsByCompanyId";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { User } from "@/types";
 
 import CompanySelect from "@/components/selects/CompanySelect";
+import PlaneCheckMorph from "@/components/misc/PlaneCheckMorph";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -38,6 +40,23 @@ const CompanyBootstrap = () => {
   const [hydrated, setHydrated] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [redirectTarget, setRedirectTarget] = useState<string | null>(null);
+
+  // Next mantiene /inicio montado entre sesiones, así que refs y estado
+  // sobrevivían al logout: el usuario siguiente entraba con navigatingRef ya en
+  // true y se quedaba en el loading para siempre, con el efecto de bootstrap
+  // cortocircuitado. Cambiar de usuario devuelve el componente a cero.
+  const sessionUserRef = useRef<User["id"] | null>(null);
+
+  if (user && user.id !== sessionUserRef.current) {
+    sessionUserRef.current = user.id;
+
+    navigatingRef.current = false;
+    resolvedRef.current = false;
+    companyAutoSelectedRef.current = false;
+
+    if (isRedirecting) setIsRedirecting(false);
+    if (redirectTarget) setRedirectTarget(null);
+  }
 
   useEffect(() => {
     const unsub = useCompanyStore.persist.onFinishHydration(() =>
@@ -97,6 +116,19 @@ const CompanyBootstrap = () => {
       );
     };
 
+    // Descartar la selección persistida reabre la pantalla de selección, así
+    // que la auto-selección tiene que volver a estar disponible: si no, un
+    // usuario de una sola empresa se quedaba sin empresa y sin nada que elegir.
+    const discardSelection = (companyId?: number | string) => {
+      if (companyId !== undefined) forgetHistory(companyId);
+
+      companyAutoSelectedRef.current = false;
+      resolvedRef.current = false;
+
+      setIsRedirecting(false);
+      reset();
+    };
+
     const bootstrap = async () => {
       if (selectedCompany && selectedStation) {
         setIsRedirecting(true);
@@ -106,9 +138,7 @@ const CompanyBootstrap = () => {
         );
 
         if (!companyExists) {
-          setIsRedirecting(false);
-          forgetHistory(selectedCompany.id);
-          reset();
+          discardSelection(selectedCompany.id);
           return;
         }
 
@@ -116,9 +146,7 @@ const CompanyBootstrap = () => {
           const locations = await getLocations(selectedCompany.id);
 
           if (!locations?.length) {
-            setIsRedirecting(false);
-            forgetHistory(selectedCompany.id);
-            reset();
+            discardSelection(selectedCompany.id);
             return;
           }
 
@@ -127,9 +155,7 @@ const CompanyBootstrap = () => {
           );
 
           if (!stationExists) {
-            setIsRedirecting(false);
-            forgetHistory(selectedCompany.id);
-            reset();
+            discardSelection(selectedCompany.id);
             return;
           }
 
@@ -145,8 +171,7 @@ const CompanyBootstrap = () => {
           }
           return;
         } catch {
-          setIsRedirecting(false);
-          reset();
+          discardSelection();
           return;
         }
       }
@@ -207,10 +232,12 @@ const CompanyBootstrap = () => {
   useEffect(() => {
     if (!redirectTarget) return;
 
+    // 1s da tiempo al aterrizaje: círculo (0.45s tras 0.1s) y check (0.3s tras
+    // 0.35s) cierran en ~0.65s, y el resto se ve como una pausa intencional.
     const timeout = window.setTimeout(() => {
       navigatingRef.current = true;
       router.replace(redirectTarget);
-    },  1000);
+    }, 1000);
 
     return () => window.clearTimeout(timeout);
   }, [redirectTarget, router]);
@@ -239,40 +266,14 @@ const CompanyBootstrap = () => {
         />
 
         <div className="relative flex flex-col items-center gap-5">
-          {/* icon container */}
-          <motion.div
-            className="relative"
-            initial={{ scale: 0.6, opacity: 0, y: 10 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
-          >
-            <motion.div
-              animate={{
-                y: [0, -10, 0],
-                rotate: [0, 2, 0, -2, 0],
-              }}
-              transition={{
-                duration: 2.8,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-            >
-              <Plane className="w-10 h-10 text-primary" />
-            </motion.div>
-
-            <motion.div
-              className="absolute inset-0 blur-xl opacity-40 bg-primary rounded-full scale-150"
-              animate={{
-                opacity: [0.2, 0.5, 0.2],
-                scale: [1.3, 1.6, 1.3],
-              }}
-              transition={{
-                duration: 2.2,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-            />
-          </motion.div>
+          {/* El avión llega y se posa; al fijarse el destino aterriza y se
+              convierte en check, que es el instante previo al dashboard. Sin
+              wrapper animado: el componente ya trae su propia entrada, y una
+              segunda animación encima le movía el avión a media trayectoria. */}
+          <PlaneCheckMorph
+            phase={redirectTarget ? "arrived" : "traveling"}
+            direction="arrival"
+          />
 
           {/* text block */}
           <motion.div
@@ -293,7 +294,7 @@ const CompanyBootstrap = () => {
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
             >
-              Preparando tu entorno
+              {redirectTarget ? "Todo listo" : "Preparando tu entorno"}
             </motion.p>
 
             <motion.p
@@ -301,7 +302,9 @@ const CompanyBootstrap = () => {
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
             >
-              Inicializando servicios del sistema...
+              {redirectTarget
+                ? "Entrando a tu panel..."
+                : "Inicializando servicios del sistema..."}
             </motion.p>
           </motion.div>
 

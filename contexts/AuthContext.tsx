@@ -23,7 +23,7 @@ import {
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { AxiosError } from "axios";
-import LoadingPage from "@/components/misc/LoadingPage";
+import LogoutOverlay from "@/components/misc/LogoutOverlay";
 
 /* ---------------- TYPES ---------------- */
 
@@ -100,8 +100,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
    * LOGOUT
    * ========================================================= */
   const logout = useCallback(async () => {
-    // Cover the viewport before clearing any state, so the current page
-    // never re-renders its unauthenticated/empty state while still mounted.
     setLoggingOut(true);
 
     try {
@@ -118,19 +116,38 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       reset();
       useCompanyStore.persist.clearStorage();
 
+      // El historial empresa→estación es del usuario que se va: dejarlo hacía
+      // que la siguiente cuenta heredara la estación de la anterior en cuanto
+      // coincidieran en una empresa.
+      localStorage.removeItem("company-station-history");
+
       queryClient.removeQueries();
 
-      router.push("/login");
+      router.replace("/login");
 
       toast.info("Sesión finalizada", {
         position: "bottom-center",
       });
     } catch (err) {
+      // El overlay NO se apaga aquí: sigue tapando hasta que /login esté
+      // pintado. Si el logout falla a medias, el timeout de abajo lo levanta.
       console.error("Logout error:", err);
-      setLoggingOut(false);
     }
   }, [router, queryClient, reset]);
 
+  // Solo la red de seguridad: si la navegación se atasca, el overlay no puede
+  // quedarse tapando la pantalla para siempre.
+  useEffect(() => {
+    if (!loggingOut) return;
+
+    const timeout = window.setTimeout(() => setLoggingOut(false), 8000);
+
+    return () => window.clearTimeout(timeout);
+  }, [loggingOut]);
+
+  // Quien lo apaga es la página de login al terminar de montarse. `pathname`
+  // cambia en cuanto Next EMPIEZA la transición, así que apagarlo ahí destapaba
+  // la pantalla antes de que el login estuviera pintado.
   const clearLoggingOut = useCallback(() => {
     setLoggingOut(false);
   }, []);
@@ -259,11 +276,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   return (
     <AuthContext.Provider value={value}>
       {children}
-      {loggingOut && (
-        <div className="fixed inset-0 z-[9999] bg-background">
-          <LoadingPage />
-        </div>
-      )}
+      {loggingOut && <LogoutOverlay />}
     </AuthContext.Provider>
   );
 };
