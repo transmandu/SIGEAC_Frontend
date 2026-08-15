@@ -56,6 +56,34 @@ export const columns: ColumnDef<FollowUpControl>[] = [
     },
   },
   {
+    accessorKey: "implementation_responsible",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Resp. de Implantación" />
+    ),
+    meta: { title: "Resp. de Implantación" },
+    cell: ({ row }) => {
+      return (
+        <div className="flex justify-center">
+          {row.original.implementation_responsible || "-"}
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: "follow_up_responsible",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Resp. de Seguimiento" />
+    ),
+    meta: { title: "Resp. de Seguimiento" },
+    cell: ({ row }) => {
+      return (
+        <div className="flex justify-center">
+          {row.original.follow_up_responsible || "-"}
+        </div>
+      );
+    },
+  },
+  {
     accessorKey: "document",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Documento" />

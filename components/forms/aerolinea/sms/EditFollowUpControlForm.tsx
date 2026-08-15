@@ -29,6 +29,8 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { useGetImage } from "@/hooks/general/archivos/UseGetImage";
 const FormSchema = z.object({
   description: z.string().max(255),
+  implementation_responsible: z.string().optional(),
+  follow_up_responsible: z.string().optional(),
   date: z
     .date()
     .refine((val) => !isNaN(val.getTime()), { message: "Invalid Date" }),
@@ -81,6 +83,8 @@ export function EditFollowUpControlForm({ onClose, initialData }: FormProps) {
     resolver: zodResolver(FormSchema),
     defaultValues: {
       description: initialData.description || "",
+      implementation_responsible: initialData.implementation_responsible || "",
+      follow_up_responsible: initialData.follow_up_responsible || "",
       date: initialData.date ? new Date(initialData.date) : new Date(),
     },
   });
@@ -175,6 +179,37 @@ export function EditFollowUpControlForm({ onClose, initialData }: FormProps) {
             </FormItem>
           )}
         />
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <FormField
+            control={form.control}
+            name="implementation_responsible"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Responsable de la implantación</FormLabel>
+                <FormControl>
+                  <Input placeholder="Nombre del responsable" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="follow_up_responsible"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Responsable del seguimiento</FormLabel>
+                <FormControl>
+                  <Input placeholder="Nombre del responsable" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
         <div className="flex justify-center items-center gap-2">
           <FormField
             control={form.control}

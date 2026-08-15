@@ -2,6 +2,30 @@ import axiosInstance from "@/lib/axios";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
+/**
+ * Convierte un objeto plano a FormData.
+ * - Omite valores undefined.
+ * - Convierte Date a string YYYY-MM-DD.
+ * - Convierte null a string vacío (el backend lo normaliza con prepareForValidation).
+ * - Pasa instancias de File directamente.
+ */
+function objectToFormData(obj: Record<string, unknown>): FormData {
+  const formData = new FormData();
+  for (const [key, value] of Object.entries(obj)) {
+    if (value === undefined) continue;
+    if (value instanceof File) {
+      formData.append(key, value);
+    } else if (value instanceof Date) {
+      formData.append(key, value.toISOString().split("T")[0]);
+    } else if (value === null) {
+      formData.append(key, "");
+    } else {
+      formData.append(key, String(value));
+    }
+  }
+  return formData;
+}
+
 interface FollowUpControlData {
   company: string | null;
   data: {
@@ -10,6 +34,8 @@ interface FollowUpControlData {
     mitigation_measure_id: number | string;
     image?: File | string;
     document?: File | string;
+    implementation_responsible?: string;
+    follow_up_responsible?: string;
   };
 }
 
@@ -22,18 +48,21 @@ interface updateFolllowUpControlData {
     mitigation_measure_id: string | number;
     image?: File | string;
     document?: File | string;
+    implementation_responsible?: string;
+    follow_up_responsible?: string;
   };
 }
+
 
 export const useCreateFollowUpControl = () => {
   const queryClient = useQueryClient();
   const createMutation = useMutation({
     mutationFn: async ({ data, company }: FollowUpControlData) => {
-      await axiosInstance.post(`/${company}/sms/follow-up-controls`, data, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      await axiosInstance.post(
+        `/${company}/sms/follow-up-controls`,
+        objectToFormData(data as Record<string, unknown>),
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["follow-up-controls"] });
@@ -91,12 +120,8 @@ export const useUpdateFollowUpControl = () => {
     mutationFn: async ({ company, id, data }: updateFolllowUpControlData) => {
       await axiosInstance.post(
         `/${company}/sms/update-follow-up-controls/${id}`,
-        data,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
+        objectToFormData(data as Record<string, unknown>),
+        { headers: { "Content-Type": "multipart/form-data" } }
       );
     },
     onSuccess: () => {
