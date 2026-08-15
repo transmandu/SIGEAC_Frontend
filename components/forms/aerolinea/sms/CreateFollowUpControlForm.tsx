@@ -38,6 +38,8 @@ const FormSchema = z.object({
     .string()
     .min(3, { message: "La observacion debe tener al menos 3 caracteres" })
     .max(255, { message: "La observacion no puede exceder los 255 caracteres" }),
+  implementation_responsible: z.string().optional(),
+  follow_up_responsible: z.string().optional(),
 
   date: z
     .date()
@@ -172,6 +174,36 @@ export default function CreateFollowUpControlForm({ onClose, id }: FormProps) {
             </FormItem>
           )}
         />
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <FormField
+            control={form.control}
+            name="implementation_responsible"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Responsable de la implantación</FormLabel>
+                <FormControl>
+                  <Input placeholder="Nombre del responsable" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="follow_up_responsible"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Responsable del seguimiento</FormLabel>
+                <FormControl>
+                  <Input placeholder="Nombre del responsable" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
         <div className="flex justify-center items-center gap-2">
           <FormField

@@ -1015,6 +1015,8 @@ export type FollowUpControl = {
   date: Date;
   description: string;
   mitigation_measure_id: number;
+  implementation_responsible?: string;
+  follow_up_responsible?: string;
   image?: string;
   document?: string;
 };
