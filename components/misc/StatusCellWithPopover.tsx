@@ -83,7 +83,7 @@ export default function StatusCellWithPopover({ tool }: Props) {
 
     // Extraemos el elemento Badge para no repetir código
     const StatusBadge = (
-        <Badge className={cn('text-xs text-center', getBadgeStyle(status))}>
+        <Badge className={cn('text-xs text-center uppercase', getBadgeStyle(status))}>
             {status || 'DESCONOCIDO'}
         </Badge>
     );

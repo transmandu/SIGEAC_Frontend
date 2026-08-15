@@ -53,6 +53,8 @@ export interface IWarehouseArticle {
         cost: number | string;
         has_documentation?: boolean;
         certificates?: string[];
+        /** URL ya resuelta por el backend; ausente si el artículo no tiene imagen. */
+        image?: string | null;
     }[];
 }
 

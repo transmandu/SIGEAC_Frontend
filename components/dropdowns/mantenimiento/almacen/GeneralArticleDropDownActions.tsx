@@ -21,6 +21,11 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useDeleteGeneralArticle } from "@/actions/mantenimiento/inventario/articulos/actions";
 import CreateGeneralArticleForm from "@/components/forms/mantenimiento/almacen/CreateGeneralArticleForm";
 import type { GeneralArticle } from "@/types";
@@ -54,18 +59,33 @@ const GeneralArticleDropDownActions = ({ article }: Props) => {
                     </Button>
                 </DropdownMenuTrigger>
 
-                <DropdownMenuContent align="center">
-                    <DropdownMenuItem onClick={() => setOpenEdit(true)}>
-                        <ClipboardPen className="size-5 mr-2" />
-                        <span>Editar</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                        className="text-red-600 focus:text-red-600"
-                        onClick={() => setOpenDelete(true)}
-                    >
-                        <Trash2 className="size-5 mr-2" />
-                        <span>Eliminar</span>
-                    </DropdownMenuItem>
+                <DropdownMenuContent
+                    align="center"
+                    className="flex gap-2 justify-center"
+                >
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <DropdownMenuItem
+                                className="cursor-pointer"
+                                onSelect={() => setOpenEdit(true)}
+                            >
+                                <ClipboardPen className="size-5" />
+                            </DropdownMenuItem>
+                        </TooltipTrigger>
+                        <TooltipContent>Editar artículo</TooltipContent>
+                    </Tooltip>
+
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <DropdownMenuItem
+                                className="cursor-pointer"
+                                onSelect={() => setOpenDelete(true)}
+                            >
+                                <Trash2 className="size-5 text-red-500" />
+                            </DropdownMenuItem>
+                        </TooltipTrigger>
+                        <TooltipContent>Eliminar artículo</TooltipContent>
+                    </Tooltip>
                 </DropdownMenuContent>
             </DropdownMenu>
 

@@ -18,6 +18,7 @@ import {
 import { zoneMatches } from "@/lib/warehouse/zones";
 import { dateSortingFn, numericSortingFn, textSortingFn } from "@/lib/warehouse/sorting";
 import StatusCellWithPopover from "@/components/misc/StatusCellWithPopover";
+import ArticleImageCell from "@/components/misc/ArticleImageCell";
 import ArticleStatusSincePopover, {
     tracksStatusSince,
 } from "@/components/misc/ArticleStatusSincePopover";
@@ -37,6 +38,7 @@ export interface IArticleSimple {
     status: string;
     status_since?: string | null;
     condition: string;
+    image?: string;
     is_hazardous?: boolean;
     batch_name: string;
     batch_id: number;
@@ -71,7 +73,7 @@ export interface IArticleSimple {
 export const getStatusBadge = (status: string | null | undefined) => {
     if (!status) {
         return (
-            <Badge variant="outline" className="flex items-center gap-1 w-fit">
+            <Badge variant="outline" className="flex items-center gap-1 w-fit uppercase">
                 <XCircle className="h-3 w-3" />
             </Badge>
         );
@@ -111,7 +113,9 @@ export const getStatusBadge = (status: string | null | undefined) => {
     const label = formatStatusLabel(key);
 
     return (
-        <Badge variant={config.variant} className="flex items-center gap-1 w-fit">
+        // uppercase por CSS: el estado viene crudo del backend, no es un
+        // literal que se pueda escribir ya en mayúsculas.
+        <Badge variant={config.variant} className="flex items-center gap-1 w-fit uppercase">
             <Icon className="h-3 w-3" />
             {label}
         </Badge>
@@ -145,6 +149,8 @@ export const flattenArticles = (
                 status: article.status,
                 status_since: article.status_since ?? null,
                 condition: article.condition ? article.condition.name : "N/A",
+                // Solo la URL ya resuelta: el File del formulario no aplica aquí.
+                image: typeof article.image === "string" ? article.image : undefined,
                 article_type: article.article_type ?? "N/A",
                 batch_name: batch.name,
                 is_hazardous: batch.is_hazardous ?? undefined,
@@ -282,17 +288,15 @@ const quantityCol: ColumnDef<IArticleSimple> = {
  */
 const actionsCol: ColumnDef<IArticleSimple> = {
     id: "actions",
-    header: () => (
-        <div className="sticky right-0 bg-background z-50 text-center">
-            Acciones
-        </div>
-    ),
+    // El sticky y el fondo los aplica la celda desde meta.sticky: repetirlos
+    // aquí pintaba un bloque opaco que no seguía el hover de la fila.
+    header: () => <div className="text-center">Acciones</div>,
     cell: ({ row }) => {
         const item = row.original;
         if (item.__isGroup) return null;
 
         return (
-            <div className="sticky right-0 bg-background z-50 flex justify-center">
+            <div className="flex justify-center">
                 <ArticleDropdownActions
                     id={item.id}
                     status={item.status}
@@ -304,7 +308,7 @@ const actionsCol: ColumnDef<IArticleSimple> = {
             </div>
         );
     },
-    meta: { sticky: "right", className: "bg-background" } as any,
+    meta: { sticky: "right" } as any,
 };
 
 const buildBaseCols = (
@@ -401,6 +405,27 @@ const buildBaseCols = (
                     : row.original.batch_name || "Sin descripción"}
             </div>
         ),
+    },
+    {
+        id: "image",
+        header: () => (
+            <div className="flex justify-center">
+                <span className="text-sm font-medium">Img.</span>
+            </div>
+        ),
+        cell: ({ row }) =>
+            // La fila de grupo no representa un artículo concreto.
+            row.original.__isGroup ? null : (
+                <ArticleImageCell
+                    image={row.original.image}
+                    alt={row.original.description || row.original.part_number}
+                />
+            ),
+        enableSorting: false,
+        enableHiding: false,
+        // Solo el icono más un respiro lateral: sin esto la columna se reparte
+        // el ancho sobrante y queda desproporcionada para lo que muestra.
+        meta: { className: "w-[64px] px-2" } as any,
     },
     {
         accessorKey: "condition",
@@ -501,7 +526,7 @@ const buildBaseCols = (
                     <div className="flex justify-center">
                         <Badge variant="outline" className="text-xs">
                             <p>
-                                Grupo{" "}
+                                GRUPO{" "}
                                 <span className="text-xs text-muted-foreground">
                                     ({row.original.__groupCount ?? 0})
                                 </span>

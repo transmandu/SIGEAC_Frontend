@@ -569,13 +569,35 @@
   }
 }
 
+/* Columna fija de acciones. El fondo sale del tema (en claro y en oscuro) y el
+   z solo debe cubrir las celdas que pasan por debajo al hacer scroll, no
+   montarse sobre dropdowns ni diálogos. El hover/selección de la fila manda
+   sobre el fondo para que la celda no quede como un bloque suelto. */
 .table-sticky-right {
   position: sticky;
   right: 0;
-  background: #ffffff;
-  z-index: 40;
+  background: hsl(var(--background));
+  z-index: 1;
   backdrop-filter: none;
   min-width: 100px;
+  /* Igual que el transition-colors de TableRow: sin esto la celda fija cambia
+     de golpe y el hover se ve desincronizado del resto de la fila. */
+  transition: background-color 150ms;
+}
+
+thead .table-sticky-right {
+  z-index: 2;
+}
+
+/* La fila tiñe con muted/50 translúcido, pero esta celda necesita fondo opaco
+   para tapar lo que pasa por debajo al hacer scroll. color-mix reproduce esa
+   misma mezcla ya compuesta, así el tono coincide con el resto de la fila. */
+tr:hover > .table-sticky-right {
+  background: color-mix(in srgb, hsl(var(--muted)) 50%, hsl(var(--background)));
+}
+
+tr[data-state="selected"] > .table-sticky-right {
+  background: hsl(var(--muted));
 }
 
 @keyframes liquidMove {
