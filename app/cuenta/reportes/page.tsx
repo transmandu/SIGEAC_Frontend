@@ -1,14 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useGetErrorReports } from "@/hooks/sistema/reportes/useGetErrorReports";
 import { DataTable } from "@/app/sistema/reportes/data-table";
 import CreateErrorReportDialog from "@/components/dialogs/sistema/CreateErrorReportDialog";
-import { columns } from "./columns";
+import { getColumns } from "./columns";
+import MyReportDetailDialog from "./_components/MyReportDetailDialog";
 import { PageHeader } from "@/components/layout/PageHeader";
+import type { ErrorReport } from "@/types";
 
 const DEFAULT_PAGE_SIZE = 25;
 
@@ -18,8 +20,11 @@ export default function MisReportesPage() {
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(DEFAULT_PAGE_SIZE);
   const [createOpen, setCreateOpen] = useState(false);
+  const [detailReport, setDetailReport] = useState<ErrorReport | null>(null);
 
   const { data, isLoading } = useGetErrorReports({ page, per_page: perPage });
+
+  const columns = useMemo(() => getColumns(setDetailReport), []);
 
   const handlePaginationChange = (pageIndex: number, pageSize: number) => {
     setPage(pageIndex + 1);
@@ -56,6 +61,12 @@ export default function MisReportesPage() {
       </div>
 
       <CreateErrorReportDialog open={createOpen} onOpenChange={setCreateOpen} />
+
+      <MyReportDetailDialog
+        report={detailReport}
+        open={!!detailReport}
+        onOpenChange={(open) => !open && setDetailReport(null)}
+      />
     </ContentLayout>
   );
 }

@@ -2,6 +2,7 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 
+import { Button } from "@/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
@@ -10,7 +11,7 @@ import {
 } from "@/components/ui/tooltip";
 import { ErrorReport } from "@/types";
 import { format } from "date-fns";
-import { AlertTriangle, CheckCircle2, Clock } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Clock, Eye } from "lucide-react";
 import { Chip, STATUS_CHIP } from "@/app/sistema/reportes/_components/errorReportChips";
 
 const STATUS_ICON: Record<ErrorReport["status"], typeof AlertTriangle> = {
@@ -19,7 +20,9 @@ const STATUS_ICON: Record<ErrorReport["status"], typeof AlertTriangle> = {
   RESOLVED: CheckCircle2,
 };
 
-export const columns: ColumnDef<ErrorReport>[] = [
+export const getColumns = (
+  onViewDetail: (report: ErrorReport) => void
+): ColumnDef<ErrorReport>[] => [
   {
     accessorKey: "reported_at",
     header: "Fecha",
@@ -72,5 +75,28 @@ export const columns: ColumnDef<ErrorReport>[] = [
         </div>
       );
     },
+  },
+  {
+    id: "actions",
+    header: () => <div className="text-center">Detalle</div>,
+    cell: ({ row }) => (
+      <div className="flex justify-center">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => onViewDetail(row.original)}
+            >
+              <Eye className="h-4 w-4" />
+              <span className="sr-only">Ver detalle del reporte</span>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Ver detalle</TooltipContent>
+        </Tooltip>
+      </div>
+    ),
+    enableSorting: false,
   },
 ];
