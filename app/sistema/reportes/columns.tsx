@@ -59,6 +59,22 @@ export function getColumns(
       },
     },
     {
+      accessorKey: "company_slug",
+      header: "Empresa",
+      cell: ({ row }) => {
+        const company = row.original.company_slug;
+        return (
+          <div className="flex justify-center">
+            {company ? (
+              <Chip tone="slate">{company.toUpperCase()}</Chip>
+            ) : (
+              <span className="text-xs text-muted-foreground">—</span>
+            )}
+          </div>
+        );
+      },
+    },
+    {
       accessorKey: "module",
       header: "Módulo",
       cell: ({ row }) => (

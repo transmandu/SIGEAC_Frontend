@@ -167,6 +167,9 @@ export default function CreateErrorReportForm({ onClose, showAdvancedFields = fa
         http_status: showHttpStatus && values.http_status
           ? Number(values.http_status)
           : undefined,
+        // Deja constancia de desde qué empresa se reportó: sin esto, un
+        // soporte asignado por compañía no puede filtrar lo que le toca.
+        company: selectedCompany?.slug,
         images: images.length > 0 ? images : undefined,
       });
     } catch {

@@ -1668,6 +1668,8 @@ export type ErrorReport = {
   reported_by: string;
   phone: string | null;
   source: string;
+  /** Compañía desde la que se reportó. Null en los reportes por WhatsApp. */
+  company_slug: string | null;
   module: string | null;
   description: string;
   severity: ErrorReportSeverity | null;

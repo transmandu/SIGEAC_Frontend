@@ -29,6 +29,8 @@ interface CreateErrorReportData {
   module?: string;
   severity?: ErrorReportSeverity;
   http_status?: number;
+  /** Compañía desde la que se reporta: permite filtrar por empresa al atender. */
+  company?: string;
   images?: File[];
 }
 
@@ -44,6 +46,7 @@ export const useCreateErrorReport = () => {
         if (data.module) formData.append("module", data.module);
         if (data.severity) formData.append("severity", data.severity);
         if (data.http_status !== undefined) formData.append("http_status", String(data.http_status));
+        if (data.company) formData.append("company", data.company);
         images.forEach((image) => formData.append("images[]", image));
 
         const response = await axiosInstance.post("/error-reports", formData, {
