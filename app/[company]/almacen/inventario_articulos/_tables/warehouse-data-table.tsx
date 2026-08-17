@@ -125,7 +125,8 @@ export function DataTable<TData, TValue>({
   // z bajo a propósito: la columna fija solo debe cubrir las celdas que pasan
   // por debajo al hacer scroll horizontal, no montarse sobre dropdowns ni
   // diálogos.
-  const stickyHeadClass = "sticky right-0 z-[2] bg-background"
+  const stickyHeadClass =
+    "sticky right-0 z-[2] bg-background transition-colors group-hover:[background:var(--sticky-hover-bg)]"
   // La celda necesita fondo opaco (tapa lo que pasa por debajo al hacer
   // scroll), pero la fila tiñe con muted/50 translúcido. color-mix reproduce
   // esa mezcla ya compuesta sobre el fondo, así el tono coincide exactamente;
@@ -151,7 +152,7 @@ export function DataTable<TData, TValue>({
         >
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
+              <TableRow key={headerGroup.id} className="group">
                 {headerGroup.headers.map((header) => {
                   const meta = header.column.columnDef.meta as ColMeta | undefined
                   const isStickyRight = meta?.sticky === "right"
@@ -160,6 +161,11 @@ export function DataTable<TData, TValue>({
                     <TableHead
                       key={header.id}
                       className={cn(isStickyRight && stickyHeadClass, meta?.className)}
+                      style={
+                        isStickyRight
+                          ? ({ "--sticky-hover-bg": stickyHoverBg } as React.CSSProperties)
+                          : undefined
+                      }
                     >
                       {header.isPlaceholder
                         ? null
