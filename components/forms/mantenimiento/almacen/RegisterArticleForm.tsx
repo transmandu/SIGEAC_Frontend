@@ -96,7 +96,7 @@ const DirectRegisterArticleForm = ({
     onStateChange,
 }: IRegisterArticleProps) => {
     const [type, setType] = useState(
-        initialData?.batch.category.toUpperCase() ?? "COMPONENTE",
+        initialData?.batch.category.toUpperCase() ?? "COMPONENT",
     );
     function handleTypeSelect(data: string) {
         setType(data);
@@ -121,23 +121,23 @@ const DirectRegisterArticleForm = ({
                         <SelectValue placeholder="Seleccionar..." />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="CONSUMIBLE">CONSUMIBLE</SelectItem>
-                        <SelectItem value="HERRAMIENTA">HERRAMIENTA</SelectItem>
-                        <SelectItem value="COMPONENTE">COMPONENTE</SelectItem>
-                        <SelectItem value="PARTE">PARTE</SelectItem>
+                        <SelectItem value="CONSUMABLE">CONSUMIBLE</SelectItem>
+                        <SelectItem value="TOOL">HERRAMIENTA</SelectItem>
+                        <SelectItem value="COMPONENT">COMPONENTE</SelectItem>
+                        <SelectItem value="PART">PARTE</SelectItem>
                     </SelectContent>
                 </Select>
             )}
-            {type === "CONSUMIBLE" && (
+            {type === "CONSUMABLE" && (
                 <DirectRegisterConsumableForm isEditing={isEditing} initialData={initialData} onEditSuccess={onEditSuccess} submitLabel={submitLabel} onStateChange={onStateChange} />
             )}
-            {type === "HERRAMIENTA" && (
+            {type === "TOOL" && (
                 <CreateToolForm isEditing={isEditing} initialData={initialData} onEditSuccess={onEditSuccess} submitLabel={submitLabel} onStateChange={onStateChange} />
             )}
-            {type === "COMPONENTE" && (
+            {type === "COMPONENT" && (
                 <DirectRegisterComponentForm isEditing={isEditing} initialData={initialData} onEditSuccess={onEditSuccess} submitLabel={submitLabel} onStateChange={onStateChange} />
             )}
-            {type === "PARTE" && (
+            {type === "PART" && (
                 <DirectRegisterPartForm isEditing={isEditing} initialData={initialData} onEditSuccess={onEditSuccess} submitLabel={submitLabel} onStateChange={onStateChange} />
             )}
         </div>

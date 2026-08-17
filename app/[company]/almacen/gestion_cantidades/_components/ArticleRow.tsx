@@ -26,7 +26,7 @@ interface ArticleRowProps {
 // Componente memozado para artículos individuales
 export const ArticleRow = React.memo(
   ({ article, category, quantity, zone, meditionUnit, availableZones, onQuantityChange, onZoneChange }: ArticleRowProps) => {
-    const isComponent = category === 'COMPONENTE';
+    const isComponent = category === 'COMPONENT';
     
     // Usar todas las zonas disponibles del inventario - con validación estricta
     const allAvailableZones = React.useMemo(() => {

@@ -401,7 +401,7 @@ export default function ReceptionRegisterToolForm({
       selectedCompany?.slug,
       selectedStation || undefined,
       partNumberToSearch,
-      "HERRAMIENTA"
+      "TOOL"
     );
 
   const { createArticle } = useCreateArticle();

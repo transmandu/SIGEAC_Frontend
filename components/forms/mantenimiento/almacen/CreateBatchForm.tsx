@@ -47,10 +47,10 @@ import { Batch } from "@/types";
 import { format } from "path";
 
 const CATEGORY_VALUES = {
-  COMPONENTE: "COMPONENT",
-  HERRAMIENTA: "TOOL",
-  CONSUMIBLE: "CONSUMABLE",
-  PARTE: "PART",
+  COMPONENT: "COMPONENT",
+  TOOL: "TOOL",
+  CONSUMABLE: "CONSUMABLE",
+  PART: "PART",
 } as const;
 
 const UNIT_LABEL = ["UNIDADES", "UNIDAD"];
@@ -59,23 +59,23 @@ const WAREHOUSE_TYPE = "AERONAUTICO";
 // Función para determinar si una categoría requiere las restricciones especiales
 const requiresUnidadAndWarehouseRestrictions = (category: string) => {
   return (
-    category === CATEGORY_VALUES.COMPONENTE ||
-    category === CATEGORY_VALUES.HERRAMIENTA ||
-    category === CATEGORY_VALUES.PARTE
+    category === CATEGORY_VALUES.COMPONENT ||
+    category === CATEGORY_VALUES.TOOL ||
+    category === CATEGORY_VALUES.PART
   );
 };
 
 // Función para determinar si una categoría requiere almacén aeronáutico
 const requiresAeronauticWarehouse = (category: string) => {
   return (
-    category === CATEGORY_VALUES.COMPONENTE ||
-    category === CATEGORY_VALUES.PARTE
+    category === CATEGORY_VALUES.COMPONENT ||
+    category === CATEGORY_VALUES.PART
   );
 };
 
 const COMPONENT_PART_GROUP = [
-  CATEGORY_VALUES.COMPONENTE,
-  CATEGORY_VALUES.PARTE,
+  CATEGORY_VALUES.COMPONENT,
+  CATEGORY_VALUES.PART,
 ];
 const isComponentOrPart = (category?: string) =>
   COMPONENT_PART_GROUP.includes(category as any);
@@ -442,7 +442,7 @@ const form = useForm<FormSchemaType>({
             )}
           />
 
-          {category === CATEGORY_VALUES.CONSUMIBLE && (
+          {category === CATEGORY_VALUES.CONSUMABLE && (
             <FormField
               control={form.control}
               name="is_hazarous"

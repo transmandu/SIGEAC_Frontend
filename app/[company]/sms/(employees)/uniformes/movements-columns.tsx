@@ -6,6 +6,11 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { UniformMovement } from "@/hooks/sms/useGetUniforms";
 import {
+  uniformCompanyLabel,
+  uniformGenderLabel,
+  uniformMovementTypeLabel,
+} from "@/lib/sms/uniforms";
+import {
   getUniformTypeIcon,
   MOVEMENT_TYPE_META,
 } from "@/components/sms/uniform-meta";
@@ -28,7 +33,7 @@ export const movementsColumns: ColumnDef<UniformMovement>[] = [
     id: "item",
     accessorFn: (row) =>
       row.item
-        ? `${row.item.type_label} ${row.item.size} ${row.item.company_label}`
+        ? `${row.item.type_label} ${row.item.size} ${uniformCompanyLabel(row.item.company)}`
         : "",
     header: "Artículo",
     cell: ({ row }) => {
@@ -46,8 +51,10 @@ export const movementsColumns: ColumnDef<UniformMovement>[] = [
               {item.brand_label ? ` · ${item.brand_label}` : ""} · {item.size}
             </span>
             <span className="text-xs uppercase text-muted-foreground">
-              {item.company_label}
-              {item.gender_label ? ` · ${item.gender_label}` : ""}
+              {uniformCompanyLabel(item.company)}
+              {uniformGenderLabel(item.gender)
+                ? ` · ${uniformGenderLabel(item.gender)}`
+                : ""}
             </span>
           </div>
         </div>
@@ -55,7 +62,7 @@ export const movementsColumns: ColumnDef<UniformMovement>[] = [
     },
   },
   {
-    accessorKey: "movement_type_label",
+    accessorKey: "movement_type",
     header: "Movimiento",
     cell: ({ row }) => {
       const meta = MOVEMENT_TYPE_META[row.original.movement_type];
@@ -65,7 +72,7 @@ export const movementsColumns: ColumnDef<UniformMovement>[] = [
           className={`flex w-fit items-center gap-1 ${meta?.badgeClass ?? ""}`}
         >
           {Icon && <Icon className="size-3" />}
-          {row.original.movement_type_label}
+          {uniformMovementTypeLabel(row.original.movement_type)}
         </Badge>
       );
     },

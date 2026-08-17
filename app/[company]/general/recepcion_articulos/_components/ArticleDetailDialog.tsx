@@ -39,10 +39,10 @@ const TRANSIT_STATUS_LABELS: Record<string, string> = {
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
-    CONSUMIBLE: 'Consumible',
-    HERRAMIENTA: 'Herramienta',
-    COMPONENTE: 'Componente',
-    PARTE: 'Parte',
+    CONSUMABLE: 'Consumible',
+    TOOL: 'Herramienta',
+    COMPONENT: 'Componente',
+    PART: 'Parte',
 }
 
 type FieldSpec = { label: string; value?: string | number | null; span?: 1 | 2 }
@@ -113,7 +113,7 @@ export function ArticleDetailDialog({ article }: { article: TransitArticle }) {
     const category = full?.batch?.category?.toUpperCase()
 
     const categoryFields: FieldSpec[] | null = (() => {
-        if (category === 'HERRAMIENTA' && full?.tool) {
+        if (category === 'TOOL' && full?.tool) {
             return [
                 { label: 'Serial', value: full.tool.serial },
                 { label: 'Modelo', value: full.tool.model },
@@ -123,7 +123,7 @@ export function ArticleDetailDialog({ article }: { article: TransitArticle }) {
                 { label: 'Próxima calibración', value: full.tool.next_calibration },
             ]
         }
-        if ((category === 'COMPONENTE' || category === 'PARTE') && full?.partComponent) {
+        if ((category === 'COMPONENT' || category === 'PART') && full?.partComponent) {
             const fields: FieldSpec[] = [
                 { label: 'Fecha de fabricación', value: full.partComponent.fabrication_date },
                 { label: 'Fecha de expiración', value: full.partComponent.expiration_date },
@@ -134,7 +134,7 @@ export function ArticleDetailDialog({ article }: { article: TransitArticle }) {
                         : null,
                 },
             ]
-            if (category === 'COMPONENTE') {
+            if (category === 'COMPONENT') {
                 fields.push(
                     { label: 'Aeronave', value: full.partComponent.aircraft_id },
                     { label: 'Vida límite (horas)', value: full.partComponent.life_limit_part_hours },
@@ -147,7 +147,7 @@ export function ArticleDetailDialog({ article }: { article: TransitArticle }) {
             }
             return fields
         }
-        if (category === 'CONSUMIBLE' && full?.consumable) {
+        if (category === 'CONSUMABLE' && full?.consumable) {
             return [
                 { label: 'Lote', value: full.consumable.lot_number },
                 { label: 'Fecha de fabricación', value: full.consumable.fabrication_date },

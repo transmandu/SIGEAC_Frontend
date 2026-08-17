@@ -114,7 +114,7 @@ export type Bank = {
   id: number;
   name: string;
   slug?: string;
-  type: "NACIONAL" | "EXTRANJERO";
+  type: "DOMESTIC" | "FOREIGN";
   registered_by?: string | null;
   updated_by?: string | null;
 };
@@ -130,8 +130,8 @@ export type BankAccount = {
   name: string;
   slug?: string;
   account_number: string;
-  account_type: "CORRIENTE" | "AHORRO";
-  account_owner: "NATURAL" | "JURIDICA";
+  account_type: "CHECKING" | "SAVINGS";
+  account_owner: "INDIVIDUAL" | "CORPORATE";
   bank: Bank;
   /** Compañías habilitadas para operar con la cuenta. */
   companies?: Pick<Company, "id" | "name">[];
@@ -1427,7 +1427,7 @@ export type CargoShipment = {
   items: CargoShipmentItem[];
   registered_by: string;
   updated_by: string;
-  manifest_status: "pending" | "partial" | "manifested" | "modified";
+  manifest_status: "PENDING" | "PARTIAL" | "MANIFESTED" | "MODIFIED";
   weight_dispatched: number;
   units_dispatched: number;
 };

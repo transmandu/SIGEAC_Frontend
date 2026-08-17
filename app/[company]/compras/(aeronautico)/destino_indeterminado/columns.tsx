@@ -26,13 +26,9 @@ const ARTICLE_TYPES: Record<
   { label: string; icon: typeof Droplets }
 > = {
   CONSUMABLE: { label: "Consumible", icon: Droplets },
-  CONSUMIBLE: { label: "Consumible", icon: Droplets },
   COMPONENT: { label: "Componente", icon: Cpu },
-  COMPONENTE: { label: "Componente", icon: Cpu },
   TOOL: { label: "Herramienta", icon: Wrench },
-  HERRAMIENTA: { label: "Herramienta", icon: Wrench },
   PART: { label: "Parte", icon: Puzzle },
-  PARTE: { label: "Parte", icon: Puzzle },
 };
 
 function getArticleType(type?: string | null) {

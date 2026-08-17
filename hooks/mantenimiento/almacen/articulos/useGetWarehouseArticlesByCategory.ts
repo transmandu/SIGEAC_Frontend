@@ -9,7 +9,7 @@ export interface IWarehouseArticle {
     medition_unit?: string;
     article_count: number;
     is_hazardous?: boolean;
-    category?: string; // "COMPONENTE" | "CONSUMIBLE" | "HERRAMIENTA" | "All"
+    category?: string; // "COMPONENT" | "CONSUMABLE" | "TOOL" | "All"
     articles: {
         id: number;
         part_number: string;

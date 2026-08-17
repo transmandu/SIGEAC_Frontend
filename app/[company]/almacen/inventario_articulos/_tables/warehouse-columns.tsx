@@ -172,7 +172,7 @@ export const flattenArticles = (
                     : undefined,
 
                 component:
-                    batch.category === "COMPONENTE" &&
+                    batch.category === "COMPONENT" &&
                         ((article as any).expiration_date != null ||
                             article.component?.shell_time)
                         ? {
@@ -186,7 +186,7 @@ export const flattenArticles = (
                         : undefined,
 
                 consumable:
-                    batch.category === "CONSUMIBLE"
+                    batch.category === "CONSUMABLE"
                         ? {
                             expiration_date: (article as any).expiration_date ?? null,
                             fabrication_date: (article as any).fabrication_date ?? null,

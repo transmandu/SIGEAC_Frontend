@@ -344,8 +344,10 @@ export default function CreateCargoManifestForm({
 
             const someSelected = availItems.some((i) => selections.has(i.id));
 
+            // El backend sirve el estado en mayúsculas; las claves son minúsculas.
             const status =
-              statusConfig[shipment.manifest_status] ?? statusConfig.pending;
+              statusConfig[shipment.manifest_status?.toLowerCase()] ??
+              statusConfig.pending;
 
             const aircraftLabel =
               shipment.aircraft?.acronym ?? shipment.external_aircraft ?? "N/A";
