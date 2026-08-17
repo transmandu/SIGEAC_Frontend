@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { dateFormat } from "@/lib/utils";
 import { Course } from "@/types";
 import { ColumnDef } from "@tanstack/react-table";
+import { courseStatusLabelEsUpper } from "@/lib/cursos/statuses";
 
 export const columns: ColumnDef<Course>[] = [
   {
@@ -84,15 +85,15 @@ export const columns: ColumnDef<Course>[] = [
     meta: { title: "Estado" },
     cell: ({ row }) => {
       const color =
-        row.original.status === "CERRADO"
+        row.original.status === "CLOSED"
           ? "bg-red-500 hover:bg-red-700"
-          : row.original.status === "ABIERTO"
+          : row.original.status === "OPEN"
             ? "bg-green-500 hover:bg-green-700"
             : "bg-gray-200"; // Agrega una clase por defecto para otros estados
       return (
         <div className="flex justify-center">
           <Badge className={`flex justify-center ${color}`}>
-            {row.original.status}
+            {courseStatusLabelEsUpper(row.original.status)}
           </Badge>
         </div>
       );

@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useParams } from "next/navigation";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { courseStatusLabelEsUpper } from "@/lib/cursos/statuses";
 
 const ShowCourse = () => {
   const { course_id } = useParams<{ course_id: string }>();
@@ -92,16 +93,14 @@ const ShowCourse = () => {
                     </div>
                     <Badge
                       className={`font-bold ${
-                        course.status === "COMPLETADO"
-                          ? "bg-green-400"
-                          : course.status === "EN_PROGRESO"
-                            ? "bg-yellow-400"
-                            : course.status === "PLANIFICADO"
-                              ? "bg-blue-400"
-                              : "bg-gray-500"
+                        course.status === "CLOSED"
+                          ? "bg-red-500"
+                          : course.status === "OPEN"
+                            ? "bg-green-500"
+                            : "bg-gray-500"
                       }`}
                     >
-                      {course.status.replace("_", " ")}
+                      {courseStatusLabelEsUpper(course.status)}
                     </Badge>
                   </div>
 

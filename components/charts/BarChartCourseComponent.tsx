@@ -65,7 +65,7 @@ const BarChartCourseComponent = ({
   // Las barras son clicables y preparan el detalle, pero el diálogo que lo
   // mostraba está deshabilitado: por ahora el clic no abre nada.
   const handleClick = (message: string) => {
-    if (message === "ABIERTO") {
+    if (message === "OPEN") {
       setMessage("Planificados");
     } else {
       setMessage("Ejecutados");
@@ -112,7 +112,7 @@ const BarChartCourseComponent = ({
               name={`${bar_first_name}`}
               stackId="a"
               fill={theme === "light" ? "#80d5c0" : "#89f4c7"}
-              onClick={() => handleClick("ABIERTO")}
+              onClick={() => handleClick("OPEN")}
             />
 
             <Bar
@@ -120,7 +120,7 @@ const BarChartCourseComponent = ({
               name={`${bar_second_name}`}
               stackId="a"
               fill={theme === "light" ? "#8ea7f0" : "#8f8dfe"}
-              onClick={() => handleClick("CERRADO")}
+              onClick={() => handleClick("CLOSED")}
             />
           </BarChart>
         ) : (

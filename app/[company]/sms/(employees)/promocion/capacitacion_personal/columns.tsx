@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { dateFormat } from "@/lib/utils";
 import { SMSTraining } from "@/types";
 import { ColumnDef } from "@tanstack/react-table";
+import { trainingStatusLabelEsUpper } from "@/lib/cursos/statuses";
 
 export const columns: ColumnDef<SMSTraining>[] = [
   {
@@ -89,10 +90,10 @@ export const columns: ColumnDef<SMSTraining>[] = [
         <Badge
           className={`justify-center items-center text-center font-bold font-sans
           ${
-            row.original.status === "PENDIENTE" ? "bg-red-400" : "bg-green-500" // Color gris oscuro (puedes ajustar el tono)
+            row.original.status === "PENDING" ? "bg-red-400" : "bg-green-500" // Color gris oscuro (puedes ajustar el tono)
           }`}
         >
-          {row.original.status}
+          {trainingStatusLabelEsUpper(row.original.status)}
         </Badge>
       </div>
     ),

@@ -45,7 +45,7 @@ type CalendarProps = {
 
 const eventStatus = {
   // GREEN
-  ABIERTO: {
+  OPEN: {
     colorName: "abierto",
     lightColors: {
       main: "#2ADE99", // rojo fuerte
@@ -59,7 +59,7 @@ const eventStatus = {
     },
   },
   // RED
-  CERRADO: {
+  CLOSED: {
     colorName: "cerrado",
     lightColors: {
       main: "#FF1A1A", //
@@ -70,19 +70,6 @@ const eventStatus = {
       main: "#FF1A1A",
       container: "#FA9B9B",
       onContainer: "#000",
-    },
-  },
-  PENDIENTE: {
-    colorName: "pendiente",
-    lightColors: {
-      main: "#10b981", // verde
-      container: "#d1fae5",
-      onContainer: "#064e3b",
-    },
-    darkColors: {
-      main: "#6ee7b7",
-      container: "#064e3b",
-      onContainer: "#d1fae5",
     },
   },
 };

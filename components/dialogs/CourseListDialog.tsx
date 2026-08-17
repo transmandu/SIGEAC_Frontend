@@ -48,7 +48,7 @@ export default function CourseListDialog({
   } = useGetCoursesByStatusDateRange({
     from,
     to,
-    status: "ABIERTO",
+    status: "OPEN",
     company: selectedCompany?.slug,
     location_id: selectedStation!,
   });
