@@ -25,12 +25,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { UseFormReturn, Path, FieldValues } from "react-hook-form";
 
 export interface ComboboxOption {
@@ -112,23 +106,15 @@ export function ComboboxField<T extends FieldValues>({
                           <span className="select-none text-[10px] uppercase font-bold text-muted-foreground bg-muted/30 px-1.5 py-0.5 rounded shrink-0">
                             {selectedOption.badge}
                           </span>
-                          <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50 ml-2" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                  </TooltipTrigger>
-                  {selectedOption && (
-                    <TooltipContent side="top" align="center">
-                      <p>{selectedOption.label}</p>
-                      {selectedOption.badge && (
-                        <p className="text-[10px] uppercase font-bold text-muted-foreground">
-                          {selectedOption.badge}
-                        </p>
-                      )}
-                    </TooltipContent>
-                  )}
-                </Tooltip>
-              </TooltipProvider>
+                        )}
+                      </div>
+                    ) : (
+                      <span>{disabled ? "Cargando..." : placeholder}</span>
+                    )}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </FormControl>
+              </PopoverTrigger>
 
               <PopoverContent className="w-[300px] p-0" align="start">
                 <Command>
