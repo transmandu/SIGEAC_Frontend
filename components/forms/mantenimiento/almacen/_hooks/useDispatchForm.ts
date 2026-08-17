@@ -508,7 +508,7 @@ export function useDispatchForm(
                         : itemCategory === "component"
                             ? "componente"
                             : "parte",
-                status: "APROBADO",
+                status: "APPROVED",
                 approved_by: user?.employee?.[0]?.dni,
                 delivered_by: user?.employee?.[0]?.dni,
                 user_id: Number(user!.id),
