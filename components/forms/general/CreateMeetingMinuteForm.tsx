@@ -39,9 +39,9 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { useGetEmployeesByCompany } from "@/hooks/sistema/empleados/useGetEmployees";
 import { useCreateMeetingMinute, useUpdateMeetingMinute } from "@/actions/general/minutas_reunion/actions";
 import { MeetingMinutes } from "@/types";
+import { useGetEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetEmployees";
 
 interface FormProps {
   onClose: (open: boolean) => void;
@@ -378,336 +378,336 @@ export function CreateMeetingMinuteForm({
           <>
             {/* Participantes */}
             <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              Participantes
-            </span>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() =>
-                appendAttendee({
-                  employee_id: "",
-                  attendee_name: "",
-                  job_title: "",
-                  has_attended: true,
-                  is_external: false,
-                })
-              }
-            >
-              <Plus className="size-3.5 mr-1" />
-              Agregar
-            </Button>
-          </div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Participantes
+                </span>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    appendAttendee({
+                      employee_id: "",
+                      attendee_name: "",
+                      job_title: "",
+                      has_attended: true,
+                      is_external: false,
+                    })
+                  }
+                >
+                  <Plus className="size-3.5 mr-1" />
+                  Agregar
+                </Button>
+              </div>
 
-          {attendeeFields.length === 0 && (
-            <p className="text-xs text-muted-foreground">No hay participantes agregados.</p>
-          )}
+              {attendeeFields.length === 0 && (
+                <p className="text-xs text-muted-foreground">No hay participantes agregados.</p>
+              )}
 
-          {attendeeFields.map((field, index) => {
-            const isExternal = form.watch(`attendees.${index}.is_external`);
-            return (
-              <div
-                key={field.id}
-                className="flex flex-col gap-3 p-3 border border-border/30 rounded-md"
-              >
-                <div className="flex items-center justify-between">
-                  <FormField
-                    control={form.control}
-                    name={`attendees.${index}.is_external`}
-                    render={({ field: f }) => (
-                      <FormItem className="flex flex-row items-center gap-2 space-y-0">
-                        <FormControl>
-                          <Checkbox
-                            checked={f.value}
-                            onCheckedChange={f.onChange}
-                          />
-                        </FormControl>
-                        <FormLabel className="text-xs font-medium text-muted-foreground cursor-pointer">
-                          No es empleado
-                        </FormLabel>
-                      </FormItem>
-                    )}
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="shrink-0"
-                    onClick={() => removeAttendee(index)}
+              {attendeeFields.map((field, index) => {
+                const isExternal = form.watch(`attendees.${index}.is_external`);
+                return (
+                  <div
+                    key={field.id}
+                    className="flex flex-col gap-3 p-3 border border-border/30 rounded-md"
                   >
-                    <Trash2 className="size-4 text-destructive" />
-                  </Button>
-                </div>
+                    <div className="flex items-center justify-between">
+                      <FormField
+                        control={form.control}
+                        name={`attendees.${index}.is_external`}
+                        render={({ field: f }) => (
+                          <FormItem className="flex flex-row items-center gap-2 space-y-0">
+                            <FormControl>
+                              <Checkbox
+                                checked={f.value}
+                                onCheckedChange={f.onChange}
+                              />
+                            </FormControl>
+                            <FormLabel className="text-xs font-medium text-muted-foreground cursor-pointer">
+                              No es empleado
+                            </FormLabel>
+                          </FormItem>
+                        )}
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="shrink-0"
+                        onClick={() => removeAttendee(index)}
+                      >
+                        <Trash2 className="size-4 text-destructive" />
+                      </Button>
+                    </div>
 
-                {!isExternal && (
-                  <ComboboxField
-                    form={form}
-                    name={`attendees.${index}.employee_id`}
-                    label="Empleado"
-                    placeholder="Seleccionar..."
-                    options={employeeOptions}
-                  />
-                )}
+                    {!isExternal && (
+                      <ComboboxField
+                        form={form}
+                        name={`attendees.${index}.employee_id`}
+                        label="Empleado"
+                        placeholder="Seleccionar..."
+                        options={employeeOptions}
+                      />
+                    )}
 
-                {isExternal && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {isExternal && (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <FormField
+                          control={form.control}
+                          name={`attendees.${index}.attendee_name`}
+                          render={({ field: f }) => (
+                            <FormItem className="flex flex-col">
+                              <FormLabel className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70 mb-1">
+                                Nombre
+                              </FormLabel>
+                              <FormControl>
+                                <Input placeholder="Nombre completo" {...f} />
+                              </FormControl>
+                              <FormMessage className="text-xs" />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name={`attendees.${index}.job_title`}
+                          render={({ field: f }) => (
+                            <FormItem className="flex flex-col">
+                              <FormLabel className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70 mb-1">
+                                Cargo
+                              </FormLabel>
+                              <FormControl>
+                                <Input placeholder="Cargo" {...f} />
+                              </FormControl>
+                              <FormMessage className="text-xs" />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    )}
+
                     <FormField
                       control={form.control}
-                      name={`attendees.${index}.attendee_name`}
+                      name={`attendees.${index}.has_attended`}
                       render={({ field: f }) => (
-                        <FormItem className="flex flex-col">
-                          <FormLabel className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70 mb-1">
-                            Nombre
-                          </FormLabel>
+                        <FormItem className="flex flex-row items-center gap-2 space-y-0">
                           <FormControl>
-                            <Input placeholder="Nombre completo" {...f} />
+                            <Checkbox
+                              checked={f.value}
+                              onCheckedChange={f.onChange}
+                            />
                           </FormControl>
-                          <FormMessage className="text-xs" />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name={`attendees.${index}.job_title`}
-                      render={({ field: f }) => (
-                        <FormItem className="flex flex-col">
-                          <FormLabel className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70 mb-1">
-                            Cargo
+                          <FormLabel className="text-xs font-medium text-muted-foreground cursor-pointer">
+                            Asistió
                           </FormLabel>
-                          <FormControl>
-                            <Input placeholder="Cargo" {...f} />
-                          </FormControl>
-                          <FormMessage className="text-xs" />
                         </FormItem>
                       )}
                     />
                   </div>
-                )}
-
-                <FormField
-                  control={form.control}
-                  name={`attendees.${index}.has_attended`}
-                  render={({ field: f }) => (
-                    <FormItem className="flex flex-row items-center gap-2 space-y-0">
-                      <FormControl>
-                        <Checkbox
-                          checked={f.value}
-                          onCheckedChange={f.onChange}
-                        />
-                      </FormControl>
-                      <FormLabel className="text-xs font-medium text-muted-foreground cursor-pointer">
-                        Asistió
-                      </FormLabel>
-                    </FormItem>
-                  )}
-                />
-              </div>
-            );
-          })}
-        </div>
+                );
+              })}
+            </div>
           </>
         )}
 
         {step === 3 && (
           <>
-        <Separator className="border-border/60" />
+            <Separator className="border-border/60" />
 
-        {/* Puntos a Tratar */}
-        <div className="space-y-3">
-          <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            Puntos a Tratar
-          </span>
+            {/* Puntos a Tratar */}
+            <div className="space-y-3">
+              <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Puntos a Tratar
+              </span>
 
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                Temas
-              </FormLabel>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => appendTopic({ value: "" })}
-              >
-                <Plus className="size-3.5 mr-1" />
-                Agregar
-              </Button>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Temas
+                  </FormLabel>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => appendTopic({ value: "" })}
+                  >
+                    <Plus className="size-3.5 mr-1" />
+                    Agregar
+                  </Button>
+                </div>
+                {topicFields.length === 0 && (
+                  <p className="text-xs text-muted-foreground">No hay temas agregados.</p>
+                )}
+                {topicFields.map((field, index) => (
+                  <div key={field.id} className="flex items-start gap-2">
+                    <FormField
+                      control={form.control}
+                      name={`topics.${index}.value`}
+                      render={({ field: f }) => (
+                        <FormItem className="flex-1">
+                          <FormControl>
+                            <Input placeholder={`Tema ${index + 1}`} {...f} />
+                          </FormControl>
+                          <FormMessage className="text-xs" />
+                        </FormItem>
+                      )}
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="mt-0.5 shrink-0"
+                      onClick={() => removeTopic(index)}
+                    >
+                      <Trash2 className="size-4 text-destructive" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
             </div>
-            {topicFields.length === 0 && (
-              <p className="text-xs text-muted-foreground">No hay temas agregados.</p>
-            )}
-            {topicFields.map((field, index) => (
-              <div key={field.id} className="flex items-start gap-2">
-                <FormField
-                  control={form.control}
-                  name={`topics.${index}.value`}
-                  render={({ field: f }) => (
-                    <FormItem className="flex-1">
-                      <FormControl>
-                        <Input placeholder={`Tema ${index + 1}`} {...f} />
-                      </FormControl>
-                      <FormMessage className="text-xs" />
-                    </FormItem>
-                  )}
-                />
+
+            <Separator className="border-border/60" />
+
+            {/* Acuerdos */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Acuerdos
+                </span>
                 <Button
                   type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="mt-0.5 shrink-0"
-                  onClick={() => removeTopic(index)}
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    appendAgreement({
+                      description: "",
+                      responsible_employee_id: "",
+                      responsible_name: "",
+                      responsible_job_title: "",
+                      is_external: false,
+                    })
+                  }
                 >
-                  <Trash2 className="size-4 text-destructive" />
+                  <Plus className="size-3.5 mr-1" />
+                  Agregar
                 </Button>
               </div>
-            ))}
-          </div>
-        </div>
 
-        <Separator className="border-border/60" />
+              {agreementFields.length === 0 && (
+                <p className="text-xs text-muted-foreground">No hay acuerdos agregados.</p>
+              )}
 
-        {/* Acuerdos */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              Acuerdos
-            </span>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() =>
-                appendAgreement({
-                  description: "",
-                  responsible_employee_id: "",
-                  responsible_name: "",
-                  responsible_job_title: "",
-                  is_external: false,
-                })
-              }
-            >
-              <Plus className="size-3.5 mr-1" />
-              Agregar
+              {agreementFields.map((field, index) => (
+                <AgreementItem
+                  key={field.id}
+                  form={form}
+                  index={index}
+                  employees={employees ?? []}
+                  onRemove={() => removeAgreement(index)}
+                />
+              ))}
+            </div>
+
+            <Separator className="border-border/60" />
+
+            {/* Realizado por, Revisado por, Aprobado por */}
+            <div className="space-y-3">
+              <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Revisión y Aprobación
+              </span>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <ComboboxField
+                  form={form}
+                  name="filled_out_by"
+                  label="Realizado por"
+                  placeholder="Opcional"
+                  options={employeeOptions}
+                  disabled={employeesLoading}
+                />
+                <ComboboxField
+                  form={form}
+                  name="reviewed_by"
+                  label="Revisado por"
+                  placeholder="Opcional"
+                  options={employeeOptions}
+                  disabled={employeesLoading}
+                />
+                <ComboboxField
+                  form={form}
+                  name="approved_by"
+                  label="Aprobado por"
+                  placeholder="Opcional"
+                  options={employeeOptions}
+                  disabled={employeesLoading}
+                />
+              </div>
+            </div>
+
+            {/* Foto y Documento */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <FormField
+                control={form.control}
+                name="photo"
+                render={({ field: { value, onChange, ...field } }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">
+                      Foto
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        type="file"
+                        accept="image/jpeg,image/png,image/jpg"
+                        onChange={(e) => onChange(e.target.files?.[0])}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage className="text-xs" />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="document"
+                render={({ field: { value, onChange, ...field } }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">
+                      Documento
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        type="file"
+                        accept=".pdf"
+                        onChange={(e) => onChange(e.target.files?.[0])}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage className="text-xs" />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <Separator className="border-border/60" />
+
+            <div className="flex justify-between items-center gap-x-4">
+              <Separator className="flex-1" />
+              <p className="text-muted-foreground text-xs">SIGEAC</p>
+              <Separator className="flex-1" />
+            </div>
+
+            <Button disabled={isPending} type="submit" className="w-full h-10">
+              {isPending ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <>
+                  <FileText className="size-4 mr-2" />
+                  {isEditing ? "Actualizar Minuta" : "Crear Minuta"}
+                </>
+              )}
             </Button>
-          </div>
-
-          {agreementFields.length === 0 && (
-            <p className="text-xs text-muted-foreground">No hay acuerdos agregados.</p>
-          )}
-
-          {agreementFields.map((field, index) => (
-            <AgreementItem
-              key={field.id}
-              form={form}
-              index={index}
-              employees={employees ?? []}
-              onRemove={() => removeAgreement(index)}
-            />
-          ))}
-        </div>
-
-        <Separator className="border-border/60" />
-
-        {/* Realizado por, Revisado por, Aprobado por */}
-        <div className="space-y-3">
-          <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            Revisión y Aprobación
-          </span>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <ComboboxField
-              form={form}
-              name="filled_out_by"
-              label="Realizado por"
-              placeholder="Opcional"
-              options={employeeOptions}
-              disabled={employeesLoading}
-            />
-            <ComboboxField
-              form={form}
-              name="reviewed_by"
-              label="Revisado por"
-              placeholder="Opcional"
-              options={employeeOptions}
-              disabled={employeesLoading}
-            />
-            <ComboboxField
-              form={form}
-              name="approved_by"
-              label="Aprobado por"
-              placeholder="Opcional"
-              options={employeeOptions}
-              disabled={employeesLoading}
-            />
-          </div>
-        </div>
-
-        {/* Foto y Documento */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <FormField
-            control={form.control}
-            name="photo"
-            render={({ field: { value, onChange, ...field } }) => (
-              <FormItem className="flex flex-col">
-                <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">
-                  Foto
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    type="file"
-                    accept="image/jpeg,image/png,image/jpg"
-                    onChange={(e) => onChange(e.target.files?.[0])}
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage className="text-xs" />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="document"
-            render={({ field: { value, onChange, ...field } }) => (
-              <FormItem className="flex flex-col">
-                <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">
-                  Documento
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    type="file"
-                    accept=".pdf"
-                    onChange={(e) => onChange(e.target.files?.[0])}
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage className="text-xs" />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <Separator className="border-border/60" />
-
-        <div className="flex justify-between items-center gap-x-4">
-          <Separator className="flex-1" />
-          <p className="text-muted-foreground text-xs">SIGEAC</p>
-          <Separator className="flex-1" />
-        </div>
-
-        <Button disabled={isPending} type="submit" className="w-full h-10">
-          {isPending ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <>
-              <FileText className="size-4 mr-2" />
-              {isEditing ? "Actualizar Minuta" : "Crear Minuta"}
-            </>
-          )}
-        </Button>
           </>
         )}
 

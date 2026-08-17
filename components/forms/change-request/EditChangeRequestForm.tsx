@@ -10,8 +10,6 @@ import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useUpdateChangeRequest } from "@/actions/sms/gestion_de_cambio/actions";
-import { useGetDepartments } from "@/hooks/sistema/departamento/useGetDepartment";
-import { useGetEmployeesByCompany } from "@/hooks/sistema/empleados/useGetEmployees";
 import {
   ChangeRequest,
   ChangePhotographicRecord,
@@ -23,6 +21,8 @@ import { StepRisksAndDetails } from "./StepRisksAndDetails";
 import { PhotographicImage } from "./StepPhotographicRecords";
 import { FileServer } from "@/components/misc/FileServer";
 import Image from "next/image";
+import { useGetDepartments } from "@/hooks/ajustes/departamento/useGetDepartment";
+import { useGetEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetEmployees";
 
 const STEPS = [
   { label: "General y Clasificación", step: 1 },
@@ -247,9 +247,8 @@ function PhotographicRecordsEditStep({
             return (
               <div
                 key={record.id}
-                className={`relative group aspect-square rounded-md overflow-hidden border transition-opacity ${
-                  isKept ? "border-border/40" : "border-red-300 opacity-40"
-                }`}
+                className={`relative group aspect-square rounded-md overflow-hidden border transition-opacity ${isKept ? "border-border/40" : "border-red-300 opacity-40"
+                  }`}
               >
                 <FileServer path={record.image_url} company={company}>
                   {(url) =>
@@ -273,11 +272,10 @@ function PhotographicRecordsEditStep({
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className={`absolute top-1 right-1 size-6 opacity-0 group-hover:opacity-100 transition-opacity ${
-                    isKept
+                  className={`absolute top-1 right-1 size-6 opacity-0 group-hover:opacity-100 transition-opacity ${isKept
                       ? "bg-destructive/80 hover:bg-destructive text-white"
                       : "bg-green-500/80 hover:bg-green-500 text-white"
-                  }`}
+                    }`}
                   onClick={() => toggleExistingRecord(record.id)}
                 >
                   <Trash2 className="size-3" />
@@ -497,31 +495,28 @@ export function EditChangeRequestForm({ changeRequest }: EditChangeRequestFormPr
             <div key={s.step} className="flex items-center">
               <div className="flex flex-col items-center gap-1">
                 <div
-                  className={`flex items-center justify-center w-8 h-8 rounded-full text-xs font-medium border ${
-                    step > s.step
+                  className={`flex items-center justify-center w-8 h-8 rounded-full text-xs font-medium border ${step > s.step
                       ? "bg-primary text-primary-foreground border-primary"
                       : step === s.step
                         ? "bg-primary text-primary-foreground border-primary"
                         : "bg-muted text-muted-foreground border-border"
-                  }`}
+                    }`}
                 >
                   {step > s.step ? "✓" : s.step}
                 </div>
                 <span
-                  className={`text-[10px] font-medium uppercase tracking-wide whitespace-nowrap ${
-                    step >= s.step
+                  className={`text-[10px] font-medium uppercase tracking-wide whitespace-nowrap ${step >= s.step
                       ? "text-foreground"
                       : "text-muted-foreground"
-                  }`}
+                    }`}
                 >
                   {s.label}
                 </span>
               </div>
               {i < STEPS.length - 1 && (
                 <div
-                  className={`w-12 h-px mx-2 mb-4 ${
-                    step > s.step ? "bg-primary" : "bg-border"
-                  }`}
+                  className={`w-12 h-px mx-2 mb-4 ${step > s.step ? "bg-primary" : "bg-border"
+                    }`}
                 />
               )}
             </div>

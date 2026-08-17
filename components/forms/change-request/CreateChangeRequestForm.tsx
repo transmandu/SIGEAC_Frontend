@@ -10,8 +10,6 @@ import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useCreateChangeRequest } from "@/actions/sms/gestion_de_cambio/actions";
-import { useGetDepartments } from "@/hooks/sistema/departamento/useGetDepartment";
-import { useGetEmployeesByCompany } from "@/hooks/sistema/empleados/useGetEmployees";
 import { StoreChangeRequestPayload } from "@/types";
 import { StepGeneralAndClassification } from "./StepGeneralAndClassification";
 import { StepPlanAndResources } from "./StepPlanAndResources";
@@ -20,6 +18,8 @@ import {
   StepPhotographicRecords,
   PhotographicImage,
 } from "./StepPhotographicRecords";
+import { useGetDepartments } from "@/hooks/ajustes/departamento/useGetDepartment";
+import { useGetEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetEmployees";
 
 const STEPS = [
   { label: "General y Clasificación", step: 1 },
@@ -242,31 +242,28 @@ export function CreateChangeRequestForm() {
             <div key={s.step} className="flex items-center">
               <div className="flex flex-col items-center gap-1">
                 <div
-                  className={`flex items-center justify-center w-8 h-8 rounded-full text-xs font-medium border ${
-                    step > s.step
+                  className={`flex items-center justify-center w-8 h-8 rounded-full text-xs font-medium border ${step > s.step
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : step === s.step
                       ? "bg-primary text-primary-foreground border-primary"
-                      : step === s.step
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-muted text-muted-foreground border-border"
-                  }`}
+                      : "bg-muted text-muted-foreground border-border"
+                    }`}
                 >
                   {step > s.step ? "✓" : s.step}
                 </div>
                 <span
-                  className={`text-[10px] font-medium uppercase tracking-wide whitespace-nowrap ${
-                    step >= s.step
-                      ? "text-foreground"
-                      : "text-muted-foreground"
-                  }`}
+                  className={`text-[10px] font-medium uppercase tracking-wide whitespace-nowrap ${step >= s.step
+                    ? "text-foreground"
+                    : "text-muted-foreground"
+                    }`}
                 >
                   {s.label}
                 </span>
               </div>
               {i < STEPS.length - 1 && (
                 <div
-                  className={`w-12 h-px mx-2 mb-4 ${
-                    step > s.step ? "bg-primary" : "bg-border"
-                  }`}
+                  className={`w-12 h-px mx-2 mb-4 ${step > s.step ? "bg-primary" : "bg-border"
+                    }`}
                 />
               )}
             </div>
