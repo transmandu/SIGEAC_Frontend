@@ -59,6 +59,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import CreateNoRutineDialog from "./CreateNoRutineDialog";
 import { useParams } from "next/navigation";
+import { workOrderStatusLabelEsUpper } from "@/lib/planificacion/statuses";
 
 const assignmentFormSchema = z.object({
   technician_responsable: z.string().min(1, "Debe seleccionar un técnico"),
@@ -139,14 +140,14 @@ export const TaskDetailsDialog = ({
     try {
       if (isNonRoutine) {
         await updateNoRoutineTask.mutateAsync({
-          data: { id: selectedTask.id.toString(), status: "CERRADO" },
+          data: { id: selectedTask.id.toString(), status: "CLOSED" },
           company: selectedCompany!.slug,
           order_number: params.order_number as string,
         });
       } else {
         await updateTaskStatus.mutateAsync({
           task_id: selectedTask.id.toString(),
-          status: "CERRADO",
+          status: "CLOSED",
           company: selectedCompany!.slug,
         });
       }
@@ -296,22 +297,22 @@ export const TaskDetailsDialog = ({
                     <div className="flex gap-2">
                       <Badge
                         className={
-                          selectedTask.status === "ABIERTO"
+                          selectedTask.status === "OPEN"
                             ? "cursor-pointer"
                             : "bg-red-500 cursor-pointer"
                         }
                       >
-                        {selectedTask.status}
+                        {workOrderStatusLabelEsUpper(selectedTask.status)}
                       </Badge>
                       {selectedTask.non_routine && (
                         <Badge
                           className={
-                            selectedTask.non_routine.status === "ABIERTO"
+                            selectedTask.non_routine.status === "OPEN"
                               ? "bg-yellow-500"
                               : ""
                           }
                         >
-                          No Rutinaria - {selectedTask.non_routine.status}
+                          No Rutinaria - {workOrderStatusLabelEsUpper(selectedTask.non_routine.status)}
                         </Badge>
                       )}
                     </div>
@@ -407,7 +408,7 @@ export const TaskDetailsDialog = ({
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
                         <h3 className="font-medium">Técnico Responsable</h3>
-                        {selectedTask.status === "ABIERTO" && (
+                        {selectedTask.status === "OPEN" && (
                           <Button
                             variant="ghost"
                             size="icon"
@@ -616,7 +617,7 @@ export const TaskDetailsDialog = ({
                   <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                     Cerrar
                   </Button>
-                  {selectedTask.status === "ABIERTO" &&
+                  {selectedTask.status === "OPEN" &&
                     selectedTask.technician_responsable &&
                     !isEditing && (
                       <div className="flex gap-2 items-center">
@@ -630,7 +631,7 @@ export const TaskDetailsDialog = ({
                           onClick={handleCompleteTask}
                           disabled={
                             updateTaskStatus.isPending ||
-                            selectedTask.non_routine?.status === "ABIERTO" ||
+                            selectedTask.non_routine?.status === "OPEN" ||
                             updateNoRoutineTask.isPending
                           }
                           className="bg-green-600 hover:bg-green-700"

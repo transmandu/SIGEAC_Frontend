@@ -40,7 +40,9 @@ export function AvailableShipmentGroup({
 }: Props) {
   const availItems = shipment.items;
   const someSelected = availItems.some((i: any) => newSelections.has(i.id));
-  const status = statusConfig[shipment.manifest_status] ?? statusConfig.pending;
+  // El backend sirve el estado en mayúsculas; las claves del config son minúsculas.
+  const status =
+    statusConfig[shipment.manifest_status?.toLowerCase()] ?? statusConfig.pending;
   const aircraftLabel =
     shipment.aircraft?.acronym ?? shipment.external_aircraft ?? "N/A";
 

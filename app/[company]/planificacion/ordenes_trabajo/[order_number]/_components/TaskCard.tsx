@@ -2,6 +2,7 @@ import { WorkOrder } from '@/types'
 import React from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from '@/components/ui/badge'
+import { workOrderStatusLabelEsUpper } from '@/lib/planificacion/statuses'
 
 type WorkOrderTask = WorkOrder["work_order_tasks"][0]
 
@@ -24,7 +25,7 @@ const TaskCard = ({
       <CardHeader>
         <CardTitle className='flex gap-2 items-center'>
           {isNonRoutine ? 'No Rutinaria' : `Item - ${index + 1}`}
-          <Badge className={task.status === "ABIERTO" ? "bg-primary" : "bg-red-500"}>{task.status}</Badge>
+          <Badge className={task.status === "OPEN" ? "bg-primary" : "bg-red-500"}>{workOrderStatusLabelEsUpper(task.status)}</Badge>
         </CardTitle>
         {isNonRoutine && task.non_routine && (
           <CardDescription>

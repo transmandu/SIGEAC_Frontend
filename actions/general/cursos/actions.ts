@@ -179,9 +179,9 @@ export const useUpdateCourseCalendar = () => {
 
   const updateCourseMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: any }) => {
-      if (data.status === "CERRADO") {
+      if (data.status === "CLOSED") {
         throw new Error(
-          "No se puede actualizar el calendario de un curso con estatus CERRADO."
+          "No se puede actualizar el calendario de un curso cerrado."
         );
       }
       const response = await axiosInstance.patch(
@@ -197,7 +197,7 @@ export const useUpdateCourseCalendar = () => {
       });
     },
     onError: (error) => {
-      // El bloqueo por curso CERRADO se lanza aquí mismo, así que error.message
+      // El bloqueo por curso cerrado se lanza aquí mismo, así que error.message
       // ya viene redactado para el usuario.
       const errorMessage = error.message || "No se pudo actualizar el curso...";
       toast.error("Oops!", {

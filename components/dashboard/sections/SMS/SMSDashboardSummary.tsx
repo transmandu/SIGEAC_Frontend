@@ -28,6 +28,7 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { trainingStatusLabelEsUpper } from "@/lib/cursos/statuses";
 
 interface DashboardSummaryProps {
   companySlug: string;
@@ -207,14 +208,14 @@ export default function DashboardSummary({ companySlug }: DashboardSummaryProps)
 
                       <span
                         className={`text-[11px] px-2 py-0.5 rounded font-medium ${
-                          t.status === "VALIDO"
+                          t.status === "VALID"
                             ? "bg-green-100 text-green-700"
-                            : t.status === "POR_VENCER"
+                            : t.status === "EXPIRING_SOON"
                               ? "bg-yellow-100 text-yellow-700"
                               : "bg-red-100 text-red-700"
                         }`}
                       >
-                        {t.status}
+                        {trainingStatusLabelEsUpper(t.status)}
                       </span>
                     </div>
 

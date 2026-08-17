@@ -95,8 +95,8 @@ export default function CreateBankForm({ onClose, bank }: FormProps) {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="NACIONAL">Nacional</SelectItem>
-                  <SelectItem value="EXTRANJERO">Extranjero</SelectItem>
+                  <SelectItem value="DOMESTIC">Nacional</SelectItem>
+                  <SelectItem value="FOREIGN">Extranjero</SelectItem>
                 </SelectContent>
               </Select>
               <FormDescription>Nacional o extranjero.</FormDescription>

@@ -29,6 +29,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { useDeleteUniformItem } from "@/actions/sms/uniforms/actions";
 import { UniformItem } from "@/hooks/sms/useGetUniforms";
 import { getUniformTypeIcon } from "@/components/sms/uniform-meta";
+import { uniformCompanyLabel, uniformGenderLabel } from "@/lib/sms/uniforms";
 
 import { InventoryRowActions } from "./row-actions";
 
@@ -138,7 +139,7 @@ export function UniformInventoryGrid({
       if (lowStockOnly && !item.is_low_stock) return false;
       if (term) {
         const haystack =
-          `${item.type_label} ${item.company_label} ${item.brand_label ?? ""} ${item.gender_label ?? ""} ${item.size}`.toLowerCase();
+          `${item.type_label} ${uniformCompanyLabel(item.company)} ${item.brand_label ?? ""} ${uniformGenderLabel(item.gender) ?? ""} ${item.size}`.toLowerCase();
         if (!haystack.includes(term)) return false;
       }
       return true;
@@ -149,16 +150,16 @@ export function UniformInventoryGrid({
   const stacks = useMemo(() => {
     const map = new Map<string, UniformStack>();
     filteredItems.forEach((item) => {
-      const key = `${item.uniform_article_type_id}__${item.uniform_brand_id}__${item.company_label}__${item.gender}`;
+      const key = `${item.uniform_article_type_id}__${item.uniform_brand_id}__${item.company}__${item.gender}`;
       let stack = map.get(key);
       if (!stack) {
         stack = {
           key,
           article_type_id: item.uniform_article_type_id,
           type_label: item.type_label,
-          company_label: item.company_label,
+          company_label: uniformCompanyLabel(item.company),
           brand_label: item.brand_label,
-          gender_label: item.gender_label,
+          gender_label: uniformGenderLabel(item.gender),
           items: [],
           totalStock: 0,
           lowStockCount: 0,

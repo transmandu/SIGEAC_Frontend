@@ -20,6 +20,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, Save } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { uniformCompanyLabel, uniformGenderLabel } from "@/lib/sms/uniforms";
 
 const formSchema = z.object({
   min_stock: z.coerce.number().int().min(0),
@@ -65,8 +66,10 @@ export const EditUniformItemForm = ({ item, onClose }: Props) => {
           <span className="text-sm font-medium">
             {item.type_label}
             {item.brand_label ? ` · ${item.brand_label}` : ""} · Talla{" "}
-            {item.size} · {item.company_label}
-            {item.gender_label ? ` · ${item.gender_label}` : ""}
+            {item.size} · {uniformCompanyLabel(item.company)}
+            {uniformGenderLabel(item.gender)
+              ? ` · ${uniformGenderLabel(item.gender)}`
+              : ""}
           </span>
         </div>
 

@@ -70,7 +70,7 @@ const ReceptionRegisterArticleForm = ({
     initialData,
 }: IRegisterArticleProps) => {
     const [type, setType] = useState(
-        initialData?.batch.category.toUpperCase() ?? "COMPONENTE",
+        initialData?.batch.category.toUpperCase() ?? "COMPONENT",
     );
     function handleTypeSelect(data: string) {
         setType(data);
@@ -94,23 +94,23 @@ const ReceptionRegisterArticleForm = ({
                     <SelectValue placeholder="Seleccionar..." />
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem value="CONSUMIBLE">CONSUMIBLE</SelectItem>
-                    <SelectItem value="COMPONENTE">COMPONENTE</SelectItem>
-                    <SelectItem value="HERRAMIENTA">HERRAMIENTA</SelectItem>
-                    <SelectItem value="PARTE">PARTE</SelectItem>
+                    <SelectItem value="CONSUMABLE">CONSUMIBLE</SelectItem>
+                    <SelectItem value="COMPONENT">COMPONENTE</SelectItem>
+                    <SelectItem value="TOOL">HERRAMIENTA</SelectItem>
+                    <SelectItem value="PART">PARTE</SelectItem>
                     <SelectItem value="GENERAL">GENERAL</SelectItem>
                 </SelectContent>
             </Select>
-            {type === "CONSUMIBLE" && (
+            {type === "CONSUMABLE" && (
                 <ReceptionRegisterConsumableForm isEditing={isEditing} initialData={initialData} />
             )}
-            {type === "HERRAMIENTA" && (
+            {type === "TOOL" && (
                 <ReceptionRegisterToolForm isEditing={isEditing} initialData={initialData} />
             )}
-            {type === "COMPONENTE" && (
+            {type === "COMPONENT" && (
                 <ReceptionRegisterComponentForm isEditing={isEditing} initialData={initialData} />
             )}
-            {type === "PARTE" && (
+            {type === "PART" && (
                 <ReceptionRegisterPartForm isEditing={isEditing} initialData={initialData} />
             )}
             {type === "GENERAL" && <CreateGeneralArticleForm />}

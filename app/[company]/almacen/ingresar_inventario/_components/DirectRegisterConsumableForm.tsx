@@ -739,7 +739,7 @@ export default function DirectRegisterConsumableForm({
             selectedCompany?.slug,
             selectedStation || undefined,
             partNumberToSearch,
-            "CONSUMIBLE",
+            "CONSUMABLE",
         );
 
     const { createArticle } = useCreateArticle();

@@ -138,27 +138,38 @@ export const timelineEntryLabel = (value: string) => {
   return es ? `${es} (${formatStatusLabel(key)})` : statusOptionLabel(key);
 };
 
-/** Estado de calibración de la herramienta: vive en `tools.status`, no en el artículo. */
-export const TOOL_STATUSES = ["CALIBRADO", "VENCIDO", "EN CALIBRACION"] as const;
+/**
+ * Estado de calibración de la herramienta: vive en `tools.status`, no en el
+ * artículo. Debe coincidir con Tool::STATUSES del backend.
+ *
+ * NOT_APPLICABLE queda fuera de las opciones de filtro (no es un estado del
+ * ciclo, sino su ausencia) pero sí se traduce, porque se muestra en la tabla.
+ */
+export const TOOL_STATUSES = ["CALIBRATED", "EXPIRED", "IN_CALIBRATION"] as const;
 
 export type ToolStatus = (typeof TOOL_STATUSES)[number];
 
-const TOOL_STATUS_EN: Record<ToolStatus, string> = {
-  CALIBRADO: "Calibrated",
-  VENCIDO: "Expired",
-  "EN CALIBRACION": "In Calibration",
+const TOOL_STATUS_ES: Record<string, string> = {
+  CALIBRATED: "Calibrado",
+  EXPIRED: "Vencido",
+  IN_CALIBRATION: "En calibración",
+  NOT_APPLICABLE: "No aplica",
 };
 
-const TOOL_STATUS_ES: Record<ToolStatus, string> = {
-  CALIBRADO: "Calibrado",
-  VENCIDO: "Vencido",
-  "EN CALIBRACION": "En calibración",
+export const toolStatusLabelEs = (status?: string | null) => {
+  if (!status) return "N/A";
+  const key = status.trim().toUpperCase();
+  return TOOL_STATUS_ES[key] ?? formatStatusLabel(key);
 };
+
+/** Igual que toolStatusLabelEs, en mayúsculas: "CALIBRADO". */
+export const toolStatusLabelEsUpper = (status?: string | null) =>
+  toolStatusLabelEs(status).toLocaleUpperCase("es");
 
 /**
  * Prefijo que distingue un subestado de herramienta de un `articles.status`.
  * Ambos comparten el mismo filtro de columna, pero se resuelven contra campos
- * distintos: sin el prefijo, "VENCIDO" se buscaría en articles.status.
+ * distintos: sin el prefijo, "EXPIRED" se buscaría en articles.status.
  */
 export const TOOL_STATUS_PREFIX = "tool:";
 
@@ -178,5 +189,5 @@ export const ARTICLE_STATUS_OPTIONS = ARTICLE_STATUSES.map((value) => ({
 
 export const TOOL_STATUS_OPTIONS = TOOL_STATUSES.map((value) => ({
   value: toolStatusFilterValue(value),
-  label: `${TOOL_STATUS_ES[value]} (${TOOL_STATUS_EN[value]})`,
+  label: `${TOOL_STATUS_ES[value]} (${formatStatusLabel(value)})`,
 }));

@@ -32,6 +32,7 @@ import { UniformBrandForm } from "@/components/forms/sms/UniformBrandForm";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, Plus } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { uniformCompanyLabel, uniformGenderLabel } from "@/lib/sms/uniforms";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -217,8 +218,8 @@ export const CreateUniformItemForm = ({ onClose }: Props) => {
                   </FormControl>
                   <SelectContent>
                     {options?.companies.map((c) => (
-                      <SelectItem key={c.value} value={c.value}>
-                        {c.label}
+                      <SelectItem key={c} value={c}>
+                        {uniformCompanyLabel(c)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -242,8 +243,8 @@ export const CreateUniformItemForm = ({ onClose }: Props) => {
                   </FormControl>
                   <SelectContent>
                     {options?.genders.map((g) => (
-                      <SelectItem key={g.value} value={g.value}>
-                        {g.label}
+                      <SelectItem key={g} value={g}>
+                        {uniformGenderLabel(g)}
                       </SelectItem>
                     ))}
                   </SelectContent>

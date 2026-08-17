@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import axiosInstance from "@/lib/axios"
 import { toast } from "sonner"
+import { workOrderStatusLabelEsUpper } from "@/lib/planificacion/statuses"
 
   type HoursMode = "auto" | "manual";
   const WorkOrderAircraftDetailsCards = ({ work_order }: { work_order: WorkOrder }) => {
@@ -161,7 +162,7 @@ import { toast } from "sonner"
           </div>
         </CardContent>
         <CardFooter className="flex flex-col gap-6">
-          <Badge className={work_order.status === "ABIERTO" ? "bg-green-500 text-white" : "bg-red-500 text-white"}>{work_order.status}</Badge>
+          <Badge className={work_order.status === "OPEN" ? "bg-green-500 text-white" : "bg-red-500 text-white"}>{workOrderStatusLabelEsUpper(work_order.status)}</Badge>
 
          <PdfPreviewDialog
             fileName={`WO_${work_order.order_number}`}
@@ -177,7 +178,7 @@ import { toast } from "sonner"
               <Input
                 type="file"
                 accept="application/pdf"
-                disabled={work_order.status === "CERRADO" || isUploading}
+                disabled={work_order.status === "CLOSED" || isUploading}
                 className={cn(
                   "h-9 text-xs cursor-pointer bg-muted/50 hover:bg-muted transition-colors",
                   isUploading && "opacity-50 cursor-not-allowed"
@@ -206,7 +207,7 @@ import { toast } from "sonner"
                   triggerVariant="outline"
                 />
             )}
-            {work_order.document && work_order.status !== "CERRADO" && (
+            {work_order.document && work_order.status !== "CLOSED" && (
             <AlertDialog open={closeDialogOpen} onOpenChange={setCloseDialogOpen}>
               <AlertDialogTrigger asChild>
                 <Button variant="destructive" className="gap-2 hover:bg-red-500">

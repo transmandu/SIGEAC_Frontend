@@ -32,9 +32,7 @@ export interface UniformItem {
   current_stock: number;
   is_low_stock: boolean;
   type_label: string;
-  company_label: string;
   brand_label: string | null;
-  gender_label: string | null;
   article_type?: UniformArticleType;
   brand?: UniformBrand;
   movements_sum_quantity?: number | null;
@@ -46,7 +44,6 @@ export interface UniformMovement {
   id: number;
   uniform_item_id: number;
   movement_type: string;
-  movement_type_label: string;
   quantity: number;
   recipient_name: string | null;
   date: string;
@@ -75,9 +72,10 @@ export interface UniformBrandOption {
 export interface UniformOptions {
   types: UniformTypeOption[];
   brands: UniformBrandOption[];
-  companies: UniformOption[];
-  genders: UniformOption[];
-  movement_types: UniformOption[];
+  /** Valores canónicos; la etiqueta la resuelve lib/sms/uniforms. */
+  companies: string[];
+  genders: string[];
+  movement_types: string[];
 }
 
 export const useGetUniformItems = (

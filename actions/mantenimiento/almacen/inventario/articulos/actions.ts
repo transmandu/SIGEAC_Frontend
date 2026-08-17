@@ -164,6 +164,12 @@ const serializeFormValue = (value: unknown) => {
     return format(value, "yyyy-MM-dd");
   }
 
+  // El "false" de un boolean es un string no vacío, y PHP lo lee como true:
+  // un checkbox desmarcado activaba la rama contraria en el backend.
+  if (typeof value === "boolean") {
+    return value ? "1" : "0";
+  }
+
   return value?.toString() ?? "";
 };
 

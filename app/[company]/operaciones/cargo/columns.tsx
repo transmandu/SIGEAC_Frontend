@@ -233,7 +233,8 @@ export const getColumns = (
           className: "bg-orange-500 hover:bg-orange-500/80",
         },
       };
-      const c = config[status] || config.pending;
+      // El backend sirve el estado en mayúsculas; las claves son minúsculas.
+      const c = config[status?.toLowerCase()] || config.pending;
       return (
         <div className="text-center">
           <Badge variant={c.variant as any} className={c.className}>

@@ -271,7 +271,7 @@ export const useCloseWorkOrder = () => {
     }) => {
       // Usamos PATCH solo para cambiar el status
       await axiosInstance.patch(`/${company}/work-orders/${id}`, {
-        status: "CERRADO",
+        status: "CLOSED",
       });
     },
     onSuccess: () => {

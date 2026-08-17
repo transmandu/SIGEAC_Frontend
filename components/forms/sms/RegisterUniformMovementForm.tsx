@@ -31,6 +31,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertTriangle, Loader2, PackagePlus } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import {
+  uniformCompanyLabel,
+  uniformGenderLabel,
+  uniformMovementTypeLabel,
+} from "@/lib/sms/uniforms";
 
 const ISSUANCE = "ISSUANCE";
 const ADJUSTMENT = "ADJUSTMENT";
@@ -159,8 +164,11 @@ export const RegisterUniformMovementForm = ({ onClose, itemId }: Props) => {
                     <SelectItem key={i.id} value={String(i.id)}>
                       {i.type_label}
                       {i.brand_label ? ` · ${i.brand_label}` : ""} · {i.size} ·{" "}
-                      {i.company_label}
-                      {i.gender_label ? ` · ${i.gender_label}` : ""} (stock:{" "}
+                      {uniformCompanyLabel(i.company)}
+                      {uniformGenderLabel(i.gender)
+                        ? ` · ${uniformGenderLabel(i.gender)}`
+                        : ""}{" "}
+                      (stock:{" "}
                       {i.current_stock})
                     </SelectItem>
                   ))}
@@ -201,14 +209,14 @@ export const RegisterUniformMovementForm = ({ onClose, itemId }: Props) => {
                 </FormControl>
                 <SelectContent>
                   {options?.movement_types.map((m) => {
-                    const Icon = MOVEMENT_TYPE_META[m.value]?.Icon;
+                    const Icon = MOVEMENT_TYPE_META[m]?.Icon;
                     return (
-                      <SelectItem key={m.value} value={m.value}>
+                      <SelectItem key={m} value={m}>
                         <span className="flex items-center gap-2">
                           {Icon && (
                             <Icon className="size-4 text-muted-foreground" />
                           )}
-                          {m.label}
+                          {uniformMovementTypeLabel(m)}
                         </span>
                       </SelectItem>
                     );

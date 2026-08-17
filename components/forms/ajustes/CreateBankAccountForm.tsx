@@ -191,8 +191,8 @@ export default function CreateBankAccountForm({ onClose, account }: FormProps) {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="AHORRO">Ahorro</SelectItem>
-                    <SelectItem value="CORRIENTE">Corriente</SelectItem>
+                    <SelectItem value="SAVINGS">Ahorro</SelectItem>
+                    <SelectItem value="CHECKING">Corriente</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormDescription>Ahorro o corriente.</FormDescription>
@@ -219,8 +219,8 @@ export default function CreateBankAccountForm({ onClose, account }: FormProps) {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value={"NATURAL"}>Natural</SelectItem>
-                    <SelectItem value={"JURIDICA"}>Jurídica</SelectItem>
+                    <SelectItem value={"INDIVIDUAL"}>Natural</SelectItem>
+                    <SelectItem value={"CORPORATE"}>Jurídica</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormDescription>Tipo de titular de la cuenta.</FormDescription>

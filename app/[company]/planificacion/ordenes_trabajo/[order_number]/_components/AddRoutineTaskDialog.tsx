@@ -65,7 +65,7 @@ export function AddRoutineTaskDialog({work_order_id}: {work_order_id: string}) {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     await addWorkOrderTask.mutateAsync({work_order_id: work_order_id, data: {
       ...values,
-      status: "ABIERTO",
+      status: "OPEN",
     }});
     form.reset()
     setOpen(false);
