@@ -31,6 +31,7 @@ import { useState } from "react";
 import TaskCard from "./TaskCard";
 import { TaskDetailsDialog } from "./TaskDetailsDialog";
 import { cn } from "@/lib/utils";
+import { workOrderStatusLabelEsUpper } from "@/lib/planificacion/statuses";
 
 interface NonRoutineTasksListProps {
   tasks: WorkOrderTask[];
@@ -116,10 +117,10 @@ export const NonRoutineTasksList = ({ tasks }: NonRoutineTasksListProps) => {
                           <Badge
                             className={cn(
                               "ml-2",
-                              mainTask.status === "ABIERTO" ? "" : "bg-red-500"
+                              mainTask.status === "OPEN" ? "" : "bg-red-500"
                             )}
                           >
-                            {nonRoutine.status}
+                            {workOrderStatusLabelEsUpper(nonRoutine.status)}
                           </Badge>
                         </CardTitle>
                         <CardDescription>
@@ -237,12 +238,12 @@ export const NonRoutineTasksList = ({ tasks }: NonRoutineTasksListProps) => {
                       <TableCell>
                         <Badge
                           variant={
-                            mainTask.status === "ABIERTO"
+                            mainTask.status === "OPEN"
                               ? "default"
                               : "secondary"
                           }
                         >
-                          {mainTask.status}aa
+                          {workOrderStatusLabelEsUpper(mainTask.status)}aa
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -278,12 +279,12 @@ export const NonRoutineTasksList = ({ tasks }: NonRoutineTasksListProps) => {
                           <TableCell>
                             <Badge
                               variant={
-                                subtask.status === "ABIERTO"
+                                subtask.status === "OPEN"
                                   ? "default"
                                   : "secondary"
                               }
                             >
-                              {subtask.status}
+                              {workOrderStatusLabelEsUpper(subtask.status)}
                             </Badge>
                           </TableCell>
                           <TableCell>

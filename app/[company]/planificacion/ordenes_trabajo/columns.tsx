@@ -11,6 +11,7 @@ import { WorkOrder } from "@/types"
 import { format, parseISO } from "date-fns"
 import { es } from "date-fns/locale"
 import Link from "next/link"
+import { workOrderStatusLabelEsUpper } from "@/lib/planificacion/statuses"
 
 export const columns: ColumnDef<WorkOrder>[] = [
   {
@@ -90,14 +91,14 @@ export const columns: ColumnDef<WorkOrder>[] = [
         <div className="flex justify-center">
           <Badge
             className={`font-semibold ${
-              status === "ABIERTO"
+              status === "OPEN"
                 ? "bg-green-500 text-white dark:bg-green-600"
-                : status === "CERRADO"
+                : status === "CLOSED"
                   ? "bg-red-500 text-white dark:bg-red-600"
                   : "bg-gray-500 text-white dark:bg-gray-600"
             }`}
           >
-            {status}
+            {workOrderStatusLabelEsUpper(status)}
           </Badge>
         </div>
       );

@@ -50,6 +50,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+import { workOrderStatusLabelEsUpper } from "@/lib/planificacion/statuses";
 
 // ─── Schema de validación ────────────────────────────────────────────────────
 const editWorkOrderSchema = z.object({
@@ -93,7 +94,7 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
   const { addWorkOrderTask } = useAddWorkOrderTask();
   const { deleteWorkOrderTask } = useDeleteWorkOrderTask();
 
-  const isClosed = work_order.status === "CERRADO";
+  const isClosed = work_order.status === "CLOSED";
 
   // ─── Estado local de tareas ─────────────────────────────────────────────
   const [tasks, setTasks] = useState<EditableTask[]>(() =>
@@ -216,7 +217,7 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
 
     if (isClosed) {
       toast.error("Orden cerrada", {
-        description: "No se puede editar una orden de trabajo con estado CERRADO.",
+        description: "No se puede editar una orden de trabajo cerrada.",
       });
       return;
     }
@@ -334,14 +335,14 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
             <p className="text-xs text-muted-foreground">Estado</p>
             <Badge
               className={
-                work_order.status === "ABIERTO"
+                work_order.status === "OPEN"
                   ? "bg-green-500 text-white pointer-events-none"
-                  : work_order.status === "CERRADO"
+                  : work_order.status === "CLOSED"
                   ? "bg-red-500 text-white pointer-events-none"
                   : "bg-gray-400 text-white pointer-events-none"
               }
             >
-              {work_order.status}
+              {workOrderStatusLabelEsUpper(work_order.status)}
             </Badge>
           </div>
         </div>

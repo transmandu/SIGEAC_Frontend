@@ -12,6 +12,7 @@ import { Check, Filter, Grid, List, Loader2, PackageCheck, Plus, Search } from "
 import { useState } from "react"
 import TaskCard from "./TaskCard"
 import { AddRoutineTaskDialog } from "./AddRoutineTaskDialog"
+import { workOrderStatusLabelEsUpper } from "@/lib/planificacion/statuses"
 
 type WorkOrderTask = WorkOrder["work_order_tasks"][0]
 
@@ -32,7 +33,7 @@ export const RoutineTasksList = ({
 }: RoutineTasksListProps) => {
   const [searchTerm, setSearchTerm] = useState("")
   const [viewMode, setViewMode] = useState<"cards" | "table">("cards")
-  const [statusFilter, setStatusFilter] = useState<"all" | "ABIERTO" | "CERRADO">("all")
+  const [statusFilter, setStatusFilter] = useState<"all" | "OPEN" | "CLOSED">("all")
 
   const filteredTasks = tasks
     .filter(task => {
@@ -50,7 +51,7 @@ export const RoutineTasksList = ({
     })
     .sort((a, b) => {
       if (a.status !== b.status) {
-        return a.status === "ABIERTO" ? -1 : 1
+        return a.status === "OPEN" ? -1 : 1
       }
       return a.id - b.id
     })
@@ -77,17 +78,17 @@ export const RoutineTasksList = ({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              {["all", "ABIERTO", "CERRADO"].map((filter) => (
+              {["all", "OPEN", "CLOSED"].map((filter) => (
                 <DropdownMenuItem
                   key={filter}
-                  onClick={() => setStatusFilter(filter as "all" | "ABIERTO" | "CERRADO")}
+                  onClick={() => setStatusFilter(filter as "all" | "OPEN" | "CLOSED")}
                   className="flex items-center gap-2"
                 >
                   <Check className={cn(
                     "h-4 w-4",
                     statusFilter !== filter && "invisible"
                   )} />
-                  {filter === "all" ? "Todos" : filter === "ABIERTO" ? "Abiertas" : "Cerradas"}
+                  {filter === "all" ? "Todos" : filter === "OPEN" ? "Abiertas" : "Cerradas"}
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>
@@ -214,8 +215,8 @@ export const RoutineTasksList = ({
                     )}
                   </TableCell>
                   <TableCell>
-                    <Badge variant={task.status === "ABIERTO" ? "default" : "secondary"}>
-                      {task.status}
+                    <Badge variant={task.status === "OPEN" ? "default" : "secondary"}>
+                      {workOrderStatusLabelEsUpper(task.status)}
                     </Badge>
                   </TableCell>
                 </TableRow>

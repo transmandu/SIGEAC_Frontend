@@ -55,7 +55,7 @@ const WorkOrderTasksDetails = ({ work_order }: { work_order: WorkOrder }) => {
   // Calcula estadísticas de progreso
   const { completedCount, totalCount, progressValue } = useMemo(() => {
     const total = work_order.work_order_tasks.length
-    const completed = work_order.work_order_tasks.filter(task => task.status === "CERRADO").length
+    const completed = work_order.work_order_tasks.filter(task => task.status === "CLOSED").length
     return {
       completedCount: completed,
       totalCount: total,
