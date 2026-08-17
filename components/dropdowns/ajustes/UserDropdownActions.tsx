@@ -8,8 +8,10 @@ import {
 
 import { useDeleteUser } from "@/actions/aerolinea/usuarios/actions"
 import { EditUserDialog } from "@/components/dialogs/ajustes/EditUserDialog"
+import ResolvePasswordResetDialog from "@/components/dialogs/sistema/ResolvePasswordResetDialog"
+import { usePendingPasswordResets } from "@/hooks/sistema/usuario/usePasswordResetRequests"
 import { User } from "@/types"
-import { Eye, Loader2, MoreHorizontal, Trash2, UserPen } from "lucide-react"
+import { Eye, KeyRound, Loader2, MoreHorizontal, Trash2, UserPen } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { Button } from "../../ui/button"
@@ -18,8 +20,15 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 const UserDropdownActions = ({ user, companies }: { user: User, companies: { id: number, name: string }[] }) => {
 
   const [open, setOpen] = useState<boolean>(false)
+  const [resetOpen, setResetOpen] = useState<boolean>(false)
   const { deleteUser } = useDeleteUser()
   const router = useRouter()
+
+  const { data: pending } = usePendingPasswordResets()
+
+  // Solo se ofrece si hay solicitud pendiente: sin acción, sin ítem muerto.
+  const pendingRequest =
+    pending?.requests.find((r) => r.user_id === user.id) ?? null
   const handleDelete = async (id: number | string, companies: { id: number, name: string }[]) => {
     await deleteUser.mutateAsync({ id: user.id, companies });
     setOpen(false);
@@ -27,7 +36,7 @@ const UserDropdownActions = ({ user, companies }: { user: User, companies: { id:
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DropdownMenu>
-        <DropdownMenuTrigger>
+        <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="h-8 w-8 p-0">
             <span className="sr-only">Abrir menu</span>
             <MoreHorizontal className="h-4 w-4" />
@@ -43,8 +52,19 @@ const UserDropdownActions = ({ user, companies }: { user: User, companies: { id:
             </DropdownMenuItem>
           </DialogTrigger>
             <EditUserDialog user={user}/>
+          {pendingRequest && (
+            <DropdownMenuItem onClick={() => setResetOpen(true)}>
+              <KeyRound className="size-5 text-amber-500" />
+            </DropdownMenuItem>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
+
+      <ResolvePasswordResetDialog
+        request={pendingRequest}
+        open={resetOpen}
+        onOpenChange={setResetOpen}
+      />
       <DialogContent>
         <DialogHeader>
           <DialogTitle className="text-center">¿Seguro que desea eliminar el usuario?</DialogTitle>

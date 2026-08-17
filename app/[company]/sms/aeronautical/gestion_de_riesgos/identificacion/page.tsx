@@ -22,6 +22,7 @@ import {
 } from '../_components/report-helpers';
 import { ReportDetailsPanel } from '../_components/report-details-panel';
 import { ReportSelectionPanel } from '../_components/report-selection-panel';
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const Identification = () => {
     const params = useParams<{ company: string }>();
@@ -114,6 +115,8 @@ const Identification = () => {
 
     return (
         <ContentLayout title="Notificación de peligro">
+          <PageHeader className="mb-6" />
+
             <div className="grid gap-6 xl:grid-cols-[380px_minmax(0,1fr)]">
                 <ReportSelectionPanel
                     activeTab={activeTab}

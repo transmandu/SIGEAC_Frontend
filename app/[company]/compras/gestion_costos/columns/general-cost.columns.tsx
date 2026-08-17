@@ -3,9 +3,18 @@
 import { ColumnDef } from '@tanstack/react-table'
 import { DataTableColumnHeader } from '@/components/tables/DataTableHeader'
 import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { History, Lock } from 'lucide-react'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import React from 'react'
 import type { GeneralCostRow, GeneralCostColumnsArgs } from '@/types/purchase'
+import { costInBaseUnit } from '../_utils/costInBaseUnit'
 
 export type { GeneralCostRow, GeneralCostColumnsArgs }
 
@@ -27,6 +36,7 @@ const isModified = (
 
 export function getGeneralCostColumns({
   onCostChange,
+  onViewHistory,
 }: GeneralCostColumnsArgs): ColumnDef<GeneralCostRow>[] {
 
   return [
@@ -83,6 +93,23 @@ export function getGeneralCostColumns({
     },
 
     {
+      accessorKey: 'unit_label',
+      size: 120,
+      header: ({ column }) => (
+        <div className="flex justify-center w-full">
+          <DataTableColumnHeader column={column} title="Unidad" />
+        </div>
+      ),
+      cell: ({ row }) => (
+        <div className="flex justify-center w-full">
+          <span className="select-none inline-flex items-center rounded-md border border-slate-200 dark:border-slate-700/60 bg-slate-100/70 dark:bg-slate-800/40 px-2 py-0.5 text-xs font-medium text-slate-600 dark:text-slate-300">
+            {row.original.unit_label ?? '—'}
+          </span>
+        </div>
+      ),
+    },
+
+    {
       accessorKey: 'cost',
       size: 140,
       header: ({ column }) => (
@@ -94,10 +121,34 @@ export function getGeneralCostColumns({
       cell: ({ row, table }) => {
         const id = row.original.id
         const current = row.original.cost
+        const hasCost = Number(current ?? 0) > 0
         const meta = table.options.meta as any
         const costDrafts = meta?.costDrafts ?? {}
         const draft = costDrafts[id]
-        const modified = isModified(id, costDrafts, current)
+        const modified = !hasCost && isModified(id, costDrafts, current)
+
+        // El costo crudo más reciente puede estar en una unidad distinta a la
+        // base (ej: $10 · CAJA). La columna muestra el equivalente POR UNIDAD
+        // BASE ($0.50 · UNID); el sheet de historial conserva el costo crudo.
+        const latest = row.original.cost_history?.[0]
+        const rawUnitId = latest?.unit_id ?? null
+        const baseUnitId = row.original.primary_unit_id ?? null
+        const baseCost = costInBaseUnit(
+          Number(current ?? 0),
+          rawUnitId,
+          baseUnitId,
+          row.original.conversions,
+        )
+        const convertedFromUnit =
+          hasCost &&
+          rawUnitId != null &&
+          baseUnitId != null &&
+          rawUnitId !== baseUnitId &&
+          baseCost !== Number(current ?? 0)
+
+        const baseCostValue = Number.isInteger(baseCost)
+          ? String(baseCost)
+          : String(Number(baseCost.toFixed(4)))
 
         const currentValue =
           current !== undefined && current !== null ? String(current) : '0'
@@ -106,6 +157,50 @@ export function getGeneralCostColumns({
           draft !== undefined && draft !== null
             ? String(draft)
             : ''
+
+        if (hasCost) {
+          return (
+            <div className="flex justify-center w-full">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div
+                      className="
+                        flex items-center gap-1.5 rounded-md border px-2 py-1
+                        bg-slate-100/70 dark:bg-slate-800/40
+                        border-slate-200 dark:border-slate-700/60
+                        cursor-default
+                      "
+                    >
+                      <span className="text-xs text-muted-foreground">$</span>
+                      <span className="text-sm tabular-nums text-center text-foreground">
+                        {baseCostValue}
+                      </span>
+                      {convertedFromUnit ? (
+                        <span className="text-[10px] text-muted-foreground">
+                          /{row.original.unit_label}
+                        </span>
+                      ) : null}
+                      <Lock className="h-3 w-3 text-muted-foreground" />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="text-xs max-w-[240px] text-center">
+                    {convertedFromUnit ? (
+                      <>
+                        Costo más reciente: ${currentValue}
+                        {latest?.unit_label ? ` · ${latest.unit_label}` : ''}.
+                        Equivale a ${baseCostValue} por {row.original.unit_label}.
+                        Solo cambia con una nueva compra.
+                      </>
+                    ) : (
+                      'Este artículo ya tiene costo registrado. Solo cambia con una nueva compra.'
+                    )}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+          )
+        }
 
         return (
           <div className="flex justify-center w-full">
@@ -163,6 +258,24 @@ export function getGeneralCostColumns({
           </div>
         )
       },
+    },
+
+    {
+      id: 'history',
+      size: 60,
+      header: () => <div className="flex justify-center w-full text-xs text-muted-foreground">Historial</div>,
+      cell: ({ row }) => (
+        <div className="flex justify-center w-full">
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-7 w-7 text-muted-foreground hover:text-foreground"
+            onClick={() => onViewHistory?.(row.original)}
+          >
+            <History className="h-4 w-4" />
+          </Button>
+        </div>
+      ),
     },
   ]
 }

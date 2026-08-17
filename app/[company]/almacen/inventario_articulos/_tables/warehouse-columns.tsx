@@ -9,8 +9,19 @@ import ArticleDropdownActions from "@/components/dropdowns/mantenimiento/almacen
 import { WarehouseResponse } from "@/hooks/mantenimiento/almacen/articulos/useGetWarehouseArticlesByCategory";
 import { StatusColumnHeader } from "@/components/tables/StatusColumnHeader";
 import { Unit } from "@/types";
-import { formatCondition } from "@/lib/warehouse/conditions";
+import { CONDITION_OPTIONS, formatCondition } from "@/lib/warehouse/conditions";
+import {
+    formatStatusLabel,
+    parseToolStatusFilter,
+    statusOptionLabel,
+} from "@/lib/warehouse/statuses";
+import { zoneMatches } from "@/lib/warehouse/zones";
+import { dateSortingFn, numericSortingFn, textSortingFn } from "@/lib/warehouse/sorting";
 import StatusCellWithPopover from "@/components/misc/StatusCellWithPopover";
+import ArticleImageCell from "@/components/misc/ArticleImageCell";
+import ArticleStatusSincePopover, {
+    tracksStatusSince,
+} from "@/components/misc/ArticleStatusSincePopover";
 import { Aircraft } from "@/types";
 export interface IArticleSimple {
     id: number;
@@ -19,12 +30,15 @@ export interface IArticleSimple {
     description?: string;
     unit?: Unit;
     quantity: number;
+    stock?: number;
     zone: string;
     article_type: string;
     serial?: string;
     lot_number?: string;
     status: string;
+    status_since?: string | null;
     condition: string;
+    image?: string;
     is_hazardous?: boolean;
     batch_name: string;
     batch_id: number;
@@ -59,7 +73,7 @@ export interface IArticleSimple {
 export const getStatusBadge = (status: string | null | undefined) => {
     if (!status) {
         return (
-            <Badge variant="outline" className="flex items-center gap-1 w-fit">
+            <Badge variant="outline" className="flex items-center gap-1 w-fit uppercase">
                 <XCircle className="h-3 w-3" />
             </Badge>
         );
@@ -68,30 +82,42 @@ export const getStatusBadge = (status: string | null | undefined) => {
     const statusConfig: Record<
         string,
         {
-            label: string;
             variant: "default" | "secondary" | "destructive" | "outline" | "warning";
             icon: any;
         }
     > = {
-        stored: { label: "Disponible", variant: "default", icon: CheckCircle2 },
-        checking: { label: "Revision", variant: "warning", icon: Clock },
-        dispatched: { label: "Despachado", variant: "secondary", icon: Clock },
-        inuse: { label: "En Uso", variant: "warning", icon: Clock },
-        transit: { label: "En Tránsito", variant: "outline", icon: Clock },
-        maintenance: { label: "Mantenimiento", variant: "outline", icon: Clock },
+        STORED: { variant: "default", icon: CheckCircle2 },
+        CHECKING: { variant: "warning", icon: Clock },
+        QUARANTINE: { variant: "destructive", icon: Clock },
+        PENDING_REINSPECTION: { variant: "warning", icon: Clock },
+        INCOMING: { variant: "outline", icon: Clock },
+        RECEPTION: { variant: "outline", icon: Clock },
+        WAITING_FOR_FORMAT: { variant: "warning", icon: Clock },
+        WAITING_TO_LOCATE: { variant: "warning", icon: Clock },
+        TO_DETERMINATE: { variant: "warning", icon: Clock },
+        RESERVED: { variant: "secondary", icon: Clock },
+        INTOOLBOX: { variant: "secondary", icon: Clock },
+        INUSE: { variant: "warning", icon: Clock },
+        DISPATCHED: { variant: "secondary", icon: Clock },
+        TRANSIT: { variant: "outline", icon: Clock },
+        SHELTERED: { variant: "outline", icon: Clock },
+        MAINTENANCE: { variant: "outline", icon: Clock },
     };
 
-    const config = statusConfig[status.toLowerCase()] || {
-        label: status,
+    const key = status.trim().toUpperCase();
+    const config = statusConfig[key] ?? {
         variant: "outline" as const,
         icon: XCircle,
     };
     const Icon = config.icon;
+    const label = formatStatusLabel(key);
 
     return (
-        <Badge variant={config.variant} className="flex items-center gap-1 w-fit">
+        // uppercase por CSS: el estado viene crudo del backend, no es un
+        // literal que se pueda escribir ya en mayúsculas.
+        <Badge variant={config.variant} className="flex items-center gap-1 w-fit uppercase">
             <Icon className="h-3 w-3" />
-            {config.label}
+            {label}
         </Badge>
     );
 };
@@ -118,9 +144,13 @@ export const flattenArticles = (
 
                 // ✅ No normalizar 0 -> 1
                 quantity: Number(article.quantity ?? 0),
+                stock: article.stock ?? undefined,
 
                 status: article.status,
+                status_since: article.status_since ?? null,
                 condition: article.condition ? article.condition.name : "N/A",
+                // Solo la URL ya resuelta: el File del formulario no aplica aquí.
+                image: typeof article.image === "string" ? article.image : undefined,
                 article_type: article.article_type ?? "N/A",
                 batch_name: batch.name,
                 is_hazardous: batch.is_hazardous ?? undefined,
@@ -168,6 +198,14 @@ export const flattenArticles = (
     );
 };
 
+/** Minúsculas y sin acentos: el almacén escribe indistintamente con y sin tilde. */
+const normalizeText = (value: string) =>
+    value
+        .normalize("NFD")
+        .replace(/[̀-ͯ]/g, "")
+        .toLowerCase()
+        .trim();
+
 // Helper parse local date
 const parseDateLocal = (dateString: string): Date => {
     if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
@@ -177,19 +215,56 @@ const parseDateLocal = (dateString: string): Date => {
     return parseISO(dateString);
 };
 
+const toDate = (value: string | Date | null | undefined): Date | null => {
+    if (!value) return null;
+    const date = value instanceof Date ? value : parseDateLocal(value);
+    return isNaN(date.getTime()) ? null : date;
+};
+
 // ✅ Columna cantidad (solo consumible y all)
 // Ahora: si es grupo, muestra __groupCount aquí (sin badge en PN)
 const quantityCol: ColumnDef<IArticleSimple> = {
     accessorKey: "quantity",
+    sortingFn: numericSortingFn((row) =>
+        row.stock != null
+            ? Number(row.stock)
+            : row.__isGroup
+                ? Number(row.__groupCount ?? 0)
+                : Number(row.quantity ?? 0),
+    ),
+    // El texto se compara contra la cantidad mostrada, que en un grupo es el conteo.
+    filterFn: (row, _id, value) => {
+        const raw = String(value ?? "").trim();
+        if (!raw) return true;
+
+        const shown = row.original.stock != null
+            ? Number(row.original.stock)
+            : row.original.__isGroup
+                ? Number(row.original.__groupCount ?? 0)
+                : Number(row.original.quantity ?? 0);
+
+        const range = raw.match(/^(<=|>=|<|>)\s*(\d+(?:\.\d+)?)$/);
+        if (range) {
+            const n = Number(range[2]);
+            if (range[1] === "<") return shown < n;
+            if (range[1] === "<=") return shown <= n;
+            if (range[1] === ">") return shown > n;
+            return shown >= n;
+        }
+
+        return String(shown).includes(raw);
+    },
     header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Cantidad" />
+        <DataTableColumnHeader filter column={column} title="Cantidad" />
     ),
     cell: ({ row }) => {
         const isGroup = !!row.original.__isGroup;
 
-        const q = isGroup
-            ? Number(row.original.__groupCount ?? 0)
-            : Number(row.original.quantity ?? 0);
+        const q = row.original.stock != null
+            ? Number(row.original.stock)
+            : isGroup
+                ? Number(row.original.__groupCount ?? 0)
+                : Number(row.original.quantity ?? 0);
 
         const unit = row.original.unit?.value ?? "u";
 
@@ -206,12 +281,59 @@ const quantityCol: ColumnDef<IArticleSimple> = {
     },
 };
 
+/**
+ * Las cuatro categorías comparten la misma columna de acciones. El menú se
+ * muestra en cualquier estado —el historial siempre se puede consultar— y es el
+ * propio dropdown el que decide qué ítems ofrece según el estado y el rol.
+ */
+const actionsCol: ColumnDef<IArticleSimple> = {
+    id: "actions",
+    // El sticky y el fondo los aplica la celda desde meta.sticky: repetirlos
+    // aquí pintaba un bloque opaco que no seguía el hover de la fila.
+    header: () => <div className="text-center">Acciones</div>,
+    cell: ({ row }) => {
+        const item = row.original;
+        if (item.__isGroup) return null;
+
+        return (
+            <div className="flex justify-center">
+                <ArticleDropdownActions
+                    id={item.id}
+                    status={item.status}
+                    hasDocumentation={
+                        item.has_documentation || (item.certificates?.length ?? 0) > 0
+                    }
+                    partNumber={item.part_number}
+                />
+            </div>
+        );
+    },
+    meta: { sticky: "right" } as any,
+};
+
 const buildBaseCols = (
     statusFilter?: string,
     onStatusFilterChange?: (value: string | undefined) => void,
+    showToolStatuses = false,
 ): ColumnDef<IArticleSimple>[] => [
     {
         accessorKey: "part_number",
+        sortingFn: textSortingFn((row) => row.part_number),
+        // El alterno cuenta como el mismo artículo, igual que en el backend.
+        filterFn: (row, _id, value) => {
+            const raw = String(value ?? "").trim().toLowerCase();
+            if (!raw) return true;
+
+            const matches = (article: IArticleSimple) =>
+                [article.part_number, ...(article.alternative_part_number ?? [])]
+                    .filter(Boolean)
+                    .some((pn) => String(pn).toLowerCase().includes(raw));
+
+            return row.original.__isGroup
+                ? matches(row.original) ||
+                      (row.original.subRows ?? []).some(matches)
+                : matches(row.original);
+        },
         header: ({ column }) => (
             <DataTableColumnHeader filter column={column} title="Part Number" />
         ),
@@ -223,6 +345,23 @@ const buildBaseCols = (
     },
     {
         accessorKey: "serial",
+        // La celda cae a lot_number cuando no hay serial; ordenar/filtrar sigue lo mostrado.
+        sortingFn: textSortingFn((row) => row.serial || row.lot_number),
+        // La fila agrupada muestra "—", pero se queda si alguno de sus artículos
+        // tiene el serial buscado.
+        filterFn: (row, _id, value) => {
+            const raw = String(value ?? "").trim().toLowerCase();
+            if (!raw) return true;
+
+            const matches = (article: IArticleSimple) =>
+                (article.serial || article.lot_number || "")
+                    .toLowerCase()
+                    .includes(raw);
+
+            return row.original.__isGroup
+                ? (row.original.subRows ?? []).some(matches)
+                : matches(row.original);
+        },
         header: ({ column }) => (
             <DataTableColumnHeader filter column={column} title="Serial / Lote" />
         ),
@@ -242,6 +381,20 @@ const buildBaseCols = (
     },
     {
         accessorKey: "batch_name",
+        sortingFn: textSortingFn((row) => row.batch_name),
+        // Acentos aparte: "DESCRIPCION" debe encontrar "Descripción".
+        filterFn: (row, _id, value) => {
+            const raw = normalizeText(String(value ?? ""));
+            if (!raw) return true;
+
+            const matches = (article: IArticleSimple) =>
+                normalizeText(article.batch_name ?? "").includes(raw);
+
+            return row.original.__isGroup
+                ? matches(row.original) ||
+                      (row.original.subRows ?? []).some(matches)
+                : matches(row.original);
+        },
         header: ({ column }) => (
             <DataTableColumnHeader filter column={column} title="Descripción" />
         ),
@@ -254,9 +407,51 @@ const buildBaseCols = (
         ),
     },
     {
+        id: "image",
+        header: () => (
+            <div className="flex justify-center">
+                <span className="text-sm font-medium">Img.</span>
+            </div>
+        ),
+        cell: ({ row }) =>
+            // La fila de grupo no representa un artículo concreto.
+            row.original.__isGroup ? null : (
+                <ArticleImageCell
+                    image={row.original.image}
+                    alt={row.original.description || row.original.part_number}
+                />
+            ),
+        enableSorting: false,
+        enableHiding: false,
+        // Solo el icono más un respiro lateral: sin esto la columna se reparte
+        // el ancho sobrante y queda desproporcionada para lo que muestra.
+        meta: { className: "w-[64px] px-2" } as any,
+    },
+    {
         accessorKey: "condition",
+        // Se muestra traducida: ordenar por el código crudo daría otro orden.
+        sortingFn: textSortingFn(
+            (row) => formatCondition(row.condition)?.es ?? row.condition,
+        ),
+        // El valor del selector es el `conditions.name` crudo; un grupo calza si
+        // alguno de sus artículos tiene la condición pedida.
+        filterFn: (row, _id, value) => {
+            const wanted = String(value ?? "").trim().toUpperCase();
+            if (!wanted) return true;
+
+            const matches = (article: IArticleSimple) =>
+                String(article.condition ?? "").trim().toUpperCase() === wanted;
+
+            return row.original.__isGroup
+                ? (row.original.subRows ?? []).some(matches)
+                : matches(row.original);
+        },
         header: ({ column }) => (
-            <DataTableColumnHeader filter column={column} title="Condición" />
+            <DataTableColumnHeader
+                column={column}
+                title="Condición"
+                filterOptions={CONDITION_OPTIONS}
+            />
         ),
         cell: ({ row }) => {
             const condition = row.original.condition;
@@ -282,7 +477,7 @@ const buildBaseCols = (
                         </>
                     ) : (
                         <span className="text-muted-foreground font-bold">
-                            Sin condición
+                            SIN CONDICIÓN
                         </span>
                     )}
                     {(c?.en === 'Safekeeping' || c?.en === 'As Removed') && (
@@ -297,11 +492,32 @@ const buildBaseCols = (
 
     {
         accessorKey: "status",
+        sortingFn: textSortingFn((row) => formatStatusLabel(row.status ?? "")),
+        // Un mismo filtro cubre dos campos: los subestados de calibración viven
+        // en tools.status, el resto en articles.status.
+        filterFn: (row, _id, value) => {
+            const raw = String(value ?? "").trim();
+            if (!raw) return true;
+
+            const toolStatus = parseToolStatusFilter(raw);
+
+            const matches = (article: IArticleSimple) =>
+                toolStatus
+                    ? String(article.tool?.status ?? "").trim().toUpperCase() ===
+                      toolStatus.toUpperCase()
+                    : String(article.status ?? "").trim().toUpperCase() ===
+                      raw.toUpperCase();
+
+            return row.original.__isGroup
+                ? (row.original.subRows ?? []).some(matches)
+                : matches(row.original);
+        },
         header: ({ column }) => (
             <StatusColumnHeader
                 column={column}
                 value={statusFilter}
                 onValueChange={onStatusFilterChange}
+                showToolStatuses={showToolStatuses}
             />
         ),
         cell: ({ row }) => {
@@ -310,7 +526,7 @@ const buildBaseCols = (
                     <div className="flex justify-center">
                         <Badge variant="outline" className="text-xs">
                             <p>
-                                Grupo{" "}
+                                GRUPO{" "}
                                 <span className="text-xs text-muted-foreground">
                                     ({row.original.__groupCount ?? 0})
                                 </span>
@@ -321,10 +537,22 @@ const buildBaseCols = (
             }
 
             const calibrating = row.original.tool?.status === "EN CALIBRACION";
+            const status = row.original.status?.toUpperCase();
+            const badge = getStatusBadge(status);
 
             return (
                 <div className="flex flex-col justify-center items-center space-y-2">
-                    {!calibrating && getStatusBadge(row.original.status?.toUpperCase())}
+                    {!calibrating &&
+                        (tracksStatusSince(status) ? (
+                            <ArticleStatusSincePopover
+                                statusLabel={statusOptionLabel(status ?? "")}
+                                statusSince={row.original.status_since}
+                            >
+                                {badge}
+                            </ArticleStatusSincePopover>
+                        ) : (
+                            badge
+                        ))}
 
                     {row.original.tool && <StatusCellWithPopover tool={row.original} />}
                 </div>
@@ -333,8 +561,24 @@ const buildBaseCols = (
     },
     {
         accessorKey: "zone",
+        sortingFn: textSortingFn((row) => row.zone),
+        // La ubicación vive en el artículo, no en el grupo: la fila agrupada
+        // muestra "—" pero debe quedarse si alguno de sus artículos calza.
+        filterFn: (row, _id, value) => {
+            const raw = String(value ?? "").trim();
+            if (!raw) return true;
+
+            return row.original.__isGroup
+                ? (row.original.subRows ?? []).some((a) => zoneMatches(a.zone, raw))
+                : zoneMatches(row.original.zone, raw);
+        },
         header: ({ column }) => (
-            <DataTableColumnHeader column={column} title="Ubicación" />
+            <DataTableColumnHeader
+                filter
+                column={column}
+                title="Ubicación"
+                filterHint="Por tramo: C-1, A-2, A-2-1. También sirve 'C1' o 'a 2'."
+            />
         ),
         cell: ({ row }) => (
             <div className="text-center font-medium text-sm">
@@ -354,30 +598,11 @@ const buildBaseCols = (
 export const buildComponenteCols = (
     statusFilter?: string,
     onStatusFilterChange?: (value: string | undefined) => void,
+    showQuantity = true,
 ): ColumnDef<IArticleSimple>[] => [
     ...buildBaseCols(statusFilter, onStatusFilterChange),
-    {
-        id: "actions",
-        header: () => (
-            <div className="sticky right-0 bg-background z-50 text-center">
-                Acciones
-            </div>
-        ),
-        cell: ({ row }) => {
-            const item = row.original;
-            if (item.__isGroup) return null;
-
-            if (item.status === "stored" || item.status === "checking") {
-                return (
-                    <div className="sticky right-0 bg-background z-50 flex justify-center">
-                        <ArticleDropdownActions id={item.id} />
-                    </div>
-                );
-            }
-            return null;
-        },
-        meta: { sticky: "right", className: "bg-background" } as any,
-    },
+    ...(showQuantity ? [quantityCol] : []),
+    actionsCol,
 ];
 
 // CONSUMIBLE (con cantidad)
@@ -389,6 +614,7 @@ export const buildConsumibleCols = (
     quantityCol,
     {
         id: "expiration_date",
+        sortingFn: dateSortingFn((row) => toDate(row.consumable?.expiration_date)),
         header: ({ column }) => (
             <DataTableColumnHeader column={column} title="Proximo Vencimiento" />
         ),
@@ -450,6 +676,7 @@ export const buildConsumibleCols = (
     },
     {
         id: "shelf_life",
+        sortingFn: dateSortingFn((row) => toDate(row.consumable?.shelf_life)),
         header: ({ column }) => (
             <DataTableColumnHeader column={column} title="Shelf Life" />
         ),
@@ -509,28 +736,7 @@ export const buildConsumibleCols = (
             );
         },
     },
-    {
-        id: "actions",
-        header: () => (
-            <div className="sticky right-0 bg-background z-50 text-center">
-                Acciones
-            </div>
-        ),
-        cell: ({ row }) => {
-            const item = row.original;
-            if (item.__isGroup) return null;
-
-            if (item.status === "stored" || item.status === "checking") {
-                return (
-                    <div className="sticky right-0 bg-background z-50 flex justify-center">
-                        <ArticleDropdownActions id={item.id} />
-                    </div>
-                );
-            }
-            return null;
-        },
-        meta: { sticky: "right", className: "bg-background" } as any,
-    },
+    actionsCol,
 ];
 
 // HERRAMIENTA (sin cantidad)
@@ -538,11 +744,13 @@ export const buildHerramientaCols = (
     statusFilter?: string,
     onStatusFilterChange?: (value: string | undefined) => void,
 ): ColumnDef<IArticleSimple>[] => [
-    ...buildBaseCols(statusFilter, onStatusFilterChange),
+    ...buildBaseCols(statusFilter, onStatusFilterChange, true),
     {
-        accessorKey: "model",
+        id: "model",
+        accessorFn: (row) => row.tool?.model ?? "",
+        sortingFn: textSortingFn((row) => row.tool?.model),
         header: ({ column }) => (
-            <DataTableColumnHeader column={column} title="Modelo" />
+            <DataTableColumnHeader filter column={column} title="Modelo" />
         ),
         cell: ({ row }) => (
             <div className="text-center text-sm font-bold text-muted-foreground">
@@ -551,7 +759,11 @@ export const buildHerramientaCols = (
         ),
     },
     {
-        accessorKey: "calibration_date",
+        id: "calibration_date",
+        accessorFn: (row) => row.tool?.calibration_date ?? "",
+        sortingFn: dateSortingFn((row) =>
+            row.tool?.calibration_date ? parseDateLocal(row.tool.calibration_date) : null,
+        ),
         header: ({ column }) => (
             <DataTableColumnHeader column={column} title="Fech. Calibración" />
         ),
@@ -570,6 +782,14 @@ export const buildHerramientaCols = (
     },
     {
         id: "next_calibration",
+        sortingFn: dateSortingFn((row) =>
+            row.tool?.next_calibration && row.tool.calibration_date
+                ? addDays(
+                    parseDateLocal(row.tool.calibration_date),
+                    Number(row.tool.next_calibration),
+                )
+                : null,
+        ),
         header: ({ column }) => (
             <DataTableColumnHeader column={column} title="Prox. Cal." />
         ),
@@ -598,28 +818,7 @@ export const buildHerramientaCols = (
             );
         },
     },
-    {
-        id: "actions",
-        header: () => (
-            <div className="sticky right-0 bg-background z-50 text-center">
-                Acciones
-            </div>
-        ),
-        cell: ({ row }) => {
-            const item = row.original;
-            if (item.__isGroup) return null;
-
-            if (item.status === "stored" || item.status === "checking") {
-                return (
-                    <div className="sticky right-0 bg-background z-50 flex justify-center">
-                        <ArticleDropdownActions id={item.id} />
-                    </div>
-                );
-            }
-            return null;
-        },
-        meta: { sticky: "right", className: "bg-background" } as any,
-    },
+    actionsCol,
 ];
 
 // ALL (con cantidad porque mezcla categorías)
@@ -627,43 +826,59 @@ export const buildAllCategoriesCols = (
     statusFilter?: string,
     onStatusFilterChange?: (value: string | undefined) => void,
 ): ColumnDef<IArticleSimple>[] => [
-    ...buildBaseCols(statusFilter, onStatusFilterChange),
+    // "Todos" mezcla categorías, así que también trae herramientas: el selector
+    // de estado necesita sus subestados de calibración.
+    ...buildBaseCols(statusFilter, onStatusFilterChange, true),
     quantityCol,
-    {
-        id: "actions",
-        header: () => (
-            <div className="sticky right-0 bg-background z-50 text-center">
-                Acciones
-            </div>
-        ),
-        cell: ({ row }) => {
-            const item = row.original;
-            if (item.__isGroup) return null;
-
-            if (item.status === "stored" || item.status === "checking") {
-                return (
-                    <div className="sticky right-0 bg-background z-50 flex justify-center">
-                        <ArticleDropdownActions id={item.id} />
-                    </div>
-                );
-            }
-            return null;
-        },
-        meta: { sticky: "right", className: "bg-background" } as any,
-    },
+    actionsCol,
 ];
 
 export const getColumnsByCategory = (
     cat: "all" | "COMPONENT" | "PART" | "CONSUMABLE" | "TOOL",
     statusFilter?: string,
     onStatusFilterChange?: (value: string | undefined) => void,
+    showQuantity = true,
 ): ColumnDef<IArticleSimple>[] => {
     if (cat === "TOOL") return buildHerramientaCols(statusFilter, onStatusFilterChange);
     if (cat === "CONSUMABLE") return buildConsumibleCols(statusFilter, onStatusFilterChange);
-    if (cat === "COMPONENT") return buildComponenteCols(statusFilter, onStatusFilterChange);
-    if (cat === "PART") return buildComponenteCols(statusFilter, onStatusFilterChange);
+    if (cat === "COMPONENT") return buildComponenteCols(statusFilter, onStatusFilterChange, showQuantity);
+    if (cat === "PART") return buildComponenteCols(statusFilter, onStatusFilterChange, showQuantity);
     return buildAllCategoriesCols(statusFilter, onStatusFilterChange);
 };
+
+/**
+ * Agrupa artículos CONSECUTIVOS con la misma clave. A diferencia de
+ * groupByPartNumber, respeta el orden en que llegó la lista — necesario cuando
+ * el servidor ya la ordenó.
+ */
+export function groupSequentially(
+    list: IArticleSimple[],
+    keyOf: (article: IArticleSimple) => string | number,
+) {
+    const result: IArticleSimple[] = [];
+    let bucket: IArticleSimple[] = [];
+    let currentKey: string | number | null = null;
+
+    const flush = () => {
+        if (!bucket.length) return;
+        result.push(
+            bucket.length === 1
+                ? bucket[0]
+                : { ...bucket[0], __isGroup: true, __groupCount: bucket.length, subRows: bucket },
+        );
+        bucket = [];
+    };
+
+    for (const item of list) {
+        const key = keyOf(item);
+        if (currentKey !== null && key !== currentKey) flush();
+        currentKey = key;
+        bucket.push(item);
+    }
+
+    flush();
+    return result;
+}
 
 export function groupByPartNumber(list: IArticleSimple[]) {
     const byPn: Record<string, IArticleSimple[]> = {};

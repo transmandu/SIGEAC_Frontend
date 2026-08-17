@@ -7,6 +7,7 @@ import { useCompanyStore } from '@/stores/CompanyStore';
 import { Loader2 } from 'lucide-react';
 import { columns } from './columns';
 import { DataTable } from './data-table';
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const WorkOrdersPage = () => {
 
@@ -17,7 +18,9 @@ const WorkOrdersPage = () => {
   if (isLoading) return <LoadingPage />
 
   return (
-    <ContentLayout title='Ordenes de Trabajo'>
+    <ContentLayout title="Órdenes de Trabajo">
+      <PageHeader className="mb-6" />
+
       <div className='flex flex-col gap-y-2'>
         <h1 className='text-5xl font-bold text-center'>Gestión de Ord. de Trabajo</h1>
         <p className='text-sm text-muted-foreground text-center'>

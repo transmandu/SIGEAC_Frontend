@@ -17,8 +17,8 @@ const MovementTypeBadge = ({ type }: MovementTypeBadgeProps) => {
   return (
     <Badge
       className={`text-xs ${isIncome
-        ? "bg-green-600 hover:bg-green-700"
-        : "bg-red-600 hover:bg-red-700"
+        ? "bg-green-600"
+        : "bg-red-600"
         }`}
     >
       {type}
@@ -105,7 +105,7 @@ const CashMovementResume = ({ movement }: { movement: CashMovement }) => {
                     <p className="font-medium">
                       {detail.details}
                     </p>
-                    <Badge className={cn("font-bold", movement.type === "INCOME" ? "bg-green-500 hover:bg-green-600" : "bg-red-500 hover:bg-red-600")}>Monto: ${parseFloat(detail.amount).toFixed(2)}</Badge>
+                    <Badge className={cn("font-bold", movement.type === "INCOME" ? "bg-green-500" : "bg-red-500")}>Monto: ${parseFloat(detail.amount).toFixed(2)}</Badge>
                   </CardContent>
                 </Card>
               )) : <span className="text-muted-foreground text-xs italic">No existen detalles para este movimiento...</span>

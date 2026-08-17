@@ -1,14 +1,6 @@
 "use client";
 
 import { ContentLayout } from "@/components/layout/ContentLayout";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
 
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -19,10 +11,11 @@ import { DataTable } from "./data-table";
 import LoadingPage from "@/components/misc/LoadingPage";
 import { useGetArticlesByStatus } from "@/hooks/mantenimiento/almacen/articulos/useGetArticlesByStatus";
 import { columns } from "./columns";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 
 
-const IncomingControlPage = () => {
+const ArticlesToPlacePage = () => {
   const { selectedCompany } = useCompanyStore();
 
   const {
@@ -33,23 +26,9 @@ const IncomingControlPage = () => {
   if (isWaitingLoading) return <LoadingPage />;
 
   return (
-    <ContentLayout title="Inventario">
+    <ContentLayout title="Control de Ubicación">
       <div className="flex flex-col gap-y-3">
-        <Breadcrumb>
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink href={`/${selectedCompany?.slug}/dashboard`}>
-                Inicio
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>General</BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>Control de Ubicación</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
+        <PageHeader className="mb-3" />
 
         <div className="text-center space-y-1">
           <h1 className="text-4xl font-bold">Control de Ubicación</h1>
@@ -70,4 +49,4 @@ const IncomingControlPage = () => {
   );
 };
 
-export default IncomingControlPage;
+export default ArticlesToPlacePage;

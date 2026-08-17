@@ -197,7 +197,8 @@ export const useUpdateCourseCalendar = () => {
       });
     },
     onError: (error) => {
-      // ✅ Mostramos el mensaje de error personalizado
+      // El bloqueo por curso CERRADO se lanza aquí mismo, así que error.message
+      // ya viene redactado para el usuario.
       const errorMessage = error.message || "No se pudo actualizar el curso...";
       toast.error("Oops!", {
         description: errorMessage,

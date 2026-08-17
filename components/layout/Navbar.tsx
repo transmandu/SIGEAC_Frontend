@@ -5,23 +5,26 @@ import { SheetMenu } from "@/components/sidebar/SheetMenu";
 import CompanySelect from "../selects/CompanySelect";
 import { ThemeToggler } from "./ThemeToggler";
 import NotificationBell from '@/components/notifications/NotificationBell';
+import ErrorReportTrigger from '@/components/misc/ErrorReportTrigger';
+import { PageTitle } from './PageTitle';
+import { useScrollGlass } from '@/hooks/helpers/use-scroll-glass';
 
-interface NavbarProps {
-  title: string;
-}
+export function Navbar() {
+  const { scrolled, targetRef } = useScrollGlass();
 
-export function Navbar({ title }: NavbarProps) {
   return (
-    <header className="sticky top-0 z-10 w-full bg-background/95 shadow backdrop-blur supports-[backdrop-filter]:bg-background/60 dark:shadow-secondary">
+    <header
+      ref={targetRef as React.RefObject<HTMLElement>}
+      data-scrolled={scrolled}
+      className="glass-surface sticky top-0 z-10 w-full"
+    >
       <div className="relative mx-4 sm:mx-8 flex h-14 items-center">
 
         {/* IZQUIERDA */}
         <div className="flex items-center gap-4 flex-shrink-0 max-w-[40%] overflow-hidden z-0">
           <SheetMenu />
 
-          <h1 className="hidden md:block text-xs sm:text-sm font-bold truncate max-w-[220px] lg:max-w-[320px]">
-            {title}
-          </h1>
+          <PageTitle />
         </div>
 
         {/* CENTRO */}
@@ -34,6 +37,7 @@ export function Navbar({ title }: NavbarProps) {
         {/* DERECHA */}
         <div className="flex items-center gap-2 ml-auto flex-shrink-0 z-10">
           <ThemeToggler />
+          <ErrorReportTrigger />
           <NotificationBell />
           <UserNav />
         </div>

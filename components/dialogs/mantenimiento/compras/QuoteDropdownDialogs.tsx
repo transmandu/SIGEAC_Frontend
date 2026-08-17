@@ -1,6 +1,7 @@
 "use client"
 
 import {
+  useCascadeDeleteQuote,
   useDeleteQuote,
   useUpdateQuoteStatus
 } from "@/actions/mantenimiento/compras/cotizaciones/actions"
@@ -10,6 +11,7 @@ import {
 import { useCompanyStore } from "@/stores/CompanyStore"
 import type { Quote } from "@/types/purchase"
 import {
+  AlertOctagon,
   AlertTriangle,
   ClipboardCheck,
   ClipboardX,
@@ -81,6 +83,8 @@ type Props = {
   setOpenApprove: (open: boolean) => void
   openDelete: boolean
   setOpenDelete: (open: boolean) => void
+  openCascadeDelete: boolean
+  setOpenCascadeDelete: (open: boolean) => void
   onSuccessUpdate?: () => void
   onSuccessDelete?: () => void
 }
@@ -93,6 +97,8 @@ const QuoteDropdownDialogs = ({
   setOpenApprove,
   openDelete,
   setOpenDelete,
+  openCascadeDelete,
+  setOpenCascadeDelete,
   onSuccessUpdate,
   onSuccessDelete
 }: Props) => {
@@ -101,6 +107,7 @@ const QuoteDropdownDialogs = ({
   const { updateStatusQuote } = useUpdateQuoteStatus()
   const { createPurchaseOrder } = useCreatePurchaseOrder()
   const { deleteQuote } = useDeleteQuote()
+  const { cascadeDeleteQuote } = useCascadeDeleteQuote()
 
   const [Observation, setObservation] = useState("")
 
@@ -123,20 +130,22 @@ const QuoteDropdownDialogs = ({
   }
 
   const handleApprove = async () => {
+    // El guard de reentrada va antes que cualquier await: el `disabled` del botón
+    // no llega a repintar entre dos clics seguidos, y cada POST que se cuela crea
+    // una orden de compra más.
+    if (createPurchaseOrder.isPending) return
+
     const locationId =
       quote.article_quote_order.find((a) => a.location)?.location?.id ??
       quote.general_article_quote_order.find((a) => a.location)?.location?.id
 
-    // El total con impuestos/tarifas aún no existe en este punto — se calcula
-    // al completar la compra (markAsPaid/update), no al crearla.
-    const subTotal = Number(quote.total)
-
+    // sub_total/total aren't sent here — a quote spanning multiple vendors
+    // (or retailers) splits into one PO per vendor, and the backend computes
+    // each split PO's sub_total/total from only the articles routed into it.
     const poData = {
       quote_order_id: Number(quote.id),
       location_id: Number(locationId),
       purchase_date: new Date().toISOString(),
-      sub_total: subTotal,
-      total: subTotal,
       articles_purchase_orders: quote.article_quote_order.map((a) => ({
         article_quote_order_id: a.id,
       })),
@@ -145,14 +154,20 @@ const QuoteDropdownDialogs = ({
       })),
     }
 
-    await createPurchaseOrder.mutateAsync({
-      data: poData,
-      company: selectedCompany.slug
-    })
+    try {
+      await createPurchaseOrder.mutateAsync({
+        data: poData,
+        company: selectedCompany.slug
+      })
 
-    setOpenApprove(false)
-
-    onSuccessUpdate?.()
+      onSuccessUpdate?.()
+    } catch {
+      // El hook ya reportó el error (incluido el 409) por toast.
+    } finally {
+      // Se cierra pase lo que pase: dejarlo abierto tras un error solo invita a
+      // insistir con el botón.
+      setOpenApprove(false)
+    }
   }
   const handleDelete = async () => {
     await deleteQuote.mutateAsync({
@@ -165,8 +180,77 @@ const QuoteDropdownDialogs = ({
     onSuccessDelete?.()
   }
 
+  const handleCascadeDelete = async () => {
+    await cascadeDeleteQuote.mutateAsync({
+      id: quote.id,
+      company: selectedCompany.slug
+    })
+
+    setOpenCascadeDelete(false)
+
+    onSuccessDelete?.()
+  }
+
   return (
     <>
+    {/* =========================
+        CASCADE DELETE (SUPERUSER)
+    ========================= */}
+
+    <Dialog open={openCascadeDelete} onOpenChange={setOpenCascadeDelete}>
+      <DialogContent className={dialogClass}>
+        <DialogHeader className={header}>
+          <div className={iconBase("red")}>
+            <AlertOctagon className="size-5" />
+          </div>
+
+          <DialogTitle className={title}>
+            Eliminar cotización en cascada
+          </DialogTitle>
+
+          <DialogDescription className={description}>
+            La cotización{" "}
+            <span className="font-medium text-foreground">
+              {quote.quote_number}
+            </span>{" "}
+            y toda su cadena serán eliminadas permanentemente.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className={warningBox("red")}>
+          <AlertTriangle className="size-4 mt-[2px]" />
+
+          <div>
+            Esta acción es <b>irreversible</b>. Se eliminarán también sus cotizaciones complementarias
+            y cualquier orden de compra generada a partir de ellas, revirtiendo el inventario (artículos
+            y stock) que ya se haya afectado, sin importar el estado en que se encuentren.
+          </div>
+        </div>
+
+        <div className={footer}>
+          <Button
+            variant="outline"
+            onClick={() => setOpenCascadeDelete(false)}
+            className={cancelBtn}
+          >
+            Cancelar
+          </Button>
+
+          <Button
+            onClick={handleCascadeDelete}
+            disabled={cascadeDeleteQuote.isPending}
+            className={dangerBtn}
+          >
+            {cascadeDeleteQuote.isPending && (
+              <Loader2 className="mr-2 size-4 animate-spin" />
+            )}
+
+            Eliminar en cascada
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+
     {/* =========================
         DELETE
     ========================= */}
@@ -297,7 +381,15 @@ const QuoteDropdownDialogs = ({
           APPROVE
       ========================= */}
 
-      <Dialog open={openApprove} onOpenChange={setOpenApprove}>
+      <Dialog
+        open={openApprove}
+        onOpenChange={(open) => {
+          // Cerrar con Escape o clic afuera mientras se genera la orden dejaría
+          // reabrir y aprobar de nuevo sobre un POST todavía en vuelo.
+          if (createPurchaseOrder.isPending) return
+          setOpenApprove(open)
+        }}
+      >
         <DialogContent className={dialogClass}>
           <DialogHeader className={header}>
             <div className={iconBase("green")}>
@@ -323,19 +415,20 @@ const QuoteDropdownDialogs = ({
             <Button
               variant="outline"
               onClick={() => setOpenApprove(false)}
+              disabled={createPurchaseOrder.isPending}
               className={cancelBtn}
             >
               Cancelar
             </Button>
             <Button
               onClick={handleApprove}
-              disabled={updateStatusQuote.isPending}
+              disabled={createPurchaseOrder.isPending}
               className={successBtn}
             >
-              {updateStatusQuote.isPending && (
+              {createPurchaseOrder.isPending && (
                 <Loader2 className="mr-2 size-4 animate-spin" />
               )}
-              Aprobar
+              {createPurchaseOrder.isPending ? "Generando orden..." : "Aprobar"}
             </Button>
 
           </div>

@@ -5,19 +5,12 @@ import { ContentLayout } from "@/components/layout/ContentLayout";
 import { Loader2 } from "lucide-react";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
 import { useGetRegisterWithActivities } from "@/hooks/aerolinea/desarrollo/useGetRegisterWithActivities";
 import LoadingPage from "@/components/misc/LoadingPage";
 import { useEffect, useState } from "react";
 import { ActivityReport } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const DailyActivitiesPage = () => {
   const { data: activity_report, isLoading } = useGetRegisterWithActivities();
@@ -40,25 +33,9 @@ const DailyActivitiesPage = () => {
   }
 
   return (
-    <ContentLayout title="Gestión de Actividades">
+    <ContentLayout title="Actividades Diarias">
       <div className="flex flex-col gap-y-2">
-        <Breadcrumb>
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink href="/transmandu/dashboard">
-                Inicio
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              Desarrollo
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>Actividades Diarias</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
+        <PageHeader className="mb-4" />
         <h1 className="text-4xl font-bold text-center">Actividades Diarias</h1>
         <p className="text-sm text-muted-foreground text-center italic mb-6">
           Aquí puede observar todos las actividades realizadas por la Jefatura

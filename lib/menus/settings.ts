@@ -1,14 +1,21 @@
 import type { Group, MenuContext } from "@/lib/menus/types";
-import { Globe, Landmark, UserRoundCog, BellRing } from "lucide-react";
+import { Building2, Globe, KeyRound } from "lucide-react";
 
+/**
+ * Ajustes por compañía: todo lo de aquí se sirve bajo middleware `tenant`, así
+ * que las rutas viven bajo /[company]/ y el grupo solo se construye con una
+ * compañía seleccionada. Lo que viva en master va en `buildSystemGroup`.
+ */
 export function buildSettingsGroup({ pathname, currentCompany }: MenuContext): Group {
+    const slug = currentCompany?.slug;
+
     return {
         groupLabel: "Ajustes",
         menus: [
             {
-                href: "/ajustes/globales",
-                label: "Globales",
-                active: pathname.includes("/ajustes/globales"),
+                href: `/${slug}/ajustes`,
+                label: "Catálogos",
+                active: pathname.startsWith(`/${slug}/ajustes`),
                 icon: Globe,
                 roles: [
                     "JEFE_ALMACEN",
@@ -28,9 +35,9 @@ export function buildSettingsGroup({ pathname, currentCompany }: MenuContext): G
                 ],
                 submenus: [
                     {
-                        href: "/ajustes/globales/unidades",
+                        href: `/${slug}/ajustes/unidades`,
                         label: "Unidades",
-                        active: pathname === "/ajustes/globales/unidades",
+                        active: pathname === `/${slug}/ajustes/unidades`,
                         roles: [
                             "JEFE_ALMACEN",
                             "ANALISTA_ALMACEN",
@@ -41,13 +48,12 @@ export function buildSettingsGroup({ pathname, currentCompany }: MenuContext): G
                             "ANALISTA_COMPRAS",
                             "JEFE_ADMINISTRACION",
                             "ANALISTA_ADMINISTRACION",
-                            "ENGINEERING",
                         ],
                     },
                     {
-                        href: "/ajustes/globales/fabricantes",
+                        href: `/${slug}/ajustes/fabricantes`,
                         label: "Fabricantes",
-                        active: pathname === "/ajustes/globales/fabricantes",
+                        active: pathname === `/${slug}/ajustes/fabricantes`,
                         roles: [
                             "JEFE_ALMACEN",
                             "ANALISTA_ALMACEN",
@@ -58,21 +64,21 @@ export function buildSettingsGroup({ pathname, currentCompany }: MenuContext): G
                         ],
                     },
                     {
-                        href: "/ajustes/globales/proveedores",
+                        href: `/${slug}/ajustes/proveedores`,
                         label: "Proveedores",
-                        active: pathname === "/ajustes/globales/proveedores",
+                        active: pathname === `/${slug}/ajustes/proveedores`,
                         roles: ["JEFE_COMPRAS", "ANALISTA_COMPRAS", "JEFE_ADMINISTRACION", "ANALISTA_ADMINISTRACION", "SUPERUSER"],
                     },
                     {
-                        href: "/ajustes/globales/comercios",
+                        href: `/${slug}/ajustes/comercios`,
                         label: "Comercios",
-                        active: pathname === "/ajustes/globales/comercios",
+                        active: pathname === `/${slug}/ajustes/comercios`,
                         roles: ["ASISTENTE_COMPRAS", "JEFE_ADMINISTRACION", "ANALISTA_ADMINISTRACION", "SUPERUSER"],
                     },
                     {
-                        href: "/ajustes/globales/clientes",
+                        href: `/${slug}/ajustes/clientes`,
                         label: "Clientes",
-                        active: pathname === "/ajustes/globales/clientes",
+                        active: pathname === `/${slug}/ajustes/clientes`,
                         roles: [
                             "JEFE_ADMINISTRACION",
                             "ANALISTA_ADMINISTRACION",
@@ -80,9 +86,9 @@ export function buildSettingsGroup({ pathname, currentCompany }: MenuContext): G
                         ],
                     },
                     {
-                        href: "/ajustes/globales/terceros",
+                        href: `/${slug}/ajustes/terceros`,
                         label: "Terceros",
-                        active: pathname === "/ajustes/terceros/clientes",
+                        active: pathname === `/${slug}/ajustes/terceros`,
                         roles: [
                             "JEFE_ALMACEN",
                             "ANALISTA_ALMACEN",
@@ -92,9 +98,9 @@ export function buildSettingsGroup({ pathname, currentCompany }: MenuContext): G
                         ],
                     },
                     {
-                        href: "/ajustes/globales/condiciones",
+                        href: `/${slug}/ajustes/condiciones`,
                         label: "Condiciones",
-                        active: pathname === "/ajustes/globales/condiciones",
+                        active: pathname === `/${slug}/ajustes/condiciones`,
                         roles: [
                             "JEFE_PLANIFICACION",
                             "ANALISTA_PLANIFICACION",
@@ -103,105 +109,84 @@ export function buildSettingsGroup({ pathname, currentCompany }: MenuContext): G
                         ],
                     },
                     {
-                        href: "/ajustes/globales/fuentes_informacion",
+                        href: `/${slug}/ajustes/fuentes_informacion`,
                         label: "Fuentes de Informacion",
-                        active: pathname === "/ajustes/globales/fuentes_informacion",
+                        active: pathname === `/${slug}/ajustes/fuentes_informacion`,
                         roles: ["JEFE_SMS", "ANALISTA_SMS", "SUPERUSER", "COORDINADOR_SMS", "GENRENTE_SMS", "EJECUTIVO_RESPONSABLE"],
                     },
                     {
-                        href: "/ajustes/globales/agencias_envio",
+                        href: `/${slug}/ajustes/agencias_envio`,
                         label: "Agencias de Envío",
-                        active: pathname === "/ajustes/globales/agencias_envio",
+                        active: pathname === `/${slug}/ajustes/agencias_envio`,
                         roles: ["JEFE_COMPRAS", "ANALISTA_COMPRAS", "JEFE_ADMINISTRACION", "ANALISTA_ADMINISTRACION", "ASISTENTE_COMPRAS", "SUPERUSER"],
                     },
+                    {
+                        href: `/${slug}/ajustes/pilotos`,
+                        label: "Pilotos",
+                        active: pathname === `/${slug}/ajustes/pilotos`,
+                        roles: ["JEFE_PLANIFICACION", "ANALISTA_PLANIFICACION", "SUPERUSER"],
+                    },
                 ],
             },
             {
-                href: "/ajustes/banca/bancos",
-                label: "Banca",
-                active: pathname.includes("/ajustes/banca"),
-                icon: Landmark,
-                // Lectura para roles de compras/administración; la gestión
-                // (crear/editar/eliminar) queda restringida a SUPERUSER en la UI y el backend.
-                roles: [
-                    "SUPERUSER",
-                    "JEFE_COMPRAS",
-                    "ANALISTA_COMPRAS",
-                    "ASISTENTE_COMPRAS",
-                    "JEFE_ADMINISTRACION",
-                    "ANALISTA_ADMINISTRACION",
-                ],
+                href: `/${slug}/ajustes/empresa`,
+                label: "Organización",
+                active: pathname.startsWith(`/${slug}/ajustes/empresa`),
+                icon: Building2,
+                roles: ["ADMIN", "SUPERUSER"],
                 submenus: [
                     {
-                        href: "/ajustes/banca/bancos",
-                        label: "Bancos",
-                        active: pathname.startsWith("/ajustes/banca/bancos"),
-                        roles: [
-                            "SUPERUSER",
-                            "JEFE_COMPRAS",
-                            "ANALISTA_COMPRAS",
-                            "ASISTENTE_COMPRAS",
-                            "JEFE_ADMINISTRACION",
-                            "ANALISTA_ADMINISTRACION",
-                        ],
+                        href: `/${slug}/ajustes/empresa/ubicaciones`,
+                        label: "Administrar Ubicaciones",
+                        active: pathname === `/${slug}/ajustes/empresa/ubicaciones`,
                     },
                     {
-                        href: "/ajustes/banca/cuentas",
-                        label: "Cuentas",
-                        active: pathname.startsWith("/ajustes/banca/cuentas"),
-                        roles: [
-                            "SUPERUSER",
-                            "JEFE_COMPRAS",
-                            "ANALISTA_COMPRAS",
-                            "ASISTENTE_COMPRAS",
-                            "JEFE_ADMINISTRACION",
-                            "ANALISTA_ADMINISTRACION",
-                        ],
+                        href: `/${slug}/ajustes/empresa/empleados`,
+                        label: "Administrar Empleados",
+                        active: pathname === `/${slug}/ajustes/empresa/empleados`,
                     },
                     {
-                        href: "/ajustes/banca/metodos_pago",
-                        label: "Métodos de Pago",
-                        active: pathname === "/ajustes/banca/metodos_pago",
-                        roles: [
-                            "SUPERUSER",
-                            "JEFE_COMPRAS",
-                            "ANALISTA_COMPRAS",
-                            "ASISTENTE_COMPRAS",
-                            "JEFE_ADMINISTRACION",
-                            "ANALISTA_ADMINISTRACION",
-                        ],
+                        href: `/${slug}/ajustes/empresa/cargos`,
+                        label: "Administrar Cargos",
+                        active: pathname === `/${slug}/ajustes/empresa/cargos`,
                     },
                     {
-                        href: "/ajustes/banca/tarjetas",
-                        label: "Tarjetas",
-                        active: pathname === "/ajustes/banca/tarjetas",
-                        roles: [
-                            "SUPERUSER",
-                            "JEFE_COMPRAS",
-                            "ANALISTA_COMPRAS",
-                            "ASISTENTE_COMPRAS",
-                            "JEFE_ADMINISTRACION",
-                            "ANALISTA_ADMINISTRACION",
-                        ],
+                        href: `/${slug}/ajustes/empresa/departamentos`,
+                        label: "Administrar Departamentos",
+                        active: pathname === `/${slug}/ajustes/empresa/departamentos`,
+                    },
+                    {
+                        href: `/${slug}/ajustes/empresa/almacenes`,
+                        label: "Administrar Almacenes",
+                        active: pathname === `/${slug}/ajustes/empresa/almacenes`,
+                    },
+                    {
+                        href: `/${slug}/ajustes/empresa/operaciones`,
+                        label: "Ajustes Operativos",
+                        active: pathname === `/${slug}/ajustes/empresa/operaciones`,
+                        roles: ["SUPERUSER"],
                     },
                 ],
             },
             {
-                href: "/ajustes/cuenta",
-                label: "Cuenta",
-                active: pathname.includes("/ajustes/cuenta"),
-                icon: UserRoundCog,
-                roles: [],
-                submenus: [],
+                href: `/${slug}/ajustes/autorizaciones`,
+                label: "Autorizaciones",
+                active: pathname.startsWith(`/${slug}/ajustes/autorizaciones`),
+                icon: KeyRound,
+                roles: ["ADMIN", "SUPERUSER"],
+                submenus: [
+                    {
+                        href: `/${slug}/ajustes/autorizaciones/autorizar`,
+                        label: "Autorizar Empleados",
+                        active: pathname === `/${slug}/ajustes/autorizaciones/autorizar`,
+                    },
+                    {
+                        href: `/${slug}/ajustes/autorizaciones/autorizados`,
+                        label: "Empleados Autorizados",
+                        active: pathname === `/${slug}/ajustes/autorizaciones/autorizados`,
+                    },
+                ],
             },
-            {
-                href: `/${currentCompany?.slug}/notifications`,
-                label: "Notificaciones",
-                active: pathname.includes(`/${currentCompany?.slug}/notifications`),
-                icon: BellRing,
-                roles: [],
-                submenus: [],
-            }
         ],
     };
 }

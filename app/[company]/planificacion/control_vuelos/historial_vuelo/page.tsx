@@ -2,18 +2,10 @@
 
 import { Loader2, History } from "lucide-react";
 import { ContentLayout } from "@/components/layout/ContentLayout";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { useGetAircraftAcronyms } from "@/hooks/aerolinea/aeronaves/useGetAircraftAcronyms";
+import { useGetAircraftAcronyms } from "@/hooks/general/aeronaves/useGetAircraftAcronyms";
 import { useGetFlightsByDateRange } from "@/hooks/aerolinea/vuelos/useGetFlightsByDateRange";
 
 import { DataTable } from "./data-table";
@@ -23,6 +15,7 @@ import PeriodFilter from "./_components/PeriodFilter";
 import AircraftFilter from "./_components/AircraftFilter";
 import { useFlightFilters } from "@/hooks/general/planificacion/useFlightFilters";
 import Link from "next/link";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const HistorialVueloPage = () => {
   const { selectedCompany } = useCompanyStore();
@@ -45,23 +38,7 @@ const HistorialVueloPage = () => {
     <ContentLayout title="Historial de Vuelo">
       <div className="flex flex-col gap-6 w-full">
         {/* Breadcrumb */}
-        <Breadcrumb>
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink asChild>
-                <Link
-                  href={`/${selectedCompany?.slug}/planificacion/control_vuelos/vuelos`}
-                >
-                  Regresar
-                </Link>
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>Historial de Vuelo</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
+        <PageHeader />
 
         {/* Header */}
         <div className="flex items-center gap-4">

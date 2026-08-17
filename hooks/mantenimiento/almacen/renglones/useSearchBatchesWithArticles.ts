@@ -2,9 +2,7 @@ import axiosInstance from "@/lib/axios";
 import { useQuery } from "@tanstack/react-query";
 import axios from '@/lib/axios';
 
-// Interface para batch con sus artículos relacionados
 export interface BatchWithArticles {
-  // Información del batch
   batch: {
     id: number;
     name: string;
@@ -19,7 +17,6 @@ export interface BatchWithArticles {
     medition_unit: string;
   };
 
-  // Artículos que coinciden con la búsqueda en este batch
   articles: {
     id: number;
     part_number: string;
@@ -42,7 +39,6 @@ export interface BatchWithArticles {
     }[];
     article_type: string | null;
 
-    // Información específica del tipo de artículo
     tool?: {
       id: number;
       serial: string;
@@ -97,6 +93,6 @@ export const useSearchBatchesWithArticles = (
     queryKey: ["search-batches-with-articles", company, location_id, part_number],
     queryFn: () => searchBatchesWithArticles({location_id: Number(location_id!), company: company!, part_number: part_number!}),
     enabled: !!company && !!location_id && !!part_number,
-    staleTime: 5 * 60 * 1000, // 5 minutos de cache
+    staleTime: 5 * 60 * 1000,
   });
 };

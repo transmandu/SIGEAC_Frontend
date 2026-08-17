@@ -14,6 +14,15 @@ export type AdministrationCompany = {
   updated_at: string;
 };
 
+/** Registro del catalogo estatico de aeropuertos (public/data/airports.json). */
+export type Airport = {
+  iata: string;
+  icao: string;
+  name: string;
+  city: string;
+  country: string;
+};
+
 export type Aircraft = {
   id: number;
   client: Client;
@@ -77,6 +86,11 @@ export type Article = {
   cost?: number;
   unit?: string;
   quantity?: number;
+  /**
+   * Lote del artículo según los endpoints de listado. El endpoint `show`
+   * (`/article/{id}`) lo devuelve como `batch`, no aquí: al editar hay que
+   * leer `initialData.batch ?? initialData.batches` o el campo queda vacío.
+   */
   batches?: Batch;
   batch_id?: number;
   vendor_id?: string;
@@ -90,6 +104,10 @@ export type Article = {
   inspector?: string;
   inspect_date?: string;
   ata_code?: string;
+  needs_calibration?: boolean;
+  calibration_date?: string | null;
+  next_calibration?: string;
+  tool_status?: "CALIBRADO" | "EN CALIBRACION" | "VENCIDO" | "N/A" | string;
 };
 
 export type Bank = {
@@ -120,6 +138,12 @@ export type BankAccount = {
   /** Métodos de pago (catálogo global) que esta cuenta puede usar. */
   payment_methods?: PaymentMethod[];
   bank_cards?: BankCard[];
+  /** La cuenta también pertenece a otras compañías. */
+  is_shared?: boolean;
+  can_delete?: boolean;
+  can_manage_companies?: boolean;
+  /** El rol actual solo ve los últimos 4 dígitos. */
+  number_masked?: boolean;
   registered_by?: string | null;
   updated_by?: string | null;
 };
@@ -170,6 +194,12 @@ export type BankCard = {
   payment_method?: PaymentMethod;
   /** Compañías para las que la tarjeta es válida. */
   companies?: Pick<Company, "id" | "name">[];
+  /** La tarjeta también pertenece a otras compañías. */
+  is_shared?: boolean;
+  can_delete?: boolean;
+  can_manage_companies?: boolean;
+  /** El rol actual solo ve los últimos 4 dígitos. */
+  number_masked?: boolean;
   registered_by?: string | null;
   updated_by?: string | null;
 };
@@ -242,15 +272,34 @@ export interface ConsumableArticle extends Article {
   fabrication_date?: string;
 }
 
+/**
+ * Forma cruda que devuelve GET .../articles/low-stock-consumables: un Article
+ * con sus relaciones consumable/batch cargadas (no aplanado como ConsumableArticle).
+ * La cantidad actual vive en consumable.quantity, el mínimo en batch.min_quantity.
+ */
+export interface LowStockConsumableArticle extends Article {
+  consumable: {
+    id: number;
+    quantity: number;
+    primary_unit_id?: number;
+  };
+  batch: Pick<Batch, "id" | "name" | "min_quantity" | "unit">;
+}
+
+/**
+ * Conversión de un artículo hacia una unidad alterna, ya orientada hacia la
+ * unidad base: `base_per_unit` es cuántas unidades base hay en 1 unidad
+ * alterna, de modo que pasar a base es siempre una multiplicación.
+ *
+ *   1 CAJA = 100 UNIDAD (base UNIDAD)  → base_per_unit = 100
+ *   1 mL   = 0.001 LITRO (base LITRO)  → base_per_unit = 0.001
+ */
 export type Convertion = {
   id: number;
-  registered_by: string;
-  updated_by: string | null;
-  created_at: string;
-  updated_at: string;
-  secondary_unit: Unit;
-  primary_unit: Unit;
-  equivalence: number;
+  unit: Unit;
+  base_per_unit: number;
+  lectura: string;
+  preview: string;
 };
 
 export type Company = {
@@ -625,7 +674,7 @@ export type Vendor = {
   id: string | number;
   name: string;
   phone: string;
-  type: "PROVEEDOR" | "BENEFICIARIO";
+  type: "VENDOR" | "BENEFICIARY";
   address: string;
   email: string;
 };
@@ -756,7 +805,7 @@ export type ToolBox = {
   name: string;
   created_by: string;
   delivered_by: string;
-  employee: Employee;
+  employee: Employee | null;
   tool: {
     serial: string;
     article: ToolArticle;
@@ -779,7 +828,7 @@ export type CompanyModule = {
 };
 
 export type User = {
-  id: string;
+  id: number;
   username: string;
   first_name: string;
   last_name: string;
@@ -824,6 +873,7 @@ export type Employee = {
   end_date?: string | null;
   isActive: boolean;
   photo_url?: string | null;
+  photo_url_lg?: string | null;
   company?: string;
 };
 
@@ -833,7 +883,7 @@ export type AdministrationVendor = {
   email: string;
   phone: string;
   address: string;
-  type: "PROVEEDOR" | "BENEFICIARIO";
+  type: "VENDOR" | "BENEFICIARY";
   created_at: Date;
   updated_at: Date;
 };
@@ -965,6 +1015,8 @@ export type FollowUpControl = {
   date: Date;
   description: string;
   mitigation_measure_id: number;
+  implementation_responsible?: string;
+  follow_up_responsible?: string;
   image?: string;
   document?: string;
 };
@@ -977,7 +1029,7 @@ export type MitigationMeasure = {
   estimated_date: Date;
   execution_date?: Date | null;
   mitigation_plan_id: number;
-  follow_up_control: FollowUpControl[];
+  follow_up_controls: FollowUpControl[];
 };
 
 export type MitigationPlan = {
@@ -1236,10 +1288,24 @@ export interface WarehouseDashboard {
   dispatchCount: number;
   dispatchAircraftCount: number;
   dispatchWorkOrderCount: number;
+  dispatchByCategory: {
+    component: number;
+    part: number;
+    consumable: number;
+    tool: number;
+    general: number;
+  };
   tool_need_calibration_count: number;
   returnToolsCount: number;
   restockCount: number;
-  entryCount: number;
+  /** Intakes de artículos generales confirmados esta semana. */
+  generalArticleIntakeCount: number;
+  /** Artículos por lote con reception_date dentro de la semana. */
+  batchReceptionCount: number;
+  /** Suma de ambos: el sistema no tiene un concepto único de "entrada". */
+  incomingCount: number;
+  generalArticlesAvailablePercentage: number;
+  generalArticlesRestockCount: number;
   tools_need_calibration: {
     tool_id: number;
     batch_name: string;
@@ -1250,7 +1316,7 @@ export interface WarehouseDashboard {
   }[];
   toolsToReturn: any[];
   articlesOutOfStock: {
-    id: number;
+    id: number | string;
     description: string;
     part_number: string;
     serial: string | null;
@@ -1278,16 +1344,63 @@ export interface WarehouseDashboard {
   }[];
 }
 
+// Una entrada del historial de precios de un GeneralArticle: viene de una
+// compra confirmada (source: PURCHASE, con quantity y purchase_order_number)
+// o de una edición manual desde Gestión de Costos (source: MANUAL).
+export type GeneralArticleCostHistoryEntry = {
+  source: 'PURCHASE' | 'MANUAL' | 'SEED';
+  cost: number | null;
+  quantity: number | null;
+  // Unidad en la que está expresado este costo. En compras viene del intake;
+  // en ajustes manuales, de la unidad anclada del cambio de costo.
+  unit_id?: number | null;
+  unit_label?: string | null;
+  date: string | null;
+  by: string | null;
+  purchase_order_number?: string | null;
+  requisition_order_number?: string | null;
+};
+
+/**
+ * Compra ya en curso para un artículo: existe entre la aprobación de la
+ * solicitud y la confirmación del intake, intervalo en el que el inventario
+ * sigue bajo pero la reposición ya está pedida. La alerta lo muestra en vez
+ * de ocultarse, que es lo que permitía volver a comprar lo mismo.
+ */
+export type InTransitDetail = {
+  requisition_number: string | null;
+  requisition_status: string;
+  purchase_order_number?: string | null;
+  intake_status?: string | null;
+  quantity: number | string | null;
+  unit_label?: string | null;
+  approved_at?: string | null;
+  /** Días desde la aprobación; null mientras la solicitud sigue abierta. */
+  days_waiting?: number | null;
+  stage:
+    | "REQUISITION_OPEN"
+    | "APPROVED_WITHOUT_PURCHASE_ORDER"
+    | "PURCHASE_ORDER_PLACED"
+    | "INTAKE_PENDING"
+    | "INTAKE_REJECTED";
+};
+
 export type GeneralArticle = {
   id: number;
   description: string;
   variant_type?: string | null;
   quantity: number;
+  minimum_quantity?: number | null;
+  /** Nivel al que repone la requisición automática, no un tope de existencia. */
+  maximum_quantity?: number | null;
   brand_model?: string;
   warehouse: Warehouse;
   general_primary_unit: Unit;
   cost?: number;
   image?: string | null;
+  cost_history?: GeneralArticleCostHistoryEntry[];
+  /** Solo lo carga el endpoint de low-stock. */
+  in_transit?: InTransitDetail[];
 };
 
 export interface SMSCertificate {
@@ -1409,7 +1522,22 @@ export type CargoManifestItem = {
 
 export type FuelVehicleStatus = "active" | "inactive";
 
-export type FuelVehicleType = "car" | "truck" | "motorcycle" | "other";
+export type FuelVehicleType =
+  | "car"
+  | "truck"
+  | "motorcycle"
+  | "crane"
+  | "mule"
+  | "other";
+
+export type FuelType = "GASOLINE" | "DIESEL";
+
+// Saldos discriminados por tipo de combustible (breaking change del backend:
+// antes eran numeros planos).
+export type FuelBalanceByFuelType = {
+  GASOLINE: number;
+  DIESEL: number;
+};
 
 export type FuelMovementStatus = "active" | "annulled";
 
@@ -1426,8 +1554,13 @@ export type FuelMovementType =
 
 export type FuelVehicle = {
   id: number;
-  plate: string;
+  plate: string | null;
+  brand?: string | null;
+  model?: string | null;
+  color?: string | null;
   type: FuelVehicleType;
+  type_other?: string | null;
+  fuel_type: FuelType;
   responsible?: string | null;
   tank_capacity_liters: number;
   current_balance_liters: number;
@@ -1439,12 +1572,15 @@ export type FuelVehicle = {
 };
 
 export type FuelSummary = {
-  warehouse_balance_liters: number;
-  vehicle_balance_liters: number;
-  vehicle_balance_liters_all: number;
+  warehouse_balance_liters: FuelBalanceByFuelType;
+  vehicle_balance_liters: FuelBalanceByFuelType;
+  vehicle_balance_liters_all: FuelBalanceByFuelType;
   active_vehicle_count: number;
   movement_count_for_period?: number;
-  has_active_warehouse_initial_balance?: boolean;
+  has_active_warehouse_initial_balance?: {
+    GASOLINE: boolean;
+    DIESEL: boolean;
+  };
 };
 
 export type FuelMovement = {
@@ -1454,6 +1590,7 @@ export type FuelMovement = {
   created_at?: string;
   created_by?: User | string | null;
   liters: number;
+  fuel_type: FuelType;
   vehicle?: FuelVehicle | null;
   vehicle_id?: number | null;
   third_party?: ThirdParty | null;
@@ -1475,17 +1612,37 @@ export type FuelFifoRow = {
   remaining_liters_after_dispatch?: number;
 };
 
+export type FuelFifoRowsPage = {
+  current_page: number;
+  data: FuelFifoRow[];
+  first_page_url: string | null;
+  last_page: number;
+  last_page_url: string | null;
+  links: { url: string | null; label: string; active: boolean }[];
+  next_page_url: string | null;
+  path: string;
+  per_page: number;
+  prev_page_url: string | null;
+  to: number | null;
+  total: number;
+};
+
 export type FuelTraceabilityDetail = {
   dispatch_movement_id: number;
   total_liters: number;
   destination_type: "vehicle" | "third_party";
   destination_label: string;
-  fifo_rows: FuelFifoRow[];
+  fifo_rows: FuelFifoRowsPage;
 };
 
 export type CreateFuelVehiclePayload = {
-  plate: string;
+  plate?: string | null;
+  brand?: string | null;
+  model?: string | null;
+  color?: string | null;
   type: FuelVehicleType;
+  type_other?: string | null;
+  fuel_type: FuelType;
   responsible?: string | null;
   tank_capacity_liters: number;
   initial_balance_liters: number;
@@ -1496,8 +1653,13 @@ export type CreateFuelVehiclePayload = {
 // Actualizacion de vehiculo: mismos campos de configuracion que la creacion,
 // sin el saldo inicial (current_balance_liters no es editable directamente).
 export type UpdateFuelVehiclePayload = {
-  plate: string;
+  plate?: string | null;
+  brand?: string | null;
+  model?: string | null;
+  color?: string | null;
   type: FuelVehicleType;
+  type_other?: string | null;
+  fuel_type: FuelType;
   responsible?: string | null;
   tank_capacity_liters: number;
   km_per_liter?: number | null;
@@ -1508,6 +1670,10 @@ export type CreateFuelMovementPayload = {
   type: FuelMovementType;
   operational_date: string;
   liters: number;
+  // Se envia (y el backend lo exige) para WAREHOUSE_INITIAL_BALANCE,
+  // WAREHOUSE_DISPATCH_THIRD_PARTY y EXTERNAL_REFUEL; en el resto se deriva
+  // del vehiculo. En EXTERNAL_REFUEL con GASOIL, vehicle_id va en null.
+  fuel_type?: FuelType | null;
   vehicle_id?: number | null;
   third_party_id?: string | number | null;
   dispatch_purpose?: string | null;

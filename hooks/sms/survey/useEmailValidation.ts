@@ -1,11 +1,12 @@
-// hooks/survey/useEmailValidation.ts
 import { useDebounce } from "@/hooks/helpers/useDebounce";
 import { useGetEmailCompletedSurvey } from "./useGetEmailCompletedSurvey";
 import { useState, useEffect } from "react";
 
+// Impide responder dos veces la misma encuesta con el mismo correo. Se consulta
+// mientras se escribe, de ahí el debounce.
 export const useEmailValidation = (surveyId: string, company: string) => {
   const [email, setEmail] = useState("");
-  const debouncedEmail = useDebounce(email, 500); // Debounce de 500ms
+  const debouncedEmail = useDebounce(email, 500);
 
   const {
     data: hasCompleted,
@@ -18,7 +19,6 @@ export const useEmailValidation = (surveyId: string, company: string) => {
     company,
   });
 
-  // Re-fetch cuando el email debounced cambia
   useEffect(() => {
     if (debouncedEmail && debouncedEmail.includes("@")) {
       refetch();

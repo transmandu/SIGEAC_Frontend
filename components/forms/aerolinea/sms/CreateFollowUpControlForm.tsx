@@ -15,7 +15,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { es } from "date-fns/locale";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Loader2 } from "lucide-react";
 
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -38,6 +38,8 @@ const FormSchema = z.object({
     .string()
     .min(3, { message: "La observacion debe tener al menos 3 caracteres" })
     .max(255, { message: "La observacion no puede exceder los 255 caracteres" }),
+  implementation_responsible: z.string().optional(),
+  follow_up_responsible: z.string().optional(),
 
   date: z
     .date()
@@ -90,7 +92,6 @@ export default function CreateFollowUpControlForm({ onClose, id }: FormProps) {
         mitigation_measure_id: id,
       },
     };
-    console.log(values);
     await createFollowUpControl.mutateAsync(values);
 
     onClose();
@@ -174,6 +175,36 @@ export default function CreateFollowUpControlForm({ onClose, id }: FormProps) {
           )}
         />
 
+        <div className="grid gap-4 md:grid-cols-2">
+          <FormField
+            control={form.control}
+            name="implementation_responsible"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Responsable de la implantación</FormLabel>
+                <FormControl>
+                  <Input placeholder="Nombre del responsable" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="follow_up_responsible"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Responsable del seguimiento</FormLabel>
+                <FormControl>
+                  <Input placeholder="Nombre del responsable" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
         <div className="flex justify-center items-center gap-2">
           <FormField
             control={form.control}
@@ -242,7 +273,13 @@ export default function CreateFollowUpControlForm({ onClose, id }: FormProps) {
           <p className="text-muted-foreground">SIGEAC</p>
           <Separator className="flex-1" />
         </div>
-        <Button>Enviar </Button>
+        <Button disabled={createFollowUpControl.isPending}>
+          {createFollowUpControl.isPending ? (
+            <Loader2 className="animate-spin size-4" />
+          ) : (
+            "Enviar"
+          )}
+        </Button>
       </form>
     </Form>
   );

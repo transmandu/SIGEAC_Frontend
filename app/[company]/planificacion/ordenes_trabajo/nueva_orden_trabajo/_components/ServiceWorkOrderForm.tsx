@@ -620,7 +620,7 @@ const ServiceWorkOrderForm = () => {
                                               </TableCell>
                                               <TableCell className="text-center">
                                                 {item.available ? (
-                                                  <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 hover:bg-green-300 cursor-pointer">
+                                                  <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 cursor-pointer">
                                                     <Check className="h-3 w-3 mr-1" />
                                                     Disponible
                                                   </Badge>

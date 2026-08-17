@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-// Asumiendo que estos son los imports correctos de tus componentes shadcn/ui
 import {
   Dialog,
   DialogContent,
@@ -67,7 +66,7 @@ export default function ActionPlanDialog({
                         {step.title}
                       </h3>
 
-                      {step?.role && (<span className="inline-block bg-blue-100 text-blue-800 text-xs font-medium px-2 py-0.5 rounded-full mb-2">
+                      {step?.role && (<span className="select-none inline-block bg-blue-100 text-blue-800 text-xs font-medium px-2 py-0.5 rounded-full mb-2">
                         {step.role}
                       </span>)}
 

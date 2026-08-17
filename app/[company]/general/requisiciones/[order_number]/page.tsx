@@ -36,6 +36,7 @@ import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { PageHeader } from "@/components/layout/PageHeader";
 
 /* -------------------- TRADUCCIONES -------------------- */
 const STATUS_LABELS: Record<string, string> = {
@@ -439,7 +440,7 @@ const GeneralArticleCard = ({ article }: { article: any }) => {
 
             {article.authorized_employee && (
               <div>
-                <p className="text-muted-foreground text-xs">Autorizado</p>
+                <p className="text-muted-foreground text-xs">Solicitante externo</p>
                 <p className="font-medium">
                   {article.authorized_employee.full_name ?? article.authorized_employee.dni_employee}
                 </p>
@@ -520,7 +521,9 @@ const RequisitionPage = () => {
   };
 
   return (
-    <ContentLayout title="Inventario">
+    <ContentLayout title="Detalle de Requisición">
+      <PageHeader className="mb-6" />
+
 
       {/* HEADER */}
       <div className="flex flex-col gap-y-2 mb-10">
@@ -605,7 +608,7 @@ const RequisitionPage = () => {
               <p className="text-xs text-muted-foreground">Creado por</p>
               <p className="font-medium flex items-center gap-2 justify-center">
                 <User className="w-4 h-4" />
-                {`${data?.created_by.first_name ?? ''} ${data?.created_by.last_name ?? ''}`.trim().toUpperCase()}
+                {data?.created_by ? `${data.created_by.first_name} ${data.created_by.last_name}`.trim().toUpperCase() : "SISTEMA"}
               </p>
             </div>
 
@@ -637,6 +640,16 @@ const RequisitionPage = () => {
                 <p className="font-medium flex items-center gap-2 justify-center">
                   <Plane className="w-4 h-4" />
                   {data.aircraft.acronym}
+                </p>
+              </div>
+            )}
+
+            {data?.work_order && (
+              <div className="text-center space-y-1">
+                <p className="text-xs text-muted-foreground">Orden de Trabajo</p>
+                <p className="font-medium flex items-center gap-2 justify-center">
+                  <FileText className="w-4 h-4" />
+                  {data.work_order}
                 </p>
               </div>
             )}

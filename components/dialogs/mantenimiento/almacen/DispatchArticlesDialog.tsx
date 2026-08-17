@@ -130,12 +130,10 @@ const DispatchArticlesDialog = ({ articles = [], work_order, justification }: Di
                                             >
                                                 <div className="flex items-start justify-between gap-3 min-w-0 w-full">
                                                     <div className="min-w-0">
-                                                        {/* ✅ Título: PN si existe, si no Descripción */}
                                                         <p className="truncate text-sm font-medium">
                                                             {title}
                                                         </p>
 
-                                                        {/* ✅ Si el título es PN y hay descripción, mostrarla como subtítulo */}
                                                         {hasPnTitle &&
                                                             a.description?.trim() &&
                                                             a.description !== "N/A" && (

@@ -1,40 +1,40 @@
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Client } from "@/types";
 import {
-    EditIcon,
-    EyeIcon,
-    Loader2,
-    MoreHorizontal,
-    Plus,
-    Trash2,
-    TrendingUp,
+  EditIcon,
+  EyeIcon,
+  Loader2,
+  MoreHorizontal,
+  Plus,
+  Trash2,
+  TrendingUp,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import AddClientBalanceForm from "../../forms/aerolinea/administracion/AddClientBalanceForm";
-import { EditClientForm } from "../../forms/aerolinea/administracion/EditClientForm";
+import AddClientBalanceForm from "@/components/forms/general/clientes/AddClientBalanceForm";
+import { EditClientForm } from "@/components/forms/general/clientes/EditClientForm";
 import { Avatar, AvatarFallback } from "../../ui/avatar";
 import { Badge } from "../../ui/badge";
 import { Button } from "../../ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../../ui/card";
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "../../ui/dialog";
-import { useDeleteClient } from "@/actions/ajustes/globales/clientes/actions";
+import { useDeleteClient } from "@/actions/ajustes/clientes/actions";
 import { useCompanyStore } from "@/stores/CompanyStore";
 
 const ClientDropdownActions = ({ client }: { client: Client }) => {
-    const {selectedCompany} = useCompanyStore();
+  const { selectedCompany } = useCompanyStore();
   const [openDelete, setOpenDelete] = useState<boolean>(false);
   const [openClient, setOpenClient] = useState<boolean>(false);
   const [openEdit, setOpenEdit] = useState<boolean>(false);
@@ -43,15 +43,16 @@ const ClientDropdownActions = ({ client }: { client: Client }) => {
   const router = useRouter();
 
   const handleViewStats = () => {
-    router.push(
-      `/ajustes/globales/clientes/${client.dni}`
-    );
+    router.push(`/${selectedCompany?.slug}/ajustes/clientes/${client.dni}`);
   };
 
   const handleDelete = (id: string) => {
-    deleteClient.mutate({id: client.id.toString(), company: selectedCompany!.slug}, {
-      onSuccess: () => setOpenDelete(false), // Cierra el modal solo si la eliminación fue exitosa
-    });
+    deleteClient.mutate(
+      { id: client.id.toString(), company: selectedCompany!.slug },
+      {
+        onSuccess: () => setOpenDelete(false), // Cierra el modal solo si la eliminación fue exitosa
+      },
+    );
   };
 
   const handleViewDetails = () => {
@@ -61,8 +62,8 @@ const ClientDropdownActions = ({ client }: { client: Client }) => {
   return (
     <>
       <DropdownMenu>
-        <DropdownMenuTrigger>
-          <Button variant="ghost" className="h-8 w-8 p-0">
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="h-8 w-8 p-0" data-tour="clientes-actions">
             <span className="sr-only">Abrir menu</span>
             <MoreHorizontal className="h-4 w-4" />
           </Button>
@@ -95,7 +96,7 @@ const ClientDropdownActions = ({ client }: { client: Client }) => {
           <DropdownMenuItem
             onClick={() => {
               router.push(
-                `/administracion/gestion_general/clientes/${client.dni}`
+                `/administracion/gestion_general/clientes/${client.dni}`,
               );
             }}
           ></DropdownMenuItem>

@@ -36,6 +36,7 @@ import {
 import Image from "next/image";
 import { useParams } from "next/navigation";
 import { useState } from "react";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const statusClassName = {
   ABIERTO:
@@ -99,6 +100,8 @@ const ShowSMSActivity = () => {
   return (
     <>
       <ContentLayout title="Actividad de SMS">
+        <PageHeader className="mb-6" />
+
         <div className="w-full rounded-lg border border-border/60 p-4 sm:p-6">
           <div className="mb-5 border-b border-border/60 pb-3">
             <div className="flex items-start justify-between gap-3">

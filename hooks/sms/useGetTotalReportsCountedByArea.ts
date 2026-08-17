@@ -19,9 +19,9 @@ export const useGetTotalReportsCountedByArea = (
   company?: string
 ) => {
   return useQuery<pieChartData[]>({
-    queryKey: ["total-reports-counted-by-area",company, from, to], // Incluye el ID en la clave de la query
-    queryFn: () => fetchTotalReportsCountedByArea(from, to, company), // Pasa el ID a la función fetchUser
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    queryKey: ["total-reports-counted-by-area",company, from, to],
+    queryFn: () => fetchTotalReportsCountedByArea(from, to, company),
+    staleTime: 1000 * 60 * 5,
     enabled: !!company,
   });
 };

@@ -1,14 +1,6 @@
 "use client";
 
 import { ContentLayout } from "@/components/layout/ContentLayout";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,8 +12,13 @@ import { Loader2, X } from "lucide-react";
 import { useState, useMemo } from "react";
 import { DataTable } from "./data-table";
 import { columns as generalColumns } from "../../almacen/inventario_articulos/_tables/general-columns";
+import { PageHeader } from "@/components/layout/PageHeader";
 
-const ROLES_WITH_QUANTITY_VISIBLE = ["ASISTENTE_COMPRAS", "SERVICIOS_GENERALES"];
+const ROLES_WITH_QUANTITY_VISIBLE = [
+  "ASISTENTE_COMPRAS",
+  "SERVICIOS_GENERALES",
+  "ENGINEERING",
+];
 
 const InventarioGeneralPage = () => {
   const { selectedCompany } = useCompanyStore();
@@ -40,14 +37,23 @@ const InventarioGeneralPage = () => {
   );
 
   const columnsWithoutActions = useMemo(() => {
-    const filtered = generalColumns.filter(
-      (col) =>
+    const filtered = generalColumns.filter((col) => {
+      const key = col.id ?? (col as any).accessorKey;
+
+      // Esta vista es de consulta: no muestra la imagen de referencia, y la
+      // unidad ya viaja junto a la cantidad en la celda de abajo.
+      if (["image", "unit"].includes(key)) return false;
+
+      return (
         col.id !== "actions" &&
         col.id !== "acciones" &&
         (typeof col.header === "string"
           ? col.header.toLowerCase() !== "acciones"
-          : true),
-    );
+          : true) &&
+        (canSeeQuantity ||
+          !["minimum_quantity", "maximum_quantity"].includes(key))
+      );
+    });
 
     if (!canSeeQuantity) return filtered;
 
@@ -75,7 +81,10 @@ const InventarioGeneralPage = () => {
 
           return (
             <div className="flex justify-center">
-              <Badge variant="secondary" className="tabular-nums px-2 py-1 text-xs">
+              <Badge
+                variant="secondary"
+                className="tabular-nums px-2 py-1 text-xs"
+              >
                 {qty} {unitLabel ?? ""}
               </Badge>
             </div>
@@ -102,19 +111,7 @@ const InventarioGeneralPage = () => {
   return (
     <ContentLayout title="Inventario General">
       <div className="flex flex-col gap-y-4">
-        <Breadcrumb>
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink href={`/${selectedCompany?.slug}/dashboard`}>
-                Inicio
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>Inventario General</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
+        <PageHeader className="mb-2" />
 
         <div className="text-center space-y-2">
           <h1 className="text-4xl font-bold">Inventario General</h1>

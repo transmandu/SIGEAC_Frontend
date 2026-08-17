@@ -341,7 +341,7 @@ export function AircraftPartsInfoForm({ onNext, onBack, initialData }: {
       return acc;
     }, [] as any[]);
 
-    // Validate only active parts using zod
+    // Solo se validan las partes activas: las descartadas pueden estar a medias.
     const parsed = PartsFormSchema.safeParse({ parts: activeParts });
     form.clearErrors();
     if (!parsed.success) {

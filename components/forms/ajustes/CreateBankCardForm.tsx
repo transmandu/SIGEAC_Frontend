@@ -1,5 +1,5 @@
 "use client";
-import { useCreateBankCard, useUpdateBankCard } from "@/actions/ajustes/banca/tarjetas/actions";
+import { useCreateBankCard, useUpdateBankCard } from "@/actions/sistema/banca/tarjetas/actions";
 import { CompanyMultiSelect } from "@/components/misc/CompanyMultiSelect";
 import {
   Form,
@@ -18,7 +18,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useBankingPermissions } from "@/hooks/general/cuentas_bancarias/useBankingPermissions";
 import { useGetBankAccounts } from "@/hooks/general/cuentas_bancarias/useGetBankAccounts";
+import { useCompanyStore } from "@/stores/CompanyStore";
 import { BankCard } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
@@ -50,10 +52,16 @@ interface FormProps {
 }
 
 export default function CreateBankCardForm({ onClose, bankCard }: FormProps) {
-  const { data: accounts, isLoading: isAccLoading } = useGetBankAccounts();
+  const { selectedCompany } = useCompanyStore();
+  const { data: accounts, isLoading: isAccLoading } = useGetBankAccounts(
+    selectedCompany?.id ? Number(selectedCompany.id) : undefined
+  );
   const { createCard } = useCreateBankCard();
   const { updateCard } = useUpdateBankCard();
+  const { canManageCompanies, canSeeFullNumber } = useBankingPermissions();
   const isEditing = !!bankCard;
+  // El número llega enmascarado: reenviarlo guardaría los puntos.
+  const lockNumber = isEditing && !canSeeFullNumber;
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -77,15 +85,24 @@ export default function CreateBankCardForm({ onClose, bankCard }: FormProps) {
   }, [accounts, selectedAccountId]);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    const { company_ids, card_number, ...rest } = values;
+
     // El tipo de la tarjeta lo define el método de pago elegido.
     const data = {
-      ...values,
+      ...rest,
+      card_number,
       bank_account_id: Number(values.bank_account_id),
       payment_method_id: Number(values.payment_method_id),
+      ...(canManageCompanies ? { company_ids } : {}),
     };
 
     if (isEditing) {
-      await updateCard.mutateAsync({ id: bankCard.id, data });
+      // Sin permiso el número llega enmascarado: enviarlo guardaría los puntos.
+      const { card_number: masked, ...editable } = data;
+      await updateCard.mutateAsync({
+        id: bankCard.id,
+        data: lockNumber ? editable : data,
+      });
     } else {
       await createCard.mutateAsync(data);
     }
@@ -114,20 +131,22 @@ export default function CreateBankCardForm({ onClose, bankCard }: FormProps) {
               </FormItem>
             )}
           />
-          <FormField
-            control={form.control}
-            name="card_number"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Nro. de Tarjeta</FormLabel>
-                <Input placeholder="EJ: 7184769" {...field} />
-                <FormDescription>
-                  Últimos dígitos de la tarjeta.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {!lockNumber && (
+            <FormField
+              control={form.control}
+              name="card_number"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nro. de Tarjeta</FormLabel>
+                  <Input placeholder="EJ: 7184769" {...field} />
+                  <FormDescription>
+                    Últimos dígitos de la tarjeta.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
           <FormField
             control={form.control}
             name="bank_account_id"
@@ -210,22 +229,24 @@ export default function CreateBankCardForm({ onClose, bankCard }: FormProps) {
             )}
           />
         </div>
-        <FormField
-          control={form.control}
-          name="company_ids"
-          render={({ field }) => (
-            <FormItem className="mt-2">
-              <FormLabel>Compañías habilitadas</FormLabel>
-              <FormControl>
-                <CompanyMultiSelect value={field.value} onChange={field.onChange} />
-              </FormControl>
-              <FormDescription>
-                La tarjeta será válida solo para las compañías seleccionadas.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {canManageCompanies && (
+          <FormField
+            control={form.control}
+            name="company_ids"
+            render={({ field }) => (
+              <FormItem className="mt-2">
+                <FormLabel>Compañías habilitadas</FormLabel>
+                <FormControl>
+                  <CompanyMultiSelect value={field.value} onChange={field.onChange} />
+                </FormControl>
+                <FormDescription>
+                  La tarjeta será válida solo para las compañías seleccionadas.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
         <Button
           className="bg-primary mt-2 text-white hover:bg-blue-900 disabled:bg-primary/70"
           disabled={isPending}

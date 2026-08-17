@@ -13,8 +13,8 @@ import {
 import {
   useCreateSMSActivity,
   useUpdateSMSActivity,
-  useGetNextActivityNumber,
 } from "@/actions/sms/sms_actividades/actions";
+import { useGetNextActivityNumber } from "@/hooks/sms/useGetNextActivityNumber";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Command,

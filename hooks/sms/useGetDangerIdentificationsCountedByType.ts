@@ -27,10 +27,10 @@ export const useGetDangerIdentificationsCountedByType = (
       from,
       to,
       reportType,
-    ], // Incluye el ID en la clave de la query
+    ],
     queryFn: () =>
-      fetcDangerIdentificationsCountedByType(company, from, to, reportType), // Pasa el ID a la función fetchUser
-    staleTime: 1000 * 60 * 5, // 5 minutos
+      fetcDangerIdentificationsCountedByType(company, from, to, reportType),
+    staleTime: 1000 * 60 * 5,
     enabled: !!company,
   });
 };

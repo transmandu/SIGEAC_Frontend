@@ -32,15 +32,12 @@ export function ThemeToggler() {
             onClick={toggleTheme}
             aria-label="Toggle theme"
             className={cn(
+              "glass-control",
               "relative flex items-center justify-center",
               "h-9 w-9 rounded-full",
-              "bg-background",
-              "border border-border/80",
+              "border",
               "text-foreground/90",
               "hover:text-foreground",
-              "hover:bg-muted/70",
-              "hover:border-border",
-              "transition-colors duration-200",
               "active:scale-95"
             )}
           >

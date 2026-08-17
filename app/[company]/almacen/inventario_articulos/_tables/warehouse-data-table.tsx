@@ -32,6 +32,8 @@ interface ServerPagination {
   from: number
   to: number
   onPageChange: (page: number) => void
+  /** Con orden agrupado el total cuenta grupos, no artículos. */
+  unitLabel?: string
 }
 
 interface DataTableProps<TData, TValue> {
@@ -40,6 +42,21 @@ interface DataTableProps<TData, TValue> {
   onRowClick?: (row: TData) => void
   rowClassName?: (row: TData) => string
   serverPagination?: ServerPagination
+  /** Delega el orden al servidor: sin esto solo se ordena la página cargada. */
+  serverSorting?: {
+    sorting: SortingState
+    onSortingChange: (sorting: SortingState) => void
+  }
+  /** Refetch en curso con datos previos en pantalla. */
+  isFetching?: boolean
+  /**
+   * Delega ciertos filtros de columna al servidor. Sin esto solo se filtra la
+   * página cargada, que con paginado por servidor son unas pocas filas.
+   */
+  serverColumnFilters?: {
+    columnIds: string[]
+    onFiltersChange: (filters: Record<string, string>) => void
+  }
 }
 
 type ColMeta = {
@@ -53,19 +70,46 @@ export function DataTable<TData, TValue>({
   onRowClick,
   rowClassName,
   serverPagination,
+  serverSorting,
+  isFetching = false,
+  serverColumnFilters,
 }: DataTableProps<TData, TValue>) {
-  const [sorting, setSorting] = useState<SortingState>([])
+  const [localSorting, setLocalSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
+
+  const sorting = serverSorting ? serverSorting.sorting : localSorting
+
+  const handleColumnFiltersChange: React.Dispatch<
+    React.SetStateAction<ColumnFiltersState>
+  > = (updater) => {
+    const next = typeof updater === "function" ? updater(columnFilters) : updater
+    setColumnFilters(next)
+
+    if (!serverColumnFilters) return
+
+    const delegated: Record<string, string> = {}
+    for (const id of serverColumnFilters.columnIds) {
+      const value = next.find((f) => f.id === id)?.value
+      const raw = String(value ?? "").trim()
+      if (raw) delegated[id] = raw
+    }
+    serverColumnFilters.onFiltersChange(delegated)
+  }
 
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-    onSortingChange: setSorting,
+    onSortingChange: (updater) => {
+      const next = typeof updater === "function" ? updater(sorting) : updater
+      if (serverSorting) serverSorting.onSortingChange(next)
+      else setLocalSorting(next)
+    },
     getSortedRowModel: getSortedRowModel(),
-    onColumnFiltersChange: setColumnFilters,
+    manualSorting: !!serverSorting,
+    onColumnFiltersChange: handleColumnFiltersChange,
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     initialState: {
@@ -78,16 +122,37 @@ export function DataTable<TData, TValue>({
     },
   })
 
-  const stickyHeadClass = "sticky right-0 z-40 bg-background"
-  const stickyCellClass = "sticky right-0 z-30 bg-background group-hover:bg-muted/50"
+  // z bajo a propósito: la columna fija solo debe cubrir las celdas que pasan
+  // por debajo al hacer scroll horizontal, no montarse sobre dropdowns ni
+  // diálogos.
+  const stickyHeadClass =
+    "sticky right-0 z-[2] bg-background transition-colors group-hover:[background:var(--sticky-hover-bg)]"
+  // La celda necesita fondo opaco (tapa lo que pasa por debajo al hacer
+  // scroll), pero la fila tiñe con muted/50 translúcido. color-mix reproduce
+  // esa mezcla ya compuesta sobre el fondo, así el tono coincide exactamente;
+  // transition-colors la sincroniza con el transition-colors de la fila.
+  const stickyHoverBg =
+    "color-mix(in srgb, hsl(var(--muted)) 50%, hsl(var(--background)))"
+  const stickyCellClass =
+    "sticky right-0 z-[1] bg-background transition-colors group-hover:[background:var(--sticky-hover-bg)] group-data-[state=selected]:bg-muted"
 
   return (
     <div className="space-y-4">
-      <div className="rounded-md border overflow-x-auto">
-        <Table>
+      <div className="relative rounded-md border overflow-x-auto">
+        {isFetching && (
+          <div className="absolute inset-x-0 top-0 z-50 h-0.5 overflow-hidden bg-muted">
+            <div className="h-full w-1/4 animate-indeterminate bg-primary" />
+          </div>
+        )}
+        <Table
+          className={cn(
+            "transition-opacity",
+            isFetching && "opacity-60 pointer-events-none",
+          )}
+        >
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
+              <TableRow key={headerGroup.id} className="group">
                 {headerGroup.headers.map((header) => {
                   const meta = header.column.columnDef.meta as ColMeta | undefined
                   const isStickyRight = meta?.sticky === "right"
@@ -96,6 +161,11 @@ export function DataTable<TData, TValue>({
                     <TableHead
                       key={header.id}
                       className={cn(isStickyRight && stickyHeadClass, meta?.className)}
+                      style={
+                        isStickyRight
+                          ? ({ "--sticky-hover-bg": stickyHoverBg } as React.CSSProperties)
+                          : undefined
+                      }
                     >
                       {header.isPlaceholder
                         ? null
@@ -124,6 +194,11 @@ export function DataTable<TData, TValue>({
                       <TableCell
                         key={cell.id}
                         className={cn(isStickyRight && stickyCellClass, meta?.className)}
+                        style={
+                          isStickyRight
+                            ? ({ "--sticky-hover-bg": stickyHoverBg } as React.CSSProperties)
+                            : undefined
+                        }
                       >
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </TableCell>
@@ -145,7 +220,7 @@ export function DataTable<TData, TValue>({
       <div className="flex items-center justify-between px-2">
         <div className="flex-1 text-sm text-muted-foreground">
           {serverPagination
-            ? `${serverPagination.from}–${serverPagination.to} de ${serverPagination.total} artículo(s)`
+            ? `${serverPagination.from}–${serverPagination.to} de ${serverPagination.total} ${serverPagination.unitLabel ?? "artículo(s)"}`
             : `${table.getFilteredRowModel().rows.length} artículo(s) total(es)`}
         </div>
 

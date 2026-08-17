@@ -64,14 +64,14 @@ const invalidate = (queryClient: ReturnType<typeof useQueryClient>) => {
 const invalidateTypes = (queryClient: ReturnType<typeof useQueryClient>) => {
   queryClient.invalidateQueries({ queryKey: ["uniform-article-types"] });
   queryClient.invalidateQueries({ queryKey: ["uniform-options"] });
-  // SKUs render their type name, so refresh them too.
+  // Los artículos muestran el nombre de su tipo, así que también se desactualizan.
   queryClient.invalidateQueries({ queryKey: ["uniform-items"] });
 };
 
 const invalidateBrands = (queryClient: ReturnType<typeof useQueryClient>) => {
   queryClient.invalidateQueries({ queryKey: ["uniform-brands"] });
   queryClient.invalidateQueries({ queryKey: ["uniform-options"] });
-  // SKUs render their brand name, so refresh them too.
+  // Los artículos muestran el nombre de su marca, así que también se desactualizan.
   queryClient.invalidateQueries({ queryKey: ["uniform-items"] });
 };
 

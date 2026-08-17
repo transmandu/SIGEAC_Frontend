@@ -3,13 +3,13 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ContentLayout } from '@/components/layout/ContentLayout';
 import { DailyReportForm } from '@/components/forms/aerolinea/desarollo/DailyReportForm';
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { useGetDailyActivityReport } from '@/hooks/aerolinea/desarrollo/useGetDailyActivities';
 import { useParams } from 'next/navigation';
 import ConfirmCreateActivityReportDialog from '@/components/dialogs/aerolinea/desarollo/CreateActivityReportDialog';
 import { useCreateActivityReport } from '@/actions/aerolinea/desarrollo/reportes_diarios/actions';
 import { useAuth } from '@/contexts/AuthContext';
 import LoadingPage from '@/components/misc/LoadingPage';
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const DailyActivitiesPage = () => {
   const { user, loading } = useAuth();
@@ -43,21 +43,7 @@ const DailyActivitiesPage = () => {
   return (
     <ContentLayout title="Registro de Actividades">
       <div className="flex flex-col gap-y-2">
-        <Breadcrumb>
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink href="/transmandu/dashboard">Inicio</BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>Desarrollo</BreadcrumbPage>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>Registro de Actividades</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
+        <PageHeader className="mb-4" />
         <h1 className="text-4xl font-bold text-center">Registro de Actividades</h1>
         <p className="text-sm text-muted-foreground text-center italic">
           Aquí puede registrar las actividades realizadas por la Jefatura de Desarrollo.<br />

@@ -21,6 +21,8 @@ const MSG_CLASS: Record<MsgLevel, string> = {
   warn: "text-amber-600",
 }
 
+type RowConversion = { unitId: number; unitLabel: string; factor: number; baseLabel: string }
+
 interface ArticleRowCardProps {
   title: string
   subtitle: string
@@ -32,6 +34,9 @@ interface ArticleRowCardProps {
   showConversionPanel: boolean
   conversionPanelNode: React.ReactNode
   accentClass: string
+  /** Unidad base del artículo; rotula el input mientras no haya conversión. */
+  baseUnitLabel?: string
+  conversion?: RowConversion
   onQtyChange: (val: string) => void
   onCommit: () => void
   onSetMax: () => void
@@ -50,12 +55,18 @@ export const ArticleRowCard = memo(function ArticleRowCard({
   showConversionPanel,
   conversionPanelNode,
   accentClass,
+  baseUnitLabel,
+  conversion,
   onQtyChange,
   onCommit,
   onSetMax,
   onOpenConversion,
   onRemove,
 }: ArticleRowCardProps) {
+  const activeUnit = conversion?.unitLabel ?? baseUnitLabel
+  const baseLabel = conversion?.baseLabel || baseUnitLabel
+  const qtyInBase = conversion ? (parseFloat(qty || "0") || 0) * conversion.factor : null
+
   return (
     <div className={cn("border rounded-md p-3 border-l-4", accentClass)}>
       <div className="flex items-start justify-between gap-3">
@@ -70,7 +81,9 @@ export const ArticleRowCard = memo(function ArticleRowCard({
 
       <div className="mt-3 space-y-2">
         <div className="flex items-center justify-between gap-2">
-          <Label className="text-sm font-medium">Cantidad</Label>
+          <Label className="text-sm font-medium">
+            Cantidad{activeUnit ? ` (${activeUnit})` : ""}
+          </Label>
           <div className="flex items-center gap-2">
             <Button
               type="button" variant="ghost" size="sm"
@@ -102,7 +115,7 @@ export const ArticleRowCard = memo(function ArticleRowCard({
               ;(e.currentTarget as HTMLInputElement).blur()
             }
           }}
-          placeholder={!disabled ? `Máx: ${max}` : "Ingrese la cantidad..."}
+          placeholder={!disabled ? `Máx: ${max}${baseLabel ? ` ${baseLabel}` : ""}` : "Ingrese la cantidad..."}
           className={cn(
             "h-10",
             rowMsg?.level === "error" && "border-destructive focus-visible:ring-destructive",
@@ -117,7 +130,19 @@ export const ArticleRowCard = memo(function ArticleRowCard({
           </div>
         )}
 
-        {max > 0 && <p className="text-[11px] text-muted-foreground">Disponible actual: {max}</p>}
+        {/* Se despacha en la unidad convertida: sin el equivalente en base, el
+            número del input no se puede contrastar contra el disponible. */}
+        {conversion && qtyInBase !== null && (
+          <p className="text-xs font-medium tabular-nums">
+            {qty || 0} {conversion.unitLabel} = {Number(qtyInBase.toFixed(6))} {conversion.baseLabel}
+          </p>
+        )}
+
+        {max > 0 && (
+          <p className="text-[11px] text-muted-foreground">
+            Disponible actual: {max}{baseLabel ? ` ${baseLabel}` : ""}
+          </p>
+        )}
       </div>
 
       {showConversionPanel && conversionPanelNode}

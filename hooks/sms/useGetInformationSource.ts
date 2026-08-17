@@ -15,7 +15,7 @@ export const useGetInformationSources = () => {
   return useQuery<InformationSource[]>({
     queryKey: ["information-sources"],
     queryFn: () => fetchInformationSources(selectedCompany?.slug),
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    staleTime: 1000 * 60 * 5,
     enabled: !!selectedCompany?.slug,
   });
 };

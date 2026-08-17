@@ -30,9 +30,9 @@ const fetchCoursesByStatusDateRange = async ({
 
 export const useGetCoursesByStatusDateRange = (data: data) => {
   return useQuery<IdNameSchema[]>({
-    queryKey: ["course-stats"], // Incluye el ID en la clave de la query
-    queryFn: () => fetchCoursesByStatusDateRange(data), // Pasa el ID a la función fetchUser
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    queryKey: ["course-stats"],
+    queryFn: () => fetchCoursesByStatusDateRange(data),
+    staleTime: 1000 * 60 * 5,
     enabled: !!data.company && !!data.location_id,
   });
 };

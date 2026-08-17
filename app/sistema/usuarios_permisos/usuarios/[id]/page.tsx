@@ -1,18 +1,9 @@
 'use client'
 
 import { ContentLayout } from '@/components/layout/ContentLayout'
-import BackButton from '@/components/misc/BackButton'
 import LoadingPage from '@/components/misc/LoadingPage'
 
 import { Badge } from '@/components/ui/badge'
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb'
 import {
   Card,
   CardContent,
@@ -29,6 +20,7 @@ import { useGetUserById } from '@/hooks/sistema/usuario/useGetUserById'
 import { cn } from '@/lib/utils'
 
 import { Mail, User as UserIcon } from 'lucide-react'
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const UserByIdPage = ({ params }: { params: { id: string } }) => {
   const { data: user, isLoading, isError } = useGetUserById(params.id)
@@ -54,25 +46,7 @@ const UserByIdPage = ({ params }: { params: { id: string } }) => {
       <div className="flex flex-col gap-y-4">
 
         {/* Breadcrumb */}
-        <div className="flex items-center gap-2">
-          <BackButton iconOnly tooltip="Volver" variant="secondary" />
-
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbLink href="/sistema/usuarios_permisos/usuarios">
-                  Usuarios
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbPage>
-                  {user.first_name} {user.last_name}
-                </BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-        </div>
+        <PageHeader className="mb-2" />
 
         {/* GRID PRINCIPAL */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">

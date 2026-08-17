@@ -7,9 +7,6 @@ import {
 
 import { toast } from "sonner"
 
-/* =========================
-CREATE
-========================= */
 export const useCreateCompany = () => {
   const queryClient = useQueryClient()
 
@@ -42,9 +39,6 @@ export const useCreateCompany = () => {
   }
 }
 
-/* =========================
-UPDATE
-========================= */
 export const useUpdateCompany = () => {
   const queryClient = useQueryClient()
 
@@ -79,9 +73,42 @@ export const useUpdateCompany = () => {
   return { updateCompany: updateMutation }
 }
 
-/* =========================
-DELETE
-========================= */
+export const useSyncCompanyModules = () => {
+  const queryClient = useQueryClient()
+
+  const syncMutation = useMutation({
+    mutationFn: async ({
+      slug,
+      module_ids,
+    }: {
+      slug: string
+      module_ids: number[]
+    }) => {
+      await axiosInstance.put(`/company/${slug}/modules`, {
+        module_ids,
+      })
+    },
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["companies"] })
+
+      toast("¡Actualizado!", {
+        description: "Los módulos de la empresa fueron actualizados.",
+      })
+    },
+
+    onError: (error: any) => {
+      toast("Error", {
+        description:
+          error?.response?.data?.message ??
+          "No se pudieron actualizar los módulos.",
+      })
+    },
+  })
+
+  return { syncCompanyModules: syncMutation }
+}
+
 export const useDeleteCompany = () => {
   const queryClient = useQueryClient()
 

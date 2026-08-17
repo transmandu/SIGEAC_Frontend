@@ -6,11 +6,14 @@ import React from 'react'
 import { columns } from './columns'
 import { Loader2 } from 'lucide-react'
 import { DataTable } from './data-table'
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const RolesPage = () => {
   const { data: roles, error, isLoading } = useGetRoles();
   return (
     <ContentLayout title='Roles'>
+      <PageHeader className="mb-6" />
+
       <h1 className='text-2xl font-bold'>Listado de Roles</h1>
       {
         isLoading && (

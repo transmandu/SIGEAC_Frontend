@@ -8,6 +8,8 @@ export const useCreatePurchaseOrder = () => {
   const queryClient = useQueryClient()
 
   const createMutation = useMutation({
+      // Sin reintentos: un POST repetido de esta ruta crea órdenes duplicadas.
+      retry: false,
       mutationFn: async ({data, company}: {data: CreatePurchaseOrderData, company: string}) => {
           await axiosInstance.post(`/${company}/purchase-order`, data)
         },
@@ -15,8 +17,7 @@ export const useCreatePurchaseOrder = () => {
           queryClient.invalidateQueries({queryKey: ['purchase-orders']})
           queryClient.invalidateQueries({queryKey: ['purchase-order'], exact: false})
           queryClient.invalidateQueries({queryKey: ['purchaseOrderByQuote'], exact: false})
-          // Crear la OC aprueba la cotización y avanza la requisición en el
-          // backend, así que refrescamos esas vistas también.
+          // Crear la OC aprueba la cotización y avanza la requisición en el backend.
           queryClient.invalidateQueries({queryKey: ['quotes']})
           queryClient.invalidateQueries({queryKey: ['quote'], exact: false})
           queryClient.invalidateQueries({queryKey: ['requisitions-orders']})
@@ -25,11 +26,28 @@ export const useCreatePurchaseOrder = () => {
               description: `La orden de compra ha sido creada correctamente.`
           })
         },
-      onError: (error) => {
+      onError: (error: any) => {
+          // 409 = la cotización ya generó sus órdenes (doble clic o request repetido).
+          // No es un fallo: el trabajo ya está hecho, así que se refresca para que
+          // la vista muestre las órdenes que sí existen.
+          if (error?.response?.status === 409) {
+            queryClient.invalidateQueries({queryKey: ['purchase-orders']})
+            queryClient.invalidateQueries({queryKey: ['purchaseOrderByQuote'], exact: false})
+            queryClient.invalidateQueries({queryKey: ['quotes']})
+            queryClient.invalidateQueries({queryKey: ['quote'], exact: false})
+
+            toast.warning("Esta cotización ya fue aprobada", {
+              description: error?.response?.data?.message
+                || "La cotización ya tiene sus órdenes de compra generadas."
+            })
+
+            return
+          }
+
           toast.error('Oops!', {
-            description: 'No se pudo crear la orden de compra...'
+            description: error?.response?.data?.message
+              || 'No se pudo crear la orden de compra...'
           })
-          console.log(error)
         },
       }
   )
@@ -50,10 +68,10 @@ export const useCompletePurchase = () => {
           if (data.tax != null) formData.append("tax", String(data.tax))
           if (data.wire_fee != null) formData.append("wire_fee", String(data.wire_fee))
           if (data.handling_fee != null) formData.append("handling_fee", String(data.handling_fee))
+          if (data.sub_total != null) formData.append("sub_total", String(data.sub_total))
           formData.append("total", String(data.total))
-          // El backend deriva bank_account_id del método de pago cuando se
-          // envía payment_method_id; bank_account_id suelto queda por
-          // compatibilidad con órdenes previas a la reingeniería de pagos.
+          // Con payment_method_id el backend deriva la cuenta; bank_account_id
+          // suelto es compatibilidad con órdenes anteriores al rediseño de pagos.
           if (data.payment_method_id != null) formData.append("payment_method_id", String(data.payment_method_id))
           if (data.bank_account_id != null) formData.append("bank_account_id", String(data.bank_account_id))
           if (data.bank_card_id != null) formData.append("bank_card_id", String(data.bank_card_id))
@@ -66,6 +84,8 @@ export const useCompletePurchase = () => {
 
           data.articles_purchase_orders?.forEach((article, index) => {
             formData.append(`articles_purchase_orders[${index}][article_purchase_order_id]`, String(article.article_purchase_order_id))
+            if (article.total != null) formData.append(`articles_purchase_orders[${index}][total]`, String(article.total))
+            if (article.total_justification != null) formData.append(`articles_purchase_orders[${index}][total_justification]`, article.total_justification)
             if (article.shipping_tracking != null) formData.append(`articles_purchase_orders[${index}][shipping_tracking]`, article.shipping_tracking)
             if (article.international_shipping_tracking != null) formData.append(`articles_purchase_orders[${index}][international_shipping_tracking]`, article.international_shipping_tracking)
           })
@@ -131,20 +151,41 @@ export const useMarkPurchaseOrderAsPaid = () => {
   }
 }
 
-// El responsable de traer la mercancía llama esto cuando los artículos
-// generales de la orden llegan físicamente. Crea un GeneralArticleIntake en
-// PENDING por cada ítem general que aún no tenga uno (seguro de llamar más
-// de una vez sobre la misma orden, p. ej. entregas parciales/escalonadas).
-// Pagar la orden (useMarkPurchaseOrderAsPaid) ya NO dispara esto automáticamente.
+// Destino de la entrega: por defecto el almacén (warehouseId, de tipo GENERAL
+// en la estación activa) — intake PENDING que el almacén confirma. Si en
+// cambio se afilia a un departamento/empleado/autorizado/tercero (mismas
+// entidades que la requisición general), la entrega es directa: el intake nace
+// DELIVERED, nunca entra al inventario y su comprobante es la Nota de Entrega.
+export type GeneralArticlesDeliveryDestination = {
+  locationId?: string | number
+  warehouseId?: number
+  departmentId?: number
+  employeeId?: number
+  authorizedEmployeeId?: number
+  thirdPartyId?: number
+}
+
+// Lo llama quien trae la mercancía cuando los artículos generales llegan.
+// Crea un intake por cada ítem que aún no tenga uno, así que es seguro repetirlo
+// sobre la misma orden (entregas parciales). Pagar la orden ya no lo dispara solo.
 export const useRegisterGeneralArticlesDelivery = () => {
 
   const queryClient = useQueryClient()
 
   const registerDeliveryMutation = useMutation({
-      mutationFn: async ({id, company, arrivedAt}: {id: number, company: string, arrivedAt?: Date}) => {
+      mutationFn: async ({id, company, arrivedAt, generalArticlePurchaseOrderIds, destination}: {id: number, company: string, arrivedAt?: Date, generalArticlePurchaseOrderIds?: number[], destination?: GeneralArticlesDeliveryDestination}) => {
           const {data} = await axiosInstance.patch<RegisterGeneralArticlesDeliveryResponse>(
             `/${company}/purchase-order/${id}/register-general-articles-delivery`,
-            arrivedAt ? { arrived_at: arrivedAt.toISOString() } : {}
+            {
+              ...(arrivedAt ? { arrived_at: arrivedAt.toISOString() } : {}),
+              ...(generalArticlePurchaseOrderIds ? { general_article_purchase_order_ids: generalArticlePurchaseOrderIds } : {}),
+              ...(destination?.locationId ? { location_id: Number(destination.locationId) } : {}),
+              ...(destination?.warehouseId ? { warehouse_id: destination.warehouseId } : {}),
+              ...(destination?.departmentId ? { department_id: destination.departmentId } : {}),
+              ...(destination?.employeeId ? { employee_id: destination.employeeId } : {}),
+              ...(destination?.authorizedEmployeeId ? { authorized_employee_id: destination.authorizedEmployeeId } : {}),
+              ...(destination?.thirdPartyId ? { third_party_id: destination.thirdPartyId } : {}),
+            }
           )
           return data
         },
@@ -166,6 +207,41 @@ export const useRegisterGeneralArticlesDelivery = () => {
 
   return {
     registerGeneralArticlesDelivery: registerDeliveryMutation,
+  }
+}
+
+// Solo SUPERUSER. Borra la orden en cualquier estado: si ya generó inventario
+// (Articles o un intake confirmado), lo revierte en vez de bloquear.
+export const useCascadeDeletePurchaseOrder = () => {
+
+  const queryClient = useQueryClient()
+
+  const cascadeDeleteMutation = useMutation({
+      mutationFn: async ({id, company}: {id: number, company: string}) => {
+          await axiosInstance.delete(`/${company}/purchase-order/${id}/cascade`)
+        },
+      onSuccess: () => {
+          queryClient.invalidateQueries({queryKey: ['purchase-orders']})
+          queryClient.invalidateQueries({queryKey: ['purchase-order'], exact: false})
+          queryClient.invalidateQueries({queryKey: ['quotes']})
+          queryClient.invalidateQueries({queryKey: ['quote'], exact: false})
+          queryClient.invalidateQueries({queryKey: ['requisitions-orders']})
+          queryClient.invalidateQueries({queryKey: ['requisition-order'], exact: false})
+          queryClient.invalidateQueries({queryKey: ['general-article-intakes'], exact: false})
+          toast.success("¡Eliminada en cascada!", {
+              description: `La orden de compra y todo su inventario asociado fue eliminado, revirtiendo el stock correspondiente.`
+          })
+        },
+      onError: (error: any) => {
+          toast.error("Oops!", {
+            description: error?.response?.data?.message || "¡Hubo un error al eliminar en cascada la orden de compra!"
+        })
+        },
+      }
+  )
+
+  return {
+    cascadeDeletePurchaseOrder: cascadeDeleteMutation,
   }
 }
 

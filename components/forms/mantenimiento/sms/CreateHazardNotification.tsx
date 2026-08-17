@@ -9,7 +9,6 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { CalendarIcon, Loader2, Plus, X } from "lucide-react";
 
-// UI Components
 import { Button } from "@/components/ui/button";
 import {
     Form,
@@ -38,7 +37,6 @@ import { useGetInformationSources } from "@/hooks/sms/useGetInformationSource";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { cn } from "@/lib/utils";
 
-// Types
 import { HazardNotification } from "@/types/sms/mantenimiento";
 import { UpdateHazardNotification, useCreateHazardNotification } from "@/actions/mantenimiento/sms/notificacion_peligro/actions";
 import { useGetLocationsByCompany } from "@/hooks/sistema/useGetLocationsByCompany";
@@ -58,9 +56,9 @@ const FormSchema = z.object({
     // possible_consequences: z.string().min(1, "Debe agregar al menos una consecuencia"),
     // consequence_to_evaluate: z.string().min(1, "Seleccione la consecuencia principal"),
     analysis_of_root_causes: z.string().min(1, "Debe agregar al menos un análisis"),
-    report_type: z.string(),
-    report_number: z.string(),
-    location_id: z.string(),
+    report_type: z.string().min(1, "El tipo de reporte es obligatorio"),
+    report_number: z.string().min(1, "El número de reporte es obligatorio"),
+    location_id: z.string().min(1, "Seleccione una ubicación"),
 
 });
 
@@ -87,7 +85,6 @@ export default function CreateHazardNotification({
 
     const { data: informationSources, isLoading: isLoadingSources } = useGetInformationSources();
 
-    // Llamada a los hooks según tu archivo de actions
     const { createHazardNotification } = useCreateHazardNotification();
     const { updateHazardNotification } = UpdateHazardNotification();
     const { data: locations, isLoading: isLocationsLoading } = useGetLocationsByCompany(selectedCompany!.slug);
@@ -166,7 +163,19 @@ export default function CreateHazardNotification({
                     data: dataPayload,
                 });
 
-
+                form.reset({
+                    reception_date: new Date(),
+                    identification_area: "",
+                    danger_type: "",
+                    information_source_id: "",
+                    description: "",
+                    analysis_of_root_causes: "",
+                    report_type: reportType,
+                    report_number: "",
+                    location_id: "",
+                });
+                setAnalyses([]);
+                setNewAnalysis("");
             }
         } catch (error) {
             console.error("Error submitting form:", error);
@@ -177,18 +186,17 @@ export default function CreateHazardNotification({
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col space-y-4">
-                <h2 className="text-lg font-bold text-center">Identificación de Peligro</h2>
-                <Separator />
+            <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col space-y-5">
+                <h2 className="text-base font-semibold">Identificación de Peligro</h2>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {/* Fecha */}
                     <FormField
                         control={form.control}
                         name="reception_date"
                         render={({ field }) => (
                             <FormItem className="flex flex-col">
-                                <FormLabel>Fecha de Recepción</FormLabel>
+                                <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Fecha de Recepción</FormLabel>
                                 <Popover>
                                     <PopoverTrigger asChild>
                                         <FormControl>
@@ -232,7 +240,7 @@ export default function CreateHazardNotification({
                         name="report_number"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Number</FormLabel>
+                                <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Number</FormLabel>
                                 <FormControl>
                                     <Input placeholder="Number" {...field} />
                                 </FormControl>
@@ -248,7 +256,7 @@ export default function CreateHazardNotification({
                     name="location_id"
                     render={({ field }) => (
                         <FormItem className="w-full">
-                            <FormLabel>Base donde se genera</FormLabel>
+                            <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Base donde se genera</FormLabel>
                             {isLocationsLoading ? (
                                 <div className="flex items-center gap-2 p-2 border rounded-md bg-muted">
                                     <Loader2 className="h-4 w-4 animate-spin " />
@@ -279,14 +287,14 @@ export default function CreateHazardNotification({
                     )}
                 />
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {/* Área */}
                     <FormField
                         control={form.control}
                         name="identification_area"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Área</FormLabel>
+                                <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Área</FormLabel>
                                 <Select onValueChange={field.onChange} value={field.value}>
                                     <FormControl><SelectTrigger><SelectValue placeholder="Área" /></SelectTrigger></FormControl>
                                     <SelectContent>
@@ -304,7 +312,7 @@ export default function CreateHazardNotification({
                         name="danger_type"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Tipo de Peligro</FormLabel>
+                                <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Tipo de Peligro</FormLabel>
                                 <Select onValueChange={field.onChange} value={field.value}>
                                     <FormControl><SelectTrigger><SelectValue placeholder="Tipo" /></SelectTrigger></FormControl>
                                     <SelectContent>
@@ -323,7 +331,7 @@ export default function CreateHazardNotification({
                     name="information_source_id"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Fuente de Información</FormLabel>
+                            <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Fuente de Información</FormLabel>
                             <Select onValueChange={field.onChange} value={field.value}>
                                 <FormControl>
                                     <SelectTrigger>
@@ -350,7 +358,7 @@ export default function CreateHazardNotification({
                     name="description"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Descripción</FormLabel>
+                            <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Descripción</FormLabel>
                             <FormControl>
                                 <Textarea placeholder="Breve descripción" {...field} />
                             </FormControl>
@@ -362,7 +370,7 @@ export default function CreateHazardNotification({
 
                 {/* Análisis Tags */}
                 <div className="space-y-2">
-                    <FormLabel>Análisis de Causas Raíz</FormLabel>
+                    <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Análisis de Causas Raíz</FormLabel>
                     <div className="flex gap-2">
                         <Input value={newAnalysis} onChange={(e) => setNewAnalysis(e.target.value)} placeholder="Añadir análisis..." />
                         <Button type="button" onClick={addAnalysis} size="icon"><Plus className="h-4 w-4" /></Button>
@@ -380,7 +388,7 @@ export default function CreateHazardNotification({
                     </div>
                 </div>
 
-                <Button type="submit" className="w-full" disabled={isPending}>
+                <Button type="submit" className="w-full h-10" disabled={isPending}>
                     {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     {isEditing ? "Actualizar Identificación" : "Registrar Identificación"}
                 </Button>

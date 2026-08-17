@@ -21,16 +21,29 @@ import { useState } from "react";
 export function DeleteFuelVehicleDialog({
   company,
   vehicle,
+  open: openProp,
+  onOpenChange,
 }: {
   company?: string;
   vehicle: FuelVehicle;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) {
-  const [open, setOpen] = useState(false);
+  // When open/onOpenChange are supplied, the dialog is triggered from
+  // outside (e.g. a dropdown menu item) instead of its own default button.
+  const isControlled = openProp !== undefined;
+  const [openState, setOpenState] = useState(false);
+  const open = isControlled ? openProp : openState;
+  const setOpen = isControlled ? onOpenChange! : setOpenState;
   const [confirmPlate, setConfirmPlate] = useState("");
   const deleteVehicle = useDeleteFuelVehicle(company);
 
+  // Si el vehiculo no tiene placa cargada, se confirma con un identificador
+  // derivado del id para no bloquear el borrado.
+  const confirmTarget = vehicle.plate?.trim() || `VEHICULO-${vehicle.id}`;
+
   const canConfirm =
-    confirmPlate.trim().toUpperCase() === vehicle.plate.toUpperCase();
+    confirmPlate.trim().toUpperCase() === confirmTarget.toUpperCase();
 
   const handleDelete = async () => {
     if (!canConfirm) return;
@@ -49,20 +62,22 @@ export function DeleteFuelVehicleDialog({
         }
       }}
     >
-      <AlertDialogTrigger asChild>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-8 gap-2 text-destructive hover:text-destructive"
-        >
-          <Trash2 className="h-4 w-4" />
-          Eliminar
-        </Button>
-      </AlertDialogTrigger>
+      {!isControlled && (
+        <AlertDialogTrigger asChild>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 gap-2 text-destructive hover:text-destructive"
+          >
+            <Trash2 className="h-4 w-4" />
+            Eliminar
+          </Button>
+        </AlertDialogTrigger>
+      )}
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>
-            Eliminar vehiculo {vehicle.plate}
+            Eliminar vehiculo {vehicle.plate || `#${vehicle.id}`}
           </AlertDialogTitle>
           <AlertDialogDescription asChild>
             <div className="space-y-2 text-sm">
@@ -82,7 +97,7 @@ export function DeleteFuelVehicleDialog({
 
         <div className="space-y-2">
           <Label htmlFor={`confirm-plate-${vehicle.id}`}>
-            Escribe la placa <strong>{vehicle.plate}</strong> para confirmar
+            Escribe <strong>{confirmTarget}</strong> para confirmar
           </Label>
           <Input
             id={`confirm-plate-${vehicle.id}`}
@@ -90,7 +105,7 @@ export function DeleteFuelVehicleDialog({
             onChange={(event) =>
               setConfirmPlate(event.target.value.toUpperCase())
             }
-            placeholder={vehicle.plate}
+            placeholder={confirmTarget}
             className="uppercase"
             autoComplete="off"
           />

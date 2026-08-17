@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -24,10 +24,13 @@ import {
 
 import {
     ArticleDocumentSelection,
+    buildDocumentSelectionFromArticle,
+    isDocumentSelectionDirty,
     extractCreatedArticleIds,
     useConfirmIncomingArticle,
     useCreateArticle,
     useUpdateArticle,
+    useSyncArticleDocumentRequirements,
     useUploadArticleDocuments,
 } from "@/actions/mantenimiento/almacen/inventario/articulos/actions";
 
@@ -80,14 +83,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { useGetConditions } from "@/hooks/administracion/useGetConditions";
 import { useGetManufacturers } from "@/hooks/general/fabricantes/useGetManufacturers";
 import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits";
-import { useGetSecondaryUnits } from "@/hooks/general/unidades/useGetSecondaryUnits";
 import { useSearchBatchesByPartNumber } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByArticlePartNumber";
 import { useGetBatchesByCategory } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByCategory";
 
 import { CreateManufacturerDialog } from "@/components/dialogs/general/CreateManufacturerDialog";
 import { CreateBatchDialog } from "@/components/dialogs/mantenimiento/almacen/CreateBatchDialog";
 import { MultiInputField } from "@/components/misc/MultiInputField";
-import { useGetConversionByUnitConsmable } from "@/hooks/mantenimiento/almacen/articulos/useGetConvertionsByConsumableUnit";
 import { cn } from "@/lib/utils";
 import loadingGif from "@/public/loading2.gif";
 import { useCompanyStore } from "@/stores/CompanyStore";
@@ -98,7 +99,10 @@ import PreviewCreateConsumableDialog from "@/components/dialogs/mantenimiento/al
 import { DestinationUnknownField } from "@/components/forms/mantenimiento/almacen/DestinationUnknownField";
 import { getConditionLabel } from "@/lib/conditions";
 import { Condition } from "@/types";
-import { UnitsModal } from "./UnitsModal";
+import {
+    ConsumableConversionsField,
+    type ConsumableConversionInput,
+} from "@/components/forms/mantenimiento/almacen/ConsumableConversionsField";
 
 /* ------------------------------- Schema ------------------------------- */
 
@@ -124,14 +128,7 @@ const formSchema = z.object({
     expiration_date: z.string().optional(),
     fabrication_date: z.string().optional(),
     manufacturer_id: z.string().optional(),
-    condition_id: z.any().superRefine((val, ctx) => {
-        if (val === undefined || val === null || val === "") {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: "Debe ingresar la condición del artículo.",
-            });
-        }
-    }),
+    condition_id: z.any().optional(),
     quantity: z.coerce
         .number({ message: "Debe ingresar una cantidad." })
         .min(0, { message: "No puede ser negativo." })
@@ -146,7 +143,6 @@ const formSchema = z.object({
         .string({ message: "Debe ingresar un lote." })
         .min(1, "Seleccione un lote"),
     image: z.instanceof(File).optional(),
-    conversion_id: z.number().optional(),
     primary_unit_id: z.number().optional(),
     has_documentation: z.boolean().optional(),
     destination_unknown: z.boolean().optional(),
@@ -157,9 +153,7 @@ const formSchema = z.object({
 
 export type FormValues = z.infer<typeof formSchema>;
 
-interface UnitSelection {
-    conversion_id: number;
-}
+
 
 /* ----------------------------- Helpers UI ----------------------------- */
 
@@ -690,11 +684,17 @@ export default function DirectRegisterConsumableForm({
     initialData,
     isEditing,
     onEditSuccess,
+    submitLabel,
+    onStateChange,
 }: {
     initialData?: EditingArticle;
     isEditing?: boolean;
     /** Al editar: reemplaza la redirección post-guardado (útil dentro de diálogos). */
     onEditSuccess?: () => void;
+    /** Rótulo del botón de guardado, para flujos que no son ingresar al almacén. */
+    submitLabel?: string;
+    /** Oculta las acciones y reporta el estado; ver DirectRegisterComponentForm. */
+    onStateChange?: (state: { busy: boolean; canSave: boolean }) => void;
 }) {
     const router = useRouter();
     const queryClient = useQueryClient();
@@ -704,8 +704,7 @@ export default function DirectRegisterConsumableForm({
         string | undefined
     >(undefined);
 
-    const [unitsModalOpen, setUnitsModalOpen] = useState(false);
-    const [selectedUnits, setSelectedUnits] = useState<UnitSelection[]>([]);
+    const [selectedUnits, setSelectedUnits] = useState<ConsumableConversionInput[]>([]);
 
     const {
         data: batches,
@@ -729,30 +728,11 @@ export default function DirectRegisterConsumableForm({
         selectedCompany?.slug,
     );
 
-    const { data: secondaryUnits, isLoading: secondaryUnitsLoading } =
-        useGetSecondaryUnits(selectedCompany?.slug);
 
     const [selectedPrimaryUnit, setSelectedPrimaryUnit] = useState<any | null>(
         initialData?.consumable?.primary_unit_id ? { id: initialData.consumable.primary_unit_id } : null,
     );
 
-    const { data: availableConversion, isLoading: isConversionLoading } =
-        useGetConversionByUnitConsmable(
-            selectedPrimaryUnit?.id || 0,
-            selectedCompany?.slug,
-        );
-
-    const primaryUnitsFromConversions = useMemo(() => {
-        if (!availableConversion) return [];
-        const unitMap = new Map();
-        availableConversion.forEach((conversion) => {
-            const unit = conversion.primary_unit;
-            if (!unitMap.has(unit.id)) {
-                unitMap.set(unit.id, unit);
-            }
-        });
-        return Array.from(unitMap.values());
-    }, [availableConversion]);
 
     const { data: searchResults, isFetching: isSearching } =
         useSearchBatchesByPartNumber(
@@ -766,13 +746,31 @@ export default function DirectRegisterConsumableForm({
     const { updateArticle } = useUpdateArticle();
     const { confirmIncoming } = useConfirmIncomingArticle();
     const { uploadArticleDocuments } = useUploadArticleDocuments();
+    const { syncArticleDocumentRequirements } = useSyncArticleDocumentRequirements();
 
-    // Al editar, precarga los tipos de documento requeridos aún sin consignar.
+    // Al editar, precarga todos los requerimientos documentales (pendientes y
+    // ya consignados), estos últimos con su requirementId para que el
+    // selector muestre su estado real en vez de tratarlos como vacíos.
     const [documents, setDocuments] = useState<ArticleDocumentSelection[]>(() =>
-        (initialData?.document_requirements ?? [])
-            .filter((req) => req.documents.length === 0 && typeof req.document_type?.id === "number")
-            .map((req) => ({ typeId: req.document_type!.id }))
+        buildDocumentSelectionFromArticle(initialData)
     );
+
+    // La documentación vive fuera de react-hook-form: sin este contraste el
+    // botón de guardar no se entera de que el usuario adjuntó un archivo.
+    const initialDocumentsRef = useRef(buildDocumentSelectionFromArticle(initialData));
+    const documentsDirty = isDocumentSelectionDirty(documents, initialDocumentsRef.current);
+
+    // Anclado al id del artículo a propósito: el efecto grande depende de
+    // units (React Query) y al refrescarse pisaba el archivo que el usuario
+    // acababa de seleccionar.
+    const articleId = initialData?.id;
+    useEffect(() => {
+        if (!articleId) return;
+        const reloaded = buildDocumentSelectionFromArticle(initialData);
+        initialDocumentsRef.current = reloaded;
+        setDocuments(reloaded);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [articleId]);
 
     const [secondaryOpen, setSecondaryOpen] = useState(false);
     const [secondarySelected, setSecondarySelected] = useState<any | null>(
@@ -805,6 +803,52 @@ export default function DirectRegisterConsumableForm({
             : undefined,
     );
     const [enableBatchNameEdit, setEnableBatchNameEdit] = useState(false);
+
+    // Valores iniciales de los date pickers (estado local, fuera de RHF) para
+    // detectar cambios en modo edición: isDirty de RHF no los ve.
+    const initialDatesRef = useRef({
+        caducateDate: initialData?.consumable?.expiration_date
+            ? parseISO(initialData.consumable.expiration_date).getTime()
+            : null,
+        shelfDate: initialData?.consumable?.shelf_life
+            ? parseISO(initialData.consumable.shelf_life).getTime()
+            : null,
+        inspectDate: initialData?.inspect_date
+            ? parseISO(initialData.inspect_date).getTime()
+            : null,
+        fabricationDate: initialData?.consumable?.fabrication_date
+            ? parseISO(initialData.consumable.fabrication_date).getTime()
+            : null,
+    });
+
+    // Conversiones iniciales (selectedUnits no está enlazado a RHF).
+    const initialConversionsRef = useRef(
+        new Map<number, number>(
+            (initialData?.consumable?.conversions ?? []).map((conv: any) => [
+                Number(conv.unit?.id ?? conv.unit_id),
+                Number(conv.base_per_unit),
+            ])
+        )
+    );
+
+    const conversionsDirty = (() => {
+        const initial = initialConversionsRef.current;
+        if (selectedUnits.length !== initial.size) return true;
+        return selectedUnits.some((row) => {
+            const previous = initial.get(row.unit_id);
+            if (previous === undefined) return true;
+            const declared =
+                row.direction === "base_per_unit" ? row.value : 1 / row.value;
+            return Math.abs(declared - previous) > 1e-9;
+        });
+    })();
+
+    const datesDirty =
+        (caducateDate?.getTime() ?? null) !== initialDatesRef.current.caducateDate ||
+        (shelfDate?.getTime() ?? null) !== initialDatesRef.current.shelfDate ||
+        (inspectDate?.getTime() ?? null) !== initialDatesRef.current.inspectDate ||
+        (fabricationDate?.getTime() ?? null) !== initialDatesRef.current.fabricationDate ||
+        conversionsDirty;
 
     const handleFabricationDateChange = (d?: Date | null) => {
         setFabricationDate(d ?? undefined);
@@ -880,10 +924,11 @@ export default function DirectRegisterConsumableForm({
         if (!initialData) return;
 
         if (initialData.consumable?.conversions && Array.isArray(initialData.consumable.conversions)) {
-            const initialUnits: UnitSelection[] = initialData.consumable.conversions.map(
+            const initialUnits: ConsumableConversionInput[] = initialData.consumable.conversions.map(
                 (conv: any) => ({
-                    // Usamos conv.id porque en el JSON del backend el ID de la conversión es 'id'
-                    conversion_id: Number(conv.id),
+                    unit_id: Number(conv.unit?.id ?? conv.unit_id),
+                    direction: "base_per_unit" as const,
+                    value: Number(conv.base_per_unit),
                 })
             );
             setSelectedUnits(initialUnits);
@@ -993,14 +1038,6 @@ export default function DirectRegisterConsumableForm({
         calculateAndUpdateQuantity(secondaryQuantity, secondarySelected);
     }, [secondarySelected, secondaryQuantity, calculateAndUpdateQuantity]);
 
-    const handleConversionResult = (result: string) => {
-        const resultNumber = parseFloat(result);
-        if (!isNaN(resultNumber)) {
-            setSecondaryQuantity(resultNumber);
-            calculateAndUpdateQuantity(resultNumber, secondarySelected);
-        }
-    };
-
     useEffect(() => {
         if (!secondarySelected) {
             return;
@@ -1016,7 +1053,7 @@ export default function DirectRegisterConsumableForm({
         if (searchResults && searchResults.length > 0 && !isEditing) {
             const firstResult = searchResults[0];
             form.setValue("batch_id", firstResult.id.toString(), {
-                shouldValidate: true,
+                shouldValidate: true, shouldDirty: true,
             });
         }
     }, [searchResults, form, isEditing]);
@@ -1029,7 +1066,22 @@ export default function DirectRegisterConsumableForm({
         isConditionsLoading ||
         createArticle.isPending ||
         confirmIncoming.isPending ||
-        updateArticle.isPending;
+        updateArticle.isPending ||
+        uploadArticleDocuments.isPending ||
+        syncArticleDocumentRequirements.isPending;
+
+    // Espeja la condición del botón propio, para los contextos que lo montan fuera.
+    const canSave = isEditing
+        ? !!selectedCompany && (form.formState.isDirty || datesDirty || documentsDirty)
+        : !!selectedCompany &&
+          !!form.getValues("part_number") &&
+          !!form.getValues("batch_id") &&
+          !!selectedPrimaryUnit &&
+          caducateDate !== undefined;
+
+    useEffect(() => {
+        onStateChange?.({ busy, canSave });
+    }, [busy, canSave, onStateChange]);
 
     const batchNameById = useMemo(() => {
         const map = new Map<string, string>();
@@ -1114,7 +1166,7 @@ export default function DirectRegisterConsumableForm({
             status: string;
             alternative_part_number?: string[];
             batch_name?: string;
-            conversions?: number[];
+            conversions?: ConsumableConversionInput[];
             primary_unit_id?: number;
         } = {
             ...valuesWithoutCaducateDate,
@@ -1135,9 +1187,7 @@ export default function DirectRegisterConsumableForm({
                         ? "1900-01-01"
                         : undefined,
             batch_name: enableBatchNameEdit ? values.batch_name : undefined,
-            conversions: selectedUnits.length > 0
-                ? selectedUnits.map(unit => unit.conversion_id)
-                : undefined,
+            conversions: selectedUnits,
             primary_unit_id: secondarySelected?.id,
         };
 
@@ -1148,11 +1198,19 @@ export default function DirectRegisterConsumableForm({
                 company: selectedCompany.slug,
             });
 
-            if (values.has_documentation && documents.length > 0) {
+            const keptDocuments = values.has_documentation ? documents : [];
+
+            await syncArticleDocumentRequirements.mutateAsync({
+                company: selectedCompany.slug,
+                keptTypeIds: keptDocuments.map((doc) => doc.typeId),
+                existingRequirements: initialData.document_requirements ?? [],
+            });
+
+            if (keptDocuments.length > 0) {
                 await uploadArticleDocuments.mutateAsync({
                     company: selectedCompany.slug,
                     articleId: Number(initialData.id),
-                    documents,
+                    documents: keptDocuments,
                 });
             }
 
@@ -1348,7 +1406,7 @@ export default function DirectRegisterConsumableForm({
                                                             form.setValue(
                                                                 "batch_id",
                                                                 newBatch.id.toString(),
-                                                                { shouldValidate: true },
+                                                                { shouldValidate: true, shouldDirty: true },
                                                             );
                                                         }
                                                     }}
@@ -1437,13 +1495,13 @@ export default function DirectRegisterConsumableForm({
                                                                                 form.setValue(
                                                                                     "batch_id",
                                                                                     batch.id.toString(),
-                                                                                    { shouldValidate: true },
+                                                                                    { shouldValidate: true, shouldDirty: true },
                                                                                 );
                                                                                 if (isEditing && enableBatchNameEdit) {
                                                                                     form.setValue(
                                                                                         "batch_name",
                                                                                         batch.name,
-                                                                                        { shouldValidate: true },
+                                                                                        { shouldValidate: true, shouldDirty: true },
                                                                                     );
                                                                                 }
                                                                             }}
@@ -1485,13 +1543,13 @@ export default function DirectRegisterConsumableForm({
                                                                                 form.setValue(
                                                                                     "batch_id",
                                                                                     batch.id.toString(),
-                                                                                    { shouldValidate: true },
+                                                                                    { shouldValidate: true, shouldDirty: true },
                                                                                 );
                                                                                 if (isEditing && enableBatchNameEdit) {
                                                                                     form.setValue(
                                                                                         "batch_name",
                                                                                         batch.name,
-                                                                                        { shouldValidate: true },
+                                                                                        { shouldValidate: true, shouldDirty: true },
                                                                                     );
                                                                                 }
                                                                             }}
@@ -1636,7 +1694,7 @@ export default function DirectRegisterConsumableForm({
                                                         form.setValue(
                                                             "manufacturer_id",
                                                             manufacturer.id.toString(),
-                                                            { shouldValidate: true },
+                                                            { shouldValidate: true, shouldDirty: true },
                                                         );
                                                     }
                                                 }}
@@ -1730,7 +1788,7 @@ export default function DirectRegisterConsumableForm({
                                                                             form.setValue(
                                                                                 "manufacturer_id",
                                                                                 manufacturer.id.toString(),
-                                                                                { shouldValidate: true },
+                                                                                { shouldValidate: true, shouldDirty: true },
                                                                             );
                                                                         }}
                                                                     >
@@ -2032,25 +2090,18 @@ export default function DirectRegisterConsumableForm({
                                 )}
                             />
 
-                            <div className="col-span-1 md:col-span-2 xl:col-span-3">
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    onClick={() => setUnitsModalOpen(true)}
-                                    disabled={
-                                        busy || !secondaryUnits?.length || !selectedPrimaryUnit
-                                    }
-                                >
-                                    <Plus className="h-4 w-4 mr-2" />
-                                    Configurar Conversiones Adicionales
-                                </Button>
-                                <p className="text-sm text-muted-foreground mt-2">
-                                    {selectedUnits.length > 0
-                                        ? `${selectedUnits.length} conversión(es) configurada(s)`
-                                        : !selectedPrimaryUnit
-                                            ? "Seleccione primero una unidad primaria"
-                                            : "Configure conversiones de unidades adicionales para este artículo"}
+                            <div className="col-span-1 md:col-span-2 xl:col-span-3 space-y-2">
+                                <FormLabel>Conversiones de unidades</FormLabel>
+                                <p className="text-sm text-muted-foreground">
+                                    Declare a cuánto equivale este artículo en otras unidades.
                                 </p>
+                                <ConsumableConversionsField
+                                    units={units ?? []}
+                                    baseUnitId={selectedPrimaryUnit?.id}
+                                    value={selectedUnits}
+                                    onChange={setSelectedUnits}
+                                    disabled={busy}
+                                />
                             </div>
                         </div>
                     </SectionCard>
@@ -2130,47 +2181,43 @@ export default function DirectRegisterConsumableForm({
                                         value={documents}
                                         onChange={setDocuments}
                                         disabled={busy}
+                                        consignedRequirements={initialData?.document_requirements}
                                     />
                                 )}
                             </div>
                         </div>
                     </SectionCard>
 
-                    <div className="flex items-center gap-3">
-                        <Button
-                            className="bg-primary text-white hover:bg-blue-900 disabled:bg-slate-100 disabled:text-slate-400"
-                            disabled={
-                                busy ||
-                                !selectedCompany ||
-                                !form.getValues("part_number") ||
-                                !form.getValues("batch_id") ||
-                                !selectedPrimaryUnit ||
-                                caducateDate === undefined
-                            }
-                            type="submit"
-                        >
-                            {busy ? (
-                                <Image
-                                    className="text-black"
-                                    src={loadingGif}
-                                    width={170}
-                                    height={170}
-                                    alt="Cargando..."
-                                />
-                            ) : (
-                                <span>
-                                    {isEditing ? "Confirmar ingreso" : "Crear artículo"}
-                                </span>
-                            )}
-                        </Button>
+                    {!onStateChange && (
+                        <div className="flex items-center gap-3">
+                            <Button
+                                className="bg-primary text-white hover:bg-blue-900 disabled:bg-slate-100 disabled:text-slate-400"
+                                disabled={busy || !canSave}
+                                type="submit"
+                            >
+                                {busy ? (
+                                    <Image
+                                        className="text-black"
+                                        src={loadingGif}
+                                        width={170}
+                                        height={170}
+                                        alt="Cargando..."
+                                    />
+                                ) : (
+                                    <span>
+                                        {submitLabel ?? (isEditing ? "Guardar cambios" : "Crear artículo")}
+                                    </span>
+                                )}
+                            </Button>
 
-                        {busy && (
-                            <div className="inline-flex items-center text-sm text-muted-foreground gap-2">
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                                Procesando…
-                            </div>
-                        )}
-                    </div>
+                            {busy && (
+                                <div className="inline-flex items-center text-sm text-muted-foreground gap-2">
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                    Procesando…
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </form>
             </Form>
 
@@ -2184,18 +2231,6 @@ export default function DirectRegisterConsumableForm({
                 }}
             />
 
-            <UnitsModal
-                open={unitsModalOpen}
-                onOpenChange={setUnitsModalOpen}
-                secondaryUnits={secondaryUnits || []}
-                selectedUnits={selectedUnits}
-                onSelectedUnitsChange={setSelectedUnits}
-                primaryUnit={selectedPrimaryUnit}
-                allUnits={units}
-                availableConversionUnits={primaryUnitsFromConversions}
-                availableConversion={availableConversion}
-                onConversionResult={handleConversionResult}
-            />
         </>
     );
 }

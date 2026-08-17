@@ -3,16 +3,7 @@
 import { useDeferredValue, useMemo, useState } from 'react'
 
 import { ContentLayout } from '@/components/layout/ContentLayout'
-import BackButton from '@/components/misc/BackButton'
 
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb'
 
 import { useCompanyStore } from '@/stores/CompanyStore'
 import { useGetArticlesByStatus } from '@/hooks/mantenimiento/almacen/articulos/useGetArticlesByStatus'
@@ -22,6 +13,7 @@ import { columns } from './columns'
 
 import type { DestinationArticle } from '@/types/purchase'
 import UnknownDestinationToolbar from './_components/UnknownDestinationToolbar'
+import { PageHeader } from "@/components/layout/PageHeader";
 
 export default function UnknownDestinationPage() {
   const { selectedCompany } = useCompanyStore()
@@ -65,33 +57,7 @@ export default function UnknownDestinationPage() {
       <div className="flex flex-col gap-6">
 
         {/* Breadcrumb */}
-        <div className="flex items-center gap-3">
-          <BackButton iconOnly tooltip="Volver" variant="secondary" />
-
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbLink href={`/${selectedCompany?.slug}/dashboard`}>
-                  Inicio
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-
-              <BreadcrumbSeparator />
-
-              <BreadcrumbItem>
-                Compras
-              </BreadcrumbItem>
-
-              <BreadcrumbSeparator />
-
-              <BreadcrumbItem>
-                <BreadcrumbPage>
-                  Destino indeterminado
-                </BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-        </div>
+        <PageHeader />
 
         {/* Header */}
         <div className="flex flex-col gap-2 border-b pb-4">

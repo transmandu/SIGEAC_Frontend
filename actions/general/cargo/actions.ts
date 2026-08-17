@@ -13,7 +13,6 @@ interface UpdateJobTitleFormSchema {
   data: { name: string; description: string };
 }
 
-// Crear un cargo
 export const useCreateJobTitle = () => {
   const queryClient = useQueryClient();
 
@@ -36,15 +35,15 @@ export const useCreateJobTitle = () => {
   return { createJobTitle: createMutation };
 };
 
-// Actualizar un cargo
 export const useUpdateJobTitle = () => {
   const queryClient = useQueryClient();
 
   const updateMutation = useMutation({
-    mutationFn: async ({ company, id, data }: UpdateJobTitleFormSchema) =>
+    // El backend expone el update sin prefijo de empresa, a diferencia del resto.
+    mutationFn: async ({ id, data }: UpdateJobTitleFormSchema) =>
       await axiosInstance.put(`/job-titles/${id}`, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["job-titles"] });
+    onSuccess: (_, { company }) => {
+      queryClient.invalidateQueries({ queryKey: ["job_titles", company] });
       toast.success("¡Actualizado!", {
         description: "¡El cargo ha sido actualizado correctamente!",
       });
@@ -59,15 +58,14 @@ export const useUpdateJobTitle = () => {
   return { updateJobTitle: updateMutation };
 };
 
-// Eliminar un cargo
 export const useDeleteJobTitle = () => {
   const queryClient = useQueryClient();
 
   const deleteMutation = useMutation({
     mutationFn: async ({ id, company }: { id: number; company: string }) =>
       await axiosInstance.delete(`/${company}/job-titles/${id}`),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["job-titles"] });
+    onSuccess: (_, { company }) => {
+      queryClient.invalidateQueries({ queryKey: ["job_titles", company] });
       toast.success("¡Eliminado!", {
         description: "¡El cargo ha sido eliminado correctamente!",
       });

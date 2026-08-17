@@ -2,14 +2,6 @@
 
 import { CreateBatchDialog } from "@/components/dialogs/mantenimiento/almacen/CreateBatchDialog";
 import { ContentLayout } from "@/components/layout/ContentLayout";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -34,6 +26,7 @@ import {
 import { DataTable } from "./data-table";
 import { useGetWarehouseArticlesByCategory } from "@/hooks/mantenimiento/almacen/articulos/useGetWarehouseArticlesByCategory";
 import { useUpdateArticleStatus } from "@/actions/mantenimiento/almacen/inventario/articulos/actions";
+import { PageHeader } from "@/components/layout/PageHeader";
 type Category = "COMPONENT" | "CONSUMABLE" | "TOOL" | "PART";
 
 const InventarioArticulosPage = () => {
@@ -140,23 +133,11 @@ const InventarioArticulosPage = () => {
   };
 
   return (
-    <ContentLayout title="Inventario">
+    <ContentLayout title="Inventario Registrado">
       <TooltipProvider>
         <div className="flex flex-col gap-y-4">
           {/* Breadcrumbs */}
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbLink href={`/${selectedCompany?.slug}/dashboard`}>
-                  Inicio
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbPage>Inventario General</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
+          <PageHeader className="mb-2" />
 
           {/* Header */}
           <div className="text-center space-y-2">

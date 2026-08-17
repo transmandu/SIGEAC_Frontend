@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { useGetManufacturers } from "@/hooks/general/condiciones/useGetConditions"
+import { useGetManufacturers } from "@/hooks/general/fabricantes/useGetManufacturers"
 import { useGetLocationsByCompanyId } from "@/hooks/sistema/useGetLocationsByCompanyId"
 import { useGetClients } from "@/hooks/general/clientes/useGetClients"
 import { cn } from "@/lib/utils"
@@ -60,7 +60,6 @@ const AircraftInfoSchema = z.object({
         .min(1, "Las horas de vuelo son obligatorias")
         .refine((val) => {
             if (!val || val.trim() === "") return false;
-            // Soportar ambos formatos: punto y coma como decimal
             const normalized = val.replace(/\./g, "").replace(",", ".");
             const num = parseFloat(normalized);
             return !isNaN(num) && num >= 0;
@@ -119,7 +118,6 @@ export function AircraftInfoForm({ onNext, onBack, initialData }: AircraftInfoFo
             // Resetear el formulario con los datos formateados
             form.reset(formattedData);
 
-            // Sincronizar el valor de búsqueda del cliente
             if (initialData.client_name) {
                 setClientSearchValue(initialData.client_name);
             }
@@ -138,7 +136,6 @@ export function AircraftInfoForm({ onNext, onBack, initialData }: AircraftInfoFo
         // Convertir flight_hours de formato visual a número
         const flightHoursValue = data.flight_hours;
         if (flightHoursValue && typeof flightHoursValue === 'string' && flightHoursValue.trim() !== '') {
-            // Detectar formato y normalizar correctamente
             const lastDot = flightHoursValue.lastIndexOf('.');
             const lastComma = flightHoursValue.lastIndexOf(',');
 
@@ -158,7 +155,6 @@ export function AircraftInfoForm({ onNext, onBack, initialData }: AircraftInfoFo
                 const rounded = Math.round(num * 100) / 100;
                 data.flight_hours = rounded.toFixed(2);
             } else {
-                // Si no es un número válido, mostrar error
                 form.setError('flight_hours', {
                     type: 'manual',
                     message: 'El valor ingresado no es un número válido'
@@ -166,7 +162,6 @@ export function AircraftInfoForm({ onNext, onBack, initialData }: AircraftInfoFo
                 return;
             }
         } else {
-            // Si el campo está vacío, mostrar error
             form.setError('flight_hours', {
                 type: 'manual',
                 message: 'Las horas de vuelo son obligatorias'
@@ -278,7 +273,6 @@ export function AircraftInfoForm({ onNext, onBack, initialData }: AircraftInfoFo
                                                                     <Button
                                                                         size="sm"
                                                                         onClick={() => {
-                                                                            // Solo establecer valores en el formulario
                                                                             form.setValue("client_name", clientSearchValue);
                                                                             form.setValue("authorizing", newClientAuthorizing);
                                                                             setOpenClient(false);
@@ -492,11 +486,9 @@ export function AircraftInfoForm({ onNext, onBack, initialData }: AircraftInfoFo
                                         onBlur={(e) => {
                                             const value = e.target.value.trim();
                                             if (!value) {
-                                                // Si está vacío, no hacer nada (la validación del form lo manejará)
                                                 return;
                                             }
 
-                                            // Detectar formato y normalizar correctamente
                                             const lastDot = value.lastIndexOf('.');
                                             const lastComma = value.lastIndexOf(',');
 
@@ -512,7 +504,6 @@ export function AircraftInfoForm({ onNext, onBack, initialData }: AircraftInfoFo
                                             const num = parseFloat(normalized);
 
                                             if (!isNaN(num)) {
-                                                // Redondear a 2 decimales
                                                 const rounded = Math.round(num * 100) / 100;
                                                 // Formatear para visualización
                                                 const formatted = fmtNumber(String(rounded));

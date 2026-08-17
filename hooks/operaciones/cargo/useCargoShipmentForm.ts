@@ -14,14 +14,13 @@ import {
   useUpdateCargoShipment,
 } from "@/actions/cargo/actions";
 import { useGetClients } from "@/hooks/general/clientes/useGetClients";
-import { useGetAircrafts } from "@/hooks/aerolinea/aeronaves/useGetAircrafts";
-import { useGetEmployeesByCompany } from "@/hooks/sistema/empleados/useGetEmployees";
+import { useGetAircrafts } from "@/hooks/general/aeronaves/useGetAircrafts";
+import { useGetEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetEmployees";
 import { useGetNextGuide } from "@/hooks/operaciones/cargo/useGetNextGuide";
 import { useGetPilots } from "@/hooks/sms/useGetPilots";
 import { useGetExternalAircraftSuggestions } from "@/hooks/operaciones/cargo/useGetExternalAircraftSuggestions";
 import { useGetCarriers } from "@/hooks/operaciones/cargo/useGetCarriers";
 
-// ─── Esquema ───────────────────────────────────────────────────────────────────
 
 const itemSchema = z.object({
   product_description: z.string().min(1, "La descripción es requerida"),
@@ -53,7 +52,6 @@ export const formSchema = z
 
 export type CargoShipmentFormValues = z.infer<typeof formSchema>;
 
-// ─── Hook ─────────────────────────────────────────────────────────────────────
 
 export function useCargoShipmentForm(
   initialData?: any,
@@ -70,7 +68,6 @@ export function useCargoShipmentForm(
 
   const isEditing = !!initialData;
 
-  // ── Queries ────────────────────────────────────────────────────────────────
   const { data: clients, isLoading: loadingClients } = useGetClients(company);
   const { data: carriers, isLoading: loadingCarriers } =
     useGetCarriers(company);
@@ -80,11 +77,9 @@ export function useCargoShipmentForm(
     useGetEmployeesByCompany(company);
   const { data: pilots, isLoading: loadingPilots } = useGetPilots(company);
 
-  // ── Mutaciones ──────────────────────────────────────────────────────────────
   const { createCargoShipment } = useCreateCargoShipment(company);
   const { updateCargoShipment } = useUpdateCargoShipment(company);
 
-  // ── Formulario ───────────────────────────────────────────────────────────────────
   const form = useForm<CargoShipmentFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: buildDefaultValues(initialData),
@@ -95,7 +90,6 @@ export function useCargoShipmentForm(
     control: form.control,
   });
 
-  // ── Observadores ─────────────────────────────────────────────────────────
   const watchedItems = form.watch("items");
   const registrationDate = form.watch("registration_date");
   const watchedAircraftId = form.watch("aircraft_id");
@@ -116,7 +110,6 @@ export function useCargoShipmentForm(
     null,
   );
 
-  // ── use Effects ───────────────────────────────────────────────────────────
   useEffect(() => {
     if (user) form.setValue("issuer", Number(user.id));
   }, [user, form]);
@@ -137,7 +130,6 @@ export function useCargoShipmentForm(
     }
   }, [externalNameFromUrl, isEditing, form, aircrafts]);
 
-  // ── Derivados ────────────────────────────────────────────────────────────────
   const totalUnits = watchedItems?.reduce(
     (acc, curr) => acc + (Number(curr.units) || 0),
     0,
@@ -155,7 +147,6 @@ export function useCargoShipmentForm(
         ? "..."
         : (guideData?.guide_number ?? "Cargando...");
 
-  // ── Submit ─────────────────────────────────────────────────────────────────
   function buildRedirectPath(data: CargoShipmentFormValues) {
     if (data.aircraft_id)
       return `/${company}/operaciones/cargo/${data.aircraft_id}`;
@@ -163,7 +154,8 @@ export function useCargoShipmentForm(
   }
 
   const onSubmit = async (values: CargoShipmentFormValues) => {
-    // Detectar y agrupar productos duplicados
+    // Dos renglones con la misma descripción son el mismo producto: se suman en
+    // uno antes de enviar. La comparación ignora mayúsculas y espacios.
     const itemMap = new Map<string, { product_description: string; units: number; weight: number }>();
     let hasDuplicates = false;
 
@@ -189,7 +181,7 @@ export function useCargoShipmentForm(
       toast.info("Productos duplicados agrupados", {
         description: "Se detectaron productos repetidos y se han agrupado automáticamente sumando sus unidades y pesos.",
       });
-      // Actualizar el formulario para que el usuario vea los cambios
+      // Se reescribe el formulario para que lo enviado sea lo que se ve.
       form.setValue("items", finalItems);
     }
 
@@ -229,7 +221,6 @@ export function useCargoShipmentForm(
   };
 
   return {
-    // formulario
     form,
     fields,
     append,
@@ -237,10 +228,8 @@ export function useCargoShipmentForm(
     onSubmit: form.handleSubmit(onSubmit),
     isPending: createCargoShipment.isPending || updateCargoShipment.isPending,
     isEditing,
-    // parámetros de url
     company,
     aircraftIdFromUrl,
-    // datos
     clients,
     loadingClients,
     carriers,
@@ -252,16 +241,13 @@ export function useCargoShipmentForm(
     pilots,
     loadingPilots,
     guideNumber,
-    // totales
     totalUnits,
     totalWeight,
-    // funciones auxiliares de calendario
     calendarDisabledDates: buildCalendarDisabledDates(initialData, isEditing),
     user,
   };
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function buildDefaultValues(initialData?: any): CargoShipmentFormValues {
   const safeDate = (dateStr: string) => {

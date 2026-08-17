@@ -108,8 +108,6 @@ export function CreateBatchForm({
   isEditing = false,
   initialData,
 }: FormProps) {
-  // console.log("initialData", initialData);
-  // console.log("defaultCategory", defaultCategory);
   const { selectedCompany, selectedStation } = useCompanyStore();
   const {
     data: warehouses,
@@ -317,21 +315,11 @@ const form = useForm<FormSchemaType>({
               </FormItem>
             )}
           />
-          {/* <FormField
-            control={form.control}
-            name="ata_code"
-            render={({ field }) => (
-              <FormItem className="flex-1">
-                <FormLabel>Código ATA</FormLabel>
-                <FormControl>
-                  <Input placeholder="EJ: ABC123" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          /> */}
         </div>
         <div className="flex gap-2 w-full">
+          {/* Selector de unidad primaria deshabilitado: la unidad se define
+              ahora por artículo, no por renglón. Se conserva junto al diálogo
+              de creación del final por si se reactiva. */}
           {/* <FormField
             control={form.control}
             name="medition_unit"

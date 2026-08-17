@@ -93,23 +93,24 @@ export function ComboboxField<T extends FieldValues>({
               {label}
             </FormLabel>
             <Popover open={open} onOpenChange={setOpen}>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          data-tour={dataTour}
-                          variant="outline"
-                          role="combobox"
-                          disabled={disabled}
-                          className={cn(
-                            "w-full justify-between font-normal h-9 px-3",
-                            !field.value && "text-muted-foreground",
-                          )}
-                        >
-                          <span className="truncate">
-                            {selectedOption ? selectedOption.label : ""}
+              <PopoverTrigger asChild>
+                <FormControl>
+                  <Button
+                    data-tour={dataTour}
+                    variant="outline"
+                    role="combobox"
+                    disabled={disabled}
+                    className={cn(
+                      "w-full justify-between font-normal h-9",
+                      !field.value && "text-muted-foreground",
+                    )}
+                  >
+                    {selectedOption ? (
+                      <div className="flex items-center gap-2 overflow-hidden flex-1">
+                        <span className="truncate">{selectedOption.label}</span>
+                        {selectedOption.badge && (
+                          <span className="select-none text-[10px] uppercase font-bold text-muted-foreground bg-muted/30 px-1.5 py-0.5 rounded shrink-0">
+                            {selectedOption.badge}
                           </span>
                           <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50 ml-2" />
                         </Button>
@@ -159,7 +160,7 @@ export function ComboboxField<T extends FieldValues>({
                                   {option.label}
                                 </span>
                                 {option.badge && (
-                                  <span className="shrink-0 text-[10px] uppercase font-bold text-muted-foreground bg-muted/50 px-1.5 py-0.5 rounded border border-border/50">
+                                  <span className="select-none shrink-0 text-[10px] uppercase font-bold text-muted-foreground bg-muted/50 px-1.5 py-0.5 rounded border border-border/50">
                                     {option.badge.replace(/_/g, " ")}
                                   </span>
                                 )}

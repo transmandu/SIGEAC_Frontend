@@ -13,7 +13,7 @@ import { useState } from "react";
 import { AircraftInfoForm } from "@/components/forms/mantenimiento/aeronaves/AircraftInfoForm";
 import { AircraftPartsInfoForm, PART_CATEGORIES } from "@/components/forms/mantenimiento/aeronaves/AircraftPartsForm";
 import { useCreateMaintenanceAircraft, AircraftPartAPI } from "@/actions/mantenimiento/planificacion/aeronaves/actions";
-import { useCreateClient } from "@/actions/ajustes/globales/clientes/actions";
+import { useCreateClient } from "@/actions/ajustes/clientes/actions";
 import { useCompanyStore } from "@/stores/CompanyStore";
 
 interface AircraftPart {
@@ -45,7 +45,6 @@ interface AircraftInfoType {
   comments?: string | undefined;
 }
 
-// Tipo para el estado de las partes
 interface PartsData {
   parts: AircraftPart[];
 }
@@ -62,10 +61,8 @@ export function CreateMaintenanceAircraftDialog() {
   // Función para transformar las partes asegurando que tengan todos los campos requeridos
   // y eliminando el campo 'category' que es solo para el frontend
   const transformPart = (part: AircraftPart): AircraftPartAPI => {
-    // Omitimos 'category' al desestructurar
     const { category, ...rest } = part;
     
-    // Mapear categoría a part_type (en minúsculas para el backend)
     const part_type = category === "APU" ? "apu" : 
                      category === "PROPELLER" ? "propeller" : 
                      "engine"; // Default: engine
@@ -87,7 +84,6 @@ export function CreateMaintenanceAircraftDialog() {
       part_order: (rest as any).part_order ?? null,
     } as AircraftPartAPI;
     
-    // Transformar subpartes recursivamente
     if (part.sub_parts && part.sub_parts.length > 0) {
       transformed.sub_parts = part.sub_parts.map(transformPart);
     }
@@ -95,11 +91,9 @@ export function CreateMaintenanceAircraftDialog() {
     return transformed;
   };
 
-  // Función para manejar el envío final del formulario
   const handleSubmit = async () => {
     if (aircraftData && partsData) {
       try {
-        // First, create the client with minimal data
         const clientResponse = await createClient.mutateAsync({
           company: selectedCompany!.slug,
           data: {
@@ -110,12 +104,10 @@ export function CreateMaintenanceAircraftDialog() {
           }
         });
 
-        // Extract client ID from response
         const clientId = clientResponse.client?.id || clientResponse.id;
 
         const transformedParts = partsData.parts.map(transformPart);
         
-        // Create aircraft with the new client ID
         await createMaintenanceAircraft.mutateAsync({
           data: {
             aircraft: {
@@ -142,12 +134,10 @@ export function CreateMaintenanceAircraftDialog() {
     }
   };
 
-  // Función para avanzar al siguiente paso
   const handleNext = () => {
     setCurrentStep((prev) => prev + 1);
   };
 
-  // Función para retroceder al paso anterior
   const handleBack = () => {
     setCurrentStep((prev) => prev - 1);
   };

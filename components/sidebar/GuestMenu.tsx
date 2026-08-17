@@ -36,7 +36,6 @@ const guestMenuItems = [
 export function GuestMenu({ isOpen }: GuestMenuProps) {
   const pathname = usePathname();
 
-  // Calculate the minimum height for the menu container
   const menuContainerHeight = useMemo(() => {
     return isOpen === undefined
       ? "calc(100vh - 48px - 36px - 16px - 32px)"
@@ -82,9 +81,9 @@ export function GuestMenu({ isOpen }: GuestMenuProps) {
                             />
                             <span
                               className={cn(
-                                "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-transparent bg-muted/30 text-muted-foreground transition-all duration-200 group-hover:border-border/60 group-hover:bg-background group-hover:text-foreground",
+                                "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-transparent bg-muted/30 text-muted-foreground transition-all duration-200 group-hover:border-border/60 group-hover:bg-background/70 group-hover:text-foreground",
                                 isActive &&
-                                  "border-border/80 bg-background text-foreground shadow-sm shadow-black/5",
+                                  "glass-control text-foreground",
                                 isOpen === false
                                   ? "mx-auto"
                                   : "mr-3"

@@ -7,6 +7,7 @@ import { columns } from "./columns";
 import { DataTable } from "./data-table";
 import { useGetSMSActivities } from "@/hooks/sms/useGetSMSActivities";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 
 const SMSActivitiesPage = () => {
@@ -25,6 +26,8 @@ const SMSActivitiesPage = () => {
 
   return (
     <ContentLayout title="Actividades de SMS">
+      <PageHeader className="mb-6" />
+
       <div className="flex flex-col gap-y-4">
 
         <div className="flex flex-col gap-y-2">

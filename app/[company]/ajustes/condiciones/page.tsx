@@ -1,0 +1,56 @@
+"use client";
+
+import { ContentLayout } from "@/components/layout/ContentLayout";
+import LoadingPage from "@/components/misc/LoadingPage";
+import { useGetConditions } from "@/hooks/administracion/useGetConditions";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { columns } from "./columns";
+import { DataTable } from "./data-table";
+import { useEffect } from "react";
+import { useTourContext } from "@/components/tour/TourProvider";
+import { condicionesSteps } from "@/components/tour/steps/ajustes/condiciones";
+import { PageHeader } from "@/components/layout/PageHeader";
+
+const ConditionsPage = () => {
+  const { selectedCompany } = useCompanyStore();
+  const { data, isLoading, isError } = useGetConditions();
+  const { registerTour, unregisterTour } = useTourContext();
+
+  useEffect(() => {
+    if (data && data.length > 0) {
+      registerTour("condiciones", "Condiciones", condicionesSteps);
+    }
+
+    return () => unregisterTour("condiciones");
+  }, [registerTour, unregisterTour, data]);
+
+  if (isLoading) {
+    return <LoadingPage />;
+  }
+
+  return (
+    <ContentLayout title="Condiciones">
+      <PageHeader className="mb-6" />
+
+      {" "}
+      <h1
+        className="text-5xl font-bold text-center mt-2"
+        data-tour="condiciones-title"
+      >
+        Control de Codiciones
+      </h1>
+      <p className="text-sm text-muted-foreground text-center italic mt-2">
+        Aquí puede llevar el control de las condiciones registradas en el
+        sistema.
+      </p>
+      {data && <DataTable columns={columns} data={data} />}
+      {isError && (
+        <p className="text-muted-foreground text-sm italic text-center">
+          Ha ocurrido un error al cargar los clientes...
+        </p>
+      )}
+    </ContentLayout>
+  );
+};
+
+export default ConditionsPage;

@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button'
 import { Trash2 } from 'lucide-react'
 
 import DeleteAuthorizedEmployeeDialog from '@/components/dialogs/ajustes/DeleteAuthorizedEmployeeDialog'
-import { AuthorizedEmployee } from '@/app/sistema/autorizaciones/autorizar/columns'
+import { AuthorizedEmployee } from '@/app/[company]/ajustes/autorizaciones/autorizar/columns'
 
 interface Props {
   authorizedEmployee: AuthorizedEmployee

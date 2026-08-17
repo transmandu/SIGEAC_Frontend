@@ -12,8 +12,8 @@ const fetchUser = async (id: string) => {
 
 export const useGetUserById = (id: string) => {
   return useQuery<User>({
-    queryKey: ['user', id], // Incluye el ID en la clave de la query
-    queryFn: () => fetchUser(id), // Pasa el ID a la función fetchUser
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    queryKey: ['user', id],
+    queryFn: () => fetchUser(id),
+    staleTime: 1000 * 60 * 5,
   });
 };

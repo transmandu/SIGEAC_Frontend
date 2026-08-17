@@ -2,14 +2,6 @@
 
 import { CreateBatchDialog } from "@/components/dialogs/mantenimiento/almacen/CreateBatchDialog"
 import { ContentLayout } from "@/components/layout/ContentLayout"
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -18,7 +10,9 @@ import { useGetGeneralArticles } from "@/hooks/mantenimiento/almacen/almacen_gen
 import { useGetWarehouseArticlesByCategory } from "@/hooks/mantenimiento/almacen/articulos/useGetWarehouseArticlesByCategory"
 import { useInventoryExport } from "@/hooks/mantenimiento/almacen/reportes/useGetWarehouseReports"
 import { useCompanyStore } from "@/stores/CompanyStore"
+import { useAuth } from "@/contexts/AuthContext"
 import { TooltipArrow } from "@radix-ui/react-tooltip"
+import type { SortingState } from "@tanstack/react-table"
 import { parseISO } from "date-fns"
 import { Loader2, Package2, PaintBucket, Puzzle, Wrench, X } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
@@ -29,16 +23,45 @@ import {
   flattenArticles,
   getColumnsByCategory,
   groupByPartNumber,
+  groupSequentially,
   IArticleSimple,
 } from "./_tables/warehouse-columns"
 import { DataTable } from "./_tables/warehouse-data-table"
-import { columns as GeneralColums } from "./_tables/general-columns"
+import { buildGeneralColumns, getUnitOptions } from "./_tables/general-columns"
 import { PartNumberGroupDialog } from "./_components/PartNumberGroupDialog"
+import { parseToolStatusFilter } from "@/lib/warehouse/statuses"
+import { PageHeader } from "@/components/layout/PageHeader";
 
 type Category = "all" | "COMPONENT" | "PART" | "CONSUMABLE" | "TOOL"
+type InventoryTab = "aeronautic" | "general"
+
+/** Debe coincidir con ARTICLE_SORT_COLUMNS del backend. */
+const SERVER_SORTABLE = new Set([
+  "part_number",
+  "serial",
+  "batch_name",
+  "status",
+  "zone",
+  "condition",
+])
+
+/** Estas columnas hacen que el backend pagine por grupo, no por artículo. */
+const GROUPING_SORT = new Set(["part_number", "batch_name"])
+
+const normalize = (value: string) =>
+  value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim()
 
 const InventarioArticulosPage = () => {
   const { selectedCompany } = useCompanyStore()
+  const { user } = useAuth()
+  const isEngineering = (user?.roles?.map((role) => role.name) ?? []).some((role) =>
+    ["ENGINEERING", "SUPERUSER"].includes(role),
+  )
+  const [activeTab, setActiveTab] = useState<InventoryTab>("aeronautic")
   const [activeCategory, setActiveCategory] = useState<Category>("all")
   const { exporting, exportPdf, exportExcel } = useInventoryExport()
 
@@ -55,8 +78,16 @@ const InventarioArticulosPage = () => {
 
   const [consumableFilter, setConsumableFilter] = useState<"all" | "QUIMICOS">("all")
   const [statusFilter, setStatusFilter] = useState<string | undefined>(undefined)
+
+  // Filtros de columna que resuelve el backend sobre el inventario completo.
+  const [columnFilters, setColumnFilters] = useState<Record<string, string>>({})
+
   const [partNumberSearch, setPartNumberSearch] = useState("")
   const [debouncedSearch, setDebouncedSearch] = useState("")
+  const [generalSearch, setGeneralSearch] = useState("")
+  const [debouncedGeneralSearch, setDebouncedGeneralSearch] = useState("")
+
+  const [sorting, setSorting] = useState<SortingState>([])
 
   // Dialog (grupo PN)
   const [groupOpen, setGroupOpen] = useState(false)
@@ -73,22 +104,75 @@ const InventarioArticulosPage = () => {
     return () => clearTimeout(timer)
   }, [partNumberSearch])
 
-  const isSearching = debouncedSearch.trim().length > 0
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedGeneralSearch(generalSearch), 400)
+    return () => clearTimeout(timer)
+  }, [generalSearch])
 
   const handleStatusFilterChange = (value: string | undefined) => {
     setStatusFilter(value)
     setApiPage(1)
   }
 
+  const handleColumnFiltersChange = (filters: Record<string, string>) => {
+    setColumnFilters(filters)
+    setApiPage(1)
+  }
+
+  // El selector de Estado mezcla `articles.status` con los subestados de
+  // calibración; el backend los recibe por parámetros distintos.
+  const toolStatusFilter = parseToolStatusFilter(statusFilter) ?? undefined
+  const articleStatusFilter = toolStatusFilter ? undefined : statusFilter
+
+  const serverColumnFilters = useMemo(
+    () => ({
+      condition: columnFilters.condition,
+      zone: columnFilters.zone,
+      tool_status: toolStatusFilter,
+      part_number_col: columnFilters.part_number,
+      serial_col: columnFilters.serial,
+      description_col: columnFilters.batch_name,
+    }),
+    [
+      columnFilters.condition,
+      columnFilters.zone,
+      columnFilters.part_number,
+      columnFilters.serial,
+      columnFilters.batch_name,
+      toolStatusFilter,
+    ],
+  )
+
+  const handleSortingChange = (next: SortingState) => {
+    setSorting(next)
+    setApiPage(1)
+  }
+
+  // Columnas que el backend sabe ordenar sobre el inventario completo.
+  const activeSort = useMemo(() => {
+    const first = sorting[0]
+    if (!first || !SERVER_SORTABLE.has(first.id)) return undefined
+    return { id: first.id, desc: first.desc }
+  }, [sorting])
+
+  // Al agrupar, per_page cuenta grupos y cada uno puede traer varios artículos.
+  const perPage = !activeSort ? 15 : GROUPING_SORT.has(activeSort.id) ? 25 : 50
+
   // Paginated fetch — always used; sends part_number to backend when searching
-  const { data: pagedArticles, isLoading: isLoadingArticles } = useGetWarehouseArticlesByCategory(
+  const {
+    data: pagedArticles,
+    isLoading: isLoadingArticles,
+    isFetching: isFetchingArticles,
+  } = useGetWarehouseArticlesByCategory(
     apiPage,
-    15,
+    perPage,
     activeCategory,
     true,
-    statusFilter,
+    articleStatusFilter,
     debouncedSearch.trim() || undefined,
     activeCategory === "CONSUMABLE" && consumableFilter === "QUIMICOS",
+    activeSort,
+    serverColumnFilters,
   )
 
   const articles = pagedArticles
@@ -115,13 +199,14 @@ const InventarioArticulosPage = () => {
     if (activeCategory !== "COMPONENT") setComponentCondition("all")
     if (activeCategory !== "CONSUMABLE") setConsumableFilter("all")
     setStatusFilter(undefined)
+    setColumnFilters({})
     setApiPage(1)
   }, [activeCategory])
 
   // Columns memo
   const cols = useMemo(
-    () => getColumnsByCategory(activeCategory, statusFilter, handleStatusFilterChange),
-    [activeCategory, statusFilter],
+    () => getColumnsByCategory(activeCategory, statusFilter, handleStatusFilterChange, isEngineering),
+    [activeCategory, statusFilter, isEngineering],
   )
 
   // Datos + filtros memo
@@ -150,6 +235,19 @@ const InventarioArticulosPage = () => {
       }
     }
 
+    // Con orden del servidor se respeta tal cual: reordenar aquí lo desharía.
+    // Ordenando por PN o descripción el backend ya vino agrupado, así que solo
+    // se reconstruyen los grupos sobre las filas consecutivas.
+    if (activeSort) {
+      if (activeSort.id === "part_number") {
+        return groupSequentially(filtered, (a) => a.part_number)
+      }
+      if (activeSort.id === "batch_name") {
+        return groupSequentially(filtered, (a) => a.batch_id)
+      }
+      return filtered
+    }
+
     // Orden por vencimiento cuando aplica
     if (
       activeCategory === "COMPONENT" ||
@@ -170,7 +268,24 @@ const InventarioArticulosPage = () => {
     // ✅ Agrupar por PN en: all / component / part
     const shouldGroup = activeCategory === "all" || activeCategory === "COMPONENT" || activeCategory === "PART"
     return shouldGroup ? groupByPartNumber(filtered) : filtered
-  }, [articles, activeCategory, componentCondition])
+  }, [articles, activeCategory, componentCondition, activeSort])
+
+  const currentGeneralData = useMemo(() => {
+    const list = articlesGeneral ?? []
+    const term = normalize(debouncedGeneralSearch)
+    if (!term) return list
+
+    return list.filter((article) =>
+      [article.description, article.variant_type, article.brand_model].some(
+        (field) => field && normalize(field).includes(term),
+      ),
+    )
+  }, [articlesGeneral, debouncedGeneralSearch])
+
+  const generalCols = useMemo(
+    () => buildGeneralColumns(getUnitOptions(articlesGeneral)),
+    [articlesGeneral],
+  )
 
   const serverPagination = pagedArticles?.pagination
     ? {
@@ -180,27 +295,48 @@ const InventarioArticulosPage = () => {
         from: pagedArticles.pagination.from ?? 0,
         to: pagedArticles.pagination.to ?? 0,
         onPageChange: setApiPage,
+        unitLabel:
+          activeSort && GROUPING_SORT.has(activeSort.id)
+            ? activeSort.id === "part_number"
+              ? "nro. de parte"
+              : "descripcion(es)"
+            : undefined,
       }
     : undefined
 
-  const handleClearSearch = () => setPartNumberSearch("")
+  // Condición y ubicación se resuelven en el servidor; el estado ya viaja por
+  // su propio parámetro desde StatusColumnHeader.
+  const tableServerFilters = {
+    columnIds: ["condition", "zone", "part_number", "serial", "batch_name"],
+    onFiltersChange: handleColumnFiltersChange,
+  }
+
+  // Un input en pantalla, un estado por pestaña: cambiar de tab no arrastra el texto.
+  const search =
+    activeTab === "aeronautic"
+      ? {
+          value: partNumberSearch,
+          onChange: setPartNumberSearch,
+          debounced: debouncedSearch,
+          isLoading: isLoadingArticles,
+          resultCount: pagedArticles?.pagination?.total ?? currentData.length,
+          placeholder: "Buscar por Nro. de Parte (Ej: 65-50587-4, ALT-123...)",
+        }
+      : {
+          value: generalSearch,
+          onChange: setGeneralSearch,
+          debounced: debouncedGeneralSearch,
+          isLoading: isLoadingArticlesGeneral,
+          resultCount: currentGeneralData.length,
+          placeholder: "Buscar por descripción, presentación o marca/modelo (Ej: TORNILLO, 3/4, TRUPER...)",
+        }
 
   return (
     <ContentLayout title="Gestión de Inventario">
       <TooltipProvider>
         <div className="flex flex-col gap-y-4">
           {/* Breadcrumbs */}
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbLink href={`/${selectedCompany?.slug}/dashboard`}>Inicio</BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbPage>Gestión de Inventario</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
+          <PageHeader className="mb-2" />
 
           {/* Header */}
           <div className="text-center space-y-2">
@@ -210,36 +346,39 @@ const InventarioArticulosPage = () => {
             </p>
           </div>
 
-          {/* Búsqueda */}
           <div className="space-y-2">
             <div className="relative max-w-xl mx-auto">
               <Input
-                placeholder="Búsqueda General - Nro. de Parte (Ej: 65-50587-4, TORNILLO, ALT-123...)"
-                value={partNumberSearch}
-                onChange={(e) => setPartNumberSearch(e.target.value)}
+                placeholder={search.placeholder}
+                value={search.value}
+                onChange={(e) => search.onChange(e.target.value)}
                 className="pr-8 h-11"
               />
-              {partNumberSearch && (
+              {search.value && (
                 <Button
                   variant="ghost"
                   size="sm"
                   className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
-                  onClick={handleClearSearch}
+                  onClick={() => search.onChange("")}
                 >
                   <X className="h-4 w-4" />
                 </Button>
               )}
             </div>
-            {debouncedSearch && (
+            {search.debounced && (
               <p className="text-xs text-muted-foreground text-center">
-                Filtrando por: <span className="font-medium text-foreground">{debouncedSearch}</span> •{" "}
-                {isLoadingArticles ? "buscando..." : `${pagedArticles?.pagination?.total ?? currentData.length} resultado(s)`}
+                Filtrando por: <span className="font-medium text-foreground">{search.debounced}</span> •{" "}
+                {search.isLoading ? "buscando..." : `${search.resultCount} resultado(s)`}
               </p>
             )}
           </div>
 
           {/* Tabs principales */}
-          <Tabs defaultValue="aeronautic" className="w-full">
+          <Tabs
+            value={activeTab}
+            onValueChange={(v) => setActiveTab(v as InventoryTab)}
+            className="w-full"
+          >
             <TabsList className="w-full">
               <TabsTrigger value="aeronautic">Aeronáutico</TabsTrigger>
               <TabsTrigger value="general">General/Ferretería</TabsTrigger>
@@ -316,7 +455,7 @@ const InventarioArticulosPage = () => {
 
                 {/* ALL */}
                 <TabsContent value="all">
-                  {isLoadingArticles ? (
+                  {isLoadingArticles && !pagedArticles ? (
                     <div className="flex w-full h-full justify-center items-center min-h-[300px]">
                       <Loader2 className="size-24 animate-spin" />
                     </div>
@@ -325,6 +464,9 @@ const InventarioArticulosPage = () => {
                       columns={cols}
                       data={currentData}
                       serverPagination={serverPagination}
+                      serverSorting={{ sorting, onSortingChange: handleSortingChange }}
+                      serverColumnFilters={tableServerFilters}
+                      isFetching={isFetchingArticles}
                       onRowClick={(row: any) => {
                         if (!row?.__isGroup || !row?.subRows?.length) return
                         setGroupPn(row.part_number)
@@ -352,7 +494,7 @@ const InventarioArticulosPage = () => {
                     </TabsList>
                   </Tabs>
 
-                  {isLoadingArticles ? (
+                  {isLoadingArticles && !pagedArticles ? (
                     <div className="flex w-full h-full justify-center items-center min-h-[300px]">
                       <Loader2 className="size-24 animate-spin" />
                     </div>
@@ -361,6 +503,9 @@ const InventarioArticulosPage = () => {
                       columns={cols}
                       data={currentData}
                       serverPagination={serverPagination}
+                      serverSorting={{ sorting, onSortingChange: handleSortingChange }}
+                      serverColumnFilters={tableServerFilters}
+                      isFetching={isFetchingArticles}
                       onRowClick={(row: any) => {
                         if (!row?.__isGroup || !row?.subRows?.length) return
                         setGroupPn(row.part_number)
@@ -385,29 +530,35 @@ const InventarioArticulosPage = () => {
                     </TabsList>
                   </Tabs>
 
-                  {isLoadingArticles ? (
+                  {isLoadingArticles && !pagedArticles ? (
                     <div className="flex w-full h-full justify-center items-center min-h-[300px]">
                       <Loader2 className="size-24 animate-spin" />
                     </div>
                   ) : (
-                    <DataTable columns={cols} data={currentData} serverPagination={serverPagination} />
+                    <DataTable columns={cols} data={currentData} serverPagination={serverPagination}
+                      serverSorting={{ sorting, onSortingChange: handleSortingChange }}
+                      serverColumnFilters={tableServerFilters}
+                      isFetching={isFetchingArticles} />
                   )}
                 </TabsContent>
 
                 {/* TOOL */}
                 <TabsContent value="TOOL">
-                  {isLoadingArticles ? (
+                  {isLoadingArticles && !pagedArticles ? (
                     <div className="flex w-full h-full justify-center items-center min-h-[300px]">
                       <Loader2 className="size-24 animate-spin" />
                     </div>
                   ) : (
-                    <DataTable columns={cols} data={currentData} serverPagination={serverPagination} />
+                    <DataTable columns={cols} data={currentData} serverPagination={serverPagination}
+                      serverSorting={{ sorting, onSortingChange: handleSortingChange }}
+                      serverColumnFilters={tableServerFilters}
+                      isFetching={isFetchingArticles} />
                   )}
                 </TabsContent>
 
                 {/* PART */}
                 <TabsContent value="PART">
-                  {isLoadingArticles ? (
+                  {isLoadingArticles && !pagedArticles ? (
                     <div className="flex w-full h-full justify-center items-center min-h-[300px]">
                       <Loader2 className="size-24 animate-spin" />
                     </div>
@@ -416,6 +567,9 @@ const InventarioArticulosPage = () => {
                       columns={cols}
                       data={currentData}
                       serverPagination={serverPagination}
+                      serverSorting={{ sorting, onSortingChange: handleSortingChange }}
+                      serverColumnFilters={tableServerFilters}
+                      isFetching={isFetchingArticles}
                       onRowClick={(row: any) => {
                         if (!row?.__isGroup || !row?.subRows?.length) return
                         setGroupPn(row.part_number)
@@ -435,7 +589,7 @@ const InventarioArticulosPage = () => {
                   <Loader2 className="size-24 animate-spin" />
                 </div>
               ) : (
-                articlesGeneral && <DataTable columns={GeneralColums} data={articlesGeneral} />
+                <DataTable columns={generalCols} data={currentGeneralData} />
               )}
             </TabsContent>
           </Tabs>

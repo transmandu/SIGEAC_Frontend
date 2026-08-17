@@ -8,6 +8,7 @@ import { DataTable } from "./data-table";
 import { useGetMitigationMeasure } from "@/hooks/sms/useGetMitigationMeasure";
 import { useParams } from "next/navigation";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const MitigationMeasurePage = () => {
   const { plan_id } = useParams<{ plan_id: string }>();
@@ -19,7 +20,9 @@ const MitigationMeasurePage = () => {
   } = useGetMitigationMeasure({ company: selectedCompany?.slug, plan_id });
 
   return (
-    <ContentLayout title="Medidas de Mitigacion">
+    <ContentLayout title="Medidas de Mitigación">
+      <PageHeader className="mb-6" />
+
       <div className="flex flex-col gap-y-2">
         {isLoading && (
           <div className="flex w-full h-full justify-center items-center">

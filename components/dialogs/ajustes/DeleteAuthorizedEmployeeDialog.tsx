@@ -12,8 +12,8 @@ import { AlertTriangle, Loader2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { useCompanyStore } from "@/stores/CompanyStore"
-import { useDeleteAuthorizedEmployee } from "@/hooks/sistema/autorizados/useDeleteAuthorizedEmployee"
-import { AuthorizedEmployee } from "@/app/sistema/autorizaciones/autorizar/columns"
+import { useDeleteAuthorizedEmployee } from "@/actions/ajustes/autorizados/actions"
+import { AuthorizedEmployee } from "@/app/[company]/ajustes/autorizaciones/autorizar/columns"
 
 type Props = {
   authorizedEmployee: AuthorizedEmployee

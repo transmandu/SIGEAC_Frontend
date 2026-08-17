@@ -2,19 +2,18 @@
 
 import { useMemo, useState, useDeferredValue } from 'react'
 import { ContentLayout } from '@/components/layout/ContentLayout'
-import BackButton from '@/components/misc/BackButton'
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
 import { useGetRequisition } from '@/hooks/mantenimiento/compras/useGetRequisitions'
 import { useCompanyStore } from '@/stores/CompanyStore'
 import { getColumns } from './columns'
 import { DataTable } from '../../data-table'
 import type { Requisition } from '@/types/purchase'
 import RequisitionToolBar from './_components/RequisitionToolBar'
-import { CreateRequisitionDialog } from '@/components/dialogs/mantenimiento/compras/CreateRequisitionDialog'
+import { PurchasesRequisitionDialog } from '@/components/dialogs/mantenimiento/compras/PurchasesRequisitionDialog'
 import { GenerateInProgressRequisitionsPdfButton } from '@/components/misc/GenerateInProgressRequisitionsPdfButton'
 import RequisitionSubRow from './_components/RequisitionSubRow'
 import GroupedRequisitionTable from './_components/GroupedRequisitionTable'
-import RequisitionSplitView, { useRequisitionPreview } from '@/components/side-panels/RequisitionSplitView'
+import RequisitionSplitView, { useRequisitionPreview, useRequisitionPreviewSelectedId } from '@/components/side-panels/RequisitionSplitView'
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const RequisitionsPage = () => {
   return (
@@ -27,6 +26,7 @@ const RequisitionsPage = () => {
 const RequisitionsPageContent = () => {
   const { selectedCompany, selectedStation } = useCompanyStore()
   const onPreview = useRequisitionPreview()
+  const selectedPreviewId = useRequisitionPreviewSelectedId()
 
   const {
     data: requisitions,
@@ -76,35 +76,7 @@ const RequisitionsPageContent = () => {
     <ContentLayout title="Requisiciones Generales">
       <div className="flex flex-col gap-6">
 
-        <div className="flex items-center gap-3">
-          <BackButton iconOnly tooltip="Volver" variant="secondary" />
-
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbLink
-                  href={`/${selectedCompany?.slug}/dashboard`}
-                >
-                  Inicio
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-
-              <BreadcrumbSeparator />
-
-              <BreadcrumbItem>
-                Compras
-              </BreadcrumbItem>
-
-              <BreadcrumbSeparator />
-
-              <BreadcrumbItem>
-                <BreadcrumbPage>
-                  Requisiciones Generales
-                </BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-        </div>
+        <PageHeader />
 
         <div className="flex flex-col gap-2 border-b pb-4">
           <div className="flex items-end justify-between">
@@ -145,7 +117,7 @@ const RequisitionsPageContent = () => {
         </div>
 
         <div className="flex items-center gap-2">
-          <CreateRequisitionDialog />
+          <PurchasesRequisitionDialog />
           <GenerateInProgressRequisitionsPdfButton />
         </div>
 
@@ -154,7 +126,7 @@ const RequisitionsPageContent = () => {
             data={filteredRequisitions}
             renderTable={(rows) => (
               <DataTable
-                columns={getColumns(selectedCompany ?? undefined, onPreview ?? undefined)}
+                columns={getColumns(selectedCompany ?? undefined, onPreview ?? undefined, selectedPreviewId)}
                 data={rows}
                 renderSubRow={(row) => (
                   <RequisitionSubRow
@@ -173,7 +145,7 @@ const RequisitionsPageContent = () => {
           />
         ) : (
           <DataTable
-            columns={getColumns(selectedCompany ?? undefined, onPreview ?? undefined)}
+            columns={getColumns(selectedCompany ?? undefined, onPreview ?? undefined, selectedPreviewId)}
             data={filteredRequisitions}
             renderSubRow={(row) => (
               <RequisitionSubRow

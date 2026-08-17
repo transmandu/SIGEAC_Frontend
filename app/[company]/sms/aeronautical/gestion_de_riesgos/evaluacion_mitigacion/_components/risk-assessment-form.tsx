@@ -83,7 +83,7 @@ const SEVERITY_LABELS: Record<string, string> = {
 };
 
 const getQuestionOrder = (question: RiskAssessmentQuestion) =>
-    question.sort_order ?? question.order ?? question.position ?? question.id;
+    question.sort_order ?? question.id;
 
 const normalizeQuestionOptions = (options: RiskAssessmentQuestion['options']) => {
     if (Array.isArray(options)) {
@@ -149,7 +149,7 @@ const normalizeAssessmentHistory = (
         return [];
     }
 
-    const source = assessment.logs || assessment.history || [];
+    const source = assessment.history || [];
     return Array.isArray(source) ? source : [];
 };
 

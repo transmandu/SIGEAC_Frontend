@@ -1,10 +1,8 @@
 'use client';
 
 import { ContentLayout } from '@/components/layout/ContentLayout';
-import BackButton from '@/components/misc/BackButton';
 import LoadingPage from '@/components/misc/LoadingPage';
 import { Badge } from '@/components/ui/badge';
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useGetPurchaseOrder } from '@/hooks/mantenimiento/compras/useGetPurchaseOrder';
 import { useCompanyStore } from '@/stores/CompanyStore';
@@ -19,6 +17,7 @@ import PurchaseOrderGeneralArticleCard from './_components/PurchaseOrderGeneralA
 import PurchaseOrderCostSummary from './_components/PurchaseOrderCostSummary';
 import { statusBadgeCls, statusLabel, formatPurchaseDate } from './_components/utils/uiHelpers';
 import { isAeronauticalPurchaseOrder } from '@/lib/purchases/purchase-order-scope';
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const PurchaseOrderPage = () => {
   const { selectedCompany } = useCompanyStore();
@@ -36,33 +35,7 @@ const PurchaseOrderPage = () => {
       <div className="flex flex-col gap-6">
 
         {/* ── Breadcrumb ──────────────────────────────────────────────── */}
-        <div className="flex items-center gap-3">
-          <BackButton iconOnly tooltip="Volver" variant="secondary" />
-
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbLink href={`/${selectedCompany?.slug}/dashboard`}>
-                  Inicio
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-
-              <BreadcrumbSeparator />
-
-              <BreadcrumbItem>
-                <BreadcrumbLink href={`/${selectedCompany?.slug}/compras/ordenes_compra`}>
-                  Órdenes de Compra
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-
-              <BreadcrumbSeparator />
-
-              <BreadcrumbItem>
-                <BreadcrumbPage>{order_number}</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-        </div>
+        <PageHeader currentLabel={order_number} />
 
         {/* ── Header ──────────────────────────────────────────────────── */}
         <div className="flex flex-col gap-2 border-b border-border/60 pb-4">
@@ -198,6 +171,7 @@ const PurchaseOrderPage = () => {
                 <PurchaseOrderArticleCard
                   key={article.id}
                   article={article}
+                  orderStatus={data?.status}
                 />
               ))}
 
@@ -206,6 +180,7 @@ const PurchaseOrderPage = () => {
                 <PurchaseOrderGeneralArticleCard
                   key={article.id}
                   article={article}
+                  orderStatus={data?.status}
                 />
               ))}
 

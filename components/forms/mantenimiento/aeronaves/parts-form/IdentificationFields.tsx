@@ -74,7 +74,7 @@ export default function IdentificationFields({ form, path }: any) {
                                                 "Selecciona fabricante"}
                                         </span>
                                         {manufacturerOptions.find((manufacturer) => String(manufacturer.id) === field.value) && (
-                                            <span className="shrink-0 rounded-md bg-muted px-2 py-0.5 text-[10px] font-medium uppercase text-muted-foreground">
+                                            <span className="select-none shrink-0 rounded-md bg-muted px-2 py-0.5 text-[10px] font-medium uppercase text-muted-foreground">
                                                 {manufacturerOptions.find((manufacturer) => String(manufacturer.id) === field.value)?.type}
                                             </span>
                                         )}
@@ -106,7 +106,7 @@ export default function IdentificationFields({ form, path }: any) {
                                                 />
                                                 <span className="flex w-full items-center justify-between gap-3">
                                                     <span className="truncate">{manufacturer.name}</span>
-                                                    <span className="shrink-0 rounded-md bg-muted px-2 py-0.5 text-[10px] font-medium uppercase text-muted-foreground">
+                                                    <span className="select-none shrink-0 rounded-md bg-muted px-2 py-0.5 text-[10px] font-medium uppercase text-muted-foreground">
                                                         {manufacturer.type}
                                                     </span>
                                                 </span>

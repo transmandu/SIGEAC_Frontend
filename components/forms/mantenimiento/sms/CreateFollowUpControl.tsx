@@ -111,13 +111,13 @@ export default function CreateFollowUpControl({
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
                 <FormField
                     control={form.control}
                     name="description"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Descripción del control</FormLabel>
+                            <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Descripción del control</FormLabel>
                             <FormControl>
                                 <Textarea
                                     placeholder="Describa el seguimiento realizado"
@@ -135,7 +135,7 @@ export default function CreateFollowUpControl({
                     name="date"
                     render={({ field }) => (
                         <FormItem className="flex flex-col">
-                            <FormLabel>Fecha del seguimiento</FormLabel>
+                            <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Fecha del seguimiento</FormLabel>
                             <Popover>
                                 <PopoverTrigger asChild>
                                     <FormControl>
@@ -194,7 +194,7 @@ export default function CreateFollowUpControl({
                         name="image"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Imagen adjunta</FormLabel>
+                                <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Imagen adjunta</FormLabel>
                                 <FormControl>
                                     <Input
                                         type="file"
@@ -221,7 +221,7 @@ export default function CreateFollowUpControl({
                         name="document"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Documento adjunto</FormLabel>
+                                <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Documento adjunto</FormLabel>
                                 <FormControl>
                                     <Input
                                         type="file"
@@ -255,7 +255,7 @@ export default function CreateFollowUpControl({
                             Cancelar
                         </Button>
                     )}
-                    <Button type="submit" className="sm:min-w-52" disabled={isPending}>
+                    <Button type="submit" className="w-full h-10" disabled={isPending}>
                         {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         <Paperclip className="mr-2 h-4 w-4" />
                         {isEditing ? "Guardar cambios" : "Agregar control"}

@@ -1,4 +1,4 @@
-import { useDeleteInformationSource } from "@/actions/ajustes/globales/tipos_fuente/actions";
+import { useDeleteInformationSource } from "@/actions/ajustes/tipos_fuente/actions";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -47,7 +47,7 @@ const SafetyBulletinDropdownActions = ({
   return (
     <>
       <DropdownMenu>
-        <DropdownMenuTrigger>
+        <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="h-8 w-8 p-0">
             <span className="sr-only">Abrir menu</span>
             <MoreHorizontal className="h-4 w-4" />

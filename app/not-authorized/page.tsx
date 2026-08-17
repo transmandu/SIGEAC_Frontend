@@ -2,11 +2,14 @@
 
 import { Button } from "@/components/ui/button";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { useDocumentTitle } from "@/hooks/helpers/use-document-title";
 import { Hand, Loader, Loader2 } from "lucide-react";
 import Link from "next/link";
 
 export default function NotAuthorized() {
   const { selectedCompany } = useCompanyStore();
+
+  useDocumentTitle("Acceso denegado");
   return (
     <div className="h-dvh w-dvw flex flex-col items-center justify-center">
       <div className="flex flex-col justify-center items-center max-w-3xl gap-y-4">

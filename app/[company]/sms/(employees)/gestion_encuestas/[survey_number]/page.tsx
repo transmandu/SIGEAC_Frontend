@@ -17,6 +17,7 @@ import {
   CopyCheck,
 } from "lucide-react";
 import { useParams } from "next/navigation";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const ShowSurvey = () => {
   const { survey_number } = useParams<{ survey_number: string }>();
@@ -51,6 +52,8 @@ const ShowSurvey = () => {
   if (isLoading) {
     return (
       <ContentLayout title="Cargando encuesta...">
+        <PageHeader className="mb-6" />
+
         <div className="flex justify-center items-center min-h-64">
           <Loader2 className="size-8 animate-spin text-gray-500" />
         </div>
@@ -61,6 +64,8 @@ const ShowSurvey = () => {
   if (isError || !surveyData) {
     return (
       <ContentLayout title="Encuesta">
+        <PageHeader className="mb-6" />
+
         <div className="border border-gray-200 rounded-lg p-6 flex items-center gap-4 bg-gray-50">
           <AlertCircle className="w-6 h-6 text-gray-500" />
           <p className="text-gray-700">Error al cargar la encuesta</p>
@@ -71,6 +76,8 @@ const ShowSurvey = () => {
 
   return (
     <ContentLayout title={surveyData.title}>
+      <PageHeader className="mb-6" />
+
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header minimalista */}
         <div className="space-y-3">

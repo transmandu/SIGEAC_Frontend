@@ -32,9 +32,8 @@ export interface IArticleSimple {
   };
 }
 
-
 export const flattenArticles = (
-  data: WarehouseResponse | undefined
+  data: WarehouseResponse | undefined,
 ): IArticleSimple[] => {
   if (!data?.batches) return [];
   return data.batches.flatMap((batch) =>
@@ -46,13 +45,8 @@ export const flattenArticles = (
       lot_number: article.lot_number,
       description: article.description,
       zone: article.zone,
-      // Normalizar cantidad: 0, null o undefined -> 1
-      quantity:
-        article.quantity === 0 ||
-        article.quantity === null ||
-        article.quantity === undefined
-          ? 1
-          : article.quantity,
+      // ✅ No normalizar 0 -> 1
+      quantity: Number(article.quantity ?? 0),
       status: article.status,
       condition: article.condition ? article.condition.name : "N/A",
       article_type: article.article_type ?? "N/A",
@@ -68,7 +62,7 @@ export const flattenArticles = (
             next_calibration: article.tool.next_calibration,
           }
         : undefined,
-    }))
+    })),
   );
 };
 
@@ -126,10 +120,32 @@ const baseCols: ColumnDef<IArticleSimple>[] = [
   {
     accessorKey: "quantity",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Cantidad" />
+      <DataTableColumnHeader column={column} title="Disponiblidad" />
     ),
     cell: ({ row }) => {
       const q = row.original.quantity ?? 0;
+      const isStored = row.original.status?.toLowerCase() === "stored";
+      const isAvailable = q > 0 && isStored;
+      return (
+        <div className="flex justify-center">
+          <Badge
+            variant={isAvailable ? "default" : "destructive"}
+            className="text-sm font-bold px-3 py-1 whitespace-nowrap"
+          >
+            {isAvailable ? "Disponible" : "No Disponible"}
+          </Badge>
+        </div>
+      );
+    },
+  },
+  {
+    id: "quantity_value",
+    accessorFn: (row) => row.quantity,
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Cantidad" />
+    ),
+    cell: ({ row }) => {
+      const q = Number(row.original.quantity ?? 0);
       return (
         <div className="flex justify-center">
           <Badge
@@ -148,12 +164,19 @@ const baseCols: ColumnDef<IArticleSimple>[] = [
       <DataTableColumnHeader column={column} title="Estado" />
     ),
     cell: ({ row }) => {
+      const isStored = row.original.status?.toLowerCase() === "stored";
+      const q = Number(row.original.quantity ?? 0);
+      const isOutOfStock = isStored && q <= 0;
+
       return (
         <div className="flex flex-col justify-center items-center space-y-2">
-          <Badge className="bg-yellow-500">
-            {row.original.status?.toUpperCase()}
-          </Badge>
-
+          {isOutOfStock ? (
+            <Badge variant="destructive">SIN STOCK</Badge>
+          ) : (
+            <Badge className="bg-yellow-500">
+              {row.original.status?.toUpperCase()}
+            </Badge>
+          )}
         </div>
       );
     },
@@ -247,7 +270,7 @@ export const consumibleCols: ColumnDef<IArticleSimple>[] = [
 const parseDateLocal = (dateString: string): Date => {
   // Si la fecha viene como "YYYY-MM-DD" sin hora, parsearla como fecha local
   if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
-    const [year, month, day] = dateString.split('-').map(Number);
+    const [year, month, day] = dateString.split("-").map(Number);
     return new Date(year, month - 1, day);
   }
   // Si tiene hora, usar parseISO
@@ -265,7 +288,10 @@ export const herramientaCols: ColumnDef<IArticleSimple>[] = [
     cell: ({ row }) => (
       <div className="text-center text-sm font-bold text-muted-foreground">
         {row.original.tool?.calibration_date
-          ? format(parseDateLocal(row.original.tool.calibration_date), "dd/MM/yyyy")
+          ? format(
+              parseDateLocal(row.original.tool.calibration_date),
+              "dd/MM/yyyy",
+            )
           : "N/A"}
       </div>
     ),
@@ -283,9 +309,9 @@ export const herramientaCols: ColumnDef<IArticleSimple>[] = [
             ? format(
                 addDays(
                   parseDateLocal(row.original.tool.calibration_date),
-                  Number(row.original.tool.next_calibration)
+                  Number(row.original.tool.next_calibration),
                 ),
-                "dd/MM/yyyy"
+                "dd/MM/yyyy",
               )
             : "N/A"}
         </div>
@@ -306,7 +332,7 @@ export const herramientaCols: ColumnDef<IArticleSimple>[] = [
 
 // Columnas por categoría
 export const getColumnsByCategory = (
-  cat: "COMPONENT" | "CONSUMABLE" | "TOOL" | "PART"
+  cat: "COMPONENT" | "CONSUMABLE" | "TOOL" | "PART",
 ): ColumnDef<IArticleSimple>[] => {
   if (cat === "TOOL") return [selectionColumn, ...herramientaCols];
   if (cat === "CONSUMABLE") return [selectionColumn, ...consumibleCols];

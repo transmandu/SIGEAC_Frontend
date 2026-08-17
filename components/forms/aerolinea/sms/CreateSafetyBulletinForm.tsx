@@ -129,7 +129,6 @@ export function CreateSafetyBulletinForm({
       await updateBulletin.mutateAsync(value);
     } else {
         try {
-          // Creamos un objeto limpio donde convertimos null a undefined
           const cleanData = {
             ...data,
             image: data.image ?? undefined,
@@ -141,8 +140,6 @@ export function CreateSafetyBulletinForm({
             company: selectedCompany!.slug,
             data: cleanData, // Pasamos el objeto limpio aquí
           });
-          
-          console.log("data", cleanData);
         } catch (error) {
           console.error("Error al crear el boletin:", error);
         }

@@ -1,4 +1,5 @@
 import axiosInstance from "@/lib/axios"
+import { isAxiosError } from "axios"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import type { CreateRequisitionData } from "@/types/purchase"
@@ -42,8 +43,7 @@ export const useUpdateRequisition = () => {
   const updateMutation = useMutation({
     mutationFn: async ({ data, id, company }: { id: string | number, data: CreateRequisitionData, company: string }) => {
       const formData = buildRequisitionFormData(data)
-      // Laravel can't parse multipart bodies on a native PUT request, so the
-      // method is spoofed via _method and sent as POST instead.
+      // multipart no admite PUT real: se envía POST y Laravel lo reinterpreta con _method.
       formData.append('_method', 'PUT')
       await axiosInstance.post(`/${company}/requisition-order/${id}`, formData, {
         headers: {
@@ -70,6 +70,58 @@ export const useUpdateRequisition = () => {
   }
 }
 
+/**
+ * `acknowledgeInTransit` es el acuse de que el usuario vio qué hay en camino y
+ * aun así quiere pedir. Sin él, el backend responde 409 con el detalle en vez
+ * de crear: re-pedir se permite, pero nunca a ciegas.
+ */
+type CreateRequisitionFromLowStockAlertParams =
+  ({ source: 'general', generalArticleId: number, company: string }
+    | { source: 'consumable', articleId: number, company: string })
+  & { acknowledgeInTransit?: boolean }
+
+export const useCreateRequisitionFromLowStockAlert = () => {
+  const queryClient = useQueryClient()
+
+  const createMutation = useMutation({
+    mutationFn: async (params: CreateRequisitionFromLowStockAlertParams) => {
+      const body = {
+        ...(params.source === 'general'
+          ? { general_article_id: params.generalArticleId }
+          : { article_id: params.articleId }),
+        ...(params.acknowledgeInTransit ? { acknowledge_in_transit: true } : {}),
+      }
+
+      await axiosInstance.post(`/${params.company}/requisition-order/from-low-stock-alert`, body)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['requisitions-orders'] })
+      queryClient.invalidateQueries({ queryKey: ['requisition-order'], exact: false })
+      queryClient.invalidateQueries({ queryKey: ['low-stock-general-articles'], exact: false })
+      queryClient.invalidateQueries({ queryKey: ['low-stock-consumable-articles'], exact: false })
+
+      toast.success("¡Solicitud creada!", {
+        description: "Se generó una solicitud de compra para el artículo."
+      })
+    },
+    onError: (error) => {
+      // 409 no es un fallo: es "ya hay algo en camino, confirma antes". Lo
+      // maneja quien dispara la mutación mostrando el detalle y reintentando
+      // con acknowledgeInTransit, así que aquí no se emite toast de error.
+      if (isAxiosError(error) && error.response?.status === 409) {
+        return
+      }
+
+      toast.error('Oops!', {
+        description: getRequisitionErrorMessage(error, 'No se pudo crear la solicitud de compra...')
+      })
+    },
+  })
+  return {
+    createRequisitionFromLowStockAlert: createMutation,
+  }
+}
+
 export const useDeleteRequisition = () => {
   const queryClient = useQueryClient()
 
@@ -93,6 +145,39 @@ export const useDeleteRequisition = () => {
 
   return {
     deleteRequisition: deleteMutation,
+  }
+}
+
+// Solo SUPERUSER. Arrastra toda la cadena aguas abajo (cotizaciones,
+// complementarias y órdenes de compra), revirtiendo el inventario ya afectado.
+export const useCascadeDeleteRequisition = () => {
+  const queryClient = useQueryClient()
+
+  const cascadeDeleteMutation = useMutation({
+    mutationFn: async ({ id, company }: { id: number, company: string }) => {
+      await axiosInstance.delete(`/${company}/requisition-order/${id}/cascade`)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['requisitions-orders'] })
+      queryClient.invalidateQueries({ queryKey: ['requisition-order'], exact: false })
+      queryClient.invalidateQueries({ queryKey: ['quotes'] })
+      queryClient.invalidateQueries({ queryKey: ['quote'], exact: false })
+      queryClient.invalidateQueries({ queryKey: ['purchase-orders'] })
+      queryClient.invalidateQueries({ queryKey: ['purchase-order'], exact: false })
+      queryClient.invalidateQueries({ queryKey: ['general-article-intakes'], exact: false })
+      toast.success("¡Eliminada en cascada!", {
+        description: `La requisición y toda su cadena (cotizaciones, órdenes de compra e inventario asociado) fue eliminada.`
+      })
+    },
+    onError: (error: any) => {
+      toast.error("Oops!", {
+        description: error?.response?.data?.message || "¡Hubo un error al eliminar en cascada la requisición!"
+      })
+    },
+  })
+
+  return {
+    cascadeDeleteRequisition: cascadeDeleteMutation,
   }
 }
 

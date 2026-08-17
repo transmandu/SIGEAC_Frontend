@@ -2984,7 +2984,7 @@ export const ThirdPage = ({
             // 1. Obtener todos los controles (máximo 5)
             const allControls =
                 identification.mitigation_plan?.measures
-                    .flatMap((measure) => measure.follow_up_control || [])
+                    .flatMap((measure) => measure.follow_up_controls || [])
                     .slice(0, 5) || [];
 
             // 2. Calcular controles vacíos necesarios

@@ -1,15 +1,27 @@
 import {
+  FuelBalanceByFuelType,
   FuelFifoRow,
   FuelMovement,
   FuelMovementStatus,
   FuelMovementType,
+  FuelSummary,
   FuelTraceabilityDetail,
+  FuelType,
   FuelVehicle,
   FuelVehicleStatus,
   FuelVehicleType,
 } from "@/types";
 
 export const FUEL_ALLOWED_ROLES = ["SUPERUSER", "JEFE_ALMACEN"];
+
+// Formatos de placa venezolana vigentes (equivalente a la validacion del backend).
+export const FUEL_PLATE_REGEX =
+  /^(?:[A-Z]{3}[0-9]{3}|[A-Z]{2}[0-9]{3}[A-Z]{2}|[A-Z]{2}[0-9]{3}[A-Z]|[A-Z][0-9]{2}[A-Z]{2}[0-9][A-Z])$/;
+
+// Placas de vehiculos migrados desde datos legacy quedan como PEND-{id}
+// hasta que se corrija con la placa real.
+export const isPendingFuelVehiclePlate = (plate?: string | null) =>
+  /^PEND-\d+$/.test(plate ?? "");
 
 export const FUEL_QUERY_KEYS = {
   all: ["fuel"] as const,
@@ -19,8 +31,20 @@ export const FUEL_QUERY_KEYS = {
     [...FUEL_QUERY_KEYS.all, "movements", company, filters] as const,
   movement: (company?: string, id?: number | null) =>
     [...FUEL_QUERY_KEYS.all, "movement", company, id] as const,
-  traceability: (company?: string, movementId?: number | null) =>
-    [...FUEL_QUERY_KEYS.all, "traceability", company, movementId] as const,
+  traceability: (
+    company?: string,
+    movementId?: number | null,
+    page?: number,
+    perPage?: number,
+  ) =>
+    [
+      ...FUEL_QUERY_KEYS.all,
+      "traceability",
+      company,
+      movementId,
+      page,
+      perPage,
+    ] as const,
 };
 
 export const FUEL_VEHICLE_TYPES: Array<{
@@ -30,8 +54,37 @@ export const FUEL_VEHICLE_TYPES: Array<{
   { value: "car", label: "Carro" },
   { value: "truck", label: "Camion" },
   { value: "motorcycle", label: "Moto" },
+  { value: "crane", label: "Grua" },
+  { value: "mule", label: "Mula" },
   { value: "other", label: "Otro" },
 ];
+
+export const FUEL_TYPES: Array<{ value: FuelType; label: string }> = [
+  { value: "GASOLINE", label: "Gasolina" },
+  { value: "DIESEL", label: "Gasoil" },
+];
+
+// Tipos de movimiento sin vehiculo asociado: el combustible no se puede
+// derivar de un vehiculo, asi que el usuario debe indicarlo explicitamente.
+// external_refuel tambien lo requiere porque un surtido de GASOIL no va
+// asociado a un vehiculo (ver FUEL_MOVEMENT_TYPES_ALLOWING_VEHICLELESS_DIESEL).
+export const FUEL_MOVEMENT_TYPES_REQUIRING_FUEL_TYPE: FuelMovementType[] = [
+  "warehouse_initial_balance",
+  "warehouse_dispatch_third_party",
+  "external_refuel",
+];
+
+// Tipos de movimiento donde, si el combustible seleccionado es GASOIL, el
+// vehiculo deja de ser obligatorio (el surtido de gasoil no se asocia a un
+// vehiculo especifico).
+export const FUEL_MOVEMENT_TYPES_ALLOWING_VEHICLELESS_DIESEL: FuelMovementType[] =
+  ["external_refuel"];
+
+export const movementAllowsVehiclelessDiesel = (type: FuelMovementType) =>
+  FUEL_MOVEMENT_TYPES_ALLOWING_VEHICLELESS_DIESEL.includes(type);
+
+export const movementRequiresFuelTypeSelection = (type: FuelMovementType) =>
+  FUEL_MOVEMENT_TYPES_REQUIRING_FUEL_TYPE.includes(type);
 
 export const FUEL_MOVEMENT_LABELS: Record<FuelMovementType, string> = {
   warehouse_initial_balance: "Saldo inicial almacen",
@@ -96,6 +149,46 @@ export const formatLiters = (value?: number | string | null) => {
 export const getFuelVehicleTypeLabel = (type?: FuelVehicleType | string) =>
   FUEL_VEHICLE_TYPES.find((item) => item.value === type)?.label ?? "Otro";
 
+// Cuando el tipo es "other", se muestra la especificacion libre cargada por
+// el usuario (type_other) en vez del generico "Otro".
+export const getFuelVehicleTypeDisplay = (vehicle?: {
+  type?: FuelVehicleType | string | null;
+  type_other?: string | null;
+}) =>
+  vehicle?.type === "other" && vehicle.type_other?.trim()
+    ? vehicle.type_other.trim()
+    : getFuelVehicleTypeLabel(vehicle?.type ?? undefined);
+
+export const getFuelTypeLabel = (fuelType?: FuelType | string | null) =>
+  FUEL_TYPES.find((item) => item.value === fuelType)?.label ?? "Gasolina";
+
+// Mapa de nombres de color en español (tal como se cargan en el vehiculo)
+// a un color hex aproximado, usado para pintar un punto identificativo en
+// los selects de vehiculo.
+const VEHICLE_COLOR_HEX: Record<string, string> = {
+  blanco: "#f8fafc",
+  negro: "#0f172a",
+  gris: "#64748b",
+  plata: "#cbd5e1",
+  plateado: "#cbd5e1",
+  rojo: "#ef4444",
+  vinotinto: "#7f1d1d",
+  azul: "#3b82f6",
+  celeste: "#38bdf8",
+  verde: "#22c55e",
+  amarillo: "#eab308",
+  naranja: "#f97316",
+  marron: "#78350f",
+  beige: "#e7d8c9",
+  dorado: "#d4af37",
+  morado: "#8b5cf6",
+};
+
+export const getVehicleColorHex = (color?: string | null) => {
+  if (!color) return null;
+  return VEHICLE_COLOR_HEX[color.trim().toLowerCase()] ?? null;
+};
+
 export const getFuelMovementLabel = (type?: FuelMovementType | string) =>
   type && type in FUEL_MOVEMENT_LABELS
     ? FUEL_MOVEMENT_LABELS[type as FuelMovementType]
@@ -112,17 +205,68 @@ export const getFuelStatusLabel = (
 
 export const getFuelErrorMessage = (error: unknown) => {
   const maybeAxiosError = error as {
-    response?: { data?: { code?: string; message?: string } };
+    response?: { status?: number; data?: { code?: string; message?: string } };
     message?: string;
   };
   const code = maybeAxiosError.response?.data?.code;
+  const backendMessage = maybeAxiosError.response?.data?.message;
+  // El backend ya devuelve un mensaje especifico por error (incluidos los 422),
+  // asi que se prioriza sobre el texto generico mapeado por codigo.
+  if (backendMessage) return backendMessage;
   if (code && FUEL_ERROR_MESSAGES[code]) return FUEL_ERROR_MESSAGES[code];
   return (
-    maybeAxiosError.response?.data?.message ||
     maybeAxiosError.message ||
     "No se pudo completar la operacion."
   );
 };
+
+// Mapea errores de validacion 422 del backend ({ errors: { campo: [mensaje] } })
+// a los campos del formulario, para dar feedback especifico por input.
+export const applyFuelValidationErrors = (
+  error: unknown,
+  setFieldError: (field: string, message: string) => void,
+) => {
+  const maybeAxiosError = error as {
+    response?: { status?: number; data?: { errors?: Record<string, string[]> } };
+  };
+  if (maybeAxiosError.response?.status !== 422) return false;
+  const errors = maybeAxiosError.response?.data?.errors;
+  if (!errors) return false;
+  Object.entries(errors).forEach(([field, messages]) => {
+    if (messages?.[0]) setFieldError(field, messages[0]);
+  });
+  return true;
+};
+
+// Datos legacy (previos al soporte de gasoil) no traen fuel_type: se asumen
+// gasolina, que era el unico combustible gestionado hasta ahora.
+export const normalizeFuelType = (value?: string | null): FuelType =>
+  value?.toUpperCase() === "DIESEL" ? "DIESEL" : "GASOLINE";
+
+export const normalizeFuelBalanceByFuelType = (
+  value: any,
+): FuelBalanceByFuelType => ({
+  GASOLINE: Number(value?.GASOLINE ?? 0),
+  DIESEL: Number(value?.DIESEL ?? 0),
+});
+
+export const normalizeFuelSummary = (data: any): FuelSummary => ({
+  ...data,
+  warehouse_balance_liters: normalizeFuelBalanceByFuelType(
+    data?.warehouse_balance_liters,
+  ),
+  vehicle_balance_liters: normalizeFuelBalanceByFuelType(
+    data?.vehicle_balance_liters,
+  ),
+  vehicle_balance_liters_all: normalizeFuelBalanceByFuelType(
+    data?.vehicle_balance_liters_all,
+  ),
+  active_vehicle_count: Number(data?.active_vehicle_count ?? 0),
+  has_active_warehouse_initial_balance: {
+    GASOLINE: Boolean(data?.has_active_warehouse_initial_balance?.GASOLINE),
+    DIESEL: Boolean(data?.has_active_warehouse_initial_balance?.DIESEL),
+  },
+});
 
 export const normalizeFuelVehicleType = (
   value?: string | null,
@@ -131,6 +275,8 @@ export const normalizeFuelVehicleType = (
   if (normalized === "car") return "car";
   if (normalized === "truck") return "truck";
   if (normalized === "motorcycle") return "motorcycle";
+  if (normalized === "crane") return "crane";
+  if (normalized === "mule") return "mule";
   return "other";
 };
 
@@ -168,6 +314,7 @@ export const normalizeFuelMovementType = (
 export const normalizeFuelVehicle = (vehicle: any): FuelVehicle => ({
   ...vehicle,
   type: normalizeFuelVehicleType(vehicle?.type),
+  fuel_type: normalizeFuelType(vehicle?.fuel_type),
   status: normalizeFuelVehicleStatus(vehicle?.status),
   tank_capacity_liters: Number(vehicle?.tank_capacity_liters ?? 0),
   current_balance_liters: Number(vehicle?.current_balance_liters ?? 0),
@@ -178,6 +325,7 @@ export const normalizeFuelVehicle = (vehicle: any): FuelVehicle => ({
 export const normalizeFuelMovement = (movement: any): FuelMovement => ({
   ...movement,
   type: normalizeFuelMovementType(movement?.type),
+  fuel_type: normalizeFuelType(movement?.fuel_type),
   status: normalizeFuelMovementStatus(movement?.status),
   liters: Number(movement?.liters ?? 0),
   odometer_km: movement?.odometer_km ? Number(movement.odometer_km) : null,
@@ -201,7 +349,14 @@ export const normalizeFuelTraceability = (
 ): FuelTraceabilityDetail => ({
   ...detail,
   total_liters: Number(detail?.total_liters ?? 0),
-  fifo_rows: Array.isArray(detail?.fifo_rows)
-    ? detail.fifo_rows.map(normalizeFuelFifoRow)
-    : [],
+  fifo_rows: {
+    ...detail?.fifo_rows,
+    current_page: Number(detail?.fifo_rows?.current_page ?? 1),
+    last_page: Number(detail?.fifo_rows?.last_page ?? 1),
+    per_page: Number(detail?.fifo_rows?.per_page ?? 15),
+    total: Number(detail?.fifo_rows?.total ?? 0),
+    data: Array.isArray(detail?.fifo_rows?.data)
+      ? detail.fifo_rows.data.map(normalizeFuelFifoRow)
+      : [],
+  },
 });

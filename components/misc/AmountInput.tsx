@@ -12,7 +12,6 @@ type Props = {
   className?: string
 }
 
-// 🔹 Usamos forwardRef para que se pueda pasar ref al input
 export const AmountInput = forwardRef<HTMLInputElement, Props>(
   (
     {
@@ -42,7 +41,7 @@ export const AmountInput = forwardRef<HTMLInputElement, Props>(
         disabled={disabled}
         groupSeparator=","
         decimalSeparator="."
-        ref={ref} // ⚠️ forwardRef lo pasa correctamente
+        ref={ref}
       />
     )
   }

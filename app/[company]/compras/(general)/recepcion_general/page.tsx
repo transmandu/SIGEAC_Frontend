@@ -2,21 +2,13 @@
 
 import { useMemo, useState, useDeferredValue } from 'react'
 import { ContentLayout } from '@/components/layout/ContentLayout'
-import BackButton from '@/components/misc/BackButton'
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb'
 import { useCompanyStore } from '@/stores/CompanyStore'
 import { DataTable } from '../../data-table'
 import { getColumns } from './columns'
 import IntakeToolBar from './_components/IntakeToolBar'
 import { useGetGeneralArticleIntakes } from '@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticleIntakes'
 import type { GeneralArticleIntakeStatus } from '@/types/purchase'
+import { PageHeader } from "@/components/layout/PageHeader";
 
 type StatusFilter = 'ALL' | GeneralArticleIntakeStatus
 
@@ -43,7 +35,12 @@ const RecepcionGeneralPage = () => {
         i.description?.toLowerCase().includes(q) ||
         i.brand_model?.toLowerCase().includes(q) ||
         i.purchase_order?.quote_order?.requisition_order?.order_number?.toLowerCase().includes(q) ||
-        i.registered_by?.toLowerCase().includes(q)
+        i.registered_by?.toLowerCase().includes(q) ||
+        i.warehouse?.name?.toLowerCase().includes(q) ||
+        i.department?.name?.toLowerCase().includes(q) ||
+        i.third_party?.name?.toLowerCase().includes(q) ||
+        i.authorized_employee?.full_name?.toLowerCase().includes(q) ||
+        `${i.employee?.first_name ?? ''} ${i.employee?.last_name ?? ''}`.toLowerCase().includes(q)
     )
   }, [intakes, deferredSearch])
 
@@ -53,33 +50,7 @@ const RecepcionGeneralPage = () => {
     <ContentLayout title="Recepción General">
       <div className="flex flex-col gap-6">
 
-        <div className="flex items-center gap-3">
-          <BackButton iconOnly tooltip="Volver" variant="secondary" />
-
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbLink href={`/${selectedCompany?.slug}/dashboard`}>
-                  Inicio
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-
-              <BreadcrumbSeparator />
-
-              <BreadcrumbItem>
-                Compras
-              </BreadcrumbItem>
-
-              <BreadcrumbSeparator />
-
-              <BreadcrumbItem>
-                <BreadcrumbPage>
-                  Recepción General
-                </BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-        </div>
+        <PageHeader />
 
         <div className="flex flex-col gap-2 border-b pb-4">
           <h1 className="text-3xl font-semibold tracking-tight">

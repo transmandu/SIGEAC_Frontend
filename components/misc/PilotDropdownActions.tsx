@@ -1,4 +1,4 @@
-import { useDeletePilot } from "@/actions/ajustes/globales/piloto/actions";
+import { useDeletePilot } from "@/actions/ajustes/piloto/actions";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,11 +26,13 @@ import {
 } from "../ui/dialog";
 import { useRouter } from "next/navigation";
 import { CreatePilotForm } from "../forms/general/CreatePilotForm";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 const PilotDropdownActions = ({ pilot }: { pilot: Pilot }) => {
   const [open, setOpen] = useState<boolean>(false);
   const [openEdit, setOpenEdit] = useState<boolean>(false);
   const { deletePilot } = useDeletePilot();
+  const { selectedCompany } = useCompanyStore();
 
   const router = useRouter();
 
@@ -42,7 +44,7 @@ const PilotDropdownActions = ({ pilot }: { pilot: Pilot }) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DropdownMenu>
-        <DropdownMenuTrigger>
+        <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="h-8 w-8 p-0">
             <span className="sr-only">Abrir menu</span>
             <MoreHorizontal className="h-4 w-4" />
@@ -62,7 +64,9 @@ const PilotDropdownActions = ({ pilot }: { pilot: Pilot }) => {
 
           <DropdownMenuItem
             onClick={() => {
-              router.push(`/ajustes/globales/pilotos/${pilot.employee_dni}`);
+              router.push(
+                `/${selectedCompany?.slug}/ajustes/pilotos/${pilot.employee_dni}`
+              );
             }}
           >
             <EyeIcon className="size-5" />

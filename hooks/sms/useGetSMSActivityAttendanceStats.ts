@@ -23,10 +23,10 @@ const fetchActivityAttendanceStats = async (
 export const useGetSMSActivityAttendanceStats = (activity_id: string) => {
   const { selectedCompany } = useCompanyStore();
   return useQuery<ActivityAttendanceStats>({
-    queryKey: ["sms-activity-attendance-stats", activity_id], // Incluye el ID en la clave de la query
+    queryKey: ["sms-activity-attendance-stats", activity_id],
     queryFn: () =>
-      fetchActivityAttendanceStats(activity_id, selectedCompany?.slug), // Pasa el ID a la función fetchUser
-    staleTime: 1000 * 60 * 5, // 5 minutos
+      fetchActivityAttendanceStats(activity_id, selectedCompany?.slug),
+    staleTime: 1000 * 60 * 5,
     enabled: !!selectedCompany?.slug,
   });
 };

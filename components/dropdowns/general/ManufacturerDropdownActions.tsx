@@ -6,7 +6,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 
-import { useDeleteManufacturer, useUpdateManufacturer } from "@/actions/ajustes/globales/fabricantes/actions"
+import { useDeleteManufacturer, useUpdateManufacturer } from "@/actions/ajustes/fabricantes/actions"
 import { Loader2, MoreHorizontal, Pencil, Trash2 } from "lucide-react"
 import { useState } from "react"
 import { Button } from "../../ui/button"
@@ -123,8 +123,8 @@ const ManufacturerDropdownActions = ({ manufacturer }: { manufacturer: Manufactu
 
       {/* Dropdown Menu */}
       <DropdownMenu>
-        <DropdownMenuTrigger>
-          <Button variant="ghost" className="h-8 w-8 p-0">
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="h-8 w-8 p-0" data-tour="fabricantes-actions">
             <span className="sr-only">Abrir menu</span>
             <MoreHorizontal className="h-4 w-4" />
           </Button>

@@ -27,6 +27,7 @@ import {
 
 import {
     ArticleDocumentSelection,
+    buildDocumentSelectionFromArticle,
     extractCreatedArticleIds,
     useConfirmIncomingArticle,
     useCreateArticle,
@@ -83,14 +84,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { useGetConditions } from "@/hooks/administracion/useGetConditions";
 import { useGetManufacturers } from "@/hooks/general/fabricantes/useGetManufacturers";
 import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits";
-import { useGetSecondaryUnits } from "@/hooks/general/unidades/useGetSecondaryUnits";
 import { useSearchBatchesByPartNumber } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByArticlePartNumber";
 import { useGetBatchesByCategory } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByCategory";
 
 import { CreateManufacturerDialog } from "@/components/dialogs/general/CreateManufacturerDialog";
 import { CreateBatchDialog } from "@/components/dialogs/mantenimiento/almacen/CreateBatchDialog";
 import { MultiInputField } from "@/components/misc/MultiInputField";
-import { useGetConversionByUnitConsmable } from "@/hooks/mantenimiento/almacen/articulos/useGetConvertionsByConsumableUnit";
 import { cn } from "@/lib/utils";
 import loadingGif from "@/public/loading2.gif";
 import { useCompanyStore } from "@/stores/CompanyStore";
@@ -99,6 +98,10 @@ import { useQueryClient } from "@tanstack/react-query";
 import { EditingArticle } from "./ReceptionRegisterArticleForm";
 import PreviewCreateConsumableDialog from "@/components/dialogs/mantenimiento/almacen/PreviewCreateConsumableDialog";
 import { DestinationUnknownField } from "@/components/forms/mantenimiento/almacen/DestinationUnknownField";
+import {
+    ConsumableConversionsField,
+    type ConsumableConversionInput,
+} from "@/components/forms/mantenimiento/almacen/ConsumableConversionsField";
 
 /* ------------------------------- Schema ------------------------------- */
 
@@ -146,7 +149,6 @@ const formSchema = z.object({
         .string({ message: "Debe ingresar un lote." })
         .min(1, "Seleccione un lote"),
     image: z.instanceof(File).optional(),
-    conversion_id: z.number().optional(),
     primary_unit_id: z.number().optional(),
     has_documentation: z.boolean().optional(),
     destination_unknown: z.boolean().optional(),
@@ -159,9 +161,7 @@ const formSchema = z.object({
 
 export type FormValues = z.infer<typeof formSchema>;
 
-interface UnitSelection {
-    conversion_id: number;
-}
+
 
 /* ----------------------------- Helpers UI ----------------------------- */
 
@@ -682,390 +682,6 @@ function DatePickerField({
     );
 }
 
-/* ----------------------------- Modal Unidades ----------------------------- */
-
-function UnitsModal({
-    open,
-    onOpenChange,
-    secondaryUnits,
-    selectedUnits,
-    onSelectedUnitsChange,
-    primaryUnit,
-    allUnits,
-    availableConversionUnits,
-    availableConversion,
-    onConversionResult,
-}: {
-    open: boolean;
-    onOpenChange: (open: boolean) => void;
-    secondaryUnits: Convertion[];
-    selectedUnits: UnitSelection[];
-    onSelectedUnitsChange: (units: UnitSelection[]) => void;
-    primaryUnit?: any;
-    allUnits?: any[];
-    availableConversionUnits?: {
-        id: number;
-        value: string;
-        label: string;
-        registered_by: string;
-        updated_by: string | null;
-    }[];
-    availableConversion?: any[];
-    onConversionResult?: (result: string) => void;
-}) {
-    const [currentUnitId, setCurrentUnitId] = useState<number | "">("");
-    const [showConversionForm, setShowConversionForm] = useState(false);
-    const [conversionFromUnit, setConversionFromUnit] = useState<string>("");
-    const [conversionToUnit, setConversionToUnit] = useState<string>("");
-    const [conversionQuantity, setConversionQuantity] = useState<string>("");
-    const [conversionResult, setConversionResult] = useState<string>("");
-    const [isCalculating, setIsCalculating] = useState(false);
-
-    const availableUnits = availableConversion?.filter(
-        (unit) =>
-            !selectedUnits.some((selected) => selected.conversion_id === unit.id),
-    );
-
-    const calculateConversionLocally = useCallback(() => {
-        if (!conversionFromUnit || !conversionToUnit || !conversionQuantity) {
-            setConversionResult("");
-            onConversionResult?.("");
-            return;
-        }
-
-        const quantity = parseFloat(conversionQuantity);
-        if (isNaN(quantity) || quantity <= 0) {
-            setConversionResult("");
-            onConversionResult?.("");
-            return;
-        }
-
-        setIsCalculating(true);
-
-        const conversion = availableConversion?.find(
-            (conv: any) =>
-                conv.primary_unit.id.toString() === conversionFromUnit &&
-                conv.secondary_unit.id.toString() === conversionToUnit,
-        );
-
-        if (conversion && conversion.equivalence) {
-            const result = quantity / conversion.equivalence;
-            const resultValue = result.toFixed(6).replace(/\.?0+$/, "");
-
-            setConversionResult(resultValue);
-            onConversionResult?.(resultValue);
-        } else {
-            setConversionResult("No se encontró conversión");
-            onConversionResult?.("No se encontró conversión");
-        }
-
-        setIsCalculating(false);
-    }, [
-        conversionFromUnit,
-        conversionToUnit,
-        conversionQuantity,
-        availableConversion,
-        onConversionResult,
-    ]);
-
-    useEffect(() => {
-        calculateConversionLocally();
-    }, [calculateConversionLocally]);
-
-    useEffect(() => {
-        if (primaryUnit?.id) {
-            setConversionToUnit(primaryUnit.id.toString());
-        }
-    }, [primaryUnit]);
-
-    const addUnit = () => {
-        if (!currentUnitId) return;
-
-        const newUnit: UnitSelection = {
-            conversion_id: currentUnitId as number,
-        };
-
-        const updatedUnits = [...selectedUnits, newUnit];
-        onSelectedUnitsChange(updatedUnits);
-        setCurrentUnitId("");
-    };
-
-    const removeUnit = (unitId: number) => {
-        const updatedUnits = selectedUnits.filter(
-            (unit) => unit.conversion_id !== unitId,
-        );
-        onSelectedUnitsChange(updatedUnits);
-    };
-
-    return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-6xl">
-                <DialogHeader>
-                    <DialogTitle>Configurar Conversiones de Unidades</DialogTitle>
-                    <DialogDescription>
-                        Seleccione las conversiones de unidades adicionales para este
-                        artículo o cree nuevas conversiones.
-                    </DialogDescription>
-                </DialogHeader>
-
-                <div className="space-y-6">
-                    <div className="flex justify-between items-center">
-                        <h3 className="text-lg font-medium">Conversiones Existentes</h3>
-                        <Button
-                            onClick={() => setShowConversionForm(!showConversionForm)}
-                            variant="outline"
-                        >
-                            <Calculator className="h-4 w-4 mr-2" />
-                            {showConversionForm ? "Cancelar" : "Conversión"}
-                        </Button>
-                    </div>
-
-                    {showConversionForm && (
-                        <div className="p-4 border rounded-lg bg-muted/50">
-                            <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium">Desde Unidad</label>
-                                    <Select
-                                        value={conversionFromUnit}
-                                        onValueChange={setConversionFromUnit}
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Seleccione unidad" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {availableConversionUnits?.map((unit) => (
-                                                <SelectItem key={unit.id} value={unit.id.toString()}>
-                                                    {unit.label} ({unit.value})
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-
-                                <div className="flex items-center justify-center">
-                                    <span className="text-lg font-semibold">→</span>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium">Hacia Unidad</label>
-                                    <Select
-                                        value={conversionToUnit}
-                                        onValueChange={setConversionToUnit}
-                                        disabled={true}
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue>
-                                                {primaryUnit
-                                                    ? `${primaryUnit.label} (${primaryUnit.value})`
-                                                    : "Seleccione unidad primaria"}
-                                            </SelectValue>
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {primaryUnit && (
-                                                <SelectItem value={primaryUnit.id.toString()}>
-                                                    {primaryUnit.label} ({primaryUnit.value})
-                                                </SelectItem>
-                                            )}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium">Cantidad</label>
-                                    <Input
-                                        type="number"
-                                        inputMode="decimal"
-                                        placeholder="Ej: 100"
-                                        value={conversionQuantity}
-                                        onChange={(e) => setConversionQuantity(e.target.value)}
-                                        min="0"
-                                        step="0.001"
-                                    />
-                                </div>
-
-                                <div className="flex items-end">
-                                    {isCalculating && (
-                                        <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                                            <Loader2 className="h-4 w-4 animate-spin" />
-                                            <span>Calculando...</span>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-
-                            {conversionFromUnit &&
-                                conversionToUnit &&
-                                availableConversion && (
-                                    <div className="mt-3 p-3 bg-blue-50 rounded-lg">
-                                        <p className="text-sm text-blue-700">
-                                            Conversión: {conversionQuantity || "0"}{" "}
-                                            {
-                                                availableConversionUnits?.find(
-                                                    (u) => u.id.toString() === conversionFromUnit,
-                                                )?.label
-                                            }{" "}
-                                            → {conversionResult} {primaryUnit?.label}
-                                            {availableConversion.find(
-                                                (conv: any) =>
-                                                    conv.primary_unit.id.toString() ===
-                                                    conversionFromUnit &&
-                                                    conv.secondary_unit.id.toString() ===
-                                                    conversionToUnit,
-                                            )?.equivalence && (
-                                                    <span className="block text-xs mt-1">
-                                                        Equivalencia: 1{" "}
-                                                        {
-                                                            availableConversionUnits?.find(
-                                                                (u) => u.id.toString() === conversionFromUnit,
-                                                            )?.label
-                                                        }{" "}
-                                                        ={" "}
-                                                        {1 /
-                                                            availableConversion.find(
-                                                                (conv: any) =>
-                                                                    conv.primary_unit.id.toString() ===
-                                                                    conversionFromUnit &&
-                                                                    conv.secondary_unit.id.toString() ===
-                                                                    conversionToUnit,
-                                                            )!.equivalence}{" "}
-                                                        {primaryUnit?.label}
-                                                    </span>
-                                                )}
-                                        </p>
-                                    </div>
-                                )}
-
-                            {conversionResult &&
-                                !isCalculating &&
-                                conversionResult !== "No se encontró conversión" && (
-                                    <div className="mt-4 p-3 bg-primary/10 rounded-lg">
-                                        <div className="space-y-2">
-                                            <label className="text-sm font-medium">
-                                                Resultado de la Conversión
-                                            </label>
-                                            <Input
-                                                type="text"
-                                                value={conversionResult}
-                                                readOnly
-                                                className="bg-white font-semibold"
-                                                placeholder="El resultado aparecerá aquí..."
-                                            />
-                                            <p className="text-sm text-muted-foreground">
-                                                {conversionQuantity}{" "}
-                                                {availableConversionUnits?.find(
-                                                    (u) => u.id.toString() === conversionFromUnit,
-                                                )?.label || conversionFromUnit}{" "}
-                                                = {conversionResult}{" "}
-                                                {primaryUnit?.label || "unidad primaria"}
-                                            </p>
-                                        </div>
-                                    </div>
-                                )}
-
-                            {conversionResult === "No se encontró conversión" && (
-                                <div className="mt-3 p-3 bg-destructive/10 rounded-lg">
-                                    <p className="text-sm text-destructive">
-                                        No se encontró una conversión definida para estas unidades.
-                                    </p>
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border rounded-lg">
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium">
-                                Elegir Conversiones Para Despacho
-                            </label>
-                            <Select
-                                value={currentUnitId.toString()}
-                                onValueChange={(value) =>
-                                    setCurrentUnitId(value ? parseInt(value) : "")
-                                }
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Seleccione una conversión" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {availableUnits?.map((conversion) => (
-                                        <SelectItem
-                                            key={conversion.id}
-                                            value={conversion.id.toString()}
-                                        >
-                                            {conversion.primary_unit?.label}
-                                            <span className="text-light ml-1">
-                                                ({conversion.primary_unit?.value})
-                                            </span>
-                                            {conversion.secondary_unit?.label &&
-                                                ` - ${conversion.secondary_unit.label} (${conversion.secondary_unit.value})`}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        <div className="flex items-end space-x-2">
-                            <Button onClick={addUnit} disabled={!currentUnitId}>
-                                <Plus className="h-4 w-4 mr-1" />
-                                Agregar
-                            </Button>
-                        </div>
-                    </div>
-
-                    <div className="space-y-2">
-                        <h4 className="text-sm font-medium">Conversiones seleccionadas:</h4>
-                        {selectedUnits.length === 0 ? (
-                            <p className="text-sm text-muted-foreground italic">
-                                No hay conversiones seleccionadas
-                            </p>
-                        ) : (
-                            <div className="space-y-2">
-                                {selectedUnits.map((unit) => {
-                                    const conversionInfo = secondaryUnits.find(
-                                        (u) => u.id === unit.conversion_id,
-                                    );
-                                    return (
-                                        <div
-                                            key={unit.conversion_id}
-                                            className="flex items-center justify-between p-3 border rounded-lg"
-                                        >
-                                            <div className="flex items-center space-x-3">
-                                                <span className="font-medium">
-                                                    {conversionInfo?.primary_unit.label}
-                                                    {conversionInfo?.secondary_unit?.label &&
-                                                        ` (${conversionInfo.secondary_unit.label})`}
-                                                </span>
-                                                {conversionInfo?.equivalence && (
-                                                    <span className="text-sm text-muted-foreground">
-                                                        Equivalencia: {conversionInfo.equivalence}
-                                                    </span>
-                                                )}
-                                            </div>
-                                            <div className="flex items-center space-x-2">
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={() => removeUnit(unit.conversion_id)}
-                                                >
-                                                    <X className="h-4 w-4" />
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                <DialogFooter>
-                    <Button onClick={() => onOpenChange(false)}>Cerrar</Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-    );
-}
-
 /* ----------------------------- Componente Principal ----------------------------- */
 
 export default function ReceptionRegisterConsumableForm({
@@ -1083,8 +699,7 @@ export default function ReceptionRegisterConsumableForm({
         string | undefined
     >(undefined);
 
-    const [unitsModalOpen, setUnitsModalOpen] = useState(false);
-    const [selectedUnits, setSelectedUnits] = useState<UnitSelection[]>([]);
+    const [selectedUnits, setSelectedUnits] = useState<ConsumableConversionInput[]>([]);
 
     const {
         data: batches,
@@ -1108,30 +723,9 @@ export default function ReceptionRegisterConsumableForm({
         selectedCompany?.slug,
     );
 
-    const { data: secondaryUnits, isLoading: secondaryUnitsLoading } =
-        useGetSecondaryUnits(selectedCompany?.slug);
-
     const [selectedPrimaryUnit, setSelectedPrimaryUnit] = useState<any | null>(
         initialData?.primary_unit_id ? { id: initialData.primary_unit_id } : null,
     );
-
-    const { data: availableConversion, isLoading: isConversionLoading } =
-        useGetConversionByUnitConsmable(
-            selectedPrimaryUnit?.id || 0,
-            selectedCompany?.slug,
-        );
-
-    const primaryUnitsFromConversions = useMemo(() => {
-        if (!availableConversion) return [];
-        const unitMap = new Map();
-        availableConversion.forEach((conversion) => {
-            const unit = conversion.primary_unit;
-            if (!unitMap.has(unit.id)) {
-                unitMap.set(unit.id, unit);
-            }
-        });
-        return Array.from(unitMap.values());
-    }, [availableConversion]);
 
     const { data: searchResults, isFetching: isSearching } =
         useSearchBatchesByPartNumber(
@@ -1145,7 +739,21 @@ export default function ReceptionRegisterConsumableForm({
     const { updateArticle } = useUpdateArticle();
     const { uploadArticleDocuments } = useUploadArticleDocuments();
 
-    const [documents, setDocuments] = useState<ArticleDocumentSelection[]>([]);
+    const [documents, setDocuments] = useState<ArticleDocumentSelection[]>(() =>
+        buildDocumentSelectionFromArticle(initialData)
+    );
+
+    // Anclado al id del artículo a propósito: el efecto grande depende de
+    // units (React Query) y al refrescarse pisaba el archivo que el usuario
+    // acababa de seleccionar.
+    const articleId = initialData?.id;
+    useEffect(() => {
+        if (!articleId) return;
+        setDocuments((current) =>
+            buildDocumentSelectionFromArticle(initialData, current)
+        );
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [articleId]);
     const { confirmIncoming } = useConfirmIncomingArticle();
 
     const [secondaryOpen, setSecondaryOpen] = useState(false);
@@ -1249,7 +857,9 @@ export default function ReceptionRegisterConsumableForm({
                 ? Number(initialData.consumable.min_quantity)
                 : undefined,
             primary_unit_id: initialData?.primary_unit_id || undefined,
-            has_documentation: initialData?.has_documentation || false,
+            has_documentation:
+                (initialData?.has_documentation ?? false) ||
+                (initialData?.document_requirements?.length ?? 0) > 0,
             destination_unknown: false,
             shelf_life: initialData?.consumable?.shelf_life || undefined,
             sender: (initialData as any)?.article_detail?.sender || "",
@@ -1318,7 +928,9 @@ export default function ReceptionRegisterConsumableForm({
                     : undefined,
 
             primary_unit_id: initialData?.primary_unit_id || undefined,
-            has_documentation: initialData.has_documentation ?? false,
+            has_documentation:
+                (initialData?.has_documentation ?? false) ||
+                (initialData?.document_requirements?.length ?? 0) > 0,
             destination_unknown: false,
             sender: (initialData as any)?.article_detail?.sender ?? "",
             origin: (initialData as any)?.article_detail?.origin ?? "",
@@ -1366,14 +978,6 @@ export default function ReceptionRegisterConsumableForm({
         }
         calculateAndUpdateQuantity(secondaryQuantity, secondarySelected);
     }, [secondarySelected, secondaryQuantity, calculateAndUpdateQuantity]);
-
-    const handleConversionResult = (result: string) => {
-        const resultNumber = parseFloat(result);
-        if (!isNaN(resultNumber)) {
-            setSecondaryQuantity(resultNumber);
-            calculateAndUpdateQuantity(resultNumber, secondarySelected);
-        }
-    };
 
     useEffect(() => {
         if (!secondarySelected) {
@@ -1494,7 +1098,7 @@ export default function ReceptionRegisterConsumableForm({
             status: string;
             alternative_part_number?: string[];
             batch_name?: string;
-            conversions?: number[];
+            conversions?: ConsumableConversionInput[];
             primary_unit_id?: number;
         } = {
             ...valuesWithoutCaducateDate,
@@ -1516,10 +1120,8 @@ export default function ReceptionRegisterConsumableForm({
                         ? "1900-01-01"
                         : undefined,
             batch_name: enableBatchNameEdit ? values.batch_name : undefined,
-            conversions: selectedUnits.length > 0
-                ? selectedUnits.map(unit => unit.conversion_id)
-                : undefined,
-            primary_unit_id: secondarySelected?.id,
+            conversions: selectedUnits,
+            primary_unit_id: selectedPrimaryUnit?.id,
             sender: values.sender || undefined,
             origin: values.origin || undefined,
             destination: values.destination || undefined,
@@ -2396,25 +1998,18 @@ export default function ReceptionRegisterConsumableForm({
                                 )}
                             />
 
-                            <div className="col-span-1 md:col-span-2 xl:col-span-3">
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    onClick={() => setUnitsModalOpen(true)}
-                                    disabled={
-                                        busy || !secondaryUnits?.length || !selectedPrimaryUnit
-                                    }
-                                >
-                                    <Plus className="h-4 w-4 mr-2" />
-                                    Configurar Conversiones Adicionales
-                                </Button>
-                                <p className="text-sm text-muted-foreground mt-2">
-                                    {selectedUnits.length > 0
-                                        ? `${selectedUnits.length} conversión(es) configurada(s)`
-                                        : !selectedPrimaryUnit
-                                            ? "Seleccione primero una unidad primaria"
-                                            : "Configure conversiones de unidades adicionales para este artículo"}
+                            <div className="col-span-1 md:col-span-2 xl:col-span-3 space-y-2">
+                                <FormLabel>Conversiones de unidades</FormLabel>
+                                <p className="text-sm text-muted-foreground">
+                                    Declare a cuánto equivale este artículo en otras unidades.
                                 </p>
+                                <ConsumableConversionsField
+                                    units={units ?? []}
+                                    baseUnitId={selectedPrimaryUnit?.id}
+                                    value={selectedUnits}
+                                    onChange={setSelectedUnits}
+                                    disabled={busy}
+                                />
                             </div>
                         </div>
                     </SectionCard>
@@ -2494,6 +2089,7 @@ export default function ReceptionRegisterConsumableForm({
                                         value={documents}
                                         onChange={setDocuments}
                                         disabled={busy}
+                                        consignedRequirements={initialData?.document_requirements}
                                     />
                                 )}
                             </div>
@@ -2617,18 +2213,6 @@ export default function ReceptionRegisterConsumableForm({
                 }}
             />
 
-            <UnitsModal
-                open={unitsModalOpen}
-                onOpenChange={setUnitsModalOpen}
-                secondaryUnits={secondaryUnits || []}
-                selectedUnits={selectedUnits}
-                onSelectedUnitsChange={setSelectedUnits}
-                primaryUnit={selectedPrimaryUnit}
-                allUnits={units}
-                availableConversionUnits={primaryUnitsFromConversions}
-                availableConversion={availableConversion}
-                onConversionResult={handleConversionResult}
-            />
         </>
     );
 }

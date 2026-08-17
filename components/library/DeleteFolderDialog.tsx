@@ -39,7 +39,7 @@ export default function DeleteFolderDialog({
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="bg-white dark:bg-[#1a1c1e] border-none text-slate-900 dark:text-white sm:max-w-[380px] rounded-2xl overflow-hidden p-0 outline-none shadow-2xl">
         <div className="bg-slate-50 dark:bg-gray-800/40 px-6 py-5 border-b border-slate-200 dark:border-gray-700">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2" data-tour="biblioteca-folder-delete-title">
             <div className="p-1.5 bg-red-100 dark:bg-red-900/30 rounded-lg">
               <Trash2 className="h-5 w-5 text-red-600 dark:text-red-400" />
             </div>
@@ -59,6 +59,7 @@ export default function DeleteFolderDialog({
 
           <div className="flex gap-3 pt-4 border-t border-slate-200 dark:border-gray-700">
             <button
+              data-tour="biblioteca-folder-delete-cancel"
               type="button"
               onClick={onClose}
               className="flex-1 px-4 py-3 text-[10px] font-black text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 uppercase tracking-widest transition-colors"
@@ -66,6 +67,7 @@ export default function DeleteFolderDialog({
               CANCELAR
             </button>
             <button
+              data-tour="biblioteca-folder-delete-confirm"
               onClick={handleDelete}
               disabled={loading}
               className="flex-1 px-4 py-3 text-[10px] font-black text-white bg-red-600 rounded-xl hover:bg-red-700 disabled:opacity-50 shadow-lg shadow-red-500/20 uppercase tracking-widest transition-all"

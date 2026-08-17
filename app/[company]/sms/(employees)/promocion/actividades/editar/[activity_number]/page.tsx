@@ -6,6 +6,7 @@ import LoadingPage from "@/components/misc/LoadingPage";
 import { useGetSMSActivityByNumber } from "@/hooks/sms/useGetSMSActivityByNumber";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useParams, useRouter } from "next/navigation";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const EditSMSActivityPage = () => {
   const { selectedCompany } = useCompanyStore();
@@ -23,6 +24,8 @@ const EditSMSActivityPage = () => {
 
   return (
     <ContentLayout title="Editar Actividad SMS">
+      <PageHeader className="mb-6" />
+
       {isLoading && <LoadingPage />}
 
       {isError && (

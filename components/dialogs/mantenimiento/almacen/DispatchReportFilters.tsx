@@ -39,6 +39,15 @@ import { cn } from "@/lib/utils";
 
 type DispatchType = "aeronautical" | "general";
 
+export type ArticleCategory = "CONSUMABLE" | "PART" | "COMPONENT" | "TOOL";
+
+const ARTICLE_CATEGORIES: { value: ArticleCategory; label: string }[] = [
+  { value: "CONSUMABLE", label: "Consumible" },
+  { value: "PART", label: "Parte" },
+  { value: "COMPONENT", label: "Componente" },
+  { value: "TOOL", label: "Herramienta" },
+];
+
 interface Props {
   startDate?: Date;
   endDate?: Date;
@@ -50,7 +59,7 @@ interface Props {
   isLoadingAircrafts?: boolean;
   workOrder: string | null;
   setWorkOrder: (v: string | null) => void;
-  workOrders?: { id: number; work_order: string; work_order_id: number | null }[];
+  workOrders?: { id: number; work_order: string; work_order_id: number | null; aircraft_id: number | null }[];
   isLoadingWorkOrders?: boolean;
   departmentId: string | null;
   setDepartmentId: (v: string | null) => void;
@@ -66,6 +75,8 @@ interface Props {
   isLoadingThirdParties?: boolean;
   dispatchType: DispatchType | null;
   setDispatchType: (v: DispatchType | null) => void;
+  articleCategory: ArticleCategory | null;
+  setArticleCategory: (v: ArticleCategory | null) => void;
   isDateRangeInvalid: boolean;
   isPlanificacionOnlyFilters: boolean;
   articles?: any[];
@@ -110,6 +121,8 @@ export function DispatchReportFilters({
   isLoadingThirdParties,
   dispatchType,
   setDispatchType,
+  articleCategory,
+  setArticleCategory,
   isDateRangeInvalid,
   isPlanificacionOnlyFilters,
   articles = [],
@@ -127,8 +140,12 @@ export function DispatchReportFilters({
   const [descriptionSearch, setDescriptionSearch] = useState("");
   const [modelSearch, setModelSearch] = useState("");
   const [brandSearch, setBrandSearch] = useState("");
+  const [aircraftSearch, setAircraftSearch] = useState("");
+  const [workOrderSearch, setWorkOrderSearch] = useState("");
+  const [departmentSearch, setDepartmentSearch] = useState("");
+  const [employeeSearch, setEmployeeSearch] = useState("");
+  const [thirdPartySearch, setThirdPartySearch] = useState("");
 
-  // ================= FILTRO LOCAL POR CAMPO =================
   const [calendarMonth, setCalendarMonth] = useState<Date>(
     new Date(new Date().getFullYear(), new Date().getMonth(), 1)
   );
@@ -189,12 +206,16 @@ export function DispatchReportFilters({
     return Array.from(set);
   }, [articles]);
 
+  const filteredWorkOrders = useMemo(() => {
+    if (!aircraft) return workOrders;
+    return workOrders.filter((ot) => String(ot.aircraft_id) === String(aircraft));
+  }, [workOrders, aircraft]);
+
   const safeValue = (value: any) => {
     const stringValue = String(value ?? "").trim();
     return stringValue.length > 0 ? stringValue : null;
   };
 
-  // ================= RESUMEN FILTRO GENERAL =================
   const generalSelectedFilters = [
     aircraft && {
       label: "Aeronave",
@@ -234,11 +255,17 @@ export function DispatchReportFilters({
       label: "Tipo",
       value: dispatchType === "aeronautical" ? "Aeronáutico" : "General",
     },
+
+    !isPlanificacionOnlyFilters && articleCategory && {
+      label: "Categoría",
+      value:
+        ARTICLE_CATEGORIES.find((c) => c.value === articleCategory)?.label ??
+        articleCategory,
+    },
   ].filter(Boolean) as { label: string; value: string }[];
 
   const generalSelectedCount = generalSelectedFilters.length;
 
-  // ================= RESUMEN FILTRO ARTÍCULOS =================
   const articleSelectedFilters = [
     articleFilters.part_number && {
       label: "Part Number",
@@ -541,24 +568,69 @@ export function DispatchReportFilters({
             </Button>
           </PopoverTrigger>
 
-          <PopoverContent className="w-[92vw] max-w-[340px] space-y-4 p-4">
+          <PopoverContent
+            side="bottom"
+            align="center"
+            collisionPadding={16}
+            className={cn(
+              "w-[92vw] max-w-[340px] space-y-4 p-4",
+              // En pantallas de poca altura el listado de filtros desbordaba el
+              // viewport: lo acotamos al espacio real que Radix deja libre y
+              // dejamos que scrollee internamente.
+              "max-h-[var(--radix-popover-content-available-height)] overflow-y-auto"
+            )}
+          >
 
               <div className="space-y-1">
                 <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
                   Aeronave
                 </div>
 
-                <Select value={aircraft || "all"} onValueChange={v => setAircraft(v === "all" ? null : v)}>
+                <Select
+                  value={aircraft || "all"}
+                  onValueChange={(v) => {
+                    const next = v === "all" ? null : v;
+                    setAircraft(next);
+
+                    if (
+                      workOrder &&
+                      !workOrders.some(
+                        (ot) =>
+                          ot.work_order === workOrder &&
+                          (!next || String(ot.aircraft_id) === String(next))
+                      )
+                    ) {
+                      setWorkOrder(null);
+                    }
+                  }}
+                >
                   <SelectTrigger disabled={isLoadingAircrafts}>
                     <SelectValue placeholder="Seleccionar aeronave" />
                   </SelectTrigger>
                   <SelectContent>
+                    <div className="p-2">
+                      <Input
+                        value={aircraftSearch}
+                        onChange={(e) => setAircraftSearch(e.target.value)}
+                        onKeyDown={(e) => e.stopPropagation()}
+                        placeholder="Buscar aeronave..."
+                        className="h-9"
+                      />
+                    </div>
+
                     <SelectItem value="all">Todas</SelectItem>
-                    {(aircrafts ?? []).map(a => (
-                      <SelectItem key={a.id} value={a.id.toString()}>
-                        {a.acronym ?? `#${a.id}`}
-                      </SelectItem>
-                    ))}
+                    {(aircrafts ?? [])
+                      .filter((a) =>
+                        (a.acronym ?? `#${a.id}`)
+                          .toString()
+                          .toLowerCase()
+                          .includes(aircraftSearch.toLowerCase())
+                      )
+                      .map(a => (
+                        <SelectItem key={a.id} value={a.id.toString()}>
+                          {a.acronym ?? `#${a.id}`}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -576,12 +648,28 @@ export function DispatchReportFilters({
                     <SelectValue placeholder="Seleccionar OT" />
                   </SelectTrigger>
                   <SelectContent>
+                    <div className="p-2">
+                      <Input
+                        value={workOrderSearch}
+                        onChange={(e) => setWorkOrderSearch(e.target.value)}
+                        onKeyDown={(e) => e.stopPropagation()}
+                        placeholder="Buscar OT..."
+                        className="h-9"
+                      />
+                    </div>
+
                     <SelectItem value="all">Todas</SelectItem>
-                    {workOrders.map((ot) => (
-                      <SelectItem key={`ot-${ot.id}`} value={ot.work_order}>
-                        {ot.work_order}
-                      </SelectItem>
-                    ))}
+                    {filteredWorkOrders
+                      .filter((ot) =>
+                        ot.work_order
+                          .toLowerCase()
+                          .includes(workOrderSearch.toLowerCase())
+                      )
+                      .map((ot) => (
+                        <SelectItem key={`ot-${ot.id}`} value={ot.work_order}>
+                          {ot.work_order}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -599,12 +687,26 @@ export function DispatchReportFilters({
                       <SelectValue placeholder="Seleccionar departamento" />
                     </SelectTrigger>
                     <SelectContent>
+                      <div className="p-2">
+                        <Input
+                          value={departmentSearch}
+                          onChange={(e) => setDepartmentSearch(e.target.value)}
+                          onKeyDown={(e) => e.stopPropagation()}
+                          placeholder="Buscar departamento..."
+                          className="h-9"
+                        />
+                      </div>
+
                       <SelectItem value="all">Todos</SelectItem>
-                      {(departments ?? []).map(d => (
-                        <SelectItem key={d.id} value={d.id.toString()}>
-                          {d.name}
-                        </SelectItem>
-                      ))}
+                      {(departments ?? [])
+                        .filter((d) =>
+                          d.name.toLowerCase().includes(departmentSearch.toLowerCase())
+                        )
+                        .map(d => (
+                          <SelectItem key={d.id} value={d.id.toString()}>
+                            {d.name}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -619,12 +721,28 @@ export function DispatchReportFilters({
                       <SelectValue placeholder="Seleccionar empresa" />
                     </SelectTrigger>
                     <SelectContent>
+                      <div className="p-2">
+                        <Input
+                          value={employeeSearch}
+                          onChange={(e) => setEmployeeSearch(e.target.value)}
+                          onKeyDown={(e) => e.stopPropagation()}
+                          placeholder="Buscar empresa..."
+                          className="h-9"
+                        />
+                      </div>
+
                       <SelectItem value="all">Todas</SelectItem>
-                      {(authorizedEmployees ?? []).map(emp => (
-                        <SelectItem key={emp.id} value={emp.id.toString()}>
-                          {emp.employee_name} - {(emp.from_company_db ?? "").toUpperCase()}
-                        </SelectItem>
-                      ))}
+                      {(authorizedEmployees ?? [])
+                        .filter((emp) =>
+                          `${emp.employee_name} ${(emp.from_company_db ?? "").toUpperCase()}`
+                            .toLowerCase()
+                            .includes(employeeSearch.toLowerCase())
+                        )
+                        .map(emp => (
+                          <SelectItem key={emp.id} value={emp.id.toString()}>
+                            {emp.employee_name} - {(emp.from_company_db ?? "").toUpperCase()}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -639,12 +757,26 @@ export function DispatchReportFilters({
                       <SelectValue placeholder="Seleccionar terceros" />
                     </SelectTrigger>
                     <SelectContent>
+                      <div className="p-2">
+                        <Input
+                          value={thirdPartySearch}
+                          onChange={(e) => setThirdPartySearch(e.target.value)}
+                          onKeyDown={(e) => e.stopPropagation()}
+                          placeholder="Buscar terceros..."
+                          className="h-9"
+                        />
+                      </div>
+
                       <SelectItem value="all">Todos</SelectItem>
-                      {(thirdParties ?? []).map(tp => (
-                        <SelectItem key={tp.id} value={tp.id.toString()}>
-                          {tp.name}
-                        </SelectItem>
-                      ))}
+                      {(thirdParties ?? [])
+                        .filter((tp) =>
+                          tp.name.toLowerCase().includes(thirdPartySearch.toLowerCase())
+                        )
+                        .map(tp => (
+                          <SelectItem key={tp.id} value={tp.id.toString()}>
+                            {tp.name}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -656,9 +788,15 @@ export function DispatchReportFilters({
 
                   <Select
                     value={dispatchType || "all"}
-                    onValueChange={(v) =>
-                      setDispatchType(v === "all" ? null : (v as DispatchType))
-                    }
+                    onValueChange={(v) => {
+                      const next = v === "all" ? null : (v as DispatchType);
+                      setDispatchType(next);
+
+                      // La categoría solo desglosa el aeronáutico.
+                      if (next === "general") {
+                        setArticleCategory(null);
+                      }
+                    }}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Seleccionar tipo" />
@@ -670,6 +808,40 @@ export function DispatchReportFilters({
                     </SelectContent>
                   </Select>
                 </div>
+
+                {dispatchType !== "general" && (
+                  <div className="space-y-1">
+                    <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+                      Categoría Aeronáutica
+                    </div>
+
+                    <Select
+                      value={articleCategory || "all"}
+                      onValueChange={(v) => {
+                        const next =
+                          v === "all" ? null : (v as ArticleCategory);
+                        setArticleCategory(next);
+
+                        // Elegir una categoría implica despachos aeronáuticos.
+                        if (next) {
+                          setDispatchType("aeronautical");
+                        }
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccionar categoría" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todas</SelectItem>
+                        {ARTICLE_CATEGORIES.map((c) => (
+                          <SelectItem key={c.value} value={c.value}>
+                            {c.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
               </>
             )}
 
@@ -732,7 +904,18 @@ export function DispatchReportFilters({
             </Button>
           </PopoverTrigger>
 
-          <PopoverContent className="w-[92vw] max-w-[340px] space-y-4 p-4">
+          <PopoverContent
+            side="bottom"
+            align="center"
+            collisionPadding={16}
+            className={cn(
+              "w-[92vw] max-w-[340px] space-y-4 p-4",
+              // En pantallas de poca altura el listado de filtros desbordaba el
+              // viewport: lo acotamos al espacio real que Radix deja libre y
+              // dejamos que scrollee internamente.
+              "max-h-[var(--radix-popover-content-available-height)] overflow-y-auto"
+            )}
+          >
             {/* ================= PART NUMBER ================= */}
             <div className="space-y-1">
               <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">

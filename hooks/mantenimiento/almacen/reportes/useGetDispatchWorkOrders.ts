@@ -7,6 +7,7 @@ interface DispatchWorkOrder {
   id: number;
   work_order: string;
   work_order_id: number | null;
+  aircraft_id: number | null;
 }
 
 export const useGetDispatchWorkOrders = (company?: string) => {

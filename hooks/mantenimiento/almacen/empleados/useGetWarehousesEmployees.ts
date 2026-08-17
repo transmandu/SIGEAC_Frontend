@@ -20,6 +20,6 @@ export const useGetWarehousesEmployees = (
     queryKey: ['warehouses-employees', company, location_id],
     queryFn: () => fetchWarehousesEmployees(location_id!, company!),
     enabled: !!company && !!location_id,
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    staleTime: 1000 * 60 * 5,
   });
 };

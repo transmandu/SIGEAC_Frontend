@@ -8,6 +8,8 @@ const fetchIsOmac = async (company: string): Promise<boolean> => {
 };
 
 
+// Marca si la empresa es taller aeronáutico certificado (OMAC): condiciona qué
+// módulos se muestran. Es un atributo de la empresa, así que casi nunca cambia.
 export const useIsOmac = (company?: string) => {
     return useQuery<boolean>({
         queryKey: ['is_omac', company],

@@ -2,26 +2,29 @@
 
 import { useMemo, useState, useDeferredValue } from 'react'
 import { ContentLayout } from '@/components/layout/ContentLayout'
-import BackButton from '@/components/misc/BackButton'
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb'
 import { useCompanyStore } from '@/stores/CompanyStore'
 import { useGetPurchaseOrders } from '@/hooks/mantenimiento/compras/useGetPurchaseOrders'
 import type { PurchaseOrder } from '@/types/purchase'
 import { isAeronauticalPurchaseOrder } from '@/lib/purchases/purchase-order-scope'
 import { DataTable } from '../../data-table'
 import { getColumns } from './columns'
-import PurchaseOrderSubRow from './_components/PurchaseOrderSubRow'
 import PurchaseOrderToolBar from './_components/PurchaseOrderToolBar'
+import GroupedPurchaseOrderTable from './_components/GroupedPurchaseOrderTable'
+import PurchaseOrderSplitView, { usePurchaseOrderPreview, usePurchaseOrderPreviewSelectedId } from '@/components/side-panels/PurchaseOrderSplitView'
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const PurchaseOrdersPage = () => {
+  return (
+    <PurchaseOrderSplitView>
+      <PurchaseOrdersPageContent />
+    </PurchaseOrderSplitView>
+  )
+}
+
+const PurchaseOrdersPageContent = () => {
   const { selectedCompany, selectedStation } = useCompanyStore()
+  const onPreview = usePurchaseOrderPreview()
+  const selectedPreviewId = usePurchaseOrderPreviewSelectedId()
 
   const {
     data: po,
@@ -34,6 +37,7 @@ const PurchaseOrdersPage = () => {
 
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState('ALL')
+  const [groupBy, setGroupBy] = useState('NONE')
 
   const deferredSearch = useDeferredValue(search)
 
@@ -60,41 +64,15 @@ const PurchaseOrdersPage = () => {
   }, [po, deferredSearch, status])
 
   const columns = useMemo(
-    () => getColumns(selectedCompany ?? undefined),
-    [selectedCompany]
+    () => getColumns(selectedCompany ?? undefined, onPreview ?? undefined, selectedPreviewId),
+    [selectedCompany, onPreview, selectedPreviewId]
   )
 
   return (
     <ContentLayout title="Órdenes de Compra">
       <div className="flex flex-col gap-6">
 
-        <div className="flex items-center gap-3">
-          <BackButton iconOnly tooltip="Volver" variant="secondary" />
-
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbLink href={`/${selectedCompany?.slug}/dashboard`}>
-                  Inicio
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-
-              <BreadcrumbSeparator />
-
-              <BreadcrumbItem>
-                Compras
-              </BreadcrumbItem>
-
-              <BreadcrumbSeparator />
-
-              <BreadcrumbItem>
-                <BreadcrumbPage>
-                  Órdenes de Compra
-                </BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-        </div>
+        <PageHeader />
 
         <div className="flex flex-col gap-2 border-b pb-4">
           <h1 className="text-3xl font-semibold tracking-tight">
@@ -119,6 +97,8 @@ const PurchaseOrdersPage = () => {
             setSearch={setSearch}
             status={status}
             setStatus={setStatus}
+            groupBy={groupBy}
+            setGroupBy={setGroupBy}
           />
 
           <span className="text-xs text-muted-foreground tabular-nums">
@@ -127,16 +107,30 @@ const PurchaseOrdersPage = () => {
           </span>
         </div>
 
+        {groupBy === 'quote' || groupBy === 'vendor' ? (
+          <GroupedPurchaseOrderTable
+            data={filteredPO}
+            groupBy={groupBy}
+            renderTable={(rows) => (
+              <DataTable
+                columns={columns}
+                data={rows}
+                loading={isLoading}
+                emptyText="No se ha encontrado ningún resultado..."
+                overflowVisible
+                persistKey="ordenes_compra"
+              />
+            )}
+          />
+        ) : (
           <DataTable
             columns={columns}
             data={filteredPO}
-            renderSubRow={(row) => (
-              <PurchaseOrderSubRow row={row} />
-            )}
             loading={isLoading}
             emptyText="No se ha encontrado ningún resultado..."
             persistKey="ordenes_compra"
           />
+        )}
 
         {/* ERROR */}
         {isError && (

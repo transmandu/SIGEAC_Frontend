@@ -71,7 +71,6 @@ const VoluntaryReportDropdownActions = ({
     setOpenDelete(false);
   };
 
-  // ✅ Nueva función para redirigir enviando el ID del reporte
   const handleCreateIdentification = () => {
     router.push(
       `/transmandu/sms/gestion_reportes/peligros_identificados/crear_identificacion?reporteId=${voluntaryReport.id}`
@@ -126,7 +125,6 @@ const VoluntaryReportDropdownActions = ({
             <p className="pl-2">Ver</p>
           </DropdownMenuItem>
 
-          {/* ✅ Modificación: redirige enviando el ID como query param */}
           {!voluntaryReport.danger_identification_id &&
             voluntaryReport.status === "ABIERTO" && (
               <DropdownMenuItem onClick={handleCreateIdentification}>

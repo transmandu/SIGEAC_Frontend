@@ -11,15 +11,19 @@ interface IDispatchRequestAction {
   requested_by: string;
   category: string;
   status?: string;
+  // `unit_id` es la unidad en que se capturó `quantity`; omitirlo significa que
+  // ya viene en la unidad base del artículo. El backend hace la conversión.
   aeronautical_articles?: {
     article_id: number;
     quantity?: number;
     serial?: string | null;
     batch_id?: number;
+    unit_id?: number | null;
   }[];
   general_articles?: {
     general_article_id: number;
     quantity: number;
+    unit_id?: number | null;
   }[];
   user_id: number;
   aircraft_id?: string;
@@ -61,9 +65,19 @@ export const useCreateDispatchRequest = () => {
       }),
         router.refresh();
     },
-    onError: (error) => {
+    onError: (error: any) => {
+      // Ver nota en useUpdateStatusDispatchRequest: el stock en pantalla quedó
+      // desactualizado, se refresca antes de que el usuario reintente.
+      if (error?.response?.data?.insufficient_stock) {
+        queryClient.invalidateQueries({ queryKey: ["batches-in-warehouse"] });
+        queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
+        queryClient.invalidateQueries({ queryKey: ["general-articles"] });
+      }
+
       toast.error("Oops!", {
-        description: "No se pudo crear la solicitud...",
+        description:
+          error?.response?.data?.message ||
+          "No se pudo crear la solicitud...",
       });
       console.log(error);
     },
@@ -106,9 +120,20 @@ export const useUpdateStatusDispatchRequest = () => {
           description: "¡La solicitud ha sido actualizada!",
         });
     },
-    onError: (error) => {
+    onError: (error: any) => {
+      // Un 422 con `insufficient_stock` significa que la existencia cambió
+      // desde que se cargó la pantalla: el stock que se muestra ya es viejo,
+      // así que se refresca para que el reintento parta del real.
+      if (error?.response?.data?.insufficient_stock) {
+        queryClient.invalidateQueries({ queryKey: ["batches-in-warehouse"] });
+        queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
+        queryClient.invalidateQueries({ queryKey: ["general-articles"] });
+      }
+
       toast.error("Oops!", {
-        description: "No se pudo crear la solicitud...",
+        description:
+          error?.response?.data?.message ||
+          "No se pudo actualizar la solicitud...",
       });
       console.log(error);
     },
@@ -156,4 +181,34 @@ export const useDeleteDispatchRequest = () => {
   return {
     deleteDispatchRequest: deleteMutation,
   };
+};
+
+// Devuelve al almacén un artículo ya despachado: la herramienta vuelve a
+// ALMACENADO y el componente queda en resguardo (lo decide el backend según
+// la categoría). Solo aplica a lo que no se consume.
+export const useReturnToWarehouse = (company?: string) => {
+  const queryClient = useQueryClient();
+
+  return useMutation<any, Error, number>({
+    mutationKey: ["update-status", company],
+    mutationFn: async (article_id: number) => {
+      const { data } = await axiosInstance.put(
+        `/${company}/update-status-items/${article_id}`
+      );
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["dispatched-articles", company],
+      });
+      toast("¡Devuelto!", {
+        description: `¡El artículo ha regresado correctamente!`,
+      });
+    },
+    onError: (error) => {
+      toast("Hey", {
+        description: `No se logró retornar el artículo: ${error}`,
+      });
+    },
+  });
 };

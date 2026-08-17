@@ -6,6 +6,7 @@ import LoadingPage from '@/components/misc/LoadingPage';
 import { useGetArticleById } from '@/hooks/mantenimiento/almacen/articulos/useGetArticleById';
 import { useCompanyStore } from '@/stores/CompanyStore';
 import { redirect, useParams } from 'next/navigation';
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const ConfirmInventory = () => {
   const params = useParams<{ id: string }>();
@@ -19,6 +20,8 @@ const ConfirmInventory = () => {
   }
   return (
     <ContentLayout title="Confirmar Ingreso">
+      <PageHeader className="mb-6" />
+
       <DirectRegisterArticleForm isEditing initialData={data} category={data?.batches?.category} />
     </ContentLayout>
   );

@@ -34,11 +34,9 @@ const DateRangePickerInput = ({
   onReset,
   initialDate,
 }: DateRangePickerInputProps) => {
-  //Configuracion de la vista
   const [viewMode, setViewMode] = useState<ViewMode>("range");
   const [granularity, setGranularity] = useState<Granularity>("day");
 
-  //Valores de los inputs
   const [singleDate, setSingleDate] = useState<string>("");
   const [fromDate, setFromDate] = useState<string>(initialDate?.from || "");
   const [toDate, setToDate] = useState<string>(initialDate?.to || "");
@@ -60,7 +58,6 @@ const DateRangePickerInput = ({
     }
   }, [initialDate, granularity]);
 
-  //Función para calcular los rangos segun la granularidad
   const calculateExactDate = (value: string, isEnd: boolean) => {
     if (!value) return null;
 

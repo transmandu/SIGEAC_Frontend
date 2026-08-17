@@ -161,7 +161,7 @@ import { toast } from "sonner"
           </div>
         </CardContent>
         <CardFooter className="flex flex-col gap-6">
-          <Badge className={work_order.status === "ABIERTO" ? "bg-green-500 hover:bg-green-600 text-white" : "bg-red-500 text-white"}>{work_order.status}</Badge>
+          <Badge className={work_order.status === "ABIERTO" ? "bg-green-500 text-white" : "bg-red-500 text-white"}>{work_order.status}</Badge>
 
          <PdfPreviewDialog
             fileName={`WO_${work_order.order_number}`}

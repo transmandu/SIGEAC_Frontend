@@ -26,6 +26,14 @@ export function StatusBadge({ status }: { status?: string }) {
       className:
         "bg-violet-500/15 text-violet-700 border-violet-400/30",
     },
+    QUARANTINE: {
+      label: "Cuarentena",
+      className: "bg-red-500/15 text-red-700 border-red-400/30",
+    },
+    PENDING_REINSPECTION: {
+      label: "Pendiente de re-inspección",
+      className: "bg-sky-500/15 text-sky-700 border-sky-400/30",
+    },
     HOLD: {
       label: "Hold",
       className: "bg-red-500/15 text-red-700 border-red-400/30",
@@ -45,7 +53,7 @@ export function StatusBadge({ status }: { status?: string }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium",
+        "select-none inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium",
         meta.className
       )}
     >

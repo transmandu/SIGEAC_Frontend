@@ -32,8 +32,10 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/contexts/AuthContext";
 import { useGetIncomingChecks } from "@/hooks/mantenimiento/control_calidad/useGetIncomingInspectionChecks";
+import SecureFileViewer from "@/components/library/SecureFileViewer";
 import axiosInstance from "@/lib/axios";
 import { cn } from "@/lib/utils";
+import { isImageDocument } from "@/lib/warehouse/documents";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import type { ArticleDocument, ArticleDocumentRequirementSummary } from "@/types";
 import { format } from "date-fns";
@@ -45,6 +47,7 @@ import {
   Check,
   ChevronDown,
   ClipboardCheck,
+  Eye,
   Factory,
   FileDown,
   Flame,
@@ -186,7 +189,7 @@ function CompactCheckRow({
           {label}
         </p>
         {critical && (
-          <span className="mt-px shrink-0 rounded-full border border-amber-300/60 bg-amber-500/10 px-1.5 py-px text-[9px] font-semibold uppercase text-amber-700 dark:text-amber-400">
+          <span className="select-none mt-px shrink-0 rounded-full border border-amber-300/60 bg-amber-500/10 px-1.5 py-px text-[9px] font-semibold uppercase text-amber-700 dark:text-amber-400">
             req
           </span>
         )}
@@ -275,7 +278,7 @@ function StampCheckRow({
           {label}
         </p>
         {critical && (
-          <span className="mt-px shrink-0 rounded-full border border-amber-300/60 bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-700 dark:text-amber-400">
+          <span className="select-none mt-px shrink-0 rounded-full border border-amber-300/60 bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-700 dark:text-amber-400">
             crítico
           </span>
         )}
@@ -338,7 +341,7 @@ function DocPill({ label, ready }: { label: string; ready: boolean }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium",
+        "select-none inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium",
         ready
           ? "border-emerald-300/60 bg-emerald-50 text-emerald-700 dark:border-emerald-700/40 dark:bg-emerald-950/30 dark:text-emerald-400"
           : "border-border bg-muted/50 text-muted-foreground"
@@ -458,6 +461,7 @@ function ChecklistContent({
 
 export function IncomingReview({ article }: { article: any }) {
   const { selectedCompany, selectedStation } = useCompanyStore();
+  const [previewDoc, setPreviewDoc] = useState<ArticleDocument | null>(null);
   const router = useRouter();
   const { confirmIncoming } = useConfirmIncomingArticle();
   const { sendToQuarantine } = useSendToQuarantine();
@@ -650,30 +654,30 @@ export function IncomingReview({ article }: { article: any }) {
             <section className="rounded-xl border border-border/80 bg-background p-5">
               <div className="flex flex-wrap items-center gap-2">
                 <StatusBadge status={article?.status} />
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-border px-2.5 py-1 text-xs font-medium text-foreground">
+                <span className="select-none inline-flex items-center gap-1.5 rounded-full border border-border px-2.5 py-1 text-xs font-medium text-foreground">
                   <ShieldCheck className="h-3.5 w-3.5 text-muted-foreground" />
                   {article?.condition?.name ?? "Sin condición"}
                 </span>
                 {article?.category && (
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-border px-2.5 py-1 text-xs font-medium text-muted-foreground">
+                  <span className="select-none inline-flex items-center gap-1.5 rounded-full border border-border px-2.5 py-1 text-xs font-medium text-muted-foreground">
                     <Package className="h-3.5 w-3.5" />
                     {article.category}
                   </span>
                 )}
                 {isHazardous && (
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-300/60 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700 dark:border-amber-600/40 dark:bg-amber-950/30 dark:text-amber-400">
+                  <span className="select-none inline-flex items-center gap-1.5 rounded-full border border-amber-300/60 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700 dark:border-amber-600/40 dark:bg-amber-950/30 dark:text-amber-400">
                     <Flame className="h-3.5 w-3.5" />
                     Material peligroso
                   </span>
                 )}
                 {docRisk && (
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-red-300/60 bg-red-50 px-2.5 py-1 text-xs font-medium text-red-700 dark:border-red-700/40 dark:bg-red-950/30 dark:text-red-400">
+                  <span className="select-none inline-flex items-center gap-1.5 rounded-full border border-red-300/60 bg-red-50 px-2.5 py-1 text-xs font-medium text-red-700 dark:border-red-700/40 dark:bg-red-950/30 dark:text-red-400">
                     <AlertTriangle className="h-3.5 w-3.5" />
                     Documentación pendiente
                   </span>
                 )}
                 {!docRisk && expectsDocs && (
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-300/60 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700 dark:border-emerald-700/40 dark:bg-emerald-950/30 dark:text-emerald-400">
+                  <span className="select-none inline-flex items-center gap-1.5 rounded-full border border-emerald-300/60 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700 dark:border-emerald-700/40 dark:bg-emerald-950/30 dark:text-emerald-400">
                     <Check className="h-3.5 w-3.5" />
                     Documentación consignada
                   </span>
@@ -799,21 +803,31 @@ export function IncomingReview({ article }: { article: any }) {
                           {req.documents.map((doc) => (
                             <span key={doc.id} className="flex items-center gap-1.5">
                               {doc.is_physical && (
-                                <span className="inline-flex items-center rounded-full border border-amber-300/60 bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-700 dark:border-amber-600/40 dark:bg-amber-950/30 dark:text-amber-400">
+                                <span className="select-none inline-flex items-center rounded-full border border-amber-300/60 bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-700 dark:border-amber-600/40 dark:bg-amber-950/30 dark:text-amber-400">
                                   Físico
                                 </span>
                               )}
                               {doc.file_path && (
-                                <button
-                                  type="button"
-                                  onClick={() => handleDownloadDocument(doc)}
-                                  className="inline-flex items-center gap-1 rounded-full border border-emerald-300/60 bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700 hover:bg-emerald-100 dark:border-emerald-700/40 dark:bg-emerald-950/30 dark:text-emerald-400 dark:hover:bg-emerald-900/40"
-                                >
-                                  <FileDown className="h-3 w-3" />
-                                  <span className="max-w-[140px] truncate">
-                                    {doc.file_path.split("/").pop()}
-                                  </span>
-                                </button>
+                                <>
+                                  <button
+                                    type="button"
+                                    onClick={() => setPreviewDoc(doc)}
+                                    className="select-none inline-flex items-center gap-1 rounded-full border border-emerald-300/60 bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700 hover:bg-emerald-100 dark:border-emerald-700/40 dark:bg-emerald-950/30 dark:text-emerald-400 dark:hover:bg-emerald-900/40"
+                                  >
+                                    <Eye className="h-3 w-3" />
+                                    <span className="max-w-[140px] truncate">
+                                      {doc.file_path.split("/").pop()}
+                                    </span>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDownloadDocument(doc)}
+                                    aria-label="Descargar documento"
+                                    className="inline-flex items-center rounded-full border border-emerald-300/60 bg-emerald-50 p-1 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-700/40 dark:bg-emerald-950/30 dark:text-emerald-400 dark:hover:bg-emerald-900/40"
+                                  >
+                                    <FileDown className="h-3 w-3" />
+                                  </button>
+                                </>
                               )}
                             </span>
                           ))}
@@ -852,7 +866,7 @@ export function IncomingReview({ article }: { article: any }) {
                 </p>
                 <div className="ml-auto flex items-center gap-2">
                   {inspectorNotes.trim() && (
-                    <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
+                    <span className="select-none rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
                       con notas
                     </span>
                   )}
@@ -1018,7 +1032,7 @@ export function IncomingReview({ article }: { article: any }) {
       >
         <ClipboardCheck className="h-4 w-4" />
         <span>Checklist</span>
-        <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+        <span className="select-none rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
           {done}/{total}
         </span>
       </button>
@@ -1129,6 +1143,22 @@ export function IncomingReview({ article }: { article: any }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {previewDoc && (
+        <SecureFileViewer
+          isOpen={!!previewDoc}
+          onClose={() => setPreviewDoc(null)}
+          title={previewDoc.file_path?.split("/").pop()}
+          isImage={isImageDocument(previewDoc.file_path)}
+          fetchBlobUrl={async () => {
+            const { data } = await axiosInstance.get(
+              `/${selectedCompany?.slug}/article-documents/${previewDoc.id}/view`,
+              { responseType: "blob" }
+            );
+            return URL.createObjectURL(data);
+          }}
+        />
+      )}
     </>
   );
 }

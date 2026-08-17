@@ -1,9 +1,9 @@
 "use client";
 
 import { useCreateMaintenanceAircraft, AircraftPartAPI } from "@/actions/mantenimiento/planificacion/aeronaves/actions";
-import { useCreateClient } from "@/actions/ajustes/globales/clientes/actions";
+import { useCreateClient } from "@/actions/ajustes/clientes/actions";
 import { useGetClients } from "@/hooks/general/clientes/useGetClients";
-import { useGetManufacturers } from "@/hooks/general/condiciones/useGetConditions";
+import { useGetManufacturers } from "@/hooks/general/fabricantes/useGetManufacturers";
 import { AircraftPartsInfoForm } from "@/components/forms/mantenimiento/aeronaves/AircraftPartsForm";
 import { AircraftInfoForm } from "@/components/forms/mantenimiento/aeronaves/AircraftInfoForm";
 import { ContentLayout } from "@/components/layout/ContentLayout";
@@ -18,6 +18,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { InfoItem } from "./_components/InfoItem";
 import { PartSummaryCard } from "./_components/PartSummaryCard";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 interface AircraftPart {
     category?: "ENGINE" | "APU" | "PROPELLER"; // Solo frontend
@@ -143,6 +144,8 @@ export default function NewAircraftPage() {
 
     return (
         <ContentLayout title="Registro de Aeronave">
+          <PageHeader className="mb-6" />
+
             <div className="space-y-2">
                 <h1 className="text-2xl font-bold">Registro de Aeronave</h1>
 

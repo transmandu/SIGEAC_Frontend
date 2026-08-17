@@ -128,9 +128,9 @@ export const getBrandsColumns = (
     header: "Estado",
     cell: ({ row }) =>
       row.original.active ? (
-        <Badge className="bg-green-600 hover:bg-green-600">Activa</Badge>
+        <Badge className="bg-green-600">ACTIVA</Badge>
       ) : (
-        <Badge variant="secondary">Inactiva</Badge>
+        <Badge variant="secondary">INACTIVA</Badge>
       ),
   },
   {

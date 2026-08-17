@@ -33,7 +33,7 @@ const fetchAverageCyclesAndHours = async (
   return data;
 };
 
-//IF YOU DO NOT HAVE A DATE RANGE, THIS WILL CALCULATE ALL RECORDS
+// Sin rango de fechas promedia sobre todo el histórico.
 export const useGetAverageCyclesAndHours = (
   company?: string,
   acronym?: string,

@@ -49,8 +49,9 @@ export const columns: ColumnDef<ToolBox>[] = [
       <DataTableColumnHeader column={column} title="Empleado Responsable" />
     ),
     cell: ({ row }) => {
+      const employee = row.original.employee
       return (
-        <p className="font-medium text-center">{`${row.original.employee.first_name} ${row.original.employee.last_name}`}</p>
+        <p className="font-medium text-center">{employee ? `${employee.first_name} ${employee.last_name}` : "N/A"}</p>
       )
     }
   },

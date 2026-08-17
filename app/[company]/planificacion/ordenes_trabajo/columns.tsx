@@ -91,10 +91,10 @@ export const columns: ColumnDef<WorkOrder>[] = [
           <Badge
             className={`font-semibold ${
               status === "ABIERTO"
-                ? "bg-green-500 hover:bg-green-600 text-white dark:bg-green-600 dark:hover:bg-green-700"
+                ? "bg-green-500 text-white dark:bg-green-600"
                 : status === "CERRADO"
-                  ? "bg-red-500 hover:bg-red-600 text-white dark:bg-red-600 dark:hover:bg-red-700"
-                  : "bg-gray-500 hover:bg-gray-600 text-white dark:bg-gray-600 dark:hover:bg-gray-700"
+                  ? "bg-red-500 text-white dark:bg-red-600"
+                  : "bg-gray-500 text-white dark:bg-gray-600"
             }`}
           >
             {status}

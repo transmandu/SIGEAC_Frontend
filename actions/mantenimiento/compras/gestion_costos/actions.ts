@@ -3,9 +3,6 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import type { UpdateCostPayload, BulkUpdateItem, BulkUpdatePayload } from "@/types/purchase"
 
-/* =========================
-   API CALLS
-========================= */
 const invalidateArticles = (queryClient: any) => {
   queryClient.invalidateQueries({
     queryKey: ["warehouse-articles"],
@@ -24,7 +21,6 @@ const invalidateGeneral = (queryClient: any) => {
   })
 }
 
-// 🔹 ARTICLE
 const updateArticleCost = async ({ company, id, cost }: UpdateCostPayload) => {
   const { data } = await axiosInstance.put(
     `/${company}/update-article-cost/${id}`,
@@ -41,7 +37,6 @@ const bulkUpdateArticleCost = async ({ company, updates }: BulkUpdatePayload) =>
   return data
 }
 
-// 🔹 GENERAL ARTICLE
 const updateGeneralCost = async ({ company, id, cost }: UpdateCostPayload) => {
   const { data } = await axiosInstance.put(
     `/${company}/update-general-cost/${id}`,
@@ -58,9 +53,6 @@ const bulkUpdateGeneralCost = async ({ company, updates }: BulkUpdatePayload) =>
   return data
 }
 
-/* =========================
-   HOOKS (React Query)
-========================= */
 
 export const useUpdateArticleCost = () => {
   const queryClient = useQueryClient()
@@ -98,11 +90,11 @@ export const useUpdateGeneralCost = () => {
   return useMutation({
     mutationFn: updateGeneralCost,
     onSuccess: () => {
-      toast.success("Costo actualizado correctamente")
+      toast.success("Costo inicial registrado correctamente")
       invalidateGeneral(queryClient)
     },
-    onError: () => {
-      toast.error("Error al actualizar costo")
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.error ?? "Error al registrar costo")
     },
   })
 }
@@ -112,12 +104,17 @@ export const useBulkUpdateGeneralCost = () => {
 
   return useMutation({
     mutationFn: bulkUpdateGeneralCost,
-    onSuccess: () => {
-      toast.success("Costos actualizados correctamente")
+    onSuccess: (data) => {
+      const skippedCount = data?.skipped?.length ?? 0
+      toast.success(
+        skippedCount > 0
+          ? `Costos registrados. ${skippedCount} artículo(s) ya tenían costo y no se modificaron.`
+          : "Costos iniciales registrados correctamente"
+      )
       invalidateGeneral(queryClient)
     },
-    onError: () => {
-      toast.error("Error en actualización masiva")
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.error ?? "Error en actualización masiva")
     },
   })
 }

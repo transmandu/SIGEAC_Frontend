@@ -114,10 +114,10 @@ export const columns: ColumnDef<Survey>[] = [
           className={`justify-center items-center text-center font-bold font-sans pointer-events-none hover:bg-inherit
       ${
         row.original.is_active === true
-          ? "bg-green-500 hover:bg-green-400"
+          ? "bg-green-500"
           : row.original.is_active === false
-            ? "bg-red-400 hover:bg-red-400"
-            : "bg-gray-500 hover:bg-gray-500"
+            ? "bg-red-400"
+            : "bg-gray-500"
       }`}
           variant="secondary"
         >

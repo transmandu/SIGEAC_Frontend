@@ -3,13 +3,13 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 
 export const useCreateModule = () => {
-    const queryCategory = useQueryClient()
+    const queryClient = useQueryClient()
     const createMutation = useMutation({
         mutationFn: async (data: any) => {
             await axiosInstance.post('/modules', data)
           },
         onSuccess: () => {
-            queryCategory.invalidateQueries({queryKey: ['modules']})
+            queryClient.invalidateQueries({queryKey: ['modules']})
             toast("¡Creado!", {
                 description: `¡El modulo se ha creado correctamente!`
             })
@@ -27,14 +27,14 @@ export const useCreateModule = () => {
 }
 
 export const useDeleteModule = () => {
-  const queryCategory = useQueryClient()
+  const queryClient = useQueryClient()
   const deleteMutation = useMutation({
       mutationFn: async (id: number | string) => {
           await axiosInstance.delete(`/modules/${id}`)
         },
       onSuccess: () => {
 
-          queryCategory.invalidateQueries({queryKey: ['category']})
+          queryClient.invalidateQueries({queryKey: ['modules']})
           toast.success("¡Eliminado!", {
               description: `¡El modulo ha sido eliminado correctamente!`
           })
@@ -47,18 +47,18 @@ export const useDeleteModule = () => {
       }
   )
   return {
-    deleteCategory: deleteMutation,
+    deleteModule: deleteMutation,
   }
 }
 
 export const useUpdateModule = () => {
-  const queryCategory = useQueryClient();
+  const queryClient = useQueryClient();
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: any }) => {
       await axiosInstance.put(`/modules/${id}`, data);
     },
     onSuccess: () => {
-      queryCategory.invalidateQueries({ queryKey: ['category'] });
+      queryClient.invalidateQueries({ queryKey: ['modules'] });
       toast("¡Actualizado!", {
         description: "¡El modulo se ha actualizado correctamente!",
       });
@@ -71,6 +71,6 @@ export const useUpdateModule = () => {
   });
 
   return {
-    updateCategory: updateMutation,
+    updateModule: updateMutation,
   };
 };

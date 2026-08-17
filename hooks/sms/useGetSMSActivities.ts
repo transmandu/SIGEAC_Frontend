@@ -23,4 +23,4 @@ export const useGetSMSActivities = (company?: string, from?: string, to?: string
     staleTime: 1000 * 60 * 5,
     enabled: !!company,
   });
-};
+};

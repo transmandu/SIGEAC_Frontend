@@ -21,7 +21,7 @@ export const useGetVoluntaryReportsByDateRange = (
   return useQuery<VoluntaryReport[]>({
     queryKey: ["voluntary-reports-by-date-range"],
     queryFn: () => fetchVoluntaryReportsByDateRange(company, from, to),
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    staleTime: 1000 * 60 * 5,
     enabled: !!company,
   });
 };

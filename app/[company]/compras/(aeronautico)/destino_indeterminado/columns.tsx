@@ -158,9 +158,11 @@ export const columns: ColumnDef<DestinationArticle>[] = [
       <DataTableColumnHeader column={column} title="Estado" />
     ),
     cell: () => (
-      <Badge className="rounded-md border border-amber-200 bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700 hover:bg-amber-100 dark:border-amber-800 dark:bg-amber-950/50 dark:text-amber-400">
-        Pendiente
-      </Badge>
+      <div className="flex justify-center">
+        <Badge className="select-none rounded-md border border-amber-200 bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700 dark:border-amber-800 dark:bg-amber-950/50 dark:text-amber-400">
+          PENDIENTE
+        </Badge>
+      </div>
     ),
   },
   {

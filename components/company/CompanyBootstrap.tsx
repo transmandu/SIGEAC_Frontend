@@ -2,14 +2,19 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plane, PlaneTakeoff } from "lucide-react";
+import Link from "next/link";
+import { PlaneTakeoff, Settings2 } from "lucide-react";
 import { motion } from "framer-motion";
 
 import { useAuth } from "@/contexts/AuthContext";
 import { useGetUserLocationsByCompanyId } from "@/hooks/sistema/usuario/useGetUserLocationsByCompanyId";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { User } from "@/types";
 
 import CompanySelect from "@/components/selects/CompanySelect";
+import PlaneCheckMorph from "@/components/misc/PlaneCheckMorph";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 const CompanyBootstrap = () => {
   const router = useRouter();
@@ -20,6 +25,8 @@ const CompanyBootstrap = () => {
 
   const { user, loading: userLoading } = useAuth();
 
+  const isSuperUser = user?.roles?.some((role) => role.name === "SUPERUSER");
+
   const {
     selectedCompany,
     selectedStation,
@@ -28,12 +35,28 @@ const CompanyBootstrap = () => {
     reset,
   } = useCompanyStore();
 
-  const { mutateAsync: getLocations, isPending: locationsLoading } =
-    useGetUserLocationsByCompanyId();
+  const { mutateAsync: getLocations } = useGetUserLocationsByCompanyId();
 
   const [hydrated, setHydrated] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [redirectTarget, setRedirectTarget] = useState<string | null>(null);
+
+  // Next mantiene /inicio montado entre sesiones, así que refs y estado
+  // sobrevivían al logout: el usuario siguiente entraba con navigatingRef ya en
+  // true y se quedaba en el loading para siempre, con el efecto de bootstrap
+  // cortocircuitado. Cambiar de usuario devuelve el componente a cero.
+  const sessionUserRef = useRef<User["id"] | null>(null);
+
+  if (user && user.id !== sessionUserRef.current) {
+    sessionUserRef.current = user.id;
+
+    navigatingRef.current = false;
+    resolvedRef.current = false;
+    companyAutoSelectedRef.current = false;
+
+    if (isRedirecting) setIsRedirecting(false);
+    if (redirectTarget) setRedirectTarget(null);
+  }
 
   useEffect(() => {
     const unsub = useCompanyStore.persist.onFinishHydration(() =>
@@ -49,7 +72,11 @@ const CompanyBootstrap = () => {
 
   useEffect(() => {
     if (!hydrated || userLoading || !user) return;
-    if (navigatingRef.current || resolvedRef.current) return;
+    if (navigatingRef.current) return;
+
+    // resolvedRef solo frena el auto-resolve de estación; si el usuario ya
+    // eligió ambas cosas manualmente, el redirect (y su loading) debe correr.
+    if (resolvedRef.current && !(selectedCompany && selectedStation)) return;
 
     const getHistory = () => {
       if (typeof window === "undefined") return {};
@@ -76,6 +103,32 @@ const CompanyBootstrap = () => {
       );
     };
 
+    const forgetHistory = (companyId: number | string) => {
+      if (typeof window === "undefined") return;
+
+      const history = getHistory();
+
+      delete history[String(companyId)];
+
+      localStorage.setItem(
+        "company-station-history",
+        JSON.stringify(history)
+      );
+    };
+
+    // Descartar la selección persistida reabre la pantalla de selección, así
+    // que la auto-selección tiene que volver a estar disponible: si no, un
+    // usuario de una sola empresa se quedaba sin empresa y sin nada que elegir.
+    const discardSelection = (companyId?: number | string) => {
+      if (companyId !== undefined) forgetHistory(companyId);
+
+      companyAutoSelectedRef.current = false;
+      resolvedRef.current = false;
+
+      setIsRedirecting(false);
+      reset();
+    };
+
     const bootstrap = async () => {
       if (selectedCompany && selectedStation) {
         setIsRedirecting(true);
@@ -85,8 +138,7 @@ const CompanyBootstrap = () => {
         );
 
         if (!companyExists) {
-          setIsRedirecting(false);
-          reset();
+          discardSelection(selectedCompany.id);
           return;
         }
 
@@ -94,8 +146,7 @@ const CompanyBootstrap = () => {
           const locations = await getLocations(selectedCompany.id);
 
           if (!locations?.length) {
-            setIsRedirecting(false);
-            reset();
+            discardSelection(selectedCompany.id);
             return;
           }
 
@@ -104,12 +155,12 @@ const CompanyBootstrap = () => {
           );
 
           if (!stationExists) {
-            setIsRedirecting(false);
-            reset();
+            discardSelection(selectedCompany.id);
             return;
           }
 
           setIsRedirecting(true);
+          saveHistory(selectedCompany.id, selectedStation);
 
           if (typeof window !== "undefined" && "requestAnimationFrame" in window) {
             requestAnimationFrame(() => requestAnimationFrame(() =>
@@ -120,8 +171,7 @@ const CompanyBootstrap = () => {
           }
           return;
         } catch {
-          setIsRedirecting(false);
-          reset();
+          discardSelection();
           return;
         }
       }
@@ -182,20 +232,18 @@ const CompanyBootstrap = () => {
   useEffect(() => {
     if (!redirectTarget) return;
 
+    // 1s da tiempo al aterrizaje: círculo (0.45s tras 0.1s) y check (0.3s tras
+    // 0.35s) cierran en ~0.65s, y el resto se ve como una pausa intencional.
     const timeout = window.setTimeout(() => {
       navigatingRef.current = true;
       router.replace(redirectTarget);
-    },  1000);
+    }, 1000);
 
     return () => window.clearTimeout(timeout);
   }, [redirectTarget, router]);
 
   const shouldShowFullPageLoading =
-    !hydrated ||
-    userLoading ||
-    isRedirecting ||
-    navigatingRef.current ||
-    (selectedCompany && selectedStation && locationsLoading);
+    !hydrated || userLoading || isRedirecting || navigatingRef.current;
 
   /**
    * LOADING SCREEN
@@ -218,40 +266,14 @@ const CompanyBootstrap = () => {
         />
 
         <div className="relative flex flex-col items-center gap-5">
-          {/* icon container */}
-          <motion.div
-            className="relative"
-            initial={{ scale: 0.6, opacity: 0, y: 10 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
-          >
-            <motion.div
-              animate={{
-                y: [0, -10, 0],
-                rotate: [0, 2, 0, -2, 0],
-              }}
-              transition={{
-                duration: 2.8,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-            >
-              <Plane className="w-10 h-10 text-primary" />
-            </motion.div>
-
-            <motion.div
-              className="absolute inset-0 blur-xl opacity-40 bg-primary rounded-full scale-150"
-              animate={{
-                opacity: [0.2, 0.5, 0.2],
-                scale: [1.3, 1.6, 1.3],
-              }}
-              transition={{
-                duration: 2.2,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-            />
-          </motion.div>
+          {/* El avión llega y se posa; al fijarse el destino aterriza y se
+              convierte en check, que es el instante previo al dashboard. Sin
+              wrapper animado: el componente ya trae su propia entrada, y una
+              segunda animación encima le movía el avión a media trayectoria. */}
+          <PlaneCheckMorph
+            phase={redirectTarget ? "arrived" : "traveling"}
+            direction="arrival"
+          />
 
           {/* text block */}
           <motion.div
@@ -272,7 +294,7 @@ const CompanyBootstrap = () => {
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
             >
-              Preparando tu entorno
+              {redirectTarget ? "Todo listo" : "Preparando tu entorno"}
             </motion.p>
 
             <motion.p
@@ -280,7 +302,9 @@ const CompanyBootstrap = () => {
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
             >
-              Inicializando servicios del sistema...
+              {redirectTarget
+                ? "Entrando a tu panel..."
+                : "Inicializando servicios del sistema..."}
             </motion.p>
           </motion.div>
 
@@ -337,6 +361,53 @@ const CompanyBootstrap = () => {
           >
             <CompanySelect />
           </motion.div>
+
+          {isSuperUser && (
+            <motion.div
+              className="flex flex-col items-center gap-2 mt-4 w-full"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.25, ease: "easeOut", delay: 0.1 }}
+            >
+              <div className="flex items-center gap-3 w-full">
+                <span className="h-px flex-1 bg-border/60" />
+                <span className="text-[10px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+                  o
+                </span>
+                <span className="h-px flex-1 bg-border/60" />
+              </div>
+
+              {/* Mismo lenguaje visual que los selects de CompanySelect: la
+                  entrada al panel global es una opción más de esta pantalla. */}
+              <Button
+                asChild
+                variant="ghost"
+                className={cn(
+                  "h-9 w-[368px] rounded-lg text-sm font-normal",
+                  "bg-gradient-to-br from-background/70 to-background/40",
+                  "backdrop-blur-md",
+                  "border border-slate-400/60 dark:border-slate-600/60",
+                  "shadow-sm",
+                  "text-slate-700 dark:text-slate-200",
+                  "hover:border-blue-400/30 hover:bg-gradient-to-br",
+                  "hover:from-background/70 hover:to-background/40",
+                  "hover:shadow-md hover:shadow-blue-500/10",
+                  "transition-all duration-200",
+                  "active:scale-[0.99]"
+                )}
+              >
+                <Link href="/sistema/empresas">
+                  <Settings2 className="size-4" />
+                  Administrar el sistema
+                </Link>
+              </Button>
+
+              <p className="text-xs text-muted-foreground text-center">
+                Empresas, módulos, usuarios y roles. No requiere seleccionar una
+                empresa.
+              </p>
+            </motion.div>
+          )}
         </motion.div>
       </div>
     </motion.div>

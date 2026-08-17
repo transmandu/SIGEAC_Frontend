@@ -41,7 +41,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { useGetAircraftAcronyms } from "@/hooks/aerolinea/aeronaves/useGetAircraftAcronyms";
+import { useGetAircraftAcronyms } from "@/hooks/general/aeronaves/useGetAircraftAcronyms";
 import { useGetPilots } from "@/hooks/sms/useGetPilots";
 import { cn } from "@/lib/utils";
 import { ObligatoryReport } from "@/types";
@@ -257,7 +257,6 @@ export function CreateGeneralObligatoryReportForm({
 
     try {
       createObligatoryReport.mutateAsync(value);
-      //router.push(`/${company}/dashboard`);
       router.push(`{process}/login`);
       router.push(`${process.env.NEXT_PUBLIC_URL}login`);
     } catch (error) {
@@ -554,7 +553,6 @@ export function CreateGeneralObligatoryReportForm({
                     type="time"
                     {...field}
                     onChange={(e) => {
-                      // Validamos que el formato sea correcto
                       if (
                         e.target.value.match(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/)
                       ) {
@@ -579,7 +577,6 @@ export function CreateGeneralObligatoryReportForm({
                     type="time"
                     {...field}
                     onChange={(e) => {
-                      // Validamos que el formato sea correcto
                       if (
                         e.target.value.match(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/)
                       ) {

@@ -35,9 +35,8 @@ import { useState } from "react"
 import { Employee } from "@/types"
 import { useCompanyStore } from "@/stores/CompanyStore"
 
-import { useDeleteEmployee } from "@/actions/sistema/empresas/empleados/actions"
-import { useDeactivateEmployee } from "@/hooks/sistema/empleados/useDeactivateEmployee"
-import { useReactivateEmployee } from "@/hooks/sistema/empleados/useReactivateEmployee"
+import { useDeleteEmployee } from "@/actions/ajustes/empleados/actions"
+import { useDeactivateEmployee, useReactivateEmployee } from "@/actions/ajustes/empleados/actions"
 
 import { UpdateEmployeeForm } from "@/components/forms/general/UpdateEmployeeForm"
 

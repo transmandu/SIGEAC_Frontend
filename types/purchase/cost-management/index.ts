@@ -51,6 +51,13 @@ export interface ArticleCostRow {
   condition_name?: string;
 }
 
+/** Conversión unidad-a-unidad de un artículo general (ej: 1 CAJA = 20 UNID). */
+export interface GeneralArticleConversion {
+  unit_id: number;
+  /** Cuántas unidades base equivalen a 1 unit_id. */
+  base_per_unit: number;
+}
+
 export interface GeneralCostRow {
   id: number;
   description?: string;
@@ -58,19 +65,30 @@ export interface GeneralCostRow {
   variant_type?: string;
   unit_label?: string;
   cost?: number;
+  cost_history?: import('@/types').GeneralArticleCostHistoryEntry[];
+  /** Unidad base del artículo: referencia para el equivalente por unidad. */
+  primary_unit_id?: number;
+  /** Conversiones registradas: reexpresan el costo crudo a la unidad base. */
+  conversions?: GeneralArticleConversion[];
 }
 
 export type DraftValue = string | number | undefined;
 
 export interface ArticleCostColumnsArgs {
   onCostChange: (id: number, value: string) => void;
+  /** Muestra la columna de unidad (solo aplica a Consumibles). */
+  showUnit?: boolean;
 }
 
 export interface GeneralCostColumnsArgs {
   onCostChange: (id: number, value: string) => void;
+  onViewHistory?: (row: GeneralCostRow) => void;
 }
 
 export interface BuildColumnsArgs {
   type: CostType;
   onCostChange: (id: number, value: string) => void;
+  onViewHistory?: (row: GeneralCostRow) => void;
+  /** Categoría activa del tipo ARTICLE (para decidir columnas condicionales). */
+  category?: string;
 }

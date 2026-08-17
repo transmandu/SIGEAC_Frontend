@@ -52,7 +52,10 @@ const ShowObligatoryReport = () => {
 
   return (
     <ContentLayout title="Reportes Obligatorios">
-      <div className="flex justify-evenly gap-2 flex-wrap">
+      <div
+        className="flex justify-evenly gap-2 flex-wrap"
+        data-tour="obligatorio-detalle-acciones"
+      >
         {/* Botón para crear identificación de peligro */}
         {obligatoryReport &&
         obligatoryReport.status === "ABIERTO" &&
@@ -135,7 +138,10 @@ const ShowObligatoryReport = () => {
           <div className="w-full space-y-4">
             {/* Encabezado con código y fecha */}
             {obligatoryReport.report_number && (
-              <div className="flex flex-col md:flex-row justify-between   p-4 rounded-lg gap-2 border border-gray-300">
+              <div
+                className="flex flex-col md:flex-row justify-between   p-4 rounded-lg gap-2 border border-gray-300"
+                data-tour="obligatorio-detalle-encabezado"
+              >
                 <div className="flex justify-end items-center gap-2">
                   <p className="text-lg text-gray-700 dark:text-gray-300 flex items-center gap-2">
                     <File className="w-5 h-5" />
@@ -165,7 +171,10 @@ const ShowObligatoryReport = () => {
             )}
 
             {/* Información básica del incidente */}
-            <div className="flex-col   p-4 rounded-lg space-y-3 border border-gray-300">
+            <div
+              className="flex-col   p-4 rounded-lg space-y-3 border border-gray-300"
+              data-tour="obligatorio-detalle-incidente"
+            >
               <p className="text-lg text-gray-700 dark:text-gray-300 flex items-start gap-2">
                 <MapPin className="w-5 h-5 mt-1 flex-shrink-0" />
                 <span>
@@ -194,69 +203,74 @@ const ShowObligatoryReport = () => {
               </div>
             </div>
 
-            {/* Otros incidentes */}
-            {obligatoryReport.other_incidents && (
-              <div className="  p-4 rounded-lg">
-                <p className="text-lg font-medium text-gray-700 dark:text-gray-300 flex items-start gap-2">
-                  <AlertCircle className="w-5 h-5 mt-1 flex-shrink-0" />
-                  <span>
-                    <span className="font-semibold">Otros Incidentes: </span>
-                    {obligatoryReport.other_incidents}
-                  </span>
+            <div data-tour="obligatorio-detalle-incidentes">
+              {/* Otros incidentes */}
+              {obligatoryReport.other_incidents && (
+                <div className="  p-4 rounded-lg">
+                  <p className="text-lg font-medium text-gray-700 dark:text-gray-300 flex items-start gap-2">
+                    <AlertCircle className="w-5 h-5 mt-1 flex-shrink-0" />
+                    <span>
+                      <span className="font-semibold">Otros Incidentes: </span>
+                      {obligatoryReport.other_incidents}
+                    </span>
+                  </p>
+                </div>
+              )}
+
+              {/* Lista de incidentes */}
+              {obligatoryReport.incidents && (
+                <div className="flex flex-col   p-4 rounded-lg border border-gray-300">
+                  <p className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                    <AlertCircle className="w-5 h-5" />
+                    <span>Lista de Incidentes:</span>
+                  </p>
+                  {(() => {
+                    try {
+                      const incidentsArray = JSON.parse(
+                        obligatoryReport.incidents,
+                      ) as string[];
+                      return (
+                        <ul className="space-y-1">
+                          {incidentsArray.map(
+                            (incident: string, index: number) => (
+                              <li
+                                key={index}
+                                className="text-gray-600 dark:text-gray-400 flex items-start gap-2"
+                              >
+                                <span className="text-gray-500 dark:text-gray-400">
+                                  •
+                                </span>
+                                <span>{incident}</span>
+                              </li>
+                            ),
+                          )}
+                        </ul>
+                      );
+                    } catch (error) {
+                      console.error("Error parsing incidents:", error);
+                      return <p>Error al mostrar incidentes</p>;
+                    }
+                  })()}
+                </div>
+              )}
+
+              {/* Descripción */}
+              <div className="  p-4 rounded-lg border border-gray-300">
+                <p className="text-xl font-semibold text-center text-gray-800 dark:text-white mb-4 flex items-center justify-center gap-2">
+                  <FileText className="w-6 h-6" />
+                  Descripción
+                </p>
+                <p className="text-lg text-gray-700 dark:text-gray-300">
+                  {obligatoryReport.description}
                 </p>
               </div>
-            )}
-
-            {/* Lista de incidentes */}
-            {obligatoryReport.incidents && (
-              <div className="flex flex-col   p-4 rounded-lg border border-gray-300">
-                <p className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
-                  <AlertCircle className="w-5 h-5" />
-                  <span>Lista de Incidentes:</span>
-                </p>
-                {(() => {
-                  try {
-                    const incidentsArray = JSON.parse(
-                      obligatoryReport.incidents
-                    ) as string[];
-                    return (
-                      <ul className="space-y-1">
-                        {incidentsArray.map(
-                          (incident: string, index: number) => (
-                            <li
-                              key={index}
-                              className="text-gray-600 dark:text-gray-400 flex items-start gap-2"
-                            >
-                              <span className="text-gray-500 dark:text-gray-400">
-                                •
-                              </span>
-                              <span>{incident}</span>
-                            </li>
-                          )
-                        )}
-                      </ul>
-                    );
-                  } catch (error) {
-                    console.error("Error parsing incidents:", error);
-                    return <p>Error al mostrar incidentes</p>;
-                  }
-                })()}
-              </div>
-            )}
-
-            {/* Descripción */}
-            <div className="  p-4 rounded-lg border border-gray-300">
-              <p className="text-xl font-semibold text-center text-gray-800 dark:text-white mb-4 flex items-center justify-center gap-2">
-                <FileText className="w-6 h-6" />
-                Descripción
-              </p>
-              <p className="text-lg text-gray-700 dark:text-gray-300">
-                {obligatoryReport.description}
-              </p>
             </div>
 
             {/* Sección de Aeronave y Vuelo */}
-            <div className="flex flex-col lg:flex-row justify-center items-stretch gap-4 ">
+            <div
+              className="flex flex-col lg:flex-row justify-center items-stretch gap-4 "
+              data-tour="obligatorio-detalle-vuelo"
+            >
               {obligatoryReport.aircraft && (
                 <div className=" p-4 rounded-lg flex-1 border border-gray-300">
                   <p className="text-xl font-semibold text-center text-gray-800 dark:text-white mb-4 flex items-center justify-center gap-2">
@@ -307,7 +321,10 @@ const ShowObligatoryReport = () => {
             </div>
 
             {/* Sección de Tripulación */}
-            <div className="flex flex-col lg:flex-row justify-center items-stretch gap-4">
+            <div
+              className="flex flex-col lg:flex-row justify-center items-stretch gap-4"
+              data-tour="obligatorio-detalle-tripulacion"
+            >
               {obligatoryReport.pilot && (
                 <div className="  p-4 rounded-lg flex-1 border border-gray-300 ">
                   <p className="text-xl font-semibold text-center text-gray-800 dark:text-white mb-4 flex items-center justify-center gap-2 ">

@@ -9,16 +9,7 @@ import {
 } from 'react'
 
 import { ContentLayout } from '@/components/layout/ContentLayout'
-import BackButton from '@/components/misc/BackButton'
 
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb'
 
 import { useAuth } from '@/contexts/AuthContext'
 import { useCompanyStore } from '@/stores/CompanyStore'
@@ -31,6 +22,7 @@ import GroupedCostTable from './_components/GroupedCostTable'
 import CostToolbar from './_components/CostToolbar'
 import CostTypeToggle from './_components/CostTypeToggle'
 import CostSaveBar from './_components/CostSaveBar'
+import GeneralCostHistorySheet from './_components/GeneralCostHistorySheet'
 
 import { useCostDrafts } from './hooks/useCostDrafts'
 
@@ -41,6 +33,7 @@ import {
   useBulkUpdateArticleCost,
   useBulkUpdateGeneralCost,
 } from '@/actions/mantenimiento/compras/gestion_costos/actions'
+import { PageHeader } from "@/components/layout/PageHeader";
 
 type CostType = 'ARTICLE' | 'GENERAL'
 
@@ -64,6 +57,9 @@ type BaseRow = {
   brand_model?: string
   variant_type?: string
   unit_label?: string
+  cost_history?: import('@/types').GeneralArticleCostHistoryEntry[]
+  primary_unit_id?: number
+  conversions?: import('@/types/purchase').GeneralArticleConversion[]
 }
 
 const ARTICLE_COST_ROLES = ['ANALISTA_COMPRAS', 'JEFE_COMPRAS', 'SUPERUSER', 'JEFE_ADMINISTRACION', 'ANALISTA_ADMINISTRACION']
@@ -150,6 +146,9 @@ const CostManagementPage = () => {
         variant_type: a.variant_type,
         cost: Number(a.cost ?? 0),
         unit_label: a.general_primary_unit?.label,
+        cost_history: a.cost_history,
+        primary_unit_id: a.primary_unit_id ?? a.general_primary_unit?.id,
+        conversions: a.conversions,
       }))
     }
 
@@ -227,40 +226,24 @@ const CostManagementPage = () => {
     setDrafts({})
   }, [setDrafts])
 
+  const [historyRow, setHistoryRow] = useState<BaseRow | null>(null)
+
   const columns = useMemo(
     () =>
       getColumns({
         type,
         onCostChange,
+        onViewHistory: (row) => setHistoryRow(row),
+        category,
       }),
-    [type, onCostChange]
+    [type, onCostChange, category]
   )
 
   return (
     <ContentLayout title="Gestión de Costos">
       <div className="flex flex-col gap-6">
 
-        <div className="flex items-center gap-3">
-          <BackButton iconOnly tooltip="Volver" variant="secondary" />
-
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbLink href={`/${selectedCompany?.slug}/dashboard`}>
-                  Inicio
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>Compras</BreadcrumbItem>
-              <BreadcrumbSeparator />
-
-              <BreadcrumbItem>
-                <BreadcrumbPage>Gestión de Costos</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-        </div>
+        <PageHeader />
 
         <div className="flex flex-col gap-2 border-b pb-4">
           <div className="flex items-end justify-between">
@@ -344,6 +327,15 @@ const CostManagementPage = () => {
         )}
 
       </div>
+
+      <GeneralCostHistorySheet
+        open={!!historyRow}
+        onOpenChange={(open) => !open && setHistoryRow(null)}
+        description={historyRow?.description}
+        brandModel={historyRow?.brand_model}
+        variantType={historyRow?.variant_type}
+        history={historyRow?.cost_history}
+      />
     </ContentLayout>
   )
 }

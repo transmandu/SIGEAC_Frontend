@@ -6,13 +6,13 @@ import { useCompanyStore } from '@/stores/CompanyStore';
 import { Loader2 } from 'lucide-react';
 import { columns } from './columns';
 import { DataTable } from './data-table';
-import { Breadcrumb, BreadcrumbEllipsis, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { PageHeader } from "@/components/layout/PageHeader";
 const InventarioPage = () => {
 
   const { selectedStation, selectedCompany } = useCompanyStore();
@@ -20,40 +20,9 @@ const InventarioPage = () => {
   const { data: articles, isLoading: isArticlesLoading, isError } = useGetInReceptionArticles(selectedStation ?? null, selectedCompany?.slug);
 
   return (
-    <ContentLayout title='Inventario'>
+    <ContentLayout title="Artículos en Recepción">
       <div className='flex flex-col gap-y-2'>
-        <Breadcrumb>
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink href={`/${selectedCompany?.slug}/dashboard`}>Inicio</BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>Carga Administrativa</BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <DropdownMenu>
-                <DropdownMenuTrigger className="flex items-center gap-1">
-                  <BreadcrumbEllipsis className="h-4 w-4" />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start">
-                  <DropdownMenuItem>
-                    <BreadcrumbLink href={`/${selectedCompany?.slug}/almacen/ingreso/registrar_ingreso`}>Ingreso de Articulo</BreadcrumbLink>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <BreadcrumbLink href={`/${selectedCompany?.slug}/almacen/ingreso/en_transito`}>Articulos de Transito</BreadcrumbLink>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <BreadcrumbLink href={`/${selectedCompany?.slug}/almacen/ingreso/en_recepcion`}>Articulos en Recepcion</BreadcrumbLink>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>Articulos en Recepcion</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
+        <PageHeader className="mb-4" />
         <h1 className='text-5xl font-bold text-center'>Articulos En Recepción</h1>
         <p className='text-sm text-muted-foreground text-center italic mb-0'>
           Aquí puede observar todos los articulos que se encuentran fuera de almacén. <br />Filtre y/o busque sí desea un articulo en específico.

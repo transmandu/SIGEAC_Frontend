@@ -2,12 +2,10 @@
 
 import { ContentLayout } from '@/components/layout/ContentLayout';
 import LoadingPage from '@/components/misc/LoadingPage';
-import BackButton from '@/components/misc/BackButton';
 import { Badge } from '@/components/ui/badge';
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import { useGetRequisitionByOrderNumber } from '@/hooks/mantenimiento/compras/useGetRequisitionByOrderNumber';
 import { useCompanyStore } from '@/stores/CompanyStore';
-import { FileText, MessageSquare, Plane, UserCheck, UserPlus, CalendarDays, Loader2 } from 'lucide-react';
+import { FileText, MessageSquare, Plane, UserCheck, UserPlus, CalendarDays, Loader2, Building2, Handshake } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -19,9 +17,10 @@ import MetaItem from './_components/MetaItem';
 import InfoSection from './_components/InfoSection';
 import ImageAttachment from './_components/ImageAttachment';
 import GeneralArticleCard from './_components/GeneralArticleCard';
-import ImageViewer from './_components/ImageViewer';
+import ImageViewer from '@/components/misc/ImageViewer';
 import RequisitionOutOfScope from './_components/RequisitionOutOfScope';
 import { statusBadgeCls, requisitionStatusLabel, requisitionTypeLabel, formatSolicitudDate, priorityPageBadgeCls, priorityLabel } from './_components/utils/uiHelpers';
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const NEXT_STATUS: Record<string, string> = {
   CREATED: 'RECEIVED',
@@ -149,28 +148,7 @@ const RequisitionPage = () => {
       <div className="flex flex-col gap-4 sm:gap-6">
 
         {/* ── Breadcrumb ──────────────────────────────────────────────── */}
-        <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto">
-          <BackButton iconOnly tooltip="Volver" variant="secondary" />
-          <Breadcrumb>
-            <BreadcrumbList className="flex-nowrap">
-              <BreadcrumbItem>
-                <BreadcrumbLink href={`/${selectedCompany?.slug}/dashboard`}>
-                  Inicio
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbLink href={`/${selectedCompany?.slug}/compras/requisiciones_generales`}>
-                  Requisiciones Generales
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbPage className="truncate">{order_number}</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-        </div>
+        <PageHeader currentLabel={order_number} />
 
         {/* ── Header ──────────────────────────────────────────────────── */}
         <div className="flex flex-col gap-2 border-b border-border/60 pb-3 sm:pb-4">
@@ -237,7 +215,7 @@ const RequisitionPage = () => {
               value={
                 data?.created_by
                   ? `${data.created_by.first_name} ${data.created_by.last_name}`.toUpperCase()
-                  : undefined
+                  : "SISTEMA"
               }
               icon={UserCheck}
             />
@@ -256,6 +234,20 @@ const RequisitionPage = () => {
                 label={aircraftList.length > 1 ? "AERONAVES" : "AERONAVE"}
                 value={aircraftList.join(", ")}
                 icon={Plane}
+              />
+            )}
+            {data?.department && (
+              <MetaItem
+                label="DEPARTAMENTO"
+                value={data.department.name?.toUpperCase()}
+                icon={Building2}
+              />
+            )}
+            {data?.third_party && (
+              <MetaItem
+                label="TERCERO"
+                value={data.third_party.name?.toUpperCase()}
+                icon={Handshake}
               />
             )}
           </div>

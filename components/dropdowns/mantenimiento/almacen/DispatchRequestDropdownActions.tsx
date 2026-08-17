@@ -17,7 +17,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useReturnToWarehouse } from "@/hooks/mantenimiento/almacen/articulos/useReturnToWarehouse";
+import { useReturnToWarehouse } from "@/actions/mantenimiento/almacen/solicitudes/salida/action";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { Loader2, MoreHorizontal, Trash2, Undo2 } from "lucide-react";
 import { useState } from "react";

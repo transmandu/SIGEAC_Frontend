@@ -10,14 +10,19 @@ export { type ArticleCostRow, type GeneralCostRow, type DraftValue } from '@/typ
 export const getColumns = ({
   type,
   onCostChange,
+  onViewHistory,
+  category,
 }: BuildColumnsArgs): ColumnDef<any>[] => {
   if (type === 'GENERAL') {
     return getGeneralCostColumns({
       onCostChange,
+      onViewHistory,
     })
   }
 
   return getArticleCostColumns({
     onCostChange,
+    // La unidad solo es relevante para Consumibles en aeronáutico
+    showUnit: category === 'CONSUMABLE',
   })
 }

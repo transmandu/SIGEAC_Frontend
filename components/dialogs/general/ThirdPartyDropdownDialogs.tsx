@@ -16,7 +16,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { ThirdParty } from "@/types"
 
-import { useDeleteThirdParty } from "@/actions/ajustes/globales/terceros/actions"
+import { useDeleteThirdParty } from "@/actions/sistema/terceros/actions"
 import UpdateThirdPartyForm from "@/components/forms/general/UpdateThirdPartyForm"
 
 type Props = {

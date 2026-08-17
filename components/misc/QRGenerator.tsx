@@ -15,6 +15,8 @@ interface QRGeneratorProps {
   innerColor?: string;
   outerColor?: string;
   moduleColor?: string;
+  buttonDataTour?: string;
+  linkDataTour?: string;
 }
 
 const QRGenerator = ({
@@ -27,6 +29,8 @@ const QRGenerator = ({
   bgColor = "#FFFFFF",
   showDownloadButton = true,
   showLink = false,
+  buttonDataTour,
+  linkDataTour,
 }: QRGeneratorProps) => {
   const qrRef = useRef<HTMLDivElement>(null);
 
@@ -85,30 +89,28 @@ const QRGenerator = ({
       <div ref={qrRef}>
         <ReactQRCode
           finderPatternInnerSettings={{
-            style: 'outpoint-lg',
+            style: "outpoint-lg",
             color: innerColor,
           }}
           finderPatternOuterSettings={{
-            style: 'outpoint-lg',
+            style: "outpoint-lg",
             color: outerColor,
           }}
           dataModulesSettings={{
-            style: 'leaf',
+            style: "leaf",
             color: moduleColor,
-            size: 0.90
+            size: 0.9,
           }}
           value={value}
           size={size}
           background={bgColor}
-          imageSettings={
-            {
-              src: '/aircraft.png',
-              width: 60,
-              height: 40,
-              excavate: true,
-              opacity: 0.9
-            }
-          }
+          imageSettings={{
+            src: "/aircraft.png",
+            width: 60,
+            height: 40,
+            excavate: true,
+            opacity: 0.9,
+          }}
         />
       </div>
 
@@ -118,6 +120,7 @@ const QRGenerator = ({
           target="_blank"
           rel="noopener noreferrer"
           className="underline text-sm break-all max-w-xs text-center hover:scale-105 transition-all"
+          data-tour={linkDataTour}
         >
           {value}
         </a>
@@ -127,6 +130,7 @@ const QRGenerator = ({
         <button
           onClick={downloadQRCode}
           className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+          data-tour={buttonDataTour}
         >
           <Download size={16} />
           Descargar QR

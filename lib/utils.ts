@@ -12,6 +12,28 @@ export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
 }
 
+// El backend a veces devuelve URLs absolutas de assets (image_url, etc.) con un
+// host distinto al configurado actualmente en NEXT_PUBLIC_HOSTNAME (por ejemplo,
+// generadas cuando el servidor tenía otra IP). Como el resto de la app sí es
+// alcanzable en el host configurado, reescribimos solo el origin y conservamos
+// la ruta tal cual la mandó el backend, en vez de descartar la URL entera.
+export function normalizeAssetUrl(url: string | null | undefined): string | null {
+    if (!url) return null;
+
+    const hostname = process.env.NEXT_PUBLIC_HOSTNAME;
+    if (!hostname) return url;
+
+    try {
+        const target = new URL(url);
+        const base = new URL(hostname);
+        target.protocol = base.protocol;
+        target.host = base.host;
+        return target.toString();
+    } catch {
+        return url;
+    }
+}
+
 export const generateSlug = (name: string) => {
     return name
         .toLowerCase()
@@ -69,6 +91,30 @@ export function formatCurrency(value: number) {
         currency: "USD",
         minimumFractionDigits: 2,
     }).format(value);
+}
+
+/**
+ * Cantidades de inventario: mínimo 2 decimales y hasta 6, sin ceros de relleno.
+ * El stock guarda la precisión real de las conversiones entre unidades (10.001),
+ * pero un entero se sigue leyendo "10,00".
+ */
+export function formatQuantity(value: number | string | null | undefined): string {
+    return new Intl.NumberFormat("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 6,
+    }).format(Number(value ?? 0));
+}
+
+/**
+ * Costos: 2 decimales, y hasta 4 solo si el valor los tiene. Un costo por unidad
+ * base sale de dividir ($10 entre una caja de 3 = 3,3333), pero lo facturado es
+ * siempre de 2 y no debe mostrarse como "12,0000".
+ */
+export function formatCost(value: number | string | null | undefined): string {
+    return new Intl.NumberFormat("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 4,
+    }).format(Number(value ?? 0));
 }
 
 //función auxiliar para manejar la lógica de los símbolos

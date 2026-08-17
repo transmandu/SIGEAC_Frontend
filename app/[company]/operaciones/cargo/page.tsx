@@ -10,14 +10,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { MonthYearPicker } from "@/components/selects/MonthYearPicker";
 import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import {
   Loader2,
   Plane,
   Package,
@@ -32,6 +24,7 @@ import { useExportCargoByAircraft } from "@/hooks/operaciones/cargo/useExportCar
 import { useTourContext } from "@/components/tour/TourProvider";
 import { cargoDashboardSteps } from "@/components/tour/steps/cargo/dashboard";
 import { useEffect } from "react";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const AircraftCard = ({
   aircraft,
@@ -138,21 +131,7 @@ const CargoPage = () => {
   return (
     <ContentLayout title="Carga">
       <div className="flex flex-col gap-4">
-        <Breadcrumb>
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink href={`/${selectedCompany?.slug}/dashboard`}>
-                Inicio
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>Operaciones</BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>Carga</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
+        <PageHeader className="mb-2" />
 
         <div className="flex flex-col gap-2 text-center md:text-left">
           <h1

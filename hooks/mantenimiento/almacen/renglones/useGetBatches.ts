@@ -12,6 +12,6 @@ export const useGetBatches = (company?: string) => {
     queryKey: ["batches", company],
     queryFn: () => fetchBatches(company!),
     enabled: !!company,
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    staleTime: 1000 * 60 * 5,
   });
 };

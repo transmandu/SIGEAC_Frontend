@@ -5,11 +5,14 @@ import { Loader2 } from "lucide-react";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
 import { useGetModules } from "@/hooks/sistema/useGetModules";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const ModulePage = () => {
   const { data: modules, isLoading, error } = useGetModules();
   return (
     <ContentLayout title="Modulos">
+      <PageHeader className="mb-6" />
+
       <h1 className="font-bold text-4xl text-center">Gestión de Modulos</h1>
       <p className="text-muted-foreground text-sm italic text-center mb-2">
         Aquí puede ver el listado de los modulos del sistema.

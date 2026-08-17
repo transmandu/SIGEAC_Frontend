@@ -7,6 +7,7 @@ import { columns } from "./columns";
 import { DataTable } from "./data-table";
 import { useGetMitigationTable } from "@/hooks/sms/useGetMitigationTable";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const MitigationPlanPage = () => {
   const { selectedCompany } = useCompanyStore();
@@ -17,7 +18,9 @@ const MitigationPlanPage = () => {
   } = useGetMitigationTable(selectedCompany?.slug);
 
   return (
-    <ContentLayout title="Planes de Mitigacion">
+    <ContentLayout title="Planes de Mitigación">
+      <PageHeader className="mb-6" />
+
       <div className="flex flex-col gap-y-2">
         {isLoading && (
           <div className="flex w-full h-full justify-center items-center">

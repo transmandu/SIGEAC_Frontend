@@ -8,6 +8,7 @@ import {
     HelpCircle,
     Plane,
     Boxes,
+    ShieldAlert,
 } from "lucide-react";
 
 const isActivePath = (pathname: string, href: string): boolean =>
@@ -21,8 +22,6 @@ const isActivePath = (pathname: string, href: string): boolean =>
  * "Compras Generales". El resto de los roles solo ve un lado, así que
  * agrupar no aporta nada y se les muestra el menú plano de siempre.
  */
-const ROLES_WITH_GROUPED_VIEW = ["SUPERUSER", "JEFE_ADMINISTRACION"];
-
 export function buildPurchasesGroups({ pathname, currentCompany, userRoles }: MenuContext): Group[] {
     const aeronauticoMenus: Menu[] = [
         {
@@ -72,6 +71,20 @@ export function buildPurchasesGroups({ pathname, currentCompany, userRoles }: Me
             label: "Art. en Tránsito",
             active: isActivePath(pathname, `/${currentCompany?.slug}/compras/en_transito`),
             icon: Truck,
+            roles: [
+                "ANALISTA_COMPRAS",
+                "JEFE_COMPRAS",
+                "SUPERUSER",
+                "JEFE_ADMINISTRACION",
+            ],
+            requiresOmac: true,
+            submenus: [],
+        },
+        {
+            href: `/${currentCompany?.slug}/compras/cuarentena`,
+            label: "Cuarentena",
+            active: isActivePath(pathname, `/${currentCompany?.slug}/compras/cuarentena`),
+            icon: ShieldAlert,
             roles: [
                 "ANALISTA_COMPRAS",
                 "JEFE_COMPRAS",
@@ -141,9 +154,7 @@ export function buildPurchasesGroups({ pathname, currentCompany, userRoles }: Me
             icon: Truck,
             roles: [
                 "ASISTENTE_COMPRAS",
-                "ANALISTA_ADMINISTRACION",
                 "SUPERUSER",
-                "JEFE_ADMINISTRACION",
             ],
             submenus: [],
         },
@@ -165,7 +176,9 @@ export function buildPurchasesGroups({ pathname, currentCompany, userRoles }: Me
         submenus: [],
     };
 
-    const hasGroupedView = ROLES_WITH_GROUPED_VIEW.some((role) => userRoles.includes(role));
+    const hasGroupedView = ["SUPERUSER", "JEFE_ADMINISTRACION"].some((role) =>
+        userRoles.includes(role),
+    );
 
     if (!hasGroupedView) {
         return [
@@ -194,7 +207,7 @@ export function buildPurchasesGroups({ pathname, currentCompany, userRoles }: Me
         label: "Compras Aeronáuticas",
         active: aeronauticoSubmenus.some((submenu) => submenu.active),
         icon: Plane,
-        roles: ROLES_WITH_GROUPED_VIEW,
+        roles: ["SUPERUSER", "JEFE_ADMINISTRACION"],
         submenus: aeronauticoSubmenus,
     };
 
@@ -203,7 +216,7 @@ export function buildPurchasesGroups({ pathname, currentCompany, userRoles }: Me
         label: "Compras Generales",
         active: generalSubmenus.some((submenu) => submenu.active),
         icon: Boxes,
-        roles: ROLES_WITH_GROUPED_VIEW,
+        roles: ["SUPERUSER", "JEFE_ADMINISTRACION"],
         submenus: generalSubmenus,
     };
 

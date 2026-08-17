@@ -13,14 +13,17 @@ import {
 } from "@/components/ui/select";
 
 import { useState } from 'react';
+import { PageHeader } from "@/components/layout/PageHeader";
 
-const AgregarPage = () => {
+const ArticleEntryPage = () => {
   const [type, setType] = useState("consumable");
   function handleTypeSelect(data: string) {
     setType(data);
   }
   return (
-    <ContentLayout title='TEST DE AGREGADO'>
+    <ContentLayout title="Ingreso de Artículo">
+      <PageHeader className="mb-6" />
+
       <div className='space-y-3 mb-4'>
         <h1 className='font-bold text-3xl'>Ingreso de Articulo</h1>
         <p className='text-sm text-muted-foreground'>Seleccione el tipo de articulo a registrar:</p>
@@ -48,4 +51,4 @@ const AgregarPage = () => {
   )
 }
 
-export default AgregarPage
+export default ArticleEntryPage

@@ -5,10 +5,16 @@ import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
 import { Badge } from "@/components/ui/badge"
 import { GeneralArticle } from "@/types"
 import GeneralArticleDropDownActions from "@/components/dropdowns/mantenimiento/almacen/GeneralArticleDropDownActions"
+import ArticleImageCell from "@/components/misc/ArticleImageCell"
+import { numericSortingFn, textSortingFn } from "@/lib/warehouse/sorting"
+import { formatQuantity } from "@/lib/utils"
 
-export const columns: ColumnDef<GeneralArticle>[] = [
+export const buildGeneralColumns = (
+    unitOptions: { value: string; label: string }[] = [],
+): ColumnDef<GeneralArticle>[] => [
     {
         accessorKey: "description",
+        sortingFn: textSortingFn((row) => row.description),
         header: ({ column }) => (
             <div className="flex justify-center">
                 <DataTableColumnHeader filter column={column} title="Descripción" />
@@ -33,6 +39,7 @@ export const columns: ColumnDef<GeneralArticle>[] = [
     },
     {
         accessorKey: "brand_model",
+        sortingFn: textSortingFn((row) => row.brand_model),
         header: ({ column }) => (
             <div className="flex justify-center">
                 <DataTableColumnHeader filter column={column} title="Marca / Modelo" />
@@ -57,6 +64,7 @@ export const columns: ColumnDef<GeneralArticle>[] = [
     },
     {
         accessorKey: "variant_type",
+        sortingFn: textSortingFn((row) => row.variant_type),
         header: ({ column }) => (
             <div className="flex justify-center">
                 <DataTableColumnHeader filter column={column} title="Present. / Especif." />
@@ -77,10 +85,46 @@ export const columns: ColumnDef<GeneralArticle>[] = [
         },
     },
     {
+        id: "image",
+        header: () => (
+            <div className="flex justify-center">
+                <span className="text-sm font-medium">Img.</span>
+            </div>
+        ),
+        cell: ({ row }) => (
+            <ArticleImageCell
+                image={row.original.image}
+                alt={row.original.description}
+            />
+        ),
+        enableSorting: false,
+        // Solo el icono más un respiro lateral: sin esto la columna se reparte
+        // el ancho sobrante y queda desproporcionada para lo que muestra.
+        meta: { className: "w-[64px] px-2" } as any,
+    },
+    {
         accessorKey: "quantity",
+        sortingFn: numericSortingFn((row) => Number(row.quantity ?? 0)),
+        filterFn: (row, _id, value) => {
+            const raw = String(value ?? "").trim()
+            if (!raw) return true
+
+            const qty = Number(row.original.quantity ?? 0)
+
+            const range = raw.match(/^(<=|>=|<|>)\s*(\d+(?:\.\d+)?)$/)
+            if (range) {
+                const n = Number(range[2])
+                if (range[1] === "<") return qty < n
+                if (range[1] === "<=") return qty <= n
+                if (range[1] === ">") return qty > n
+                return qty >= n
+            }
+
+            return String(qty).includes(raw)
+        },
         header: ({ column }) => (
             <div className="flex justify-center">
-                <DataTableColumnHeader column={column} title="Cantidad" />
+                <DataTableColumnHeader filter column={column} title="Cantidad" />
             </div>
         ),
         cell: ({ row }) => {
@@ -93,7 +137,45 @@ export const columns: ColumnDef<GeneralArticle>[] = [
                         variant={isAvailable ? "default" : "destructive"}
                         className="tabular-nums px-2 py-1 text-xs"
                     >
-                        {isAvailable ? "Disponible" : "No Disponible"}
+                        {isAvailable ? formatQuantity(qty) : "No Disponible"}
+                    </Badge>
+                </div>
+            )
+        },
+    },
+    {
+        id: "unit",
+        accessorFn: (row) => row.general_primary_unit?.label ?? "",
+        filterFn: (row, id, value) => {
+            const raw = String(value ?? "").trim()
+            if (!raw) return true
+            return String(row.getValue(id) ?? "") === raw
+        },
+        enableSorting: false,
+        header: ({ column }) => (
+            <div className="flex justify-center">
+                <DataTableColumnHeader
+                    column={column}
+                    title="Unidad"
+                    filterOptions={unitOptions}
+                />
+            </div>
+        ),
+        cell: ({ row }) => {
+            const unitLabel = row.original.general_primary_unit?.label?.trim()
+
+            if (!unitLabel) {
+                return (
+                    <div className="flex justify-center">
+                        <span className="text-sm text-muted-foreground">N/A</span>
+                    </div>
+                )
+            }
+
+            return (
+                <div className="flex justify-center">
+                    <Badge variant="outline" className="px-2 py-1 text-xs">
+                        {unitLabel}
                     </Badge>
                 </div>
             )
@@ -115,3 +197,19 @@ export const columns: ColumnDef<GeneralArticle>[] = [
         enableHiding: false,
     },
 ]
+
+export const columns = buildGeneralColumns()
+
+/** Unidades presentes en los datos: solo ofrece filtros que devuelven filas. */
+export const getUnitOptions = (articles: GeneralArticle[] | undefined) => {
+    const labels = new Set<string>()
+
+    for (const article of articles ?? []) {
+        const label = article.general_primary_unit?.label?.trim()
+        if (label) labels.add(label)
+    }
+
+    return Array.from(labels)
+        .sort((a, b) => a.localeCompare(b))
+        .map((label) => ({ value: label, label }))
+}

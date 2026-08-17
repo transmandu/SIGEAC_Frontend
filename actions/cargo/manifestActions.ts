@@ -2,7 +2,6 @@ import axiosInstance from "@/lib/axios";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-// ─── Tipos ────────────────────────────────────────────────────────────────────
 
 export interface ManifestItemPayload {
   shipment_id: number;
@@ -18,7 +17,6 @@ export interface ManifestItemUpdatePayload {
   units_in_manifest: number;
 }
 
-// ─── Invalidaciones comunes ───────────────────────────────────────────────────
 
 const invalidateAll = (queryClient: ReturnType<typeof useQueryClient>) => {
   queryClient.invalidateQueries({ queryKey: ["cargo-manifests"] });
@@ -31,7 +29,6 @@ const invalidateAll = (queryClient: ReturnType<typeof useQueryClient>) => {
   });
 };
 
-// ─── Crear ────────────────────────────────────────────────────────────────────
 
 export const useCreateCargoManifest = (company: string) => {
   const queryClient = useQueryClient();
@@ -65,7 +62,6 @@ export const useCreateCargoManifest = (company: string) => {
   return { createCargoManifest: createMutation };
 };
 
-// ─── Actualizar ───────────────────────────────────────────────────────────────
 
 export const useUpdateCargoManifest = (company: string) => {
   const queryClient = useQueryClient();
@@ -99,7 +95,6 @@ export const useUpdateCargoManifest = (company: string) => {
   return { updateCargoManifest: updateMutation };
 };
 
-// ─── Eliminar ─────────────────────────────────────────────────────────────────
 
 export const useDeleteCargoManifest = (company: string) => {
   const queryClient = useQueryClient();
@@ -123,7 +118,6 @@ export const useDeleteCargoManifest = (company: string) => {
   return { deleteCargoManifest: deleteMutation };
 };
 
-// ─── Reimprimir ───────────────────────────────────────────────────────────────
 
 export const useReprintCargoManifest = (company: string) => {
   const queryClient = useQueryClient();
@@ -147,7 +141,6 @@ export const useReprintCargoManifest = (company: string) => {
   return { reprintCargoManifest: reprintMutation };
 };
 
-// ─── Descargar PDF ────────────────────────────────────────────────────────────
 
 export const downloadManifestPdf = async (company: string, id: number) => {
   try {

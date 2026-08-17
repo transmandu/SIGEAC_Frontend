@@ -23,7 +23,7 @@ import { Pilot } from "@/types";
 import {
   useCreatePilot,
   useUpdatePilot,
-} from "@/actions/ajustes/globales/piloto/actions";
+} from "@/actions/ajustes/piloto/actions";
 import { useCompanyStore } from "@/stores/CompanyStore";
 
 const FormSchema = z.object({
@@ -38,8 +38,6 @@ interface FormProps {
   initialData?: Pilot;
   isEditing?: boolean;
 }
-// { onClose }: FormProps
-// lo de arriba va en prop
 export function CreatePilotForm({
   onClose,
   initialData,

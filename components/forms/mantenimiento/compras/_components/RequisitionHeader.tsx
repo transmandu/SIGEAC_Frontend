@@ -6,16 +6,16 @@ import { cn } from "@/lib/utils"
 import { Check, ChevronsUpDown, FileText, Plane, Tag, User, ArrowUp, ArrowDown, Minus, ArrowBigDown, Building2, Briefcase } from "lucide-react"
 import type { UseFormReturn } from "react-hook-form"
 import type { Employee, WorkOrder, Aircraft, Department, ThirdParty } from "@/types"
-import type { AuthorizedEmployeeResponse } from "@/hooks/sistema/autorizados/useGetAuthorizedEmployees"
+import type { AuthorizedEmployeeResponse } from "@/hooks/ajustes/autorizados/useGetAuthorizedEmployees"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { RequiredIndicator } from "./RequiredIndicator"
 
-// Regular employees and authorized (cross-company) employees live in two
-// separate tables/id spaces, so the requester combobox is split into two
-// tabs rather than one merged, ambiguous list.
+// Los empleados propios y los autorizados de otra empresa viven en tablas
+// distintas con ids que pueden coincidir, así que el selector se parte en dos
+// pestañas en vez de mezclarlos en una lista ambigua.
 type RequesterTab = "employee" | "authorized";
 
 interface RequisitionHeaderProps {
@@ -81,6 +81,7 @@ export function RequisitionHeader({
 }: RequisitionHeaderProps) {
   const [requesterTab, setRequesterTab] = useState<RequesterTab>("employee");
   const [authorizedEmployeeSearch, setAuthorizedEmployeeSearch] = useState("");
+  const [workOrderInputOpen, setWorkOrderInputOpen] = useState(false);
 
   const filteredAuthorizedEmployees = (authorizedEmployees ?? []).filter((emp) => {
     const query = authorizedEmployeeSearch.toLowerCase().trim();
@@ -90,6 +91,16 @@ export function RequisitionHeader({
 
   const formatAuthorizedEmployeeLabel = (authorizedEmployee: AuthorizedEmployeeResponse) =>
     `${authorizedEmployee.employee_name}`;
+
+  // Los departamentos llegan como árbol (con `descendants` anidados); se
+  // aplanan para poder elegir cualquiera, no solo los de primer nivel.
+  const flattenDepartments = (departments: Department[]): Department[] =>
+    departments.flatMap((department) => [
+      department,
+      ...flattenDepartments(department.descendants ?? []),
+    ]);
+
+  const allDepartments = departments ? flattenDepartments(departments) : [];
 
   return (
     <div className="rounded-lg border bg-card p-3 space-y-1.5">
@@ -191,7 +202,8 @@ export function RequisitionHeader({
                         <Tabs value={requesterTab} onValueChange={(v) => setRequesterTab(v as RequesterTab)}>
                           <TabsList className="grid w-full grid-cols-2 h-9 rounded-none">
                             <TabsTrigger value="employee" className="text-xs">Empleado</TabsTrigger>
-                            <TabsTrigger value="authorized" className="text-xs">Autorizado</TabsTrigger>
+                            {/* Abreviado: el label completo no cabe en la mitad del popover */}
+                            <TabsTrigger value="authorized" className="text-xs">Empleado Ext.</TabsTrigger>
                           </TabsList>
                         </Tabs>
                         {requesterTab === "employee" ? (
@@ -249,9 +261,9 @@ export function RequisitionHeader({
           name="priority"
           render={({ field }) => {
             const priorityOptions = [
-              { value: "HIGH", label: "Alta", icon: ArrowUp, className: "text-red-500" },
-              { value: "MEDIUM", label: "Media", icon: Minus, className: "text-amber-500" },
-              { value: "LOW", label: "Baja", icon: ArrowDown, className: "text-green-500"},
+              { value: "HIGH", label: "ALTA", icon: ArrowUp, className: "text-red-500" },
+              { value: "MEDIUM", label: "MEDIA", icon: Minus, className: "text-amber-500" },
+              { value: "LOW", label: "BAJA", icon: ArrowDown, className: "text-green-500"},
             ];
             const selectedPriority = priorityOptions.find((p) => p.value === field.value);
             return (
@@ -396,12 +408,33 @@ export function RequisitionHeader({
           }}
         />}
 
-        {/* Work Order - Searchable Select */}
+        {/* Work Order - Searchable Select that also accepts free text */}
         {showAircraftWorkOrder && <FormField
           control={form.control}
           name="work_order_id"
           render={({ field }) => {
             const selectedWO = workOrders?.find((wo) => wo.id.toString() === field.value);
+            const freeTextWorkOrder: string | undefined = form.watch("work_order");
+            const trimmedSearch = (workOrderSearch ?? "").trim();
+
+            const selectWorkOrder = (wo: WorkOrder) => {
+              form.setValue("work_order_id", wo.id.toString());
+              form.setValue("work_order", undefined);
+              form.clearErrors("work_order_id");
+              setWorkOrderSearch?.("");
+              setWorkOrderInputOpen(false);
+            };
+
+            // A diferencia del selector de aeronave, una orden que aún no está
+            // registrada se puede dejar como texto libre (igual que en despacho).
+            const selectFreeText = (value: string) => {
+              form.setValue("work_order_id", undefined);
+              form.setValue("work_order", value);
+              form.clearErrors("work_order_id");
+              setWorkOrderSearch?.("");
+              setWorkOrderInputOpen(false);
+            };
+
             return (
               <FormItem className="w-full">
                 <FormLabel
@@ -412,16 +445,19 @@ export function RequisitionHeader({
                   Ord. de Trabajo
                   <RequiredIndicator show={workOrderRequired} />
                 </FormLabel>
-                <Popover>
+                <Popover open={workOrderInputOpen} onOpenChange={setWorkOrderInputOpen}>
                   <PopoverTrigger asChild>
                     <Button
                       disabled={isWorkOrdersLoading}
                       variant="outline"
                       role="combobox"
-                      className={cn("w-full justify-between", !field.value && "text-muted-foreground")}
+                      className={cn(
+                        "w-full justify-between",
+                        !selectedWO && !freeTextWorkOrder && "text-muted-foreground"
+                      )}
                     >
                       <span className="truncate">
-                        {selectedWO ? selectedWO.order_number : "Opcional..."}
+                        {selectedWO?.order_number ?? freeTextWorkOrder ?? "Opcional..."}
                       </span>
                       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
@@ -429,26 +465,34 @@ export function RequisitionHeader({
                   <PopoverContent className="p-0" matchTriggerWidth>
                     <Command shouldFilter={false}>
                       <CommandInput
-                        placeholder="Busque una orden..."
+                        placeholder="Busque una orden de trabajo..."
                         value={workOrderSearch}
-                        onValueChange={setWorkOrderSearch}
+                        onValueChange={(v) => setWorkOrderSearch?.(v)}
                       />
                       <CommandList>
-                        <CommandEmpty className="text-sm p-2 text-center">
-                          {workOrderSearch
-                            ? "No se ha encontrado ninguna orden."
-                            : "No hay órdenes de trabajo disponibles"}
+                        <CommandEmpty className="text-sm p-2 text-center text-muted-foreground">
+                          {isWorkOrdersLoading
+                            ? "Cargando..."
+                            : trimmedSearch
+                              ? "No coincide con ninguna orden registrada."
+                              : "Escriba para buscar..."}
                         </CommandEmpty>
-                        {field.value && (
+                        {/* Lets the typed value be kept verbatim when no order matches it. */}
+                        {trimmedSearch && !workOrders?.some(
+                          (wo) => wo.order_number.toLowerCase() === trimmedSearch.toLowerCase()
+                        ) && (
                           <CommandGroup>
                             <CommandItem
-                              value="clear"
-                              onSelect={() => {
-                                form.setValue("work_order_id", undefined);
-                                form.clearErrors("work_order_id");
-                              }}
+                              value={`free-text ${trimmedSearch}`}
+                              onSelect={() => selectFreeText(trimmedSearch)}
                             >
-                              Sin orden de trabajo
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  freeTextWorkOrder === trimmedSearch ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              &quot;{trimmedSearch}&quot;
                             </CommandItem>
                           </CommandGroup>
                         )}
@@ -457,10 +501,7 @@ export function RequisitionHeader({
                             <CommandItem
                               value={`${wo.id} ${wo.order_number}`}
                               key={wo.id}
-                              onSelect={(currentValue: string) => {
-                                const id = currentValue.split(" ")[0];
-                                form.setValue("work_order_id", id);
-                              }}
+                              onSelect={() => selectWorkOrder(wo)}
                             >
                               <Check
                                 className={cn(
@@ -487,7 +528,7 @@ export function RequisitionHeader({
           control={form.control}
           name="department_id"
           render={({ field }) => {
-            const selectedDepartment = departments?.find((d) => d.id.toString() === field.value);
+            const selectedDepartment = allDepartments.find((d) => d.id.toString() === field.value);
             return (
               <FormItem className="w-full">
                 <FormLabel
@@ -531,7 +572,7 @@ export function RequisitionHeader({
                           </CommandGroup>
                         )}
                         <CommandGroup>
-                          {departments?.map((department) => (
+                          {allDepartments.map((department) => (
                             <CommandItem
                               value={`${department.id} ${department.name}`}
                               key={department.id}

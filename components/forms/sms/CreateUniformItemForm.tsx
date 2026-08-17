@@ -85,7 +85,8 @@ export const CreateUniformItemForm = ({ onClose }: Props) => {
   const availableSizes =
     options?.types.find((t) => String(t.value) === selectedType)?.sizes ?? [];
 
-  // Reset the size when the type changes so an invalid size can't linger.
+  // Cada tipo tiene su propio juego de tallas: al cambiarlo hay que limpiar la
+  // talla o quedaría una que no pertenece al nuevo tipo.
   useEffect(() => {
     form.setValue("size", "");
   }, [selectedType]); // eslint-disable-line react-hooks/exhaustive-deps

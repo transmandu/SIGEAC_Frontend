@@ -13,6 +13,7 @@ interface DispatchReportParams {
   authorized_employee_id?: string | null;
   third_party_id?: string | null;
   type?: "aeronautical" | "general" | null;
+  article_category?: "CONSUMABLE" | "PART" | "COMPONENT" | "TOOL" | null;
   from: string;
   to: string;
   format?: "pdf" | "excel";
@@ -24,6 +25,8 @@ interface DispatchReportParams {
   brand_model?: string | null;
 }
 
+// Es una consulta, no una mutación: usa useMutation porque el reporte se pide
+// a demanda con los filtros del formulario y no debe cachearse ni auto-refetch.
 export const useGetDispatchReport = () => {
   return useMutation({
     retry: false,
@@ -45,6 +48,7 @@ export const useGetDispatchReport = () => {
             authorized_employee_id: params.authorized_employee_id ?? undefined,
             third_party_id: params.third_party_id ?? undefined,
             type: params.type ?? undefined,
+            article_category: params.article_category ?? undefined,
             from: params.from,
             to: params.to,
             part_number: params.part_number ?? undefined,

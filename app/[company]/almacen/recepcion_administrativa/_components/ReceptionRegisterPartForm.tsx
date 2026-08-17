@@ -41,6 +41,7 @@ import { Separator } from "@/components/ui/separator";
 
 import {
   ArticleDocumentSelection,
+  buildDocumentSelectionFromArticle,
   extractCreatedArticleIds,
   useConfirmIncomingArticle,
   useCreateArticle,
@@ -294,8 +295,16 @@ export default function ReceptionRegisterPartForm({
   const { updateArticle } = useUpdateArticle();
   const { uploadArticleDocuments } = useUploadArticleDocuments();
 
-  const [documents, setDocuments] = useState<ArticleDocumentSelection[]>([]);
+  const [documents, setDocuments] = useState<ArticleDocumentSelection[]>(() =>
+    buildDocumentSelectionFromArticle(initialData)
+  );
   const { confirmIncoming } = useConfirmIncomingArticle();
+
+  // El artículo llega como `batch` (endpoint show) o `batches` según el origen.
+  const currentBatch = useMemo(
+    () => initialData?.batch ?? initialData?.batches,
+    [initialData]
+  );
 
   // Form
   const form = useForm<FormValues>({
@@ -308,8 +317,8 @@ export default function ReceptionRegisterPartForm({
           : [initialData.serial]
         : [],
       alternative_part_number: initialData?.alternative_part_number || [],
-      batch_id: initialData?.batch?.id?.toString() || "",
-      batch_name: initialData?.batch?.name || "",
+      batch_id: currentBatch?.id?.toString() || "",
+      batch_name: currentBatch?.name || "",
       manufacturer_id: initialData?.manufacturer?.id?.toString() || "",
       condition_id: initialData?.condition?.id?.toString() || "",
       description: initialData?.description || "",
@@ -326,7 +335,9 @@ export default function ReceptionRegisterPartForm({
       fabrication_date: initialData?.partComponent?.fabrication_date
         ? initialData?.partComponent?.fabrication_date
         : undefined,
-      has_documentation: initialData?.has_documentation ?? false,
+      has_documentation:
+        (initialData?.has_documentation ?? false) ||
+        (initialData?.document_requirements?.length ?? 0) > 0,
       aircraft_id: "",
       life_limit_part_calendar: initialData?.partComponent
         ?.life_limit_part_calendar
@@ -369,8 +380,8 @@ export default function ReceptionRegisterPartForm({
           : [initialData.serial]
         : [],
       alternative_part_number: initialData.alternative_part_number ?? [],
-      batch_id: initialData.batches?.id?.toString() ?? "",
-      batch_name: initialData.batches?.name ?? "",
+      batch_id: currentBatch?.id?.toString() ?? "",
+      batch_name: currentBatch?.name ?? "",
       manufacturer_id: initialData.manufacturer?.id?.toString() ?? "",
       condition_id: initialData.condition?.id?.toString() ?? "",
       description: initialData.description ?? "",
@@ -387,7 +398,9 @@ export default function ReceptionRegisterPartForm({
       fabrication_date: initialData.partComponent?.fabrication_date
         ? initialData.partComponent?.fabrication_date
         : undefined,
-      has_documentation: initialData.has_documentation ?? false,
+      has_documentation:
+        (initialData?.has_documentation ?? false) ||
+        (initialData?.document_requirements?.length ?? 0) > 0,
       aircraft_id: "",
       life_limit_part_calendar: initialData.partComponent
         ?.life_limit_part_calendar
@@ -406,7 +419,10 @@ export default function ReceptionRegisterPartForm({
       destination: (initialData as any)?.article_detail?.destination ?? "",
       justification: (initialData as any)?.article_detail?.justification ?? "",
     });
-  }, [initialData, form]);
+    setDocuments((current) =>
+      buildDocumentSelectionFromArticle(initialData, current)
+    );
+  }, [initialData, form, currentBatch]);
 
   // Autocompletar descripción cuando encuentra resultados de búsqueda
   useEffect(() => {
@@ -583,7 +599,7 @@ export default function ReceptionRegisterPartForm({
         updateData.batch_name = values.batch_name;
         // Mantener el batch_id original para que el backend sepa qué batch modificar
         updateData.batch_id =
-          initialData.batches?.id?.toString() || values.batch_id;
+          currentBatch?.id?.toString() || values.batch_id;
       } else {
         // Solo reasignar este artículo a otro batch (NO afecta a otros artículos)
         if (!values.batch_id) {
@@ -1767,6 +1783,7 @@ export default function ReceptionRegisterPartForm({
                     value={documents}
                     onChange={setDocuments}
                     disabled={busy}
+                    consignedRequirements={initialData?.document_requirements}
                   />
                 </div>
               </>

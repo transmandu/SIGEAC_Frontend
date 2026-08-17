@@ -67,21 +67,28 @@ const config = {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
+        // Se anima transform (compositable) en lugar de background-position,
+        // que forzaba un repintado completo en cada frame.
         moveBackground: {
-          '0%, 100%': { backgroundPosition: '0% 50%' },
-          '50%': { backgroundPosition: '100% 50%' },
+          '0%, 100%': { transform: 'translate3d(0, 0, 0) scale(1.15)' },
+          '50%': { transform: 'translate3d(-6%, 0, 0) scale(1.15)' },
+        },
+        indeterminate: {
+          '0%': { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(400%)' },
         },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "moveBackground": 'moveBackground 30s linear infinite',
+        "indeterminate": 'indeterminate 1.1s ease-in-out infinite',
       },
       backgroundImage: {
         planeBg1: "url('/plane1.jpg')",
         planeBg2: "url('/plane2.jpg')",
-        clouds: "url('/clouds.jpg')",
-        night: "url('/night.jpeg')",
+        clouds: "url('/clouds.avif')",
+        night: "url('/night.avif')",
         plane: "url('/plane3.png')",
         notFound: "url('/404.avif')",
       },

@@ -7,19 +7,11 @@ import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { DayMonthYearPicker } from "@/components/selects/DayMonthYearPicker";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
 import { Loader2, Plus } from "lucide-react";
 import { DataTable } from "../data-table";
 import { getManifestColumns } from "./columns";
 import { useAuth } from "@/contexts/AuthContext";
-import { useGetAircrafts } from "@/hooks/aerolinea/aeronaves/useGetAircrafts";
+import { useGetAircrafts } from "@/hooks/general/aeronaves/useGetAircrafts";
 import { useGetExternalAircraftSuggestions } from "@/hooks/operaciones/cargo/useGetExternalAircraftSuggestions";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { cargoManifiestosSteps } from "@/components/tour/steps/cargo/manifiestos";
@@ -33,8 +25,9 @@ import {
   SelectLabel,
   SelectSeparator,
 } from "@/components/ui/select";
+import { PageHeader } from "@/components/layout/PageHeader";
 
-const ManifestosPage = () => {
+const ManifestsPage = () => {
   const params = useParams();
   const company = params.company as string;
   const searchParams = useSearchParams();
@@ -88,27 +81,7 @@ const ManifestosPage = () => {
   return (
     <ContentLayout title="Manifiestos de Carga">
       <div className="flex flex-col gap-4">
-        <Breadcrumb>
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink href={`/${company}/dashboard`}>
-                Inicio
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>Operaciones</BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbLink href={`/${company}/operaciones/cargo`}>
-                Carga
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>Manifiestos</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
+        <PageHeader className="mb-2" />
 
         <div className="flex flex-col gap-2 text-center">
           <h1
@@ -209,4 +182,4 @@ const ManifestosPage = () => {
   );
 };
 
-export default ManifestosPage;
+export default ManifestsPage;

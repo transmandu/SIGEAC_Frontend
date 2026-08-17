@@ -19,6 +19,7 @@ import WorkOrderAircraftDetailsCards from './_components/WorkOrderAircraftDetail
 import WorkOrderTasksDetails from './_components/WorkOrderTasksDetails';
 import { useCompanyStore } from '@/stores/CompanyStore';
 import { Calendar } from "./_components/calendar";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const WorkOrderPage = () => {
   const { order_number } = useParams<{order_number: string }>();
@@ -31,6 +32,8 @@ const WorkOrderPage = () => {
 
   return (
     <ContentLayout title='Orden de Trabajo'>
+      <PageHeader className="mb-6" />
+
       <Tabs defaultValue="overview">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>

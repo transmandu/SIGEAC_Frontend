@@ -5,6 +5,7 @@ import { useGetArticleById } from '@/hooks/mantenimiento/almacen/articulos/useGe
 import { useCompanyStore } from '@/stores/CompanyStore';
 import { useParams } from 'next/navigation';
 import { IncomingReview } from './_components/IncomingReview';
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const IncomingPage = () => {
   const {selectedCompany} = useCompanyStore();
@@ -13,6 +14,8 @@ const IncomingPage = () => {
   if(isLoading) return <LoadingPage />;
   return (
     <ContentLayout title='Incoming'>
+      <PageHeader className="mb-6" />
+
       {
         article ? (
           <IncomingReview

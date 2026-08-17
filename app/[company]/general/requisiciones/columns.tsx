@@ -14,6 +14,7 @@ import Link from "next/link"
 import { Plane, ClipboardList, Building2, Handshake } from "lucide-react"
 
 import RequisitionArticlesPopover from "./_components/RequisitionArticlesPopover"
+import RequisitionDateFilter, { type DateFilterValue } from "./_components/RequisitionDateFilter"
 
 // This type is used to define the shape of our data.
 // You can use a Zod schema here if you want.
@@ -136,7 +137,7 @@ export const getColumns = (
       const config = {
         HIGH: { label: "ALTA", dot: "bg-red-500" },
         MEDIUM: { label: "MEDIA", dot: "bg-yellow-500" },
-        LOW: { label: "Baja", dot: "bg-green-500" },
+        LOW: { label: "BAJA", dot: "bg-green-500" },
       } as const;
 
       const value = config[priority as keyof typeof config] ?? {
@@ -225,9 +226,24 @@ export const getColumns = (
     accessorKey: "submission_date",
     size: 150,
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Fecha de Creación" />
+      <RequisitionDateFilter column={column} title="Fecha de Creación" />
     ),
     meta: { title: "Fecha de Creación" },
+    filterFn: (row, columnId, filterValue: DateFilterValue) => {
+      if (!filterValue?.from && !filterValue?.to) return true;
+
+      const raw = row.getValue<string>(columnId);
+      if (!raw) return false;
+
+      // Se compara en texto ISO (yyyy-MM-dd) para no arrastrar la zona horaria
+      // del navegador, que puede correr la fecha un día.
+      const value = format(new Date(raw), "yyyy-MM-dd");
+
+      if (filterValue.from && value < filterValue.from) return false;
+      if (filterValue.to && value > filterValue.to) return false;
+
+      return true;
+    },
     cell: ({ row }) => (
       <p className="text-center text-sm text-slate-600 dark:text-slate-300 font-medium tracking-wide uppercase">
         {format(new Date(row.original.submission_date), "dd MMM yyyy", { locale: es })}

@@ -47,6 +47,7 @@ export default function NotificationBell() {
     notifications,
     unreadCount,
     open,
+    scopeKey: selectedCompany?.slug,
   });
 
   useEffect(() => {
@@ -56,6 +57,8 @@ export default function NotificationBell() {
       const timeout = setTimeout(() => {
         setShake(false);
       }, 700);
+
+      previousCount.current = unreadCount;
 
       return () => clearTimeout(timeout);
     }
@@ -72,15 +75,12 @@ export default function NotificationBell() {
               onClick={() => setOpen(true)}
               aria-label="Notifications"
               className={cn(
+                'glass-control',
                 'relative flex items-center justify-center',
                 'h-9 w-9 rounded-full',
-                'bg-background',
-                'border border-border/80',
+                'border',
                 'text-foreground/90',
                 'hover:text-foreground',
-                'hover:bg-muted/70',
-                'hover:border-border',
-                'transition-all duration-200',
                 'active:scale-95',
                 open && 'bg-muted/60'
               )}

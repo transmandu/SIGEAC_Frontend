@@ -15,7 +15,7 @@ export type Menu = {
     label: string;
     active: boolean;
     icon: LucideIcon;
-    roles: string[];
+    roles?: string[];
     moduleValue?: string | string[];
     submenus: Submenu[];
     requiresOmac?: boolean;

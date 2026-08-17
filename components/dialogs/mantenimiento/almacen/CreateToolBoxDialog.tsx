@@ -19,11 +19,11 @@ export function CreateToolBoxDialog() {
       <DialogTrigger asChild>
         <Button onClick={() => setOpen(true)} variant={'outline'} className="flex items-center justify-center gap-2 h-8 border-dashed">Nuevo</Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[420px]">
+      <DialogContent className="sm:max-w-[480px]">
         <DialogHeader>
-          <DialogTitle>Creación de Caja de Herra.</DialogTitle>
+          <DialogTitle>Nueva Caja de Herramientas</DialogTitle>
           <DialogDescription>
-            Cree una caja de herramientas y asignela a un técnico.
+            Registra un contenedor de herramientas y asígnale un responsable.
           </DialogDescription>
         </DialogHeader>
         <CreateToolBoxForm onClose={() => setOpen(false)} />

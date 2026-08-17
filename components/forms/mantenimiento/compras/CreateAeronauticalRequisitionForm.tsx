@@ -23,6 +23,7 @@ import { RequisitionHeader } from "./_components/RequisitionHeader"
 import { BatchArticlesSection } from "./_components/BatchArticlesSection"
 import { AdditionalInfoSection } from "./_components/AdditionalInfoSection"
 import { isHigherPriority, type Priority } from "./_components/priorityUtils"
+import { canAddRequisitionArticle } from "@/lib/purchases/requisition-article-limit"
 
 const FormSchema = z.object({
   justification: z
@@ -34,6 +35,7 @@ const FormSchema = z.object({
   requested_by: z.string().min(1, "Debe ingresar quien lo solicita."),
   priority: z.enum(["HIGH", "MEDIUM", "LOW"]).optional(),
   work_order_id: z.string().optional(),
+  work_order: z.string().optional(),
   aircraft_id: z.string().optional(),
   image: z
     .instanceof(File)
@@ -117,7 +119,6 @@ export function CreateAeronauticalRequisitionForm({
 
   const [selectedBatches, setSelectedBatches] = useState<RequisitionBatchForm[]>([]);
 
-  // Local search state for each searchable selector (keeps filtering stable during typing)
   const [employeeSearch, setEmployeeSearch] = useState("");
   const [aircraftSearch, setAircraftSearch] = useState("");
   const [workOrderSearch, setWorkOrderSearch] = useState("");
@@ -131,7 +132,6 @@ export function CreateAeronauticalRequisitionForm({
     debouncedArticleSearch || undefined
   );
 
-  // Memoized filtered lists for each searchable selector
   const filteredEmployees = useMemo(() => {
     if (!employees) return [];
     const query = employeeSearch.toLowerCase().trim();
@@ -207,9 +207,8 @@ export function CreateAeronauticalRequisitionForm({
     form.setValue("articles", selectedBatches, { shouldValidate: form.formState.isSubmitted });
   }, [selectedBatches, form]);
 
-  // Aircraft Sync: the header aircraft is the default for batch items. We only
-  // propagate it to items that were still following the header's previous
-  // value (or had none), so manual per-item overrides are never clobbered.
+  // La aeronave de la cabecera baja a los renglones, pero solo a los que aún
+  // seguían el valor anterior: si el usuario cambió uno a mano, no se pisa.
   const headerAircraftId = form.watch("aircraft_id");
   const previousHeaderAircraftId = useRef<string | undefined>(undefined);
 
@@ -230,8 +229,8 @@ export function CreateAeronauticalRequisitionForm({
     }
   }, [headerAircraftId]);
 
-  // Priority Escalation: an item's priority can only raise the header's
-  // priority, never lower it, and never touches other items.
+  // La prioridad de un renglón solo puede subir la de la cabecera, nunca
+  // bajarla, y no afecta a los demás renglones.
   const escalateHeaderPriority = (priority?: Priority) => {
     const currentPriority = form.getValues("priority") as Priority | undefined;
     if (isHigherPriority(priority, currentPriority)) {
@@ -239,12 +238,17 @@ export function CreateAeronauticalRequisitionForm({
     }
   };
 
-  // Batch handlers
+  // Cuenta renglones distintos, no cantidades: es contra esto que se aplica el
+  // tope de artículos por requisición.
+  const totalBatchArticles = (batches: RequisitionBatchForm[]) =>
+    batches.reduce((sum, b) => sum + b.batch_articles.length, 0);
+
   const handleBatchSelect = (batchName: string, batchId: string, batch_category: string) => {
     setSelectedBatches((prev) => {
       if (prev.some((b) => b.batch === batchId)) {
         return prev.filter((b) => b.batch !== batchId);
       }
+      if (!canAddRequisitionArticle(totalBatchArticles(prev))) return prev;
       return [
         ...prev,
         {
@@ -256,9 +260,8 @@ export function CreateAeronauticalRequisitionForm({
     });
   };
 
-  // Article search handler: selecting an article by part_number loads its
-  // associated batch (adding it if not already selected) and fills the
-  // part_number/alt_part_number/unit into an empty row, or appends a new one.
+  // Elegir un artículo por part_number arrastra su renglón (lo agrega si no
+  // estaba) y rellena la primera fila vacía, o crea una nueva.
   const handleArticleSelect = (
     batch: BatchWithArticles["batch"],
     article: BatchWithArticles["articles"][number]
@@ -278,6 +281,7 @@ export function CreateAeronauticalRequisitionForm({
       const existingBatch = prev.find((b) => b.batch === batchId);
 
       if (!existingBatch) {
+        if (!canAddRequisitionArticle(totalBatchArticles(prev))) return prev;
         return [
           ...prev,
           {
@@ -298,9 +302,11 @@ export function CreateAeronauticalRequisitionForm({
         ];
       }
 
+      const emptyIndex = existingBatch.batch_articles.findIndex((a) => !a.part_number);
+      if (emptyIndex === -1 && !canAddRequisitionArticle(totalBatchArticles(prev))) return prev;
+
       return prev.map((b) => {
         if (b.batch !== batchId) return b;
-        const emptyIndex = b.batch_articles.findIndex((a) => !a.part_number);
         if (emptyIndex === -1) {
           return {
             ...b,
@@ -354,8 +360,9 @@ export function CreateAeronauticalRequisitionForm({
   };
 
   const addBatchArticle = (batchId: string) => {
-    setSelectedBatches((prev) =>
-      prev.map((batch) => {
+    setSelectedBatches((prev) => {
+      if (!canAddRequisitionArticle(totalBatchArticles(prev))) return prev;
+      return prev.map((batch) => {
         if (batch.batch !== batchId) return batch;
         return {
           ...batch,
@@ -364,8 +371,8 @@ export function CreateAeronauticalRequisitionForm({
             { part_number: "", quantity: 1, unit: getDefaultUnit(batch.batch_name), priority: "MEDIUM", aircraft_id: headerAircraftId, document_type_ids: [] },
           ],
         };
-      })
-    );
+      });
+    });
   };
 
   const removeBatchArticle = (batchId: string, articleIndex: number) => {
@@ -396,6 +403,7 @@ export function CreateAeronauticalRequisitionForm({
       ...data,
       type: "AERONAUTICAL" as const,
       work_order_id: data.work_order_id ? Number(data.work_order_id) : undefined,
+      work_order: data.work_order_id ? undefined : data.work_order,
       aircraft_id: data.aircraft_id ? Number(data.aircraft_id) : undefined,
     };
 

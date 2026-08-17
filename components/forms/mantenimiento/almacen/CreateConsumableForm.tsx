@@ -22,6 +22,7 @@ import {
 
 import {
     ArticleDocumentSelection,
+    buildDocumentSelectionFromArticle,
     extractCreatedArticleIds,
     useConfirmIncomingArticle,
     useCreateArticle,
@@ -71,8 +72,8 @@ import { Separator } from "@/components/ui/separator";
 import { useGetConditions } from "@/hooks/administracion/useGetConditions";
 import { useGetManufacturers } from "@/hooks/general/fabricantes/useGetManufacturers";
 import { useGetBatchesByCategory } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByCategory";
-import { useGetConversionByUnitConsmable } from "@/hooks/mantenimiento/almacen/articulos/useGetConvertionsByConsumableUnit";
-import { Unit } from "@/types";
+import { useGetConversionByConsmable } from "@/hooks/mantenimiento/almacen/articulos/useGetConvertionsByConsumableId";
+import { Convertion, Unit } from "@/types";
 
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
@@ -118,7 +119,6 @@ const formSchema = z.object({
     image: z.instanceof(File).optional(),
     has_documentation: z.boolean().optional(),
     // auxiliares para conversión secundaria
-    convertion_id: z.number().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -159,7 +159,9 @@ const CreateConsumableForm = ({
     const { updateArticle } = useUpdateArticle();
     const { uploadArticleDocuments } = useUploadArticleDocuments();
 
-    const [documents, setDocuments] = useState<ArticleDocumentSelection[]>([]);
+    const [documents, setDocuments] = useState<ArticleDocumentSelection[]>(() =>
+        buildDocumentSelectionFromArticle(initialData)
+    );
     const { confirmIncoming } = useConfirmIncomingArticle();
 
     const [selectedBatchId, setSelectedBatchId] = useState<number | undefined>(
@@ -171,19 +173,16 @@ const CreateConsumableForm = ({
         return batches?.find((b) => b.id === selectedBatchId);
     }, [batches, selectedBatchId]);
 
-    // Obtener conversiones específicas del consumible seleccionado
+    // Un consumible que aún no existe no tiene conversiones propias: al crear,
+    // la cantidad se captura directamente en la unidad base del lote. Las
+    // conversiones se registran después, desde el artículo ya creado.
     const { data: consumableConversions, isLoading: consumableConversionsLoading } =
-        useGetConversionByUnitConsmable(
-            selectedBatch?.unit?.id ?? 0,
+        useGetConversionByConsmable(
+            isEditing ? (initialData?.id ?? null) : null,
             selectedCompany?.slug
         );
 
-    type ConversionData = {
-        id: number;
-        primary_unit: Unit;
-        equivalence: number;
-        secondary_unit: Unit;
-    };
+    type ConversionData = Convertion;
 
     const [secondaryOpen, setSecondaryOpen] = useState(false);
     const [secondarySelected, setSecondarySelected] = useState<ConversionData | null>(null);
@@ -225,6 +224,9 @@ const CreateConsumableForm = ({
             is_managed: initialData?.consumable?.is_managed
                 ? initialData.consumable.is_managed === "1" || initialData.consumable.is_managed === true
                 : true,
+            has_documentation:
+                (initialData?.has_documentation ?? false) ||
+                (initialData?.document_requirements?.length ?? 0) > 0,
         },
     });
 
@@ -253,7 +255,13 @@ const CreateConsumableForm = ({
             is_managed: initialData?.consumable?.is_managed
                 ? initialData.consumable.is_managed === "1" || initialData.consumable.is_managed === true
                 : true,
+            has_documentation:
+                (initialData.has_documentation ?? false) ||
+                (initialData.document_requirements?.length ?? 0) > 0,
         });
+        setDocuments((current) =>
+            buildDocumentSelectionFromArticle(initialData, current)
+        );
     }, [initialData, form]);
 
     // conversión secundaria -> quantity
@@ -264,7 +272,7 @@ const CreateConsumableForm = ({
             !Number.isNaN(secondaryQuantity)
         ) {
             const qty =
-                (secondarySelected.equivalence ?? 1) *
+                (secondarySelected.base_per_unit ?? 1) *
                 secondaryQuantity;
             form.setValue("quantity", qty, {
                 shouldDirty: true,
@@ -307,7 +315,6 @@ const CreateConsumableForm = ({
             fabrication_date: fabricationDate
                 ? format(fabricationDate, "yyyy-MM-dd")
                 : undefined,
-            convertion_id: secondarySelected?.id,
         };
 
         if (isEditing && initialData) {
@@ -806,7 +813,7 @@ const CreateConsumableForm = ({
                                                 className="justify-between"
                                             >
                                                 {secondarySelected
-                                                    ? `${secondarySelected.secondary_unit?.label || secondarySelected.secondary_unit?.value || "N/A"}`
+                                                    ? `${secondarySelected.unit?.label || secondarySelected.unit?.value || "N/A"}`
                                                     : consumableConversionsLoading
                                                         ? "Cargando..."
                                                         : !selectedBatchId
@@ -840,20 +847,20 @@ const CreateConsumableForm = ({
                                                                         found &&
                                                                         typeof secondaryQuantity === "number"
                                                                     ) {
+                                                                        // base_per_unit ya viene orientado hacia la
+                                                                        // unidad base: pasar a base es siempre
+                                                                        // multiplicar, sea la alterna mayor o menor.
                                                                         const calc =
-                                                                            (found.equivalence ?? 1) *
+                                                                            (found.base_per_unit ?? 1) *
                                                                             (secondaryQuantity ?? 0);
                                                                         form.setValue("quantity", calc, {
                                                                             shouldDirty: true,
                                                                             shouldValidate: true,
                                                                         });
-                                                                        form.setValue("convertion_id", found.id, {
-                                                                            shouldDirty: true,
-                                                                        });
                                                                     }
                                                                 }}
                                                             >
-                                                                {conversion.secondary_unit?.label || conversion.secondary_unit?.value || "N/A"}
+                                                                {conversion.unit?.label || conversion.unit?.value || "N/A"}
                                                                 <Check
                                                                     className={cn(
                                                                         "ml-auto",
@@ -1074,6 +1081,7 @@ const CreateConsumableForm = ({
                                         value={documents}
                                         onChange={setDocuments}
                                         disabled={busy}
+                                        consignedRequirements={initialData?.document_requirements}
                                     />
                                 )}
                             </div>

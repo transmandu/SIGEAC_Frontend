@@ -27,4 +27,4 @@ export const useGetCargoManifest = (
     queryFn: () => fetchCargoManifests(company, month, year, aircraftId),
     enabled: !!company,
   });
-};
+};

@@ -22,6 +22,7 @@ import {
 
 import {
   ArticleDocumentSelection,
+  buildDocumentSelectionFromArticle,
   extractCreatedArticleIds,
   useConfirmIncomingArticle,
   useCreateArticle,
@@ -407,10 +408,18 @@ export default function ReceptionRegisterToolForm({
   const { updateArticle } = useUpdateArticle();
   const { uploadArticleDocuments } = useUploadArticleDocuments();
 
-  const [documents, setDocuments] = useState<ArticleDocumentSelection[]>([]);
+  const [documents, setDocuments] = useState<ArticleDocumentSelection[]>(() =>
+    buildDocumentSelectionFromArticle(initialData)
+  );
   const { confirmIncoming } = useConfirmIncomingArticle();
 
   const [enableBatchNameEdit, setEnableBatchNameEdit] = useState(false);
+
+  // El artículo llega como `batch` (endpoint show) o `batches` según el origen.
+  const currentBatch = useMemo(
+    () => initialData?.batch ?? initialData?.batches,
+    [initialData]
+  );
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -421,8 +430,8 @@ export default function ReceptionRegisterToolForm({
       description: initialData?.description || "",
       zone: initialData?.zone || "",
       manufacturer_id: initialData?.manufacturer?.id?.toString() || "",
-      batch_id: initialData?.batch?.id?.toString() || "",
-      batch_name: initialData?.batch?.name || "",
+      batch_id: currentBatch?.id?.toString() || "",
+      batch_name: currentBatch?.name || "",
       needs_calibration: initialData?.tool?.needs_calibration ?? false,
       calibration_date: initialData?.tool?.calibration_date
         ? parseISO(initialData.tool.calibration_date)
@@ -430,7 +439,9 @@ export default function ReceptionRegisterToolForm({
       next_calibration: initialData?.tool?.next_calibration
         ? Number(initialData.tool.next_calibration)
         : undefined,
-      has_documentation: initialData?.has_documentation ?? false,
+      has_documentation:
+        (initialData?.has_documentation ?? false) ||
+        (initialData?.document_requirements?.length ?? 0) > 0,
       destination_unknown: false,
       inspector: initialData?.inspector || "",
       inspect_date: initialData?.inspect_date
@@ -461,8 +472,8 @@ export default function ReceptionRegisterToolForm({
       description: initialData.description || "",
       zone: initialData.zone || "",
       manufacturer_id: initialData.manufacturer?.id?.toString() || "",
-      batch_id: initialData.batches?.id?.toString() || "",
-      batch_name: initialData.batches?.name || "",
+      batch_id: currentBatch?.id?.toString() || "",
+      batch_name: currentBatch?.name || "",
       needs_calibration: initialData.tool?.needs_calibration ?? false,
       calibration_date: initialData.tool?.calibration_date
         ? parseISO(initialData.tool.calibration_date)
@@ -470,13 +481,18 @@ export default function ReceptionRegisterToolForm({
       next_calibration: initialData.tool?.next_calibration
         ? Number(initialData.tool.next_calibration)
         : undefined,
-      has_documentation: initialData.has_documentation ?? false,
+      has_documentation:
+        (initialData?.has_documentation ?? false) ||
+        (initialData?.document_requirements?.length ?? 0) > 0,
       destination_unknown: false,
       reception_date: initialData?.reception_date
         ? addDays(new Date(initialData.reception_date), 1)
         : undefined,
     });
-  }, [initialData, form]);
+    setDocuments((current) =>
+      buildDocumentSelectionFromArticle(initialData, current)
+    );
+  }, [initialData, form, currentBatch]);
 
   const [inspectDate, setInspectDate] = useState<Date | null | undefined>(
     initialData?.inspect_date
@@ -1278,6 +1294,7 @@ export default function ReceptionRegisterToolForm({
                   value={documents}
                   onChange={setDocuments}
                   disabled={busy}
+                  consignedRequirements={initialData?.document_requirements}
                 />
               )}
             </div>

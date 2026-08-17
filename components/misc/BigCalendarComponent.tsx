@@ -5,7 +5,6 @@ import dayjs from "dayjs";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { useState } from "react";
 
-// Configura dayjs en español
 import "dayjs/locale/es";
 import { useTheme } from "next-themes";
 
@@ -47,7 +46,6 @@ const myEvents: Event[] = [
   },
 ];
 
-// Textos en español para los botones y cabeceras
 const messages = {
   today: "Hoy",
   previous: "Atrás",
@@ -62,7 +60,6 @@ const BigCalendar = () => {
   const { theme } = useTheme();
   const [currentDate, setCurrentDate] = useState(new Date()); // Estado para la fecha actual
   const [currentView, setCurrentView] = useState<View>("month"); // Estado para la vista
-  console.log(theme);
   return (
     <div style={{ height: "85vh", width: "60vw" }}>
       <Calendar

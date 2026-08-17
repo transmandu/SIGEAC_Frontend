@@ -3,7 +3,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -41,10 +41,13 @@ import { Separator } from "@/components/ui/separator";
 
 import {
     ArticleDocumentSelection,
+    buildDocumentSelectionFromArticle,
+    isDocumentSelectionDirty,
     extractCreatedArticleIds,
     useConfirmIncomingArticle,
     useCreateArticle,
     useUpdateArticle,
+    useSyncArticleDocumentRequirements,
     useUploadArticleDocuments,
 } from "@/actions/mantenimiento/almacen/inventario/articulos/actions";
 
@@ -110,9 +113,7 @@ const formSchema = z
             .optional(),
         description: z.string().optional(),
         batch_name: z.string().optional(),
-        zone: z
-            .string({ message: "Debe ingresar la ubicación del artículo." })
-            .min(1, "Campo requerido"),
+        zone: z.string().optional(),
         expiration_date: z.string().optional(),
         fabrication_date: z.string().optional(),
         calendar_date: z.string().optional(),
@@ -126,7 +127,7 @@ const formSchema = z
             .min(0, "No puede ser negativo")
             .optional(),
         manufacturer_id: z.string().optional(),
-        condition_id: z.string().min(1, "Debe ingresar la condición del artículo."),
+        condition_id: z.string().optional(),
         batch_id: z
             .string({ message: "Debe ingresar un lote." })
             .min(1, "Seleccione un lote"),
@@ -194,11 +195,17 @@ export default function DirectRegisterPartForm({
     initialData,
     isEditing,
     onEditSuccess,
+    submitLabel,
+    onStateChange,
 }: {
     initialData?: EditingArticle;
     isEditing?: boolean;
     /** Al editar: reemplaza la redirección post-guardado (útil dentro de diálogos). */
     onEditSuccess?: () => void;
+    /** Rótulo del botón de guardado, para flujos que no son ingresar al almacén. */
+    submitLabel?: string;
+    /** Oculta las acciones y reporta el estado; ver DirectRegisterComponentForm. */
+    onStateChange?: (state: { busy: boolean; canSave: boolean }) => void;
 }) {
     const { user } = useAuth();
     const userRoles = user?.roles?.map((role) => role.name) || [];
@@ -252,6 +259,33 @@ export default function DirectRegisterPartForm({
 
     const [enableBatchNameEdit, setEnableBatchNameEdit] = useState(false);
 
+    // Valores iniciales de los date pickers (estado local, fuera de RHF) para
+    // detectar cambios en modo edición: isDirty de RHF no los ve.
+    const initialDatesRef = useRef({
+        fabricationDate: initialData?.partComponent?.fabrication_date
+            ? parseISO(initialData.partComponent.fabrication_date).getTime()
+            : null,
+        caducateDate: initialData?.partComponent?.expiration_date
+            ? parseISO(initialData.partComponent.expiration_date).getTime()
+            : null,
+        inspectDate: initialData?.inspect_date
+            ? parseISO(initialData.inspect_date).getTime()
+            : null,
+        lifeLimitPartCalendar: initialData?.partComponent?.life_limit_part_calendar
+            ? parseISO(initialData.partComponent.life_limit_part_calendar).getTime()
+            : null,
+        hardTimeCalendar: initialData?.partComponent?.hard_time_calendar
+            ? parseISO(initialData.partComponent.hard_time_calendar).getTime()
+            : null,
+    });
+
+    const datesDirty =
+        (fabricationDate?.getTime() ?? null) !== initialDatesRef.current.fabricationDate ||
+        (caducateDate?.getTime() ?? null) !== initialDatesRef.current.caducateDate ||
+        (inspectDate?.getTime() ?? null) !== initialDatesRef.current.inspectDate ||
+        (lifeLimitPartCalendar?.getTime() ?? null) !== initialDatesRef.current.lifeLimitPartCalendar ||
+        (hardTimeCalendar?.getTime() ?? null) !== initialDatesRef.current.hardTimeCalendar;
+
     // Data hooks
     const {
         data: batches,
@@ -288,13 +322,19 @@ export default function DirectRegisterPartForm({
     const { createArticle } = useCreateArticle();
     const { updateArticle } = useUpdateArticle();
     const { uploadArticleDocuments } = useUploadArticleDocuments();
+    const { syncArticleDocumentRequirements } = useSyncArticleDocumentRequirements();
 
-    // Al editar, precarga los tipos de documento requeridos aún sin consignar.
+    // Al editar, precarga todos los requerimientos documentales (pendientes y
+    // ya consignados), estos últimos con su requirementId para que el
+    // selector muestre su estado real en vez de tratarlos como vacíos.
     const [documents, setDocuments] = useState<ArticleDocumentSelection[]>(() =>
-        (initialData?.document_requirements ?? [])
-            .filter((req) => req.documents.length === 0 && typeof req.document_type?.id === "number")
-            .map((req) => ({ typeId: req.document_type!.id }))
+        buildDocumentSelectionFromArticle(initialData)
     );
+
+    // La documentación vive fuera de react-hook-form: sin este contraste el
+    // botón de guardar no se entera de que el usuario adjuntó un archivo.
+    const initialDocumentsRef = useRef(buildDocumentSelectionFromArticle(initialData));
+    const documentsDirty = isDocumentSelectionDirty(documents, initialDocumentsRef.current);
     const { confirmIncoming } = useConfirmIncomingArticle();
 
     // Form
@@ -411,6 +451,9 @@ export default function DirectRegisterPartForm({
             ata_code: initialData?.ata_code || "",
             aircraft_id: initialData?.partComponent?.aircraft_id?.toString() ?? "",
         });
+        const reloadedDocuments = buildDocumentSelectionFromArticle(initialData);
+        initialDocumentsRef.current = reloadedDocuments;
+        setDocuments(reloadedDocuments);
     }, [initialData, form]);
 
     // Autocompletar descripción cuando encuentra resultados de búsqueda
@@ -418,7 +461,7 @@ export default function DirectRegisterPartForm({
         if (searchResults && searchResults.length > 0 && !isEditing) {
             const firstResult = searchResults[0];
             form.setValue("batch_id", firstResult.id.toString(), {
-                shouldValidate: true,
+                shouldValidate: true, shouldDirty: true,
             });
 
             // Notificar al usuario
@@ -444,7 +487,21 @@ export default function DirectRegisterPartForm({
         isConditionsLoading ||
         createArticle.isPending ||
         confirmIncoming.isPending ||
-        updateArticle.isPending;
+        updateArticle.isPending ||
+        uploadArticleDocuments.isPending ||
+        syncArticleDocumentRequirements.isPending;
+
+    // Espeja la condición del botón propio, para los contextos que lo montan fuera.
+    const canSave = isEditing
+        ? !!selectedCompany && (form.formState.isDirty || datesDirty || documentsDirty)
+        : !!selectedCompany &&
+          !!form.getValues("part_number") &&
+          !!form.getValues("batch_id") &&
+          caducateDate !== undefined;
+
+    useEffect(() => {
+        onStateChange?.({ busy, canSave });
+    }, [busy, canSave, onStateChange]);
 
     const normalizeUpper = (s?: string) => s?.trim().toUpperCase() ?? "";
 
@@ -601,11 +658,19 @@ export default function DirectRegisterPartForm({
                 id: initialData.id,
             });
 
-            if (values.has_documentation && documents.length > 0) {
+            const keptDocuments = values.has_documentation ? documents : [];
+
+            await syncArticleDocumentRequirements.mutateAsync({
+                company: selectedCompany.slug,
+                keptTypeIds: keptDocuments.map((doc) => doc.typeId),
+                existingRequirements: initialData.document_requirements ?? [],
+            });
+
+            if (keptDocuments.length > 0) {
                 await uploadArticleDocuments.mutateAsync({
                     company: selectedCompany.slug,
                     articleId: Number(initialData.id),
-                    documents,
+                    documents: keptDocuments,
                 });
             }
 
@@ -891,7 +956,7 @@ export default function DirectRegisterPartForm({
                                                     );
                                                     if (newBatch) {
                                                         form.setValue("batch_id", newBatch.id.toString(), {
-                                                            shouldValidate: true,
+                                                            shouldValidate: true, shouldDirty: true,
                                                         });
                                                     }
                                                 }}
@@ -980,13 +1045,13 @@ export default function DirectRegisterPartForm({
                                                                             form.setValue(
                                                                                 "batch_id",
                                                                                 batch.id.toString(),
-                                                                                { shouldValidate: true },
+                                                                                { shouldValidate: true, shouldDirty: true },
                                                                             );
                                                                             if (isEditing && enableBatchNameEdit) {
                                                                                 form.setValue(
                                                                                     "batch_name",
                                                                                     batch.name,
-                                                                                    { shouldValidate: true },
+                                                                                    { shouldValidate: true, shouldDirty: true },
                                                                                 );
                                                                             }
                                                                         }}
@@ -1028,13 +1093,13 @@ export default function DirectRegisterPartForm({
                                                                             form.setValue(
                                                                                 "batch_id",
                                                                                 batch.id.toString(),
-                                                                                { shouldValidate: true },
+                                                                                { shouldValidate: true, shouldDirty: true },
                                                                             );
                                                                             if (isEditing && enableBatchNameEdit) {
                                                                                 form.setValue(
                                                                                     "batch_name",
                                                                                     batch.name,
-                                                                                    { shouldValidate: true },
+                                                                                    { shouldValidate: true, shouldDirty: true },
                                                                                 );
                                                                             }
                                                                         }}
@@ -1250,7 +1315,7 @@ export default function DirectRegisterPartForm({
                                             <CreateResguardoAircraftDialog
                                                 onSuccess={(aircraftId) => {
                                                     form.setValue("aircraft_id", aircraftId, {
-                                                        shouldValidate: true,
+                                                        shouldValidate: true, shouldDirty: true,
                                                     });
                                                 }}
                                                 triggerButton={
@@ -1312,7 +1377,7 @@ export default function DirectRegisterPartForm({
                                                                         form.setValue(
                                                                             "aircraft_id",
                                                                             aircraft.id.toString(),
-                                                                            { shouldValidate: true },
+                                                                            { shouldValidate: true, shouldDirty: true },
                                                                         );
                                                                     }}
                                                                 >
@@ -1363,7 +1428,7 @@ export default function DirectRegisterPartForm({
                                                     form.setValue(
                                                         "manufacturer_id",
                                                         manufacturer.id.toString(),
-                                                        { shouldValidate: true },
+                                                        { shouldValidate: true, shouldDirty: true },
                                                     );
                                                 }
                                             }}
@@ -1454,7 +1519,7 @@ export default function DirectRegisterPartForm({
                                                                         form.setValue(
                                                                             "manufacturer_id",
                                                                             manufacturer.id.toString(),
-                                                                            { shouldValidate: true },
+                                                                            { shouldValidate: true, shouldDirty: true },
                                                                         );
                                                                     }}
                                                                 >
@@ -1788,6 +1853,7 @@ export default function DirectRegisterPartForm({
                                         value={documents}
                                         onChange={setDocuments}
                                         disabled={busy}
+                                        consignedRequirements={initialData?.document_requirements}
                                     />
                                 </div>
                             </>
@@ -1796,38 +1862,34 @@ export default function DirectRegisterPartForm({
                 </SectionCard>
 
                 {/* Acciones */}
-                <div className="flex items-center gap-3">
-                    <Button
-                        className="bg-primary text-white hover:bg-blue-900 disabled:bg-slate-100 disabled:text-slate-400"
-                        disabled={
-                            busy ||
-                            !selectedCompany ||
-                            !form.getValues("part_number") ||
-                            !form.getValues("batch_id") ||
-                            caducateDate === undefined
-                        }
-                        type="submit"
-                    >
-                        {busy ? (
-                            <Image
-                                className="text-black"
-                                src={loadingGif}
-                                width={170}
-                                height={170}
-                                alt="Cargando..."
-                            />
-                        ) : (
-                            <span>{isEditing ? "Confirmar ingreso" : "Crear artículo"}</span>
-                        )}
-                    </Button>
+                {!onStateChange && (
+                    <div className="flex items-center gap-3">
+                        <Button
+                            className="bg-primary text-white hover:bg-blue-900 disabled:bg-slate-100 disabled:text-slate-400"
+                            disabled={busy || !canSave}
+                            type="submit"
+                        >
+                            {busy ? (
+                                <Image
+                                    className="text-black"
+                                    src={loadingGif}
+                                    width={170}
+                                    height={170}
+                                    alt="Cargando..."
+                                />
+                            ) : (
+                                <span>{submitLabel ?? (isEditing ? "Guardar cambios" : "Crear artículo")}</span>
+                            )}
+                        </Button>
 
-                    {busy && (
-                        <div className="inline-flex items-center text-sm text-muted-foreground gap-2">
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                            Procesando…
-                        </div>
-                    )}
-                </div>
+                        {busy && (
+                            <div className="inline-flex items-center text-sm text-muted-foreground gap-2">
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                Procesando…
+                            </div>
+                        )}
+                    </div>
+                )}
             </form>
             <PreviewCreateComponentDialog
                 open={openPreview}

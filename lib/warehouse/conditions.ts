@@ -21,3 +21,19 @@ export function formatCondition(value?: string | null): ConditionLabel | null {
   const key = String(value).trim().toUpperCase()
   return CONDITION_MAP.get(key) ?? { es: String(value), en: String(value) }
 }
+
+/** "Nuevo (New)" — el formato con que se muestran las condiciones en la tabla. */
+export const conditionOptionLabel = (value: string) => {
+  const c = formatCondition(value)
+  if (!c) return value
+  return c.es === c.en ? c.es : `${c.es} (${c.en})`
+}
+
+/**
+ * Opciones del selector de Condición. El valor es el `conditions.name` crudo
+ * que guarda la BD, así el filtro compara contra lo que trae el artículo.
+ */
+export const CONDITION_OPTIONS = CONDITIONS.map((c) => ({
+  value: c.value,
+  label: c.es === c.en ? c.es : `${c.es} (${c.en})`,
+}))

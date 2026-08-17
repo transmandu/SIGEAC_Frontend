@@ -12,6 +12,10 @@ const Toaster = ({ ...props }: ToasterProps) => {
     <Sonner
       theme={theme as ToasterProps["theme"]}
       className="toaster group"
+      // Botón de cerrar en todos los toasts: la duración por defecto es larga
+      // y sonner además pausa el temporizador con el mouse encima, así que sin
+      // esto no hay forma de descartar un aviso ya leído.
+      closeButton
       toastOptions={{
         classNames: {
           toast:
@@ -21,6 +25,8 @@ const Toaster = ({ ...props }: ToasterProps) => {
             "group-[.toast]:bg-primary group-[.toast]:text-primary-foreground",
           cancelButton:
             "group-[.toast]:bg-muted group-[.toast]:text-muted-foreground",
+          closeButton:
+            "group-[.toast]:text-muted-foreground group-[.toast]:hover:bg-muted group-[.toast]:hover:text-foreground",
         },
       }}
       {...props}

@@ -1,9 +1,11 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { useAuth } from "@/contexts/AuthContext"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { ClipboardCheck, FileDown, Receipt, Wallet } from "lucide-react"
+import { AlertOctagon, ClipboardCheck, FileDown, Receipt, Wallet } from "lucide-react"
 import PurchaseOrderDropdownDialogs from "@/components/dialogs/mantenimiento/compras/PurchaseOrderDropdownDialogs"
 import InvoicePreviewDialog from "@/components/dialogs/mantenimiento/compras/InvoicePreviewDialog"
 import { useCompanyStore } from "@/stores/CompanyStore"
@@ -31,13 +33,17 @@ export default function PurchaseOrderActions({
 }: {
   po: PurchaseOrder
 }) {
+  const router = useRouter()
+  const { user } = useAuth()
   const { selectedCompany } = useCompanyStore()
   const [openApprove, setOpenApprove] = useState(false)
   const [openInvoice, setOpenInvoice] = useState(false)
+  const [openCascadeDelete, setOpenCascadeDelete] = useState(false)
 
   const canPay = po.status === "PENDING"
   const canComplete = po.status === "PAID"
   const hasInvoice = !!po.invoice
+  const isSuperUser = (user?.roles?.map((role) => role.name) || []).includes("SUPERUSER")
 
   return (
     <TooltipProvider delayDuration={120}>
@@ -115,11 +121,35 @@ export default function PurchaseOrderActions({
           </TooltipContent>
         </Tooltip>
 
+        {/* CASCADE DELETE (SUPERUSER) */}
+        {isSuperUser && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setOpenCascadeDelete(true)}
+                className={`${itemBase} text-red-700`}
+              >
+                <AlertOctagon className={iconBase} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Eliminar en cascada (SuperUser)</TooltipContent>
+          </Tooltip>
+        )}
+
         {/* DIALOGS */}
         <PurchaseOrderDropdownDialogs
           po={po}
           openApprove={openApprove}
           setOpenApprove={setOpenApprove}
+          openCascadeDelete={openCascadeDelete}
+          setOpenCascadeDelete={setOpenCascadeDelete}
+          onSuccessCascadeDelete={() => {
+            if (!selectedCompany) return
+            router.push(`/${selectedCompany.slug}/compras/ordenes_compra_generales`)
+            router.refresh()
+          }}
         />
 
         {hasInvoice && selectedCompany && (

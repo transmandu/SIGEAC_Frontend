@@ -7,6 +7,8 @@ const fetchPermissionsByCompanyId = async (id: number): Promise<Company[]> => {
   return data;
 };
 
+// Lectura vía POST: el backend recibe el filtro en el body. Usa useMutation
+// porque se dispara a demanda, no porque modifique algo.
 export const useGetPermissionsByCompanyId = () => {
   return useMutation<Company[], Error, number>({
     mutationFn: fetchPermissionsByCompanyId,

@@ -6,8 +6,9 @@ import { columns } from "./columns";
 import { DataTable } from "./data-table";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useGetSafetyBulletins } from "@/hooks/sms/boletin/useGetSafetyBulletins";
+import { PageHeader } from "@/components/layout/PageHeader";
 
-const SurveyListPage = () => {
+const BulletinSettingsPage = () => {
   const { selectedCompany } = useCompanyStore();
   const { data, isLoading, isError } = useGetSafetyBulletins(selectedCompany?.slug);
   if (isLoading) {
@@ -15,6 +16,8 @@ const SurveyListPage = () => {
   }
   return (
     <ContentLayout title="Boletines">
+      <PageHeader className="mb-6" />
+
       <div className="flex flex-col gap-y-2">
         {data && <DataTable columns={columns} data={data} />}
         {isError && (
@@ -27,4 +30,4 @@ const SurveyListPage = () => {
   );
 };
 
-export default SurveyListPage;
+export default BulletinSettingsPage;

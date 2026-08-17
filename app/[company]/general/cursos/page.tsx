@@ -7,6 +7,7 @@ import { columns } from "./columns";
 import { DataTable } from "./data-table";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useGetCoursesByDeparment } from "@/hooks/curso/useGetCoursesByDeparment";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const CoursePage = () => {
   const { selectedCompany } = useCompanyStore();
@@ -19,6 +20,8 @@ const CoursePage = () => {
 
   return (
     <ContentLayout title="Cursos">
+      <PageHeader className="mb-6" />
+
       <div className="flex flex-col gap-y-2">
         {isLoading && (
           <div className="flex w-full h-full justify-center items-center">

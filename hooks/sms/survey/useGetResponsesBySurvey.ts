@@ -33,7 +33,7 @@ export const useGetSurveyResponses = (survey_number:string) => {
     queryKey: ["survey-responses", selectedCompany?.slug],
     queryFn: () =>
       fetchSurveyResponses({ company: selectedCompany?.slug, survey_number }),
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    staleTime: 1000 * 60 * 5,
     enabled: !!selectedCompany?.slug  && !!survey_number,
   });
 };

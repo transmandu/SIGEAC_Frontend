@@ -2,7 +2,7 @@
 import {
   useCreateBankAccount,
   useUpdateBankAccount,
-} from "@/actions/ajustes/banca/cuentas/actions";
+} from "@/actions/sistema/banca/cuentas/actions";
 import { CompanyMultiSelect } from "@/components/misc/CompanyMultiSelect";
 import { PaymentMethodMultiSelect } from "@/components/misc/PaymentMethodMultiSelect";
 import {
@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useBankingPermissions } from "@/hooks/general/cuentas_bancarias/useBankingPermissions";
 import { useGetBanks } from "@/hooks/general/bancos/useGetBanks";
 import { BankAccount } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -54,7 +55,10 @@ export default function CreateBankAccountForm({ onClose, account }: FormProps) {
   const { createBankAccount } = useCreateBankAccount();
   const { updateBankAccount } = useUpdateBankAccount();
   const { data: banks, isLoading: isBanksLoading } = useGetBanks();
+  const { canManageCompanies, canSeeFullNumber } = useBankingPermissions();
   const isEditing = !!account;
+  // El número llega enmascarado: reenviarlo guardaría los puntos.
+  const lockNumber = isEditing && !canSeeFullNumber;
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -64,19 +68,29 @@ export default function CreateBankAccountForm({ onClose, account }: FormProps) {
       account_type: account?.account_type ?? "",
       bank_id: account?.bank ? account.bank.id.toString() : "",
       company_ids: account?.companies?.map((company) => company.id) ?? [],
-      payment_method_ids: account?.payment_methods?.map((method) => method.id) ?? [],
+      payment_method_ids:
+        account?.payment_methods?.map((method) => method.id) ?? [],
     },
   });
   const { control } = form;
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    const { company_ids, account_number, ...rest } = values;
+
     const data = {
-      ...values,
+      ...rest,
+      account_number,
       bank_id: Number(values.bank_id),
+      ...(canManageCompanies ? { company_ids } : {}),
     };
 
     if (isEditing) {
-      await updateBankAccount.mutateAsync({ id: account.id, data });
+      // Sin permiso el número llega enmascarado: enviarlo guardaría los puntos.
+      const { account_number: masked, ...editable } = data;
+      await updateBankAccount.mutateAsync({
+        id: account.id,
+        data: lockNumber ? editable : data,
+      });
     } else {
       await createBankAccount.mutateAsync(data);
     }
@@ -93,7 +107,7 @@ export default function CreateBankAccountForm({ onClose, account }: FormProps) {
             control={control}
             name="name"
             render={({ field }) => (
-              <FormItem className="w-full">
+              <FormItem className="w-full" data-tour="cuentas-crear-name">
                 <FormLabel>Nombre</FormLabel>
                 <FormControl>
                   <Input placeholder="EJ: Cuenta de TMD, etc..." {...field} />
@@ -109,7 +123,7 @@ export default function CreateBankAccountForm({ onClose, account }: FormProps) {
             control={form.control}
             name="bank_id"
             render={({ field }) => (
-              <FormItem className="w-full">
+              <FormItem className="w-full" data-tour="cuentas-crear-bank">
                 <FormLabel>Banco</FormLabel>
                 <Select
                   disabled={isBanksLoading}
@@ -137,27 +151,35 @@ export default function CreateBankAccountForm({ onClose, account }: FormProps) {
               </FormItem>
             )}
           />
-          <FormField
-            control={control}
-            name="account_number"
-            render={({ field }) => (
-              <FormItem className="w-full">
-                <FormLabel>Nro. de Cuenta</FormLabel>
-                <FormControl>
-                  <Input placeholder="EJ: 0713 - XXXX, etc..." {...field} />
-                </FormControl>
-                <FormDescription>
-                  Número de la cuenta (últimos 4 dígitos).
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {!lockNumber && (
+            <FormField
+              control={control}
+              name="account_number"
+              render={({ field }) => (
+                <FormItem
+                  className="w-full"
+                  data-tour="cuentas-crear-account-number"
+                >
+                  <FormLabel>Nro. de Cuenta</FormLabel>
+                  <FormControl>
+                    <Input placeholder="EJ: 0713 - XXXX, etc..." {...field} />
+                  </FormControl>
+                  <FormDescription>
+                    Número de la cuenta (últimos 4 dígitos).
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
           <FormField
             control={form.control}
             name="account_type"
             render={({ field }) => (
-              <FormItem className="w-full">
+              <FormItem
+                className="w-full"
+                data-tour="cuentas-crear-account-type"
+              >
                 <FormLabel>Tipo de Cuenta</FormLabel>
                 <Select
                   onValueChange={field.onChange}
@@ -182,7 +204,10 @@ export default function CreateBankAccountForm({ onClose, account }: FormProps) {
             control={form.control}
             name="account_owner"
             render={({ field }) => (
-              <FormItem className="w-full">
+              <FormItem
+                className="w-full"
+                data-tour="cuentas-crear-account-owner"
+              >
                 <FormLabel>Titular</FormLabel>
                 <Select
                   onValueChange={field.onChange}
@@ -208,10 +233,16 @@ export default function CreateBankAccountForm({ onClose, account }: FormProps) {
           control={form.control}
           name="payment_method_ids"
           render={({ field }) => (
-            <FormItem className="mt-2">
+            <FormItem
+              className="mt-2"
+              data-tour="cuentas-crear-payment-methods"
+            >
               <FormLabel>Métodos de pago habilitados</FormLabel>
               <FormControl>
-                <PaymentMethodMultiSelect value={field.value} onChange={field.onChange} />
+                <PaymentMethodMultiSelect
+                  value={field.value}
+                  onChange={field.onChange}
+                />
               </FormControl>
               <FormDescription>
                 Esta cuenta podrá usar estos métodos de pago.
@@ -220,26 +251,32 @@ export default function CreateBankAccountForm({ onClose, account }: FormProps) {
             </FormItem>
           )}
         />
-        <FormField
-          control={form.control}
-          name="company_ids"
-          render={({ field }) => (
-            <FormItem className="mt-2">
-              <FormLabel>Compañías habilitadas</FormLabel>
-              <FormControl>
-                <CompanyMultiSelect value={field.value} onChange={field.onChange} />
-              </FormControl>
-              <FormDescription>
-                Compañías que podrán operar con esta cuenta (una o varias).
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {canManageCompanies && (
+          <FormField
+            control={form.control}
+            name="company_ids"
+            render={({ field }) => (
+              <FormItem className="mt-2" data-tour="cuentas-crear-companies">
+                <FormLabel>Compañías habilitadas</FormLabel>
+                <FormControl>
+                  <CompanyMultiSelect
+                    value={field.value}
+                    onChange={field.onChange}
+                  />
+                </FormControl>
+                <FormDescription>
+                  Compañías que podrán operar con esta cuenta (una o varias).
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
         <Button
           className="bg-primary mt-2 text-white hover:bg-blue-900 disabled:bg-primary/70"
           disabled={isPending}
           type="submit"
+          data-tour="cuentas-crear-submit"
         >
           {isPending ? (
             <Loader2 className="size-4 animate-spin" />

@@ -5,10 +5,10 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { useCreateAuthorizedEmployee } from "@/hooks/sistema/autorizados/useCreateAuthorizedEmployee";
-import { useGetEmployeesByCompany } from "@/hooks/sistema/empleados/useGetEmployees";
+import { useCreateAuthorizedEmployee } from "@/actions/ajustes/autorizados/actions";
+import { useGetEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetEmployees";
 import { useGetCompanies } from "@/hooks/sistema/useGetCompanies";
-import { useGetAuthorizedEmployeesFromCompany } from "@/hooks/sistema/autorizados/useGetAuthorizedEmployeesFromCompany";
+import { useGetAuthorizedEmployeesFromCompany } from "@/hooks/ajustes/autorizados/useGetAuthorizedEmployeesFromCompany";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

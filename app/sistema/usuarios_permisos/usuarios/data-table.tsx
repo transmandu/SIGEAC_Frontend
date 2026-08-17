@@ -26,9 +26,11 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { useGetRoles } from "@/hooks/sistema/usuario/useGetRoles"
+import { usePendingPasswordResets } from "@/hooks/sistema/usuario/usePasswordResetRequests"
+import { cn } from "@/lib/utils"
 import { Role } from "@/types"
-import { ListRestart } from "lucide-react"
-import { useState } from "react"
+import { KeyRound, ListRestart } from "lucide-react"
+import { useMemo, useState } from "react"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -48,6 +50,13 @@ export function DataTable<TData, TValue>({
     pageIndex: 0,
     pageSize: 10,
   })
+
+  const { data: pending } = usePendingPasswordResets()
+
+  const pendingUserIds = useMemo(
+    () => new Set(pending?.user_ids ?? []),
+    [pending?.user_ids]
+  )
   const { data: roles, isLoading } = useGetRoles();
 
   function formatData(roles: Role[] | undefined): Option[] {
@@ -104,6 +113,22 @@ export function DataTable<TData, TValue>({
             </Button>
           )}
           <CreateUserDialog />
+
+          {!!pending?.count && (
+            <span
+              className={cn(
+                "flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium",
+                "border border-amber-500/40 bg-amber-500/10",
+                "text-amber-700 dark:text-amber-400"
+              )}
+            >
+              <KeyRound className="h-3.5 w-3.5" />
+              {pending.count}{" "}
+              {pending.count === 1
+                ? "solicitud de contraseña"
+                : "solicitudes de contraseña"}
+            </span>
+          )}
         </div>
         <DataTableViewOptions table={table} />
       </div>
@@ -133,6 +158,11 @@ export function DataTable<TData, TValue>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
+                  className={cn(
+                    pendingUserIds.has(
+                      (row.original as { id: number }).id
+                    ) && "row-pending"
+                  )}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>

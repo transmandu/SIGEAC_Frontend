@@ -11,4 +11,4 @@ export const useGetShippingAgencies = (companySlug?: string) => {
     },
     enabled: !!companySlug,
   });
-};
+};

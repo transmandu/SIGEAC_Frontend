@@ -20,6 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
@@ -70,13 +71,16 @@ export function DataTable<TData, TValue>({
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
-                  const isStickyRight =
-                    (header.column.columnDef.meta as any)?.sticky === "right";
+                  const meta = header.column.columnDef.meta as any;
+                  const isStickyRight = meta?.sticky === "right";
 
                   return (
                     <TableHead
                       key={header.id}
-                      className={isStickyRight ? "table-sticky-right" : ""}
+                      className={cn(
+                        isStickyRight && "table-sticky-right",
+                        meta?.className,
+                      )}
                     >
                       {header.isPlaceholder
                         ? null
@@ -99,13 +103,16 @@ export function DataTable<TData, TValue>({
                   data-state={row.getIsSelected() && "selected"}
                 >
                   {row.getVisibleCells().map((cell) => {
-                    const isStickyRight =
-                      (cell.column.columnDef.meta as any)?.sticky === "right";
+                    const meta = cell.column.columnDef.meta as any;
+                    const isStickyRight = meta?.sticky === "right";
 
                     return (
                       <TableCell
                         key={cell.id}
-                        className={isStickyRight ? "table-sticky-right" : ""}
+                        className={cn(
+                          isStickyRight && "table-sticky-right",
+                          meta?.className,
+                        )}
                       >
                         {flexRender(
                           cell.column.columnDef.cell,

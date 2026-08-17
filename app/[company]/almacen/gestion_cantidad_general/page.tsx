@@ -3,19 +3,12 @@
 import { useUpdateGeneralArticleQuantity } from "@/actions/mantenimiento/almacen/inventario/articulos_generales/actions"
 import { ContentLayout } from "@/components/layout/ContentLayout"
 import LoadingPage from "@/components/misc/LoadingPage"
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
 import { useGetGeneralArticles } from "@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticles"
 import { useCompanyStore } from "@/stores/CompanyStore"
 import { Package } from "lucide-react"
 import { GeneralInventoryTable } from "./_components/GeneralInventoryTable"
 import { useGeneralInventoryEdits } from "./_components/hooks/useGeneralInventoryEdits"
+import { PageHeader } from "@/components/layout/PageHeader";
 
 export default function GestionInventarioGeneralPage() {
   const { selectedCompany } = useCompanyStore()
@@ -39,7 +32,7 @@ export default function GestionInventarioGeneralPage() {
 
   if (isError) {
     return (
-      <ContentLayout title="Inventario General">
+      <ContentLayout title="Gestión de Cantidades">
         <div className="py-10 text-center">
           <p className="text-sm text-muted-foreground">No se pudieron cargar los artículos.</p>
         </div>
@@ -50,21 +43,7 @@ export default function GestionInventarioGeneralPage() {
   return (
     <ContentLayout title="Inventario General">
       <div className="flex flex-col gap-4">
-        <Breadcrumb>
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink href={`/${selectedCompany?.slug}/dashboard`}>Inicio</BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>Almacén</BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>Inventario</BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>Inventario General</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
+        <PageHeader className="mb-2" />
 
         <div className="flex flex-col gap-2 text-center md:text-left">
           <h1 className="text-2xl font-semibold flex items-center justify-center md:justify-start gap-2">

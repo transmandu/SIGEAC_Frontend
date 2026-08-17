@@ -93,6 +93,8 @@ export interface RequisitionQuote {
   article_vendors?: string[];
   article_retailers?: string[];
   updated_at: string;
+  /** Non-null when this quote complements an original (already APPROVED/paid) one. */
+  parent_quote_order_id?: number | null;
 }
 
 // ── Requisition (list view) ────────────────────────────────────────────────
@@ -100,7 +102,7 @@ export interface Requisition {
   id: number;
   order_number: string;
   status: PurchaseStatus | string;
-  created_by: User;
+  created_by: User | null;
   requested_by: string;
   batch: {
     name: string;
@@ -157,7 +159,7 @@ export interface RequisitionByOrderNumber {
   status: string;
   priority?: PurchasePriority | string;
   type: RequisitionType;
-  created_by: User;
+  created_by: User | null;
   requested_by: string;
   updated_by?: string | null;
   received_by?: string | null;
@@ -169,6 +171,8 @@ export interface RequisitionByOrderNumber {
   aircraft?: Aircraft | null;
   department?: Department | null;
   third_party?: ThirdParty | null;
+  /** Free-text OT for this requisition (not a linked WorkOrder record). */
+  work_order?: string | null;
   batch?: RequisitionBatch[] | null;
   general_articles?: RequisitionGeneralArticle[] | null;
   quotes?: RequisitionQuote[] | null;
@@ -260,6 +264,21 @@ export interface RequisitionGeneralArticleForm {
   authorized_employee_id?: string;
 }
 
+/** A general article already travelling in an open requisition. */
+export interface ActiveGeneralArticleRequisition {
+  description: string;
+  variant_type?: string | null;
+  quantity: number;
+  unit_label?: string | null;
+  order_number: string;
+  order_status: string;
+  /** Requester's full name, or their DNI when no employee row matches. */
+  requested_by?: string | null;
+  /** 'SYSTEM' when the low-stock alert created it, rather than a person. */
+  created_by?: string | null;
+  created_at: string;
+}
+
 /** Mutation payload for creating / updating a requisition order. */
 export interface CreateRequisitionData {
   justification?: string;
@@ -272,6 +291,8 @@ export interface CreateRequisitionData {
   type: 'AERONAUTICAL' | 'GENERAL';
   priority?: 'HIGH' | 'MEDIUM' | 'LOW';
   work_order_id?: string | number;
+  /** Free-text OT when the typed work order doesn't match an existing one. Mutually exclusive with work_order_id. */
+  work_order?: string;
   aircraft_id?: string | number;
   department_id?: string | number;
   third_party_id?: string | number;

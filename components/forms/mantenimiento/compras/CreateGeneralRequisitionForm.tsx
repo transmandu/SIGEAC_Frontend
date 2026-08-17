@@ -10,13 +10,17 @@ import {
 } from "@/actions/mantenimiento/compras/requisiciones/actions";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { useGetUserDepartamentEmployees } from "@/hooks/sistema/empleados/useGetUserDepartamentEmployees";
-import { useGetEmployeesByCompany } from "@/hooks/sistema/empleados/useGetEmployees";
+import { useGetUserDepartamentEmployees } from "@/hooks/ajustes/empleados/useGetUserDepartamentEmployees";
+import { useGetEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetEmployees";
 import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits";
-import { useGetDepartments } from "@/hooks/sistema/departamento/useGetDepartment";
+import { useGetDepartments } from "@/hooks/ajustes/departamento/useGetDepartment";
 import { useGetThirdParties } from "@/hooks/general/terceros/useGetThirdParties";
-import { useGetAuthorizedEmployees } from "@/hooks/sistema/autorizados/useGetAuthorizedEmployees";
+import { useGetAuthorizedEmployees } from "@/hooks/ajustes/autorizados/useGetAuthorizedEmployees";
 import { useGetGeneralArticles } from "@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticles";
+import {
+  getRequisitionArticleKey,
+  useGetActiveGeneralArticleRequisitions,
+} from "@/hooks/mantenimiento/compras/useGetActiveGeneralArticleRequisitions";
 
 import { Form } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
@@ -26,9 +30,14 @@ import type { RequisitionGeneralArticleForm } from "@/types/purchase";
 import type { GeneralArticle } from "@/types";
 import { RequisitionHeader } from "./_components/RequisitionHeader";
 import { GeneralArticlesSection } from "./_components/GeneralArticlesSection";
+import {
+  DuplicateRequisitionDialog,
+  type DuplicateRequisitionConflict,
+} from "./_components/DuplicateRequisitionDialog";
 import { AdditionalInfoSection } from "./_components/AdditionalInfoSection";
 import { isHigherPriority, type Priority } from "./_components/priorityUtils";
 import { getStoragePathFromUrl } from "./_components/imageUtils";
+import { canAddRequisitionArticle } from "@/lib/purchases/requisition-article-limit";
 
 /* -------------------------------------------------------------------------- */
 /*                                   SCHEMA                                   */
@@ -112,12 +121,17 @@ export function CreateGeneralRequisitionForm({
   const { data: generalArticles, isLoading: isGeneralArticlesLoading } =
     useGetGeneralArticles();
 
+  // Al editar se desactiva: la requisición en curso saldría en conflicto consigo misma.
+  const { byArticle: activeRequisitionsByArticle } =
+    useGetActiveGeneralArticleRequisitions(!isEditing);
+
   const { createRequisition } = useCreateRequisition();
   const { updateRequisition } = useUpdateRequisition();
 
   const [selectedGeneralArticles, setSelectedGeneralArticles] = useState<RequisitionGeneralArticleForm[]>([]);
+  // Datos validados, en espera de que el usuario confirme los duplicados.
+  const [pendingSubmit, setPendingSubmit] = useState<FormSchemaType | null>(null);
 
-  // Local search state for searchable selectors
   const [employeeSearch, setEmployeeSearch] = useState("");
   const [generalArticleSearch, setGeneralArticleSearch] = useState("");
 
@@ -171,10 +185,9 @@ export function CreateGeneralRequisitionForm({
 
   /* ------------------------------- HANDLERS ------------------------------- */
 
-  // Two articles can share a description and variant_type but differ by
-  // brand_model (e.g. same item from two brands, only one with a catalog
-  // image), so identity (and toggle-off matching) must always compare all
-  // three fields together, never description alone.
+  // Dos artículos generales pueden compartir descripción y variante y diferir
+  // solo en la marca, así que la identidad compara siempre los tres campos
+  // juntos — nunca la descripción sola.
   const isSameGeneralArticle = (
     a: { description: string; variant_type?: string | null; brand_model?: string | null },
     b: { description: string; variant_type?: string | null; brand_model?: string | null }
@@ -188,6 +201,7 @@ export function CreateGeneralRequisitionForm({
       if (prev.some((a) => isSameGeneralArticle(a, article))) {
         return prev.filter((a) => !isSameGeneralArticle(a, article));
       }
+      if (!canAddRequisitionArticle(prev.length)) return prev;
       return [
         ...prev,
         {
@@ -197,9 +211,9 @@ export function CreateGeneralRequisitionForm({
           quantity: 0,
           unit_id: undefined,
           priority: "MEDIUM",
-          // Prefills the article's existing image so the user isn't forced to
-          // re-upload the same picture; existing_image_path tells the backend
-          // to reuse the stored file instead of treating it as a new upload.
+          // Precarga la imagen que ya tiene el artículo para no obligar a
+          // resubirla: existing_image_path le dice al backend que reutilice
+          // la guardada en vez de tratarla como archivo nuevo.
           image: article.image ?? undefined,
           existing_image_path: getStoragePathFromUrl(article.image),
         },
@@ -221,9 +235,8 @@ export function CreateGeneralRequisitionForm({
     setSelectedGeneralArticles((prev) =>
       prev.map((article, i) => {
         if (i !== index) return article;
-        // Once the user removes the prefilled image or attaches a new file,
-        // it's no longer the catalog's existing image, so the backend must
-        // not be told to reuse the old stored path.
+        // Si el usuario quita la imagen precargada o sube otra, ya no es la del
+        // catálogo: hay que dejar de pedirle al backend que reutilice la vieja.
         if (field === "image") {
           return { ...article, image: value, existing_image_path: undefined };
         }
@@ -237,21 +250,39 @@ export function CreateGeneralRequisitionForm({
   };
 
   const addManualGeneralArticle = () => {
-    setSelectedGeneralArticles((prev) => [
-      ...prev,
-      {
-        description: "",
-        variant_type: "",
-        quantity: 0,
-        unit_id: undefined,
-        priority: "MEDIUM",
-      },
-    ]);
+    setSelectedGeneralArticles((prev) => {
+      if (!canAddRequisitionArticle(prev.length)) return prev;
+      return [
+        ...prev,
+        {
+          description: "",
+          variant_type: "",
+          quantity: 0,
+          unit_id: undefined,
+          priority: "MEDIUM",
+        },
+      ];
+    });
   };
 
   /* ------------------------------- SUBMIT --------------------------------- */
 
-  const onSubmit = async (data: FormSchemaType) => {
+  /** Al enviar y no al seleccionar, para atrapar también los escritos a mano. */
+  const findDuplicateConflicts = (data: FormSchemaType): DuplicateRequisitionConflict[] =>
+    data.general_articles.flatMap((article) => {
+      const entries = activeRequisitionsByArticle.get(
+        getRequisitionArticleKey(article.description, article.variant_type)
+      );
+
+      if (!entries?.length) return [];
+
+      return [{
+        label: [article.description, article.variant_type].filter(Boolean).join(" - "),
+        entries,
+      }];
+    });
+
+  const submitRequisition = async (data: FormSchemaType) => {
     if (!selectedCompany) return;
 
     const formattedData = {
@@ -262,10 +293,9 @@ export function CreateGeneralRequisitionForm({
       general_articles: data.general_articles.map((article) => ({
         ...article,
         requested_date: article.requested_date ?? new Date().toISOString(),
-        // `image` only carries a File (new upload) or, for preview purposes,
-        // the catalog article's existing URL string — the backend's image
-        // validation rule rejects anything that isn't an actual uploaded
-        // file, so a reused image must travel solely via existing_image_path.
+        // `image` solo lleva un File nuevo, o la URL del catálogo para la vista
+        // previa. El backend rechaza todo lo que no sea archivo subido, así que
+        // una imagen reutilizada viaja únicamente por existing_image_path.
         image: article.image instanceof File ? article.image : undefined,
       })),
     };
@@ -277,6 +307,15 @@ export function CreateGeneralRequisitionForm({
     }
 
     onClose();
+  };
+
+  const onSubmit = async (data: FormSchemaType) => {
+    if (findDuplicateConflicts(data).length > 0) {
+      setPendingSubmit(data);
+      return;
+    }
+
+    await submitRequisition(data);
   };
 
   const isPending = createRequisition.isPending || updateRequisition.isPending;
@@ -326,6 +365,7 @@ export function CreateGeneralRequisitionForm({
           removeGeneralArticle={removeGeneralArticle}
           enableCreateGeneralArticle
           addManualGeneralArticle={addManualGeneralArticle}
+          activeRequisitionsByArticle={activeRequisitionsByArticle}
         />
 
         <AdditionalInfoSection form={form} />
@@ -343,6 +383,17 @@ export function CreateGeneralRequisitionForm({
           {isPending && <Loader2 className="size-4 animate-spin" />}
         </Button>
       </form>
+
+      <DuplicateRequisitionDialog
+        open={pendingSubmit !== null}
+        onOpenChange={(open) => !open && setPendingSubmit(null)}
+        conflicts={pendingSubmit ? findDuplicateConflicts(pendingSubmit) : []}
+        onConfirm={() => {
+          const data = pendingSubmit;
+          setPendingSubmit(null);
+          if (data) void submitRequisition(data);
+        }}
+      />
     </Form>
   );
 }

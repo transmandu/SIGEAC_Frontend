@@ -23,7 +23,7 @@ import {
 import {
   useDeleteDepartment,
   useUpdateDepartment,
-} from "@/actions/sistema/empresas/departamento/actions"
+} from "@/actions/ajustes/departamento/actions"
 import { UpdateDepartmentForm } from "@/components/forms/general/UpdateDepartmentForm"
 import { useCompanyStore } from "@/stores/CompanyStore"
 

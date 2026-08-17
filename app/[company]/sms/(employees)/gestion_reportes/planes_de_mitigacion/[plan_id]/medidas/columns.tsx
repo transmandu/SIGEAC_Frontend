@@ -62,7 +62,7 @@ export const columns: ColumnDef<MitigationMeasure>[] = [
     ),
     cell: ({ row }) => (
       <FollowUpControlDialog
-        followUpControls={row.original.follow_up_control}
+        followUpControls={row.original.follow_up_controls}
         planId={row.original.mitigation_plan_id}
         measureId={row.original.id}
       />

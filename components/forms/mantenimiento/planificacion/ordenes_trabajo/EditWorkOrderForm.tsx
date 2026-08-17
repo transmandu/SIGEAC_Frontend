@@ -182,7 +182,6 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
   const handleAutoUpload = async (file: File) => {
     if (!selectedCompany) return;
 
-    // Validaciones básicas rápidas (coincidentes con el schema)
     if (file.size > 10 * 1024 * 1024) {
       toast.error("El archivo excede los 10MB permitidos.");
       return;

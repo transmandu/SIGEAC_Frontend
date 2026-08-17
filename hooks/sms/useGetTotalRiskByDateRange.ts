@@ -21,7 +21,7 @@ export const useGetTotalRiskCountByDateRange = (
   return useQuery<pieChartData[]>({
     queryKey: ["total-risk-count-by-date-range",company, from, to],
     queryFn: () => fetchTotalRiskCountByDateRange(from, to, company),
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    staleTime: 1000 * 60 * 5,
     enabled: !!company,
   });
 };

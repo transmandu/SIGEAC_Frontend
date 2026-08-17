@@ -1,12 +1,13 @@
 "use client";
 
-import axiosInstance from "@/lib/axios";
-import { createCookie } from "@/lib/cookie";
-import { createSession, deleteSession } from "@/lib/session";
+import axiosInstance, { isAuthEndpoint } from "@/lib/axios";
+import { createCookie, deleteCookie, hasAuthCookie } from "@/lib/cookie";
+import { resetEcho } from "@/lib/echo";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { User } from "@/types";
 import {
   useMutation,
+  useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
 import {
@@ -22,7 +23,7 @@ import {
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { AxiosError } from "axios";
-import LoadingPage from "@/components/misc/LoadingPage";
+import LogoutOverlay from "@/components/misc/LogoutOverlay";
 
 /* ---------------- TYPES ---------------- */
 
@@ -41,9 +42,18 @@ interface ApiErrorResponse {
   message: string;
 }
 
+interface LoginResponse {
+  message: string;
+  userId: number;
+  company: string | null;
+  user: User;
+}
+
 /* ---------------- CONTEXT ---------------- */
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const AUTH_USER_QUERY_KEY = ["auth", "user"] as const;
 
 /* ---------------- PROVIDER ---------------- */
 
@@ -52,12 +62,37 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const router = useRouter();
   const { reset } = useCompanyStore();
 
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setIsLoading] = useState(true);
   const [loggingOut, setLoggingOut] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const initializedRef = useRef(false);
+  // La cookie sólo dice si vale la pena preguntar por el usuario; la respuesta
+  // de /user sigue siendo la única fuente de verdad de la sesión.
+  const [hasToken, setHasToken] = useState(false);
+  const [tokenChecked, setTokenChecked] = useState(false);
+
+  useEffect(() => {
+    setHasToken(hasAuthCookie());
+    setTokenChecked(true);
+  }, []);
+
+  const {
+    data: user = null,
+    isLoading: userLoading,
+  } = useQuery<User | null>({
+    queryKey: AUTH_USER_QUERY_KEY,
+    queryFn: async () => {
+      const { data } = await axiosInstance.get<User>("/user");
+      return data;
+    },
+    enabled: tokenChecked && hasToken,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: false,
+  });
+
+  // Sin cookie no hay consulta que esperar: la sesión se resuelve como ausente.
+  const loading = !tokenChecked || (hasToken && userLoading);
 
   const isAuthenticated = useMemo(() => !!user, [user]);
 
@@ -65,98 +100,82 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
    * LOGOUT
    * ========================================================= */
   const logout = useCallback(async () => {
-    // Cover the viewport before clearing any state, so the current page
-    // never re-renders its unauthenticated/empty state while still mounted.
     setLoggingOut(true);
 
     try {
-      setUser(null);
       setError(null);
+      setHasToken(false);
 
-      await deleteSession();
+      resetEcho();
+
+      deleteCookie("auth_token");
+
+      // reset() solo limpia el estado en memoria de ESTA pestaña. La compañía
+      // vive en localStorage (zustand persist), así que sin borrar la clave la
+      // siguiente cuenta heredaba la empresa y la estación de la anterior.
       reset();
+      useCompanyStore.persist.clearStorage();
+
+      // El historial empresa→estación es del usuario que se va: dejarlo hacía
+      // que la siguiente cuenta heredara la estación de la anterior en cuanto
+      // coincidieran en una empresa.
+      localStorage.removeItem("company-station-history");
 
       queryClient.removeQueries();
 
-      router.push("/login");
+      router.replace("/login");
 
       toast.info("Sesión finalizada", {
         position: "bottom-center",
       });
     } catch (err) {
+      // El overlay NO se apaga aquí: sigue tapando hasta que /login esté
+      // pintado. Si el logout falla a medias, el timeout de abajo lo levanta.
       console.error("Logout error:", err);
-      setLoggingOut(false);
     }
   }, [router, queryClient, reset]);
 
+  // Solo la red de seguridad: si la navegación se atasca, el overlay no puede
+  // quedarse tapando la pantalla para siempre.
+  useEffect(() => {
+    if (!loggingOut) return;
+
+    const timeout = window.setTimeout(() => setLoggingOut(false), 8000);
+
+    return () => window.clearTimeout(timeout);
+  }, [loggingOut]);
+
+  // Quien lo apaga es la página de login al terminar de montarse. `pathname`
+  // cambia en cuanto Next EMPIEZA la transición, así que apagarlo ahí destapaba
+  // la pantalla antes de que el login estuviera pintado.
   const clearLoggingOut = useCallback(() => {
     setLoggingOut(false);
   }, []);
 
   /* =========================================================
-   * FETCH USER
-   * ========================================================= */
-  const fetchUser = useCallback(async (): Promise<User | null> => {
-    try {
-      const { data } = await axiosInstance.get<User>("/user");
-      return data;
-    } catch {
-      return null;
-    }
-  }, []);
-
-  /* =========================================================
-   * APPLY USER
-   * ========================================================= */
-  const applyUser = useCallback((data: User | null) => {
-    setUser(data);
-    setError(null);
-  }, []);
-
-  /* =========================================================
-   * INIT AUTH
-   * ========================================================= */
-  useEffect(() => {
-    if (initializedRef.current) return;
-    initializedRef.current = true;
-
-    const init = async () => {
-      setIsLoading(true);
-
-      const hasToken = document.cookie.includes("auth_token");
-
-      if (hasToken) {
-        const data = await fetchUser();
-        applyUser(data);
-      }
-
-      setIsLoading(false);
-    };
-
-    init();
-  }, [fetchUser, applyUser]);
-
-  /* =========================================================
    * INTERCEPTOR
    * ========================================================= */
+  // `user` se lee por ref y no como dependencia: incluirlo re-registraba el
+  // interceptor en cada cambio de sesión.
+  const userRef = useRef<User | null>(null);
+  userRef.current = user;
+
   useEffect(() => {
     const interceptor = axiosInstance.interceptors.response.use(
       (response) => response,
       (error) => {
-        const url = error.config?.url;
+        if (error.response?.status !== 401 || isAuthEndpoint(error.config?.url)) {
+          return Promise.reject(error);
+        }
 
-        const isAuthRequest =
-          url?.includes("/login") ||
-          url?.includes("/register");
-
-        const hasSession = !!user;
-
-        if (
-          error.response?.status === 401 &&
-          hasSession &&
-          !isAuthRequest
-        ) {
+        if (userRef.current) {
           logout();
+        } else {
+          // 401 antes de que la sesión llegue a memoria (token expirado al
+          // recargar): no hay estado que limpiar ni de dónde expulsar, pero la
+          // cookie muerta debe irse para que el middleware mande al login.
+          deleteCookie("auth_token");
+          setHasToken(false);
         }
 
         return Promise.reject(error);
@@ -166,49 +185,36 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => {
       axiosInstance.interceptors.response.eject(interceptor);
     };
-  }, [logout, user]);
+  }, [logout]);
 
   /* =========================================================
-   * LOGIN MUTATION (FIX REAL DEL PROBLEMA)
+   * LOGIN MUTATION
    * ========================================================= */
   const loginMutation = useMutation({
     mutationFn: async (credentials: { login: string; password: string }) => {
-      try {
-        const response = await axiosInstance.post<User>(
-          "/login",
-          credentials
-        );
+      const response = await axiosInstance.post<LoginResponse>(
+        "/login",
+        credentials
+      );
 
-        const token = response.headers["authorization"];
+      const token = response.headers["authorization"];
 
-        // 🔴 FIX CRÍTICO: si no hay token => ERROR REAL
-        if (!token) {
-          throw new Error("Credenciales inválidas");
-        }
-
-        createCookie("auth_token", token);
-        await createSession(response.data.id);
-
-        return response.data;
-      } catch (err) {
-        throw err;
+      if (!token) {
+        throw new Error("Credenciales inválidas");
       }
+
+      createCookie("auth_token", token);
+
+      return response.data.user;
     },
 
-    onSuccess: async (userData) => {
-      // 🔴 PROTECCIÓN: evita navegación falsa si data es inválida
+    onSuccess: (userData) => {
       if (!userData) return;
 
-      let finalUser = userData;
-
-      try {
-        const { data } = await axiosInstance.get("/user");
-        if (data) finalUser = data;
-      } catch {
-        // no bloquear login por fetch opcional
-      }
-
-      applyUser(finalUser);
+      // El login ya devuelve el payload completo, así que se siembra la caché
+      // en lugar de volver a pedir /user, que es la llamada más cara del flujo.
+      queryClient.setQueryData(AUTH_USER_QUERY_KEY, userData);
+      setHasToken(true);
 
       setError(null);
 
@@ -232,7 +238,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         ? rawMessage || "Credenciales inválidas"
         : "Ha ocurrido un problema. Por favor contacte al equipo de Desarrollo para resolverlo a la brevedad posible.";
 
-      // 🔴 FIX CLAVE: evita side-effects globales
       setError(message);
 
       toast.error("Error de autenticación", {
@@ -271,11 +276,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   return (
     <AuthContext.Provider value={value}>
       {children}
-      {loggingOut && (
-        <div className="fixed inset-0 z-[9999] bg-background">
-          <LoadingPage />
-        </div>
-      )}
+      {loggingOut && <LogoutOverlay />}
     </AuthContext.Provider>
   );
 };

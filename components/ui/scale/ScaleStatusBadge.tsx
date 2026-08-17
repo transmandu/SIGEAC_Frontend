@@ -7,17 +7,17 @@ export function ScaleStatusBadge() {
   const { state } = useScale();
 
   const config = {
-    idle: { label: "Desconectado", className: "bg-muted text-muted-foreground" },
-    connecting: { label: "Conectando...", className: "bg-yellow-500/20 text-yellow-700 animate-pulse" },
+    idle: { label: "DESCONECTADO", className: "bg-muted text-muted-foreground" },
+    connecting: { label: "CONECTANDO...", className: "bg-yellow-500/20 text-yellow-700 animate-pulse" },
     connected: {
-      label: state.isStable ? "Peso Estable" : "Peso Inestable",
+      label: state.isStable ? "PESO ESTABLE" : "PESO INESTABLE",
       className: state.isStable
         ? "bg-green-500/20 text-green-700 border-green-500/50"
         : "bg-orange-500/20 text-orange-700 border-orange-500/50",
     },
-    disconnected: { label: "Desconectado", className: "bg-muted text-muted-foreground" },
+    disconnected: { label: "DESCONECTADO", className: "bg-muted text-muted-foreground" },
     error: { label: "Error", className: "bg-red-500/20 text-red-700 border-red-500/50" },
-    unsupported: { label: "No Soportado", className: "bg-gray-500/20 text-gray-700" },
+    unsupported: { label: "NO SOPORTADO", className: "bg-gray-500/20 text-gray-700" },
   };
 
   const current = config[state.status] || config.idle;

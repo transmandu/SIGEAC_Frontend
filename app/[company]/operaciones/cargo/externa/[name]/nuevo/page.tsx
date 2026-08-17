@@ -15,6 +15,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 export default function CreateExternalCargoPage() {
   const params = useParams();
@@ -29,6 +30,8 @@ export default function CreateExternalCargoPage() {
 
   return (
     <ContentLayout title="Nuevo Registro">
+      <PageHeader className="mb-6" />
+
       <div className="flex items-center gap-4 mb-6">
         <Button asChild variant="outline" size="icon" className="h-9 w-9" data-tour="cargo-crear-btn-volver">
           <Link href={`/${company}/operaciones/cargo/externa/${encodeURIComponent(name)}`}>

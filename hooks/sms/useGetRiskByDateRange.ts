@@ -29,6 +29,6 @@ export const useGetRiskCountByDateRange = (
       reportType,
     ],
     queryFn: () => fetchRiskCountByDateRange(company, from, to, reportType),
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    staleTime: 1000 * 60 * 5,
   });
 };

@@ -4,12 +4,13 @@ import { Notification } from '@/types/notifications/types';
 import { cn } from '@/lib/utils';
 import { Clock, CheckCheck } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
-import { Check, Bell } from 'lucide-react';
+import { Check, Bell, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useTransition } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useCompanyStore } from '@/stores/CompanyStore';
-import { useMarkNotificationAsRead } from '@/hooks/notifications/useMarkNotificationAsRead';
+import { useMarkNotificationAsRead } from '@/actions/notifications/actions';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const ITEM_COLORS = [
@@ -83,9 +84,11 @@ export default function NotificationItem({
 }) {
   const router = useRouter();
 
+  const [isNavigating, startNavigation] = useTransition();
+
   const { selectedCompany } = useCompanyStore();
 
-  const { mutate: markAsRead, isPending } =
+  const { mutate: markAsRead } =
     useMarkNotificationAsRead(selectedCompany?.slug!);
 
   const isUnread = !notification.read_at;
@@ -93,7 +96,7 @@ export default function NotificationItem({
   const handleMarkAsRead = (e: React.MouseEvent) => {
     e.stopPropagation();
 
-    if (isUnread && !isPending) {
+    if (isUnread) {
       markAsRead(notification.id);
     }
   };
@@ -101,7 +104,18 @@ export default function NotificationItem({
   const handleNavigate = () => {
     const url = notification.data?.url;
     if (!url) return;
-    router.push(url);
+
+    // Navegar cuenta como leerla, pero solo la primera vez: si ya está leída
+    // evitamos un PATCH redundante en cada visita desde la notificación.
+    if (isUnread) {
+      markAsRead(notification.id);
+    }
+
+    // useTransition nos da el pending real de la navegación de App Router,
+    // que router.push por sí solo no expone.
+    startNavigation(() => {
+      router.push(url);
+    });
   };
 
   const colors = getNotificationColors(notification.id);
@@ -109,11 +123,15 @@ export default function NotificationItem({
   return (
     <div
       onClick={handleNavigate}
+      aria-busy={isNavigating}
       className={cn(
         'group relative flex items-center gap-3 px-3 py-2',
         'mx-1 cursor-pointer overflow-hidden rounded-xl',
         'bg-muted/20 hover:bg-muted/40',
-        'shadow-sm transition-all'
+        'shadow-sm transition-all',
+        // Mientras navega, ignoramos clicks extra: la ruta destino puede tardar
+        // y el usuario tiende a insistir sobre una fila que se ve inerte.
+        isNavigating && 'pointer-events-none'
       )}
     >
     {/* COLOR STRIPE */}
@@ -132,6 +150,13 @@ export default function NotificationItem({
         colors.hover
       )}
     />
+
+    {/* LOADING BAR (mientras se resuelve la navegación) */}
+    {isNavigating && (
+      <div className="pointer-events-none absolute bottom-0 left-0 h-0.5 w-full overflow-hidden rounded-b-xl bg-primary/10">
+        <div className="h-full w-1/4 animate-indeterminate rounded-full bg-primary/70" />
+      </div>
+    )}
       {/* ACTION + GRADIENT (desktop only) */}
       {isUnread && (
         <div
@@ -165,7 +190,6 @@ export default function NotificationItem({
               <TooltipTrigger asChild>
                 <button
                   onClick={handleMarkAsRead}
-                  disabled={isPending}
                   className="
                     relative z-10
 
@@ -201,15 +225,21 @@ export default function NotificationItem({
       <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center">
         <div
           className={cn(
-            'flex h-10 w-10 items-center justify-center rounded-xl',
-            isUnread
-              ? 'bg-primary/10 text-primary'
-              : 'bg-muted text-muted-foreground'
+            'flex h-10 w-10 items-center justify-center rounded-xl transition-colors',
+            isNavigating
+              ? 'bg-primary/15 text-primary'
+              : isUnread
+                ? 'bg-primary/10 text-primary'
+                : 'bg-muted text-muted-foreground'
           )}
         >
-          <NotificationIcon
-            name={notification.data.icon}
-          />
+          {isNavigating ? (
+            <Loader2 className="h-5 w-5 animate-spin" />
+          ) : (
+            <NotificationIcon
+              name={notification.data.icon}
+            />
+          )}
         </div>
       </div>
 

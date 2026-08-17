@@ -15,10 +15,13 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import type { Department, Employee, GeneralArticle, ThirdParty, Unit } from "@/types"
-import type { AuthorizedEmployeeResponse } from "@/hooks/sistema/autorizados/useGetAuthorizedEmployees"
+import type { AuthorizedEmployeeResponse } from "@/hooks/ajustes/autorizados/useGetAuthorizedEmployees"
 import type { RequisitionGeneralArticleForm } from "@/types/purchase"
 import { ArticleImageAttachment } from "./ArticleImageAttachment"
 import { RequiredIndicator } from "./RequiredIndicator"
+import { ActiveRequisitionWarning } from "./ActiveRequisitionWarning"
+import { getRequisitionArticleKey } from "@/hooks/mantenimiento/compras/useGetActiveGeneralArticleRequisitions"
+import type { ActiveGeneralArticleRequisition } from "@/types/purchase"
 
 interface GeneralArticlesSectionProps {
   form: UseFormReturn<any>;
@@ -45,18 +48,19 @@ interface GeneralArticlesSectionProps {
   enableCreateGeneralArticle?: boolean;
   addManualGeneralArticle?: () => void;
   size?: "default" | "lg";
+  /** Indexadas por getRequisitionArticleKey(). Sin esto no se muestra el aviso de "ya solicitado". */
+  activeRequisitionsByArticle?: Map<string, ActiveGeneralArticleRequisition[]>;
 }
 
-// Authorized employees and third parties are mutually exclusive in a single
-// combobox, so selections are namespaced ("auth:<id>" / "third:<id>") to tell
-// them apart without colliding ids from the two different tables.
+// Autorizados y terceros comparten un solo combobox pero viven en tablas
+// distintas, así que sus ids pueden coincidir: se prefijan ("auth:" / "third:")
+// para distinguirlos.
 const AUTH_PREFIX = "auth:";
 const THIRD_PREFIX = "third:";
 
-// Keeps the calendar-picked day but stamps it with the current time, so
-// requested_date records when the action was actually performed instead of
-// always saving midnight (which the backend stores/returns as UTC and then
-// renders a day behind in Venezuela's UTC-4 offset).
+// Conserva el día elegido en el calendario pero le pone la hora actual: si se
+// guardara a medianoche, el backend la almacena en UTC y en Venezuela (UTC-4)
+// la fecha se vería un día antes.
 const withCurrentTime = (day: Date) => {
   const now = new Date();
   return set(day, {
@@ -83,9 +87,9 @@ interface DestinationFieldsRowProps {
   dateColClass: string;
 }
 
-// Hoisted to module scope so it isn't redefined as a new component identity
-// on every parent render — that would force React to remount this subtree
-// (dropping Popover state) on every keystroke elsewhere in the form.
+// Vive fuera del componente padre a propósito: si se definiera dentro, React
+// lo trataría como un componente nuevo en cada render y remontaría el subárbol,
+// perdiendo el estado del Popover con cada tecla que se escriba en el formulario.
 function DestinationFieldsRow({
   article,
   index,
@@ -101,9 +105,8 @@ function DestinationFieldsRow({
   labelTextClass,
   dateColClass,
 }: DestinationFieldsRowProps) {
-  // Combined value for the authorized-employee / third-party combobox: the
-  // two tables don't share an id space, so selections are namespaced and
-  // decoded back into the two distinct article fields on select.
+  // Valor combinado del combobox: se guarda con prefijo y se decodifica de
+  // vuelta a los dos campos distintos del artículo al seleccionar.
   const getAuthorizedOrThirdPartyValue = (article: RequisitionGeneralArticleForm) => {
     if (article.authorized_employee_id) return `${AUTH_PREFIX}${article.authorized_employee_id}`;
     if (article.third_party_id) return `${THIRD_PREFIX}${article.third_party_id}`;
@@ -135,7 +138,17 @@ function DestinationFieldsRow({
     handleGeneralArticleChange(index, "third_party_id", undefined);
   };
 
-  const selectedDepartment = departments?.find((d) => d.id.toString() === article.department_id);
+  // Los departamentos llegan como árbol (con `descendants` anidados); se
+  // aplanan para poder elegir cualquiera, no solo los de primer nivel.
+  const flattenDepartments = (departments: Department[]): Department[] =>
+    departments.flatMap((department) => [
+      department,
+      ...flattenDepartments(department.descendants ?? []),
+    ]);
+
+  const allDepartments = departments ? flattenDepartments(departments) : [];
+
+  const selectedDepartment = allDepartments.find((d) => d.id.toString() === article.department_id);
   const selectedEmployee = destinationEmployees?.find((e) => e.id.toString() === article.employee_id);
   const authorizedOrThirdPartyValue = getAuthorizedOrThirdPartyValue(article);
   const authorizedOrThirdPartyLabel = getAuthorizedOrThirdPartyLabel(article);
@@ -216,7 +229,7 @@ function DestinationFieldsRow({
                   </CommandGroup>
                 )}
                 <CommandGroup>
-                  {departments?.map((department) => (
+                  {allDepartments.map((department) => (
                     <CommandItem
                       value={`${department.id} ${department.name}`}
                       key={department.id}
@@ -329,7 +342,7 @@ function DestinationFieldsRow({
           </PopoverTrigger>
           <PopoverContent className="p-0" matchTriggerWidth>
             <Command>
-              <CommandInput placeholder="Busque un autorizado o tercero..." />
+              <CommandInput placeholder="Busque un autorizado externo o tercero..." />
               <CommandList>
                 <CommandEmpty className="text-sm p-2 text-center text-muted-foreground">
                   No se han encontrado resultados.
@@ -341,7 +354,7 @@ function DestinationFieldsRow({
                     </CommandItem>
                   </CommandGroup>
                 )}
-                <CommandGroup heading="--- Autorizados ---">
+                <CommandGroup heading="--- Autorizados externos ---">
                   {authorizedEmployees?.map((authorizedEmployee) => {
                     const value = `${AUTH_PREFIX}${authorizedEmployee.id}`;
                     return (
@@ -415,6 +428,7 @@ export function GeneralArticlesSection({
   enableCreateGeneralArticle = false,
   addManualGeneralArticle,
   size = "default",
+  activeRequisitionsByArticle,
 }: GeneralArticlesSectionProps) {
   const isLg = size === "lg";
   const labelTextClass = cn(
@@ -424,11 +438,9 @@ export function GeneralArticlesSection({
   const dateColClass = isLg ? "w-40" : "w-32";
   const priorityColClass = isLg ? "w-28" : "w-[80px]";
 
-  // Identity of a general article is description + variant_type + brand_model
-  // together: two entries can share a description (and even variant_type)
-  // but differ by brand_model — e.g. the same item from two different
-  // brands, only one of which has a catalog image — so every comparison/key
-  // below must use all three fields, never description alone.
+  // La identidad de un artículo general es descripción + variante + marca:
+  // dos entradas pueden compartir las dos primeras y diferir solo en la marca,
+  // así que toda comparación de aquí abajo usa los tres campos.
   const getArticleKey = (description: string, variantType?: string | null, brandModel?: string | null) =>
     `${description}__${variantType ?? ""}__${brandModel ?? ""}`;
 
@@ -450,9 +462,9 @@ export function GeneralArticlesSection({
   const isUnitInvalid = (article: RequisitionGeneralArticleForm) =>
     isSubmitted && !article.unit_id;
 
-  // The catalog can contain multiple rows (different ids) for the same
-  // description + variant_type + brand_model combination; collapse them to
-  // one entry so the dropdown never lists the same article twice.
+  // El catálogo puede traer varias filas (ids distintos) con la misma
+  // descripción + variante + marca; se colapsan para no listar el mismo
+  // artículo dos veces en el desplegable.
   const dedupedGeneralArticles = useMemo(() => {
     const seen = new Set<string>();
     return filteredGeneralArticles.filter((article) => {
@@ -567,6 +579,11 @@ export function GeneralArticlesSection({
                     getArticleKey(a.description, a.variant_type, a.brand_model) ===
                     getArticleKey(article.description, article.variant_type, article.brand_model)
                 );
+                // Se resuelve con lo escrito en la fila, así que también atrapa
+                // los artículos tecleados a mano.
+                const activeRequisitions = activeRequisitionsByArticle?.get(
+                  getRequisitionArticleKey(article.description, article.variant_type)
+                ) ?? [];
                 return (
                 <div
                   key={index}
@@ -595,6 +612,10 @@ export function GeneralArticlesSection({
                       </TooltipContent>
                     </Tooltip>
                   </div>
+
+                  {activeRequisitions.length > 0 && (
+                    <ActiveRequisitionWarning entries={activeRequisitions} compact className="mb-2" />
+                  )}
 
                   {isUnregistered ? (
                     <div className="flex items-center gap-2">

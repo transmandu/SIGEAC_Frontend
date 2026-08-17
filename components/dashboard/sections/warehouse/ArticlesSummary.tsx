@@ -16,16 +16,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
   Tooltip,
   ResponsiveContainer,
   Cell,
+  PieChart,
+  Pie,
+  Legend,
 } from "recharts";
 import { WarehouseDashboard } from "@/types";
-import { Package, Boxes, AlertTriangle } from "lucide-react";
+import { Package, Boxes, PackageSearch, Archive } from "lucide-react";
 
 interface Props {
   data?: WarehouseDashboard;
@@ -63,6 +62,9 @@ function CustomTooltip({ active, payload }: any) {
   if (!active || !payload?.length) return null;
 
   const data = payload[0];
+  const total = data?.payload?.total ?? 0;
+  const value = data?.value ?? 0;
+  const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
 
   return (
     <div className="rounded-xl border bg-background/90 backdrop-blur-xl shadow-lg px-3 py-2 sm:px-4 sm:py-3 min-w-[140px] sm:min-w-[180px]">
@@ -70,12 +72,12 @@ function CustomTooltip({ active, payload }: any) {
         {data?.payload?.name}
       </p>
 
-      <div className="flex items-center justify-between text-xs sm:text-sm">
+      <div className="flex items-center justify-between text-xs sm:text-sm gap-4">
         <span className="font-medium text-slate-600 dark:text-slate-300">
-          En total
+          Despachos
         </span>
         <span className="font-semibold text-slate-800 dark:text-slate-100">
-          {data?.value ?? 0}
+          {value} ({percentage}%)
         </span>
       </div>
     </div>
@@ -102,11 +104,18 @@ export default function ArticlesSummary({
 
   const cyanTone = "6,182,212";
 
-  const chartData = [
-    { name: "Salidas Totales", value: data.dispatchCount, color: "url(#indigoDispatch)" },
-    { name: "Salidas a Aeronaves", value: data.dispatchAircraftCount, color: "url(#cyanIncoming)" },
-    { name: "Salidas a Taller", value: data.dispatchWorkOrderCount, color: "url(#violetWorkOrder)" },
+  const dispatchByCategory = data.dispatchByCategory;
+
+  const rawChartData = [
+    { name: "Componentes", value: dispatchByCategory?.component ?? 0, color: "#2a78d6" },
+    { name: "Partes", value: dispatchByCategory?.part ?? 0, color: "#1baf7a" },
+    { name: "Consumibles", value: dispatchByCategory?.consumable ?? 0, color: "#eda100" },
+    { name: "Herramientas", value: dispatchByCategory?.tool ?? 0, color: "#008300" },
+    { name: "Artículos Generales", value: dispatchByCategory?.general ?? 0, color: "#4a3aa7" },
   ];
+
+  const totalDispatched = rawChartData.reduce((sum, item) => sum + item.value, 0);
+  const chartData = rawChartData.map((item) => ({ ...item, total: totalDispatched }));
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
@@ -133,10 +142,10 @@ export default function ArticlesSummary({
           </CardHeader>
 
           <CardContent>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 text-center">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6 text-center">
 
               <div>
-                <div className="text-2xl sm:text-3xl font-bold bg-gradient-to-b from-sky-600 to-cyan-500 bg-clip-text text-transparent">
+                <div className="text-lg sm:text-xl font-bold bg-gradient-to-b from-sky-600 to-cyan-500 bg-clip-text text-transparent">
                   {data.storedCount ?? 0}%
                 </div>
                 <p className="text-xs sm:text-sm text-slate-500">
@@ -145,7 +154,17 @@ export default function ArticlesSummary({
               </div>
 
               <div>
-                <div className="text-2xl sm:text-3xl font-bold bg-gradient-to-b from-teal-600 to-emerald-500 bg-clip-text text-transparent">
+                <div className="flex items-center justify-center gap-1 text-lg sm:text-xl font-bold bg-gradient-to-b from-fuchsia-600 to-pink-500 bg-clip-text text-transparent">
+                  <Archive className="size-3.5 sm:size-4 shrink-0" />
+                  {data.generalArticlesAvailablePercentage ?? 0}%
+                </div>
+                <p className="text-xs sm:text-sm text-slate-500">
+                  Artículos Generales
+                </p>
+              </div>
+
+              <div>
+                <div className="text-lg sm:text-xl font-bold bg-gradient-to-b from-teal-600 to-emerald-500 bg-clip-text text-transparent">
                   {data.dispatchCount ?? 0}
                 </div>
                 <p className="text-xs sm:text-sm text-slate-500">
@@ -154,7 +173,7 @@ export default function ArticlesSummary({
               </div>
 
               <div>
-                <div className="text-2xl sm:text-3xl font-bold bg-gradient-to-b from-slate-700 to-slate-500 dark:from-slate-200 dark:to-slate-400 bg-clip-text text-transparent">
+                <div className="text-lg sm:text-xl font-bold bg-gradient-to-b from-slate-700 to-slate-500 dark:from-slate-200 dark:to-slate-400 bg-clip-text text-transparent">
                   {data.dispatchAircraftCount ?? 0}
                 </div>
                 <p className="text-xs sm:text-sm text-slate-500">
@@ -163,7 +182,7 @@ export default function ArticlesSummary({
               </div>
 
               <div>
-                <div className="text-2xl sm:text-3xl font-bold bg-gradient-to-b from-amber-600 to-orange-500 bg-clip-text text-transparent">
+                <div className="text-lg sm:text-xl font-bold bg-gradient-to-b from-amber-600 to-orange-500 bg-clip-text text-transparent">
                   {data.dispatchWorkOrderCount ?? 0}
                 </div>
                 <p className="text-xs sm:text-sm text-slate-500">
@@ -190,7 +209,7 @@ export default function ArticlesSummary({
 
             <CardDescription className="mx-auto max-w-xs sm:max-w-md text-xs sm:text-sm">
               Listado de artículos sin disponibilidad<br />
-              Cantidad: {data.restockCount ?? 0}
+              Por Lote: {data.restockCount ?? 0} | Generales: {data.generalArticlesRestockCount ?? 0}
             </CardDescription>
           </CardHeader>
 
@@ -250,63 +269,59 @@ export default function ArticlesSummary({
         <CardHeader className="text-center pb-4 space-y-2 sm:space-y-3">
           <div className="flex justify-center">
             <div className="p-2 rounded-xl bg-cyan-500/10 text-cyan-600">
-              <AlertTriangle className="size-4 sm:size-5" />
+              <PackageSearch className="size-4 sm:size-5" />
             </div>
           </div>
 
           <CardTitle className="text-lg sm:text-2xl">
-            Gráfico de Salidas
+            Artículos Despachados por Tipo
           </CardTitle>
 
           <CardDescription className="mx-auto max-w-xs sm:max-w-md text-xs sm:text-sm">
-            Comparativa de tipos de despacho
+            Distribución semanal de despachos según categoría de artículo
           </CardDescription>
         </CardHeader>
 
-        <CardContent className="h-[260px] sm:h-[400px] pt-4 sm:pt-10 pb-6 sm:pb-8 px-4 sm:px-6">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData} margin={{ top: 10, right: 10, left: -10, bottom: 20 }}>
+        <CardContent className="h-[320px] sm:h-[420px] pt-2 sm:pt-4 pb-6 sm:pb-8 px-4 sm:px-6">
+          {totalDispatched === 0 ? (
+            <div className="h-full flex items-center justify-center text-center text-sm text-slate-500">
+              No hay despachos registrados en esta semana
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Tooltip content={<CustomTooltip />} />
 
-              <defs>
-                <linearGradient id="indigoDispatch" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#6366F1" />
-                  <stop offset="100%" stopColor="#818CF8" stopOpacity={0.6} />
-                </linearGradient>
+                <Pie
+                  data={chartData}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="45%"
+                  innerRadius="55%"
+                  outerRadius="80%"
+                  paddingAngle={2}
+                  cornerRadius={4}
+                  stroke="none"
+                >
+                  {chartData.map((entry, idx) => (
+                    <Cell key={idx} fill={entry.color} />
+                  ))}
+                </Pie>
 
-                <linearGradient id="cyanIncoming" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#22D3EE" />
-                  <stop offset="100%" stopColor="#67E8F9" stopOpacity={0.6} />
-                </linearGradient>
-
-                <linearGradient id="violetWorkOrder" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#8B5CF6" />
-                  <stop offset="100%" stopColor="#A78BFA" stopOpacity={0.6} />
-                </linearGradient>
-              </defs>
-
-              <XAxis
-                dataKey="name"
-                interval={0}
-                tickMargin={10}
-                tickFormatter={(value) => {
-                  if (value === "Salidas Totales") return "Totales";
-                  if (value === "Salidas a Aeronaves") return "Aeronaves";
-                  if (value === "Salidas a Taller") return "Taller";
-                  return value;
-                }}
-                tick={{ fontSize: 10 }}
-              />
-              <YAxis />
-              <Tooltip content={<CustomTooltip />} />
-
-              <Bar dataKey="value" radius={[6, 6, 0, 0]}>
-                {chartData.map((entry, idx) => (
-                  <Cell key={idx} fill={entry.color} />
-                ))}
-              </Bar>
-
-            </BarChart>
-          </ResponsiveContainer>
+                <Legend
+                  verticalAlign="bottom"
+                  align="center"
+                  iconType="circle"
+                  iconSize={8}
+                  wrapperStyle={{ fontSize: 12, paddingTop: 12 }}
+                  formatter={(value) => (
+                    <span className="text-slate-600 dark:text-slate-300">{value}</span>
+                  )}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          )}
         </CardContent>
       </TintedCard>
 

@@ -6,6 +6,7 @@ import { DataTable } from "./data-table";
 import LoadingPage from "@/components/misc/LoadingPage";
 import { useGetDangerIdentifications } from "@/hooks/sms/useGetDangerIdentification";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const DangerIdentificationsPage = () => {
   const { selectedCompany } = useCompanyStore();
@@ -19,6 +20,8 @@ const DangerIdentificationsPage = () => {
 
   return (
     <ContentLayout title="Peligros Identificados">
+      <PageHeader className="mb-6" />
+
       <div className="flex flex-col gap-y-2">
         {data && <DataTable columns={columns} data={data} />}
         {isError && (

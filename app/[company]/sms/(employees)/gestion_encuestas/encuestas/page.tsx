@@ -7,6 +7,7 @@ import { columns } from "./columns";
 import { DataTable } from "./data-table";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useGetSurveys } from "@/hooks/sms/survey/useGetSurveys";
+import { PageHeader } from "@/components/layout/PageHeader";
 // need to change the hook to get surveys
 
 const SurveyListPage = () => {
@@ -16,6 +17,8 @@ const SurveyListPage = () => {
   }
   return (
     <ContentLayout title="Encuestas">
+      <PageHeader className="mb-6" />
+
       <div className="flex flex-col gap-y-2">
         {data && <DataTable columns={columns} data={data} />}
         {isError && (

@@ -1,14 +1,6 @@
 "use client";
 
 import { ContentLayout } from "@/components/layout/ContentLayout";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
 
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -24,6 +16,7 @@ import { IncomingArticle } from "./IncomingTypes";
 import { GenerateReceptionFormButton } from "./_components/GenerateReceptionFormButton";
 import { form_columns } from "./form_columns";
 import { w_columns } from "./w-columns";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 
 const IncomingControlPage = () => {
@@ -47,32 +40,25 @@ const IncomingControlPage = () => {
     isLoading: isWaitingForFormLoading,
   } = useGetArticlesByStatus("WAITING_FOR_FORMAT");
 
-
+  // Corregidos por compras y a la espera de que el inspector los re-inspeccione:
+  // es trabajo pendiente de calidad, así que vive en su propio tablero y no solo
+  // en la vista de cuarentena.
+  const {
+    data: pendingReinspectionArticles,
+    isLoading: isReinspectionLoading,
+  } = useGetArticlesByStatus("PENDING_REINSPECTION");
 
   const waitingForFormCount = waitingForFormArticles?.length ?? 0;
   const incomingCount = incomingArticles?.length ?? 0;
   const waitingCount = waitingToLocateArticles?.length ?? 0;
+  const reinspectionCount = pendingReinspectionArticles?.length ?? 0;
 
   if (isIncomingLoading && isWaitingLoading) return <LoadingPage />;
 
   return (
-    <ContentLayout title="Inventario">
+    <ContentLayout title="Control de Incoming">
       <div className="flex flex-col gap-y-3">
-        <Breadcrumb>
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink href={`/${selectedCompany?.slug}/dashboard`}>
-                Inicio
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>General</BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>Control de Incoming</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
+        <PageHeader className="mb-3" />
 
         <div className="text-center space-y-1">
           <h1 className="text-4xl font-bold">Control de Incoming</h1>
@@ -100,6 +86,13 @@ const IncomingControlPage = () => {
               En espera por ubicar
               <Badge variant="secondary">{waitingCount}</Badge>
             </TabsTrigger>
+
+            <TabsTrigger value="reinspection" className="gap-2">
+              Re-inspección
+              <Badge variant={reinspectionCount > 0 ? "default" : "secondary"}>
+                {reinspectionCount}
+              </Badge>
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="incoming">
@@ -115,6 +108,18 @@ const IncomingControlPage = () => {
               <LoadingPage />
             ) : (
               <DataTable groupBy="order_number" columns={w_columns} data={waitingToLocateArticles ?? []} />
+            )}
+          </TabsContent>
+
+          <TabsContent value="reinspection">
+            {isReinspectionLoading ? (
+              <LoadingPage />
+            ) : (
+              <DataTable
+                groupBy="order_number"
+                columns={columns}
+                data={pendingReinspectionArticles ?? []}
+              />
             )}
           </TabsContent>
 

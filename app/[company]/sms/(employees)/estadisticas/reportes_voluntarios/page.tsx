@@ -19,7 +19,8 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { format, startOfMonth } from "date-fns";
 import { Loader2 } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
+
 
 const graphicsOptions = [
   { id: "Todos", label: "Todos los gráficos" },
@@ -60,7 +61,7 @@ const Statistics = () => {
       selectedCompany?.slug!,
       currentParams.from,
       currentParams.to,
-      "voluntary"
+      "voluntary",
     );
 
   const { data: dynamicData, isLoading: isLoadingDynamicData } =
@@ -68,7 +69,7 @@ const Statistics = () => {
       selectedCompany?.slug!,
       currentParams.from,
       currentParams.to,
-      "voluntary"
+      "voluntary",
     );
 
   const { data: pieCharData, isLoading: isLoadingPieCharData } =
@@ -76,7 +77,7 @@ const Statistics = () => {
       selectedCompany?.slug!,
       currentParams.from,
       currentParams.to,
-      "voluntary"
+      "voluntary",
     );
 
   const { data: riskData, isLoading: isLoadingRisk } =
@@ -84,7 +85,7 @@ const Statistics = () => {
       selectedCompany?.slug!,
       currentParams.from,
       currentParams.to,
-      "voluntary"
+      "voluntary",
     );
 
   const { data: postRiskData, isLoading: isLoadingPostRisk } =
@@ -92,7 +93,7 @@ const Statistics = () => {
       selectedCompany?.slug!,
       currentParams.from,
       currentParams.to,
-      "voluntary"
+      "voluntary",
     );
 
   const {
@@ -101,7 +102,7 @@ const Statistics = () => {
   } = useGetVoluntaryReportsCountedByAirportLocation(
     selectedCompany?.slug!,
     currentParams.from,
-    currentParams.to
+    currentParams.to,
   );
 
   const { data: reportsBySourceName, isLoading: isLoadingSourceName } =
@@ -109,7 +110,7 @@ const Statistics = () => {
       selectedCompany?.slug!,
       currentParams.from,
       currentParams.to,
-      "voluntary"
+      "voluntary",
     );
 
   const { data: reportsBySourceType, isLoading: isLoadingSourceType } =
@@ -117,12 +118,12 @@ const Statistics = () => {
       selectedCompany?.slug!,
       currentParams.from,
       currentParams.to,
-      "voluntary"
+      "voluntary",
     );
 
   // Manejar cambio de fechas desde DateFilter
   const handleDateChange = (
-    dateRange: { from: Date; to: Date } | undefined
+    dateRange: { from: Date; to: Date } | undefined,
   ) => {
     if (!dateRange?.from || !dateRange?.to) return;
 
@@ -145,12 +146,20 @@ const Statistics = () => {
     router.push(`${pathname}?${newParams.toString()}`, { scroll: false });
   };
 
+
+
   const shouldShow = (id: string) =>
     selectedGraphics.includes("Todos") || selectedGraphics.includes(id);
   return (
-    <ContentLayout title="Gráficos Estadísticos de los Reportes Voluntarios">
+    <ContentLayout
+      title="Gráficos Estadísticos de los Reportes Voluntarios"
+      data-tour="stats-voluntarios-header"
+    >
       <div className="flex flex-col space-y-4 mb-6">
-        <div className="flex justify-center items-center">
+        <div
+          className="flex justify-center items-center"
+          data-tour="stats-voluntarios-date-filter"
+        >
           <div className="flex flex-col w-full max-w-md">
             <Label className="text-lg font-semibold mb-2">
               Seleccionar Rango de Fechas:
@@ -167,18 +176,23 @@ const Statistics = () => {
           </div>
         </div>
 
-        <GraphicsSelector
-          options={graphicsOptions}
-          selectedGraphics={selectedGraphics}
-          onSelectionChange={setSelectedGraphics}
-          label="Seleccionar Gráficos a Mostrar:"
-          placeholder="Seleccionar gráficos..."
-        />
+        <div data-tour="stats-voluntarios-graphics-selector">
+          <GraphicsSelector
+            options={graphicsOptions}
+            selectedGraphics={selectedGraphics}
+            onSelectionChange={setSelectedGraphics}
+            label="Seleccionar Gráficos a Mostrar:"
+            placeholder="Seleccionar gráficos..."
+          />
+        </div>
       </div>
 
       <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-2 gap-4">
         {shouldShow("bar-chart") && (
-          <div className="p-4 rounded-lg shadow border">
+          <div
+            className="p-4 rounded-lg shadow border"
+            data-tour="stats-voluntarios-chart-bar"
+          >
             {isLoadingBarChart ? (
               <div className="flex justify-center items-center h-48">
                 <Loader2 className="size-24 animate-spin" />
@@ -208,7 +222,10 @@ const Statistics = () => {
         )}
 
         {shouldShow("location") && (
-          <div className="p-4 rounded-lg shadow border">
+          <div
+            className="p-4 rounded-lg shadow border"
+            data-tour="stats-voluntarios-chart-location"
+          >
             {isLoadingReportsByLocationData ? (
               <div className="flex justify-center items-center h-48">
                 <Loader2 className="size-24 animate-spin" />
@@ -230,7 +247,10 @@ const Statistics = () => {
         )}
 
         {shouldShow("tipo") && (
-          <div className="p-4 rounded-lg shadow border">
+          <div
+            className="p-4 rounded-lg shadow border"
+            data-tour="stats-voluntarios-chart-tipo"
+          >
             {isLoadingDynamicData ? (
               <div className="flex justify-center items-center h-48">
                 <Loader2 className="size-24 animate-spin" />
@@ -252,7 +272,10 @@ const Statistics = () => {
         )}
 
         {shouldShow("area-bar") && (
-          <div className="p-4 rounded-lg shadow border">
+          <div
+            className="p-4 rounded-lg shadow border"
+            data-tour="stats-voluntarios-chart-area"
+          >
             {isLoadingPieCharData ? (
               <div className="flex justify-center items-center h-48">
                 <Loader2 className="size-24 animate-spin" />
@@ -274,7 +297,10 @@ const Statistics = () => {
         )}
 
         {shouldShow("pre-riesgo") && (
-          <div className="p-4 rounded-lg shadow border">
+          <div
+            className="p-4 rounded-lg shadow border"
+            data-tour="stats-voluntarios-chart-pre-riesgo-pie"
+          >
             {isLoadingRisk ? (
               <div className="flex justify-center items-center h-48">
                 <Loader2 className="size-24 animate-spin" />
@@ -296,7 +322,10 @@ const Statistics = () => {
         )}
 
         {shouldShow("pre-riesgo-bar") && (
-          <div className="p-4 rounded-lg shadow border">
+          <div
+            className="p-4 rounded-lg shadow border"
+            data-tour="stats-voluntarios-chart-pre-riesgo-bar"
+          >
             {isLoadingRisk ? (
               <div className="flex justify-center items-center h-48">
                 <Loader2 className="size-24 animate-spin" />
@@ -318,7 +347,10 @@ const Statistics = () => {
         )}
 
         {shouldShow("post-riesgo-bar") && (
-          <div className="p-4 rounded-lg shadow border">
+          <div
+            className="p-4 rounded-lg shadow border"
+            data-tour="stats-voluntarios-chart-post-riesgo-pie"
+          >
             {isLoadingPostRisk ? (
               <div className="flex justify-center items-center h-48">
                 <Loader2 className="size-24 animate-spin" />
@@ -340,7 +372,10 @@ const Statistics = () => {
         )}
 
         {shouldShow("post-riesgo-bar") && (
-          <div className="p-4 rounded-lg shadow border">
+          <div
+            className="p-4 rounded-lg shadow border"
+            data-tour="stats-voluntarios-chart-post-riesgo-bar"
+          >
             {isLoadingPostRisk ? (
               <div className="flex justify-center items-center h-48">
                 <Loader2 className="size-24 animate-spin" />
@@ -362,7 +397,10 @@ const Statistics = () => {
         )}
 
         {shouldShow("fuente-id") && (
-          <div className="p-4 rounded-lg shadow border">
+          <div
+            className="p-4 rounded-lg shadow border"
+            data-tour="stats-voluntarios-chart-fuente"
+          >
             {isLoadingSourceName ? (
               <div className="flex justify-center items-center h-48">
                 <Loader2 className="size-24 animate-spin" />
@@ -384,10 +422,13 @@ const Statistics = () => {
         )}
 
         {shouldShow("metodo-id") && (
-          <div className="p-4 rounded-lg shadow border">
+          <div
+            className="p-4 rounded-lg shadow border"
+            data-tour="stats-voluntarios-chart-metodo"
+          >
             {isLoadingSourceType ? (
               <div className="flex justify-center items-center h-48">
-                <Loader2 className="size-24 animate-spin" />
+                <Loader2 className="size-24 animate-spi|n" />
               </div>
             ) : reportsBySourceName?.length ? (
               <MultipleBarChartComponent

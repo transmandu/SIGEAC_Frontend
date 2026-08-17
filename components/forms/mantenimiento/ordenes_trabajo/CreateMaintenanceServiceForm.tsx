@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useGetManufacturers } from "@/hooks/general/condiciones/useGetConditions";
+import { useGetManufacturers } from "@/hooks/general/fabricantes/useGetManufacturers";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -70,13 +70,10 @@ const tasksFormSchema = z.object({
   }),
 });
 
-// Tipo para el servicio
 type ServiceFormType = z.infer<typeof serviceSchema>;
 
-// Tipo para las tareas
 type TasksFormType = z.infer<typeof tasksFormSchema>;
 
-// Tipo para el objeto final que se enviará al backend
 type MaintenanceServicePayload = {
   service: ServiceFormType;
   tasks: TasksFormType["tasks"];
@@ -175,7 +172,6 @@ export function CreateMaintenanceServiceForm({ onClose }: CreateMaintenanceServi
 
       onClose()
     }
-    // console.log(payload)
   };
 
   return (

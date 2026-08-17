@@ -4,11 +4,14 @@ import { ContentLayout } from "@/components/layout/ContentLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { VoluntaryReportsPage } from "./voluntary-page";
 import { ObligatoryReportsPage } from "./obligatory-page";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 export default function ReportsPage() {
     const title = "Gestión de Reportes";
     return (
         <ContentLayout title={title}>
+          <PageHeader className="mb-6" />
+
             <Tabs defaultValue="voluntarios" className="w-full">
                 <TabsList className="grid w-full grid-cols-2 mb-6">
                     <TabsTrigger value="voluntarios" className="flex items-center gap-2">

@@ -11,7 +11,7 @@ export const useGetSMSTraining = (company?: string) => {
   return useQuery<SMSTraining[]>({
     queryKey: ["sms-training", company],
     queryFn: () => fetchSMSTraining(company),
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    staleTime: 1000 * 60 * 5,
     enabled: !!company,
   });
 };

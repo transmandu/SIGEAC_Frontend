@@ -34,6 +34,6 @@ export const useGetSMSActivityAttendanceStatus = ({
   return useQuery<EnrolledEmployees>({
     queryKey: ["sms-activity-attendance-status",activity_id],
     queryFn: () => fetchGetActivityAttendanceStatus(value),
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    staleTime: 1000 * 60 * 5,
   });
 };

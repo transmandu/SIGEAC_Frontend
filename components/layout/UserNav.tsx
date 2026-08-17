@@ -80,13 +80,10 @@ export function UserNav() {
                   ease: [0.22, 1, 0.36, 1],
                 }}
                 className={cn(
+                  "glass-control",
                   "relative flex items-center justify-center",
                   "h-9 w-9 p-0 rounded-full",
-                  "bg-background",
-                  "border border-border/80",
-                  "hover:border-border",
-                  "hover:bg-muted/70",
-                  "transition-all duration-200",
+                  "border",
                   "overflow-hidden"
                 )}
               >
@@ -95,11 +92,7 @@ export function UserNav() {
                   onContextMenu={(e) => e.preventDefault()}
                 >
                   <AvatarImage
-                    src={
-                      employee?.photo_url
-                        ? `${employee.photo_url}?size=64`
-                        : " "
-                    }
+                    src={employee?.photo_url ?? " "}
                     alt="Avatar"
                     className="object-cover"
                     sizes="32px"
@@ -160,11 +153,7 @@ export function UserNav() {
             <div className="flex items-center gap-3">
               <Avatar className="h-10 w-10 border border-border/60">
                 <AvatarImage
-                  src={
-                    employee?.photo_url
-                      ? `${employee.photo_url}?size=64`
-                      : " "
-                  }
+                  src={employee?.photo_url ?? " "}
                   alt="Avatar"
                   className="object-cover"
                   sizes="40px"
@@ -215,7 +204,7 @@ export function UserNav() {
               className="rounded-xl px-2 py-2 cursor-pointer"
             >
               <Link
-                href="/ajustes/cuenta"
+                href="/cuenta"
                 className="flex items-center gap-2"
               >
                 <UserCircle2 className="w-4 h-4 text-muted-foreground" />

@@ -1,8 +1,10 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useMemo } from 'react'
 import { fetchNotifications } from './fetchNotifications'
-import { getEcho } from '@/lib/echo'
+import { getSocketId, retainPrivateChannel } from '@/lib/echo'
 import { Notification } from '@/types/notifications/types'
+
+const EMPTY_NOTIFICATIONS: Notification[] = []
 
 export const useNotifications = (
   company?: string,
@@ -29,34 +31,75 @@ export const useNotifications = (
     enabled: !!normalizedCompany,
     staleTime: Infinity,
     gcTime: 1000 * 60 * 30,
+    // La lista se mantiene al día por websocket y por los updates optimistas de
+    // marcar/limpiar. Un refetch al montar (el panel monta otra instancia de
+    // este hook sobre la misma key) llegaba con el read_at todavía sin commitear
+    // y revertía visualmente la notificación recién leída.
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   })
 
   useEffect(() => {
     if (!isReady || !normalizedUserId) return
 
-    const echoInstance = getEcho()
-
-    if (!echoInstance) return
-
     const channelName = `notifications.${normalizedUserId}`
-    const channel = echoInstance.private(channelName)
+    const { channel, release } = retainPrivateChannel(channelName)
+
+    if (!channel) return
 
     const handler = (event: Notification) => {
+      // Solo la compañía activa: el canal es por usuario, así que también trae
+      // las notificaciones de las demás empresas a las que pertenece.
+      if (event.data?.company && event.data.company !== normalizedCompany) {
+        return
+      }
+
       queryClient.setQueryData(
         ['notifications', normalizedCompany],
-        (old: Notification[] = []) => [event, ...old]
+        (old: Notification[] = []) =>
+          // El evento puede llegar dos veces (reconexión, o esta misma pestaña
+          // con el hook montado en varios componentes); duplicar la fila
+          // inflaría el contador de no leídas.
+          old.some(n => n.id === event.id) ? old : [event, ...old]
       )
     }
 
+    // Leer/limpiar en otra sesión (otro navegador o dispositivo): el servidor ya
+    // aplicó el cambio, así que basta con refetchear. Entre pestañas del mismo
+    // navegador esto llega antes por BroadcastChannel; el refetch es idempotente.
+    const stateHandler = (event: {
+      company: string
+      origin_socket_id?: string | null
+    }) => {
+      if (event.company !== normalizedCompany) return
+
+      // La sesión que hizo el cambio ya lo aplicó de forma optimista; refetchear
+      // aquí es lo que revertía visualmente la notificación recién leída.
+      if (event.origin_socket_id && event.origin_socket_id === getSocketId()) {
+        return
+      }
+
+      queryClient.invalidateQueries({
+        queryKey: ['notifications', normalizedCompany],
+      })
+    }
+
     channel.listen('.new-notification', handler)
+    channel.listen('.notifications-state-changed', stateHandler)
 
     return () => {
-      channel.stopListening('.new-notification')
-      echoInstance.leave(channelName)
+      // Se pasa el handler: sin él Echo borra los listeners de las demás
+      // instancias del hook, que comparten este mismo canal.
+      channel.stopListening('.new-notification', handler)
+      channel.stopListening('.notifications-state-changed', stateHandler)
+      release()
     }
   }, [isReady, normalizedUserId, normalizedCompany, queryClient])
 
-  const notifications = query.data ?? []
+  // Referencia estable: un `?? []` inline crea un array nuevo por render y
+  // dispara efectos que dependan de `notifications`.
+  const notifications = query.data ?? EMPTY_NOTIFICATIONS
 
   const unreadCount = notifications.reduce(
     (acc, n) => acc + (n.read_at ? 0 : 1),
@@ -71,4 +114,4 @@ export const useNotifications = (
     unreadCount,
     latestNotification,
   }
-}
+}

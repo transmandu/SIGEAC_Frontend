@@ -1,4 +1,4 @@
-import type { Unit, Location, BankAccount, BankCard, PaymentMethod, ShippingAgency, GeneralArticle, Retailer } from '@/types';
+import type { Unit, Location, BankAccount, BankCard, PaymentMethod, ShippingAgency, GeneralArticle, Retailer, Vendor } from '@/types';
 import type { ArticleRequisitionOrderRef, GeneralArticleRequisitionOrderRef } from '@/types/purchase/quote';
 
 // ── Purchase order status ───────────────────────────────────────────────────
@@ -19,6 +19,11 @@ export interface PurchaseOrderArticleQuoteOrder {
   is_not_quoted?: boolean;
   quantity: string | number;
   unit_price: string | number;
+  total: string | number;
+  /** Unidad fijada al cotizar — la que hereda el artículo al crearse en inventario. */
+  unit?: Unit | null;
+  condition?: { id: number; name: string } | null;
+  vendor?: Vendor | null;
   article_requisition_order: ArticleRequisitionOrderRef | null;
 }
 
@@ -30,6 +35,7 @@ export interface PurchaseOrderGeneralArticleQuoteOrder {
   unit_id?: number | null;
   quantity: string | number;
   unit_price: string | number;
+  total: string | number;
   brand_model?: string | null;
   reference?: string | null;
   lead_time?: string | null;
@@ -37,6 +43,8 @@ export interface PurchaseOrderGeneralArticleQuoteOrder {
   is_not_quoted?: boolean;
   /** Comercio / lugar de compra where this general article was quoted. */
   retailer?: Retailer | null;
+  /** Unidad fijada al cotizar — la que hereda el artículo al crearse en inventario. */
+  unit?: Unit | null;
   general_article_requisition_order: GeneralArticleRequisitionOrderRef | null;
 }
 
@@ -45,6 +53,10 @@ export interface PurchaseOrderArticle {
   id: number;
   purchase_order_id: number;
   article_quote_order_id: number;
+  /** Actual amount paid for this line item — may differ from article_quote_order.total. */
+  total?: string | number | null;
+  /** Required (by convention, not enforced by the backend) when total differs from the quoted total. */
+  total_justification?: string | null;
   shipping_tracking?: string | null;
   international_shipping_tracking?: string | null;
   article_quote_order: PurchaseOrderArticleQuoteOrder | null;
@@ -59,11 +71,23 @@ export interface PurchaseOrderGeneralArticle {
   id: number;
   purchase_order_id: number;
   general_article_quote_order_id: number;
+  /** Actual amount paid for this line item — may differ from general_article_quote_order.total. */
+  total?: string | number | null;
+  /** Required (by convention, not enforced by the backend) when total differs from the quoted total. */
+  total_justification?: string | null;
   shipping_tracking?: string | null;
   international_shipping_tracking?: string | null;
   general_article_quote_order: PurchaseOrderGeneralArticleQuoteOrder | null;
-  /** Present once someone has registered this line's physical delivery (see registerGeneralArticlesDelivery). Null while still pending. */
-  general_article_intake?: { id: number; status: GeneralArticleIntakeStatus } | null;
+  /** Present once someone has registered this line's physical delivery (see registerGeneralArticlesDelivery). Null while still pending. If status is REJECTED, the line is eligible for re-registration. */
+  general_article_intake?: {
+    id: number;
+    status: GeneralArticleIntakeStatus;
+    warehouse?: GeneralArticleIntakeWarehouseRef | null;
+    department?: GeneralArticleIntakeDepartmentRef | null;
+    employee?: GeneralArticleIntakeEmployeeRef | null;
+    third_party?: GeneralArticleIntakeThirdPartyRef | null;
+    authorized_employee?: GeneralArticleIntakeAuthorizedEmployeeRef | null;
+  } | null;
 }
 
 export interface PurchaseOrderQuoteRef {
@@ -135,12 +159,18 @@ export interface PurchaseOrder {
 // the same quote_order_id.
 export interface CreatePurchaseOrderArticleData {
   article_quote_order_id: number;
+  total?: number | null;
+  /** Required (by convention, not enforced by the backend) when total differs from the quoted total. */
+  total_justification?: string | null;
   shipping_tracking?: string | null;
   international_shipping_tracking?: string | null;
 }
 
 export interface CreatePurchaseOrderGeneralArticleData {
   general_article_quote_order_id: number;
+  total?: number | null;
+  /** Required (by convention, not enforced by the backend) when total differs from the quoted total. */
+  total_justification?: string | null;
   shipping_tracking?: string | null;
   international_shipping_tracking?: string | null;
 }
@@ -150,8 +180,15 @@ export interface CreatePurchaseOrderData {
   location_id: number;
   purchase_date: string;
   observation?: string | null;
-  sub_total: number;
-  total: number;
+  /**
+   * Not used by the backend at creation — a quote spanning multiple vendors
+   * (or retailers, for general articles) splits into one PO per vendor, and
+   * each split PO's sub_total/total is computed server-side as the sum of
+   * only the articles routed into it. Kept optional for callers that still
+   * pass a value; it's ignored.
+   */
+  sub_total?: number;
+  total?: number;
   articles_purchase_orders?: CreatePurchaseOrderArticleData[];
   general_articles_purchase_orders?: CreatePurchaseOrderGeneralArticleData[];
 }
@@ -167,6 +204,9 @@ export interface CreatedPurchaseOrderRef {
 // PUT /{company}/purchase-order/{id}
 export interface UpdatePurchaseOrderArticleData {
   article_purchase_order_id: number;
+  total?: number | null;
+  /** Required (by convention, not enforced by the backend) when total differs from the quoted total. */
+  total_justification?: string | null;
   shipping_tracking?: string | null;
   international_shipping_tracking?: string | null;
 }
@@ -175,6 +215,8 @@ export interface UpdatePurchaseOrderData {
   tax?: number | null;
   wire_fee?: number | null;
   handling_fee?: number | null;
+  /** Sum of the line items' totals — recalculate on the frontend whenever an article's total changes. */
+  sub_total?: number | null;
   total: number;
   /** El backend deriva bank_account_id del método de pago cuando se envía payment_method_id. */
   payment_method_id?: number | null;
@@ -209,7 +251,14 @@ export interface RegisterGeneralArticlesDeliveryResponse {
 // only confirming it (GeneralArticleIntakeController::confirm) creates or
 // increments the matching general_articles row. The intake row itself is
 // never deleted — it's the permanent audit trail of who/when/how much.
-export type GeneralArticleIntakeStatus = 'PENDING' | 'CONFIRMED';
+// REJECTED marks a physical-verification mismatch (wrong item / wrong
+// quantity): the intake never touches stock, stays as incident history, and
+// the deliverer can re-register the delivery on the same PO once resolved.
+// DELIVERED is a direct delivery: the intake was handed straight to a
+// department/employee/authorized/third party (never a warehouse), so there is
+// no confirmation step and it never reaches inventory — its receipt is the
+// downloadable Nota de Entrega.
+export type GeneralArticleIntakeStatus = 'PENDING' | 'CONFIRMED' | 'REJECTED' | 'DELIVERED';
 
 // Shaped by GeneralArticleIntakeResource — only what the frontend needs from
 // each relation, not the full purchase_order/quote_order/requisition_order
@@ -229,18 +278,81 @@ export interface GeneralArticleIntakeUnitRef {
   label: string;
 }
 
+// Snapshot of the requisition line this intake's purchase traces back to —
+// lets the frontend compare "solicitado" vs "comprado" without a second call.
+export interface GeneralArticleIntakeRequisitionRef {
+  id: number;
+  quantity: number;
+  unit?: GeneralArticleIntakeUnitRef | null;
+}
+
+// Quote-article line the intake's purchase order line was created from.
+// Present only when the purchase order line traces back to a requisition
+// (i.e. not for ad-hoc/direct purchases). `justification` is the reason the
+// buyer gave at quote time for changing quantity/unit vs. what was requested.
+export interface GeneralArticleIntakeQuoteOrderRef {
+  id: number;
+  quantity: number;
+  unit?: GeneralArticleIntakeUnitRef | null;
+  justification?: string | null;
+  general_article_requisition_order?: GeneralArticleIntakeRequisitionRef | null;
+}
+
 export interface GeneralArticleIntakeWarehouseRef {
+  id: number;
   location_id: number;
   name: string;
   type: string;
 }
 
+// Direct-delivery destinations — the same entities a general-article
+// requisition line can be affiliated to, so the whole thread
+// (requisition → purchase → delivery) stays linked. Mutually exclusive with
+// each other and with `warehouse`.
+export interface GeneralArticleIntakeDepartmentRef {
+  id: number;
+  name: string;
+}
+
+export interface GeneralArticleIntakeThirdPartyRef {
+  id: number;
+  name: string;
+}
+
+export interface GeneralArticleIntakeEmployeeRef {
+  id: number;
+  first_name: string;
+  last_name: string;
+  dni: string;
+}
+
+export interface GeneralArticleIntakeAuthorizedEmployeeRef {
+  id: number;
+  full_name: string;
+  dni: string;
+}
+
+// Conversión aplicada al confirmar cuando el intake coincidía con un
+// general_article existente en todo menos la unidad (ver
+// GeneralArticleIntakeController::resolveUnitConversionCandidate).
+export interface GeneralArticleIntakeAppliedConversionRef {
+  id: number;
+  equivalence: number;
+}
+
 // GET /{company}/{location_id}/general-article-intakes
 export interface GeneralArticleIntake {
   id: number;
+  /** Identidad vigente: la del general_article vivo si el intake ya está vinculado; si no, la del propio intake. Tras una fusión refleja al superviviente. */
   description: string;
   variant_type?: string | null;
   brand_model?: string | null;
+  /** Datos descriptivos tal como se registró la recepción física, inmutables ante fusiones posteriores. */
+  historical_description?: string | null;
+  historical_variant_type?: string | null;
+  historical_brand_model?: string | null;
+  /** Artículo vivo al que quedó vinculado el intake (null mientras está PENDING sin emparejar). */
+  general_article_id?: number | null;
   cost?: number | null;
   image?: string | null;
   quantity: string | number;
@@ -249,10 +361,23 @@ export interface GeneralArticleIntake {
   registered_by: string;
   confirmed_by?: string | null;
   confirmed_at?: string | null;
+  rejected_by?: string | null;
+  rejected_at?: string | null;
+  rejection_reason?: string | null;
   observation?: string | null;
   unit?: GeneralArticleIntakeUnitRef | null;
   warehouse?: GeneralArticleIntakeWarehouseRef | null;
+  department?: GeneralArticleIntakeDepartmentRef | null;
+  third_party?: GeneralArticleIntakeThirdPartyRef | null;
+  employee?: GeneralArticleIntakeEmployeeRef | null;
+  authorized_employee?: GeneralArticleIntakeAuthorizedEmployeeRef | null;
   purchase_order?: GeneralArticleIntakePurchaseOrderRef | null;
+  /** Comercio donde se compró: las compras generales usan retailer, no vendor. */
+  retailer?: { id: number; name: string } | null;
+  general_article_quote_order?: GeneralArticleIntakeQuoteOrderRef | null;
+  /** Cantidad ya convertida a la unidad del general_article existente — solo si applied_conversion no es null. */
+  converted_quantity?: number | null;
+  applied_conversion?: GeneralArticleIntakeAppliedConversionRef | null;
 }
 
 // GET /{company}/general-article-intakes/{location_id}?status=PENDING|CONFIRMED
@@ -265,4 +390,66 @@ export interface ConfirmGeneralArticleIntakeResponse {
   message: string;
   intake: GeneralArticleIntake;
   general_article: GeneralArticle;
+  /** Lo que entró al inventario, ya en la unidad base (no la comprada). */
+  stock_entry: {
+    quantity: number;
+    unit_label: string | null;
+    description: string;
+    resulting_quantity: number;
+  };
+}
+
+// Respuesta 422 de confirm() cuando el intake coincide en todo con un
+// general_article existente menos la unidad, y no hay ninguna Conversion
+// registrada entre ambas para ese artículo. El frontend debe ofrecer crearla
+// (capturando equivalence) y reintentar confirm con new_conversion.
+export interface NeedsUnitConversionCandidate {
+  general_article_id: number;
+  description: string;
+  /** El driver sqlsrv a veces serializa esta FK como string — normalizar con Number() antes de comparar contra Unit.id. */
+  existing_unit_id: number | string;
+  /** Ver nota de existing_unit_id. */
+  intake_unit_id: number | string;
+}
+
+export interface NeedsUnitConversionResponse {
+  message: string;
+  needs_conversion: true;
+  candidate: NeedsUnitConversionCandidate;
+}
+
+// PATCH /{company}/general-article-intakes/{id}/reject
+export interface RejectGeneralArticleIntakeResponse {
+  message: string;
+  intake: GeneralArticleIntake;
+}
+
+// PATCH /{company}/general-article-intakes/{id}
+// Corrección de una recepción (solo SUPERUSER). Edición parcial: se envía
+// únicamente lo que cambió; null explícito vacía un campo opcional.
+export interface UpdateGeneralArticleIntakePayload {
+  description?: string;
+  variant_type?: string | null;
+  brand_model?: string | null;
+  cost?: number | null;
+  quantity?: number;
+  unit_id?: number;
+  warehouse_id?: number | null;
+  arrived_at?: string;
+  confirmed_at?: string | null;
+  rejected_at?: string | null;
+  rejection_reason?: string | null;
+  observation?: string | null;
+}
+
+export interface UpdateGeneralArticleIntakeResponse {
+  message: string;
+  intake: GeneralArticleIntake;
+  /** Presente solo si la entrada estaba confirmada y el reajuste movió el stock. */
+  stock_adjustment: {
+    general_article_id: number;
+    previous_quantity: number;
+    new_quantity: number;
+    resulting_quantity: number;
+  } | null;
 }

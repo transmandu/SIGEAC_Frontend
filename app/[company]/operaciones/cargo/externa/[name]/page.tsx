@@ -13,14 +13,7 @@ import { ArrowLeft, Plane, Plus, Download } from "lucide-react";
 import { MonthYearPicker } from "@/components/selects/MonthYearPicker";
 import { useExportCargoByAircraft } from "@/hooks/operaciones/cargo/useExportCargoByAircraft";
 import { LoadingDataTable } from "@/components/tables/LoadingDataTable";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const ExternalAircraftCargoPage = () => {
   const params = useParams();
@@ -57,29 +50,9 @@ const ExternalAircraftCargoPage = () => {
   const columns = getColumns(isCurrentMonth, company, canWrite);
 
   return (
-    <ContentLayout title="Registros de Carga">
+    <ContentLayout title="Carga Externa">
       <div className="flex flex-col gap-4">
-        <Breadcrumb>
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink href={`/${company}/dashboard`}>
-                Inicio
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>Operaciones</BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbLink href={`/${company}/operaciones/cargo?month=${month}&year=${year}`}>
-                Carga
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>{name} (Externa)</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
+        <PageHeader className="mb-2" />
 
         <div className="flex flex-col gap-2 text-center">
           <div className="flex items-center justify-center gap-3">

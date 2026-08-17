@@ -9,26 +9,16 @@ import {
     BookCheck,
 } from "lucide-react";
 
-const INVENTARIO_ARTICULOS_ROLES = [
-    "SUPERUSER",
-    "ANALISTA_COMPRAS",
-    "JEFE_COMPRAS",
-    "ANALISTA_PLANIFICACION",
-    "JEFE_PLANIFICACION",
-    "RRHH_ADMINISTRACION",
-    "JEFE_ADMINISTRACION",
-    "JEFE_CONTROL_CALIDAD",
-    "CONTADOR_ADMINISTRACION",
-    "TESTER",
-    "ENGINEERING",
-    "TECNICO_MANTENIMIENTO_AERONAUTICO",
-    "JEFE_MANTENIMIENTO",
-];
-
 export function buildGeneralGroup({ pathname, currentCompany, userRoles }: MenuContext): Group {
-    const hasInventarioArticulosAccess = INVENTARIO_ARTICULOS_ROLES.some((role) =>
-        userRoles.includes(role),
-    );
+    const hasInventarioArticulosAccess = [
+        "TESTER",
+        "JEFE_COMPRAS", "ANALISTA_COMPRAS",
+        "JEFE_PLANIFICACION", "ANALISTA_PLANIFICACION",
+        "JEFE_ADMINISTRACION", "RRHH_ADMINISTRACION", "ANALISTA_ADMINISTRACION", "CONTADOR_ADMINISTRACION",
+        "JEFE_CONTROL_CALIDAD",
+        "JEFE_MANTENIMIENTO", "TECNICO_MANTENIMIENTO_AERONAUTICO", "ENGINEERING",
+    ].some((role) => userRoles.includes(role));
+
     const inventarioHref = hasInventarioArticulosAccess
         ? `/${currentCompany?.slug}/general/inventario_articulos`
         : `/${currentCompany?.slug}/general/inventario_general`;
@@ -115,7 +105,15 @@ export function buildGeneralGroup({ pathname, currentCompany, userRoles }: MenuC
                 label: "Inventario",
                 active: pathname.includes(inventarioHref),
                 icon: PackageSearch,
-                roles: [],
+                roles: [
+                    "TESTER",
+                    "JEFE_COMPRAS", "ANALISTA_COMPRAS", "ASISTENTE_COMPRAS",
+                    "JEFE_PLANIFICACION", "ANALISTA_PLANIFICACION",
+                    "JEFE_ADMINISTRACION", "RRHH_ADMINISTRACION", "ANALISTA_ADMINISTRACION", "CONTADOR_ADMINISTRACION",
+                    "JEFE_CONTROL_CALIDAD",
+                    "JEFE_MANTENIMIENTO", "TECNICO_MANTENIMIENTO_AERONAUTICO", "ENGINEERING",
+                    "SERVICIOS_GENERALES",
+                ],
                 submenus: [],
                 requiresOmac: true,
             },

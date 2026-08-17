@@ -120,13 +120,13 @@ export default function CreateMitigationMeasure({
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
                 <FormField
                     control={form.control}
                     name="description"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Descripción de la medida</FormLabel>
+                            <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Descripción de la medida</FormLabel>
                             <FormControl>
                                 <Textarea
                                     placeholder="Detalle la medida de mitigación a implementar"
@@ -145,7 +145,7 @@ export default function CreateMitigationMeasure({
                         name="implementation_responsible"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Responsable de implementación</FormLabel>
+                                <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Responsable de implementación</FormLabel>
                                 <FormControl>
                                     <Input
                                         placeholder="Nombre o área responsable"
@@ -162,7 +162,7 @@ export default function CreateMitigationMeasure({
                         name="implementation_supervisor"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Supervisor de seguimiento</FormLabel>
+                                <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Supervisor de seguimiento</FormLabel>
                                 <FormControl>
                                     <Input
                                         placeholder="Nombre o área que supervisa"
@@ -181,7 +181,7 @@ export default function CreateMitigationMeasure({
                         name="estimated_date"
                         render={({ field }) => (
                             <FormItem className="flex flex-col">
-                                <FormLabel>Fecha estimada</FormLabel>
+                                <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Fecha estimada</FormLabel>
                                 <Popover>
                                     <PopoverTrigger asChild>
                                         <FormControl>
@@ -239,7 +239,7 @@ export default function CreateMitigationMeasure({
                         name="execution_date"
                         render={({ field }) => (
                             <FormItem className="flex flex-col">
-                                <FormLabel>Fecha de ejecución</FormLabel>
+                                <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Fecha de ejecución</FormLabel>
                                 <Popover>
                                     <PopoverTrigger asChild>
                                         <FormControl>
@@ -304,7 +304,7 @@ export default function CreateMitigationMeasure({
                             Cancelar
                         </Button>
                     )}
-                    <Button type="submit" className="sm:min-w-52" disabled={isPending}>
+                    <Button type="submit" className="w-full h-10" disabled={isPending}>
                         {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         {isEditing ? "Guardar cambios" : "Agregar medida"}
                     </Button>

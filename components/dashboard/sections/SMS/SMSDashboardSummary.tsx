@@ -341,7 +341,7 @@ export default function DashboardSummary({ companySlug }: DashboardSummaryProps)
                     <div>Fecha: {dateFormat(r.report_date, "yyyy-MM-dd")}</div>
                     <div>Lugar: {r.danger_location}</div>
 
-                    <Badge className="bg-green-500">Voluntario</Badge>
+                    <Badge className="bg-green-500">VOLUNTARIO</Badge>
 
                     <Link href={`/${companySlug}/sms/reportes/reportes_voluntarios/${r.id}`}>
                       <Button variant="outline" className="w-full mt-2">
@@ -360,7 +360,7 @@ export default function DashboardSummary({ companySlug }: DashboardSummaryProps)
                     <div>Fecha: {dateFormat(r.report_date, "yyyy-MM-dd")}</div>
                     <div>Aeronave: {r.aircraft?.acronym ?? "N/A"}</div>
 
-                    <Badge className="bg-red-500">Obligatorio</Badge>
+                    <Badge className="bg-red-500">OBLIGATORIO</Badge>
 
                     <Link href={`/${companySlug}/sms/reportes/reportes_obligatorios/${r.id}`}>
                       <Button variant="outline" className="w-full mt-2">

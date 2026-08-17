@@ -15,7 +15,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { useCreateInformationSource } from "@/actions/ajustes/globales/tipos_fuente/actions";
+import { useCreateInformationSource } from "@/actions/ajustes/tipos_fuente/actions";
 import {
   Select,
   SelectContent,

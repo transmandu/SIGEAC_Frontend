@@ -39,6 +39,7 @@ import LoadingPage from "@/components/misc/LoadingPage";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { useGetMaintenanceAircraftByAcronym } from "@/hooks/mantenimiento/planificacion/useGetMaitenanceAircraftByAcronym";
 import type { MaintenanceAircraft, MaintenanceAircraftPart } from "@/types";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 // ---------- helpers ----------
 const labelFor = (obj: any): string => {
@@ -147,6 +148,8 @@ export default function AircraftDetailsPage() {
 
   return (
     <ContentLayout title={`Detalles de Aeronave: ${acronym}`}>
+      <PageHeader className="mb-6" />
+
       <TooltipProvider>
         {
           aircraft && (

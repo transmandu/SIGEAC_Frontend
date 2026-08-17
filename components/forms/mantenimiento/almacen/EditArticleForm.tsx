@@ -31,7 +31,7 @@ import { useGetManufacturers } from "@/hooks/general/fabricantes/useGetManufactu
 import { useGetBatchesByLocationId } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByLocationId"
 import { cn } from "@/lib/utils"
 import { useCompanyStore } from "@/stores/CompanyStore"
-import { Article, Batch, Convertion } from "@/types"
+import { Article, Batch } from "@/types"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format, addYears, subYears } from "date-fns"
 import { es } from 'date-fns/locale'
@@ -73,7 +73,6 @@ interface EditingArticle extends Article {
   consumable?: {
     article_id: number,
     is_managed: boolean,
-    convertions: Convertion[],
     quantity: number,
     min_quantity?: number,
     shell_time: {

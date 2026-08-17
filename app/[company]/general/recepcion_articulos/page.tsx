@@ -2,28 +2,21 @@
 'use client'
 
 import { ContentLayout } from '@/components/layout/ContentLayout'
-import BackButton from '@/components/misc/BackButton'
-import {
-    Breadcrumb,
-    BreadcrumbItem,
-    BreadcrumbLink,
-    BreadcrumbList,
-    BreadcrumbPage,
-    BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useAuth } from '@/contexts/AuthContext'
 import { useCompanyStore } from '@/stores/CompanyStore'
 import { ShieldOff } from 'lucide-react'
+import { useState } from 'react'
 import { ArticulosEnTransitoTab } from './_components/ArticulosEnTransitoTab'
 import { RecepcionGeneralTab } from './_components/RecepcionGeneralTab'
-import { DownloadReportDialog } from './_components/DownloadReportDialog'
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const ALMACEN_ROLES = ['ALMACEN', 'JEFE_ALMACEN', 'ANALISTA_ALMACEN', 'SUPERUSER']
 
 const RecepcionArticulosPage = () => {
     const { selectedCompany } = useCompanyStore()
     const { user } = useAuth()
+    const [visitedTabs, setVisitedTabs] = useState<Set<string>>(() => new Set(['transito']))
 
     const userRoles = user?.roles?.map((r) => r.name) ?? []
     const canView = ALMACEN_ROLES.some((r) => userRoles.includes(r))
@@ -45,46 +38,34 @@ const RecepcionArticulosPage = () => {
             <div className="flex flex-col gap-y-3">
 
                 {/* Breadcrumb */}
-                <div className="flex items-center gap-2">
-                    <BackButton iconOnly tooltip="Volver" variant="secondary" />
-                    <Breadcrumb>
-                        <BreadcrumbList>
-                            <BreadcrumbItem>
-                                <BreadcrumbLink href={`/${selectedCompany?.slug ?? ''}/dashboard`}>
-                                    Inicio
-                                </BreadcrumbLink>
-                            </BreadcrumbItem>
-                            <BreadcrumbSeparator />
-                            <BreadcrumbItem>
-                                <BreadcrumbLink>Compras</BreadcrumbLink>
-                            </BreadcrumbItem>
-                            <BreadcrumbSeparator />
-                            <BreadcrumbItem>
-                                <BreadcrumbPage>Recepción de Artículos</BreadcrumbPage>
-                            </BreadcrumbItem>
-                        </BreadcrumbList>
-                    </Breadcrumb>
-                </div>
+                <PageHeader className="mb-3" />
 
                 {/* Encabezado */}
                 <div className="flex items-center justify-between">
                     <h1 className="text-2xl font-bold">Recepción de Artículos</h1>
-                    <DownloadReportDialog />
                 </div>
 
                 {/* Tabs */}
-                <Tabs defaultValue="transito" className="space-y-4">
+                <Tabs
+                    defaultValue="transito"
+                    className="space-y-4"
+                    onValueChange={(value) => {
+                        if (!visitedTabs.has(value)) {
+                            setVisitedTabs((prev) => new Set(prev).add(value))
+                        }
+                    }}
+                >
                     <TabsList>
                         <TabsTrigger value="transito">Artículos en Tránsito</TabsTrigger>
                         <TabsTrigger value="recepcion-general">Recepción General</TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="transito">
-                        <ArticulosEnTransitoTab />
+                        {visitedTabs.has('transito') && <ArticulosEnTransitoTab />}
                     </TabsContent>
 
                     <TabsContent value="recepcion-general">
-                        <RecepcionGeneralTab />
+                        {visitedTabs.has('recepcion-general') && <RecepcionGeneralTab />}
                     </TabsContent>
                 </Tabs>
 

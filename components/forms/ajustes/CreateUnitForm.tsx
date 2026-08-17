@@ -1,5 +1,5 @@
 'use client';
-import { useCreateUnit } from "@/actions/ajustes/globales/unidades/actions";
+import { useCreateUnit } from "@/actions/ajustes/unidades/actions";
 import {
   Form,
   FormControl,
@@ -57,7 +57,15 @@ export default function CreateUnitForm({ onClose, onSuccess, onCreated }: FormPr
   }
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
+      {/* stopPropagation: este form se renderiza dentro de otros formularios
+          (ej. cotización). React propaga el submit por su árbol aunque el
+          Dialog viva en un portal, y dispararía el submit del form padre. */}
+      <form
+        onSubmit={(e) => {
+          e.stopPropagation();
+          form.handleSubmit(onSubmit)(e);
+        }}
+      >
         <FormField
           control={control}
           name="label"

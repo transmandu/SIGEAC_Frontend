@@ -17,6 +17,7 @@ import { format, startOfMonth } from "date-fns";
 import { CalendarRange, ChevronDown, Loader2 } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const SMSActivityStatsPage = () => {
   const { selectedCompany, selectedStation } = useCompanyStore();
@@ -85,6 +86,8 @@ const SMSActivityStatsPage = () => {
 
   return (
     <ContentLayout title="Dashboard de Actividades SMS">
+      <PageHeader className="mb-6" />
+
       <div className="mb-6">
         <Collapsible open={isFilterOpen} onOpenChange={setIsFilterOpen}>
           <div className="rounded-xl border border-border/60 bg-card">

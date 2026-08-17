@@ -18,7 +18,8 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { format, startOfMonth } from "date-fns";
 import { Loader2 } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
+
 
 const GeneralReportStats = () => {
   const { selectedCompany } = useCompanyStore();
@@ -60,7 +61,7 @@ const GeneralReportStats = () => {
   } = useGetTotalReportsStatsByYear(
     currentParams.from,
     currentParams.to,
-    selectedCompany?.slug
+    selectedCompany?.slug,
   );
 
   const {
@@ -70,7 +71,7 @@ const GeneralReportStats = () => {
   } = useGetTotalDangerIdentificationsCountedByType(
     currentParams.from,
     currentParams.to,
-    selectedCompany?.slug
+    selectedCompany?.slug,
   );
 
   const {
@@ -80,7 +81,7 @@ const GeneralReportStats = () => {
   } = useGetTotalReportsCountedByArea(
     currentParams.from,
     currentParams.to,
-    selectedCompany?.slug
+    selectedCompany?.slug,
   );
 
   const {
@@ -90,7 +91,7 @@ const GeneralReportStats = () => {
   } = useGetTotalRiskCountByDateRange(
     currentParams.from,
     currentParams.to,
-    selectedCompany?.slug
+    selectedCompany?.slug,
   );
 
   const {
@@ -100,7 +101,7 @@ const GeneralReportStats = () => {
   } = useGetTotalIdentificationStatsBySourceType(
     currentParams.from,
     currentParams.to,
-    selectedCompany?.slug
+    selectedCompany?.slug,
   );
 
   const {
@@ -110,7 +111,7 @@ const GeneralReportStats = () => {
   } = useGetTotalIdentificationStatsBySourceName(
     currentParams.from,
     currentParams.to,
-    selectedCompany?.slug
+    selectedCompany?.slug,
   );
 
   const {
@@ -120,12 +121,12 @@ const GeneralReportStats = () => {
   } = useGetTotalPostRiskCountByDateRange(
     currentParams.from,
     currentParams.to,
-    selectedCompany?.slug
+    selectedCompany?.slug,
   );
 
   // Manejar cambio de fechas desde DateFilter
   const handleDateChange = (
-    dateRange: { from: Date; to: Date } | undefined
+    dateRange: { from: Date; to: Date } | undefined,
   ) => {
     if (!dateRange?.from || !dateRange?.to) return;
 
@@ -151,9 +152,14 @@ const GeneralReportStats = () => {
   const shouldShow = (id: string) =>
     selectedGraphics.includes("Todos") || selectedGraphics.includes(id);
 
+
+
   return (
     <ContentLayout title="Gráficos Estadísticos de Reportes">
-      <div className="flex flex-col space-y-4 mb-6">
+      <div
+        className="flex flex-col space-y-4 mb-6"
+        data-tour="stats-general-date-filter"
+      >
         <div className="flex justify-center items-center">
           <div className="flex flex-col w-full max-w-md">
             <Label className="text-lg font-semibold mb-2">
@@ -170,8 +176,10 @@ const GeneralReportStats = () => {
             />
           </div>
         </div>
+      </div>
 
-        {/* ✅ PARA SELECCIONAR QUE GRAFICOS MOSTRAR */}
+      {/* ✅ PARA SELECCIONAR QUE GRAFICOS MOSTRAR */}
+      <div data-tour="stats-general-graphics-selector">
         <GraphicsSelector
           options={graphicsOptions}
           selectedGraphics={selectedGraphics}
@@ -184,7 +192,10 @@ const GeneralReportStats = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
         {/* Peligros Identificados vs Gestionados */}
         {shouldShow("bar-chart") && (
-          <div className="flex flex-col justify-center items-center p-4 rounded-lg shadow border">
+          <div
+            className="flex flex-col justify-center items-center p-4 rounded-lg shadow border"
+            data-tour="stats-general-chart-bar"
+          >
             {isLoadingBarChart ? (
               <div className="flex justify-center items-center h-48">
                 <Loader2 className="size-24 animate-spin" />
@@ -215,7 +226,10 @@ const GeneralReportStats = () => {
 
         {/* Numero de Reportes vs Tipo de Peligro (General) */}
         {shouldShow("type-chart") && (
-          <div className="p-4 rounded-lg shadow border">
+          <div
+            className="p-4 rounded-lg shadow border"
+            data-tour="stats-general-chart-type"
+          >
             {isLoadingIdentificationData ? (
               <div className="flex justify-center items-center h-48">
                 <Loader2 className="size-24 animate-spin" />
@@ -248,7 +262,10 @@ const GeneralReportStats = () => {
         )}
 
         {shouldShow("post-risk-bar") && (
-          <div className="p-4 rounded-lg shadow border">
+          <div
+            className="p-4 rounded-lg shadow border"
+            data-tour="stats-general-chart-pre-risk-bar"
+          >
             {isLoadingTotalRiskData ? (
               <div className="flex justify-center items-center h-48">
                 <Loader2 className="size-24 animate-spin" />
@@ -278,7 +295,10 @@ const GeneralReportStats = () => {
         )}
 
         {shouldShow("pre-risk-pie") && (
-          <div className="flex flex-col justify-center items-center p-4 rounded-lg shadow border">
+          <div
+            className="flex flex-col justify-center items-center p-4 rounded-lg shadow border"
+            data-tour="stats-general-chart-pre-risk-pie"
+          >
             {isLoadingTotalRiskData ? (
               <div className="flex justify-center items-center h-48">
                 <Loader2 className="size-24 animate-spin" />
@@ -308,7 +328,10 @@ const GeneralReportStats = () => {
         )}
 
         {shouldShow("pre-risk-bar") && (
-          <div className="p-4 rounded-lg shadow border">
+          <div
+            className="p-4 rounded-lg shadow border"
+            data-tour="stats-general-chart-post-risk-bar"
+          >
             {isLoadingTotalPostRiskData ? (
               <div className="flex justify-center items-center h-48">
                 <Loader2 className="size-24 animate-spin" />
@@ -338,7 +361,10 @@ const GeneralReportStats = () => {
         )}
 
         {shouldShow("post-risk-pie") && (
-          <div className="flex flex-col justify-center items-center p-4 rounded-lg shadow border">
+          <div
+            className="flex flex-col justify-center items-center p-4 rounded-lg shadow border"
+            data-tour="stats-general-chart-post-risk-pie"
+          >
             {isLoadingTotalPostRiskData ? (
               <div className="flex justify-center items-center h-48">
                 <Loader2 className="size-24 animate-spin" />
@@ -368,7 +394,10 @@ const GeneralReportStats = () => {
         )}
 
         {shouldShow("source-type") && (
-          <div className="flex flex-col justify-center items-center p-4 rounded-lg shadow border">
+          <div
+            className="flex flex-col justify-center items-center p-4 rounded-lg shadow border"
+            data-tour="stats-general-chart-source-type"
+          >
             {isLoadingReportSourceTypeData ? (
               <div className="flex justify-center items-center h-48">
                 <Loader2 className="size-24 animate-spin" />
@@ -398,7 +427,10 @@ const GeneralReportStats = () => {
         )}
 
         {shouldShow("source-name") && (
-          <div className="flex-col p-4 rounded-lg shadow border">
+          <div
+            className="flex-col p-4 rounded-lg shadow border"
+            data-tour="stats-general-chart-source-name"
+          >
             {isLoadingReportSourceNameData ? (
               <div className="flex justify-center items-center h-48">
                 <Loader2 className="size-24 animate-spin" />
@@ -428,7 +460,10 @@ const GeneralReportStats = () => {
         )}
 
         {shouldShow("area-chart") && (
-          <div className="p-4 rounded-lg shadow border">
+          <div
+            className="p-4 rounded-lg shadow border"
+            data-tour="stats-general-chart-area"
+          >
             {isLoadingReportsByAreaData ? (
               <div className="flex justify-center items-center h-48">
                 <Loader2 className="size-24 animate-spin" />

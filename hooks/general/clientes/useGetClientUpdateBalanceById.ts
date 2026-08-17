@@ -27,7 +27,7 @@ export const useGetClientAddBalanceById = ({
   return useQuery<Client>({
     queryKey: ["balance", company , id ],
     queryFn: () => fetchClientsAddBalanceById({ company, id }),
-    staleTime: 1000 * 60 * 5, // 5 minutos
-    enabled: !!id && !!company, // Solo ejecuta la consulta si hay un ID
+    staleTime: 1000 * 60 * 5,
+    enabled: !!id && !!company,
   });
 };

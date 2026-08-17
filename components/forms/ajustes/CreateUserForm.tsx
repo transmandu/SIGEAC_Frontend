@@ -1,6 +1,6 @@
 "use client"
 
-import { useCreateUser } from "@/actions/aerolinea/usuarios/actions";
+import { useCreateUser } from "@/actions/sistema/usuarios/actions";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -192,7 +192,6 @@ export function CreateUserForm() {
   };
 
 
-  // Usar useEffect para actualizar el valor del formulario
   useEffect(() => {
     form.setValue('roles', selectedRoles);
   }, [selectedRoles, form]);

@@ -1,4 +1,3 @@
-// src/hooks/mantenimiento/planificacion/useAutoScheduleGenerator.ts
 import { WorkOrderTask } from "@/types"
 import { addDays, addHours, format, startOfDay } from "date-fns"
 import { useEffect } from "react"

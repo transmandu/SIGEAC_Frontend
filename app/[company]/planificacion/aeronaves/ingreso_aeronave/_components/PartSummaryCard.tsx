@@ -45,7 +45,7 @@ export function PartSummaryCard({ part, index, level }: {
                                 </Badge>
                             )}
                             {part.removed_date && (
-                                <Badge variant="destructive" className="ml-2 text-xs">Removido</Badge>
+                                <Badge variant="destructive" className="ml-2 text-xs">REMOVIDO</Badge>
                             )}
                         </div>
                     </div>

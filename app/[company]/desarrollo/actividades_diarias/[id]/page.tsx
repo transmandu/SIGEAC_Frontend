@@ -2,13 +2,6 @@
 
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import LoadingPage from "@/components/misc/LoadingPage";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
 import { useGetUserActivity } from "@/hooks/aerolinea/desarrollo/useGetUserActivities";
 import { addDays, format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -23,6 +16,7 @@ import { Printer, FileText } from "lucide-react";
 
 import { useState } from "react";
 import { DailyReportDialog } from "@/components/dialogs/aerolinea/desarollo/DailyReportDialog";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const ActivityReportsByIdPage = ({ params }: { params: { id: string } }) => {
   const { data: report, isLoading } = useGetUserActivity(params.id);
@@ -37,14 +31,7 @@ const ActivityReportsByIdPage = ({ params }: { params: { id: string } }) => {
   return (
     <ContentLayout title="Actividades Diarias">
       <div className="flex flex-col gap-y-2">
-        <Breadcrumb>
-          <BreadcrumbList>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>Actividades Diarias</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
+        <PageHeader className="mb-4" />
         <h1 className="text-4xl font-bold text-center">
           Actividades Diarias <br /> {report?.user.first_name}{" "}
           {report?.user.last_name} -{" "}

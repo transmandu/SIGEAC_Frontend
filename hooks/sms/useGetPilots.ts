@@ -11,7 +11,7 @@ export const useGetPilots = (company?: string) => {
   return useQuery<Pilot[]>({
     queryKey: ["pilots"],
     queryFn: () => fetchPilots(company),
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    staleTime: 1000 * 60 * 5,
     enabled: !!company,
   });
 };

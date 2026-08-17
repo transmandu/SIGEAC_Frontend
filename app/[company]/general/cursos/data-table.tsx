@@ -22,7 +22,9 @@ import {
   SortingState,
   useReactTable,
 } from "@tanstack/react-table";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useTourContext } from "@/components/tour/TourProvider";
+import { cursosIndexSteps } from "@/components/tour/steps/general/cursos/cursos";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -50,22 +52,32 @@ export function DataTable<TData, TValue>({
     },
   });
 
+  const { registerTour, unregisterTour } = useTourContext();
+
+  useEffect(() => {
+    registerTour("cursos-index", "Cursos", cursosIndexSteps);
+    return () => unregisterTour("cursos");
+  }, [registerTour, unregisterTour]);
 
   return (
     <>
-      <div className="flex flex-col gap-2 mb-4">
+      <div className="flex flex-col gap-2 mb-4" data-tour="cursos-header">
         <h1 className="text-5xl font-bold text-center">Cursos</h1>
         <p className="text-sm italic text-muted-foreground text-center">
           Aquí se pueden visualizar los cursos registrados hasta el momento.
         </p>
       </div>
 
-      <div className="flex items-center py-4">
-        <CreateCourseDialog title="Nuevo" />
-        <DataTableViewOptions table={table} />
+      <div className="flex justify-between items-center py-4">
+        <div data-tour="cursos-create-btn">
+          <CreateCourseDialog title="Nuevo" />
+        </div>
+        <div data-tour="cursos-columns">
+          <DataTableViewOptions table={table} />
+        </div>
       </div>
 
-      <div className="rounded-md border mb-4">
+      <div className="rounded-md border mb-4" data-tour="cursos-table">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -77,7 +89,7 @@ export function DataTable<TData, TValue>({
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
-                            header.getContext()
+                            header.getContext(),
                           )}
                     </TableHead>
                   );
@@ -96,7 +108,7 @@ export function DataTable<TData, TValue>({
                     <TableCell key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}
@@ -115,7 +127,10 @@ export function DataTable<TData, TValue>({
           </TableBody>
         </Table>
       </div>
-      <DataTablePagination table={table} />
+
+      <div data-tour="cursos-pagination">
+        <DataTablePagination table={table} />
+      </div>
     </>
   );
 }
