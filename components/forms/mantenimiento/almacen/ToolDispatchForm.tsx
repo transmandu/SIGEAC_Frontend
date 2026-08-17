@@ -266,7 +266,7 @@ export function ToolDispatchForm({ onClose }: FormProps) {
                           >
                             {batch.articles.map((article) => {
                               const isInUse = article.status === "InUse";
-                              const isExpired = article.tool_status === "VENCIDO";
+                              const isExpired = article.tool_status === "EXPIRED";
                               return (
                                 <CommandItem
                                   disabled={isInUse || isExpired}

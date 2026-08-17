@@ -257,7 +257,7 @@ export function EditToolBoxForm({ onClose, initialData }: FormProps) {
                           <CommandGroup key={batch.id.toString()} heading={batch.name}>
                             {
                               batch.article.map((article) => {
-                                const isExpired = article.tool.status === "VENCIDO"
+                                const isExpired = article.tool.status === "EXPIRED"
                                 return (
                                   <CommandItem
                                     key={article.id}

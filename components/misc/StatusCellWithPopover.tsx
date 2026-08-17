@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
+import { toolStatusLabelEsUpper } from '@/lib/warehouse/statuses';
 import { zodResolver } from '@hookform/resolvers/zod';
 import React from 'react';
 import { useForm } from 'react-hook-form';
@@ -17,7 +18,7 @@ import { CalendarIcon } from 'lucide-react';
 import { es } from 'date-fns/locale';
 
 // Types
-type ToolStatus = 'CALIBRADO' | 'EN CALIBRACION' | 'VENCIDO' | 'N/A' | string;
+type ToolStatus = 'CALIBRATED' | 'IN_CALIBRATION' | 'EXPIRED' | 'NOT_APPLICABLE' | string;
 
 type Tool = {
     id: string | number;
@@ -40,13 +41,13 @@ type CalibratedForm = z.infer<typeof calibratedSchema>;
 // Función auxiliar para obtener las clases del badge según el estado
 const getBadgeStyle = (status?: string | null) => {
     switch (status) {
-        case 'CALIBRADO':
+        case 'CALIBRATED':
             return 'bg-green-500 hover:bg-green-600 text-white';
-        case 'EN CALIBRACION':
+        case 'IN_CALIBRATION':
             return 'bg-yellow-500 hover:bg-yellow-600 text-white';
-        case 'VENCIDO':
+        case 'EXPIRED':
             return 'bg-red-500 hover:bg-red-600 text-white';
-        case 'N/A':
+        case 'NOT_APPLICABLE':
             return 'bg-white text-black border border-gray-300 hover:bg-gray-100';
         default:
             return 'bg-gray-200 text-gray-800'; // Fallback por defecto
@@ -56,9 +57,14 @@ const getBadgeStyle = (status?: string | null) => {
 export default function StatusCellWithPopover({ tool }: Props) {
     const status = tool?.tool?.status;
 
+    // Sin calibración no hay ciclo que avanzar: el badge se muestra, pero
+    // ninguna acción se ofrece (el backend además las rechaza con 422).
+    const needsCalibration = tool?.tool?.needs_calibration ?? false;
+
     // Agrupamos la lógica para saber si necesita el popover o solo el badge
-    const isInteractiveAction = status === 'VENCIDO' || status === 'EN CALIBRACION';
-    const isStaticAction = status === 'CALIBRADO' || status === 'N/A';
+    const isInteractiveAction =
+        needsCalibration && (status === 'EXPIRED' || status === 'IN_CALIBRATION');
+    const isStaticAction = !isInteractiveAction;
 
     // Blanco con texto oscuro y borde para que no se pierda en fondos claros
     const { updateToolArticleStatus } = useUpdateToolArticleStatus();
@@ -69,14 +75,14 @@ export default function StatusCellWithPopover({ tool }: Props) {
 
     async function handleSendToCalibration() {
         if (!tool) return;
-        await updateToolArticleStatus.mutateAsync({ id: Number(tool.id), status: 'EN CALIBRACION' });
+        await updateToolArticleStatus.mutateAsync({ id: Number(tool.id), status: 'IN_CALIBRATION' });
     }
 
     async function handleMarkCalibrated(values: CalibratedForm) {
         if (!tool) return;
         await updateToolArticleStatus.mutateAsync({
             id: Number(tool.id),
-            status: 'CALIBRADO',
+            status: 'CALIBRATED',
             calibration_date: format(values.calibration_date, 'yyyy-MM-dd'),
         });
     }
@@ -84,20 +90,20 @@ export default function StatusCellWithPopover({ tool }: Props) {
     // Extraemos el elemento Badge para no repetir código
     const StatusBadge = (
         <Badge className={cn('text-xs text-center uppercase', getBadgeStyle(status))}>
-            {status || 'DESCONOCIDO'}
+            {status ? toolStatusLabelEsUpper(status) : 'DESCONOCIDO'}
         </Badge>
     );
 
     return (
         <div className="flex flex-col justify-center items-center space-y-2">
-            {/* Si es CALIBRADO o N/A, mostramos solo el Badge sin interacción */}
+            {/* Sin acciones disponibles, mostramos solo el Badge */}
             {isStaticAction && (
                 <div className="flex items-center gap-2">
                     {StatusBadge}
                 </div>
             )}
 
-            {/* Si es VENCIDO o EN CALIBRACION, mostramos el Popover */}
+            {/* Si es EXPIRED o IN_CALIBRATION, mostramos el Popover */}
             {isInteractiveAction && (
                 <Popover>
                     <PopoverTrigger asChild>
@@ -107,7 +113,7 @@ export default function StatusCellWithPopover({ tool }: Props) {
                     </PopoverTrigger>
 
                     <PopoverContent className="w-72">
-                        {status === 'VENCIDO' && (
+                        {status === 'EXPIRED' && (
                             <div className="space-y-3 flex flex-col justify-center items-center">
                                 <div className="text-sm">La herramienta está vencida.</div>
                                 <Button size="sm" onClick={handleSendToCalibration} disabled={updateToolArticleStatus.isPending}>
@@ -116,7 +122,7 @@ export default function StatusCellWithPopover({ tool }: Props) {
                             </div>
                         )}
 
-                        {status === 'EN CALIBRACION' && (
+                        {status === 'IN_CALIBRATION' && (
                             <div className="">
                                 <div className="text-xs text-center mb-2">Herramienta en calibración. Marca como calibrado:</div>
                                 <Form {...form}>

@@ -82,7 +82,7 @@ export interface ArticleSort {
 export interface ArticleColumnFilters {
     /** `conditions.name` crudo (ej: "AS REMOVED"). */
     condition?: string;
-    /** `tools.status` (ej: "VENCIDO"). */
+    /** `tools.status` (ej: "EXPIRED"). */
     tool_status?: string;
     /** Código de ubicación por tramos (ej: "C-1", "A-2-1"). */
     zone?: string;

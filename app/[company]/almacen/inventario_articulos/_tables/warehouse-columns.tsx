@@ -48,6 +48,7 @@ export interface IArticleSimple {
     aircraft?: Aircraft;
     tool?: {
         status?: string | null;
+        needs_calibration?: boolean | null;
         calibration_date?: string | null;
         next_calibration_date?: string | null;
         next_calibration?: number | string | null;
@@ -536,7 +537,7 @@ const buildBaseCols = (
                 );
             }
 
-            const calibrating = row.original.tool?.status === "EN CALIBRACION";
+            const calibrating = row.original.tool?.status === "IN_CALIBRATION";
             const status = row.original.status?.toUpperCase();
             const badge = getStatusBadge(status);
 

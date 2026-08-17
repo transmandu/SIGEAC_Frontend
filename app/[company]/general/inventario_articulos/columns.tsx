@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, XCircle, Clock, Wrench } from "lucide-react";
 import { addDays, format, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
+import { toolStatusLabelEsUpper } from "@/lib/warehouse/statuses";
 import ArticleDropdownActions from "@/components/dropdowns/mantenimiento/almacen/ArticleDropdownActions";
 import { WarehouseResponse } from "@/hooks/mantenimiento/almacen/articulos/useGetWarehouseArticlesByCategory";
 import { Unit } from "@/types";
@@ -238,9 +239,9 @@ const baseCols: ColumnDef<IArticleSimple>[] = [
       <DataTableColumnHeader column={column} title="Estado" />
     ),
     cell: ({ row }) => {
-      const calibrated = row.original.tool?.status === "CALIBRADO";
-      const calibrating = row.original.tool?.status === "EN CALIBRACION";
-      const descalibrated = row.original.tool?.status === "VENCIDO";
+      const calibrated = row.original.tool?.status === "CALIBRATED";
+      const calibrating = row.original.tool?.status === "IN_CALIBRATION";
+      const descalibrated = row.original.tool?.status === "EXPIRED";
       return (
         <div className="flex flex-col justify-center items-center space-y-2">
           {!calibrating && getStatusBadge(row.original.status?.toUpperCase(), row.original.quantity)}
@@ -258,7 +259,7 @@ const baseCols: ColumnDef<IArticleSimple>[] = [
               )}
             >
               {row.original.tool.status
-                ? row.original.tool.status
+                ? toolStatusLabelEsUpper(row.original.tool.status)
                 : "SIN ESTADO"}
             </Badge>
           )}

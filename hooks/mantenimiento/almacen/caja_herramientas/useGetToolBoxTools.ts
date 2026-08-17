@@ -11,7 +11,7 @@ interface IToolArticle extends Article {
     is_special: boolean,
     article_id: number,
     tool_box_id: number,
-    status?: "CALIBRADO" | "EN CALIBRACION" | "VENCIDO" | "N/A" | string,
+    status?: "CALIBRATED" | "IN_CALIBRATION" | "EXPIRED" | "NOT_APPLICABLE" | string,
     calibration_date?: string | null,
     next_calibration?: string,
   }

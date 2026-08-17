@@ -107,7 +107,7 @@ export type Article = {
   needs_calibration?: boolean;
   calibration_date?: string | null;
   next_calibration?: string;
-  tool_status?: "CALIBRADO" | "EN CALIBRACION" | "VENCIDO" | "N/A" | string;
+  tool_status?: "CALIBRATED" | "IN_CALIBRATION" | "EXPIRED" | "NOT_APPLICABLE" | string;
 };
 
 export type Bank = {
