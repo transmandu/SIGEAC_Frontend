@@ -4,8 +4,10 @@ import {
   CalendarClock,
   ClipboardCheck,
   ClipboardPen,
+  FileText,
   Settings,
   ShieldAlert,
+  ShieldCheck,
   Shirt,
 } from "lucide-react";
 
@@ -103,7 +105,25 @@ export function buildSmsGroup({ pathname, currentCompany }: MenuContext): Group 
       },
       {
         href: "",
-        label: "Promoción",
+        label: "Aseguramiento de la Calidad",
+        active: pathname.includes(`/${currentCompany?.slug}/sms/aseguramiento_calidad`),
+        icon: ShieldCheck,
+        roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
+        requiresOmac: false,
+        submenus: [
+          {
+            href: `/${currentCompany?.slug}/sms/aseguramiento_calidad/gestion_de_cambio`,
+            label: "Gestion de Cambio",
+            roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
+            active:
+              pathname ===
+              `/${currentCompany?.slug}/sms/aseguramiento_calidad/gestion_de_cambio`,
+          },
+        ],
+      },
+      {
+        href: "",
+        label: "Promoción de la seguridad operacional",
         active: pathname.includes(`/${currentCompany?.slug}/sms/promocion`),
         icon: CalendarClock,
         roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
@@ -132,6 +152,14 @@ export function buildSmsGroup({ pathname, currentCompany }: MenuContext): Group 
             active:
               pathname ===
               `/${currentCompany?.slug}/sms/promocion/capacitacion_personal`,
+          },
+          {
+            href: `/${currentCompany?.slug}/sms/promocion/minutas_reunion`,
+            label: "Minutas de Reunión",
+            roles: ["SUPERUSER", "JEFE_SMS", "ANALISTA_SMS"],
+            active:
+              pathname ===
+              `/${currentCompany?.slug}/sms/promocion/minutas_reunion`,
           },
         ],
       },
