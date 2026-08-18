@@ -1,7 +1,7 @@
 "use client";
 
 import { ContentLayout } from "@/components/layout/ContentLayout";
-import { CreateChangeRequestForm } from "@/components/forms/change-request/CreateChangeRequestForm";
+import { CreateChangeRequestForm } from "@/components/forms/sms/change_requests/CreateChangeRequestForm";
 
 const CrearSolicitudCambioPage = () => {
   return (

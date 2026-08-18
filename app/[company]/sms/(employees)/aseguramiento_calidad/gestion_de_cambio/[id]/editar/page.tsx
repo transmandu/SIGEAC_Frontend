@@ -2,7 +2,7 @@
 
 import { useParams } from "next/navigation";
 import { ContentLayout } from "@/components/layout/ContentLayout";
-import { EditChangeRequestForm } from "@/components/forms/change-request/EditChangeRequestForm";
+import { EditChangeRequestForm } from "@/components/forms/sms/change_requests/EditChangeRequestForm";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useGetChangeRequestById } from "@/hooks/sms/gestion_de_cambio/useGetChangeRequestById";
 import { Loader2 } from "lucide-react";

@@ -59,14 +59,17 @@ export const useCreateChangeRequest = () => {
       appendNestedFormData(formData, rest);
       formData.append("is_temporary", is_temporary ? "1" : "0");
 
+      let recordIdx = 0;
       beforeImages.forEach((file) => {
-        formData.append("photographic_records[][stage]", "before");
-        formData.append("photographic_records[][image_url]", file);
+        formData.append(`photographic_records[${recordIdx}][stage]`, "before");
+        formData.append(`photographic_records[${recordIdx}][image_url]`, file);
+        recordIdx++;
       });
 
       afterImages.forEach((file) => {
-        formData.append("photographic_records[][stage]", "after");
-        formData.append("photographic_records[][image_url]", file);
+        formData.append(`photographic_records[${recordIdx}][stage]`, "after");
+        formData.append(`photographic_records[${recordIdx}][image_url]`, file);
+        recordIdx++;
       });
 
       await axiosInstance.post(`/${company}/sms/change-requests`, formData, {
@@ -104,26 +107,31 @@ export const useUpdateChangeRequest = () => {
       appendNestedFormData(formData, rest);
       formData.append("is_temporary", is_temporary ? "1" : "0");
 
+      let recordIdx = 0;
       existingBeforeRecordIds.forEach((recordId) => {
-        formData.append("photographic_records[][id]", String(recordId));
-        formData.append("photographic_records[][stage]", "before");
-        formData.append("photographic_records[][image_url]", "");
+        formData.append(`photographic_records[${recordIdx}][id]`, String(recordId));
+        formData.append(`photographic_records[${recordIdx}][stage]`, "before");
+        formData.append(`photographic_records[${recordIdx}][image_url]`, "");
+        recordIdx++;
       });
 
       existingAfterRecordIds.forEach((recordId) => {
-        formData.append("photographic_records[][id]", String(recordId));
-        formData.append("photographic_records[][stage]", "after");
-        formData.append("photographic_records[][image_url]", "");
+        formData.append(`photographic_records[${recordIdx}][id]`, String(recordId));
+        formData.append(`photographic_records[${recordIdx}][stage]`, "after");
+        formData.append(`photographic_records[${recordIdx}][image_url]`, "");
+        recordIdx++;
       });
 
       beforeImages.forEach((file) => {
-        formData.append("photographic_records[][stage]", "before");
-        formData.append("photographic_records[][image_url]", file);
+        formData.append(`photographic_records[${recordIdx}][stage]`, "before");
+        formData.append(`photographic_records[${recordIdx}][image_url]`, file);
+        recordIdx++;
       });
 
       afterImages.forEach((file) => {
-        formData.append("photographic_records[][stage]", "after");
-        formData.append("photographic_records[][image_url]", file);
+        formData.append(`photographic_records[${recordIdx}][stage]`, "after");
+        formData.append(`photographic_records[${recordIdx}][image_url]`, file);
+        recordIdx++;
       });
 
       await axiosInstance.post(`/${company}/sms/change-requests/${id}`, formData, {
