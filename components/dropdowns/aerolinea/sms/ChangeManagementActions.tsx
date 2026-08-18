@@ -1,4 +1,7 @@
-import { useDeleteChangeRequest } from "@/actions/sms/gestion_de_cambio/actions";
+import {
+  useDeleteChangeRequest,
+  useDownloadChangeRequestPdf,
+} from "@/actions/sms/gestion_de_cambio/actions";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -7,7 +10,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { ChangeRequest } from "@/types";
-import { EyeIcon, Loader2, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import {
+  Download,
+  EyeIcon,
+  Loader2,
+  MoreHorizontal,
+  Pencil,
+  Trash2,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -29,6 +39,7 @@ const ChangeManagementActions = ({
   const { selectedCompany } = useCompanyStore();
   const router = useRouter();
   const { deleteChangeRequest } = useDeleteChangeRequest();
+  const { downloadChangeRequestPdf } = useDownloadChangeRequestPdf();
   const [openDelete, setOpenDelete] = useState<boolean>(false);
 
   const handleDelete = async () => {
@@ -38,6 +49,24 @@ const ChangeManagementActions = ({
       id: changeManagement.id,
     });
     setOpenDelete(false);
+  };
+
+  const handleDownloadPdf = async () => {
+    if (!selectedCompany) return;
+    try {
+      const blob = await downloadChangeRequestPdf.mutateAsync({
+        company: selectedCompany.slug,
+        id: changeManagement.id,
+      });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `TMD_SOLICITUD_DE_CAMBIO_${changeManagement.id}.pdf`;
+      anchor.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      // error handled by the hook
+    }
   };
 
   return (
@@ -74,6 +103,18 @@ const ChangeManagementActions = ({
           >
             <Pencil className="size-5" />
             <p className="pl-2">Editar</p>
+          </DropdownMenuItem>
+
+          <DropdownMenuItem
+            onClick={handleDownloadPdf}
+            disabled={downloadChangeRequestPdf.isPending}
+          >
+            {downloadChangeRequestPdf.isPending ? (
+              <Loader2 className="size-5 animate-spin" />
+            ) : (
+              <Download className="size-5" />
+            )}
+            <p className="pl-2">Descargar PDF</p>
           </DropdownMenuItem>
 
           <DialogTrigger asChild>

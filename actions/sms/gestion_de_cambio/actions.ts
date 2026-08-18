@@ -183,3 +183,17 @@ export const useDeleteChangeRequest = () => {
     deleteChangeRequest: deleteMutation,
   };
 };
+
+export const useDownloadChangeRequestPdf = () => {
+  const mutation = useMutation({
+    mutationFn: async ({ company, id }: { company: string; id: number }) => {
+      const { data } = await axiosInstance.get(
+        `/${company}/sms/change-requests/${id}/download-pdf`,
+        { responseType: "blob" },
+      );
+      return data as Blob;
+    },
+  });
+
+  return { downloadChangeRequestPdf: mutation };
+};
