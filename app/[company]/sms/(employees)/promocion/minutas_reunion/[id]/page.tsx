@@ -50,6 +50,19 @@ const ShowMeetingMinute = () => {
     }
   };
 
+  const parseTopics = (topics: unknown): string[] => {
+    if (Array.isArray(topics)) return topics;
+    if (typeof topics === "string") {
+      try {
+        const parsed = JSON.parse(topics);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  };
+
   const fileUrl = (filePath?: string | null, action: "serve" | "download" = "serve") => {
     if (!filePath || !selectedCompany?.slug) return null;
     return `/${selectedCompany.slug}/files/${action}/${btoa(filePath)}`;
@@ -190,22 +203,29 @@ const ShowMeetingMinute = () => {
               </section>
             )}
 
-            {meeting.topics && (
-              <section className="rounded-lg border border-border/60 p-4">
-                <h2 className="pb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  Temas Abordados
-                </h2>
-                <div className="border-t border-border/60 pt-2">
-                  <div className="divide-y divide-border/30 border border-border/40">
-                    {(Array.isArray(meeting.topics) ? meeting.topics : []).map((topic: string, i: number) => (
-                      <div key={i} className="px-3 py-3 text-sm transition-colors hover:bg-muted/20">
-                        {topic.trim()}
-                      </div>
-                    ))}
+            {meeting.topics && (() => {
+              const topicsList = parseTopics(meeting.topics);
+              if (topicsList.length === 0) return null;
+              return (
+                <section className="rounded-lg border border-border/60 p-4">
+                  <h2 className="pb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Temas Abordados
+                  </h2>
+                  <div className="border-t border-border/60 pt-2">
+                    <div className="divide-y divide-border/30 border border-border/40">
+                      {topicsList.map((topic: string, i: number) => (
+                        <div key={i} className="flex items-start gap-3 px-3 py-3 text-sm transition-colors hover:bg-muted/20">
+                          <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-muted text-[11px] font-medium text-muted-foreground">
+                            {i + 1}
+                          </span>
+                          <span>{topic.trim()}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              </section>
-            )}
+                </section>
+              );
+            })()}
           </TabsContent>
 
           <TabsContent value="asistentes">

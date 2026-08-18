@@ -145,7 +145,7 @@ const MeetingMinuteDropDownActions = ({
 
           <DialogFooter className="flex flex-col-reverse gap-2 md:gap-0">
             <Button
-              className="bg-rose-400 hover:bg-white hover:text-black hover:border hover:border-black"
+              className="bg-rose-400 hover:bg-accent hover:text-accent-foreground transition-all"
               onClick={() => setOpenDelete(false)}
               type="submit"
             >
@@ -154,7 +154,7 @@ const MeetingMinuteDropDownActions = ({
 
             <Button
               disabled={deleteMeetingMinute.isPending}
-              className="hover:bg-white hover:text-black hover:border hover:border-black transition-all"
+              className="hover:bg-accent hover:text-accent-foreground transition-all"
               onClick={() => handleDelete()}
             >
               {deleteMeetingMinute.isPending ? (
