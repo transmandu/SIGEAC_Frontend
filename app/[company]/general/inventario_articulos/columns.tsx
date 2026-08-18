@@ -3,10 +3,10 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, XCircle, Clock, Wrench } from "lucide-react";
 import { addDays, format, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toolStatusLabelEsUpper } from "@/lib/warehouse/statuses";
+import { formatCondition } from "@/lib/warehouse/conditions";
 import ArticleDropdownActions from "@/components/dropdowns/mantenimiento/almacen/ArticleDropdownActions";
 import { WarehouseResponse } from "@/hooks/mantenimiento/almacen/articulos/useGetWarehouseArticlesByCategory";
 import { Unit } from "@/types";
@@ -35,55 +35,6 @@ export interface IArticleSimple {
     next_calibration?: number | string | null; // o días
   };
 }
-
-export const getStatusBadge = (status: string | null | undefined, quantity?: number) => {
-  if (status?.toLowerCase() === "stored" && quantity !== undefined && quantity <= 0) {
-    return (
-      <Badge variant="destructive" className="flex items-center gap-1 w-fit">
-        <XCircle className="h-3 w-3" />
-        Sin stock
-      </Badge>
-    );
-  }
-
-  if (!status) {
-    return (
-      <Badge variant="outline" className="flex items-center gap-1 w-fit">
-        <XCircle className="h-3 w-3" />
-        SIN ESTADO
-      </Badge>
-    );
-  }
-
-  const statusConfig: Record<
-    string,
-    {
-      label: string;
-      variant: "default" | "secondary" | "destructive" | "outline" | "warning";
-      icon: any;
-    }
-  > = {
-    stored: { label: "En Stock", variant: "default", icon: CheckCircle2 },
-    dispatched: { label: "Despachado", variant: "secondary", icon: Clock },
-    inuse: { label: "En uso", variant: "warning", icon: Clock },
-    transit: { label: "En Tránsito", variant: "outline", icon: Clock },
-    maintenance: { label: "Mantenimiento", variant: "outline", icon: Clock },
-  };
-
-  const config = statusConfig[status.toLowerCase()] || {
-    label: status,
-    variant: "outline" as const,
-    icon: XCircle,
-  };
-  const Icon = config.icon;
-
-  return (
-    <Badge variant={config.variant} className="flex items-center gap-1 w-fit">
-      <Icon className="h-3 w-3" />
-      {config.label}
-    </Badge>
-  );
-};
 
 export const flattenArticles = (
   data: WarehouseResponse | undefined,
@@ -234,17 +185,31 @@ const baseCols: ColumnDef<IArticleSimple>[] = [
   },
 
   {
-    accessorKey: "status",
+    accessorKey: "condition",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Estado" />
+      <DataTableColumnHeader column={column} title="Condición" />
     ),
     cell: ({ row }) => {
       const calibrated = row.original.tool?.status === "CALIBRATED";
       const calibrating = row.original.tool?.status === "IN_CALIBRATION";
       const descalibrated = row.original.tool?.status === "EXPIRED";
+      const c = formatCondition(row.original.condition);
       return (
         <div className="flex flex-col justify-center items-center space-y-2">
-          {!calibrating && getStatusBadge(row.original.status?.toUpperCase(), row.original.quantity)}
+          <div className="text-center leading-tight">
+            {c ? (
+              <>
+                <span className="font-bold text-foreground">{c.es}</span>{" "}
+                <span className="text-xs text-muted-foreground italic">
+                  ({c.en})
+                </span>
+              </>
+            ) : (
+              <span className="text-muted-foreground font-bold">
+                SIN CONDICIÓN
+              </span>
+            )}
+          </div>
           {row.original.tool && (
             <Badge
               className={cn(
