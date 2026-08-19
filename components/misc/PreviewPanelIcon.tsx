@@ -1,7 +1,7 @@
 'use client'
 
 import { AnimatePresence, motion } from 'framer-motion'
-import { PanelLeftOpen, PanelRightOpen } from 'lucide-react'
+import { ListChevronsDownUp, ListChevronsUpDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface PreviewPanelIconProps {
@@ -10,9 +10,9 @@ interface PreviewPanelIconProps {
 }
 
 /**
- * Panel cerrado (PanelLeftOpen, "abrir") ↔ abierto (PanelRightOpen, "cerrar").
- * El crossfade con AnimatePresence evita el salto seco entre ambos paths, que
- * lucide no expone morph-eables.
+ * Cerrado (ListChevronsUpDown, "expandir") ↔ abierto (ListChevronsDownUp,
+ * "colapsar"). El crossfade con AnimatePresence evita el salto seco entre
+ * ambos paths, que lucide no expone morph-eables.
  */
 const PreviewPanelIcon = ({ active, className }: PreviewPanelIconProps) => {
   return (
@@ -40,7 +40,7 @@ const PreviewPanelIcon = ({ active, className }: PreviewPanelIconProps) => {
             exit={{ opacity: 0, scale: 0.9 }}
             transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
           >
-            <PanelRightOpen className="size-full" />
+            <ListChevronsDownUp className="size-full" />
           </motion.span>
         ) : (
           <motion.span
@@ -51,7 +51,7 @@ const PreviewPanelIcon = ({ active, className }: PreviewPanelIconProps) => {
             exit={{ opacity: 0, scale: 0.9 }}
             transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
           >
-            <PanelLeftOpen className="size-full" />
+            <ListChevronsUpDown className="size-full" />
           </motion.span>
         )}
       </AnimatePresence>
