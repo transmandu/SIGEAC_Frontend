@@ -33,6 +33,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Unit } from "@/types";
 
 // Mismas reglas que CreateUnitForm: editar no puede dejar una unidad en un
@@ -44,6 +45,7 @@ const formSchema = z.object({
   value: z.string().min(1, {
     message: "El Simbolo de la unidad debe tener al menos 1 carácters.",
   }),
+  is_dimensional: z.boolean().default(false),
 });
 
 const UnitDropdownActions = ({ unit }: { unit: Unit }) => {
@@ -58,6 +60,7 @@ const UnitDropdownActions = ({ unit }: { unit: Unit }) => {
     defaultValues: {
       label: unit.label ?? "",
       value: unit.value ?? "",
+      is_dimensional: unit.is_dimensional ?? false,
     },
   });
 
@@ -65,9 +68,13 @@ const UnitDropdownActions = ({ unit }: { unit: Unit }) => {
   // usuario editó y canceló, no debe reaparecer lo que dejó a medias.
   useEffect(() => {
     if (editOpen) {
-      form.reset({ label: unit.label ?? "", value: unit.value ?? "" });
+      form.reset({
+        label: unit.label ?? "",
+        value: unit.value ?? "",
+        is_dimensional: unit.is_dimensional ?? false,
+      });
     }
-  }, [editOpen, unit.label, unit.value, form]);
+  }, [editOpen, unit.label, unit.value, unit.is_dimensional, form]);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
@@ -142,6 +149,30 @@ const UnitDropdownActions = ({ unit }: { unit: Unit }) => {
                         <Input placeholder="EJ: Kg, L, mL" {...field} />
                       </FormControl>
                       <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="is_dimensional"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start gap-3 rounded-md border p-3 mt-1">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          className="mt-0.5"
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel className="cursor-pointer">
+                          Sirve para declarar medidas
+                        </FormLabel>
+                        <p className="text-xs text-muted-foreground">
+                          Habilita esta unidad para dimensionar artículos que se
+                          despachan en trazos (láminas, telas, rollos).
+                        </p>
+                      </div>
                     </FormItem>
                   )}
                 />

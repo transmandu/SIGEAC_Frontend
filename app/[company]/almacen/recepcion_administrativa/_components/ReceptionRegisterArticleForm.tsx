@@ -8,7 +8,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Article, Batch, Convertion } from "@/types";
+import { Article, Batch, Convertion, ArticleDimension } from "@/types";
 import { useState } from "react";
 import ReceptionRegisterConsumableForm from "./ReceptionRegisterConsumableForm";
 import ReceptionRegisterPartForm from "./ReceptionRegisterPartForm";
@@ -54,6 +54,8 @@ export interface EditingArticle extends Article {
         shelf_life?: string | null;
         primary_unit_id: string;
         conversions: Convertion[];
+        /** Presente si el consumible se mide por dimensiones. */
+        dimension?: ArticleDimension | null;
     };
     has_documentation?: boolean;
     reception_date?: string;

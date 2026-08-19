@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { Article, Batch, Convertion } from "@/types";
+import { Article, Batch, Convertion, ArticleDimension } from "@/types";
 import { useState } from "react";
 import {
     Select,
@@ -57,6 +57,8 @@ export interface EditingArticle extends Article {
         shelf_life?: string | null;
         primary_unit_id: string;
         conversions: Convertion[];
+        /** Presente si el consumible se mide por dimensiones. */
+        dimension?: ArticleDimension | null;
     };
     has_documentation?: boolean;
     purchase_order_id?: number | null;

@@ -37,6 +37,12 @@ interface ArticleRowCardProps {
   /** Unidad base del artículo; rotula el input mientras no haya conversión. */
   baseUnitLabel?: string
   conversion?: RowConversion
+  /**
+   * Captura del trazo, para artículos que se miden por dimensiones. Sustituye
+   * al input de cantidad: ahí no se despacha una cantidad fungible sino un
+   * corte de una pieza concreta.
+   */
+  cutPanelNode?: React.ReactNode
   onQtyChange: (val: string) => void
   onCommit: () => void
   onSetMax: () => void
@@ -57,6 +63,7 @@ export const ArticleRowCard = memo(function ArticleRowCard({
   accentClass,
   baseUnitLabel,
   conversion,
+  cutPanelNode,
   onQtyChange,
   onCommit,
   onSetMax,
@@ -79,6 +86,17 @@ export const ArticleRowCard = memo(function ArticleRowCard({
         </Button>
       </div>
 
+      {cutPanelNode ? (
+        <>
+          {cutPanelNode}
+          {rowMsg?.msg && (
+            <div className={cn("mt-2 flex items-center gap-1 text-xs", MSG_CLASS[rowMsg.level])}>
+              <AlertCircle className="h-3 w-3 shrink-0" />
+              {rowMsg.msg}
+            </div>
+          )}
+        </>
+      ) : (
       <div className="mt-3 space-y-2">
         <div className="flex items-center justify-between gap-2">
           <Label className="text-sm font-medium">
@@ -144,8 +162,9 @@ export const ArticleRowCard = memo(function ArticleRowCard({
           </p>
         )}
       </div>
+      )}
 
-      {showConversionPanel && conversionPanelNode}
+      {!cutPanelNode && showConversionPanel && conversionPanelNode}
     </div>
   )
 })

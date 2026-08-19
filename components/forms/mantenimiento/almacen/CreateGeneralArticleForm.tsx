@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useRouter } from "next/navigation";
-import { Loader2, Image as ImageIcon, X } from "lucide-react";
+import { Loader2, Image as ImageIcon, Package, Ruler, Scale, Tag, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -20,7 +20,6 @@ import {
     FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -34,6 +33,74 @@ import {
     type ConsumableConversionInput,
 } from "@/components/forms/mantenimiento/almacen/ConsumableConversionsField";
 import { useGetConversionByGeneralArticle } from "@/hooks/mantenimiento/almacen/articulos/useGetConvertionsByGeneralArticleId";
+import {
+    DimensionFields,
+    EMPTY_DIMENSION,
+    dimensionPayload,
+    type DimensionDraft,
+} from "./_components/DimensionFields";
+
+// Mismo lenguaje visual que el LoginForm: cristal suave con borde slate y
+// realce azul al pasar el cursor.
+const fieldClass = cn(
+    "h-10 rounded-lg text-sm",
+    "bg-gradient-to-br from-background/70 to-background/40",
+    "backdrop-blur-md",
+    "border border-slate-400/60 dark:border-slate-600/60",
+    "shadow-sm",
+    "hover:border-blue-400/30",
+    "hover:shadow-md hover:shadow-blue-500/10",
+    "transition-all duration-200",
+);
+
+const numericFieldClass = cn(fieldClass, "tabular-nums");
+
+const selectTriggerClass = cn(fieldClass, "hover:shadow-none");
+
+const labelClass = "text-[13px] font-medium text-foreground/80";
+
+/**
+ * Deja solo dígitos y un punto decimal.
+ *
+ * Se usa con inputs de texto y no con `type="number"`: ese incrementa el valor
+ * con la rueda del ratón cuando tiene el foco, y el usuario cambia cantidades
+ * sin darse cuenta al desplazar el formulario.
+ */
+const onlyNumeric = (raw: string) => {
+    const cleaned = raw.replace(/[^\d.]/g, "");
+    const parts = cleaned.split(".");
+
+    return parts.length <= 1 ? cleaned : `${parts[0]}.${parts.slice(1).join("")}`;
+};
+
+/** Tarjeta de sección: el mismo cristal de los campos, un escalón más tenue. */
+const sectionClass = cn(
+    "rounded-xl p-4",
+    "bg-gradient-to-br from-background/70 to-background/40",
+    "backdrop-blur-md",
+    "border border-slate-400/50 dark:border-slate-600/50",
+    "shadow-sm",
+);
+
+const SectionTitle = ({
+    icon: Icon,
+    title,
+    hint,
+}: {
+    icon: typeof Package;
+    title: string;
+    hint?: string;
+}) => (
+    <div className="mb-4 flex items-start gap-2.5">
+        <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <Icon className="h-3.5 w-3.5" />
+        </span>
+        <div className="min-w-0 space-y-0.5">
+            <h3 className="text-sm font-semibold leading-none">{title}</h3>
+            {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
+        </div>
+    </div>
+);
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB, el mismo tope que valida el backend.
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
@@ -90,12 +157,19 @@ const CreateGeneralArticleForm = ({
     initialData,
     isEditing,
     onlyDescription,
-    onClose
+    onClose,
+    inDialog,
 }: {
     initialData?: Partial<GeneralArticle>;
     isEditing?: boolean;
     onlyDescription?: boolean;
     onClose?: () => void;
+    /**
+     * El formulario vive en un diálogo de altura acotada: el cuerpo scrollea y
+     * las acciones quedan fijas al pie. Suelto en una página no aplica, porque
+     * sin altura que repartir el cuerpo colapsaría.
+     */
+    inDialog?: boolean;
 }) => {
     const router = useRouter();
     const [useExisting, setUseExisting] = useState(false);
@@ -140,6 +214,10 @@ const CreateGeneralArticleForm = ({
     // Equivalencias del artículo. Viven fuera de RHF porque son una lista y no
     // un campo: se envían junto al resto del payload al guardar.
     const [conversions, setConversions] = useState<ConsumableConversionInput[]>([]);
+
+    // Igual que las conversiones: no es un campo del formulario sino una
+    // decisión que acompaña al payload.
+    const [dimension, setDimension] = useState<DimensionDraft>(EMPTY_DIMENSION);
 
     const { data: existingConversions } = useGetConversionByGeneralArticle(
         isEditing ? (initialData?.id ?? null) : null,
@@ -239,6 +317,11 @@ const CreateGeneralArticleForm = ({
                         maximum_quantity: values.maximum_quantity !== undefined ? parseFloat(values.maximum_quantity.toFixed(2)) : undefined,
                     },
                     conversions,
+                    // Con perfil ya creado solo viajan las escalas de medida:
+                    // las medidas de la pieza no se pueden cambiar.
+                    dimension:
+                        dimensionPayload(dimension, !!initialData?.dimension) ??
+                        undefined,
                 });
             } else {
                 await createGeneralArticle.mutateAsync({
@@ -254,6 +337,7 @@ const CreateGeneralArticleForm = ({
                         maximum_quantity: values.maximum_quantity !== undefined ? parseFloat(values.maximum_quantity.toFixed(2)) : undefined,
                         image: imageFile,
                         conversions,
+                        dimension: dimensionPayload(dimension) ?? undefined,
                     },
                 });
             }
@@ -275,18 +359,42 @@ const CreateGeneralArticleForm = ({
             {/* LA CLAVE: El key hace que el formulario se RESETEE por completo al cambiar de artículo */}
             <form
                 key={isEditing ? `edit-${initialData?.id}` : (selectedArticle ? `add-${selectedArticle.id}` : 'create')}
-                className="flex flex-col gap-4"
+                className={cn(
+                    "flex min-h-0 flex-col",
+                    // En diálogo: tres franjas con el cuerpo desplazable, para
+                    // que el pie no se vaya con el contenido ni deje pasar los
+                    // campos por detrás. Suelto en una página, el formulario
+                    // fluye con el scroll del documento.
+                    inDialog && "flex-1",
+                )}
                 onSubmit={form.handleSubmit(onSubmit)}
             >
-                <div className="space-y-1">
-                    <h2 className="text-lg font-semibold">
+                <div
+                    className={cn(
+                        "shrink-0 space-y-1",
+                        inDialog && "border-b px-6 py-4",
+                    )}
+                >
+                    <h2 className="text-xl font-semibold tracking-tight">
                         {isEditing ? "Editar Artículo General" : "Registrar Artículo General"}
                     </h2>
+                    <p className="text-sm text-muted-foreground">
+                        {isEditing
+                            ? "Actualice los datos del artículo. La cantidad se ajusta desde las entradas y salidas."
+                            : "Registre un artículo de ferretería o consumo general para el inventario."}
+                    </p>
                 </div>
 
+                <div
+                    className={cn(
+                        "flex min-h-0 flex-col gap-5",
+                        inDialog ? "flex-1 overflow-y-auto px-6 py-5" : "py-4",
+                    )}
+                >
+
                 {!isEditing && (
-                    <div className="p-3 border rounded-lg bg-muted/40 space-y-3">
-                        <div className="flex items-center gap-2">
+                    <div className="rounded-lg border bg-muted/40 p-4 space-y-3">
+                        <label className="flex items-start gap-3 cursor-pointer">
                             <input
                                 type="checkbox"
                                 checked={useExisting}
@@ -294,10 +402,17 @@ const CreateGeneralArticleForm = ({
                                     setUseExisting(e.target.checked);
                                     if (!e.target.checked) setSelectedArticle(null);
                                 }}
-                                className="h-4 w-4 accent-primary"
+                                className="mt-0.5 h-4 w-4 accent-primary"
                             />
-                            <span className="text-sm font-medium">¿Sumar stock a un artículo existente?</span>
-                        </div>
+                            <span className="space-y-0.5">
+                                <span className="block text-sm font-medium">
+                                    Sumar stock a un artículo existente
+                                </span>
+                                <span className="block text-xs text-muted-foreground">
+                                    En vez de crear uno nuevo, incrementa la cantidad de uno ya registrado.
+                                </span>
+                            </span>
+                        </label>
 
                         {useExisting && (
                             <Select
@@ -306,7 +421,7 @@ const CreateGeneralArticleForm = ({
                                     if (art) setSelectedArticle(art);
                                 }}
                             >
-                                <SelectTrigger className="w-full">
+                                <SelectTrigger className={cn(selectTriggerClass, "w-full")}>
                                     <SelectValue placeholder="Seleccione artículo..." />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -330,97 +445,67 @@ const CreateGeneralArticleForm = ({
                     </div>
                 )}
 
-                <FormField
-                    control={form.control}
-                    name="description"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Descripción</FormLabel>
-                            <FormControl>
-                                <Textarea {...field} disabled={currentMode === "add"} placeholder="Escriba aquí..." rows={2} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
-                <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                        control={form.control}
-                        name="brand_model"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Marca / Modelo</FormLabel>
-                                <FormControl>
-                                    <Input {...field} disabled={currentMode === "add"} />
-                                </FormControl>
-                            </FormItem>
-                        )}
+                {/* 3/5 y 2/5: con dos tercios, identificación sobraba ancho y
+                    existencia apretaba sus dos columnas de campos. Sin
+                    items-start: las dos tarjetas se alinean a la misma altura. */}
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
+                <section className={cn(sectionClass, "lg:col-span-3")}>
+                    <SectionTitle
+                        icon={Tag}
+                        title="Identificación"
+                        hint="Cómo se reconoce el artículo en el inventario."
                     />
-                    <FormField
-                        control={form.control}
-                        name="variant_type"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Presentación</FormLabel>
-                                <FormControl>
-                                    <Input {...field} disabled={currentMode === "add"} />
-                                </FormControl>
-                            </FormItem>
-                        )}
-                    />
-                </div>
-
-                {/* Cantidad y unidad describen el stock; los niveles de alerta y la
-                    imagen van aparte para que las ayudas no desalineen la fila. */}
-                <div className={currentMode === "add" ? "grid grid-cols-2 gap-4" : "grid grid-cols-2 md:grid-cols-3 gap-4 items-start"}>
-                    <FormField
-                        control={form.control}
-                        name="quantity"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>{currentMode === "add" ? "Sumar Cantidad" : "Cantidad"}</FormLabel>
-                                <FormControl>
-                                    <Input type="number" {...field} disabled={isEditing && onlyDescription} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
-                    <FormField
-                        control={form.control}
-                        name="primary_unit_id"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Unidad</FormLabel>
-                                <Select
-                                    disabled={currentMode === "add"}
-                                    onValueChange={field.onChange}
-                                    defaultValue={field.value}
-                                    value={field.value}
-                                >
+                    <div className="space-y-4">
+                        <FormField
+                            control={form.control}
+                            name="description"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel className={labelClass}>Descripción</FormLabel>
                                     <FormControl>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder={isUnitsLoading ? "Cargando..." : "Seleccione"} />
-                                        </SelectTrigger>
+                                        <Textarea
+                                            {...field}
+                                            disabled={currentMode === "add"}
+                                            placeholder="Ej: Lámina de aluminio, Tornillo hexagonal 1/4..."
+                                            rows={2}
+                                            className={cn(fieldClass, "h-auto resize-none py-2")}
+                                        />
                                     </FormControl>
-                                    <SelectContent>
-                                        {units?.map((u) => (
-                                            <SelectItem key={u.id} value={u.id.toString()}>
-                                                {u.label}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                            <FormField
+                                control={form.control}
+                                name="brand_model"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel className={labelClass}>Marca / Modelo</FormLabel>
+                                        <FormControl>
+                                            <Input {...field} placeholder="Ej: ROYAL" className={fieldClass} disabled={currentMode === "add"} />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="variant_type"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel className={labelClass}>Presentación</FormLabel>
+                                        <FormControl>
+                                            <Input {...field} placeholder="Ej: Caja de 50, 3/4 pulgada" className={fieldClass} disabled={currentMode === "add"} />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
 
                     {currentMode !== "add" && (
-                        <FormItem>
-                            <FormLabel>Imagen</FormLabel>
+                        <FormItem className="sm:col-span-2">
+                            <FormLabel className={labelClass}>Imagen</FormLabel>
                             {/* Input nativo oculto: en una celda estrecha el control
                                 por defecto desborda con el nombre del archivo. */}
                             <input
@@ -451,10 +536,9 @@ const CreateGeneralArticleForm = ({
                                     handleImageChange(e.dataTransfer.files?.[0]);
                                 }}
                                 className={cn(
-                                    // Mismas clases base que el componente Input para
-                                    // que la celda no se sienta ajena al formulario.
-                                    "flex h-10 w-full cursor-pointer items-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background transition-colors",
-                                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                                    fieldClass,
+                                    "flex w-full cursor-pointer items-center gap-2 px-3",
+                                    "focus-visible:outline-none focus-visible:border-blue-400/60",
                                     isDraggingImage && "border-primary bg-primary/5",
                                     imageError && "border-destructive",
                                 )}
@@ -511,18 +595,90 @@ const CreateGeneralArticleForm = ({
                             )}
                         </FormItem>
                     )}
+                    </div>
+                </section>
+
+                <section className={cn(sectionClass, "lg:col-span-2")}>
+                    <SectionTitle
+                        icon={Package}
+                        title="Existencia"
+                        hint="Cuánto hay y en qué se cuenta."
+                    />
+                {/* 2fr para la unidad y 1fr para la cantidad: el select muestra
+                    nombres largos (CUARTOS DE GALON) y el número no. */}
+                <div className="grid grid-cols-[1fr_1.6fr] gap-3 items-start">
+                    <FormField
+                        control={form.control}
+                        name="quantity"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel className={labelClass}>{currentMode === "add" ? "Sumar cantidad" : "Cantidad"}</FormLabel>
+                                <FormControl>
+                                    <Input
+                                        {...field}
+                                        inputMode="decimal"
+                                        className={numericFieldClass}
+                                        onChange={(e) => field.onChange(onlyNumeric(e.target.value))}
+                                        disabled={isEditing && onlyDescription}
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    <FormField
+                        control={form.control}
+                        name="primary_unit_id"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel className={labelClass}>Unidad base</FormLabel>
+                                <Select
+                                    disabled={currentMode === "add"}
+                                    onValueChange={field.onChange}
+                                    defaultValue={field.value}
+                                    value={field.value}
+                                >
+                                    <FormControl>
+                                        <SelectTrigger className={selectTriggerClass}>
+                                            <SelectValue placeholder={isUnitsLoading ? "Cargando..." : "Seleccione"} />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        {units?.map((u) => (
+                                            <SelectItem key={u.id} value={u.id.toString()}>
+                                                {u.label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                {/* La confusión que costó rehacer un artículo: la base
+                                    cuenta unidades, no las mide. */}
+                                <FormDescription className="text-xs">
+                                    En qué se cuenta: UNIDADES, LÁMINA, CAJA…
+                                </FormDescription>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
                 </div>
 
                 {currentMode !== "add" && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
+                    <div className="mt-4 grid grid-cols-2 gap-3 items-start border-t border-slate-400/30 pt-4 dark:border-slate-600/30">
                         <FormField
                             control={form.control}
                             name="minimum_quantity"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Cantidad Mínima</FormLabel>
+                                    <FormLabel className={labelClass}>Cantidad mínima</FormLabel>
                                     <FormControl>
-                                        <Input type="number" {...field} />
+                                        <Input
+                                            {...field}
+                                            inputMode="decimal"
+                                            className={numericFieldClass}
+                                            onChange={(e) => field.onChange(onlyNumeric(e.target.value))}
+                                        />
                                     </FormControl>
                                     <FormDescription className="text-xs">
                                         Al bajar de este nivel se alerta el stock.
@@ -537,9 +693,14 @@ const CreateGeneralArticleForm = ({
                             name="maximum_quantity"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Cantidad Máxima</FormLabel>
+                                    <FormLabel className={labelClass}>Cantidad máxima</FormLabel>
                                     <FormControl>
-                                        <Input type="number" {...field} />
+                                        <Input
+                                            {...field}
+                                            inputMode="decimal"
+                                            className={numericFieldClass}
+                                            onChange={(e) => field.onChange(onlyNumeric(e.target.value))}
+                                        />
                                     </FormControl>
                                     <FormDescription className="text-xs">
                                         Nivel de stock a reponer, no un tope de existencia.
@@ -548,11 +709,24 @@ const CreateGeneralArticleForm = ({
                                 </FormItem>
                             )}
                         />
+                    </div>
+                )}
+                </section>
+                </div>
 
-                        {/* En la misma retícula que los niveles de stock: es un
-                            campo más del artículo, no un bloque aparte. */}
-                        <FormItem className="sm:col-span-2">
-                            <FormLabel>Conversiones de unidades</FormLabel>
+                {/* Los dos ejes de medición, uno al lado del otro: cuántas hay
+                    (equivalencias) y cuánto mide cada una (dimensiones). */}
+                {/* items-start: sin él las celdas de una fila comparten altura,
+                    y al desplegarse dimensiones dejaba a conversiones estirada
+                    con un hueco vacío del mismo alto. */}
+                {currentMode !== "add" && (
+                    <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 items-start">
+                        <section className={sectionClass}>
+                            <SectionTitle
+                                icon={Scale}
+                                title="Equivalencias de unidad"
+                                hint="Opcional. Cuántas unidades base hay en otra presentación: 1 CAJA = 50 UNIDADES."
+                            />
                             <ConsumableConversionsField
                                 units={units ?? []}
                                 baseUnitId={watchedUnitId ? Number(watchedUnitId) : undefined}
@@ -560,22 +734,40 @@ const CreateGeneralArticleForm = ({
                                 onChange={setConversions}
                                 disabled={busy}
                             />
-                            <FormDescription className="text-xs">
-                                Opcional. Permite recibir y despachar en otras unidades.
-                            </FormDescription>
-                        </FormItem>
+                        </section>
+
+                        <section className={sectionClass}>
+                            <SectionTitle
+                                icon={Ruler}
+                                title="Medición por dimensiones"
+                                hint="Opcional. Para material que se corta a la medida y se despacha en trazos."
+                            />
+                            <DimensionFields
+                                value={dimension}
+                                onChange={setDimension}
+                                quantity={form.watch("quantity")}
+                                existingProfile={initialData?.dimension}
+                                disabled={busy}
+                            />
+                        </section>
                     </div>
                 )}
 
-                <Separator className="my-2" />
+                </div>
 
-                <div className="flex justify-end gap-3">
+                {/* Fuera del contenedor con scroll: opaco y siempre visible. */}
+                <div
+                    className={cn(
+                        "shrink-0 flex justify-end gap-3 border-t bg-background",
+                        inDialog ? "px-6 py-4" : "pt-4",
+                    )}
+                >
                     <Button type="button" variant="ghost" onClick={() => (onClose ? onClose() : router.back())} disabled={busy}>
                         Cancelar
                     </Button>
-                    <Button type="submit" disabled={busy || (currentMode === "add" && !selectedArticle)} className="min-w-[120px]">
+                    <Button type="submit" disabled={busy || (currentMode === "add" && !selectedArticle)} className="min-w-[140px]">
                         {busy ? <Loader2 className="h-4 w-4 animate-spin" /> :
-                            (isEditing ? "Guardar Cambios" : useExisting ? "Sumar Stock" : "Crear Artículo")}
+                            (isEditing ? "Guardar cambios" : useExisting ? "Sumar stock" : "Crear artículo")}
                     </Button>
                 </div>
             </form>

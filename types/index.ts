@@ -816,6 +816,8 @@ export type Unit = {
   id: number;
   value: string;
   label: string;
+  /** Habilita la unidad para declarar medidas en artículos dimensionados. */
+  is_dimensional?: boolean;
   updated_by: string;
   registered_by: string;
   created_at: Date;
@@ -1362,6 +1364,40 @@ export type GeneralArticle = {
   cost_history?: GeneralArticleCostHistoryEntry[];
   /** Solo lo carga el endpoint de low-stock. */
   in_transit?: InTransitDetail[];
+  /**
+   * Presente solo si el artículo se mide por dimensiones: su stock vive
+   * repartido en piezas individuales y `quantity` es su equivalente en piezas.
+   */
+  dimension?: ArticleDimension | null;
+};
+
+/**
+ * Resumen dimensional que acompaña a un artículo en los listados.
+ *
+ * No es exclusivo del artículo general: el perfil es polimórfico y lo comparten
+ * los consumibles y cualquier modelo con stock que se dimensione.
+ */
+export type ArticleDimension = {
+  /** 2 = se corta por área (lámina, tela); 1 = a lo largo (cable, rollo). */
+  axes: number;
+  piece_length: number;
+  piece_width: number | null;
+  piece_magnitude: number;
+  measure_unit_id: number;
+  measure_unit_label: string | null;
+  /** "METRO²" o "METRO", según los ejes. */
+  magnitude_label: string;
+  available_pieces: number;
+  total_pieces: number;
+  total_remaining: number;
+  /** Piezas sin empezar: las únicas que rinden un corte del tamaño completo. */
+  whole_pieces: number;
+  pieces: {
+    id: number;
+    code: string;
+    remaining: number;
+    initial: number;
+  }[];
 };
 
 export interface SMSCertificate {

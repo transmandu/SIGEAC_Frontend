@@ -103,6 +103,12 @@ import {
     ConsumableConversionsField,
     type ConsumableConversionInput,
 } from "@/components/forms/mantenimiento/almacen/ConsumableConversionsField";
+import {
+    DimensionFields,
+    EMPTY_DIMENSION,
+    dimensionPayload,
+    type DimensionDraft,
+} from "@/components/forms/mantenimiento/almacen/_components/DimensionFields";
 
 /* ------------------------------- Schema ------------------------------- */
 
@@ -705,6 +711,8 @@ export default function DirectRegisterConsumableForm({
     >(undefined);
 
     const [selectedUnits, setSelectedUnits] = useState<ConsumableConversionInput[]>([]);
+    // Igual que las conversiones: acompaña al payload sin ser campo de RHF.
+    const [dimension, setDimension] = useState<DimensionDraft>(EMPTY_DIMENSION);
 
     const {
         data: batches,
@@ -1167,6 +1175,7 @@ export default function DirectRegisterConsumableForm({
             alternative_part_number?: string[];
             batch_name?: string;
             conversions?: ConsumableConversionInput[];
+            dimension?: ReturnType<typeof dimensionPayload>;
             primary_unit_id?: number;
         } = {
             ...valuesWithoutCaducateDate,
@@ -1189,6 +1198,11 @@ export default function DirectRegisterConsumableForm({
             batch_name: enableBatchNameEdit ? values.batch_name : undefined,
             conversions: selectedUnits,
             primary_unit_id: secondarySelected?.id,
+            // Solo activa el modo dimensional; un consumible ya dimensionado
+            // conserva sus medidas y el backend ignora el reenvío.
+            dimension:
+                dimensionPayload(dimension, !!initialData?.consumable?.dimension) ??
+                undefined,
         };
 
         if (isEditing && initialData) {
@@ -2100,6 +2114,17 @@ export default function DirectRegisterConsumableForm({
                                     baseUnitId={selectedPrimaryUnit?.id}
                                     value={selectedUnits}
                                     onChange={setSelectedUnits}
+                                    disabled={busy}
+                                />
+                            </div>
+
+                            <div className="col-span-1 md:col-span-2 xl:col-span-3 space-y-2">
+                                <FormLabel>Medición por dimensiones</FormLabel>
+                                <DimensionFields
+                                    value={dimension}
+                                    onChange={setDimension}
+                                    quantity={form.watch("quantity")}
+                                    existingProfile={initialData?.consumable?.dimension}
                                     disabled={busy}
                                 />
                             </div>
