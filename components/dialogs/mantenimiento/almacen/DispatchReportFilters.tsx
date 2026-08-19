@@ -542,7 +542,7 @@ export function DispatchReportFilters({
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <div className="w-6 h-6 rounded-full bg-indigo-600 text-white text-[11px] flex items-center justify-center font-medium">
+                        <div className="w-6 h-6 rounded-full bg-primary text-white text-[11px] flex items-center justify-center font-medium">
                           {generalSelectedCount}
                         </div>
                       </TooltipTrigger>
@@ -855,10 +855,10 @@ export function DispatchReportFilters({
             <Button
               className={cn(
                 "w-[70%] justify-between h-12 text-sm font-medium transition-all border",
-                "bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/20 dark:hover:bg-indigo-950/30",
-                "border-indigo-200 dark:border-indigo-900",
+                "bg-primary hover:bg-primary",
+                "border-primary",
                 openItems &&
-                  "ring-2 ring-indigo-300/40 dark:ring-indigo-700/40"
+                  "ring-2 ring-primary/40"
               )}
             >
               <span className="flex items-center gap-2 text-foreground/80">
@@ -878,7 +878,7 @@ export function DispatchReportFilters({
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <div className="w-6 h-6 rounded-full bg-indigo-600 text-white text-[11px] flex items-center justify-center font-medium">
+                        <div className="w-6 h-6 rounded-full bg-primary text-white text-[11px] flex items-center justify-center font-medium">
                           {articleSelectedCount}
                         </div>
                       </TooltipTrigger>

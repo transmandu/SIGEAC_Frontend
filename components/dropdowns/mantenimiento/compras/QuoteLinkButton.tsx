@@ -59,7 +59,7 @@ const QuoteLinkButton = ({
       size="icon"
       disabled={!quotes.length}
       onClick={hasMultiple ? undefined : handleClick}
-      className={cn(className, "text-indigo-600")}
+      className={cn(className, "text-primary")}
     >
       <ExternalLink className={iconClassName} />
     </Button>
@@ -119,7 +119,7 @@ const QuoteLinkButton = ({
                 </span>
               </span>
 
-              <ExternalLink className="size-3.5 shrink-0 text-indigo-600" />
+              <ExternalLink className="size-3.5 shrink-0 text-primary" />
             </button>
           ))}
         </div>

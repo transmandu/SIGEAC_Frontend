@@ -191,8 +191,8 @@ export default function RegisterGeneralArticlesDeliveryDialog({
         {/* HEADER */}
         <DialogHeader className="shrink-0 border-b border-border/40 bg-muted/20 px-6 pt-5 pb-4 text-left">
           <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center size-10 shrink-0 rounded-xl border border-[#439A97]/10 bg-[#439A97]/[0.08]">
-              <PackageCheck className="size-4.5 text-[#2f716f] dark:text-[#6fc2bf]" />
+            <div className="flex items-center justify-center size-10 shrink-0 rounded-xl border border-primary/10 bg-primary/[0.08]">
+              <PackageCheck className="size-4.5 text-primary" />
             </div>
 
             <div className="min-w-0 flex-1">
@@ -220,7 +220,7 @@ export default function RegisterGeneralArticlesDeliveryDialog({
               <div
                 className={cn(
                   "flex size-4 shrink-0 items-center justify-center rounded-sm border transition-colors",
-                  allSelected ? "border-[#439A97] bg-[#439A97] text-white" : "border-muted-foreground/30"
+                  allSelected ? "border-primary bg-primary text-white" : "border-muted-foreground/30"
                 )}
               >
                 {allSelected && <Check className="size-3" />}
@@ -425,17 +425,9 @@ export default function RegisterGeneralArticlesDeliveryDialog({
             disabled={!canSubmit}
             className="
               h-10 rounded-lg px-5
-              bg-teal-500/20 text-teal-900
-              hover:bg-teal-500/30
-              active:bg-teal-500/40
-              border border-teal-500/30
               shadow-sm
               transition-colors
               flex items-center justify-center gap-2
-              dark:bg-teal-400/10
-              dark:text-teal-100
-              dark:hover:bg-teal-400/20
-              dark:border-teal-400/20
             "
           >
             {registerGeneralArticlesDelivery.isPending ? (
@@ -473,7 +465,7 @@ const ArticleRow = ({
       className={cn(
         "flex w-full items-center justify-between gap-3 rounded-lg border px-3 py-2 text-left transition-colors",
         checked
-          ? "border-[#439A97]/40 bg-[#439A97]/[0.04]"
+          ? "border-primary/40 bg-primary/[0.04]"
           : "border-border/60 bg-background/60 opacity-60"
       )}
     >
@@ -481,7 +473,7 @@ const ArticleRow = ({
         <div
           className={cn(
             "flex size-4 shrink-0 items-center justify-center rounded-sm border transition-colors",
-            checked ? "border-[#439A97] bg-[#439A97] text-white" : "border-muted-foreground/30"
+            checked ? "border-primary bg-primary text-white" : "border-muted-foreground/30"
           )}
         >
           {checked && <Check className="size-3" />}

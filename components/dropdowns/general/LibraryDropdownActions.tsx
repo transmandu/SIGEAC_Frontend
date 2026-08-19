@@ -192,7 +192,7 @@ export const LibraryDropdownActions = ({
               className="gap-2 cursor-pointer"
             >
               <History
-                className={`h-4 w-4 text-purple-500 ${loadingVersions ? "animate-spin" : ""}`}
+                className={`h-4 w-4 text-primary ${loadingVersions ? "animate-spin" : ""}`}
               />
               <span className="text-xs font-medium">
                 Historial de versiones

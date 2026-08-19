@@ -47,7 +47,7 @@ const CostSaveBar = ({
         )}
       >
         <div className="flex items-center gap-2">
-          <CheckCircle2 className="h-4 w-4 text-[#439A97]" />
+          <CheckCircle2 className="h-4 w-4 text-primary" />
 
           <span className="text-xs font-medium text-foreground">
             Cambios sin guardar
@@ -55,7 +55,7 @@ const CostSaveBar = ({
 
           <Badge
             variant="secondary"
-            className="text-[10px] bg-[#CBEDD5] text-[#439A97] border-0"
+            className="text-[10px] bg-primary/10 text-primary border-0"
           >
             {modifiedCount}
           </Badge>
@@ -97,7 +97,7 @@ const CostSaveBar = ({
             disabled={loading || !hasChanges}
             className={cn(
               'h-8 px-3 gap-2 text-xs',
-              'bg-[#439A97] hover:bg-[#3a8683]',
+              'bg-primary hover:bg-primary/90',
               'text-white',
               'shadow-sm'
             )}

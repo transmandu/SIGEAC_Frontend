@@ -320,7 +320,7 @@ export function AdministrationDispatchReportDialog({ roleNames = [] }: Administr
         onMouseLeave={() => setHovered(false)}
         onMouseMove={handleMouseMove}
         variant="outline"
-        className="relative overflow-hidden border border-dashed border-indigo-400/50 dark:border-indigo-300/30 bg-background/70 backdrop-blur text-indigo-700 dark:text-indigo-300 font-medium tracking-wide shadow-sm transition-all duration-200 hover:border-indigo-500/60 dark:hover:border-indigo-300/50 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/20 hover:shadow-md hover:-translate-y-[1px] active:translate-y-0 active:shadow-sm focus-visible:ring-2 focus-visible:ring-indigo-500/25 focus-visible:ring-offset-2"
+        className="relative overflow-hidden border border-dashed border-primary/50 bg-background/70 backdrop-blur text-primary font-medium tracking-wide shadow-sm transition-all duration-200 hover:border-primary/60 hover:bg-primary/5 hover:shadow-md hover:-translate-y-[1px] active:translate-y-0 active:shadow-sm focus-visible:ring-2 focus-visible:ring-primary/25 focus-visible:ring-offset-2"
         style={{
             backgroundImage: hovered
             ? `radial-gradient(circle at ${pos.x}% ${pos.y}%, rgba(99,102,241,0.12), transparent 65%)`
@@ -379,13 +379,13 @@ export function AdministrationDispatchReportDialog({ roleNames = [] }: Administr
 
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className={`grid mb-4 ${withCosts ? "grid-cols-1" : "grid-cols-2"}`}>
-              <TabsTrigger value="dispatch" className="flex items-center justify-center gap-2 text-xs rounded-lg px-3 transition-all duration-200 data-[state=active]:bg-background data-[state=active]:shadow-md data-[state=active]:shadow-indigo-500/10 data-[state=active]:ring-1 data-[state=active]:ring-indigo-500/ data-[state=active]:text-indigo-600">
+              <TabsTrigger value="dispatch" className="flex items-center justify-center gap-2 text-xs rounded-lg px-3 transition-all duration-200 data-[state=active]:bg-background data-[state=active]:shadow-md data-[state=active]:shadow-primary/10 data-[state=active]:ring-1 data-[state=active]:ring-primary/ data-[state=active]:text-primary">
                 <FileText className="w-3.5 h-3.5" />
                 Salidas
               </TabsTrigger>
 
               {!withCosts && (
-                <TabsTrigger value="balance" className="flex items-center justify-center gap-2 text-xs rounded-lg px-3 transition-all duration-200 data-[state=active]:bg-background data-[state=active]:shadow-md data-[state=active]:shadow-indigo-500/10 data-[state=active]:ring-1 data-[state=active]:ring-indigo-500/ data-[state=active]:text-indigo-600">
+                <TabsTrigger value="balance" className="flex items-center justify-center gap-2 text-xs rounded-lg px-3 transition-all duration-200 data-[state=active]:bg-background data-[state=active]:shadow-md data-[state=active]:shadow-primary/10 data-[state=active]:ring-1 data-[state=active]:ring-primary/ data-[state=active]:text-primary">
                   <Scale className="w-3.5 h-3.5" />
                   Balance
                 </TabsTrigger>
@@ -440,7 +440,7 @@ export function AdministrationDispatchReportDialog({ roleNames = [] }: Administr
               {withCosts ? (
                 <Button
                   size="lg"
-                  className="w-full h-12 rounded-2xl font-medium shadow-sm transition-all hover:shadow-md active:scale-[0.98] bg-indigo-600 hover:bg-indigo-700 text-white"
+                  className="w-full h-12 rounded-2xl font-medium shadow-sm transition-all hover:shadow-md active:scale-[0.98] bg-primary hover:bg-primary text-white"
                   onClick={handleDownloadCostReport}
                   disabled={!canDownload || loadingDownload}
                 >
