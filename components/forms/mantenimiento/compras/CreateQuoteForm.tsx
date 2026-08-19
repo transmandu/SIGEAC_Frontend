@@ -432,17 +432,9 @@ export function CreateQuoteForm({
             type="submit"
             className="
               w-[400px] h-10 rounded-lg
-              bg-teal-500/20 text-teal-900
-              hover:bg-teal-500/30
-              active:bg-teal-500/40
-              border border-teal-500/30
               shadow-sm
               transition-colors
               flex items-center justify-center gap-2
-              dark:bg-teal-400/10
-              dark:text-teal-100
-              dark:hover:bg-teal-400/20
-              dark:border-teal-400/20
             "
           >
             {createQuote.isPending ? (

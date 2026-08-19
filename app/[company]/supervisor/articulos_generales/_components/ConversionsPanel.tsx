@@ -104,7 +104,7 @@ export function ConversionsPanel({
                                 isDeleted
                                     ? "border-border/40 bg-muted/20 opacity-50"
                                     : pending !== undefined
-                                      ? "border-sky-400/50 bg-sky-500/[0.06] dark:border-sky-300/30"
+                                      ? "border-primary/50 bg-primary/[0.06]"
                                       : "border-border/60 bg-background/70",
                             )}
                         >
@@ -200,7 +200,7 @@ export function ConversionsPanel({
                 {created.map((row, index) => (
                     <div
                         key={`new-${index}`}
-                        className="flex items-center gap-3 rounded-lg border border-sky-400/40 bg-sky-500/[0.06] dark:border-sky-300/25 px-3 py-2.5"
+                        className="flex items-center gap-3 rounded-lg border border-primary/40 bg-primary/[0.06] px-3 py-2.5"
                     >
                         <span className="text-sm text-muted-foreground shrink-0">
                             1{" "}
@@ -299,7 +299,7 @@ function NewConversionRow({
     const rightLabel = direction === "base_per_unit" ? baseUnitLabel : unitLabel
 
     return (
-        <div className="flex flex-col gap-2 rounded-lg border border-sky-400/40 bg-sky-500/[0.06] dark:border-sky-300/25 px-3 py-2.5">
+        <div className="flex flex-col gap-2 rounded-lg border border-primary/40 bg-primary/[0.06] px-3 py-2.5">
             <div className="flex items-center gap-2">
                 <Select
                     value={String(unitId ?? "")}

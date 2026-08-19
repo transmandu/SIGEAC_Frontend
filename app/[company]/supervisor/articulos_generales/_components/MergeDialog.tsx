@@ -365,7 +365,7 @@ export function MergeDialog({
                                         className={cn(
                                             "flex items-center gap-3 rounded-lg border px-3 py-2.5 cursor-pointer transition-colors duration-150",
                                             isSurvivor
-                                                ? "border-sky-400/50 bg-sky-500/[0.06] dark:border-sky-300/30"
+                                                ? "border-primary/50 bg-primary/[0.06]"
                                                 : "border-border/60 bg-background/70 hover:bg-muted/30",
                                         )}
                                     >
@@ -471,10 +471,10 @@ export function MergeDialog({
                         supervisor, solo un dato que falta y que puede aportar
                         aquí mismo. */}
                     {unitsToConvert.length > 0 && (
-                        <section className="rounded-xl border border-sky-400/40 bg-sky-500/[0.07] dark:border-sky-300/25 p-4 shadow-sm">
+                        <section className="rounded-xl border border-primary/40 bg-primary/[0.07] p-4 shadow-sm">
                             <div className="flex items-center gap-2.5 mb-2">
-                                <AlertTriangle className="size-4 text-sky-600 dark:text-sky-400 shrink-0" />
-                                <span className="text-[11px] font-semibold uppercase tracking-widest text-sky-700 dark:text-sky-300">
+                                <AlertTriangle className="size-4 text-primary shrink-0" />
+                                <span className="text-[11px] font-semibold uppercase tracking-widest text-primary">
                                     Conversión de unidades
                                 </span>
                             </div>
@@ -728,7 +728,7 @@ function MergePreviewPanel({
                                     ) : null}
                                 </span>
                                 {row.is_survivor && (
-                                    <Badge className="rounded-md border border-sky-500/30 bg-sky-500/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-sky-700 shadow-none select-none shrink-0 dark:text-sky-300">
+                                    <Badge className="rounded-md border border-primary/30 bg-primary/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-primary shadow-none select-none shrink-0">
                                         Sobrevive
                                     </Badge>
                                 )}

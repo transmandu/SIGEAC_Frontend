@@ -15,7 +15,7 @@ type Props = {
   placeholder?: string
 }
 
-const selectTriggerClass = `h-8 w-full pl-8 text-xs bg-white/80 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-700/60 transition-colors focus:ring-1 focus:ring-[#439A97]/40 data-[placeholder]:text-muted-foreground [&>span]:truncate`
+const selectTriggerClass = `h-8 w-full pl-8 text-xs bg-white/80 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-700/60 transition-colors focus:ring-1 focus:ring-primary/40 data-[placeholder]:text-muted-foreground [&>span]:truncate`
 const selectContentClass = `border-slate-200/60 dark:border-slate-700/60`
 
 const StatusFilter = ({
@@ -61,7 +61,7 @@ const QuarantineToolBar = ({
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder={placeholder}
-          className="h-8 border-slate-200/60 bg-white/80 pl-8 text-xs focus-visible:ring-1 focus-visible:ring-[#439A97]/40 dark:border-slate-700/60 dark:bg-slate-900/60"
+          className="h-8 border-slate-200/60 bg-white/80 pl-8 text-xs focus-visible:ring-1 focus-visible:ring-primary/40 dark:border-slate-700/60 dark:bg-slate-900/60"
         />
       </div>
 

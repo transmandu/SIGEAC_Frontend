@@ -75,7 +75,7 @@ export function GuestMenu({ isOpen }: GuestMenuProps) {
                           <Link href={item.href}>
                             <span
                               className={cn(
-                                "absolute left-0 top-1/2 h-6 w-[3px] -translate-y-1/2 rounded-r-full bg-emerald-500 opacity-0 transition-opacity duration-200",
+                                "absolute left-0 top-1/2 h-6 w-[3px] -translate-y-1/2 rounded-r-full bg-primary opacity-0 transition-opacity duration-200",
                                 isActive && "opacity-100"
                               )}
                             />
