@@ -55,7 +55,7 @@ const QuoteComparisonToggle = ({ fields, justification, className }: QuoteCompar
       <button
         type="button"
         onClick={() => setExpanded((v) => !v)}
-        className="flex w-full items-center gap-1.5 px-3 py-1.5 text-[10px] font-medium text-primary hover:bg-primary/10 transition-colors"
+        className="flex w-full items-center gap-1.5 px-3 py-1.5 text-[10px] font-medium text-[#2f716f] dark:text-[#6fc2bf] hover:bg-[#439A97]/10 transition-colors"
       >
         {hasComparison ? <Scale className="size-3" /> : <MessageSquareText className="size-3" />}
         {triggerLabel}

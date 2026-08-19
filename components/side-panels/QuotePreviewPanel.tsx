@@ -147,7 +147,7 @@ const BatchArticleRow = ({ article }: { article: ArticleQuoteOrder }) => {
 
           {/* Protagonista 2: P/N — línea propia */}
           <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="shrink-0 text-[9px] px-1.5 py-[2px] rounded bg-primary/10 text-primary border border-primary/20 font-medium select-none">
+            <span className="shrink-0 text-[9px] px-1.5 py-[2px] rounded bg-teal-500/10 text-teal-700 border border-teal-500/20 font-medium select-none">
               P/N
             </span>
             <span className="text-[13px] font-medium text-foreground/90 break-words">

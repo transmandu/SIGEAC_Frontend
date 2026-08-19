@@ -191,7 +191,7 @@ export function QuoteBatchArticlesSection({
                           <div className="space-y-0.5">
                             <span className={LABEL_CLS}>Número de parte<RequiredIndicator /></span>
                             <div className="flex items-center gap-1.5">
-                              <span className="text-[10px] px-1.5 py-[2px] rounded-md bg-primary/10 text-primary border border-primary/20 shrink-0 select-none">
+                              <span className="text-[10px] px-1.5 py-[2px] rounded-md bg-teal-500/10 text-teal-700 border border-teal-500/20 shrink-0 select-none">
                                 P/N
                               </span>
                               <FormField

@@ -90,11 +90,11 @@ const CostTypeToggle = ({
                 className={cn(
                   'px-4 py-2 rounded-xl text-xs font-medium transition-all duration-200',
                   'flex items-center justify-center gap-2',
-                  'text-muted-foreground hover:text-primary',
+                  'text-muted-foreground hover:text-[#439A97]',
                   'data-[state=active]:bg-white/80 dark:data-[state=active]:bg-slate-900/50',
-                  'data-[state=active]:text-primary',
-                  'data-[state=active]:shadow-[0_0_18px_hsl(var(--primary)/0.25)]',
-                  'data-[state=active]:ring-1 data-[state=active]:ring-primary/30'
+                  'data-[state=active]:text-[#439A97]',
+                  'data-[state=active]:shadow-[0_0_18px_rgba(67,154,151,0.25)]',
+                  'data-[state=active]:ring-1 data-[state=active]:ring-[#CBEDD5]'
                 )}
               >
                 <Boxes className="w-4 h-4 shrink-0" />
@@ -106,11 +106,11 @@ const CostTypeToggle = ({
                 className={cn(
                   'px-4 py-2 rounded-xl text-xs font-medium transition-all duration-200',
                   'flex items-center justify-center gap-2',
-                  'text-muted-foreground hover:text-primary',
+                  'text-muted-foreground hover:text-[#439A97]',
                   'data-[state=active]:bg-white/80 dark:data-[state=active]:bg-slate-900/50',
-                  'data-[state=active]:text-primary',
-                  'data-[state=active]:shadow-[0_0_18px_hsl(var(--primary)/0.25)]',
-                  'data-[state=active]:ring-1 data-[state=active]:ring-primary/30'
+                  'data-[state=active]:text-[#439A97]',
+                  'data-[state=active]:shadow-[0_0_18px_rgba(67,154,151,0.25)]',
+                  'data-[state=active]:ring-1 data-[state=active]:ring-[#CBEDD5]'
                 )}
               >
                 <Wrench className="w-4 h-4 shrink-0" />
@@ -151,13 +151,13 @@ const CostTypeToggle = ({
                     isActive
                       ? [
                           'bg-white/80 dark:bg-slate-900/60',
-                          'text-primary',
+                          'text-[#439A97]',
                           'shadow-sm',
-                          'ring-1 ring-primary/30',
+                          'ring-1 ring-[#CBEDD5]',
                         ]
                       : [
                           'text-muted-foreground',
-                          'hover:text-primary',
+                          'hover:text-[#439A97]',
                           'hover:bg-white/60 dark:hover:bg-slate-900/40',
                         ]
                   )}

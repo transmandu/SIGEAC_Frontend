@@ -77,8 +77,8 @@ const GroupRow = ({
             flex items-center justify-center
             size-8 rounded-lg
 
-            bg-primary/10
-            border border-primary/20
+            bg-emerald-500/10
+            border border-emerald-500/20
 
             shrink-0
           "
@@ -86,7 +86,8 @@ const GroupRow = ({
           <Boxes
             className="
               size-4
-              text-primary
+              text-emerald-600
+              dark:text-emerald-400
             "
           />
         </div>

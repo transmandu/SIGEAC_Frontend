@@ -163,7 +163,7 @@ const BatchArticleRow = ({ article, isCompleted }: { article: PurchaseOrderArtic
           )}
 
           <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="shrink-0 text-[9px] px-1.5 py-[2px] rounded bg-primary/10 text-primary border border-primary/20 font-medium select-none">
+            <span className="shrink-0 text-[9px] px-1.5 py-[2px] rounded bg-teal-500/10 text-teal-700 border border-teal-500/20 font-medium select-none">
               P/N
             </span>
             <span className="text-[13px] font-medium text-foreground/90 break-words">
@@ -192,7 +192,7 @@ const BatchArticleRow = ({ article, isCompleted }: { article: PurchaseOrderArtic
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}
-          className="flex items-center gap-1 rounded-md px-2 py-1 text-[10px] font-medium text-primary hover:bg-primary/10 transition-colors"
+          className="flex items-center gap-1 rounded-md px-2 py-1 text-[10px] font-medium text-[#2f716f] dark:text-[#6fc2bf] hover:bg-[#439A97]/10 transition-colors"
         >
           Detalles
           <ChevronDown className={cn('size-3 transition-transform', expanded && 'rotate-180')} />
@@ -306,7 +306,7 @@ const GeneralArticleRow = ({ article, isCompleted }: { article: PurchaseOrderGen
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}
-          className="flex items-center gap-1 rounded-md px-2 py-1 text-[10px] font-medium text-primary hover:bg-primary/10 transition-colors"
+          className="flex items-center gap-1 rounded-md px-2 py-1 text-[10px] font-medium text-[#2f716f] dark:text-[#6fc2bf] hover:bg-[#439A97]/10 transition-colors"
         >
           Detalles
           <ChevronDown className={cn('size-3 transition-transform', expanded && 'rotate-180')} />
@@ -428,7 +428,7 @@ export default function PurchaseOrderPreviewPanel({ purchaseOrder, onClose }: Pr
           {purchaseOrder.quote_order?.quote_number && selectedCompany?.slug && (
             <Link
               href={`/${selectedCompany.slug}/compras/${quoteSegment}/${purchaseOrder.quote_order.quote_number}`}
-              className="mt-3 flex items-center gap-1.5 text-xs font-medium text-primary hover:underline underline-offset-2"
+              className="mt-3 flex items-center gap-1.5 text-xs font-medium text-[#2f716f] dark:text-[#6fc2bf] hover:underline underline-offset-2"
             >
               <Link2 className="size-3.5" />
               Ver cotización de origen

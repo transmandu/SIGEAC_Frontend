@@ -140,20 +140,20 @@ export function GenerateInProgressRequisitionsPdfButton() {
           relative overflow-hidden
           h-10 px-3
           border border-dashed
-          border-primary/50
+          border-teal-400/50 dark:border-teal-300/30
           bg-background/70 backdrop-blur
-          text-primary
+          text-teal-700 dark:text-teal-300
           font-medium tracking-wide
           shadow-sm transition-all duration-200
-          hover:border-primary/60
-          hover:bg-primary/5
+          hover:border-teal-500/60 dark:hover:border-teal-300/50
+          hover:bg-teal-50/40 dark:hover:bg-teal-950/20
           hover:shadow-md hover:-translate-y-[1px]
           active:translate-y-0 active:shadow-sm
-          focus-visible:ring-2 focus-visible:ring-primary/25
+          focus-visible:ring-2 focus-visible:ring-teal-500/25
         "
         style={{
           backgroundImage: hovered
-            ? `radial-gradient(circle at ${pos.x}% ${pos.y}%, hsl(var(--primary) / 0.10), transparent 65%)`
+            ? `radial-gradient(circle at ${pos.x}% ${pos.y}%, rgba(20,184,166,0.10), transparent 65%)`
             : 'none',
         }}
       >
@@ -190,7 +190,7 @@ export function GenerateInProgressRequisitionsPdfButton() {
                     rounded-xl border bg-background shadow-sm
                   "
                 >
-                  <FileDown className="size-5 animate-pulse text-primary" />
+                  <FileDown className="size-5 animate-pulse text-teal-600 dark:text-teal-400" />
                 </div>
 
                 <div className="space-y-0.5">
@@ -207,7 +207,7 @@ export function GenerateInProgressRequisitionsPdfButton() {
                 <div
                   className="
                     h-full w-1/3 rounded-full
-                    bg-gradient-to-r from-primary/80 via-primary to-primary/80
+                    bg-gradient-to-r from-teal-400 via-teal-500 to-cyan-400
                     animate-[req-pdf-indeterminate_1.2s_ease-in-out_infinite]
                   "
                 />

@@ -209,7 +209,7 @@ const QuoteDropdownActions = ({ quote }: { quote: Quote }) => {
                           setOpenDropdown(false)
                           setOpenComplementary(true)
                         }}
-                        className={`${itemBase} text-primary`}
+                        className={`${itemBase} text-violet-600`}
                       >
                         <PackagePlus className={iconBase} />
                       </button>

@@ -281,7 +281,7 @@ export function CostHistoryDialog({
                             {created.map((row, index) => (
                                 <div
                                     key={index}
-                                    className="flex items-center gap-3 rounded-lg border border-primary/40 bg-primary/[0.06] px-3 py-2"
+                                    className="flex items-center gap-3 rounded-lg border border-sky-400/40 bg-sky-500/[0.06] dark:border-sky-300/25 px-3 py-2"
                                 >
                                     <span className={dependencyBadgeCls()}>MANUAL</span>
 
@@ -455,7 +455,7 @@ function CostEntryRow({
                             <SelectTrigger
                                 className={cn(
                                     "h-8 w-28 bg-background border-border/60 text-xs",
-                                    unitCorrected && "border-primary/60 bg-primary/[0.06]",
+                                    unitCorrected && "border-sky-400/60 bg-sky-500/[0.06]",
                                 )}
                             >
                                 <SelectValue placeholder="Unidad" />

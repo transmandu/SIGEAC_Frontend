@@ -27,7 +27,7 @@ const departmentStyles = [
   { color: "bg-amber-700", shape: "rounded-full" },
   { color: "bg-purple-500", shape: "rounded-full" },
   { color: "bg-pink-500", shape: "rounded-full" },
-  { color: "bg-primary", shape: "rounded-full" },
+  { color: "bg-teal-500", shape: "rounded-full" },
 ];
 
 function getDeptShape(index: number) {

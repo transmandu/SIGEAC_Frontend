@@ -461,11 +461,11 @@ const RequisitionDropdownDialogs = ({
                   flex items-center justify-center
                   size-10 shrink-0
                   rounded-xl
-                  border border-primary/10
-                  bg-primary/[0.08]
+                  border border-emerald-500/10
+                  bg-emerald-500/[0.08]
                 "
               >
-                <Receipt className="size-4.5 text-primary" />
+                <Receipt className="size-4.5 text-emerald-600" />
               </div>
 
               <div className="min-w-0 flex-1">

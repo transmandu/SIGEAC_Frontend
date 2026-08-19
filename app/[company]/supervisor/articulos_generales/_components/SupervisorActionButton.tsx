@@ -29,29 +29,28 @@ type ActionEmphasis = "primary" | "subtle"
 
 /**
  * El gradiente se inyecta por style y no puede salir de una clase de
- * Tailwind, por eso el color va aparte. Ambos son primary, con distinta
- * intensidad.
+ * Tailwind, por eso el rgba va aparte. Ambos son sky, con distinta intensidad.
  */
 const EMPHASIS: Record<ActionEmphasis, { classes: string; glow: string }> = {
     primary: {
         classes: cn(
-            "border-primary/60",
-            "text-primary",
-            "hover:border-primary/70",
-            "hover:bg-primary/10",
-            "focus-visible:ring-primary/25",
+            "border-sky-400/60 dark:border-sky-300/40",
+            "text-sky-700 dark:text-sky-300",
+            "hover:border-sky-500/70 dark:hover:border-sky-300/60",
+            "hover:bg-sky-50/60 dark:hover:bg-sky-950/25",
+            "focus-visible:ring-sky-500/25",
         ),
-        glow: "hsl(var(--primary) / 0.14)",
+        glow: "rgba(14,165,233,0.14)",
     },
     subtle: {
         classes: cn(
-            "border-primary/40",
-            "text-primary/90",
-            "hover:border-primary/50",
-            "hover:bg-primary/5",
-            "focus-visible:ring-primary/20",
+            "border-sky-300/40 dark:border-sky-400/20",
+            "text-sky-600/90 dark:text-sky-300/80",
+            "hover:border-sky-400/50 dark:hover:border-sky-300/40",
+            "hover:bg-sky-50/40 dark:hover:bg-sky-950/15",
+            "focus-visible:ring-sky-500/20",
         ),
-        glow: "hsl(var(--primary) / 0.08)",
+        glow: "rgba(14,165,233,0.08)",
     },
 }
 

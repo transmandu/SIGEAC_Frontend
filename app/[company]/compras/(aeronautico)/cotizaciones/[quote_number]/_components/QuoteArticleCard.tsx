@@ -55,7 +55,7 @@ const QuoteArticleCard = ({ article }: QuoteArticleCardProps) => {
                 Part Number
               </span>
               <div className="flex items-center gap-2 min-w-0">
-                <span className="shrink-0 text-[10px] px-1.5 py-[2px] rounded bg-primary/10 text-primary border border-primary/20 font-medium select-none">
+                <span className="shrink-0 text-[10px] px-1.5 py-[2px] rounded bg-teal-500/10 text-teal-700 border border-teal-500/20 font-medium select-none">
                   P/N
                 </span>
                 <div className="w-[300px] text-sm bg-muted/40 border border-border/40 rounded px-2 py-1 truncate">

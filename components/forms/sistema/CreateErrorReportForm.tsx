@@ -282,7 +282,7 @@ export default function CreateErrorReportForm({ onClose, showAdvancedFields = fa
               className={cn(
                 "rounded-xl border border-dashed p-3 transition-colors",
                 isDragging
-                  ? "border-primary bg-primary/5"
+                  ? "border-indigo-400 bg-indigo-50/60 dark:bg-indigo-500/10"
                   : "border-slate-200/80 bg-slate-50/40 dark:border-slate-800/80 dark:bg-slate-900/20"
               )}
             >
@@ -307,7 +307,7 @@ export default function CreateErrorReportForm({ onClose, showAdvancedFields = fa
                 ))}
                 <label
                   htmlFor="images"
-                  className="flex h-16 w-16 flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-slate-300 text-muted-foreground transition-colors hover:border-primary hover:bg-primary/5 hover:text-primary dark:border-slate-700"
+                  className="flex h-16 w-16 flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-slate-300 text-muted-foreground transition-colors hover:border-indigo-400 hover:bg-indigo-50/50 hover:text-indigo-600 dark:border-slate-700 dark:hover:bg-indigo-500/10"
                 >
                   <ImagePlus className="h-5 w-5" />
                   <span className="text-[10px]">Agregar</span>
@@ -387,7 +387,7 @@ export default function CreateErrorReportForm({ onClose, showAdvancedFields = fa
                       className={cn(
                         "select-none rounded-full border px-3 py-1 font-mono text-xs font-medium transition-all",
                         active
-                          ? "border-primary bg-primary text-white shadow-sm shadow-primary/30"
+                          ? "border-indigo-400 bg-indigo-500 text-white shadow-sm shadow-indigo-500/30"
                           : "border-slate-200/80 bg-slate-50/60 text-muted-foreground hover:border-slate-300 dark:border-slate-800/80 dark:bg-slate-900/30"
                       )}
                     >
@@ -406,7 +406,7 @@ export default function CreateErrorReportForm({ onClose, showAdvancedFields = fa
                   className={cn(
                     "select-none rounded-full border px-3 py-1 text-xs font-medium transition-all",
                     customHttpOpen
-                      ? "border-primary bg-primary text-white shadow-sm shadow-primary/30"
+                      ? "border-indigo-400 bg-indigo-500 text-white shadow-sm shadow-indigo-500/30"
                       : "border-slate-200/80 bg-slate-50/60 text-muted-foreground hover:border-slate-300 dark:border-slate-800/80 dark:bg-slate-900/30"
                   )}
                 >

@@ -47,7 +47,8 @@ export const getColumns = (
             text-sm font-semibold
             text-slate-700 dark:text-slate-200
 
-            hover:text-primary
+            hover:text-emerald-600
+            dark:hover:text-emerald-400
 
             transition-colors
           "

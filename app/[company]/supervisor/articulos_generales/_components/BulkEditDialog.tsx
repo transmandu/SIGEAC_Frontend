@@ -243,7 +243,7 @@ export function BulkEditDialog({
                                                                 "h-8 min-w-[150px] bg-background/70 border-border/60",
                                                                 row[field.key] !==
                                                                     (original?.[field.key] ?? "") &&
-                                                                    "border-primary/60 bg-primary/[0.06]",
+                                                                    "border-sky-400/60 bg-sky-500/[0.06]",
                                                             )}
                                                         />
                                                     </td>

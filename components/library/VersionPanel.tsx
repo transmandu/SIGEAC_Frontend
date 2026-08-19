@@ -63,8 +63,8 @@ export const HistoryPanel = ({
             className="flex items-center gap-2"
             data-tour="biblioteca-versions-title"
           >
-            <div className="p-1.5 bg-primary/10 rounded-lg">
-              <History className="h-4 w-4 text-primary" />
+            <div className="p-1.5 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+              <History className="h-4 w-4 text-purple-600 dark:text-purple-400" />
             </div>
             <span className="text-xs font-bold uppercase tracking-widest text-slate-800 dark:text-white">
               Historial de Versiones

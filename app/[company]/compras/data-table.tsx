@@ -285,7 +285,7 @@ function DataTableInner<TData>({
                               pl-10 pr-4 py-3
                               bg-muted/20
                               border-l-2
-                              border-primary/40
+                              border-emerald-300 dark:border-emerald-200
                             "
                           >
                             {renderSubRow(row)}

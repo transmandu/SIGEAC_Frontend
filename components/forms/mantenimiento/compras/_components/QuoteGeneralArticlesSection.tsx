@@ -159,7 +159,7 @@ function BrandCombobox({
         )}
       />
       {hasCandidates && (
-        <Sparkles className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 size-3 text-primary opacity-70" />
+        <Sparkles className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 size-3 text-violet-400 opacity-70" />
       )}
 
       {createPortal(
@@ -271,7 +271,7 @@ function VariantCombobox({
         className={cn("h-7 w-full text-sm", hasCandidates && "pr-6")}
       />
       {hasCandidates && (
-        <Sparkles className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 size-3 text-primary opacity-70" />
+        <Sparkles className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 size-3 text-violet-400 opacity-70" />
       )}
 
       {createPortal(
@@ -458,7 +458,7 @@ export function QuoteGeneralArticlesSection({
                             <span className={LABEL_CLS}>
                               Present. / Especif.
                               {variantCandidates.length > 0 && (
-                                <span className="ml-1 text-[9px] text-primary select-none normal-case not-italic">sugerencias</span>
+                                <span className="ml-1 text-[9px] text-violet-500 select-none normal-case not-italic">sugerencias</span>
                               )}
                             </span>
                             <FormField
@@ -554,7 +554,7 @@ export function QuoteGeneralArticlesSection({
                             <span className={LABEL_CLS}>
                               Marca / Modelo<RequiredIndicator />
                               {brandCandidates.length > 0 && (
-                                <span className="ml-1 text-[9px] text-primary select-none normal-case not-italic">sugerencias</span>
+                                <span className="ml-1 text-[9px] text-violet-500 select-none normal-case not-italic">sugerencias</span>
                               )}
                             </span>
                             <FormField

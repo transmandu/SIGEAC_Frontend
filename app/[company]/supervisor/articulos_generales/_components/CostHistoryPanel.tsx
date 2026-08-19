@@ -193,7 +193,7 @@ export function CostHistoryPanel({
                                                     "h-8 w-24 bg-background border-border/60 text-xs",
                                                     intakeId !== null &&
                                                         pendingIntakeUnit(intakeId) !== undefined &&
-                                                        "border-primary/60 bg-primary/[0.06]",
+                                                        "border-sky-400/60 bg-sky-500/[0.06]",
                                                 )}
                                             >
                                                 <SelectValue placeholder="Unidad" />
@@ -219,7 +219,7 @@ export function CostHistoryPanel({
                                             "h-8 w-20 bg-background border-border/60",
                                             changeId !== null &&
                                                 pendingRow(changeId)?.cost !== undefined &&
-                                                "border-primary/60 bg-primary/[0.06]",
+                                                "border-sky-400/60 bg-sky-500/[0.06]",
                                         )}
                                         value={
                                             changeId !== null
@@ -331,7 +331,7 @@ export function CostHistoryPanel({
                 {created.map((row, index) => (
                     <div
                         key={`new-${index}`}
-                        className="flex items-center gap-3 rounded-lg border border-primary/40 bg-primary/[0.06] px-3 py-2"
+                        className="flex items-center gap-3 rounded-lg border border-sky-400/40 bg-sky-500/[0.06] dark:border-sky-300/25 px-3 py-2"
                     >
                         <span className={dependencyBadgeCls()}>MANUAL</span>
 

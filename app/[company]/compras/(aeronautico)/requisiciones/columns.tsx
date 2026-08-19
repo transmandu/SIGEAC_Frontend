@@ -124,7 +124,7 @@ export const getColumns = (
                 `size-3.5 text-muted-foreground/50 transition-transform duration-150`,
 
                 row.getIsExpanded() &&
-                  `rotate-90 text-primary
+                  `rotate-90 text-emerald-600 dark:text-emerald-400
                   `
               )}
             />
@@ -159,7 +159,7 @@ export const getColumns = (
       <div className="flex justify-center w-full">
         <Link
           href={`/${selectedCompany?.slug}/compras/requisiciones/${row.original.order_number}`}
-          className="text-sm font-semibold text-slate-700 dark:text-slate-200 hover:text-primary transition-colors"
+          className="text-sm font-semibold text-slate-700 dark:text-slate-200 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
           onClick={(e) => e.stopPropagation()}
         >
           {row.original.order_number}

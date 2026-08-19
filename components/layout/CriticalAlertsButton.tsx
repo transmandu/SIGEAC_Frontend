@@ -176,7 +176,7 @@ export default function CriticalAlertsButton() {
                   // Sin nada accionable el botón deja de gritar: todo lo bajo
                   // de stock ya está comprado y solo falta que llegue.
                   !isCountActionable
-                    ? "bg-gradient-to-br from-primary to-blue-600 text-white ring-primary/40 hover:from-primary hover:to-blue-500"
+                    ? "bg-gradient-to-br from-sky-500 to-blue-600 text-white ring-sky-400/40 hover:from-sky-500 hover:to-blue-500"
                     : isHazardTone
                       ? "bg-gradient-to-br from-red-600 to-red-800 text-white ring-red-500/50 hover:from-red-600 hover:to-red-700"
                       : "bg-gradient-to-br from-red-500 to-rose-600 text-white ring-red-400/40 hover:from-red-500 hover:to-rose-500"
@@ -212,7 +212,7 @@ export default function CriticalAlertsButton() {
                     "rounded-full",
                     "bg-white",
                     !isCountActionable
-                      ? "text-primary ring-primary/30"
+                      ? "text-sky-600 ring-sky-500/30"
                       : isHazardTone
                         ? "text-red-700 ring-red-600/40"
                         : "text-red-600 ring-red-500/30",
@@ -267,7 +267,7 @@ export default function CriticalAlertsButton() {
           className={cn(
             "shrink-0 border-b px-4 py-3",
             !isCountActionable
-              ? "bg-gradient-to-r from-primary/10 to-blue-500/10"
+              ? "bg-gradient-to-r from-sky-500/10 to-blue-500/10"
               : isHazardTone
                 ? "bg-gradient-to-r from-red-600/15 to-red-800/10"
                 : "bg-gradient-to-r from-red-500/10 to-rose-500/10"
@@ -290,7 +290,7 @@ export default function CriticalAlertsButton() {
                 "mt-2 inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1",
                 "text-[11px] font-medium transition-colors",
                 hideInTransit
-                  ? "border-primary/40 bg-primary/10 text-primary hover:bg-primary/15"
+                  ? "border-sky-500/40 bg-sky-500/10 text-sky-700 hover:bg-sky-500/15"
                   : "border-border bg-background/60 text-muted-foreground hover:bg-muted"
               )}
             >
@@ -310,7 +310,7 @@ export default function CriticalAlertsButton() {
                 vacía: sin esto el panel se abriría en blanco, como si fallara. */}
             {alerts.length === 0 ? (
               <div className="flex flex-col items-center gap-1 px-4 py-8 text-center">
-                <Truck className="h-6 w-6 text-primary" />
+                <Truck className="h-6 w-6 text-sky-600" />
                 <p className="text-sm font-medium">Nada pendiente de pedir</p>
                 <p className="text-xs text-muted-foreground">
                   {inTransitCount} artículo{inTransitCount === 1 ? "" : "s"} bajo mínimo
