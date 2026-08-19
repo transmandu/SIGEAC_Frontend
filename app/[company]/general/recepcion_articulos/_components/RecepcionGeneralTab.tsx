@@ -34,6 +34,7 @@ import {
 } from '@/components/ui/tooltip'
 import { useAuth } from '@/contexts/AuthContext'
 import { useGetUnits } from '@/hooks/general/unidades/useGetPrimaryUnits'
+import { ConversionSuggestionPicker } from '@/components/forms/mantenimiento/almacen/_components/ConversionSuggestionPicker'
 import { useGetGeneralArticleIntakes } from '@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticleIntakes'
 import { useGetIntakeConfirmationPreview, type AppliedConversionPreview } from '@/hooks/mantenimiento/almacen/almacen_general/useGetIntakeConfirmationPreview'
 import { cn, formatQuantity } from '@/lib/utils'
@@ -167,6 +168,15 @@ function UnitConversionPanel({
                     <span className="rounded bg-muted px-1.5 py-0.5 uppercase text-xs">{existingUnitLabel}</span>
                 </span>
             </div>
+
+            {/* Si esta misma equivalencia ya está registrada en otro artículo o en
+                el catálogo, se copia en vez de buscarla en el empaque. */}
+            <ConversionSuggestionPicker
+                type="general-articles"
+                articleId={candidate.general_article_id}
+                onlyUnitId={Number(candidate.intake_unit_id)}
+                onPick={(suggestion) => onEquivalenceChange(String(suggestion.base_per_unit))}
+            />
 
             <p className="text-xs text-muted-foreground text-center">
                 {preview !== null ? (

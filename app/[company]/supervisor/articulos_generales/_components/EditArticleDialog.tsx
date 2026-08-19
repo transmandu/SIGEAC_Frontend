@@ -388,6 +388,10 @@ export function EditArticleDialog({
                                     article.general_primary_unit?.label ??
                                     "unidad base"
                                 }
+                                articleId={article.id}
+                                baseUnitChanged={
+                                    unitId !== null && unitId !== article.primary_unit_id
+                                }
                                 edits={conversionEdits}
                                 onChange={setConversionEdits}
                             />

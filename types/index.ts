@@ -299,6 +299,14 @@ export type Convertion = {
   unit: Unit;
   base_per_unit: number;
   lectura: string;
+  /**
+   * La equivalencia dicha en la dirección en que se declaró. Preferirla siempre
+   * al mostrarla: `lectura` es literal y se vuelve ilegible cuando el factor
+   * queda por debajo de 1 ("1 YARDA = 0.027777777778 UNIDAD" es lo que se
+   * guardó al escribir "1 UNIDAD = 36 YARDAS").
+   */
+  lectura_legible?: string;
+  captured_direction?: "base_per_unit" | "units_per_base" | null;
   preview: string;
 };
 

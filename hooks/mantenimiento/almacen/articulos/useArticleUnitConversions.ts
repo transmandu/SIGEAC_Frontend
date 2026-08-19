@@ -86,6 +86,13 @@ export type UnitConversionRow = {
   unit: Unit | null;
   base_per_unit: number;
   lectura: string | null;
+  /**
+   * La equivalencia en la dirección en que se declaró. Es la que se muestra:
+   * la literal se vuelve ilegible cuando el factor cae por debajo de 1
+   * ("1 YARDA = 0.027777777778 UNIDAD" por "1 UNIDAD = 36 YARDAS").
+   */
+  lectura_legible?: string | null;
+  captured_direction?: ConversionDirection | null;
   /** El artículo dueño ya no existe: la fila quedó colgada. */
   orphaned: boolean;
   registered_by?: string | null;
