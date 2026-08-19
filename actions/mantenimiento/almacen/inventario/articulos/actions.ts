@@ -173,6 +173,22 @@ const serializeFormValue = (value: unknown) => {
   return value?.toString() ?? "";
 };
 
+/**
+ * Las conversiones son un arreglo de objetos y multipart no anida: aplanadas
+ * con `[]` cada fila llegaba como "[object Object]". Van con índice y clave,
+ * que es el formato que Laravel rearma en `conversions.*.unit_id`.
+ */
+const appendConversions = (
+  formData: FormData,
+  rows: { unit_id: number; direction: string; value: number }[]
+) => {
+  rows.forEach((row, index) => {
+    formData.append(`conversions[${index}][unit_id]`, String(row.unit_id));
+    formData.append(`conversions[${index}][direction]`, row.direction);
+    formData.append(`conversions[${index}][value]`, String(row.value));
+  });
+};
+
 export type IncomingCheck = {
   check_id: number;
   result: CheckResult;
@@ -210,7 +226,9 @@ export const useCreateArticle = () => {
 
       Object.entries(data).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
-          if (Array.isArray(value)) {
+          if (key === "conversions") {
+            appendConversions(formData, value as ArticleData["conversions"] & object);
+          } else if (Array.isArray(value)) {
             value.forEach((item) => formData.append(`${key}[]`, item));
           } else if (value instanceof File) {
             formData.append(key, value);
@@ -772,6 +790,11 @@ export const useUpdateArticle = () => {
         // Files
         if (value instanceof File) {
           formData.append(key, value);
+          return;
+        }
+
+        if (key === "conversions" && Array.isArray(value)) {
+          appendConversions(formData, value);
           return;
         }
 
