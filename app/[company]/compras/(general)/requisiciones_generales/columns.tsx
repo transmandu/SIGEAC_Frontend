@@ -14,7 +14,7 @@ import { ChevronRight, Loader2 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useCompanyStore } from '@/stores/CompanyStore'
 import { useUpdateRequisitionStatus } from '@/actions/mantenimiento/compras/requisiciones/actions'
-import EyePreviewIcon from '@/components/misc/EyePreviewIcon'
+import PreviewPanelIcon from '@/components/misc/PreviewPanelIcon'
 
 const STATUS_LABELS: Record<string, string> = {
   CREATED: 'CREADA',
@@ -185,11 +185,11 @@ export const getColumns = (
                   className={cn(
                     'flex items-center justify-center rounded-md p-1 transition-all duration-200',
                     isActive
-                      ? 'text-blue-600 dark:text-blue-400 drop-shadow-[0_0_6px_rgba(37,99,235,0.65)] dark:drop-shadow-[0_0_6px_rgba(96,165,250,0.7)]'
-                      : 'text-muted-foreground hover:text-blue-600 dark:hover:text-blue-400 hover:drop-shadow-[0_0_6px_rgba(37,99,235,0.55)] dark:hover:drop-shadow-[0_0_6px_rgba(96,165,250,0.6)]'
+                      ? 'text-blue-600 dark:text-blue-400 drop-shadow-[0_0_3px_rgba(37,99,235,0.35)] dark:drop-shadow-[0_0_3px_rgba(96,165,250,0.4)]'
+                      : 'text-muted-foreground hover:text-blue-600 dark:hover:text-blue-400 hover:drop-shadow-[0_0_3px_rgba(37,99,235,0.3)] dark:hover:drop-shadow-[0_0_3px_rgba(96,165,250,0.35)]'
                   )}
                 >
-                  <EyePreviewIcon active={isActive} className="size-4" />
+                  <PreviewPanelIcon active={isActive} className="size-4" />
                 </button>
               </TooltipTrigger>
               <TooltipContent>{isActive ? 'Cerrar vista previa' : 'Vista previa de la requisición'}</TooltipContent>

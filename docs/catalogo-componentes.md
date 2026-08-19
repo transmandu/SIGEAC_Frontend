@@ -133,7 +133,8 @@ Complementos en `ui/`: `DataTableColumHeader`, y en la raíz `DataTableMixedSort
 | `DropdownActions` | `misc/` | Base genérica de menú de acciones |
 | `LoadingPage` | `misc/` | Página completa en carga |
 | `BackButton` / `ButtonLink` | `misc/` | Navegación |
-| `EyePreviewIcon` / `ImageViewer` / `ImageZoom` | `misc/`, `ui/` | Vista de imágenes |
+| `ImageViewer` / `ImageZoom` | `misc/`, `ui/` | Vista de imágenes |
+| `PreviewPanelIcon` | `misc/` | Ícono abrir/cerrar del panel de vista previa |
 | `QRGenerator` | `misc/` | Códigos QR |
 | `StatusCellWithPopover` | `misc/` | Celda de estado con detalle |
 
@@ -743,7 +744,7 @@ varios módulos significa que es transversal; **huérfano** significa cero consu
 | `_(sin export nombrado)_` | `misc/DoubleDateFilter.tsx` | sms | 213 |
 | `_(sin export nombrado)_` | `misc/DropdownActions.tsx` | **huérfano** | 62 |
 | `ErrorReportTrigger` | `misc/ErrorReportTrigger.tsx` | _app_root, layout | 77 |
-| `_(sin export nombrado)_` | `misc/EyePreviewIcon.tsx` | compras | 67 |
+| `_(sin export nombrado)_` | `misc/PreviewPanelIcon.tsx` | compras | 61 |
 | `FileServer` | `misc/FileServer.tsx` | compras, sms | 80 |
 | `GenerateInProgressRequisitionsPdfButton` | `misc/GenerateInProgressRequisitionsPdfButton.tsx` | compras | 229 |
 | `GraphicsSelector` | `misc/GraphicsSelector.tsx` | sms | 155 |
