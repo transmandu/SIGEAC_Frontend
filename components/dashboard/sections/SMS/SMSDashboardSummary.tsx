@@ -5,6 +5,7 @@ import { Message } from "@/components/misc/Message";
 import SimpleNotificationBell from "@/components/misc/SimpleNotificationBell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 import {
   Card,
   CardContent,
@@ -65,29 +66,9 @@ function TintedCard({
   );
 }
 
-/* =========================
-   RADIAL HOVER HOOK
-   ========================= */
-function useRadialHover() {
-  const [hovered, setHovered] = useState(false);
-  const [pos, setPos] = useState({ x: 50, y: 50 });
-
-  const onMove = (e: React.MouseEvent<HTMLElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    setPos({
-      x: ((e.clientX - rect.left) / rect.width) * 100,
-      y: ((e.clientY - rect.top) / rect.height) * 100,
-    });
-  };
-
-  return { hovered, setHovered, pos, onMove };
-}
-
 export default function DashboardSummary({ companySlug }: DashboardSummaryProps) {
   const router = useRouter();
   const blueTone = "37,99,235";
-
-  const reportBtn = useRadialHover();
 
   const {
     data: barChartData,
@@ -268,20 +249,12 @@ export default function DashboardSummary({ companySlug }: DashboardSummaryProps)
           </CardHeader>
 
           <CardContent className="flex justify-center pt-2 pb-1">
-            <Button
-              onMouseEnter={() => reportBtn.setHovered(true)}
-              onMouseLeave={() => reportBtn.setHovered(false)}
-              onMouseMove={reportBtn.onMove}
+            <ActionTriggerButton
               onClick={() => router.push(`/${companySlug}/sms/reportes`)}
-              className="relative overflow-hidden px-6 min-w-[180px] border border-dashed border-primary/50 bg-background/70 backdrop-blur text-primary font-medium tracking-wide shadow-sm transition-all duration-200 hover:border-primary/60 hover:bg-primary/5 hover:shadow-md hover:-translate-y-[1px] active:translate-y-0 active:shadow-sm focus-visible:ring-2 focus-visible:ring-primary/25 hover:text-slate-900 dark:hover:text-white"
-              style={{
-                backgroundImage: reportBtn.hovered
-                  ? `radial-gradient(circle at ${reportBtn.pos.x}% ${reportBtn.pos.y}%, rgba(37,99,235,0.12), transparent 65%)`
-                  : "none",
-              }}
+              className="px-6 min-w-[180px]"
             >
               Ver Reportes
-            </Button>
+            </ActionTriggerButton>
           </CardContent>
         </TintedCard>
 

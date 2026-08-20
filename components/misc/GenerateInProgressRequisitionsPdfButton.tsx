@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom'
 import { toast } from 'sonner'
 import { FileDown } from 'lucide-react'
 
-import { Button } from '@/components/ui/button'
+import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 import { useCompanyStore } from '@/stores/CompanyStore'
 import { useDownloadInProgressRequisitionsPdf } from '@/hooks/mantenimiento/compras/useDownloadInProgressRequisitionsPdf'
 
@@ -42,24 +42,7 @@ export function GenerateInProgressRequisitionsPdfButton() {
   const { mutateAsync: downloadPdf, isPending } =
     useDownloadInProgressRequisitionsPdf()
 
-  const [hovered, setHovered] = useState(false)
-  const [pos, setPos] = useState({ x: 50, y: 50 })
 
-  const handleMouseMove = (
-    e: React.MouseEvent<HTMLButtonElement>
-  ) => {
-    if (!hovered) return
-
-    const rect = e.currentTarget.getBoundingClientRect()
-
-    const x =
-      ((e.clientX - rect.left) / rect.width) * 100
-
-    const y =
-      ((e.clientY - rect.top) / rect.height) * 100
-
-    setPos({ x, y })
-  }
 
   const handleGenerate = async () => {
     if (!selectedCompany?.slug || !selectedStation || isPending) return
@@ -129,37 +112,10 @@ export function GenerateInProgressRequisitionsPdfButton() {
 
   return (
     <>
-      <Button
-        onClick={handleGenerate}
-        disabled={!selectedCompany?.slug || !selectedStation || isPending}
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
-        onMouseMove={handleMouseMove}
-        variant="outline"
-        className="
-          relative overflow-hidden
-          h-10 px-3
-          border border-dashed
-          border-primary/50
-          bg-background/70 backdrop-blur
-          text-primary
-          font-medium tracking-wide
-          shadow-sm transition-all duration-200
-          hover:border-primary/60
-          hover:bg-primary/5
-          hover:shadow-md hover:-translate-y-[1px]
-          active:translate-y-0 active:shadow-sm
-          focus-visible:ring-2 focus-visible:ring-primary/25
-        "
-        style={{
-          backgroundImage: hovered
-            ? `radial-gradient(circle at ${pos.x}% ${pos.y}%, hsl(var(--primary) / 0.10), transparent 65%)`
-            : 'none',
-        }}
-      >
+      <ActionTriggerButton className="px-3">
         <FileDown className="size-4" />
          Generar
-      </Button>
+      </ActionTriggerButton>
 
       {/* ============ BARRA DE CARGA NO INTERACTIVA ============ */}
       {isPending &&

@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 
 import { Button } from "@/components/ui/button";
+import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 import { Loader2, Download, FileText, Scale } from "lucide-react";
 
 import {
@@ -301,34 +302,14 @@ export function AdministrationDispatchReportDialog({ roleNames = [] }: Administr
       setLoadingDownload(false);
     }
   };
-  const [hovered, setHovered] = useState(false)
-  const [pos, setPos] = useState({ x: 50, y: 50 })
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLButtonElement>) => {
-    if (!hovered) return
-    const rect = e.currentTarget.getBoundingClientRect()
-    const x = ((e.clientX - rect.left) / rect.width) * 100
-    const y = ((e.clientY - rect.top) / rect.height) * 100
-    setPos({ x, y })
-  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
-        onMouseMove={handleMouseMove}
-        variant="outline"
-        className="relative overflow-hidden border border-dashed border-primary/50 bg-background/70 backdrop-blur text-primary font-medium tracking-wide shadow-sm transition-all duration-200 hover:border-primary/60 hover:bg-primary/5 hover:shadow-md hover:-translate-y-[1px] active:translate-y-0 active:shadow-sm focus-visible:ring-2 focus-visible:ring-primary/25 focus-visible:ring-offset-2"
-        style={{
-            backgroundImage: hovered
-            ? `radial-gradient(circle at ${pos.x}% ${pos.y}%, rgba(99,102,241,0.12), transparent 65%)`
-            : "none",
-        }}
-        >
+        <ActionTriggerButton>
           Generar Reporte
-        </Button>
+        </ActionTriggerButton>
       </DialogTrigger>
 
       <DialogContent className="sm:max-w-[580px] p-0 overflow-visible">
