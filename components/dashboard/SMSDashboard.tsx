@@ -25,8 +25,8 @@ export default function SMSDashboard(props: SMSDashboardProps) {
           <div className="flex items-center space-x-4">
 
             <div className="relative">
-              <div className="absolute inset-0 rounded-2xl bg-amber-500/10 blur-md" />
-              <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl border border-amber-500/30 bg-amber-500/10 text-amber-600 shadow-sm">
+              <div className="absolute inset-0 rounded-2xl bg-blue-500/10 blur-md" />
+              <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl border border-blue-500/30 bg-blue-500/10 text-blue-600 shadow-sm">
                 <ShieldAlert className="h-6 w-6" />
               </div>
             </div>

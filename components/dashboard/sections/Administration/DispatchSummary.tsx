@@ -133,9 +133,9 @@ export default function DispatchSummary({
   }
 
   /* =========================
-     PURPLE BASE
+     BLUE BASE
      ========================= */
-  const purpleTone = "168,85,247"
+  const blueTone = "37,99,235"
 
   const dispatchByCategory = data.dispatchByCategory
 
@@ -155,10 +155,10 @@ export default function DispatchSummary({
       {/* ================= LEFT ================= */}
       <div className="flex flex-col gap-6">
         {/* SALIDAS */}
-        <TintedCard tone={purpleTone}>
+        <TintedCard tone={blueTone}>
           <CardHeader className="text-center pb-2 space-y-2">
             <div className="flex justify-center">
-              <div className="p-2 rounded-xl bg-purple-500/10 text-purple-500">
+              <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600">
                 <Plane className="size-5" />
               </div>
             </div>
@@ -175,17 +175,17 @@ export default function DispatchSummary({
           <CardContent className="py-8">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
               <Metric value={`${data.storedCount ?? 0}%`} label="Artículos por Lote Activos" tone="29,78,216" />
-              <Metric value={`${data.generalArticlesAvailablePercentage ?? 0}%`} label="Artículos Generales Disponibles" tone="217,70,239" />
-              <Metric value={data.dispatchCount ?? 0} label="Salidas Totales" tone="15,118,110" />
+              <Metric value={`${data.generalArticlesAvailablePercentage ?? 0}%`} label="Artículos Generales Disponibles" tone="79,70,229" />
+              <Metric value={data.dispatchCount ?? 0} label="Salidas Totales" tone="8,145,178" />
             </div>
           </CardContent>
         </TintedCard>
 
         {/* ENTRADAS */}
-        <TintedCard tone={purpleTone}>
+        <TintedCard tone={blueTone}>
           <CardHeader className="text-center pb-2 space-y-2">
             <div className="flex justify-center">
-              <div className="p-2 rounded-xl bg-purple-500/10 text-purple-500">
+              <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600">
                 <Package className="size-5" />
               </div>
             </div>
@@ -209,10 +209,10 @@ export default function DispatchSummary({
       </div>
 
       {/* ================= RIGHT ================= */}
-      <TintedCard tone={purpleTone}>
+      <TintedCard tone={blueTone}>
         <CardHeader className="text-center pb-2 space-y-2">
           <div className="flex justify-center">
-            <div className="p-2 rounded-xl bg-purple-500/10 text-purple-500">
+            <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600">
               <PackageSearch className="size-5" />
             </div>
           </div>

@@ -250,7 +250,7 @@ export const DownloadDocumentDialog = ({
               className={`flex-1 px-4 py-3 text-[10px] font-black text-white rounded-xl transition-all tracking-widest shadow-md active:scale-[0.98] ${
                 downloadMode === "document"
                   ? "bg-blue-600 hover:bg-blue-700 shadow-blue-100 dark:shadow-none"
-                  : "bg-primary hover:bg-primary shadow-primary dark:shadow-none"
+                  : "bg-primary hover:bg-primary/90 shadow-primary/20 dark:shadow-none"
               } disabled:opacity-50 disabled:cursor-not-allowed uppercase`}
             >
               {isProcessing ? "DESCARGANDO..." : "INICIAR DESCARGA"}

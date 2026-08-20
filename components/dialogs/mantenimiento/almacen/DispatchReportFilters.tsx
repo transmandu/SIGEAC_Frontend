@@ -855,8 +855,8 @@ export function DispatchReportFilters({
             <Button
               className={cn(
                 "w-[70%] justify-between h-12 text-sm font-medium transition-all border",
-                "bg-primary hover:bg-primary",
-                "border-primary",
+                "bg-primary/5 hover:bg-primary/10",
+                "border-primary/20",
                 openItems &&
                   "ring-2 ring-primary/40"
               )}

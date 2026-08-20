@@ -154,7 +154,7 @@ export default function ArticlesSummary({
               </div>
 
               <div>
-                <div className="flex items-center justify-center gap-1 text-lg sm:text-xl font-bold bg-gradient-to-b from-fuchsia-600 to-pink-500 bg-clip-text text-transparent">
+                <div className="flex items-center justify-center gap-1 text-lg sm:text-xl font-bold bg-gradient-to-b from-indigo-600 to-blue-500 bg-clip-text text-transparent">
                   <Archive className="size-3.5 sm:size-4 shrink-0" />
                   {data.generalArticlesAvailablePercentage ?? 0}%
                 </div>
@@ -164,7 +164,7 @@ export default function ArticlesSummary({
               </div>
 
               <div>
-                <div className="text-lg sm:text-xl font-bold bg-gradient-to-b from-teal-600 to-emerald-500 bg-clip-text text-transparent">
+                <div className="text-lg sm:text-xl font-bold bg-gradient-to-b from-blue-600 to-sky-500 bg-clip-text text-transparent">
                   {data.dispatchCount ?? 0}
                 </div>
                 <p className="text-xs sm:text-sm text-slate-500">
@@ -182,7 +182,7 @@ export default function ArticlesSummary({
               </div>
 
               <div>
-                <div className="text-lg sm:text-xl font-bold bg-gradient-to-b from-amber-600 to-orange-500 bg-clip-text text-transparent">
+                <div className="text-lg sm:text-xl font-bold bg-gradient-to-b from-cyan-600 to-sky-500 bg-clip-text text-transparent">
                   {data.dispatchWorkOrderCount ?? 0}
                 </div>
                 <p className="text-xs sm:text-sm text-slate-500">

@@ -63,11 +63,11 @@ export default function AdministrationDashboardContent({
                   text-xs h-8 sm:h-7 px-4 sm:px-3
                   rounded-xl transition-all duration-200 whitespace-nowrap
                   text-slate-500 dark:text-slate-400
-                  hover:text-violet-500 dark:hover:text-violet-300
+                  hover:text-blue-600 dark:hover:text-blue-400
                   data-[state=active]:bg-white/80 dark:data-[state=active]:bg-slate-900/50
-                  data-[state=active]:text-violet-600 dark:data-[state=active]:text-violet-300
-                  data-[state=active]:shadow-[0_0_18px_rgba(167,139,250,0.25)]
-                  data-[state=active]:ring-1 data-[state=active]:ring-violet-300/50
+                  data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400
+                  data-[state=active]:shadow-[0_0_18px_rgba(37,99,235,0.25)]
+                  data-[state=active]:ring-1 data-[state=active]:ring-blue-300/50
                 "
               >
                 <ClipboardList className="w-4 h-4 sm:w-3.5 sm:h-3.5 shrink-0" />
@@ -83,11 +83,11 @@ export default function AdministrationDashboardContent({
                   text-xs h-8 sm:h-7 px-4 sm:px-3
                   rounded-xl transition-all duration-200 whitespace-nowrap
                   text-slate-500 dark:text-slate-400
-                  hover:text-purple-500 dark:hover:text-purple-300
+                  hover:text-cyan-600 dark:hover:text-cyan-400
                   data-[state=active]:bg-white/80 dark:data-[state=active]:bg-slate-900/50
-                  data-[state=active]:text-purple-500 dark:data-[state=active]:text-purple-300
-                  data-[state=active]:shadow-[0_0_18px_rgba(168,85,247,0.18)]
-                  data-[state=active]:ring-1 data-[state=active]:ring-purple-300/40
+                  data-[state=active]:text-cyan-600 dark:data-[state=active]:text-cyan-400
+                  data-[state=active]:shadow-[0_0_18px_rgba(8,145,178,0.25)]
+                  data-[state=active]:ring-1 data-[state=active]:ring-cyan-300/50
                 "
               >
                 <BarChart3 className="w-4 h-4 sm:w-3.5 sm:h-3.5 shrink-0" />

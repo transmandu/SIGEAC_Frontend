@@ -44,7 +44,7 @@ const AVATAR_PALETTE = [
   "bg-amber-500/15 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400",
   "bg-violet-500/15 text-violet-600 dark:bg-violet-500/20 dark:text-violet-400",
   "bg-rose-500/15 text-rose-600 dark:bg-rose-500/20 dark:text-rose-400",
-  "bg-primary/15 text-primary",
+  "bg-cyan-500/15 text-cyan-600 dark:bg-cyan-500/20 dark:text-cyan-400",
 ]
 
 const getAvatarPalette = (seed: number) => AVATAR_PALETTE[seed % AVATAR_PALETTE.length]

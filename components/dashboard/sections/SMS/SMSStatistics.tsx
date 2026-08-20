@@ -27,11 +27,11 @@ function TintedCard({
     <div
       className={`relative overflow-hidden rounded-3xl border bg-background/75 backdrop-blur-xl shadow-sm ${className}`}
       style={{
-        borderColor: "rgba(249,115,22,0.14)",
+        borderColor: "rgba(37,99,235,0.14)",
         backgroundImage: `
           linear-gradient(
             to bottom right,
-            rgba(249,115,22,0.035),
+            rgba(37,99,235,0.035),
             transparent 70%
           )
         `,
@@ -56,7 +56,7 @@ function CardHeaderBlock({
 }) {
   return (
     <div className="text-center mb-3 space-y-1 flex flex-col items-center min-h-[110px]">
-      <div className="p-2 rounded-xl bg-orange-500/10 text-orange-600">
+      <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600">
         {icon}
       </div>
 

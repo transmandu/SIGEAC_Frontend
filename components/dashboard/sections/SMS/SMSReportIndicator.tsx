@@ -26,11 +26,11 @@ function TintedCard({
     <div
       className={`relative overflow-hidden rounded-3xl border bg-background/75 backdrop-blur-xl shadow-sm ${className}`}
       style={{
-        borderColor: "rgba(251,191,36,0.15)",
+        borderColor: "rgba(37,99,235,0.15)",
         backgroundImage: `
           linear-gradient(
             to bottom right,
-            rgba(251,191,36,0.035),
+            rgba(37,99,235,0.035),
             transparent 70%
           )
         `,
@@ -84,7 +84,7 @@ export default function SMSReportIndicator({
     if (isLoadingBarChart) {
       return (
         <div className="flex justify-center items-center h-40">
-          <Loader2 className="size-10 animate-spin text-amber-500" />
+          <Loader2 className="size-10 animate-spin text-blue-600" />
         </div>
       );
     }
@@ -122,7 +122,7 @@ export default function SMSReportIndicator({
     if (isLoadingBarChart) {
       return (
         <div className="flex justify-center items-center h-40">
-          <Loader2 className="size-10 animate-spin text-amber-500" />
+          <Loader2 className="size-10 animate-spin text-blue-600" />
         </div>
       );
     }
@@ -161,7 +161,7 @@ export default function SMSReportIndicator({
       <TintedCard className="p-4">
         <div className="flex flex-col items-center text-center space-y-3">
 
-          <div className="p-2 rounded-xl bg-amber-400/15 text-amber-600">
+          <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600">
             <BarChart3 className="size-5" />
           </div>
 
@@ -182,7 +182,7 @@ export default function SMSReportIndicator({
                   style={{
                     width: `${managementPercentage}%`,
                     background:
-                      "linear-gradient(90deg, #14b8a6, #3b82f6)",
+                      "linear-gradient(90deg, #0891b2, #3b82f6)",
                     boxShadow: "0 0 18px rgba(59,130,246,0.25)",
                   }}
                 />
@@ -209,7 +209,7 @@ export default function SMSReportIndicator({
                       <div
                         className={`w-px h-2.5 rounded-full transition-all duration-300 ${
                           active
-                            ? "bg-gradient-to-b from-amber-400 to-teal-400 opacity-90"
+                            ? "bg-gradient-to-b from-blue-500 to-cyan-400 opacity-90"
                             : "bg-slate-300/50"
                         }`}
                       />
@@ -218,7 +218,7 @@ export default function SMSReportIndicator({
                       <span
                         className={`mt-0.5 text-[10px] font-medium transition-colors duration-300 ${
                           active
-                            ? "text-teal-600 dark:text-teal-400"
+                            ? "text-blue-600 dark:text-blue-400"
                             : "text-slate-400"
                         }`}
                       >
@@ -253,7 +253,7 @@ export default function SMSReportIndicator({
         <TintedCard className="p-4 flex flex-col items-center justify-center">
           
           <div className="flex flex-col items-center text-center mb-2">
-            <div className="p-2 rounded-xl bg-amber-400/15 text-amber-600">
+            <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600">
               <BarChart3 className="size-5" />
             </div>
 
@@ -276,7 +276,7 @@ export default function SMSReportIndicator({
         <TintedCard className="p-4 flex flex-col items-center justify-center">
 
           <div className="flex flex-col items-center text-center mb-2">
-            <div className="p-2 rounded-xl bg-amber-400/15 text-amber-600">
+            <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600">
               <PieChart className="size-5" />
             </div>
 

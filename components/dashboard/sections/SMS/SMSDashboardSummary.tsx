@@ -85,7 +85,7 @@ function useRadialHover() {
 
 export default function DashboardSummary({ companySlug }: DashboardSummaryProps) {
   const router = useRouter();
-  const amberTone = "245,158,11";
+  const blueTone = "37,99,235";
 
   const reportBtn = useRadialHover();
 
@@ -128,10 +128,10 @@ export default function DashboardSummary({ companySlug }: DashboardSummaryProps)
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
         {/* LINE CHART */}
-        <TintedCard tone={amberTone} className="p-2 h-[360px] flex flex-col">
+        <TintedCard tone={blueTone} className="p-2 h-[360px] flex flex-col">
           <CardHeader className="text-center space-y-1 py-2">
             <div className="flex justify-center">
-              <div className="p-2 rounded-xl bg-amber-500/10 text-amber-600">
+              <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600">
                 <BarChart3 className="h-5 w-5" />
               </div>
             </div>
@@ -158,7 +158,7 @@ export default function DashboardSummary({ companySlug }: DashboardSummaryProps)
                   data={reportsNumberByMonth}
                   height={200}
                   title=""
-                  lineColor="#14b8a6"
+                  lineColor="#0891b2"
                   strokeWidth={2}
                   lineName="Reportes"
                 />
@@ -168,10 +168,10 @@ export default function DashboardSummary({ companySlug }: DashboardSummaryProps)
         </TintedCard>
 
         {/* TRAINING */}
-        <TintedCard tone={amberTone} className="p-3 h-[360px] flex flex-col">
+        <TintedCard tone={blueTone} className="p-3 h-[360px] flex flex-col">
           <CardHeader className="text-center space-y-1 py-2">
             <div className="flex justify-center">
-              <div className="p-2 rounded-xl bg-amber-500/10 text-amber-600">
+              <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600">
                 <Users className="h-5 w-5" />
               </div>
             </div>
@@ -248,11 +248,11 @@ export default function DashboardSummary({ companySlug }: DashboardSummaryProps)
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
         {/* BUTTON CARD */}
-        <TintedCard tone={amberTone} className="p-6 flex flex-col lg:col-span-4 h-full">
+        <TintedCard tone={blueTone} className="p-6 flex flex-col lg:col-span-4 h-full">
           <CardHeader className="text-center space-y-2 py-5 flex flex-col justify-start">
             
             <div className="flex justify-center mb-1">
-              <div className="p-2 rounded-xl bg-amber-500/10 text-amber-600">
+              <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600">
                 <ShieldCheck className="h-5 w-5" />
               </div>
             </div>
@@ -273,10 +273,10 @@ export default function DashboardSummary({ companySlug }: DashboardSummaryProps)
               onMouseLeave={() => reportBtn.setHovered(false)}
               onMouseMove={reportBtn.onMove}
               onClick={() => router.push(`/${companySlug}/sms/reportes`)}
-              className="relative overflow-hidden px-6 min-w-[180px] border border-dashed border-amber-400/50 bg-background/70 backdrop-blur text-amber-700 font-medium tracking-wide shadow-sm transition-all duration-200 hover:border-amber-500/60 hover:bg-amber-50/40 hover:shadow-md hover:-translate-y-[1px] active:translate-y-0 active:shadow-sm focus-visible:ring-2 focus-visible:ring-amber-500/25 hover:text-slate-900 dark:hover:text-white"
+              className="relative overflow-hidden px-6 min-w-[180px] border border-dashed border-primary/50 bg-background/70 backdrop-blur text-primary font-medium tracking-wide shadow-sm transition-all duration-200 hover:border-primary/60 hover:bg-primary/5 hover:shadow-md hover:-translate-y-[1px] active:translate-y-0 active:shadow-sm focus-visible:ring-2 focus-visible:ring-primary/25 hover:text-slate-900 dark:hover:text-white"
               style={{
                 backgroundImage: reportBtn.hovered
-                  ? `radial-gradient(circle at ${reportBtn.pos.x}% ${reportBtn.pos.y}%, rgba(245,158,11,0.12), transparent 65%)`
+                  ? `radial-gradient(circle at ${reportBtn.pos.x}% ${reportBtn.pos.y}%, rgba(37,99,235,0.12), transparent 65%)`
                   : "none",
               }}
             >
@@ -285,7 +285,7 @@ export default function DashboardSummary({ companySlug }: DashboardSummaryProps)
           </CardContent>
         </TintedCard>
 
-        <TintedCard tone={amberTone} className="p-3 lg:col-span-8 relative">
+        <TintedCard tone={blueTone} className="p-3 lg:col-span-8 relative">
 
           <div className="absolute top-3 right-3 flex items-center gap-2">
             <div className="scale-90 opacity-80 hover:opacity-100 transition">
@@ -301,7 +301,7 @@ export default function DashboardSummary({ companySlug }: DashboardSummaryProps)
           <CardHeader className="text-center space-y-2 py-3 min-h-[92px] flex flex-col justify-start">
 
             <div className="flex justify-center">
-              <div className="p-2 rounded-xl bg-amber-500/10 text-amber-600">
+              <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600">
                 <BellRing className="h-5 w-5" />
               </div>
             </div>

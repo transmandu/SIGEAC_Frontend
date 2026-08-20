@@ -440,7 +440,7 @@ export function AdministrationDispatchReportDialog({ roleNames = [] }: Administr
               {withCosts ? (
                 <Button
                   size="lg"
-                  className="w-full h-12 rounded-2xl font-medium shadow-sm transition-all hover:shadow-md active:scale-[0.98] bg-primary hover:bg-primary text-white"
+                  className="w-full h-12 rounded-2xl font-medium shadow-sm transition-all hover:shadow-md active:scale-[0.98] bg-primary hover:bg-primary/90 text-white"
                   onClick={handleDownloadCostReport}
                   disabled={!canDownload || loadingDownload}
                 >

@@ -30,8 +30,8 @@ export default function AdministrationDashboard({
 
             {/* ICON */}
             <div className="relative">
-              <div className="absolute inset-0 rounded-2xl bg-indigo-500/10 blur-md" />
-              <div className="relative flex h-10 w-10 items-center justify-center rounded-2xl border border-indigo-500/30 bg-indigo-500/10 text-indigo-600 shadow-sm">
+              <div className="absolute inset-0 rounded-2xl bg-blue-500/10 blur-md" />
+              <div className="relative flex h-10 w-10 items-center justify-center rounded-2xl border border-blue-500/30 bg-blue-500/10 text-blue-600 shadow-sm">
                 <Building2 className="h-5 w-5" />
               </div>
             </div>
@@ -53,8 +53,8 @@ export default function AdministrationDashboard({
             <div className="flex items-center space-x-4">
 
               <div className="relative">
-                <div className="absolute inset-0 rounded-2xl bg-indigo-500/10 blur-md" />
-                <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl border border-indigo-500/30 bg-indigo-500/10 text-indigo-600 shadow-sm">
+                <div className="absolute inset-0 rounded-2xl bg-blue-500/10 blur-md" />
+                <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl border border-blue-500/30 bg-blue-500/10 text-blue-600 shadow-sm">
                   <Building2 className="h-6 w-6" />
                 </div>
               </div>
