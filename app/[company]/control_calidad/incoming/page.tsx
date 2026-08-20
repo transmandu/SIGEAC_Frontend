@@ -14,6 +14,7 @@ import { useGetArticlesByStatus } from "@/hooks/mantenimiento/almacen/articulos/
 import { useState } from "react";
 import { IncomingArticle } from "./IncomingTypes";
 import { GenerateReceptionFormButton } from "./_components/GenerateReceptionFormButton";
+import { IssuedFormatsDialog } from "./_components/IssuedFormatsDialog";
 import { form_columns } from "./form_columns";
 import { w_columns } from "./w-columns";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -134,9 +135,10 @@ const IncomingControlPage = () => {
                 getRowId={(row) => String((row as any).id)}
                 onSelectionChange={setSelectedForForm}
                 toolbar={
-                  <GenerateReceptionFormButton
-                    selected={selectedForForm}
-                  />
+                  <div className="flex items-center gap-2">
+                    <GenerateReceptionFormButton selected={selectedForForm} />
+                    <IssuedFormatsDialog />
+                  </div>
                 }
               />
             )}

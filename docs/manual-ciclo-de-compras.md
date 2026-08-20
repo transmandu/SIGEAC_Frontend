@@ -370,6 +370,49 @@ El artículo aeronáutico arrastra requisitos documentales (`article_documents`,
 `markAsPaid` desde lo que la requisición exigía, y se consignan antes de pasar el
 artículo a RECEPTION.
 
+### El formato H74-036: emisión, historial y corrección
+
+El artículo que aprueba la inspección queda en `WAITING_FOR_FORM` hasta que se
+imprime el formato de recepción. Se emite desde la pestaña homónima de
+`control_calidad/incoming` seleccionando los artículos y confirmando el diálogo;
+al generarse, pasan a `WAITING_TO_LOCATE`.
+
+**El número de orden que se imprime lo teclea el inspector.** El correlativo del
+sistema (`PO2026JUL0001CBL-A`) no coincide con el que la empresa usa en papel, así
+que el diálogo lo precarga como sugerencia pero deja editarlo. Es obligatorio: se
+imprimía `N/A` cuando alguien lo dejaba vacío. Si los artículos seleccionados
+vienen de varias OC distintas no se sugiere nada y se listan las involucradas.
+
+Cada emisión deja fila en `incoming_inspections` con el PDF archivado en el disco
+privado, bajo `documents/control_calidad/formatos/<año>/`. El nombre lleva un
+sufijo aleatorio para que reimprimir la misma OC en la misma fecha no pise la
+evidencia anterior.
+
+**Corregir nunca edita el formato errado.** Emite uno nuevo que apunta al anterior
+por `corrects_inspection_id` y deja el original en `issuance_status = VOIDED` con
+motivo, autor y fecha. Ambos quedan en el historial y la cadena completa es
+demostrable ante la OMAC. El diálogo de corrección precarga lo que decía el
+formato anulado y exige el motivo.
+
+El botón **Formatos emitidos**, junto al de generar, abre el historial: permite
+buscar por número de orden, volver a descargar el PDF archivado y disparar la
+corrección. Los anulados se muestran con su motivo y ya no ofrecen corregirse —
+lo vigente es la última emisión de la cadena.
+
+> **Una corrección no mueve inventario.** `markAsWaitingToLocate` se omite cuando
+> viene `corrects_inspection_id`: el artículo ya siguió su curso (puede estar
+> `STORED` y ubicado) y rehacer el papel no debe devolverlo a por-ubicar.
+
+| Endpoint | Qué hace |
+|---|---|
+| `POST /{company}/incoming-format` | Emite; con `corrects_inspection_id` anula el anterior |
+| `GET /{company}/incoming-formats` | Historial, filtrable por código de OC |
+| `GET /{company}/incoming-formats/{id}/reprint` | Baja el PDF archivado tal cual se emitió |
+
+> El PDF temporal sigue borrándose en `terminating()`; lo que persiste es la copia
+> archivada. Antes no se guardaba ninguna de las dos, así que de un formato mal
+> emitido no quedaba rastro alguno.
+
 ### El ciclo de cuarentena
 
 Cuando la inspección de entrada (`incoming_inspections`) falla, el artículo pasa
