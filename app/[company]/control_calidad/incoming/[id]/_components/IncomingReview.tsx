@@ -523,32 +523,10 @@ export function IncomingReview({ article }: { article: any }) {
     article?.purchase_order_invoices ?? [];
 
   // Las facturas viven en el disco privado y se sirven por ruta codificada,
-  // a diferencia de los documentos del artículo (que van por su id).
+  // a diferencia de los documentos del artículo (que van por su id). Solo se
+  // exponen para consulta: no hay descarga desde el incoming.
   const invoiceEndpoint = (invoice: PurchaseOrderInvoice) =>
     `/${selectedCompany?.slug}/files/serve/${btoa(invoice.file_path)}`;
-
-  const handleDownloadInvoice = async (invoice: PurchaseOrderInvoice) => {
-    try {
-      const response = await axiosInstance.get(invoiceEndpoint(invoice), {
-        responseType: "blob",
-      });
-
-      const downloadUrl = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement("a");
-      link.href = downloadUrl;
-      link.setAttribute(
-        "download",
-        invoice.file_path.split("/").pop() ?? `factura-${invoice.id}`
-      );
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(downloadUrl);
-    } catch (error) {
-      console.error("Error descargando la factura:", error);
-      toast.error("Error al descargar la factura");
-    }
-  };
   const [checklist, setChecklist] = useState<Record<string, ChecklistValue>>(
     {}
   );
@@ -920,24 +898,16 @@ export function IncomingReview({ article }: { article: any }) {
                         </div>
                       </div>
 
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        <button
-                          type="button"
-                          onClick={() => setPreviewInvoice(invoice)}
-                          className="select-none inline-flex items-center gap-1 rounded-full border border-border bg-background px-2 py-0.5 text-[10px] font-medium text-foreground hover:bg-muted"
-                        >
-                          <Eye className="h-3 w-3" />
-                          Ver
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDownloadInvoice(invoice)}
-                          aria-label="Descargar factura"
-                          className="inline-flex items-center rounded-full border border-border bg-background p-1 text-foreground hover:bg-muted"
-                        >
-                          <FileDown className="h-3 w-3" />
-                        </button>
-                      </div>
+                      {/* Solo consulta: la factura se revisa contra la mercancía,
+                          no se descarga ni se manipula desde el incoming. */}
+                      <button
+                        type="button"
+                        onClick={() => setPreviewInvoice(invoice)}
+                        className="select-none inline-flex items-center gap-1 rounded-full border border-border bg-background px-2 py-0.5 text-[10px] font-medium text-foreground hover:bg-muted"
+                      >
+                        <Eye className="h-3 w-3" />
+                        Ver
+                      </button>
                     </div>
                   ))}
                 </div>

@@ -400,8 +400,15 @@ artículo a RECEPTION.
 En el incoming (`control_calidad/incoming/{id}`), junto a esos documentos se listan
 las **facturas de la orden de compra** que originó el artículo: el inspector contrasta
 la mercancía contra lo facturado sin salir de la pantalla. Llegan en
-`purchase_order_invoices` dentro del `show` del artículo, y se ven/descargan por
-`files/serve` (disco `private`), no por el endpoint de documentos de artículo.
+`purchase_order_invoices` dentro del `show` del artículo, y se sirven por `files/serve`
+(disco `private`), no por el endpoint de documentos de artículo.
+
+> **La factura en el incoming es de solo consulta.** Se abre en el `SecureFileViewer`
+> (sin toolbar de descarga ni impresión, con los atajos de guardado bloqueados) y no
+> tiene botón de descarga: el inspector la revisa, no la manipula ni se la lleva. Quien
+> necesite el archivo lo descarga desde Compras, donde el botón sí existe. Ojo: es un
+> bloqueo de UI, no del endpoint — `files/serve` sigue sirviendo el archivo a cualquier
+> usuario autenticado que arme la petición a mano.
 
 ### El formato H74-036: emisión, historial y corrección
 
