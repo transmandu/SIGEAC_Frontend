@@ -452,6 +452,55 @@ export type MaintenanceAircraftPart = {
   description: string;
 };
 
+export type MaintenanceCountingMethod = "HOURS" | "CYCLES" | "DAYS";
+
+export type MaintenanceProvider = {
+  id: number;
+  name: string;
+};
+
+export type MaintenanceControlItem = {
+  id?: number;
+  maintenance_control_id?: number;
+  maintenance_control_part_id?: number | null;
+  maintenance_provider_id?: number | string | null;
+  maintenance_provider?: MaintenanceProvider;
+  category: "CERTIFICATE" | "SERVICE";
+  name: string;
+  counting_method: MaintenanceCountingMethod;
+  limit_value: number | string;
+  first_applied_date: string;
+  first_applied_value?: number | string | null;
+};
+
+export type MaintenanceControlPart = {
+  id?: number;
+  maintenance_control_id?: number;
+  aircraft_part_id: number | string;
+  aircraft_part?: MaintenanceAircraftPart;
+  items?: MaintenanceControlItem[];
+};
+
+export type MaintenanceControl = {
+  id: number;
+  aircraft_id: number | string;
+  aircraft: MaintenanceAircraft;
+  title: string;
+  description?: string;
+  has_reference_manual: boolean;
+  reference_manual?: string | null;
+  remaining_percentage: number | string;
+  certificates_count?: number;
+  services_count?: number;
+  parts_count?: number;
+  parts?: MaintenanceControlPart[];
+  items?: MaintenanceControlItem[];
+  registered_by?: string;
+  updated_by?: string;
+  created_at?: string;
+  updated_at?: string;
+};
+
 export type PlanificationEvent = {
   id: number;
   start_date: string;

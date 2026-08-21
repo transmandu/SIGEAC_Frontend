@@ -51,6 +51,7 @@ export const PART_CATEGORIES: Record<string, string> = {
 
 const TYPE_TO_CATEGORY: Record<string, "ENGINE" | "APU" | "PROPELLER"> = {
   MOTOR: "ENGINE",
+  TURBINA: "ENGINE",
   HELICE: "PROPELLER",
   APU: "APU",
 };
