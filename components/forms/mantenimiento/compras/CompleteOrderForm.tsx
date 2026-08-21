@@ -12,7 +12,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -22,7 +21,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useGetPaymentOptions } from "@/hooks/general/cuentas_bancarias/useGetPaymentOptions";
 import { useGetPaymentMethods } from "@/hooks/general/metodos_pago/useGetPaymentMethods";
@@ -30,13 +28,13 @@ import { useGetShippingAgencies } from "@/hooks/general/agencias_envio/useGetShi
 import { cn } from "@/lib/utils";
 import type { PurchaseOrder } from "@/types/purchase";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Building2, ClipboardCheck, FileCheck2, Loader2, Paperclip, Trash2 } from "lucide-react";
-import Image from "next/image";
-import { useMemo, useRef } from "react";
+import { Building2, ClipboardCheck, Loader2 } from "lucide-react";
+import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import { AmountInput } from "../../../misc/AmountInput";
+import { InvoicesField, createInvoiceEntry, type InvoiceEntry } from "./InvoicesField";
 
 const LABEL_CLS = "select-none text-[10px] leading-none text-muted-foreground uppercase";
 
@@ -45,92 +43,6 @@ const INPUT_CLS =
 
 const SELECT_TRIGGER_CLS =
   "h-9 rounded-lg border-border/50 bg-background/80 text-sm shadow-sm focus:ring-1 focus:ring-teal-500/40 focus:ring-offset-0";
-
-interface InvoiceAttachmentProps {
-  value?: File | string;
-  onChange: (file: File | undefined) => void;
-}
-
-function InvoiceAttachment({ value, onChange }: InvoiceAttachmentProps) {
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    onChange(file);
-    e.target.value = "";
-  };
-
-  return (
-    <>
-      <input
-        type="file"
-        ref={fileInputRef}
-        accept="image/*"
-        className="hidden"
-        onChange={handleFileChange}
-      />
-
-      {value ? (
-        <Popover>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <PopoverTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    className="h-9 w-9 rounded-lg border-teal-500/30 bg-teal-500/10 text-teal-700 shadow-sm hover:bg-teal-500/20 dark:text-teal-300"
-                  >
-                    <FileCheck2 className="size-4" />
-                  </Button>
-                </PopoverTrigger>
-              </TooltipTrigger>
-              <TooltipContent>Ver / cambiar factura</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-
-          <PopoverContent className="w-[220px] p-3 space-y-2">
-            <div className="relative w-full h-40">
-              <Image
-                src={value instanceof File ? URL.createObjectURL(value) : value}
-                alt="Preview"
-                fill
-                className="rounded-md object-contain"
-              />
-            </div>
-            <div className="flex gap-2 justify-end">
-              <Button size="sm" type="button" variant="destructive" onClick={() => onChange(undefined)}>
-                <Trash2 className="size-3.5 mr-1" /> Eliminar
-              </Button>
-              <Button size="sm" type="button" onClick={() => fileInputRef.current?.click()}>
-                Cambiar
-              </Button>
-            </div>
-          </PopoverContent>
-        </Popover>
-      ) : (
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                className="h-9 w-9 rounded-lg border-border/50 bg-background/80 text-muted-foreground shadow-sm"
-                onClick={() => fileInputRef.current?.click()}
-              >
-                <Paperclip className="size-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Adjuntar factura</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      )}
-    </>
-  );
-}
 
 const FormSchema = z.object({
   tax: z.string(),
@@ -146,9 +58,7 @@ const FormSchema = z.object({
   bank_account_id: z.string().optional(),
   bank_card_id: z.string().optional(),
   shipping_agency_id: z.string().optional(),
-  invoice_number: z.string().optional(),
   observation: z.string().optional(),
-  invoice: z.instanceof(File).optional(),
   articles_purchase_orders: z.array(
     z.object({
       article_purchase_order_id: z.number(),
@@ -178,6 +88,16 @@ export function CompleteOrderForm({ onClose, po, isAeronautical = false }: FormP
   const { data: shippingAgencies, isLoading: isAgenciesLoading } = useGetShippingAgencies(selectedCompany?.slug);
   const { completePurchase } = useCompletePurchase();
   const { markPurchaseOrderAsCompleted } = useMarkPurchaseOrderAsCompleted();
+  const [invoices, setInvoices] = useState<InvoiceEntry[]>(() =>
+    (po.invoices ?? []).length > 0
+      ? po.invoices!.map((invoice) => ({
+        key: String(invoice.id),
+        id: invoice.id,
+        invoice_number: invoice.invoice_number ?? "",
+        file_path: invoice.file_path,
+      }))
+      : [createInvoiceEntry()]
+  );
 
   const articleRows = useMemo(
     () => [
@@ -237,7 +157,6 @@ export function CompleteOrderForm({ onClose, po, isAeronautical = false }: FormP
       bank_account_id: po.bank_account ? String(po.bank_account.id) : "",
       bank_card_id: po.bank_card ? String(po.bank_card.id) : "",
       shipping_agency_id: po.shipping_agency ? String(po.shipping_agency.id) : "",
-      invoice_number: po.invoice_number ?? "",
       observation: po.observation ?? "",
       articles_purchase_orders: articleRows.map((article) => ({
         article_purchase_order_id: article.article_purchase_order_id,
@@ -319,6 +238,17 @@ export function CompleteOrderForm({ onClose, po, isAeronautical = false }: FormP
       return;
     }
 
+    // Una factura ya guardada conserva su archivo aunque no se reemplace; una
+    // nueva sin adjunto no se puede persistir. La fila vacía se descarta.
+    const filledInvoices = invoices.filter(
+      (invoice) => invoice.id != null || invoice.file || invoice.invoice_number.trim()
+    );
+
+    if (filledInvoices.some((invoice) => invoice.id == null && !invoice.file)) {
+      toast.error("Cada factura nueva debe tener su archivo adjunto.");
+      return;
+    }
+
     const wireFee = isAeronautical ? 0 : Number(data.wire_fee || 0);
 
     const computedSubTotal = data.articles_purchase_orders.reduce(
@@ -354,9 +284,12 @@ export function CompleteOrderForm({ onClose, po, isAeronautical = false }: FormP
             : (! data.payment_method_id && po.bank_account ? po.bank_account.id : null)),
         bank_card_id: selectedCard ? selectedCard.id : null,
         shipping_agency_id: data.shipping_agency_id ? Number(data.shipping_agency_id) : null,
-        invoice_number: data.invoice_number || null,
         observation: data.observation || null,
-        invoice: data.invoice,
+        invoices: filledInvoices.map((invoice) => ({
+          id: invoice.id,
+          invoice_number: invoice.invoice_number.trim() || null,
+          file: invoice.file,
+        })),
         articles_purchase_orders: data.articles_purchase_orders.map((article) => ({
           article_purchase_order_id: article.article_purchase_order_id,
           total: Number(article.total),
@@ -758,42 +691,7 @@ export function CompleteOrderForm({ onClose, po, isAeronautical = false }: FormP
                 />
               )}
 
-              {/* Nro. de factura + Invoice attachment */}
-              <div className="col-span-2 grid grid-cols-5 gap-3">
-                <FormField
-                  control={form.control}
-                  name="invoice_number"
-                  render={({ field }) => (
-                    <FormItem className="col-span-4">
-                      <FormLabel className={LABEL_CLS}>Nro. Factura</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="INV-0001"
-                          className={INPUT_CLS}
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="invoice"
-                  render={({ field: { onChange, value } }) => (
-                    <FormItem className="col-span-1">
-                      <FormLabel className={LABEL_CLS}>Factura</FormLabel>
-                      <FormControl>
-                        <div className="flex h-9 items-center">
-                          <InvoiceAttachment value={value ?? po.invoice ?? undefined} onChange={onChange} />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+              <InvoicesField value={invoices} onChange={setInvoices} />
             </div>
           </div>
         </div>

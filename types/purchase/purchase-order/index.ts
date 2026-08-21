@@ -108,6 +108,16 @@ export interface PurchaseOrderVendorRef {
   address?: string | null;
 }
 
+export interface PurchaseOrderInvoice {
+  id: number;
+  purchase_order_id: number;
+  invoice_number: string | null;
+  file_path: string;
+  registered_by: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
 /**
  * A purchase order as returned by the API.
  *
@@ -133,8 +143,8 @@ export interface PurchaseOrder {
   international_shipping: number | null;
   wire_fee: number | null;
   handling_fee: number | null;
-  invoice?: string | null;
-  invoice_number?: string | null;
+  /** Una compra puede llegar con varias facturas, cada una con su propio número. */
+  invoices?: PurchaseOrderInvoice[];
   created_by: string;
   updated_by?: string | null;
   /** Cómo se pagó la orden: método de pago (con su cuenta y banco), y tarjeta si aplica. */
@@ -225,10 +235,21 @@ export interface UpdatePurchaseOrderData {
   shipping_fee?: number | null;
   shipping_agency_id?: number | null;
   international_shipping?: number | null;
-  invoice_number?: string | null;
   observation?: string | null;
-  invoice?: File;
+  /**
+   * Estado completo de las facturas tras la edición. Las que ya existían
+   * viajan con su `id`; el backend borra las que no aparezcan aquí.
+   */
+  invoices?: UpdatePurchaseOrderInvoiceData[];
   articles_purchase_orders?: UpdatePurchaseOrderArticleData[];
+}
+
+export interface UpdatePurchaseOrderInvoiceData {
+  /** Presente solo si la factura ya estaba guardada. */
+  id?: number;
+  invoice_number?: string | null;
+  /** Obligatorio al crear; en una existente solo si se reemplaza el archivo. */
+  file?: File;
 }
 
 // ── Register the physical delivery of a PO's general articles ──────────────

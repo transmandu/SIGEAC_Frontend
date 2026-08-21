@@ -284,8 +284,13 @@ Al crear la orden de compra pasan tres cosas de golpe:
    `PARTIAL` (distinta), `REJECTED` (`is_not_quoted` o ausente de la cotización).
 3. La requisición pasa a `APPROVED`.
 
-Después se registra el pago: método, cuenta bancaria, tarjeta, factura, fletes
+Después se registra el pago: método, cuenta bancaria, tarjeta, facturas, fletes
 (`shipping_fee`, `wire_fee`, `handling_fee`), agencia de envío, tracking.
+
+Una compra puede llegar con **varias facturas** — el proveedor factura por partes, o
+el envío y la mercancía vienen en documentos distintos. Se cargan todas, cada una con
+su propio número y su archivo (PDF o imagen). Al completar la orden se pueden agregar
+las que falten, corregir el número de una ya cargada, reemplazar su archivo o quitarla.
 
 ### Para el desarrollador
 
@@ -300,6 +305,28 @@ la cuenta.
 La sincronización de estados de requisición (`syncRequisitionArticleStatuses`) compara
 contra la **cantidad de la cotización** (lo que el proveedor ofreció), no contra lo
 que finalmente se pagó.
+
+Las facturas viven en `purchase_order_invoices` (una fila por factura: `invoice_number`
++ `file_path`), no en columnas de `purchase_orders` — las viejas `invoice` /
+`invoice_number` se migraron a esa tabla y se eliminaron. El formulario envía el
+**estado completo** de las facturas: `syncPurchaseOrderInvoices` borra las que no
+lleguen en `kept_invoice_ids`, actualiza las que traen `id` y crea el resto. El
+marcador `invoices_present` distingue "no envié facturas" de "las quité todas", que
+en multipart se ven igual.
+
+> **El disco se toca fuera de la transacción.** `syncPurchaseOrderInvoices` no borra
+> ningún archivo: devuelve `[obsoletos, subidos]` y `update()` los resuelve según el
+> desenlace — los obsoletos tras el commit (si revierte, las filas vuelven y deben
+> seguir apuntando a un archivo existente) y los recién subidos en el `catch` (sin
+> fila que los referencie). `Helper::transactional` sí hace rollback real, y el
+> `findOrFail` de las líneas generales puede dispararlo.
+
+La FK `purchase_order_id` es `ON DELETE CASCADE` **a propósito**: `QuoteOrderController
+::destroy` borra la cotización y deja que la BD arrastre sus órdenes de compra, así que
+sin cascada esa FK bloquearía el borrado de cualquier orden con facturas. La contrapartida
+es que la cascada no borra archivos: los recogen antes `QuoteOrderController::destroy`,
+`RequisitionOrderController::destroyRequisition`, `CascadeDeleteService`,
+`PurchaseOrderController::destroy` y el comando `RemoveDuplicatePurchaseOrders`.
 
 ---
 
@@ -369,6 +396,12 @@ El artículo aeronáutico arrastra requisitos documentales (`article_documents`,
 `article_document_requirements`, `article_document_types`) que se materializan en
 `markAsPaid` desde lo que la requisición exigía, y se consignan antes de pasar el
 artículo a RECEPTION.
+
+En el incoming (`control_calidad/incoming/{id}`), junto a esos documentos se listan
+las **facturas de la orden de compra** que originó el artículo: el inspector contrasta
+la mercancía contra lo facturado sin salir de la pantalla. Llegan en
+`purchase_order_invoices` dentro del `show` del artículo, y se ven/descargan por
+`files/serve` (disco `private`), no por el endpoint de documentos de artículo.
 
 ### El formato H74-036: emisión, historial y corrección
 

@@ -27,7 +27,8 @@ const PurchaseOrderDropdownActions = ({ po }: { po: PurchaseOrder }) => {
   const canPay = po.status === "PENDING"
   const canComplete = po.status === "PAID"
   const canApprove = canPay || canComplete
-  const hasInvoice = !!po.invoice
+  const invoices = po.invoices ?? []
+  const hasInvoice = invoices.length > 0
   const isSuperUser = (user?.roles?.map((role) => role.name) || []).includes("SUPERUSER")
 
   return (
@@ -112,7 +113,7 @@ const PurchaseOrderDropdownActions = ({ po }: { po: PurchaseOrder }) => {
                   </TooltipTrigger>
 
                   <TooltipContent>
-                    Ver factura
+                    {invoices.length > 1 ? "Ver facturas" : "Ver factura"}
                   </TooltipContent>
                 </Tooltip>
               )}
@@ -184,7 +185,7 @@ const PurchaseOrderDropdownActions = ({ po }: { po: PurchaseOrder }) => {
           <InvoicePreviewDialog
             open={openInvoice}
             onOpenChange={setOpenInvoice}
-            invoicePath={po.invoice!}
+            invoices={invoices}
             company={selectedCompany.slug}
             orderNumber={po.order_number}
           />

@@ -42,7 +42,8 @@ export default function PurchaseOrderActions({
 
   const canPay = po.status === "PENDING"
   const canComplete = po.status === "PAID"
-  const hasInvoice = !!po.invoice
+  const invoices = po.invoices ?? []
+  const hasInvoice = invoices.length > 0
   const isSuperUser = (user?.roles?.map((role) => role.name) || []).includes("SUPERUSER")
 
   return (
@@ -96,7 +97,7 @@ export default function PurchaseOrderActions({
                 <Receipt className={iconBase} />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Ver factura</TooltipContent>
+            <TooltipContent>{invoices.length > 1 ? "Ver facturas" : "Ver factura"}</TooltipContent>
           </Tooltip>
         )}
 
@@ -156,7 +157,7 @@ export default function PurchaseOrderActions({
           <InvoicePreviewDialog
             open={openInvoice}
             onOpenChange={setOpenInvoice}
-            invoicePath={po.invoice!}
+            invoices={invoices}
             company={selectedCompany.slug}
             orderNumber={po.order_number}
           />

@@ -78,9 +78,23 @@ export const useCompletePurchase = () => {
           if (data.shipping_fee != null) formData.append("shipping_fee", String(data.shipping_fee))
           if (data.shipping_agency_id != null) formData.append("shipping_agency_id", String(data.shipping_agency_id))
           if (data.international_shipping != null) formData.append("international_shipping", String(data.international_shipping))
-          if (data.invoice_number != null) formData.append("invoice_number", data.invoice_number)
           if (data.observation != null) formData.append("observation", data.observation)
-          if (data.invoice) formData.append("invoice", data.invoice)
+
+          // Se envía el estado completo: lo que no viaje con su id el backend
+          // lo da por eliminado. El array vacío también debe llegar, por eso
+          // se marca su presencia aparte del bucle.
+          if (data.invoices) {
+            formData.append("invoices_present", "1")
+
+            data.invoices.forEach((invoice, index) => {
+              if (invoice.id != null) {
+                formData.append(`invoices[${index}][id]`, String(invoice.id))
+                formData.append("kept_invoice_ids[]", String(invoice.id))
+              }
+              formData.append(`invoices[${index}][invoice_number]`, invoice.invoice_number ?? "")
+              if (invoice.file) formData.append(`invoices[${index}][file]`, invoice.file)
+            })
+          }
 
           data.articles_purchase_orders?.forEach((article, index) => {
             formData.append(`articles_purchase_orders[${index}][article_purchase_order_id]`, String(article.article_purchase_order_id))
