@@ -13,7 +13,19 @@ function objectToFormData(obj: Record<string, unknown>): FormData {
   const formData = new FormData();
   for (const [key, value] of Object.entries(obj)) {
     if (value === undefined) continue;
-    if (value instanceof File) {
+    if (Array.isArray(value)) {
+      value
+        .filter((item) => item !== undefined)
+        .forEach((item) => {
+          if (item instanceof Date) {
+            formData.append(`${key}[]`, item.toISOString().split("T")[0]);
+          } else if (item === null) {
+            formData.append(`${key}[]`, "");
+          } else {
+            formData.append(`${key}[]`, item instanceof File ? item : String(item));
+          }
+        });
+    } else if (value instanceof File) {
       formData.append(key, value);
     } else if (value instanceof Date) {
       formData.append(key, value.toISOString().split("T")[0]);
@@ -32,7 +44,7 @@ interface FollowUpControlData {
     description: string;
     date: Date;
     mitigation_measure_id: number | string;
-    image?: File | string;
+    images?: File[];
     document?: File | string;
     implementation_responsible?: string;
     follow_up_responsible?: string;
@@ -46,7 +58,7 @@ interface updateFolllowUpControlData {
     description: string;
     date: Date;
     mitigation_measure_id: string | number;
-    image?: File | string;
+    images?: File[];
     document?: File | string;
     implementation_responsible?: string;
     follow_up_responsible?: string;

@@ -1018,6 +1018,7 @@ export type FollowUpControl = {
   implementation_responsible?: string;
   follow_up_responsible?: string;
   image?: string;
+  images?: string[];
   document?: string;
 };
 

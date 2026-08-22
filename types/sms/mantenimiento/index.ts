@@ -97,6 +97,7 @@ export interface FollowUpControl {
     date: string;
     mitigation_measure_id: number | string;
     image?: string;
+    images?: string[];
     document?: string;
 }
 
