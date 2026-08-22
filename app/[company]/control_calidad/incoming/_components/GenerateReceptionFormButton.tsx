@@ -40,6 +40,7 @@ export function GenerateReceptionFormButton({
   const [others, setOthers] = useState("");
   const [voidReason, setVoidReason] = useState("");
   const [downloadFormat, setDownloadFormat] = useState(true);
+  const [showChecklist, setShowChecklist] = useState(true);
 
   const isCorrection = !!correcting;
   const open = controlledOpen ?? uncontrolledOpen;
@@ -95,6 +96,7 @@ export function GenerateReceptionFormButton({
         download: isCorrection ? true : downloadFormat,
         corrects_inspection_id: correcting?.id ?? null,
         void_reason: isCorrection ? voidReason.trim() : null,
+        show_checklist: showChecklist,
       };
 
       try {
@@ -120,6 +122,7 @@ export function GenerateReceptionFormButton({
     setOthers("");
     setVoidReason("");
     setDownloadFormat(true);
+    setShowChecklist(true);
   };
 
   return (
@@ -281,6 +284,20 @@ export function GenerateReceptionFormButton({
                 </Label>
               </div>
             ) : null}
+
+            {/* Si no se marca, la columna Vo/Bo del checklist sale en blanco
+                en el PDF; el ITEM y la DESCRIPCION son texto fijo de la
+                plantilla y siempre se imprimen. */}
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="show-checklist"
+                checked={showChecklist}
+                onCheckedChange={(checked) => setShowChecklist(checked === true)}
+              />
+              <Label htmlFor="show-checklist" className="cursor-pointer">
+                Mostrar resultados del checklist (Vo/Bo) en el formato
+              </Label>
+            </div>
 
             {!validation.ok ? (
               <p className="text-sm text-red-600">{validation.reason}</p>

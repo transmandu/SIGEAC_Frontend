@@ -65,6 +65,7 @@ import {
   ShieldAlert,
   ShieldCheck,
   ShieldX,
+  ShoppingCart,
   Tag,
   Warehouse,
   X,
@@ -219,11 +220,14 @@ function CompactCheckRow({
         <button
           type="button"
           onClick={() => onChange("NA")}
+          disabled={critical}
+          title={critical ? "No disponible: este ítem es requerido" : undefined}
           className={cn(
             "h-7 border-x border-border px-3 text-[11px] font-semibold transition-colors",
             value === "NA"
               ? "bg-slate-400 text-white dark:bg-slate-500"
-              : "bg-background text-muted-foreground hover:bg-slate-50 dark:hover:bg-slate-800"
+              : "bg-background text-muted-foreground hover:bg-slate-50 dark:hover:bg-slate-800",
+            critical && "cursor-not-allowed opacity-40 hover:bg-background"
           )}
           aria-pressed={value === "NA"}
         >
@@ -307,11 +311,14 @@ function StampCheckRow({
         <button
           type="button"
           onClick={() => onChange("NA")}
+          disabled={critical}
+          title={critical ? "No disponible: este ítem es requerido" : undefined}
           className={cn(
             "flex h-12 w-16 flex-col items-center justify-center rounded-lg border text-xs font-semibold transition-all",
             value === "NA"
               ? "border-slate-400 bg-slate-400 text-white shadow-sm dark:border-slate-500 dark:bg-slate-500"
-              : "border-border bg-background text-muted-foreground hover:border-slate-400 hover:bg-slate-50 dark:hover:border-slate-600 dark:hover:bg-slate-800"
+              : "border-border bg-background text-muted-foreground hover:border-slate-400 hover:bg-slate-50 dark:hover:border-slate-600 dark:hover:bg-slate-800",
+            critical && "cursor-not-allowed opacity-40 hover:border-border hover:bg-background"
           )}
           aria-pressed={value === "NA"}
         >
@@ -700,6 +707,11 @@ export function IncomingReview({ article }: { article: any }) {
               <h1 className="mt-4 font-mono text-2xl font-semibold tracking-tight text-foreground">
                 {article?.part_number ?? "Sin part number"}
               </h1>
+              {article?.purchase_order_number && (
+                <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
+                  Artículo proveniente de la orden de compra: {article.purchase_order_number}
+                </p>
+              )}
               {article?.description && (
                 <p className="mt-1 text-sm text-muted-foreground">
                   {article.description}
