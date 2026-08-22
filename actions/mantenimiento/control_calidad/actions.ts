@@ -12,6 +12,8 @@ export type GenerateReceptionFormPayload = {
   /** Al corregir, el formato que esta emisión reemplaza: el backend lo anula. */
   corrects_inspection_id?: number | null;
   void_reason?: string | null;
+  /** false = la columna Vo/Bo del checklist sale en blanco en el PDF. */
+  show_checklist?: boolean;
 };
 
 export type IssuedIncomingFormat = {
