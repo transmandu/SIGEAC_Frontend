@@ -110,16 +110,31 @@ export const columns: ColumnDef<FollowUpControl>[] = [
     },
   },
   {
-    accessorKey: "image",
+    accessorKey: "images",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Imagen" />
+      <DataTableColumnHeader column={column} title="Imágenes" />
     ),
-    meta: { title: "Imagen" },
+    meta: { title: "Imágenes" },
     cell: ({ row }) => {
+      const images = [
+        ...(row.original?.images ?? []),
+        ...(row.original?.images?.length
+          ? []
+          : row.original?.image
+            ? [row.original.image]
+            : []),
+      ];
+
       return (
-        <div className="flex justify-center items-center">
-          {row.original?.image && typeof row.original?.image === "string" ? (
-            <ImageDisplayDialog fileName={row.original.image} />
+        <div className="flex justify-center items-center flex-wrap gap-1">
+          {images.length > 0 ? (
+            images.map((fileName, index) => (
+              <ImageDisplayDialog
+                key={`${fileName}-${index}`}
+                fileName={fileName}
+                triggerText={images.length > 1 ? `Imagen ${index + 1}` : "Imagen"}
+              />
+            ))
           ) : (
             <Button
               variant="outline"
