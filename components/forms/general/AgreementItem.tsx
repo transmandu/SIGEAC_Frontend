@@ -15,42 +15,91 @@ import { ComboboxField } from "@/components/ui/ComboboxField";
 import { Trash2 } from "lucide-react";
 import { UseFormReturn } from "react-hook-form";
 import { Employee } from "@/types";
+import { AuthorizedEmployeeResponse } from "@/hooks/ajustes/autorizados/useGetAuthorizedEmployees";
 
 interface AgreementItemProps {
   form: UseFormReturn<any>;
   index: number;
   employees: Employee[];
+  authorizedEmployees: AuthorizedEmployeeResponse[];
+  isAuthorizedEmployeesLoading?: boolean;
   onRemove: () => void;
 }
 
-export function AgreementItem({ form, index, employees, onRemove }: AgreementItemProps) {
+export function AgreementItem({
+  form,
+  index,
+  employees,
+  authorizedEmployees,
+  isAuthorizedEmployeesLoading,
+  onRemove,
+}: AgreementItemProps) {
   const isExternal = form.watch(`agreements.${index}.is_external`);
+  const isAuthorized = form.watch(`agreements.${index}.is_authorized`);
 
   const employeeOptions = employees.map((e) => ({
     value: String(e.id),
     label: `${e.first_name} ${e.last_name}`.trim(),
   }));
 
+  const authorizedEmployeeOptions = authorizedEmployees.map((a) => ({
+    value: String(a.id),
+    label: a.employee_name || a.dni_employee,
+    badge: a.from_company_db,
+  }));
+
   return (
     <div className="flex flex-col gap-3 p-3 border border-border/30 rounded-md">
       <div className="flex items-center justify-between">
-        <FormField
-          control={form.control}
-          name={`agreements.${index}.is_external`}
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-center gap-2 space-y-0">
-              <FormControl>
-                <Checkbox
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-              <FormLabel className="text-xs font-medium text-muted-foreground cursor-pointer">
-                Responsable externo
-              </FormLabel>
-            </FormItem>
-          )}
-        />
+        <div className="flex items-center gap-4">
+          <FormField
+            control={form.control}
+            name={`agreements.${index}.is_authorized`}
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center gap-2 space-y-0">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={(checked) => {
+                      field.onChange(checked);
+                      if (checked) {
+                        form.setValue(`agreements.${index}.is_external`, false);
+                        form.setValue(`agreements.${index}.responsible_name`, "");
+                        form.setValue(`agreements.${index}.responsible_job_title`, "");
+                      }
+                    }}
+                  />
+                </FormControl>
+                <FormLabel className="text-xs font-medium text-muted-foreground cursor-pointer">
+                  Empresa asociada
+                </FormLabel>
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name={`agreements.${index}.is_external`}
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center gap-2 space-y-0">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={(checked) => {
+                      field.onChange(checked);
+                      if (checked) {
+                        form.setValue(`agreements.${index}.is_authorized`, false);
+                        form.setValue(`agreements.${index}.responsible_authorized_employee_id`, "");
+                      }
+                    }}
+                  />
+                </FormControl>
+                <FormLabel className="text-xs font-medium text-muted-foreground cursor-pointer">
+                  Responsable externo
+                </FormLabel>
+              </FormItem>
+            )}
+          />
+        </div>
         <Button
           type="button"
           variant="ghost"
@@ -78,7 +127,7 @@ export function AgreementItem({ form, index, employees, onRemove }: AgreementIte
         )}
       />
 
-      {!isExternal ? (
+      {!isExternal && !isAuthorized && (
         <ComboboxField
           form={form}
           name={`agreements.${index}.responsible_employee_id`}
@@ -86,7 +135,22 @@ export function AgreementItem({ form, index, employees, onRemove }: AgreementIte
           placeholder="Seleccionar empleado..."
           options={employeeOptions}
         />
-      ) : (
+      )}
+
+      {isAuthorized && (
+        <ComboboxField
+          form={form}
+          name={`agreements.${index}.responsible_authorized_employee_id`}
+          label="Responsable autorizado"
+          placeholder={isAuthorizedEmployeesLoading ? "Cargando..." : "Seleccionar..."}
+          searchPlaceholder="Buscar responsable autorizado..."
+          emptyText="No hay empleados autorizados."
+          options={authorizedEmployeeOptions}
+          disabled={isAuthorizedEmployeesLoading}
+        />
+      )}
+
+      {isExternal && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <FormField
             control={form.control}
