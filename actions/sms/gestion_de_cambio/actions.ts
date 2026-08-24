@@ -1,5 +1,6 @@
 import axiosInstance from "@/lib/axios";
 import {
+  ChangeStatus,
   StoreChangeRequestPayload,
   UpdateChangeRequestPayload,
 } from "@/types";
@@ -23,7 +24,11 @@ interface UpdateChangeRequestData {
   existingAfterRecordIds?: number[];
 }
 
-function appendNestedFormData(formData: FormData, data: Record<string, unknown>, prefix = "") {
+function appendNestedFormData(
+  formData: FormData,
+  data: Record<string, unknown>,
+  prefix = "",
+) {
   for (const [key, value] of Object.entries(data)) {
     if (value === undefined || value === null) continue;
 
@@ -36,7 +41,11 @@ function appendNestedFormData(formData: FormData, data: Record<string, unknown>,
         if (item instanceof File) {
           formData.append(`${fullKey}[${index}]`, item);
         } else if (typeof item === "object" && item !== null) {
-          appendNestedFormData(formData, item as Record<string, unknown>, `${fullKey}[${index}]`);
+          appendNestedFormData(
+            formData,
+            item as Record<string, unknown>,
+            `${fullKey}[${index}]`,
+          );
         } else {
           formData.append(`${fullKey}[${index}]`, String(item));
         }
@@ -52,7 +61,12 @@ function appendNestedFormData(formData: FormData, data: Record<string, unknown>,
 export const useCreateChangeRequest = () => {
   const queryClient = useQueryClient();
   const createMutation = useMutation({
-    mutationFn: async ({ data, company, beforeImages = [], afterImages = [] }: CreateChangeRequestData) => {
+    mutationFn: async ({
+      data,
+      company,
+      beforeImages = [],
+      afterImages = [],
+    }: CreateChangeRequestData) => {
       const formData = new FormData();
 
       const { is_temporary, ...rest } = data as Record<string, unknown>;
@@ -99,24 +113,41 @@ export const useCreateChangeRequest = () => {
 export const useUpdateChangeRequest = () => {
   const queryClient = useQueryClient();
   const updateMutation = useMutation({
-    mutationFn: async ({ company, data, id, beforeImages = [], afterImages = [], existingBeforeRecordIds = [], existingAfterRecordIds = [] }: UpdateChangeRequestData) => {
+    mutationFn: async ({
+      company,
+      data,
+      id,
+      beforeImages = [],
+      afterImages = [],
+      existingBeforeRecordIds = [],
+      existingAfterRecordIds = [],
+    }: UpdateChangeRequestData) => {
       const formData = new FormData();
       formData.append("_method", "PATCH");
 
-      const { is_temporary, photographic_records, ...rest } = data as Record<string, unknown>;
+      const { is_temporary, photographic_records, ...rest } = data as Record<
+        string,
+        unknown
+      >;
       appendNestedFormData(formData, rest);
       formData.append("is_temporary", is_temporary ? "1" : "0");
 
       let recordIdx = 0;
       existingBeforeRecordIds.forEach((recordId) => {
-        formData.append(`photographic_records[${recordIdx}][id]`, String(recordId));
+        formData.append(
+          `photographic_records[${recordIdx}][id]`,
+          String(recordId),
+        );
         formData.append(`photographic_records[${recordIdx}][stage]`, "before");
         formData.append(`photographic_records[${recordIdx}][image_url]`, "");
         recordIdx++;
       });
 
       existingAfterRecordIds.forEach((recordId) => {
-        formData.append(`photographic_records[${recordIdx}][id]`, String(recordId));
+        formData.append(
+          `photographic_records[${recordIdx}][id]`,
+          String(recordId),
+        );
         formData.append(`photographic_records[${recordIdx}][stage]`, "after");
         formData.append(`photographic_records[${recordIdx}][image_url]`, "");
         recordIdx++;
@@ -134,9 +165,13 @@ export const useUpdateChangeRequest = () => {
         recordIdx++;
       });
 
-      await axiosInstance.post(`/${company}/sms/change-requests/${id}`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      await axiosInstance.post(
+        `/${company}/sms/change-requests/${id}`,
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        },
+      );
     },
     onSuccess: (_, data) => {
       queryClient.invalidateQueries({
@@ -159,16 +194,49 @@ export const useUpdateChangeRequest = () => {
   };
 };
 
+interface AssignReviewersData {
+  company: string;
+  id: number;
+  data: {
+    status: ChangeStatus;
+    reviewed_by: number;
+    approved_by: number;
+  };
+}
+
+export const useAssignReviewers = () => {
+  const queryClient = useQueryClient();
+  const assignReviewersMutation = useMutation({
+    mutationFn: async ({ company, id, data }: AssignReviewersData) => {
+      await axiosInstance.patch(`/${company}/sms/change-requests/${id}`, data);
+    },
+    onSuccess: (_, { company, id }) => {
+      queryClient.invalidateQueries({
+        queryKey: ["change-requests", company],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["change-request", company, id],
+      });
+      toast.success("¡Asignada!", {
+        description: "Se ha asignado la revisión y aprobación correctamente.",
+      });
+    },
+    onError: (error) => {
+      toast.error("Oops!", {
+        description: "No se pudo asignar la revisión y aprobación...",
+      });
+      console.error(error);
+    },
+  });
+  return {
+    assignReviewers: assignReviewersMutation,
+  };
+};
+
 export const useDeleteChangeRequest = () => {
   const queryClient = useQueryClient();
   const deleteMutation = useMutation({
-    mutationFn: async ({
-      company,
-      id,
-    }: {
-      company: string;
-      id: number;
-    }) => {
+    mutationFn: async ({ company, id }: { company: string; id: number }) => {
       await axiosInstance.delete(`/${company}/sms/change-requests/${id}`);
     },
     onSuccess: (_, data) => {
@@ -176,14 +244,12 @@ export const useDeleteChangeRequest = () => {
         queryKey: ["change-requests", data.company],
       });
       toast.success("¡Eliminada!", {
-        description:
-          "La solicitud de cambio ha sido eliminada correctamente.",
+        description: "La solicitud de cambio ha sido eliminada correctamente.",
       });
     },
     onError: () => {
       toast.error("Oops!", {
-        description:
-          "Hubo un error al eliminar la solicitud de cambio...",
+        description: "Hubo un error al eliminar la solicitud de cambio...",
       });
     },
   });
