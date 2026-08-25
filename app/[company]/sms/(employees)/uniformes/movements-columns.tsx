@@ -21,6 +21,13 @@ const formatDate = (value?: string) => {
   return format(date, "dd/MM/yyyy", { locale: es });
 };
 
+const employeeFullName = (
+  emp: NonNullable<UniformMovement["employee"]>
+) =>
+  [emp.first_name, emp.middle_name, emp.last_name, emp.second_last_name]
+    .filter(Boolean)
+    .join(" ");
+
 export const movementsColumns: ColumnDef<UniformMovement>[] = [
   {
     accessorKey: "date",
@@ -94,11 +101,39 @@ export const movementsColumns: ColumnDef<UniformMovement>[] = [
     },
   },
   {
-    accessorKey: "recipient_name",
+    id: "recipient",
     header: "Receptor",
-    cell: ({ row }) => (
-      <span className="text-sm">{row.original.recipient_name || "---"}</span>
-    ),
+    cell: ({ row }) => {
+      const movement = row.original;
+
+      if (movement.employee) {
+        return (
+          <div className="flex flex-col">
+            <span className="text-sm font-medium">
+              {employeeFullName(movement.employee)}
+            </span>
+            <span className="text-xs text-muted-foreground">
+              DNI: {movement.employee.dni}
+            </span>
+          </div>
+        );
+      }
+
+      if (movement.recipient_name) {
+        return (
+          <div className="flex flex-col">
+            <span className="text-sm">{movement.recipient_name}</span>
+            {movement.recipient_dni && (
+              <span className="text-xs text-muted-foreground">
+                DNI: {movement.recipient_dni}
+              </span>
+            )}
+          </div>
+        );
+      }
+
+      return <span className="text-sm text-muted-foreground">---</span>;
+    },
   },
   {
     accessorKey: "notes",
