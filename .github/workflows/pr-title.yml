@@ -1,0 +1,58 @@
+name: Título del PR
+
+# El título del PR es lo que termina en main al hacer squash, y de ahí sale la
+# versión. Un título fuera de convención produciría un número equivocado.
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validar convención
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          set -euo pipefail
+
+          # tipo(ámbito opcional)!: descripción — el "!" marca cambio que rompe.
+          patron='^(feat|fix|perf|refactor|docs|style|test|build|ci|chore|revert)(\([a-z0-9 ._-]+\))?!?: .+'
+
+          if [[ "$TITLE" =~ $patron ]]; then
+            echo "Título válido: $TITLE"
+            exit 0
+          fi
+
+          # Revertir suele ser urgente y GitHub genera este título solo; exigir
+          # que se reescriba a mano sería un estorbo en el peor momento.
+          if [[ "$TITLE" =~ ^Revert\  ]]; then
+            echo "Reversión generada por GitHub, se acepta: $TITLE"
+            exit 0
+          fi
+
+          cat <<EOF
+          ::error::El título del PR no sigue la convención.
+
+          Recibido: "$TITLE"
+
+          Formato:  tipo: descripción
+          Ejemplos: feat: panel de supervisor de compras
+                    fix(sms): corrige el filtro de responsables
+                    feat!: rediseño del ciclo de compras (cambio que rompe)
+
+          Tipos y efecto en la versión:
+            feat            -> sube la MENOR   (3.0.0 -> 3.1.0)
+            fix, perf,
+            refactor, docs,
+            style, test,
+            build, ci,
+            chore, revert   -> sube el PARCHE  (3.0.0 -> 3.0.1)
+            cualquiera + !  -> sube la MAYOR   (3.0.0 -> 4.0.0)
+
+          Edita el título del PR y esta comprobación se repite sola.
+          EOF
+          exit 1
