@@ -27,6 +27,7 @@ import {
   useGetUniformOptions,
 } from "@/hooks/sms/useGetUniforms";
 import { useGetEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetEmployees";
+import type { Employee } from "@/types";
 import { useCreateUniformMovement } from "@/actions/sms/uniforms/actions";
 import { MOVEMENT_TYPE_META } from "@/components/sms/uniform-meta";
 import { Badge } from "@/components/ui/badge";
@@ -149,7 +150,7 @@ export const RegisterUniformMovementForm = ({ onClose, itemId }: Props) => {
     (e) => String(e.id) === selectedEmployeeId
   );
 
-  const employeeFullName = (e: (typeof employees extends (infer U)[] ? U : never)) =>
+  const employeeFullName = (e: Employee) =>
     [e.first_name, e.middle_name, e.last_name, e.second_last_name]
       .filter(Boolean)
       .join(" ");
