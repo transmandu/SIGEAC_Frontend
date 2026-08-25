@@ -62,7 +62,6 @@ export function EditTransitArticleDialog({ articleId, open, onOpenChange }: Prop
             initialData={data}
             category={data.batch?.category}
             onEditSuccess={handleEditSuccess}
-            title="Artículo en tránsito"
             submitLabel="Guardar avance"
           />
         )}

@@ -23,14 +23,23 @@ const EditArticlePage = () => {
     <ContentLayout title="Editar Articulo">
       <PageHeader className="mb-6" />
 
-      <RegisterArticleForm
-        isEditing
-        initialData={data}
-        category={data?.batch?.category}
-        onEditSuccess={() =>
-          router.push(`/${selectedCompany?.slug}/almacen/inventario_articulos`)
-        }
-      />
+      <div className="space-y-5">
+        <div className="space-y-1">
+          <h1 className="text-2xl font-semibold tracking-tight">Editar Artículo</h1>
+          <p className="text-sm text-muted-foreground">
+            Actualice los datos del artículo registrado en el inventario.
+          </p>
+        </div>
+
+        <RegisterArticleForm
+          isEditing
+          initialData={data}
+          category={data?.batch?.category}
+          onEditSuccess={() =>
+            router.push(`/${selectedCompany?.slug}/almacen/inventario_articulos`)
+          }
+        />
+      </div>
     </ContentLayout>
   );
 };

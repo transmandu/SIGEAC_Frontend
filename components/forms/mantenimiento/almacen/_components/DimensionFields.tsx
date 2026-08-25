@@ -17,24 +17,12 @@ import { Button } from "@/components/ui/button";
 import { AlertCircle, Plus, Ruler, X } from "lucide-react";
 import type { ArticleDimension, Unit } from "@/types";
 import { cn } from "@/lib/utils";
-
-// Mismo cristal que el LoginForm y el formulario que contiene este bloque.
-const numericFieldClass = cn(
-  "h-10 rounded-lg text-sm tabular-nums",
-  "bg-gradient-to-br from-background/70 to-background/40 backdrop-blur-md",
-  "border border-slate-400/60 dark:border-slate-600/60 shadow-sm",
-  "hover:border-blue-400/30 hover:shadow-md hover:shadow-blue-500/10",
-  "transition-all duration-200",
-);
-
-const selectTriggerClass = cn(
-  "h-10 rounded-lg text-sm",
-  "bg-gradient-to-br from-background/70 to-background/40 backdrop-blur-md",
-  "border border-slate-400/60 dark:border-slate-600/60 shadow-sm",
-  "hover:border-blue-400/30 transition-all duration-200",
-);
-
-const labelClass = "text-[13px] font-medium text-foreground/80";
+import {
+  hintClass,
+  labelClass,
+  numericFieldClass,
+  selectTriggerClass,
+} from "./form-theme";
 
 export type MeasureConversionDraft = {
   unit_id: number;
@@ -134,7 +122,7 @@ function MeasureScales({
 
   return (
     <div className="space-y-2">
-      <Label className="text-xs text-muted-foreground">
+      <Label className={hintClass}>
         Otras escalas para medir los trazos
       </Label>
 
@@ -142,7 +130,7 @@ function MeasureScales({
         const unit = units.find((u) => u.id === row.unit_id);
         return (
           <div key={row.unit_id} className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground whitespace-nowrap">
+            <span className={cn(hintClass, "whitespace-nowrap")}>
               1 {measureLabel || "medida"} =
             </span>
             <Input
@@ -158,7 +146,7 @@ function MeasureScales({
               placeholder="100"
               className={`${numericFieldClass} w-24`}
             />
-            <span className="text-xs font-medium flex-1 truncate">
+            <span className="flex-1 truncate text-[13px] font-medium">
               {unit?.label ?? `#${row.unit_id}`}
             </span>
             <Button
@@ -294,7 +282,7 @@ export function DimensionFields({
             </span>
           )}
         </p>
-        <p className="text-xs text-muted-foreground">
+        <p className={hintClass}>
           Las medidas de la pieza no se editan: cambiarlas alteraría el saldo de
           las piezas ya cortadas. Una pieza de otro tamaño es otro artículo.
         </p>
@@ -332,14 +320,14 @@ export function DimensionFields({
         />
         <div className="space-y-1 leading-none">
           <Label className={`${labelClass} cursor-pointer`}>Se despacha en trazos</Label>
-          <p className="text-xs text-muted-foreground">
+          <p className={hintClass}>
             Para material que se corta a la medida (láminas, telas, rollos): la
             salida descuenta el área cortada de una pieza concreta, no unidades
             enteras.
           </p>
           {/* La confusión más común: creer que la unidad base debe ser METRO.
               La base cuenta piezas; las medidas van en otra unidad. */}
-          <p className="text-xs text-muted-foreground">
+          <p className={hintClass}>
             La <span className="font-medium">unidad base</span> del artículo
             debe contar piezas (LÁMINA, ROLLO, PLANCHA) y la cantidad es{" "}
             <span className="font-medium">cuántas hay</span>. Las medidas de
@@ -359,17 +347,17 @@ export function DimensionFields({
             {/* Sin altura forzada: el trigger crece con su propio padding y
                 al recortar la lista a h-8 se desbordaba del fondo. */}
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="2" className="text-xs">
+              <TabsTrigger value="2" className="text-[13px]">
                 Por área (lámina, tela)
               </TabsTrigger>
-              <TabsTrigger value="1" className="text-xs">
+              <TabsTrigger value="1" className="text-[13px]">
                 A lo largo (cable, rollo)
               </TabsTrigger>
             </TabsList>
           </Tabs>
 
           <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">
+            <Label className={hintClass}>
               Unidad de medida
             </Label>
             <Select
@@ -395,7 +383,7 @@ export function DimensionFields({
               </SelectContent>
             </Select>
             {measureUnits.length === 0 && (
-              <p className="flex items-start gap-1.5 text-xs text-amber-600">
+              <p className="flex items-start gap-1.5 text-[13px] text-amber-600">
                 <AlertCircle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
                 Marque al menos una unidad como apta para medidas en Ajustes ›
                 Unidades.
@@ -409,7 +397,7 @@ export function DimensionFields({
             }
           >
             <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">
+              <Label className={hintClass}>
                 {value.axes === 2 ? "Largo" : "Longitud"} de la pieza
                 {unitLabel ? ` (${unitLabel})` : ""}
               </Label>
@@ -430,7 +418,7 @@ export function DimensionFields({
             </div>
             {value.axes === 2 && (
               <div className="space-y-1.5">
-                <Label className="text-xs text-muted-foreground">
+                <Label className={hintClass}>
                   Ancho de la pieza{unitLabel ? ` (${unitLabel})` : ""}
                 </Label>
                 <Input
@@ -452,7 +440,7 @@ export function DimensionFields({
           </div>
 
           {magnitude !== null && (
-            <p className="text-xs font-medium tabular-nums">
+            <p className="text-[13px] font-medium tabular-nums">
               Cada pieza rinde {Number(magnitude.toFixed(6))} {unitLabel}
               {value.axes === 2 ? "²" : ""}
               {piecesLabel && (
@@ -483,7 +471,7 @@ export function DimensionFields({
           {quantity !== undefined &&
             Number.isFinite(quantity) &&
             !Number.isInteger(quantity) && (
-              <p className="flex items-start gap-1.5 text-xs text-destructive">
+              <p className="flex items-start gap-1.5 text-[13px] text-destructive">
                 <AlertCircle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
                 La cantidad ({quantity}) debe ser un número entero de piezas
                 para poder dimensionar el artículo.

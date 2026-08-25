@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Trash2, Eye } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { fieldClass } from "../../_components/form-theme";
 
 interface MultiSerialInputProps {
   values: string[];
@@ -101,7 +102,7 @@ export function MultiSerialInput({
           onBlur={handleAddSerial}
           placeholder={placeholder}
           disabled={disabled}
-          className="pr-10"
+          className={fieldClass}
         />
       </div>
       
@@ -111,8 +112,9 @@ export function MultiSerialInput({
         variant="outline"
         disabled={disabled}
         className={cn(
-          "min-w-[50px] font-semibold",
-          values.length > 0 && "bg-primary/10 border-primary text-primary"
+          fieldClass,
+          "min-w-[52px] shrink-0 font-semibold tabular-nums",
+          values.length > 0 && "border-primary/50 bg-primary/10 text-primary"
         )}
       >
         {values.length}
@@ -126,6 +128,8 @@ export function MultiSerialInput({
             variant="outline"
             disabled={disabled || values.length === 0}
             onClick={handleOpenModal}
+            aria-label="Ver seriales registrados"
+            className={cn(fieldClass, "shrink-0 px-3")}
           >
             <Eye className="h-4 w-4" />
           </Button>

@@ -204,6 +204,15 @@ const ArticleDocumentsSelector = ({
                 </PopoverContent>
             </Popover>
 
+            {/* La lista crece con cada tipo elegido y estiraba la sección
+                entera. Se acota aquí y desplaza dentro de sí misma; el max-h
+                deja ver ~2 documentos y media, que insinúa que hay más. */}
+            <div
+                className={cn(
+                    "space-y-4",
+                    value.length > 0 && "max-h-[22rem] overflow-y-auto pr-1",
+                )}
+            >
             {value.map((doc) => {
                 const consigned = consignedByTypeId.get(doc.typeId);
                 const existingDocument = consigned?.documents[0];
@@ -342,6 +351,7 @@ const ArticleDocumentsSelector = ({
                     </div>
                 );
             })}
+            </div>
 
             {previewDoc && (
                 <SecureFileViewer

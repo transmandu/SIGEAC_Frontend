@@ -1,6 +1,5 @@
 import type { Group, MenuContext } from "@/lib/menus/types";
 import {
-    Boxes,
     ClipboardCopy,
     FileBox,
     Fuel,
@@ -21,16 +20,6 @@ export function buildWarehouseGroup({ pathname, currentCompany }: MenuContext): 
                     `/${currentCompany?.slug}/almacen/recepcion_administrativa`,
                 ),
                 icon: FileBox,
-                roles: ["ANALISTA_ALMACEN", "JEFE_ALMACEN", "SUPERUSER"],
-                submenus: [],
-            },
-            {
-                href: `/${currentCompany?.slug}/almacen/ingresar_inventario`,
-                label: "Ingreso de Inventario",
-                active: pathname.includes(
-                    `/${currentCompany?.slug}/almacen/ingresar_inventario`,
-                ),
-                icon: Boxes,
                 roles: ["ANALISTA_ALMACEN", "JEFE_ALMACEN", "SUPERUSER"],
                 submenus: [],
             },
