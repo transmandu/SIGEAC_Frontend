@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { ContentLayout } from "@/components/layout/ContentLayout";
@@ -19,21 +20,42 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { RegisterComplianceDialog } from "@/components/dialogs/mantenimiento/planificacion/RegisterComplianceDialog";
 import { useGetMaintenanceControl } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceControl";
 import { useGetAircraftDailyAverage } from "@/hooks/mantenimiento/planificacion/useGetAircraftDailyAverage";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { computeMaintenanceItem, ItemStatus } from "@/lib/maintenanceControlCalc";
+import { computeMaintenanceItem, fmtNumber, ItemStatus } from "@/lib/maintenanceControlCalc";
 import { MaintenanceControlItem } from "@/types";
 import { cn } from "@/lib/utils";
-import { AlertTriangle, Info, SquarePen } from "lucide-react";
+import { AlertTriangle, Clock, Info, SquarePen, Wrench } from "lucide-react";
 
 function InfoItem({ label, value }: { label: string; value?: string | number }) {
   return (
-    <div className="space-y-1">
-      <p className="text-sm font-medium text-muted-foreground">{label}</p>
-      <p className="text-sm font-semibold">
-        {value || <span className="text-muted-foreground italic">No especificado</span>}
+    <div className="space-y-0.5">
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="text-sm font-semibold leading-tight">
+        {value || <span className="font-normal text-muted-foreground italic">No especificado</span>}
       </p>
+    </div>
+  );
+}
+
+// Misma jerarquía visual para Control / Aeronave / cada Parte: un subtítulo
+// seguido de la grilla de InfoItem, para que la información no cambie de
+// forma según de qué entidad se trate.
+function InfoSection({
+  title,
+  bordered = false,
+  children,
+}: {
+  title: string;
+  bordered?: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <div className={cn(bordered && "border-t pt-3")}>
+      <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground/70">{title}</p>
+      <div className="grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-3 md:grid-cols-6">{children}</div>
     </div>
   );
 }
@@ -109,6 +131,7 @@ const COL = {
   remaining: "w-[150px]",
   estimate: "w-[120px]",
   provider: "w-[150px]",
+  actions: "w-[44px]",
 };
 
 // Columnas como "Estimación" pueden llevar texto largo ("Sin vuelos en los
@@ -127,6 +150,89 @@ function TruncatedText({ children }: { children: string }) {
   );
 }
 
+// Punto 5 de la reunión de planificación: desde que un ítem entra en estado
+// crítico/vencido, no se puede registrar un nuevo cumplimiento hasta abrir
+// (y cerrar) una Orden de Trabajo real para resolverlo — el ítem queda
+// "atado" a esa OT (pending_work_order) mientras no esté CLOSED.
+function ItemActionCell({
+  item,
+  status,
+  company,
+  controlId,
+  aircraftId,
+  aircraftAcronym,
+  defaultHours,
+  defaultCycles,
+}: {
+  item: MaintenanceControlItem;
+  status: ItemStatus;
+  company: string;
+  controlId: string | number;
+  aircraftId: number | string;
+  aircraftAcronym?: string;
+  defaultHours: number;
+  defaultCycles: number;
+}) {
+  if (!item.id) return null;
+
+  const pendingWorkOrder = item.pending_work_order;
+  const isBlockedByWorkOrder = !!pendingWorkOrder && pendingWorkOrder.status !== "CLOSED";
+
+  if (isBlockedByWorkOrder) {
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Link
+            href={`/${company}/planificacion/ordenes_trabajo/${pendingWorkOrder!.order_number}`}
+            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground hover:underline"
+          >
+            <Clock className="size-3.5 shrink-0" />
+            <span className="truncate">{pendingWorkOrder!.order_number}</span>
+          </Link>
+        </TooltipTrigger>
+        <TooltipContent>
+          Bloqueado hasta que se cierre la Orden de Trabajo {pendingWorkOrder!.order_number}.
+        </TooltipContent>
+      </Tooltip>
+    );
+  }
+
+  const needsWorkOrder = (status === "CRITICAL" || status === "OVERDUE") && !pendingWorkOrder;
+
+  if (needsWorkOrder) {
+    const params = new URLSearchParams({
+      aircraft_id: String(aircraftId),
+      maintenance_control_item_id: String(item.id),
+      maintenance_control_id: String(controlId),
+      task_description: `${item.name}${aircraftAcronym ? ` — ${aircraftAcronym}` : ""}: servicio en estado crítico del Control de Mantenimiento.`,
+    });
+
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Link href={`/${company}/planificacion/ordenes_trabajo/nueva_orden_trabajo?${params.toString()}`}>
+            <Button variant="ghost" size="icon" className="h-7 w-7 text-orange-600 hover:text-orange-700">
+              <Wrench className="size-4" />
+              <span className="sr-only">Crear Orden de Trabajo</span>
+            </Button>
+          </Link>
+        </TooltipTrigger>
+        <TooltipContent>Crear Orden de Trabajo</TooltipContent>
+      </Tooltip>
+    );
+  }
+
+  return (
+    <RegisterComplianceDialog
+      itemId={item.id}
+      itemName={item.name}
+      aircraftId={aircraftId}
+      defaultHours={defaultHours}
+      defaultCycles={defaultCycles}
+    />
+  );
+}
+
 function MaintenanceItemsTable({
   items,
   showProvider,
@@ -134,6 +240,10 @@ function MaintenanceItemsTable({
   dailyAverage,
   remainingPercentage,
   emptyLabel,
+  company,
+  controlId,
+  realAircraftId,
+  realAircraftAcronym,
 }: {
   items: MaintenanceControlItem[];
   showProvider: boolean;
@@ -141,6 +251,10 @@ function MaintenanceItemsTable({
   dailyAverage: ReturnType<typeof useGetAircraftDailyAverage>["data"];
   remainingPercentage: number;
   emptyLabel: string;
+  company: string;
+  controlId: string | number;
+  realAircraftId: number | string;
+  realAircraftAcronym?: string;
 }) {
   if (!items.length) {
     return <p className="text-sm text-muted-foreground">{emptyLabel}</p>;
@@ -158,6 +272,7 @@ function MaintenanceItemsTable({
             <TableHead className={COL.remaining}>Remanente</TableHead>
             <TableHead className={COL.estimate}>Estimación</TableHead>
             {showProvider && <TableHead className={COL.provider}>Realizado Por</TableHead>}
+            <TableHead className={COL.actions} />
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -188,9 +303,21 @@ function MaintenanceItemsTable({
                 </TableCell>
                 {showProvider && (
                   <TableCell className={COL.provider}>
-                    <TruncatedText>{item.maintenance_provider?.name ?? "—"}</TruncatedText>
+                    <TruncatedText>{computed.providerName}</TruncatedText>
                   </TableCell>
                 )}
+                <TableCell className={COL.actions}>
+                  <ItemActionCell
+                    item={item}
+                    status={computed.status}
+                    company={company}
+                    controlId={controlId}
+                    aircraftId={realAircraftId}
+                    aircraftAcronym={realAircraftAcronym}
+                    defaultHours={Number(aircraft.flight_hours ?? 0)}
+                    defaultCycles={Number(aircraft.flight_cycles ?? 0)}
+                  />
+                </TableCell>
               </TableRow>
             );
           })}
@@ -249,18 +376,50 @@ const MaintenanceControlDetailPage = () => {
         </header>
 
         <Card>
-          <CardHeader>
-            <CardTitle className="text-xl">Información de la Aeronave</CardTitle>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-xl">Información General</CardTitle>
           </CardHeader>
-          <CardContent className="grid grid-cols-2 gap-4 md:grid-cols-4">
-            <InfoItem label="Matrícula" value={control.aircraft?.acronym} />
-            <InfoItem label="Marca" value={control.aircraft?.manufacturer?.name} />
-            <InfoItem label="Modelo" value={control.aircraft?.model} />
-            <InfoItem label="Serial" value={control.aircraft?.serial} />
-            <InfoItem label="Horas Totales" value={Number(control.aircraft?.flight_hours ?? 0).toLocaleString("es-VE", { maximumFractionDigits: 2 })} />
-            <InfoItem label="Ciclos Totales" value={Number(control.aircraft?.flight_cycles ?? 0).toLocaleString("es-VE")} />
-            <InfoItem label="% Remanente para Alerta" value={`${remainingPercentage}%`} />
-            <InfoItem label="Manual de Referencia" value={control.has_reference_manual ? control.reference_manual ?? undefined : undefined} />
+          <CardContent className="space-y-3">
+            <InfoSection title="Control">
+              <InfoItem label="% Remanente para Alerta" value={`${remainingPercentage}%`} />
+              <InfoItem label="Manual de Referencia" value={control.has_reference_manual ? control.reference_manual ?? undefined : undefined} />
+            </InfoSection>
+
+            <InfoSection title="Aeronave" bordered>
+              <InfoItem label="Matrícula" value={control.aircraft?.acronym} />
+              <InfoItem label="Marca" value={control.aircraft?.manufacturer?.name} />
+              <InfoItem label="Modelo" value={control.aircraft?.model} />
+              <InfoItem label="Serial" value={control.aircraft?.serial} />
+              <InfoItem label="Horas Totales" value={`${fmtNumber(Number(control.aircraft?.flight_hours ?? 0))} hrs`} />
+              <InfoItem label="Ciclos Totales" value={fmtNumber(Number(control.aircraft?.flight_cycles ?? 0))} />
+              <InfoItem
+                label={`Promedio Horas/Día (${dailyAverage?.days_considered ?? 30}d)`}
+                value={dailyAverage ? `${fmtNumber(dailyAverage.daily_average_hours)} hrs` : undefined}
+              />
+              <InfoItem
+                label={`Promedio Ciclos/Día (${dailyAverage?.days_considered ?? 30}d)`}
+                value={dailyAverage ? fmtNumber(dailyAverage.daily_average_cycles) : undefined}
+              />
+            </InfoSection>
+
+            {parts.map((part) => {
+              const p = part.aircraft_part;
+              return (
+                <InfoSection key={part.id} title={p?.part_name || p?.part_number || "Parte"} bordered>
+                  <InfoItem label="Tipo" value={p?.type} />
+                  <InfoItem label="Número de Parte" value={p?.part_number} />
+                  <InfoItem label="Serial" value={p?.serial} />
+                  <InfoItem
+                    label="TSN"
+                    value={p?.time_since_new !== undefined && p?.time_since_new !== null ? `${fmtNumber(Number(p.time_since_new))} hrs` : undefined}
+                  />
+                  <InfoItem
+                    label="CSN"
+                    value={p?.cycles_since_new !== undefined && p?.cycles_since_new !== null ? fmtNumber(Number(p.cycles_since_new)) : undefined}
+                  />
+                </InfoSection>
+              );
+            })}
           </CardContent>
         </Card>
 
@@ -276,6 +435,10 @@ const MaintenanceControlDetailPage = () => {
               dailyAverage={dailyAverage}
               remainingPercentage={remainingPercentage}
               emptyLabel="Este control no tiene certificados registrados."
+              company={company}
+              controlId={control.id}
+              realAircraftId={control.aircraft.id}
+              realAircraftAcronym={control.aircraft?.acronym}
             />
           </CardContent>
         </Card>
@@ -292,6 +455,10 @@ const MaintenanceControlDetailPage = () => {
               dailyAverage={dailyAverage}
               remainingPercentage={remainingPercentage}
               emptyLabel="Este control no tiene servicios de aeronave registrados."
+              company={company}
+              controlId={control.id}
+              realAircraftId={control.aircraft.id}
+              realAircraftAcronym={control.aircraft?.acronym}
             />
           </CardContent>
         </Card>
@@ -312,10 +479,23 @@ const MaintenanceControlDetailPage = () => {
                 <MaintenanceItemsTable
                   items={partItems}
                   showProvider
-                  aircraft={control.aircraft}
+                  // Las horas/ciclos "actuales" de un servicio de parte son
+                  // los de la PARTE (TSN/CSN), no los totales de la
+                  // aeronave — una parte más nueva que el avión no puede
+                  // medirse contra las horas de éste. El ritmo de vuelo
+                  // (dailyAverage) sí es el mismo, porque avión y parte
+                  // instalada acumulan horas juntos por vuelo.
+                  aircraft={{
+                    flight_hours: part.aircraft_part?.time_since_new ?? 0,
+                    flight_cycles: part.aircraft_part?.cycles_since_new ?? 0,
+                  }}
                   dailyAverage={dailyAverage}
                   remainingPercentage={remainingPercentage}
                   emptyLabel="Esta parte no tiene servicios registrados."
+                  company={company}
+                  controlId={control.id}
+                  realAircraftId={control.aircraft.id}
+                  realAircraftAcronym={control.aircraft?.acronym}
                 />
               </CardContent>
             </Card>

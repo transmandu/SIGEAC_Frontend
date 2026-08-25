@@ -48,9 +48,6 @@ const itemBase = `
   hover:shadow-sm
   active:scale-95
 `
-const disabledClass =
-  "opacity-40 grayscale pointer-events-none cursor-not-allowed"
-
 const RequisitionDropdownActions = ({
   req
 }: {
@@ -83,36 +80,32 @@ const RequisitionDropdownActions = ({
   // propias solicitudes, nada más.
   const isReadOnlyWarehouseAnalyst =
     userRoles.includes("ANALISTA_ALMACEN") && !canDeleteAny && !canSeeAllOptions
-  const canDelete = canDeleteAny || (isReadOnlyWarehouseAnalyst && isOwnRequisition)
   const isSuperUser = userRoles.includes("SUPERUSER")
+
+  // Una solicitud no aprobada esta cerrada: el motivo del rechazo vive en su
+  // observacion y debe perdurar. Solo queda el PDF; cambiarle la prioridad no
+  // hace nada y borrarla se llevaria la constancia de por que se rechazo.
+  const isRejected = req.status === "REJECTED"
+
+  // Solo se borra mientras la solicitud es asunto de quien la creo. Desde
+  // EN PROCESO ya hay compras trabajando sobre ella (y posibles cotizaciones
+  // colgando), asi que sacarla de circulacion deja de ser decision del usuario
+  // ordinario. REJECTED tampoco entra: queda como constancia.
+  const isDeletableStatus =
+    req.status === "CREATED" || req.status === "RECEIVED"
+
+  const canDelete =
+    isDeletableStatus &&
+    (canDeleteAny || (isReadOnlyWarehouseAnalyst && isOwnRequisition))
 
   const canQuote =
     canSeeAllOptions &&
-    !(req.status === "APPROVED" || req.status === "REJECTED")
+    !(req.status === "APPROVED" || isRejected)
   const canReject =
     canSeeAllOptions &&
-    !(req.status === "REJECTED" || req.status === "APPROVED")
+    !(isRejected || req.status === "APPROVED")
   const canChangePriorityStatus =
-    !(req.status === "APPROVED" || req.status === "QUOTED")
-
-  const quoteTooltip =
-    req.status === "APPROVED"
-      ? "Una cotización ya fue aprobada para esta requisición"
-      : req.status === "REJECTED"
-      ? "Esta requisición ha sido rechazada"
-      : "Generar cotización"
-  const rejectTooltip =
-    req.status === "APPROVED"
-      ? "Esta requisición ya fue aprobada"
-      : req.status === "REJECTED"
-      ? "Esta requisición ya fue rechazada"
-      : "Rechazar solicitud"
-  const priorityTooltip =
-    req.status === "APPROVED"
-      ? "Esta requisición ya fue aprobada"
-      : req.status === "QUOTED"
-      ? "Esta requisición ya fue cotizada"
-      : "Cambiar prioridad"
+    !(req.status === "APPROVED" || req.status === "QUOTED" || isRejected)
 
   return (
     <TooltipProvider delayDuration={120}>
@@ -155,70 +148,62 @@ const RequisitionDropdownActions = ({
               animate-in fade-in zoom-in-95 duration-200
             "
           >
-            {canSeeAllOptions && (
-              <>
-                {/* GENERAR COTIZACIÓN */}
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span>
-                      <DropdownMenuItem
-                        asChild
-                        disabled={!canQuote}
-                        className="p-0 focus:bg-transparent"
-                      >
-                        <button
-                          onClick={() => {
-                            setOpenDropdown(false)
-                            setOpenConfirm(true)
-                          }}
-                          className={`
-                            ${itemBase}
-                            text-emerald-600
-                            ${!canQuote ? disabledClass : ""}
-                          `}
-                        >
-                          <Receipt className={iconBase} />
-                        </button>
-                      </DropdownMenuItem>
-                    </span>
-                  </TooltipTrigger>
+            {/* GENERAR COTIZACIÓN */}
+            {canQuote && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuItem
+                    asChild
+                    className="p-0 focus:bg-transparent"
+                  >
+                    <button
+                      onClick={() => {
+                        setOpenDropdown(false)
+                        setOpenConfirm(true)
+                      }}
+                      className={`
+                        ${itemBase}
+                        text-emerald-600
+                      `}
+                    >
+                      <Receipt className={iconBase} />
+                    </button>
+                  </DropdownMenuItem>
+                </TooltipTrigger>
 
-                  <TooltipContent>
-                    {quoteTooltip}
-                  </TooltipContent>
-                </Tooltip>
+                <TooltipContent>
+                  Generar cotización
+                </TooltipContent>
+              </Tooltip>
+            )}
 
-                {/* RECHAZAR */}
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span>
-                      <DropdownMenuItem
-                        asChild
-                        disabled={!canReject}
-                        className="p-0 focus:bg-transparent"
-                      >
-                        <button
-                          onClick={() => {
-                            setOpenDropdown(false)
-                            setOpenReject(true)
-                          }}
-                          className={`
-                            ${itemBase}
-                            text-orange-600
-                            ${!canReject ? disabledClass : ""}
-                          `}
-                        >
-                          <ClipboardX className={iconReject} />
-                        </button>
-                      </DropdownMenuItem>
-                    </span>
-                  </TooltipTrigger>
+            {/* RECHAZAR */}
+            {canReject && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuItem
+                    asChild
+                    className="p-0 focus:bg-transparent"
+                  >
+                    <button
+                      onClick={() => {
+                        setOpenDropdown(false)
+                        setOpenReject(true)
+                      }}
+                      className={`
+                        ${itemBase}
+                        text-orange-600
+                      `}
+                    >
+                      <ClipboardX className={iconReject} />
+                    </button>
+                  </DropdownMenuItem>
+                </TooltipTrigger>
 
-                  <TooltipContent>
-                    {rejectTooltip}
-                  </TooltipContent>
-                </Tooltip>
-              </>
+                <TooltipContent>
+                  Rechazar solicitud
+                </TooltipContent>
+              </Tooltip>
             )}
 
             {/* PDF */}
@@ -249,34 +234,30 @@ const RequisitionDropdownActions = ({
             </Tooltip>
 
             {/* CAMBIAR PRIORIDAD */}
-            {canChangePriority && (
+            {canChangePriority && canChangePriorityStatus && (
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <span>
-                    <DropdownMenuItem
-                      asChild
-                      disabled={!canChangePriorityStatus}
-                      className="p-0 focus:bg-transparent"
+                  <DropdownMenuItem
+                    asChild
+                    className="p-0 focus:bg-transparent"
+                  >
+                    <button
+                      onClick={() => {
+                        setOpenDropdown(false)
+                        setOpenPriority(true)
+                      }}
+                      className={`
+                        ${itemBase}
+                        text-amber-600
+                      `}
                     >
-                      <button
-                        onClick={() => {
-                          setOpenDropdown(false)
-                          setOpenPriority(true)
-                        }}
-                        className={`
-                          ${itemBase}
-                          text-amber-600
-                          ${!canChangePriorityStatus ? disabledClass : ""}
-                        `}
-                      >
-                        <Tag className={iconBase} />
-                      </button>
-                    </DropdownMenuItem>
-                  </span>
+                      <Tag className={iconBase} />
+                    </button>
+                  </DropdownMenuItem>
                 </TooltipTrigger>
 
                 <TooltipContent>
-                  {priorityTooltip}
+                  Cambiar prioridad
                 </TooltipContent>
               </Tooltip>
             )}

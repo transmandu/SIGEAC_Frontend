@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { useForm, useFieldArray, useWatch, useFormContext, Control } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import { useRouter } from "next/navigation";
 import { CalendarIcon, Loader2, Plus, X } from "lucide-react";
@@ -65,7 +65,16 @@ const optionalNumeric = z.preprocess(
   z.coerce.number().min(0).optional(),
 );
 
+const optionalInteger = z.preprocess(
+  (val) => (val === "" || val === undefined || val === null ? undefined : val),
+  z.coerce.number().int().min(0).optional(),
+);
+
 const baseItemSchema = z.object({
+  // Presente solo al editar; permite al backend actualizar el mismo
+  // registro en vez de recrearlo, para no perder su historial de
+  // cumplimientos. Las filas nuevas (creadas en el formulario) no lo llevan.
+  id: z.number().optional(),
   name: z.string().min(1, "Requerido"),
   counting_method: countingMethodEnum,
   limit_value: z.coerce.number().positive("Debe ser mayor a 0"),
@@ -74,11 +83,19 @@ const baseItemSchema = z.object({
   // obligatoria solo cuando la unidad no es días (ver superRefine de abajo),
   // porque "próximo" en horas/ciclos se calcula desde acá, no de la fecha.
   first_applied_value: optionalNumeric,
+  // Días extra sobre la frecuencia, solo relevante cuando la unidad es
+  // días (no todos los certificados vencen justo a los N días); opcional.
+  extra_days: optionalInteger,
 });
 
-// Los certificados son documentos a bordo (no llevan "Realizado por");
-// los servicios de aeronave y de parte sí, por eso extienden el schema base.
-const certificateSchema = baseItemSchema;
+// Los certificados son documentos a bordo: algunos sí llevan una entidad
+// aeronáutica responsable y otros no, así que "Realizado por" va oculto
+// detrás de un checkbox y es opcional (has_provider controla si se pide).
+// Los servicios (de aeronave y de parte) siempre lo requieren.
+const certificateSchema = baseItemSchema.extend({
+  has_provider: z.boolean().optional(),
+  maintenance_provider_id: z.string().optional(),
+});
 
 const itemSchema = baseItemSchema.extend({
   maintenance_provider_id: z.string().min(1, "Seleccione quién lo realiza"),
@@ -139,6 +156,16 @@ const formSchema = z
     requireInitialReading(vals.certificates, ["certificates"]);
     requireInitialReading(vals.services, ["services"]);
     requireInitialReading(vals.part_services, ["part_services"]);
+
+    vals.certificates.forEach((certificate, index) => {
+      if (certificate.has_provider && !certificate.maintenance_provider_id) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Seleccione quién lo realiza",
+          path: ["certificates", index, "maintenance_provider_id"],
+        });
+      }
+    });
   });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -148,6 +175,8 @@ const emptyCertificate = () => ({
   counting_method: "HOURS" as const,
   limit_value: undefined as unknown as number,
   first_applied_date: undefined as unknown as Date,
+  has_provider: false,
+  maintenance_provider_id: "",
 });
 
 const emptyServiceItem = () => ({
@@ -347,15 +376,23 @@ function ProviderField({ control, name }: { control: Control<any>; name: string 
   );
 }
 
-const ROW_GRID = "grid-cols-[1fr_100px_80px_100px_130px_150px_28px]";
-const ROW_GRID_NO_PROVIDER = "grid-cols-[1fr_110px_90px_110px_150px_28px]";
-const ROW_LABELS = ["Nombre", "Unidad", "Límite", "Lectura Inicial", "1ra Fecha Aplicada", "Realizado Por"];
+const ROW_GRID = "grid-cols-[1fr_90px_70px_90px_90px_130px_150px_28px]";
+const ROW_LABELS = [
+  "Nombre",
+  "Unidad",
+  "Límite",
+  "Lectura Inicial",
+  "Días Extra",
+  "1ra Fecha Aplicada",
+  "Realizado Por",
+];
 
-function ItemRowsHeader({ showProvider = true }: { showProvider?: boolean }) {
-  const labels = showProvider ? ROW_LABELS : ROW_LABELS.slice(0, -1);
+type ProviderMode = "required" | "optional";
+
+function ItemRowsHeader() {
   return (
-    <div className={cn("grid gap-3 px-1", showProvider ? ROW_GRID : ROW_GRID_NO_PROVIDER)}>
-      {labels.map((label) => (
+    <div className={cn("grid gap-3 px-1", ROW_GRID)}>
+      {ROW_LABELS.map((label) => (
         <span key={label} className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
           {label}
         </span>
@@ -365,22 +402,46 @@ function ItemRowsHeader({ showProvider = true }: { showProvider?: boolean }) {
   );
 }
 
+// Los certificados no siempre tienen una entidad aeronáutica responsable
+// (algunos sí, otros no), así que va oculto detrás de un checkbox en vez de
+// pedirse siempre como en los servicios.
+function OptionalProviderCell({ control, namePrefix }: { control: Control<any>; namePrefix: string }) {
+  return (
+    <FormField
+      control={control}
+      name={`${namePrefix}.has_provider`}
+      render={({ field }) => (
+        <FormItem className="space-y-1.5">
+          <div className="flex h-8 items-center gap-1.5">
+            <FormControl>
+              <Checkbox checked={field.value} onCheckedChange={field.onChange} className="h-3.5 w-3.5" />
+            </FormControl>
+            <span className="text-xs text-muted-foreground">Entidad</span>
+          </div>
+          {field.value && <ProviderField control={control} name={`${namePrefix}.maintenance_provider_id`} />}
+        </FormItem>
+      )}
+    />
+  );
+}
+
 function ItemRow({
   control,
   namePrefix,
   onRemove,
-  showProvider = true,
+  providerMode = "required",
 }: {
   control: Control<any>;
   namePrefix: string;
   onRemove: () => void;
-  showProvider?: boolean;
+  providerMode?: ProviderMode;
 }) {
   const countingMethod = useWatch({ control, name: `${namePrefix}.counting_method` });
   const needsInitialReading = countingMethod && countingMethod !== "DAYS";
+  const isDaysBased = countingMethod === "DAYS";
 
   return (
-    <div className={cn("grid gap-3 items-start", showProvider ? ROW_GRID : ROW_GRID_NO_PROVIDER)}>
+    <div className={cn("grid gap-3 items-start", ROW_GRID)}>
       <FormField
         control={control}
         name={`${namePrefix}.name`}
@@ -456,8 +517,35 @@ function ItemRow({
           </FormItem>
         )}
       />
+      <FormField
+        control={control}
+        name={`${namePrefix}.extra_days`}
+        render={({ field }) => (
+          <FormItem>
+            <FormControl>
+              {isDaysBased ? (
+                <NumericInput
+                  placeholder="0"
+                  className="h-8 text-sm"
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  name={field.name}
+                />
+              ) : (
+                <div className="flex h-8 items-center justify-center text-xs text-muted-foreground">—</div>
+              )}
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
       <DateField control={control} name={`${namePrefix}.first_applied_date`} />
-      {showProvider && <ProviderField control={control} name={`${namePrefix}.maintenance_provider_id`} />}
+      {providerMode === "required" ? (
+        <ProviderField control={control} name={`${namePrefix}.maintenance_provider_id`} />
+      ) : (
+        <OptionalProviderCell control={control} namePrefix={namePrefix} />
+      )}
       <div className="flex items-center pt-0.5">
         <Button
           type="button"
@@ -477,27 +565,27 @@ function MaintenanceItemRows({
   control,
   name,
   emptyLabel,
-  showProvider = true,
+  providerMode = "required",
   createEmptyRow,
 }: {
   control: Control<any>;
   name: string;
   emptyLabel: string;
-  showProvider?: boolean;
+  providerMode?: ProviderMode;
   createEmptyRow: () => Record<string, unknown>;
 }) {
   const { fields, append, remove } = useFieldArray({ control, name });
 
   return (
     <div className="space-y-3">
-      {fields.length > 0 && <ItemRowsHeader showProvider={showProvider} />}
+      {fields.length > 0 && <ItemRowsHeader />}
       {fields.map((field, index) => (
         <ItemRow
           key={field.id}
           control={control}
           namePrefix={`${name}.${index}`}
           onRemove={() => remove(index)}
-          showProvider={showProvider}
+          providerMode={providerMode}
         />
       ))}
       {fields.length === 0 && <p className="text-xs text-muted-foreground">{emptyLabel}</p>}
@@ -718,14 +806,22 @@ function PartsSection({ control }: { control: Control<any> }) {
 
 function mapToFormCertificate(item: NonNullable<MaintenanceControl["items"]>[number]) {
   return {
+    id: item.id,
     name: item.name,
     counting_method: item.counting_method,
     limit_value: Number(item.limit_value),
-    first_applied_date: new Date(item.first_applied_date),
+    // parseISO (no `new Date`): un string "yyyy-MM-dd" con `new Date` se
+    // interpreta como medianoche UTC y en Venezuela (UTC-4) cae al día
+    // anterior; parseISO lo toma en hora local.
+    first_applied_date: parseISO(item.first_applied_date),
     first_applied_value:
       item.first_applied_value !== null && item.first_applied_value !== undefined
         ? Number(item.first_applied_value)
         : undefined,
+    extra_days:
+      item.extra_days !== null && item.extra_days !== undefined ? Number(item.extra_days) : undefined,
+    has_provider: !!item.maintenance_provider_id,
+    maintenance_provider_id: item.maintenance_provider_id ? String(item.maintenance_provider_id) : "",
   };
 }
 
@@ -807,11 +903,16 @@ export default function CreateMaintenanceControlForm({ initialData }: { initialD
 
   const onSubmit = async (values: FormValues) => {
     const toBaseItem = (item: z.infer<typeof certificateSchema>) => ({
+      id: item.id,
       name: item.name,
       counting_method: item.counting_method,
       limit_value: item.limit_value,
       first_applied_date: format(item.first_applied_date, "yyyy-MM-dd"),
       first_applied_value: item.first_applied_value,
+      extra_days: item.extra_days,
+      // Los certificados solo mandan proveedor si el usuario activó el
+      // checkbox; los servicios lo sobreescriben más abajo (siempre va).
+      maintenance_provider_id: item.has_provider ? item.maintenance_provider_id : undefined,
     });
 
     const toServiceItem = (item: z.infer<typeof itemSchema>) => ({
@@ -969,7 +1070,7 @@ export default function CreateMaintenanceControlForm({ initialData }: { initialD
                   control={form.control}
                   name="certificates"
                   emptyLabel="Agregue los certificados de la aeronave."
-                  showProvider={false}
+                  providerMode="optional"
                   createEmptyRow={emptyCertificate}
                 />
               </CardContent>

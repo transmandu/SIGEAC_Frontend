@@ -110,6 +110,7 @@ const formSchema = z
     // Archivos
     image: z.instanceof(File).optional(),
     has_documentation: z.boolean().optional(),
+    purchase_order_number: z.string().optional(),
   })
   .superRefine((vals, ctx) => {
     if (vals.needs_calibration) {
@@ -210,6 +211,7 @@ export default function CreateToolForm({
       has_documentation:
         (initialData?.has_documentation ?? false) ||
         (initialData?.document_requirements?.length ?? 0) > 0,
+      purchase_order_number: initialData?.purchase_order_number || "",
     },
   });
 
@@ -238,6 +240,7 @@ export default function CreateToolForm({
       has_documentation:
         (initialData.has_documentation ?? false) ||
         (initialData.document_requirements?.length ?? 0) > 0,
+      purchase_order_number: initialData.purchase_order_number ?? "",
     });
     const reloaded = buildDocumentSelectionFromArticle(initialData);
     initialDocumentsRef.current = reloaded;
@@ -272,8 +275,17 @@ export default function CreateToolForm({
   const onSubmit = async (values: FormValues) => {
     if (!selectedCompany?.slug) return;
 
+    const { purchase_order_number, ...valuesToSubmit } = values;
+
+    // El número lo define la orden del sistema: no se reenvía para que no
+    // pueda pisar el de la orden por otra vía que no sea el formulario.
+    const manualOrderNumber = initialData?.purchase_order_id
+      ? {}
+      : { purchase_order_number: purchase_order_number?.trim() || undefined };
+
     const payload: any = {
-      ...values,
+      ...valuesToSubmit,
+      ...manualOrderNumber,
       part_number: normalizeUpper(values.part_number),
       alternative_part_number:
         values.alternative_part_number?.map((v) => normalizeUpper(v)) ?? [],
@@ -373,6 +385,31 @@ export default function CreateToolForm({
                     <Input placeholder="Ej: S-000123" {...field} />
                   </FormControl>
                   <FormDescription>Serial de la herramienta.</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="purchase_order_number"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>Nro. de orden de compra</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Ej: OC-2026-014"
+                      {...field}
+                      value={field.value ?? ""}
+                      readOnly={!!initialData?.purchase_order_id}
+                      disabled={busy}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    {initialData?.purchase_order_id
+                      ? "Proviene de una orden del sistema: no puede modificarse."
+                      : "Número del formato que lleva compras, si el artículo no nace de un ciclo de compra."}
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

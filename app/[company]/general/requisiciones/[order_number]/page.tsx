@@ -12,6 +12,7 @@ import { cn, formatRequestedDate } from '@/lib/utils';
 
 import { ContentLayout } from '@/components/layout/ContentLayout';
 import LoadingPage from '@/components/misc/LoadingPage';
+import ArticleLifecycleIcon from '@/components/misc/ArticleLifecycleIcon';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -63,6 +64,22 @@ const TYPE_LABELS: Record<string, string> = {
 
 const translateStatus = (value?: string | null) =>
   value ? STATUS_LABELS[value.toUpperCase()] ?? value : value;
+
+// El estado de la cabecera es el de la SOLICITUD; los articulos usan el mapa de
+// arriba. Sin el sujeto delante los usuarios lo leian como estado de la compra.
+const REQUISITION_STATUS_LABELS: Record<string, string> = {
+  CREATED: 'SOLICITUD CREADA',
+  RECEIVED: 'SOLICITUD RECIBIDA',
+  IN_PROGRESS: 'SOLICITUD EN PROCESO',
+  QUOTED: 'SOLICITUD COTIZADA',
+  APPROVED: 'SOLICITUD APROBADA',
+  REJECTED: 'SOLICITUD NO APROBADA',
+};
+
+const translateRequisitionStatus = (value?: string | null) =>
+  value
+    ? REQUISITION_STATUS_LABELS[value.toUpperCase()] ?? translateStatus(value)
+    : value;
 
 const translatePriority = (value?: string | null) =>
   value ? PRIORITY_LABELS[value.toUpperCase()] ?? value : value;
@@ -250,6 +267,7 @@ const BatchArticleCard = ({ article }: { article: any }) => {
                 <Badge variant="outline" className="text-xs">
                   {translateStatus(article.status)}
                 </Badge>
+                <ArticleLifecycleIcon stage={article.lifecycle_stage} />
               </div>
             )}
 
@@ -372,6 +390,7 @@ const GeneralArticleCard = ({ article }: { article: any }) => {
                 <Badge variant="outline" className="text-xs">
                   {translateStatus(article.status)}
                 </Badge>
+                <ArticleLifecycleIcon stage={article.lifecycle_stage} />
               </div>
             )}
 
@@ -546,7 +565,7 @@ const RequisitionPage = () => {
             <div className="flex flex-col items-center">
               <p className="text-xs text-muted-foreground">Estado</p>
               <Badge className="text-xs">
-                {translateStatus(data?.status)}
+                {translateRequisitionStatus(data?.status)}
               </Badge>
             </div>
 

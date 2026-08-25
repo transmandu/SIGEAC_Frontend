@@ -120,6 +120,7 @@ const formSchema = z
       .string({ message: "Debe ingresar un lote." })
       .min(1, "Seleccione un lote"),
     image: z.instanceof(File).optional(),
+    purchase_order_number: z.string().optional(),
   })
   .superRefine((vals, ctx) => {
     // Relaciones de fechas si existen
@@ -212,6 +213,7 @@ const CreatePartForm = ({
       fabrication_date: initialData?.partComponent?.fabrication_date
         ? initialData?.partComponent?.fabrication_date
         : undefined,
+      purchase_order_number: initialData?.purchase_order_number || "",
     },
   });
 
@@ -239,6 +241,7 @@ const CreatePartForm = ({
       fabrication_date: initialData.partComponent?.fabrication_date
         ? initialData.partComponent?.fabrication_date
         : undefined,
+      purchase_order_number: initialData.purchase_order_number ?? "",
     });
   }, [initialData, form]);
   const busy =
@@ -253,15 +256,25 @@ const CreatePartForm = ({
   const onSubmit = async (values: FormValues) => {
     if (!selectedCompany?.slug) return;
 
-    const formattedValues: FormValues & {
+    const { purchase_order_number, ...valuesToSubmit } = values;
+
+    // El número lo define la orden del sistema: no se reenvía para que no
+    // pueda pisar el de la orden por otra vía que no sea el formulario.
+    const manualOrderNumber = initialData?.purchase_order_id
+      ? {}
+      : { purchase_order_number: purchase_order_number?.trim() || undefined };
+
+    const formattedValues: Omit<FormValues, "purchase_order_number"> & {
       expiration_date?: string;
       fabrication_date?: string;
       calendar_date?: string;
       part_number: string;
       article_type: string;
       alternative_part_number?: string[];
+      purchase_order_number?: string;
     } = {
-      ...values,
+      ...valuesToSubmit,
+      ...manualOrderNumber,
       article_type: "PART",
       part_number: normalizeUpper(values.part_number),
       alternative_part_number:
@@ -358,6 +371,31 @@ const CreatePartForm = ({
                   </FormControl>
                   <FormDescription>
                     Serial del componente si aplica.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="purchase_order_number"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>Nro. de orden de compra</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Ej: OC-2026-014"
+                      {...field}
+                      value={field.value ?? ""}
+                      readOnly={!!initialData?.purchase_order_id}
+                      disabled={busy}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    {initialData?.purchase_order_id
+                      ? "Proviene de una orden del sistema: no puede modificarse."
+                      : "Número del formato que lleva compras, si el artículo no nace de un ciclo de compra."}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

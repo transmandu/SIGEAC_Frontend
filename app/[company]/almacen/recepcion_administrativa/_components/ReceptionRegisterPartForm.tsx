@@ -135,6 +135,7 @@ const formSchema = z
       .min(1, "Seleccione un lote"),
     image: z.instanceof(File).optional(),
     has_documentation: z.boolean().optional(),
+    purchase_order_number: z.string().optional(),
     aircraft_id: z.string().optional(),
     life_limit_part_hours: z.coerce
       .number({ invalid_type_error: "Debe ingresar una cantidad numérica" })
@@ -338,6 +339,7 @@ export default function ReceptionRegisterPartForm({
       has_documentation:
         (initialData?.has_documentation ?? false) ||
         (initialData?.document_requirements?.length ?? 0) > 0,
+      purchase_order_number: initialData?.purchase_order_number || "",
       aircraft_id: "",
       life_limit_part_calendar: initialData?.partComponent
         ?.life_limit_part_calendar
@@ -401,6 +403,7 @@ export default function ReceptionRegisterPartForm({
       has_documentation:
         (initialData?.has_documentation ?? false) ||
         (initialData?.document_requirements?.length ?? 0) > 0,
+      purchase_order_number: initialData?.purchase_order_number ?? "",
       aircraft_id: "",
       life_limit_part_calendar: initialData.partComponent
         ?.life_limit_part_calendar
@@ -523,7 +526,17 @@ export default function ReceptionRegisterPartForm({
       return; // El botón debería estar deshabilitado, pero por seguridad validamos aquí también
     }
 
-    const { expiration_date: _, ...valuesWithoutCaducateDate } = values;
+    const {
+      expiration_date: _,
+      purchase_order_number,
+      ...valuesWithoutCaducateDate
+    } = values;
+
+    // El número lo define la orden del sistema: no se reenvía para que no
+    // pueda pisar el de la orden por otra vía que no sea el formulario.
+    const manualOrderNumber = initialData?.purchase_order_id
+      ? {}
+      : { purchase_order_number: purchase_order_number?.trim() || undefined };
     const caducateDateStr: string | undefined =
       caducateDate && caducateDate !== null
         ? format(caducateDate, "yyyy-MM-dd")
@@ -549,8 +562,10 @@ export default function ReceptionRegisterPartForm({
       batch_id: string; // Asegurar que batch_id esté en el tipo
       serial?: string | string[];
       aircraft_id?: string;
+      purchase_order_number?: string;
     } = {
       ...valuesWithoutCaducateDate,
+      ...manualOrderNumber,
       status: "INCOMING",
       article_type: "part",
       part_number: normalizeUpper(values.part_number),
@@ -818,6 +833,36 @@ export default function ReceptionRegisterPartForm({
                     {isSearching && (
                       <span className="text-primary ml-2">Buscando...</span>
                     )}
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="purchase_order_number"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>
+                    Nro. de orden de compra{" "}
+                    <span className="text-xs italic text-gray-500 font-normal ml-1">
+                      (Purchase order number)
+                    </span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Ej: OC-2026-014"
+                      {...field}
+                      value={field.value ?? ""}
+                      readOnly={!!initialData?.purchase_order_id}
+                      disabled={busy}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    {initialData?.purchase_order_id
+                      ? "Proviene de una orden del sistema: no puede modificarse."
+                      : "Número del formato que lleva compras, si el artículo no nace de un ciclo de compra."}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

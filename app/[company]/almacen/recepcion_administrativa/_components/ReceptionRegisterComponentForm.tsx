@@ -83,6 +83,7 @@ export const formSchema = z.object({
   image: z.instanceof(File).optional(),
   has_documentation: z.boolean().optional(),
   destination_unknown: z.boolean().optional(),
+  purchase_order_number: z.string().optional(),
   reception_date: z.string().optional(),
   sender: z.string().optional(),
   origin: z.string().optional(),
@@ -133,6 +134,7 @@ export default function ReceptionRegisterComponentForm({ initialData, isEditing 
         (initialData?.has_documentation ?? false) ||
         (initialData?.document_requirements?.length ?? 0) > 0,
       destination_unknown: false,
+      purchase_order_number: initialData?.purchase_order_number || "",
       reception_date: initialData?.reception_date || "",
       sender: (initialData as any)?.article_detail?.sender || "",
       origin: (initialData as any)?.article_detail?.origin || "",
@@ -155,6 +157,7 @@ export default function ReceptionRegisterComponentForm({ initialData, isEditing 
         (initialData?.has_documentation ?? false) ||
         (initialData?.document_requirements?.length ?? 0) > 0,
       destination_unknown: false,
+      purchase_order_number: initialData?.purchase_order_number ?? "",
       reception_date: initialData.reception_date ?? "",
       sender: (initialData as any)?.article_detail?.sender ?? "",
       origin: (initialData as any)?.article_detail?.origin ?? "",
@@ -197,6 +200,11 @@ export default function ReceptionRegisterComponentForm({ initialData, isEditing 
       origin: values.origin || undefined,
       destination: values.destination || undefined,
       justification: values.justification || undefined,
+      // El número lo define la orden del sistema: no se reenvía para que no
+      // pueda pisar el de la orden por otra vía que no sea el formulario.
+      ...(initialData?.purchase_order_id
+        ? {}
+        : { purchase_order_number: values.purchase_order_number?.trim() || undefined }),
     };
 
     if (isEditing && initialData) {
@@ -244,6 +252,7 @@ export default function ReceptionRegisterComponentForm({ initialData, isEditing 
       description: "",
       has_documentation: false,
       destination_unknown: false,
+      purchase_order_number: "",
       reception_date: "",
     });
   };
@@ -315,6 +324,36 @@ export default function ReceptionRegisterComponentForm({ initialData, isEditing 
                   </FormControl>
                   <FormDescription>
                     Si aplica, serial del componente.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="purchase_order_number"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>
+                    Nro. de orden de compra{" "}
+                    <span className="text-xs italic text-gray-500 font-normal ml-1">
+                      (Purchase order number)
+                    </span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Ej: OC-2026-014"
+                      {...field}
+                      value={field.value ?? ""}
+                      readOnly={!!initialData?.purchase_order_id}
+                      disabled={busy}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    {initialData?.purchase_order_id
+                      ? "Proviene de una orden del sistema: no puede modificarse."
+                      : "Número del formato que lleva compras, si el artículo no nace de un ciclo de compra."}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

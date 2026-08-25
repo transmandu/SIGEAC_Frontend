@@ -104,6 +104,13 @@ export type Article = {
   inspector?: string;
   inspect_date?: string;
   ata_code?: string;
+  /** Orden de compra del sistema que originó el artículo, si nació de un ciclo de compra. */
+  purchase_order_id?: number | null;
+  /**
+   * Número de orden a mostrar. El backend antepone el de la orden del sistema;
+   * cuando no hay orden, es el que compras carga a mano en el formulario.
+   */
+  purchase_order_number?: string | null;
   needs_calibration?: boolean;
   calibration_date?: string | null;
   next_calibration?: string;
@@ -459,18 +466,42 @@ export type MaintenanceProvider = {
   name: string;
 };
 
+export type MaintenanceCompliance = {
+  id: number;
+  maintenance_control_item_id: number;
+  maintenance_control_item?: MaintenanceControlItem;
+  maintenance_provider_id: number | string;
+  maintenance_provider?: MaintenanceProvider;
+  work_order_id: number | string;
+  work_order?: WorkOrder;
+  compliance_date: string;
+  hours_reading: number | string;
+  cycles_reading: number | string;
+  notes?: string | null;
+  registered_by?: string;
+  created_at?: string;
+};
+
 export type MaintenanceControlItem = {
   id?: number;
   maintenance_control_id?: number;
   maintenance_control_part_id?: number | null;
   maintenance_provider_id?: number | string | null;
   maintenance_provider?: MaintenanceProvider;
+  // OT creada para resolver el estado crítico; mientras esté puesta (y esa
+  // OT no esté CLOSED) no se puede registrar un nuevo cumplimiento.
+  pending_work_order_id?: number | string | null;
+  pending_work_order?: WorkOrder | null;
   category: "CERTIFICATE" | "SERVICE";
   name: string;
   counting_method: MaintenanceCountingMethod;
   limit_value: number | string;
   first_applied_date: string;
   first_applied_value?: number | string | null;
+  extra_days?: number | string | null;
+  latest_compliance?: MaintenanceCompliance | null;
+  maintenance_control?: MaintenanceControl;
+  maintenance_control_part?: MaintenanceControlPart;
 };
 
 export type MaintenanceControlPart = {

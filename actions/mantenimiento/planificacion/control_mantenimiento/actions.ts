@@ -4,11 +4,13 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner";
 
 interface MaintenanceItemData {
+  id?: number,
   name: string,
   counting_method: MaintenanceCountingMethod,
   limit_value: number,
   first_applied_date: string,
   first_applied_value?: number,
+  extra_days?: number,
   maintenance_provider_id?: string,
 }
 
@@ -84,6 +86,39 @@ export const useUpdateMaintenanceControl = () => {
     updateMaintenanceControl: updateMutation,
   }
 }
+
+export const useLinkPendingWorkOrder = () => {
+  const queryClient = useQueryClient();
+
+  const linkMutation = useMutation({
+    mutationFn: async ({
+      company,
+      itemId,
+      workOrderId,
+    }: {
+      company: string;
+      itemId: string | number;
+      workOrderId: string | number;
+    }) => {
+      await axiosInstance.patch(`/${company}/maintenance-control-items/${itemId}/pending-work-order`, {
+        work_order_id: workOrderId,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["maintenance-controls"], exact: false });
+    },
+    onError: (error) => {
+      toast.error("Oops!", {
+        description: "No se pudo asociar la Orden de Trabajo al ítem...",
+      });
+      console.log(error);
+    },
+  });
+
+  return {
+    linkPendingWorkOrder: linkMutation,
+  };
+};
 
 export const useDeleteMaintenanceControl = () => {
   const queryClient = useQueryClient();

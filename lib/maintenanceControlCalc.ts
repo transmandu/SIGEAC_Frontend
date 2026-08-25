@@ -16,12 +16,20 @@ export interface ComputedMaintenanceItem {
   remaining: string;
   estimate: string;
   status: ItemStatus;
+  providerName: string;
 }
 
 const UNIT_LABEL: Record<string, string> = { HOURS: "Horas", CYCLES: "Ciclos", DAYS: "Días" };
 const UNIT_SHORT: Record<string, string> = { HOURS: "hrs", CYCLES: "cic", DAYS: "días" };
 
-const fmtNumber = (value: number) => value.toLocaleString("es-VE", { maximumFractionDigits: 2 });
+// Enteros sin separador de miles (26739, no 26.739 ni 26,739); si hay
+// decimales, van con coma (100,24). `toLocaleString` con "es-VE" agrupa de
+// más, así que se arma el string a mano.
+export const fmtNumber = (value: number) => {
+  const [intPart, decPart] = value.toFixed(2).split(".");
+  const trimmedDecimals = decPart === "00" ? "" : decPart.replace(/0+$/, "");
+  return trimmedDecimals ? `${intPart},${trimmedDecimals}` : intPart;
+};
 const fmtDate = (date: Date) => format(date, "dd/MM/yyyy", { locale: es });
 
 /**
@@ -55,6 +63,11 @@ function classifyStatus(remaining: number, threshold: number): ItemStatus {
  *
  * El % de remanente del control no interviene en "Estimación": solo define
  * las franjas de color del estado.
+ *
+ * Si el ítem tiene cumplimientos registrados, "Aplicada" (y de ahí en más
+ * todo el cálculo) usa el MÁS RECIENTE en vez del dato de creación — igual
+ * "Realizado Por" refleja quién hizo ese último cumplimiento, no
+ * necesariamente quien quedó anotado al crear el certificado/servicio.
  */
 export function computeMaintenanceItem(
   item: MaintenanceControlItem,
@@ -64,34 +77,44 @@ export function computeMaintenanceItem(
 ): ComputedMaintenanceItem {
   const unit = item.counting_method;
   const limit = Number(item.limit_value);
-  const appliedDate = parseISO(item.first_applied_date);
   const frequency = `${fmtNumber(limit)} ${UNIT_LABEL[unit]}`;
-  const applied = fmtDate(appliedDate);
   const threshold = limit * (remainingPercentage / 100);
 
+  const latest = item.latest_compliance;
+  const providerName = latest?.maintenance_provider?.name ?? item.maintenance_provider?.name ?? "—";
+  const appliedDate = latest ? parseISO(latest.compliance_date) : parseISO(item.first_applied_date);
+  const applied = fmtDate(appliedDate);
+
   if (unit === "DAYS") {
-    const nextDate = addDays(appliedDate, limit);
+    // No todos los certificados/servicios vencen justo a los N días; el
+    // usuario puede indicar días extra por ítem (algunos del Excel de
+    // referencia usan +1, otros +2, la mayoría ninguno).
+    const extraDays =
+      item.extra_days !== null && item.extra_days !== undefined ? Number(item.extra_days) : 0;
+    const nextDate = addDays(appliedDate, limit + extraDays);
     const remainingDays = differenceInCalendarDays(nextDate, new Date());
 
     return {
-      frequency,
+      frequency: extraDays > 0 ? `${frequency} (+${extraDays}d)` : frequency,
       applied,
       next: fmtDate(nextDate),
       remaining: remainingDays < 0 ? `Vencido hace ${Math.abs(remainingDays)} días` : `${remainingDays} días`,
       estimate: "—",
       status: classifyStatus(remainingDays, threshold),
+      providerName,
     };
   }
 
-  const initialValue =
-    item.first_applied_value !== null && item.first_applied_value !== undefined
+  const initialValue = latest
+    ? Number(unit === "HOURS" ? latest.hours_reading : latest.cycles_reading)
+    : item.first_applied_value !== null && item.first_applied_value !== undefined
       ? Number(item.first_applied_value)
       : null;
 
   if (initialValue === null) {
     // No debería pasar (el formulario lo exige para horas/ciclos), pero sin
     // el dato no hay con qué calcular.
-    return { frequency, applied, next: "—", remaining: "Falta lectura inicial", estimate: "—", status: "OK" };
+    return { frequency, applied, next: "—", remaining: "Falta lectura inicial", estimate: "—", status: "OK", providerName };
   }
 
   const currentValue = unit === "HOURS" ? Number(aircraft.flight_hours) : Number(aircraft.flight_cycles);
@@ -117,5 +140,6 @@ export function computeMaintenanceItem(
         : `${fmtNumber(remainingValue)} ${UNIT_SHORT[unit]}`,
     estimate,
     status: classifyStatus(remainingValue, threshold),
+    providerName,
   };
 }

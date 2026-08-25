@@ -137,8 +137,15 @@ export const useDeleteRequisition = () => {
       })
     },
     onError: (e) => {
+      // El backend rechaza el borrado con 422 y explica el motivo (p. ej. la
+      // solicitud ya paso de RECIBIDA); tragarselo dejaba al usuario sin saber
+      // por que no se elimino.
+      const message = isAxiosError(e)
+        ? e.response?.data?.message
+        : undefined
+
       toast.error("Oops!", {
-        description: "¡Hubo un error al eliminar la requisición!"
+        description: message || "¡Hubo un error al eliminar la requisición!"
       })
     },
   })

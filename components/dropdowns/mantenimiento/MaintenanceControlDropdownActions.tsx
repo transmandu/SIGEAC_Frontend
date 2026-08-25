@@ -16,7 +16,7 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
 import { MaintenanceControl } from "@/types"
-import { MoreHorizontal, Trash2, Loader2, SquarePen, Eye } from "lucide-react"
+import { MoreHorizontal, Trash2, Loader2, SquarePen } from "lucide-react"
 import { useState } from "react"
 import Link from "next/link"
 import { useDeleteMaintenanceControl } from "@/actions/mantenimiento/planificacion/control_mantenimiento/actions"
@@ -47,12 +47,6 @@ const MaintenanceControlDropdownActions = ({ maintenanceControl }: MaintenanceCo
         </DropdownMenuTrigger>
         <DropdownMenuContent align="center" className="flex-col gap-2 justify-center">
           <DropdownMenuItem asChild>
-            <Link href={`/${selectedCompany?.slug}/planificacion/control_mantenimiento/${maintenanceControl.id}`}>
-              <Eye className="size-5" />
-              <p className="pl-2">Ver Detalle</p>
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem asChild>
             <Link href={`/${selectedCompany?.slug}/planificacion/control_mantenimiento/editar/${maintenanceControl.id}`}>
               <SquarePen className="size-5" />
               <p className="pl-2">Editar</p>
@@ -72,7 +66,7 @@ const MaintenanceControlDropdownActions = ({ maintenanceControl }: MaintenanceCo
               ¿Seguro que desea eliminar el control de mantenimiento?
             </DialogTitle>
             <DialogDescription className="text-center p-2 mb-0 pb-0">
-              Esta acción es irreversible y estaría eliminando por completo el control seleccionado, junto con sus certificados, servicios y partes asociadas.
+              Esta acción es irreversible y estaría eliminando por completo el control seleccionado, junto con sus certificados, servicios, partes asociadas y <strong>todo su historial de cumplimientos registrados</strong>.
             </DialogDescription>
           </DialogHeader>
 

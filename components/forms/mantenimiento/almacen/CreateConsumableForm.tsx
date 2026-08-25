@@ -118,6 +118,7 @@ const formSchema = z.object({
     is_managed: z.boolean().optional(),
     image: z.instanceof(File).optional(),
     has_documentation: z.boolean().optional(),
+    purchase_order_number: z.string().optional(),
     // auxiliares para conversión secundaria
 });
 
@@ -227,6 +228,7 @@ const CreateConsumableForm = ({
             has_documentation:
                 (initialData?.has_documentation ?? false) ||
                 (initialData?.document_requirements?.length ?? 0) > 0,
+            purchase_order_number: initialData?.purchase_order_number || "",
         },
     });
 
@@ -258,6 +260,7 @@ const CreateConsumableForm = ({
             has_documentation:
                 (initialData.has_documentation ?? false) ||
                 (initialData.document_requirements?.length ?? 0) > 0,
+            purchase_order_number: initialData.purchase_order_number ?? "",
         });
         setDocuments((current) =>
             buildDocumentSelectionFromArticle(initialData, current)
@@ -299,13 +302,23 @@ const CreateConsumableForm = ({
     const onSubmit = async (values: FormValues) => {
         if (!selectedCompany?.slug) return;
 
-        const formattedValues: FormValues & {
+        const { purchase_order_number, ...valuesToSubmit } = values;
+
+        // El número lo define la orden del sistema: no se reenvía para que no
+        // pueda pisar el de la orden por otra vía que no sea el formulario.
+        const manualOrderNumber = initialData?.purchase_order_id
+            ? {}
+            : { purchase_order_number: purchase_order_number?.trim() || undefined };
+
+        const formattedValues: Omit<FormValues, "purchase_order_number"> & {
             expiration_date?: string;
             fabrication_date?: string;
             part_number: string;
             alternative_part_number?: string[];
+            purchase_order_number?: string;
         } = {
-            ...values,
+            ...valuesToSubmit,
+            ...manualOrderNumber,
             part_number: normalizeUpper(values.part_number),
             alternative_part_number:
                 values.alternative_part_number?.map((v) => normalizeUpper(v)) ?? [],
@@ -395,6 +408,30 @@ const CreateConsumableForm = ({
                                         <Input placeholder="Ej: LOTE123" {...field} />
                                     </FormControl>
                                     <FormDescription>Lote del consumible.</FormDescription>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
+                        <FormField
+                            control={form.control}
+                            name="purchase_order_number"
+                            render={({ field }) => (
+                                <FormItem className="w-full">
+                                    <FormLabel>Nro. de orden de compra</FormLabel>
+                                    <FormControl>
+                                        <Input
+                                            placeholder="Ej: OC-2026-014"
+                                            {...field}
+                                            value={field.value ?? ""}
+                                            readOnly={!!initialData?.purchase_order_id}
+                                        />
+                                    </FormControl>
+                                    <FormDescription>
+                                        {initialData?.purchase_order_id
+                                            ? "Proviene de una orden del sistema: no puede modificarse."
+                                            : "Número del formato que lleva compras, si el artículo no nace de un ciclo de compra."}
+                                    </FormDescription>
                                     <FormMessage />
                                 </FormItem>
                             )}

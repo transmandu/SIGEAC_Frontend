@@ -635,6 +635,75 @@ export const useUpdateArticleStatus = () => {
   };
 };
 
+/**
+ * Pase directo de recepción al inventario, saltando la inspección de incoming.
+ *
+ * Va aparte de useUpdateArticleStatus porque no es un cambio de estado más: el
+ * backend exige de quién vino la orden y lo sella en el movimiento.
+ */
+export const useStoreArticleDirectly = () => {
+  const { selectedCompany } = useCompanyStore();
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: async ({
+      id,
+      authorized_by,
+      authorized_by_employee_id,
+      authorization_reason,
+    }: {
+      id: number;
+      authorized_by: string;
+      authorized_by_employee_id?: number | null;
+      authorization_reason?: string | null;
+    }) => {
+      await axiosInstance.put(
+        `/${selectedCompany?.slug}/articles/${id}/store-directly`,
+        {
+          authorized_by,
+          authorized_by_employee_id: authorized_by_employee_id ?? null,
+          authorization_reason: authorization_reason || null,
+        }
+      );
+    },
+    onSuccess: () => {
+      const company = selectedCompany?.slug;
+
+      queryClient.invalidateQueries({ queryKey: ["in-transit-articles"] });
+      queryClient.invalidateQueries({ queryKey: ["in-reception-articles"] });
+      queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
+      queryClient.invalidateQueries({ queryKey: ["articles"] });
+      queryClient.invalidateQueries({ queryKey: ["article-status-history"] });
+      if (company) {
+        queryClient.invalidateQueries({ queryKey: ["articles", company, "RECEPTION"] });
+        queryClient.invalidateQueries({ queryKey: ["articles", company, "TO_DETERMINATE"] });
+        queryClient.invalidateQueries({ queryKey: ["articles", company, "STORED"] });
+      }
+
+      toast.success("¡Almacenado!", {
+        description: "El artículo pasó directo al inventario.",
+      });
+    },
+    onError: (error: any) => {
+      const data = error?.response?.data;
+
+      // El rechazo por documentación viene con la lista de lo que falta; sin
+      // enumerarla el usuario solo sabe que "falta algo" y no qué consignar.
+      const pending: string[] = (data?.pending_documents ?? [])
+        .map((doc: { document_type?: string | null }) => doc.document_type)
+        .filter(Boolean);
+
+      toast.error("Oops!", {
+        description: pending.length
+          ? `${data.message} Pendiente: ${pending.join(", ")}.`
+          : data?.message ?? "No se pudo pasar el artículo al inventario...",
+      });
+    },
+  });
+
+  return { storeArticleDirectly: mutation };
+};
+
 export const useConfirmIncomingArticle = () => {
   const { selectedCompany } = useCompanyStore();
   const queryClient = useQueryClient();

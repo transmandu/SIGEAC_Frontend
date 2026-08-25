@@ -218,11 +218,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       setError(null);
 
-      toast.success("¡Bienvenido!", {
+      const greetingName = userData.first_name?.trim() || userData.username;
+
+      toast.success(`¡Bienvenido, ${greetingName}!`, {
         position: "bottom-center",
       });
 
-      router.replace("/inicio");
+      // Navega AuthRedirect, el único que sabe si la compañía persistida es de
+      // esta sesión. Hacerlo también aquí ponía dos replace() con destinos
+      // distintos en el mismo tick.
     },
 
     onError: (err: Error) => {

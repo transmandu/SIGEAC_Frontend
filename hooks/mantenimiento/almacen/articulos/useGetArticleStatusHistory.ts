@@ -9,6 +9,9 @@ export interface ArticleStatusTimelineEntry {
   until: string | null;
   seconds: number;
   registered_by?: string | null;
+  /** Solo en transiciones excepcionales: quién ordenó el pase. */
+  authorized_by?: string | null;
+  authorization_reason?: string | null;
 }
 
 export interface ArticleStatusHistory {

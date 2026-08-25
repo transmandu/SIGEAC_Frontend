@@ -146,6 +146,20 @@ export default function ArticleStatusHistoryDialog({
                       </span>
                       {entry.registered_by ? ` · ${entry.registered_by}` : ""}
                     </p>
+
+                    {entry.authorized_by && (
+                      <div className="mt-2 rounded-md border border-amber-200 bg-amber-50 px-2.5 py-1.5 dark:border-amber-800/60 dark:bg-amber-950/40">
+                        <p className="text-xs text-amber-800 dark:text-amber-400">
+                          <span className="font-semibold">Autorizado por:</span>{" "}
+                          {entry.authorized_by}
+                        </p>
+                        {entry.authorization_reason && (
+                          <p className="mt-0.5 text-xs text-amber-700/90 dark:text-amber-400/80">
+                            {entry.authorization_reason}
+                          </p>
+                        )}
+                      </div>
+                    )}
                   </li>
                 );
               })}

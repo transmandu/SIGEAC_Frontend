@@ -5,9 +5,10 @@ import { ColumnDef } from "@tanstack/react-table"
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { MaintenanceControl } from "@/types"
 import MaintenanceControlDropdownActions from "@/components/dropdowns/mantenimiento/MaintenanceControlDropdownActions"
-import { Plane, FileCheck2, Wrench, Puzzle, Calendar } from "lucide-react"
+import { Plane, FileCheck2, Wrench, Puzzle, Calendar, Eye } from "lucide-react"
 import { formatDate } from "@/lib/utils"
 
 export const getColumns = (companySlug: string): ColumnDef<MaintenanceControl>[] => [
@@ -25,13 +26,7 @@ export const getColumns = (companySlug: string): ColumnDef<MaintenanceControl>[]
   {
     accessorKey: "title",
     header: ({ column }) => <DataTableColumnHeader filter column={column} title="Título" />,
-    cell: ({ row }) => (
-      <Button asChild variant="link" className="h-auto p-0 font-medium">
-        <Link href={`/${companySlug}/planificacion/control_mantenimiento/${row.original.id}`}>
-          {row.original.title}
-        </Link>
-      </Button>
-    ),
+    cell: ({ row }) => <span className="font-medium">{row.original.title}</span>,
   },
   {
     accessorKey: "description",
@@ -94,6 +89,25 @@ export const getColumns = (companySlug: string): ColumnDef<MaintenanceControl>[]
         <span>{row.original.created_at ? formatDate(row.original.created_at) : "-"}</span>
       </div>
     ),
+  },
+  {
+    id: "view",
+    cell: ({ row }) => (
+      <div className="flex justify-center">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button asChild variant="ghost" size="icon" className="h-8 w-8">
+              <Link href={`/${companySlug}/planificacion/control_mantenimiento/${row.original.id}`}>
+                <Eye className="h-4 w-4" />
+                <span className="sr-only">Ver control de mantenimiento</span>
+              </Link>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Ver</TooltipContent>
+        </Tooltip>
+      </div>
+    ),
+    size: 40,
   },
   {
     id: "actions",

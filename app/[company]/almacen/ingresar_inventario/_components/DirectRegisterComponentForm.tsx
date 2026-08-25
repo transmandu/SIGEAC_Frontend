@@ -157,6 +157,7 @@ const formSchema = z
       .or(z.literal("").transform(() => undefined)),
     shelf_life_unit: z.string().optional(),
     inspector: z.string().optional(),
+    purchase_order_number: z.string().optional(),
     ata_code: z.string().optional(),
     inspect_date: z.string().optional(),
     hard_time_hours: z.coerce
@@ -383,6 +384,7 @@ export default function DirectRegisterComponentForm({
         (initialData?.has_documentation ?? false) ||
         (initialData?.document_requirements?.length ?? 0) > 0,
       destination_unknown: false,
+      purchase_order_number: initialData?.purchase_order_number || "",
       aircraft_id: initialData?.partComponent?.aircraft_id?.toString() ?? "",
       life_limit_part_calendar: initialData?.partComponent
         ?.life_limit_part_calendar
@@ -446,6 +448,7 @@ export default function DirectRegisterComponentForm({
         (initialData.has_documentation ?? false) ||
         (initialData.document_requirements?.length ?? 0) > 0,
       destination_unknown: false,
+      purchase_order_number: initialData.purchase_order_number ?? "",
       aircraft_id: initialData.partComponent?.aircraft_id?.toString() ?? "",
       life_limit_part_calendar: initialData.partComponent
         ?.life_limit_part_calendar
@@ -585,8 +588,15 @@ export default function DirectRegisterComponentForm({
     const {
       expiration_date: _,
       destination_unknown,
+      purchase_order_number,
       ...valuesWithoutCaducateDate
     } = values;
+
+    // El número lo define la orden del sistema: no se reenvía para que no
+    // pueda pisar el de la orden por otra vía que no sea el formulario.
+    const manualOrderNumber = initialData?.purchase_order_id
+      ? {}
+      : { purchase_order_number: purchase_order_number?.trim() || undefined };
     const caducateDateStr: string | undefined =
       caducateDate && caducateDate !== null
         ? format(caducateDate, "yyyy-MM-dd")
@@ -612,8 +622,10 @@ export default function DirectRegisterComponentForm({
       batch_id: string; // Asegurar que batch_id esté en el tipo
       serial?: string | string[];
       aircraft_id?: string;
+      purchase_order_number?: string;
     } = {
       ...valuesWithoutCaducateDate,
+      ...manualOrderNumber,
       status: destination_unknown ? "TO_DETERMINATE" : "CHECKING",
       article_type: "part",
       part_number: normalizeUpper(values.part_number),
@@ -862,6 +874,36 @@ export default function DirectRegisterComponentForm({
                   <FormControl>
                     <Input placeholder="Nombre del Inspector" {...field} />
                   </FormControl>
+                  <FormMessage className="text-xs" />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="purchase_order_number"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>
+                    Nro. de orden de compra{" "}
+                    <span className="text-xs italic text-gray-500 font-normal ml-1">
+                      (Purchase order number)
+                    </span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Ej: OC-2026-014"
+                      {...field}
+                      value={field.value ?? ""}
+                      readOnly={!!initialData?.purchase_order_id}
+                      disabled={busy}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    {initialData?.purchase_order_id
+                      ? "Proviene de una orden del sistema: no puede modificarse."
+                      : "Número del formato que lleva compras, si el artículo no nace de un ciclo de compra."}
+                  </FormDescription>
                   <FormMessage className="text-xs" />
                 </FormItem>
               )}

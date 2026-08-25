@@ -158,6 +158,7 @@ const formSchema = z.object({
     primary_unit_id: z.number().optional(),
     has_documentation: z.boolean().optional(),
     destination_unknown: z.boolean().optional(),
+    purchase_order_number: z.string().optional(),
     shelf_life: z.string().optional(),
     sender: z.string().optional(),
     origin: z.string().optional(),
@@ -869,6 +870,7 @@ export default function ReceptionRegisterConsumableForm({
                 (initialData?.has_documentation ?? false) ||
                 (initialData?.document_requirements?.length ?? 0) > 0,
             destination_unknown: false,
+            purchase_order_number: initialData?.purchase_order_number || "",
             shelf_life: initialData?.consumable?.shelf_life || undefined,
             sender: (initialData as any)?.article_detail?.sender || "",
             origin: (initialData as any)?.article_detail?.origin || "",
@@ -940,6 +942,7 @@ export default function ReceptionRegisterConsumableForm({
                 (initialData?.has_documentation ?? false) ||
                 (initialData?.document_requirements?.length ?? 0) > 0,
             destination_unknown: false,
+            purchase_order_number: initialData?.purchase_order_number ?? "",
             sender: (initialData as any)?.article_detail?.sender ?? "",
             origin: (initialData as any)?.article_detail?.origin ?? "",
             destination: (initialData as any)?.article_detail?.destination ?? "",
@@ -1063,8 +1066,15 @@ export default function ReceptionRegisterConsumableForm({
         const {
             expiration_date: _,
             destination_unknown,
+            purchase_order_number,
             ...valuesWithoutCaducateDate
         } = values;
+
+        // El número lo define la orden del sistema: no se reenvía para que no
+        // pueda pisar el de la orden por otra vía que no sea el formulario.
+        const manualOrderNumber = initialData?.purchase_order_id
+            ? {}
+            : { purchase_order_number: purchase_order_number?.trim() || undefined };
 
         // Format dates for backend
         const caducateDateStr: string | undefined =
@@ -1109,8 +1119,10 @@ export default function ReceptionRegisterConsumableForm({
             conversions?: ConsumableConversionInput[];
             dimension?: ReturnType<typeof dimensionPayload>;
             primary_unit_id?: number;
+            purchase_order_number?: string;
         } = {
             ...valuesWithoutCaducateDate,
+            ...manualOrderNumber,
             status: destination_unknown ? "TO_DETERMINATE" : "RECEPTION",
             part_number: normalizeUpper(values.part_number),
             article_type: "consumable",
@@ -1278,6 +1290,36 @@ export default function ReceptionRegisterConsumableForm({
                                             />
                                         </FormControl>
                                         <FormDescription>Lote del consumible.</FormDescription>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormField
+                                control={form.control}
+                                name="purchase_order_number"
+                                render={({ field }) => (
+                                    <FormItem className="w-full">
+                                        <FormLabel>
+                                            Nro. de orden de compra{" "}
+                                            <span className="text-xs italic text-gray-500 font-normal ml-1">
+                                                (Purchase order number)
+                                            </span>
+                                        </FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                placeholder="Ej: OC-2026-014"
+                                                {...field}
+                                                value={field.value ?? ""}
+                                                readOnly={!!initialData?.purchase_order_id}
+                                                disabled={busy}
+                                            />
+                                        </FormControl>
+                                        <FormDescription>
+                                            {initialData?.purchase_order_id
+                                                ? "Proviene de una orden del sistema: no puede modificarse."
+                                                : "Número del formato que lleva compras, si el artículo no nace de un ciclo de compra."}
+                                        </FormDescription>
                                         <FormMessage />
                                     </FormItem>
                                 )}

@@ -80,7 +80,22 @@ export function buildPlanificationGroup({
                 icon: Wrench,
                 requiresOmac: true,
                 roles: ["ANALISTA_PLANIFICACION", "JEFE_PLANIFICACION", "SUPERUSER"],
-                submenus: [],
+                submenus: [
+                    {
+                        href: `/${currentCompany?.slug}/planificacion/control_mantenimiento`,
+                        label: "Gestionar",
+                        active:
+                            pathname ===
+                            `/${currentCompany?.slug}/planificacion/control_mantenimiento`,
+                    },
+                    {
+                        href: `/${currentCompany?.slug}/planificacion/control_mantenimiento/historial`,
+                        label: "Histórico",
+                        active: pathname.includes(
+                            `/${currentCompany?.slug}/planificacion/control_mantenimiento/historial`,
+                        ),
+                    },
+                ],
             },
         ],
     };
