@@ -45,20 +45,14 @@ export function buildWarehouseGroup({ pathname, currentCompany }: MenuContext): 
                 ],
             },
             {
-                href: "",
-                label: "Solicitudes",
-                active: pathname.includes(`/${currentCompany?.slug}/almacen/solicitudes`),
+                href: `/${currentCompany?.slug}/almacen/solicitudes/salida`,
+                label: "Solicitudes de Salida",
+                active: pathname.includes(
+                    `/${currentCompany?.slug}/almacen/solicitudes/salida`,
+                ),
                 icon: ClipboardCopy,
                 roles: ["ANALISTA_ALMACEN", "JEFE_ALMACEN", "SUPERUSER"],
-                submenus: [
-                    {
-                        href: `/${currentCompany?.slug}/almacen/solicitudes/salida`,
-                        label: "Salida",
-                        active:
-                            pathname ===
-                            `/${currentCompany?.slug}/almacen/solicitudes/salida`,
-                    },
-                ],
+                submenus: [],
             },
             {
                 href: `/${currentCompany?.slug}/almacen/caja_herramientas`,

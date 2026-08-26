@@ -79,7 +79,8 @@ export function buildPlanificationGroup({
                 ),
                 icon: Wrench,
                 requiresOmac: true,
-                roles: ["ANALISTA_PLANIFICACION", "JEFE_PLANIFICACION", "SUPERUSER"],
+                // Módulo aún en desarrollo: visible solo para SUPERUSER hasta que esté listo.
+                roles: ["SUPERUSER"],
                 submenus: [
                     {
                         href: `/${currentCompany?.slug}/planificacion/control_mantenimiento`,
