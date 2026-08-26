@@ -1,13 +1,14 @@
 # Manual de versionado
 
-SIGEAC lleva **una sola versión compartida** entre el Frontend y el Backend. Un
-mismo número (por ejemplo `3.1.0`) describe el estado del sistema completo, de
-modo que soportar a un cliente se reduce a preguntarle qué número ve en la
-pantalla de inicio.
+**Cada repositorio lleva su propia versión.** El Frontend y el Backend no crecen
+al mismo ritmo — un arreglo del backend no cambia nada de lo que el usuario ve, y
+al revés — así que forzarlos a compartir número solo lograba que cada repo se
+saltara las versiones que publicaba el otro. Hoy `3.2.1` de la interfaz y `3.2.1`
+de la API son dos cosas distintas, y ninguna de las dos secuencias tiene huecos.
 
-El punto de partida formal es **v3.0.0**. La interfaz venía mostrando `v2.0.2`
-congelado desde hacía dos años, así que el salto a mayor reconoce todo lo que se
-construyó en ese período sin que el número lo reflejara.
+El punto de partida formal, común a ambos, es **v3.0.0**. La interfaz venía
+mostrando `v2.0.2` congelado desde hacía dos años, así que el salto a mayor
+reconoce todo lo que se construyó en ese período sin que el número lo reflejara.
 
 De ahí en adelante **el número lo calcula y publica el CI en cada merge a
 `main`**. No depende de que nadie lo recuerde: esa dependencia es justamente lo
@@ -57,16 +58,11 @@ fix(sms): corrige el filtro de responsables
 feat!: rediseño del ciclo de compras
 ```
 
-### Cómo se mantienen sincronizados los dos repos
+### Los dos repos son independientes
 
-Cada repo calcula su versión y consulta los tags del otro por la API de GitHub.
-Si el hermano ya va más adelante, adopta ese número como base antes de aplicar
-su propio incremento. Así "3.1.0" sigue identificando un estado del sistema y no
-de un repositorio, sin que los dos workflows tengan que coordinarse entre sí.
-
-Si el token de lectura cruzada falta, el workflow **no falla**: registra un aviso
-y versiona solo con sus propios tags. Los números pueden separarse hasta que se
-restablezca.
+Ningún workflow mira los tags del otro repositorio. Cada uno parte de su propio
+último tag y aplica su propio incremento, así que las dos secuencias avanzan por
+separado y **es normal que los números difieran**: no es un síntoma de nada.
 
 ### Si hay que forzar una versión concreta
 
@@ -78,14 +74,13 @@ git tag -a v4.0.0 -m "Release v4.0.0" && git push --tags
 
 ## Qué ve el usuario
 
-Bajo el botón de inicio de sesión aparece `v3.1.0`. Al pasar el cursor, un
-tooltip muestra la versión y el commit de la interfaz, los de la API, y la fecha
-de compilación.
+Bajo el botón de inicio de sesión aparece **la versión de la interfaz**, y nada
+más. Al pasar el cursor, el tooltip añade el commit, la fecha de compilación y la
+versión de la API.
 
-Si la interfaz y la API reportan versiones distintas, el badge lo advierte en
-ámbar (`v3.1.0 · API v3.0.0`). Eso significa que **un lado quedó sin desplegar**
-— es el síntoma que hay que corregir antes de investigar cualquier otro error
-raro que reporte el usuario.
+El badge **no compara los dos números**: son secuencias independientes y verlos
+distintos es lo esperado. Para soporte, lo que importa es el par completo que
+muestra el tooltip.
 
 ## Configuración del CI
 
@@ -93,20 +88,7 @@ Ya está aplicada. Se documenta con comandos `gh` y no con rutas del navegador
 porque las pantallas de GitHub cambian a menudo, mientras que estos comandos son
 verificables y reproducibles.
 
-**1. Token de lectura cruzada** — secreto `PEER_REPO_TOKEN` en ambos repos, un
-PAT clásico con scope `repo` (los workflows solo **leen** tags):
-
-```bash
-gh secret set PEER_REPO_TOKEN --repo transmandu/SIGEAC_Frontend
-gh secret set PEER_REPO_TOKEN --repo transmandu/SIGEAC_Backend
-```
-
-Conviene que lo emita una cuenta de servicio de la organización y no la cuenta
-personal de un desarrollador: si esa persona sale, su token muere con ella y
-volvemos al problema que este CI resuelve. **Los PAT clásicos caducan**; cuando
-eso pase, el CI no falla — deja de sincronizar los números y lo avisa en el log.
-
-**2. Permiso de escritura para Actions.** Sin esto el workflow no puede publicar
+**1. Permiso de escritura para Actions.** Sin esto el workflow no puede publicar
 el tag. La organización impone un techo, así que hay que subirlo **primero ahí**
 y después en cada repo — cambiarlo solo en el repo devuelve `Conflict`:
 
@@ -121,7 +103,7 @@ gh api -X PUT repos/transmandu/SIGEAC_Frontend/actions/permissions/workflow \
 `can_approve_pull_request_reviews` se deja en `false` a propósito: el release no
 lo necesita y ningún workflow debería poder aprobar PRs.
 
-**3. Squash merge con el título del PR.**
+**2. Squash merge con el título del PR.**
 
 ```bash
 gh api -X PATCH repos/transmandu/SIGEAC_Frontend \
@@ -132,7 +114,7 @@ El valor por defecto de GitHub (`COMMIT_OR_PR_TITLE`) es una trampa: cuando el P
 trae **un solo commit**, usa el título de *ese commit* en vez del título del PR.
 Así llegaban a `main` títulos como `fixes` aunque el PR estuviera bien nombrado.
 
-**4. Check obligatorio** — ruleset que exige `validate` antes de mergear a `main`,
+**3. Check obligatorio** — ruleset que exige `validate` antes de mergear a `main`,
 con `github-actions[bot]` en la lista de excepciones para que pueda empujar el
 commit de versión.
 

@@ -39,9 +39,6 @@ const VersionBadge = () => {
     };
   }, []);
 
-  // Sin respuesta del backend no se puede afirmar que haya desfase, solo que
-  // no se pudo comprobar.
-  const mismatch = api !== null && api.version !== APP_VERSION;
   const builtAt = formatDate(APP_BUILT_AT);
 
   return (
@@ -50,11 +47,6 @@ const VersionBadge = () => {
         <TooltipTrigger asChild>
           <p className="text-xs text-muted-foreground tabular-nums cursor-default">
             v{APP_VERSION}
-            {mismatch && (
-              <span className="ml-1 text-amber-600 dark:text-amber-500">
-                · API v{api.version}
-              </span>
-            )}
           </p>
         </TooltipTrigger>
 
@@ -75,12 +67,6 @@ const VersionBadge = () => {
             {unreachable && <span>API sin respuesta</span>}
 
             {builtAt && <span>Compilado: {builtAt}</span>}
-
-            {mismatch && (
-              <span className="text-amber-500">
-                Interfaz y API en versiones distintas
-              </span>
-            )}
           </div>
         </TooltipContent>
       </Tooltip>

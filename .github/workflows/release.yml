@@ -33,10 +33,6 @@ jobs:
 
       - name: Determinar versión
         id: version
-        env:
-          # Lee los tags del repo hermano para mantener la versión única.
-          PEER_TOKEN: ${{ secrets.PEER_REPO_TOKEN }}
-          PEER_REPO: transmandu/SIGEAC_Backend
         run: |
           set -euo pipefail
 
@@ -75,58 +71,17 @@ jobs:
             minor) minor=$((minor + 1)); patch=0 ;;
             patch) patch=$((patch + 1)) ;;
           esac
-          candidate="$major.$minor.$patch"
-
-          # Versión única entre repos: si el hermano ya va más adelante, se
-          # adopta su número en lugar de quedar atrás.
-          # No poder leer al hermano se detiene aquí: continuar con 0.0.0 haría
-          # que este repo recalcule desde cero y rompa la versión compartida.
-          if [ -z "${PEER_TOKEN:-}" ]; then
-            echo "::error::Falta PEER_REPO_TOKEN; sin él no se puede garantizar una versión única entre repos."
-            exit 1
-          fi
-
-          if ! response=$(curl -sS --fail-with-body \
-            -H "Authorization: Bearer $PEER_TOKEN" \
-            -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/$PEER_REPO/tags?per_page=100" 2>&1); then
-            echo "::error::No se pudo leer los tags de $PEER_REPO. Un repo privado responde 404 cuando el token no lo alcanza: revisa que PEER_REPO_TOKEN incluya ese repo con permiso de lectura de contenido."
-            echo "$response"
-            exit 1
-          fi
-
-          peer=$(grep -oE '"name" *: *"v[0-9]+\.[0-9]+\.[0-9]+"' <<<"$response" \
-            | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' \
-            | sort -V | tail -1)
-          # Un repo hermano recién creado aún no tiene tags; eso sí es un 0.0.0 legítimo.
-          peer=${peer:-0.0.0}
-          echo "Última versión del hermano: $peer"
-
-          # El hermano solo eleva la base; el incremento propio se aplica igual
-          # para que este merge no comparta número con un release ya existente.
-          highest=$(printf '%s\n%s\n' "$candidate" "$peer" | sort -V | tail -1)
-
-          # Comparar contra el hermano y no contra el candidato cubre el empate:
-          # si coinciden, el tag ya existiría en el otro repo.
-          if [ "$highest" = "$peer" ]; then
-            IFS=. read -r major minor patch <<<"$highest"
-            case "$bump" in
-              major) major=$((major + 1)); minor=0; patch=0 ;;
-              minor) minor=$((minor + 1)); patch=0 ;;
-              patch) patch=$((patch + 1)) ;;
-            esac
-            highest="$major.$minor.$patch"
-          fi
+          next="$major.$minor.$patch"
 
           # Un tag ya existente significa que el cálculo se repitió sobre una
           # versión publicada; seguir crearía un commit que nunca se puede taguear.
-          if git rev-parse "v$highest" >/dev/null 2>&1; then
-            echo "::error::El tag v$highest ya existe. Se detiene antes de crear un commit de release imposible de publicar."
+          if git rev-parse "v$next" >/dev/null 2>&1; then
+            echo "::error::El tag v$next ya existe. Se detiene antes de crear un commit de release imposible de publicar."
             exit 1
           fi
 
-          echo "Versión nueva: $highest"
-          echo "version=$highest" >>"$GITHUB_OUTPUT"
+          echo "Versión nueva: $next"
+          echo "version=$next" >>"$GITHUB_OUTPUT"
           echo "previous=$current" >>"$GITHUB_OUTPUT"
 
       - name: Actualizar package.json y changelog
