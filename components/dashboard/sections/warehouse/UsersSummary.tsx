@@ -129,7 +129,7 @@ export default function UsersSummary({
             </CardTitle>
 
             <CardDescription className="mx-auto max-w-md text-sm leading-relaxed text-slate-500 dark:text-slate-400">
-              Última actividad y cargo
+              Cargo y estado de conexión
             </CardDescription>
           </CardHeader>
 
@@ -153,17 +153,28 @@ export default function UsersSummary({
                       </TableHeader>
 
                       <TableBody>
-                        {filteredUsers.map(u => (
-                          <TableRow key={u.id}>
-                            <TableCell className="text-center">{u.name}</TableCell>
-                            <TableCell className="text-center">{u.job_title}</TableCell>
-                            <TableCell className="text-center">
-                              <span className={`px-3 py-1 rounded-full text-xs font-medium ${presenceStyles[getPresenceStatus(u.id)]}`}>
-                                {presenceLabels[getPresenceStatus(u.id)]}
-                              </span>
-                            </TableCell>
-                          </TableRow>
-                        ))}
+                        {filteredUsers.map(u => {
+                          const status = getPresenceStatus(u.id)
+
+                          return (
+                            <TableRow key={u.id}>
+                              <TableCell className="text-center">{u.name}</TableCell>
+                              <TableCell className="text-center">{u.job_title}</TableCell>
+                              <TableCell className="text-center">
+                                <div className="flex flex-col items-center gap-1">
+                                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${presenceStyles[status]}`}>
+                                    {presenceLabels[status]}
+                                  </span>
+                                  {status === 'offline' && (
+                                    <span className="text-[11px] text-slate-400">
+                                      {u.last_used_at ?? 'Sin registro de acceso'}
+                                    </span>
+                                  )}
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          )
+                        })}
                       </TableBody>
 
                     </Table>
