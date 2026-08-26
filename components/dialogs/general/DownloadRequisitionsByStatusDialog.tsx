@@ -51,24 +51,6 @@ const STATUS_OPTIONS = [
 ] as const
 
 /**
- * Tipado mínimo de la File System Access API (showSaveFilePicker),
- * disponible solo en navegadores Chromium; aún no forma parte de lib.dom.
- */
-interface PdfWritableStream {
-  write(data: Blob): Promise<void>
-  close(): Promise<void>
-}
-
-interface PdfFileHandle {
-  createWritable(): Promise<PdfWritableStream>
-}
-
-type SaveFilePicker = (options?: {
-  suggestedName?: string
-  types?: { description?: string; accept: Record<string, string[]> }[]
-}) => Promise<PdfFileHandle>
-
-/**
  * Descarga el reporte "Solicitudes de Compra por Estado": se eligen los estados
  * a incluir y el PDF lista cada solicitud en una línea con sus artículos, cada
  * uno con su etapa en el ciclo de compra (si ya se pagó y si ya se recibió).
@@ -104,60 +86,30 @@ export function DownloadRequisitionsByStatusDialog() {
       return
     }
 
-    const fileName = `solicitudes-por-estado-${new Date()
-      .toISOString()
-      .slice(0, 10)
-      .replace(/-/g, '')}.pdf`
-
     try {
-      // El PDF se pide ANTES de abrir el selector de destino: showSaveFilePicker
-      // crea el archivo en disco apenas se elige la ruta, así que preguntar
-      // primero dejaba un .pdf de 0 bytes cuando el backend respondía error.
       const blob = await downloadPdf({
         company: selectedCompany.slug,
         locationId: selectedStation,
         statuses: selected,
       })
 
-      let fileHandle: PdfFileHandle | null = null
+      if (!blob) return
 
-      const showSaveFilePicker = (
-        window as Window & { showSaveFilePicker?: SaveFilePicker }
-      ).showSaveFilePicker
+      const url = URL.createObjectURL(blob)
+      const anchor = document.createElement('a')
 
-      if (showSaveFilePicker) {
-        try {
-          fileHandle = await showSaveFilePicker({
-            suggestedName: fileName,
-            types: [
-              { description: 'Documento PDF', accept: { 'application/pdf': ['.pdf'] } },
-            ],
-          })
-        } catch (error) {
-          // Cerró el diálogo sin elegir destino: no hay nada que hacer
-          if ((error as DOMException)?.name === 'AbortError') return
+      anchor.href = url
+      anchor.download = `solicitudes-por-estado-${new Date()
+        .toISOString()
+        .slice(0, 10)
+        .replace(/-/g, '')}.pdf`
 
-          // Falló por otra razón: continuar con la descarga clásica
-          fileHandle = null
-        }
-      }
-
-      if (fileHandle) {
-        const writable = await fileHandle.createWritable()
-        await writable.write(blob)
-        await writable.close()
-      } else {
-        const url = URL.createObjectURL(blob)
-        const anchor = document.createElement('a')
-        anchor.href = url
-        anchor.download = fileName
-        // El ancla debe estar en el documento: Firefox ignora el click sobre un
-        // elemento suelto y la descarga no ocurría.
-        document.body.appendChild(anchor)
-        anchor.click()
-        anchor.remove()
-        URL.revokeObjectURL(url)
-      }
+      // El ancla debe estar en el documento: Firefox ignora el click sobre un
+      // elemento suelto y la descarga no ocurría.
+      document.body.appendChild(anchor)
+      anchor.click()
+      anchor.remove()
+      setTimeout(() => URL.revokeObjectURL(url), 100)
 
       toast.success('Reporte de solicitudes generado')
       setOpen(false)

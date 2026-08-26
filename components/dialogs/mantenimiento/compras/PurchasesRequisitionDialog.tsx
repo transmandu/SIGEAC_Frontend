@@ -24,6 +24,7 @@ import {
   Package,
   Plane,
   FilePlus2,
+  Plus,
 } from 'lucide-react'
 
 import { CreateAeronauticalRequisitionForm } from '@/components/forms/mantenimiento/compras/CreateAeronauticalRequisitionForm'
@@ -40,7 +41,8 @@ export function PurchasesRequisitionDialog() {
       {/* ===================== TRIGGER ===================== */}
       <DialogTrigger asChild>
         <ActionTriggerButton>
-          Nueva solicitud
+          <Plus className="size-4" />
+           Nueva solicitud
         </ActionTriggerButton>
       </DialogTrigger>
 

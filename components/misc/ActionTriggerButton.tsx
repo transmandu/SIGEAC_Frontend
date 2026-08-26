@@ -13,8 +13,8 @@ type ChildProps = {
 /**
  * Botón que abre un diálogo de acción (crear, descargar, generar reporte).
  *
- * Base neutra con borde sólido; el azul aparece solo al apuntarlo, junto con un
- * brillo que sigue al cursor y un leve levantamiento. El brillo se pinta por
+ * Base neutra con borde estándar; el azul aparece solo al apuntarlo, junto con
+ * un brillo que sigue al cursor y un leve levantamiento. El brillo se pinta por
  * `style` porque su posición es dinámica y no puede salir de una clase.
  *
  * Va dentro de `DialogTrigger asChild`, que inyecta onClick y aria-*: por eso
@@ -39,27 +39,28 @@ export const ActionTriggerButton = React.forwardRef<
   ref,
 ) {
   const [hovered, setHovered] = React.useState(false);
-  const [pos, setPos] = React.useState({ x: 50, y: 50 });
+  const [pos, setPos] = React.useState({ x: 0, y: 0 });
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const track = (e: React.MouseEvent<HTMLButtonElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
-    setPos({
-      x: ((e.clientX - rect.left) / rect.width) * 100,
-      y: ((e.clientY - rect.top) / rect.height) * 100,
-    });
-    onMouseMove?.(e);
+    setPos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
   };
 
-  /* El único tinte del hover es este brillo siguiendo al cursor. Va en su
-     propia capa para poder desvanecerse: sobre el `background` del botón solo
-     podría aparecer y desaparecer de golpe. */
+  /* Va en su propia capa para poder desvanecerse: sobre el `background` del
+     botón solo podría aparecer y desaparecer de golpe.
+
+     El radio es fijo en px —y el centro en px, no en %— porque el tamaño por
+     defecto se escala con el botón: en los anchos el brillo cubría todo.
+
+     El color no hereda del token, que es oscuro y saturado: un pastel necesita
+     saturación baja y luminosidad alta, o el brillo lee como un foco azul. */
   const glow = (
     <span
       aria-hidden
       className="pointer-events-none absolute inset-0 transition-opacity duration-300 ease-out"
       style={{
         opacity: hovered && !disabled ? 1 : 0,
-        backgroundImage: `radial-gradient(circle at ${pos.x}% ${pos.y}%, hsl(var(--primary) / 0.10), transparent 60%)`,
+        backgroundImage: `radial-gradient(circle 55px at ${pos.x}px ${pos.y}px, hsl(var(--primary-h, 226) 55% 78% / 0.30), hsl(var(--primary-h, 226) 55% 78% / 0.10) 50%, transparent 75%)`,
       }}
     />
   );
@@ -99,6 +100,9 @@ export const ActionTriggerButton = React.forwardRef<
       variant="outline"
       disabled={disabled}
       onMouseEnter={(e) => {
+        // También aquí: con el centro en px, sin posición previa el brillo
+        // arrancaría en la esquina.
+        track(e);
         setHovered(true);
         onMouseEnter?.(e);
       }}
@@ -106,15 +110,21 @@ export const ActionTriggerButton = React.forwardRef<
         setHovered(false);
         onMouseLeave?.(e);
       }}
-      onMouseMove={handleMouseMove}
+      onMouseMove={(e) => {
+        track(e);
+        onMouseMove?.(e);
+      }}
       className={cn(
         "relative overflow-hidden h-10 px-4 rounded-md",
-        // El trazo va al 40% y el fondo translúcido sobre blur: el botón se
-        // apoya en la superficie en vez de recortarse contra ella.
-        "border border-foreground/40 bg-background/70 backdrop-blur",
-        "text-foreground/90 font-medium tracking-wide",
+        // Fondo sólido: el brillo del hover se enturbiaba sobre una base
+        // translúcida con blur.
+        "border-border bg-background",
+        "text-foreground font-medium",
         "shadow-sm transition-all duration-200",
-        "hover:border-primary/50 hover:text-primary hover:shadow-md",
+        // El fondo no cambia al apuntar; el único tinte es el brillo que sigue
+        // al cursor. `hover:bg-transparent` anula el gris de la variante.
+        "hover:bg-transparent",
+        "hover:border-primary/40 hover:text-primary hover:shadow-md",
         "hover:-translate-y-[1px]",
         "active:translate-y-0 active:shadow-sm",
         "focus-visible:ring-2 focus-visible:ring-primary/20",
