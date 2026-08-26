@@ -5,19 +5,18 @@ import { useQuery } from "@tanstack/react-query";
 const fetchWorkOrderEmployees = async ({
   company,
   location_id,
-  acronym,
+  acronyms,
 }: {
   company: string;
   location_id: string;
-  acronym: string;
+  acronyms: string;
 }): Promise<Employee[]> => {
   if (!company) {
     throw new Error("Company is required");
   }
 
-  console.log(`Fetching employees for company: ${company}`);
   const { data } = await axiosInstance.get(
-    `/${company}/${location_id}/employees-by-department/${acronym}`
+    `/${company}/${location_id}/employees-by-department/${acronyms}`
   );
   return data;
 };
@@ -29,18 +28,26 @@ export const useGetWorkOrderEmployees = ({
 }: {
   company?: string;
   location_id?: string;
-  acronym: string;
+  acronym: string | string[];
 }) => {
-  const isEnabled = !!company && !!location_id;
+  const acronyms = (Array.isArray(acronym) ? acronym : [acronym])
+    .map((value) => value.trim().toUpperCase())
+    .filter(Boolean);
+
+  const uniqueAcronyms = Array.from(new Set(acronyms)).sort();
+  const acronymsParam = uniqueAcronyms.join(",");
+
+  const isEnabled = !!company && !!location_id && uniqueAcronyms.length > 0;
 
   return useQuery<Employee[]>({
-    // Comparte key con el resto de hooks de empleados para reaprovechar caché.
-    queryKey: ["employees", company],
+    // Los acrónimos y la sede son parte de la key: sin ellos, dos formularios
+    // con departamentos distintos se sirven la lista cacheada del otro.
+    queryKey: ["employees", company, location_id, acronymsParam],
     queryFn: () =>
       fetchWorkOrderEmployees({
         company: company!,
         location_id: location_id!,
-        acronym,
+        acronyms: acronymsParam,
       }),
     enabled: isEnabled,
     staleTime: 1000 * 60 * 5,

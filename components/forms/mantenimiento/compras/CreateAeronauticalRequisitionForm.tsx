@@ -82,10 +82,27 @@ export function CreateAeronauticalRequisitionForm({
 
   const { selectedCompany, selectedStation } = useCompanyStore();
 
+  // Solicitantes base: mantenimiento, almacén e ingeniería (ambas sedes; el
+  // backend acota por location_id). Si el usuario pertenece a otro departamento
+  // y aun así llegó al formulario, se suman también sus compañeros.
+  const requesterAcronyms = useMemo(() => {
+    const base = ["MANP", "MANC", "ALMP", "ALMC", "INGP", "INGC"];
+
+    // Solo el perfil de la compañía activa: el acrónimo de otro tenant no
+    // existe aquí y traería una lista vacía o ajena.
+    const slug = selectedCompany?.slug?.toLowerCase();
+    const ownAcronym = slug
+      ? user?.employee?.find((emp) => emp.company?.toLowerCase() === slug)
+          ?.department?.acronym
+      : undefined;
+
+    return ownAcronym ? [...base, ownAcronym] : base;
+  }, [user, selectedCompany?.slug]);
+
   const { data: employees, isLoading: employeesLoading } = useGetWorkOrderEmployees({
     company: selectedCompany?.slug,
     location_id: selectedStation ?? undefined,
-    acronym: "MANP",
+    acronym: requesterAcronyms,
   });
 
   const { data: units, isLoading: isUnitsLoading } = useGetUnits(selectedCompany?.slug);
