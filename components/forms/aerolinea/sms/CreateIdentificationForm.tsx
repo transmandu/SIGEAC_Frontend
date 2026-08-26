@@ -48,7 +48,7 @@ const FormSchema = z.object({
   danger: z
     .string()
     .min(3, { message: "El peligro debe tener al menos 3 caracteres" })
-    .max(1000, { message: "El peligro no debe exceder los 245 caracteres" }),
+    .max(1000, { message: "El peligro no debe exceder los 1000 caracteres" }),
   danger_area: z.string(),
   risk_management_start_date: z
     .date()
@@ -64,7 +64,7 @@ const FormSchema = z.object({
   description: z
     .string()
     .min(3, { message: "La descripcion debe tener al menos 3 caracteres" })
-    .max(1000, { message: "La descripcion no debe exceder los 245 caracteres" }),
+    .max(1000, { message: "La descripcion no debe exceder los 2000 caracteres" }),
   possible_consequences: z
     .string()
     .min(1, {
