@@ -5,6 +5,9 @@ name: Release
 on:
   push:
     branches: [main]
+  # Un merge cuyo release no llegó a correr (una incidencia de Actions, por
+  # ejemplo) deja main sin versionar y no hay push que lo repita.
+  workflow_dispatch:
 
 # Dos merges seguidos pisarían el mismo tag. El segundo espera al primero en
 # lugar de cancelarlo: cancelar dejaría commits sin versionar.
@@ -19,8 +22,9 @@ jobs:
   release:
     runs-on: ubuntu-latest
     # Los commits que este workflow crea vuelven a disparar el push. Sin esto
-    # el workflow se llamaría a sí mismo en bucle.
-    if: "!startsWith(github.event.head_commit.message, 'chore(release):')"
+    # el workflow se llamaría a sí mismo en bucle. En un lanzamiento manual no
+    # hay head_commit y la comparación se evalúa contra vacío, que no coincide.
+    if: "!startsWith(github.event.head_commit.message || '', 'chore(release):')"
 
     steps:
       - uses: actions/checkout@v4
