@@ -75,19 +75,27 @@ jobs:
 
           # Versión única entre repos: si el hermano ya va más adelante, se
           # adopta su número en lugar de quedar atrás.
-          peer="0.0.0"
-          if [ -n "${PEER_TOKEN:-}" ]; then
-            peer=$(curl -sf \
-              -H "Authorization: Bearer $PEER_TOKEN" \
-              -H "Accept: application/vnd.github+json" \
-              "https://api.github.com/repos/$PEER_REPO/tags?per_page=100" \
-              | grep -oE '"name": *"v[0-9]+\.[0-9]+\.[0-9]+"' \
-              | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' \
-              | sort -V | tail -1) || peer="0.0.0"
-            peer=${peer:-0.0.0}
-          else
-            echo "::warning::Sin PEER_REPO_TOKEN; no se pudo comprobar la versión del repo hermano."
+          # No poder leer al hermano se detiene aquí: continuar con 0.0.0 haría
+          # que este repo recalcule desde cero y rompa la versión compartida.
+          if [ -z "${PEER_TOKEN:-}" ]; then
+            echo "::error::Falta PEER_REPO_TOKEN; sin él no se puede garantizar una versión única entre repos."
+            exit 1
           fi
+
+          if ! response=$(curl -sS --fail-with-body \
+            -H "Authorization: Bearer $PEER_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/$PEER_REPO/tags?per_page=100" 2>&1); then
+            echo "::error::No se pudo leer los tags de $PEER_REPO. Un repo privado responde 404 cuando el token no lo alcanza: revisa que PEER_REPO_TOKEN incluya ese repo con permiso de lectura de contenido."
+            echo "$response"
+            exit 1
+          fi
+
+          peer=$(grep -oE '"name" *: *"v[0-9]+\.[0-9]+\.[0-9]+"' <<<"$response" \
+            | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' \
+            | sort -V | tail -1)
+          # Un repo hermano recién creado aún no tiene tags; eso sí es un 0.0.0 legítimo.
+          peer=${peer:-0.0.0}
           echo "Última versión del hermano: $peer"
 
           # El hermano solo eleva la base; el incremento propio se aplica igual
@@ -104,6 +112,13 @@ jobs:
               patch) patch=$((patch + 1)) ;;
             esac
             highest="$major.$minor.$patch"
+          fi
+
+          # Un tag ya existente significa que el cálculo se repitió sobre una
+          # versión publicada; seguir crearía un commit que nunca se puede taguear.
+          if git rev-parse "v$highest" >/dev/null 2>&1; then
+            echo "::error::El tag v$highest ya existe. Se detiene antes de crear un commit de release imposible de publicar."
+            exit 1
           fi
 
           echo "Versión nueva: $highest"
