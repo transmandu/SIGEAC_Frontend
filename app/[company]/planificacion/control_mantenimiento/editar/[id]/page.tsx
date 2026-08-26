@@ -17,7 +17,7 @@ const EditMaintenanceControlPage = () => {
 
   return (
     <ContentLayout title="Editar Control de Mantenimiento">
-      <PageHeader className="mb-6" />
+      <PageHeader className="mb-6" currentLabel={data?.aircraft?.acronym} />
 
       <div className="space-y-2">
         <div className="space-y-1 mb-4">

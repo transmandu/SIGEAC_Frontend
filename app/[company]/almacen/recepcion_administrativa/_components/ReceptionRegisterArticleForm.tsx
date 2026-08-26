@@ -38,13 +38,7 @@ const ReceptionRegisterArticleForm = ({
             {/* Al editar la categoría no puede cambiar: el artículo ya existe
                 bajo un lote de esa categoría. */}
             {!isEditing && (
-                <div className="space-y-2.5">
-                    <p className="text-sm text-muted-foreground">
-                        Seleccione el tipo de artículo a recepcionar. Si ya existe en el
-                        sistema se actualizará su información y se agregará un nuevo lote.
-                    </p>
-                    <ArticleCategoryPicker value={category} onChange={setCategory} />
-                </div>
+                <ArticleCategoryPicker value={category} onChange={setCategory} />
             )}
 
             {category === "COMPONENT" && (

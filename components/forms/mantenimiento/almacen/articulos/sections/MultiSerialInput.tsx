@@ -1,245 +1,137 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Trash2, Eye } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { fieldClass } from "../../_components/form-theme";
+
+import { TokenList } from "../../_components/TokenList";
+import { fieldClass, hintClass } from "../../_components/form-theme";
 
 interface MultiSerialInputProps {
-  values: string[];
-  onChange: (values: string[]) => void;
-  disabled?: boolean;
-  placeholder?: string;
+    values: string[];
+    onChange: (values: string[]) => void;
+    disabled?: boolean;
+    placeholder?: string;
+    /** Al editar sólo existe un artículo: no se acumulan seriales. */
+    single?: boolean;
 }
 
+/**
+ * Seriales del ingreso, uno por unidad a registrar.
+ *
+ * Se comporta igual que los números de parte alternos —escribir, Enter,
+ * insignia quitable— porque el usuario necesita ver la lista de unidades que va
+ * a crear, no un contador que le obligue a abrir un diálogo para revisarla.
+ */
 export function MultiSerialInput({
-  values = [],
-  onChange,
-  disabled = false,
-  placeholder = "Ej: 05458E1",
+    values = [],
+    onChange,
+    disabled = false,
+    placeholder = "Ej: 05458E1",
+    single = false,
 }: MultiSerialInputProps) {
-  const [currentValue, setCurrentValue] = useState("");
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingSerials, setEditingSerials] = useState<string[]>([]);
-  const [editIndex, setEditIndex] = useState<number | null>(null);
-  const [editValue, setEditValue] = useState("");
+    const [inputValue, setInputValue] = useState("");
+    const inputRef = useRef<HTMLInputElement | null>(null);
 
-  // Función para agregar un serial
-  const handleAddSerial = () => {
-    const trimmedValue = currentValue.trim().toUpperCase();
-    if (trimmedValue && !values.includes(trimmedValue)) {
-      onChange([...values, trimmedValue]);
-      setCurrentValue("");
-    }
-  };
+    const addSerial = () => {
+        const serial = inputValue.trim().toUpperCase();
+        if (!serial) return;
 
-  // Manejar Enter en el input
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      handleAddSerial();
-    }
-  };
+        if (single) {
+            onChange([serial]);
+        } else if (!values.includes(serial)) {
+            onChange([...values, serial]);
+        }
 
-  // Abrir modal con los seriales actuales
-  const handleOpenModal = () => {
-    setEditingSerials([...values]);
-    setIsModalOpen(true);
-  };
+        setInputValue("");
+        inputRef.current?.focus();
+    };
 
-  // Eliminar un serial del modal
-  const handleDeleteSerial = (index: number) => {
-    const newSerials = editingSerials.filter((_, i) => i !== index);
-    setEditingSerials(newSerials);
-  };
+    const removeSerial = (index: number) => {
+        onChange(values.filter((_, i) => i !== index));
+        inputRef.current?.focus();
+    };
 
-  // Iniciar edición de un serial
-  const handleStartEdit = (index: number) => {
-    setEditIndex(index);
-    setEditValue(editingSerials[index]);
-  };
+    const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+        if (disabled) return;
 
-  // Guardar edición de un serial
-  const handleSaveEdit = () => {
-    if (editIndex !== null && editValue.trim()) {
-      const newSerials = [...editingSerials];
-      newSerials[editIndex] = editValue.trim().toUpperCase();
-      setEditingSerials(newSerials);
-      setEditIndex(null);
-      setEditValue("");
-    }
-  };
+        if (event.key === "Enter" && inputValue.trim()) {
+            event.preventDefault();
+            addSerial();
+            return;
+        }
 
-  // Cancelar edición
-  const handleCancelEdit = () => {
-    setEditIndex(null);
-    setEditValue("");
-  };
+        if (event.key === "Backspace" && !inputValue && values.length) {
+            event.preventDefault();
+            removeSerial(values.length - 1);
+        }
+    };
 
-  // Guardar cambios del modal
-  const handleSaveChanges = () => {
-    onChange(editingSerials);
-    setIsModalOpen(false);
-  };
+    // Al pegar una columna de seriales se agregan todos de una vez: es la forma
+    // en que llegan desde un remito o una hoja de cálculo.
+    const handlePaste: React.ClipboardEventHandler<HTMLInputElement> = (event) => {
+        if (single) return;
 
-  return (
-    <div className="flex gap-2 w-full">
-      <div className="flex-1 relative">
-        <Input
-          value={currentValue}
-          onChange={(e) => setCurrentValue(e.target.value)}
-          onKeyDown={handleKeyDown}
-          onBlur={handleAddSerial}
-          placeholder={placeholder}
-          disabled={disabled}
-          className={fieldClass}
-        />
-      </div>
-      
-      {/* Botón contador (izquierda) */}
-      <Button
-        type="button"
-        variant="outline"
-        disabled={disabled}
-        className={cn(
-          fieldClass,
-          "min-w-[52px] shrink-0 font-semibold tabular-nums",
-          values.length > 0 && "border-primary/50 bg-primary/10 text-primary"
-        )}
-      >
-        {values.length}
-      </Button>
+        const pasted = event.clipboardData
+            .getData("text")
+            .split(/[,;\n\t]/)
+            .map((serial) => serial.trim().toUpperCase())
+            .filter(Boolean);
 
-      {/* Botón ver/editar (derecha) */}
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogTrigger asChild>
-          <Button
-            type="button"
-            variant="outline"
-            disabled={disabled || values.length === 0}
-            onClick={handleOpenModal}
-            aria-label="Ver seriales registrados"
-            className={cn(fieldClass, "shrink-0 px-3")}
-          >
-            <Eye className="h-4 w-4" />
-          </Button>
-        </DialogTrigger>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Seriales registrados</DialogTitle>
-            <DialogDescription>
-              Revisa y edita los seriales registrados. Puedes eliminar o modificar cualquier entrada.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-2 mt-4">
-            {editingSerials.length === 0 ? (
-              <div className="text-center text-muted-foreground py-8">
-                No hay seriales registrados
-              </div>
-            ) : (
-              editingSerials.map((serial, index) => (
-                <div
-                  key={index}
-                  className="flex items-center gap-2 p-3 border rounded-lg hover:bg-accent/50 transition-colors"
+        if (pasted.length <= 1) return;
+
+        event.preventDefault();
+        const next = [...values];
+        for (const serial of pasted) {
+            if (!next.includes(serial)) next.push(serial);
+        }
+        onChange(next);
+    };
+
+    const atSingleLimit = single && values.length > 0;
+
+    return (
+        <div className="w-full space-y-2">
+            <div className="flex gap-2">
+                <Input
+                    ref={inputRef}
+                    value={inputValue}
+                    disabled={disabled || atSingleLimit}
+                    onChange={(event) => setInputValue(event.target.value)}
+                    onKeyDown={handleKeyDown}
+                    onPaste={handlePaste}
+                    placeholder={placeholder}
+                    className={cn(fieldClass, "flex-1")}
+                />
+                <Button
+                    type="button"
+                    variant="outline"
+                    onClick={addSerial}
+                    disabled={disabled || atSingleLimit || !inputValue.trim()}
+                    className={cn(fieldClass, "shrink-0 px-4")}
                 >
-                  <span className="text-sm font-medium text-muted-foreground min-w-[30px]">
-                    {index + 1}.
-                  </span>
-                  
-                  {editIndex === index ? (
-                    <>
-                      <Input
-                        value={editValue}
-                        onChange={(e) => setEditValue(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            e.preventDefault();
-                            handleSaveEdit();
-                          } else if (e.key === "Escape") {
-                            handleCancelEdit();
-                          }
-                        }}
-                        className="flex-1"
-                        autoFocus
-                      />
-                      <Button
-                        type="button"
-                        size="sm"
-                        onClick={handleSaveEdit}
-                        variant="default"
-                      >
-                        Guardar
-                      </Button>
-                      <Button
-                        type="button"
-                        size="sm"
-                        onClick={handleCancelEdit}
-                        variant="ghost"
-                      >
-                        Cancelar
-                      </Button>
-                    </>
-                  ) : (
-                    <>
-                      <span
-                        className="flex-1 font-mono cursor-pointer hover:text-primary"
-                        onClick={() => handleStartEdit(index)}
-                      >
-                        {serial}
-                      </span>
-                      <Button
-                        type="button"
-                        size="sm"
-                        onClick={() => handleStartEdit(index)}
-                        variant="ghost"
-                      >
-                        Editar
-                      </Button>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleDeleteSerial(index)}
-                        className="text-destructive hover:text-destructive"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </>
-                  )}
-                </div>
-              ))
-            )}
-          </div>
+                    Agregar
+                </Button>
+            </div>
 
-          <div className="flex justify-end gap-2 mt-6 pt-4 border-t">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setIsModalOpen(false)}
-            >
-              Cancelar
-            </Button>
-            <Button
-              type="button"
-              onClick={handleSaveChanges}
-            >
-              Guardar cambios
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
+            <TokenList
+                values={values}
+                onRemove={removeSerial}
+                disabled={disabled}
+                numbered={!single}
+            />
+
+            <p className={hintClass}>
+                {single
+                    ? values.length === 0
+                        ? "Escriba el serial y presione Enter."
+                        : "Quite el serial para reemplazarlo."
+                    : values.length === 0
+                      ? "Escriba y presione Enter. Se registra un artículo por serial."
+                      : `${values.length} unidad${values.length === 1 ? "" : "es"} a registrar.`}
+            </p>
+        </div>
+    );
 }
-

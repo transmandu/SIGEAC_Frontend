@@ -633,29 +633,46 @@ const CreateGeneralArticleForm = ({
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel className={labelClass}>Unidad base</FormLabel>
-                                <Select
-                                    disabled={currentMode === "add"}
-                                    onValueChange={field.onChange}
-                                    defaultValue={field.value}
-                                    value={field.value}
-                                >
-                                    <FormControl>
-                                        <SelectTrigger className={selectTriggerClass}>
-                                            <SelectValue placeholder={isUnitsLoading ? "Cargando..." : "Seleccione"} />
-                                        </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                        {units?.map((u) => (
-                                            <SelectItem key={u.id} value={u.id.toString()}>
-                                                {u.label}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                {currentMode === "add" ? (
+                                    /* Al sumar stock la unidad no se elige: es la
+                                       del artículo. Se muestra como texto porque
+                                       un Select sólo sabe pintar la etiqueta si
+                                       encuentra su opción cargada, y aquí quedaba
+                                       en "Seleccione" sobre un artículo que sí
+                                       tiene unidad. */
+                                    <div
+                                        className={cn(
+                                            selectTriggerClass,
+                                            "flex items-center px-3 text-muted-foreground",
+                                        )}
+                                    >
+                                        {selectedArticle?.general_primary_unit?.label ?? "—"}
+                                    </div>
+                                ) : (
+                                    <Select
+                                        onValueChange={field.onChange}
+                                        value={field.value || undefined}
+                                    >
+                                        <FormControl>
+                                            <SelectTrigger className={selectTriggerClass}>
+                                                <SelectValue placeholder={isUnitsLoading ? "Cargando..." : "Seleccione"} />
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            {units?.map((u) => (
+                                                <SelectItem key={u.id} value={u.id.toString()}>
+                                                    {u.label}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                )}
                                 {/* La confusión que costó rehacer un artículo: la base
                                     cuenta unidades, no las mide. */}
                                 <FormDescription className="text-xs">
-                                    En qué se cuenta: UNIDADES, LÁMINA, CAJA…
+                                    {currentMode === "add"
+                                        ? "Unidad en la que se cuenta este artículo."
+                                        : "En qué se cuenta: UNIDADES, LÁMINA, CAJA…"}
                                 </FormDescription>
                                 <FormMessage />
                             </FormItem>

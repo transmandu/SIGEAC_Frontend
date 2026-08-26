@@ -31,6 +31,13 @@ interface DatePickerFieldProps {
   showNotApplicable?: boolean;
   required?: boolean;
   error?: string;
+  /**
+   * Sube "No aplica" a la línea del rótulo.
+   *
+   * Debajo del campo, la casilla añade una línea que los campos vecinos no
+   * tienen y desalinea el input cuando comparten fila.
+   */
+  notApplicableInLabel?: boolean;
 }
 
 export function DatePickerField({
@@ -44,6 +51,7 @@ export function DatePickerField({
   showNotApplicable = false,
   required = false,
   error,
+  notApplicableInLabel = false,
 }: DatePickerFieldProps) {
   const [touched, setTouched] = useState(false);
   const [inputValue, setInputValue] = useState("");
@@ -54,11 +62,21 @@ export function DatePickerField({
   // quedarían enlazadas al mismo control.
   const checkboxId = `${useId()}-not-applicable`;
 
-  const renderLabel = () => (
-    <label className={cn(labelClass, "block leading-none")}>
-      {label}
-      {required && <span className="ml-1 text-destructive">*</span>}
-    </label>
+  /**
+   * Rótulo del campo, opcionalmente con la casilla "No aplica" a su derecha.
+   *
+   * La fila mide lo mismo que la casilla, que es el elemento más alto, y el
+   * hueco hasta el input lo pone el `space-y-2` del contenedor: así el input
+   * arranca a la misma altura que los campos con los que comparte fila.
+   */
+  const renderLabel = (checkbox?: React.ReactNode) => (
+    <div className="flex h-4 items-center justify-between gap-3">
+      <label className={cn(labelClass, "leading-none")}>
+        {label}
+        {required && <span className="ml-1 text-destructive">*</span>}
+      </label>
+      {checkbox}
+    </div>
   );
 
   const isInvalid = required && value === undefined && touched;
@@ -182,9 +200,25 @@ export function DatePickerField({
   const notApplicable = showNotApplicable && value === null;
   const disabled = busy || notApplicable;
 
+  const notApplicableCheckbox = showNotApplicable ? (
+    <label
+      htmlFor={checkboxId}
+      className="flex shrink-0 cursor-pointer select-none items-center gap-1.5 text-[13px] text-muted-foreground"
+    >
+      <Checkbox
+        id={checkboxId}
+        checked={value === null}
+        onCheckedChange={handleNotApplicableChange}
+        disabled={busy}
+        className="h-4 w-4"
+      />
+      No aplica
+    </label>
+  ) : null;
+
   return (
     <div className="w-full space-y-2">
-      {renderLabel()}
+      {renderLabel(notApplicableInLabel ? notApplicableCheckbox : undefined)}
 
       {/* Un solo control: se escribe la fecha y el icono abre el calendario.
           Antes había dos botones de modo que ocupaban una fila entera por
@@ -230,7 +264,20 @@ export function DatePickerField({
                 <CalendarIcon className="h-4 w-4" />
               </button>
             </PopoverTrigger>
-            <PopoverContent className="z-[100] w-auto p-0" align="end" side="bottom">
+            <PopoverContent
+              className="z-[100] w-auto rounded-xl border-slate-400/60 p-0 shadow-lg dark:border-slate-600/60"
+              align="end"
+              side="bottom"
+              sideOffset={8}
+              // Los selectores de mes y año se montan en su propio portal:
+              // elegir uno cuenta como clic fuera y cerraría el calendario.
+              onInteractOutside={(event) => {
+                const target = event.target as HTMLElement | null;
+                if (target?.closest("[data-radix-select-viewport]")) {
+                  event.preventDefault();
+                }
+              }}
+            >
               <Calendar
                 locale={es}
                 mode="single"
@@ -246,29 +293,17 @@ export function DatePickerField({
         </div>
       </div>
 
-      <div className="flex items-start justify-between gap-3">
-        {description ? (
-          <p className={cn(hintClass, "min-w-0 flex-1")}>{description}</p>
-        ) : (
-          <span className="flex-1" />
-        )}
+      {(description || !notApplicableInLabel) && (
+        <div className="flex items-start justify-between gap-3">
+          {description ? (
+            <p className={cn(hintClass, "min-w-0 flex-1")}>{description}</p>
+          ) : (
+            <span className="flex-1" />
+          )}
 
-        {showNotApplicable && (
-          <label
-            htmlFor={checkboxId}
-            className="flex shrink-0 cursor-pointer select-none items-center gap-1.5 text-[13px] text-muted-foreground"
-          >
-            <Checkbox
-              id={checkboxId}
-              checked={value === null}
-              onCheckedChange={handleNotApplicableChange}
-              disabled={busy}
-              className="h-4 w-4"
-            />
-            No aplica
-          </label>
-        )}
-      </div>
+          {!notApplicableInLabel && notApplicableCheckbox}
+        </div>
+      )}
 
       {displayError && (
         <p className="text-sm font-medium text-destructive">{displayError}</p>

@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { DatePickerField } from "@/components/ui/DatePickerField";
+import { cn } from "@/lib/utils";
 
 import {
     hintClass,
@@ -45,7 +46,7 @@ export const LifeLimitRow = ({
     onCalendarChange: (date?: Date | null) => void;
     disabled?: boolean;
 }) => (
-    <div className="space-y-3">
+    <div className="space-y-2">
         <div className="space-y-0.5">
             <h4 className="text-sm font-semibold text-foreground/90">{title}</h4>
             {hint && <p className={hintClass}>{hint}</p>}
@@ -57,7 +58,12 @@ export const LifeLimitRow = ({
                 name={hoursName}
                 render={({ field }) => (
                     <FormItem className="w-full">
-                        <FormLabel className={labelClass}>Horas</FormLabel>
+                        {/* `h-4`: la fecha tope lleva la casilla "No aplica" en
+                            su rótulo, más alta que el texto. Igualando la altura
+                            los tres inputs quedan en la misma línea. */}
+                        <FormLabel className={cn(labelClass, "flex h-4 items-center")}>
+                            Horas
+                        </FormLabel>
                         <FormControl>
                             <Input
                                 inputMode="decimal"
@@ -79,7 +85,9 @@ export const LifeLimitRow = ({
                 name={cyclesName}
                 render={({ field }) => (
                     <FormItem className="w-full">
-                        <FormLabel className={labelClass}>Ciclos</FormLabel>
+                        <FormLabel className={cn(labelClass, "flex h-4 items-center")}>
+                            Ciclos
+                        </FormLabel>
                         <FormControl>
                             <Input
                                 inputMode="numeric"
@@ -96,16 +104,15 @@ export const LifeLimitRow = ({
                 )}
             />
 
-            <FormItem className="w-full">
-                <DatePickerField
-                    label="Fecha tope"
-                    value={calendarValue}
-                    setValue={onCalendarChange}
-                    busy={disabled}
-                    shortcuts="forward"
-                    showNotApplicable
-                />
-            </FormItem>
+            <DatePickerField
+                label="Fecha tope"
+                value={calendarValue}
+                setValue={onCalendarChange}
+                busy={disabled}
+                shortcuts="forward"
+                showNotApplicable
+                notApplicableInLabel
+            />
         </div>
     </div>
 );

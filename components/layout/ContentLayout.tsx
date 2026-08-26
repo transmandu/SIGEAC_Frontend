@@ -28,7 +28,7 @@ export function ContentLayout({ title, children }: ContentLayoutProps) {
     // Ancho completo con un margen propio: `container` imponía un ancho máximo
     // y encima sumaba su padding, dejando la página flotando en pantallas
     // anchas. El tope alto evita la línea de texto interminable.
-    <div className="relative z-0 mx-auto w-full max-w-[1600px] px-4 py-6 sm:px-6 lg:px-8">
+    <div className="relative z-0 mx-auto w-full max-w-[1600px] px-5 py-6 sm:px-8 lg:px-12">
       {children}
     </div>
   );

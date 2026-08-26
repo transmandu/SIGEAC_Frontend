@@ -76,7 +76,7 @@ const EditarManifiestoPage = () => {
     <ContentLayout title={`Editar Manifiesto ${manifest.manifest_number}`}>
       <div className="flex flex-col gap-4">
         {/* Breadcrumb */}
-        <PageHeader className="mb-2" />
+        <PageHeader className="mb-2" currentLabel={manifest?.manifest_number} />
 
         {/* Header */}
         <div className="flex items-center gap-4 mb-4">

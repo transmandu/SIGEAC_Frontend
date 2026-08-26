@@ -50,8 +50,6 @@ export const ArticleDetailsSection = ({
     onDocumentsChange,
     consignedRequirements,
     disabled,
-    /** Casillas propias del flujo, p. ej. destino indeterminado. */
-    extraChecks,
 }: {
     control: Control<any>;
     descriptionName?: string;
@@ -68,7 +66,6 @@ export const ArticleDetailsSection = ({
     onDocumentsChange: (documents: ArticleDocumentSelection[]) => void;
     consignedRequirements?: ArticleDocumentRequirementSummary[];
     disabled?: boolean;
-    extraChecks?: React.ReactNode;
 }) => (
     <FormSection
         icon={FileText}
@@ -114,8 +111,6 @@ export const ArticleDetailsSection = ({
             </div>
 
             <div className="space-y-3">
-                {extraChecks}
-
                 <CheckboxCard
                     id="has-documentation"
                     checked={hasDocumentation}

@@ -356,7 +356,7 @@ const MaintenanceControlDetailPage = () => {
 
   return (
     <ContentLayout title={control.title}>
-      <PageHeader className="mb-6" />
+      <PageHeader className="mb-6" currentLabel={control.title} />
 
       <div className="mx-auto w-full max-w-7xl space-y-6">
         <header className="flex flex-col items-center gap-3 text-center sm:flex-row sm:items-start sm:justify-between sm:text-left">

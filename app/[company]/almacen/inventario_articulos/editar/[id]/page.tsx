@@ -21,7 +21,7 @@ const EditArticlePage = () => {
   }
   return (
     <ContentLayout title="Editar Articulo">
-      <PageHeader className="mb-6" />
+      <PageHeader className="mb-6" currentLabel={data?.part_number} />
 
       <div className="space-y-5">
         <div className="space-y-1">

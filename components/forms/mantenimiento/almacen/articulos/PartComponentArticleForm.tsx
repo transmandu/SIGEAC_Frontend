@@ -484,30 +484,29 @@ export default function PartComponentArticleForm({
                             });
                         }
                     }}
+                    identifiers={
+                        <FormField
+                            control={form.control}
+                            name="serial"
+                            render={({ field }) => (
+                                <FormItem className="w-full">
+                                    <FormLabel className={labelClass}>
+                                        {isEditing ? "Serial" : "Seriales a registrar"}
+                                    </FormLabel>
+                                    <FormControl>
+                                        <MultiSerialInput
+                                            values={field.value ?? []}
+                                            onChange={field.onChange}
+                                            disabled={busy}
+                                            single={isEditing}
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    }
                 >
-                    <FormField
-                        control={form.control}
-                        name="serial"
-                        render={({ field }) => (
-                            <FormItem className="w-full">
-                                <FormLabel className={labelClass}>Serial</FormLabel>
-                                <FormControl>
-                                    <MultiSerialInput
-                                        values={field.value ?? []}
-                                        onChange={field.onChange}
-                                        disabled={busy}
-                                    />
-                                </FormControl>
-                                <FormDescription className={hintClass}>
-                                    {isEditing
-                                        ? "Serial del artículo, si aplica."
-                                        : "Un serial por unidad: se registra un artículo por cada uno."}
-                                </FormDescription>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
                     <FormField
                         control={form.control}
                         name="condition_id"
@@ -610,30 +609,28 @@ export default function PartComponentArticleForm({
                     hint="Fabricación y próximo vencimiento."
                 >
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                        <FormItem className="w-full">
-                            <DatePickerField
-                                label="Fecha de fabricación"
-                                value={fabricationDate}
-                                setValue={setFabricationDate}
-                                description={`Fecha de fabricación del ${categoryLabel.toLowerCase()}.`}
-                                busy={busy}
-                                shortcuts="back"
-                                maxYear={new Date().getFullYear()}
-                                showNotApplicable
-                            />
-                        </FormItem>
+                        <DatePickerField
+                            label="Fecha de fabricación"
+                            value={fabricationDate}
+                            setValue={setFabricationDate}
+                            description={`Fecha de fabricación del ${categoryLabel.toLowerCase()}.`}
+                            busy={busy}
+                            shortcuts="back"
+                            maxYear={new Date().getFullYear()}
+                            showNotApplicable
+                            notApplicableInLabel
+                        />
 
-                        <FormItem className="w-full">
-                            <DatePickerField
-                                label="Próximo vencimiento"
-                                value={expirationDate}
-                                setValue={setExpirationDate}
-                                description={`Fecha de vencimiento del ${categoryLabel.toLowerCase()}.`}
-                                busy={busy}
-                                shortcuts="forward"
-                                showNotApplicable
-                            />
-                        </FormItem>
+                        <DatePickerField
+                            label="Próximo vencimiento"
+                            value={expirationDate}
+                            setValue={setExpirationDate}
+                            description={`Fecha de vencimiento del ${categoryLabel.toLowerCase()}.`}
+                            busy={busy}
+                            shortcuts="forward"
+                            showNotApplicable
+                            notApplicableInLabel
+                        />
                     </div>
                 </FormSection>
 
@@ -655,21 +652,19 @@ export default function PartComponentArticleForm({
                         />
 
                         {isEngineering && (
-                            <div className="border-t border-slate-400/30 pt-5 dark:border-slate-600/30">
-                                <LifeLimitRow
-                                    control={form.control}
-                                    title="Hard Time"
-                                    hint="Intervalo entre overhauls; al cumplirse, el artículo va a mantenimiento."
-                                    hoursName="hard_time_hours"
-                                    cyclesName="hard_time_cycles"
-                                    calendarValue={hardTimeCalendar}
-                                    onCalendarChange={setHardTimeCalendar}
-                                    disabled={busy}
-                                />
-                            </div>
+                            <LifeLimitRow
+                                control={form.control}
+                                title="Hard Time"
+                                hint="Intervalo entre overhauls; al cumplirse, el artículo va a mantenimiento."
+                                hoursName="hard_time_hours"
+                                cyclesName="hard_time_cycles"
+                                calendarValue={hardTimeCalendar}
+                                onCalendarChange={setHardTimeCalendar}
+                                disabled={busy}
+                            />
                         )}
 
-                        <div className="space-y-3 border-t border-slate-400/30 pt-5 dark:border-slate-600/30">
+                        <div className="space-y-2">
                             <div className="space-y-0.5">
                                 <h4 className="text-sm font-semibold text-foreground/90">
                                     Shelf Life
@@ -761,10 +756,9 @@ export default function PartComponentArticleForm({
                     onDocumentsChange={setDocuments}
                     consignedRequirements={initialData?.document_requirements}
                     disabled={busy}
-                    extraChecks={
-                        !isEditing && <DestinationChecks form={form} disabled={busy} />
-                    }
                 />
+
+                {!isEditing && <DestinationChecks form={form} disabled={busy} />}
             </ArticleFormShell>
 
             <ArticlePreviewDialog

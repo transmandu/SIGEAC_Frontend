@@ -83,7 +83,16 @@ export const SearchableSelect = <T extends { id: number | string; name: string }
                     </Button>
                 </FormControl>
             </PopoverTrigger>
-            <PopoverContent className="w-[300px] p-0">
+            {/* Al ancho del disparador: un desplegable más angosto o más ancho
+                que su campo no se lee como parte de él. */}
+            <PopoverContent
+                matchTriggerWidth
+                align="start"
+                sideOffset={6}
+                // `overflow-hidden` recorta el Command interior, que trae fondo
+                // propio y esquinas más cerradas: sin él tapa el redondeo.
+                className="overflow-hidden rounded-xl border-slate-400/60 p-0 shadow-lg dark:border-slate-600/60"
+            >
                 <Command>
                     <CommandInput placeholder={searchPlaceholder} />
                     <CommandList>
@@ -99,11 +108,13 @@ export const SearchableSelect = <T extends { id: number | string; name: string }
                                 >
                                     <Check
                                         className={cn(
-                                            "mr-2 h-4 w-4",
+                                            "mr-2 h-4 w-4 shrink-0",
                                             `${option.id}` === value ? "opacity-100" : "opacity-0",
                                         )}
                                     />
-                                    {renderLabel ? renderLabel(option) : <p>{option.name}</p>}
+                                    <span className="min-w-0 flex-1 truncate">
+                                        {renderLabel ? renderLabel(option) : option.name}
+                                    </span>
                                 </CommandItem>
                             ))}
                         </CommandGroup>
@@ -134,6 +145,7 @@ export const IdentificationSection = ({
     disabled,
     /** Campos propios de la categoría, dentro del mismo grid. */
     children,
+    identifiers,
 }: {
     form: UseFormReturn<any>;
     batches?: Batch[];
@@ -146,6 +158,11 @@ export const IdentificationSection = ({
     purchaseOrderLocked?: boolean;
     disabled?: boolean;
     children?: React.ReactNode;
+    /**
+     * Campos que acumulan varios valores (seriales). Van en la fila final junto
+     * a los números de parte alternos, con los que comparten forma.
+     */
+    identifiers?: React.ReactNode;
 }) => {
     const control: Control<any> = form.control;
 
@@ -174,32 +191,6 @@ export const IdentificationSection = ({
                             </FormControl>
                             <FormDescription className={hintClass}>
                                 Identificador principal del artículo.
-                            </FormDescription>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
-                <FormField
-                    control={control}
-                    name="purchase_order_number"
-                    render={({ field }) => (
-                        <FormItem className="w-full">
-                            <FormLabel className={labelClass}>Nro. de orden de compra</FormLabel>
-                            <FormControl>
-                                <Input
-                                    placeholder="Ej: OC-2026-014"
-                                    {...field}
-                                    value={field.value ?? ""}
-                                    readOnly={purchaseOrderLocked}
-                                    disabled={disabled}
-                                    className={fieldClass}
-                                />
-                            </FormControl>
-                            <FormDescription className={hintClass}>
-                                {purchaseOrderLocked
-                                    ? "Proviene de una orden del sistema: no puede modificarse."
-                                    : "Número del formato que lleva compras, si el artículo no nace de un ciclo de compra."}
                             </FormDescription>
                             <FormMessage />
                         </FormItem>
@@ -310,6 +301,32 @@ export const IdentificationSection = ({
 
                 <FormField
                     control={control}
+                    name="purchase_order_number"
+                    render={({ field }) => (
+                        <FormItem className="w-full">
+                            <FormLabel className={labelClass}>Nro. de orden de compra</FormLabel>
+                            <FormControl>
+                                <Input
+                                    placeholder="Ej: OC-2026-014"
+                                    {...field}
+                                    value={field.value ?? ""}
+                                    readOnly={purchaseOrderLocked}
+                                    disabled={disabled}
+                                    className={fieldClass}
+                                />
+                            </FormControl>
+                            <FormDescription className={hintClass}>
+                                {purchaseOrderLocked
+                                    ? "Proviene de una orden del sistema: no puede modificarse."
+                                    : "Número del formato que lleva compras, si no nace de un ciclo de compra."}
+                            </FormDescription>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                <FormField
+                    control={control}
                     name="zone"
                     render={({ field }) => (
                         <FormItem className="w-full">
@@ -332,12 +349,18 @@ export const IdentificationSection = ({
                 />
 
                 {children}
+            </div>
+
+            {/* Los campos que acumulan valores van juntos y en su propia fila:
+                crecen hacia abajo con las insignias y descuadrarían el grid. */}
+            <div className="mt-4 grid grid-cols-1 gap-4 border-t border-slate-400/30 pt-4 md:grid-cols-2 dark:border-slate-600/30">
+                {identifiers}
 
                 <FormField
                     control={control}
                     name="alternative_part_number"
                     render={({ field }) => (
-                        <FormItem className="w-full md:col-span-2 xl:col-span-3">
+                        <FormItem className="w-full">
                             <FormLabel className={labelClass}>Nros. de parte alternos</FormLabel>
                             <FormControl>
                                 <MultiInputField
@@ -346,6 +369,7 @@ export const IdentificationSection = ({
                                         field.onChange(values.map(upper))
                                     }
                                     placeholder="Ej: 234ABAC"
+                                    disabled={disabled}
                                 />
                             </FormControl>
                             <FormMessage />

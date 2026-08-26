@@ -46,7 +46,7 @@ const UserByIdPage = ({ params }: { params: { id: string } }) => {
       <div className="flex flex-col gap-y-4">
 
         {/* Breadcrumb */}
-        <PageHeader className="mb-2" />
+        <PageHeader className="mb-2" currentLabel={user.username} />
 
         {/* GRID PRINCIPAL */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">

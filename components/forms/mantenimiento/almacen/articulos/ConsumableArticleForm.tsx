@@ -610,42 +610,39 @@ export default function ConsumableArticleForm({
                     hint="Fabricación y caducidad, si aplican."
                 >
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                        <FormItem className="w-full">
-                            <DatePickerField
-                                label="Fecha de fabricación"
-                                value={fabricationDate}
-                                setValue={setFabricationDate}
-                                description="Fecha de fabricación del consumible."
-                                busy={busy}
-                                shortcuts="back"
-                                maxYear={new Date().getFullYear()}
-                                showNotApplicable
-                            />
-                        </FormItem>
+                        <DatePickerField
+                            label="Fecha de fabricación"
+                            value={fabricationDate}
+                            setValue={setFabricationDate}
+                            description="Fecha de fabricación del consumible."
+                            busy={busy}
+                            shortcuts="back"
+                            maxYear={new Date().getFullYear()}
+                            showNotApplicable
+                            notApplicableInLabel
+                        />
 
-                        <FormItem className="w-full">
-                            <DatePickerField
-                                label="Fecha de caducidad"
-                                value={expirationDate}
-                                setValue={setExpirationDate}
-                                description="Fecha límite de uso del consumible."
-                                busy={busy}
-                                shortcuts="forward"
-                                showNotApplicable
-                            />
-                        </FormItem>
+                        <DatePickerField
+                            label="Fecha de caducidad"
+                            value={expirationDate}
+                            setValue={setExpirationDate}
+                            description="Fecha límite de uso del consumible."
+                            busy={busy}
+                            shortcuts="forward"
+                            showNotApplicable
+                            notApplicableInLabel
+                        />
 
-                        <FormItem className="w-full">
-                            <DatePickerField
-                                label="Shelf Life"
-                                value={shelfLifeDate}
-                                setValue={setShelfLifeDate}
-                                description="Hasta cuándo puede permanecer almacenado."
-                                busy={busy}
-                                shortcuts="forward"
-                                showNotApplicable
-                            />
-                        </FormItem>
+                        <DatePickerField
+                            label="Shelf Life"
+                            value={shelfLifeDate}
+                            setValue={setShelfLifeDate}
+                            description="Hasta cuándo puede permanecer almacenado."
+                            busy={busy}
+                            shortcuts="forward"
+                            showNotApplicable
+                            notApplicableInLabel
+                        />
                     </div>
                 </FormSection>
 
@@ -674,10 +671,9 @@ export default function ConsumableArticleForm({
                     onDocumentsChange={setDocuments}
                     consignedRequirements={initialData?.document_requirements}
                     disabled={busy}
-                    extraChecks={
-                        !isEditing && <DestinationChecks form={form} disabled={busy} />
-                    }
                 />
+
+                {!isEditing && <DestinationChecks form={form} disabled={busy} />}
             </ArticleFormShell>
 
             <ArticlePreviewDialog

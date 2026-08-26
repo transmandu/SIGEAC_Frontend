@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { DatePickerField } from "@/components/ui/DatePickerField";
+import { cn } from "@/lib/utils";
 
 import {
     FormSection,
@@ -62,7 +63,13 @@ export const WarehouseDetailsSection = ({
                     name={entry.name}
                     render={({ field }) => (
                         <FormItem className="w-full">
-                            <FormLabel className={labelClass}>{entry.label}</FormLabel>
+                            {/* `h-4`: la fecha de recepción lleva la casilla "No
+                                aplica" en su rótulo, más alta que el texto.
+                                Igualando la altura todos los inputs de la fila
+                                quedan en la misma línea. */}
+                            <FormLabel className={cn(labelClass, "flex h-4 items-center")}>
+                                {entry.label}
+                            </FormLabel>
                             <FormControl>
                                 <Input
                                     placeholder={entry.placeholder}
@@ -78,18 +85,19 @@ export const WarehouseDetailsSection = ({
                 />
             ))}
 
+            {/* Sin FormItem alrededor: añadía un segundo `space-y-2` sobre el
+                que el propio campo ya trae, y separaba de más su input. */}
             {onReceptionDateChange && (
-                <FormItem className="w-full">
-                    <DatePickerField
-                        label="Fecha de recepción"
-                        value={receptionDate}
-                        setValue={onReceptionDateChange}
-                        description="Cuándo llegó el artículo al almacén."
-                        busy={disabled}
-                        shortcuts="back"
-                        showNotApplicable
-                    />
-                </FormItem>
+                <DatePickerField
+                    label="Fecha de recepción"
+                    value={receptionDate}
+                    setValue={onReceptionDateChange}
+                    description="Cuándo llegó el artículo al almacén."
+                    busy={disabled}
+                    shortcuts="back"
+                    showNotApplicable
+                    notApplicableInLabel
+                />
             )}
         </div>
     </FormSection>

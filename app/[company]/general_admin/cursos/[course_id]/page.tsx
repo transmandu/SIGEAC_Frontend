@@ -33,7 +33,7 @@ const ShowCourse = () => {
   console.log(course);
   return (
     <ContentLayout title="Detalles del Curso">
-      <PageHeader className="mb-6" />
+      <PageHeader className="mb-6" currentLabel={course?.name} />
 
       {/* Contenido principal */}
       <div className="w-full border border-gray-300 rounded-lg p-6 shadow-md dark:border-gray-700">

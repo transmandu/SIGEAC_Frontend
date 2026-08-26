@@ -1,11 +1,17 @@
 "use client";
 
+import { Route } from "lucide-react";
 import type { UseFormReturn } from "react-hook-form";
 
 import { CheckboxCard } from "../../_components/CheckboxCard";
+import { FormSection } from "../../_components/form-theme";
 
 /**
  * Desvíos del camino normal del artículo.
+ *
+ * Cierra el formulario, como última decisión antes de crear: a dónde va el
+ * artículo no tiene relación con qué papeles lo acompañan, así que no puede
+ * vivir dentro de la sección de documentación.
  *
  * Sin marcar nada el artículo queda en recepción y pasa luego a inspección.
  * Son excluyentes: marcar una desmarca la otra, porque un artículo cuyo dueño
@@ -31,24 +37,30 @@ export const DestinationChecks = ({
         };
 
     return (
-        <div className="space-y-3">
-            <CheckboxCard
-                id="destination-unknown"
-                checked={destinationUnknown}
-                onCheckedChange={setExclusive("destination_unknown")}
-                label="Destino indeterminado"
-                description="Compras confirmará si el artículo pertenece a la empresa."
-                disabled={disabled}
-            />
+        <FormSection
+            icon={Route}
+            title="Destino del artículo"
+            hint="Sin marcar nada, el artículo pasará a un estado de RECEPCIÓN para pasarlo a INCOMING."
+        >
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                <CheckboxCard
+                    id="destination-unknown"
+                    checked={destinationUnknown}
+                    onCheckedChange={setExclusive("destination_unknown")}
+                    label="Destino indeterminado"
+                    description="Compras confirmará si el artículo pertenece a la estación actual."
+                    disabled={disabled}
+                />
 
-            <CheckboxCard
-                id="goes-to-inventory"
-                checked={goesToInventory}
-                onCheckedChange={setExclusive("goes_to_inventory")}
-                label="Pasa directo al inventario"
-                description="Omite la recepción: el artículo ya viene verificado."
-                disabled={disabled}
-            />
-        </div>
+                <CheckboxCard
+                    id="goes-to-inventory"
+                    checked={goesToInventory}
+                    onCheckedChange={setExclusive("goes_to_inventory")}
+                    label="Pasa directo al inventario"
+                    description="Omite la recepción: el artículo pasará a CHECKING por parte de Ingenería."
+                    disabled={disabled}
+                />
+            </div>
+        </FormSection>
     );
 };

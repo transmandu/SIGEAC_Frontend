@@ -25,6 +25,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { DatePickerField } from "@/components/ui/DatePickerField";
+import { cn } from "@/lib/utils";
 
 import {
     ArticleDetailsSection,
@@ -342,30 +343,31 @@ export default function ToolArticleForm({
                             });
                         }
                     }}
+                    identifiers={
+                        <FormField
+                            control={form.control}
+                            name="serial"
+                            render={({ field }) => (
+                                <FormItem className="w-full">
+                                    <FormLabel className={labelClass}>Serial</FormLabel>
+                                    <FormControl>
+                                        <Input
+                                            placeholder="Ej: S-000123"
+                                            {...field}
+                                            value={field.value ?? ""}
+                                            disabled={busy}
+                                            className={fieldClass}
+                                        />
+                                    </FormControl>
+                                    <FormDescription className={hintClass}>
+                                        Serial de la herramienta.
+                                    </FormDescription>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    }
                 >
-                    <FormField
-                        control={form.control}
-                        name="serial"
-                        render={({ field }) => (
-                            <FormItem className="w-full">
-                                <FormLabel className={labelClass}>Serial</FormLabel>
-                                <FormControl>
-                                    <Input
-                                        placeholder="Ej: S-000123"
-                                        {...field}
-                                        value={field.value ?? ""}
-                                        disabled={busy}
-                                        className={fieldClass}
-                                    />
-                                </FormControl>
-                                <FormDescription className={hintClass}>
-                                    Serial de la herramienta.
-                                </FormDescription>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
                     <FormField
                         control={form.control}
                         name="model"
@@ -416,15 +418,18 @@ export default function ToolArticleForm({
                                     control={form.control}
                                     name="calibration_date"
                                     render={({ field }) => (
-                                        <FormItem className="w-full">
+                                        // `space-y-0`: el campo ya trae su propia
+                                        // separación entre rótulo e input.
+                                        <FormItem className="w-full space-y-0">
                                             <DatePickerField
                                                 label="Última calibración"
                                                 value={field.value}
                                                 setValue={(date) =>
-                                                    form.setValue("calibration_date", date ?? undefined, {
-                                                        shouldDirty: true,
-                                                        shouldValidate: true,
-                                                    })
+                                                    form.setValue(
+                                                        "calibration_date",
+                                                        date ?? undefined,
+                                                        { shouldDirty: true, shouldValidate: true },
+                                                    )
                                                 }
                                                 description="Fecha de la última calibración realizada."
                                                 busy={busy}
@@ -441,7 +446,12 @@ export default function ToolArticleForm({
                                     name="next_calibration"
                                     render={({ field }) => (
                                         <FormItem className="w-full">
-                                            <FormLabel className={labelClass}>
+                                            {/* `h-4`: iguala la altura del rótulo
+                                                del campo de fecha, que reserva
+                                                sitio para su casilla. */}
+                                            <FormLabel
+                                                className={cn(labelClass, "flex h-4 items-center")}
+                                            >
                                                 Periodo de calibración
                                             </FormLabel>
                                             <Select
@@ -495,10 +505,9 @@ export default function ToolArticleForm({
                     onDocumentsChange={setDocuments}
                     consignedRequirements={initialData?.document_requirements}
                     disabled={busy}
-                    extraChecks={
-                        !isEditing && <DestinationChecks form={form} disabled={busy} />
-                    }
                 />
+
+                {!isEditing && <DestinationChecks form={form} disabled={busy} />}
             </ArticleFormShell>
 
             <ArticlePreviewDialog

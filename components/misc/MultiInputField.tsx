@@ -3,14 +3,13 @@
 import { useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   fieldClass,
   hintClass,
   labelClass,
 } from '@/components/forms/mantenimiento/almacen/_components/form-theme';
+import { TokenList } from '@/components/forms/mantenimiento/almacen/_components/TokenList';
 
 type Props = {
   values: string[];
@@ -120,26 +119,11 @@ export const MultiInputField = ({
       </div>
 
       {values.length > 0 && (
-        <div className="flex flex-wrap gap-1.5">
-          {values.map((value, index) => (
-            <Badge
-              key={`${value}-${index}`}
-              variant="secondary"
-              className="flex max-w-full items-center gap-1 rounded-md py-1 pl-2.5 pr-1.5 text-[13px] font-normal"
-            >
-              <span className="truncate">{value}</span>
-              <button
-                type="button"
-                onClick={() => removeValue(index)}
-                disabled={disabled}
-                aria-label={`Quitar ${value}`}
-                className="inline-flex h-4 w-4 items-center justify-center rounded hover:bg-foreground/10"
-              >
-                <X className="h-3.5 w-3.5" />
-              </button>
-            </Badge>
-          ))}
-        </div>
+        <TokenList
+          values={values}
+          onRemove={removeValue}
+          disabled={disabled}
+        />
       )}
 
       <p className={hintClass}>
