@@ -1,3 +1,7 @@
+## v3.2.4 — 2026-08-26
+
+- fix: update versioning logic to remove dependency on backend tags and clarify version independence
+
 ## v3.2.3 — 2026-08-26
 
 - Merge pull request #223 from transmandu/perf/dashboard-user-stats-queries
