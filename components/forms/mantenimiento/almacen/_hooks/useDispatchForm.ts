@@ -18,7 +18,7 @@ import { useCallback, useMemo, useState } from "react"
 import { useFieldArray, useForm, useWatch } from "react-hook-form"
 import { z } from "zod"
 import type { Article, Batch, Department, GeneralArticle, ThirdParty } from "@/types"
-import { EMPTY_CUT, isCutComplete, type CutDraft } from "../_components/CutCapturePanel"
+import { EMPTY_CUT, isCutComplete, type CutDraft } from "@/components/forms/mantenimiento/almacen/_components/CutCapturePanel"
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 

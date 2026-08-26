@@ -19,9 +19,9 @@ import {
     ReportType,
     SelectedReport,
     sortByNewestDate,
-} from '../_components/report-helpers';
-import { ReportDetailsPanel } from '../_components/report-details-panel';
-import { ReportSelectionPanel } from '../_components/report-selection-panel';
+} from '@/app/[company]/sms/aeronautical/gestion_de_riesgos/_components/report-helpers';
+import { ReportDetailsPanel } from '@/app/[company]/sms/aeronautical/gestion_de_riesgos/_components/report-details-panel';
+import { ReportSelectionPanel } from '@/app/[company]/sms/aeronautical/gestion_de_riesgos/_components/report-selection-panel';
 import { PageHeader } from "@/components/layout/PageHeader";
 
 const Identification = () => {

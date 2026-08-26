@@ -4,7 +4,7 @@ import { Layers3 } from "lucide-react";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
-import { DetailGrid } from "../../_components/detail-grid";
+import { DetailGrid } from "@/app/[company]/sms/aeronautical/gestion_de_riesgos/_components/detail-grid";
 
 import { buildMitigationPlanDetails } from "./report-detail-helpers";
 import { MitigationPlanLike } from "./report-detail-types";

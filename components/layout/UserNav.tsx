@@ -44,7 +44,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMyEmployee } from "@/hooks/sistema/usuario/useMyEmployee";
 
-import { MarqueeText } from "../misc/MarqueeText";
+import { MarqueeText } from "@/components/misc/MarqueeText";
 
 export function UserNav() {
   const { selectedCompany } = useCompanyStore();

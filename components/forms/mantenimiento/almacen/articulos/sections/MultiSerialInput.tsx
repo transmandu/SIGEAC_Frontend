@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
-import { TokenList } from "../../_components/TokenList";
-import { fieldClass, hintClass } from "../../_components/form-theme";
+import { TokenList } from "@/components/forms/mantenimiento/almacen/_components/TokenList";
+import { fieldClass, hintClass } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
 
 interface MultiSerialInputProps {
     values: string[];

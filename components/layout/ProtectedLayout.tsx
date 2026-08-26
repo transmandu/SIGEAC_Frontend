@@ -4,7 +4,7 @@ import { ReactNode, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCompanyStore } from '@/stores/CompanyStore';
-import LoadingPage from '../misc/LoadingPage';
+import LoadingPage from '@/components/misc/LoadingPage';
 
 interface ProtectedLayoutProps {
   children: ReactNode;

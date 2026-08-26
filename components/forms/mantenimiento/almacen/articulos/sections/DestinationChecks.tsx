@@ -3,8 +3,8 @@
 import { Route } from "lucide-react";
 import type { UseFormReturn } from "react-hook-form";
 
-import { CheckboxCard } from "../../_components/CheckboxCard";
-import { FormSection } from "../../_components/form-theme";
+import { CheckboxCard } from "@/components/forms/mantenimiento/almacen/_components/CheckboxCard";
+import { FormSection } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
 
 /**
  * Desvíos del camino normal del artículo.

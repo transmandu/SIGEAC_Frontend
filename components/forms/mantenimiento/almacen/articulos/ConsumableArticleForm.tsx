@@ -26,17 +26,17 @@ import type { Unit } from "@/types";
 import {
     ArticleDetailsSection,
     savedImageUrl,
-} from "../_components/ArticleDetailsSection";
+} from "@/components/forms/mantenimiento/almacen/_components/ArticleDetailsSection";
 import {
     ConsumableConversionsField,
     type ConsumableConversionInput,
-} from "../ConsumableConversionsField";
+} from "@/components/forms/mantenimiento/almacen/ConsumableConversionsField";
 import {
     DimensionFields,
     EMPTY_DIMENSION,
     dimensionPayload,
     type DimensionDraft,
-} from "../_components/DimensionFields";
+} from "@/components/forms/mantenimiento/almacen/_components/DimensionFields";
 import {
     FormSection,
     hintClass,
@@ -44,7 +44,7 @@ import {
     numericFieldClass,
     onlyNumeric,
     fieldClass,
-} from "../_components/form-theme";
+} from "@/components/forms/mantenimiento/almacen/_components/form-theme";
 
 import { ArticleFormShell } from "./ArticleFormShell";
 import {

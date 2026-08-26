@@ -11,7 +11,7 @@ import { GeneralArticle } from "@/types";
 import { Loader2, X } from "lucide-react";
 import { useState, useMemo } from "react";
 import { DataTable } from "./data-table";
-import { columns as generalColumns } from "../../almacen/inventario_articulos/_tables/general-columns";
+import { columns as generalColumns } from "@/app/[company]/almacen/inventario_articulos/_tables/general-columns";
 import { PageHeader } from "@/components/layout/PageHeader";
 
 const ROLES_WITH_QUANTITY_VISIBLE = [

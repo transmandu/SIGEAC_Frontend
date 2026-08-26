@@ -8,7 +8,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { DayMonthYearPicker } from "@/components/selects/DayMonthYearPicker";
 import { Loader2, Plus } from "lucide-react";
-import { DataTable } from "../data-table";
+import { DataTable } from "@/app/[company]/operaciones/cargo/data-table";
 import { getManifestColumns } from "./columns";
 import { useAuth } from "@/contexts/AuthContext";
 import { useGetAircrafts } from "@/hooks/general/aeronaves/useGetAircrafts";

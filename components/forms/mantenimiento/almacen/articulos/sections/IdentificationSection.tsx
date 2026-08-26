@@ -38,7 +38,7 @@ import {
     hintClass,
     labelClass,
     triggerButtonClass,
-} from "../../_components/form-theme";
+} from "@/components/forms/mantenimiento/almacen/_components/form-theme";
 
 /** Combobox con buscador; los tres selectores de la sección comparten forma. */
 export const SearchableSelect = <T extends { id: number | string; name: string }>({

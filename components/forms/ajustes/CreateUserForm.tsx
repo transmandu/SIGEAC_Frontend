@@ -37,10 +37,10 @@ import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
-import { Badge } from "../../ui/badge";
-import { Checkbox } from "../../ui/checkbox";
-import { Label } from "../../ui/label";
-import { Separator } from "../../ui/separator";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import { Location as AppLocation } from '@/types';
 
 const FormSchema = z.object({

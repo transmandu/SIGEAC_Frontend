@@ -10,9 +10,9 @@ import {
 import { ToolBox } from "@/types"
 import { Loader2, MoreHorizontal, Pencil, Trash2 } from "lucide-react"
 import { useState } from "react"
-import { EditToolBoxForm } from "../../../forms/mantenimiento/almacen/EditToolBoxForm"
-import { Button } from "../../../ui/button"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../../../ui/dialog"
+import { EditToolBoxForm } from "@/components/forms/mantenimiento/almacen/EditToolBoxForm"
+import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { useCompanyStore } from "@/stores/CompanyStore"
 
 const ToolBoxDropdownActions = ({ id, initialData }: { id: number, initialData: ToolBox }) => {

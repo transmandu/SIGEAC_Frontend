@@ -18,10 +18,10 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import AddClientBalanceForm from "@/components/forms/general/clientes/AddClientBalanceForm";
 import { EditClientForm } from "@/components/forms/general/clientes/EditClientForm";
-import { Avatar, AvatarFallback } from "../../ui/avatar";
-import { Badge } from "../../ui/badge";
-import { Button } from "../../ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "../../ui/card";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -29,7 +29,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "../../ui/dialog";
+} from "@/components/ui/dialog";
 import { useDeleteClient } from "@/actions/ajustes/clientes/actions";
 import { useCompanyStore } from "@/stores/CompanyStore";
 

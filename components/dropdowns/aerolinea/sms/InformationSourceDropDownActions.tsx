@@ -9,8 +9,8 @@ import { InformationSource } from "@/types";
 import { ClipboardPen, Loader2, MoreHorizontal, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { EditInformationSourceForm } from "../../../forms/aerolinea/sms/EditInformationSourceForm";
-import { Button } from "../../../ui/button";
+import { EditInformationSourceForm } from "@/components/forms/aerolinea/sms/EditInformationSourceForm";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -18,7 +18,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "../../../ui/dialog";
+} from "@/components/ui/dialog";
 
 const InformationSourceDropdownActions = ({
   informationSource,

@@ -19,8 +19,8 @@ import type { PurchaseOrder } from "@/types/purchase"
 import { isAeronauticalPurchaseOrder } from "@/lib/purchases/purchase-order-scope"
 import { useCascadeDeletePurchaseOrder } from "@/actions/mantenimiento/compras/ordenes_compras/actions"
 import { useCompanyStore } from "@/stores/CompanyStore"
-import { PayPurchaseOrderForm } from "../../../forms/mantenimiento/compras/PayPurchaseOrderForm"
-import { CompleteOrderForm } from "../../../forms/mantenimiento/compras/CompleteOrderForm"
+import { PayPurchaseOrderForm } from "@/components/forms/mantenimiento/compras/PayPurchaseOrderForm"
+import { CompleteOrderForm } from "@/components/forms/mantenimiento/compras/CompleteOrderForm"
 
 type Props = {
   po: PurchaseOrder

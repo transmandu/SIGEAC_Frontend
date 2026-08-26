@@ -25,7 +25,7 @@ import {
 import { AmountInput } from "@/components/misc/AmountInput";
 import { Ban, ArrowRight, Clock } from "lucide-react";
 import type { Condition, Unit, Vendor } from "@/types";
-import { LEAD_TIME_UNITS, articleNeedsJustification } from "../CreateQuoteForm";
+import { LEAD_TIME_UNITS, articleNeedsJustification } from "@/components/forms/mantenimiento/compras/CreateQuoteForm";
 import { RequiredIndicator } from "./RequiredIndicator";
 import { VendorCombobox } from "@/components/forms/general/compras/_components/VendorCombobox";
 import { UnitCombobox } from "@/components/forms/general/compras/_components/UnitCombobox";

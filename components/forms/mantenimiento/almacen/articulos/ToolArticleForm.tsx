@@ -30,15 +30,15 @@ import { cn } from "@/lib/utils";
 import {
     ArticleDetailsSection,
     savedImageUrl,
-} from "../_components/ArticleDetailsSection";
-import { CheckboxCard } from "../_components/CheckboxCard";
+} from "@/components/forms/mantenimiento/almacen/_components/ArticleDetailsSection";
+import { CheckboxCard } from "@/components/forms/mantenimiento/almacen/_components/CheckboxCard";
 import {
     FormSection,
     fieldClass,
     hintClass,
     labelClass,
     selectTriggerClass,
-} from "../_components/form-theme";
+} from "@/components/forms/mantenimiento/almacen/_components/form-theme";
 
 import { ArticleFormShell } from "./ArticleFormShell";
 import {

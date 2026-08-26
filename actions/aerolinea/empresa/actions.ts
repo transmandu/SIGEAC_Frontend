@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
-import axiosInstance from "../../../lib/axios"
+import axiosInstance from "@/lib/axios"
 
 export const useCreateAdministrationCompany = () => {
 

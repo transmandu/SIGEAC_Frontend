@@ -72,7 +72,7 @@ export const ConversionSuggestionPicker = memo(function ConversionSuggestionPick
       presets: rows.filter((row) => row.source === "preset"),
       derived: rows.filter((row) => row.source === "derived"),
     };
-  }, [data?.suggestions, search]);
+  }, [data?.suggestions, search, onlyUnitId]);
 
   if (isLoading) {
     return (

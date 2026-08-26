@@ -21,7 +21,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
-import { ChecklistGroup, ChecklistValue } from "../../IncomingTypes";
+import { ChecklistGroup, ChecklistValue } from "@/app/[company]/control_calidad/incoming/IncomingTypes";
 import {
   IncomingPayload,
   IncomingCheck,

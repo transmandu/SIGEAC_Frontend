@@ -25,7 +25,7 @@ import { CalendarIcon, Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Calendar } from "../../../ui/calendar";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Command,
   CommandEmpty,
@@ -33,9 +33,9 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "../../../ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "../../../ui/popover";
-import { Textarea } from "../../../ui/textarea";
+} from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,

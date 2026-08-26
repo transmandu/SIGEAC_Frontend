@@ -37,7 +37,7 @@ import { useMemo, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import { AmountInput } from "../../../misc/AmountInput";
+import { AmountInput } from "@/components/misc/AmountInput";
 
 const LABEL_CLS = "select-none text-[10px] leading-none text-muted-foreground uppercase";
 

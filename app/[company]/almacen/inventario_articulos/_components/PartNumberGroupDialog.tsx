@@ -33,7 +33,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useState } from "react";
-import { getStatusBadge, type IArticleSimple } from "../_tables/warehouse-columns";
+import { getStatusBadge, type IArticleSimple } from "@/app/[company]/almacen/inventario_articulos/_tables/warehouse-columns";
 
 type Props = {
   open: boolean;

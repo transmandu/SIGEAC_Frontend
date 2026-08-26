@@ -40,7 +40,7 @@ import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import { MultiInputField } from "../../../misc/MultiInputField"
+import { MultiInputField } from "@/components/misc/MultiInputField"
 import {
   Command,
   CommandEmpty,

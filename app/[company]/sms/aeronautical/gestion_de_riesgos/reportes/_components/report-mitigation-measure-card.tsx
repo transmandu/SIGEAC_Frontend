@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
-import { DetailGrid } from "../../_components/detail-grid";
+import { DetailGrid } from "@/app/[company]/sms/aeronautical/gestion_de_riesgos/_components/detail-grid";
 
 import {
     buildMeasureDetails,

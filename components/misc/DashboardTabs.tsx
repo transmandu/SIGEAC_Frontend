@@ -4,7 +4,7 @@ import {
     TabsList,
     TabsTrigger,
   } from "@/components/ui/tabs"
-import OverviewTab from "../tabs/dashboardTabs/OverviewTab"
+import OverviewTab from "@/components/tabs/dashboardTabs/OverviewTab"
 
 const DashboardTabs = () => {
   return (

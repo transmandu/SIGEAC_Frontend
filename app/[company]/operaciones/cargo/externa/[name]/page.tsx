@@ -3,8 +3,8 @@
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { useParams, useSearchParams } from "next/navigation";
 import { useGetCargoShipmentsByExternalAircraft } from "@/hooks/operaciones/cargo/useGetCargoShipmentsByExternalAircraft";
-import { getColumns } from "../../columns";
-import { DataTable } from "../../data-table";
+import { getColumns } from "@/app/[company]/operaciones/cargo/columns";
+import { DataTable } from "@/app/[company]/operaciones/cargo/data-table";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import Link from "next/link";

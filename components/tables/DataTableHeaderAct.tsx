@@ -8,7 +8,7 @@ import { es } from "date-fns/locale/es"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, } from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
-import { Input } from "../ui/input"
+import { Input } from "@/components/ui/input"
 import { useState, useEffect } from "react"
 
 interface DataTableColumnHeaderProps<TData, TValue> extends React.HTMLAttributes<HTMLDivElement> {

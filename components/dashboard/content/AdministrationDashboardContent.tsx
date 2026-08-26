@@ -7,7 +7,7 @@ import { User } from "@/types";
 import { useGetWarehouseDashboard } from "@/hooks/sistema/dashboard/useWarehouseDashboard";
 
 import DispatchWarehouseReports from "@/components/dashboard/sections/Administration/DispatchWarehouseReports";
-import DispatchSummary from "../sections/Administration/DispatchSummary";
+import DispatchSummary from "@/components/dashboard/sections/Administration/DispatchSummary";
 
 interface AdministrationDashboardContentProps {
   companySlug: string;

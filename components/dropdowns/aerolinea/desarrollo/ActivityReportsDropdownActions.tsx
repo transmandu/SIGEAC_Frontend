@@ -9,11 +9,11 @@ import { useGetUserActivity } from "@/hooks/aerolinea/desarrollo/useGetUserActiv
 import { Eye, MessageSquare, MoreHorizontal, Loader2, Check } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { Button } from "../../../ui/button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "../../../ui/dialog";
-import { Input } from "../../../ui/input";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { useUpdateObservation } from "@/actions/aerolinea/desarrollo/reportes_diarios/actions";
-import { useToast } from "../../../ui/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 
 interface ActivityReportsDropdownActionsProps {
     id: string;

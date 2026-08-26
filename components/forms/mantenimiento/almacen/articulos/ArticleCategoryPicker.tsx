@@ -11,7 +11,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { labelClass, selectTriggerClass } from "../_components/form-theme";
+import { labelClass, selectTriggerClass } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
 
 export const ARTICLE_CATEGORIES = [
     { value: "COMPONENT", label: "Componente", icon: Boxes },

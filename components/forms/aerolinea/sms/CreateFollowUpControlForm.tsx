@@ -29,8 +29,8 @@ import { format } from "date-fns";
 import { useCreateFollowUpControl } from "@/actions/sms/controles_de_seguimiento/actions";
 import { Separator } from "@radix-ui/react-select";
 import { useParams } from "next/navigation";
-import { Textarea } from "../../../ui/textarea";
-import { Input } from "../../../ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import Image from "next/image";
 import { useCompanyStore } from "@/stores/CompanyStore";
 const FormSchema = z.object({

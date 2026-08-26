@@ -19,7 +19,7 @@ import {
     FormSection,
     fieldClass,
     labelClass,
-} from "../../_components/form-theme";
+} from "@/components/forms/mantenimiento/almacen/_components/form-theme";
 
 const FIELDS = [
     { name: "sender", label: "Remitente", placeholder: "Nombre del responsable" },

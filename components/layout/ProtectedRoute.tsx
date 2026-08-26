@@ -2,7 +2,7 @@
 import { ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import LoadingPage from '../misc/LoadingPage';
+import LoadingPage from '@/components/misc/LoadingPage';
 
 interface ProtectedRouteProps {
   children: ReactNode;

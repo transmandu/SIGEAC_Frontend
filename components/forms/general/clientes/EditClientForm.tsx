@@ -22,7 +22,7 @@ import { Client } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Separator } from "../../../ui/separator";
+import { Separator } from "@/components/ui/separator";
 import { useCompanyStore } from "@/stores/CompanyStore";
 
 const phoneRegex = new RegExp(

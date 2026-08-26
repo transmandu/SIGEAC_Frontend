@@ -18,7 +18,7 @@ import {
     labelClass,
     numericFieldClass,
     onlyNumeric,
-} from "../../_components/form-theme";
+} from "@/components/forms/mantenimiento/almacen/_components/form-theme";
 
 /**
  * Un límite de vida y sus tres medidas.

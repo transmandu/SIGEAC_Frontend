@@ -17,10 +17,10 @@ import { ChevronRight, Plus, Trash } from 'lucide-react'
 import { useState } from 'react'
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import { Badge } from '../../../ui/badge'
-import { ScrollArea } from '../../../ui/scroll-area'
-import { Switch } from '../../../ui/switch'
-import { Textarea } from '../../../ui/textarea'
+import { Badge } from '@/components/ui/badge'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { Switch } from '@/components/ui/switch'
+import { Textarea } from '@/components/ui/textarea'
 import { useCompanyStore } from "@/stores/CompanyStore"
 import { useParams } from 'next/navigation'
 

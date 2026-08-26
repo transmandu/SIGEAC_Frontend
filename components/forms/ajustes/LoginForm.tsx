@@ -23,7 +23,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import Image from "next/image";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Separator } from "../../ui/separator";
+import { Separator } from "@/components/ui/separator";
 import RequestPasswordResetDialog from "@/components/dialogs/sistema/RequestPasswordResetDialog";
 import { useRef, useState } from "react";
 import { ArrowRight, Eye, EyeOff } from "lucide-react";

@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useGenerateIncomingFormat } from "@/actions/mantenimiento/control_calidad/actions";
 import { toast } from "sonner";
-import { IncomingArticle } from "../IncomingTypes";
+import { IncomingArticle } from "@/app/[company]/control_calidad/incoming/IncomingTypes";
 
 export function GenerateReceptionFormButton({
   selected,

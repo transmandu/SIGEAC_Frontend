@@ -14,8 +14,8 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Label } from "../../ui/label";
-import { Separator } from "../../ui/separator";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 
 const FormSchema = z.object({
   username: z.string().min(2, {

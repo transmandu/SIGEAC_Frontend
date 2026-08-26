@@ -34,7 +34,7 @@ import { getConditionLabel } from "@/lib/conditions";
 import {
     ArticleDetailsSection,
     savedImageUrl,
-} from "../_components/ArticleDetailsSection";
+} from "@/components/forms/mantenimiento/almacen/_components/ArticleDetailsSection";
 import {
     FormSection,
     fieldClass,
@@ -43,7 +43,7 @@ import {
     numericFieldClass,
     onlyNumeric,
     selectTriggerClass,
-} from "../_components/form-theme";
+} from "@/components/forms/mantenimiento/almacen/_components/form-theme";
 
 import { ArticleFormShell } from "./ArticleFormShell";
 import {

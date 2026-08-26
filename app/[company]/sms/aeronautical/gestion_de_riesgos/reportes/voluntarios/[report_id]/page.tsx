@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import LoadingPage from "@/components/misc/LoadingPage";
 import { useGetVoluntaryReportById } from "@/hooks/sms/mantenimiento/useGetVoluntaryReportById";
 
-import { ReportDetailView } from "../../_components/report-detail-view";
+import { ReportDetailView } from "@/app/[company]/sms/aeronautical/gestion_de_riesgos/reportes/_components/report-detail-view";
 
 export default function VoluntaryReportDetailPage() {
   const { company, report_id } = useParams<{ company: string; report_id: string }>();

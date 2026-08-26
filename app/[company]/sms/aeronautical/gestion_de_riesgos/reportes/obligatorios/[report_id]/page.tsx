@@ -6,7 +6,7 @@ import LoadingPage from "@/components/misc/LoadingPage";
 import { useGetObligatoryReportById } from "@/hooks/sms/useGetObligatoryReportById";
 import { useCompanyStore } from "@/stores/CompanyStore";
 
-import { ReportDetailView } from "../../_components/report-detail-view";
+import { ReportDetailView } from "@/app/[company]/sms/aeronautical/gestion_de_riesgos/reportes/_components/report-detail-view";
 
 export default function ObligatoryReportDetailPage() {
   const { company, report_id } = useParams<{ company: string; report_id: string }>();

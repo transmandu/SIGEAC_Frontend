@@ -14,7 +14,7 @@ import {
 
 import { EyeIcon, MoreHorizontal, SquarePen, Trash2 } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { Button } from "../ui/button"
+import { Button } from "@/components/ui/button"
 
 const DropdownActions = ({ id }: { id: string | number }) => {
   const router = useRouter()

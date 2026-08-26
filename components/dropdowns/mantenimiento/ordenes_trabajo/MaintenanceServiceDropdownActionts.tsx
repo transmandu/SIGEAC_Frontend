@@ -8,8 +8,8 @@ import {
 import { MaintenanceService } from "@/types"
 import { Loader2, MoreHorizontal, Trash2 } from "lucide-react"
 import { useState } from "react"
-import { Button } from "../../../ui/button"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../../../ui/dialog"
+import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { useCompanyStore } from "@/stores/CompanyStore"
 
 const MaintenanceServiceDropdownActions = ({ service }: { service: MaintenanceService }) => {

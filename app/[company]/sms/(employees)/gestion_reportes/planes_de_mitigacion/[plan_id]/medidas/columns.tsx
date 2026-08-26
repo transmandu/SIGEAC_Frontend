@@ -4,7 +4,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import MitigationMeasureDropdownActions from "@/components/dropdowns/aerolinea/sms/MitigationMeasuresDropDownActions";
 import { MitigationMeasure } from "@/types";
-import FollowUpControlDialog from "../../_components/FollowUpControlDialog";
+import FollowUpControlDialog from "@/app/[company]/sms/(employees)/gestion_reportes/planes_de_mitigacion/_components/FollowUpControlDialog";
 
 export const columns: ColumnDef<MitigationMeasure>[] = [
   {

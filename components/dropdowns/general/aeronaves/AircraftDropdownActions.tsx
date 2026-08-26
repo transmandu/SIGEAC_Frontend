@@ -20,8 +20,8 @@ import {
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { EditAircraftForm } from "@/components/forms/general/aeronaves/EditAircraftForm";
-import { Badge } from "../../../ui/badge";
-import { Button } from "../../../ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -29,7 +29,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "../../../ui/dialog";
+} from "@/components/ui/dialog";
 
 export const AircraftDropdownActions = ({
   aircraft,

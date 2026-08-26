@@ -18,7 +18,7 @@ import { MeetingMinutes } from "@/types";
 import { ClipboardPen, Download, Eye, Loader2, MoreHorizontal, Trash2 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
-import { Button } from "../../../ui/button";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -26,7 +26,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "../../../ui/dialog";
+} from "@/components/ui/dialog";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { CreateMeetingMinuteForm } from "@/components/forms/general/CreateMeetingMinuteForm";
 

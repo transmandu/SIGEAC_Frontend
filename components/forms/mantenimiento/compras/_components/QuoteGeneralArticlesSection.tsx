@@ -23,7 +23,7 @@ import {
 import { AmountInput } from "@/components/misc/AmountInput";
 import { Ban, ArrowRight, Sparkles } from "lucide-react";
 import type { GeneralArticle, Retailer, Unit } from "@/types";
-import { articleNeedsJustification } from "../CreateQuoteForm";
+import { articleNeedsJustification } from "@/components/forms/mantenimiento/compras/CreateQuoteForm";
 import { RequiredIndicator } from "./RequiredIndicator";
 import { RetailerCombobox } from "@/components/forms/general/compras/_components/RetailerCombobox";
 import { UnitCombobox } from "@/components/forms/general/compras/_components/UnitCombobox";

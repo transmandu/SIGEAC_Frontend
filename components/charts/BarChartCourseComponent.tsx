@@ -10,7 +10,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import CourseListDialog from "../dialogs/CourseListDialog";
+import CourseListDialog from "@/components/dialogs/CourseListDialog";
 import { useState } from "react";
 
 interface GeneralStats {

@@ -3,7 +3,7 @@
 import { useMemo, useState, useDeferredValue } from 'react'
 import { ContentLayout } from '@/components/layout/ContentLayout'
 import { useCompanyStore } from '@/stores/CompanyStore'
-import { DataTable } from '../../data-table'
+import { DataTable } from '@/app/[company]/compras/data-table'
 import { getColumns } from './columns'
 import IntakeToolBar from './_components/IntakeToolBar'
 import { useGetGeneralArticleIntakes } from '@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticleIntakes'

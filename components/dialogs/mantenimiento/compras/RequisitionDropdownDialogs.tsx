@@ -17,8 +17,8 @@ import {
   Trash2
 } from "lucide-react"
 import LoadingPage from "@/components/misc/LoadingPage"
-import { CreateQuoteForm } from "../../../forms/mantenimiento/compras/CreateQuoteForm"
-import { CreateGeneralQuoteForm } from "../../../forms/general/compras/CreateGeneralQuoteForm"
+import { CreateQuoteForm } from "@/components/forms/mantenimiento/compras/CreateQuoteForm"
+import { CreateGeneralQuoteForm } from "@/components/forms/general/compras/CreateGeneralQuoteForm"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
