@@ -36,7 +36,7 @@ const EditArticlePage = () => {
           initialData={data}
           category={data?.batch?.category}
           onEditSuccess={() =>
-            router.push(`/${selectedCompany?.slug}/almacen/inventario_articulos`)
+            router.push(`/${selectedCompany?.slug}/almacen/inventario_articulos/gestion_inventario`)
           }
         />
       </div>

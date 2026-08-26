@@ -25,10 +25,10 @@ import {
   groupByPartNumber,
   groupSequentially,
   IArticleSimple,
-} from "./_tables/warehouse-columns"
-import { DataTable } from "./_tables/warehouse-data-table"
-import { buildGeneralColumns, getUnitOptions } from "./_tables/general-columns"
-import { PartNumberGroupDialog } from "./_components/PartNumberGroupDialog"
+} from "../_tables/warehouse-columns"
+import { DataTable } from "../_tables/warehouse-data-table"
+import { buildGeneralColumns, getUnitOptions } from "../_tables/general-columns"
+import { PartNumberGroupDialog } from "../_components/PartNumberGroupDialog"
 import { parseToolStatusFilter } from "@/lib/warehouse/statuses"
 import { PageHeader } from "@/components/layout/PageHeader";
 

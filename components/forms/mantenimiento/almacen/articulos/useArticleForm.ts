@@ -142,7 +142,7 @@ export const useArticleForm = ({
                 }
 
                 if (onEditSuccess) onEditSuccess();
-                else router.push(`/${company}/almacen/inventario_articulos`);
+                else router.push(`/${company}/almacen/inventario_articulos/gestion_inventario`);
 
                 return;
             }

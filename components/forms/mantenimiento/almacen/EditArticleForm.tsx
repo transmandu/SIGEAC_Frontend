@@ -219,7 +219,7 @@ const EditArticleForm = ({ initialData, onSuccess }: EditArticleFormProps) => {
       if (onSuccess) {
         onSuccess()
       } else {
-        router.push(`/${selectedCompany?.slug}/almacen/inventario_articulos`)
+        router.push(`/${selectedCompany?.slug}/almacen/inventario_articulos/gestion_inventario`)
       }
     } catch (error) {
       console.error('Error editing article:', error)

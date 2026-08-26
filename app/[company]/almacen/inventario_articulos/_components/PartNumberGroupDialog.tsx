@@ -131,7 +131,7 @@ export function PartNumberGroupDialog({
     (articleId: string | number) => {
       if (!company) return;
       router.push(
-        `/${company}/almacen/inventario_articulos/editar/${articleId}`,
+        `/${company}/almacen/inventario_articulos/gestion_inventario/editar/${articleId}`,
       );
     },
     [router, company],

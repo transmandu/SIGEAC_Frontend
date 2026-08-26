@@ -24,23 +24,27 @@ export function buildWarehouseGroup({ pathname, currentCompany }: MenuContext): 
                 submenus: [],
             },
             {
-                href: `/${currentCompany?.slug}/almacen/inventario_articulos`,
+                href: `/${currentCompany?.slug}/almacen/inventario_articulos/gestion_inventario`,
                 label: "Inventario",
-                active: pathname.includes(`/${currentCompany?.slug}/almacen/inventario`),
+                active: pathname.includes(
+                    `/${currentCompany?.slug}/almacen/inventario_articulos`,
+                ),
                 icon: PackageOpen,
                 roles: ["ANALISTA_ALMACEN", "JEFE_ALMACEN", "SUPERUSER"],
                 submenus: [
                     {
-                        href: `/${currentCompany?.slug}/almacen/inventario_articulos`,
+                        href: `/${currentCompany?.slug}/almacen/inventario_articulos/gestion_inventario`,
                         label: "Gestión",
-                        active:
-                            pathname ===
-                            `/${currentCompany?.slug}/almacen/inventario_articulos`,
+                        active: pathname.includes(
+                            `/${currentCompany?.slug}/almacen/inventario_articulos/gestion_inventario`,
+                        ),
                     },
                     {
-                        href: `/${currentCompany?.slug}/almacen/por_ubicar`,
+                        href: `/${currentCompany?.slug}/almacen/inventario_articulos/por_ubicar`,
                         label: "Por Ubicar",
-                        active: pathname === `/${currentCompany?.slug}/almacen/por_ubicar`,
+                        active:
+                            pathname ===
+                            `/${currentCompany?.slug}/almacen/inventario_articulos/por_ubicar`,
                     },
                 ],
             },
