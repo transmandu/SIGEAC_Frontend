@@ -75,11 +75,11 @@ export function buildWarehouseGroup({ pathname, currentCompany }: MenuContext): 
                 submenus: [],
             },
             {
-                href: `/${currentCompany?.slug}/almacen/gestion_cantidad_general`,
+                href: `/${currentCompany?.slug}/almacen/gestion_cantidades`,
                 label: "Gestión de Cantidades",
                 roles: ["ANALISTA_ALMACEN", "JEFE_ALMACEN", "SUPERUSER"],
                 active: pathname.includes(
-                    `/${currentCompany?.slug}/almacen/gestion_cantidad_general`,
+                    `/${currentCompany?.slug}/almacen/gestion_cantidades`,
                 ),
                 icon: SquarePen,
                 submenus: [],
