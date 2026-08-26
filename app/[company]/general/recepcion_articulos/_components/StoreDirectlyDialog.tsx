@@ -33,6 +33,7 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from '@/components/ui/tooltip'
+import { useGetAuthorizedEmployees } from '@/hooks/ajustes/autorizados/useGetAuthorizedEmployees'
 import { useGetEmployeesByCompany } from '@/hooks/ajustes/empleados/useGetEmployees'
 import { cn } from '@/lib/utils'
 import { useCompanyStore } from '@/stores/CompanyStore'
@@ -44,10 +45,21 @@ import { useMemo, useState } from 'react'
 // inspector, un representante del cliente) que no está en la nómina.
 type AuthorizerTab = 'employee' | 'external'
 
+// La nómina propia y los empleados que otra empresa autorizó ante ésta se
+// presentan como una sola lista: para quien recibe son igual de válidos. La
+// diferencia solo importa al guardar, porque el id de empleado del movimiento
+// apunta a la tabla local y el autorizado de otra empresa no está en ella.
+type Authorizer = {
+    key: string
+    name: string
+    dni: string
+    employeeId: number | null
+}
+
 export function StoreDirectlyDialog({ article }: { article: TransitArticle }) {
     const [open, setOpen] = useState(false)
     const [tab, setTab] = useState<AuthorizerTab>('employee')
-    const [employeeId, setEmployeeId] = useState<number | null>(null)
+    const [authorizerKey, setAuthorizerKey] = useState<string | null>(null)
     const [employeeSearch, setEmployeeSearch] = useState('')
     const [externalName, setExternalName] = useState('')
     const [reason, setReason] = useState('')
@@ -56,29 +68,56 @@ export function StoreDirectlyDialog({ article }: { article: TransitArticle }) {
     const { data: employees, isLoading: employeesLoading } = useGetEmployeesByCompany(
         selectedCompany?.slug
     )
+    const { data: authorized, isLoading: authorizedLoading } = useGetAuthorizedEmployees(
+        selectedCompany?.slug
+    )
     const { storeArticleDirectly } = useStoreArticleDirectly()
 
-    const selectedEmployee = employees?.find((e) => e.id === employeeId)
+    const authorizersLoading = employeesLoading || authorizedLoading
 
-    const filteredEmployees = useMemo(() => {
-        if (!employees) return []
+    const authorizers = useMemo<Authorizer[]>(() => {
+        const own = (employees ?? []).map((emp) => ({
+            key: `employee-${emp.id}`,
+            name: `${emp.first_name} ${emp.last_name}`,
+            dni: emp.dni ?? '',
+            employeeId: emp.id,
+        }))
+
+        const ownDnis = new Set(own.map((a) => a.dni).filter(Boolean))
+
+        // Un mismo DNI puede venir por ambas vías; gana la nómina propia, que sí
+        // trae el id que necesita el movimiento.
+        const external = (authorized ?? [])
+            .filter((auth) => !ownDnis.has(auth.dni_employee))
+            .map((auth) => ({
+                key: `authorized-${auth.id}`,
+                name: auth.employee_name ?? '',
+                dni: auth.dni_employee ?? '',
+                employeeId: null,
+            }))
+            .filter((auth) => auth.name)
+
+        return [...own, ...external].sort((a, b) => a.name.localeCompare(b.name))
+    }, [employees, authorized])
+
+    const selectedAuthorizer = authorizers.find((a) => a.key === authorizerKey)
+
+    const filteredAuthorizers = useMemo(() => {
         const query = employeeSearch.toLowerCase().trim()
-        if (!query) return employees
-        return employees.filter((emp) =>
-            `${emp.first_name} ${emp.last_name} ${emp.dni}`.toLowerCase().includes(query)
+        if (!query) return authorizers
+        return authorizers.filter((auth) =>
+            `${auth.name} ${auth.dni}`.toLowerCase().includes(query)
         )
-    }, [employees, employeeSearch])
+    }, [authorizers, employeeSearch])
 
     const authorizedBy =
         tab === 'employee'
-            ? selectedEmployee
-                ? `${selectedEmployee.first_name} ${selectedEmployee.last_name}`
-                : ''
+            ? selectedAuthorizer?.name ?? ''
             : externalName.trim()
 
     const reset = () => {
         setTab('employee')
-        setEmployeeId(null)
+        setAuthorizerKey(null)
         setEmployeeSearch('')
         setExternalName('')
         setReason('')
@@ -96,9 +135,10 @@ export function StoreDirectlyDialog({ article }: { article: TransitArticle }) {
             await storeArticleDirectly.mutateAsync({
                 id: article.id,
                 authorized_by: authorizedBy,
-                // Solo cuando el autorizante es de la nómina: del externo únicamente
-                // queda el nombre que se escribió.
-                authorized_by_employee_id: tab === 'employee' ? employeeId : null,
+                // Solo cuando el autorizante es de la nómina propia: del externo
+                // —y del autorizado de otra empresa— queda únicamente el nombre.
+                authorized_by_employee_id:
+                    tab === 'employee' ? selectedAuthorizer?.employeeId ?? null : null,
                 authorization_reason: reason.trim() || null,
             })
 
@@ -187,12 +227,12 @@ export function StoreDirectlyDialog({ article }: { article: TransitArticle }) {
                                         role="combobox"
                                         className={cn(
                                             'w-full justify-between font-normal',
-                                            !selectedEmployee && 'text-muted-foreground'
+                                            !selectedAuthorizer && 'text-muted-foreground'
                                         )}
                                     >
-                                        {selectedEmployee
-                                            ? `${selectedEmployee.first_name} ${selectedEmployee.last_name}`
-                                            : employeesLoading
+                                        {selectedAuthorizer
+                                            ? selectedAuthorizer.name
+                                            : authorizersLoading
                                                 ? 'Cargando empleados...'
                                                 : 'Elija al empleado que autorizó...'}
                                         <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
@@ -207,26 +247,26 @@ export function StoreDirectlyDialog({ article }: { article: TransitArticle }) {
                                         />
                                         <CommandList>
                                             <CommandEmpty className="p-2 text-center text-sm">
-                                                {employeesLoading
+                                                {authorizersLoading
                                                     ? 'Cargando...'
                                                     : 'No se ha encontrado ningún empleado.'}
                                             </CommandEmpty>
                                             <CommandGroup>
-                                                {filteredEmployees.map((employee) => (
+                                                {filteredAuthorizers.map((authorizer) => (
                                                     <CommandItem
-                                                        key={employee.id}
-                                                        value={`${employee.dni} ${employee.first_name} ${employee.last_name}`}
-                                                        onSelect={() => setEmployeeId(employee.id)}
+                                                        key={authorizer.key}
+                                                        value={`${authorizer.dni} ${authorizer.name}`}
+                                                        onSelect={() => setAuthorizerKey(authorizer.key)}
                                                     >
                                                         <Check
                                                             className={cn(
                                                                 'mr-2 size-4',
-                                                                employee.id === employeeId
+                                                                authorizer.key === authorizerKey
                                                                     ? 'opacity-100'
                                                                     : 'opacity-0'
                                                             )}
                                                         />
-                                                        {employee.first_name} {employee.last_name}
+                                                        {authorizer.name}
                                                     </CommandItem>
                                                 ))}
                                             </CommandGroup>
