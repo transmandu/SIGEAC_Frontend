@@ -1,3 +1,8 @@
+## v3.2.3 — 2026-08-26
+
+- Merge pull request #223 from transmandu/perf/dashboard-user-stats-queries
+- fix: update UsersSummary component to display connection status and last access time
+
 ## v3.2.0 — 2026-08-26
 
 - fix: permitir lanzar el release a mano (#222)

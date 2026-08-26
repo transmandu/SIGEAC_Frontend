@@ -1,6 +1,6 @@
 {
   "name": "sigec_frontend",
-  "version": "3.2.0",
+  "version": "3.2.3",
   "private": true,
   "scripts": {
     "dev": "next dev",
