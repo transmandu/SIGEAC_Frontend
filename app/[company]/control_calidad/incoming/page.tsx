@@ -5,7 +5,6 @@ import { ContentLayout } from "@/components/layout/ContentLayout";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-import { useCompanyStore } from "@/stores/CompanyStore";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
 
@@ -16,7 +15,6 @@ import { IncomingArticle } from "./IncomingTypes";
 import { GenerateReceptionFormButton } from "./_components/GenerateReceptionFormButton";
 import { IssuedFormatsDialog } from "./_components/IssuedFormatsDialog";
 import { form_columns } from "./form_columns";
-import { w_columns } from "./w-columns";
 import { PageHeader } from "@/components/layout/PageHeader";
 
 
@@ -24,17 +22,10 @@ const IncomingControlPage = () => {
 
   const [selectedForForm, setSelectedForForm] = useState<IncomingArticle[]>([]);
 
-  const { selectedCompany } = useCompanyStore();
-
   const {
     data: incomingArticles,
     isLoading: isIncomingLoading,
   } = useGetArticlesByStatus("INCOMING");
-
-  const {
-    data: waitingToLocateArticles,
-    isLoading: isWaitingLoading,
-  } = useGetArticlesByStatus("WAITING_TO_LOCATE");
 
   const {
     data: waitingForFormArticles,
@@ -51,10 +42,9 @@ const IncomingControlPage = () => {
 
   const waitingForFormCount = waitingForFormArticles?.length ?? 0;
   const incomingCount = incomingArticles?.length ?? 0;
-  const waitingCount = waitingToLocateArticles?.length ?? 0;
   const reinspectionCount = pendingReinspectionArticles?.length ?? 0;
 
-  if (isIncomingLoading && isWaitingLoading) return <LoadingPage />;
+  if (isIncomingLoading) return <LoadingPage />;
 
   return (
     <ContentLayout title="Control de Incoming">
@@ -64,8 +54,7 @@ const IncomingControlPage = () => {
         <div className="text-center space-y-1">
           <h1 className="text-4xl font-bold">Control de Incoming</h1>
           <p className="text-sm text-muted-foreground italic">
-            Aquí puede observar los artículos en flujo de Incoming y los que están
-            en espera por ubicación.
+            Aquí puede observar los artículos en flujo de Incoming.
             <br />
             Filtre y/o busque si desea uno en específico.
           </p>
@@ -83,11 +72,6 @@ const IncomingControlPage = () => {
               <Badge variant="secondary">{waitingForFormCount}</Badge>
             </TabsTrigger>
 
-            <TabsTrigger value="waiting" className="gap-2">
-              En espera por ubicar
-              <Badge variant="secondary">{waitingCount}</Badge>
-            </TabsTrigger>
-
             <TabsTrigger value="reinspection" className="gap-2">
               Re-inspección
               <Badge variant={reinspectionCount > 0 ? "default" : "secondary"}>
@@ -101,14 +85,6 @@ const IncomingControlPage = () => {
               <LoadingPage />
             ) : (
               <DataTable groupBy="order_number" columns={columns} data={incomingArticles ?? []} />
-            )}
-          </TabsContent>
-
-          <TabsContent value="waiting">
-            {isWaitingLoading ? (
-              <LoadingPage />
-            ) : (
-              <DataTable groupBy="order_number" columns={w_columns} data={waitingToLocateArticles ?? []} />
             )}
           </TabsContent>
 
