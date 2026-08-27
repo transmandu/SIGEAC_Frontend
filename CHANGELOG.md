@@ -1,3 +1,8 @@
+## v3.2.5 — 2026-08-27
+
+- Merge pull request #224 from transmandu/fix/incoming-waiting-to-locate-flow
+- fix: enhance article location flow and error handling, update documentation
+
 ## v3.2.4 — 2026-08-26
 
 - fix: update versioning logic to remove dependency on backend tags and clarify version independence
