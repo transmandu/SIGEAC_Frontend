@@ -45,7 +45,7 @@ export const previewList = (values?: string[]) =>
     values && values.length ? values.join(", ") : EMPTY;
 
 /**
- * Vista previa del artículo antes de registrarlo.
+ * Vista previa del artículo antes de guardarlo.
  *
  * Sirve a las cuatro categorías: cada formulario arma sus grupos y este
  * diálogo solo los presenta. Antes existía uno por categoría, con paleta fija
@@ -59,6 +59,7 @@ export const ArticlePreviewDialog = ({
     groups,
     busy,
     confirmLabel = "Registrar",
+    description,
 }: {
     open: boolean;
     onClose: () => void;
@@ -67,6 +68,8 @@ export const ArticlePreviewDialog = ({
     groups: PreviewGroup[];
     busy?: boolean;
     confirmLabel?: string;
+    /** Al editar no se "registra" nada: el texto por defecto no encaja. */
+    description?: string;
 }) => (
     <Dialog open={open} onOpenChange={onClose}>
         {/* El cuerpo scrollea, no el DialogContent: así el pie queda fijo. */}
@@ -74,7 +77,7 @@ export const ArticlePreviewDialog = ({
             <DialogHeader className="shrink-0 space-y-1 border-b px-6 py-4">
                 <DialogTitle>{title}</DialogTitle>
                 <DialogDescription>
-                    Verifique que la información sea correcta antes de registrar.
+                    {description ?? "Verifique que la información sea correcta antes de registrar."}
                 </DialogDescription>
             </DialogHeader>
 

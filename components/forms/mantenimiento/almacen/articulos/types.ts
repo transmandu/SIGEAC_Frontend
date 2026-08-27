@@ -52,7 +52,6 @@ export interface EditingArticle extends Article {
         lot_number?: string;
         expiration_date: string;
         fabrication_date: string | null;
-        min_quantity?: number | string;
         quantity?: number;
         is_managed?: boolean | string | number;
         shelf_life?: string | null;
@@ -88,6 +87,16 @@ export interface ArticleFormProps {
      * fuera del área desplazable, disparando el submit por `requestSubmit()`.
      */
     onStateChange?: (state: { busy: boolean; canSave: boolean }) => void;
+    /**
+     * Pide confirmar en una vista previa antes de guardar.
+     *
+     * Solo lo activan los dos flujos que son el alta y la edición formales del
+     * artículo —recepción administrativa y gestión de inventario—. Los demás
+     * (cuarentena, tránsito, confirmación de ingeniería) editan un aspecto
+     * puntual dentro de un flujo que ya tiene su propia confirmación, y ahí el
+     * paso extra solo estorba.
+     */
+    showPreview?: boolean;
 }
 
 /**

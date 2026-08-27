@@ -41,10 +41,9 @@ import {
     FormSection,
     hintClass,
     labelClass,
-    numericFieldClass,
-    onlyNumeric,
     fieldClass,
 } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
+import { NumericInput } from "@/components/forms/mantenimiento/almacen/_components/NumericInput";
 
 import { ArticleFormShell } from "./ArticleFormShell";
 import {
@@ -76,7 +75,7 @@ const formSchema = z.object({
     quantity: z.coerce
         .number({ message: "Debe ingresar una cantidad." })
         .min(0, "No puede ser negativo."),
-    min_quantity: z.coerce.number().min(0, "No puede ser negativo.").optional(),
+    // Sin `min_quantity`: el nivel que alerta pertenece al renglón, no al lote.
     primary_unit_id: z.number().optional(),
     image: z.instanceof(File).optional(),
     has_documentation: z.boolean().optional(),
@@ -118,6 +117,7 @@ export default function ConsumableArticleForm({
     onEditSuccess,
     submitLabel,
     onStateChange,
+    showPreview,
 }: ArticleFormProps) {
     const { selectedCompany } = useCompanyStore();
     const { data: units, isLoading: unitsLoading } = useGetUnits(selectedCompany?.slug);
@@ -165,9 +165,6 @@ export default function ConsumableArticleForm({
             condition_id: initialData?.condition?.id?.toString() ?? "",
             batch_id: currentBatch?.id?.toString() ?? "",
             quantity: initialData?.consumable?.quantity ?? 0,
-            min_quantity: initialData?.consumable?.min_quantity
-                ? Number(initialData.consumable.min_quantity)
-                : undefined,
             primary_unit_id: initialData?.consumable?.primary_unit_id
                 ? Number(initialData.consumable.primary_unit_id)
                 : undefined,
@@ -249,11 +246,19 @@ export default function ConsumableArticleForm({
 
     const busy = baseBusy || unitsLoading || conditionsLoading;
 
+    // Atado al id y no al objeto: `initialData` llega de una query, así que un
+    // refetch devuelve otro objeto con los mismos datos y volvía a resetear el
+    // formulario encima de lo que el usuario estaba escribiendo. Al vaciar un
+    // campo opcional eso reponía el valor anterior, y parecía que el número no
+    // se dejaba borrar.
+    const articleId = initialData?.id;
+
     useEffect(() => {
         if (!initialData) return;
         form.reset(defaults);
         reloadDocuments(initialData);
-    }, [defaults, form, initialData, reloadDocuments]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [articleId]);
 
     const hasDocumentation = form.watch("has_documentation");
     const quantity = form.watch("quantity");
@@ -344,7 +349,6 @@ export default function ConsumableArticleForm({
                             ? `${values.quantity} ${baseUnit.label}`
                             : values.quantity,
                     },
-                    { label: "Cantidad mínima", value: values.min_quantity },
                     { label: "Unidad base", value: baseUnit?.label },
                     { label: "Equivalencias declaradas", value: conversions.length },
                 ],
@@ -406,9 +410,13 @@ export default function ConsumableArticleForm({
                 canSave={canSave}
                 submitLabel={submitLabel}
                 hideActions={!!onStateChange}
+                opensPreview={showPreview}
                 onCancel={() => router.back()}
+                // La vista previa la pide quien monta el formulario: solo el
+                // alta y la edición formales del artículo la usan. Al crear se
+                // confirma lo que va a nacer; al editar, cómo queda.
                 onSubmit={form.handleSubmit((values) =>
-                    isEditing ? save(values) : setPreview(values),
+                    showPreview ? setPreview(values) : save(values),
                 )}
             >
                 <IdentificationSection
@@ -490,7 +498,9 @@ export default function ConsumableArticleForm({
                     title="Cantidad y unidad base"
                     hint="En qué se cuenta el consumible y cuánto ingresa."
                 >
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+                    {/* Dos columnas y no tres: la cantidad mínima salió de aquí
+                        —vive en el renglón— y con tres quedaba una celda vacía. */}
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                         <FormItem className="w-full">
                             <FormLabel className={labelClass}>Unidad base</FormLabel>
                             <SearchableSelect
@@ -522,15 +532,14 @@ export default function ConsumableArticleForm({
                                 <FormItem className="w-full">
                                     <FormLabel className={labelClass}>Cantidad</FormLabel>
                                     <FormControl>
-                                        <Input
-                                            inputMode="decimal"
+                                        <NumericInput
                                             placeholder="Ej: 15.7"
-                                            value={field.value ?? ""}
+                                            value={field.value}
+                                            onValueChange={field.onChange}
+                                            onBlur={field.onBlur}
+                                            name={field.name}
+                                            ref={field.ref}
                                             disabled={busy}
-                                            className={numericFieldClass}
-                                            onChange={(e) =>
-                                                field.onChange(onlyNumeric(e.target.value))
-                                            }
                                         />
                                     </FormControl>
                                     <FormDescription className={hintClass}>
@@ -541,34 +550,10 @@ export default function ConsumableArticleForm({
                             )}
                         />
 
-                        <FormField
-                            control={form.control}
-                            name="min_quantity"
-                            render={({ field }) => (
-                                <FormItem className="w-full">
-                                    <FormLabel className={labelClass}>Cantidad mínima</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            inputMode="decimal"
-                                            placeholder="Ej: 5"
-                                            value={field.value ?? ""}
-                                            disabled={busy}
-                                            className={numericFieldClass}
-                                            onChange={(e) => {
-                                                const cleaned = onlyNumeric(e.target.value);
-                                                field.onChange(
-                                                    cleaned === "" ? undefined : parseFloat(cleaned),
-                                                );
-                                            }}
-                                        />
-                                    </FormControl>
-                                    <FormDescription className={hintClass}>
-                                        Al bajar de este nivel se alerta el stock.
-                                    </FormDescription>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+                        {/* La cantidad mínima no se captura aquí: pertenece al
+                            renglón, que es contra quien se contrasta la suma de
+                            sus lotes. Pedirla por artículo daba a entender que
+                            el lote tenía un umbral propio, y no dispara nada. */}
                     </div>
                 </FormSection>
 
@@ -680,7 +665,11 @@ export default function ConsumableArticleForm({
                 open={!!preview}
                 onClose={() => setPreview(null)}
                 onConfirm={() => preview && save(preview)}
-                title="Vista previa del consumible"
+                title={isEditing ? "Confirmar cambios del consumible" : "Vista previa del consumible"}
+                description={isEditing
+                    ? "Así quedará el consumible con los cambios aplicados."
+                    : undefined}
+                confirmLabel={isEditing ? "Guardar cambios" : "Registrar"}
                 groups={previewGroups}
                 busy={busy}
             />

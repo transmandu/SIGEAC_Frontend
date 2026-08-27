@@ -707,8 +707,18 @@ unitario. `costInBaseUnit()` lo hace explícito.
 | Unidad | `consumables.primary_unit_id` | `general_articles.primary_unit_id` |
 | Serializado | sí (part number, serial, condición) | no |
 | Mínimo de stock | `batches.min_quantity` | `general_articles.minimum_quantity` |
-| Máximo de stock | — | `general_articles.maximum_quantity` |
+| Máximo de stock | `batches.maximum_quantity` | `general_articles.maximum_quantity` |
+| Contra qué se compara | suma de los lotes `STORED` del renglón | la cantidad del propio artículo |
 | Documentos | sí | no |
+
+En el aeronáutico los niveles viven en el **renglón**, no en el lote. Un consumible casi
+nunca se repite —cada compra entra como artículo nuevo porque trae otro número de lote—,
+así que comparar lote por lote levantaba una alerta por cada uno sobre un renglón que en
+total estaba sobrado, y al revés, un solo lote grande tapaba la alerta aunque el resto
+estuviera vacío. Lo que se repone es el renglón. `consumables.min_quantity` **se
+eliminó**: un lote no tiene umbral propio, y dejar la columna era invitar a llenar
+un campo que nadie lee esperando un aviso que nunca llega. Los niveles que solo
+existían en el lote se subieron al renglón que aún no tenía uno.
 
 **`maximum_quantity` NO es un tope de existencia.** El inventario puede superarlo sin
 problema. Es el **nivel objetivo de reposición**: el mínimo dispara la alerta, el
@@ -953,7 +963,7 @@ representa *lo que se solicitó*, no lo que se compró.
 
 ```mermaid
 flowchart TD
-    S["Stock cae por debajo del mínimo<br/>(despacho, ajuste, etc.)"] --> B["LowStockAlertBroadcaster<br/>(siempre POST-commit)"]
+    S["Stock cae por debajo del mínimo<br/>general: cantidad del artículo<br/>consumible: suma de los lotes del renglón"] --> B["LowStockAlertBroadcaster<br/>(siempre POST-commit)"]
     B --> A["Alerta en el botón<br/>de alertas críticas"]
     A --> T{"InTransitStockService:<br/>¿hay compra en curso?"}
     T -->|sí| INT["Alerta EN TRÁNSITO (azul)<br/>muestra SC, cantidad y días<br/>+ enlace a la solicitud<br/>botón: 'Pedir igual'"]
@@ -964,7 +974,7 @@ flowchart TD
     Q --> CHK{"¿En tránsito y<br/>sin acknowledge_in_transit?"}
     CHK -->|sí| ERR["409 + detalle in_transit<br/>(no es error: pide confirmar)"]
     CHK -->|no| CALC["cantidad = ceil(max(objetivo − existencia, 1))<br/>objetivo = maximum_quantity<br/>o minimum_quantity si no hay máximo"]
-    CALC --> REQ["Requisición GENERAL<br/>created_by = SYSTEM<br/>requested_by = empleado real<br/>priority = HIGH si stock = 0"]
+    CALC --> REQ["Requisición GENERAL o AERONAUTICAL<br/>según el origen de la alerta<br/>created_by = SYSTEM<br/>requested_by = empleado real<br/>priority = HIGH si stock = 0"]
     style REQ fill:#e3f2fd,stroke:#1565c0
     style INT fill:#e1f5fe,stroke:#0277bd
 ```
@@ -1027,10 +1037,17 @@ Detalles importantes:
   alerta debe volver a sonar en el acto, sin esperar al refetch.
 - `created_by = 'SYSTEM'` (la originó la alerta) pero `requested_by` es el empleado
   real que presionó el botón — la trazabilidad humana se conserva.
-- El equivalente aeronáutico existe para consumibles, pero **usa
-  `batches.min_quantity` y no tiene concepto de máximo**: repone solo hasta el mínimo.
-  Su recepción no pasa por `general_article_intakes` sino por el status del propio
-  `Article`, así que sobre él solo se aplica la regla de requisición abierta + TTL.
+- El equivalente aeronáutico para consumibles alerta **por renglón y no por lote**:
+  compara `batches.min_quantity` contra la **suma** de los lotes `STORED` del renglón, y
+  dimensiona el pedido con `batches.maximum_quantity` igual que el general. Se pide con
+  `batch_id` (no `article_id`): pedir "más del lote X" no significa nada cuando cada
+  compra llega con otro número de lote. Su recepción no pasa por
+  `general_article_intakes` sino por el status del propio `Article`, así que sobre él
+  solo se aplica la regla de requisición abierta + TTL.
+- La unidad de la alerta de consumibles sale del **artículo**
+  (`consumables.primary_unit_id`), no del renglón: la unidad dejó de vivir en `batches`.
+  Un renglón agotado no tiene lote del que tomarla y la alerta muestra la cantidad sin
+  unidad, que es lo correcto — inventarla sería peor.
 - `activeRequisitions` devuelve **un renglón por requisición y no un total**, porque
   las unidades pueden diferir entre ellas (1 GALÓN y 3 METRO del mismo artículo) y
   la suma no significaría nada. Ahora incluye también las aprobadas aún no recibidas.
@@ -1443,5 +1460,6 @@ Si hubiera que ordenar el trabajo:
 | **Retailer** | Comercio / lugar de compra (mundo general). |
 | **Conversión** | Equivalencia entre dos unidades, asociada a un artículo concreto. |
 | **Unidad base** | `primary_unit_id` del artículo: la unidad en que se lleva el stock. |
-| **Lote (batch)** | Agrupación aeronáutica con categoría (consumible/componente/parte/herramienta) y mínimo de stock. |
+| **Renglón (batch)** | Agrupación aeronáutica con categoría (consumible/componente/parte/herramienta). Dueño del mínimo y el máximo de stock, que se contrastan contra la suma de sus lotes. |
+| **Lote** | Cada `Article` concreto del renglón, con su número de lote y caducidad. No tiene niveles de stock propios que alerten. |
 | **isOMAC** | Flag de compañía: si es false, no existe el mundo aeronáutico. |

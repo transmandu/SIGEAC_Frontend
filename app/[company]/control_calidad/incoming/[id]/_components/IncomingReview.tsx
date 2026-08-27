@@ -484,7 +484,7 @@ export function IncomingReview({ article }: { article: any }) {
     ? article.serial.join(", ")
     : article?.serial;
 
-  const isHazardous = !!article?.batch?.is_hazarous;
+  const isHazardous = !!article?.batch?.is_hazardous;
   const consumable = article?.consumable;
 
   /* ── Checklist state ── */

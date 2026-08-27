@@ -16,9 +16,8 @@ import { cn } from "@/lib/utils";
 import {
     hintClass,
     labelClass,
-    numericFieldClass,
-    onlyNumeric,
 } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
+import { NumericTextInput } from "@/components/forms/mantenimiento/almacen/_components/NumericInput";
 
 /**
  * Un límite de vida y sus tres medidas.
@@ -65,14 +64,12 @@ export const LifeLimitRow = ({
                             Horas
                         </FormLabel>
                         <FormControl>
-                            <Input
-                                inputMode="decimal"
+                            <NumericTextInput
                                 placeholder="0"
                                 {...field}
-                                value={field.value ?? ""}
+                                value={field.value}
+                                onValueChange={field.onChange}
                                 disabled={disabled}
-                                className={numericFieldClass}
-                                onChange={(e) => field.onChange(onlyNumeric(e.target.value))}
                             />
                         </FormControl>
                         <FormMessage />
@@ -89,14 +86,13 @@ export const LifeLimitRow = ({
                             Ciclos
                         </FormLabel>
                         <FormControl>
-                            <Input
-                                inputMode="numeric"
+                            <NumericTextInput
                                 placeholder="0"
                                 {...field}
-                                value={field.value ?? ""}
+                                value={field.value}
+                                onValueChange={field.onChange}
+                                inputMode="numeric"
                                 disabled={disabled}
-                                className={numericFieldClass}
-                                onChange={(e) => field.onChange(onlyNumeric(e.target.value))}
                             />
                         </FormControl>
                         <FormMessage />

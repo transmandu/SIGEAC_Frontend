@@ -8,7 +8,7 @@ type BatchType = {
   alternative_part_number?: string,
   ata_code?: string,
   brand?: string,
-  is_hazarous?: boolean,
+  is_hazardous?: boolean,
   medition_unit?: string,
   min_quantity?: number,
   zone?: string,

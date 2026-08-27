@@ -40,10 +40,9 @@ import {
     fieldClass,
     hintClass,
     labelClass,
-    numericFieldClass,
-    onlyNumeric,
     selectTriggerClass,
 } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
+import { NumericTextInput } from "@/components/forms/mantenimiento/almacen/_components/NumericInput";
 
 import { ArticleFormShell } from "./ArticleFormShell";
 import {
@@ -123,6 +122,7 @@ export default function PartComponentArticleForm({
     onEditSuccess,
     submitLabel,
     onStateChange,
+    showPreview,
 }: ArticleFormProps & { category: "COMPONENT" | "PART" }) {
     const isComponent = category === "COMPONENT";
     const categoryLabel = isComponent ? "Componente" : "Parte";
@@ -275,11 +275,17 @@ export default function PartComponentArticleForm({
 
     const busy = baseBusy || conditionsLoading;
 
+    // Atado al id y no al objeto: `initialData` llega de una query, así que un
+    // refetch devuelve otro objeto con los mismos datos y volvía a resetear el
+    // formulario encima de lo que el usuario estaba escribiendo.
+    const articleId = initialData?.id;
+
     useEffect(() => {
         if (!initialData) return;
         form.reset(defaults);
         reloadDocuments(initialData);
-    }, [defaults, form, initialData, reloadDocuments]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [articleId]);
 
     const hasDocumentation = form.watch("has_documentation");
     const conditionId = form.watch("condition_id");
@@ -459,9 +465,13 @@ export default function PartComponentArticleForm({
                 canSave={canSave}
                 submitLabel={submitLabel}
                 hideActions={!!onStateChange}
+                opensPreview={showPreview}
                 onCancel={() => router.back()}
+                // La vista previa la pide quien monta el formulario: solo el
+                // alta y la edición formales del artículo la usan. Al crear se
+                // confirma lo que va a nacer; al editar, cómo queda.
                 onSubmit={form.handleSubmit((values) =>
-                    isEditing ? save(values) : setPreview(values),
+                    showPreview ? setPreview(values) : save(values),
                 )}
             >
                 <IdentificationSection
@@ -684,16 +694,13 @@ export default function PartComponentArticleForm({
                                         <FormItem className="w-full">
                                             <FormLabel className={labelClass}>Duración</FormLabel>
                                             <FormControl>
-                                                <Input
+                                                <NumericTextInput
                                                     inputMode="numeric"
                                                     placeholder="Ej: 10"
                                                     {...field}
-                                                    value={field.value ?? ""}
+                                                    value={field.value}
+                                                    onValueChange={field.onChange}
                                                     disabled={busy}
-                                                    className={numericFieldClass}
-                                                    onChange={(e) =>
-                                                        field.onChange(onlyNumeric(e.target.value))
-                                                    }
                                                 />
                                             </FormControl>
                                             <FormMessage />
@@ -765,7 +772,13 @@ export default function PartComponentArticleForm({
                 open={!!preview}
                 onClose={() => setPreview(null)}
                 onConfirm={() => preview && save(preview)}
-                title={`Vista previa del ${categoryLabel.toLowerCase()}`}
+                title={isEditing
+                    ? `Confirmar cambios del ${categoryLabel.toLowerCase()}`
+                    : `Vista previa del ${categoryLabel.toLowerCase()}`}
+                description={isEditing
+                    ? `Así quedará el ${categoryLabel.toLowerCase()} con los cambios aplicados.`
+                    : undefined}
+                confirmLabel={isEditing ? "Guardar cambios" : "Registrar"}
                 groups={previewGroups}
                 busy={busy}
             />

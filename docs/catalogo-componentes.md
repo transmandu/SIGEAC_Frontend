@@ -3,7 +3,7 @@
 > Inventario de la interfaz. Antes de crear un componente, búscalo aquí: la causa
 > más común de duplicación en este proyecto es no saber que algo ya existe.
 >
-> Cifras al momento de escribir: **595 archivos**, de los cuales 37 no tienen ningún
+> Cifras al momento de escribir: **593 archivos**, de los cuales 35 no tienen ningún
 > consumidor.
 
 ---
@@ -276,7 +276,7 @@ merece su propia tarea revisada.
 Mientras tanto: si creas una tabla nueva, copia la más parecida y **usa siempre**
 `DataTablePagination` y `DataTableViewOptions` en vez de escribirlos.
 
-### 37 componentes huérfanos
+### 35 componentes huérfanos
 
 Sin ningún consumidor. Están marcados **huérfano** en las tablas de la sección 9.
 
@@ -428,7 +428,6 @@ varios módulos significa que es transversal; **huérfano** significa cero consu
 | `CreateToolBoxForm` | `forms/mantenimiento/almacen/CreateToolBoxForm.tsx` | almacen | 325 |
 | `CreateToolForm` | `forms/mantenimiento/almacen/CreateToolForm.tsx` | almacen, compras, control_calidad, general, ingenieria | 810 |
 | `DestinationUnknownField` | `forms/mantenimiento/almacen/DestinationUnknownField.tsx` | almacen | 45 |
-| `_(sin export nombrado)_` | `forms/mantenimiento/almacen/EditArticleForm.tsx` | **huérfano** | 689 |
 | `EditBatchForm` | `forms/mantenimiento/almacen/EditBatchForm.tsx` | almacen, ingenieria | 75 |
 | `EditToolBoxForm` | `forms/mantenimiento/almacen/EditToolBoxForm.tsx` | almacen | 328 |
 | `PartDispatchForm` | `forms/mantenimiento/almacen/PartDispatchForm.tsx` | almacen | 693 |
@@ -580,7 +579,6 @@ varios módulos significa que es transversal; **huérfano** significa cero consu
 | `_(sin export nombrado)_` | `dialogs/mantenimiento/almacen/DispatchArticlesDialog.tsx` | almacen | 199 |
 | `DispatchReportFilters` | `dialogs/mantenimiento/almacen/DispatchReportFilters.tsx` | almacen, dashboard, planificacion | 1188 |
 | `PreviewCreateComponentDialog` | `dialogs/mantenimiento/almacen/PreviewCreateComponentDialog.tsx` | almacen | 151 |
-| `PreviewCreateConsumableDialog` | `dialogs/mantenimiento/almacen/PreviewCreateConsumableDialog.tsx` | almacen | 175 |
 | `RegisterDispatchRequestDialog` | `dialogs/mantenimiento/almacen/RegisterDispatchRequestDialog.tsx` | almacen | 173 |
 | `ReturnWarehouseDialog` | `dialogs/mantenimiento/almacen/ReturnWarehouseDialog.tsx` | **huérfano** | 65 |
 | `_(sin export nombrado)_` | `dialogs/mantenimiento/almacen/ToolBoxToolsDialog.tsx` | almacen | 102 |

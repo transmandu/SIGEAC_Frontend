@@ -41,11 +41,14 @@ const ReceptionRegisterArticleForm = ({
                 <ArticleCategoryPicker value={category} onChange={setCategory} />
             )}
 
+            {/* `showPreview`: esta es el alta formal del artículo, así que lo
+                que va a nacer se confirma antes de registrarlo. */}
             {category === "COMPONENT" && (
                 <PartComponentArticleForm
                     category="COMPONENT"
                     isEditing={isEditing}
                     initialData={initialData}
+                    showPreview
                 />
             )}
             {category === "PART" && (
@@ -53,13 +56,22 @@ const ReceptionRegisterArticleForm = ({
                     category="PART"
                     isEditing={isEditing}
                     initialData={initialData}
+                    showPreview
                 />
             )}
             {category === "CONSUMABLE" && (
-                <ConsumableArticleForm isEditing={isEditing} initialData={initialData} />
+                <ConsumableArticleForm
+                    isEditing={isEditing}
+                    initialData={initialData}
+                    showPreview
+                />
             )}
             {category === "TOOL" && (
-                <ToolArticleForm isEditing={isEditing} initialData={initialData} />
+                <ToolArticleForm
+                    isEditing={isEditing}
+                    initialData={initialData}
+                    showPreview
+                />
             )}
             {category === "GENERAL" && <CreateGeneralArticleForm />}
         </div>

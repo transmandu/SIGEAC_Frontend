@@ -10,9 +10,12 @@ type BatchType = {
   description?: string,
   ata_code?: string,
   brand?: string,
-  is_hazarous?: boolean,
+  is_hazardous?: boolean,
   medition_unit?: string,
+  /** Dispara la alerta al caer por debajo, contra la suma de sus lotes. */
   min_quantity?: number,
+  /** Nivel objetivo de reposición, no un tope de existencia. */
+  maximum_quantity?: number,
   zone?: string,
   warehouse_id?: number,
   category?: string,

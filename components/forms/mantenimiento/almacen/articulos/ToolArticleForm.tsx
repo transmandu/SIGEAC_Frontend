@@ -117,6 +117,7 @@ export default function ToolArticleForm({
     onEditSuccess,
     submitLabel,
     onStateChange,
+    showPreview,
 }: ArticleFormProps) {
     const [receptionDate, setReceptionDate] = useState<Date | null | undefined>(
         initialData?.reception_date ? parseISO(initialData.reception_date) : null,
@@ -196,11 +197,17 @@ export default function ToolArticleForm({
         extraDirty: datesDirty,
     });
 
+    // Atado al id y no al objeto: `initialData` llega de una query, así que un
+    // refetch devuelve otro objeto con los mismos datos y volvía a resetear el
+    // formulario encima de lo que el usuario estaba escribiendo.
+    const articleId = initialData?.id;
+
     useEffect(() => {
         if (!initialData) return;
         form.reset(defaults);
         reloadDocuments(initialData);
-    }, [defaults, form, initialData, reloadDocuments]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [articleId]);
 
     const needsCalibration = form.watch("needs_calibration");
     const hasDocumentation = form.watch("has_documentation");
@@ -316,11 +323,13 @@ export default function ToolArticleForm({
                 canSave={canSave}
                 submitLabel={submitLabel}
                 hideActions={!!onStateChange}
+                opensPreview={showPreview}
                 onCancel={() => router.back()}
-                // Al crear se revisa antes de confirmar; al editar el usuario
-                // ya conoce el artículo y el paso extra solo estorba.
+                // La vista previa la pide quien monta el formulario: solo el
+                // alta y la edición formales del artículo la usan. Al crear se
+                // confirma lo que va a nacer; al editar, cómo queda.
                 onSubmit={form.handleSubmit((values) =>
-                    isEditing ? save(values) : setPreview(values),
+                    showPreview ? setPreview(values) : save(values),
                 )}
             >
                 <IdentificationSection
@@ -514,7 +523,11 @@ export default function ToolArticleForm({
                 open={!!preview}
                 onClose={() => setPreview(null)}
                 onConfirm={() => preview && save(preview)}
-                title="Vista previa de la herramienta"
+                title={isEditing ? "Confirmar cambios de la herramienta" : "Vista previa de la herramienta"}
+                description={isEditing
+                    ? "Así quedará la herramienta con los cambios aplicados."
+                    : undefined}
+                confirmLabel={isEditing ? "Guardar cambios" : "Registrar"}
                 groups={previewGroups}
                 busy={busy}
             />

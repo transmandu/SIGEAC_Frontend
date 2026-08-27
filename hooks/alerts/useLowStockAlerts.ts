@@ -153,27 +153,66 @@ export const useLowStockAlerts = () => {
             };
         });
 
-        const consumableAlerts: CriticalAlert[] = consumableArticles.map((article) => {
-            const unitValue = article.batch.unit?.value ?? "";
+        // Una alerta por renglón y no por lote: la existencia que se contrasta
+        // es la suma de sus lotes, y lo que se repone es el renglón.
+        const consumableAlerts: CriticalAlert[] = consumableArticles.map((batch) => {
+            const unitValue = batch.unit?.value ?? "";
+            const stored = Number(batch.stored_quantity ?? 0);
+
+            // Espejo de buildLowStockBatchRequisitionData(): solo para anticipar
+            // la cantidad en el texto, la cifra real la calcula el backend.
+            const target = Number(batch.maximum_quantity ?? 0) > 0
+                ? Number(batch.maximum_quantity)
+                : Number(batch.min_quantity ?? 0);
+            const restockQuantity = Math.ceil(Math.max(target - stored, 1));
+
+            const inTransit = batch.in_transit ?? [];
+            // La unidad vive en el artículo desde que dejó de estar en el
+            // renglón: un renglón agotado no tiene lote del que tomarla, así que
+            // solo ella se omite. La cantidad se imprime siempre — filtrarla por
+            // "vacía" se tragaba el 0, que es justo el caso más urgente.
+            const amount = (value: number | string) =>
+                unitValue ? `${value} ${unitValue}` : `${value}`;
+            const stockLine = `Mínimo: ${amount(batch.min_quantity)} · Cantidad restante: ${amount(stored)}`;
+
             return {
-            id: `low-stock-consumable-article-${article.id}`,
+            id: `low-stock-consumable-batch-${batch.id}`,
             source: "low-stock-consumable-article",
-            sourceId: article.id,
-            weight: Number(article.consumable.quantity ?? 0) <= 0 ? 20 : 10,
-            title: "Un artículo del inventario está por debajo de su stock mínimo",
-            label: [article.batch.name, article.part_number].filter(Boolean).join(" - "),
-            description: `Mínimo: ${article.batch.min_quantity} ${unitValue} · Cantidad restante: ${article.consumable.quantity} ${unitValue}\n¿Deseas crear una solicitud de compra para este artículo?`,
-            severity: Number(article.consumable.quantity ?? 0) <= 0 ? "critical" : "warning",
+            sourceId: batch.id,
+            // Lo agotado pesa más que lo que solo está bajo mínimo; lo que ya
+            // viene en camino no compite por atención.
+            weight: inTransit.length > 0 ? 0 : stored <= 0 ? 20 : 10,
+            countsAsPending: inTransit.length === 0,
+            title: inTransit.length > 0
+                ? "Consumible bajo mínimo, con una compra ya en camino"
+                : "Un consumible del inventario está por debajo de su stock mínimo",
+            label: batch.name,
+            description: inTransit.length > 0
+                ? `${stockLine}\n${describeInTransit(inTransit)}`
+                : `${stockLine}\n¿Deseas crear una solicitud de compra por ${amount(restockQuantity)} para este consumible?`,
+            severity: inTransit.length > 0
+                ? "in-transit"
+                : stored <= 0 ? "critical" : "warning",
+            href: companySlug && inTransit.length > 0
+                ? (inTransit.length === 1 && inTransit[0].requisition_number
+                    ? `/${companySlug}/general/requisiciones/${inTransit[0].requisition_number}`
+                    : `/${companySlug}/general/requisiciones`)
+                : undefined,
+            hrefLabel: inTransit.length === 1
+                ? `Ver solicitud ${inTransit[0].requisition_number ?? ""}`.trim()
+                : "Ver solicitudes de compra",
+            inTransit,
             onConfirm: companySlug
                 ? () => createRequisitionFromLowStockAlert.mutate({
                     source: "consumable",
-                    articleId: article.id,
+                    batchId: batch.id,
                     company: companySlug,
+                    acknowledgeInTransit: inTransit.length > 0,
                 })
                 : undefined,
             isConfirming: createRequisitionFromLowStockAlert.isPending
                 && createRequisitionFromLowStockAlert.variables?.source === "consumable"
-                && createRequisitionFromLowStockAlert.variables.articleId === article.id,
+                && createRequisitionFromLowStockAlert.variables.batchId === batch.id,
             };
         });
 

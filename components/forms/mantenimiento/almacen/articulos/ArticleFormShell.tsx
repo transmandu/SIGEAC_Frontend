@@ -18,6 +18,8 @@ export const ArticleFormShell = ({
     onCancel,
     /** Presente cuando el contexto monta el botón en el pie de un diálogo. */
     hideActions,
+    /** El botón abre una vista previa en vez de guardar: el rótulo lo anuncia. */
+    opensPreview,
     onSubmit,
     formRef,
     children,
@@ -28,6 +30,7 @@ export const ArticleFormShell = ({
     submitLabel?: string;
     onCancel?: () => void;
     hideActions?: boolean;
+    opensPreview?: boolean;
     onSubmit: React.FormEventHandler<HTMLFormElement>;
     formRef?: React.Ref<HTMLFormElement>;
     children: React.ReactNode;
@@ -46,7 +49,10 @@ export const ArticleFormShell = ({
                     {busy ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
-                        (submitLabel ?? (isEditing ? "Guardar cambios" : "Revisar y registrar"))
+                        (submitLabel ??
+                            (opensPreview
+                                ? (isEditing ? "Revisar cambios" : "Revisar y registrar")
+                                : (isEditing ? "Guardar cambios" : "Registrar")))
                     )}
                 </Button>
             </div>

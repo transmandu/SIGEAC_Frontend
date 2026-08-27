@@ -177,9 +177,12 @@ export type Batch = {
   category: string;
   ata_code: string;
   brand: string;
-  is_hazarous: boolean;
+  is_hazardous: boolean;
   unit: Unit;
+  /** Nivel que dispara la alerta de stock, contra la suma de sus lotes. */
   min_quantity: number;
+  /** Nivel objetivo de reposición, no un tope de existencia. */
+  maximum_quantity?: number | null;
   zone: string;
   warehouse_id: number;
   warehouse_name: string;
@@ -271,26 +274,29 @@ export type Condition = {
   updated_by: string;
 };
 
+/** Sin `min_quantity`: el nivel que alerta pertenece al renglón, no al lote. */
 export interface ConsumableArticle extends Article {
   is_managed?: boolean;
   quantity?: number;
-  min_quantity?: number;
   expiration_date?: string;
   fabrication_date?: string;
 }
 
 /**
- * Forma cruda que devuelve GET .../articles/low-stock-consumables: un Article
- * con sus relaciones consumable/batch cargadas (no aplanado como ConsumableArticle).
- * La cantidad actual vive en consumable.quantity, el mínimo en batch.min_quantity.
+ * Renglón de consumible bajo su stock mínimo, tal como lo devuelve
+ * GET .../articles/low-stock-consumables.
+ *
+ * La alerta es del renglón y no de un lote suyo: un consumible casi nunca se
+ * repite —cada compra entra como artículo nuevo porque trae otro número de
+ * lote—, así que comparar lote por lote levantaba una alerta por cada uno
+ * sobre un renglón que en total estaba sobrado. `stored_quantity` es la suma
+ * de los lotes almacenados, que es lo que se contrasta contra el mínimo.
  */
-export interface LowStockConsumableArticle extends Article {
-  consumable: {
-    id: number;
-    quantity: number;
-    primary_unit_id?: number;
-  };
-  batch: Pick<Batch, "id" | "name" | "min_quantity" | "unit">;
+export interface LowStockConsumableBatch
+  extends Pick<Batch, "id" | "name" | "min_quantity" | "unit"> {
+  maximum_quantity?: number | null;
+  stored_quantity: number;
+  in_transit?: InTransitDetail[];
 }
 
 /**

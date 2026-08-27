@@ -31,10 +31,13 @@ const EditArticlePage = () => {
           </p>
         </div>
 
+        {/* `showPreview`: esta es la edición formal del artículo, así que se
+            confirma cómo queda antes de guardar. */}
         <RegisterArticleForm
           isEditing
           initialData={data}
           category={data?.batch?.category}
+          showPreview
           onEditSuccess={() =>
             router.push(`/${selectedCompany?.slug}/almacen/inventario_articulos/gestion_inventario`)
           }

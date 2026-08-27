@@ -39,6 +39,7 @@ import {
     dimensionPayload,
     type DimensionDraft,
 } from "./_components/DimensionFields";
+import { NumericInput } from "./_components/NumericInput";
 
 // Mismo lenguaje visual que el LoginForm: cristal suave con borde slate y
 // realce azul al pasar el cursor.
@@ -51,6 +52,18 @@ const fieldClass = cn(
     "hover:border-blue-400/30",
     "hover:shadow-md hover:shadow-blue-500/10",
     "transition-all duration-200",
+    // Un campo bloqueado tiene que verse bloqueado antes de que el usuario
+    // intente usarlo. La regla de `readOnly` se acota a input/textarea: en CSS
+    // `:read-only` acierta en todo lo que no sea editable, y un `<button>` —lo
+    // que hay detrás de cada combobox— nunca lo es, así que los selectores
+    // utilizables salían apagados y con cursor de bloqueo.
+    "disabled:cursor-not-allowed disabled:opacity-60",
+    "disabled:hover:border-slate-400/60 disabled:hover:shadow-sm dark:disabled:hover:border-slate-600/60",
+    "[&:is(input,textarea):read-only]:cursor-not-allowed",
+    "[&:is(input,textarea):read-only]:opacity-60",
+    "[&:is(input,textarea):read-only]:bg-muted/40",
+    "[&:is(input,textarea):read-only]:hover:border-slate-400/60",
+    "[&:is(input,textarea):read-only]:hover:shadow-sm",
 );
 
 const numericFieldClass = cn(fieldClass, "tabular-nums");
@@ -105,6 +118,18 @@ const SectionTitle = ({
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB, el mismo tope que valida el backend.
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 
+/**
+ * Nivel de stock opcional.
+ *
+ * El vacío se normaliza a `undefined` antes de validar: `z.coerce` lo
+ * convertiría en 0, y "sin nivel" no es lo mismo que "nivel cero" — un mínimo
+ * en 0 nunca alerta, así que borrarlo y dejarlo en cero no significan igual.
+ */
+const optionalStockLevel = z.preprocess(
+    (value) => (value === "" || value === null ? undefined : value),
+    z.coerce.number().min(0, "Mínimo 0").optional(),
+);
+
 const formSchema = z.discriminatedUnion("mode", [
     z.object({
         mode: z.literal("create"),
@@ -114,8 +139,8 @@ const formSchema = z.discriminatedUnion("mode", [
         primary_unit_id: z.string().min(1, "Seleccione unidad"),
         warehouse_id: z.string().min(1),
         quantity: z.coerce.number().min(0, "Mínimo 0"),
-        minimum_quantity: z.coerce.number().min(0, "Mínimo 0").optional(),
-        maximum_quantity: z.coerce.number().min(0, "Mínimo 0").optional(),
+        minimum_quantity: optionalStockLevel,
+        maximum_quantity: optionalStockLevel,
     }),
     z.object({
         mode: z.literal("edit"),
@@ -125,8 +150,8 @@ const formSchema = z.discriminatedUnion("mode", [
         primary_unit_id: z.string().min(1, "Seleccione unidad"),
         warehouse_id: z.string().optional(),
         quantity: z.coerce.number().optional(),
-        minimum_quantity: z.coerce.number().min(0, "Mínimo 0").optional(),
-        maximum_quantity: z.coerce.number().min(0, "Mínimo 0").optional(),
+        minimum_quantity: optionalStockLevel,
+        maximum_quantity: optionalStockLevel,
     }),
     z.object({
         mode: z.literal("add"),
@@ -202,8 +227,11 @@ const CreateGeneralArticleForm = ({
                 ? (initialData?.general_primary_unit?.id?.toString() ?? "")
                 : (selectedArticle?.general_primary_unit?.id?.toString() ?? ""),
             quantity: isEditing ? (initialData?.quantity ?? 0) : 0,
-            minimum_quantity: isEditing ? (initialData?.minimum_quantity ?? 0) : 0,
-            maximum_quantity: isEditing ? (initialData?.maximum_quantity ?? 0) : 0,
+            // `undefined` y no 0: son opcionales, y un mínimo en 0 nunca alerta.
+            // Con `?? 0` el campo nacía en "0" y no había forma de dejarlo vacío
+            // — al borrarlo volvía a aparecer el valor anterior.
+            minimum_quantity: isEditing ? (initialData?.minimum_quantity ?? undefined) : undefined,
+            maximum_quantity: isEditing ? (initialData?.maximum_quantity ?? undefined) : undefined,
             warehouse_id: initialData?.warehouse?.id?.toString() ?? "2",
         },
     });
@@ -614,11 +642,11 @@ const CreateGeneralArticleForm = ({
                             <FormItem>
                                 <FormLabel className={labelClass}>{currentMode === "add" ? "Sumar cantidad" : "Cantidad"}</FormLabel>
                                 <FormControl>
-                                    <Input
+                                    <NumericInput
                                         {...field}
-                                        inputMode="decimal"
+                                        value={field.value}
+                                        onValueChange={field.onChange}
                                         className={numericFieldClass}
-                                        onChange={(e) => field.onChange(onlyNumeric(e.target.value))}
                                         disabled={isEditing && onlyDescription}
                                     />
                                 </FormControl>
@@ -690,15 +718,15 @@ const CreateGeneralArticleForm = ({
                                 <FormItem>
                                     <FormLabel className={labelClass}>Cantidad mínima</FormLabel>
                                     <FormControl>
-                                        <Input
+                                        <NumericInput
                                             {...field}
-                                            inputMode="decimal"
+                                            value={field.value}
+                                            onValueChange={field.onChange}
                                             className={numericFieldClass}
-                                            onChange={(e) => field.onChange(onlyNumeric(e.target.value))}
                                         />
                                     </FormControl>
                                     <FormDescription className="text-xs">
-                                        Al bajar de este nivel se alerta el stock.
+                                        Opcional. Al bajar de este nivel se alerta el stock.
                                     </FormDescription>
                                     <FormMessage />
                                 </FormItem>
@@ -712,15 +740,15 @@ const CreateGeneralArticleForm = ({
                                 <FormItem>
                                     <FormLabel className={labelClass}>Cantidad máxima</FormLabel>
                                     <FormControl>
-                                        <Input
+                                        <NumericInput
                                             {...field}
-                                            inputMode="decimal"
+                                            value={field.value}
+                                            onValueChange={field.onChange}
                                             className={numericFieldClass}
-                                            onChange={(e) => field.onChange(onlyNumeric(e.target.value))}
                                         />
                                     </FormControl>
                                     <FormDescription className="text-xs">
-                                        Nivel de stock a reponer, no un tope de existencia.
+                                        Opcional. Nivel de stock a reponer, no un tope de existencia.
                                     </FormDescription>
                                     <FormMessage />
                                 </FormItem>

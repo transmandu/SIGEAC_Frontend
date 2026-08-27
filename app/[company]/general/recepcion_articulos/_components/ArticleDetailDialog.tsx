@@ -152,7 +152,6 @@ export function ArticleDetailDialog({ article }: { article: TransitArticle }) {
                 { label: 'Lote', value: full.consumable.lot_number },
                 { label: 'Fecha de fabricación', value: full.consumable.fabrication_date },
                 { label: 'Fecha de expiración', value: full.consumable.expiration_date },
-                { label: 'Cantidad mínima', value: full.consumable.min_quantity },
                 { label: '¿Manejado?', value: full.consumable.is_managed ? 'Sí' : 'No' },
                 { label: 'Shelf life', value: full.consumable.shelf_life },
             ]

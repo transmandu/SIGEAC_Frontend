@@ -27,6 +27,12 @@ interface IRegisterArticleProps {
      * fuera del área que se desplaza; el submit se dispara por `requestSubmit()`.
      */
     onStateChange?: (state: { busy: boolean; canSave: boolean }) => void;
+    /**
+     * Pide confirmar en una vista previa antes de guardar. Solo lo activa la
+     * edición formal del artículo (gestión de inventario); los flujos que
+     * corrigen un aspecto puntual ya traen su propia confirmación.
+     */
+    showPreview?: boolean;
 }
 
 /**
@@ -42,6 +48,7 @@ const RegisterArticleForm = ({
     onEditSuccess,
     submitLabel,
     onStateChange,
+    showPreview,
 }: IRegisterArticleProps) => {
     const category = initialData?.batch?.category?.toUpperCase() ?? "COMPONENT";
 
@@ -51,6 +58,7 @@ const RegisterArticleForm = ({
         onEditSuccess,
         submitLabel,
         onStateChange,
+        showPreview,
     };
 
     if (category === "CONSUMABLE") return <ConsumableArticleForm {...shared} />;

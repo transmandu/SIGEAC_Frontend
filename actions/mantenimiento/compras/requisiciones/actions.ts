@@ -77,7 +77,9 @@ export const useUpdateRequisition = () => {
  */
 type CreateRequisitionFromLowStockAlertParams =
   ({ source: 'general', generalArticleId: number, company: string }
-    | { source: 'consumable', articleId: number, company: string })
+    // Por renglón (batchId) y no por lote: cada compra del consumible entra con
+    // otro número de lote, así que pedir "más del lote X" no significa nada.
+    | { source: 'consumable', batchId: number, company: string })
   & { acknowledgeInTransit?: boolean }
 
 export const useCreateRequisitionFromLowStockAlert = () => {
@@ -88,7 +90,7 @@ export const useCreateRequisitionFromLowStockAlert = () => {
       const body = {
         ...(params.source === 'general'
           ? { general_article_id: params.generalArticleId }
-          : { article_id: params.articleId }),
+          : { batch_id: params.batchId }),
         ...(params.acknowledgeInTransit ? { acknowledge_in_transit: true } : {}),
       }
 
