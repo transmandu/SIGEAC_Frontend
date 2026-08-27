@@ -375,11 +375,13 @@ Se marca manualmente y no dispara ningún efecto sobre inventario.
 stateDiagram-v2
     [*] --> TRANSIT: markAsPaid crea el Article
     TRANSIT --> RECEPTION: llega físicamente<br/>(consignados los documentos)
-    RECEPTION --> STORED: inspección de entrada OK
+    RECEPTION --> WAITING_FOR_FORMAT: inspección de entrada OK
     RECEPTION --> QUARANTINE: inspección falla
     QUARANTINE --> PENDING_REINSPECTION: compras corrige y lo declara
-    PENDING_REINSPECTION --> STORED: re-inspección OK
+    PENDING_REINSPECTION --> WAITING_FOR_FORMAT: re-inspección OK
     PENDING_REINSPECTION --> QUARANTINE: re-inspección falla<br/>(nuevo ciclo)
+    WAITING_FOR_FORMAT --> WAITING_TO_LOCATE: se emite el formato
+    WAITING_TO_LOCATE --> STORED: almacén confirma la zona
     STORED --> DISPATCHED: despacho (componente/parte)
     STORED --> INUSE: despacho (herramienta)
     STORED --> STORED: despacho (consumible, resta cantidad)
@@ -417,6 +419,23 @@ imprime el formato de recepción. Se emite desde la pestaña homónima de
 `control_calidad/incoming` seleccionando los artículos y confirmando el diálogo;
 al generarse, pasan a `WAITING_TO_LOCATE`.
 
+**El paso por `WAITING_TO_LOCATE` es obligatorio y no tiene atajo.** Desde
+`almacen/por_ubicar`, el diálogo de ubicación pasa el artículo a `STORED`. Si
+durante la recepción ya se había cargado una zona, el diálogo la precarga como
+sugerencia editable para que almacén la confirme o la corrija: tener zona **no**
+salta el estado, porque la ubicación física la valida quien recibe el artículo en
+el almacén, no quien la tecleó antes.
+
+**Ubicar es trabajo de almacén, no de calidad.** `almacen/por_ubicar` es la única
+pantalla de artículos por ubicar, bajo el menú de Inventario y restringida a
+`ANALISTA_ALMACEN`, `JEFE_ALMACEN` y `SUPERUSER`. El incoming de calidad tenía un
+tab que listaba lo mismo: se quitó, porque el inspector no ubica nada y verlo solo
+sugería que era su tarea. Calidad termina en la emisión del formato.
+
+`locateArticle` exige que el artículo esté en `WAITING_TO_LOCATE` y responde 409
+si no: una pestaña vieja o un reintento podía devolver a `STORED` un artículo ya
+despachado o en cuarentena.
+
 **El número de orden que se imprime lo teclea el inspector.** El correlativo del
 sistema (`PO2026JUL0001CBL-A`) no coincide con el que la empresa usa en papel, así
 que el diálogo lo precarga como sugerencia pero deja editarlo. Es obligatorio: se
@@ -441,7 +460,21 @@ lo vigente es la última emisión de la cadena.
 
 > **Una corrección no mueve inventario.** `markAsWaitingToLocate` se omite cuando
 > viene `corrects_inspection_id`: el artículo ya siguió su curso (puede estar
-> `STORED` y ubicado) y rehacer el papel no debe devolverlo a por-ubicar.
+> `STORED` y ubicado) y rehacer el papel no debe devolverlo a por-ubicar. Como
+> segunda defensa, `markAsWaitingToLocate` solo avanza artículos que estén en
+> `WAITING_FOR_FORMAT`: reemitir manda ids que ya pasaron de largo.
+
+**El veredicto que se copia al formato es el de la inspección vigente**, no el
+primero de la historia del artículo. Un artículo que pasó por cuarentena acumula
+varias filas en `incoming_inspection_items` —unas con checklist real, otras el
+«stub» de cada emisión—; se toma la última con resultados. Copiar la más vieja
+marcaba como `REJECTED` un artículo ya aprobado, y como el PDF sí usaba el
+criterio correcto, el papel y el registro se contradecían.
+
+**Desmarcar «Descargar formato» no emite.** Sin PDF no hay evidencia que archivar,
+así que esa rama solo adelanta el estado y no deja fila en `incoming_inspections`.
+Por lo mismo, una corrección exige reemitir el PDF y se rechaza con 422 si llega
+sin descarga.
 
 | Endpoint | Qué hace |
 |---|---|

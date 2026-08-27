@@ -873,9 +873,12 @@ export const useLocateArticle = () => {
         description: `El articulo ha sido ubicado correctamente.`,
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
+      // El backend rechaza ubicar un artículo que ya salió de espera de
+      // ubicación; ese motivo hay que mostrarlo, no taparlo con el genérico.
       toast.error("Oops!", {
-        description: "No se pudo ubicar el articulo...",
+        description:
+          error?.response?.data?.message ?? "No se pudo ubicar el articulo...",
       });
       console.log(error);
     },
