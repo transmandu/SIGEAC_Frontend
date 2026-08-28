@@ -248,12 +248,12 @@ export function UniformReportDialog() {
             <DatePickerField
               label="Desde"
               value={dateFrom}
-              setValue={setDateFrom}
+              setValue={(d) => setDateFrom(d ?? null)}
             />
             <DatePickerField
               label="Hasta"
               value={dateTo}
-              setValue={setDateTo}
+              setValue={(d) => setDateTo(d ?? null)}
             />
           </div>
 
