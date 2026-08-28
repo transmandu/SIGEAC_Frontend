@@ -32,9 +32,9 @@ export type IssuedIncomingFormat = {
   items?: { id: number; article_id: number; quantity: number }[];
 };
 
-// El flag download (checkbox en la UI) parte el endpoint en dos: con true solo
-// devuelve el PDF del formato H74-036 como blob y no toca los artículos; con
-// false es cuando el backend los pasa a WAITING_TO_LOCATE.
+// El flag download (checkbox en la UI) solo decide si la respuesta es el PDF
+// como blob o un JSON: en ambos casos los artículos pasan a WAITING_TO_LOCATE,
+// salvo que sea una corrección, que no mueve inventario.
 export function useGenerateIncomingFormat() {
   const { selectedCompany } = useCompanyStore();
   const queryClient = useQueryClient();

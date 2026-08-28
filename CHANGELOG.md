@@ -1,0 +1,3162 @@
+## v3.2.5 — 2026-08-27
+
+- Merge pull request #224 from transmandu/fix/incoming-waiting-to-locate-flow
+- fix: enhance article location flow and error handling, update documentation
+
+## v3.2.4 — 2026-08-26
+
+- fix: update versioning logic to remove dependency on backend tags and clarify version independence
+
+## v3.2.3 — 2026-08-26
+
+- Merge pull request #223 from transmandu/perf/dashboard-user-stats-queries
+- fix: update UsersSummary component to display connection status and last access time
+
+## v3.2.0 — 2026-08-26
+
+- fix: permitir lanzar el release a mano (#222)
+- fix: detectar fallos de lectura del repo hermano en el release (#221)
+- Merge pull request #220 from transmandu/fix/requisition-requester-departments
+- fix: update employee fetching logic to support multiple department acronyms
+- fix: increase & decrease lenght in zod validation in mitigation plan  and danger identification forms. (#219)
+- Merge pull request #218 from transmandu/feat/dispatch-current-date
+- feat: sellar la salida con la fecha real de creacion
+- feat: implement versioning system with version badge and CI workflows
+- feat: to approve management (#217)
+- Feat/authorized employee sms (#216)
+- feat: support multiple images for follow up controls sms (#215)
+- Merge pull request #214 from transmandu/feat/incoming-changes-ui
+- Add checklist visibility toggle to H74-036 generation modal
+- refactor: update IncomingReview component to disable invoice download and clarify viewing restrictions in documentation
+- se añadió que ahora se puedan cargar multilples facturas y también se añadió que incoming pueda ver las facturas
+- feat: add IssuedFormatsDialog component for managing issued formats and corrections
+- feat: add appendConversions function to handle form data for conversions
+- Revert "refactor: update color scheme to use primary color across various components"
+- refactor: update color scheme to use primary color across various components
+- Feat/add change management (#213)
+- Merge pull request #212 from transmandu/ChangesRandom-BO
+- los estados se reciben del backend en ingles y ya el frontend lo que hace es traducirlos para mostrar
+- feat: ya que los status en backend de cursos estan en ingles, se pasaron a ingles en el fronted con muestreo en español
+- feat: el backend pasa status en ingles, alineado en el frontend para que muestre en español
+- feat: alineacion de status de dispatch en ingles con el backend
+- fix: el backend maneja los estados en ingles, como debe ser, ya el frontend se encarga de traducir
+- feat(table): enhance sticky header with hover background transition
+- feat(report): implement MyReportDetailDialog and integrate with report columns
+- feat(report): add company information to error reports and forms
+- Merge pull request #211 from transmandu/feat/sms-follow-up-responsibles
+- feat(sms): add implementation and follow up responsibles to airline forms and tables
+- feat: add ArticleImageCell component and integrate image display in various tables
+- feat: update labels and styles for various components
+- refactor: rename components for consistency and clarity across the application
+- feat: update page titles for consistency and clarity across various components
+- feat: replace dropdown menu with popover for displaying hidden breadcrumbs in PageHeader
+- feat: add margin to PageHeader components across various pages for improved layout consistency
+- feat: implement logout overlay and plane-check morph animations for session transitions
+- feat: implement quarantine hazard card and enhance alert handling with new types and logic
+- feat: update document selection logic to maintain state across forms
+- feat: enhance article modification permissions for superusers
+- feat: enhance tool and article registration forms with state management and custom labels
+- feat: add document viewing functionality in PartNumberGroupDialog
+- feat: enhance purchase order creation with error handling and prevent duplicate submissions
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- feat: add document validation and error handling for uploads
+- Merge pull request #210 from transmandu/fix/sms-mitigation-measures-ui
+- fix(sms): update query key and dependencies for mitigation measures
+- feat(sms): add loading state to follow-up control form submit butto
+- fix(sms): handle undefined follow-up controls in dialog
+- feat: implement article document requirements synchronization in forms
+- feat: add document selection dirty check to improve form state handling
+- feat: Enhance article documentation handling and viewing
+- feat: add article status history functionality and enhance article actions
+- feat: implement cross-tab synchronization for React Query cache invalidation
+- feat: enhance conversion handling in dispatch forms and related components
+- fix: update maximum character limit for description field to 1000 characters
+- Merge pull request #209 from transmandu/ChangesRandom-BO
+- refactor: remove unused hooks and consolidate aircraft-related queries
+- Merge pull request #208 from transmandu/ChangesRandom-BO
+- Merge branch 'main' into ChangesRandom-BO
+- fix: update maximum character limits for defenses, consequences, and root cause analysis fields
+- feat: enhance identification form with optional defenses and analyses handling
+- fix: update error handling for insufficient stock and adjust conversion precision in dispatch form
+- Refactor code structure for improved readability and maintainability
+- Refactor query configurations in SMS hooks for consistency and clarity
+- Merge pull request #207 from transmandu/ChangesRandom-BO
+- fix: ensure user redirection logic handles selected company correctly and clear storage on logout
+- Merge pull request #206 from transmandu/ChangesRandom-BO
+- refactor: remove unused components and consolidate user information handling
+- Merge pull request #205 from transmandu/ChangesRandom-BO
+- feat: add password reset functionality with dialog and hooks
+- Merge pull request #204 from transmandu/ChangesRandom-BO
+- feat: replace title display in Navbar and GuestNavbar with PageTitle component
+- Merge pull request #203 from transmandu/ChangesRandom-BO
+- feat: enhance critical alerts button with actionable count and in-transit filter
+- Merge pull request #202 from transmandu/ChangesRandom-BO
+- feat: enhance low stock alert system with in-transit tracking and user confirmation flow
+- feat: refactor third-party management to use company-specific endpoints and update related components fix: remove unused conversion_id from forms and update related types chore: clean up conversion-related code and adjust references in various components
+- Merge pull request #201 from transmandu/feat/ui-tours-integration
+- fix: calculate part number quantity using only stored items in engineering inventory
+- Merge pull request #200 from transmandu/feat/ui-tours-integration
+- feat: add role-based quantity visibility and aggregate components by part number in engineering inventory
+- Merge pull request #199 from transmandu/feat/ui-tours-integration
+- fix(inventory): update availability logic and fix badge wrapping
+- Merge pull request #198 from transmandu/feat/ui-tours-integration
+- fix(inventory): display out of stock badge for stored articles with zero quantity
+- Merge pull request #197 from transmandu/feat/ui-tours-integration
+- fix: correct inventory availability and clean up broken imports in SMS
+- Fix(sms): Remove Reactou imports
+- Fix(sms): Remove Reactou imports and logs
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend into feat/ui-tours-integration
+- feat: implement SMS modules for risk indicators, hazard identification, and report management with guided tours
+- feat: update article structure in unit conversions to use name and detail
+- Merge pull request #196 from transmandu/ChangesRandom-BO
+- feat: enhance unit conversion management in the inventory system
+- feat: adaptar el frontend a las conversiones por articulo
+- Merge pull request #195 from transmandu/ChangesRandom-BO
+- feat: add functionality to update general article intake and correct reception entries
+- Merge pull request #194 from transmandu/ChangesRandom-BO
+- feat: implement pagination for Recepciones tabs and enhance low stock alert calculations
+- Merge pull request #193 from transmandu/ChangesRandom-BO
+- feat: add Recepciones and Recepcion General layouts and pages
+- Merge pull request #192 from transmandu/ChangesRandom-BO
+- feat: refactor page headers and breadcrumb navigation
+- feat: improve error report handling and update duplicate count display
+- feat: add error handling for error report creation and improve error messaging
+- feat: implement pagination for fuel traceability and enhance data fetching
+- Merge branch 'feature/report-error'
+- feat: implement feature flag to control error report access for normal users
+- Merge pull request #191 from transmandu/ChangesRandom-BO
+- feat: update VSCode settings to include TypeScript SDK path
+- feat: enhance error reporting functionality for superusers and update module handling
+- feat: update middleware to exclude Vercel analytics endpoints from route matching
+- feat: refactor Home component layout and add PlaneIntro animation; update Logo component for dark mode support
+- feat: enhance inventory management with quantity formatting and applied conversion details
+- feat: add new banking and report menus to system group
+- Merge branch 'main' into feature/report-error
+- Merge pull request #190 from transmandu/ChangesRandom-BO
+- feat: add ManageCompanyModulesDialog for managing company modules and implement sync functionality
+- Merge pull request #189 from transmandu/ChangesRandom-BO
+- feat: add hooks for managing authorized employees, job titles, departments, and employees
+- Implement feature X to enhance user experience and optimize performance
+- Merge pull request #188 from transmandu/ChangesRandom-BO
+- feat: add status_since field to articles and implement ArticleStatusSincePopover for status tracking
+- feat: enhance CreateSecondaryUnitForm with validation and improved descriptions
+- Merge pull request #187 from transmandu/ChangesRandom-BO
+- feat: add SpeedInsights component and update dependencies
+- Merge pull request #186 from transmandu/ChangesRandom-BO
+- feat: add support for intake unit corrections across cost history components
+- Merge pull request #185 from transmandu/ChangesRandom-BO
+- feat: implement date filtering for requisitions and enhance warehouse article filtering
+- feat: enhance FuelMovementForm to support vehicleless diesel for external refuels and update related logic
+- Merge pull request #184 from transmandu/ChangesRandom-BO
+- feat: enhance DownloadRequisitionPdfDialog to support self-receiving users and update fetch logic for requisition PDFs
+- Merge pull request #183 from transmandu/ChangesRandom-BO
+- feat: enhance error handling in useMarkNotificationAsRead and prevent unnecessary refetching in useNotifications
+- feat: update label from 'Solicitante autorizado' to 'Solicitante externo' across multiple components
+- Merge pull request #182 from transmandu/ChangesRandom-BO
+- feat: refactor ImageViewer component and update imports for consistency
+- Merge branch 'main' into ChangesRandom-BO
+- feat: update roles for combustible menu item to include ANALISTA_ALMACEN
+- Merge pull request #181 from transmandu/ChangesRandom-BO
+- feat: enhance DataTable with server-side sorting and fetching indicators
+- feat: Simplify location loading logic and enhance history management in CompanyBootstrap component
+- Merge pull request #180 from transmandu/ChangesRandom-BO
+- feat: Implement liquid glass effect for navbar and sidebar components, enhancing visual aesthetics and scroll interaction
+- feat: Update avatar image source handling to use nullish coalescing for default values and enable refetching on window focus in useMyEmployee hook
+- feat: Refactor components to utilize useMemo for performance optimization and integrate PageTitleContext for dynamic page titles
+- feat: Refactor UserNav component to integrate AnimatePresence for improved dropdown animations
+- feat: Refactor UserNav component to remove AnimatePresence and streamline dropdown content
+- Merge pull request #179 from transmandu/ChangesRandom-BO
+- feat: Enhance notification handling with loading indicators and optimize read status updates
+- Merge pull request #178 from transmandu/ChangesRandom-BO
+- feat: Implement update functionality for units and conversions, enhance dropdown actions with edit and delete options
+- Merge pull request #177 from transmandu/ChangesRandom-BO
+- feat: Add image upload functionality to article forms and implement image viewer in inventory tables
+- feat: Refactor work order input to use searchable select and allow free text entry
+- feat: Add maximum_quantity field to articles and update related forms and components
+- Merge branch 'main' into feature/report-error
+- feat: Add vehicle color display in FuelMovementForm and implement color hex mapping
+- feat: Add work_order field to Requisition interface and display in RequisitionPage
+- feat: Add work_order field to requisition forms for free-text input and update handling logic
+- feat error
+- feat: Remove debug logging from getGeneralCostColumns function
+- feat: Normalize unit IDs in costInBaseUnit function and add debug logging in getGeneralCostColumns
+- feat: Implement unit conversion for cost management and enhance article intake tracking with historical data
+- feat: Add unit column to cost management tables and enhance cost history editing with unit and date tracking
+- feat: Add conversion_id to dispatch request and cost history entries for unit tracking
+- feat(supervisor): implement general article supervision module
+- feat: Enhance DispatchSummary component with pie chart visualization and update WarehouseDashboard types for article intake tracking
+- Merge pull request #176 from transmandu/ChangesRandom-BO
+- feat: Implement unit conversion handling in article intake confirmation process and enhance dispatch report functionality
+- fix: Improve dropdown behavior in Brand and Variant comboboxes by adjusting event handling and animation exit states
+- feat: Add dispatch cost report functionality and integrate with DispatchReportDialog
+- h74 SMS requirements (#174)
+- Merge branch 'main' into feature/report-error
+- fix: Update SecureFileViewer layout to use absolute positioning for better rendering
+- feat: Enhance low stock alert descriptions with unit labels and update consumable article type
+- Merge pull request #175 from transmandu/ChangesRandom-BO
+- Merge branch 'main' into ChangesRandom-BO
+- feat: Update delivery registration eligibility logic for general articles
+- feat: Implement cascade delete functionality for quotes, purchase orders, and requisitions
+- Merge pull request #173 from transmandu/ChangesRandom-BO
+- feat: refresh low stock alerts after updating article quantities
+- fix: improve error handling in create dispatch request
+- feat: prioritize Venezuelan airports in search results
+- Merge pull request #172 from transmandu/ChangesRandom-BO
+- Merge branch 'main' into ChangesRandom-BO
+- feat: update RecepcionGeneralTab to filter article intakes for warehouses only
+- Add Airport type definition for static airport catalog
+- docs: add design spec for IATA/ICAO airport combobox in flight forms
+- feat: implement grouped purchase order table and enhance order details display
+- feat: enhance tool management forms with status indicators for articles
+- feat: update tool box forms and dialogs for improved employee selection and tool management
+- feat: add links to requisition order numbers in ArticulosEnTransitoTab and RecepcionGeneralTab for improved navigation
+- feat: implement QuoteComparisonToggle component for comparing requested vs quoted values and add it to relevant cards
+- feat: add functionality for filtering complementary quotes and enhance quote preview with parent quote details
+- feat: add requisition grouping and filtering functionality
+- feat: enhance fuel management forms and dialogs with fuel type selection
+- Merge pull request #171 from transmandu/feat/ui-tours-integration
+- feat(certificados): add interactive tours for certificates
+- feat(cursos): integrate interactive tours in courses module
+- feat(sms): integrate interactive tours in reports and QR
+- refactor: update InfoSection and RequiredDocumentsSection for improved layout and responsiveness
+- feat: add QuoteLinkButton component and enhance requisition handling with improved status checks and preview functionality
+- feat: enhance caching strategy in purchase and requisition queries for improved performance
+- feat: reorganize roles in INVENTARIO_ARTICULOS_ROLES and combine with INVENTARIO_GENERAL_ROLES for improved access control
+- Merge branch 'main' into ChangesRandom-BO
+- feat: implement rejection handling for general article intakes
+- feat: add tooltips to buttons in ArticleDetailDialog and DownloadReportDialog for enhanced accessibility
+- feat(departments): flatten department structure for improved selection in forms
+- feat: enhance DownloadRequisitionPdfDialog layout and add descriptive elements for improved user experience
+- style: update DownloadRequisitionPdfDialog layout with larger content area and increased spacing
+- feat: implement DownloadRequisitionPdfDialog for PDF generation and replace PDFDownloadLink with dialog in RequisitionActions and RequisitionDropdownActions
+- Merge branch 'main' into ChangesRandom-BO
+- feat: add DownloadReportDialog to ArticulosEnTransitoTab and RecepcionGeneralTab for report generation
+- Merge pull request #170 from transmandu/feature/cargo-scale-serial-integration
+- feat(tours): Integrate new steps for adjustments and reports, and remove obsolete ones from the library.
+- feat(biblioteca): update document management modals and components
+- feat(ajustes):  implement improvements to banking management and user profile
+- feat: enhance DirectRegisterPartForm with date tracking and document handling improvements
+- feat: add loading state to DataTable and refactor requisition filtering logic
+- feat: assign INVENTARIO_ARTICULOS_ROLES to roles in buildGeneralGroup function
+- feat: enhance ArticlesSummary component with additional article metrics and improved layout
+- feat: implement online users context and presence status management
+- Merge branch 'main' into ChangesRandom-BO
+- feat: add critical alerts system and requisition creation from low stock alerts
+- feat(ui): modify base dialog component behavior
+- refactor(settings): update global settings modules and related forms
+- refactor(library): update library views, components and dialogs
+- feat(tour): add global settings tour steps
+- feat(tour): add library module tour steps and provider
+- feat: handle missing vehicle plate with default text in various components
+- feat: enhance fuel management features with vehicle details and validation
+- feat: add minimum quantity field to article management
+- feat: add error reporting functionality
+- docs: add design spec for error report feature
+- refactor(TaskCard): comment out hours display section in technician grid
+- Merge pull request #169 from transmandu/ChangesRandom-BO
+- feat(SheetMenu): add title and description to navigation menu header
+- Merge pull request #168 from transmandu/ChangesRandom-BO
+- feat: add total and justification fields to purchase order articles
+- Merge pull request #167 from transmandu/ChangesRandom-BO
+- fix(CreateQuoteForm): calculate total based on quantity and unit price
+- Merge pull request #166 from transmandu/ChangesRandom-BO
+- feat: add GeneralCostHistorySheet component and integrate cost history functionality fix: update success and error messages in cost mutation hooks feat: enhance general cost columns with history view button and tooltip
+- Merge pull request #165 from transmandu/ChangesRandom-BO
+- fix(ConfirmIntakeAction): update role check to include ANALISTA_ALMACEN
+- Merge pull request #164 from transmandu/ChangesRandom-BO
+- feat: implement CreateVendorDialog and VendorDropdownDialogs components
+- Merge branch 'main' into ChangesRandom-BO
+- Add article details (#163)
+- fix(vendors): update API endpoints to use selected company slug
+- fix(TaskDetailsDialog): add button type attributes for accessibility
+- fix: center align articles in requisition popover
+- feat: add reactour dependency and extend TransitArticle interface with purchase order fields
+- Merge pull request #162 from transmandu/ChangesRandom-BO
+- feat: update requisition forms to allow optional work order and aircraft IDs
+- Merge pull request #161 from transmandu/feature/cargo-scale-serial-integration
+- fix(tours): add back button to all cargo steps, fix arrow colors, add theme variables
+- Fix delete and update flight control (#160)
+- Merge pull request #159 from transmandu/feature/cargo-scale-serial-integration
+- feat: add ItemsTable component for cargo shipments
+- Merge pull request #157 from transmandu/feature/cargo-scale-serial-integration
+- Merge pull request #158 from transmandu/ChangesRandom-BO
+- feat: add Reactour dependency, project environment variables, and IDE configuration settings
+- Merge branch 'main' into ChangesRandom-BO
+- feat: Refactor article document handling in requisition forms
+- feat(tours): implement guided tour for cargo manifests
+- fix: show right date in flight controls table
+- feat(cargo): integrate attributes and tour registration into cargo views and forms
+- feat(cargo): add step configuration for the cargo module tour
+- feat: implement base infrastructure for interactive guides using Reactour
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend into feature/cargo-scale-serial-integration
+- feat: allow sms menu for analista sms role (#156)
+- fix: allow acess to sms menu for presidencia and analista sms role (#155)
+- fix: invalid query after create job title (#154)
+- refactor: remove description parameter from warehouse articles fetching
+- feat: update article fetching to include description in search parameters
+-  save purcharse order id automatically (#153)
+- Merge pull request #152 from transmandu/ChangesRandom-BO
+- refactor: rename card-related components and hooks to bank card terminology
+- feat: restructure banking module with new pages and components
+- feat: enhance quantity display with availability badge for articles
+- feat: add quantity visibility for specific roles and display in badge format
+- feat: update label for bank and payment settings to use a more concise term
+- fix: adjust overflow property in Sidebar and update ScrollArea class in Menu for better layout
+- Merge pull request #151 from transmandu/ChangesRandom-BO
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend into feature/cargo-scale-serial-integration
+- feat: update presentation labels to use abbreviated terms and enhance requisition PDF generation functionality
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend into feature/cargo-scale-serial-integration
+- Merge pull request #150 from transmandu/ChangesRandom-BO
+- feat: implement requisition preview functionality and enhance column definitions across various components
+- Merge pull request #149 from transmandu/ChangesRandom-BO
+- Refactor quote and purchase order status handling to use English terms
+- Merge pull request #148 from transmandu/ChangesRandom-BO
+- feat: enhance article intake and delivery registration with date handling
+- feat: implement status filtering in warehouse article tables and enhance related components
+- feat: enhance user creation forms with module selection and improve data handling
+- feat: enhance CreateEmployeeForm with user linking and location management
+- Merge pull request #147 from transmandu/ChangesRandom-BO
+- feat: enhance payment processing in PayPurchaseOrderForm
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- feat: enhance CreateUserForm with company and location selection, and update useGetRoles to fetch roles based on selected company
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend into feature/cargo-scale-serial-integration
+- feat: add reception date in adminsitration reception (#146)
+- feat: add retailer management functionality
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend into feature/cargo-scale-serial-integration
+- Merge pull request #145 from transmandu/ChangesRandom-BO
+- fix: update query invalidation for requisitions and purchase orders, and correct terminology for shipping agencies
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend into feature/cargo-scale-serial-integration
+- feat: add ANALISTA_ALMACEN and JEFE_CONTROL_CALIDAD roles to inventory access
+- feat: add article search functionality in requisition forms and batch articles section
+- fix: update query invalidation method in invalidateFuelQueries and improve dialog description in FuelMovementDialog
+- Merge pull request #144 from transmandu/ChangesRandom-BO
+- fix: update import and usage of priority badge class in PriorityIndicator component
+- feat: refactor priority handling in GeneralArticleCard and PriorityIndicator, update status badge logic in columns
+- Merge pull request #142 from transmandu/ChangesRandom-BO
+- feat: implement BrandCombobox for article selection and remove lead time handling
+- fix: improve type switching logic in CostManagementPage
+- fix: enable conditional fetching for general articles in CostManagementPage
+- Merge pull request #141 from transmandu/ChangesRandom-BO
+- feat: add Recepción de Artículos page with transit and general reception tabs
+- uniform brand
+- Merge pull request #140 from transmandu/ChangesRandom-BO
+- refactor: improve status badge handling and tooltip structure
+- Merge pull request #139 from transmandu/ChangesRandom-BO
+- Merge branch 'main' into ChangesRandom-BO
+- Refactor requisition status handling and labels across components
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend into feature/cargo-scale-serial-integration
+- Merge pull request #138 from transmandu/ChangesRandom-BO
+- feat: enhance requisition handling with form data serialization and error messaging
+- fix: adjust column sizes for improved layout and update submission date formatting
+- fix: adjust column sizes for justification, submission date, and actions for improved layout
+- fix: update order number column size from 180 to 220 for improved layout
+- Merge pull request #137 from transmandu/ChangesRandom-BO
+- fix: adjust justification column size from 420 to 380 for better layout
+- feat: update requisition fetching to support type filtering for AERONAUTICAL and GENERAL requisitions
+- feat: implement GroupedRequisitionTable and RequisitionGroupRow components for enhanced requisition grouping and pagination feat: add groupBy functionality to RequisitionToolBar for filtering requisitions fix: update RequisitionsPage to conditionally render grouped or standard requisition tables based on groupBy state feat: extend RequisitionDropdownActions to control visibility of options based on user roles
+- Show link button when the activity name is BOELTIN (#136)
+- Create Activity with Bulletin/Survey together (#135)
+- Merge pull request #134 from transmandu/ChangesRandom-BO
+- feat: enhance general requisition forms to support existing image paths and brand model differentiation
+- refactor: remove old inventory components and implement new general inventory structure
+- feat: replace date formatting with formatRequestedDate utility for consistent date handling
+- feat: add itemLabelSize prop to requisition forms for responsive label sizing
+- feat: add update priority functionality for requisitions with a new dialog component
+- Merge pull request #133 from transmandu/ChangesRandom-BO
+- feat: enhance user role management by adding company context to role assignment and removal
+- Merge pull request #132 from transmandu/ChangesRandom-BO
+- feat: add unoptimized attribute to Image component in CompanyUpdateForm and CompaniesSubRow for improved performance
+- Merge pull request #131 from transmandu/ChangesRandom-BO
+- feat: update logo handling in CompanyUpdateForm and add useGetActiveCompanyLogo hook for fetching company logos
+- Merge pull request #130 from transmandu/ChangesRandom-BO
+- feat: increase default page size in DataTable components from 10 to 15
+- feat: implement update and delete functionality for third parties, enhance UI with dialogs and dropdown actions
+- Merge pull request #129 from transmandu/ChangesRandom-BO
+- feat: enhance authorized employees management
+- Merge pull request #128 from transmandu/ChangesRandom-BO
+- feat: add requested date handling in GeneralArticleCard and Requisition components, enhance form validation and types
+- Merge pull request #127 from transmandu/ChangesRandom-BO
+- feat: enhance GeneralArticleCard and GeneralArticlesSection with destination fields and improve RequiredIndicator messaging
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend into feature/cargo-scale-serial-integration
+- feat: update roles in ProtectedLayout components and enhance general article handling in requisition forms
+- Merge pull request #126 from transmandu/ChangesRandom-BO
+- feat: update styles and sizes in RequisitionArticlesPopover and DataTable components for improved UI
+- feat: add RequisitionArticlesPopover component and integrate it into requisition columns
+- feat: add functionality to manually add general articles in warehouse requisition form
+- feat: enhance general article selection logic to account for variant types and prevent duplicates
+- Merge pull request #125 from transmandu/ChangesRandom-BO
+- feat: implement logging out state management and loading indicator in AuthContext
+- Merge pull request #124 from transmandu/ChangesRandom-BO
+- feat: update select trigger classes and filter layouts across various toolbars
+- Merge branch 'main' into ChangesRandom-BO
+- feat: use aircraft part tsn,tso,csn,cso and not from assignments (#123)
+- Merge branch 'main' into NewPurchaseRoute
+- feat: add general purchase orders management
+- feat: add PayPurchaseOrderForm component for processing purchase orders
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend into feature/cargo-scale-serial-integration
+- feat: new uniform CRUD
+- refactor: rename Stock requisition to Warehouse requisition
+- feat: enhance purchases menu with grouped view for aeronautical and general purchases
+- feat: add general quotes management functionality
+- feat: add MixedTypeConfirmDialog component for handling mixed article submissions
+- feat: update titles and labels to reflect 'Requisiciones Generales' for consistency
+- feat: implement grouped cost management components and functionality
+- feat: add requisition management features for aeronautical purchases
+- feat: refactor requisition and quote components for improved handling and UI updates
+- feat: when is N/A for cycles, leave it like null
+- feat: show 3 decimals and accept 3 decimals in horus input, flight control form
+- feat(cargo): integrate serial scale connection with simulator and UI toggle
+- Merge branch 'main' into ChangesRandom-BO
+- Refactor purchase order statuses and update related components
+- feat: enhance role and user management with company association and improved UI
+-  add more flighs in flight form (#122)
+- fix: motion refactor to uniform stack
+- feat: grid stack for uniforms
+- Merge branch 'main' into ChangesRandom-BO
+- fxin ui
+- feat: add QuoteGeneralArticlesSection and QuoteMetaSection components
+- new design on uniform page
+- fix: fixing uniforms UI
+- color change in SMS QR (#121)
+- fixing authorized employee select
+-  Refactor qr  (#119)
+- Merge pull request #118 from transmandu/feat/part-assignment
+- feat: to show unnistalled parts
+- feat: add unnistaleld parts in aircraft type
+- style: show TSN,TSO,CSN,CSO using , by .
+- Merge pull request #117 from transmandu/fix/sms-details
+- Merge pull request #116 from transmandu/fix/type-in-aircraft-parts
+- Merge pull request #114 from transmandu/feature/cargo-product-autocomplete
+- fix: show aircraft part preview
+- fix(cargo): invalidate product suggestions cache upon shipment mutation
+- feat: update quote status terminology and enhance quote handling logic
+- Merge branch 'main' into ChangesRandom-BO
+- Merge pull request #113 from transmandu/feature/cargo-product-autocomplete
+- feat(cargo): add product autocomplete with grouping
+- fix: search acitivty by number to edit
+- feat: enhance requisition forms with batch and general article creation functionality
+- Merge pull request #112 from transmandu/fix/aicraft-part-input
+- feat: to accept decimals in TSN/TSO inputs
+- Merge branch 'main' into ChangesRandom-BO
+- feat: add GeneralArticlesSection component for managing general articles in requisitions
+- fix: iamges route changed, to show tmd actions
+- fuel control full CRUD action
+- feat: change validation in flight number, from 6 to 50 characteres.
+- fix: UI for fuel control
+- Merge pull request #111 from transmandu/feat/activity-show-by-number
+- feat : rename activity_id by activit_number
+- feat: replace activity id by activity number
+- Merge pull request #110 from transmandu/feat/activity-docs-preview
+- feat: add doc preview in sms activities
+- Refactor purchase-related types and components
+- Merge pull request #109 from transmandu/fix/sms-dashboard
+- feat: to captch errors in dashboard
+- Merge pull request #108 from transmandu/ChangesRandom-BO
+- Repair someting
+- fix: UI in fuel control page
+- feat: enhance DirectRegisterConsumableForm and MultiSerialInput components with additional data handling and preview features
+- feat: add PdfEndpointPreviewDialog component for PDF preview and download functionality
+- feat: add PDF preview functionality and improve dropdown menu actions for voluntary reports
+- fix: update WebSocket port configuration to use environment variables
+- Merge pull request #106 from transmandu/feat/add-management-doc
+- fix: warnings from run build
+- i do the best for this (copilot)
+- feat: enhance NotFound and CompanyBootstrap components with animations
+- Merge pull request #107 from transmandu/fix/qr-report
+- fix: add accesso publico to qr url
+- feat: enhance report attachments and analysis sections with management document support
+- feat: add custom notification sound for superusers
+- protect audio for notifications
+- Merge pull request #105 from transmandu/ChangesRandom-BO
+- refactor: extract date formatting logic into a separate function for notifications
+- feat: removed voluntaReport validation, it was multiple.
+- refactor: notification handling and form components
+- Merge pull request #104 from transmandu/ChangesRandom-BO
+- Merge branch 'main' into ChangesRandom-BO
+- updated notifications icons
+- Merge pull request #103 from transmandu/ChangesRandom-BO
+- feat: implement notifications panel and toolbar with filtering and search functionality
+- Merge pull request #102 from transmandu/fix/measure-and-follow-control-date
+- fix: format date
+- filter in purchase menu
+- feat: implement department access control and flattening logic in BibliotecaPage
+- refactor: rename 'departments' to 'allDepartments' for consistency in dispatch forms
+- feat: implement flattenDepartments utility for hierarchical department structure
+- Merge pull request #101 from transmandu/ChangesRandom-BO
+- refactor: rename 'decedent' to 'descendants' for clarity in DepartmentFolderGroup structure
+- feat : hide aeroline report menu for OMAC AGAIN
+- idk
+- Change get hook in library
+- optional in frontend type of department
+- Merge pull request #100 from transmandu/ChangesRandom-BO
+- refactor: improve getDepartmentList function and update Department type with LibraryFolderNode structure
+- Merge pull request #99 from transmandu/feat/category-crud
+- feat: read what is doing the IA please..1000 lines doing NOTHING
+- feat: removed optional description field from ActivityCategory type in index.ts
+- Merge branch 'main' into ChangesRandom-BO
+- chore: update @react-pdf/renderer to version 4.5.1 and enhance Department type with new fields
+- feat: implement department management features with create, update, and delete functionalities
+- better visual things in user page for module tab
+- Merge pull request #98 from transmandu/feat/activity-category
+- Merge branch 'main' into feat/activity-category
+- feat: implement collapsible filter section with date range picker in SMS Activity Stats Page
+- module in users for editing
+- Merge pull request #97 from transmandu/feat/accept-many-articles
+- Merge branch 'main' into feat/accept-many-articles
+- feat: implement mass selection and status update for articles in inventory
+- refactor: streamline access control by removing requiresNonOmac flags and adjusting requiresOmac logic across menu groups
+- Merge pull request #96 from transmandu/feature/scale-architecture-frontend
+- feat): add date column to manifests table and fix date picker default month
+- fix: update requiresNonOmac flag for SMS menu items
+- fix: add requiresNonOmac flag to SMS menu items
+- fix: warhouse id, empty location and fixed quantity on incoming form
+- uy: button hover bad, is fixed
+- changes minimun
+- sms omac soluted
+- Collapse menu for superuser
+- limited menu options
+- desing change in company select
+- refactor: SMS Activity Page: Enhance UI, Improve Loading States, and Update Attendance Logic
+- redesing of backbutton
+- add text center in a columns
+- feat: add categories support to SMS activity creation and updates
+- feat: changes thins in gestios_costos petition of Rafael
+- Merge pull request #93 from transmandu/feature/cargo-manifest-by-aircraft-ui
+- fix: correct manifest cache key invalidation and clean up external aircraft card
+- rediseño: cambio el navbar, mi gente latino
+- refactor: toolbar in responsive
+- another changes in options dropdown of purchase order
+- fix: columns iu
+- feat: options in quote and changes const
+- fix: calling link don't exist and create a request inneccesary
+- Merge pull request #92 from transmandu/feature/cargo-manifest-by-aircraft-ui
+- fix: add missing external_aircraft type and remove obsolete form prop
+- feat: implement dynamic autocomplete and context-aware selectors for external aircrafts
+- fix: set fixed WebSocket ports and enforce TLS for Echo configuration
+- change a line just for vercel
+- Merge pull request #86 from transmandu/fix/digitalLibrary
+- feat: change port on echo archive for production
+- refactor: enhance notification handling with user-specific data and improve echo integration
+- refactor: streamline notification fetching and improve readability
+- refactor: reorganize notification hooks and improve echo integration
+- feat: added a filter in digital library
+- Merge pull request #91 from transmandu/ChangesRandom-BO
+- fix: update caching and refetching logic in useNotifications hook
+- Merge pull request #90 from transmandu/ChangesRandom-BO
+- feat: add requiresOmac and requiresNonOmac flags to menu groups for access control
+- Merge pull request #89 from transmandu/ChangesRandom-BO
+- fix: standardize casing for isOMAC across components and update loading logic
+- fix: standardize casing for isOMAC across components and hooks
+- Merge pull request #88 from transmandu/ChangesRandom-BO
+- fix: adjust positioning of loading indicator in CompanyBootstrap component
+- feat: enhance HomePage layout and integrate PlaneTakeoff icon in CompanyBootstrap
+- fix: improve layout and formatting for batch description and date handling in Transit table
+- feat: add onSuccessUpdate prop to QuoteActions for refetching data after updates
+- refactor: optimize async functions with useCallback for improved performance
+- feat: update reception date handling in Transit table with improved formatting and status labels
+- Implement code changes to enhance functionality and improve performance
+- Merge branch 'ChangesRandom-BO'
+- feat: add reception date column to Transit table with conditional rendering
+- fix: add navigation functionality to notification item
+- refactor: remove unused dialog components from PurchaseOrderPage
+- fix: hidden digital library button in hangar74
+- fix: solved an issue with the loading state in digital library
+- Merge pull request #79 from transmandu/feat/digitalLibrary
+- Merge branch 'main' into feat/digitalLibrary
+- Merge branch 'ChangesRandom-BO'
+- fix: update tooltip text for requisition actions to clarify functionality
+- Merge pull request #85 from transmandu/ChangesRandom-BO
+- feat: enhance useNotificationEffects to handle initial load and improve notification detection logic
+- feat: add PDF download button placeholder in QuoteActions component
+- feat: simplify imports and remove unused code in QuoteActions, RequisitionActions, and QuoteDropdownActions components
+- Merge pull request #84 from transmandu/ChangesRandom-BO
+- feat: enhance QuoteActions component with purchase order fetching and improved action handling
+- feat: refactor QuotePage to streamline quote display and enhance article details presentation
+- feat: add justification and observation sections to QuotePage for enhanced quote context display
+- feat: enhance QuotePage with formatted date display and MetaItem component for improved quote details presentation
+- feat: add QuoteActions component and integrate with QuoteDropdownDialogs for improved quote management
+- feat: implement success update handling in RequisitionActions and RequisitionDropdownDialogs components
+- Merge pull request #83 from transmandu/feature/cargo-manifest-by-aircraft-ui
+- fix: rename useGetExternalAircraftSeggestion to useGetExternalAircraftSuggestions
+- refactor: remove unused user variable from SheetMenu component
+- feat: day-level filter with fallback and unified date/aircraft picker
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend into feature/cargo-manifest-by-aircraft-ui
+- Merge pull request #82 from transmandu/ChangesRandom-BO
+- fix: numeration on activities table SMS 2
+- refactor: simplify sidebar state handling in layout components
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend into feature/cargo-manifest-by-aircraft-ui
+- refactor: replace Button with button element in SidebarToggle component
+- fix: numeration on activities table SMS
+- Merge pull request #81 from transmandu/ChangesRandom-BO
+- refactor: streamline imports in RequisitionPage component
+- feat: implement RequisitionActions component and remove obsolete dialogs
+- feat: enhance RequisitionPage with image handling and tooltips
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend into feature/cargo-manifest-by-aircraft-ui
+- feat: add observation field to RequisitionByOrderNumber interface
+- fix: order to show activities
+- Merge pull request #80 from transmandu/feat/sms-hangar
+- feat: removed document input from RSO and RVP Omac
+- Merge main into feat/sms-hangar
+- feat: redirection to create General Voluntary and obligatory report
+- feat : replace isOMAC to isOmac
+- feat: change company type, isOMAC replaced by isOmac
+- refactor: remove requisitions components and related files
+- refactor: remove unused components and pages from compras section
+- feat: implement cargo manifest module with Web Serial API scale integration and management workflows
+- fix: solved some building issues
+- fix: add 'access public' to qr code
+- Merge branch 'main' into feat/digitalLibrary
+- fix: solved some data issues in dashboard and enhaced the ui desing
+- feat: implement company management features including create, update, delete, and dropdown actions
+- Merge pull request #78 from transmandu/feat/sms-hangar
+- fix: right tittle in action cards
+- Merge branch 'main' into feat/sms-hangar
+- fix: validation if is omac
+- feat: add employee management page with active and inactive tabs
+- feat: rename page components for consistency and clarity in the application
+- feat: enhance NotFound component with improved layout, responsive design, and updated styling elements
+- feat: enhance NotFound component to include user authentication check and redirect to login if not authenticated
+- feat: enhance NotFound component with improved layout, redirection handling, and loading animation; add binary pattern images for styling
+- feat: unify loading patterns across multiple pages and improve data handling in requisitions, purchase orders, and transit articles
+- feat: update CreateQuoteForm to change default unit selection text from "Seleccionar unidad" to "Sin Unidad"
+- feat: improve CreateQuoteForm and MarqueeBlockText with enhanced unit selection, text trimming, and animation handling
+- feat: enhance CreateGeneralBatchRequisitionForm and CreateQuoteForm with improved unit selection and validation; update MarqueeBlockText for better hover handling and animation
+- feat: enhance article forms and Marquee components with improved data handling and animations
+-  feat: remove article_type in consumable form data
+- feat: update MarqueeBlockText to calculate duration dynamically and adjust animation timing
+- feat: enhance Marquee components with new animation styles and improved overflow handling
+- fix: correct overflow handling in MarqueeBlockText and adjust styling in CreateQuoteForm
+- Merge pull request #77 from transmandu/ChangesRandom-BO
+- feat: enhance GenerateQuoteDialog and CreateQuoteForm with improved layout and new MarqueeBlockText component
+- Merge pull request #76 from transmandu/feature/cargo-module-ui
+- feat: implement Web Serial API integration for cargo scales and add reusable ComboboxField component
+- Remove readOnly attribute from SMS input field to edit activity number (temporarily)
+- fix: missing assignment symbol = to read only
+- feat: input for activity number change to only read
+- Merge pull request #75 from transmandu/fix/sms-activity-dates
+- feat : enable edit actity number, to fix errros
+- fix: serverDate with browser time
+- Fix date parsing for server date-only strings
+- feat: implement cargo manifest management system with serial scale integration and CRUD form components
+- fix: new UI for fuel control dashboard
+- fix: calculate liters from odometer in fuel movement by kilometer mode
+- Merge pull request #74 from transmandu/ChangesRandom-BO
+- feat: refactor UnknownDestinationPage with new toolbar and data table components
+- Merge branch 'feat/fuel-control' into main
+- feat: enhance destino indeterminado UI with KPI cards, icons, and system design patterns
+- fix: simplify loading condition in ShippingAgenciesPage component
+- fix: update placeholder text in ShippingAgenciesToolBar component
+- feat: add Shipping Agencies ToolBar component for filtering and searching agencies
+- to determinate push
+- feat: odometer for gasoline
+- feat: add odometer-based fuel consumption for vehicle trips
+- feat: add vehicle_trip movement type for individual trip tracking
+- fix: config img!
+- fix: fixed some bugs in the folderTree
+- fix: changed the version labels for the correct ones
+- Merge branch 'main' of github.com:transmandu/SIGEAC_Frontend
+- feat: add Web Serial API integration for scale readings with hook, components, and type definitions
+- Merge branch 'main' into feat/digitalLibrary
+- feat: refactor NotificationDropdown to use createPortal and improve click outside handling
+- feat: add notification effects hook and implement click outside to close functionality in dropdown
+- fix: solved some issues an optimized share logic
+- feat: optimize notification fetching logic and improve manual refetching capabilities
+- Merge pull request #73 from transmandu/feature/cargo-module-ui
+- feat: implement cargo manifest management system including CRUD forms, data tables, and Web Serial API integration for scale connectivity
+- feat: enhance notification components with improved styling and scrollbar customization
+- fix: fixed another minor issues
+- feat: enhance notifications functionality with mark as read feature and UI improvements
+- fix: fixed some minor issues
+- fix: sync with backend new logic
+- feat: update UserNav to display full name and trim email in MarqueeText
+- feat: update UserNav to use selectedCompany for dynamic dashboard link
+- feat: implement notifications feature with fetching, marking as read, and UI components
+- feat: add "JEFE_COMPRAS" role to requisition rejection permissions
+- feat: add "JEFE_COMPRAS" role to requisition actions visibility
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- feat: refactor requisitions page to use useMemo for filtering and improve code readability
+- Merge pull request #72 from transmandu/ChangesRandom-BO
+- feat: update roles in ProtectedLayout to include "JEFE_COMPRAS"
+- feat: add "JEFE_COMPRAS" role to the general group permissions
+- feat: handle user session state and update user prop usage in AccountPage
+- feat: remove TransitPermissionDenied component and related canView check
+- feat: implement GroupRow and GroupedQuotesTable components with pagination support
+- style: warning text to removed part without colors
+- feat: prevent default actions on context menu and drag events for images and logos
+- Merge branch 'main' of github.com:transmandu/SIGEAC_Frontend
+- feat: show and and type to select manufacturers
+- feat: add filter in select fabricant and btn to create a new one
+- feat: enhance DefaultDashboard with dark mode support and improved styling
+- feat: implement delete quote functionality with confirmation dialog
+- feat: add new roles for purchasing team to settings group
+- Merge pull request #71 from transmandu/ChangesRandom-BO
+- refactor: remove specific roles from buildGeneralGroup function to streamline access control
+- Merge pull request #70 from transmandu/ChangesRandom-BO
+- Merge branch 'main' into ChangesRandom-BO
+- feat: add optional observation field to quote and requisition status updates, and update UI to include observation input in dialogs
+- fix: fixed some details to avoid errors in the deployment
+- feat: implement RequisitionSubRow component and integrate it into the RequisitionsPage for enhanced requisition details display
+- Merge pull request #69 from transmandu/ChangesRandom-BO
+- Merge branch 'main' into ChangesRandom-BO
+- feat: add PurchaseOrderDropdownDialogs component and integrate into PurchaseOrderDropdownActions for completing purchases
+- feat: add QuoteDropdownDialogs and RequisitionDropdownDialogs components for handling quote and requisition actions
+- Merge pull request #65 from transmandu/feat/parts-assignments
+- feat: add AuthRedirect component for user authentication handling in login flow
+- feat: add work_order parameter to DispatchReportParams and include in API request
+- refactor: replace img with Image component for better performance in ReportAttachmentsSection and ReportFollowUpControlCard
+- refactor: improve tooltip and button styling in PurchaseOrderDropdownActions, QuoteDropdownActions, and RequisitionDropdownActions
+- feat: add work order fetching and integrate into DispatchReportDialog and DispatchReportFilters
+- feat: type input with data by default in edit mode
+-  fix : inputs with inf by deafult
+- refactor: enhance CompanyBootstrap by adding refs for resolved state and company auto-selection logic
+- feat:  add serial and manufacturer
+- refactor: simplify CompanyBootstrap and CompanyStore by removing unnecessary refs and streamlining state management
+- refactor: streamline CompanyStore by removing localStorage initialization and related logic
+- refactor: rename canFilterByPlanificacion to isPlanificacionOnlyFilters in DispatchReportDialog
+- refactor: rename filtering variable and update related logic in DispatchReportDialog and DispatchReportFilters
+- fix : warnnings and type
+- Merge branch 'main' into feat/parts-assignments
+- Merge pull request #68 from transmandu/feat/sms-hangar
+- feat: replaced sigeac url by env next public url
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- Update DispatchReportDialog to include work order filtering and adjust next.config for hostname handling
+- Update primary color values in globals.css and replace night.jpg with night.jpeg in tailwind.config.ts
+- Add DispatchReportDialog and integrate work order filtering in DispatchReportFilters
+- Remove unnecessary z-index from TableHeader in multiple data table components
+- Merge branch 'main' into feat/digitalLibrary
+- Merge pull request #67 from transmandu/feat/sms-hangar
+- trick
+- Refactor code structure for improved readability and maintainability
+- angel
+- Merge branch 'main' into feat/sms-hangar
+- feat: add componentes in aeronautical sms page
+- feat: new filter (dispatch type) on dispatch report.
+- feat: update styles and structure in Navbar, Sidebar, and SheetMenu components for improved layout and consistency
+- feat: update Sidebar logo container styles for consistency and improved appearance
+- feat: refactor Home and Sidebar components for improved layout and integrate Logo component
+- feat : show document in voluntary report
+- feat(company): enhance CompanyBootstrap loading state and add animated plane, refactor CompanySelect for cleaner logic
+- feat: change calendar to select year
+- feat(transit): implement useTransitArticles hook and refactor transit page
+- feat : show report accept action, only if the status is IN_PROCESS
+- Merge pull request #66 from transmandu/feature/cargo-module-ui
+- feat: implement cargo shipment management system including scale integration, carrier forms, and data types
+- fix: little change in AircraftTab
+- Merge branch 'main' into feat/parts-assignments
+- fix: little changes in PlanificationAircraftTab
+- feat: add purchase order management components with filtering and sub-row details
+- feat : show consequences and analysis by list
+- feat: upgrade in AircraftPartForm
+- feat: implement grouped cost management with pagination and filtering
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- refactor: streamline toolbars by consolidating search and status management
+- Merge pull request #64 from transmandu/fix/part-dispatch-form
+- feat: split aeronautical and general articles
+- feat: enhance QuoteDropdownActions styling with overflow and z-index adjustments
+- refactor : personal card
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- feat: enhance data table with loading and empty states, add search functionality to quotes page
+- fix: send status APROBADO for part dispatch form
+- feat: add key person card
+- refactor: simplify CreateRequisitionDialog by removing unused state and improving structure
+- feat: move CreateRequisitionDialog to general directory and update import path
+- fix: improve isModified function to handle undefined and null drafts consistently
+- feat: add "Gestión de Costos" menu item with appropriate roles in general and purchases groups
+- feat: add ANALISTA_ADMINISTRACION role to purchases group permissions
+- feat: update roles in PurchaseLayout and add ANALISTA_ADMINISTRACION to permissions style: enhance column text styling for better readability feat: include ANALISTA_ADMINISTRACION in purchases menu group
+- feat: add new iamge route for sms h74
+- Refactor requisition management components for improved UI and functionality
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- Merge pull request #63 from transmandu/feature/cargo-module-ui
+- feat: add tooltip to BackButton and enhance description for cost management
+- feat: implement Web Serial API support with scale integration hook and UI components
+- feat: enhance UI components for cost management with improved styling and functionality
+- feat: enhance DispatchRequestDropdownActions with return functionality and update related components
+- Merge pull request #62 from transmandu/feat/sms-hangar
+- feat: show information source to COORDINADOR_SMS and GERENTE_SMS roles
+- Merge pull request #61 from transmandu/feat/sms-hangar
+- feat: action to accept a report
+- feat: remove costDrafts prop from column definitions and update related logic
+- feat: enhance layout and responsiveness in DispatchArticlesDialog
+- feat: add error handling for form submission in CreateGenVolReport
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- feat: report status from 'IN_PROCESS' to 'EN_PROCESO'
+- feat: update query invalidation and caching strategy for warehouse articles
+- Merge pull request #60 from transmandu/feature/cargo-module-ui
+- feat: implement Web Serial API support for weight scale integration and add cargo management actions/UI
+- feat: add ASISTENTE_COMPRAS role to PurchaseLayout for enhanced access control
+- feat: enhance cost management tables with improved layout and pagination handling
+- feat: refactor cost management page for improved readability and performance
+- feat: improve layout structure and overflow handling in home page
+- Merge branch 'main' into ChangesRandom-BO
+- Merge pull request #59 from transmandu/feat/Course-Exams
+- feat: update category labels and improve data handling in cost management components
+- feat: enhance password visibility toggle in login form
+- feat: add cost management submenu to purchases menu
+- Merge branch 'main' into ChangesRandom-BO
+- feat: implement cost management features with article and general cost handling
+- fix: fixed a little issue in ver buttons en resumen page
+- fix: adapted the menu list
+- Merge branch 'main' into feat/digitalLibrary
+- change: added resumen page in new menu
+- Merge branch 'main' into feat/Course-Exams
+- revision of roles permissions in course/exams pages
+- Merge pull request #58 from transmandu/feat/sms-hangar
+- feat: replace menu list 2 by menu - list
+- feat: menu list with requires omac and restruct company 2 removed..
+- feat: console logs removed
+- merge: main into feat/sms-hangar
+- fix: solved an issue when showing examns an certificates in resumen page
+- update: changed the desing in courses resumen page
+- feat : add report id to createHazardeNotification action
+- Merge pull request #57 from transmandu/feature/cargo-module-ui
+- Merge branch 'main' into ChangesRandom-BO
+- fix: update useGetLocationsByCompanies hook to remove company slug dependency
+- Merge branch 'main' into ChangesRandom-BO
+- feat: add Web Serial API types and implement cargo operations management dashboard with bulk actions
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- refactor: simplify useGetLocationsByCompanies hook by removing company parameter and adjusting query structure
+- feat: rename identification area en to es
+- Merge pull request #56 from transmandu/feature/cargo-module-ui
+- feat: implement cargo shipment module with serial scale integration and external aircraft management.
+- feat: implement cost management features with article and general cost updates; add CostToolbar and CostTypeToggle components for enhanced user interaction; create data table and columns for displaying costs
+- refactor: split eval and mitigation workflow in components
+- refactor: split in components report view
+- feat: enhance LoginForm with password visibility toggle and improved layout; update ThemeToggler tooltip text to Spanish; optimize AuthContext for better error handling and session management; add CircleDollarSign icon to menu list
+- feat: add file server component
+- feat: File server to bring private file
+- feat: added the exams options in the frontend
+- Reemplazar vista de imagen por FileServer en ReportDetailView
+- feat: enhance AdministrationDashboard and SuperUserDashboard components with improved header layout, styling, and responsiveness; update tab styles in AdministrationDashboardContent
+- feat: enhance WarehouseDashboard and ArticlesSummary components with improved layout, styling, and responsiveness; add no-scrollbar utility
+- fix: update linear gradient colors in ArticlesSummary and ToolsSummary components for improved visual consistency
+- fix: adjust stopOpacity values in linear gradients for ArticlesSummary and ToolsSummary components for improved visual consistency
+- refactor: update color schemes in DispatchSummary, ArticlesSummary, and ToolsSummary components for consistency
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- feat: update DispatchSummary, DispatchWarehouseReports, SMS components, and ArticlesSummary for improved styling and color consistency; add DispatchReportDialog component
+- Merge pull request #55 from transmandu/fix/omit-department-id
+- fix(almacen): use string ids for aircraft_id/department_id to match API typings\n\nAvoid converting form values to numbers; keep string ids to satisfy IDispatchRequestAction types\n\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+- fix(almacen): omit department_id when destination is aircraft\n\nConstruct payload explicitly to avoid sending department_id when isDepartment=false\n\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+- fix: standardize gender values to uppercase in employee forms and related components
+- fix: update background styles in DispatchReportDialog and RegisterDispatchRequestDialog for improved visual consistency
+- fix: update button styles in DispatchReportDialog and RegisterDispatchRequestDialog for consistency
+- feat: add gender field to employee forms and related components
+- fix: ensure correct timezone handling for employee birth date formatting
+- feat: add question to make assessment
+- fix: correct location property to display address in EmployeeExpandedRow
+- Enhance dashboard components with improved styling and error handling
+- Merge pull request #54 from transmandu/feature/cargo-module-ui
+- feat: implement cargo shipment management system for internal and external aircraft with data export capabilities
+- feat : ad new analysis from post mitigation plan
+- feat: add custom tooltip components and enhance button hover effects with radial gradients
+- Refactor dashboard components to use TintedCard for consistent styling and improve visual hierarchy
+- feat: enhance dashboard headers and tab structures for improved UI consistency
+- fix: solved some issues with reac-pdf
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- feat: comment out unused menu item for cost management in getMenuList
+- feat: update DispatchReportFilters for improved date formatting and remove single day selection comment
+- Merge pull request #53 from transmandu/update/certificates-crud
+- feat: enhance DispatchReportFilters with calendar month management and date selection improvements
+-  fix: type error
+- fix: add margin to date range container in DispatchReportFilters
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- feat: enhance DispatchReportFilters with new date range selection UI and presets
+- feat: new filter (dispatch type) on dispatch report.
+- continue fuel
+- feat: enhance DispatchReportDialog UI with improved layout and tooltip support
+- feat: enhance date range selection UI with improved layout and labels
+- Merge branch 'main' into update/certificates-crud
+- fix: solved issues in sms certificates and synced with photo logic
+- fix: remove local host from certificate dropdownactions sms
+- feat: add general and article filter summaries with tooltip display
+- feat: restrict role management to SUPERUSER in UserRolesTab
+- Merge pull request #52 from transmandu/feat/reopenCourse
+- Merge pull request #51 from transmandu/feat/general-art-edit
+- fix: warning froms npm run build, change strign by article type
+- feat: implement CRUD course actions and create course management dropdown menu
+- Merge branch 'main' of github.com:transmandu/SIGEAC_Frontend
+-  fix: load by default primaru unit id
+- feat: add search functionality to article filters in DispatchReportFilters component
+- Merge branch 'main' of github.com:transmandu/SIGEAC_Frontend
+- feat : edit general article
+- feat: enhance DispatchReportDialog with article filters and validation; add DispatchReportFilters component
+- feat: to do something
+-  feat : add show for vloutnary report and obligatory report
+- feat: set dynamic voluntary report form
+- feat: remove follow up controls from type
+- feat: add reception date to TransitArticle and display in ArticleRow
+- refactor: change the order and ui in eval and mitigation
+- fix: adjust height of CardContent in DispatchSummary component
+- feat: add DispatchSummary component and integrate into AdministrationDashboardContent
+- Merge pull request #50 from transmandu/feat/delete-gen-art
+- feat: menu and option to delete a general article
+- Merge pull request #49 from transmandu/feature/cargo-module-ui
+- feat: add cargo shipment creation form and configuration templates
+- fix: solved a little issue in menu-list-2
+- Merge branch 'main' into feat/digitalLibrary
+- fix: optimize avatar image loading in UserInfoCard and UserNav with size parameters
+- docs: add fuel module implementation plan
+- docs: add fuel warehouse module design
+- fix: refactor avatar implementation in UserInfoCard to use Avatar component
+- fix: add download functionality for employee carnet and improve UI elements
+- idk men
+- fix: enhance image handling in UpdateEmployeeForm with unoptimized loading and quality settings
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- fix: improve layout for missing employee photo in UpdateEmployeeForm
+- Merge pull request #48 from transmandu/feature/cargo-module-ui
+- fix: update UserInfoCard avatar border radius to use rounded-full class
+- fix: handle error in fetchMyEmployee function and update UserInfoCard image alt text
+- feat: implement useMyEmployee hook and update UserInfoCard and UserNav components to utilize employee data
+- feat: add mitigation plan id in data to create mitigation measure
+- feat: add UpdateEmployeeForm component for employee updates
+- feat: implement cargo management module with protected route layouts and aircraft operations interface
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend into feature/cargo-module-ui
+- fix: rename type from sms/mantenimiento
+- feat: to create eval and plan
+- Merge pull request #47 from transmandu/fix/mitigationPlanDate
+- fix: Date in EditMitigationForm match with Date that come from API
+- refactor: split in components the functions in identifiaction page
+- feat: add cargo shipment details page and environment configuration template
+- fix: add root cause to input when the form is to edit
+- feat: update hazard notification
+- feat: create hazard notification
+- refactor(cargo): reorganize hooks folder structure and update imports
+- feat: add hazard notification form and function
+- fix: fixed a little issue in menu-list-2
+- Merge branch 'main' into feat/parts-assignments
+- Merge branch 'main' into feat/digitalLibrary
+- feat: added excel export button for AircraftParts
+- feat: add CreateCargoShipmentForm component for managing cargo shipments
+- feat: implement cargo shipment management module with CRUD operations and data tables
+- feat(cargo): add cargo module link to side menu
+- fix(cargo): implement bulk actions and automatic cache invalidation
+- feat(cargo): implement intelligent autocomplete for external aircraft
+- feat(cargo): implement dashboard with tabs and aircraft-specific views
+- feat(cargo): add types and shared UI components for cargo module
+- feat: add type to analysis, follow up controls mitigation plan and measures
+- feat: add view to create hazard notification
+- feat: mark  the current path in menu
+- feat: hazard notification preview
+- feat: to protected route
+- feat: hazard notification type
+- feat: create table to show RVP and ROS
+- feat: isOmac add to menu and sub menu
+- feat: hazard notification and actions to create and update
+- fix: fixed logic in update to avoid duplicated parts
+- fix: add close brace
+- fix: update dependencies in useEffect for grouping articles and fetching locations
+- Merge branch 'main' into feat/sms-hangar
+- feat: add require omac, to hide menu and submenu list
+- style: refactor sms page for sms hangar
+- fix: show aircraft parts by default in edit aircraft form
+- feat: add obligatory report
+- feat: finishing incoming flow
+- style: better order in rvp and ros
+- fix: incoming format
+- Merge branch 'main' into feat/parts-assignments
+- se agrego editar roles , empresas y locaciones del usuario
+- feat: show quantiy, manufacturer and condition in articles in transit, reception and all
+- feat: invalidate query when an article is created
+- feat: removed unused import
+- feat: show articulos in transit to role JEFE_ALMACEN
+- feat: show articles in transit
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- add solo almacen y compras
+- add tabla de transit y reception
+- feat : obligatory report
+- Merge pull request #46 from transmandu/fix/scroll-bar
+- feat: refactorization in PlanificationAircraftTab to sync with new back logic
+- fix: scroll bar to select an article in dispatch
+- feat : delimit description in select article
+- faet: create file to obligatory report
+- feat: voluntary report to aeronautical
+- fix: fixed bug in HistoryPanel and ShareQRDialog.tsx
+-  feat : add new aircraft part form to create aircraft
+- Merge branch 'main' into feat/digitalLibrary
+- update: changed light mode in digital Library UI desing
+- Merge branch 'main' of github.com:transmandu/SIGEAC_Frontend
+- style: hide shelf life in components , parts, tools and all
+- Merge pull request #45 from transmandu/feat/tool-without-calibration-upate
+- feat: add add new badge for status N/A
+- feat: remove unused vars in calibration column section
+-  feat : removed all inused imports
+- Fix: fixed download button in dropdown menu
+- Merge pull request #44 from transmandu/feat/show-aircraft-in-warehouse
+-  feat : to show aircraft when the condition is removed or safekeeping
+- feat: show aircraft from initial data in select
+- feat: unused imports removed
+- feat: show aircraft by default in aircraft input
+- fix: allow public route
+- feat: allow accces public in handle redirect
+- Merge pull request #43 from transmandu/feature/update-tools
+- estado
+- Merge branch 'main' into feature/update-tools
+- add update tool
+- Merge pull request #42 from transmandu/feat/SmsCloseDate
+- feat: added close_date in SafetyRiskManagement
+- style: yellow color for aeronautical sms page
+- style: add hangar policies
+- feat: sync with backend download logic
+- feat: allow public routes
+- feat: split in components sms page
+- Merge branch 'main' into feat/digitalLibrary
+- style : more with to show questions in survey form
+-  fix: fixed error when visualizing documents local way and sync with backend
+- refactor: remove unused imports
+- fix: remove redirection after submit
+- fix: show batch id and name when it comes from initial data
+- feat: to show 2 significant number
+- Merge pull request #36 from transmandu/update/smsReport
+- Merge pull request #39 from transmandu/fix/consumable-conversions
+- fix: wannings of types, from nom run build
+- Merge pull request #40 from transmandu/feat/activity-statistics
+- feat: implement dynamic menu configuration with role-based access control and module filtering
+- fix: consumable preview data fixed in dark mode
+- fix: initial data in converions
+- refactor: format converions like array
+- feat: update type to accepnt converions as array not object
+- refactor: remove units modal from consumable form and make it a component
+- fix: to show X in responsible area, was misspelling
+- added close_date in Voluntary and Obligatory reports
+- Merge pull request #10 from transmandu/addDocumentsToWorkOrder
+- Merge pull request #35 from transmandu/feat/add-model-in-tools
+- Merge branch 'main' into feat/add-model-in-tools
+- style: size smaller in quantity column
+- Merge pull request #25 from transmandu/fix/filterByHazarous
+- feat: add model input in tools
+- feat: add select to calibration period
+- Merge branch 'main' into feat/digitalLibrary
+- comented visual errors in secure visualizer and secure visualizer page
+- feat: add tool category on manufacturer form
+- fix: dates on tool creation
+- angel
+- installed dependencies
+- feat: remove debugg message
+- feat: only read in activity number input
+- feat:to edit activity number
+- new update in library logic
+- ¡Bien hecho, Osmary!
+- Merge branch 'main' into feat/dispatch-report
+- add filter department, third parties and company
+- feat: add thirdparties and authorized to components
+- Merge pull request #32 from transmandu/feat/activity-statistics
+- feat: implement SMS activity statistics dashboard with dynamic charts and date range filtering
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend into feat/activity-statistics
+- refactorized dropdownmenu in library
+- feat: add button to download image in rvp show
+- feat: Implement SMS voluntary and obligatory report management and SMS activity management with associated forms and API actions.
+- feat: changes in library UX
+- feat: add Input to view work order details in self view
+- resolve conflicts merging main
+- feat: input for dates with type mode
+- fix: errors from nom run build
+- Merge branch 'main' into addDocumentsToWorkOrder
+- fix: restore Footer component and dark-mode text colors.
+- Update footer text classes to theme-aware Tailwind classes
+- Updated README.md file with new content
+- feat: added documents versions logic
+- Merge pull request #26 from transmandu/feat/openActivity
+- fix: get locations before select the compay and stations
+- fix: type, alternative_part_number by alt_part_number
+- repush
+- fix: type error incoming
+- feat: incoming
+- Merge branch 'main' into ChangesInPurchaseAndAdministration
+- fix: uncommentforms
+- fix: typos error
+- fix: intial values on batch and unit
+- Merge branch 'main' into feat/digitalLibrary
+- en transito
+- feat: added Public visualizer when scan QR code
+- Merge branch 'main' into feat/digitalLibrary
+- sync with backend update
+- changes thing in report for better funtion
+- Merge branch 'main' into ChangesInPurchaseAndAdministration
+- Add: all of shipping agency
+- feat: function to reopen sms activities
+- fix: delete re-fetch user
+- visual changes in library page
+- fix: paginate batch with hazarous article
+- change in the theme dark
+- Merge branch 'main' into feat/digitalLibrary
+- another logic change and UX update
+- ZZMerge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- REUI de incoming
+- change warning
+- feat: better thing in purchase
+- fix: fixing delete image in bulleting
+- Merge pull request #24 from transmandu/feat/delete-button-in-groups
+- Merge branch 'main' into feat/delete-button-in-groups
+- Merge branch 'main' into feat/digitalLibrary
+- fix: another mayor UX changes in digital Library
+- fix: safekeeping label in conditions
+- details
+- create things for purchase
+- add: backbutton in page of purchase
+- Console errors
+- Change in a error silence on console
+- Resolved issues from merge main
+- fix: mayor changes in Library UI
+- feat: to delere an article from groups dialog
+- Merge branch 'main' into ChangesInPurchaseAndAdministration
+- image in requisition
+- fix: open bulletin in blank
+- feat: delete button in group articles
+- fix: refresh page when u delete an article
+- feat: add button to delete an article. Only SUPERUSER and JEFE_ALMACEN roles
+- fix: removed message
+- changes: details
+- Merge pull request #23 from transmandu/fix/sortTableByReportNumber
+- fix:tables now are sorted by report_number(in sms)
+- Fix : typo in condition key from 'FACTORY_NEW' to 'FACTORY NEW'f
+- Fix  : key format for AS REMOVED condition
+- Merge branch 'main' into ChangesInPurchaseAndAdministration
+- fix: iu dismiss and more
+- Merge pull request #22 from transmandu/feat/add-aicraft-select-in-articles
+- Merge pull request #20 from transmandu/fix/static-condition-label
+- feat: rename part_component to PartCompont and to select aircraft when condition is SAFEKEEPING or AS REMOVED
+- fix: dark mode in edit analysis form, when u are gonna select probability and severity
+- fix: static  condition label to dynamic
+- certificados ocultados en menu-list
+- Merge branch 'main' into ChangesInPurchaseAndAdministration
+- fix: show description and manufacturer when it has one from initialData
+- Merge branch 'main' into ChangesInPurchaseAndAdministration
+- refactor: all view crud of purchase
+- feat: new condition label, resguardo - safekeeping
+- fix: typo error in conditions page
+- Merge branch 'main' into ChangesInPurchaseAndAdministration
+- feat: changes things in purchase for better
+- agents pa'fuera 2
+- agents pa'fuera
+- claudio pa'fuera
+- tZZZZMerge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- removed claude and agents folder
+- Merge pull request #15 from transmandu/update/certificates-crud
+- Merge pull request #14 from transmandu/feat/sms-activity-file-uploads
+- eliminar despachos
+- elimijar solo superusuario (articulos)
+- feat: changes desing menu
+- Merge branch 'main' into ChangesInPurchaseAndAdministration
+- feat: to show label in type column
+- feat: add tercertos to menu list
+- Merge branch 'main' into feat/digitalLibrary
+- Update: mayor changes in UX
+- Change 1: add button of excel in report dispatch
+- push de angel
+- fix: things of my pana claudio errors
+- commit de consumabel dispatch form
+- change minus things
+- terceros y finalizado despachos de consumibles
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- menu nuevo
+- nextconfig nuevo hostname
+- Merge branch 'main' into feat/digitalLibrary
+- feat:dark mode danger identification layout and resize limits of characters in inputs
+- Merge remote-tracking branch 'origin/main' into feat/sms-activity-file-uploads
+- feat: justificaction in dispatch article detail
+- Merge branch 'main' into feat/digitalLibrary
+- feat: default value to checkboc from initialData
+- feat: to hidde unit and ata code, and mark the batch like hazarous.
+- Fix: deleted duplicated notifications in create and edit certificates
+- Update: columns in dispatch page
+- Merge branch 'main' into update/certificates-crud
+- feat: upgrades in certificates UI and sync with backend
+- update: hidden expand in dispatch column
+- Merge branch 'feat/sms-activity-file-uploads' of https://github.com/transmandu/SIGEAC_Frontend into feat/sms-activity-file-uploads
+- feat: add image and document upload support for SMS activities
+- update: header of dialog in dispatch articles view
+- Merge branch 'main' into update/certificates-crud
+- fix: src de image in voluntary report
+- feat: show pagination in general inventory + filter by part number
+- fix: search part number in warehouse inventory
+- feat: download excel from dispatch reports
+- Merge branch 'main' into update/certificates-crud
+- fix: pagination waregouse inventory
+- Merge branch 'main' into feat/digitalLibrary
+- Revert "feat: limit from to 1000 to 100 items per page. useGetWarehouseByCategory"
+- feat: limit from to 1000 to 100 items per page. useGetWarehouseByCategory
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- quitado valor inicial en recibe dispatch
+- Merge pull request #13 from transmandu/fix/conditions-wh
+- feat: add image and document upload support for SMS activities
+- UI mejorado y empleados completos en despachos
+- change from INSPECTION to INSPECTED in db
+- Merge branch 'main' into fix/conditions-wh
+- push - postdesastre de main
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- Revert "feat: enhance AuthorizedEmployeeForm with user role handling and improve company filtering"
+- Merge pull request #12 from transmandu/claude/busy-banzai
+- fix: replace hardcoded Vercel URLs with relative paths in SMS public page
+- Merge branch 'main' into fix/conditions-wh
+- feat: improve error handling in report fetching hooks and update report naming conventions
+- Merge branch 'main' into fix/conditions-wh
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend into feat/survey-edit-and-username-display
+- conversion en los endpoints
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- UI de req
+- fix: changed conditions from INSPECTION to INSECTED
+- Fix: sync with Backend
+- feat: edit survey form and questions manager fix: show username if logged in, email if anonymous in survey results feat: Update_By column added to questions and options table
+- Merge branch 'main' into feat/digitalLibrary
+- Merge branch 'main' into update/certificates-crud
+- feat: edit work orders and preview documents       Has been created a new component to preview PDFs (reusable) called PdfPreviewDialog
+- feat: enhance AuthorizedEmployeeForm with user role handling and improve company filtering
+- feat: integrate company fetching and filtering in AuthorizedEmployeeForm
+- Merge branch 'main' into feat/digitalLibrary
+- Merge branch 'main' into update/certificates-crud
+- Feat: update in Visualizer UI
+- feat : tab list to show download reports button
+- feat: to get dispatch and balance pdf report
+- Feat: first desing for library UI
+- feat: enhance WorkOrderAircraftDetailsCards layout and improve accessibility
+- Merge branch 'main' into feat/digitalLibrary
+- Merge branch 'main' into feat/preview-wo
+- feat: update DispatchReportDialog to download PDF reports
+- Feat: early stage of digital Library
+- feat: split report disaptch
+- UI 2
+- UI
+- terceros en despachos 2
+- terceros en despachos
+- aeronvaes en despachos
+- merge para range picker
+- dispatch con nuevo range-picker
+- Merge branch 'main' into feat/preview-wo
+- Merge branch 'main' into feat/dispatch-report
+- feat: add dashboards for Administration and SuperUser, refactor Warehouse and SMS dashboards
+- feat: report dispatch
+- Revert "feat: add dashboards for Administration and SuperUser, refactor Warehouse and SMS dashboards"
+- feat: implement PDF preview UI and optimize download logic
+- fix: update syncSession to ignore automatic logout for SUPERUSER
+- feat: add edit work order functionality with task management
+- Merge branch 'main' into update/certificates-crud
+- feat: add dashboards for Administration and SuperUser, refactor Warehouse and SMS dashboards
+- fix: update in Certificates page UI
+- fix: update authorized_employee display to uppercase for from_company_db
+- fix: update authorized_employee field to use full_name instead of employee_name
+- fix: enhance requested_by handling and add from_company_db to authorized_employee
+- merge: resolve conflicts in PDF generator utility
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- style: wo table, removed elaborated_by, approved_by and review_by to add item numbers and client name.
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- fix de UI en landing
+- fix: update dispatch type handling and correct company display in employee selection
+- Merge branch 'main' into feat/sms-cronograma
+- push de authorized
+- Merge branch 'main' into feat/sms-cronograma
+- fix: changes in layout overflow and card responsiveness in activity details
+- merge para terceross
+- pre-pull
+- fix(sms): auto-close modal on success and handle blob error messages
+- fix: removed index
+- fix: invalided query to bring attendance list by activity id
+- feat: select date is obligatory to make report
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- feat: unify date filters and enhance dispatch report fetching with aircraft ID support
+- feat: add request_number field to DispatchGroupRow and IDispatch interfaces
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- feat: to hide sms page button
+- fix: to hide sms page
+- fix: refactor EditUserDialog to use button instead of DropdownMenuItem and update Footer for dynamic year
+- Merge branch 'main' into update/certificates-crud
+- updated role-based logic and UI enhancements in certificates
+- fix: comment out unused menu item for 'Pendiente'
+- fix: to show sms page
+- fix: update mutation to handle response and improve error handling
+- fix: new dynamic route for images
+- merge: resolve conflicts in navigation menu
+- fix: config next js to get images
+- feat: sync with update/certificate-crud logic
+- fix: removed extra "/" from image path
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- fix: route to get images is dynamic now
+- fix: Correct endpoint paths for job titles in API calls
+- refactor: Simplify rendering logic for authorized employees in DataTable
+- feat: Implement employee authorization management
+- feat removed character limid for description task in wo
+- Merge branch 'main' into fix/sms-cronograma
+- fix: chance in sms Cronograma download path an UI
+- Merge branch 'fix/date-offset' of https://github.com/transmandu/SIGEAC_Frontend into fix/date-offset
+- fix: to show acronym like acronym lol
+- fix de borrado de item 3
+- fix de borrado de item 2
+- fix de borrado de item
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- feat: description task limit to 645 characteres
+- Merge branch 'main' into fix/date-offset
+- fix: prepare report logic for main merge
+- feat: add tooltip for user status and enhance pagination state management in data table
+- manufcaturer
+- feat: implement user status button and update user dialog interactions
+- Merge branch 'main' into fix/date-offset
+- fix: resolve date offset and fix stale cache by updating queryKey and component keys
+- feat: download work order pdf package
+- fix: fix date offset in table using UTC normalization
+- Merge branch 'main' into feature/inventory-availability-column
+- feat:  report pages default 2
+- feat: improve roles and calendar UI alignment
+- fix: simplify isActive badge rendering in user columns
+- fix: initialData.batches to initialData.batch
+- fix: rename batches by batch in articles
+- fix: category was reading null
+- feat:refactor SMS activities UI/Hooks
+- columna usuarios
+- fix: responsive in navbar and type error in user columns
+- fix: update quantity display and availability badge in inventory columns
+- cambiar contraseña
+- psh
+- fix: responsive in login section
+- ?
+- Merge branch 'feat/incoming'
+- refactor(requisition-dialog): restrict ENGINEERING role to single requisition form and remove tabs
+- fix: type errors
+- Merge branch 'rama-richard'
+- style: added label in es/en
+- fix: dependency in a form
+- Merge branch 'main' into RefactorPurchase
+- changes: move tab in dialog of requisition
+- upgrade: well done
+- UPGARDE 2: this thing is better
+- feat: add edit in groups, and show condition in tables es-en
+- upgrade: requisition order better things
+- refactor: select of articles, better upgrade
+- refactor: upgrade search for articles
+- Fix merge conflicts with main
+- Update properties section in consumable form
+- Merge branch 'main' into RefactorPurchase
+- refactor: remove renglon slot
+- fix: to show shelf life in inventory column
+- Merge branch 'main' into RefactorPurchase
+- fix: inputs
+- fix de fecha
+- fecha
+- refactor: changes in input and more
+- feat: shelf life like date a can be n/a
+- fix: resolve type error and pathing issues
+- fix: resolve merge conflict in data-table
+- feat: implement SMS activity report UI and PDF download logic
+- Merge branch 'main' into rama-richard
+- feat: incoming
+- Merge branch 'main' into RefactorPurchase
+- feat: incoming
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- feat: incoming
+- Implement user expiration due to inactivity timeout
+- fix: reading null
+- feat: Breadcrumb to comeback without render page.
+- feat: to show loader icon when is loading
+- feat: material in work order task like nulalble
+- refactor:  page to show flight hours control modular.
+- Merge branch 'main' into RefactorPurchase
+- fix: warnning from run build, to use, useGetFlightHours
+- Merge branch 'main' into fix/flight-hours-control
+- fix: imports for incoming
+- feat:
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- feat: add work order number to dispatch report, and change logo tmd to h74
+- Merge branch 'main' into RefactorPurchase
+- refactor: generated a requisition article list
+- empezando incoming
+- fix: trying to fix filter
+- post-pull
+- UI inventario y vista de incoming
+- feat: add banenr to show average stats
+- feat: create banner componnt to show stats
+- fix: reposition button to create flight hours control, and aircraft by default
+- Merge branch 'main' into RefactorPurchase
+- fix: correct spelling of 'Aeronáutico' in CreateGeneralRequisitionForm component
+- fix: update requisition type from AVIACION to AERONAUTICO in relevant components and types
+- refactor: streamline meta properties in column definitions for consistency
+- Format percentage of managed reports to 2 decimal places
+- Merge branch 'main' into RefactorPurchase
+- fix: update import paths for IncomingTypes and ChecklistGroup in IncomingReview and IncomingSidebar components
+- feat: add PartDispatchForm and integrate into RegisterDispatchRequestDialog; update manufacturer name fallback in ComponentDispatchForm and ToolDispatchForm
+- created automatic pdf of activities in sms
+- feat: add CreateGeneralArticleRequisitionForm and integrate into CreateRequisitionDialog refactor: update CreateGeneralBatchRequisitionForm styles and labels for consistency
+- Merge branch 'main' into RefactorPurchase
+- refactor: update column titles and improve DataTableViewOptions component
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- eliminar alt pn en creacion de batch
+- Refactor requisition types and forms for engineering and general requests
+- refactor: optimize useEffect dependencies and improve validation logic in forms
+- Merge branch 'main' into RefactorPurchase
+- refactor: update requisition handling and improve UI components
+- fix: button responsive in RVP. ROS, and activity data table
+- Add zoom component
+- Merge branch 'feature/sms-button-page' of https://github.com/transmandu/SIGEAC_Frontend into feature/sms-button-page
+- se soluciono la issue de boton responsive "nuevo" en varios componentes y pagina de sms agregada al menu, fue lo mejor que se me ocurrio jeje
+- ocultación de la columna localización del peligro
+- Rename risk_matrix_pyramid.PNG to risk_matrix_pyramid.png
+- Merge branch 'main' into ComprasBenjamin
+- Merge branch 'main' into ComprasBenjamin
+- update requisition type from "AVIACION" to "AERONAUTICO" and enhance article handling in the requisition form
+- push de fix
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- horas
+- feat: add description and units for general articles, report dispatch
+- oscure fix y caducate_date erased
+- fix: oscure mode in column actions from warehouse inventory
+- style: rename label proxima caducidad to proximo vencimiento
+- rename var, caducate_date to expiration_date
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- calendario en wo
+- update role name for maintenance technician in menu list
+- horas
+- form
+- form
+- campos opcionales (nro de vuelo y materiales)
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- cambios de UI en vuelos y horas manuales en  WO
+- fix: restore roles for Jefe Almacen, Jefe Compras, Jefe Operaciones, and Jefe Planificacion in menu list
+- fix: correct spelling of 'Consumibles' in inventory tabs
+- fix: handle undefined aircraft and batch names in requisition forms
+- fix: filter out null batches in CreateRequisitionForm component
+- fix: prevent crash in DispatchReportPdf due to invalid array join
+- feat: enhance requisition form validation and default values
+- feat: add dynamic placeholder to general inventory
+- feat: add hardware tab to general inventory
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- feat: show general articles units
+- fix: update menu filtering for restricted companies to include 'Solicitudes de Compra'
+- fix: ensure quantity is parsed as a float in add quantity operation
+- float con 2 decimales en articulos generales
+- fix: remove type restriction from quantity input in CreateGeneralArticleForm
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- fix flight control
+- fix: make department optional in DispatchGroupRow type and improve article filtering in CreateGeneralArticleForm
+- feat: hide manufacturer
+- feat: add unit support to article columns
+- Merge branch 'GeneralDispatch'
+- fix: set default quantity to 0 in CreateGeneralArticleForm
+- UI en wo
+- Merge branch 'main' into GeneralDispatch
+- feat: refactor CreateGeneralArticleForm to improve form handling and add existing article selection
+- departamento en dispatch
+- fix para dispatch
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- dispatch
+- feat: add department_id
+- mejora el dispatch UI 2
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- mejora el dispatch UI
+- add role TECNICO_MANTENIMIENTO_AERONAUTICO to menu access
+- feat: add functionality to manage existing general articles and update quantities
+- seleccion de paginas en reporte
+- fix final de WO
+- fix
+- prueba de form
+- items
+-  feat: aircraft as mandatory input to create wo
+-  feat: hide button to create work order task from details wo
+-  feat: add material to work order tasks
+- fix: añadido aeronave
+- fix
+- quitar aeronave (poner de vuelta)
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- fix: arreglado el ui de dispatch
+- feat: fix remove facrturer from label cuz it cound be null
+- push 2
+- push para report page
+- hoja de reporte
+- test
+- wo
+- pdf report
+- inspeccion preliminar
+- wo UI
+- despachos listos y wo
+- formulario de ingreso general
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- new table dispatch
+- fix: update column header title and prevent multiple modal openings in forms
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- fix: improve category validation and default values in CreateBatchForm
+- eliminando partes de aeronave
+- fix de UI en tabla
+- fix: tablas de gestion de inventario
+- fix en busqueda de salidas
+- 	Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- despachos / pruebas de conversion
+- style:  rename caducate input label to proxima caducidad
+- Merge branch 'feature/parts'
+- pre-merge
+- feat: filter to parts, engineering inventory
+- feat: add part tab to, general inventory and ingineering
+- feat:  add part category
+- fix: EditArticles Type
+- feat: add part to tabs
+- feat: The batch category was changed from Spanish to English
+- style: remove description, its annoying
+- feat: type
+- feat: rename batch category to english
+- fix: wrong import of types
+- feat: add llp
+- feat: max leght 500 for objetive
+- feat : add 255 chracteres more to objetive.
+- feat : add LLP and inspect data
+- feat: add part like categoty to batches
+- feat: modular components
+- feat: add inspector and inspect date like type
+- fix: tabs withdark mode
+- feat: add inspect, inspection_date, shelft life, LLP
+- style:  dashboard tabds with dark mode
+- feat: add validation 1000 characteres for possible consequences
+- feat: remove dowload button
+- feat: add dowload and print button
+- feat: add month as title
+- style: increase div for image, custom card
+- feat: Add document display dialog component and a hook for fetching public or private documents.
+- test: airplane page , sms page
+- feat: add description for warning
+- redeploy
+- fix: dark mode for sagety bulletins page
+- Merge branch 'main' into feature/safety-bulletins
+- feat: bulletins show
+- feat: to get bulletins by year
+- fix: add "All" option to article category in warehouse article interface
+- fix: update component form to correctly reference component properties and add maintenance type to aircraft data
+- refactor: update date handling in inventory forms and components to use parseISO for consistency
+- feat: rename bulletin to safetyBulletin
+- feat: safety bulletin
+- feat: safetybulletin actions
+- feat: rename Bulletin to SafetyBulletin
+- Merge branch 'main' into feature/safety-bulletins
+- feat: bulletins CRUD
+- feat: new env
+- feat: display with public image or private
+- feat: new env for public storage
+- feat: add aircraft type field and integrate maintenance aircraft selection in component form
+- feat: restructure warehouse dashboard components and add summaries for articles, tools, and users
+- feat: image with env
+- style: dark mode
+- Merge branch 'main' into feature/private-images
+- feat: style cols 2 not 3 wtf
+- feat: new image routes
+- feat : hook to get image and document private
+- feat: follow up controls with private image
+- Merge branch 'main' into feature/private-images
+- fix: dashboard sms
+- feat: private image
+- refactor: remove commented-out console log in CreateBatchForm for cleaner code
+- fix: update unit label handling in CreateBatchForm to support both singular and plural forms
+- fix: correct unit label from "UNIDAD" to "UNIDADES" in CreateBatchForm
+- feat: add default category support to inventory forms and batch creation
+- fix: update validation message for serial input to require at least 1 character
+- feat: private image for ROS
+- feat priva images
+- refactor: update CreateConsumableForm to enhance quantity input handling and improve form structure
+- feat: redirection to report tabs
+- Merge branch 'main' into feature/private-images
+- feat: add notification component
+- feat: remove CBL
+- feat: remove the fk sticker
+- Merge branch 'main' into sms-refactor
+- feat: sms dashboard
+- fix: update user filtering logic for JEFE_ALMACEN role to include multiple job titles
+- feat: select company responsive
+- feat: sms dashboard first tab
+- fix: warnnings from run build
+- feat: add dashboard construction image for improved visual guidance
+- Merge branch 'main' into feature/private-images
+- Merge branch 'main' into sms-refactor
+- feat: dialog button
+- fix: update inventory button link to point to the correct route
+- feat: to select year on double date filter
+- feat: to select year on calendar
+- feat: add pie chart for survey statistics
+- Merge branch 'main' into DashboardAndMore
+- feat: enhance dashboard components with sticky actions and improved layout
+- style: dark mode color
+- feat: button to login in
+- style: dark mode to show results from survey of type QUIZ
+- feat: link href with component
+- feat:  auxiliar component
+- feat: report number with href on mitigation table
+- refactor: simplify article fetching logic by consolidating category-based data retrieval
+- feat: disable button if is pending
+- feat: add Porque for each root cause analysis
+- feat: add more characteres for root_cause and to close dialog after update
+- feat: 2 decimals, displayPercentage
+- feat: remove page link
+- feat: add sms page to menu, general
+- feat: add volutnary and obligatory concepts
+- feat: invalidate danfer identification query with company
+- fix:  charts renderer
+- Merge branch 'main' into DashboardAndMore
+- feat: to avoid refresh the page.
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- fix: change quantity input type from number to text in ArticleRow component
+- feat: add unit field to warehouse articles and update package-lock.json
+- style: change form tittle
+- Merge branch 'main' into feature/private-images
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- feat: to show unite on purchase and quote order
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- feat: to show units on inventory and requisitions
+- feat: to get private image form RVP
+- feat: add helper function to parse ISO dates as local dates in inventory article columns
+- Merge branch 'main' into sms-refactor
+- feat: enhance CreateGeneralRequisitionForm by adding input constraints for quantity field, allowing decimal values
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- feat: separate fetching and handling of consumables and components in warehouse management, enhancing pagination and article display
+- feat: limit lines for description
+- style: add scroll for dialogs
+- feat: increase 900 characteres for descriptio nRVP
+- style: add report number to identification and mitigation plan tables
+- style: dark mode for analysis form
+- style: input text with dark mode
+- feat: add chart by source type
+- fix: wannings from run build
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- Merge branch 'main' into sms-refactor
+- feat: Implement voluntary and mandatory employee SMS reports with creation dialog and updated navigation menu.
+- refactor: remove unused import and comment out permissions menu item
+- feat: dynamic link and filter for setting column from survey
+- feat: fix dynamic link and to show settings on the column from survey
+- feat: Add pages and components for obligatory and voluntary risk indicator reports.
+- feat: add message with component
+- style: Add Footer component black color
+- feat:  status message and dark mode
+- fix: ensure description displays "N/A" when empty in manufacturer columns
+- feat: indicator risk for ROS responsive, and messages were moved as components
+- feat: rename sms planificacion to promocion, and qr style
+- Merge branch 'main' into sms-refactor
+- feat: Implement public SMS reporting flow with QR code generation and guest navigation.
+- Merge branch 'main' into DashboardAndMore
+- feat: only one qr
+- feat: add `BarChartComponent` for displaying general statistics with dynamic theming.
+- fix: color in dark mode and message when data is empty
+- style: customcard responsive horizontal
+- style: responsive policy and tabslist
+- fix: wannings from run build
+- feat : rename folder, sms/planification to sms/promocion
+- feat: hide from guest nav, contact and about us
+- feat: Add guest navigation menu and new pages for voluntary report statistics, course details, activity details, and public SMS access.
+- feat: introduce guest menu, chart components, and new application pages.
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- feat: add SMS public access page and reusable CustomCard component
+- fix de graficos para estadisticas de sms
+- feat: Add a new public SMS page and a reusable PolicyCard component.
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- feat: add PolicyCard component for displaying policy information with optional icon, title, description, and action link
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- feat: add certificate download functionality to CreateComponentForm, CreateConsumableForm, and CreateToolForm; update UI to display current certificates and allow replacements
+- feat: add message validation on danger_type
+- feat: remove politica_2 image
+- feat: Implement public SMS survey functionality and action plan display.
+- Merge branch 'main' into pzo-survey
+- feat:  style bartchart component
+- feat: refactor CreateDangerIdentificationDialog to use Dialog component for improved UI interaction
+- Merge branch 'main' into pzo-survey
+- fix:  responsive statistics
+- fix: style dark mode
+- fix: dark mode fixed
+- Merge branch 'status_items'
+- feat: enhance inventory article management by adding support for all categories, custom sorting for status, and additional columns for calibration and shelf life
+- style: badge to questiones asnwered
+- style: add badges responses by user
+- feat: incremente characteres 200 to 500 for root cause analysis
+- fix: to show the message credencial invalida, when the password is wrong
+- style: identation
+- feat : action dialog responsive
+- fix: image url
+- fix: the question text, console errors removed
+- Merge branch 'main' into pzo-survey
+- fix: url link
+- fix: image warning from npm run build need to add with and height
+- feat: card actions
+- feat: improve date input handling in RegisterComponentForm and RegisterConsumableForm; enhance validation and formatting logic for better user experience
+- fix: show confetti
+- feat: statistics and responses by user
+- feat: Implement warehouse dashboard and consumable registration preview
+- feat: setting survey and question, and validate email
+- feat: to show quiz result
+- feat: add setting, to know what survey or quiz show, on public acces
+- config: add depedencies react conffeti
+- feat: enhance date input validation in inventory forms; add error handling for invalid dates and improve user experience with auto-formatting
+- feat: sms public page
+- feat: action to delete survey, show and dowload qr code
+- Merge branch 'main' into survey
+- refactor: remove certificate file renaming logic from inventory forms; streamline submission process and enhance part number normalization
+- feat: implement file renaming for certificates in inventory forms; enhance file input handling and improve user experience
+- changes
+- feat: survey and quiz
+- Merge branch 'survey' of https://github.com/transmandu/SIGEAC_Frontend into survey
+- feat: survey and response form more actions
+- feat: replace SheetMenu with GuestSheetMenu in GuestNavbar component
+- feat: integrate dialog for editing danger identification; enhance user interaction and maintain component structure
+- Merge branch 'main' into smsChanges
+- feat: refactor CreateDangerIdentificationDialog to CreateDangerIdentificationPage; simplify dialog structure and remove unused components
+- feat: stop propagation for batch form
+- Merge branch 'main' into smsChanges
+- feat:  search batch by cateogry to validate
+- Merge branch 'main' into smsChanges
+- feat: add CreateDangerIdentificationPage and integrate with routing; update CreateIdentificationForm and VoluntaryReportDropdown for improved functionality
+- chore: add a blank line for better readability in columns.tsx
+- refactor: replace Select components with Popover for manufacturer selection in inventory forms
+- refactor: optimize unit handling and conversion logic in forms and columns
+- Merge branch 'main' into refactor-units
+- Merge branch 'refactor-units' of https://github.com/transmandu/SIGEAC_Frontend into refactor-units
+- refactor: streamline article structure and enhance expiry date handling for components and consumables
+- style: hide input for docs if isnt necessary
+- fix : conversion rename from unit_primary to primary_unit
+- fix: Engineering Requisition
+- Merge branch 'refactor-units' of https://github.com/transmandu/SIGEAC_Frontend into refactor-units
+- feat: add unit handling for components and tools in requisition forms
+- fix: correct column accessor key and update label text in CreateSMSActivityForm
+- Merge branch 'refactor-units' of https://github.com/transmandu/SIGEAC_Frontend into refactor-units
+- feat: to show in the report the quantity left
+- Merge branch 'refactor-units' of https://github.com/transmandu/SIGEAC_Frontend into refactor-units
+- feat: update serial handling in article forms to support multiple serial inputs and enhance inventory column actions
+- fix: report with aircraft
+- fix: make dispatch order for aircraft
+- Merge branch 'warehouse' into refactor-units
+- feat: dispatch conversion
+- feat: import from current main
+- style: no need text
+- fix: location as string not number
+- fix: error sin N/A on shelftime
+- refactor: improve date handling for shelf life in inventory articles, ensuring valid date checks and updating UI labels for hazardous materials
+- Merge branch 'main' into refactor-units
+- feat: to make conversion
+- fix: rename convertion to conversion
+- feat: action to make conversion
+- feat:  hook to get convertions by consumable unit
+- style: remove descriptions
+- style: add tabs to primary and secondary tables
+- fix: update article update API call to use POST method and improve error handling in inventory forms
+- feat: convertion
+- feat: unit form
+- feat: integrate CreateBatchDialog in inventory forms for dynamic batch creation and improved batch handling
+- fix: update article API call to include multipart/form-data header for file uploads
+- feat: add has_documentation field to inventory forms and update related components for documentation handling
+- refactor: comment out min_quantity column in consumibleCols for future consideration
+- refactor: update date handling in inventory forms to support null values and improve UI for fabrication and expiration dates
+- refactor: remove CreateConditionDialog from inventory forms and update descriptions for fabrication and expiration dates
+- feat: update inventory forms to support optional caducate dates and enhance checkbox handling for not applicable items
+- feat: add select unit to dispatch item
+- feat: add select to convertion
+- style: rename function to useGetArticleConvertionById
+- feat: secondary units and create consumable
+- feat: schema with optional secondary_unit
+- feat: enhance condition and batch handling in forms, including improved validation and dynamic creation dialogs
+- feat: is loading for batches and departments select
+- feat: change the method from post to get
+- Merge branch 'main' into refactor-units
+- feat: add units convertion as select
+- feat: add new secondary units
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- feat: update forms to improve batch handling and unit selection, including enhanced input handling and dialog for creating primary units
+- feat: min_quantity can be 0
+- :feat  min_quantity validation,  must be >= 1
+- feat: to hide delete article button
+- feat: to edit articles with status checking, by warehouse employees
+- feat: changing unit to primary unit
+- feat: add manufacturer type to select manufacturer
+- feat: to show all manufacturer
+- fix: to stop submit propagation
+- feat: update CreateSecondaryUnitForm to swap quantity_unit and convertion_rate values, enhance column definitions for COMPONENTE, CONSUMIBLE, and HERRAMIENTA with action buttons
+- feat: enhance CreateSecondaryUnitDialog and CreateSecondaryUnitForm with improved descriptions, layout adjustments, and new fields for better user guidance
+- feat: restore alternative part number column in inventory articles and clean up menu list roles
+- Merge branch 'edit-articles'
+- feat: add ENGINEERING role to menu list for global settings access
+- feat: implement part number search functionality in inventory forms and update calibration date field
+- feat: add minimum quantity field to consumable forms for stock alerts
+- fix negative number in quantity field
+- fix menu list almacen
+- feat: add batch name functionality to article forms and enhance editing options
+- feat: confirm article by engineering with movement
+- fix: update article status mutation to accept optional status parameter and adjust confirm action
+- refactor: update article status mutation and adjust secondary units fetching to include company slug
+- Merge branch 'edit-articles' of https://github.com/transmandu/SIGEAC_Frontend into edit-articles
+- ingreso de inventario, confirmar
+- feat: add inventory menu
+- feat: inventory table
+- feat: enhance CreateManufacturerDialog and related forms with new props and functionality
+- Merge branch 'edit-articles' of https://github.com/transmandu/SIGEAC_Frontend into edit-articles
+- feat: add validation for aircraft selection in general requisition form
+- feat:  Invalidate query after returning an article
+- fix: return article
+- Merge branch 'edit-articles' of https://github.com/transmandu/SIGEAC_Frontend into edit-articles
+- fix: fix warnnings from run build
+- refactor: comment out zone column in inventory article table for future adjustments
+- fix: add JEFE_ALMACEN and ANALISTA_ALMACEN roles to menu item for improved access control
+- fix: remove JEFE_ALMACEN role from menu item for streamlined access control
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- feat: update roles for menu item to include ENGINEERING for enhanced access control
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- feat: add ENGINEERING role to menu items for engineering certifications and requisitions
+- feat:  dinamic company to get primay and secondary units
+- feat: update article editing titles for clarity
+- feat: hooks to edit articles
+- feat: forms to edit articles
+- feat:  menu to edit and delete articles
+- feat:  new general table with edit and delete actions
+- feat: Add icon library dependency
+- feat: general inventory
+- refactor: update alternative_part_number type to string array across multiple components for improved data handling
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- fix: order of the parameters to get Employees with box
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- refactor: replace useSearchBatchesByPartNumber with useSearchBatchesWithArticles for improved batch search functionality; update related data transformations and hooks for better performance
+- stlye: change placeholder to select planned by .
+- fix: To obtain the risk indicator, the selected company slug was missing
+- style: changes in the titles of the select
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- fix label duplicado
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- refactor: standardize part_type to lowercase across the application for consistency; update related mapping logic in forms and API interactions
+- Merge branch 'rename_general_inventory'
+- style : change tittle, Create curso to Nuevo
+- style: botton to create course with border dashed
+- feat: hide survey menu
+- Merge branch 'main' into sms
+- feat: implement flight grouping in history table with expandable rows; enhance data handling and UI for better user experience
+- feat: add flight control update functionality and refactor flight control form for edit mode; streamline action handling in flight control columns
+- feat: Invalidate query after creating a dispatch
+- fix:  reprot-dispatch-orders wit location id after company
+- feat: enhance non-routine task creation and update logic by including order number in mutation parameters; improve part classification logging in aircraft planning
+- feat: select employee dni, not first_name
+- Merge branch 'rename_general_inventory' of https://github.com/transmandu/SIGEAC_Frontend into rename_general_inventory
+- fix:  task number validation must be  at least 5 characteres
+- fix: select dni as value  for technician_responsible
+- feat: implement period selection for average flight statistics and enhance data fetching logic in flight history pages
+- feat: add monthly flight statistics component and enhance flight control features with new history link and improved data handling
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- feat:  SMS observations , invalid querys, fix search employees
+- refactor: update API endpoint for fetching warehouse articles by category to improve data retrieval and consistency
+- refactor: replace useGetWarehouseConsumableArticles with useGetWarehouseArticlesByCategory across components and update related types for improved article management
+- refactor: enhance article management by introducing alternative part number and restructuring column definitions for better clarity and maintainability
+- refactor: update aircraft terminology to replace "acronym" with "matrícula" and standardize references to "fuentes de poder" as "plantas de poder" across the application
+- refactor: rename "Fuentes de Poder" to "Plantas de Poder" across various components for consistency in terminology
+- refactor: replace useGetWarehouseConsumableArticles hook with useGetWarehouseArticlesByCategory across the application to standardize article fetching by category
+- refactor: remove global search functionality from data tables and streamline article filtering by part number in inventory pages
+- refactor: update warehouse article fetching to include category parameter and optimize batch handling with memoization
+- refactor: replace manufacturing date with year in aircraft details and add utility to extract year from date
+- feat: implement manufacturer update functionality and enhance aircraft part management with improved data structures
+- fix: standardize number formatting for time and cycle values in aircraft forms to ensure consistent precision
+- feat: expand manufacturer types in forms and improve number formatting for flight hours and parts
+- refactor: update aircraft info form to display manufacturing year instead of date and simplify number formatting for flight hours and cycles
+- feat: add number formatting utility to display flight hours and cycles with two decimal precision in aircraft planning tab
+- fix: enforce integer values for flight cycles and update input handling for decimal precision in aircraft forms
+- fix: update aircraft details and info forms to support decimal values for flight hours and cycles, and adjust company link in work order details
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- fix: update client mutation to use PATCH method and adjust links in aircraft planning components
+- fix UI companyinfocard User
+- roles en planificacion
+- fix: enhance button disabled state logic to account for client creation pending status
+- feat: implement client creation and update functionality in aircraft management forms and dialogs
+- Merge branch 'main' into sms
+- feat: add list to menu
+- fix: update job titles fetching endpoint to include company-specific path
+- fix: update roles for planning menu items to reflect correct permissions
+- feat: survey form and menu
+- refactor: remove POWER_PLANT category from aircraft parts and update related forms for consistency
+- fix: update job titles fetching endpoint to remove company-specific path
+- fix: update job title creation endpoint to remove company-specific path
+- delete gestion de partes
+- run build fix
+- feat: add brand field to aircraft parts and update related forms and dialogs for improved part management
+- refactor: update validation for aircraft parts form fields to make time and cycle tracking optional, and adjust default expansion state for categories
+- feat: implement aircraft parts categorization and enhance UI for part management in maintenance dialog
+- feat: add new fields for aircraft parts and client creation, including serial, time tracking, and authorizing type
+- push para henry/planificacion
+- feat: enhance work order forms with client and authorizing fields, update date formatting, and improve calendar functionality
+- feat: add status column with badge display for work orders
+- comment
+- comment part2
+- comment
+- fix: add width and height attributes to image elements in requisition pages for better rendering
+- refactor: replace Select component with Popover and Command for batch selection in forms
+- fix flight control form
+- Merge branch 'main' into globalsearchwitharticles
+- Merge branch 'main' into globalsearchwitharticles
+- chore: remove outdated inventory implementation and related documentation
+- wo fix
+- refactor: update search functionality and UI in inventory and quantities management pages
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- fix acronym maintenance select
+- feat: button to add everyone to the course
+- Merge branch 'main' into sms
+- feat: disable button when u press submit to create attendace course
+- fix: warning frpm run build
+- feat: to show topics from activity
+- style:  w-full
+- feat: add items for root, consequenses , topics and defenses
+- feat: bottons to add consequences, defense and why
+- feat: add tittle to sms activity, styles , and option to add ppl to courses and activities
+- Merge branch 'main' into sms
+- add role in menu list
+- style: new icon for quantity management
+- fix: wannings from run build
+- Merge branch 'main' into feature/warehouse-inventory-management
+- refactor: enhance article quantity and zone management in GestionCantidadesPage
+- feat: to show menu course for sms employee
+- feat: to show course icon for sms
+- feat: add job title to select employee, activity form
+- Merge branch 'main' into develop
+- run build problem solve
+- refactor: update EditArticlePage to use new article fetching and registration form
+- fix: sms activities type
+- Merge branch 'sms'
+- feat: fix warnings from run build
+- feat: add article editing functionality and enhance UI for article management
+- refactor: update ArticleDropdownActions and RegisterArticleForm for improved functionality
+- feat: to show statistics from activities
+- refactor: transform article data structure in DispatchArticlesDialog for better compatibility
+- feat:  barChart for statistics
+- refactor: enhance article management UI and logic in GestionCantidadesPage
+- Merge branch 'main' into sms
+- feat:  add list to course show
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- feat: deliveries only to maintenance employees
+- feat: status style from activity view
+- feat: course and activity calendar
+- fix: to show the roles
+- feat: show and update, consumable articles
+- refactor: clean up console logs and standardize user data handling in forms
+- style: calendar color
+- refactor: update DispatchArticlesDialog and forms to improve data handling and UI
+- Merge branch 'main' into feature/warehouse-inventory-management
+- fix: update default quantity handling in inventory columns and add debug logging
+- refactor: simplify article quantity update logic and enhance query invalidation
+- ?
+- Merge branch 'feature/warehouse-inventory-management' into sms
+- Merge branch 'feature/warehouse-inventory-management' into sms
+- fix: update article quantity management logic and API interaction
+- fix: standardize batch category filtering to lowercase
+- Merge branch 'main' into feature/warehouse-inventory-management
+- refactor: remove GestionCantidadesPage and ArticleRow components
+- feat: enhance article quantity management with filtering and batch support
+- feat: hide dashboard from guest
+- menu gestion de cantidades
+- diseño
+- refactor: restructure warehouse inventory management pages
+- feat: invalid query for courses
+- feat: implement warehouse inventory management system
+- fix: flex grow for row
+- stlye:  responsive report form
+- feat: remove preview pdf
+- feat: to show date in the measure list
+- fix: SMS employees access
+- feat : menu to open a closed report
+- feat:  select date without limits
+- feat:  invalidate querys
+- add danger location
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- Merge branch 'develop'
+- fix dialog component dispatch
+- angel trick
+- feat: add guest content layout for RVP
+- feat: add general report and qr menu
+- addbalance form misspelled
+- fix: fix warning hour doesnt exist
+- Merge branch 'smsCalendar'
+- fix: changing redirection
+- feat: create report for guest
+- feat: add qr code and public report form
+- feat: hide inventory and requisition for sms
+- refactor: new matrix for analysis
+- refactor:  analysis form with interaction
+- push de types
+- feat: add course from calendar
+- prueba de nuevo
+- prueba de cuentas en github
+- push de merge
+- feat: add drag and drop
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- prueba
+- Merge branch 'refactor' of https://github.com/transmandu/SIGEAC_Frontend into refactor
+- cambios
+- feat: add calendar to activity
+- cambios en reporte
+- antes de merge a main
+- Merge branch 'develop' of https://github.com/transmandu/SIGEAC_Frontend into develop
+- preparado el merge a main
+- fuentes
+- push para salidas
+- merge de planification 2
+- eventos y planificacion listos
+- Merge branch 'develop' of https://github.com/transmandu/SIGEAC_Frontend into develop
+- Renamed "Requisiciones" to "Solicitudes de Compra" in various components for consistency and clarity.
+- feat: add event
+- formato
+- calendario de tasks iniciado
+- Merge branch 'develop' of https://github.com/transmandu/SIGEAC_Frontend into develop
+- no se
+- type fixes
+- encabezado de reporte de requisiciones
+- Merge branch 'develop' of https://github.com/transmandu/SIGEAC_Frontend into develop
+- agregado reporte
+- Mover los reportes pdfs a carpetas separadas por modulo
+- Primeras pruebas con calendario, calendario para WO creada
+- Merge branch 'develop' of https://github.com/transmandu/SIGEAC_Frontend into develop
+- boton de reporte
+- Merge branch 'develop' of https://github.com/transmandu/SIGEAC_Frontend into develop
+- feat: add dialog to course barchart
+- Reestructurar Dialogos por grupos
+- diseño
+- complacer a la lider de backend
+- calendario configurado - empezar actions
+- añadido solución a un problema
+- feat : add bar component by course
+- cambios en el formulario de requisicion
+- Merge branch 'develop' of https://github.com/transmandu/SIGEAC_Frontend into develop
+- fix: synchronize data on initialData change and improve search term handling in InventarioPage
+- Merge branch 'develop' of https://github.com/transmandu/SIGEAC_Frontend into develop
+- fix: add location to course
+- fix: simplify username generation logic in CreateEmployeeForm
+- fix: add loader before show button link
+- fix: add slug
+- Merge branch 'develop' of https://github.com/transmandu/SIGEAC_Frontend into develop
+- fix: update forms and hooks to consistently use selectedCompany slug for data handling
+- Merge branch 'develop' of https://github.com/transmandu/SIGEAC_Frontend into develop
+- push de merge
+- fix: update hooks and forms to use selected company slug for data fetching
+- push de pruebas
+- feat: course statistics
+- fix: optional last parameter
+- Merge branch 'refactor' of https://github.com/transmandu/SIGEAC_Frontend into refactor
+- cambios de refactor
+- fix: add slug to company
+- feat: add slug to selectedCompany
+- feat: add location
+- feat: add company slug
+- refactor: update components to utilize company slug for routing and data fetching
+- Merge branch 'refactor' of https://github.com/transmandu/SIGEAC_Frontend into refactor
+- push
+- refactor: include company slug in dispatched articles query
+- test
+- pre push de angel
+- Merge branch 'refactor' of https://github.com/transmandu/SIGEAC_Frontend into refactor
+- refactor: maintenance hooks and actions
+- refactor: changing split by slug
+- refactor : job titles actions with company
+- feat: deparment by id hook
+- refactor: information source and pilot actions with company
+- refactor:  add company to , sistema , general & sms hooks
+- calendar test
+- hangar74 hardcoded
+- loading de batches en requisicion
+- fabricantes en ajustes globales
+- re-name de requisiciones a solicitudes de compra 4
+- re-name de requisiciones a solicitudes de compra 3
+- re-name de requisiciones a solicitudes de compra 2
+- re-name de requisiciones a solicitudes de compra
+- arreglando sms
+- commit de merge de alvaro a refactor
+- merge con develop (sms)
+- push pre-merge
+- fix: removing from and to like props
+- feat: action to close a course
+- refactor: changing hooks with company
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- correciones solicitadas para formularios y resportes
+- refactor: changing hooks for sms activities
+- refactor: close report, changing hook with company
+- push de angel2
+- push de angel
+- refactor: changing hooks with company
+- push para subir lo de benja
+- subir
+- cambios formulario benito ortiz
+- cambios
+- cambios en el formulario de componente
+- fix: warnnings and errors from npm un build
+- refactor: changing ROS and RVP hooks for statistics
+- rehaciendo menulist
+- refactor: changing accept report hooks
+- fix: dynamic redirection by company
+- refactor: changing follow up control hooks
+- refactor: changing mitigation measure hooks
+- reafactor: changing analysis hooks
+- refactor: changing danger identification hooks
+- ARREGLAR EL MADLTRIO REDIRECT
+- Merge branch 'main' into develop
+- refactor:  changing voluntary report hooks
+- push de alvaro
+- push de alvaro
+- companies terminado
+- fix: delete ROS from show
+- Merge branch 'develop' of https://github.com/transmandu/SIGEAC_Frontend into develop
+- feat: adaptando capacitacion de empleado
+- Merge branch 'develop'
+- max de 4 char en formulario de obligatory report
+- formulario de company
+- push de sms
+- eliminar superefine
+- Merge branch 'develop'
+- modulos en menulist, company en menulist y action para crear company
+- Merge branch 'develop' of https://github.com/transmandu/SIGEAC_Frontend into develop
+- feat: agregar asistencia y depurar
+- feat: add onSuccess callback to CreateEmployeeForm for better dialog handling
+- Merge branch 'main' into refactor
+- create modules crud
+- nuevo authcontext, mejoria al iniciar sesion, eliminado errore de redireccion
+- refactor con nuevo user context
+- merge con develop para calendarios 3
+- fix: handle null calendar error
+- Merge branch 'main' into develop
+- refactor:  select date from form with year
+- fix: read dni null from pilot/copilot
+- valores en string para evitar valores decimales raros 2
+- valores en string para evitar valores decimales raros
+- opcionales en creacion de cliente
+- Merge branch 'develop'
+- decimales en movement details
+- fix de vuelos y sms
+- Merge branch 'develop' of https://github.com/transmandu/SIGEAC_Frontend into develop
+- feat: adaptando nuevo piloto
+- merge con main
+- fix: errors and wannings from npm run build
+- NUMBER Y TOFIXED 4
+- NUMBER Y TOFIXED 3
+- NUMBER Y TOFIXED 2
+- NUMBER Y TOFIXED
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- tofixed en dialog de resumen
+- fix: Field dni_type, reorganize name of fields and create employee without user
+- company en querykey
+- feat: add employee management menu and submenus for admin roles
+- remove unused CreatePermissionDialog import and delete related files
+- refactor: cambiando atributos de piloto
+- organizado carpeta de forms y dropdowns
+- menu list para bancos en administracion
+- feat: asistencia de cursos crud
+- Merge branch 'develop' of https://github.com/transmandu/SIGEAC_Frontend into develop
+- feat: CRUD para cursos
+- empleados y usuarios
+- ordenes de compra y finalizar empleados(falta)
+- feat: actulizar actividad
+- feact: adaptar inscripcion de empleados a actividades SMS
+- push hecho por obarriga - mutate comentados, no me importa
+- push hecho por obarriga - modificacion en page de employees
+- push hecho por obarriga - modificacion en jobTitle
+- Merge branch 'develop' of https://github.com/transmandu/SIGEAC_Frontend into develop
+- push hecho por obarriga - modificaciones hechas por aanton
+- Merge branch 'develop' of https://github.com/transmandu/SIGEAC_Frontend into develop
+- push hecho por obarriga - modificacion en el submit de CreateEmployeeForm
+- push hecho por osmary - cambios ya realizados por aanton
+- Update menu roles and restructure submenu paths for improved access control
+- Merge branch 'main' into report_almacen
+- Merge branch 'main' into report_almacen
+- Merge branch 'develop' into report_almacen
+- refactor: adaptando nuevo end point empleados por departamento
+- Merge branch 'employees' into develop
+- fix para push de employees
+- push de finalizar empleados
+- Merge branch 'employees' of https://github.com/transmandu/SIGEAC_Frontend into employees
+- creando empleados
+- feat: refactor user creation and update actions, streamline form schema and mutation handling
+- Merge branch 'employees' of https://github.com/transmandu/SIGEAC_Frontend into employees
+- tabla de dep
+- feat: implement department management functionality, refactor related forms and actions
+- feat: add job title and department management functionality, refactor employee creation forms
+- fix de menulist completo
+- fix en menulist
+- fix en menulist
+- renombrando rol RRHH to RRHH_ADMINISTRACION
+- style: mejorando show de piloto
+- fix: ajustando acceso a cuentas y bancos
+- Merge branch 'develop' into employees
+- Merge branch 'develop' into report_almacen
+- Refactor CreateEmployeeDialog and CreateEmployeeForm to streamline employee creation process
+- Refactor department and job title dialogs to use dedicated form components
+- Merge branch 'develop' of https://github.com/transmandu/SIGEAC_Frontend into develop
+- fix: Rederizar tabla de mitigacion al eliminar RVP y correcion de nombres
+- fix: corrigiendo nombre de valor para selector de area RVP/PDF
+- Dialog para Cargo y Departamento
+- rrhh en select de mitigacion
+- correcion nombre para seleccionar responsable de mitigacion
+- Merge branch 'develop' of https://github.com/transmandu/SIGEAC_Frontend into develop
+- push de admin para el guide code
+- validacion existencia de aircraft
+- validacion de existencia de pilotos
+- validacion de existencia de identificacion
+- sms ayuda
+- codia de guia 5
+- codia de guia 4
+- codia de guia 3
+- codia de guia 2
+- codia de guia
+- seguimos con sms
+- Merge branch 'invalid-time-hotfix'
+- intento de arreglar time invalid
+- Merge branch 'invalid-time-hotfix'
+- validacion de dato y captura de error
+- push de admin
+- departamento y cargos
+- escalas arregladas y ui mejorado
+- escalas arregladas y ui mejorado
+- push hecho por osmary-modificacion en movimiento de caja para aeronave
+- fix: alt warning from react-pdf
+- Merge branch 'develop'
+- comentario
+- controlar la eliminacion de reportes/identificacion
+- Merge branch 'develop' into employees
+- refrescar la pag, y mejorando organizacion de datos
+- corrigiendo errores al mostrar datos desde el show
+- ocultando actividades y cursos del menu para sms
+- adaptando nuevo endpoint aircraft acreacion de ros
+- nueva ruta
+- validacion en el calendario
+- Funcion para crear actividad
+- rediseño del reporte de salidas en almacen
+- fixed :  error de validacion de fecha ea para crear una medida
+- fixed, el pdf ahora detecta el departamento responsable del plan
+- nueva ruta de ver peligros identificados
+- push hecho por osmary-administracion aeronave por acronym
+- agregando rol a sub menu sms
+- Merge branch 'develop' of https://github.com/transmandu/SIGEAC_Frontend into develop
+- adaptando roles para submenus
+- adaptando control de acceso roles adm
+- agregado filtro en fecha inicial y fecha final
+- Merge branch 'develop' into employees
+- Merge branch 'develop' into report_almacen
+- Merge branch 'main' into develop
+- init report
+- push hecho por osmary
+- en caso de que execution sea null no mostrar
+- Merge branch 'sms-dev' into develop
+- first commit
+- arreglando hover de plan de mitigacion
+- actualizando ruta
+- modificar el icono de agegar control segun el modo oscuro o claro
+- actualizando rutas
+- push hecho por osmary
+- idk
+- oculta el dropdown menu de acciones, si el reporte tiene status cerrado
+- agregado quitar opcion de eliminar si estan cerrados los reportes en los planes de mitigacion
+- fixed muestra graficos con datos de voluntary en obligatory
+- actualizacion de importacion
+- corrigiendo mensaje de no hay datos
+- para mostrar reporte con identificacion si el status esta cerrado
+- sub menu para crear piloto agregado
+- push hecho por osmary
+- source renamed
+- la medida de crear un control de seguimiendo aparecera de primero
+- mejorando presentacion de no hay datos
+- haciendo fecha de ejecucion de una medida nullable
+- opcion de crear medida de primero
+- validacion fecha de ejecucion debe ser mayor a fecha estimada
+- actualizacion de ruta, y desabilitacion de descarga de documento para reportes con status en proceso
+- correcion de titulo de layout
+- nuevo orden de carpetas
+- dni en creacion de cashmovement
+- hotfix - cambio en cashmovement: pasar dni en vez de ID del empleado responsable.
+- rutas protegidas y publicas en reportes voluntarios/obligatorios en sms
+- menu list para admin y sms
+- ruta publica sms
+- Merge branch 'develop'
+- push de sms a develop
+- 	Merge branch 'sms-dev' into develop
+- verificacion de no null en nro de parte alterno en pagina de slug
+- menu de sms en main
+- version 2.0.2
+- employees by company
+- cambio de tipo de req en restock automatico a aviacion
+- menu de sms y refactorizacion de data para crear identificaicon
+- develop listo
+- primer merge
+- tabla para actividad
+- tipado para actividad agregado
+- adaptando actividad sms
+- Merge branch 'develop' of https://github.com/transmandu/SIGEAC_Frontend into develop
+- fixes en los modulos de almacen, compras y planificacion
+- decimales de consumibles a 2 en tabla de articulo (slug)
+- manufacturer a manufacturers
+- push de administracion limpio
+- organizacion de hooks
+- acividad
+- Quitando
+- merge con develop
+- Merge branch 'develop' of https://github.com/transmandu/SIGEAC_Frontend into administration
+- inicio de merge para admin
+- depurando
+- Formulario para crear actividad y tabla de actividades
+- menu para planificacion de cursos y actividades sms
+- Tipado para actividades
+- push de busqueda general y multiple a_p_n
+- numero de parte alternos multiples y busqueda general
+- cambiar el details de los reportes de aeronaves
+- modificacion de la querykey de vendors
+- status de req y columns
+- push desde it
+- as
+- push desde it
+- fix de batch filter para ingresar articulo
+- Merge branch 'administration' of https://github.com/transmandu/SIGEAC_Frontend into administration
+- eliminar console.log()
+- revision de caja de herramientas
+- Merge branch 'administration' of https://github.com/transmandu/SIGEAC_Frontend into administration
+- testint
+- correccion de fetch innecesarios
+- estadisticas de ordenes de compra
+- change hook vendors global for administration vendors on createcashmovement
+- create hook of useGetStatisticsPurchaseOrders
+- crear un link directo a estadisticas en el data table de ordenes de compra y eliminar el createPurchaseOrdersDialog
+- modificaciones en el data table y en el page de ordenes de compra
+- Commit de osmary para compras aerolinea
+- crear un purchaseorderdialog
+- menu from dev
+- Automatizando y adaptando aicraft a ROS
+- Si, actualizado
+- idk
+- Merge branch 'administration' into sms-dev
+- Centrando texto
+- ajustando texto de cargandp para select piloto
+- arreglando fuente de indicadores de riesgo
+- image de next para resolver warning por uso de img
+- fix en orden de compras (actualizar estado)
+- Comit hecho por Ron
+- Nuevo orden de  carpeta  y adaptando aceptar ROS
+- mostrar no aplica en casp de no tener numero de reporte.
+- adaptando menu y formulario para aceptacion de un RVP
+- Agregando apartado para otros usuarios no sms
+- solucion de errores a la hora de crear, editar y eliminar una cuenta
+- nuevo tipado y seccionando menu
+- agregando status en proceso
+- para proteger sub modulo
+- rneombrando variable
+- debugg
+- adaptando rol aun falta
+- adaptando para mostrar documentos desde la tabla
+- para proteger sub modulos
+- agregando validaciones
+- debugg
+- para mostrar archivos a traves de un boton
+- Archivos para controles deseguimiento
+- modificaciones en cashmovementforaircraft y en aircraftexpenses
+- actualizar el delete de aircraft
+- actualizaciones en los resumenes, edits y endpoints de aircraft y clients
+- cambios de id por dni. y id por acronym
+- editar los campos del type departament. y Validar que el dni del cliente solo acepte numeros
+- cambios en el endpoint de clients
+- cambiar de number a string variables float
+- adaptando imagen y documento
+- Formulario sin dialog
+- Metodo post para sustituir patch y put
+- arreglos
+- modificar content los ContentLayout de arrendamientos y de aeronaves
+- preparar merge
+- añadir un router.back() en las estadisticas de los vuelos por clientes
+- reporte de deudas de vuelos por cliente
+- router.back() para registrar mov. y para resumen de egresos, se agrego el detalle de cuenta en tabla de resumen de ingresos
+- añadir refenrencia en tablas de cashmovements y agregar clientes en el form de cashmovements
+- LISTO BENEFICIARIO Y CLIENTE EN MOVIMIENTO DE CAJA
+- empezar compras de tmd
+- push desde la pc de jos, terminar de arreglar el select de tipo
+- estadisticas en tabs
+- agregando doc al ros
+- Mejora de endpoints, fix del error al querer seleccionar cuentas y categorias multiples. Fix en el resumen de los movimientos. Tabs para las estadisticas de clientes (falta hacer los componentes).
+- agregando img  y docs
+- push de angel 1
+- commit andes de swithc
+- Procesar movimientos considerando múltiples detalles en el resumen financiero de cajas, Convertir a array si es un objeto único y definir mejor la estructura que me devuelve el back
+- arreglando nombre
+- modificacion en el endpoint del actions de aeronaves
+- resolucion de errores
+- cambio de amount por total_amount, responsible_id por employee_responsible_id, y expenses por cash_movement_details
+- añadir el scroll-area en el form de gastos de aeronave, y ajustes en cashmovement y agregar cashmovementdetails
+- añadir input monetario en monto de la deuda del credito
+- detail por details en form de gastos
+- modificacion en el endpoint de actions aircraft
+- cambios en select dde aircraftexpensive
+- crear gastos de aeronave por movimientos
+- Aircraft cambiado por expertos
+- Eliminar el eje Y derecho (yAxisId=right).Configurar ambas barras para que usen el mismo eje Y izquierdo. Asegurar de que el dominio del eje Y izquierdo cubra adecuadamente ambos conjuntos de datos. en el resumen de reporte de vuelor por cliente
+- Agregar Inputs monetarios en los formularios
+- intento de parsear las fechas en el input para filtrarlas en DataTableHeaderAct
+- agregar category.name y details en page de movementsByAccount
+- añadir un dialog para aeronave en vuelo
+- cambios en form route y en sus actions
+- refactorizacion de layovers en createrouteform
+- agregar un details en el form de aircraftexpensive, y añadir un array en el type de route
+- Añadir una validacion para que no se cierre el dialogo a la hora de hacer un pago en articulos y Actualizar el hook de accountant en el form editar categoria
+- añadir un 30% mas en el width de las graficas en los resumenes de credito
+- Mejorar vistaprevia de imagen y documentos
+- filtrado para aeronaves en form de vuelos, mostrar solo las que estan en posesion
+- crear hook para resumen de credito, crear un page de un resumen de credito de cuentas por pagar
+- agregar la query en el actions de pagos de creditos y agrregar un vendor en el form de creditpayment
+- agregando documento
+- agregando documento
+- para mostrar imagen y documento en el show
+- crear creditos de cuentas por pagar
+- añadir un controlador de warnings aria-describedby={undefined}  para los dropdownactions
+- validacion para deadline en renting form
+- subir cambios para usar import de github
+- usegetcategory en form cashmovement
+- select de categoria en form de cashmovement y cambiar sub_category por details
+- modificacion del endpoint de category
+- Crud de categoria
+- intentando mostrar la foto i cant T.T
+- imagen
+- imagen
+- agregando imagen
+- tipado de sms
+- eliminar la variable sub_category de cashmovement
+- cambios en los titulos de los creditos arrendamientos y de vuelos, cambios en las estadisticas. Eliminar detalles y cambiar sub category details por detalles
+- renombrar las carpetas y rutas de renta por arrendamiento
+- merge sms - main
+- Merge branch 'main' into sms-dev
+- cambios en el area
+- Modificacion para descargar en pdf con o sin gestion
+- agregando titulo al boton.
+- agregando gestion individual de un ROS
+- Mejorando presentacion de graficos estadisticos
+- Mejorando presentacion de graficos
+- Adaptando el dialog para actualizar
+- Para mostrar un reporte en pdf sin descargarlo.
+- Error de al actualizar un ROS
+- Agregado el context para roles.
+- implementacion de un buscador en los formularios para los campos de cliente, cuenta, proveedor y cuenta de banco
+- añadir una columna para especificar la fecha de apertura en la tabla de los creditos de vuelo y de renta
+- Eliminar el filtrado por mes de la tabla en reporte monetario por avion
+- Refactorizacion en la tabla de reporte monetario por aeronave
+- depurando
+- nuevo atributo para el aspec dinamico
+- Corrigiendo error del 0%, mejorando select, y vista de graficos
+- colores para los graficos estadisticos
+- implementacion de botones para el filtrado y pestañas separadas en el reporte de ingresos VS egresos por aeronave
+- crear la funcion de formatdate en lib utils
+- mejoras en el formateo de fechas para todos los reportes
+- resolver el error con el monthly data vacio
+- crear reporte monetario para ingresos y egresos de aeronaves
+- modificar el hook de useGetAircraftStatistics
+- correcion en el type de editar un vendor en el form
+- update endpoint de useCashMovementForAircraft
+- cambiar el actions de movimientos para aeronaves, y pasar los parametros correspondientes en el onSumbit
+- crear un endpoint actions para el movimiento de caja de un avion
+- cambiar el control de la renta por el control de un arrendamiento, ajustes en eliminar la cuenta de aircraft expensive
+- formulario para cargar los gastos de una aeronave
+- aun no esta solucionado la edicion
+- modificacion de las areas
+- crear dialogo de resumen para proveedor e implementarlo en las tablas de creditos y en movimientos de caja
+- esto es un desastre
+- Cambiando titulo
+- agregando busqueda por filtro.
+- modificando el orden de los inputs de formulario para piloto
+- Resolviendo error al intentar editar. Demasiados renders
+- modificando elmenu de acciones vertical y con descripcion
+- modificando el menu de acciones para mostrarlos verticalmente y con descripcion
+- dando estilo y arreglando mensajes de toast
+- accountant_id add
+- mejoras en el diseño visual para el dialogo de resumen de una cuenta de banco
+- cambiar el account por accountant
+- validacion para cuando la caja es de tipo efectivo retorna null y se oculta la cuenta de banco y cuando la caja sea de tipo transferencia mostrar el select de cuenta de banco
+- pasar cuentas a la ruta de gestion de cajas
+- aregar un tipo de transaccion en caja
+- reorganizar el menulist por orden alfabetico y quitar las palabras gestionar
+- actualizar el dropdownactions de movimientos
+- fix account_name por accountant_name en el resumen de movimientos de caja por cuentas
+- agregar el accountant en la tabla de movimientos
+- cambiar account por accountant
+- crud de cuentas, y cambiar los archivos de cajas que tenian nombres de cuenta
+- Crear page reporte de vuelos por cliente, hook de vuelos por cliente y añadir el icono del trendingup para acceder a la ruta
+- cambiar la palabra renta por arrendamiento
+- añadir fecha en control de vuelos y el numero de vuelos en el form de vuelos como input
+- cambio de posicion del filtrado de fechas
+- centrando texto
+- solucion de errores en el reporte de egresos y eliminar el filtrado de fechas de las columnas ya que se puede filtrar con la funcion de filtrado por fechas
+- imeplementando select multiple en la vizualisacion de graficos
+- Actulizar el estado de un reporte e invalidando querys
+- Modificacion del menu para mostrar la descripcion de la accion y desplegarlo en forma de columna
+- agregado el dato de rvp y ros, al mitigation table
+- crear un nuevo filtrado de fechas para que en su reinicio traiga todas las fechas y no solo 31 dias por default
+- eliminar del dialogo y el page de movimientos por cuenta en el cash movement
+- cuando el check box esta marcado mostrar los mensajes de las validaciones para las escalas en rutas
+- cambiar el nombre de cuentas por cajas
+- agregar un params en base al id seleccionado en el resumen de Caja
+- imagen general en requisicion
+- mejorar la validacion en las escalas de rutas,. e intentar mejorar el resumen de mov de cuentas por cajas
+- bug en email
+- resumen financiero de cuentas por cajas
+- resolviendo warning de npm run dev y slect para los graficos en voluntario
+- resolviendo warning de npm run build
+- agregando Validacion
+- Select de graficos agregado , funciona, por ahora xd
+- Merge branch 'main'
+- input de numero de parte alterno
+- elimnar boton de aprobar useless
+- error de typo
+- eliminar el total de ganancias y num de movimientos al final de las tablas resumenes
+- mejorar los dialogos de resumenes
+- query keys invalidadas con exact false
+- modificar el resumen de vuelos por avion en base a la data que se recibe del endpoint, ademas de hacer cambios en el configMonths para retornar un getmonthbynumber
+- se cambio el hook a uno general
+- se creo una nueva pagina para gestion de riesgo, se agregaron indicadores de riesgo y piramide
+- Llamado de una nueva pagina de gestion de riesgo
+- imagen para la piramide como indicador de riesgo
+- fix de daily
+- definir la estructura de datos que devuelve el endpoint en useGetFlhigtsByAircraft
+- Merge branch 'main' of https://github.com/whyperro/s-front
+- cambiar los meses del año a español
+- WO, y no rutinarias
+- 
+- update estadisticas de creditos y registros de pago
+- rediseñar los dialogos de los resumenes de vuelos, cajas y articulos
+- fix deuda a pagar
+- cambiar color
+- agregar el valor por defecto a pagar en pagos de creditos
+- Modificar el Input de kg para validar números y modificar el Input de kg para validar números en el form de vuelos
+- refactorizacion y actualizacion del totalAnnualIncome y totalAnnualOutput en los resumenes de ingresos y egresos., instalar pretti er
+- mejoras visuales en los dialogos de los resumenes de los dropdown de cashmovement y aircraft,. e invalidar la query de cash movement
+- mejoras visuales en los dialogos de los resumenes de los dropdown de article y de vendor
+- mejoras visuales en los dropdown de cashmovement y de cliente, en los dialogos de resumenes,. y en las columns de renta ocultar ciertas columnas
+- invalidar todas las queries ralacionadas con pagos de creditos
+- filtrado y selector por cliente en la grafica de ingresos
+- creacion de reporte de egresos en movimientos por cuenta, agregar la ruta en el cashmovementdialog y su respectivo hook useGetOutputStatistics
+- Merge branch 'main' into administration
+- agregando filtros para pilot
+- invalidando querys
+- validacion para que solo se vea el tipo en renta y cuando sea seleccionado articulo o aeronave aparezca solo el seleccionado
+- fix query key de credits
+- fix form flight y client, cambiar dias para pagar por dias de credito
+- LA REDICCION DESDE REPORTE E IDENTIFICACION NO FUNCIONAAAAAAAAAAAAAAAAAAA whyyyyyyyy
+- Agregando y removiendo filtros de busqueda necesario
+- resolviendo problema de sobrecarga de dependencias
+- Validacion de datos
+- para retornar los id de los registros creado para los reporte e identificacion
+- Para rediccion al show cuando se crea un reporte
+- depurando
+- actualizar el query key de pago de vuelo en renta de vuelo y eliminar los pagos de vuelos desde control de vuelos
+- invalidar la query de pago de credito de renta
+- validacion para que solo me muestre las aeronaves y los articulos en posesion
+- se agregó pay_method y bank_account en el form de renta
+- Añadido el Jefe de Almacen
+- formatear la fecha de fabricacion del aeronave
+- ocultar columnas en vuelos, credito de renta y credito de vuelo
+- despliegue de tabla de movimientos detallados segun la cuenta seleccionada del grafico, ocultar tipo de ingreso o egreso en cash movement y hacer un badge con color en el monto segun sea el tipo
+- ocultar la gestion de empresas y aplicar un coerce para los dias para pagar en el form de un cliente
+- añadir select para el calendar en mes y año en los dates de los forms
+- depurando
+- agregando validaciones
+- modificacion para ver los colores segundo el modo de la pagina
+- para agregar un borde inferior en caso de tener 5 medidas de mitigacion.
+- Mostrar colores segun el modo de vista oscuuro/claro
+- Revertir Hook por error
+- Agregar en la tabla, formulario, resumen y edición de un cliente a un numero de dias para pagar, con sus respectivas validaciones
+- Cambios en los Hook para evitar el flasheo de cache
+- mejoras visuales en los reportes estadisticos de creditos
+- Merge branch 'dailyactivities' of https://github.com/whyperro/s-front into dailyactivities
+- Cambios en las activity
+- mejorar diseño visual del reporte de vuelos por avion e implementar recharts
+- Mejorando validaciones
+- cambios en el diseño visual del reporte de ingresos
+- page de resumen estadistico de los creditos de las rentas y de los vuelos
+- hooks, dialogs y pages para creditos de renta y creditos de vuelo
+- Resolviendo warnings y errors de run build
+- ignore warning
+- cambiar las tablas dinamicas a normales en renta y eliminar credito
+- cambios en scale por layovers de rutas
+- validar que no se permitan caracteres especiales en las escalas
+- imvalidate query
+- creando y adaptando el dialog para una creacion/edicion de analisis desde el show
+- Merge branch 'main' of https://github.com/whyperro/s-front
+- wo listas, show y subpartes
+- la edicion funciona por ahora.
+- rename berkform por createRouteForm y hacer validaciones
+- invalidando query
+- switch case para status asignar un backgroundColor en articulos y renta, y ocultar en el menulist ventas y credito de ventas
+- arreglando error al modificar una identificacion
+- dialogo para eliminar y mostrar vista prefia del pdf
+- validaciones al mosotrar las acciones
+- para editar y eliminar identificaciones desde el show
+- validando que information source exista
+- Invalidando querys
+- delete value number en form flight
+- parsefloat para kg en createflightform
+- añadir un router.back para el boton de volver y estilizar un poco la tabla de mov por cuenta
+- adaptado la creacion dde un reporte o su edicion como dialog
+- solicionado error al editar un reporte anonimo
+- agregando titulo al boton mediante el prop
+- Agregando botones para la gestion del reporte de forma individual
+- invalidando querys
+- Dialog para eliminar un rvp
+- select de efectivo que retorna null dentro del bank_account del form de movimientos
+- antes de alocarnos con los botones
+- ajustes en el hook de income statistics y en el reporte de ganancia de los ingresos de los movimientos
+- actulizando atos
+- updates
+- arreglando el estilo
+- tipado de danger identification para nuevos datos
+- agregando nuevos datos al show
+- depurando
+- adaptando la opcion para imprimir un ROS con su gestion en PDF
+- mejorando el estilo de los reportes y agregando nuevos campos
+- adaptando nuevos datos para identificacion de peligro
+- validar si el balance de un cliente es menor a 0, aparece un mensaje Con Deuda
+- modificando para adaptar dos nuevas variables
+- modificar el cell de reference_pic de ventas para renderizar diferentes elementos segun sea el tipo de contenido
+- Modificando los reportes (Dios mio hasta cuando help me)
+- update menu-list
+- re organizar el side bar
+- antes de moverle a consecuencia a evaluar
+- reporte de gestion antes de hacer actos de dudosa confiabilidad
+- intentando integrar danger identification en pdf
+- modificando reportes
+- agregado objeto de identificacion de incidente al voluntary report creo que tampoco va
+- foto para encabezado de sms
+- update endpoint credit payment
+- mejorar pdf para la gestion
+- mejorando el pdf para la gestion de un reporte
+- buscando el error del footer
+- reporte de gestion
+- Nuevo reporte obligatorio de suceso en PDF
+- updates
+- reporte
+- Organizando nuevo reporte
+- nuevo reporte en pdf para RVP
+- clean number, funcion para limpiar y convertir valores a numeros
+- Recreando el RVP en pdf con mejor codigo
+- update
+- finalizar actividad
+- delete actions renta
+- Merge branch 'main' into dailyactivities
+- edicion completa del formulario
+- update acrticles
+- gestion de Reportes PDF (reaactive/proactive)
+- terminando ROS, iniciando el pdf de la gestion de riesgo
+- no se
+- agregando icono para la vista previa del PDF
+- formatenado la hora
+- pdf para reporte obligatorio
+- funcion para formatear la hora
+- avance
+- credit
+- crud ventas
+- relacion de aspecto agregado
+- Modificando PDF de RVP y actualizando ruta
+- Creacion de formato para generar PDF de reportes ROS
+- se agregaron mensajes de acuerdo al resultado de el indice de riesgo
+- formateo de fecha
+- agregando formateo de fecha
+- modificacion para poder permitir o no decimales
+- Dandolo estilo al reporte
+- funcion para formartear en español y agregar un dia mas
+- modificacion para recibir la fecha mas antigua y nueva.
+- add articles
+- aumento de 1h en la seleccion manual de la hora
+- eliminar actividades
+- Separandos pages para indicadores de RVP  y ROS
+- adaptando inicador de reisgo para ROS
+- eliminar actividad
+- update
+- creacion del componente para elegir dos rangos de fecha , prueba del mismo.
+- responsible resume dialog usando employee de master
+- banck account name y nulo
+- data filter para pre seleccionar uan fecha se hacer push al url
+- actu de responsible-employee
+- actulizando nombre de las columnas
+- organizando e implementando los graficos estadisticos
+- removiendo los console.log
+- busqueda reportes por la fuente de identificacion
+- estas cosas estaban invertidas, no se si iba asi.
+- para la busqueda total de reportes segun parametros.
+- organizando el sub menu de estadisticas
+- form reset implemented
+- tablas dinamicas en cash movement
+- dialog dentro de show de actividades
+- PUSH fix de DA
+- Merge branch 'main' of https://github.com/whyperro/s-front
+- tareas en work order
+- Merge branch 'dailyactivities'
+- delete unused import
+- Adaptando nuevos hooks, secion de nueva de graficos de ROS y General
+- extraer datos segun el tipo de reporte, modificacion
+- Traer estadisticas generales de todos los reportes entre un rango de fecha
+- filtro integrado
+- status para ROS
+- añadiendo tipo de reporte para saber a que tipo de reprote se le asignara la identificacion
+- accion para crear una identificacion a un ROS
+- Adaptando la creacion de identificacion para un ROS
+- Orgnizando tablas
+- modificacion para busqueda por el tipo de reporte.
+- para traer el numero de reportes por cada tipo de fuente y su nombre
+- agregando nuevo parametro para uso del end point
+- estableciendo relacion de identificacion con ROS
+- organizado el menu para las estadisticas e indicadores de riesgo
+- se modifico la organizacion de las carpetas para estadisticas
+- Reportes
+- Creando los reportes
+- intentando hacer el repporte xddd
+- intentando implementar la lista la hacer click
+- para mostrar el dialog con la lista de rpeortes
+- Modificando colores
+- Organizando los graficos
+- dando estilo a los graficos
+- validation register modal
+- orden alfabetico type/index
+- administration company crud
+- control de los menus
+- estandarizando datos para los charts
+- Vista para la impresion pdf de RVP, busqueda del numero reportes por indice de riesgo post mitigacion y busqueda de numero de reportes por localizacion en el aereopuerto
+- Organizando el conteindo de los charts
+- para ocultar la edicion de RVP, en caso de que el status sea CERRADO
+- menu para editar agregado
+- preparando para edicion de formularios
+- removiendo columnas de prueba
+- tipado para actualizar danger identification
+- actulizando datos de danger identification
+- actulizando variables
+- se agrego locazacion del aeropuerto
+- actulizando url para el show
+- se movio de carpeta el show de identification
+- eliminado locacion
+- eliminado locacion de identificacion
+- add vendor
+- test de error en ID page de actividad
+- fix de endpoints
+- aa
+- Merge branch 'main' of https://github.com/whyperro/s-front
+- test de bug
+- intentanto arreglar error de edicion de RVP
+- mejorando presentacion
+- solucionado error en la edicion de RSO
+- depurando el show de RVP
+- agregado opcion para editar, el end point funcione, el front no xd
+- tipado para actulizar un RSO
+- numero de piloto y copiloto agregado al tipado de RSO
+- prueba reporte general ganancias de aviones
+- refresh de dialog de observaciones
+- Redesign of pdf activity report
+- Merge branch 'main' into dailyactivities
+- act daily activities report
+- depurando
+- actulizando rutas nuevas.
+- estilo para diferenciar el tipo de fuente agregado
+- removiendo columnas de la tabla RSO
+- menu de acciones para RSO creado
+- nuevas rutas para piloto y fuentes de informacion
+- acciones y hooks para RSO
+- no necesiro areeas, show de RVP removido,  y hooks de pilotos y fuentes de informacion movidos a otras carpetas.
+- show de RVP y RSO
+- update
+- actualizando rutas
+- actulizando rutas de piloto  y tipos de fuente
+- cerrar dialog luego de aceptar eliminacion
+- reorganizar el menu-list
+- actulizando las rutas de sms para las acciones
+-  actulizando las rutas de sms de los hooks
+- debo actulizar todas las rutas relacionadas al sms con el prefijo 'sms'
+- date filter and scale for routes
+- test 3
+- test 2
+- test
+- pdf dentro del show
+- Merge branch 'main' of https://github.com/whyperro/s-front
+- push de desarrollo
+- modificacion del esquema para que sea enviado con al menos un dato de incidente
+- modificacion de los datos para que sea opcionales los incidentes, necesito al menos uno.
+- tabla para las areas
+- organizando el control y medida de mitigacion
+- cambio para actulizar la pagina automaticamente
+- modificacion  para crea contrlo de seguimiento
+- para actualizar una medida de mitigacion
+- modificacion de los datos para actualizar
+- agregado menu ppara areas y tipado
+- Merge branch 'main' into dailyactivities
+- Merge branch 'main' into dailyactivities
+- set image in the pdf
+- rezise de pdf de daily activity
+- Arreglando menus y crud de la gestion de riesgo
+- ordenand datos y menu
+- dato general para grafico pie chart
+- modificacion para que reciba parametros de forma general
+- busqueda de reportes por indice de riesgo dado una fecha de inicio y final
+- reportes contadors por area dado un rango de fechas
+- dando estilo y creando la funcion para saber el indice riesgo de acuerdo al color
+- para mostrar el numero de reportes por indice de riesgo en porcentaje dado un rango de fecha
+- query para refrescar la ventana
+- Limitando el menu de acciones
+- filtrar fechas
+- push de daily
+- aumentar los comentarios a 100
+- comentarios de aircraft 100 caracteres max
+- update validations
+- fix UI menulist
+- fix de menu-list
+- push de menulist desarrollo
+- actulizacion de datos para crear RSO
+- Arreglado para mostar las horas correctamente
+- problema al modificar un reporte anonimo (aun no solucionado)
+- Arreglando el menu para estadisticas
+- dandole estilo al show de RVP
+- modificacion para que el fomulario sirve como creador y editor de pilotos
+- show para mostrar un piloto por dni
+- intentando arreglar la hora (aun no sirve hehe pero toy cerca)
+- dando estilo al form mediante dialog
+- agregando icono para actulizar piloto
+- Agregando menu para actualizar
+- depurando
+- para refrescar la pagina luego de crear un RSO
+- para actulizar un RVP
+- prueba para el menu de estadisticass
+- para buscar un piloto por el dni
+- actualizacion de datos para piloto
+- Agregada funcion para actulizar piloto
+- implementnado graficos la menu de estadistica
+- imagen en el reporte de actividades
+- validations
+- filtro de actividades y fix de UI
+- filtro de actividades
+- fix de dialog
+- Merge branch 'main' of https://github.com/whyperro/s-front
+- bug fixed in register activity
+- fix de error de tipado
+- accion para la busqueda del numero de portes por tipo e implementacion
+- tipara para recibir el conteo de reportes segun su tipo
+- para actualizar luego de crear una identificacion
+- changes
+- componente para grafico circular y de barra
+- modificados para busqueda por rango de fechas
+- acualizando datos
+- Merge branch 'main' of https://github.com/whyperro/s-front
+- push de actividades
+- commit
+- Merge branch 'main' of https://github.com/whyperro/s-front
+- Ingreso de hora manual corregido
+- push de actividades diarias
+- Merge branch 'dailyactivities'
+- fix build's issue
+- Incluir roles de usuario en el dropdown action
+- upload trash
+- actualizar vista al crear un nuevo registro
+- page de prueba
+- depurando
+- para crear el url dado un rango de fecha
+- update
+- para traer los reportes por un rango de fecha dado
+- instalacion de query string
+- Para formatear la fecha
+- impresion de los datos en el pdf
+- Merge branch 'dailyactivities' of https://github.com/whyperro/s-front into dailyactivities
+- push de actividades
+- delete
+- push
+- echo pùsh de osmary
+- refresh form and show activities by all
+- update
+- Para que por defecto un reporte tenga el status de " abierto " o proceso
+- accion para buscar la cantidad de portes y identificados y gestionados y la cantidad por area, dado el año
+- se removio fecha de incidente para agregar status (era mas importante y asi no sobrecargo la tabla)
+- Se creo componente graficos de barra para los reportes identificados vs gestionados
+- Componente para mostrar porcentajes graficos
+- se agrego status atributo
+- se agrego status la tipado de rvp, y se creo para recibir numero de reportes por area y total de reportes identificados y gestionados
+- update
+- push de dailyactivities
+- actualizacio
+- vuelos actualizacio
+- instalando recharts
+- Formulario Funcionando
+- agragando opcion para ver el show de rvp
+- agregando opcion para ver el show
+- actulizacion de los nombres de la variable del zod
+- show para rvp
+- Agregada la matriz de riesgo al formulario
+- Dando estilo
+- accion para obtener una identificacion dado el id
+- show de identificacion de peligro
+- Quitando columnnas para no sobrecargar la tabla
+- Muestra la matriz de riesgo SMS
+- modificacion de datos en reporte voluntario
+- Action daily
+- create del dialog de confirmacion y eliminacion del envio del id del usuario
+- mock y semi form
+- Merge branch 'dailyactivities' of https://github.com/whyperro/s-front into dailyactivities
+- push de angel
+- crear y verificar registro
+- modificacion del nombre de indice de variable
+- cambio para mostrar la fecha en formato PPP
+- Modificacion de los datos del formulario
+- funcion para calcular el indice de riesgo y mostrar el color segun el indice
+- para actualizar luego de eliminar un reporte
+- test
+- correccion de errores
+- Merge branch 'dailyactivities' of https://github.com/whyperro/s-front into dailyactivities
+- fixing, pero falta terminar
+- no se que hice aqui
+- agregado para mostrar el id en la tabla ( pruebas )
+- boton en la tabla para crear un control de seguimiento
+- Formulario y dialog, para editar y crear un control de seguimiento
+- menu desplegable para las acciociones del los controles
+- para actualizar luego de hacer una accion con los controles de seguimiento
+- obtener la ruta de la pestaña actual
+- numero de la medida al que pertenece el control agregado
+- crud para los controles de seguimiento
+- cambio Employee por User y agregado de Observations
+- Refactorizacion de Codigo
+- push para probar notfi
+- validation date
+- push de notificaciones
+- Merge branch 'main' into dailyactivities
+- place the logo on the superior left corner in the pdf
+- redesign pdf
+- se modifico la columna para mostrar medidas
+- tabla para medidas creada
+- tabla para planes de mitigacion
+- era de prueba, bye
+- hooks para obtener las controles de seguimiento y medidas de mitigacion
+- Se agrego control de seguimiento como objeto para medidas de mitigacion
+- test push
+- cambio de rutas de administracion
+- push de angel en pc de joselyn
+- cambio en rutas de administracion
+- redesign of daily report
+- salidas y ui en dispatchs
+- prueba
+- agregando filtros
+- Correción de formulario
+- ACUERDATE DE REVERTIR LOS CAMBIOS DEL FORMULARIO DE ALMACEN POR AMOR A DIOS 2
+- ACUERDATE DE REVERTIR LOS CAMBIOS DEL FORMULARIO DE ALMACEN POR AMOR A DIOS
+- tabla para medida de mitigacion
+- agregar query, para reenderizdado al agregar una nueva identificacion
+- agregado sub menu para las medidas demitigacion
+- activity pdf format done
+- test de clg 3
+- test de clg 2
+- test de clg
+- acitivy report archive
+- clg en prod QUITAR LUEGO
+- agragado condicional para la creacion de analisis
+- eliminacion de boton sobre la columna
+- modificacion de los datos de creacion de medida de mitigacion
+- accion para crear medidas de mitigacion
+- agregando mas acciones para el menu
+- se removio el select y se agrego la columna para mostrar analisis
+- componente para mostrar la lista de medidas de mitigacion
+- cambiar objeto por id de plan de mitigacion
+- push para almacen 2
+- push para almacen
+- Merge branch 'dailyactivities' of https://github.com/whyperro/s-front into dailyactivities
+- register activity form
+- rename pages
+- quitar ojo de show en batch
+- push de almacen
+- mostrar unidades
+- Merge branch 'main' into dailyactivities
+- fix de tipado
+- ocultar bancos y cuentas
+- register daily activity
+- fornulario para crear medida de mitigacion
+- se agego funcion para cerrar el dialog al hacer click
+- se agrego input para numero de reporte
+- creado el menu de acciones para tabla de mitigacion
+- Formulario para crear plan de mitigacion
+- se agrego filtro de busqueda y elimino end point antiguo
+- se añadio las acciones a la tabla de plan de mitigacion
+- creada la accion para eliminar y crear un plan
+- ppush para almacen
+- Merge branch 'main' into dailyactivities
+- details about daily activities
+- datos que sean enviados a la tabla.
+- actualizando opcion para borrar identificacion de peligro
+- agregar possibles consecuencias del reporte, al formulario de identificacion
+- agragando datos a la tabla
+- unicmaente mostrar la opcion de crear identificacion si no tiene una el reporte
+- hook para datos de la tabla
+- tipado para datos de la tabla mitigacion
+- add submenus managment and register
+- Activity Reports dropdown
+- change type to hours
+- show table with mock
+- ultimo quiza push de almacen
+- antigua tabla eliminada.
+- transformando id a string para corregir error
+- sub menu para planes de mitigacion
+- crenado tabla para plan de mitigacion y analisis
+- agregando y actualizando tipado para analisis, medidas y plan
+- Merge branch 'main' of https://github.com/whyperro/s-front
+- push para finalizar almacen
+- routing to Transmandu Desarrollo Module
+- añadiendo menu
+- modificacion para saber a quien asignar el analisis
+- accion para crear peligros
+- Creado el drop menu para acciones de identificacion de peligro
+- modificacion de uso de endpoint
+- se añadio busqueda por id, para mostrar esa informacion en el formulario de identificacion
+- cambio de nombres de variables
+- accion para crear un analisis
+- funcion para buscar reporte por id
+- detalle en creacion de renglon
+- Actulizando datos del formulario analisis
+- Creado el dialog para analisis
+- testing de formulario analisis
+- Funcion para separar consecuencias, y añadirlas al select
+- agregado menu para crear identificacion
+- Actualizado datos de la data, si redundandte
+- acualizaciones de datos
+- agredado al menu opcion para crear identificacion a patir de un reporte
+- requisiciones automaticas finalizadas y filtro de req por persona autenticada
+- Tabla para mostrar identificacion de peligro creada
+- creada la accion para traer los identificacines peligro
+- Agreado sub menu de sms, para peligros identificados
+- Creado hook para fuente de informacion
+- menu prueba
+- añadiendo accion
+- modificacion de datos
+- no need it
+- dialog creado para identifiacion de peligro
+- menu prueba
+- creado la identificacion de peligro
+- mostrar datos de piloto
+- moificacion de datos
+- accion para eliminar y crear identificacion de peligro creada
+- serial o numero de parte en dispatch de consumible 2
+- serial o numero de parte en dispatch de consumible
+- push a recepcion 2
+- push a recepcion
+- regreso el id
+- falso manejable en formulario
+- Se agrego el select para los pilotos en el formulario
+- push a recepcion despues de ingresar
+- acomodado formulario de unidad secundaria
+- error en fecha de calendario
+- Se agrego funcion para mostrar RSO en la tabla
+- se actualizaron datos de piloto y aereonaves en rso para prueba
+- accion para  obtener reportes obligatorios creado
+- se actualizaron nombres de variables en columnas
+- nada importate, espero..
+- Modificaciones de nombres de variables y se estilo el formulario
+- refactorizar slugs, cuentas, bancos y tarjetas
+-  se agrego seleccion de incidentes por selects
+-  se cambio a la ruta correcta  que necesito
+- Se agrego la opcion de editar al menu, + funcionamiento
+- Formulario para editar fuentes creado
+- Se creo la accion para actualizar
+-  nada
+-  menu desplegable para fuente de informacion
+-  acciones para pilotos
+- se creo el menu desplegable para tabla piloto
+- añadida columna de acciones 2
+-  se añadio el menu de las acciones
+-  se añadio drop menu para las acciones 2
+-  se añadio la accion para eliminar fuente de informacion
+-  se añadio la accion para eliminar un piloto
+- se añadio campo id para piloto y fuentes
+- antes de salir
+- cuentas y bancos
+- pruebas? idk
+-  problema para el emvio de otros incidentes solucionado
+- push de bancos
+-  para obtener todos los piloto
+- creado el dialogo para crear piloto
+-  accion para crear un piloto
+-  hice que funcionara
+-  creada la tabla para mostrar pilotos
+- fix confirm articles
+-  ya me perdi
+-  arreglada la key
+-  arreglar problema en la key
+-  hice que mostrara los datos en la tabla
+-  se modifico el nombre del campo nombre
+- prod
+- formulario para fuente de informacion creado
+-  accion para traer tipos de fuente
+-  dialog de prueba eliminado
+-  dialogo para formulario de fuente de informacion 2
+-  agregado el tipado de fuentes de informacion
+-  tabla para mostrar fuentes de informacion creadas
+- creacion de hook para obtner fuentes de informacion
+- solucion a, no se enviaban los datos del form
+- Agregado para cerrar el dialogo
+-  modificado atributos de RSO
+- post merge
+- previo al merge - main
+- nada
+-  cambio de nombre para que sea Create como el resto
+- pruebas
+- formulario de analysis, medida de mitigacion y RSO
+- integrando rvp form
+- agregando formulario de medida de mitigacion y redireccion de reportes
+- batch dialog
+- no entendi 2
+- no entendi
+- vendors
+- filtro de req, falta filtro en forms
+- arreglado error de seleccionar el mismo batch multiples veces
+- integrando reportes al front
+- iniciales en usernva
+- push de compras
+- fix para filtro del menu
+- Filtrado de menu del sidebar
+- agregando opciones a tablas
+- error de key en hooks
+- loading page en po
+- hidratacion eror
+- ordenes de compra y pagos
+-  carpeta para el modulo de sms
+-  se agrego el formulario para reporte voluntario2
+- menu de prueba para formulario
+- agregado types para reportes voluntarios , obligatorios, y datos que necesito de piloto
+- añadido menu para reportes
+- eror en cotizacion
+- requisiciones listas y cotizacaciones
+- zrok y build
+- Merge branch 'dev'
+- cambio a zrok
+- devuelta a 8080
+- prueba de reverb
+- Merge branch 'main' into dev
+- funciona local
+- puerto a 8080
+- puerto a 445
+- push
+- requisiciones, crud
+- host reverb 5
+- host reverb 4
+- host reverb 3
+- host reverb 2
+- host reverb
+- fabricantes 5"
+- fabricantes 4
+- fabricantes 3
+- fabricantes 2
+- fabricantes
+- fix para el error de certificados
+- enviando values o initial data en certificados
+- poder crear usuarios sin permisos 2
+- poder crear usuarios sin permisos
+- push para prueba de almacen
+- errors de andre
+- usuarios 2.0
+- pinches usuarios
+- la fe es lo ultimo que se pierde
+- user form
+- no se que hice lol
+- usuario form
+- header de ngrok
+- company select de tlf mejorado
+- company select unico en welcome page
+- skip browser ngrok
+- devuelto with credentials
+- removido withCredentials
+- arreglado las carpetas
+- vercel commit
+- Mensaje de construccion y evitar fech en / y login
+- Mensaje de construccion
+- prueba DB9
+- fixed bd6
+- BD 6
+- Prueba DB 5
+- Prueba DB 4
+- Prueba de BD 3
+- Prueba de BD 2
+- Prueba de BD
+- 15th
+- 14th
+- 13th
+- 12th
+- 11th
+- 10th
+- 9th
+- 8th
+- seventh
+- sixth
+- fifth
+- fourth
+- third
+- second
+- first commit
+

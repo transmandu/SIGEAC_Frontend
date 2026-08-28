@@ -127,7 +127,10 @@ export const columns: ColumnDef<IncomingArticle>[] = [
         meta: { title: "Acciones" },
         cell: ({ row }) => (
             <div className="flex justify-center">
-                <WaitingToLocateArticleDropdownActions id={row.original.id} />
+                <WaitingToLocateArticleDropdownActions
+                    id={row.original.id}
+                    zone={row.original.zone}
+                />
             </div>
         )
     },

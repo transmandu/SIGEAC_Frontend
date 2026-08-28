@@ -52,7 +52,7 @@ const FormSchema = z.object({
 
   responsible: z
     .string()
-    .min(3, { message: "El responsable debe tener al menos 3 caracteres" })
+    .min(1, { message: "El responsable debe tener al menos 1 caracter" })
     .max(50, { message: "El responsable no puede exceder los 50 caracteres" }),
 
   start_date: z
