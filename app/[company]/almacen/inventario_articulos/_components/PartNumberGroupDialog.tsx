@@ -42,6 +42,21 @@ type Props = {
   rows: IArticleSimple[];
 };
 
+/**
+ * El resto de categorías va por batch: cada fila es una pieza única y su
+ * cantidad siempre es 1. Solo el consumible maneja cantidad y unidad reales.
+ */
+function isConsumable(r: IArticleSimple) {
+  return !!r.consumable;
+}
+
+function formatQuantity(r: IArticleSimple) {
+  const quantity = r.stock != null ? Number(r.stock) : Number(r.quantity ?? 0);
+  const unit = r.consumable?.unit?.value ?? r.unit?.value ?? "u";
+
+  return { quantity, unit };
+}
+
 function toSearchable(r: IArticleSimple) {
   const serialOrLot = r.serial || r.lot_number || "";
   const desc = r.batch_name || r.description || "";
@@ -56,8 +71,14 @@ function toSearchable(r: IArticleSimple) {
         ? r.consumable.expiration_date.toISOString()
         : "");
 
+  // La cantidad entra al blob solo cuando se muestra, para que buscar "5" no
+  // conserve filas por un 1 implícito que la tabla nunca pintó.
+  const { quantity, unit } = formatQuantity(r);
+  const shownQuantity = isConsumable(r) ? `${quantity} ${unit}` : "";
+
   return {
-    blob: `${serialOrLot} ${desc} ${status} ${zone} ${shelf}`.toLowerCase(),
+    blob:
+      `${serialOrLot} ${desc} ${status} ${zone} ${shelf} ${shownQuantity}`.toLowerCase(),
   };
 }
 
@@ -137,14 +158,19 @@ export function PartNumberGroupDialog({
     [router, company],
   );
 
+  // El grupo puede mezclar categorías (la pestaña "Todos" agrupa solo por PN),
+  // así que basta un consumible para que la columna valga la pena.
+  const showQuantity = React.useMemo(() => rows.some(isConsumable), [rows]);
+
   /**
-   * 7 columnas (incluye acciones):
-   * Serial | Descripción | Condición | Estado | Ubicación | Vencimiento | Acciones
+   * Serial | Descripción | Condición | Estado | [Cantidad] | Ubicación |
+   * Vencimiento | Acciones
    *
    * Bajé el ancho de descripción para que no absorba todo.
    */
-  const gridCols =
-    "[grid-template-columns:150px_260px_120px_140px_160px_160px_64px]";
+  const gridCols = showQuantity
+    ? "[grid-template-columns:150px_260px_120px_140px_120px_160px_160px_64px]"
+    : "[grid-template-columns:150px_260px_120px_140px_160px_160px_64px]";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -221,7 +247,12 @@ export function PartNumberGroupDialog({
                  */
                 <div className="h-full max-h-[55vh] overflow-x-auto overflow-y-auto pr-2">
                   {/* Fuerza overflow horizontal real */}
-                  <div className="min-w-[980px] rounded-md border overflow-hidden">
+                  <div
+                    className={cn(
+                      "rounded-md border overflow-hidden",
+                      showQuantity ? "min-w-[1100px]" : "min-w-[980px]",
+                    )}
+                  >
                     {/* Header tabla */}
                     <div
                       className={cn(
@@ -234,6 +265,9 @@ export function PartNumberGroupDialog({
                       <div className="px-3 py-2">Descripción</div>
                       <div className="px-3 py-2 text-center">Condición</div>
                       <div className="px-3 py-2 text-center">Estado</div>
+                      {showQuantity && (
+                        <div className="px-3 py-2 text-center">Cantidad</div>
+                      )}
                       <div className="px-3 py-2 text-center">Ubicación</div>
                       <div className="px-3 py-2 text-center">Vencimiento</div>
                       <div className="px-3 py-2 text-center">Acciones.</div>
@@ -298,6 +332,35 @@ export function PartNumberGroupDialog({
                                 getStatusBadge(r.status?.toUpperCase())
                               )}
                             </div>
+
+                            {showQuantity && (
+                              <div className="px-3 py-2 flex justify-center">
+                                {isConsumable(r) ? (
+                                  (() => {
+                                    const { quantity, unit } = formatQuantity(r);
+
+                                    return (
+                                      <Badge
+                                        variant={
+                                          quantity > 5
+                                            ? "default"
+                                            : quantity > 0
+                                              ? "secondary"
+                                              : "destructive"
+                                        }
+                                        className="text-xs font-bold px-3 py-1"
+                                      >
+                                        {quantity} {unit}
+                                      </Badge>
+                                    );
+                                  })()
+                                ) : (
+                                  <span className="text-muted-foreground text-sm">
+                                    N/A
+                                  </span>
+                                )}
+                              </div>
+                            )}
 
                             <div className="px-3 py-2 text-center text-sm font-medium">
                               {r.zone || (
