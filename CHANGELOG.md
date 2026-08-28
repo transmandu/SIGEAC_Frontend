@@ -1,3 +1,8 @@
+## v3.4.0 — 2026-08-28
+
+- Merge pull request #226 from transmandu/feat/group-dialog-consumable-quantity
+- feat: enhance PartNumberGroupDialog to display consumable quantities
+
 ## v3.3.0 — 2026-08-28
 
 - feat: add uniform pdf report (#225)
