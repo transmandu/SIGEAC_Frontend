@@ -1,3 +1,7 @@
+## v3.3.0 — 2026-08-28
+
+- feat: add uniform pdf report (#225)
+
 ## v3.2.5 — 2026-08-27
 
 - Merge pull request #224 from transmandu/fix/incoming-waiting-to-locate-flow
