@@ -20,6 +20,7 @@ export function buildAdministrationGroup({
                     "SUPERUSER",
                     "JEFE_ADMINISTRACION",
                     "ANALISTA_ADMINISTRACION",
+                    "RRHH_ADMINISTRACION"
                 ],
                 submenus: [
                     {
@@ -49,6 +50,7 @@ export function buildAdministrationGroup({
                     "SUPERUSER",
                     "JEFE_ADMINISTRACION",
                     "ANALISTA_ADMINISTRACION",
+                    "RRHH_ADMINISTRACION"
                 ],
                 requiresOmac: true,
                 submenus: [],

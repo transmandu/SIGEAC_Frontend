@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   Form,
   FormControl,
@@ -19,14 +20,28 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import {
   useGetUniformItems,
   useGetUniformOptions,
 } from "@/hooks/sms/useGetUniforms";
+import { useGetEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetEmployees";
+import type { Employee } from "@/types";
 import { useCreateUniformMovement } from "@/actions/sms/uniforms/actions";
 import { MOVEMENT_TYPE_META } from "@/components/sms/uniform-meta";
 import { Badge } from "@/components/ui/badge";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertTriangle, Loader2, PackagePlus } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -46,17 +61,32 @@ const formSchema = z
     movement_type: z.string().min(1, { message: "Seleccione un tipo." }),
     quantity: z.coerce.number().int().min(1, { message: "Mínimo 1." }),
     date: z.string().min(1, { message: "Seleccione una fecha." }),
+    is_employee: z.boolean().optional(),
+    employee_id: z.string().optional(),
     recipient_name: z.string().optional(),
+    recipient_dni: z.string().optional(),
     direction: z.enum(["increase", "decrease"]).optional(),
     notes: z.string().optional(),
   })
   .superRefine((data, ctx) => {
-    if (data.movement_type === ISSUANCE && !data.recipient_name?.trim()) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["recipient_name"],
-        message: "El receptor es obligatorio para una entrega.",
-      });
+    if (data.movement_type === ISSUANCE) {
+      if (data.is_employee) {
+        if (!data.employee_id?.trim()) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["employee_id"],
+            message: "Seleccione un empleado.",
+          });
+        }
+      } else {
+        if (!data.recipient_name?.trim()) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["recipient_name"],
+            message: "El nombre del receptor es obligatorio.",
+          });
+        }
+      }
     }
     if (data.movement_type === ADJUSTMENT) {
       if (!data.direction) {
@@ -90,7 +120,10 @@ export const RegisterUniformMovementForm = ({ onClose, itemId }: Props) => {
   const { data: options, isLoading: loadingOptions } = useGetUniformOptions(
     selectedCompany?.slug
   );
+  const { data: employees } = useGetEmployeesByCompany(selectedCompany?.slug);
   const createMovement = useCreateUniformMovement();
+
+  const [employeePopoverOpen, setEmployeePopoverOpen] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -99,7 +132,10 @@ export const RegisterUniformMovementForm = ({ onClose, itemId }: Props) => {
       movement_type: "",
       quantity: 1,
       date: new Date().toISOString().slice(0, 10),
+      is_employee: true,
+      employee_id: "",
       recipient_name: "",
+      recipient_dni: "",
       direction: undefined,
       notes: "",
     },
@@ -107,7 +143,17 @@ export const RegisterUniformMovementForm = ({ onClose, itemId }: Props) => {
 
   const movementType = form.watch("movement_type");
   const selectedItemId = form.watch("uniform_item_id");
+  const isEmployee = form.watch("is_employee");
+  const selectedEmployeeId = form.watch("employee_id");
   const selectedItem = items?.find((i) => String(i.id) === selectedItemId);
+  const selectedEmployee = employees?.find(
+    (e) => String(e.id) === selectedEmployeeId
+  );
+
+  const employeeFullName = (e: Employee) =>
+    [e.first_name, e.middle_name, e.last_name, e.second_last_name]
+      .filter(Boolean)
+      .join(" ");
 
   const onSubmit = (data: z.infer<typeof formSchema>) => {
     createMovement.mutate(
@@ -118,8 +164,18 @@ export const RegisterUniformMovementForm = ({ onClose, itemId }: Props) => {
           movement_type: data.movement_type,
           quantity: data.quantity,
           date: data.date,
+          employee_id:
+            data.movement_type === ISSUANCE && data.is_employee && data.employee_id
+              ? Number(data.employee_id)
+              : undefined,
           recipient_name:
-            data.movement_type === ISSUANCE ? data.recipient_name : undefined,
+            data.movement_type === ISSUANCE && !data.is_employee
+              ? data.recipient_name
+              : undefined,
+          recipient_dni:
+            data.movement_type === ISSUANCE && !data.is_employee
+              ? data.recipient_dni
+              : undefined,
           direction:
             data.movement_type === ADJUSTMENT ? data.direction : undefined,
           notes: data.notes || undefined,
@@ -257,19 +313,159 @@ export const RegisterUniformMovementForm = ({ onClose, itemId }: Props) => {
         />
 
         {movementType === ISSUANCE && (
-          <FormField
-            control={form.control}
-            name="recipient_name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Receptor</FormLabel>
-                <FormControl>
-                  <Input placeholder="Nombre de quien recibe" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
+          <>
+            <FormField
+              control={form.control}
+              name="is_employee"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center gap-3 rounded-md border p-3">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={(checked) => {
+                        field.onChange(checked);
+                        form.setValue("employee_id", "");
+                        form.setValue("recipient_name", "");
+                        form.setValue("recipient_dni", "");
+                      }}
+                    />
+                  </FormControl>
+                  <div className="space-y-0.5">
+                    <FormLabel className="text-sm">
+                      Es empleado de la empresa
+                    </FormLabel>
+                    <FormDescription className="text-xs">
+                      Desmarque si el receptor no es un empleado directo
+                    </FormDescription>
+                  </div>
+                </FormItem>
+              )}
+            />
+
+            {isEmployee ? (
+              <FormField
+                control={form.control}
+                name="employee_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Empleado</FormLabel>
+                    <Popover
+                      open={employeePopoverOpen}
+                      onOpenChange={setEmployeePopoverOpen}
+                    >
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={employeePopoverOpen}
+                            className={cn(
+                              "w-full justify-between bg-background/70 font-normal",
+                              !selectedEmployee && "text-muted-foreground"
+                            )}
+                          >
+                            <span className="min-w-0 truncate">
+                              {selectedEmployee
+                                ? employeeFullName(selectedEmployee)
+                                : "Buscar empleado..."}
+                            </span>
+                            <ChevronsUpDown className="ml-1 size-3.5 shrink-0 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent
+                        className="w-[max(var(--radix-popover-trigger-width),280px)] p-0"
+                        align="start"
+                      >
+                        <Command
+                          filter={(itemValue, search) =>
+                            itemValue
+                              .toLowerCase()
+                              .includes(search.toLowerCase())
+                              ? 1
+                              : 0
+                          }
+                        >
+                          <CommandInput
+                            placeholder="Buscar por nombre o DNI..."
+                            className="h-9"
+                          />
+                          <CommandList>
+                            <CommandEmpty>Sin resultados</CommandEmpty>
+                            <CommandGroup>
+                              {employees
+                                ?.filter((e) => e.isActive)
+                                .map((emp) => (
+                                  <CommandItem
+                                    key={emp.id}
+                                    value={`${emp.first_name} ${emp.middle_name ?? ""} ${emp.last_name} ${emp.second_last_name ?? ""} ${emp.dni}`}
+                                    onSelect={() => {
+                                      field.onChange(String(emp.id));
+                                      setEmployeePopoverOpen(false);
+                                    }}
+                                  >
+                                    <Check
+                                      className={cn(
+                                        "mr-2 size-4 shrink-0",
+                                        String(emp.id) === field.value
+                                          ? "opacity-100"
+                                          : "opacity-0"
+                                      )}
+                                    />
+                                    <div className="flex flex-col">
+                                      <span className="text-sm">
+                                        {employeeFullName(emp)}
+                                      </span>
+                                      <span className="text-xs text-muted-foreground">
+                                        DNI: {emp.dni}
+                                      </span>
+                                    </div>
+                                  </CommandItem>
+                                ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            ) : (
+              <>
+                <FormField
+                  control={form.control}
+                  name="recipient_name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nombre del receptor</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Nombre completo" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="recipient_dni"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>DNI del receptor</FormLabel>
+                      <FormControl>
+                        <Input placeholder="DNI / Cédula" {...field} />
+                      </FormControl>
+                      <FormDescription className="text-xs">
+                        Opcional
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </>
             )}
-          />
+          </>
         )}
 
         {movementType === ADJUSTMENT && (

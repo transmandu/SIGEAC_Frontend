@@ -51,6 +51,8 @@ interface CreateMovementPayload {
     quantity: number;
     date: string;
     recipient_name?: string;
+    recipient_dni?: string;
+    employee_id?: number;
     direction?: "increase" | "decrease";
     notes?: string;
   };
@@ -299,10 +301,14 @@ export const useCreateUniformMovement = () => {
       toast.success("Movimiento registrado");
     },
     onError: (error: any) => {
-      toast.error(
-        error.response?.data?.message ||
-          "Error al registrar el movimiento"
-      );
+      const msg = error.response?.data?.message;
+      const text =
+        typeof msg === "string"
+          ? msg
+          : typeof msg === "object" && msg !== null
+            ? Object.values(msg).flat().join(". ")
+            : "Error al registrar el movimiento";
+      toast.error(text);
     },
   });
 };
