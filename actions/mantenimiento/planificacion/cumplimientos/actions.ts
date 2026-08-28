@@ -40,3 +40,64 @@ export const useCreateMaintenanceCompliance = () => {
     createMaintenanceCompliance: createMutation,
   }
 }
+
+export interface ImportComplianceHistorySkippedRow {
+  row: number;
+  reason: string;
+}
+
+export interface ImportComplianceHistoryResult {
+  imported: number;
+  skipped: ImportComplianceHistorySkippedRow[];
+}
+
+// Sincrónico (no se encola): el archivo es de un solo control y a lo sumo
+// unas pocas decenas de filas, así que se procesa en la misma petición y la
+// respuesta ya trae el resumen final (importados/omitidos), no un estado a consultar.
+export const useImportMaintenanceComplianceHistory = () => {
+  const queryClient = useQueryClient()
+
+  const importMutation = useMutation({
+    mutationFn: async ({
+      file,
+      controlId,
+      company,
+    }: {
+      file: File;
+      controlId: string | number;
+      company: string;
+    }): Promise<ImportComplianceHistoryResult> => {
+      const formData = new FormData()
+      formData.append("file", file)
+
+      const { data } = await axiosInstance.post(
+        `/${company}/maintenance-controls/${controlId}/import-compliance-history`,
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } },
+      )
+      return data
+    },
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ['maintenance-compliances'] })
+      if (result.imported > 0) {
+        toast.success("¡Histórico importado!", {
+          description: `${result.imported} cumplimiento(s) cargado(s)${result.skipped.length ? `, ${result.skipped.length} fila(s) omitida(s).` : "."}`,
+        })
+      } else {
+        toast.error("Nada para importar", {
+          description: "Ninguna fila coincidió con un certificado/servicio de este control.",
+        })
+      }
+    },
+    onError: (error) => {
+      toast.error('Oops!', {
+        description: 'No se pudo importar el archivo...'
+      })
+      console.log(error)
+    },
+  })
+
+  return {
+    importComplianceHistory: importMutation,
+  }
+}

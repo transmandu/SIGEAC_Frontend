@@ -92,8 +92,18 @@ export const SectionTitle = ({
     hint?: string;
     action?: React.ReactNode;
 }) => (
-    <div className="mb-5 flex items-start gap-3">
-        <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+    // Con hint el bloque de texto tiene dos líneas: el icono se ancla arriba
+    // (con un pequeño empuje) para que quede a la altura del título, no del
+    // bloque entero. Sin hint es una sola línea, así que centrarlos es lo que
+    // los deja alineados de verdad — "items-start" ahí dejaba el título
+    // flotando por encima del icono.
+    <div className={cn("mb-5 flex gap-3", hint ? "items-start" : "items-center")}>
+        <span
+            className={cn(
+                "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary",
+                hint && "mt-0.5",
+            )}
+        >
             {Icon ? (
                 <Icon className="h-4 w-4" />
             ) : (

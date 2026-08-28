@@ -3,7 +3,6 @@
 import { useMemo } from "react";
 import { differenceInCalendarDays, format, parseISO } from "date-fns";
 import { Bar, BarChart, Cell, ResponsiveContainer, Tooltip } from "recharts";
-import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { MaintenanceCompliance } from "@/types";
 import { CalendarRange, Plane, Timer, Wrench } from "lucide-react";
@@ -19,15 +18,21 @@ const CARD_HEIGHT = "h-48";
 
 function StatCard({ label, icon, children }: { label: string; icon: React.ReactNode; children: React.ReactNode }) {
   return (
-    <Card className={cn("flex-1 basis-56 overflow-hidden", CARD_HEIGHT)}>
-      <CardContent className="flex h-full flex-col gap-2 p-4">
-        <div className="flex items-center gap-1.5 text-muted-foreground">
-          {icon}
-          <span className="text-[11px] font-medium uppercase tracking-wide">{label}</span>
-        </div>
-        {children}
-      </CardContent>
-    </Card>
+    <div
+      className={cn(
+        "flex flex-1 basis-56 flex-col gap-2 overflow-hidden rounded-xl p-4",
+        "bg-gradient-to-br from-background/70 to-background/40 backdrop-blur-md",
+        "border border-slate-400/50 shadow-sm dark:border-slate-600/50",
+        "transition-shadow duration-200 hover:shadow-md hover:shadow-blue-500/10",
+        CARD_HEIGHT,
+      )}
+    >
+      <div className="flex items-center gap-1.5 text-muted-foreground">
+        {icon}
+        <span className="text-[11px] font-medium uppercase tracking-wide">{label}</span>
+      </div>
+      {children}
+    </div>
   );
 }
 

@@ -7,14 +7,18 @@ import CreateMaintenanceControlForm from "@/components/forms/mantenimiento/plani
 const CreateMaintenanceControlPage = () => {
   return (
     <ContentLayout title="Crear Control de Mantenimiento">
-      <PageHeader className="mb-6" />
+      <div className="flex flex-col gap-6">
+        <PageHeader />
 
-      <div className="space-y-2">
-        <div className="space-y-1 mb-4">
-          <h1 className="text-2xl font-bold text-center">Crear Control de Mantenimiento</h1>
-          <p className="text-sm text-muted-foreground text-center">
-            Registre los certificados, servicios y partes bajo control de una aeronave.
-          </p>
+        <div className="flex flex-col gap-2 border-b pb-4">
+          <div className="flex items-end justify-between">
+            <div className="flex flex-col">
+              <h1 className="text-3xl font-semibold tracking-tight">Crear Control de Mantenimiento</h1>
+              <p className="text-sm text-muted-foreground">
+                Registre los certificados, servicios y partes bajo control de una aeronave.
+              </p>
+            </div>
+          </div>
         </div>
 
         <CreateMaintenanceControlForm />

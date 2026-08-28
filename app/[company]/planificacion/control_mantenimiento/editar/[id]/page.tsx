@@ -17,14 +17,18 @@ const EditMaintenanceControlPage = () => {
 
   return (
     <ContentLayout title="Editar Control de Mantenimiento">
-      <PageHeader className="mb-6" currentLabel={data?.aircraft?.acronym} />
+      <div className="flex flex-col gap-6">
+        <PageHeader currentLabel={data?.aircraft?.acronym} />
 
-      <div className="space-y-2">
-        <div className="space-y-1 mb-4">
-          <h1 className="text-2xl font-bold text-center">Editar Control de Mantenimiento</h1>
-          <p className="text-sm text-muted-foreground text-center">
-            Modifique los datos, certificados, servicios y partes de este control.
-          </p>
+        <div className="flex flex-col gap-2 border-b pb-4">
+          <div className="flex items-end justify-between">
+            <div className="flex flex-col">
+              <h1 className="text-3xl font-semibold tracking-tight">Editar Control de Mantenimiento</h1>
+              <p className="text-sm text-muted-foreground">
+                Modifique los datos, certificados, servicios y partes de este control.
+              </p>
+            </div>
+          </div>
         </div>
 
         {isLoading && <LoadingPage />}

@@ -6,10 +6,9 @@ import Link from "next/link";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
 import LoadingPage from "@/components/misc/LoadingPage";
+import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Table,
@@ -21,13 +20,17 @@ import {
 } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { RegisterComplianceDialog } from "@/components/dialogs/mantenimiento/planificacion/RegisterComplianceDialog";
+import { ImportComplianceHistoryDialog } from "@/components/dialogs/mantenimiento/planificacion/ImportComplianceHistoryDialog";
+import { DownloadMaintenanceFormatButton } from "@/components/dialogs/mantenimiento/planificacion/DownloadMaintenanceFormatButton";
 import { useGetMaintenanceControl } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceControl";
 import { useGetAircraftDailyAverage } from "@/hooks/mantenimiento/planificacion/useGetAircraftDailyAverage";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { computeMaintenanceItem, fmtNumber, ItemStatus } from "@/lib/maintenanceControlCalc";
+import { partTypeLabel } from "@/lib/maintenancePartTypes";
+import { FormSection } from "@/components/forms/mantenimiento/planificacion/_theme";
 import { MaintenanceControlItem } from "@/types";
 import { cn } from "@/lib/utils";
-import { AlertTriangle, Clock, Info, SquarePen, Wrench } from "lucide-react";
+import { AlertTriangle, ClipboardList, ClipboardCheck, Clock, Info, SquarePen, Wrench } from "lucide-react";
 
 function InfoItem({ label, value }: { label: string; value?: string | number }) {
   return (
@@ -53,7 +56,7 @@ function InfoSection({
   children: ReactNode;
 }) {
   return (
-    <div className={cn(bordered && "border-t pt-3")}>
+    <div className={cn(bordered && "border-t border-slate-400/30 pt-3 dark:border-slate-600/30")}>
       <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground/70">{title}</p>
       <div className="grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-3 md:grid-cols-6">{children}</div>
     </div>
@@ -131,6 +134,7 @@ const COL = {
   remaining: "w-[150px]",
   estimate: "w-[120px]",
   provider: "w-[150px]",
+  workOrder: "w-[130px]",
   actions: "w-[44px]",
 };
 
@@ -257,22 +261,27 @@ function MaintenanceItemsTable({
   realAircraftAcronym?: string;
 }) {
   if (!items.length) {
-    return <p className="text-sm text-muted-foreground">{emptyLabel}</p>;
+    return <p className="text-sm italic text-muted-foreground">{emptyLabel}</p>;
   }
 
   return (
-    <div className="overflow-x-auto rounded-md border">
+    <div className="overflow-x-auto rounded-lg border border-slate-400/40 dark:border-slate-600/40">
       <Table className="table-fixed">
         <TableHeader>
-          <TableRow>
-            <TableHead>Nombre</TableHead>
-            <TableHead className={COL.frequency}>Frecuencia</TableHead>
-            <TableHead className={COL.applied}>Aplicada</TableHead>
-            <TableHead className={COL.next}>Próximo</TableHead>
-            <TableHead className={COL.remaining}>Remanente</TableHead>
-            <TableHead className={COL.estimate}>Estimación</TableHead>
-            {showProvider && <TableHead className={COL.provider}>Realizado Por</TableHead>}
-            <TableHead className={COL.actions} />
+          <TableRow className="hover:bg-transparent">
+            <TableHead className="bg-muted/40 font-semibold">Nombre</TableHead>
+            <TableHead className={cn(COL.frequency, "bg-muted/40 font-semibold")}>Frecuencia</TableHead>
+            <TableHead className={cn(COL.applied, "bg-muted/40 font-semibold")}>Aplicada</TableHead>
+            <TableHead className={cn(COL.next, "bg-muted/40 font-semibold")}>Próximo</TableHead>
+            <TableHead className={cn(COL.remaining, "bg-muted/40 font-semibold")}>Remanente</TableHead>
+            <TableHead className={cn(COL.estimate, "bg-muted/40 font-semibold")}>Estimación</TableHead>
+            {showProvider && (
+              <>
+                <TableHead className={cn(COL.provider, "bg-muted/40 font-semibold")}>Realizado Por</TableHead>
+                <TableHead className={cn(COL.workOrder, "bg-muted/40 font-semibold")}>N° OT</TableHead>
+              </>
+            )}
+            <TableHead className={cn(COL.actions, "bg-muted/40")} />
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -280,7 +289,7 @@ function MaintenanceItemsTable({
             const computed = computeMaintenanceItem(item, aircraft, dailyAverage, remainingPercentage);
             const meta = STATUS_META[computed.status];
             return (
-              <TableRow key={item.id} className={meta.row}>
+              <TableRow key={item.id} className={cn(meta.row, "transition-colors hover:bg-primary/[0.03]")}>
                 <TableCell className="font-medium">
                   <TruncatedText>{item.name}</TruncatedText>
                 </TableCell>
@@ -302,9 +311,23 @@ function MaintenanceItemsTable({
                   <TruncatedText>{computed.estimate}</TruncatedText>
                 </TableCell>
                 {showProvider && (
-                  <TableCell className={COL.provider}>
-                    <TruncatedText>{computed.providerName}</TruncatedText>
-                  </TableCell>
+                  <>
+                    <TableCell className={COL.provider}>
+                      <TruncatedText>{computed.providerName}</TruncatedText>
+                    </TableCell>
+                    <TableCell className={COL.workOrder}>
+                      {item.latest_compliance?.work_order?.order_number ? (
+                        <Link
+                          href={`/${company}/planificacion/ordenes_trabajo/${item.latest_compliance.work_order.order_number}`}
+                          className="truncate text-primary hover:underline"
+                        >
+                          {item.latest_compliance.work_order.order_number}
+                        </Link>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </TableCell>
+                  </>
                 )}
                 <TableCell className={COL.actions}>
                   <ItemActionCell
@@ -350,36 +373,47 @@ const MaintenanceControlDetailPage = () => {
 
   const remainingPercentage = Number(control.remaining_percentage);
   const items = control.items ?? [];
-  const parts = control.parts ?? [];
   const certificates = items.filter((i) => i.category === "CERTIFICATE");
   const aircraftServices = items.filter((i) => i.category === "SERVICE" && !i.maintenance_control_part_id);
 
+  // "Motor 1 - <serial>", "Motor 2 - <serial>"...: numerado por orden de
+  // aparición dentro de su propio tipo, no por el número de parte (que no
+  // dice nada al usuario) — igual con Hélice, Turbina, APU.
+  const partTypeCounters: Record<string, number> = {};
+  const parts = (control.parts ?? []).map((part) => {
+    const type = (part.aircraft_part?.type ?? "").toUpperCase();
+    partTypeCounters[type] = (partTypeCounters[type] ?? 0) + 1;
+    const serial = part.aircraft_part?.serial;
+    return {
+      ...part,
+      label: `${partTypeLabel(part.aircraft_part?.type)} ${partTypeCounters[type]}${serial ? ` - ${serial}` : ""}`,
+    };
+  });
+
   return (
     <ContentLayout title={control.title}>
-      <PageHeader className="mb-6" currentLabel={control.title} />
+      <div className="flex flex-col gap-6">
+        <PageHeader currentLabel={control.title} />
 
-      <div className="mx-auto w-full max-w-7xl space-y-6">
-        <header className="flex flex-col items-center gap-3 text-center sm:flex-row sm:items-start sm:justify-between sm:text-left">
-          <div className="space-y-1">
+        <div className="flex flex-col gap-2 border-b pb-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="flex flex-col">
             <h1 className="text-3xl font-semibold tracking-tight">{control.title}</h1>
             {control.description && <p className="text-sm text-muted-foreground">{control.description}</p>}
           </div>
           <div className="flex items-center gap-2">
             <StatusLegend remainingPercentage={remainingPercentage} />
-            <Link href={`/${company}/planificacion/control_mantenimiento/editar/${control.id}`}>
-              <Button variant="outline" className="gap-2">
-                <SquarePen className="size-4" />
+            <ImportComplianceHistoryDialog controlId={control.id} items={items} />
+            <ActionTriggerButton asChild>
+              <Link href={`/${company}/planificacion/control_mantenimiento/editar/${control.id}`}>
+                <SquarePen className="mr-2 size-4" />
                 Editar
-              </Button>
-            </Link>
+              </Link>
+            </ActionTriggerButton>
           </div>
-        </header>
+        </div>
 
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-xl">Información General</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
+        <FormSection icon={Info} title="Información General">
+          <div className="space-y-3">
             <InfoSection title="Control">
               <InfoItem label="% Remanente para Alerta" value={`${remainingPercentage}%`} />
               <InfoItem label="Manual de Referencia" value={control.has_reference_manual ? control.reference_manual ?? undefined : undefined} />
@@ -405,7 +439,7 @@ const MaintenanceControlDetailPage = () => {
             {parts.map((part) => {
               const p = part.aircraft_part;
               return (
-                <InfoSection key={part.id} title={p?.part_name || p?.part_number || "Parte"} bordered>
+                <InfoSection key={part.id} title={part.label} bordered>
                   <InfoItem label="Tipo" value={p?.type} />
                   <InfoItem label="Número de Parte" value={p?.part_number} />
                   <InfoItem label="Serial" value={p?.serial} />
@@ -420,85 +454,88 @@ const MaintenanceControlDetailPage = () => {
                 </InfoSection>
               );
             })}
-          </CardContent>
-        </Card>
+          </div>
+        </FormSection>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-xl">Certificados</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <MaintenanceItemsTable
-              items={certificates}
-              showProvider={false}
-              aircraft={control.aircraft}
-              dailyAverage={dailyAverage}
-              remainingPercentage={remainingPercentage}
-              emptyLabel="Este control no tiene certificados registrados."
-              company={company}
-              controlId={control.id}
-              realAircraftId={control.aircraft.id}
-              realAircraftAcronym={control.aircraft?.acronym}
-            />
-          </CardContent>
-        </Card>
+        <FormSection icon={ClipboardList} title="Certificados">
+          <MaintenanceItemsTable
+            items={certificates}
+            showProvider={false}
+            aircraft={control.aircraft}
+            dailyAverage={dailyAverage}
+            remainingPercentage={remainingPercentage}
+            emptyLabel="Este control no tiene certificados registrados."
+            company={company}
+            controlId={control.id}
+            realAircraftId={control.aircraft.id}
+            realAircraftAcronym={control.aircraft?.acronym}
+          />
+        </FormSection>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-xl">Servicios de la Aeronave</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <MaintenanceItemsTable
-              items={aircraftServices}
-              showProvider
-              aircraft={control.aircraft}
-              dailyAverage={dailyAverage}
-              remainingPercentage={remainingPercentage}
-              emptyLabel="Este control no tiene servicios de aeronave registrados."
-              company={company}
-              controlId={control.id}
-              realAircraftId={control.aircraft.id}
-              realAircraftAcronym={control.aircraft?.acronym}
+        <FormSection
+          icon={Wrench}
+          title="Servicios de la Aeronave"
+          action={
+            <DownloadMaintenanceFormatButton
+              url={`/${company}/maintenance-controls/${control.id}/format/aeronave`}
+              filename={`control_mantenimiento_${control.aircraft?.acronym}.pdf`}
+              label="Descargar formato INAC-43-008 de la aeronave"
             />
-          </CardContent>
-        </Card>
+          }
+        >
+          <MaintenanceItemsTable
+            items={aircraftServices}
+            showProvider
+            aircraft={control.aircraft}
+            dailyAverage={dailyAverage}
+            remainingPercentage={remainingPercentage}
+            emptyLabel="Este control no tiene servicios de aeronave registrados."
+            company={company}
+            controlId={control.id}
+            realAircraftId={control.aircraft.id}
+            realAircraftAcronym={control.aircraft?.acronym}
+          />
+        </FormSection>
 
         {parts.map((part) => {
           const partItems = items.filter(
             (i) => String(i.maintenance_control_part_id) === String(part.id),
           );
           return (
-            <Card key={part.id}>
-              <CardHeader className="flex flex-row items-center gap-2">
-                <CardTitle className="text-xl">
-                  {part.aircraft_part?.part_name || part.aircraft_part?.part_number || "Parte"}
-                </CardTitle>
-                {part.aircraft_part?.type && <Badge variant="outline">{part.aircraft_part.type}</Badge>}
-              </CardHeader>
-              <CardContent>
-                <MaintenanceItemsTable
-                  items={partItems}
-                  showProvider
-                  // Las horas/ciclos "actuales" de un servicio de parte son
-                  // los de la PARTE (TSN/CSN), no los totales de la
-                  // aeronave — una parte más nueva que el avión no puede
-                  // medirse contra las horas de éste. El ritmo de vuelo
-                  // (dailyAverage) sí es el mismo, porque avión y parte
-                  // instalada acumulan horas juntos por vuelo.
-                  aircraft={{
-                    flight_hours: part.aircraft_part?.time_since_new ?? 0,
-                    flight_cycles: part.aircraft_part?.cycles_since_new ?? 0,
-                  }}
-                  dailyAverage={dailyAverage}
-                  remainingPercentage={remainingPercentage}
-                  emptyLabel="Esta parte no tiene servicios registrados."
-                  company={company}
-                  controlId={control.id}
-                  realAircraftId={control.aircraft.id}
-                  realAircraftAcronym={control.aircraft?.acronym}
+            <FormSection
+              key={part.id}
+              icon={Wrench}
+              title={part.label}
+              action={
+                <DownloadMaintenanceFormatButton
+                  url={`/${company}/maintenance-controls/${control.id}/format/parte/${part.id}`}
+                  filename={`control_mantenimiento_${part.label}.pdf`}
+                  label={`Descargar formato INAC-43-008 de ${part.label}`}
                 />
-              </CardContent>
-            </Card>
+              }
+            >
+              <MaintenanceItemsTable
+                items={partItems}
+                showProvider
+                // Las horas/ciclos "actuales" de un servicio de parte son
+                // los de la PARTE (TSN/CSN), no los totales de la
+                // aeronave — una parte más nueva que el avión no puede
+                // medirse contra las horas de éste. El ritmo de vuelo
+                // (dailyAverage) sí es el mismo, porque avión y parte
+                // instalada acumulan horas juntos por vuelo.
+                aircraft={{
+                  flight_hours: part.aircraft_part?.time_since_new ?? 0,
+                  flight_cycles: part.aircraft_part?.cycles_since_new ?? 0,
+                }}
+                dailyAverage={dailyAverage}
+                remainingPercentage={remainingPercentage}
+                emptyLabel="Esta parte no tiene servicios registrados."
+                company={company}
+                controlId={control.id}
+                realAircraftId={control.aircraft.id}
+                realAircraftAcronym={control.aircraft?.acronym}
+              />
+            </FormSection>
           );
         })}
       </div>

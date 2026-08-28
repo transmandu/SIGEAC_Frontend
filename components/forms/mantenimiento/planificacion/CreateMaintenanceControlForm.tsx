@@ -5,14 +5,23 @@ import { useForm, useFieldArray, useWatch, useFormContext, Control } from "react
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { format, parseISO } from "date-fns";
-import { es } from "date-fns/locale";
+import {
+  Check,
+  ClipboardList,
+  FileCheck2,
+  Loader2,
+  Plane,
+  Plus,
+  Puzzle,
+  Wrench,
+  X,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
-import { CalendarIcon, Loader2, Plus, X } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { DatePickerField } from "@/components/ui/DatePickerField";
 import {
   Form,
   FormControl,
@@ -24,16 +33,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
 import {
   Select,
   SelectContent,
@@ -41,7 +40,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 import { useCompanyStore } from "@/stores/CompanyStore";
@@ -54,6 +52,15 @@ import {
 } from "@/actions/mantenimiento/planificacion/control_mantenimiento/actions";
 import { CreateMaintenanceProviderDialog } from "@/components/dialogs/mantenimiento/planificacion/CreateMaintenanceProviderDialog";
 import { MaintenanceAircraftPart, MaintenanceControl } from "@/types";
+import { partTypeLabel, partTypeRank } from "@/lib/maintenancePartTypes";
+import {
+  FormSection,
+  SearchableSelect,
+  fieldClass,
+  hintClass,
+  labelClass,
+  selectTriggerClass,
+} from "./_theme";
 
 const countingMethodEnum = z.enum(["HOURS", "CYCLES", "DAYS"]);
 
@@ -200,7 +207,10 @@ function AircraftSelect({
   // lookup de abajo usa la lista completa); solo se excluyen del listado
   // desplegable las que ya tienen otro control de mantenimiento.
   const selectableAircrafts = useMemo(
-    () => aircrafts?.filter((a) => !excludeIds.includes(String(a.id))) ?? [],
+    () =>
+      (aircrafts ?? [])
+        .filter((a) => !excludeIds.includes(String(a.id)))
+        .map((a) => ({ ...a, name: a.acronym })),
     [aircrafts, excludeIds],
   );
 
@@ -209,55 +219,21 @@ function AircraftSelect({
       control={control}
       name={name}
       render={({ field }) => (
-        <FormItem className="flex flex-col space-y-3">
-          <FormLabel>Aeronave</FormLabel>
-          <Popover>
-            <PopoverTrigger asChild>
-              <FormControl>
-                <Button
-                  disabled={isLoading || isError}
-                  variant="outline"
-                  role="combobox"
-                  className={cn("justify-between", !field.value && "text-muted-foreground")}
-                >
-                  {isLoading && <Loader2 className="size-4 animate-spin mr-2" />}
-                  {field.value ? (
-                    <p>{aircrafts?.find((a) => `${a.id}` === field.value)?.acronym}</p>
-                  ) : (
-                    "Elige la aeronave..."
-                  )}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </FormControl>
-            </PopoverTrigger>
-            <PopoverContent className="p-0">
-              <Command>
-                <CommandInput placeholder="Busque una aeronave..." />
-                <CommandList>
-                  <CommandEmpty className="text-sm p-2 text-center">
-                    No se ha encontrado ninguna aeronave.
-                  </CommandEmpty>
-                  <CommandGroup>
-                    {selectableAircrafts.map((aircraft) => (
-                      <CommandItem
-                        value={`${aircraft.id}`}
-                        key={aircraft.id}
-                        onSelect={() => field.onChange(aircraft.id.toString())}
-                      >
-                        <Check
-                          className={cn(
-                            "mr-2 h-4 w-4",
-                            `${aircraft.id}` === field.value ? "opacity-100" : "opacity-0",
-                          )}
-                        />
-                        <p>{aircraft.acronym}</p>
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover>
+        <FormItem className="w-full">
+          <FormLabel className={labelClass}>Aeronave</FormLabel>
+          <SearchableSelect
+            options={selectableAircrafts}
+            value={field.value}
+            loading={isLoading}
+            disabled={isError}
+            placeholder="Elige la aeronave..."
+            searchPlaceholder="Busque una aeronave..."
+            emptyLabel="No se ha encontrado ninguna aeronave."
+            onSelect={(aircraft) => field.onChange(aircraft.id.toString())}
+          />
+          <FormDescription className={hintClass}>
+            Solo se listan las que aún no tienen un control de mantenimiento.
+          </FormDescription>
           <FormMessage />
         </FormItem>
       )}
@@ -265,41 +241,27 @@ function AircraftSelect({
   );
 }
 
-function DateField({ control, name }: { control: Control<any>; name: string }) {
+function DateField({
+  control,
+  name,
+  label = "Fecha",
+}: {
+  control: Control<any>;
+  name: string;
+  label?: string;
+}) {
   return (
     <FormField
       control={control}
       name={name}
       render={({ field }) => (
-        <FormItem>
-          <Popover>
-            <PopoverTrigger asChild>
-              <FormControl>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "h-8 w-full justify-start text-left text-sm font-normal px-2",
-                    !field.value && "text-muted-foreground",
-                  )}
-                >
-                  {field.value ? format(field.value, "dd/MM/yy", { locale: es }) : <span>Sel.</span>}
-                  <CalendarIcon className="ml-auto h-3.5 w-3.5 opacity-50" />
-                </Button>
-              </FormControl>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={field.value}
-                onSelect={field.onChange}
-                disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
-                captionLayout="dropdown-buttons"
-                fromYear={1900}
-                toYear={new Date().getFullYear()}
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
+        <FormItem className="w-full">
+          <DatePickerField
+            label={label}
+            value={field.value}
+            setValue={(date) => field.onChange(date ?? undefined)}
+            maxYear={new Date().getFullYear() + 5}
+          />
           <FormMessage />
         </FormItem>
       )}
@@ -346,29 +308,24 @@ function NumericInput({
 function ProviderField({ control, name }: { control: Control<any>; name: string }) {
   const { selectedCompany } = useCompanyStore();
   const { data: providers, isLoading } = useGetMaintenanceProviders(selectedCompany?.slug);
+  const options = useMemo(() => providers ?? [], [providers]);
 
   return (
     <FormField
       control={control}
       name={name}
       render={({ field }) => (
-        <FormItem>
-          {/* Radix reserva "" para volver al placeholder: pasarlo como valor
-              controlado remonta el content en bucle. Va undefined. */}
-          <Select onValueChange={field.onChange} value={field.value || undefined}>
-            <FormControl>
-              <SelectTrigger className="h-8 text-sm">
-                <SelectValue placeholder={isLoading ? "Cargando..." : "Realizado por"} />
-              </SelectTrigger>
-            </FormControl>
-            <SelectContent>
-              {providers?.map((provider) => (
-                <SelectItem key={provider.id} value={String(provider.id)}>
-                  {provider.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <FormItem className="w-full">
+          <FormLabel className={labelClass}>Realizado Por</FormLabel>
+          <SearchableSelect
+            options={options}
+            value={field.value}
+            loading={isLoading}
+            placeholder="Seleccione..."
+            searchPlaceholder="Buscar entidad..."
+            emptyLabel="No se encontró ninguna entidad."
+            onSelect={(provider) => field.onChange(String(provider.id))}
+          />
           <FormMessage />
         </FormItem>
       )}
@@ -376,29 +333,18 @@ function ProviderField({ control, name }: { control: Control<any>; name: string 
   );
 }
 
-const ROW_GRID = "grid-cols-[1fr_90px_70px_90px_90px_130px_150px_28px]";
-const ROW_LABELS = [
-  "Nombre",
-  "Unidad",
-  "Límite",
-  "Lectura Inicial",
-  "Días Extra",
-  "1ra Fecha Aplicada",
-  "Realizado Por",
-];
-
 type ProviderMode = "required" | "optional";
 
-function ItemRowsHeader() {
+/** Celda "no aplica": mantiene la altura y el rótulo de un campo real, para
+ * que la cuadrícula del ítem no salte al cambiar de unidad de conteo. */
+function PlaceholderField({ label }: { label: string }) {
   return (
-    <div className={cn("grid gap-3 px-1", ROW_GRID)}>
-      {ROW_LABELS.map((label) => (
-        <span key={label} className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
-          {label}
-        </span>
-      ))}
-      <span />
-    </div>
+    <FormItem className="w-full">
+      <FormLabel className={cn(labelClass, "text-muted-foreground/50")}>{label}</FormLabel>
+      <div className={cn(fieldClass, "flex items-center px-3 text-sm text-muted-foreground/50 shadow-none")}>
+        No aplica
+      </div>
+    </FormItem>
   );
 }
 
@@ -411,14 +357,18 @@ function OptionalProviderCell({ control, namePrefix }: { control: Control<any>; 
       control={control}
       name={`${namePrefix}.has_provider`}
       render={({ field }) => (
-        <FormItem className="space-y-1.5">
-          <div className="flex h-8 items-center gap-1.5">
-            <FormControl>
-              <Checkbox checked={field.value} onCheckedChange={field.onChange} className="h-3.5 w-3.5" />
-            </FormControl>
-            <span className="text-xs text-muted-foreground">Entidad</span>
+        <FormItem className="w-full space-y-2">
+          <div className="flex h-5 items-center gap-1.5">
+            <Checkbox checked={field.value} onCheckedChange={field.onChange} className="h-3.5 w-3.5" />
+            <span className={cn(labelClass, "font-normal")}>¿Entidad responsable?</span>
           </div>
-          {field.value && <ProviderField control={control} name={`${namePrefix}.maintenance_provider_id`} />}
+          {field.value ? (
+            <ProviderField control={control} name={`${namePrefix}.maintenance_provider_id`} />
+          ) : (
+            <div className={cn(fieldClass, "flex items-center px-3 text-sm text-muted-foreground/50 shadow-none")}>
+              Sin especificar
+            </div>
+          )}
         </FormItem>
       )}
     />
@@ -437,125 +387,139 @@ function ItemRow({
   providerMode?: ProviderMode;
 }) {
   const countingMethod = useWatch({ control, name: `${namePrefix}.counting_method` });
+  const name = useWatch({ control, name: `${namePrefix}.name` });
   const needsInitialReading = countingMethod && countingMethod !== "DAYS";
   const isDaysBased = countingMethod === "DAYS";
 
   return (
-    <div className={cn("grid gap-3 items-start", ROW_GRID)}>
+    <div className="group relative rounded-lg border border-slate-400/40 bg-gradient-to-br from-background/60 to-background/30 p-4 backdrop-blur-sm transition-colors hover:border-blue-400/30 dark:border-slate-600/40">
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        onClick={onRemove}
+        aria-label={name ? `Quitar ${name}` : "Quitar fila"}
+        className="absolute right-2 top-2 h-7 w-7 text-muted-foreground/70 opacity-0 transition-opacity hover:text-destructive group-hover:opacity-100 group-focus-within:opacity-100"
+      >
+        <X className="size-3.5" />
+      </Button>
+
       <FormField
         control={control}
         name={`${namePrefix}.name`}
         render={({ field }) => (
-          <FormItem>
+          <FormItem className="w-full pr-9">
+            <FormLabel className={labelClass}>Nombre</FormLabel>
             <FormControl>
-              <Input placeholder="EJ: Certificado de Aeronavegabilidad" className="h-8 text-sm" {...field} />
+              <Input placeholder="EJ: Certificado de Aeronavegabilidad" className={fieldClass} {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
         )}
       />
-      <FormField
-        control={control}
-        name={`${namePrefix}.counting_method`}
-        render={({ field }) => (
-          <FormItem>
-            <Select onValueChange={field.onChange} value={field.value || undefined}>
+
+      <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <FormField
+          control={control}
+          name={`${namePrefix}.counting_method`}
+          render={({ field }) => (
+            <FormItem className="w-full">
+              <FormLabel className={labelClass}>Unidad</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value || undefined}>
+                <FormControl>
+                  <SelectTrigger className={selectTriggerClass}>
+                    <SelectValue placeholder="Unidad" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="HOURS">Horas</SelectItem>
+                  <SelectItem value="CYCLES">Ciclos</SelectItem>
+                  <SelectItem value="DAYS">Días</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={control}
+          name={`${namePrefix}.limit_value`}
+          render={({ field }) => (
+            <FormItem className="w-full">
+              <FormLabel className={labelClass}>Límite</FormLabel>
               <FormControl>
-                <SelectTrigger className="h-8 text-sm">
-                  <SelectValue placeholder="Unidad" />
-                </SelectTrigger>
+                <NumericInput
+                  placeholder="0"
+                  className={fieldClass}
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  name={field.name}
+                />
               </FormControl>
-              <SelectContent>
-                <SelectItem value="HOURS">Horas</SelectItem>
-                <SelectItem value="CYCLES">Ciclos</SelectItem>
-                <SelectItem value="DAYS">Días</SelectItem>
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {needsInitialReading ? (
+          <FormField
+            control={control}
+            name={`${namePrefix}.first_applied_value`}
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormLabel className={labelClass}>Lectura Inicial</FormLabel>
+                <FormControl>
+                  <NumericInput
+                    placeholder="0"
+                    className={fieldClass}
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    name={field.name}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        ) : (
+          <PlaceholderField label="Lectura Inicial" />
         )}
-      />
-      <FormField
-        control={control}
-        name={`${namePrefix}.limit_value`}
-        render={({ field }) => (
-          <FormItem>
-            <FormControl>
-              <NumericInput
-                placeholder="0"
-                className="h-8 text-sm"
-                value={field.value}
-                onChange={field.onChange}
-                onBlur={field.onBlur}
-                name={field.name}
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
+
+        {isDaysBased ? (
+          <FormField
+            control={control}
+            name={`${namePrefix}.extra_days`}
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormLabel className={labelClass}>Días Extra</FormLabel>
+                <FormControl>
+                  <NumericInput
+                    placeholder="0"
+                    className={fieldClass}
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    name={field.name}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        ) : (
+          <PlaceholderField label="Días Extra" />
         )}
-      />
-      <FormField
-        control={control}
-        name={`${namePrefix}.first_applied_value`}
-        render={({ field }) => (
-          <FormItem>
-            <FormControl>
-              {needsInitialReading ? (
-                <NumericInput
-                  placeholder="0"
-                  className="h-8 text-sm"
-                  value={field.value}
-                  onChange={field.onChange}
-                  onBlur={field.onBlur}
-                  name={field.name}
-                />
-              ) : (
-                <div className="flex h-8 items-center justify-center text-xs text-muted-foreground">—</div>
-              )}
-            </FormControl>
-            <FormMessage />
-          </FormItem>
+      </div>
+
+      <div className="mt-3 grid grid-cols-1 gap-3 border-t border-slate-400/20 pt-3 dark:border-slate-600/20 sm:grid-cols-2">
+        <DateField control={control} name={`${namePrefix}.first_applied_date`} label="1ra Fecha Aplicada" />
+        {providerMode === "required" ? (
+          <ProviderField control={control} name={`${namePrefix}.maintenance_provider_id`} />
+        ) : (
+          <OptionalProviderCell control={control} namePrefix={namePrefix} />
         )}
-      />
-      <FormField
-        control={control}
-        name={`${namePrefix}.extra_days`}
-        render={({ field }) => (
-          <FormItem>
-            <FormControl>
-              {isDaysBased ? (
-                <NumericInput
-                  placeholder="0"
-                  className="h-8 text-sm"
-                  value={field.value}
-                  onChange={field.onChange}
-                  onBlur={field.onBlur}
-                  name={field.name}
-                />
-              ) : (
-                <div className="flex h-8 items-center justify-center text-xs text-muted-foreground">—</div>
-              )}
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-      <DateField control={control} name={`${namePrefix}.first_applied_date`} />
-      {providerMode === "required" ? (
-        <ProviderField control={control} name={`${namePrefix}.maintenance_provider_id`} />
-      ) : (
-        <OptionalProviderCell control={control} namePrefix={namePrefix} />
-      )}
-      <div className="flex items-center pt-0.5">
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={onRemove}
-          className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
-        >
-          <X className="size-3.5" />
-        </Button>
       </div>
     </div>
   );
@@ -578,7 +542,6 @@ function MaintenanceItemRows({
 
   return (
     <div className="space-y-3">
-      {fields.length > 0 && <ItemRowsHeader />}
       {fields.map((field, index) => (
         <ItemRow
           key={field.id}
@@ -588,13 +551,15 @@ function MaintenanceItemRows({
           providerMode={providerMode}
         />
       ))}
-      {fields.length === 0 && <p className="text-xs text-muted-foreground">{emptyLabel}</p>}
+      {fields.length === 0 && (
+        <p className={cn(hintClass, "italic")}>{emptyLabel}</p>
+      )}
       <Button
         type="button"
         variant="outline"
         size="sm"
         onClick={() => append(createEmptyRow())}
-        className="h-7 gap-1 text-xs"
+        className="gap-1.5 border-dashed text-muted-foreground hover:border-blue-400/40 hover:text-primary"
       >
         <Plus className="size-3.5" />
         Agregar fila
@@ -618,7 +583,6 @@ function PartServiceRows({
 }) {
   return (
     <div className="space-y-3">
-      {rows.length > 0 && <ItemRowsHeader />}
       {rows.map(({ id, index }) => (
         <ItemRow
           key={id}
@@ -627,37 +591,19 @@ function PartServiceRows({
           onRemove={() => onRemove(index)}
         />
       ))}
-      {rows.length === 0 && <p className="text-xs text-muted-foreground">{emptyLabel}</p>}
-      <Button type="button" variant="outline" size="sm" onClick={onAdd} className="h-7 gap-1 text-xs">
+      {rows.length === 0 && <p className={cn(hintClass, "italic")}>{emptyLabel}</p>}
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        onClick={onAdd}
+        className="gap-1.5 border-dashed text-muted-foreground hover:border-blue-400/40 hover:text-primary"
+      >
         <Plus className="size-3.5" />
         Agregar fila
       </Button>
     </div>
   );
-}
-
-// Orden fijo requerido para el listado de partes: motor, turbina, hélice,
-// apu; cualquier otro type (ej. "Tren de aterrizaje") queda al final.
-const PART_TYPE_ORDER: Record<string, number> = {
-  MOTOR: 0,
-  TURBINA: 1,
-  HELICE: 2,
-  APU: 3,
-};
-
-const PART_TYPE_LABELS: Record<string, string> = {
-  MOTOR: "Motor",
-  TURBINA: "Turbina",
-  HELICE: "Hélice",
-  APU: "APU",
-};
-
-function partTypeRank(type?: string): number {
-  return PART_TYPE_ORDER[(type ?? "").toUpperCase()] ?? 99;
-}
-
-function partTypeLabel(type?: string): string {
-  return PART_TYPE_LABELS[(type ?? "").toUpperCase()] ?? type ?? "Otro";
 }
 
 function PartsSection({ control }: { control: Control<any> }) {
@@ -725,15 +671,15 @@ function PartsSection({ control }: { control: Control<any> }) {
   };
 
   if (!aircraftId) {
-    return <p className="text-sm text-muted-foreground">Seleccione primero una aeronave.</p>;
+    return <p className={cn(hintClass, "italic")}>Seleccione primero una aeronave.</p>;
   }
 
   if (isLoading) {
-    return <Loader2 className="size-4 animate-spin" />;
+    return <Loader2 className="size-4 animate-spin text-muted-foreground" />;
   }
 
   if (!availableParts.length) {
-    return <p className="text-sm text-muted-foreground">Esta aeronave no tiene partes asignadas.</p>;
+    return <p className={cn(hintClass, "italic")}>Esta aeronave no tiene partes asignadas.</p>;
   }
 
   return (
@@ -755,13 +701,15 @@ function PartsSection({ control }: { control: Control<any> }) {
                 }
               }}
               className={cn(
-                "flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm transition-colors cursor-pointer select-none",
-                checked ? "border-primary bg-primary/10" : "border-border hover:bg-muted",
+                "flex cursor-pointer select-none items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-all duration-200",
+                checked
+                  ? "border-blue-400/40 bg-primary/10 shadow-sm shadow-blue-500/10"
+                  : "border-slate-400/50 bg-gradient-to-br from-background/70 to-background/40 backdrop-blur-md hover:border-blue-400/30 hover:shadow-sm hover:shadow-blue-500/10 dark:border-slate-600/50",
               )}
             >
               <span
                 className={cn(
-                  "flex h-4 w-4 shrink-0 items-center justify-center rounded-sm border",
+                  "flex h-4 w-4 shrink-0 items-center justify-center rounded-sm border transition-colors",
                   checked ? "border-primary bg-primary text-white" : "border-muted-foreground/40",
                 )}
               >
@@ -771,7 +719,7 @@ function PartsSection({ control }: { control: Control<any> }) {
                 <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
                   {partTypeLabel(part.type)}
                 </span>
-                <span>{part.part_name || part.part_number}</span>
+                <span className="font-medium">{part.part_name || part.part_number}</span>
               </span>
             </div>
           );
@@ -783,21 +731,20 @@ function PartsSection({ control }: { control: Control<any> }) {
         .map((part) => {
           const partId = String(part.id);
           return (
-            <Card key={part.id}>
-              <CardHeader className="py-3 flex flex-row items-center gap-2">
-                <CardTitle className="text-base">{part.part_name || part.part_number}</CardTitle>
-                <Badge variant="outline">{partTypeLabel(part.type)}</Badge>
-              </CardHeader>
-              <CardContent>
-                <PartServiceRows
-                  control={control}
-                  rows={rowsForPart(partId)}
-                  onAdd={() => append({ ...emptyServiceItem(), aircraft_part_id: partId })}
-                  onRemove={(index) => remove(index)}
-                  emptyLabel="Agregue al menos un servicio para esta parte."
-                />
-              </CardContent>
-            </Card>
+            <FormSection
+              key={part.id}
+              icon={Wrench}
+              title={part.part_name || part.part_number}
+              action={<Badge variant="outline">{partTypeLabel(part.type)}</Badge>}
+            >
+              <PartServiceRows
+                control={control}
+                rows={rowsForPart(partId)}
+                onAdd={() => append({ ...emptyServiceItem(), aircraft_part_id: partId })}
+                onRemove={(index) => remove(index)}
+                emptyLabel="Agregue al menos un servicio para esta parte."
+              />
+            </FormSection>
           );
         })}
     </div>
@@ -960,23 +907,24 @@ export default function CreateMaintenanceControlForm({ initialData }: { initialD
             e.preventDefault();
           }
         }}
-        className="flex flex-col gap-6 max-w-6xl mx-auto"
+        className="flex flex-col gap-6"
       >
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-xl">Datos Básicos</CardTitle>
-            <CreateMaintenanceProviderDialog />
-          </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <FormSection
+          icon={ClipboardList}
+          title="Datos Básicos"
+          hint="Aeronave, título y a partir de qué remanente se avisa."
+          action={<CreateMaintenanceProviderDialog />}
+        >
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <AircraftSelect control={form.control} name="aircraft_id" excludeIds={excludeAircraftIds} />
             <FormField
               control={form.control}
               name="title"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Título</FormLabel>
+                <FormItem className="w-full">
+                  <FormLabel className={labelClass}>Título</FormLabel>
                   <FormControl>
-                    <Input placeholder="EJ: Control de Mantenimiento YV2272" {...field} />
+                    <Input placeholder="EJ: Control de Mantenimiento YV2272" className={fieldClass} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -986,12 +934,12 @@ export default function CreateMaintenanceControlForm({ initialData }: { initialD
               control={form.control}
               name="remaining_percentage"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>% de Remanente para Alerta</FormLabel>
+                <FormItem className="w-full">
+                  <FormLabel className={labelClass}>% de Remanente para Alerta</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <NumericInput
-                        className="pr-7"
+                        className={cn(fieldClass, "pr-8")}
                         value={field.value}
                         onChange={field.onChange}
                         onBlur={field.onBlur}
@@ -1002,7 +950,7 @@ export default function CreateMaintenanceControlForm({ initialData }: { initialD
                       </span>
                     </div>
                   </FormControl>
-                  <FormDescription>
+                  <FormDescription className={hintClass}>
                     Con cuánto remanente (sobre el límite de horas/ciclos/días) se avisa que un servicio está próximo a vencer.
                   </FormDescription>
                   <FormMessage />
@@ -1013,12 +961,12 @@ export default function CreateMaintenanceControlForm({ initialData }: { initialD
               control={form.control}
               name="description"
               render={({ field }) => (
-                <FormItem className="md:col-span-2">
-                  <FormLabel>
+                <FormItem className="w-full md:col-span-2">
+                  <FormLabel className={labelClass}>
                     Descripción <span className="text-muted-foreground text-xs">(Opcional)</span>
                   </FormLabel>
                   <FormControl>
-                    <Textarea placeholder="..." {...field} />
+                    <Textarea placeholder="..." className={cn(fieldClass, "h-auto resize-none py-2")} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -1028,13 +976,18 @@ export default function CreateMaintenanceControlForm({ initialData }: { initialD
               control={form.control}
               name="has_reference_manual"
               render={({ field }) => (
-                <FormItem className="md:col-span-2 flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                <FormItem
+                  className={cn(
+                    fieldClass,
+                    "h-auto shadow-none md:col-span-2 flex flex-row items-start space-x-3 space-y-0 p-4 hover:shadow-none",
+                  )}
+                >
                   <FormControl>
                     <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                   </FormControl>
                   <div className="space-y-1 leading-none">
-                    <FormLabel>¿Tiene manual de referencia?</FormLabel>
-                    <FormDescription>
+                    <FormLabel className={labelClass}>¿Tiene manual de referencia?</FormLabel>
+                    <FormDescription className={hintClass}>
                       Indique si este control se basa en un manual específico.
                     </FormDescription>
                   </div>
@@ -1046,67 +999,74 @@ export default function CreateMaintenanceControlForm({ initialData }: { initialD
                 control={form.control}
                 name="reference_manual"
                 render={({ field }) => (
-                  <FormItem className="md:col-span-2">
-                    <FormLabel>Manual de Referencia</FormLabel>
+                  <FormItem className="w-full md:col-span-2">
+                    <FormLabel className={labelClass}>Manual de Referencia</FormLabel>
                     <FormControl>
-                      <Input placeholder="EJ: MAINTENANCE SCHEDULE REV. 5 DEL 15/MAY/2016" {...field} />
+                      <Input
+                        placeholder="EJ: MAINTENANCE SCHEDULE REV. 5 DEL 15/MAY/2016"
+                        className={fieldClass}
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </FormSection>
 
         {aircraftId ? (
           <>
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-xl">Certificados</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <MaintenanceItemRows
-                  control={form.control}
-                  name="certificates"
-                  emptyLabel="Agregue los certificados de la aeronave."
-                  providerMode="optional"
-                  createEmptyRow={emptyCertificate}
-                />
-              </CardContent>
-            </Card>
+            <FormSection
+              icon={FileCheck2}
+              title="Certificados"
+              hint="Documentos a bordo de la aeronave: aeronavegabilidad, seguro, radio, ELT..."
+            >
+              <MaintenanceItemRows
+                control={form.control}
+                name="certificates"
+                emptyLabel="Agregue los certificados de la aeronave."
+                providerMode="optional"
+                createEmptyRow={emptyCertificate}
+              />
+            </FormSection>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-xl">Servicios de la Aeronave</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <MaintenanceItemRows
-                  control={form.control}
-                  name="services"
-                  emptyLabel="Agregue los servicios de la aeronave."
-                  createEmptyRow={emptyServiceItem}
-                />
-              </CardContent>
-            </Card>
+            <FormSection
+              icon={Wrench}
+              title="Servicios de la Aeronave"
+              hint="Inspecciones periódicas de la aeronave como conjunto."
+            >
+              <MaintenanceItemRows
+                control={form.control}
+                name="services"
+                emptyLabel="Agregue los servicios de la aeronave."
+                createEmptyRow={emptyServiceItem}
+              />
+            </FormSection>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-xl">Partes de la Aeronave</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <PartsSection control={form.control} />
-              </CardContent>
-            </Card>
+            <FormSection
+              icon={Puzzle}
+              title="Partes de la Aeronave"
+              hint="Motores, turbinas y hélices con servicios propios."
+            >
+              <PartsSection control={form.control} />
+            </FormSection>
           </>
         ) : (
-          <p className="text-sm text-muted-foreground text-center">
-            Seleccione una aeronave para cargar sus certificados, servicios y partes.
-          </p>
+          <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-slate-400/50 bg-muted/20 p-8 text-center dark:border-slate-600/50">
+            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted/60 text-muted-foreground">
+              <Plane className="h-5 w-5" />
+            </span>
+            <p className="text-sm font-medium text-muted-foreground">
+              Seleccione una aeronave para continuar
+            </p>
+            <p className={hintClass}>Ahí se cargan sus certificados, servicios y partes.</p>
+          </div>
         )}
 
         <Button
-          className="bg-primary text-white hover:bg-blue-900 disabled:bg-primary/70"
+          className="h-11 gap-2 self-end rounded-lg bg-gradient-to-br from-primary to-primary/85 px-6 text-primary-foreground shadow-sm transition-all duration-200 hover:shadow-md hover:shadow-blue-500/25 disabled:opacity-70"
           disabled={isPending}
           type="submit"
         >

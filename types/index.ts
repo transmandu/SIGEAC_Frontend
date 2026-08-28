@@ -484,6 +484,7 @@ export type MaintenanceCompliance = {
   hours_reading: number | string;
   cycles_reading: number | string;
   notes?: string | null;
+  is_historical?: boolean;
   registered_by?: string;
   created_at?: string;
 };

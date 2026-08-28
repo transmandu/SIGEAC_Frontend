@@ -27,17 +27,19 @@ const MaintenanceControlPage = () => {
 
   return (
     <ContentLayout title="Control de Mantenimiento">
-      <PageHeader className="mb-6" />
+      <div className="flex flex-col gap-6">
+        <PageHeader />
 
-      <div className="mx-auto w-full max-w-7xl space-y-6">
-        <header className="space-y-1">
-          <h1 className="text-4xl font-semibold tracking-tight text-center">
-            Control de Mantenimiento
-          </h1>
-          <p className="text-sm text-muted-foreground text-center">
-            Certificados, servicios y partes bajo control por aeronave.
-          </p>
-        </header>
+        <div className="flex flex-col gap-2 border-b pb-4">
+          <div className="flex items-end justify-between">
+            <div className="flex flex-col">
+              <h1 className="text-3xl font-semibold tracking-tight">Control de Mantenimiento</h1>
+              <p className="text-sm text-muted-foreground">
+                Certificados, servicios y partes bajo control por aeronave.
+              </p>
+            </div>
+          </div>
+        </div>
 
         {isError && (
           <Alert variant="destructive">

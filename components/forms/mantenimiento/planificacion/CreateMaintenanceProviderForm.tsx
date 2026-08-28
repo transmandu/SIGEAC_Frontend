@@ -17,6 +17,7 @@ import { z } from "zod";
 import { useCreateMaintenanceProvider } from "@/actions/mantenimiento/planificacion/maintenance_providers/actions";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { MaintenanceProvider } from "@/types";
+import { fieldClass, labelClass } from "./_theme";
 
 const formSchema = z.object({
   name: z.string().min(2, "El nombre debe tener al menos 2 carácteres."),
@@ -58,17 +59,17 @@ export default function CreateMaintenanceProviderForm({ onClose, onSuccess }: Fo
           control={form.control}
           name="name"
           render={({ field }) => (
-            <FormItem>
-              <FormLabel>Nombre de la Entidad</FormLabel>
+            <FormItem className="w-full">
+              <FormLabel className={labelClass}>Nombre de la Entidad</FormLabel>
               <FormControl>
-                <Input placeholder="EJ: Corporate Flight Management, Inc" {...field} />
+                <Input placeholder="EJ: Corporate Flight Management, Inc" className={fieldClass} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
         <Button
-          className="bg-primary text-white hover:bg-blue-900 disabled:bg-primary/70"
+          className="h-11 gap-2 rounded-lg bg-gradient-to-br from-primary to-primary/85 text-primary-foreground shadow-sm transition-all duration-200 hover:shadow-md hover:shadow-blue-500/25 disabled:opacity-70"
           disabled={createMaintenanceProvider.isPending}
           type="submit"
         >

@@ -5,8 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { format } from "date-fns";
-import { es } from "date-fns/locale";
-import { CalendarIcon, CheckCircle2, Loader2 } from "lucide-react";
+import { CheckCircle2, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -25,17 +24,8 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { DatePickerField } from "@/components/ui/DatePickerField";
 import { Textarea } from "@/components/ui/textarea";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
@@ -43,6 +33,11 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { useGetMaintenanceProviders } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceProviders";
 import { useGetWorkOrdersByAircraft } from "@/hooks/mantenimiento/planificacion/useGetWorkOrdersByAircraft";
 import { useCreateMaintenanceCompliance } from "@/actions/mantenimiento/planificacion/cumplimientos/actions";
+import {
+  SearchableSelect,
+  fieldClass,
+  labelClass,
+} from "@/components/forms/mantenimiento/planificacion/_theme";
 
 const formSchema = z.object({
   compliance_date: z.date({ required_error: "Seleccione una fecha" }),
@@ -59,10 +54,11 @@ type FormValues = z.infer<typeof formSchema>;
 // nativas de type="number".
 function NumericField({ field, placeholder }: { field: any; placeholder?: string }) {
   return (
-    <Input
+    <input
       type="text"
       inputMode="decimal"
       placeholder={placeholder}
+      className={cn(fieldClass, "flex w-full px-3 text-sm outline-none")}
       value={field.value ?? ""}
       onChange={(e) => {
         const raw = e.target.value;
@@ -150,33 +146,13 @@ export function RegisterComplianceDialog({
               control={form.control}
               name="compliance_date"
               render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>Fecha de Cumplimiento</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant="outline"
-                          className={cn("justify-start text-left font-normal", !field.value && "text-muted-foreground")}
-                        >
-                          {field.value ? format(field.value, "dd/MM/yyyy", { locale: es }) : <span>Seleccione...</span>}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={field.onChange}
-                        disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
-                        captionLayout="dropdown-buttons"
-                        fromYear={1900}
-                        toYear={new Date().getFullYear()}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
+                <FormItem className="w-full">
+                  <DatePickerField
+                    label="Fecha de Cumplimiento"
+                    value={field.value}
+                    setValue={(date) => field.onChange(date ?? undefined)}
+                    required
+                  />
                   <FormMessage />
                 </FormItem>
               )}
@@ -187,8 +163,8 @@ export function RegisterComplianceDialog({
                 control={form.control}
                 name="hours_reading"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Horas de la Aeronave/Parte</FormLabel>
+                  <FormItem className="w-full">
+                    <FormLabel className={labelClass}>Horas de la Aeronave/Parte</FormLabel>
                     <FormControl>
                       <NumericField field={field} placeholder="0" />
                     </FormControl>
@@ -200,8 +176,8 @@ export function RegisterComplianceDialog({
                 control={form.control}
                 name="cycles_reading"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Ciclos de la Aeronave/Parte</FormLabel>
+                  <FormItem className="w-full">
+                    <FormLabel className={labelClass}>Ciclos de la Aeronave/Parte</FormLabel>
                     <FormControl>
                       <NumericField field={field} placeholder="0" />
                     </FormControl>
@@ -215,22 +191,17 @@ export function RegisterComplianceDialog({
               control={form.control}
               name="maintenance_provider_id"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Realizado Por</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value || undefined}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder={isLoadingProviders ? "Cargando..." : "Seleccione..."} />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {providers?.map((provider) => (
-                        <SelectItem key={provider.id} value={String(provider.id)}>
-                          {provider.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <FormItem className="w-full">
+                  <FormLabel className={labelClass}>Realizado Por</FormLabel>
+                  <SearchableSelect
+                    options={providers ?? []}
+                    value={field.value}
+                    loading={isLoadingProviders}
+                    placeholder="Seleccione..."
+                    searchPlaceholder="Buscar entidad..."
+                    emptyLabel="No se encontró ninguna entidad."
+                    onSelect={(provider) => field.onChange(String(provider.id))}
+                  />
                   <FormMessage />
                 </FormItem>
               )}
@@ -240,33 +211,25 @@ export function RegisterComplianceDialog({
               control={form.control}
               name="work_order_id"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Orden de Trabajo</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value || undefined}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue
-                          placeholder={
-                            isLoadingWorkOrders
-                              ? "Cargando..."
-                              : workOrders?.length
-                                ? "Seleccione..."
-                                : "Esta aeronave no tiene Órdenes de Trabajo"
-                          }
-                        />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {workOrders?.map((wo) => (
-                        <SelectItem key={wo.id} value={String(wo.id)}>
-                          <span className="flex items-center gap-2">
-                            {wo.order_number}
-                            <Badge variant="outline" className="text-[10px]">{wo.status}</Badge>
-                          </span>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <FormItem className="w-full">
+                  <FormLabel className={labelClass}>Orden de Trabajo</FormLabel>
+                  <SearchableSelect
+                    options={(workOrders ?? []).map((wo) => ({ ...wo, name: wo.order_number }))}
+                    value={field.value}
+                    loading={isLoadingWorkOrders}
+                    placeholder={
+                      workOrders?.length ? "Seleccione..." : "Esta aeronave no tiene Órdenes de Trabajo"
+                    }
+                    searchPlaceholder="Buscar orden de trabajo..."
+                    emptyLabel="No se encontró ninguna orden de trabajo."
+                    onSelect={(wo) => field.onChange(String(wo.id))}
+                    renderLabel={(wo) => (
+                      <span className="flex items-center gap-2">
+                        {wo.order_number}
+                        <Badge variant="outline" className="text-[10px]">{wo.status}</Badge>
+                      </span>
+                    )}
+                  />
                   <FormMessage />
                 </FormItem>
               )}
@@ -276,12 +239,12 @@ export function RegisterComplianceDialog({
               control={form.control}
               name="notes"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
+                <FormItem className="w-full">
+                  <FormLabel className={labelClass}>
                     Observaciones <span className="text-muted-foreground text-xs">(Opcional)</span>
                   </FormLabel>
                   <FormControl>
-                    <Textarea placeholder="..." {...field} />
+                    <Textarea placeholder="..." className={cn(fieldClass, "h-auto resize-none py-2")} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -289,7 +252,7 @@ export function RegisterComplianceDialog({
             />
 
             <Button
-              className="bg-primary text-white hover:bg-blue-900 disabled:bg-primary/70"
+              className="h-11 gap-2 rounded-lg bg-gradient-to-br from-primary to-primary/85 text-primary-foreground shadow-sm transition-all duration-200 hover:shadow-md hover:shadow-blue-500/25 disabled:opacity-70"
               disabled={createMaintenanceCompliance.isPending}
               type="submit"
             >
