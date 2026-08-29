@@ -1,6 +1,5 @@
 "use client";
 
-import { useLinkPendingWorkOrder } from "@/actions/mantenimiento/planificacion/control_mantenimiento/actions";
 import { useCreateWorkOrder } from "@/actions/mantenimiento/planificacion/ordenes_trabajo/actions";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -48,7 +47,7 @@ import {
   PlusCircle,
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -104,21 +103,12 @@ interface TaskInProgress {
 const NonServiceWorkOrderForm = () => {
   const searchParams = useSearchParams();
   const eventId = searchParams.get("eventId") || undefined;
-  // Presentes cuando la orden se crea desde un ítem de Control de Mantenimiento
-  // en estado crítico (ver [id]/page.tsx): al terminar, la OT se ata a ese
-  // ítem y se vuelve a su página de control en vez de al listado general.
-  const maintenanceControlItemId = searchParams.get("maintenance_control_item_id") || undefined;
-  const maintenanceControlId = searchParams.get("maintenance_control_id") || undefined;
-  const prefillAircraftId = searchParams.get("aircraft_id") || undefined;
-  const prefillTaskDescription = searchParams.get("task_description") || undefined;
 
   const [selectedAircraft, setSelectedAircraft] = useState<string>("");
   const [tasks, setTasks] = useState<TaskInProgress[]>([]);
-  const prefillApplied = useRef(false);
 
   const { selectedStation, selectedCompany } = useCompanyStore();
   const { createWorkOrder } = useCreateWorkOrder();
-  const { linkPendingWorkOrder } = useLinkPendingWorkOrder();
   const {
     data: aircrafts,
     isLoading: isAircraftsLoading,
@@ -143,35 +133,6 @@ const NonServiceWorkOrderForm = () => {
       form.setValue("location_id", selectedStation);
     }
   }, [selectedStation, form]);
-
-  useEffect(() => {
-    if (prefillApplied.current || !aircrafts) return;
-
-    if (prefillAircraftId) {
-      const aircraft = aircrafts.find((a) => a.id.toString() === prefillAircraftId);
-      if (aircraft) {
-        form.setValue("aircraft_id", aircraft.id.toString());
-        form.setValue("authorizing", aircraft.client.authorizing);
-        setSelectedAircraft(aircraft.manufacturer.id.toString());
-      }
-    }
-
-    if (prefillTaskDescription) {
-      setTasks([
-        {
-          id: crypto.randomUUID(),
-          material: "",
-          description_task: prefillTaskDescription,
-          ata: "",
-          task_number: "",
-          origin_manual: "",
-          task_items: [],
-        },
-      ]);
-    }
-
-    prefillApplied.current = true;
-  }, [aircrafts, prefillAircraftId, prefillTaskDescription, form]);
 
   const addEmptyTask = () => {
     setTasks((prev) => [
@@ -261,28 +222,15 @@ const NonServiceWorkOrderForm = () => {
 
     console.log("🚀 [NonServiceWorkOrderForm] Datos enviados al backend:", formattedData);
 
-    const response = await createWorkOrder.mutateAsync({
+    await createWorkOrder.mutateAsync({
       data: formattedData,
       company: selectedCompany!.slug,
       eventId,
     });
 
-    if (maintenanceControlItemId && response?.work_order?.id) {
-      await linkPendingWorkOrder.mutateAsync({
-        company: selectedCompany!.slug,
-        itemId: maintenanceControlItemId,
-        workOrderId: response.work_order.id,
-      });
-    }
-
     form.reset();
     setTasks([]);
-
-    router.push(
-      maintenanceControlId
-        ? `/${selectedCompany!.slug}/planificacion/control_mantenimiento/${maintenanceControlId}`
-        : `/${selectedCompany!.slug}/planificacion/ordenes_trabajo`
-    );
+    router.push(`/${selectedCompany!.slug}/planificacion/ordenes_trabajo`);
   };
 
   const selectedAircraftData = useMemo(() => {

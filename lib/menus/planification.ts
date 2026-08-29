@@ -1,5 +1,5 @@
 import type { Group, MenuContext } from "@/lib/menus/types";
-import { BookCheck, CalendarFold, Plane, SquarePen, Wrench } from "lucide-react";
+import { BookCheck, CalendarFold, Plane, SquarePen } from "lucide-react";
 
 export function buildPlanificationGroup({
     pathname,
@@ -68,33 +68,6 @@ export function buildPlanificationGroup({
                         active:
                             pathname ===
                             `/${currentCompany?.slug}/planificacion/control_vuelos/vuelos`,
-                    },
-                ],
-            },
-            {
-                href: `/${currentCompany?.slug}/planificacion/control_mantenimiento`,
-                label: "Control de Mantenimiento",
-                active: pathname.includes(
-                    `/${currentCompany?.slug}/planificacion/control_mantenimiento`,
-                ),
-                icon: Wrench,
-                requiresOmac: true,
-                // Módulo aún en desarrollo: visible solo para SUPERUSER hasta que esté listo.
-                roles: ["SUPERUSER"],
-                submenus: [
-                    {
-                        href: `/${currentCompany?.slug}/planificacion/control_mantenimiento`,
-                        label: "Gestionar",
-                        active:
-                            pathname ===
-                            `/${currentCompany?.slug}/planificacion/control_mantenimiento`,
-                    },
-                    {
-                        href: `/${currentCompany?.slug}/planificacion/control_mantenimiento/historial`,
-                        label: "Histórico",
-                        active: pathname.includes(
-                            `/${currentCompany?.slug}/planificacion/control_mantenimiento/historial`,
-                        ),
                     },
                 ],
             },
