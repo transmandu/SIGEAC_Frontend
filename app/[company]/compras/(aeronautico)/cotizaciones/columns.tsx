@@ -18,7 +18,7 @@ import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 
 import Link from 'next/link'
-import EyePreviewIcon from '@/components/misc/EyePreviewIcon'
+import PreviewPanelIcon from '@/components/misc/PreviewPanelIcon'
 
 const QUOTE_STATUS_LABELS: Record<string, string> = {
   PENDING: 'PENDIENTE',
@@ -57,8 +57,7 @@ export const getColumns = (
             text-sm font-semibold
             text-slate-700 dark:text-slate-200
             text-center
-            hover:text-emerald-600
-            dark:hover:text-emerald-400
+            hover:text-primary
             transition-colors
           "
         >
@@ -343,7 +342,7 @@ export const getColumns = (
                     isActive && 'border-blue-500/40 bg-blue-500/10 text-blue-600 dark:text-blue-400'
                   )}
                 >
-                  <EyePreviewIcon active={isActive} className="size-3.5" />
+                  <PreviewPanelIcon active={isActive} className="size-3.5" />
                   {total} {total === 1 ? 'artículo' : 'artículos'}
                 </button>
               </TooltipTrigger>

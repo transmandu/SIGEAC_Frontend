@@ -26,6 +26,24 @@ interface ArticleData {
     warehouse_id: string;
     image?: File | null;
     conversions?: ArticleConversionInput[];
+    dimension?: ArticleDimensionInput;
+}
+
+/**
+ * Activa el modo dimensional o agrega escalas de medida a un perfil existente.
+ * Las medidas van opcionales porque un artículo ya dimensionado solo puede
+ * mandar `measure_conversions`: cambiar sus medidas alteraría el saldo cortado.
+ */
+export interface ArticleDimensionInput {
+    axes?: 1 | 2;
+    measure_unit_id?: number;
+    piece_length?: number;
+    piece_width?: number;
+    measure_conversions?: {
+        unit_id: number;
+        direction: "base_per_unit" | "units_per_base";
+        value: number;
+    }[];
 }
 
 
@@ -56,16 +74,22 @@ export const useUpdateGeneralArticle = () => {
             articleData,
             image,
             conversions,
+            dimension,
         }: {
             id: string | number;
             articleData: updateArticleData;
             image?: File | null;
             conversions?: ArticleConversionInput[];
+            dimension?: ArticleDimensionInput;
         }) => {
             if (!image) {
                 const { data } = await axiosInstance.patch(
                     `/${selectedCompany?.slug}/general-articles/${id}`,
-                    { articleData, ...(conversions ? { conversions } : {}) }
+                    {
+                        articleData,
+                        ...(conversions ? { conversions } : {}),
+                        ...(dimension ? { dimension } : {}),
+                    }
                 );
                 return data;
             }
@@ -86,6 +110,22 @@ export const useUpdateGeneralArticle = () => {
                 formData.append(`conversions[${index}][direction]`, row.direction);
                 formData.append(`conversions[${index}][value]`, String(row.value));
             });
+
+            if (dimension) {
+                if (dimension.axes !== undefined) {
+                    formData.append("dimension[axes]", String(dimension.axes));
+                    formData.append("dimension[measure_unit_id]", String(dimension.measure_unit_id));
+                    formData.append("dimension[piece_length]", String(dimension.piece_length));
+                }
+                if (dimension.piece_width !== undefined) {
+                    formData.append("dimension[piece_width]", String(dimension.piece_width));
+                }
+                dimension.measure_conversions?.forEach((row, i) => {
+                    formData.append(`dimension[measure_conversions][${i}][unit_id]`, String(row.unit_id));
+                    formData.append(`dimension[measure_conversions][${i}][direction]`, row.direction);
+                    formData.append(`dimension[measure_conversions][${i}][value]`, String(row.value));
+                });
+            }
 
             const { data } = await axiosInstance.post(
                 `/${selectedCompany?.slug}/general-articles/${id}`,
@@ -207,10 +247,16 @@ export const useConfirmGeneralArticleIntake = () => {
             id,
             confirmedAt,
             newConversionEquivalence,
+            extraConversions,
+            dimension,
         }: {
             id: number;
             confirmedAt?: Date;
             newConversionEquivalence?: number;
+            /** Equivalencias que el almacenista declara sin que se las pidan. */
+            extraConversions?: { unit_id: number; direction: string; value: number }[];
+            /** Activa el modo dimensional al confirmar. */
+            dimension?: ArticleDimensionInput;
         }) => {
             const { data } = await axiosInstance.patch<ConfirmGeneralArticleIntakeResponse>(
                 `/${selectedCompany?.slug}/general-article-intakes/${id}/confirm`,
@@ -226,6 +272,8 @@ export const useConfirmGeneralArticleIntake = () => {
                             },
                         }
                         : {}),
+                    ...(extraConversions?.length ? { extra_conversions: extraConversions } : {}),
+                    ...(dimension ? { dimension } : {}),
                 }
             );
             return data;
@@ -357,6 +405,18 @@ export const useCreateGeneralArticle = () => {
                         formData.append(`conversions[${index}][direction]`, row.direction);
                         formData.append(`conversions[${index}][value]`, String(row.value));
                     });
+                    return;
+                }
+
+                // Sin este caso el objeto viajaría como "[object Object]".
+                if (key === "dimension") {
+                    const dim = value as ArticleDimensionInput;
+                    formData.append("dimension[axes]", String(dim.axes));
+                    formData.append("dimension[measure_unit_id]", String(dim.measure_unit_id));
+                    formData.append("dimension[piece_length]", String(dim.piece_length));
+                    if (dim.piece_width !== undefined) {
+                        formData.append("dimension[piece_width]", String(dim.piece_width));
+                    }
                     return;
                 }
 

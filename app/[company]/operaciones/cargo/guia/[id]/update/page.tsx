@@ -32,7 +32,7 @@ export default function UpdateCargoShipmentPage() {
 
   return (
     <ContentLayout title="Editar Carga">
-      <PageHeader className="mb-6" />
+      <PageHeader className="mb-6" currentLabel={cargoShipment?.guide_number} />
 
       <div className="flex flex-col gap-4">
         <div className="flex items-center gap-4 mb-4">

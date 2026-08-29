@@ -16,6 +16,9 @@
     --popover: 226 100% 100%;
     --popover-foreground: 226 100% 10%;
     --primary: 226 95% 58%;
+    /* Hue suelto: los brillos necesitan el tono del primary con su propia
+       luminosidad, y de `--primary` no se puede extraer solo el hue. */
+    --primary-h: 226;
     --primary-foreground: 0 0% 100%;
     --secondary: 226 30% 90%;
     --secondary-foreground: 0 0% 0%;
@@ -82,6 +85,7 @@
     --popover: 226 50% 5%;
     --popover-foreground: 226 5% 100%;
     --primary: 223 70% 45%;
+    --primary-h: 223;
     --primary-foreground: 0 0% 100%;
     --secondary: 226 30% 20%;
     --secondary-foreground: 0 0% 100%;
@@ -557,15 +561,15 @@
 
 @keyframes glow-pulse {
   0% {
-    box-shadow: 0 0 0 0 rgba(67, 154, 151, 0.55);
+    box-shadow: 0 0 0 0 hsl(var(--primary) / 0.55);
   }
 
   70% {
-    box-shadow: 0 0 0 6px rgba(67, 154, 151, 0);
+    box-shadow: 0 0 0 6px hsl(var(--primary) / 0);
   }
 
   100% {
-    box-shadow: 0 0 0 0 rgba(67, 154, 151, 0);
+    box-shadow: 0 0 0 0 hsl(var(--primary) / 0);
   }
 }
 

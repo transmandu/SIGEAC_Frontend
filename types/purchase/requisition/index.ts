@@ -52,6 +52,7 @@ export interface BatchArticle {
   image?: string | null;
   aircraft?: string | { acronym: string } | null;
   document_types?: BatchArticleDocumentType[];
+  lifecycle_stage?: ArticleLifecycleStage | null;
 }
 
 export interface RequisitionBatch {
@@ -78,6 +79,7 @@ export interface RequisitionGeneralArticle {
   third_party?: GeneralArticleThirdParty | null;
   employee?: GeneralArticleEmployee | null;
   authorized_employee?: GeneralArticleAuthorizedEmployee | null;
+  lifecycle_stage?: ArticleLifecycleStage | null;
 }
 
 // ── Requisition Quote Reference ────────────────────────────────────────────
@@ -97,6 +99,42 @@ export interface RequisitionQuote {
   parent_quote_order_id?: number | null;
 }
 
+/**
+ * Segunda mitad de la vida del articulo, la que ocurre despues de que compras
+ * cierra la negociacion. El `status` del articulo (PENDING/APPROVED/PARTIAL/
+ * REJECTED) se congela al aprobar la cotizacion; esto cuenta lo que pasa
+ * despues, que el solicitante no ve porque vive en el modulo de compras.
+ *
+ * - APPROVED  orden de compra aprobada, a la espera de pago por Compras
+ * - PAID      pagada; el articulo aun no aparece en almacen
+ * - TRANSIT   el articulo fisico existe y viene en camino
+ * - RECEPTION llego a almacen y esta en proceso de recepcion
+ * - RECEIVED  recepcion cerrada: ya es stock disponible
+ */
+export type ArticleLifecycleStage =
+  | "APPROVED"
+  | "PAID"
+  | "TRANSIT"
+  | "RECEPTION"
+  | "RECEIVED";
+
+// ── Purchase Order Summary (list view) ─────────────────────────────────────
+/**
+ * Estado de compra de la requisicion. Null cuando todavia no existe ninguna
+ * orden. Una misma requisicion puede derivar en varias ordenes, asi que los dos
+ * indicadores no son excluyentes.
+ */
+export interface RequisitionPurchaseOrderSummary {
+  /** Alguna orden ya pagada: los articulos existen y estan en transito. */
+  has_paid: boolean;
+  /** Alguna orden creada pero sin pagar. */
+  has_pending: boolean;
+  orders: {
+    order_number: string;
+    status: string;
+  }[];
+}
+
 // ── Requisition (list view) ────────────────────────────────────────────────
 export interface Requisition {
   id: number;
@@ -114,6 +152,7 @@ export interface Requisition {
       image: string;
       aircraft?: string;
       priority?: PurchasePriority | string;
+      lifecycle_stage?: ArticleLifecycleStage | null;
     }[];
   }[];
   general_articles?: {
@@ -129,6 +168,7 @@ export interface Requisition {
     third_party?: GeneralArticleThirdParty | null;
     employee?: GeneralArticleEmployee | null;
     authorized_employee?: GeneralArticleAuthorizedEmployee | null;
+    lifecycle_stage?: ArticleLifecycleStage | null;
   }[];
   received_by?: string | null;
   received_at?: string | null;
@@ -140,6 +180,7 @@ export interface Requisition {
   department?: Department | null;
   third_party?: ThirdParty | null;
   quotes?: RequisitionQuote[];
+  purchase_order_summary?: RequisitionPurchaseOrderSummary | null;
   type: RequisitionType;
   priority?: PurchasePriority | string;
   observation?: string | null;

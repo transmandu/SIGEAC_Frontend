@@ -18,13 +18,13 @@ import { useGetMergeHistory, useUndoMerge } from "@/hooks/supervisor/useSupervis
 import { useCompanyStore } from "@/stores/CompanyStore"
 import type { GeneralArticleMerge } from "@/types/supervisor"
 import { History, Undo2, User } from "lucide-react"
-import SupervisorActionButton from "../_components/SupervisorActionButton"
+import SupervisorActionButton from "@/app/[company]/supervisor/articulos_generales/_components/SupervisorActionButton"
 import {
     dependencyBadgeCls,
     formatQuantity,
     formatSupervisorDateTime,
     mergeStatusBadgeCls,
-} from "../_components/utils/uiHelpers"
+} from "@/app/[company]/supervisor/articulos_generales/_components/utils/uiHelpers"
 import { PageHeader } from "@/components/layout/PageHeader";
 
 /**

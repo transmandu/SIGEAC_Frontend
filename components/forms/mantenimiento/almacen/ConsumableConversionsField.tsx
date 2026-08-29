@@ -15,6 +15,12 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
+import {
+    hintClass,
+    numericFieldClass,
+    selectTriggerClass,
+} from "./_components/form-theme";
 import type { Unit } from "@/types";
 import type { ConversionDirection } from "@/types/supervisor";
 import { Check, Plus, X } from "lucide-react";
@@ -100,7 +106,7 @@ export function ConsumableConversionsField({
 
     if (!baseUnitId) {
         return (
-            <p className="text-sm text-muted-foreground italic">
+            <p className={cn(hintClass, "italic")}>
                 Seleccione primero la unidad base del artículo.
             </p>
         );
@@ -109,7 +115,7 @@ export function ConsumableConversionsField({
     return (
         <div className="space-y-2">
             <div className="flex items-center justify-between gap-2">
-                <span className="text-sm text-muted-foreground">
+                <span className={hintClass}>
                     {value.length === 0
                         ? `Sólo se maneja en ${baseLabel}.`
                         : `${value.length} conversión(es) declarada(s).`}
@@ -123,7 +129,7 @@ export function ConsumableConversionsField({
                                     type="button"
                                     variant="outline"
                                     size="icon"
-                                    className="size-7 shrink-0"
+                                    className="size-8 shrink-0"
                                     onClick={() => setAdding(true)}
                                     disabled={disabled}
                                 >
@@ -152,7 +158,7 @@ export function ConsumableConversionsField({
                                 key={row.unit_id}
                                 className="flex items-center justify-between gap-2 rounded-md border bg-background/70 px-3 py-1.5"
                             >
-                                <span className="truncate text-sm tabular-nums">
+                                <span className="truncate text-[15px] tabular-nums">
                                     1 {rowLeft} ={" "}
                                     <span className="font-medium">{row.value}</span>{" "}
                                     {rowRight}
@@ -182,7 +188,7 @@ export function ConsumableConversionsField({
                             onValueChange={(next) => setUnitId(Number(next))}
                             disabled={disabled}
                         >
-                            <SelectTrigger className="h-8 text-xs">
+                            <SelectTrigger className={cn(selectTriggerClass, "h-10 text-sm")}>
                                 <SelectValue placeholder="Unidad a convertir" />
                             </SelectTrigger>
                             <SelectContent>
@@ -199,7 +205,7 @@ export function ConsumableConversionsField({
                             onValueChange={(next) => setDirection(next as ConversionDirection)}
                             disabled={disabled || !unitId}
                         >
-                            <SelectTrigger className="h-8 text-xs">
+                            <SelectTrigger className={cn(selectTriggerClass, "h-10 text-sm")}>
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -215,7 +221,7 @@ export function ConsumableConversionsField({
 
                     {!!unitId && (
                         <div className="flex flex-wrap items-center gap-2">
-                            <span className="text-xs text-muted-foreground whitespace-nowrap">
+                            <span className="whitespace-nowrap text-[13px] text-muted-foreground">
                                 1 {leftLabel} =
                             </span>
                             <Input
@@ -224,13 +230,13 @@ export function ConsumableConversionsField({
                                 inputMode="decimal"
                                 min="0"
                                 step="any"
-                                className="h-8 w-24"
+                                className={cn(numericFieldClass, "h-10 w-28")}
                                 placeholder="Ej: 100"
                                 value={amount}
                                 disabled={disabled}
                                 onChange={(event) => setAmount(event.target.value)}
                             />
-                            <span className="text-xs text-muted-foreground whitespace-nowrap">
+                            <span className="whitespace-nowrap text-[13px] text-muted-foreground">
                                 {rightLabel}
                             </span>
 

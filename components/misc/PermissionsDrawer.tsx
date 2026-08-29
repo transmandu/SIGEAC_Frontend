@@ -11,8 +11,8 @@ import {
     DrawerTrigger,
   } from "@/components/ui/drawer"  
 import { Permission } from "@/types"
-import { Button } from "../ui/button"
-import { Badge } from "../ui/badge"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { useRouter } from "next/navigation"
 
 interface DrawerProps {

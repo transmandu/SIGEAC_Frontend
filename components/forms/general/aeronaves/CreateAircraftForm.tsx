@@ -14,10 +14,10 @@ import { es } from "date-fns/locale/es";
 import { CalendarIcon, Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Separator } from "../../../ui/separator";
-import { Textarea } from "../../../ui/textarea";
+import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../../../ui/command";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { useGetManufacturers } from "@/hooks/general/fabricantes/useGetManufacturers";
 import { useCompanyStore } from "@/stores/CompanyStore";
 

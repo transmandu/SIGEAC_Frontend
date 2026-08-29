@@ -131,9 +131,9 @@ function ArticleRow({
             }}
             className={cn(
                 "group rounded-lg border bg-background/70 px-3 py-2.5 cursor-pointer transition-colors duration-150",
-                "hover:bg-muted/30 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-sky-500/30",
+                "hover:bg-muted/30 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/30",
                 selected
-                    ? "border-sky-400/50 bg-sky-500/[0.06] dark:border-sky-300/30"
+                    ? "border-primary/50 bg-primary/[0.06]"
                     : "border-border/60",
             )}
         >

@@ -14,6 +14,7 @@ import Link from "next/link"
 import { Plane, ClipboardList, Building2, Handshake } from "lucide-react"
 
 import RequisitionArticlesPopover from "./_components/RequisitionArticlesPopover"
+import RequisitionStatusCell from "./_components/RequisitionStatusCell"
 import RequisitionDateFilter, { type DateFilterValue } from "./_components/RequisitionDateFilter"
 
 // This type is used to define the shape of our data.
@@ -59,36 +60,15 @@ export const getColumns = (
   },
   {
     accessorKey: "status",
-    size: 90,
+    // Cabe el badge de ancho fijo (6.5rem) mas el hueco del icono de compra.
+    size: 150,
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Estado" />
     ),
     meta: { title: "Estado" },
-    cell: ({ row }) => {
-      const status = row.original.status?.toUpperCase();
-
-      const STATUS_CONFIG: Record<string, { label: string; cls: string }> = {
-        CREATED:     { label: 'CREADA',     cls: 'bg-slate-500/20 text-slate-700 dark:text-slate-200' },
-        RECEIVED:    { label: 'RECIBIDA',   cls: 'bg-sky-500/20 text-sky-700 dark:text-sky-200' },
-        IN_PROGRESS: { label: 'PROCESO',    cls: 'bg-yellow-500/20 text-yellow-700 dark:text-yellow-200' },
-        QUOTED:      { label: 'COTIZADA',   cls: 'bg-violet-500/20 text-violet-700 dark:text-violet-200' },
-        APPROVED:    { label: 'APROBADA',   cls: 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-200' },
-        REJECTED:    { label: 'NO APROBADA',  cls: 'bg-red-500/20 text-red-700 dark:text-red-200' },
-      };
-
-      const config = STATUS_CONFIG[status ?? ''] ?? { label: status ?? '—', cls: 'border-border bg-muted text-muted-foreground' };
-
-      return (
-        <div className="flex justify-center text-center">
-          <span className={cn(
-            "rounded-full px-2.5 py-0.5 text-[11px] font-medium select-none cursor-default",
-            config.cls
-          )}>
-            {config.label}
-          </span>
-        </div>
-      );
-    },
+    cell: ({ row }) => (
+      <RequisitionStatusCell requisition={row.original} />
+    ),
   },
   {
     accessorKey: "justification",
@@ -252,11 +232,15 @@ export const getColumns = (
   },
   {
     id: 'actions',
-    size: 50,
+    // El minWidth inline pisa el de .table-sticky-right (100px), asi que el
+    // ancho de la columna anclada se fija aqui.
+    size: 100,
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Acciones" />
     ),
-    meta: { title: "Acciones" },
+    // La tabla no cabe a lo ancho; anclar acciones evita tener que scrollear
+    // hasta el final para abrir el menu de cada fila.
+    meta: { title: "Acciones", sticky: "right" },
     cell: ({ row }) => (
       <div className="flex justify-center" onClick={(e) => e.stopPropagation()}>
         <RequisitionsDropdownActions req={row.original} />

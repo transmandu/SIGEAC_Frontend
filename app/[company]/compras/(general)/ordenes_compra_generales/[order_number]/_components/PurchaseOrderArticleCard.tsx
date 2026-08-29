@@ -54,7 +54,7 @@ const PurchaseOrderArticleCard = ({ article, orderStatus }: PurchaseOrderArticle
       {/* HEADER */}
       <div className="flex items-center justify-between gap-2 border-b border-border/50 bg-muted/25 px-2.5 py-1">
         <div className="flex items-center gap-1.5 min-w-0">
-          <span className="shrink-0 text-[9px] px-1 py-[1px] rounded bg-teal-500/10 text-teal-700 border border-teal-500/20 font-medium select-none">
+          <span className="shrink-0 text-[9px] px-1 py-[1px] rounded bg-primary/10 text-primary border border-primary/20 font-medium select-none">
             P/N
           </span>
           <span className="truncate text-xs font-medium text-foreground">

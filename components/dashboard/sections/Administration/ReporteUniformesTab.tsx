@@ -31,24 +31,24 @@ function TintedCard({
 }
 
 export const ReporteUniformesTab = () => {
-  const purpleTone = "168,85,247";
+  const skyTone = "14,165,233";
 
   return (
     <div className="flex justify-center items-center py-10">
-      <TintedCard tone={purpleTone}>
+      <TintedCard tone={skyTone}>
         <div
           className="pointer-events-none absolute inset-x-0 top-0 h-28"
           style={{
             background:
-              "radial-gradient(120% 80% at 50% 0%, rgba(168,85,247,0.08), transparent 72%)",
+              "radial-gradient(120% 80% at 50% 0%, rgba(14,165,233,0.08), transparent 72%)",
           }}
         />
 
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-purple-400/[0.02] via-transparent to-transparent" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-sky-400/[0.02] via-transparent to-transparent" />
 
         <CardHeader className="relative text-center space-y-5 pb-6">
           <div className="flex justify-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-purple-500/10 text-purple-500 dark:text-purple-300 ring-1 ring-purple-500/10">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-sky-500/10 text-sky-500 dark:text-sky-300 ring-1 ring-sky-500/10">
               <Shirt className="h-5 w-5" />
             </div>
           </div>

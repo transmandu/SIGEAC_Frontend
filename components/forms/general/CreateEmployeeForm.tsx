@@ -45,10 +45,10 @@ import { Check, ChevronsUpDown, Eye, EyeOff, Loader2, Camera, X } from 'lucide-r
 import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { Badge } from '../../ui/badge';
-import { Checkbox } from '../../ui/checkbox';
-import { Label } from '../../ui/label';
-import { Separator } from '../../ui/separator';
+import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
 import { useGetCompanies } from '@/hooks/sistema/useGetCompanies';
 import { useCreateUser } from '@/actions/sistema/usuarios/actions';
 import Image from "next/image";

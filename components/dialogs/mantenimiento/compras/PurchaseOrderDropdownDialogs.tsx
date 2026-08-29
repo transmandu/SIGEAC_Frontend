@@ -19,8 +19,8 @@ import type { PurchaseOrder } from "@/types/purchase"
 import { isAeronauticalPurchaseOrder } from "@/lib/purchases/purchase-order-scope"
 import { useCascadeDeletePurchaseOrder } from "@/actions/mantenimiento/compras/ordenes_compras/actions"
 import { useCompanyStore } from "@/stores/CompanyStore"
-import { PayPurchaseOrderForm } from "../../../forms/mantenimiento/compras/PayPurchaseOrderForm"
-import { CompleteOrderForm } from "../../../forms/mantenimiento/compras/CompleteOrderForm"
+import { PayPurchaseOrderForm } from "@/components/forms/mantenimiento/compras/PayPurchaseOrderForm"
+import { CompleteOrderForm } from "@/components/forms/mantenimiento/compras/CompleteOrderForm"
 
 type Props = {
   po: PurchaseOrder
@@ -177,11 +177,11 @@ const PurchaseOrderDropdownDialogs = ({
                     flex items-center justify-center
                     size-14 shrink-0
                     rounded-2xl
-                    border border-emerald-500/10
-                    bg-emerald-500/[0.08]
+                    border border-primary/10
+                    bg-primary/[0.08]
                   "
                 >
-                  <Wallet className="size-6 text-emerald-600" />
+                  <Wallet className="size-6 text-primary" />
                 </div>
 
                 <div className="space-y-2">
@@ -257,11 +257,11 @@ const PurchaseOrderDropdownDialogs = ({
                     flex items-center justify-center
                     size-14 shrink-0
                     rounded-2xl
-                    border border-emerald-500/10
-                    bg-emerald-500/[0.08]
+                    border border-primary/10
+                    bg-primary/[0.08]
                   "
                 >
-                  <ClipboardCheck className="size-6 text-emerald-600" />
+                  <ClipboardCheck className="size-6 text-primary" />
                 </div>
 
                 <div className="space-y-2">

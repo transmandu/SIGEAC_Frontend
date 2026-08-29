@@ -9,6 +9,7 @@ import {
     ClipboardPen,
     Loader2,
     MoreHorizontal,
+    Ruler,
     Trash2,
 } from "lucide-react";
 import { useState } from "react";
@@ -28,6 +29,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useDeleteGeneralArticle } from "@/actions/mantenimiento/inventario/articulos/actions";
 import CreateGeneralArticleForm from "@/components/forms/mantenimiento/almacen/CreateGeneralArticleForm";
+import DimensionPiecesDialog from "@/components/dialogs/almacen/DimensionPiecesDialog";
 import type { GeneralArticle } from "@/types";
 
 interface Props {
@@ -38,6 +40,7 @@ const GeneralArticleDropDownActions = ({ article }: Props) => {
     const { selectedCompany } = useCompanyStore();
     const [openEdit, setOpenEdit] = useState<boolean>(false);
     const [openDelete, setOpenDelete] = useState<boolean>(false);
+    const [openPieces, setOpenPieces] = useState<boolean>(false);
     const { deleteGeneralArticle } = useDeleteGeneralArticle();
 
     const handleDelete = async () => {
@@ -75,6 +78,22 @@ const GeneralArticleDropDownActions = ({ article }: Props) => {
                         <TooltipContent>Editar artículo</TooltipContent>
                     </Tooltip>
 
+                    {/* Solo tiene sentido en artículos dimensionados: en los
+                        demás no hay piezas que mostrar. */}
+                    {article.dimension && (
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <DropdownMenuItem
+                                    className="cursor-pointer"
+                                    onSelect={() => setOpenPieces(true)}
+                                >
+                                    <Ruler className="size-5" />
+                                </DropdownMenuItem>
+                            </TooltipTrigger>
+                            <TooltipContent>Ver piezas y cortes</TooltipContent>
+                        </Tooltip>
+                    )}
+
                     <Tooltip>
                         <TooltipTrigger asChild>
                             <DropdownMenuItem
@@ -89,13 +108,25 @@ const GeneralArticleDropDownActions = ({ article }: Props) => {
                 </DropdownMenuContent>
             </DropdownMenu>
 
+            {article.dimension && (
+                <DimensionPiecesDialog
+                    article={article}
+                    open={openPieces}
+                    onOpenChange={setOpenPieces}
+                />
+            )}
+
             <Dialog open={openEdit} onOpenChange={setOpenEdit}>
-                <DialogContent className="max-w-4xl max-h-[calc(100vh-4rem)] overflow-auto">
+                {/* Sin overflow aquí: el que scrollea es el cuerpo del
+                    formulario, para que su pie de acciones quede fuera del
+                    área desplazable y nada pase por detrás. */}
+                <DialogContent className="flex max-h-[calc(100vh-4rem)] max-w-5xl flex-col overflow-hidden p-0">
                     <CreateGeneralArticleForm
                         initialData={article}
                         isEditing={true}
                         onlyDescription={true}
                         onClose={() => setOpenEdit(false)}
+                        inDialog
                     />
                 </DialogContent>
             </Dialog>

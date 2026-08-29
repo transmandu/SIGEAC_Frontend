@@ -49,6 +49,25 @@ const TYPE_LABEL: Record<UnitConversionRow["convertible_type"], string> = {
 };
 
 /**
+ * El valor que el usuario escribió en la lectura inversa, recuperado del factor.
+ *
+ * Invertir no lo devuelve tal cual: el factor se guardó redondeado a 12
+ * decimales, así que 1/0.027777777778 da 35.999999999712 en vez de 36. Se
+ * redondea a los decimales mínimos que reproduzcan el valor para no mostrar esa
+ * basura en el formulario de edición.
+ */
+function readableInverse(factor: number): number {
+    const inverted = 1 / factor;
+
+    for (let decimals = 0; decimals <= 8; decimals++) {
+        const candidate = Number(inverted.toFixed(decimals));
+        if (candidate > 0 && Math.abs(inverted - candidate) < 1e-6) return candidate;
+    }
+
+    return inverted;
+}
+
+/**
  * Todas las conversiones registradas y a qué artículo pertenecen.
  *
  * Existe para poder auditarlas: una equivalencia invertida no falla, produce
@@ -82,16 +101,25 @@ export function ConversionsRegistryPanel() {
                 row.unit?.label,
                 row.base_unit?.label,
                 row.lectura,
+                row.lectura_legible,
             ]
                 .filter(Boolean)
                 .some((field) => String(field).toLowerCase().includes(term));
         });
     }, [rows, search, typeFilter]);
 
+    // Se abre en la dirección con que se capturó: quien declaró "1 UNIDAD = 36
+    // YARDAS" no reconoce su conversión si el formulario le muestra 0.0277…
     const startEdit = (row: UnitConversionRow) => {
+        const inverse =
+            row.captured_direction === "units_per_base" ||
+            (!row.captured_direction && row.base_per_unit < 1);
+
         setEditingId(row.id);
-        setEditDirection("base_per_unit");
-        setEditValue(String(row.base_per_unit));
+        setEditDirection(inverse ? "units_per_base" : "base_per_unit");
+        setEditValue(
+            String(inverse ? readableInverse(row.base_per_unit) : row.base_per_unit),
+        );
     };
 
     const commitEdit = (row: UnitConversionRow) => {
@@ -241,10 +269,26 @@ export function ConversionsRegistryPanel() {
                                                     />
                                                 </div>
                                             ) : (
-                                                <span className="text-sm tabular-nums">
-                                                    {row.lectura ??
-                                                        `1 ${row.unit?.label ?? "?"} = ${row.base_per_unit}`}
-                                                </span>
+                                                // Se muestra la lectura legible y el factor
+                                                // canónico queda en el tooltip: es el que usa
+                                                // el cálculo y quien audita necesita verlo.
+                                                <TooltipProvider>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <span className="text-sm tabular-nums">
+                                                                {row.lectura_legible ??
+                                                                    row.lectura ??
+                                                                    `1 ${row.unit?.label ?? "?"} = ${row.base_per_unit}`}
+                                                            </span>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent className="max-w-xs">
+                                                            Factor guardado: 1{" "}
+                                                            {row.unit?.label ?? "?"} ={" "}
+                                                            {row.base_per_unit}{" "}
+                                                            {row.base_unit?.label ?? "?"}
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
                                             )}
                                         </TableCell>
                                         <TableCell className="text-right">
@@ -338,7 +382,9 @@ export function ConversionsRegistryPanel() {
                     <AlertDialogHeader>
                         <AlertDialogTitle>¿Eliminar esta conversión?</AlertDialogTitle>
                         <AlertDialogDescription>
-                            {pendingDelete?.lectura ?? "La equivalencia se eliminará."}
+                            {pendingDelete?.lectura_legible ??
+                                pendingDelete?.lectura ??
+                                "La equivalencia se eliminará."}
                             {" "}Los movimientos ya registrados conservan el factor con que se
                             calcularon, pero el artículo dejará de poder despacharse en{" "}
                             {pendingDelete?.unit?.label ?? "esa unidad"}.

@@ -73,7 +73,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { type ChecklistValue } from "../../IncomingTypes";
+import { type ChecklistValue } from "@/app/[company]/control_calidad/incoming/IncomingTypes";
 import { StatusBadge } from "./StatusBadge";
 
 /* ─── Types ─── */
@@ -377,10 +377,10 @@ function ChecklistContent({
   progress,
   variant,
 }: {
-  groups: import("../../IncomingTypes").ChecklistGroup[];
+  groups: import("@/app/[company]/control_calidad/incoming/IncomingTypes").ChecklistGroup[];
   checklist: Record<string, ChecklistValue>;
   setValue: (key: string, val: ChecklistValue) => void;
-  flat: import("../../IncomingTypes").ChecklistItem[];
+  flat: import("@/app/[company]/control_calidad/incoming/IncomingTypes").ChecklistItem[];
   done: number;
   total: number;
   okCount: number;
@@ -494,7 +494,7 @@ export function IncomingReview({ article }: { article: any }) {
     ? article.serial.join(", ")
     : article?.serial;
 
-  const isHazardous = !!article?.batch?.is_hazarous;
+  const isHazardous = !!article?.batch?.is_hazardous;
   const consumable = article?.consumable;
 
   /* ── Checklist state ── */

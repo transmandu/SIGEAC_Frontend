@@ -2,7 +2,7 @@
 
 import { UserNav } from "@/components/layout/UserNav";
 import { SheetMenu } from "@/components/sidebar/SheetMenu";
-import CompanySelect from "../selects/CompanySelect";
+import CompanySelect from "@/components/selects/CompanySelect";
 import { ThemeToggler } from "./ThemeToggler";
 import NotificationBell from '@/components/notifications/NotificationBell';
 import ErrorReportTrigger from '@/components/misc/ErrorReportTrigger';

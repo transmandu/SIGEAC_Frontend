@@ -8,8 +8,8 @@ import {
 import { useDeleteMaintenanceAircraft } from "@/actions/mantenimiento/planificacion/aeronaves/actions"
 import { Loader2, MoreHorizontal, Trash2 } from "lucide-react"
 import { useState } from "react"
-import { Button } from "../../../ui/button"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../../../ui/dialog"
+import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { useCompanyStore } from "@/stores/CompanyStore"
 
 const MaintenanceAircraftDropdownActions = ({ id }: { id: string | number }) => {

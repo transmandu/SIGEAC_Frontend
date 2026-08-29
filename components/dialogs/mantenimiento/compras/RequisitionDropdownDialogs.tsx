@@ -17,8 +17,8 @@ import {
   Trash2
 } from "lucide-react"
 import LoadingPage from "@/components/misc/LoadingPage"
-import { CreateQuoteForm } from "../../../forms/mantenimiento/compras/CreateQuoteForm"
-import { CreateGeneralQuoteForm } from "../../../forms/general/compras/CreateGeneralQuoteForm"
+import { CreateQuoteForm } from "@/components/forms/mantenimiento/compras/CreateQuoteForm"
+import { CreateGeneralQuoteForm } from "@/components/forms/general/compras/CreateGeneralQuoteForm"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -461,11 +461,11 @@ const RequisitionDropdownDialogs = ({
                   flex items-center justify-center
                   size-10 shrink-0
                   rounded-xl
-                  border border-emerald-500/10
-                  bg-emerald-500/[0.08]
+                  border border-primary/10
+                  bg-primary/[0.08]
                 "
               >
-                <Receipt className="size-4.5 text-emerald-600" />
+                <Receipt className="size-4.5 text-primary" />
               </div>
 
               <div className="min-w-0 flex-1">

@@ -27,10 +27,10 @@ import { Check, ChevronsUpDown, Loader2, MinusCircle, PlusCircle } from "lucide-
 import { useEffect, useMemo, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../../../ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "../../../ui/popover";
-import { ScrollArea } from "../../../ui/scroll-area";
-import { Textarea } from "../../../ui/textarea";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Textarea } from "@/components/ui/textarea";
 import { useGetBatchesByLocationId } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByLocationId";
 
 // Esquema de validación para el servicio

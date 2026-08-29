@@ -25,6 +25,7 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { triggerButtonClass } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
 import axiosInstance from "@/lib/axios";
 import { useGetArticleDocumentTypes } from "@/hooks/mantenimiento/almacen/articulos/useGetArticleDocumentTypes";
 import { cn } from "@/lib/utils";
@@ -153,7 +154,7 @@ const ArticleDocumentsSelector = ({
                         variant="outline"
                         role="combobox"
                         disabled={disabled || isLoading}
-                        className="w-full justify-between"
+                        className={triggerButtonClass}
                     >
                         {isLoading ? (
                             <>
@@ -170,7 +171,12 @@ const ArticleDocumentsSelector = ({
                         )}
                     </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-[320px] p-0">
+                <PopoverContent
+                    matchTriggerWidth
+                    align="start"
+                    sideOffset={6}
+                    className="overflow-hidden rounded-xl border-slate-400/60 p-0 shadow-lg dark:border-slate-600/60"
+                >
                     <Command>
                         <CommandInput placeholder="Buscar tipo de documento..." />
                         <CommandList>
@@ -184,14 +190,14 @@ const ArticleDocumentsSelector = ({
                                     >
                                         <Check
                                             className={cn(
-                                                "mr-2 h-4 w-4",
+                                                "mr-2 h-4 w-4 shrink-0",
                                                 isSelected(type.id) ? "opacity-100" : "opacity-0"
                                             )}
                                         />
-                                        <div className="flex flex-col">
-                                            <span>{type.name}</span>
+                                        <div className="flex min-w-0 flex-col">
+                                            <span className="truncate">{type.name}</span>
                                             {type.regulation && (
-                                                <span className="text-xs text-muted-foreground">
+                                                <span className="truncate text-xs text-muted-foreground">
                                                     {type.regulation}
                                                 </span>
                                             )}
@@ -204,6 +210,16 @@ const ArticleDocumentsSelector = ({
                 </PopoverContent>
             </Popover>
 
+            {/* La lista crece con cada tipo elegido y estiraba la sección
+                entera. Se acota aquí y desplaza dentro de sí misma; el max-h
+                deja ver dos documentos y parte del tercero, que insinúa que
+                hay más sin que la sección se dispare. */}
+            <div
+                className={cn(
+                    "space-y-4",
+                    value.length > 0 && "max-h-[17rem] overflow-y-auto pr-1",
+                )}
+            >
             {value.map((doc) => {
                 const consigned = consignedByTypeId.get(doc.typeId);
                 const existingDocument = consigned?.documents[0];
@@ -342,6 +358,7 @@ const ArticleDocumentsSelector = ({
                     </div>
                 );
             })}
+            </div>
 
             {previewDoc && (
                 <SecureFileViewer

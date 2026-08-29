@@ -104,6 +104,13 @@ export type Article = {
   inspector?: string;
   inspect_date?: string;
   ata_code?: string;
+  /** Orden de compra del sistema que originó el artículo, si nació de un ciclo de compra. */
+  purchase_order_id?: number | null;
+  /**
+   * Número de orden a mostrar. El backend antepone el de la orden del sistema;
+   * cuando no hay orden, es el que compras carga a mano en el formulario.
+   */
+  purchase_order_number?: string | null;
   needs_calibration?: boolean;
   calibration_date?: string | null;
   next_calibration?: string;
@@ -170,9 +177,12 @@ export type Batch = {
   category: string;
   ata_code: string;
   brand: string;
-  is_hazarous: boolean;
+  is_hazardous: boolean;
   unit: Unit;
+  /** Nivel que dispara la alerta de stock, contra la suma de sus lotes. */
   min_quantity: number;
+  /** Nivel objetivo de reposición, no un tope de existencia. */
+  maximum_quantity?: number | null;
   zone: string;
   warehouse_id: number;
   warehouse_name: string;
@@ -264,26 +274,40 @@ export type Condition = {
   updated_by: string;
 };
 
+/** Sin `min_quantity`: el nivel que alerta pertenece al renglón, no al lote. */
 export interface ConsumableArticle extends Article {
   is_managed?: boolean;
   quantity?: number;
-  min_quantity?: number;
   expiration_date?: string;
   fabrication_date?: string;
 }
 
 /**
- * Forma cruda que devuelve GET .../articles/low-stock-consumables: un Article
- * con sus relaciones consumable/batch cargadas (no aplanado como ConsumableArticle).
- * La cantidad actual vive en consumable.quantity, el mínimo en batch.min_quantity.
+ * Renglón de consumible bajo su stock mínimo, tal como lo devuelve
+ * GET .../articles/low-stock-consumables.
+ *
+ * La alerta es del renglón y no de un lote suyo: un consumible casi nunca se
+ * repite —cada compra entra como artículo nuevo porque trae otro número de
+ * lote—, así que comparar lote por lote levantaba una alerta por cada uno
+ * sobre un renglón que en total estaba sobrado. `stored_quantity` es la suma
+ * de los lotes almacenados, que es lo que se contrasta contra el mínimo.
  */
-export interface LowStockConsumableArticle extends Article {
-  consumable: {
-    id: number;
+export interface LowStockConsumableBatch
+  extends Pick<Batch, "id" | "name" | "min_quantity" | "unit"> {
+  maximum_quantity?: number | null;
+  stored_quantity: number;
+  /**
+   * Existencia que quedó FUERA de `stored_quantity` por estar declarada en otra
+   * unidad. La unidad se declara por lote, así que un renglón puede tener lotes
+   * en unidades distintas y sin equivalencia entre ellas; sumarlos daría un
+   * número sin significado, así que se apartan y se muestran aparte.
+   */
+  excluded_stock?: {
+    unit_id: number | null;
     quantity: number;
-    primary_unit_id?: number;
-  };
-  batch: Pick<Batch, "id" | "name" | "min_quantity" | "unit">;
+    unit_label: string | null;
+  }[];
+  in_transit?: InTransitDetail[];
 }
 
 /**
@@ -299,6 +323,14 @@ export type Convertion = {
   unit: Unit;
   base_per_unit: number;
   lectura: string;
+  /**
+   * La equivalencia dicha en la dirección en que se declaró. Preferirla siempre
+   * al mostrarla: `lectura` es literal y se vuelve ilegible cuando el factor
+   * queda por debajo de 1 ("1 YARDA = 0.027777777778 UNIDAD" es lo que se
+   * guardó al escribir "1 UNIDAD = 36 YARDAS").
+   */
+  lectura_legible?: string;
+  captured_direction?: "base_per_unit" | "units_per_base" | null;
   preview: string;
 };
 
@@ -442,6 +474,80 @@ export type MaintenanceAircraftPart = {
   aircraft?: MaintenanceAircraft;
   type: string;
   description: string;
+};
+
+export type MaintenanceCountingMethod = "HOURS" | "CYCLES" | "DAYS";
+
+export type MaintenanceProvider = {
+  id: number;
+  name: string;
+};
+
+export type MaintenanceCompliance = {
+  id: number;
+  maintenance_control_item_id: number;
+  maintenance_control_item?: MaintenanceControlItem;
+  maintenance_provider_id: number | string;
+  maintenance_provider?: MaintenanceProvider;
+  work_order_id: number | string;
+  work_order?: WorkOrder;
+  compliance_date: string;
+  hours_reading: number | string;
+  cycles_reading: number | string;
+  notes?: string | null;
+  is_historical?: boolean;
+  registered_by?: string;
+  created_at?: string;
+};
+
+export type MaintenanceControlItem = {
+  id?: number;
+  maintenance_control_id?: number;
+  maintenance_control_part_id?: number | null;
+  maintenance_provider_id?: number | string | null;
+  maintenance_provider?: MaintenanceProvider;
+  // OT creada para resolver el estado crítico; mientras esté puesta (y esa
+  // OT no esté CLOSED) no se puede registrar un nuevo cumplimiento.
+  pending_work_order_id?: number | string | null;
+  pending_work_order?: WorkOrder | null;
+  category: "CERTIFICATE" | "SERVICE";
+  name: string;
+  counting_method: MaintenanceCountingMethod;
+  limit_value: number | string;
+  first_applied_date: string;
+  first_applied_value?: number | string | null;
+  extra_days?: number | string | null;
+  latest_compliance?: MaintenanceCompliance | null;
+  maintenance_control?: MaintenanceControl;
+  maintenance_control_part?: MaintenanceControlPart;
+};
+
+export type MaintenanceControlPart = {
+  id?: number;
+  maintenance_control_id?: number;
+  aircraft_part_id: number | string;
+  aircraft_part?: MaintenanceAircraftPart;
+  items?: MaintenanceControlItem[];
+};
+
+export type MaintenanceControl = {
+  id: number;
+  aircraft_id: number | string;
+  aircraft: MaintenanceAircraft;
+  title: string;
+  description?: string;
+  has_reference_manual: boolean;
+  reference_manual?: string | null;
+  remaining_percentage: number | string;
+  certificates_count?: number;
+  services_count?: number;
+  parts_count?: number;
+  parts?: MaintenanceControlPart[];
+  items?: MaintenanceControlItem[];
+  registered_by?: string;
+  updated_by?: string;
+  created_at?: string;
+  updated_at?: string;
 };
 
 export type PlanificationEvent = {
@@ -816,6 +922,8 @@ export type Unit = {
   id: number;
   value: string;
   label: string;
+  /** Habilita la unidad para declarar medidas en artículos dimensionados. */
+  is_dimensional?: boolean;
   updated_by: string;
   registered_by: string;
   created_at: Date;
@@ -1413,6 +1521,40 @@ export type GeneralArticle = {
   cost_history?: GeneralArticleCostHistoryEntry[];
   /** Solo lo carga el endpoint de low-stock. */
   in_transit?: InTransitDetail[];
+  /**
+   * Presente solo si el artículo se mide por dimensiones: su stock vive
+   * repartido en piezas individuales y `quantity` es su equivalente en piezas.
+   */
+  dimension?: ArticleDimension | null;
+};
+
+/**
+ * Resumen dimensional que acompaña a un artículo en los listados.
+ *
+ * No es exclusivo del artículo general: el perfil es polimórfico y lo comparten
+ * los consumibles y cualquier modelo con stock que se dimensione.
+ */
+export type ArticleDimension = {
+  /** 2 = se corta por área (lámina, tela); 1 = a lo largo (cable, rollo). */
+  axes: number;
+  piece_length: number;
+  piece_width: number | null;
+  piece_magnitude: number;
+  measure_unit_id: number;
+  measure_unit_label: string | null;
+  /** "METRO²" o "METRO", según los ejes. */
+  magnitude_label: string;
+  available_pieces: number;
+  total_pieces: number;
+  total_remaining: number;
+  /** Piezas sin empezar: las únicas que rinden un corte del tamaño completo. */
+  whole_pieces: number;
+  pieces: {
+    id: number;
+    code: string;
+    remaining: number;
+    initial: number;
+  }[];
 };
 
 export interface SMSCertificate {

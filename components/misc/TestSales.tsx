@@ -6,7 +6,7 @@ import {
     CardHeader,
     CardTitle,
   } from "@/components/ui/card"
-import { Avatar, AvatarFallback } from "../ui/avatar"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
   
 const TestSales = () => {
   return (

@@ -18,6 +18,7 @@ import { useMemo } from "react"
 import { SectionHeader } from "./_components/SectionHeader"
 import { ConversionPanel } from "./_components/ConversionPanel"
 import { ArticleRowCard } from "./_components/ArticleRowCard"
+import { GeneralArticleRow } from "./_components/GeneralArticleRow"
 import { BackdatedDispatchField } from "./_components/BackdatedDispatchField"
 import { useDispatchForm, aeroKey, genKey } from "./_hooks/useDispatchForm"
 
@@ -53,6 +54,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
         aeroById, genById,
         getAeroMax, getGenMax,
         qtyByKey, setQtyByKey, msgByKey, convByKey,
+        cutByKey, updateCut,
         commitAeroQty, commitGenQty,
         setToMaxAero, setToMaxGen,
         convState, setConvState,
@@ -603,25 +605,23 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                                 const ga = generalId ? genById.get(generalId) : undefined
                                 const max = generalId ? getGenMax(generalId) : 0
                                 return (
-                                    <ArticleRowCard
+                                    <GeneralArticleRow
                                         key={f.id}
-                                        title={ga?.description ?? (generalId ? `ID: ${generalId}` : "Artículo")}
-                                        subtitle={`${ga?.brand_model ?? "N/A"} · ${ga?.variant_type ?? "N/A"} · Disponible: ${ga?.quantity ?? 0} ${ga?.general_primary_unit?.label ?? ""}`}
+                                        article={ga}
+                                        generalId={generalId}
                                         qty={qtyByKey[key] ?? ""}
                                         max={max}
                                         rowMsg={msgByKey[key]}
-                                        disabled={!ga}
-                                        canConvert={!!ga}
+                                        conversion={convByKey[key]}
                                         showConversionPanel={convState.target === "general" && convState.rowFieldId === f.id && !!ga}
                                         conversionPanelNode={conversionPanelNode}
-                                        accentClass="border-l-amber-500/50"
-                                        baseUnitLabel={ga?.general_primary_unit?.label ?? undefined}
-                                        conversion={convByKey[key]}
+                                        cut={cutByKey[key]}
                                         onQtyChange={(val) => setQtyByKey((p) => ({ ...p, [key]: val }))}
                                         onCommit={() => commitGenQty(index, f.id)}
                                         onSetMax={() => setToMaxGen(index, f.id)}
                                         onOpenConversion={() => openConversionForGeneral(index, f.id, generalId)}
                                         onRemove={() => removeGenRow(index, f.id)}
+                                        onCutChange={(next) => updateCut(index, f.id, next)}
                                     />
                                 )
                             })}

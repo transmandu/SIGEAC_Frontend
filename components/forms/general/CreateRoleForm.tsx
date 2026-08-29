@@ -30,8 +30,8 @@ import { Loader, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Button } from "../../ui/button";
-import { Checkbox } from "../../ui/checkbox";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useGetCompanies } from "@/hooks/sistema/useGetCompanies";
 import { useGetModulesByCompanyId } from "@/hooks/sistema/useGetModulesByCompanyId";
 

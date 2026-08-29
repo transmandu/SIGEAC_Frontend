@@ -85,7 +85,7 @@ function StockAlertCard({
           className={cn(
             "mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full",
             isInTransit
-              ? "bg-sky-500/15 text-sky-600"
+              ? "bg-primary/15 text-primary"
               : alert.severity === "critical"
                 ? "bg-red-500/15 text-red-600"
                 : "bg-amber-500/15 text-amber-600"
@@ -111,7 +111,7 @@ function StockAlertCard({
           {alert.href && (
             <Link
               href={alert.href}
-              className="inline-flex items-center gap-1 text-xs font-medium text-sky-600 hover:underline"
+              className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
             >
               {alert.hrefLabel ?? "Ver detalle"}
               <ArrowUpRight className="h-3 w-3" />

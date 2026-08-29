@@ -17,6 +17,8 @@ import type {
 } from "@/types/supervisor"
 import { Check, Plus, RotateCcw, Trash2, X } from "lucide-react"
 import { useState } from "react"
+import { ConversionSuggestionPicker } from "@/components/forms/mantenimiento/almacen/_components/ConversionSuggestionPicker"
+import type { ConversionSuggestion } from "@/hooks/mantenimiento/almacen/articulos/useUnitConversionCatalog"
 import { DecimalInput } from "./DecimalInput"
 import { dependencyBadgeCls } from "./utils/uiHelpers"
 
@@ -36,12 +38,18 @@ export function ConversionsPanel({
     conversions,
     units,
     baseUnitLabel,
+    articleId,
+    baseUnitChanged,
     edits,
     onChange,
 }: {
     conversions: ArticleConversion[]
     units: Unit[]
     baseUnitLabel: string
+    /** Para ofrecer equivalencias ya registradas que este artículo pueda copiar. */
+    articleId?: number
+    /** La base elegida en el diálogo difiere de la guardada: ver NewConversionRow. */
+    baseUnitChanged?: boolean
     edits: ConversionEdits
     onChange: (edits: ConversionEdits) => void
 }) {
@@ -104,7 +112,7 @@ export function ConversionsPanel({
                                 isDeleted
                                     ? "border-border/40 bg-muted/20 opacity-50"
                                     : pending !== undefined
-                                      ? "border-sky-400/50 bg-sky-500/[0.06] dark:border-sky-300/30"
+                                      ? "border-primary/50 bg-primary/[0.06]"
                                       : "border-border/60 bg-background/70",
                             )}
                         >
@@ -200,7 +208,7 @@ export function ConversionsPanel({
                 {created.map((row, index) => (
                     <div
                         key={`new-${index}`}
-                        className="flex items-center gap-3 rounded-lg border border-sky-400/40 bg-sky-500/[0.06] dark:border-sky-300/25 px-3 py-2.5"
+                        className="flex items-center gap-3 rounded-lg border border-primary/40 bg-primary/[0.06] px-3 py-2.5"
                     >
                         <span className="text-sm text-muted-foreground shrink-0">
                             1{" "}
@@ -237,6 +245,8 @@ export function ConversionsPanel({
                 <NewConversionRow
                     units={units}
                     baseUnitLabel={baseUnitLabel}
+                    articleId={articleId}
+                    baseUnitChanged={baseUnitChanged}
                     existingUnitIds={[
                         ...conversions.map((row) => row.unit_id),
                         ...created.map((row) => row.unit_id),
@@ -270,12 +280,16 @@ export function ConversionsPanel({
 function NewConversionRow({
     units,
     baseUnitLabel,
+    articleId,
+    baseUnitChanged,
     existingUnitIds,
     onAdd,
     onCancel,
 }: {
     units: Unit[]
     baseUnitLabel: string
+    articleId?: number
+    baseUnitChanged?: boolean
     existingUnitIds: number[]
     onAdd: (row: {
         unit_id: number
@@ -288,6 +302,18 @@ function NewConversionRow({
     const [direction, setDirection] = useState<ConversionDirection>("base_per_unit")
     const [value, setValue] = useState("")
 
+    /**
+     * Copia una equivalencia ya registrada. Llega en forma canónica (unidades
+     * base por 1 alterna), así que se carga en dirección directa.
+     */
+    const applySuggestion = (suggestion: ConversionSuggestion) => {
+        if (!suggestion.unit) return
+
+        setUnitId(suggestion.unit.id)
+        setDirection("base_per_unit")
+        setValue(String(suggestion.base_per_unit))
+    }
+
     const numericValue = Number(value)
     const alreadyExists = unitId !== null && existingUnitIds.includes(unitId)
 
@@ -299,7 +325,17 @@ function NewConversionRow({
     const rightLabel = direction === "base_per_unit" ? baseUnitLabel : unitLabel
 
     return (
-        <div className="flex flex-col gap-2 rounded-lg border border-sky-400/40 bg-sky-500/[0.06] dark:border-sky-300/25 px-3 py-2.5">
+        <div className="flex flex-col gap-2 rounded-lg border border-primary/40 bg-primary/[0.06] px-3 py-2.5">
+            {/* Con la base cambiada y sin guardar, el catálogo filtraría por la
+                base vieja y ofrecería factores que ya no aplican. */}
+            {!!articleId && !baseUnitChanged && (
+                <ConversionSuggestionPicker
+                    type="general-articles"
+                    articleId={articleId}
+                    onPick={applySuggestion}
+                />
+            )}
+
             <div className="flex items-center gap-2">
                 <Select
                     value={String(unitId ?? "")}

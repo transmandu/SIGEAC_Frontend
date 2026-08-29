@@ -67,7 +67,7 @@ const PurchaseOrderMenuLink = ({
             <DropdownMenuSubTrigger
               className={cn(
                 itemClassName,
-                "text-indigo-600 [&>svg:last-child]:hidden"
+                "text-primary [&>svg:last-child]:hidden"
               )}
             >
               <ExternalLink className={iconClassName} />
@@ -105,7 +105,7 @@ const PurchaseOrderMenuLink = ({
                 </span>
               </span>
 
-              <ExternalLink className="size-3.5 shrink-0 text-indigo-600" />
+              <ExternalLink className="size-3.5 shrink-0 text-primary" />
             </DropdownMenuItem>
           ))}
         </DropdownMenuSubContent>
@@ -125,7 +125,7 @@ const PurchaseOrderMenuLink = ({
             <button
               onClick={() => hasSingle && goToPO(orders[0].order_number)}
               disabled={!orders.length}
-              className={cn(itemClassName, "text-indigo-600")}
+              className={cn(itemClassName, "text-primary")}
             >
               <ExternalLink className={iconClassName} />
             </button>

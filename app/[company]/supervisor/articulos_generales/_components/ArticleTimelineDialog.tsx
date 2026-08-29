@@ -117,8 +117,8 @@ function TimelineRow({ event, isLast }: { event: TimelineEvent; isLast: boolean 
         <div className="flex gap-3">
             {/* Rail: icono + línea de continuidad */}
             <div className="flex flex-col items-center shrink-0">
-                <div className="flex items-center justify-center size-8 rounded-full border border-sky-400/40 bg-sky-500/[0.08] dark:border-sky-300/25">
-                    <Icon className="size-3.5 text-sky-600 dark:text-sky-400" />
+                <div className="flex items-center justify-center size-8 rounded-full border border-primary/40 bg-primary/[0.08]">
+                    <Icon className="size-3.5 text-primary" />
                 </div>
                 {!isLast && <div className="w-px flex-1 bg-border/50 my-1" />}
             </div>

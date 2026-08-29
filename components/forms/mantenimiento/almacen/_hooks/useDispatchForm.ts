@@ -18,6 +18,7 @@ import { useCallback, useMemo, useState } from "react"
 import { useFieldArray, useForm, useWatch } from "react-hook-form"
 import { z } from "zod"
 import type { Article, Batch, Department, GeneralArticle, ThirdParty } from "@/types"
+import { EMPTY_CUT, isCutComplete, type CutDraft } from "@/components/forms/mantenimiento/almacen/_components/CutCapturePanel"
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -63,11 +64,26 @@ const AeronauticalItemSchema = z.object({
     unit_id: z.coerce.number().nullable().optional(),
 })
 
+// Trazo cortado de una pieza, para artículos que se miden por dimensiones.
+// El backend descuenta el saldo de esa pieza concreta y no una cantidad
+// fungible; ver App\Services\Warehouse\DimensionService.
+const CutSchema = z.object({
+    piece_id: z.coerce.number(),
+    input_mode: z.enum(["MEASURES", "MAGNITUDE"]),
+    length: z.coerce.number().optional(),
+    width: z.coerce.number().optional(),
+    magnitude: z.coerce.number().optional(),
+    // Unidad en que se escribieron las medidas; el backend aplica la
+    // equivalencia del artículo antes de descontar.
+    unit_id: z.coerce.number().nullable().optional(),
+})
+
 const GeneralItemSchema = z.object({
     general_article_id: z.coerce.number(),
     quantity: z.coerce.number(),
     // Ver nota en AeronauticalItemSchema.unit_id.
     unit_id: z.coerce.number().nullable().optional(),
+    cut: CutSchema.optional(),
 })
 
 export const FormSchema = z
@@ -163,6 +179,8 @@ export function useDispatchForm(
     const [msgByKey, setMsgByKey] = useState<Record<string, RowMsg>>({})
     const [convByKey, setConvByKey] = useState<Record<string, RowConversion>>({})
     const [convState, setConvState] = useState<ConvState>(CONV_INITIAL)
+    // Trazo en curso por fila, para artículos que se miden por dimensiones.
+    const [cutByKey, setCutByKey] = useState<Record<string, CutDraft>>({})
 
     const { createDispatchRequest } = useCreateDispatchRequest()
 
@@ -315,7 +333,41 @@ export function useDispatchForm(
         setQtyByKey((p) => { const n = { ...p }; delete n[key]; return n })
         setMsgByKey((p) => { const n = { ...p }; delete n[key]; return n })
         setConvByKey((p) => { const n = { ...p }; delete n[key]; return n })
+        setCutByKey((p) => { const n = { ...p }; delete n[key]; return n })
     }, [])
+
+    /**
+     * Vuelca el trazo al formulario. La cantidad se deja en 0: en un artículo
+     * dimensionado el descuento lo determina el corte, y mandar además un
+     * número aquí haría que el backend recibiera dos cifras que pueden discrepar.
+     */
+    const updateCut = useCallback((index: number, fieldId: string, next: CutDraft) => {
+        const key = genKey(fieldId)
+        setCutByKey((p) => ({ ...p, [key]: next }))
+        setRowMsg(key, undefined)
+
+        const ready = next.piece_id !== null && (
+            next.input_mode === "MAGNITUDE"
+                ? parseFloat(next.magnitude) > 0
+                : parseFloat(next.length) > 0
+        )
+
+        setValue(`general_articles.${index}.quantity`, 0)
+        setValue(`general_articles.${index}.unit_id`, null)
+        setValue(
+            `general_articles.${index}.cut`,
+            ready
+                ? {
+                      piece_id: next.piece_id!,
+                      input_mode: next.input_mode,
+                      length: next.input_mode === "MEASURES" ? parseFloat(next.length) || undefined : undefined,
+                      width: next.input_mode === "MEASURES" && next.width ? parseFloat(next.width) : undefined,
+                      magnitude: next.input_mode === "MAGNITUDE" ? parseFloat(next.magnitude) || undefined : undefined,
+                      unit_id: next.input_mode === "MEASURES" ? next.unit_id : undefined,
+                  }
+                : undefined,
+        )
+    }, [setValue, setRowMsg])
 
     // El máximo está en unidad base, así que "usar máximo" descarta la
     // conversión vigente: la fila queda en base, como el número que escribe.
@@ -484,9 +536,18 @@ export function useDispatchForm(
 
     const hasInvalidQty = useMemo(() => {
         const aeroInvalid = aeroFA.fields.some((f) => (parseFloat(qtyByKey[aeroKey(f.id)] ?? "0") || 0) <= 0)
-        const genInvalid = genFA.fields.some((f) => (parseFloat(qtyByKey[genKey(f.id)] ?? "0") || 0) <= 0)
+
+        // Una fila dimensional no tiene cantidad: lo que la completa es el
+        // trazo (de qué pieza sale y con qué medidas). Exigirle un `quantity`
+        // dejaba el botón de guardar muerto sin explicar por qué.
+        const genInvalid = genFA.fields.some((f) => {
+            const cut = cutByKey[genKey(f.id)]
+            if (cut) return !isCutComplete(cut)
+            return (parseFloat(qtyByKey[genKey(f.id)] ?? "0") || 0) <= 0
+        })
+
         return aeroInvalid || genInvalid
-    }, [aeroFA.fields, genFA.fields, qtyByKey])
+    }, [aeroFA.fields, genFA.fields, qtyByKey, cutByKey])
 
     // ── Submit ────────────────────────────────────────────────────────────────
 
@@ -504,8 +565,21 @@ export function useDispatchForm(
         }
         for (let i = 0; i < data.general_articles.length; i++) {
             const item = data.general_articles[i]
-            const max = getGenMax(item.general_article_id)
             const key = genFA.fields[i]?.id ? genKey(genFA.fields[i].id) : null
+
+            // Un trazo no se compara contra el stock escalar: su límite es el
+            // saldo de la pieza de la que sale, y eso lo valida el backend, que
+            // es el único que lo conoce sin condiciones de carrera.
+            const draft = key ? cutByKey[key] : undefined
+            if (draft) {
+                if (!isCutComplete(draft)) {
+                    if (key) setRowMsg(key, { msg: "Indique la pieza y las medidas del trazo", level: "error" })
+                    return
+                }
+                continue
+            }
+
+            const max = getGenMax(item.general_article_id)
             const conv = key ? convByKey[key] : undefined
             const inBase = Number((item.quantity * (conv?.factor ?? 1)).toFixed(CONVERSION_PRECISION))
             if (item.quantity <= 0) { if (key) setRowMsg(key, { msg: "La cantidad debe ser mayor a 0", level: "error" }); return }
@@ -576,6 +650,8 @@ export function useDispatchForm(
         qtyByKey, setQtyByKey,
         msgByKey,
         convByKey,
+        // dimensional cuts
+        cutByKey, updateCut,
         // qty handlers
         commitAeroQty, commitGenQty,
         setToMaxAero, setToMaxGen,

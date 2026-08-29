@@ -8,7 +8,7 @@ import {
   CardDescription,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -46,16 +46,7 @@ export default function DashboardSummary({
 
   const blueTone = "37,99,235";
 
-  const [pos, setPos] = useState({ x: 50, y: 50 });
-  const [hovered, setHovered] = useState(false);
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLButtonElement>) => {
-    if (!hovered) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-    setPos({ x, y });
-  };
 
   return (
     <div className="mt-10 sm:mt-16">
@@ -97,44 +88,9 @@ export default function DashboardSummary({
 
             <CardContent className="flex justify-center pb-6 sm:pb-8">
 
-              <Button
-                onMouseEnter={() => setHovered(true)}
-                onMouseLeave={() => setHovered(false)}
-                onMouseMove={handleMouseMove}
-                onClick={() =>
-                  router.push(
-                    `/${companySlug}/almacen/inventario_articulos`
-                  )
-                }
-                className="
-                  relative overflow-hidden
-                  w-full sm:w-auto
-                  px-5 sm:px-6
-                  h-10 sm:h-auto
-                  min-w-0 sm:min-w-[220px]
-                  border border-dashed border-blue-400/50 dark:border-blue-300/30
-                  bg-background/70 backdrop-blur
-                  text-blue-700 dark:text-blue-300
-                  text-sm sm:text-base
-                  font-medium tracking-wide
-                  shadow-sm transition-all duration-200
-                  hover:border-blue-500/60 dark:hover:border-blue-300/50
-                  hover:bg-blue-50/40 dark:hover:bg-blue-950/20
-                  hover:shadow-md hover:-translate-y-[1px]
-                  active:translate-y-0 active:shadow-sm
-                  focus-visible:ring-2 focus-visible:ring-blue-500/25 focus-visible:ring-offset-2
-                  hover:text-slate-900 dark:hover:text-white
-                  before:absolute before:inset-0 before:pointer-events-none
-                  before:transition-opacity before:duration-300
-                "
-                style={{
-                  backgroundImage: hovered
-                    ? `radial-gradient(circle at ${pos.x}% ${pos.y}%, rgba(59,130,246,0.10), transparent 65%)`
-                    : "none",
-                }}
-              >
+              <ActionTriggerButton className="w-full sm:w-auto px-5 sm:px-6 min-w-0 sm:min-w-[220px]">
                 Ver Inventario Completo
-              </Button>
+              </ActionTriggerButton>
 
             </CardContent>
           </TintedCard>

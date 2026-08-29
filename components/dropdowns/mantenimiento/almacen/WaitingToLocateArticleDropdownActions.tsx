@@ -12,8 +12,8 @@ import { Label } from "@/components/ui/label"
 import { Loader2, MoreHorizontal, PackageSearch } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
-import { Button } from "../../../ui/button"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../../../ui/dialog"
+import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 
 const WaitingToLocateArticleDropdownActions = ({
   id,

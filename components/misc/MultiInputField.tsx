@@ -3,16 +3,20 @@
 import { useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import {
+  fieldClass,
+  hintClass,
+  labelClass,
+} from '@/components/forms/mantenimiento/almacen/_components/form-theme';
+import { TokenList } from '@/components/forms/mantenimiento/almacen/_components/TokenList';
 
 type Props = {
   values: string[];
   onChange: (values: string[]) => void;
   placeholder?: string;
-  // Cambiado a ReactNode para permitir el <span> interno
-  label?: React.ReactNode; 
+  /** Rótulo propio. Se omite cuando el campo ya vive dentro de un FormItem. */
+  label?: React.ReactNode;
   disabled?: boolean;
   className?: string;
   normalize?: (s: string) => string;
@@ -24,8 +28,7 @@ export const MultiInputField = ({
   values,
   onChange,
   placeholder = 'Ej: 234ABAC',
-  // Valor por defecto simple
-  label = 'Nros. de parte alternos',
+  label,
   disabled = false,
   className,
   normalize = (s) => s.trim().toUpperCase(),
@@ -91,74 +94,45 @@ export const MultiInputField = ({
 
   return (
     <div className={cn('w-full space-y-2', className)}>
-      {/* Renderizado condicional del Label con el estilo que buscabas */}
-      {label && (
-        <label className="text-sm font-medium text-foreground flex items-center">
-          {typeof label === 'string' && label === 'Nros. de parte alternos' ? (
-            <>
-              Nros. de parte alternos 
-              <span className="text-xs italic text-gray-500 font-normal ml-1">
-                (Alternative part numbers)
-              </span>
-            </>
-          ) : (
-            label
-          )}
-        </label>
+      {label && <label className={labelClass}>{label}</label>}
+
+      <div className="flex gap-2">
+        <Input
+          ref={inputRef}
+          value={inputValue}
+          disabled={disabled}
+          onChange={(e) => setInputValue(e.target.value)}
+          onKeyDown={handleKeyDown}
+          onPaste={handlePaste}
+          placeholder={placeholder}
+          className={cn(fieldClass, 'flex-1')}
+        />
+        <Button
+          type="button"
+          variant="outline"
+          onClick={addValue}
+          disabled={disabled || !inputValue.trim()}
+          className={cn(fieldClass, 'shrink-0 px-4')}
+        >
+          Agregar
+        </Button>
+      </div>
+
+      {values.length > 0 && (
+        <TokenList
+          values={values}
+          onRemove={removeValue}
+          disabled={disabled}
+        />
       )}
 
-      <div>
-        <div className="flex gap-2">
-          <Input
-            ref={inputRef}
-            value={inputValue}
-            disabled={disabled}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyDown={handleKeyDown}
-            onPaste={handlePaste}
-            placeholder={placeholder}
-            className="flex-1"
-          />
-          <Button 
-            type="button" 
-            onClick={addValue} 
-            disabled={disabled || !inputValue.trim()}
-          >
-            Agregar
-          </Button>
-        </div>
-
-        <div className="mt-3 flex flex-wrap gap-2">
-          {values.length === 0 ? (
-            <p className="text-xs text-muted-foreground">
-              Presiona Enter o Tab para agregar.
-            </p>
-          ) : (
-            values.map((value, index) => (
-              <Badge
-                key={`${value}-${index}`}
-                variant="secondary"
-                className="group flex max-w-full items-center gap-1 rounded-full px-2 py-1 text-xs"
-              >
-                <span className="truncate">{value}</span>
-                <button
-                  type="button"
-                  onClick={() => removeValue(index)}
-                  className="ml-0.5 inline-flex h-4 w-4 items-center justify-center rounded-full hover:bg-foreground/10"
-                >
-                  <X className="h-3.5 w-3.5" />
-                </button>
-              </Badge>
-            ))
-          )}
-        </div>
-
-        {typeof maxItems === 'number' && (
-          <div className="mt-2 text-right text-xs text-muted-foreground">
-            {values.length}/{maxItems}
-          </div>
-        )}
-      </div>
+      <p className={hintClass}>
+        {values.length === 0
+          ? 'Escriba y presione Enter para agregar.'
+          : typeof maxItems === 'number'
+            ? `${values.length} de ${maxItems} agregados.`
+            : `${values.length} agregado${values.length === 1 ? '' : 's'}.`}
+      </p>
     </div>
   );
 };

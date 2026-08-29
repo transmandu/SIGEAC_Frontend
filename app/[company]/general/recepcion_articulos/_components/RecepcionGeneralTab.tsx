@@ -34,6 +34,7 @@ import {
 } from '@/components/ui/tooltip'
 import { useAuth } from '@/contexts/AuthContext'
 import { useGetUnits } from '@/hooks/general/unidades/useGetPrimaryUnits'
+import { ConversionSuggestionPicker } from '@/components/forms/mantenimiento/almacen/_components/ConversionSuggestionPicker'
 import { useGetGeneralArticleIntakes } from '@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticleIntakes'
 import { useGetIntakeConfirmationPreview, type AppliedConversionPreview } from '@/hooks/mantenimiento/almacen/almacen_general/useGetIntakeConfirmationPreview'
 import { cn, formatQuantity } from '@/lib/utils'
@@ -47,6 +48,15 @@ import Link from 'next/link'
 import { memo, useEffect, useMemo, useState } from 'react'
 import { PAGE_SIZES, TablePagination } from '@/components/misc/TablePagination'
 import { DownloadReportDialog } from './DownloadReportDialog'
+import {
+    EMPTY_INTAKE_DIMENSION,
+    IntakeExtrasPanel,
+    extraConversionsPayload,
+    intakeDimensionPayload,
+    type ExtraConversionDraft,
+    type IntakeDimensionDraft,
+    type IntakeExtra,
+} from './IntakeExtrasPanel'
 
 type StatusFilter = 'ALL' | GeneralArticleIntakeStatus
 
@@ -159,6 +169,15 @@ function UnitConversionPanel({
                 </span>
             </div>
 
+            {/* Si esta misma equivalencia ya está registrada en otro artículo o en
+                el catálogo, se copia en vez de buscarla en el empaque. */}
+            <ConversionSuggestionPicker
+                type="general-articles"
+                articleId={candidate.general_article_id}
+                onlyUnitId={Number(candidate.intake_unit_id)}
+                onPick={(suggestion) => onEquivalenceChange(String(suggestion.base_per_unit))}
+            />
+
             <p className="text-xs text-muted-foreground text-center">
                 {preview !== null ? (
                     <>
@@ -234,6 +253,19 @@ function ConfirmIntakeAction({ intake }: { intake: GeneralArticleIntake }) {
     const [fallbackCandidate, setFallbackCandidate] = useState<NeedsUnitConversionCandidate | null>(null)
     const conversionCandidate = previewCandidate ?? fallbackCandidate
 
+    // Equivalencias y dimensionado que el almacenista declara por su cuenta.
+    // Solo uno puede estar abierto; al cambiar se descarta lo del anterior para
+    // que no viaje al backend algo que ya no está en pantalla.
+    const [activeExtra, setActiveExtra] = useState<IntakeExtra>(null)
+    const [extraConversions, setExtraConversions] = useState<ExtraConversionDraft[]>([])
+    const [dimensionDraft, setDimensionDraft] = useState<IntakeDimensionDraft>(EMPTY_INTAKE_DIMENSION)
+
+    const handleActiveExtraChange = (next: IntakeExtra) => {
+        setActiveExtra(next)
+        setExtraConversions([])
+        setDimensionDraft(EMPTY_INTAKE_DIMENSION)
+    }
+
     const canEditDate = useMemo(
         () => (user?.roles ?? []).some((r) => r.name === 'JEFE_ALMACEN' || r.name === 'ANALISTA_ALMACEN' || r.name === 'SUPERUSER'),
         [user?.roles]
@@ -261,6 +293,8 @@ function ConfirmIntakeAction({ intake }: { intake: GeneralArticleIntake }) {
                 id: intake.id,
                 confirmedAt: canEditDate ? confirmedAt : undefined,
                 newConversionEquivalence: conversionCandidate ? parseFloat(equivalence) : undefined,
+                extraConversions: extraConversionsPayload(extraConversions, activeExtra),
+                dimension: intakeDimensionPayload(dimensionDraft, activeExtra) ?? undefined,
             },
             {
                 onSuccess: () => setOpen(false),
@@ -396,6 +430,26 @@ function ConfirmIntakeAction({ intake }: { intake: GeneralArticleIntake }) {
                     <AppliedConversionNotice
                         intake={intake}
                         applied={preview.applied_conversion}
+                    />
+                )}
+
+                {/* Siempre disponible, no solo cuando el sistema lo pide: quien
+                    confirma ya sabe si el artículo se corta en trazos o se
+                    despacha en otra unidad. */}
+                {!previewLoading && (
+                    <IntakeExtrasPanel
+                        units={preview?.units ?? []}
+                        measureUnits={preview?.dimension?.measure_units ?? []}
+                        baseUnitLabel={intake.unit?.label}
+                        piecesToAdd={preview?.dimension?.pieces_to_add ?? null}
+                        alreadyDimensional={preview?.dimension?.status === 'ALREADY_DIMENSIONAL'}
+                        active={activeExtra}
+                        onActiveChange={handleActiveExtraChange}
+                        conversions={extraConversions}
+                        onConversionsChange={setExtraConversions}
+                        dimension={dimensionDraft}
+                        onDimensionChange={setDimensionDraft}
+                        disabled={confirmGeneralArticleIntake.isPending}
                     />
                 )}
 

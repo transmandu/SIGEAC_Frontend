@@ -5,13 +5,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Button } from "../ui/button";
+import { Button } from "@/components/ui/button";
 import { format, startOfMonth, endOfMonth, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { toast } from "sonner";
-import { Calendar } from "../ui/calendar";
+import { Calendar } from "@/components/ui/calendar";
 
 interface DoubleDateFilterProps {
   initialFirstRange?: { start: string; end: string };

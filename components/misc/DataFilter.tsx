@@ -4,14 +4,14 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Button } from "../ui/button";
+import { Button } from "@/components/ui/button";
 import { format, parseISO, startOfMonth, endOfDay } from "date-fns";
 import { es } from "date-fns/locale";
 import { formatDateRange } from "@/lib/utils";
 import { useState } from "react";
 import { DateRange } from "react-day-picker";
 import { ChevronDown } from "lucide-react";
-import { Calendar } from "../ui/calendar";
+import { Calendar } from "@/components/ui/calendar";
 import { PopoverClose } from "@radix-ui/react-popover";
 
 interface Period {

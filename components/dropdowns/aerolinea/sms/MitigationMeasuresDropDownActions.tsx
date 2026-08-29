@@ -14,9 +14,9 @@ import {
   Trash2,
 } from "lucide-react";
 import { useState } from "react";
-import CreateFollowUpControlForm from "../../../forms/aerolinea/sms/CreateFollowUpControlForm";
-import CreateMitigationMeasureForm from "../../../forms/aerolinea/sms/CreateMitigationMeasureForm";
-import { Button } from "../../../ui/button";
+import CreateFollowUpControlForm from "@/components/forms/aerolinea/sms/CreateFollowUpControlForm";
+import CreateMitigationMeasureForm from "@/components/forms/aerolinea/sms/CreateMitigationMeasureForm";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -25,7 +25,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "../../../ui/dialog";
+} from "@/components/ui/dialog";
 import { useTheme } from "next-themes";
 import { useCompanyStore } from "@/stores/CompanyStore";
 

@@ -13,8 +13,8 @@ import {
   Trash2,
 } from "lucide-react";
 import { useState } from "react";
-import { EditFollowUpControlForm } from "../../../forms/aerolinea/sms/EditFollowUpControlForm";
-import { Button } from "../../../ui/button";
+import { EditFollowUpControlForm } from "@/components/forms/aerolinea/sms/EditFollowUpControlForm";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,

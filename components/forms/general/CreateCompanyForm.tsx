@@ -16,7 +16,7 @@ import { Check, ChevronsUpDown, Loader2 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { Control, useFieldArray, useForm } from "react-hook-form"
 import { z } from "zod"
-import { Separator } from "../../ui/separator"
+import { Separator } from "@/components/ui/separator"
 import { toast } from "sonner"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 

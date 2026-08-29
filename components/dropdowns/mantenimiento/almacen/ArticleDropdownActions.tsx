@@ -86,7 +86,7 @@ const ArticleDropdownActions = ({
                     className="cursor-pointer"
                     onClick={() => {
                       router.push(
-                        `/${selectedCompany?.slug}/almacen/inventario_articulos/editar/${id}`,
+                        `/${selectedCompany?.slug}/almacen/inventario_articulos/gestion_inventario/editar/${id}`,
                       );
                     }}
                   >

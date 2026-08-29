@@ -20,6 +20,7 @@ import { memo, useMemo, useState } from 'react'
 import type { TransitArticle } from '@/types/purchase/in-transit'
 import { ArticleDetailDialog } from './ArticleDetailDialog'
 import { DownloadReportDialog } from './DownloadReportDialog'
+import { StoreDirectlyDialog } from './StoreDirectlyDialog'
 
 type StatusFilter = 'ALL' | 'TRANSIT' | 'RECEPTION'
 
@@ -40,8 +41,14 @@ const ArticleRow = memo(function ArticleRow({ article }: { article: TransitArtic
 
     const handleMoveToIncoming = async () => {
         setPending(true)
-        await updateArticleStatus.mutateAsync({ id: article.id, status: 'INCOMING' })
-        setPending(false)
+        try {
+            await updateArticleStatus.mutateAsync({ id: article.id, status: 'INCOMING' })
+        } catch {
+            // El toast de error lo emite la mutación; aquí solo hay que soltar
+            // el botón, que si no se quedaba girando para siempre.
+        } finally {
+            setPending(false)
+        }
     }
 
     const location = article.batch?.warehouse?.location
@@ -155,22 +162,25 @@ const ArticleRow = memo(function ArticleRow({ article }: { article: TransitArtic
                 {/* Acciones */}
                 <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
                     {isReception && (
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-7 px-2 text-xs gap-1"
-                            disabled={pending}
-                            onClick={handleMoveToIncoming}
-                        >
-                            {pending ? (
-                                <Loader2 className="size-3 animate-spin" />
-                            ) : (
-                                <>
-                                    <ArrowRight className="size-3" />
-                                    Incoming
-                                </>
-                            )}
-                        </Button>
+                        <div className="flex items-center justify-center gap-1">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-7 px-2 text-xs gap-1"
+                                disabled={pending}
+                                onClick={handleMoveToIncoming}
+                            >
+                                {pending ? (
+                                    <Loader2 className="size-3 animate-spin" />
+                                ) : (
+                                    <>
+                                        <ArrowRight className="size-3" />
+                                        Incoming
+                                    </>
+                                )}
+                            </Button>
+                            <StoreDirectlyDialog article={article} />
+                        </div>
                     )}
                 </TableCell>
             </TableRow>

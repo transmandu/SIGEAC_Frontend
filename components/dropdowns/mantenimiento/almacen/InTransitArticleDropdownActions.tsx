@@ -9,8 +9,8 @@ import {
 import { useUpdateArticleStatus } from "@/actions/mantenimiento/almacen/inventario/articulos/actions"
 import { ClipboardCheck, EyeIcon, Loader2, MoreHorizontal } from "lucide-react"
 import { useState } from "react"
-import { Button } from "../../../ui/button"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../../../ui/dialog"
+import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { useCompanyStore } from "@/stores/CompanyStore"
 
 const InTransitArticleDropdownActions = ({ id }: { id: number }) => {

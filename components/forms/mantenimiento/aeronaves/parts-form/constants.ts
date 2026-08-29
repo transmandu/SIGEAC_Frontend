@@ -2,6 +2,7 @@ import { Control, useWatch } from "react-hook-form";
 
 export const PART_TYPES = [
     "MOTOR",
+    "TURBINA",
     "HELICE",
     "APU",
 ];

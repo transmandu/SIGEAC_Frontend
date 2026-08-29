@@ -8,6 +8,7 @@ import GeneralArticleDropDownActions from "@/components/dropdowns/mantenimiento/
 import ArticleImageCell from "@/components/misc/ArticleImageCell"
 import { numericSortingFn, textSortingFn } from "@/lib/warehouse/sorting"
 import { formatQuantity } from "@/lib/utils"
+import { Ruler } from "lucide-react"
 
 export const buildGeneralColumns = (
     unitOptions: { value: string; label: string }[] = [],
@@ -130,6 +131,29 @@ export const buildGeneralColumns = (
         cell: ({ row }) => {
             const qty = Number(row.original.quantity ?? 0)
             const isAvailable = qty > 0;
+            const dim = row.original.dimension
+
+            // En un artículo dimensionado la cantidad son piezas equivalentes:
+            // "4.5" no se entiende sin decir que son 4 hojas y media, ni sin el
+            // saldo real, que es lo que determina qué se puede cortar.
+            if (dim) {
+                return (
+                    <div className="flex flex-col items-center gap-1">
+                        <Badge
+                            variant={isAvailable ? "default" : "destructive"}
+                            className="tabular-nums px-2 py-1 text-xs"
+                        >
+                            {isAvailable
+                                ? `${formatQuantity(qty)} pza. equiv.`
+                                : "No Disponible"}
+                        </Badge>
+                        <span className="text-[11px] text-muted-foreground tabular-nums">
+                            {dim.total_remaining} {dim.magnitude_label} en{" "}
+                            {dim.available_pieces} pza.
+                        </span>
+                    </div>
+                )
+            }
 
             return (
                 <div className="flex justify-center">
@@ -163,6 +187,25 @@ export const buildGeneralColumns = (
         ),
         cell: ({ row }) => {
             const unitLabel = row.original.general_primary_unit?.label?.trim()
+            const dim = row.original.dimension
+
+            // La unidad base de un artículo dimensionado no describe cómo se
+            // maneja: lo que importa es el tamaño de la pieza que se corta.
+            if (dim) {
+                return (
+                    <div className="flex justify-center">
+                        <Badge
+                            variant="secondary"
+                            className="flex items-center gap-1 px-2 py-1 text-xs"
+                        >
+                            <Ruler className="h-3 w-3" />
+                            {dim.axes === 2
+                                ? `${dim.piece_length} × ${dim.piece_width} ${dim.measure_unit_label ?? ""}`
+                                : `${dim.piece_length} ${dim.measure_unit_label ?? ""}`}
+                        </Badge>
+                    </div>
+                )
+            }
 
             if (!unitLabel) {
                 return (

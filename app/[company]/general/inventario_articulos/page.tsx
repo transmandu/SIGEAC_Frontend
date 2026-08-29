@@ -25,7 +25,7 @@ import {
 } from "./columns";
 import { DataTable } from "./data-table";
 import { useGetWarehouseArticlesByCategory } from "@/hooks/mantenimiento/almacen/articulos/useGetWarehouseArticlesByCategory";
-import { columns as GeneralColums } from "../../almacen/inventario_articulos/_tables/general-columns";
+import { columns as GeneralColums } from "@/app/[company]/almacen/inventario_articulos/_tables/general-columns";
 import { PageHeader } from "@/components/layout/PageHeader";
 
 const ROLES_WITH_QUANTITY_VISIBLE = ["ENGINEERING", "SUPERUSER"];

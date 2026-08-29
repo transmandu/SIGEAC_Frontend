@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/tooltip'
 import React from 'react'
 import type { GeneralCostRow, GeneralCostColumnsArgs } from '@/types/purchase'
-import { costInBaseUnit } from '../_utils/costInBaseUnit'
+import { costInBaseUnit } from '@/app/[company]/compras/gestion_costos/_utils/costInBaseUnit'
 
 export type { GeneralCostRow, GeneralCostColumnsArgs }
 

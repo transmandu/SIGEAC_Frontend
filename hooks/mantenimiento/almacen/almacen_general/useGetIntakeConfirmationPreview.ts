@@ -15,11 +15,31 @@ export interface AppliedConversionPreview {
   converted_quantity: number;
 }
 
+/** Qué puede declararse sobre el modo dimensional al confirmar. */
+export interface DimensionPreview {
+  status: 'AVAILABLE' | 'ALREADY_DIMENSIONAL' | 'UNAVAILABLE' | 'NO_UNITS';
+  reason?: string;
+  /** Piezas que se crearían; ausente si la cantidad no es entera. */
+  pieces_to_add?: number | null;
+  /** Unidades habilitadas para declarar medidas. */
+  measure_units?: { id: number; label: string; value: string }[];
+  profile?: {
+    axes: number;
+    piece_length: number;
+    piece_width: number | null;
+    measure_unit_label: string | null;
+    magnitude_label: string;
+  };
+}
+
 interface ConfirmationPreviewResponse {
   needs_conversion: boolean;
   candidate?: NeedsUnitConversionCandidate;
   applied_conversion?: AppliedConversionPreview;
   misoriented_conversion?: boolean;
+  dimension?: DimensionPreview;
+  /** Catálogo completo, para declarar equivalencias hacia cualquier unidad. */
+  units?: { id: number; label: string; value: string }[];
 }
 
 const fetchConfirmationPreview = async (

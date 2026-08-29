@@ -7,6 +7,7 @@ import { toast } from "sonner";
 interface createUnitSchema {
   value: string;
   label: string;
+  is_dimensional?: boolean;
 }
 
 interface updateUnitSchema extends createUnitSchema {

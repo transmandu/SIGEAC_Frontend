@@ -23,8 +23,8 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../../../ui/select";
-import { Separator } from "../../../ui/separator";
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 import { useCompanyStore } from "@/stores/CompanyStore";
 
 const FormSchema = z.object({

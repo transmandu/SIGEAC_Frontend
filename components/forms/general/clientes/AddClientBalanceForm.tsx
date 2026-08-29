@@ -14,8 +14,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { AmountInput } from "../../../misc/AmountInput";
-import { Button } from "../../../ui/button";
+import { AmountInput } from "@/components/misc/AmountInput";
+import { Button } from "@/components/ui/button";
 import { useUpdateBalance } from "@/actions/general/clientes/actions";
 
 const formSchema = z.object({

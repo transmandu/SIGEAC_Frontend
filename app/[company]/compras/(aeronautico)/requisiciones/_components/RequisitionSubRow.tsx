@@ -65,7 +65,7 @@ export default function RequisitionSubRow({
           return (
             <div
               key={quote.quote_number}
-              className="group flex items-center justify-between gap-3 rounded-lg border px-3 py-2 bg-background/70 backdrop-blur-sm border-slate-200/70 dark:border-slate-700/60 hover:border-emerald-400/40 hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition-all"
+              className="group flex items-center justify-between gap-3 rounded-lg border px-3 py-2 bg-background/70 backdrop-blur-sm border-slate-200/70 dark:border-slate-700/60 hover:border-primary/40 hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition-all"
             >
             <div className="flex items-center gap-2.5">
               <div className="flex h-8 w-8 items-center justify-center rounded-md bg-slate-100 dark:bg-slate-800">
@@ -75,7 +75,7 @@ export default function RequisitionSubRow({
                   <div className="flex items-center gap-1.5">
                     <Link
                       href={`/${selectedCompany?.slug}/compras/cotizaciones/${quote.quote_number}`}
-                      className="text-sm font-medium text-slate-800 dark:text-slate-100 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
+                      className="text-sm font-medium text-slate-800 dark:text-slate-100 hover:text-primary transition-colors"
                       onClick={(e) => e.stopPropagation()}
                     >
                       {quote.quote_number}

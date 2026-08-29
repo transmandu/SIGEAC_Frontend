@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useId, useState } from "react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { CalendarIcon, X } from "lucide-react";
@@ -14,19 +14,11 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-
-// Diccionario de traducciones automáticas para las etiquetas
-const LABEL_TRANSLATIONS: Record<string, string> = {
-  "Fecha de Fabricación": "Date of manufacture",
-  "Fecha de Expiración": "Expiration date",
-  "Fecha de Recibo": "Received date",
-  "Fecha de la Parte": "Part date",
-  "Fecha de Inspección": "Inspection date",
-  "Fecha de Incoming": "Incoming Date",
-  "Próximo Vencimiento": "Next Expiration",
-  "Límite de Vida (Calendario)": "Life Limit (Calendar)",
-  "Hard Time (Calendario)": "Hard Time (Calendar)",
-};
+import {
+  fieldClass,
+  hintClass,
+  labelClass,
+} from "@/components/forms/mantenimiento/almacen/_components/form-theme";
 
 interface DatePickerFieldProps {
   label: string;
@@ -39,6 +31,13 @@ interface DatePickerFieldProps {
   showNotApplicable?: boolean;
   required?: boolean;
   error?: string;
+  /**
+   * Sube "No aplica" a la línea del rótulo.
+   *
+   * Debajo del campo, la casilla añade una línea que los campos vecinos no
+   * tienen y desalinea el input cuando comparten fila.
+   */
+  notApplicableInLabel?: boolean;
 }
 
 export function DatePickerField({
@@ -52,27 +51,33 @@ export function DatePickerField({
   showNotApplicable = false,
   required = false,
   error,
+  notApplicableInLabel = false,
 }: DatePickerFieldProps) {
   const [touched, setTouched] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [isInputMode, setIsInputMode] = useState(false);
   const [validationError, setValidationError] = useState("");
+  // El id no puede salir del rótulo: hay formularios con dos fechas homónimas
+  // (el "Fecha tope" de Life Limit y el de Hard Time) y ambas casillas
+  // quedarían enlazadas al mismo control.
+  const checkboxId = `${useId()}-not-applicable`;
 
-  // Lógica para renderizar el label con traducción automática
-  const renderLabel = () => {
-    const translation = LABEL_TRANSLATIONS[label];
-    return (
-      <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mb-2">
+  /**
+   * Rótulo del campo, opcionalmente con la casilla "No aplica" a su derecha.
+   *
+   * La fila mide lo mismo que la casilla, que es el elemento más alto, y el
+   * hueco hasta el input lo pone el `space-y-2` del contenedor: así el input
+   * arranca a la misma altura que los campos con los que comparte fila.
+   */
+  const renderLabel = (checkbox?: React.ReactNode) => (
+    <div className="flex h-4 items-center justify-between gap-3">
+      <label className={cn(labelClass, "leading-none")}>
         {label}
-        {translation && (
-          <span className="text-xs italic text-gray-500 font-normal ml-1">
-            ({translation})
-          </span>
-        )}
-        {required && <span className="text-destructive ml-1">*</span>}
+        {required && <span className="ml-1 text-destructive">*</span>}
       </label>
-    );
-  };
+      {checkbox}
+    </div>
+  );
 
   const isInvalid = required && value === undefined && touched;
   const displayError =
@@ -192,113 +197,118 @@ export function DatePickerField({
     setTouched(true);
   };
 
+  const notApplicable = showNotApplicable && value === null;
+  const disabled = busy || notApplicable;
+
+  const notApplicableCheckbox = showNotApplicable ? (
+    <label
+      htmlFor={checkboxId}
+      className="flex shrink-0 cursor-pointer select-none items-center gap-1.5 text-[13px] text-muted-foreground"
+    >
+      <Checkbox
+        id={checkboxId}
+        checked={value === null}
+        onCheckedChange={handleNotApplicableChange}
+        disabled={busy}
+        className="h-4 w-4"
+      />
+      No aplica
+    </label>
+  ) : null;
+
   return (
-    <div className="flex flex-col p-0 mt-2.5 w-full">
-      {renderLabel()}
+    <div className="w-full space-y-2">
+      {renderLabel(notApplicableInLabel ? notApplicableCheckbox : undefined)}
 
-      <div className="flex flex-col gap-2">
-        <div className="flex flex-col sm:flex-row gap-2 mb-2">
-          <Button
-            type="button"
-            variant={isInputMode ? "default" : "outline"}
-            size="sm"
-            onClick={() => setIsInputMode(true)}
-            disabled={busy || (showNotApplicable && value === null)}
-            className="flex-1"
-          >
-            Ingresar fecha
-          </Button>
-          <Button
-            type="button"
-            variant={!isInputMode ? "default" : "outline"}
-            size="sm"
-            onClick={() => setIsInputMode(false)}
-            disabled={busy || (showNotApplicable && value === null)}
-            className="flex-1"
-          >
-            Seleccionar fecha
-          </Button>
-        </div>
+      {/* Un solo control: se escribe la fecha y el icono abre el calendario.
+          Antes había dos botones de modo que ocupaban una fila entera por
+          cada fecha, y los formularios tienen hasta cinco. */}
+      <div className="relative">
+        <Input
+          type="text"
+          placeholder={notApplicable ? "No aplica" : "dd/mm/aaaa"}
+          value={inputValue}
+          onChange={handleInputChange}
+          onBlur={handleInputBlur}
+          onKeyDown={handleInputKeyPress}
+          disabled={disabled}
+          maxLength={10}
+          className={cn(
+            fieldClass,
+            "pr-16",
+            isInvalid && "border-destructive",
+            notApplicable && "text-muted-foreground",
+          )}
+        />
 
-        {isInputMode ? (
-          <div className="flex gap-2">
-            <Input
-              type="text"
-              placeholder="dd/mm/aaaa"
-              value={inputValue}
-              onChange={handleInputChange}
-              onBlur={handleInputBlur}
-              onKeyPress={handleInputKeyPress}
-              disabled={busy || (showNotApplicable && value === null)}
-              className={cn("flex-1", isInvalid && "border-destructive")}
-              maxLength={10}
-            />
-            {inputValue && (
-              <Button type="button" variant="outline" size="sm" onClick={clearInput} disabled={busy}>
-                <X className="h-4 w-4" />
-              </Button>
-            )}
-          </div>
-        ) : (
-          <div className="flex gap-2">
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  disabled={busy || (showNotApplicable && value === null)}
-                  onClick={() => setTouched(true)}
-                  className={cn(
-                    "flex-1 pl-3 text-left font-normal",
-                    (!value || value === null) && "text-muted-foreground",
-                    isInvalid && "border-destructive"
-                  )}
-                >
-                  {value === null ? (
-                    <span>N/A</span>
-                  ) : value ? (
-                    format(value, "PPP", { locale: es })
-                  ) : (
-                    <span>Seleccione una fecha</span>
-                  )}
-                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0 z-[100]" align="start" side="bottom">
-                <Calendar
-                  locale={es}
-                  mode="single"
-                  selected={value || undefined}
-                  onSelect={handleCalendarSelect}
-                  initialFocus
-                  fromYear={1900}
-                  toYear={maxYear ?? new Date().getFullYear() + 20}
-                  captionLayout="dropdown-buttons"
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-        )}
 
-        {showNotApplicable && (
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id={`not-applicable-${label.replace(/\s+/g, "-").toLowerCase()}`}
-              checked={value === null}
-              onCheckedChange={handleNotApplicableChange}
-              disabled={busy}
-            />
-            <label
-              htmlFor={`not-applicable-${label.replace(/\s+/g, "-").toLowerCase()}`}
-              className="text-sm font-medium cursor-pointer select-none"
+        <div className="absolute inset-y-0 right-1.5 flex items-center gap-0.5">
+          {inputValue && !disabled && (
+            <button
+              type="button"
+              onClick={clearInput}
+              aria-label="Limpiar fecha"
+              className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
             >
-              No aplica
-            </label>
-          </div>
-        )}
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
+          <Popover>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                disabled={disabled}
+                onClick={() => setTouched(true)}
+                aria-label="Abrir calendario"
+                className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-50"
+              >
+                <CalendarIcon className="h-4 w-4" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent
+              className="z-[100] w-auto rounded-xl border-slate-400/60 p-0 shadow-lg dark:border-slate-600/60"
+              align="end"
+              side="bottom"
+              sideOffset={8}
+              // Los selectores de mes y año se montan en su propio portal:
+              // elegir uno cuenta como clic fuera y cerraría el calendario.
+              onInteractOutside={(event) => {
+                const target = event.target as HTMLElement | null;
+                if (target?.closest("[data-radix-select-viewport]")) {
+                  event.preventDefault();
+                }
+              }}
+            >
+              <Calendar
+                locale={es}
+                mode="single"
+                selected={value || undefined}
+                onSelect={handleCalendarSelect}
+                initialFocus
+                fromYear={1900}
+                toYear={maxYear ?? new Date().getFullYear() + 20}
+                captionLayout="dropdown-buttons"
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
       </div>
 
-      {description && <p className="text-sm text-muted-foreground mt-2">{description}</p>}
-      {displayError && <p className="text-sm font-medium text-destructive mt-1">{displayError}</p>}
+      {(description || !notApplicableInLabel) && (
+        <div className="flex items-start justify-between gap-3">
+          {description ? (
+            <p className={cn(hintClass, "min-w-0 flex-1")}>{description}</p>
+          ) : (
+            <span className="flex-1" />
+          )}
+
+          {!notApplicableInLabel && notApplicableCheckbox}
+        </div>
+      )}
+
+      {displayError && (
+        <p className="text-sm font-medium text-destructive">{displayError}</p>
+      )}
     </div>
   );
 }

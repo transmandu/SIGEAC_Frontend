@@ -9,7 +9,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { useCompanyStore } from "@/stores/CompanyStore"
 import { ClipboardCheck, MoreHorizontal } from "lucide-react"
 import Link from "next/link"
-import { Button } from "../../../ui/button"
+import { Button } from "@/components/ui/button"
 
 const IncomingArticleDropdownActions
  = ({ article }: { article: IncomingArticle }) => {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
+import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 import {
   Dialog,
   DialogContent,
@@ -24,17 +24,6 @@ export function CreateVendorDialog({
   open: openProp,
   onOpenChange: onOpenChangeProp,
 }: CreateVendorDialogProps) {
-  const [hovered, setHovered] = useState(false);
-  const [pos, setPos] = useState({ x: 50, y: 50 });
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLButtonElement>) => {
-    if (!hovered) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-    setPos({ x, y });
-  };
-
   const [internalOpen, setInternalOpen] = useState(false);
   const open = openProp ?? internalOpen;
   const onOpenChange = onOpenChangeProp ?? setInternalOpen;
@@ -55,21 +44,10 @@ export function CreateVendorDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
-        <Button
-          onMouseEnter={() => setHovered(true)}
-          onMouseLeave={() => setHovered(false)}
-          onMouseMove={handleMouseMove}
-          variant="outline"
-          className="relative overflow-hidden h-10 px-4 border border-dashed border-blue-400/40 dark:border-blue-300/25 bg-background/70 backdrop-blur text-blue-700 dark:text-blue-300 font-medium tracking-wide shadow-sm transition-all duration-200 hover:border-blue-500/60 hover:bg-blue-50/40 dark:hover:bg-blue-950/20 hover:shadow-md hover:-translate-y-[1px] active:translate-y-0 active:shadow-sm focus-visible:ring-2 focus-visible:ring-blue-500/20"
-          style={{
-            backgroundImage: hovered
-              ? `radial-gradient(circle at ${pos.x}% ${pos.y}%, rgba(59,130,246,0.12), transparent 60%)`
-              : "none",
-          }}
-        >
+        <ActionTriggerButton>
           <Plus className="h-4 w-4 mr-2" />
           Crear proveedor
-        </Button>
+        </ActionTriggerButton>
       </DialogTrigger>
 
       <DialogContent className="sm:max-w-[560px] p-0 overflow-hidden rounded-3xl border border-border/50 bg-background/95 backdrop-blur-xl shadow-2xl">

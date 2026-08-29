@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
-import { Input } from "../ui/input"
+import { Input } from "@/components/ui/input"
 
 interface DataTableColumnHeaderProps<TData, TValue> extends React.HTMLAttributes<HTMLDivElement> {
   column: Column<TData, TValue>

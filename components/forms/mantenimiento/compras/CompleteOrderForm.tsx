@@ -33,16 +33,16 @@ import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import { AmountInput } from "../../../misc/AmountInput";
+import { AmountInput } from "@/components/misc/AmountInput";
 import { InvoicesField, createInvoiceEntry, type InvoiceEntry } from "./InvoicesField";
 
 const LABEL_CLS = "select-none text-[10px] leading-none text-muted-foreground uppercase";
 
 const INPUT_CLS =
-  "h-9 rounded-lg border-border/50 bg-background/80 text-sm shadow-sm transition-shadow focus-visible:ring-1 focus-visible:ring-teal-500/40 focus-visible:ring-offset-0";
+  "h-9 rounded-lg border-border/50 bg-background/80 text-sm shadow-sm transition-shadow focus-visible:ring-1 focus-visible:ring-primary/40 focus-visible:ring-offset-0";
 
 const SELECT_TRIGGER_CLS =
-  "h-9 rounded-lg border-border/50 bg-background/80 text-sm shadow-sm focus:ring-1 focus:ring-teal-500/40 focus:ring-offset-0";
+  "h-9 rounded-lg border-border/50 bg-background/80 text-sm shadow-sm focus:ring-1 focus:ring-primary/40 focus:ring-offset-0";
 
 const FormSchema = z.object({
   tax: z.string(),
@@ -355,7 +355,7 @@ export function CompleteOrderForm({ onClose, po, isAeronautical = false }: FormP
                   <div className="relative px-3 py-2.5">
                     <div className="grid grid-cols-[2fr_1fr_1fr_1fr] gap-x-3 gap-y-2.5">
                       <div className="flex items-center gap-1.5 min-w-0">
-                        <span className="text-[10px] px-1.5 py-[2px] rounded-md bg-teal-500/10 text-teal-700 border border-teal-500/20 shrink-0 select-none">
+                        <span className="text-[10px] px-1.5 py-[2px] rounded-md bg-primary/10 text-primary border border-primary/20 shrink-0 select-none">
                           P/N
                         </span>
                         <span className="truncate text-sm font-medium text-foreground">
@@ -720,17 +720,9 @@ export function CompleteOrderForm({ onClose, po, isAeronautical = false }: FormP
             type="submit"
             className="
               w-[400px] h-10 rounded-lg
-              bg-teal-500/20 text-teal-900
-              hover:bg-teal-500/30
-              active:bg-teal-500/40
-              border border-teal-500/30
               shadow-sm
               transition-colors
               flex items-center justify-center gap-2
-              dark:bg-teal-400/10
-              dark:text-teal-100
-              dark:hover:bg-teal-400/20
-              dark:border-teal-400/20
             "
           >
             {isPending ? (

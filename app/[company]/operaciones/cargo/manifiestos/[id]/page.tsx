@@ -103,7 +103,7 @@ export default function ManifestDetailPage() {
 
   return (
     <ContentLayout title="Detalle del Manifiesto">
-      <PageHeader className="mb-6" />
+      <PageHeader className="mb-6" currentLabel={manifest?.manifest_number} />
 
       <div className="flex flex-col gap-6 p-1 max-w-6xl mx-auto w-full pb-10">
         {/* Header */}

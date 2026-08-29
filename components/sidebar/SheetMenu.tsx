@@ -27,7 +27,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 
-import CompanySelect from "../selects/CompanySelect";
+import CompanySelect from "@/components/selects/CompanySelect";
 
 import { useCompanyStore } from "@/stores/CompanyStore";
 

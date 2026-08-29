@@ -17,7 +17,7 @@ import {
 } from "@/actions/mantenimiento/control_calidad/actions";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
-import { IncomingArticle } from "../IncomingTypes";
+import { IncomingArticle } from "@/app/[company]/control_calidad/incoming/IncomingTypes";
 
 export function GenerateReceptionFormButton({
   selected,

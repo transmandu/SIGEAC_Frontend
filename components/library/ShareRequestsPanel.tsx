@@ -609,7 +609,7 @@ export default function ShareRequestsPanel({
 
                 {/* SECCIÓN: Seguridad y Vigencia */}
                 <div className="p-4 space-y-3">
-                  <h4 className="text-[9px] font-black uppercase tracking-widest text-purple-600 dark:text-purple-400 flex items-center gap-1.5">
+                  <h4 className="text-[9px] font-black uppercase tracking-widest text-primary flex items-center gap-1.5">
                     <ShieldAlert className="h-3 w-3" /> Seguridad y Vigencia
                   </h4>
                   <div className="grid grid-cols-2 gap-3">

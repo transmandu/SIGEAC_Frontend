@@ -37,7 +37,8 @@ const BankAccountsPage = () => {
 
   return (
     <ContentLayout title="Detalle de Banco">
-      <PageHeader className="mb-6" />
+      {/* El banco no se consulta aparte: viene en las cuentas ya filtradas. */}
+      <PageHeader className="mb-6" currentLabel={filteredAccounts[0]?.bank?.name} />
 
       <h1 className="text-4xl font-bold text-center mb-2">Control de Cuentas</h1>
       <p className="text-sm text-muted-foreground text-center">

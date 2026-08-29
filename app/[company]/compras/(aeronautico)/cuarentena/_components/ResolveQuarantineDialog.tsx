@@ -277,7 +277,6 @@ export function ResolveQuarantineDialog({ record, open, onOpenChange }: Props) {
               initialData={article}
               category={article.batch?.category}
               onEditSuccess={handleArticleSaved}
-              title="Corrección del artículo"
               // El formulario oculta sus acciones y reporta su estado: el botón
               // vive en el footer del diálogo, fuera del área que se desplaza.
               onStateChange={handleFormState}

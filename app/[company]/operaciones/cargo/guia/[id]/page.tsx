@@ -99,7 +99,7 @@ export default function CargoDetailsPage() {
 
   return (
     <ContentLayout title="Detalles de la Carga">
-      <PageHeader className="mb-6" />
+      <PageHeader className="mb-6" currentLabel={shipment?.guide_number} />
 
       <div className="flex flex-col gap-6 p-1 max-w-6xl mx-auto w-full pb-10">
         {/* Cabecera de Acciones Rápidas */}

@@ -8,7 +8,7 @@ import { ContentLayout } from '@/components/layout/ContentLayout'
 import { useCompanyStore } from '@/stores/CompanyStore'
 import { useGetArticlesByStatus } from '@/hooks/mantenimiento/almacen/articulos/useGetArticlesByStatus'
 
-import { DataTable } from '../../data-table'
+import { DataTable } from '@/app/[company]/compras/data-table'
 import { columns } from './columns'
 
 import type { DestinationArticle } from '@/types/purchase'

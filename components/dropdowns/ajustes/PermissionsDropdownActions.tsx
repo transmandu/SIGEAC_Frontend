@@ -7,8 +7,8 @@ import {
 import { EyeIcon, Loader2, MoreHorizontal, Trash2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
-import { Button } from "../../ui/button"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../../ui/dialog"
+import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { useDeletePermission } from "@/actions/aerolinea/permisos/actions"
 
 const PermissionsDropdownActions = ({ id }: { id: string | number }) => {

@@ -16,7 +16,7 @@ import { CalendarIcon, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Label } from "../../../ui/label";
+import { Label } from "@/components/ui/label";
 
 const FormSchema = z.object({
   description: z.string().min(1, "Requerido"),

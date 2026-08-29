@@ -10,11 +10,12 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Button } from "../../ui/button";
+import { Button } from "@/components/ui/button";
 import type { Unit } from "@/types";
 
 
@@ -25,6 +26,7 @@ const formSchema = z.object({
   value: z.string().min(1, {
     message: "El Simbolo de la unidad debe tener al menos 1 carácters.",
   }),
+  is_dimensional: z.boolean().default(false),
 })
 
 
@@ -42,6 +44,7 @@ export default function CreateUnitForm({ onClose, onSuccess, onCreated }: FormPr
     defaultValues: {
       label: "",
       value: "",
+      is_dimensional: false,
     },
   })
   const { control } = form;
@@ -93,6 +96,30 @@ export default function CreateUnitForm({ onClose, onSuccess, onCreated }: FormPr
               <FormDescription>
               </FormDescription>
               <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={control}
+          name="is_dimensional"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-start gap-3 rounded-md border p-3 mt-2">
+              <FormControl>
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                  className="mt-0.5"
+                />
+              </FormControl>
+              <div className="space-y-1 leading-none">
+                <FormLabel className="cursor-pointer">
+                  Sirve para declarar medidas
+                </FormLabel>
+                <p className="text-xs text-muted-foreground">
+                  Habilita esta unidad para dimensionar artículos que se
+                  despachan en trazos (láminas, telas, rollos).
+                </p>
+              </div>
             </FormItem>
           )}
         />

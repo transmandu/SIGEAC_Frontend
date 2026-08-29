@@ -171,21 +171,21 @@ export const DownloadDocumentDialog = ({
               onClick={() => setDownloadMode("version")}
               className={`group p-4 border rounded-2xl cursor-pointer transition-all ${
                 downloadMode === "version"
-                  ? "border-purple-500 bg-purple-50/40 dark:bg-purple-500/10 shadow-sm"
+                  ? "border-primary bg-primary/5 shadow-sm"
                   : "border-slate-300 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 bg-white dark:bg-transparent"
               }`}
               data-tour="biblioteca-download-version"
             >
               <div className="flex items-start gap-3">
                 <div
-                  className={`mt-1 w-4 h-4 rounded-full border-2 flex items-center justify-center ${downloadMode === "version" ? "border-purple-500" : "border-slate-300 dark:border-slate-600"}`}
+                  className={`mt-1 w-4 h-4 rounded-full border-2 flex items-center justify-center ${downloadMode === "version" ? "border-primary" : "border-slate-300 dark:border-slate-600"}`}
                 >
                   {downloadMode === "version" && (
-                    <div className="w-2 h-2 bg-purple-500 rounded-full" />
+                    <div className="w-2 h-2 bg-primary rounded-full" />
                   )}
                 </div>
                 <div className="flex-1">
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-purple-600 dark:text-purple-400 flex items-center gap-2 mb-1">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-primary flex items-center gap-2 mb-1">
                     <Clock className="h-3.5 w-3.5" /> Versión del historial
                   </label>
                   <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium mb-3 leading-tight">
@@ -221,7 +221,7 @@ export const DownloadDocumentDialog = ({
                           </>
                         )}
                       </select>
-                      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-purple-400 pointer-events-none" />
+                      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary pointer-events-none" />
                     </div>
                   )}
                 </div>
@@ -250,7 +250,7 @@ export const DownloadDocumentDialog = ({
               className={`flex-1 px-4 py-3 text-[10px] font-black text-white rounded-xl transition-all tracking-widest shadow-md active:scale-[0.98] ${
                 downloadMode === "document"
                   ? "bg-blue-600 hover:bg-blue-700 shadow-blue-100 dark:shadow-none"
-                  : "bg-purple-600 hover:bg-purple-700 shadow-purple-100 dark:shadow-none"
+                  : "bg-primary hover:bg-primary/90 shadow-primary/20 dark:shadow-none"
               } disabled:opacity-50 disabled:cursor-not-allowed uppercase`}
             >
               {isProcessing ? "DESCARGANDO..." : "INICIAR DESCARGA"}

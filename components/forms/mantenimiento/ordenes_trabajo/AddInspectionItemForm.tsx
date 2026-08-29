@@ -13,8 +13,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Button } from "../../../ui/button";
-import { Textarea } from "../../../ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { useAddPrelimItem } from "@/actions/mantenimiento/planificacion/ordenes_trabajo/inspecccion_preliminar/actions";
 import { useCompanyStore } from "@/stores/CompanyStore";
 

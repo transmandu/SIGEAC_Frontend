@@ -1,6 +1,5 @@
 import type { Group, MenuContext } from "@/lib/menus/types";
 import {
-    Boxes,
     ClipboardCopy,
     FileBox,
     Fuel,
@@ -25,51 +24,39 @@ export function buildWarehouseGroup({ pathname, currentCompany }: MenuContext): 
                 submenus: [],
             },
             {
-                href: `/${currentCompany?.slug}/almacen/ingresar_inventario`,
-                label: "Ingreso de Inventario",
-                active: pathname.includes(
-                    `/${currentCompany?.slug}/almacen/ingresar_inventario`,
-                ),
-                icon: Boxes,
-                roles: ["ANALISTA_ALMACEN", "JEFE_ALMACEN", "SUPERUSER"],
-                submenus: [],
-            },
-            {
-                href: `/${currentCompany?.slug}/almacen/inventario_articulos`,
+                href: `/${currentCompany?.slug}/almacen/inventario_articulos/gestion_inventario`,
                 label: "Inventario",
-                active: pathname.includes(`/${currentCompany?.slug}/almacen/inventario`),
+                active: pathname.includes(
+                    `/${currentCompany?.slug}/almacen/inventario_articulos`,
+                ),
                 icon: PackageOpen,
                 roles: ["ANALISTA_ALMACEN", "JEFE_ALMACEN", "SUPERUSER"],
                 submenus: [
                     {
-                        href: `/${currentCompany?.slug}/almacen/inventario_articulos`,
+                        href: `/${currentCompany?.slug}/almacen/inventario_articulos/gestion_inventario`,
                         label: "Gestión",
-                        active:
-                            pathname ===
-                            `/${currentCompany?.slug}/almacen/inventario_articulos`,
+                        active: pathname.includes(
+                            `/${currentCompany?.slug}/almacen/inventario_articulos/gestion_inventario`,
+                        ),
                     },
                     {
-                        href: `/${currentCompany?.slug}/almacen/por_ubicar`,
+                        href: `/${currentCompany?.slug}/almacen/inventario_articulos/por_ubicar`,
                         label: "Por Ubicar",
-                        active: pathname === `/${currentCompany?.slug}/almacen/por_ubicar`,
+                        active:
+                            pathname ===
+                            `/${currentCompany?.slug}/almacen/inventario_articulos/por_ubicar`,
                     },
                 ],
             },
             {
-                href: "",
-                label: "Solicitudes",
-                active: pathname.includes(`/${currentCompany?.slug}/almacen/solicitudes`),
+                href: `/${currentCompany?.slug}/almacen/solicitudes/salida`,
+                label: "Solicitudes de Salida",
+                active: pathname.includes(
+                    `/${currentCompany?.slug}/almacen/solicitudes/salida`,
+                ),
                 icon: ClipboardCopy,
                 roles: ["ANALISTA_ALMACEN", "JEFE_ALMACEN", "SUPERUSER"],
-                submenus: [
-                    {
-                        href: `/${currentCompany?.slug}/almacen/solicitudes/salida`,
-                        label: "Salida",
-                        active:
-                            pathname ===
-                            `/${currentCompany?.slug}/almacen/solicitudes/salida`,
-                    },
-                ],
+                submenus: [],
             },
             {
                 href: `/${currentCompany?.slug}/almacen/caja_herramientas`,
@@ -92,11 +79,11 @@ export function buildWarehouseGroup({ pathname, currentCompany }: MenuContext): 
                 submenus: [],
             },
             {
-                href: `/${currentCompany?.slug}/almacen/gestion_cantidad_general`,
+                href: `/${currentCompany?.slug}/almacen/gestion_cantidades`,
                 label: "Gestión de Cantidades",
                 roles: ["ANALISTA_ALMACEN", "JEFE_ALMACEN", "SUPERUSER"],
                 active: pathname.includes(
-                    `/${currentCompany?.slug}/almacen/gestion_cantidad_general`,
+                    `/${currentCompany?.slug}/almacen/gestion_cantidades`,
                 ),
                 icon: SquarePen,
                 submenus: [],

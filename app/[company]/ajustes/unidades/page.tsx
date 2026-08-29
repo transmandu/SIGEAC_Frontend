@@ -6,6 +6,7 @@ import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits";
 import { columns } from "./columns";
 import { PrimaryDataTable } from "./primary-data-table";
 import { ConversionsRegistryPanel } from "./_components/ConversionsRegistryPanel";
+import { ConversionCatalogPanel } from "./_components/ConversionCatalogPanel";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useEffect, useMemo, useState } from "react";
 import { useTourContext } from "@/components/tour/TourProvider";
@@ -70,17 +71,19 @@ const UnitsPage = () => {
         Control de Unidades
       </h1>
       <p className="text-sm text-muted-foreground text-center italic mt-2">
-        Catálogo de unidades del almacén. Las equivalencias entre unidades se
-        definen dentro de cada artículo, porque dependen de su presentación:
-        una CAJA de un artículo no contiene lo mismo que la de otro.
+        Catálogo de unidades del almacén. Cada artículo es dueño de sus
+        equivalencias, porque dependen de su presentación: una CAJA de un
+        artículo no contiene lo mismo que la de otro. El catálogo ofrece las
+        que se repiten para copiarlas sin volver a teclearlas.
       </p>
 
       <div className="flex justify-center items-center mt-6">
         <div className="w-full max-w-6xl">
           {canReviewConversions ? (
             <Tabs value={tab} onValueChange={setTab}>
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="unidades">Unidades</TabsTrigger>
+                <TabsTrigger value="catalogo">Catálogo de equivalencias</TabsTrigger>
                 <TabsTrigger value="conversiones">
                   Conversiones registradas
                 </TabsTrigger>
@@ -88,6 +91,22 @@ const UnitsPage = () => {
 
               <TabsContent value="unidades" className="mt-4">
                 {unitsSection}
+              </TabsContent>
+
+              <TabsContent value="catalogo" className="mt-4">
+                <div className="bg-card rounded-lg border p-4">
+                  <h2 className="text-2xl font-semibold mb-1">
+                    Catálogo de equivalencias
+                  </h2>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Equivalencias reutilizables que se ofrecen al crear la
+                    conversión de un artículo, para no teclear el factor cada vez.
+                    Son plantillas: el artículo copia el número y la conversión
+                    resultante es suya, así que cambiar algo aquí no altera lo ya
+                    copiado ni ningún stock.
+                  </p>
+                  <ConversionCatalogPanel />
+                </div>
               </TabsContent>
 
               <TabsContent value="conversiones" className="mt-4">

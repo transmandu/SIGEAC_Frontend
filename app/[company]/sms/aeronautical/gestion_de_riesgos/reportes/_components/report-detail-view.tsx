@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { getBadgeStatusClass } from "@/lib/sms/utils";
 import { cn } from "@/lib/utils";
 
-import { DetailGrid } from "../../_components/detail-grid";
+import { DetailGrid } from "@/app/[company]/sms/aeronautical/gestion_de_riesgos/_components/detail-grid";
 import {
     buildAnalysisEntries,
     buildCrewAndAircraftDetails,

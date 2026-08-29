@@ -3,7 +3,7 @@ import { memo, useMemo, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ArrowRight, Calculator, Loader2, Plus, X } from "lucide-react"
+import { ArrowRight, Calculator, Copy, Loader2, Plus, X } from "lucide-react"
 import type { Convertion, Unit } from "@/types"
 import type { ConversionDirection } from "@/types/supervisor"
 import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits"
@@ -12,6 +12,8 @@ import {
   type ConvertibleType,
 } from "@/hooks/mantenimiento/almacen/articulos/useArticleUnitConversions"
 import { useCompanyStore } from "@/stores/CompanyStore"
+import { ConversionSuggestionPicker } from "./ConversionSuggestionPicker"
+import type { ConversionSuggestion } from "@/hooks/mantenimiento/almacen/articulos/useUnitConversionCatalog"
 
 function sanitizeDecimal(raw: string) {
   const cleaned = raw.replace(/[^\d.]/g, "")
@@ -181,6 +183,21 @@ const NewConversionForm = memo(function NewConversionForm({
   const [unitId, setUnitId] = useState<number | "">("")
   const [direction, setDirection] = useState<ConversionDirection>("base_per_unit")
   const [value, setValue] = useState("")
+  const [copiedFrom, setCopiedFrom] = useState<string | null>(null)
+
+  /**
+   * Copia el factor de una equivalencia ya registrada. Llega en forma canónica
+   * (unidades base por 1 alterna), así que se carga en dirección directa; el
+   * usuario puede cambiarla o corregir el número antes de guardar.
+   */
+  const applySuggestion = (suggestion: ConversionSuggestion) => {
+    if (!suggestion.unit) return
+
+    setUnitId(suggestion.unit.id)
+    setDirection("base_per_unit")
+    setValue(String(suggestion.base_per_unit))
+    setCopiedFrom(suggestion.lectura)
+  }
 
   // Ni la unidad base ni las ya registradas: para cambiar una existente se
   // edita desde el artículo, no se crea otra encima.
@@ -213,6 +230,13 @@ const NewConversionForm = memo(function NewConversionForm({
 
   return (
     <div className="rounded-md border bg-background/70 p-3 space-y-2.5">
+      <ConversionSuggestionPicker type={type} articleId={articleId} onPick={applySuggestion} />
+
+      <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+        <span className="h-px flex-1 bg-border" />o escríbala
+        <span className="h-px flex-1 bg-border" />
+      </div>
+
       <div className="flex flex-col md:flex-row gap-2">
         <Select
           value={unitId === "" ? "" : String(unitId)}
@@ -241,7 +265,10 @@ const NewConversionForm = memo(function NewConversionForm({
 
         <Select
           value={direction}
-          onValueChange={(next) => setDirection(next as ConversionDirection)}
+          onValueChange={(next) => {
+            setDirection(next as ConversionDirection)
+            setCopiedFrom(null)
+          }}
           disabled={!unitId}
         >
           <SelectTrigger className="h-9 md:w-[200px] text-xs">
@@ -267,11 +294,21 @@ const NewConversionForm = memo(function NewConversionForm({
             inputMode="decimal"
             placeholder="Ej: 100"
             value={value}
-            onChange={(e) => setValue(sanitizeDecimal(e.target.value))}
+            onChange={(e) => {
+              setValue(sanitizeDecimal(e.target.value))
+              setCopiedFrom(null)
+            }}
             className="h-9 w-28"
           />
           <span className="text-xs text-muted-foreground whitespace-nowrap">{rightLabel}</span>
         </div>
+      )}
+
+      {copiedFrom && (
+        <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <Copy className="h-3 w-3 shrink-0" />
+          Copiada de <span className="font-medium text-foreground">{copiedFrom}</span>
+        </p>
       )}
 
       {isValid && (

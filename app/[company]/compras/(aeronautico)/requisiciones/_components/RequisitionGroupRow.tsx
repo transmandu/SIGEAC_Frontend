@@ -76,8 +76,8 @@ const RequisitionGroupRow = ({
             flex items-center justify-center
             size-8 rounded-lg
 
-            bg-emerald-500/10
-            border border-emerald-500/20
+            bg-primary/10
+            border border-primary/20
 
             shrink-0
           "
@@ -85,8 +85,7 @@ const RequisitionGroupRow = ({
           <Users
             className="
               size-4
-              text-emerald-600
-              dark:text-emerald-400
+              text-primary
             "
           />
         </div>

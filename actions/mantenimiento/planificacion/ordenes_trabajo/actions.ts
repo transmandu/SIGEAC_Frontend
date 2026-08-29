@@ -44,7 +44,8 @@ export const useCreateWorkOrder = () => {
         eventId: eventId,
       };
 
-      await axiosInstance.post(`/${company}/work-orders`, payload);
+      const { data: response } = await axiosInstance.post(`/${company}/work-orders`, payload);
+      return response;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({

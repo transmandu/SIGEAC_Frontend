@@ -14,7 +14,8 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { cn, formatRequestedDate } from '@/lib/utils'
-import type { Requisition } from '@/types/purchase'
+import ArticleLifecycleIcon from '@/components/misc/ArticleLifecycleIcon'
+import type { ArticleLifecycleStage, Requisition } from '@/types/purchase'
 
 interface Props {
   requisition: Requisition
@@ -42,6 +43,7 @@ interface ArticleRowProps {
   fields: FieldProps[]
   quantity: string | number
   unit: string
+  lifecycleStage?: ArticleLifecycleStage | null
 }
 
 const ArticleRow = ({
@@ -52,6 +54,7 @@ const ArticleRow = ({
   fields,
   quantity,
   unit,
+  lifecycleStage,
 }: ArticleRowProps) => (
   <div className="flex w-fit items-center gap-3 rounded-md border bg-background/60 px-2.5 py-1.5 shadow-sm transition-colors hover:bg-muted/40">
     <div
@@ -87,6 +90,12 @@ const ArticleRow = ({
       <span className="text-[10px] text-blue-700/70 dark:text-blue-300/70">
         {unit}
       </span>
+    </div>
+
+    {/* Hueco reservado: sin el, las filas con ciclo quedan mas anchas que las
+        que todavia no llegaron a compra. */}
+    <div className="flex h-4 w-4 shrink-0 items-center justify-center">
+      <ArticleLifecycleIcon stage={lifecycleStage} />
     </div>
   </div>
 )
@@ -160,6 +169,7 @@ export default function RequisitionArticlesPopover({ requisition }: Props) {
                   fields={fields}
                   quantity={article.quantity ?? '-'}
                   unit={article.unit?.label ?? 'N/A'}
+                  lifecycleStage={article.lifecycle_stage}
                 />
               )
             })
@@ -199,6 +209,7 @@ export default function RequisitionArticlesPopover({ requisition }: Props) {
                 fields={fields}
                 quantity={article.quantity ?? '-'}
                 unit={article.unit?.label ?? 'N/A'}
+                lifecycleStage={article.lifecycle_stage}
               />
             )
           })}

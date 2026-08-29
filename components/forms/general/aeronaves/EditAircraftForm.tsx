@@ -34,9 +34,9 @@ import { es } from "date-fns/locale/es";
 import { CalendarIcon, Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../../../ui/command";
-import { Separator } from "../../../ui/separator";
-import { Textarea } from "../../../ui/textarea";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
 import { useGetManufacturers } from "@/hooks/general/fabricantes/useGetManufacturers";
 
 const FormSchema = z.object({

@@ -3,10 +3,10 @@ import { useUpdateFinalHour, useDeleteActivity, useEditActivity } from '@/action
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Clock, MoreHorizontal, Trash2, Edit, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Button } from "../../../ui/button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "../../../ui/dialog";
-import { Input } from "../../../ui/input";
-import { Label } from "../../../ui/label";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useGetUserActivity } from "@/hooks/aerolinea/desarrollo/useGetUserActivities";
 import { useRouter } from "next/navigation";
 import { Activity } from '@/types';

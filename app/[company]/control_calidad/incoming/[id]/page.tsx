@@ -14,7 +14,7 @@ const IncomingPage = () => {
   if(isLoading) return <LoadingPage />;
   return (
     <ContentLayout title='Incoming'>
-      <PageHeader className="mb-6" />
+      <PageHeader className="mb-6" currentLabel={article?.part_number} />
 
       {
         article ? (

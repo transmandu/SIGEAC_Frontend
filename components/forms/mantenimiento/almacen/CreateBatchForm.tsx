@@ -39,10 +39,11 @@ import { Loader2, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
-import { Checkbox } from "../../../ui/checkbox";
-import { Textarea } from "../../../ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
 import CreateUnitForm from "@/components/forms/ajustes/CreateUnitForm";
 import { useGetBatchesByCategory } from "@/hooks/mantenimiento/almacen/renglones/useGetBatchesByCategory";
+import { NumericInput } from "@/components/forms/mantenimiento/almacen/_components/NumericInput";
 import { Batch } from "@/types";
 import { format } from "path";
 
@@ -80,16 +81,40 @@ const COMPONENT_PART_GROUP = [
 const isComponentOrPart = (category?: string) =>
   COMPONENT_PART_GROUP.includes(category as any);
 
-const FormSchema = z.object({
-  name: z.string().min(3, { message: "Debe introducir un nombre válido." }),
-  description: z.string().optional(),
-  category: z.string({ message: "Debe ingresar una categoria para el lote." }),
-  alternative_part_number: z.string().optional(),
-  // ata_code: z.string().optional(),
-  is_hazarous: z.boolean().optional(),
-  // medition_unit: z.string().min(1, { message: "Debe seleccionar una unidad." }),
-  warehouse_id: z.string(),
-});
+/**
+ * Nivel de stock opcional: el vacío se normaliza a `undefined` antes de
+ * validar, porque `z.coerce` lo convertiría en 0 y "sin nivel" no es lo mismo
+ * que "nivel cero" — un mínimo en 0 nunca alerta.
+ */
+const optionalStockLevel = z.preprocess(
+  (value) => (value === "" || value === null ? undefined : value),
+  z.coerce.number().min(0, { message: "No puede ser negativo." }).optional(),
+);
+
+const FormSchema = z
+  .object({
+    name: z.string().min(3, { message: "Debe introducir un nombre válido." }),
+    description: z.string().optional(),
+    category: z.string({ message: "Debe ingresar una categoria para el lote." }),
+    alternative_part_number: z.string().optional(),
+    // ata_code: z.string().optional(),
+    is_hazardous: z.boolean().optional(),
+    // medition_unit: z.string().min(1, { message: "Debe seleccionar una unidad." }),
+    warehouse_id: z.string(),
+    min_quantity: optionalStockLevel,
+    maximum_quantity: optionalStockLevel,
+  })
+  // Un máximo por debajo del mínimo haría que la requisición pida ≤ 0.
+  .refine(
+    (values) =>
+      values.maximum_quantity === undefined ||
+      values.min_quantity === undefined ||
+      values.maximum_quantity >= values.min_quantity,
+    {
+      message: "La cantidad máxima no puede ser menor que la mínima.",
+      path: ["maximum_quantity"],
+    },
+  );
 
 type FormSchemaType = z.infer<typeof FormSchema>;
 
@@ -129,7 +154,7 @@ export function CreateBatchForm({
 const form = useForm<FormSchemaType>({
   resolver: zodResolver(FormSchema),
   defaultValues: {
-    is_hazarous: initialData?.is_hazarous || false,
+    is_hazardous: initialData?.is_hazardous || false,
     category: initialData?.category
       ? getValueFromLabel(initialData.category)
       : defaultCategory || "",
@@ -138,6 +163,9 @@ const form = useForm<FormSchemaType>({
     // ata_code: initialData?.ata_code || "",
     // medition_unit: initialData?.unit?.value?.toString() || "",
     warehouse_id: initialData?.warehouse_id?.toString() || "",
+    // `undefined` y no 0: son opcionales, y un mínimo en 0 nunca alertaría.
+    min_quantity: initialData?.min_quantity ?? undefined,
+    maximum_quantity: initialData?.maximum_quantity ?? undefined,
   },
 });
 
@@ -445,7 +473,7 @@ const form = useForm<FormSchemaType>({
           {category === CATEGORY_VALUES.CONSUMABLE && (
             <FormField
               control={form.control}
-              name="is_hazarous"
+              name="is_hazardous"
               render={({ field }) => (
                 <FormItem className="flex flex-row space-x-3 space-y-0 p-8 w-full">
                   <FormControl>
@@ -464,6 +492,59 @@ const form = useForm<FormSchemaType>({
             />
           )}
         </div>
+        {/* Los niveles de stock son del renglón y solo aplican al consumible:
+            su alerta contrasta el mínimo con la suma de sus lotes. En las demás
+            categorías el artículo se cuenta por pieza y no hay tal suma. */}
+        {category === CATEGORY_VALUES.CONSUMABLE && (
+          <div className="flex gap-2 w-full">
+            <FormField
+              control={form.control}
+              name="min_quantity"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>Cantidad mínima</FormLabel>
+                  <FormControl>
+                    <NumericInput
+                      {...field}
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      placeholder="Ej: 10"
+                      className="h-10 rounded-md text-sm"
+                    />
+                  </FormControl>
+                  <FormDescription className="text-xs">
+                    Opcional. Al bajar de este nivel se alerta el stock.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="maximum_quantity"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>Cantidad máxima</FormLabel>
+                  <FormControl>
+                    <NumericInput
+                      {...field}
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      placeholder="Ej: 40"
+                      className="h-10 rounded-md text-sm"
+                    />
+                  </FormControl>
+                  <FormDescription className="text-xs">
+                    Opcional. Nivel a reponer, no un tope de existencia.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        )}
+
         <FormField
           control={form.control}
           name="description"

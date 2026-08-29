@@ -16,10 +16,10 @@ import { Box, Check, ChevronsUpDown, Loader2, User, Wrench, X } from "lucide-rea
 import { useEffect, useMemo, useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import { Avatar, AvatarFallback } from "../../../ui/avatar"
-import { Badge } from "../../../ui/badge"
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../../../ui/command"
-import { Popover, PopoverContent, PopoverTrigger } from "../../../ui/popover"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Badge } from "@/components/ui/badge"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 
 const FormSchema = z.object({
   name: z.string().min(3, {

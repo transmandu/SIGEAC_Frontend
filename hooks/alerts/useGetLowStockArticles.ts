@@ -1,6 +1,6 @@
 import axios from '@/lib/axios';
 import { useCompanyStore } from '@/stores/CompanyStore';
-import { GeneralArticle, LowStockConsumableArticle } from '@/types';
+import { GeneralArticle, LowStockConsumableBatch } from '@/types';
 import { useQuery } from '@tanstack/react-query';
 
 /**
@@ -31,7 +31,7 @@ export const useGetLowStockGeneralArticles = makeLowStockArticlesHook<GeneralArt
     'general-articles/low-stock',
 );
 
-export const useGetLowStockConsumableArticles = makeLowStockArticlesHook<LowStockConsumableArticle>(
+export const useGetLowStockConsumableArticles = makeLowStockArticlesHook<LowStockConsumableBatch>(
     'low-stock-consumable-articles',
     'articles/low-stock-consumables',
 );

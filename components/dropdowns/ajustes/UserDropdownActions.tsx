@@ -14,8 +14,8 @@ import { User } from "@/types"
 import { Eye, KeyRound, Loader2, MoreHorizontal, Trash2, UserPen } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
-import { Button } from "../../ui/button"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../../ui/dialog"
+import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 
 const UserDropdownActions = ({ user, companies }: { user: User, companies: { id: number, name: string }[] }) => {
 

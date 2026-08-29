@@ -9,18 +9,23 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 export default function AuthRedirect() {
   const router = useRouter();
 
-  // Guarda el id de la sesión que ya se redirigió, en vez de un booleano: la
-  // página de login no se re-monta al volver del logout, así que un candado sin
-  // identidad seguía cerrado para la sesión siguiente y el segundo login se
-  // quedaba en el formulario con todo en verde.
+  // La página de login no se re-monta al volver del logout, así que este
+  // candado sobrevive a la sesión anterior y hay que soltarlo a mano.
   const navigatedForUserRef = useRef<number | string | null>(null);
 
   const { user, loading } = useAuth();
 
   const { selectedCompany } = useCompanyStore();
 
+  // Quedarse sin sesión lo suelta: guardando solo el id, volver a entrar con el
+  // MISMO usuario encontraba el candado cerrado y nadie navegaba.
   useEffect(() => {
-    if (loading || !user) return;
+    if (loading) return;
+
+    if (!user) {
+      navigatedForUserRef.current = null;
+      return;
+    }
 
     if (navigatedForUserRef.current === user.id) return;
 

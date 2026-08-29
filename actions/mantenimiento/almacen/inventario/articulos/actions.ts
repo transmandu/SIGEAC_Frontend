@@ -173,22 +173,6 @@ const serializeFormValue = (value: unknown) => {
   return value?.toString() ?? "";
 };
 
-/**
- * Las conversiones son un arreglo de objetos y multipart no anida: aplanadas
- * con `[]` cada fila llegaba como "[object Object]". Van con índice y clave,
- * que es el formato que Laravel rearma en `conversions.*.unit_id`.
- */
-const appendConversions = (
-  formData: FormData,
-  rows: { unit_id: number; direction: string; value: number }[]
-) => {
-  rows.forEach((row, index) => {
-    formData.append(`conversions[${index}][unit_id]`, String(row.unit_id));
-    formData.append(`conversions[${index}][direction]`, row.direction);
-    formData.append(`conversions[${index}][value]`, String(row.value));
-  });
-};
-
 export type IncomingCheck = {
   check_id: number;
   result: CheckResult;
@@ -226,9 +210,7 @@ export const useCreateArticle = () => {
 
       Object.entries(data).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
-          if (key === "conversions") {
-            appendConversions(formData, value as ArticleData["conversions"] & object);
-          } else if (Array.isArray(value)) {
+          if (Array.isArray(value)) {
             value.forEach((item) => formData.append(`${key}[]`, item));
           } else if (value instanceof File) {
             formData.append(key, value);
@@ -653,6 +635,75 @@ export const useUpdateArticleStatus = () => {
   };
 };
 
+/**
+ * Pase directo de recepción al inventario, saltando la inspección de incoming.
+ *
+ * Va aparte de useUpdateArticleStatus porque no es un cambio de estado más: el
+ * backend exige de quién vino la orden y lo sella en el movimiento.
+ */
+export const useStoreArticleDirectly = () => {
+  const { selectedCompany } = useCompanyStore();
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: async ({
+      id,
+      authorized_by,
+      authorized_by_employee_id,
+      authorization_reason,
+    }: {
+      id: number;
+      authorized_by: string;
+      authorized_by_employee_id?: number | null;
+      authorization_reason?: string | null;
+    }) => {
+      await axiosInstance.put(
+        `/${selectedCompany?.slug}/articles/${id}/store-directly`,
+        {
+          authorized_by,
+          authorized_by_employee_id: authorized_by_employee_id ?? null,
+          authorization_reason: authorization_reason || null,
+        }
+      );
+    },
+    onSuccess: () => {
+      const company = selectedCompany?.slug;
+
+      queryClient.invalidateQueries({ queryKey: ["in-transit-articles"] });
+      queryClient.invalidateQueries({ queryKey: ["in-reception-articles"] });
+      queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
+      queryClient.invalidateQueries({ queryKey: ["articles"] });
+      queryClient.invalidateQueries({ queryKey: ["article-status-history"] });
+      if (company) {
+        queryClient.invalidateQueries({ queryKey: ["articles", company, "RECEPTION"] });
+        queryClient.invalidateQueries({ queryKey: ["articles", company, "TO_DETERMINATE"] });
+        queryClient.invalidateQueries({ queryKey: ["articles", company, "STORED"] });
+      }
+
+      toast.success("¡Almacenado!", {
+        description: "El artículo pasó directo al inventario.",
+      });
+    },
+    onError: (error: any) => {
+      const data = error?.response?.data;
+
+      // El rechazo por documentación viene con la lista de lo que falta; sin
+      // enumerarla el usuario solo sabe que "falta algo" y no qué consignar.
+      const pending: string[] = (data?.pending_documents ?? [])
+        .map((doc: { document_type?: string | null }) => doc.document_type)
+        .filter(Boolean);
+
+      toast.error("Oops!", {
+        description: pending.length
+          ? `${data.message} Pendiente: ${pending.join(", ")}.`
+          : data?.message ?? "No se pudo pasar el artículo al inventario...",
+      });
+    },
+  });
+
+  return { storeArticleDirectly: mutation };
+};
+
 export const useConfirmIncomingArticle = () => {
   const { selectedCompany } = useCompanyStore();
   const queryClient = useQueryClient();
@@ -790,11 +841,6 @@ export const useUpdateArticle = () => {
         // Files
         if (value instanceof File) {
           formData.append(key, value);
-          return;
-        }
-
-        if (key === "conversions" && Array.isArray(value)) {
-          appendConversions(formData, value);
           return;
         }
 

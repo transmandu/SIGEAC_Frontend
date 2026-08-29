@@ -347,8 +347,8 @@ export function EditArticleDialog({
                                 </div>
 
                                 {stockChanged && (
-                                    <div className="flex items-start gap-2.5 rounded-lg border border-sky-400/40 bg-sky-500/[0.07] dark:border-sky-300/25 px-3 py-2.5">
-                                        <AlertTriangle className="size-4 text-sky-600 dark:text-sky-400 shrink-0 mt-0.5" />
+                                    <div className="flex items-start gap-2.5 rounded-lg border border-primary/40 bg-primary/[0.07] px-3 py-2.5">
+                                        <AlertTriangle className="size-4 text-primary shrink-0 mt-0.5" />
                                         <p className="text-xs text-muted-foreground leading-relaxed">
                                             Está modificando el stock real. Cambiar la unidad{" "}
                                             <strong className="text-foreground/80">no</strong>{" "}
@@ -387,6 +387,10 @@ export function EditArticleDialog({
                                     units?.find((unit) => unit.id === unitId)?.label ??
                                     article.general_primary_unit?.label ??
                                     "unidad base"
+                                }
+                                articleId={article.id}
+                                baseUnitChanged={
+                                    unitId !== null && unitId !== article.primary_unit_id
                                 }
                                 edits={conversionEdits}
                                 onChange={setConversionEdits}
@@ -451,7 +455,7 @@ function hasEdits(edits: ConversionEdits | CostChangeEdits): boolean {
 
 /** Punto que marca una pestaña con cambios sin guardar. */
 function PendingDot() {
-    return <span className="ml-1.5 size-1.5 rounded-full bg-sky-500 dark:bg-sky-400" />
+    return <span className="ml-1.5 size-1.5 rounded-full bg-primary" />
 }
 
 function PanelLoader() {

@@ -14,7 +14,7 @@ import { ContentLayout } from '@/components/layout/ContentLayout'
 import { useAuth } from '@/contexts/AuthContext'
 import { useCompanyStore } from '@/stores/CompanyStore'
 
-import { DataTable } from '../data-table'
+import { DataTable } from '@/app/[company]/compras/data-table'
 import { getColumns } from './columns'
 
 import GroupedCostTable from './_components/GroupedCostTable'
