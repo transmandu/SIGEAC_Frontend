@@ -22,7 +22,7 @@ import {
   type IssuedIncomingFormat,
 } from "@/actions/mantenimiento/control_calidad/actions";
 import { GenerateReceptionFormButton } from "./GenerateReceptionFormButton";
-import { IncomingArticle } from "../IncomingTypes";
+import { IncomingArticle } from "@/app/[company]/control_calidad/incoming/IncomingTypes";
 
 /**
  * Identifica al formato por su fecha de emisión, no por la OC: esa se teclea a

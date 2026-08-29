@@ -161,16 +161,9 @@ export default function UsersSummary({
                               <TableCell className="text-center">{u.name}</TableCell>
                               <TableCell className="text-center">{u.job_title}</TableCell>
                               <TableCell className="text-center">
-                                <div className="flex flex-col items-center gap-1">
-                                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${presenceStyles[status]}`}>
-                                    {presenceLabels[status]}
-                                  </span>
-                                  {status === 'offline' && (
-                                    <span className="text-[11px] text-slate-400">
-                                      {u.last_used_at ?? 'Sin registro de acceso'}
-                                    </span>
-                                  )}
-                                </div>
+                                <span className={`px-3 py-1 rounded-full text-xs font-medium ${presenceStyles[status]}`}>
+                                  {presenceLabels[status]}
+                                </span>
                               </TableCell>
                             </TableRow>
                           )

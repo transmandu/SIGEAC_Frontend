@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
+import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -116,12 +117,9 @@ export function UniformReportDialog() {
       }}
     >
       <DialogTrigger asChild>
-        <Button
-          variant="outline"
-          className="relative overflow-hidden border border-dashed border-purple-400/50 dark:border-purple-300/30 bg-background/70 backdrop-blur text-purple-700 dark:text-purple-300 font-medium tracking-wide shadow-sm transition-all duration-200 hover:border-purple-500/60 dark:hover:border-purple-300/50 hover:bg-purple-50/50 dark:hover:bg-purple-950/20 hover:shadow-md hover:-translate-y-[1px] active:translate-y-0 active:shadow-sm focus-visible:ring-2 focus-visible:ring-purple-500/25 focus-visible:ring-offset-2"
-        >
+        <ActionTriggerButton>
           Generar Reporte
-        </Button>
+        </ActionTriggerButton>
       </DialogTrigger>
 
       <DialogContent className="sm:max-w-[500px]">
