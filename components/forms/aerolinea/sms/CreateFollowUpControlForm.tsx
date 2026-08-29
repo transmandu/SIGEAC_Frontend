@@ -33,6 +33,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import Image from "next/image";
 import { useCompanyStore } from "@/stores/CompanyStore";
+const imageFileSchema = z
+  .instanceof(File)
+  .refine((file) => file.size <= 5 * 1024 * 1024, "Max 5MB")
+  .refine(
+    (file) => ["image/jpeg", "image/png"].includes(file.type),
+    "Solo JPEG/PNG"
+  );
+
 const FormSchema = z.object({
   description: z
     .string()
@@ -45,18 +53,11 @@ const FormSchema = z.object({
     .date()
     .refine((val) => !isNaN(val.getTime()), { message: "Invalid Date" }),
 
-  image: z
-    .instanceof(File)
-    .refine((file) => file.size <= 5 * 1024 * 1024, "Max 5MB")
-    .refine(
-      (file) => ["image/jpeg", "image/png"].includes(file.type),
-      "Solo JPEG/PNG"
-    )
-    .optional(),
+  images: z.array(imageFileSchema).max(10, "Máximo 10 imágenes").optional(),
 
   document: z
     .instanceof(File)
-    .refine((file) => file.size <= 5 * 1024 * 1024, "Máximo 5MB")
+    .refine((file) => file.size <= 10 * 1024 * 1024, "Máximo 10MB")
     .refine(
       (file) => file.type === "application/pdf",
       "Solo se permiten archivos PDF"
@@ -208,30 +209,50 @@ export default function CreateFollowUpControlForm({ onClose, id }: FormProps) {
         <div className="flex justify-center items-center gap-2">
           <FormField
             control={form.control}
-            name="image"
+            name="images"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Imagen General</FormLabel>
+                <FormLabel>Imágenes ({field.value?.length ?? 0}/10)</FormLabel>
 
-                <div className="flex items-center gap-4">
-                  {field.value && (
-                    <Image
-                      src={URL.createObjectURL(field.value)}
-                      alt="Preview"
-                      className="h-16 w-16 rounded-md object-cover"
-                      width={64}
-                      height={64}
-                    />
-                  )}
+                {field.value && field.value.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-2">
+                    {field.value.map((file, index) => (
+                      <div key={`${file.name}-${index}`} className="relative">
+                        <Image
+                          src={URL.createObjectURL(file)}
+                          alt={file.name}
+                          className="h-16 w-16 rounded-md object-cover"
+                          width={64}
+                          height={64}
+                        />
+                        <button
+                          type="button"
+                          onClick={() =>
+                            field.onChange(
+                              field.value?.filter((_, i) => i !== index)
+                            )
+                          }
+                          className="absolute -top-1.5 -right-1.5 rounded-full bg-destructive text-destructive-foreground size-4 flex items-center justify-center text-[10px] leading-none"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
 
-                  <FormControl>
-                    <Input
-                      type="file"
-                      accept="image/jpeg, image/png"
-                      onChange={(e) => field.onChange(e.target.files?.[0])}
-                    />
-                  </FormControl>
-                </div>
+                <FormControl>
+                  <Input
+                    type="file"
+                    accept="image/jpeg, image/png"
+                    multiple
+                    onChange={(e) => {
+                      const newFiles = Array.from(e.target.files ?? []);
+                      field.onChange([...(field.value ?? []), ...newFiles]);
+                      e.target.value = "";
+                    }}
+                  />
+                </FormControl>
 
                 <FormMessage />
               </FormItem>

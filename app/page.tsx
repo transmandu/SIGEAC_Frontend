@@ -1,11 +1,10 @@
 import Footer from "@/components/layout/Footer";
 import Logo from "@/components/misc/Logo";
 import PlaneIntro from "@/components/misc/PlaneIntro";
+import VersionBadge from "@/components/misc/VersionBadge";
 import { buttonVariants } from "@/components/ui/button";
 import type { Metadata } from "next";
 import Link from "next/link";
-
-const APP_VERSION = "v2.0.2";
 
 export const metadata: Metadata = {
   // `template` no aplica al segmento que lo define, así que aquí va completo.
@@ -89,8 +88,10 @@ export default function Home() {
           <Logo />
 
           <Link href="/login" className={buttonVariants()}>
-            Iniciar Sesión - {APP_VERSION}
+            Iniciar Sesión
           </Link>
+
+          <VersionBadge />
         </div>
 
         <Footer />

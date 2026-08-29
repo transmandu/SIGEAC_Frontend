@@ -1,0 +1,130 @@
+name: Release
+
+# Cada merge a main produce una versión. El número no depende de que alguien
+# recuerde subirlo: sale de los mensajes de commit.
+on:
+  push:
+    branches: [main]
+  # Un merge cuyo release no llegó a correr (una incidencia de Actions, por
+  # ejemplo) deja main sin versionar y no hay push que lo repita.
+  workflow_dispatch:
+
+# Dos merges seguidos pisarían el mismo tag. El segundo espera al primero en
+# lugar de cancelarlo: cancelar dejaría commits sin versionar.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    # Los commits que este workflow crea vuelven a disparar el push. Sin esto
+    # el workflow se llamaría a sí mismo en bucle. En un lanzamiento manual no
+    # hay head_commit y la comparación se evalúa contra vacío, que no coincide.
+    if: "!startsWith(github.event.head_commit.message || '', 'chore(release):')"
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determinar versión
+        id: version
+        run: |
+          set -euo pipefail
+
+          current=$(git describe --tags --abbrev=0 --match 'v*' 2>/dev/null || echo "v0.0.0")
+          echo "Último tag propio: $current"
+
+          # Commits desde el último tag. Sin tag previo se lee la historia
+          # completa, que solo ocurre en el primer arranque.
+          if git rev-parse "$current" >/dev/null 2>&1; then
+            range="$current..HEAD"
+          else
+            range="HEAD"
+          fi
+
+          subjects=$(git log --format='%s' "$range")
+          bodies=$(git log --format='%b' "$range")
+
+          # BREAKING CHANGE en el cuerpo o "!" antes de ":" marcan un mayor.
+          if grep -qE '^[a-zA-Z]+(\([^)]*\))?!:' <<<"$subjects" \
+            || grep -q 'BREAKING CHANGE' <<<"$bodies"; then
+            bump=major
+          # [:/] porque hay títulos históricos con nombre de rama ("Feat/algo").
+          elif grep -qiE '^feat(\([^)]*\))?[:/]' <<<"$subjects"; then
+            bump=minor
+          else
+            # Incluye fix, chore, docs y cualquier título fuera de convención:
+            # un merge siempre produce versión, nunca se queda sin número.
+            bump=patch
+          fi
+          echo "Incremento detectado: $bump"
+
+          IFS=. read -r major minor patch <<<"${current#v}"
+
+          case "$bump" in
+            major) major=$((major + 1)); minor=0; patch=0 ;;
+            minor) minor=$((minor + 1)); patch=0 ;;
+            patch) patch=$((patch + 1)) ;;
+          esac
+          next="$major.$minor.$patch"
+
+          # Un tag ya existente significa que el cálculo se repitió sobre una
+          # versión publicada; seguir crearía un commit que nunca se puede taguear.
+          if git rev-parse "v$next" >/dev/null 2>&1; then
+            echo "::error::El tag v$next ya existe. Se detiene antes de crear un commit de release imposible de publicar."
+            exit 1
+          fi
+
+          echo "Versión nueva: $next"
+          echo "version=$next" >>"$GITHUB_OUTPUT"
+          echo "previous=$current" >>"$GITHUB_OUTPUT"
+
+      - name: Actualizar package.json y changelog
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          PREVIOUS: ${{ steps.version.outputs.previous }}
+        run: |
+          set -euo pipefail
+
+          # npm version sin tag ni commit: los crea el paso siguiente junto al
+          # changelog, para que todo entre en un único commit.
+          npm version "$VERSION" --no-git-tag-version --allow-same-version
+
+          if git rev-parse "$PREVIOUS" >/dev/null 2>&1; then
+            range="$PREVIOUS..HEAD"
+          else
+            range="HEAD"
+          fi
+
+          {
+            echo "## v$VERSION — $(date +%Y-%m-%d)"
+            echo
+            git log --format='- %s' "$range" | grep -viE '^- chore\(release\)' || true
+            echo
+          } >/tmp/entry.md
+
+          if [ -f CHANGELOG.md ]; then
+            cat /tmp/entry.md CHANGELOG.md >/tmp/changelog.md
+          else
+            cat /tmp/entry.md >/tmp/changelog.md
+          fi
+          mv /tmp/changelog.md CHANGELOG.md
+
+      - name: Publicar tag
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add package.json package-lock.json CHANGELOG.md
+          git commit -m "chore(release): v$VERSION"
+          git tag -a "v$VERSION" -m "Release v$VERSION"
+          git push origin HEAD:main --follow-tags

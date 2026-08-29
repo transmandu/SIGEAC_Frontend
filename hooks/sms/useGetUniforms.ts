@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import axiosInstance from "@/lib/axios";
+import { Employee } from "@/types";
 
 export interface UniformArticleType {
   id: number;
@@ -46,11 +47,14 @@ export interface UniformMovement {
   movement_type: string;
   quantity: number;
   recipient_name: string | null;
+  recipient_dni: string | null;
+  employee_id: number | null;
   date: string;
   notes: string | null;
   registered_by?: string | null;
   created_at?: string;
   item?: UniformItem;
+  employee?: Employee;
 }
 
 export interface UniformOption {

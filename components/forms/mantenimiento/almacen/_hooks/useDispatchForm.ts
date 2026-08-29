@@ -96,7 +96,10 @@ export const FormSchema = z
         third_party_requested_by: z.string().optional(),
         third_party_receiver: z.string().optional(),
         third_party_authorizer: z.string().optional(),
-        submission_date: z.date({ message: "Debe ingresar la fecha." }),
+        // La salida se registra el día en que ocurre: la fecha la pone el backend.
+        // Sólo el registro extemporáneo la trae, y sólo si el rol lo habilita.
+        is_backdated: z.boolean().default(false),
+        submission_date: z.date().optional(),
         justification: z.string({ message: "Debe ingresar una justificación de la salida." }),
         department_id: z.string().optional(),
         status: z.string(),
@@ -129,6 +132,9 @@ export const FormSchema = z
         if (data.dispatch_type === "third_party" && !data.third_party_id) {
             ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Debe seleccionar un tercero.", path: ["third_party_id"] })
         }
+        if (data.is_backdated && !data.submission_date) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Debe indicar la fecha real de la salida.", path: ["submission_date"] })
+        }
     })
 
 export type FormSchemaType = z.infer<typeof FormSchema>
@@ -143,6 +149,10 @@ export const genKey = (id: string) => `G:${id}`
 // el stock al convertirla allá (1 mL sobre base GALON = 0.000264200793, que
 // con 6 decimales quedaba en 0.000264).
 const CONVERSION_PRECISION = 12
+
+// Registrar una salida con fecha distinta a la de hoy es una excepción: sólo la
+// jefatura de almacén responde por ella.
+const BACKDATE_ROLES = ["JEFE_ALMACEN", "SUPERUSER"]
 
 const flattenDepartments = (departments: Department[]): Department[] =>
     departments.flatMap((department) => [
@@ -205,10 +215,16 @@ export function useDispatchForm(
             department_id: "",
             third_party_id: "",
             status: "proceso",
+            is_backdated: false,
             aeronautical_articles: [],
             general_articles: [],
         },
     })
+
+    const canBackdate = useMemo(
+        () => (user?.roles ?? []).some((role) => BACKDATE_ROLES.includes(role.name.toUpperCase())),
+        [user]
+    )
 
     const { control, setValue } = form
     const aeroFA = useFieldArray({ control, name: "aeronautical_articles" })
@@ -571,11 +587,17 @@ export function useDispatchForm(
         }
         if (hasBlockingQtyError) return
 
+        // Sin registro extemporáneo no se manda fecha: el backend la sella con el
+        // momento real de creación. La bandera viaja aparte para que allá se vuelva
+        // a verificar el rol en vez de confiar en que llegue o no la fecha.
+        const isBackdated = canBackdate && data.is_backdated && !!data.submission_date
+
         await createDispatchRequest.mutateAsync({
             data: {
                 ...data,
                 created_by: user!.username,
-                submission_date: format(data.submission_date, "yyyy-MM-dd"),
+                is_backdated: isBackdated,
+                submission_date: isBackdated ? format(data.submission_date!, "yyyy-MM-dd") : undefined,
                 category:
                     itemCategory === "consumable"
                         ? "consumible"
@@ -644,6 +666,7 @@ export function useDispatchForm(
         removeAeroRow, removeGenRow,
         handleDispatchTypeChange,
         hasBlockingQtyError, hasInvalidQty,
+        canBackdate,
         aeronauticalCount: aeroFA.fields.length,
         generalCount: genFA.fields.length,
         disabledAdd: isBatchesLoading || isHardwareLoading,

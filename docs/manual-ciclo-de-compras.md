@@ -284,8 +284,13 @@ Al crear la orden de compra pasan tres cosas de golpe:
    `PARTIAL` (distinta), `REJECTED` (`is_not_quoted` o ausente de la cotización).
 3. La requisición pasa a `APPROVED`.
 
-Después se registra el pago: método, cuenta bancaria, tarjeta, factura, fletes
+Después se registra el pago: método, cuenta bancaria, tarjeta, facturas, fletes
 (`shipping_fee`, `wire_fee`, `handling_fee`), agencia de envío, tracking.
+
+Una compra puede llegar con **varias facturas** — el proveedor factura por partes, o
+el envío y la mercancía vienen en documentos distintos. Se cargan todas, cada una con
+su propio número y su archivo (PDF o imagen). Al completar la orden se pueden agregar
+las que falten, corregir el número de una ya cargada, reemplazar su archivo o quitarla.
 
 ### Para el desarrollador
 
@@ -300,6 +305,28 @@ la cuenta.
 La sincronización de estados de requisición (`syncRequisitionArticleStatuses`) compara
 contra la **cantidad de la cotización** (lo que el proveedor ofreció), no contra lo
 que finalmente se pagó.
+
+Las facturas viven en `purchase_order_invoices` (una fila por factura: `invoice_number`
++ `file_path`), no en columnas de `purchase_orders` — las viejas `invoice` /
+`invoice_number` se migraron a esa tabla y se eliminaron. El formulario envía el
+**estado completo** de las facturas: `syncPurchaseOrderInvoices` borra las que no
+lleguen en `kept_invoice_ids`, actualiza las que traen `id` y crea el resto. El
+marcador `invoices_present` distingue "no envié facturas" de "las quité todas", que
+en multipart se ven igual.
+
+> **El disco se toca fuera de la transacción.** `syncPurchaseOrderInvoices` no borra
+> ningún archivo: devuelve `[obsoletos, subidos]` y `update()` los resuelve según el
+> desenlace — los obsoletos tras el commit (si revierte, las filas vuelven y deben
+> seguir apuntando a un archivo existente) y los recién subidos en el `catch` (sin
+> fila que los referencie). `Helper::transactional` sí hace rollback real, y el
+> `findOrFail` de las líneas generales puede dispararlo.
+
+La FK `purchase_order_id` es `ON DELETE CASCADE` **a propósito**: `QuoteOrderController
+::destroy` borra la cotización y deja que la BD arrastre sus órdenes de compra, así que
+sin cascada esa FK bloquearía el borrado de cualquier orden con facturas. La contrapartida
+es que la cascada no borra archivos: los recogen antes `QuoteOrderController::destroy`,
+`RequisitionOrderController::destroyRequisition`, `CascadeDeleteService`,
+`PurchaseOrderController::destroy` y el comando `RemoveDuplicatePurchaseOrders`.
 
 ---
 
@@ -348,11 +375,13 @@ Se marca manualmente y no dispara ningún efecto sobre inventario.
 stateDiagram-v2
     [*] --> TRANSIT: markAsPaid crea el Article
     TRANSIT --> RECEPTION: llega físicamente<br/>(consignados los documentos)
-    RECEPTION --> STORED: inspección de entrada OK
+    RECEPTION --> WAITING_FOR_FORMAT: inspección de entrada OK
     RECEPTION --> QUARANTINE: inspección falla
     QUARANTINE --> PENDING_REINSPECTION: compras corrige y lo declara
-    PENDING_REINSPECTION --> STORED: re-inspección OK
+    PENDING_REINSPECTION --> WAITING_FOR_FORMAT: re-inspección OK
     PENDING_REINSPECTION --> QUARANTINE: re-inspección falla<br/>(nuevo ciclo)
+    WAITING_FOR_FORMAT --> WAITING_TO_LOCATE: se emite el formato
+    WAITING_TO_LOCATE --> STORED: almacén confirma la zona
     STORED --> DISPATCHED: despacho (componente/parte)
     STORED --> INUSE: despacho (herramienta)
     STORED --> STORED: despacho (consumible, resta cantidad)
@@ -369,6 +398,93 @@ El artículo aeronáutico arrastra requisitos documentales (`article_documents`,
 `article_document_requirements`, `article_document_types`) que se materializan en
 `markAsPaid` desde lo que la requisición exigía, y se consignan antes de pasar el
 artículo a RECEPTION.
+
+En el incoming (`control_calidad/incoming/{id}`), junto a esos documentos se listan
+las **facturas de la orden de compra** que originó el artículo: el inspector contrasta
+la mercancía contra lo facturado sin salir de la pantalla. Llegan en
+`purchase_order_invoices` dentro del `show` del artículo, y se sirven por `files/serve`
+(disco `private`), no por el endpoint de documentos de artículo.
+
+> **La factura en el incoming es de solo consulta.** Se abre en el `SecureFileViewer`
+> (sin toolbar de descarga ni impresión, con los atajos de guardado bloqueados) y no
+> tiene botón de descarga: el inspector la revisa, no la manipula ni se la lleva. Quien
+> necesite el archivo lo descarga desde Compras, donde el botón sí existe. Ojo: es un
+> bloqueo de UI, no del endpoint — `files/serve` sigue sirviendo el archivo a cualquier
+> usuario autenticado que arme la petición a mano.
+
+### El formato H74-036: emisión, historial y corrección
+
+El artículo que aprueba la inspección queda en `WAITING_FOR_FORM` hasta que se
+imprime el formato de recepción. Se emite desde la pestaña homónima de
+`control_calidad/incoming` seleccionando los artículos y confirmando el diálogo;
+al generarse, pasan a `WAITING_TO_LOCATE`.
+
+**El paso por `WAITING_TO_LOCATE` es obligatorio y no tiene atajo.** Desde
+`almacen/por_ubicar`, el diálogo de ubicación pasa el artículo a `STORED`. Si
+durante la recepción ya se había cargado una zona, el diálogo la precarga como
+sugerencia editable para que almacén la confirme o la corrija: tener zona **no**
+salta el estado, porque la ubicación física la valida quien recibe el artículo en
+el almacén, no quien la tecleó antes.
+
+**Ubicar es trabajo de almacén, no de calidad.** `almacen/por_ubicar` es la única
+pantalla de artículos por ubicar, bajo el menú de Inventario y restringida a
+`ANALISTA_ALMACEN`, `JEFE_ALMACEN` y `SUPERUSER`. El incoming de calidad tenía un
+tab que listaba lo mismo: se quitó, porque el inspector no ubica nada y verlo solo
+sugería que era su tarea. Calidad termina en la emisión del formato.
+
+`locateArticle` exige que el artículo esté en `WAITING_TO_LOCATE` y responde 409
+si no: una pestaña vieja o un reintento podía devolver a `STORED` un artículo ya
+despachado o en cuarentena.
+
+**El número de orden que se imprime lo teclea el inspector.** El correlativo del
+sistema (`PO2026JUL0001CBL-A`) no coincide con el que la empresa usa en papel, así
+que el diálogo lo precarga como sugerencia pero deja editarlo. Es obligatorio: se
+imprimía `N/A` cuando alguien lo dejaba vacío. Si los artículos seleccionados
+vienen de varias OC distintas no se sugiere nada y se listan las involucradas.
+
+Cada emisión deja fila en `incoming_inspections` con el PDF archivado en el disco
+privado, bajo `documents/control_calidad/formatos/<año>/`. El nombre lleva un
+sufijo aleatorio para que reimprimir la misma OC en la misma fecha no pise la
+evidencia anterior.
+
+**Corregir nunca edita el formato errado.** Emite uno nuevo que apunta al anterior
+por `corrects_inspection_id` y deja el original en `issuance_status = VOIDED` con
+motivo, autor y fecha. Ambos quedan en el historial y la cadena completa es
+demostrable ante la OMAC. El diálogo de corrección precarga lo que decía el
+formato anulado y exige el motivo.
+
+El botón **Formatos emitidos**, junto al de generar, abre el historial: permite
+buscar por número de orden, volver a descargar el PDF archivado y disparar la
+corrección. Los anulados se muestran con su motivo y ya no ofrecen corregirse —
+lo vigente es la última emisión de la cadena.
+
+> **Una corrección no mueve inventario.** `markAsWaitingToLocate` se omite cuando
+> viene `corrects_inspection_id`: el artículo ya siguió su curso (puede estar
+> `STORED` y ubicado) y rehacer el papel no debe devolverlo a por-ubicar. Como
+> segunda defensa, `markAsWaitingToLocate` solo avanza artículos que estén en
+> `WAITING_FOR_FORMAT`: reemitir manda ids que ya pasaron de largo.
+
+**El veredicto que se copia al formato es el de la inspección vigente**, no el
+primero de la historia del artículo. Un artículo que pasó por cuarentena acumula
+varias filas en `incoming_inspection_items` —unas con checklist real, otras el
+«stub» de cada emisión—; se toma la última con resultados. Copiar la más vieja
+marcaba como `REJECTED` un artículo ya aprobado, y como el PDF sí usaba el
+criterio correcto, el papel y el registro se contradecían.
+
+**Desmarcar «Descargar formato» no emite.** Sin PDF no hay evidencia que archivar,
+así que esa rama solo adelanta el estado y no deja fila en `incoming_inspections`.
+Por lo mismo, una corrección exige reemitir el PDF y se rechaza con 422 si llega
+sin descarga.
+
+| Endpoint | Qué hace |
+|---|---|
+| `POST /{company}/incoming-format` | Emite; con `corrects_inspection_id` anula el anterior |
+| `GET /{company}/incoming-formats` | Historial, filtrable por código de OC |
+| `GET /{company}/incoming-formats/{id}/reprint` | Baja el PDF archivado tal cual se emitió |
+
+> El PDF temporal sigue borrándose en `terminating()`; lo que persiste es la copia
+> archivada. Antes no se guardaba ninguna de las dos, así que de un formato mal
+> emitido no quedaba rastro alguno.
 
 ### El ciclo de cuarentena
 

@@ -20,12 +20,10 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { Article, Batch } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
-import { es } from "date-fns/locale";
-import { CalendarIcon, Check, ChevronsUpDown, Loader2 } from "lucide-react";
+import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Calendar } from "@/components/ui/calendar";
 import {
   Command,
   CommandEmpty,
@@ -36,6 +34,7 @@ import {
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
+import { BackdatedDispatchField } from "./_components/BackdatedDispatchField";
 import {
   Select,
   SelectContent,
@@ -46,9 +45,10 @@ import {
 
 const FormSchema = z.object({
   requested_by: z.string(),
-  submission_date: z.date({
-    message: "Debe ingresar la fecha.",
-  }),
+  // La salida se registra el día en que ocurre: la fecha la pone el backend.
+  // Sólo el registro extemporáneo la trae, y sólo si el rol lo habilita.
+  is_backdated: z.boolean().default(false),
+  submission_date: z.date().optional(),
   articles: z.array(
     z.object({
       article_id: z.coerce.number(),
@@ -65,9 +65,21 @@ const FormSchema = z.object({
   }),
   department_id: z.string(),
   status: z.string(),
+}).superRefine((data, ctx) => {
+  if (data.is_backdated && !data.submission_date) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Debe indicar la fecha real de la salida.",
+      path: ["submission_date"],
+    });
+  }
 });
 
 type FormSchemaType = z.infer<typeof FormSchema>;
+
+// Registrar una salida con fecha distinta a la de hoy es una excepción: sólo la
+// jefatura de almacén responde por ella.
+const BACKDATE_ROLES = ["JEFE_ALMACEN", "SUPERUSER"];
 
 interface FormProps {
   onClose: () => void;
@@ -148,18 +160,28 @@ export function ToolDispatchForm({ onClose }: FormProps) {
       requested_by: "",
       department_id: "",
       status: "proceso",
+      is_backdated: false,
     },
   });
 
   const { setValue } = form;
 
+  const canBackdate = (user?.roles ?? []).some((role) =>
+    BACKDATE_ROLES.includes(role.name.toUpperCase())
+  );
+
   const onSubmit = async (data: FormSchemaType) => {
     const { articles, ...rest } = data;
+    // Sin registro extemporáneo no se manda fecha: el backend la sella con el
+    // momento real de creación. La bandera viaja aparte para que allá se vuelva
+    // a verificar el rol en vez de confiar en que llegue o no la fecha.
+    const isBackdated = canBackdate && data.is_backdated && !!data.submission_date;
     const formattedData = {
       ...rest,
       aeronautical_articles: articles,
       created_by: `${user?.employee[0].dni}`,
-      submission_date: format(data.submission_date, "yyyy-MM-dd"),
+      is_backdated: isBackdated,
+      submission_date: isBackdated ? format(data.submission_date!, "yyyy-MM-dd") : undefined,
       category: "herramienta",
       user_id: Number(user!.id),
       isDepartment: isDepartment,
@@ -316,50 +338,6 @@ export function ToolDispatchForm({ onClose }: FormProps) {
         <div className="flex gap-2">
           <FormField
             control={form.control}
-            name="submission_date"
-            render={({ field }) => (
-              <FormItem className="flex flex-col mt-2.5">
-                <FormLabel>Fecha de Solicitud</FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant={"outline"}
-                        className={cn(
-                          "w-[240px] pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground"
-                        )}
-                      >
-                        {field.value ? (
-                          format(field.value, "PPP", {
-                            locale: es,
-                          })
-                        ) : (
-                          <span>Seleccione una fecha...</span>
-                        )}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={field.value}
-                      onSelect={field.onChange}
-                      disabled={(date) =>
-                        date > new Date() || date < new Date("1900-01-01")
-                      }
-                      initialFocus
-                      locale={es}
-                    />
-                  </PopoverContent>
-                </Popover>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
             name="department_id"
             render={({ field }) => (
               <FormItem>
@@ -401,6 +379,9 @@ export function ToolDispatchForm({ onClose }: FormProps) {
             )}
           />
         </div>
+
+        <BackdatedDispatchField form={form} canBackdate={canBackdate} />
+
         <FormField
           control={form.control}
           name="justification"

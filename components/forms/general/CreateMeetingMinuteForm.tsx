@@ -42,6 +42,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { useCreateMeetingMinute, useUpdateMeetingMinute } from "@/actions/general/minutas_reunion/actions";
 import { MeetingMinutes } from "@/types";
 import { useGetEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetEmployees";
+import { useGetAuthorizedEmployees } from "@/hooks/ajustes/autorizados/useGetAuthorizedEmployees";
 
 interface FormProps {
   onClose: (open: boolean) => void;
@@ -64,17 +65,21 @@ const FormSchema = z.object({
   approved_by: z.string().optional(),
   attendees: z.array(z.object({
     employee_id: z.string().optional(),
+    authorized_employee_id: z.string().optional(),
     attendee_name: z.string().optional(),
     job_title: z.string().optional(),
     has_attended: z.boolean().default(true),
     is_external: z.boolean().default(false),
+    is_authorized: z.boolean().default(false),
   })).optional(),
   agreements: z.array(z.object({
     description: z.string().min(1, "La descripción es obligatoria"),
     responsible_employee_id: z.string().optional(),
+    responsible_authorized_employee_id: z.string().optional(),
     responsible_name: z.string().optional(),
     responsible_job_title: z.string().optional(),
     is_external: z.boolean().default(false),
+    is_authorized: z.boolean().default(false),
   })).optional(),
 });
 
@@ -101,8 +106,10 @@ function buildFormData(companySlug: string, locationId: number, data: FormSchema
   if (data.reviewed_by) fd.append("reviewed_by", String(data.reviewed_by));
   if (data.approved_by) fd.append("approved_by", String(data.approved_by));
 
-  data.attendees?.filter((a) => a.employee_id || a.attendee_name).forEach((a, i) => {
-    if (a.is_external) {
+  data.attendees?.filter((a) => a.employee_id || a.authorized_employee_id || a.attendee_name).forEach((a, i) => {
+    if (a.is_authorized) {
+      if (a.authorized_employee_id) fd.append(`attendees[${i}][authorized_employee_id]`, String(a.authorized_employee_id));
+    } else if (a.is_external) {
       if (a.attendee_name) fd.append(`attendees[${i}][attendee_name]`, a.attendee_name);
       if (a.job_title) fd.append(`attendees[${i}][job_title]`, a.job_title);
     } else {
@@ -113,7 +120,9 @@ function buildFormData(companySlug: string, locationId: number, data: FormSchema
 
   data.agreements?.filter((a) => a.description).forEach((a, i) => {
     fd.append(`agreements[${i}][description]`, a.description);
-    if (a.is_external) {
+    if (a.is_authorized) {
+      if (a.responsible_authorized_employee_id) fd.append(`agreements[${i}][responsible_authorized_employee_id]`, String(a.responsible_authorized_employee_id));
+    } else if (a.is_external) {
       if (a.responsible_name) fd.append(`agreements[${i}][responsible_name]`, a.responsible_name);
       if (a.responsible_job_title) fd.append(`agreements[${i}][responsible_job_title]`, a.responsible_job_title);
     } else {
@@ -132,6 +141,7 @@ export function CreateMeetingMinuteForm({
   const { selectedCompany, selectedStation } = useCompanyStore();
   const companySlug = selectedCompany?.slug ?? "";
   const { data: employees, isLoading: employeesLoading } = useGetEmployeesByCompany(companySlug);
+  const { data: authorizedEmployees, isLoading: authorizedEmployeesLoading } = useGetAuthorizedEmployees(companySlug);
   const { createMeetingMinute } = useCreateMeetingMinute();
   const { updateMeetingMinute } = useUpdateMeetingMinute();
 
@@ -140,6 +150,12 @@ export function CreateMeetingMinuteForm({
   const employeeOptions = (employees ?? []).map((e) => ({
     value: String(e.id),
     label: `${e.first_name} ${e.last_name}`.trim(),
+  }));
+
+  const authorizedEmployeeOptions = (authorizedEmployees ?? []).map((a) => ({
+    value: String(a.id),
+    label: a.employee_name || a.dni_employee,
+    badge: a.from_company_db,
   }));
 
   const parseStringArray = (val: string | string[] | undefined | null): { value: string }[] => {
@@ -165,17 +181,21 @@ export function CreateMeetingMinuteForm({
       approved_by: typeof initialData?.approved_by === "object" ? String((initialData.approved_by as any)?.id ?? "") : String(initialData?.approved_by ?? ""),
       attendees: initialData?.attendees?.map((a) => ({
         employee_id: a.employee_id ? String(a.employee_id) : "",
+        authorized_employee_id: a.authorized_employee_id ? String(a.authorized_employee_id) : "",
         attendee_name: a.attendee_name ?? "",
         job_title: a.job_title ?? "",
         has_attended: a.has_attended,
-        is_external: !a.employee_id,
+        is_external: !a.employee_id && !a.authorized_employee_id && !!a.attendee_name,
+        is_authorized: !!a.authorized_employee_id,
       })) ?? [],
       agreements: initialData?.agreements?.map((a) => ({
         description: a.description,
         responsible_employee_id: a.responsible_employee_id ? String(a.responsible_employee_id) : "",
+        responsible_authorized_employee_id: a.responsible_authorized_employee_id ? String(a.responsible_authorized_employee_id) : "",
         responsible_name: a.responsible_name ?? "",
-        responsible_job_title: (a as any).responsible_job_title ?? "",
-        is_external: !a.responsible_employee_id && !!a.responsible_name,
+        responsible_job_title: a.responsible_job_title ?? "",
+        is_external: !a.responsible_employee_id && !a.responsible_authorized_employee_id && !!a.responsible_name,
+        is_authorized: !!a.responsible_authorized_employee_id,
       })) ?? [],
     },
   });
@@ -389,10 +409,12 @@ export function CreateMeetingMinuteForm({
                   onClick={() =>
                     appendAttendee({
                       employee_id: "",
+                      authorized_employee_id: "",
                       attendee_name: "",
                       job_title: "",
                       has_attended: true,
                       is_external: false,
+                      is_authorized: false,
                     })
                   }
                 >
@@ -407,29 +429,62 @@ export function CreateMeetingMinuteForm({
 
               {attendeeFields.map((field, index) => {
                 const isExternal = form.watch(`attendees.${index}.is_external`);
+                const isAuthorized = form.watch(`attendees.${index}.is_authorized`);
                 return (
                   <div
                     key={field.id}
                     className="flex flex-col gap-3 p-3 border border-border/30 rounded-md"
                   >
                     <div className="flex items-center justify-between">
-                      <FormField
-                        control={form.control}
-                        name={`attendees.${index}.is_external`}
-                        render={({ field: f }) => (
-                          <FormItem className="flex flex-row items-center gap-2 space-y-0">
-                            <FormControl>
-                              <Checkbox
-                                checked={f.value}
-                                onCheckedChange={f.onChange}
-                              />
-                            </FormControl>
-                            <FormLabel className="text-xs font-medium text-muted-foreground cursor-pointer">
-                              No es empleado
-                            </FormLabel>
-                          </FormItem>
-                        )}
-                      />
+                      <div className="flex items-center gap-4">
+                        <FormField
+                          control={form.control}
+                          name={`attendees.${index}.is_authorized`}
+                          render={({ field: f }) => (
+                            <FormItem className="flex flex-row items-center gap-2 space-y-0">
+                              <FormControl>
+                                <Checkbox
+                                  checked={f.value}
+                                  onCheckedChange={(checked) => {
+                                    f.onChange(checked);
+                                    if (checked) {
+                                      form.setValue(`attendees.${index}.is_external`, false);
+                                      form.setValue(`attendees.${index}.attendee_name`, "");
+                                      form.setValue(`attendees.${index}.job_title`, "");
+                                    }
+                                  }}
+                                />
+                              </FormControl>
+                              <FormLabel className="text-xs font-medium text-muted-foreground cursor-pointer">
+                                Empresa asociada
+                              </FormLabel>
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name={`attendees.${index}.is_external`}
+                          render={({ field: f }) => (
+                            <FormItem className="flex flex-row items-center gap-2 space-y-0">
+                              <FormControl>
+                                <Checkbox
+                                  checked={f.value}
+                                  onCheckedChange={(checked) => {
+                                    f.onChange(checked);
+                                    if (checked) {
+                                      form.setValue(`attendees.${index}.is_authorized`, false);
+                                      form.setValue(`attendees.${index}.authorized_employee_id`, "");
+                                    }
+                                  }}
+                                />
+                              </FormControl>
+                              <FormLabel className="text-xs font-medium text-muted-foreground cursor-pointer">
+                                No es empleado
+                              </FormLabel>
+                            </FormItem>
+                          )}
+                        />
+                      </div>
                       <Button
                         type="button"
                         variant="ghost"
@@ -441,13 +496,26 @@ export function CreateMeetingMinuteForm({
                       </Button>
                     </div>
 
-                    {!isExternal && (
+                    {!isExternal && !isAuthorized && (
                       <ComboboxField
                         form={form}
                         name={`attendees.${index}.employee_id`}
                         label="Empleado"
                         placeholder="Seleccionar..."
                         options={employeeOptions}
+                      />
+                    )}
+
+                    {isAuthorized && (
+                      <ComboboxField
+                        form={form}
+                        name={`attendees.${index}.authorized_employee_id`}
+                        label="Empleado autorizado"
+                        placeholder={authorizedEmployeesLoading ? "Cargando..." : "Seleccionar..."}
+                        searchPlaceholder="Buscar empleado autorizado..."
+                        emptyText="No hay empleados autorizados."
+                        options={authorizedEmployeeOptions}
+                        disabled={authorizedEmployeesLoading}
                       />
                     )}
 
@@ -583,9 +651,11 @@ export function CreateMeetingMinuteForm({
                     appendAgreement({
                       description: "",
                       responsible_employee_id: "",
+                      responsible_authorized_employee_id: "",
                       responsible_name: "",
                       responsible_job_title: "",
                       is_external: false,
+                      is_authorized: false,
                     })
                   }
                 >
@@ -604,6 +674,8 @@ export function CreateMeetingMinuteForm({
                   form={form}
                   index={index}
                   employees={employees ?? []}
+                  authorizedEmployees={authorizedEmployees ?? []}
+                  isAuthorizedEmployeesLoading={authorizedEmployeesLoading}
                   onRemove={() => removeAgreement(index)}
                 />
               ))}

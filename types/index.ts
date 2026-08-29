@@ -1115,6 +1115,7 @@ export type FollowUpControl = {
   implementation_responsible?: string;
   follow_up_responsible?: string;
   image?: string;
+  images?: string[];
   document?: string;
 };
 
@@ -1338,30 +1339,41 @@ export type MeetingMinutes = {
   document?: string;
   chaired_by: Employee;
   filled_out_by: Employee;
-  reviewed_by?: Employee | null;
-  approved_by?: Employee | null;
+  reviewed_by?: Employee;
+  approved_by?: Employee;
   agreements?: MeetingAgreement[];
   attendees?: Attendace[];
+}
+
+export type AuthorizedEmployeeRef = {
+  id: number;
+  dni_employee: string;
+  from_company_db: string;
+  full_name?: string;
 }
 
 export type MeetingAgreement = {
   id?: number;
   meeting_id?: number;
   description: string;
-  responsible_employee_id?: number | null;
-  responsible_name?: string | null;
-  responsible_job_title?: string | null;
-  responsible_employee?: Employee | null;
+  responsible_employee_id?: number;
+  responsible_authorized_employee_id?: number;
+  responsible_name?: string;
+  responsible_job_title?: string;
+  responsible_employee?: Employee;
+  responsible_authorized_employee?: AuthorizedEmployeeRef;
 }
 
 export type Attendace = {
   id?: number;
   attendable_type?: string;
   attendable_id?: number;
-  attendee_name?: string | null;
-  job_title?: string | null;
-  employee_id?: number | null;
-  employee?: Employee | null;
+  attendee_name?: string;
+  job_title?: string;
+  employee_id?: number;
+  authorized_employee_id?: number;
+  authorized_employee?: AuthorizedEmployeeRef;
+  employee?: Employee;
   has_attended: boolean;
 }
 
@@ -1437,7 +1449,7 @@ export interface WarehouseDashboard {
     job_title: string;
     dispatch_count: number;
     incoming_count: number;
-    last_used_at: string;
+    last_used_at: string | null;
   }[];
 }
 

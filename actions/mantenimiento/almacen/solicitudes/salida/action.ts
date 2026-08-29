@@ -6,7 +6,10 @@ import { toast } from "sonner";
 
 interface IDispatchRequestAction {
   justification: string;
-  submission_date: string;
+  // La fecha la sella el backend con el momento del registro. Sólo viaja en el
+  // registro extemporáneo, que el backend vuelve a autorizar por rol.
+  is_backdated?: boolean;
+  submission_date?: string;
   created_by: string;
   requested_by: string;
   category: string;

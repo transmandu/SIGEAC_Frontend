@@ -1,13 +1,14 @@
 "use client";
 
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { ClipboardList, BarChart3 } from "lucide-react";
+import { ClipboardList, BarChart3, Shirt } from "lucide-react";
 import { useState } from "react";
 import { User } from "@/types";
 import { useGetWarehouseDashboard } from "@/hooks/sistema/dashboard/useWarehouseDashboard";
 
 import DispatchWarehouseReports from "@/components/dashboard/sections/Administration/DispatchWarehouseReports";
 import DispatchSummary from "@/components/dashboard/sections/Administration/DispatchSummary";
+import { ReporteUniformesTab } from "@/components/dashboard/sections/Administration/ReporteUniformesTab";
 
 interface AdministrationDashboardContentProps {
   companySlug: string;
@@ -94,6 +95,26 @@ export default function AdministrationDashboardContent({
                 Resumen
               </TabsTrigger>
 
+              {/* UNIFORM REPORT */}
+              <TabsTrigger
+                value="UNIFORM_REPORT"
+                className="
+                  flex-shrink-0 sm:flex-1
+                  flex items-center justify-center gap-2
+                  text-xs h-8 sm:h-7 px-4 sm:px-3
+                  rounded-xl transition-all duration-200 whitespace-nowrap
+                  text-slate-500 dark:text-slate-400
+                  hover:text-purple-500 dark:hover:text-purple-300
+                  data-[state=active]:bg-white/80 dark:data-[state=active]:bg-slate-900/50
+                  data-[state=active]:text-purple-500 dark:data-[state=active]:text-purple-300
+                  data-[state=active]:shadow-[0_0_18px_rgba(168,85,247,0.18)]
+                  data-[state=active]:ring-1 data-[state=active]:ring-purple-300/40
+                "
+              >
+                <Shirt className="w-4 h-4 sm:w-3.5 sm:h-3.5 shrink-0" />
+                Uniformes
+              </TabsTrigger>
+
             </div>
           </div>
 
@@ -116,6 +137,10 @@ export default function AdministrationDashboardContent({
               isLoading={isLoading}
               isError={isError}
             />
+          </TabsContent>
+
+          <TabsContent value="UNIFORM_REPORT">
+            <ReporteUniformesTab />
           </TabsContent>
         </div>
 

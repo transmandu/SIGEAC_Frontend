@@ -38,6 +38,7 @@ import { cn } from "@/lib/utils";
 import { isImageDocument } from "@/lib/warehouse/documents";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import type { ArticleDocument, ArticleDocumentRequirementSummary } from "@/types";
+import type { PurchaseOrderInvoice } from "@/types/purchase";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import {
@@ -59,10 +60,12 @@ import {
   Minus,
   Package,
   PackageCheck,
+  Receipt,
   Ruler,
   ShieldAlert,
   ShieldCheck,
   ShieldX,
+  ShoppingCart,
   Tag,
   Warehouse,
   X,
@@ -217,11 +220,14 @@ function CompactCheckRow({
         <button
           type="button"
           onClick={() => onChange("NA")}
+          disabled={critical}
+          title={critical ? "No disponible: este ítem es requerido" : undefined}
           className={cn(
             "h-7 border-x border-border px-3 text-[11px] font-semibold transition-colors",
             value === "NA"
               ? "bg-slate-400 text-white dark:bg-slate-500"
-              : "bg-background text-muted-foreground hover:bg-slate-50 dark:hover:bg-slate-800"
+              : "bg-background text-muted-foreground hover:bg-slate-50 dark:hover:bg-slate-800",
+            critical && "cursor-not-allowed opacity-40 hover:bg-background"
           )}
           aria-pressed={value === "NA"}
         >
@@ -305,11 +311,14 @@ function StampCheckRow({
         <button
           type="button"
           onClick={() => onChange("NA")}
+          disabled={critical}
+          title={critical ? "No disponible: este ítem es requerido" : undefined}
           className={cn(
             "flex h-12 w-16 flex-col items-center justify-center rounded-lg border text-xs font-semibold transition-all",
             value === "NA"
               ? "border-slate-400 bg-slate-400 text-white shadow-sm dark:border-slate-500 dark:bg-slate-500"
-              : "border-border bg-background text-muted-foreground hover:border-slate-400 hover:bg-slate-50 dark:hover:border-slate-600 dark:hover:bg-slate-800"
+              : "border-border bg-background text-muted-foreground hover:border-slate-400 hover:bg-slate-50 dark:hover:border-slate-600 dark:hover:bg-slate-800",
+            critical && "cursor-not-allowed opacity-40 hover:border-border hover:bg-background"
           )}
           aria-pressed={value === "NA"}
         >
@@ -462,6 +471,7 @@ function ChecklistContent({
 export function IncomingReview({ article }: { article: any }) {
   const { selectedCompany, selectedStation } = useCompanyStore();
   const [previewDoc, setPreviewDoc] = useState<ArticleDocument | null>(null);
+  const [previewInvoice, setPreviewInvoice] = useState<PurchaseOrderInvoice | null>(null);
   const router = useRouter();
   const { confirmIncoming } = useConfirmIncomingArticle();
   const { sendToQuarantine } = useSendToQuarantine();
@@ -514,6 +524,16 @@ export function IncomingReview({ article }: { article: any }) {
       toast.error("Error al descargar el documento");
     }
   };
+
+  /* ── Facturas de la orden de compra que originó el artículo ── */
+  const purchaseInvoices: PurchaseOrderInvoice[] =
+    article?.purchase_order_invoices ?? [];
+
+  // Las facturas viven en el disco privado y se sirven por ruta codificada,
+  // a diferencia de los documentos del artículo (que van por su id). Solo se
+  // exponen para consulta: no hay descarga desde el incoming.
+  const invoiceEndpoint = (invoice: PurchaseOrderInvoice) =>
+    `/${selectedCompany?.slug}/files/serve/${btoa(invoice.file_path)}`;
   const [checklist, setChecklist] = useState<Record<string, ChecklistValue>>(
     {}
   );
@@ -687,6 +707,11 @@ export function IncomingReview({ article }: { article: any }) {
               <h1 className="mt-4 font-mono text-2xl font-semibold tracking-tight text-foreground">
                 {article?.part_number ?? "Sin part number"}
               </h1>
+              {article?.purchase_order_number && (
+                <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
+                  Artículo proveniente de la orden de compra: {article.purchase_order_number}
+                </p>
+              )}
               {article?.description && (
                 <p className="mt-1 text-sm text-muted-foreground">
                   {article.description}
@@ -850,6 +875,66 @@ export function IncomingReview({ article }: { article: any }) {
               <div className="mt-3 flex flex-wrap gap-2">
                 <DocPill label="Imagen" ready={!!article?.image} />
               </div>
+            </section>
+
+            {/* ── Facturas de la compra ── */}
+            <section className="rounded-xl border border-border/80 bg-background p-5">
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+                <p className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
+                  Facturas de la compra
+                </p>
+                {article?.purchase_order_number && (
+                  <span className="select-none inline-flex items-center gap-1.5 rounded-full border border-border px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
+                    <Receipt className="h-3.5 w-3.5" />
+                    {article.purchase_order_number}
+                  </span>
+                )}
+              </div>
+
+              {purchaseInvoices.length > 0 ? (
+                <div className="space-y-2">
+                  {purchaseInvoices.map((invoice, index) => (
+                    <div
+                      key={invoice.id}
+                      className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2"
+                    >
+                      <div className="flex min-w-0 items-center gap-2">
+                        <Receipt className="h-4 w-4 shrink-0 text-muted-foreground" />
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-medium text-foreground">
+                            {invoice.invoice_number?.trim() || `Factura ${index + 1}`}
+                          </p>
+                          <p className="truncate text-[10px] text-muted-foreground">
+                            {invoice.file_path.split("/").pop()}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Solo consulta: la factura se revisa contra la mercancía,
+                          no se descarga ni se manipula desde el incoming. */}
+                      <button
+                        type="button"
+                        onClick={() => setPreviewInvoice(invoice)}
+                        className="select-none inline-flex items-center gap-1 rounded-full border border-border bg-background px-2 py-0.5 text-[10px] font-medium text-foreground hover:bg-muted"
+                      >
+                        <Eye className="h-3 w-3" />
+                        Ver
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  <DocPill
+                    label={
+                      article?.purchase_order_number
+                        ? "La compra no tiene facturas cargadas"
+                        : "El artículo no proviene de una orden de compra"
+                    }
+                    ready={false}
+                  />
+                </div>
+              )}
             </section>
 
 
@@ -1155,6 +1240,21 @@ export function IncomingReview({ article }: { article: any }) {
               `/${selectedCompany?.slug}/article-documents/${previewDoc.id}/view`,
               { responseType: "blob" }
             );
+            return URL.createObjectURL(data);
+          }}
+        />
+      )}
+
+      {previewInvoice && (
+        <SecureFileViewer
+          isOpen={!!previewInvoice}
+          onClose={() => setPreviewInvoice(null)}
+          title={previewInvoice.invoice_number?.trim() || previewInvoice.file_path.split("/").pop()}
+          isImage={isImageDocument(previewInvoice.file_path)}
+          fetchBlobUrl={async () => {
+            const { data } = await axiosInstance.get(invoiceEndpoint(previewInvoice), {
+              responseType: "blob",
+            });
             return URL.createObjectURL(data);
           }}
         />

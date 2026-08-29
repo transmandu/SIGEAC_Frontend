@@ -15,10 +15,24 @@ import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 
-const WaitingToLocateArticleDropdownActions = ({ id }: { id: number }) => {
+const WaitingToLocateArticleDropdownActions = ({
+  id,
+  zone: suggestedZone,
+}: {
+  id: number
+  zone?: string | null
+}) => {
   const [open, setOpen] = useState<boolean>(false)
   const { locateArticle } = useLocateArticle()
   const [zone, setZone] = useState<string>("")
+
+  // La zona se recarga al abrir, no al montar: la fila puede refrescarse
+  // mientras la tabla sigue montada y el valor inicial quedaría viejo.
+  const handleOpenChange = (next: boolean) => {
+    if (next) setZone(suggestedZone ?? "")
+    setOpen(next)
+  }
+
   const handleLocate = async (id: number) => {
     const trimmedZone = zone.trim()
 
@@ -35,7 +49,7 @@ const WaitingToLocateArticleDropdownActions = ({ id }: { id: number }) => {
     setZone("");
   }
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="h-8 w-8 p-0">
@@ -55,7 +69,9 @@ const WaitingToLocateArticleDropdownActions = ({ id }: { id: number }) => {
         <DialogHeader>
           <DialogTitle className="text-center">Ubicar articulo en almacén</DialogTitle>
           <DialogDescription className="text-center p-2 mb-0 pb-0">
-            Indique la ubicación del articulo en el almacén.
+            {suggestedZone
+              ? "Confirme o corrija la zona registrada durante la recepción."
+              : "Indique la ubicación del articulo en el almacén."}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-2 ">
@@ -68,6 +84,11 @@ const WaitingToLocateArticleDropdownActions = ({ id }: { id: number }) => {
             onChange={(e) => setZone(e.target.value)}
             placeholder="Ingrese la zona de almacén"
           />
+          {suggestedZone && (
+            <p className="text-xs text-muted-foreground italic">
+              Zona propuesta en recepción: {suggestedZone}
+            </p>
+          )}
         </div>
         <DialogFooter className="flex flex-col gap-2 md:gap-0">
           <Button className="bg-rose-400 hover:bg-white hover:text-black hover:border hover:border-black" onClick={() => setOpen(false)} type="submit">Cancelar</Button>
