@@ -1,3 +1,31 @@
+## v3.5.0 — 2026-08-29
+
+- Merge pull request #229 from transmandu/feat/modo-dimensional-almacen-compras
+- feat: refactor components and remove unused files for improved maintainability
+- chore: dejar fuera control de mantenimiento
+- Merge remote-tracking branch 'origin/main' into ChangesRandom-BO
+- feat: enhance maintenance control form with improved UI components and logic
+- feat: implement NumericInput component for better numeric input handling
+- Refactor import paths for consistency and clarity across multiple components
+- feat: update inventory management routing and add new pages for article editing and location control
+- Refactor inventory management: split general and aeronautical inventory into separate tabs, implement new components for general inventory table and data handling, and update routing for inventory management.
+- feat: restrict access to planification module for SUPERUSER only and update warehouse requests link
+- feat: integrate authorized employees into StoreDirectlyDialog for improved authorizer selection
+- feat: enhance PDF generation and download functionality in requisition dialogs
+- Refactor forms and UI components for improved usability and consistency
+- feat: add MultiSerialInput and WarehouseDetailsSection components
+- feat: add purchase order number field to various forms and components
+- feat: add CreateMaintenanceProviderForm component for creating maintenance providers
+- feat: replace Button components with ActionTriggerButton for consistent action styling across dialogs and summaries
+- refactor: update color scheme to use blue tones across various components
+- feat: add conversion suggestion picker and improve conversion handling
+- Merge branch 'main' into ChangesRandom-BO
+- Merge branch 'main' into ChangesRandom-BO
+- feat: update lucide-react to version 1.33.0 and replace icons in PreviewPanelIcon component
+- feat: replace EyePreviewIcon with PreviewPanelIcon across multiple components and update documentation
+- feat: add dimensional article management features
+- feat: replace status display with condition formatting in article columns
+
 ## v3.4.0 — 2026-08-28
 
 - Merge pull request #226 from transmandu/feat/group-dialog-consumable-quantity
