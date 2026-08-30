@@ -337,6 +337,12 @@ Los marcados `_(useMutation)_` son las lecturas a demanda de la [sección 5](#5-
 | `useGetImage` | `general/archivos/UseGetImage.ts` | ["image", company, origin, fileName] | `—` |
 | `useGetDocument` | `general/archivos/useGetDocument.ts` | ["document", company, origin, fileName] | `—` |
 | `useGetBanks` | `general/bancos/useGetBanks.ts` | ["banks"] | `—` |
+| `useGetCalendarEvents` | `general/calendario/useGetCalendarEvents.ts` | ["calendar-events", company, start, end] | `—` |
+| `useGetCalendarEventSources` | `general/calendario/useGetCalendarEventSources.ts` | ["calendar-event-sources", company] | `—` |
+| `useGetCalendarEventTypes` | `general/calendario/useGetCalendarEventTypes.ts` | ["calendar-event-types", company] | `—` |
+| `useGetManualCalendarEvents` | `general/calendario/useGetManualCalendarEvents.ts` | ["calendar-manual-events", company] | `—` |
+| `useGetAllCalendarVisibilityRules` | `general/calendario/useGetAllCalendarVisibilityRules.ts` | ["calendar-visibility-rules", "all", company] | `—` |
+| `useGetMyBirthdayToday` | `general/calendario/useGetMyBirthdayToday.ts` | ["my-birthday-today", company] | `—` |
 | `useGetClientByDni` | `general/clientes/useGetClientByDni.ts` | ["clients", company, dni] | `—` |
 | `useGetClientAddBalanceById` | `general/clientes/useGetClientUpdateBalanceById.ts` | ["balance", company , id ] | `—` |
 | `useGetClients` | `general/clientes/useGetClients.ts` | ["clients", company] | `—` |
@@ -429,7 +435,6 @@ Los marcados `_(useMutation)_` son las lecturas a demanda de la [sección 5](#5-
 | `useGetMaintenanceAircrafts` | `mantenimiento/planificacion/useGetMaintenanceAircrafts.ts` | ["aircrafts", company] | `—` |
 | `useGetMaintenanceServices` | `mantenimiento/planificacion/useGetMaintenanceServices.ts` | ["maintenance-services", company] | `—` |
 | `useGetMaintenanceAircraftByAcronym` | `mantenimiento/planificacion/useGetMaitenanceAircraftByAcronym.ts` | ["aircraft", company, acronym] | `—` |
-| `useGetPlanificationEvents` | `mantenimiento/planificacion/useGetPlanificationEvents.ts` | ["planification-events", selectedStation, selectedCompany?.slug] | `—` |
 | `useGetServicesByManufacturer` | `mantenimiento/planificacion/useGetServicesByManufacturer.ts` | ["manufacturer-services", manufacturer_id, company] | `—` |
 | `useGetWorkOrderByOrderNumber` | `mantenimiento/planificacion/useGetWorkOrderByOrderNumber.ts` | ["work-order", order_number, company] | `—` |
 | `useGetWorkOrderEmployees` | `mantenimiento/planificacion/useGetWorkOrderEmployees.ts` | ["employees", company] | `—` |

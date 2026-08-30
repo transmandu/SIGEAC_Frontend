@@ -38,32 +38,34 @@
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
 
-    /* Estilos del Calendario */
-    --sx-color-primary: #6750a4;
-    --sx-color-on-primary: #fff;
-    --sx-color-primary-container: #eaddff;
-    --sx-color-on-primary-container: #21005e;
-    --sx-color-secondary: #625b71;
-    --sx-color-on-secondary: #fff;
-    --sx-color-secondary-container: #e8def8;
-    --sx-color-on-secondary-container: #1e192b;
-    --sx-color-tertiary: #7d5260;
-    --sx-color-on-tertiary: #fff;
-    --sx-color-tertiary-container: #ffd8e4;
-    --sx-color-on-tertiary-container: #370b1e;
-    --sx-color-surface: #fef7ff;
-    --sx-color-surface-dim: #ded8e1;
-    --sx-color-surface-bright: #fef7ff;
-    --sx-color-on-surface: #1c1b1f;
-    --sx-color-surface-container: #f3edf7;
-    --sx-color-surface-container-low: #f7f2fa;
-    --sx-color-surface-container-high: #ece6f0;
-    --sx-color-background: #fff;
-    --sx-color-on-background: #1c1b1f;
-    --sx-color-outline: #79747e;
-    --sx-color-outline-variant: #c4c7c5;
+    /* Estilos del Calendario (schedule-x, tema theme-shadcn): mapeados a los
+       tokens propios en vez de la paleta morada de fábrica, para que el
+       calendario se vea parte de SIGEAC y no de otro sistema. */
+    --sx-color-primary: hsl(var(--primary));
+    --sx-color-on-primary: hsl(var(--primary-foreground));
+    --sx-color-primary-container: hsl(var(--primary) / 0.15);
+    --sx-color-on-primary-container: hsl(var(--primary));
+    --sx-color-secondary: hsl(var(--muted-foreground));
+    --sx-color-on-secondary: hsl(var(--background));
+    --sx-color-secondary-container: hsl(var(--muted));
+    --sx-color-on-secondary-container: hsl(var(--foreground));
+    --sx-color-tertiary: hsl(var(--accent-foreground));
+    --sx-color-on-tertiary: hsl(var(--accent));
+    --sx-color-tertiary-container: hsl(var(--accent));
+    --sx-color-on-tertiary-container: hsl(var(--accent-foreground));
+    --sx-color-surface: hsl(var(--card));
+    --sx-color-surface-dim: hsl(var(--muted));
+    --sx-color-surface-bright: hsl(var(--background));
+    --sx-color-on-surface: hsl(var(--card-foreground));
+    --sx-color-surface-container: hsl(var(--muted));
+    --sx-color-surface-container-low: hsl(var(--background));
+    --sx-color-surface-container-high: hsl(var(--secondary));
+    --sx-color-background: hsl(var(--background));
+    --sx-color-on-background: hsl(var(--foreground));
+    --sx-color-outline: hsl(var(--border));
+    --sx-color-outline-variant: hsl(var(--border) / 0.6);
     --sx-color-shadow: #000;
-    --sx-color-surface-tint: #6750a4;
+    --sx-color-surface-tint: hsl(var(--primary));
     --sx-color-neutral: var(--sx-color-outline);
     --sx-color-neutral-variant: var(--sx-color-outline-variant);
 
@@ -99,6 +101,34 @@
     --input: 226 30% 50%;
     --ring: 226 100% 60%;
     --radius: 0.5rem;
+
+    --sx-color-primary: hsl(var(--primary));
+    --sx-color-on-primary: hsl(var(--primary-foreground));
+    --sx-color-primary-container: hsl(var(--primary) / 0.25);
+    --sx-color-on-primary-container: hsl(var(--primary-foreground));
+    --sx-color-secondary: hsl(var(--muted-foreground));
+    --sx-color-on-secondary: hsl(var(--background));
+    --sx-color-secondary-container: hsl(var(--muted));
+    --sx-color-on-secondary-container: hsl(var(--foreground));
+    --sx-color-tertiary: hsl(var(--accent-foreground));
+    --sx-color-on-tertiary: hsl(var(--accent));
+    --sx-color-tertiary-container: hsl(var(--accent));
+    --sx-color-on-tertiary-container: hsl(var(--accent-foreground));
+    --sx-color-surface: hsl(var(--card));
+    --sx-color-surface-dim: hsl(var(--muted));
+    --sx-color-surface-bright: hsl(var(--background));
+    --sx-color-on-surface: hsl(var(--card-foreground));
+    --sx-color-surface-container: hsl(var(--muted));
+    --sx-color-surface-container-low: hsl(var(--background));
+    --sx-color-surface-container-high: hsl(var(--secondary));
+    --sx-color-background: hsl(var(--background));
+    --sx-color-on-background: hsl(var(--foreground));
+    --sx-color-outline: hsl(var(--border));
+    --sx-color-outline-variant: hsl(var(--border) / 0.6);
+    --sx-color-shadow: #000;
+    --sx-color-surface-tint: hsl(var(--primary));
+    --sx-color-neutral: var(--sx-color-outline);
+    --sx-color-neutral-variant: var(--sx-color-outline-variant);
 
     --tour-bg: #1e293b;
     --tour-color: #f8fafc;

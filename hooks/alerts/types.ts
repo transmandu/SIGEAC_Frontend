@@ -23,7 +23,7 @@ export type CriticalAlertVariant = "stock" | "quarantine-hazard";
  * cada fuente y el panel resuelve según lo que este usuario realmente tiene.
  * Agregar un tono es agregarlo aquí y en TONE_COPY; nada más lo enumera.
  */
-export type CriticalAlertTone = "restock" | "hazard";
+export type CriticalAlertTone = "restock" | "hazard" | "maintenance";
 
 
 /** Estado del plazo legal, lo único que gradúa la intensidad de un hazard. */

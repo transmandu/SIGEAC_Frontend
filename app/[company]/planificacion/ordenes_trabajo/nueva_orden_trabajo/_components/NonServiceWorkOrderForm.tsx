@@ -103,7 +103,6 @@ interface TaskInProgress {
 
 const NonServiceWorkOrderForm = () => {
   const searchParams = useSearchParams();
-  const eventId = searchParams.get("eventId") || undefined;
   // Presentes cuando la orden se crea desde un ítem de Control de Mantenimiento
   // en estado crítico (ver [id]/page.tsx): al terminar, la OT se ata a ese
   // ítem y se vuelve a su página de control en vez de al listado general.
@@ -264,7 +263,6 @@ const NonServiceWorkOrderForm = () => {
     const response = await createWorkOrder.mutateAsync({
       data: formattedData,
       company: selectedCompany!.slug,
-      eventId,
     });
 
     if (maintenanceControlItemId && response?.work_order?.id) {

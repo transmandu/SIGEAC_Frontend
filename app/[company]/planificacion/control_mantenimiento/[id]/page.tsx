@@ -239,7 +239,6 @@ function ItemActionCell({
 
 function MaintenanceItemsTable({
   items,
-  showProvider,
   aircraft,
   dailyAverage,
   remainingPercentage,
@@ -250,7 +249,6 @@ function MaintenanceItemsTable({
   realAircraftAcronym,
 }: {
   items: MaintenanceControlItem[];
-  showProvider: boolean;
   aircraft: { flight_hours: number | string; flight_cycles: number | string };
   dailyAverage: ReturnType<typeof useGetAircraftDailyAverage>["data"];
   remainingPercentage: number;
@@ -275,12 +273,8 @@ function MaintenanceItemsTable({
             <TableHead className={cn(COL.next, "bg-muted/40 font-semibold")}>Próximo</TableHead>
             <TableHead className={cn(COL.remaining, "bg-muted/40 font-semibold")}>Remanente</TableHead>
             <TableHead className={cn(COL.estimate, "bg-muted/40 font-semibold")}>Estimación</TableHead>
-            {showProvider && (
-              <>
-                <TableHead className={cn(COL.provider, "bg-muted/40 font-semibold")}>Realizado Por</TableHead>
-                <TableHead className={cn(COL.workOrder, "bg-muted/40 font-semibold")}>N° OT</TableHead>
-              </>
-            )}
+            <TableHead className={cn(COL.provider, "bg-muted/40 font-semibold")}>Realizado Por</TableHead>
+            <TableHead className={cn(COL.workOrder, "bg-muted/40 font-semibold")}>N° OT</TableHead>
             <TableHead className={cn(COL.actions, "bg-muted/40")} />
           </TableRow>
         </TableHeader>
@@ -310,25 +304,21 @@ function MaintenanceItemsTable({
                 <TableCell className={COL.estimate}>
                   <TruncatedText>{computed.estimate}</TruncatedText>
                 </TableCell>
-                {showProvider && (
-                  <>
-                    <TableCell className={COL.provider}>
-                      <TruncatedText>{computed.providerName}</TruncatedText>
-                    </TableCell>
-                    <TableCell className={COL.workOrder}>
-                      {item.latest_compliance?.work_order?.order_number ? (
-                        <Link
-                          href={`/${company}/planificacion/ordenes_trabajo/${item.latest_compliance.work_order.order_number}`}
-                          className="truncate text-primary hover:underline"
-                        >
-                          {item.latest_compliance.work_order.order_number}
-                        </Link>
-                      ) : (
-                        <span className="text-muted-foreground">—</span>
-                      )}
-                    </TableCell>
-                  </>
-                )}
+                <TableCell className={COL.provider}>
+                  <TruncatedText>{computed.providerName}</TruncatedText>
+                </TableCell>
+                <TableCell className={COL.workOrder}>
+                  {item.latest_compliance?.work_order?.order_number ? (
+                    <Link
+                      href={`/${company}/planificacion/ordenes_trabajo/${item.latest_compliance.work_order.order_number}`}
+                      className="truncate text-primary hover:underline"
+                    >
+                      {item.latest_compliance.work_order.order_number}
+                    </Link>
+                  ) : (
+                    <span className="text-muted-foreground">—</span>
+                  )}
+                </TableCell>
                 <TableCell className={COL.actions}>
                   <ItemActionCell
                     item={item}
@@ -460,7 +450,6 @@ const MaintenanceControlDetailPage = () => {
         <FormSection icon={ClipboardList} title="Certificados">
           <MaintenanceItemsTable
             items={certificates}
-            showProvider={false}
             aircraft={control.aircraft}
             dailyAverage={dailyAverage}
             remainingPercentage={remainingPercentage}
@@ -485,7 +474,6 @@ const MaintenanceControlDetailPage = () => {
         >
           <MaintenanceItemsTable
             items={aircraftServices}
-            showProvider
             aircraft={control.aircraft}
             dailyAverage={dailyAverage}
             remainingPercentage={remainingPercentage}
@@ -516,7 +504,6 @@ const MaintenanceControlDetailPage = () => {
             >
               <MaintenanceItemsTable
                 items={partItems}
-                showProvider
                 // Las horas/ciclos "actuales" de un servicio de parte son
                 // los de la PARTE (TSN/CSN), no los totales de la
                 // aeronave — una parte más nueva que el avión no puede

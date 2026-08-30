@@ -1,13 +1,11 @@
 "use client";
-import { useUpdatePlanificationEvent } from "@/actions/mantenimiento/planificacion/eventos/actions";
-import CreatePlanificationEventDialog from "@/components/dialogs/mantenimiento/planificacion/calendario/CreatePlanificationEventDialog";
-import { Button } from "@/components/ui/button";
-import { useCompanyStore } from "@/stores/CompanyStore";
-import { PlanificationEvent, WorkOrderTaskEvent } from "@/types";
+import { dateToZonedDateTime, temporalToDate } from "@/lib/scheduleXTemporal";
+import { WorkOrderTaskEvent } from "@/types";
 import {
   createViewDay,
   createViewMonthGrid,
-  createViewWeek
+  createViewWeek,
+  type CalendarEvent as ScheduleXEvent,
 } from "@schedule-x/calendar";
 import { createEventModalPlugin } from '@schedule-x/event-modal';
 import { createEventsServicePlugin } from '@schedule-x/events-service';
@@ -15,9 +13,8 @@ import { ScheduleXCalendar, useNextCalendarApp } from "@schedule-x/react";
 import "@schedule-x/theme-default/dist/index.css";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { ClockIcon, Hammer, NotebookIcon, PencilLine } from "lucide-react";
-import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { ClockIcon, NotebookIcon, PencilLine } from "lucide-react";
+import { useEffect, useMemo, useRef } from "react";
 
 type CalendarProps = {
   events: WorkOrderTaskEvent[];
@@ -67,53 +64,35 @@ const priorityCalendars = {
 };
 
 
-export const Calendar = ({ events, theme = "light" }: CalendarProps) => {
-  const { selectedCompany } = useCompanyStore();
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<string | undefined>();
+// schedule-x v3 pide Temporal en vez de strings para start/end de cada evento.
+function toScheduleXEvents(events: WorkOrderTaskEvent[]): ScheduleXEvent[] {
+  return events.map((event) => ({
+    ...event,
+    start: dateToZonedDateTime(new Date(event.start)),
+    end: dateToZonedDateTime(new Date(event.end)),
+  }));
+}
 
+export const Calendar = ({ events, theme = "light" }: CalendarProps) => {
   const eventsServiceRef = useRef(createEventsServicePlugin());
   const eventModal = useMemo(() => createEventModalPlugin(), []);
+  const scheduleXEvents = useMemo(() => toScheduleXEvents(events), [events]);
 
-  const { updatePlanificationEvent } = useUpdatePlanificationEvent();
-
-  // ✅ Esta llamada es correcta, fuera de useMemo
   const calendar = useNextCalendarApp({
     views: [createViewMonthGrid(), createViewWeek(), createViewDay()],
     calendars: priorityCalendars,
-    events,
+    events: scheduleXEvents,
     locale: "es-ES",
-    defaultView: "month",
+    defaultView: "month-grid",
     isResponsive: true,
     plugins: [eventsServiceRef.current, eventModal],
     dayBoundaries: { start: '06:00', end: '18:00' },
-    callbacks: {
-      onDoubleClickDate: (date: string) => {
-        setSelectedDate(`${date} 06:00`);
-        setIsDialogOpen(true);
-      },
-      onDoubleClickDateTime: (dateTime: string) => {
-        setSelectedDate(dateTime);
-        setIsDialogOpen(true);
-      },
-      onEventUpdate: async (event) => {
-        await updatePlanificationEvent.mutateAsync({
-          company: selectedCompany!.slug,
-          id: event.id as string,
-          data: {
-            ...event,
-            start_date: event.start,
-            end_date: event.end,
-          },
-        });
-      },
-    },
   });
 
   const customComponents = useMemo(() => ({
-    eventModal: ({ calendarEvent, close }: { calendarEvent: PlanificationEvent; close: () => void }) => {
-      const startDate = new Date(calendarEvent.start);
-      const endDate = new Date(calendarEvent.end);
+    eventModal: ({ calendarEvent, close }: { calendarEvent: ScheduleXEvent; close: () => void }) => {
+      const startDate = temporalToDate(calendarEvent.start);
+      const endDate = temporalToDate(calendarEvent.end);
       return (
         <div className="text-foreground p-6 rounded-lg shadow-xl max-w-md w-full border border-border">
           <div className="flex gap-2 items-center mb-4">
@@ -145,10 +124,10 @@ export const Calendar = ({ events, theme = "light" }: CalendarProps) => {
 
   // ✅ Refrescar eventos en el servicio solo cuando cambian
   useEffect(() => {
-    if (events && eventsServiceRef.current) {
-      eventsServiceRef.current.set(events);
+    if (scheduleXEvents && eventsServiceRef.current) {
+      eventsServiceRef.current.set(scheduleXEvents);
     }
-  }, [events]);
+  }, [scheduleXEvents]);
 
   // ✅ Actualizar tema dinámicamente
   useEffect(() => {
@@ -158,11 +137,6 @@ export const Calendar = ({ events, theme = "light" }: CalendarProps) => {
   return (
     <div className="flex justify-center">
       <ScheduleXCalendar calendarApp={calendar} customComponents={customComponents} />
-      <CreatePlanificationEventDialog
-        open={isDialogOpen}
-        onOpenChange={setIsDialogOpen}
-        selectedDate={selectedDate}
-      />
     </div>
   );
 };

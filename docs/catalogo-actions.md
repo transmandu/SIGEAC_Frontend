@@ -531,6 +531,19 @@ invalida. `_method=` indica spoofing de Laravel; `multipart` indica subida de ar
 | `useCreateCourseAttendance` | POST `multipart` | `/general/${data.company}/create-attendance/${data.course_id}` | ["course-attendance-stats", data.course_id]<br>["course-by-id", data.course_id]<br>["department-courses"]<br>["enrollment-status-by-course",data.course_id] |
 | `useMarkCourseAttendance` | PATCH | `/general/${company}/course/${course_id}/mark-attendance` | ["course-attendance-stats", data.course_id]<br>["sms-course-attendance-list", data.course_id]<br>["course-by-id", data.course_id]<br>["department-courses"]<br>["employees-course", data.course_id]<br>["sms-training"] |
 
+**actions/general/calendario/actions.ts**
+
+| Hook | HTTP | Endpoint | Invalida |
+|---|---|---|---|
+| `useCreateCalendarEvent` | POST | `/${company}/calendar-events` | ["calendar-events"]<br>["calendar-manual-events"] |
+| `useUpdateCalendarEvent` | PUT | `/${company}/calendar-events/${id}` | ["calendar-events"]<br>["calendar-manual-events"] |
+| `useDeleteCalendarEvent` | DELETE | `/${company}/calendar-events/${id}` | ["calendar-events"]<br>["calendar-manual-events"] |
+| `useCreateCalendarEventType` | POST | `/${company}/calendar-event-types` | ["calendar-event-types"] |
+| `useUpdateCalendarEventType` | PUT | `/${company}/calendar-event-types/${id}` | ["calendar-event-types"]<br>["calendar-events"] |
+| `useDeleteCalendarEventType` | DELETE | `/${company}/calendar-event-types/${id}` | ["calendar-event-types"]<br>["calendar-events"]<br>["calendar-manual-events"] |
+| `useCreateCalendarVisibilityRule` | POST | `/${company}/calendar-visibility-rules` | ["calendar-visibility-rules"]<br>["calendar-events"]<br>["calendar-manual-events"] |
+| `useDeleteCalendarVisibilityRule` | DELETE | `/${company}/calendar-visibility-rules/${id}` | ["calendar-visibility-rules"]<br>["calendar-events"]<br>["calendar-manual-events"] |
+
 **actions/general/cargo/actions.ts**
 
 | Hook | HTTP | Endpoint | Invalida |
@@ -708,13 +721,6 @@ invalida. `_method=` indica spoofing de Laravel; `multipart` indica subida de ar
 | `useCreateMaintenanceAircraft` | POST | `/${company}/aircrafts` | ['aircrafts'] |
 | `useUpdateMaintenanceAircraft` | PUT | `/${company}/aircrafts/${acronym}` | ['aircrafts']<br>['aircraft'] |
 | `useDeleteMaintenanceAircraft` | DELETE | `/${company}/aircrafts/${id}` | ['aircrafts']<br>['aircraft'] |
-
-**actions/mantenimiento/planificacion/eventos/actions.ts**
-
-| Hook | HTTP | Endpoint | Invalida |
-|---|---|---|---|
-| `useCreatePlanificationEvent` | POST | `/${company}/planification-event` | ['planification-events'] |
-| `useUpdatePlanificationEvent` | PUT | `/${company}/planification-event/${id}` | ['planification-events'] |
 
 **actions/mantenimiento/planificacion/ordenes_trabajo/actions.ts**
 

@@ -10,6 +10,7 @@ import { CustomTourProvider } from "@/components/tour/TourProvider";
 import { OnlineUsersProvider } from "@/contexts/OnlineUsersContext";
 import { PageTitleProvider } from "@/contexts/PageTitleContext";
 import CriticalAlertsButton from "./CriticalAlertsButton";
+import BirthdayConfetti from "./BirthdayConfetti";
 
 export default function DashboardLayout({
   children
@@ -48,6 +49,7 @@ export default function DashboardLayout({
           </footer>
 
           <CriticalAlertsButton />
+          <BirthdayConfetti />
         </PageTitleProvider>
       </CustomTourProvider>
     </OnlineUsersProvider>

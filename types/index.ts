@@ -539,20 +539,67 @@ export type MaintenanceControl = {
   updated_at?: string;
 };
 
-export type PlanificationEvent = {
-  id: number;
-  start_date: string;
-  end_date: string;
+export type CalendarEventDisplay = "event" | "marker";
+
+/** Evento tal como lo devuelve GET /calendar-events, ya filtrado por visibilidad. */
+export type CalendarEventDto = {
+  id: string;
+  source_key: string | null;
+  title: string;
+  description?: string | null;
   start: string;
   end: string;
+  all_day: boolean;
+  url?: string | null;
+  color?: string | null;
+  display: CalendarEventDisplay;
+  editable: boolean;
+};
+
+export type CalendarEventType = {
+  id: number;
+  key?: string | null;
+  label: string;
+  color: string;
+  icon?: string | null;
+  is_system: boolean;
+  registered_by?: string;
+  updated_by?: string;
+};
+
+export type CalendarEventSourceInfo = {
+  key: string;
+  label: string;
+};
+
+export type CalendarVisibilityScopeType = "SOURCE" | "EVENT";
+export type CalendarVisibilityGrantType = "DEPARTMENT" | "DEPARTMENT_TREE" | "USER" | "EXCLUDE_USER" | "ALL";
+
+export type CalendarVisibilityRule = {
+  id: number;
+  scope_type: CalendarVisibilityScopeType;
+  source_key?: string | null;
+  calendar_event_id?: number | null;
+  grant_type: CalendarVisibilityGrantType;
+  department_id?: number | null;
+  department?: Department;
+  user_id?: number | null;
+  registered_by?: string;
+  created_at?: string;
+};
+
+/** Evento manual (tabla calendar_events) para el panel de administración. */
+export type ManualCalendarEvent = {
+  id: number;
+  calendar_event_type_id?: number | null;
+  calendar_event_type?: CalendarEventType;
   title: string;
-  description: string;
-  priority: "LOW" | "MEDIUM" | "HIGH";
-  calendarId: string;
-  work_order?: {
-    id: string;
-    order_number: string;
-  };
+  description?: string | null;
+  start_at: string;
+  end_at: string;
+  all_day: boolean;
+  registered_by?: string;
+  updated_by?: string;
 };
 
 export type WorkOrderTaskEvent = {

@@ -507,7 +507,6 @@ export const TaskDetailsDialog = ({
                     {selectedTask.task_events.map((event) => {
                       const startDate = new Date(event.start);
                       const endDate = new Date(event.end);
-                      console.log(event.id, startDate, endDate);
                       return (
                         <div
                           key={event.id}

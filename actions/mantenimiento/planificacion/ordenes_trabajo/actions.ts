@@ -33,18 +33,11 @@ export const useCreateWorkOrder = () => {
     mutationFn: async ({
       data,
       company,
-      eventId,
     }: {
       data: CreateWOData;
       company: string;
-      eventId?: string;
     }) => {
-      const payload = {
-        ...data,
-        eventId: eventId,
-      };
-
-      const { data: response } = await axiosInstance.post(`/${company}/work-orders`, payload);
+      const { data: response } = await axiosInstance.post(`/${company}/work-orders`, data);
       return response;
     },
     onSuccess: () => {

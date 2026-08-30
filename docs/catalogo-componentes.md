@@ -458,7 +458,6 @@ varios módulos significa que es transversal; **huérfano** significa cero consu
 | `CreateFlightControlForm` | `forms/mantenimiento/ordenes_trabajo/CreateFlightControlForm.tsx` | planificacion | 638 |
 | `CreateMaintenanceServiceForm` | `forms/mantenimiento/ordenes_trabajo/CreateMaintenanceServiceForm.tsx` | mantenimiento | 500 |
 | `_(sin export nombrado)_` | `forms/mantenimiento/ordenes_trabajo/CreateNoRutineForm.tsx` | planificacion | 454 |
-| `_(sin export nombrado)_` | `forms/mantenimiento/planificacion/CreatePlanificationEventForm.tsx` | planificacion | 350 |
 | `_(sin export nombrado)_` | `forms/mantenimiento/planificacion/ordenes_trabajo/EditWorkOrderForm.tsx` | planificacion | 657 |
 | `CloseVoluntaryReportForm` | `forms/mantenimiento/sms/CloseVoluntaryReportForm.tsx` | sms | 197 |
 | `CreateFollowUpControl` | `forms/mantenimiento/sms/CreateFollowUpControl.tsx` | sms | 268 |
@@ -595,7 +594,6 @@ varios módulos significa que es transversal; **huérfano** significa cero consu
 | `CreateMaintenanceServiceDialog` | `dialogs/mantenimiento/ordenes_trabajo/CreateMaintenanceServiceDialog.tsx` | mantenimiento | 34 |
 | `CreateWorkOrderDialog` | `dialogs/mantenimiento/ordenes_trabajo/CreateWorkOrderDialog.tsx` | **huérfano** | 33 |
 | `PrelimInspectItemDialog` | `dialogs/mantenimiento/ordenes_trabajo/PrelimInspecItemDialog.tsx` | planificacion | 34 |
-| `_(sin export nombrado)_` | `dialogs/mantenimiento/planificacion/calendario/CreatePlanificationEventDialog.tsx` | planificacion | 35 |
 | `PdfEndpointPreviewDialog` | `dialogs/shared/PdfEndpointPreviewDialog.tsx` | sms | 178 |
 | `CreateErrorReportDialog` | `dialogs/sistema/CreateErrorReportDialog.tsx` | _app_root, layout | 29 |
 | `RequestPasswordResetDialog` | `dialogs/sistema/RequestPasswordResetDialog.tsx` | _app_root | 287 |
@@ -829,6 +827,7 @@ varios módulos significa que es transversal; **huérfano** significa cero consu
 
 | Componente | Ruta | Usado por | Líneas |
 |---|---|---|---|
+| `BirthdayConfetti` | `layout/BirthdayConfetti.tsx` | _app_root, layout | 103 |
 | `ContentLayout` | `layout/ContentLayout.tsx` | _app_root, administracion, ajustes, almacen, compras, control_calidad, cuenta, dashboard, desarrollo, general, general_admin, ingenieria, mantenimiento, notifications, operaciones, planificacion, sms, supervisor | 33 |
 | `CriticalAlertCard` | `layout/CriticalAlertCard.tsx` | _app_root, layout | 124 |
 | `CriticalAlertsButton` | `layout/CriticalAlertsButton.tsx` | _app_root, layout | 284 |

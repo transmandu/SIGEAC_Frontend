@@ -36,6 +36,11 @@ const TONE_COPY = {
     short: (n: number) => `${n} en cuarentena`,
     empty: "Sin artículos retenidos",
   },
+  maintenance: {
+    summary: (n: number) => `${n} vencimiento${n === 1 ? "" : "s"} de mantenimiento`,
+    short: (n: number) => `${n} de mantenimiento`,
+    empty: "Sin vencimientos de mantenimiento",
+  },
   mixed: {
     summary: (n: number) => `${n} alerta${n === 1 ? "" : "s"} pendiente${n === 1 ? "" : "s"}`,
     short: (n: number) => `${n} pendiente${n === 1 ? "" : "s"}`,

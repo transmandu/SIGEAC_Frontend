@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useLowStockAlerts } from "./useLowStockAlerts";
 import { useQuarantineAlerts } from "./useQuarantineAlerts";
+import { useMaintenanceControlAlerts } from "./useMaintenanceControlAlerts";
 import { useDismissedAlertsStore } from "./useDismissedAlertsStore";
 import { useAlertFiltersStore } from "./useAlertFiltersStore";
 import {
@@ -20,12 +21,13 @@ import {
 export const useCriticalAlerts = () => {
     const { alerts: lowStockAlerts, isLoading: isLoadingLowStock } = useLowStockAlerts();
     const { alerts: quarantineAlerts, isLoading: isLoadingQuarantine } = useQuarantineAlerts();
+    const { alerts: maintenanceControlAlerts, isLoading: isLoadingMaintenanceControl } = useMaintenanceControlAlerts();
     const dismissedAt = useDismissedAlertsStore((state) => state.dismissedAt);
     const hideInTransit = useAlertFiltersStore((state) => state.hideInTransit);
 
     // Nuevas fuentes de alertas críticas se agregan aquí como entradas adicionales.
     const allAlerts = useMemo<CriticalAlert[]>(() => {
-        const merged = [...lowStockAlerts, ...quarantineAlerts];
+        const merged = [...lowStockAlerts, ...quarantineAlerts, ...maintenanceControlAlerts];
 
         // El id es la llave de React y del descarte: repetirlo haría que un
         // descarte oculte dos alertas distintas. Se avisa en desarrollo porque
@@ -42,7 +44,7 @@ export const useCriticalAlerts = () => {
         }
 
         return merged;
-    }, [lowStockAlerts, quarantineAlerts]);
+    }, [lowStockAlerts, quarantineAlerts, maintenanceControlAlerts]);
 
     const visibleAlerts = useMemo<CriticalAlert[]>(() => {
         const today = new Date().toDateString();
@@ -115,6 +117,6 @@ export const useCriticalAlerts = () => {
         toneCounts,
         actionableCount: pendingCount,
         inTransitCount,
-        isLoading: isLoadingLowStock || isLoadingQuarantine,
+        isLoading: isLoadingLowStock || isLoadingQuarantine || isLoadingMaintenanceControl,
     };
 };

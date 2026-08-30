@@ -3,11 +3,13 @@ import { useUpdateCourseCalendar } from "@/actions/general/cursos/actions";
 import CreateSMSActivityDialog from "@/components/dialogs/aerolinea/sms/CreateSMSActivityDialog";
 import CreateCourseCalendarDialog from "@/components/dialogs/general/CreateCourseCalendarDialog";
 import { Button } from "@/components/ui/button";
+import { dateToZonedDateTime, temporalToDate } from "@/lib/scheduleXTemporal";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import {
   createViewDay,
   createViewMonthGrid,
   createViewWeek,
+  type CalendarEvent as ScheduleXEvent,
 } from "@schedule-x/calendar";
 import { createDragAndDropPlugin } from "@schedule-x/drag-and-drop";
 import { createEventModalPlugin } from "@schedule-x/event-modal";
@@ -74,6 +76,15 @@ const eventStatus = {
   },
 };
 
+// schedule-x v3 pide Temporal en vez de strings para start/end de cada evento.
+function toScheduleXEvents(events: courseEvent[]): ScheduleXEvent[] {
+  return events.map((event) => ({
+    ...event,
+    start: dateToZonedDateTime(new Date(event.start)),
+    end: dateToZonedDateTime(new Date(event.end)),
+  }));
+}
+
 export const Calendar = ({ events, theme = "light" }: CalendarProps) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | undefined>();
@@ -82,39 +93,40 @@ export const Calendar = ({ events, theme = "light" }: CalendarProps) => {
   const eventModal = useMemo(() => createEventModalPlugin(), []);
   const dragAndDrop = useMemo(() => createDragAndDropPlugin(), []);
   const resizePlugin = useMemo(() => createResizePlugin(30), []);
+  const scheduleXEvents = useMemo(() => toScheduleXEvents(events), [events]);
 
   const { updateCourseCalendar } = useUpdateCourseCalendar();
   const calendar = useNextCalendarApp({
     views: [createViewMonthGrid(), createViewWeek(), createViewDay()],
     calendars: eventStatus,
-    events,
+    events: scheduleXEvents,
     locale: "es-ES",
-    defaultView: "month",
+    defaultView: "month-grid",
     isResponsive: true,
     plugins: [dragAndDrop, eventsServiceRef.current, eventModal, resizePlugin],
     dayBoundaries: { start: "06:00", end: "18:00" },
     callbacks: {
-      onDoubleClickDate: (date: string) => {
-        setSelectedDate(`${date} 0:00`);
+      onDoubleClickDate: (date) => {
+        setSelectedDate(`${date.toString()} 0:00`);
         setIsDialogOpen(true);
       },
-      onDoubleClickDateTime: (dateTime: string) => {
-        setSelectedDate(dateTime);
+      onDoubleClickDateTime: (dateTime) => {
+        setSelectedDate(format(temporalToDate(dateTime), "yyyy-MM-dd HH:mm"));
         setIsDialogOpen(true);
       },
       onEventUpdate: async (event) => {
-        const start_time = event.start.split(" ")[1];
-        const end_time = event.end.split(" ")[1];
+        const startDate = temporalToDate(event.start);
+        const endDate = temporalToDate(event.end);
 
         try {
           await updateCourseCalendar.mutateAsync({
             id: event.id as string,
             data: {
               ...event,
-              start_date: new Date(event.start),
-              end_date: new Date(event.end),
-              start_time: start_time,
-              end_time: end_time,
+              start_date: startDate,
+              end_date: endDate,
+              start_time: format(startDate, "HH:mm"),
+              end_time: format(endDate, "HH:mm"),
               status: event.calendarId,
             },
           });
@@ -130,11 +142,11 @@ export const Calendar = ({ events, theme = "light" }: CalendarProps) => {
       eventModal: ({
         calendarEvent,
       }: {
-        calendarEvent: courseEvent;
+        calendarEvent: ScheduleXEvent;
         close: () => void;
       }) => {
-        const startDate = new Date(calendarEvent.start);
-        const endDate = new Date(calendarEvent.end);
+        const startDate = temporalToDate(calendarEvent.start);
+        const endDate = temporalToDate(calendarEvent.end);
 
         return (
           <div className="text-foreground p-6 rounded-lg shadow-xl max-w-md w-full border border-border">
@@ -189,10 +201,10 @@ export const Calendar = ({ events, theme = "light" }: CalendarProps) => {
 
   // ✅ Refrescar eventos en el servicio solo cuando cambian
   useEffect(() => {
-    if (events && eventsServiceRef.current) {
-      eventsServiceRef.current.set(events);
+    if (scheduleXEvents && eventsServiceRef.current) {
+      eventsServiceRef.current.set(scheduleXEvents);
     }
-  }, [events]);
+  }, [scheduleXEvents]);
 
   // ✅ Actualizar tema dinámicamente
   useEffect(() => {

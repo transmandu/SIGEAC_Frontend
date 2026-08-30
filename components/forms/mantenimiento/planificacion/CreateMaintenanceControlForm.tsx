@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { format, parseISO } from "date-fns";
 import {
+  Calendar as CalendarIcon,
   Check,
   ClipboardList,
   FileCheck2,
@@ -20,8 +21,9 @@ import { useRouter } from "next/navigation";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
-import { DatePickerField } from "@/components/ui/DatePickerField";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Form,
   FormControl,
@@ -96,11 +98,10 @@ const baseItemSchema = z.object({
 });
 
 // Los certificados son documentos a bordo: algunos sí llevan una entidad
-// aeronáutica responsable y otros no, así que "Realizado por" va oculto
-// detrás de un checkbox y es opcional (has_provider controla si se pide).
-// Los servicios (de aeronave y de parte) siempre lo requieren.
+// aeronáutica responsable y otros no, así que "Realizado por" siempre se
+// muestra pero es opcional. Los servicios (de aeronave y de parte) siempre
+// lo requieren.
 const certificateSchema = baseItemSchema.extend({
-  has_provider: z.boolean().optional(),
   maintenance_provider_id: z.string().optional(),
 });
 
@@ -163,16 +164,6 @@ const formSchema = z
     requireInitialReading(vals.certificates, ["certificates"]);
     requireInitialReading(vals.services, ["services"]);
     requireInitialReading(vals.part_services, ["part_services"]);
-
-    vals.certificates.forEach((certificate, index) => {
-      if (certificate.has_provider && !certificate.maintenance_provider_id) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "Seleccione quién lo realiza",
-          path: ["certificates", index, "maintenance_provider_id"],
-        });
-      }
-    });
   });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -182,7 +173,6 @@ const emptyCertificate = () => ({
   counting_method: "HOURS" as const,
   limit_value: undefined as unknown as number,
   first_applied_date: undefined as unknown as Date,
-  has_provider: false,
   maintenance_provider_id: "",
 });
 
@@ -241,34 +231,6 @@ function AircraftSelect({
   );
 }
 
-function DateField({
-  control,
-  name,
-  label = "Fecha",
-}: {
-  control: Control<any>;
-  name: string;
-  label?: string;
-}) {
-  return (
-    <FormField
-      control={control}
-      name={name}
-      render={({ field }) => (
-        <FormItem className="w-full">
-          <DatePickerField
-            label={label}
-            value={field.value}
-            setValue={(date) => field.onChange(date ?? undefined)}
-            maxYear={new Date().getFullYear() + 5}
-          />
-          <FormMessage />
-        </FormItem>
-      )}
-    />
-  );
-}
-
 // Input de texto normal (sin flechitas ni scroll-cambia-el-valor de
 // type="number") que solo deja escribir dígitos y un punto decimal.
 function NumericInput({
@@ -305,7 +267,93 @@ function NumericInput({
   );
 }
 
-function ProviderField({ control, name }: { control: Control<any>; name: string }) {
+// Fila única: el rótulo de cada campo lo pone el encabezado de la lista
+// (ItemRowsHeader), así que acá adentro no vuelve a repetirse.
+const ITEM_ROW_GRID =
+  "grid grid-cols-[minmax(200px,1fr)_92px_84px_96px_84px_120px_190px_32px] items-start gap-2";
+
+const ITEM_ROW_LABELS = [
+  "Nombre",
+  "Unidad",
+  "Límite",
+  "Lectura Inicial",
+  "Días Extra",
+  "1ra Fecha",
+  "Realizado Por",
+];
+
+function ItemRowsHeader() {
+  return (
+    <div className={cn(ITEM_ROW_GRID, "px-1")}>
+      {ITEM_ROW_LABELS.map((label) => (
+        <span key={label} className="truncate text-[11px] font-medium uppercase tracking-wide text-muted-foreground/70">
+          {label}
+        </span>
+      ))}
+      <span />
+    </div>
+  );
+}
+
+/** Celda "no aplica": mantiene el alto y el ancho de un campo real, para que
+ * la fila no salte al cambiar de unidad de conteo. Sin rótulo propio: lo da
+ * el encabezado de la lista. */
+function CompactPlaceholder() {
+  return (
+    <div className={cn(fieldClass, "flex items-center justify-center text-sm text-muted-foreground/40 shadow-none")}>
+      —
+    </div>
+  );
+}
+
+function CompactDateField({ control, name }: { control: Control<any>; name: string }) {
+  return (
+    <FormField
+      control={control}
+      name={name}
+      render={({ field }) => (
+        <FormItem className="space-y-0">
+          <Popover>
+            <PopoverTrigger asChild>
+              <FormControl>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className={cn(
+                    fieldClass,
+                    "w-full justify-start px-2.5 font-normal hover:shadow-none",
+                    !field.value && "text-muted-foreground",
+                  )}
+                >
+                  <CalendarIcon className="mr-1.5 size-3.5 shrink-0 opacity-60" />
+                  <span className="truncate">{field.value ? format(field.value, "dd/MM/yy") : "Fecha"}</span>
+                </Button>
+              </FormControl>
+            </PopoverTrigger>
+            <PopoverContent
+              className="w-auto overflow-hidden rounded-xl border-slate-400/60 p-0 shadow-lg dark:border-slate-600/60"
+              align="start"
+            >
+              <Calendar
+                mode="single"
+                selected={field.value}
+                onSelect={field.onChange}
+                disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
+                captionLayout="dropdown-buttons"
+                fromYear={1900}
+                toYear={new Date().getFullYear()}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
+
+function ProviderSelect({ control, name }: { control: Control<any>; name: string }) {
   const { selectedCompany } = useCompanyStore();
   const { data: providers, isLoading } = useGetMaintenanceProviders(selectedCompany?.slug);
   const options = useMemo(() => providers ?? [], [providers]);
@@ -315,8 +363,7 @@ function ProviderField({ control, name }: { control: Control<any>; name: string 
       control={control}
       name={name}
       render={({ field }) => (
-        <FormItem className="w-full">
-          <FormLabel className={labelClass}>Realizado Por</FormLabel>
+        <FormItem className="min-w-0 flex-1 space-y-0">
           <SearchableSelect
             options={options}
             value={field.value}
@@ -333,58 +380,14 @@ function ProviderField({ control, name }: { control: Control<any>; name: string 
   );
 }
 
-type ProviderMode = "required" | "optional";
-
-/** Celda "no aplica": mantiene la altura y el rótulo de un campo real, para
- * que la cuadrícula del ítem no salte al cambiar de unidad de conteo. */
-function PlaceholderField({ label }: { label: string }) {
-  return (
-    <FormItem className="w-full">
-      <FormLabel className={cn(labelClass, "text-muted-foreground/50")}>{label}</FormLabel>
-      <div className={cn(fieldClass, "flex items-center px-3 text-sm text-muted-foreground/50 shadow-none")}>
-        No aplica
-      </div>
-    </FormItem>
-  );
-}
-
-// Los certificados no siempre tienen una entidad aeronáutica responsable
-// (algunos sí, otros no), así que va oculto detrás de un checkbox en vez de
-// pedirse siempre como en los servicios.
-function OptionalProviderCell({ control, namePrefix }: { control: Control<any>; namePrefix: string }) {
-  return (
-    <FormField
-      control={control}
-      name={`${namePrefix}.has_provider`}
-      render={({ field }) => (
-        <FormItem className="w-full space-y-2">
-          <div className="flex h-5 items-center gap-1.5">
-            <Checkbox checked={field.value} onCheckedChange={field.onChange} className="h-3.5 w-3.5" />
-            <span className={cn(labelClass, "font-normal")}>¿Entidad responsable?</span>
-          </div>
-          {field.value ? (
-            <ProviderField control={control} name={`${namePrefix}.maintenance_provider_id`} />
-          ) : (
-            <div className={cn(fieldClass, "flex items-center px-3 text-sm text-muted-foreground/50 shadow-none")}>
-              Sin especificar
-            </div>
-          )}
-        </FormItem>
-      )}
-    />
-  );
-}
-
 function ItemRow({
   control,
   namePrefix,
   onRemove,
-  providerMode = "required",
 }: {
   control: Control<any>;
   namePrefix: string;
   onRemove: () => void;
-  providerMode?: ProviderMode;
 }) {
   const countingMethod = useWatch({ control, name: `${namePrefix}.counting_method` });
   const name = useWatch({ control, name: `${namePrefix}.name` });
@@ -392,24 +395,12 @@ function ItemRow({
   const isDaysBased = countingMethod === "DAYS";
 
   return (
-    <div className="group relative rounded-lg border border-slate-400/40 bg-gradient-to-br from-background/60 to-background/30 p-4 backdrop-blur-sm transition-colors hover:border-blue-400/30 dark:border-slate-600/40">
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon"
-        onClick={onRemove}
-        aria-label={name ? `Quitar ${name}` : "Quitar fila"}
-        className="absolute right-2 top-2 h-7 w-7 text-muted-foreground/70 opacity-0 transition-opacity hover:text-destructive group-hover:opacity-100 group-focus-within:opacity-100"
-      >
-        <X className="size-3.5" />
-      </Button>
-
+    <div className={ITEM_ROW_GRID}>
       <FormField
         control={control}
         name={`${namePrefix}.name`}
         render={({ field }) => (
-          <FormItem className="w-full pr-9">
-            <FormLabel className={labelClass}>Nombre</FormLabel>
+          <FormItem className="space-y-0">
             <FormControl>
               <Input placeholder="EJ: Certificado de Aeronavegabilidad" className={fieldClass} {...field} />
             </FormControl>
@@ -418,35 +409,54 @@ function ItemRow({
         )}
       />
 
-      <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <FormField
+        control={control}
+        name={`${namePrefix}.counting_method`}
+        render={({ field }) => (
+          <FormItem className="space-y-0">
+            <Select onValueChange={field.onChange} value={field.value || undefined}>
+              <FormControl>
+                <SelectTrigger className={selectTriggerClass}>
+                  <SelectValue placeholder="Unidad" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                <SelectItem value="HOURS">Horas</SelectItem>
+                <SelectItem value="CYCLES">Ciclos</SelectItem>
+                <SelectItem value="DAYS">Días</SelectItem>
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={control}
+        name={`${namePrefix}.limit_value`}
+        render={({ field }) => (
+          <FormItem className="space-y-0">
+            <FormControl>
+              <NumericInput
+                placeholder="0"
+                className={fieldClass}
+                value={field.value}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+                name={field.name}
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      {needsInitialReading ? (
         <FormField
           control={control}
-          name={`${namePrefix}.counting_method`}
+          name={`${namePrefix}.first_applied_value`}
           render={({ field }) => (
-            <FormItem className="w-full">
-              <FormLabel className={labelClass}>Unidad</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value || undefined}>
-                <FormControl>
-                  <SelectTrigger className={selectTriggerClass}>
-                    <SelectValue placeholder="Unidad" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="HOURS">Horas</SelectItem>
-                  <SelectItem value="CYCLES">Ciclos</SelectItem>
-                  <SelectItem value="DAYS">Días</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={control}
-          name={`${namePrefix}.limit_value`}
-          render={({ field }) => (
-            <FormItem className="w-full">
-              <FormLabel className={labelClass}>Límite</FormLabel>
+            <FormItem className="space-y-0">
               <FormControl>
                 <NumericInput
                   placeholder="0"
@@ -461,66 +471,48 @@ function ItemRow({
             </FormItem>
           )}
         />
+      ) : (
+        <CompactPlaceholder />
+      )}
 
-        {needsInitialReading ? (
-          <FormField
-            control={control}
-            name={`${namePrefix}.first_applied_value`}
-            render={({ field }) => (
-              <FormItem className="w-full">
-                <FormLabel className={labelClass}>Lectura Inicial</FormLabel>
-                <FormControl>
-                  <NumericInput
-                    placeholder="0"
-                    className={fieldClass}
-                    value={field.value}
-                    onChange={field.onChange}
-                    onBlur={field.onBlur}
-                    name={field.name}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        ) : (
-          <PlaceholderField label="Lectura Inicial" />
-        )}
+      {isDaysBased ? (
+        <FormField
+          control={control}
+          name={`${namePrefix}.extra_days`}
+          render={({ field }) => (
+            <FormItem className="space-y-0">
+              <FormControl>
+                <NumericInput
+                  placeholder="0"
+                  className={fieldClass}
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  name={field.name}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      ) : (
+        <CompactPlaceholder />
+      )}
 
-        {isDaysBased ? (
-          <FormField
-            control={control}
-            name={`${namePrefix}.extra_days`}
-            render={({ field }) => (
-              <FormItem className="w-full">
-                <FormLabel className={labelClass}>Días Extra</FormLabel>
-                <FormControl>
-                  <NumericInput
-                    placeholder="0"
-                    className={fieldClass}
-                    value={field.value}
-                    onChange={field.onChange}
-                    onBlur={field.onBlur}
-                    name={field.name}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        ) : (
-          <PlaceholderField label="Días Extra" />
-        )}
-      </div>
+      <CompactDateField control={control} name={`${namePrefix}.first_applied_date`} />
 
-      <div className="mt-3 grid grid-cols-1 gap-3 border-t border-slate-400/20 pt-3 dark:border-slate-600/20 sm:grid-cols-2">
-        <DateField control={control} name={`${namePrefix}.first_applied_date`} label="1ra Fecha Aplicada" />
-        {providerMode === "required" ? (
-          <ProviderField control={control} name={`${namePrefix}.maintenance_provider_id`} />
-        ) : (
-          <OptionalProviderCell control={control} namePrefix={namePrefix} />
-        )}
-      </div>
+      <ProviderSelect control={control} name={`${namePrefix}.maintenance_provider_id`} />
+
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        onClick={onRemove}
+        aria-label={name ? `Quitar ${name}` : "Quitar fila"}
+        className="h-11 w-8 text-muted-foreground/70 hover:text-destructive"
+      >
+        <X className="size-3.5" />
+      </Button>
     </div>
   );
 }
@@ -529,28 +521,28 @@ function MaintenanceItemRows({
   control,
   name,
   emptyLabel,
-  providerMode = "required",
   createEmptyRow,
 }: {
   control: Control<any>;
   name: string;
   emptyLabel: string;
-  providerMode?: ProviderMode;
   createEmptyRow: () => Record<string, unknown>;
 }) {
   const { fields, append, remove } = useFieldArray({ control, name });
 
   return (
-    <div className="space-y-3">
-      {fields.map((field, index) => (
-        <ItemRow
-          key={field.id}
-          control={control}
-          namePrefix={`${name}.${index}`}
-          onRemove={() => remove(index)}
-          providerMode={providerMode}
-        />
-      ))}
+    <div className="space-y-3 overflow-x-auto p-1">
+      {fields.length > 0 && <ItemRowsHeader />}
+      <div className="space-y-2 [&>div]:min-w-[900px]">
+        {fields.map((field, index) => (
+          <ItemRow
+            key={field.id}
+            control={control}
+            namePrefix={`${name}.${index}`}
+            onRemove={() => remove(index)}
+          />
+        ))}
+      </div>
       {fields.length === 0 && (
         <p className={cn(hintClass, "italic")}>{emptyLabel}</p>
       )}
@@ -582,15 +574,18 @@ function PartServiceRows({
   emptyLabel: string;
 }) {
   return (
-    <div className="space-y-3">
-      {rows.map(({ id, index }) => (
-        <ItemRow
-          key={id}
-          control={control}
-          namePrefix={`part_services.${index}`}
-          onRemove={() => onRemove(index)}
-        />
-      ))}
+    <div className="space-y-3 overflow-x-auto p-1">
+      {rows.length > 0 && <ItemRowsHeader />}
+      <div className="space-y-2 [&>div]:min-w-[900px]">
+        {rows.map(({ id, index }) => (
+          <ItemRow
+            key={id}
+            control={control}
+            namePrefix={`part_services.${index}`}
+            onRemove={() => onRemove(index)}
+          />
+        ))}
+      </div>
       {rows.length === 0 && <p className={cn(hintClass, "italic")}>{emptyLabel}</p>}
       <Button
         type="button"
@@ -767,7 +762,6 @@ function mapToFormCertificate(item: NonNullable<MaintenanceControl["items"]>[num
         : undefined,
     extra_days:
       item.extra_days !== null && item.extra_days !== undefined ? Number(item.extra_days) : undefined,
-    has_provider: !!item.maintenance_provider_id,
     maintenance_provider_id: item.maintenance_provider_id ? String(item.maintenance_provider_id) : "",
   };
 }
@@ -857,9 +851,9 @@ export default function CreateMaintenanceControlForm({ initialData }: { initialD
       first_applied_date: format(item.first_applied_date, "yyyy-MM-dd"),
       first_applied_value: item.first_applied_value,
       extra_days: item.extra_days,
-      // Los certificados solo mandan proveedor si el usuario activó el
-      // checkbox; los servicios lo sobreescriben más abajo (siempre va).
-      maintenance_provider_id: item.has_provider ? item.maintenance_provider_id : undefined,
+      // En certificados es opcional (puede quedar sin elegir); los
+      // servicios lo sobreescriben más abajo con el suyo, que es obligatorio.
+      maintenance_provider_id: item.maintenance_provider_id || undefined,
     });
 
     const toServiceItem = (item: z.infer<typeof itemSchema>) => ({
@@ -1027,7 +1021,6 @@ export default function CreateMaintenanceControlForm({ initialData }: { initialD
                 control={form.control}
                 name="certificates"
                 emptyLabel="Agregue los certificados de la aeronave."
-                providerMode="optional"
                 createEmptyRow={emptyCertificate}
               />
             </FormSection>
