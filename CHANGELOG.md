@@ -1,3 +1,7 @@
+## v3.5.2 — 2026-09-01
+
+- fix: show add attendance when the status is CERRADO (#231)
+
 ## v3.5.1 — 2026-09-01
 
 - Merge pull request #230 from transmandu/feat/entregas-directas-reporte-costos
