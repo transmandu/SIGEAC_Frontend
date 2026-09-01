@@ -15,14 +15,9 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { Course } from "@/types";
 import { startOfDay } from "date-fns";
@@ -81,97 +76,172 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
     setOpenReopen(false);
   };
 
-  const realNow = startOfDay(new Date());
+  const realnow = startOfDay(new Date());
   const CourseDate = startOfDay(course.end_date);
 
   return (
     <>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0" data-tour="cursos-actions">
-              <span className="sr-only">Abrir menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
+        <TooltipProvider>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0" data-tour="cursos-actions">
+                <span className="sr-only">Abrir menu</span>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </PopoverTrigger>
 
-          <DropdownMenuContent
-            align="center"
-            className="flex-col gap-2 justify-center"
-          >
-            {course.status !== "CERRADO" && (
-              <DialogTrigger asChild>
-                <DropdownMenuItem onClick={() => setOpenDelete(true)}>
-                  <Trash2 className="size-5 text-red-500" />
-                  <p className="pl-2">Eliminar</p>
-                </DropdownMenuItem>
-              </DialogTrigger>
-            )}
-            {course.status !== "CERRADO" && (
-              <DropdownMenuItem onClick={() => setOpenEdit(true)}>
-                <ClipboardPenLine className="size-5" />
-                <p className="pl-2">Editar</p>
-              </DropdownMenuItem>
-            )}
+            <PopoverContent align="end" className="w-auto p-2 flex flex-row gap-2">
+              {course.status !== "CERRADO" && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => setOpenDelete(true)}
+                >
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Trash2 className="h-4 w-4 text-red-500" />
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom">Eliminar</TooltipContent>
+                  </Tooltip>
+                </Button>
+              )}
 
-            <DropdownMenuItem
-              onClick={() => {
-                router.push(
-                  `/${selectedCompany?.slug}/general/cursos/${course.id}`,
-                );
-              }}
-            >
-              <EyeIcon className="size-5" />
-              <p className="pl-2">Ver</p>
-            </DropdownMenuItem>
+              {course.status !== "CERRADO" && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => setOpenEdit(true)}
+                >
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <ClipboardPenLine className="h-4 w-4" />
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom">Editar</TooltipContent>
+                  </Tooltip>
+                </Button>
+              )}
 
-            {course.status === "ABIERTO" && (
-              <DropdownMenuItem onClick={() => setOpenAdd(true)}>
-                <Plus className="size-5" />
-                <p className="pl-2">Agregar personas</p>
-              </DropdownMenuItem>
-            )}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => {
+                  router.push(
+                    `/${selectedCompany?.slug}/general/cursos/${course.id}`,
+                  );
+                }}
+              >
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <EyeIcon className="h-4 w-4" />
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom">Ver</TooltipContent>
+                </Tooltip>
+              </Button>
 
-            {CourseDate <= realNow && course.status === "ABIERTO" && (
-              <DropdownMenuItem onClick={() => setOpenAttendance(true)}>
-                <UserCheck className="size-5" />
-                <p className="pl-2">Asistencia</p>
-              </DropdownMenuItem>
-            )}
+              {course.status === "ABIERTO" && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => setOpenAdd(true)}
+                >
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Plus className="h-4 w-4" />
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom">Agregar personas</TooltipContent>
+                  </Tooltip>
+                </Button>
+              )}
 
-            {course.status !== "CERRADO" && (
-              <DropdownMenuItem onClick={() => setOpenExam(true)}>
-                <FilePlus className="size-5" />
-                <p className="pl-2">Agregar Examen</p>
-              </DropdownMenuItem>
-            )}
+              {course.status !== "CERRADO" && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => setOpenAttendance(true)}
+                >
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <UserCheck className="h-4 w-4" />
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom">Asistencia</TooltipContent>
+                  </Tooltip>
+                </Button>
+              )}
 
-            <DropdownMenuItem
-              onClick={() => {
-                router.push(
-                  `/${selectedCompany?.slug}/general/cursos/${course.id}/examenes`,
-                );
-              }}
-            >
-              <FileText className="size-5" />
-              <p className="pl-2">Gestionar Examenes</p>
-            </DropdownMenuItem>
+              {course.status !== "CERRADO" && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => setOpenExam(true)}
+                >
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <FilePlus className="h-4 w-4" />
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom">Agregar Examen</TooltipContent>
+                  </Tooltip>
+                </Button>
+              )}
 
-            {CourseDate <= realNow && course.status !== "CERRADO" && (
-              <DropdownMenuItem onClick={() => setOpenStatus(true)}>
-                <LockKeyholeOpen className="size-5 text-green-400" />
-                <p className="pl-2">Finalizar</p>
-              </DropdownMenuItem>
-            )}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => {
+                  router.push(
+                    `/${selectedCompany?.slug}/general/cursos/${course.id}/examenes`,
+                  );
+                }}
+              >
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <FileText className="h-4 w-4" />
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom">Gestionar Examenes</TooltipContent>
+                </Tooltip>
+              </Button>
 
-            {course.status === "CERRADO" && (
-              <DropdownMenuItem onClick={() => setOpenReopen(true)}>
-                <LockOpen className="size-5 text-blue-400" />
-                <p className="pl-2">Reabrir</p>
-              </DropdownMenuItem>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
+              {CourseDate <= realnow && course.status !== "CERRADO" && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => setOpenStatus(true)}
+                >
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <LockKeyholeOpen className="h-4 w-4 text-green-400" />
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom">Finalizar</TooltipContent>
+                  </Tooltip>
+                </Button>
+              )}
+
+              {course.status === "CERRADO" && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => setOpenReopen(true)}
+                >
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <LockOpen className="h-4 w-4 text-blue-400" />
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom">Reabrir</TooltipContent>
+                  </Tooltip>
+                </Button>
+              )}
+            </PopoverContent>
+          </Popover>
+        </TooltipProvider>
 
         <Dialog open={openDelete} onOpenChange={setOpenDelete}>
           <DialogContent>
@@ -223,7 +293,7 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
             />
           </DialogContent>
         </Dialog>
-        {/* DIALOGO DE ADD FORM */}
+
         <Dialog open={openAdd} onOpenChange={setOpenAdd}>
           <DialogContent className="flex flex-col max-w-2xl m-2">
             <DialogHeader>
