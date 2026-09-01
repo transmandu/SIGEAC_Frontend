@@ -949,8 +949,8 @@ primer elemento. Si no hay ninguno: `0`.
 - El costo **solo se registra en intakes `CONFIRMED`** — el eager load filtra por ese
   estado. Un intake `PENDING` no aporta precio, y una **entrega directa
   (`DELIVERED`) nunca aporta precio a ningún inventario**, porque no hay artículo al
-  cual asociarlo. Ese gasto existe en la orden de compra pero es invisible desde el
-  inventario.
+  cual asociarlo. Ese gasto es invisible desde el inventario, pero **sí aparece en el
+  reporte de costos**, en su propia categoría (§12.4.1).
 - Como el historial se deriva por fecha, **una compra vieja registrada tarde puede
   pisar el precio vigente** si su `confirmed_at` es posterior.
 - El historial **sobrevive al borrado del artículo**: `GeneralArticle` usa
@@ -990,6 +990,72 @@ unidad en que se registró a la unidad base del artículo. Recordar la asimetrí
 
 Si no hay conversión registrada entre ambas unidades, devuelve el costo crudo: mejor
 el dato sin convertir que una conversión inventada.
+
+**Orden de las filas.** Dentro de cada tabla las filas van **cronológicas
+ascendentes** (la más antigua arriba). Se ordena por una clave interna `sort_key`
+(`Y-m-d H:i:s`) que se descarta antes de llegar a la vista, **no** por
+`dispatch_date`: ese ya viene formateado `d/m/Y` y como texto pondría `25/01`
+después de `04/02`. Las filas sin fecha van al final. Hasta 2026-09-01 no había
+ningún `orderBy`, así que las filas salían en el orden en que SQL Server devolvía
+las órdenes — un despacho del 25/01 podía aparecer entre los del 30/01.
+
+### 12.4.1 Entregas directas en el reporte de costos
+
+El reporte se arma desde `DispatchOrder`, pero una **entrega directa** (§ intake
+`DELIVERED`) nunca genera orden de salida: no pasa por almacén. Su costo quedaba
+fuera del reporte que ve administración.
+
+`appendDirectDeliveries()` las agrega como una **categoría aparte** dentro de cada
+grupo, siempre la última: `ENTREGA DIRECTA (SIN PASAR POR ALMACEN)`. La separación
+es deliberada:
+
+> **Que un artículo se entregue no significa que se haya usado.** El resto del
+> reporte es consumo confirmado; esto es costo entregado. Mezclarlos en un solo
+> subtotal destruiría el significado del número.
+
+Por eso el pie de cada hoja afectada abre el total en tres líneas:
+`DESPACHADO POR ALMACEN` + `ENTREGADO DIRECTAMENTE` = `TOTAL`. Las hojas sin
+entregas directas quedan **exactamente igual que antes**, con su TOTAL único.
+
+Diferencias respecto de una fila de despacho normal:
+
+| Aspecto | Despacho | Entrega directa |
+|---|---|---|
+| Fecha | `submission_date` | `arrived_at` (NOT NULL en BD) |
+| Aeronave / O.T. | del despacho | **`N/A`** — el intake no las registra |
+| Agrupación | aeronave, depto., empresa, tercero | depto., empresa, tercero, **empleado** |
+| Costo | costo vigente a la fecha (`resolveGeneralArticleCostAt`) | **el `cost` del propio intake** |
+| Unidad | unidad base del artículo | la unidad del intake |
+
+**`EMPLEADO` es un grupo que solo existe aquí.** `resolveIntakeDestination()` admite
+`employee_id` como destino único, cosa que un `DispatchOrder` no tiene. Va en
+`GROUP_ORDER` después de `TERCERO`, y se nombra **apellido primero**: el nombre de
+hoja de Excel se trunca a 31 caracteres y así dos empleados con nombre de pila largo
+no colisionan (PhpSpreadsheet resolvería la colisión con un sufijo `1`, pero las
+hojas quedarían indistinguibles para quien lee).
+
+**`cost` del intake es nullable.** Cuando falta, la fila se marca `cost_missing` y sale
+resaltada en rojo, igual que un despacho sin costo vigente — nunca como un `$0`
+legítimo. Cada caso tiene su propia nota al pie porque la causa es distinta: en el
+despacho no había precio *a esa fecha*; en la entrega directa el intake se registró
+*sin precio*.
+
+El costo sale del intake y no del costo vigente porque es el de **esa compra
+concreta**, y porque una entrega directa puede no tener artículo general asociado
+(nunca entró a inventario). Por lo mismo no se convierte a unidad base: sin paso por
+stock no hay base que anclar, y `cantidad × costo` de la misma unidad ya es exacto.
+
+Los filtros que una entrega directa no puede satisfacer —aeronave, O.T., P/N,
+fabricante, categoría aeronáutica, `type=aeronautical`— la excluyen por completo del
+reporte, igual que hoy los artículos generales quedan fuera al filtrar por categoría.
+
+> ⚠️ **Deuda conocida (preexistente):** la ruta es
+> `/{company}/{location_id?}/dispatch-cost-report-excel` y el frontend **sí manda**
+> `location_id`, pero `dispatchCostReport()` nunca lo usa: el reporte sale con todas
+> las estaciones. Las entregas directas mantienen ese mismo comportamiento a
+> propósito — filtrarlas solo a ellas produciría una asimetría peor (despachos de
+> todas las estaciones, entregas directas de una). Si se corrige, hay que hacerlo
+> **para ambos a la vez**; el intake ya trae `location_id` materializado para eso.
 
 ### 12.5 Costo en la fusión de artículos
 
