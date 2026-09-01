@@ -5,6 +5,7 @@ import { toast } from "sonner";
 
 interface MaintenanceItemData {
   id?: number,
+  maintenance_catalog_service_id?: number,
   name: string,
   counting_method: MaintenanceCountingMethod,
   limit_value: number,

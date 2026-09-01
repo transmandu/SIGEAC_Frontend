@@ -766,13 +766,6 @@ invalida. `_method=` indica spoofing de Laravel; `multipart` indica subida de ar
 | `useAddWorkOrderTask` | POST | `/${selectedCompany?.slug}/${work_order_id}/store-work-order-task` | ["work-orders"]<br>["work-order"] |
 | `useCreateTaskEvents` | POST | `/${selectedCompany?.slug}/${task_id}/store-work-order-task-event` | ["work-orders"]<br>["work-order"] |
 
-**actions/mantenimiento/planificacion/servicios/actions.ts**
-
-| Hook | HTTP | Endpoint | Invalida |
-|---|---|---|---|
-| `useCreateMaintenanceService` | POST | `/${company}/service-task` | ['maintenance-services'] |
-| `useDeleteService` | DELETE | `/${company}/service-task/${id}` | ['maintenance-services'] |
-
 **actions/mantenimiento/planificacion/vuelos/actions.ts**
 
 | Hook | HTTP | Endpoint | Invalida |

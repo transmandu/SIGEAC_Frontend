@@ -7,7 +7,7 @@ import Logo from '@/components/misc/Logo'
 import { useAuth } from "@/contexts/AuthContext";
 import { useDocumentTitle } from "@/hooks/helpers/use-document-title";
 import { motion, useReducedMotion } from "motion/react";
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 
 const Login = () => {
   const { clearLoggingOut } = useAuth();
@@ -47,7 +47,10 @@ const Login = () => {
 
   return (
     <>
-      <AuthRedirect />
+      {/* Lee `from` con useSearchParams: sin este boundary el prerender falla. */}
+      <Suspense fallback={null}>
+        <AuthRedirect />
+      </Suspense>
 
       {/* min-h en vez de h fija: en móviles bajos el contenido puede crecer. */}
       <div className="relative min-h-[100dvh] w-full">

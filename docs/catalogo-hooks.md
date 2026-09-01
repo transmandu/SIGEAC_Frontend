@@ -433,9 +433,7 @@ Los marcados `_(useMutation)_` son las lecturas a demanda de la [sección 5](#5-
 | `useGetAircraftsParts` | `mantenimiento/planificacion/useGetAircraftParts.ts` | ["aircraft-parts", company] | `—` |
 | `useGetFlightControl` | `mantenimiento/planificacion/useGetFlightsControl.ts` | ["flight-control"] | `—` |
 | `useGetMaintenanceAircrafts` | `mantenimiento/planificacion/useGetMaintenanceAircrafts.ts` | ["aircrafts", company] | `—` |
-| `useGetMaintenanceServices` | `mantenimiento/planificacion/useGetMaintenanceServices.ts` | ["maintenance-services", company] | `—` |
 | `useGetMaintenanceAircraftByAcronym` | `mantenimiento/planificacion/useGetMaitenanceAircraftByAcronym.ts` | ["aircraft", company, acronym] | `—` |
-| `useGetServicesByManufacturer` | `mantenimiento/planificacion/useGetServicesByManufacturer.ts` | ["manufacturer-services", manufacturer_id, company] | `—` |
 | `useGetWorkOrderByOrderNumber` | `mantenimiento/planificacion/useGetWorkOrderByOrderNumber.ts` | ["work-order", order_number, company] | `—` |
 | `useGetWorkOrderEmployees` | `mantenimiento/planificacion/useGetWorkOrderEmployees.ts` | ["employees", company] | `—` |
 | `useGetWorkOrders` | `mantenimiento/planificacion/useGetWorkOrders.ts` | ["work-orders", location_id, company] | `—` |

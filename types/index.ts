@@ -626,28 +626,6 @@ export type FlightControl = {
   aircraft: MaintenanceAircraft;
 };
 
-export type MaintenanceService = {
-  id: number;
-  origin_manual: string;
-  name: string;
-  description: string;
-  manufacturer: Manufacturer;
-  type: "AIRCRAFT" | "PART";
-  tasks: ServiceTask[];
-};
-
-export type ServiceTask = {
-  id: number;
-  description: string;
-  service: MaintenanceService;
-  task_items: {
-    id: number;
-    article_part_number: string;
-    article_alt_part_number?: string;
-    article_serial: string;
-  }[];
-};
-
 export type AssignedTechnician = {
   name: string;
   hours: number;

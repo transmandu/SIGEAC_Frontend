@@ -11,6 +11,7 @@ import { useGetUserLocationsByCompanyId } from "@/hooks/sistema/usuario/useGetUs
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { User } from "@/types";
 
+import { consumePostLoginRedirect } from "@/lib/postLoginRedirect";
 import CompanySelect from "@/components/selects/CompanySelect";
 import PlaneCheckMorph from "@/components/misc/PlaneCheckMorph";
 import { Button } from "@/components/ui/button";
@@ -129,6 +130,15 @@ const CompanyBootstrap = () => {
       reset();
     };
 
+    // Destino tras el bootstrap: la ruta que el usuario pedía antes del login si
+    // es de ESTA empresa (ya validada, con estación resuelta), o su dashboard.
+    // Un `from` de otra empresa se descarta: la sesión acaba de resolverse aquí.
+    const landingFor = (slug: string) => {
+      const from = consumePostLoginRedirect();
+
+      return from?.split("/")[1] === slug ? from : `/${slug}/dashboard`;
+    };
+
     const bootstrap = async () => {
       if (selectedCompany && selectedStation) {
         setIsRedirecting(true);
@@ -162,12 +172,14 @@ const CompanyBootstrap = () => {
           setIsRedirecting(true);
           saveHistory(selectedCompany.id, selectedStation);
 
+          const target = landingFor(selectedCompany.slug);
+
           if (typeof window !== "undefined" && "requestAnimationFrame" in window) {
             requestAnimationFrame(() => requestAnimationFrame(() =>
-              setRedirectTarget(`/${selectedCompany.slug}/dashboard`)
+              setRedirectTarget(target)
             ));
           } else {
-            setTimeout(() => setRedirectTarget(`/${selectedCompany.slug}/dashboard`), 0);
+            setTimeout(() => setRedirectTarget(target), 0);
           }
           return;
         } catch {
@@ -199,12 +211,14 @@ const CompanyBootstrap = () => {
           saveHistory(company.id, station);
           setIsRedirecting(true);
 
+          const target = landingFor(company.slug);
+
           if (typeof window !== "undefined" && "requestAnimationFrame" in window) {
             requestAnimationFrame(() => requestAnimationFrame(() =>
-              setRedirectTarget(`/${company.slug}/dashboard`)
+              setRedirectTarget(target)
             ));
           } else {
-            setTimeout(() => setRedirectTarget(`/${company.slug}/dashboard`), 0);
+            setTimeout(() => setRedirectTarget(target), 0);
           }
           return;
         }

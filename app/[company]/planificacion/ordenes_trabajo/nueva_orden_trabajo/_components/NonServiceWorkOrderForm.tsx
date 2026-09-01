@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useGetMaintenanceAircrafts } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts";
+import { CatalogServicePicker } from "@/components/misc/CatalogServicePicker";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -98,6 +99,7 @@ interface TaskInProgress {
   ata: string;
   task_number: string;
   origin_manual: string;
+  maintenance_catalog_task_id: string;
   task_items: TaskItem[];
 }
 
@@ -164,6 +166,7 @@ const NonServiceWorkOrderForm = () => {
           ata: "",
           task_number: "",
           origin_manual: "",
+          maintenance_catalog_task_id: "",
           task_items: [],
         },
       ]);
@@ -182,6 +185,7 @@ const NonServiceWorkOrderForm = () => {
         ata: "",
         task_number: "",
         origin_manual: "",
+        maintenance_catalog_task_id: "",
         task_items: [],
       },
     ]);
@@ -190,6 +194,31 @@ const NonServiceWorkOrderForm = () => {
   // ✅ Actualiza por id (no por index)
   const updateTask = (id: string, field: keyof TaskInProgress, value: string) => {
     setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, [field]: value } : t)));
+  };
+
+  // El picker rellena varios campos a la vez (descripción/ata/manual de
+  // origen/id del catálogo) — updateTask solo cambia uno, así que esto evita
+  // 4 renders/set encadenados por selección.
+  const applyTaskFromCatalog = (
+    id: string,
+    fields: { description_task: string; ata: string; origin_manual: string; maintenance_catalog_task_id: string; materialAppend?: string },
+  ) => {
+    setTasks((prev) =>
+      prev.map((t) =>
+        t.id === id
+          ? {
+              ...t,
+              description_task: fields.description_task,
+              ata: fields.ata,
+              origin_manual: fields.origin_manual,
+              maintenance_catalog_task_id: fields.maintenance_catalog_task_id,
+              material: fields.materialAppend
+                ? [t.material, fields.materialAppend].filter(Boolean).join("\n")
+                : t.material,
+            }
+          : t,
+      ),
+    );
   };
 
   // ✅ Borra por id (no por index)
@@ -256,6 +285,16 @@ const NonServiceWorkOrderForm = () => {
       date: format(data.date, "yyyy-MM-dd"),
       client_id: selectedAircraftData?.client.id,
       client_name: selectedAircraftData?.client.name,
+      // tasks (el estado, no data.work_order_task) trae origin_manual y
+      // maintenance_catalog_task_id como string vacío por defecto — el
+      // backend espera null, no "", para una FK opcional.
+      work_order_task: tasks.map((task) => ({
+        ...task,
+        maintenance_catalog_task_id: task.maintenance_catalog_task_id
+          ? Number(task.maintenance_catalog_task_id)
+          : null,
+        origin_manual: task.origin_manual || null,
+      })),
     };
 
     console.log("🚀 [NonServiceWorkOrderForm] Datos enviados al backend:", formattedData);
@@ -543,6 +582,27 @@ const NonServiceWorkOrderForm = () => {
                     <div key={task.id} className="p-4 border rounded-lg mb-2">
                       <div className="flex gap-2 justify-between items-center">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-2 w-full">
+                          <div className="flex items-center justify-between md:col-span-3">
+                            <span className="text-xs text-muted-foreground">
+                              {task.origin_manual ? `Origen: ${task.origin_manual}` : "Tarea manual"}
+                            </span>
+                            <CatalogServicePicker
+                              aircraftId={form.watch("aircraft_id")}
+                              onSelectTask={(catalogTask, service) => {
+                                const requirementsText = catalogTask.requirements
+                                  .map((r) => `${r.description}${r.part_number ? ` (${r.part_number})` : ""}`)
+                                  .join("\n");
+                                applyTaskFromCatalog(task.id, {
+                                  description_task: catalogTask.description,
+                                  ata: catalogTask.ata ?? "",
+                                  origin_manual: service.manual?.name ?? service.name,
+                                  maintenance_catalog_task_id: String(catalogTask.id),
+                                  materialAppend: requirementsText || undefined,
+                                });
+                              }}
+                            />
+                          </div>
+
                           {/* ATA Code */}
                           <FormItem>
                             <FormLabel>Código ATA</FormLabel>

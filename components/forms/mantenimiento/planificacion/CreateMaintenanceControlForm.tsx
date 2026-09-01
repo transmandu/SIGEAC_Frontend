@@ -53,6 +53,7 @@ import {
   useUpdateMaintenanceControl,
 } from "@/actions/mantenimiento/planificacion/control_mantenimiento/actions";
 import { CreateMaintenanceProviderDialog } from "@/components/dialogs/mantenimiento/planificacion/CreateMaintenanceProviderDialog";
+import { CatalogServicePicker } from "@/components/misc/CatalogServicePicker";
 import { MaintenanceAircraftPart, MaintenanceControl } from "@/types";
 import { partTypeLabel, partTypeRank } from "@/lib/maintenancePartTypes";
 import {
@@ -84,6 +85,9 @@ const baseItemSchema = z.object({
   // registro en vez de recrearlo, para no perder su historial de
   // cumplimientos. Las filas nuevas (creadas en el formulario) no lo llevan.
   id: z.number().optional(),
+  // Servicio/certificado de origen en el catálogo de mantenimiento, si se
+  // eligió con el selector en vez de escribirlo a mano.
+  maintenance_catalog_service_id: z.number().optional(),
   name: z.string().min(1, "Requerido"),
   counting_method: countingMethodEnum,
   limit_value: z.coerce.number().positive("Debe ser mayor a 0"),
@@ -383,12 +387,16 @@ function ProviderSelect({ control, name }: { control: Control<any>; name: string
 function ItemRow({
   control,
   namePrefix,
+  category,
   onRemove,
 }: {
   control: Control<any>;
   namePrefix: string;
+  category: "CERTIFICATE" | "SERVICE";
   onRemove: () => void;
 }) {
+  const { setValue } = useFormContext<FormValues>();
+  const aircraftId = useWatch({ control, name: "aircraft_id" });
   const countingMethod = useWatch({ control, name: `${namePrefix}.counting_method` });
   const name = useWatch({ control, name: `${namePrefix}.name` });
   const needsInitialReading = countingMethod && countingMethod !== "DAYS";
@@ -396,18 +404,34 @@ function ItemRow({
 
   return (
     <div className={ITEM_ROW_GRID}>
-      <FormField
-        control={control}
-        name={`${namePrefix}.name`}
-        render={({ field }) => (
-          <FormItem className="space-y-0">
-            <FormControl>
-              <Input placeholder="EJ: Certificado de Aeronavegabilidad" className={fieldClass} {...field} />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+      <div className="flex items-center gap-1">
+        <FormField
+          control={control}
+          name={`${namePrefix}.name`}
+          render={({ field }) => (
+            <FormItem className="w-full space-y-0">
+              <FormControl>
+                <Input placeholder="EJ: Certificado de Aeronavegabilidad" className={fieldClass} {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <CatalogServicePicker
+          aircraftId={aircraftId}
+          category={category}
+          onSelectService={(service) => {
+            setValue(`${namePrefix}.name` as any, service.name, { shouldValidate: true });
+            setValue(`${namePrefix}.maintenance_catalog_service_id` as any, service.id);
+            if (service.counting_method) {
+              setValue(`${namePrefix}.counting_method` as any, service.counting_method, { shouldValidate: true });
+            }
+            if (service.interval_value) {
+              setValue(`${namePrefix}.limit_value` as any, service.interval_value, { shouldValidate: true });
+            }
+          }}
+        />
+      </div>
 
       <FormField
         control={control}
@@ -520,11 +544,13 @@ function ItemRow({
 function MaintenanceItemRows({
   control,
   name,
+  category,
   emptyLabel,
   createEmptyRow,
 }: {
   control: Control<any>;
   name: string;
+  category: "CERTIFICATE" | "SERVICE";
   emptyLabel: string;
   createEmptyRow: () => Record<string, unknown>;
 }) {
@@ -539,6 +565,7 @@ function MaintenanceItemRows({
             key={field.id}
             control={control}
             namePrefix={`${name}.${index}`}
+            category={category}
             onRemove={() => remove(index)}
           />
         ))}
@@ -582,6 +609,7 @@ function PartServiceRows({
             key={id}
             control={control}
             namePrefix={`part_services.${index}`}
+            category="SERVICE"
             onRemove={() => onRemove(index)}
           />
         ))}
@@ -845,6 +873,7 @@ export default function CreateMaintenanceControlForm({ initialData }: { initialD
   const onSubmit = async (values: FormValues) => {
     const toBaseItem = (item: z.infer<typeof certificateSchema>) => ({
       id: item.id,
+      maintenance_catalog_service_id: item.maintenance_catalog_service_id,
       name: item.name,
       counting_method: item.counting_method,
       limit_value: item.limit_value,
@@ -1020,6 +1049,7 @@ export default function CreateMaintenanceControlForm({ initialData }: { initialD
               <MaintenanceItemRows
                 control={form.control}
                 name="certificates"
+                category="CERTIFICATE"
                 emptyLabel="Agregue los certificados de la aeronave."
                 createEmptyRow={emptyCertificate}
               />
@@ -1033,6 +1063,7 @@ export default function CreateMaintenanceControlForm({ initialData }: { initialD
               <MaintenanceItemRows
                 control={form.control}
                 name="services"
+                category="SERVICE"
                 emptyLabel="Agregue los servicios de la aeronave."
                 createEmptyRow={emptyServiceItem}
               />

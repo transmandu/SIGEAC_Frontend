@@ -3,6 +3,7 @@
 import axiosInstance, { isAuthEndpoint } from "@/lib/axios";
 import { createCookie, deleteCookie, hasAuthCookie } from "@/lib/cookie";
 import { resetEcho } from "@/lib/echo";
+import { setPostLoginRedirect } from "@/lib/postLoginRedirect";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { User } from "@/types";
 import {
@@ -120,6 +121,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // que la siguiente cuenta heredara la estación de la anterior en cuanto
       // coincidieran en una empresa.
       localStorage.removeItem("company-station-history");
+
+      // Un destino pendiente de la sesión que termina no es de la siguiente.
+      setPostLoginRedirect(null);
 
       queryClient.removeQueries();
 
