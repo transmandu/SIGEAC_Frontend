@@ -326,7 +326,7 @@ const ArticleDocumentsSelector = ({
                             <FileUpIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 z-10" />
                             <Input
                                 type="file"
-                                accept=".pdf,.jpg,.jpeg,.png"
+                                accept=".pdf,.jpg,.jpeg,.png,.webp"
                                 disabled={disabled}
                                 onChange={(e) => setFile(doc.typeId, e.target.files?.[0])}
                                 className="pl-10 pr-3 py-2 w-full border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-[#6E23DD] focus:border-transparent cursor-pointer"

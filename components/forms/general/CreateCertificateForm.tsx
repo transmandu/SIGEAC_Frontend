@@ -342,7 +342,7 @@ export const CreateCertificateForm = ({
             id="dropzone-file"
             type="file"
             className="hidden"
-            accept=".pdf,.jpg,.jpeg,.png"
+            accept=".pdf,.jpg,.jpeg,.png,.webp"
             {...register("document", {
               required: "Archivo obligatorio",
               onChange: handleFileChange,

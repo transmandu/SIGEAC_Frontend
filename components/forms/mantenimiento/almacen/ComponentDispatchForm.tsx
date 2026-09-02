@@ -32,6 +32,7 @@ import {
 import { useMemo } from "react"
 import { SectionHeader } from "./_components/SectionHeader"
 import { ConversionPanel } from "./_components/ConversionPanel"
+import EvidenceCapture from "@/components/misc/EvidenceCapture"
 import { ArticleRowCard } from "./_components/ArticleRowCard"
 import { GeneralArticleRow } from "./_components/GeneralArticleRow"
 import { BackdatedDispatchField } from "./_components/BackdatedDispatchField"
@@ -71,6 +72,7 @@ export function ComponentDispatchForm({ onClose }: FormProps) {
         getAeroMax, getGenMax,
         qtyByKey, setQtyByKey, msgByKey, convByKey,
         cutByKey, updateCut,
+        evidenceByKey, setEvidence,
         commitAeroQty, commitGenQty,
         setToMaxAero, setToMaxGen,
         convState, setConvState,
@@ -595,6 +597,13 @@ export function ComponentDispatchForm({ onClose }: FormProps) {
                                         showConversionPanel={convState.target === "aero" && convState.rowFieldId === f.id && !!article && article.unit !== "u"}
                                         conversionPanelNode={conversionPanelNode}
                                         accentClass="border-l-blue-500/50"
+                                        evidenceNode={
+                                            <EvidenceCapture
+                                                files={evidenceByKey[key] ?? []}
+                                                onChange={(files) => setEvidence(key, files)}
+                                                label={article?.part_number ?? "el artículo"}
+                                            />
+                                        }
                                         onQtyChange={(val) => setQtyByKey((p) => ({ ...p, [key]: val }))}
                                         onCommit={() => commitAeroQty(index, f.id)}
                                         onSetMax={() => setToMaxAero(index, f.id)}
@@ -627,6 +636,13 @@ export function ComponentDispatchForm({ onClose }: FormProps) {
                                         showConversionPanel={convState.target === "general" && convState.rowFieldId === f.id && !!ga}
                                         conversionPanelNode={conversionPanelNode}
                                         cut={cutByKey[key]}
+                                        evidenceNode={
+                                            <EvidenceCapture
+                                                files={evidenceByKey[key] ?? []}
+                                                onChange={(files) => setEvidence(key, files)}
+                                                label={ga?.description ?? "el artículo"}
+                                            />
+                                        }
                                         onQtyChange={(val) => setQtyByKey((p) => ({ ...p, [key]: val }))}
                                         onCommit={() => commitGenQty(index, f.id)}
                                         onSetMax={() => setToMaxGen(index, f.id)}

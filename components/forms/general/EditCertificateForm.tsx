@@ -185,7 +185,7 @@ const onSubmit = async (data: EditFormValues) => {
           <input 
             type="file" 
             className="hidden" 
-            accept=".pdf,.jpg,.jpeg,.png"
+            accept=".pdf,.jpg,.jpeg,.png,.webp"
             {...register("document", { 
                 onChange: (e) => setFileName(e.target.files[0]?.name || "Archivo actual") 
             })}

@@ -74,6 +74,7 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { type ChecklistValue } from "@/app/[company]/control_calidad/incoming/IncomingTypes";
+import { ReturnEvidenceSection } from "./ReturnEvidenceSection";
 import { StatusBadge } from "./StatusBadge";
 
 /* ─── Types ─── */
@@ -718,6 +719,10 @@ export function IncomingReview({ article }: { article: any }) {
                 </p>
               )}
             </section>
+
+            {/* Va antes de la identificación: explica por qué la pieza está
+                aquí, y eso condiciona todo lo que el inspector mire después. */}
+            {article?.id && <ReturnEvidenceSection articleId={article.id} />}
 
             {/* ── Identification ── */}
             <section className="rounded-xl border border-border/80 bg-background p-5">

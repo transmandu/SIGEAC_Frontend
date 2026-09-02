@@ -43,6 +43,8 @@ interface ArticleRowCardProps {
    * corte de una pieza concreta.
    */
   cutPanelNode?: React.ReactNode
+  /** Captura de evidencia fotográfica de la entrega. Opcional. */
+  evidenceNode?: React.ReactNode
   onQtyChange: (val: string) => void
   onCommit: () => void
   onSetMax: () => void
@@ -64,6 +66,7 @@ export const ArticleRowCard = memo(function ArticleRowCard({
   baseUnitLabel,
   conversion,
   cutPanelNode,
+  evidenceNode,
   onQtyChange,
   onCommit,
   onSetMax,
@@ -95,6 +98,11 @@ export const ArticleRowCard = memo(function ArticleRowCard({
               {rowMsg.msg}
             </div>
           )}
+          {/* El trazo sustituye al bloque de cantidad, donde viven las demás
+              acciones: sin esto el dimensional se quedaría sin evidencia. */}
+          {evidenceNode && (
+            <div className="mt-2 flex justify-end">{evidenceNode}</div>
+          )}
         </>
       ) : (
       <div className="mt-3 space-y-2">
@@ -117,6 +125,9 @@ export const ArticleRowCard = memo(function ArticleRowCard({
                 Conversión
               </Button>
             )}
+            {/* Junto a las demás acciones de la fila y no en una banda propia:
+                adjuntar una foto es una acción más sobre este artículo. */}
+            {evidenceNode}
           </div>
         </div>
 
@@ -165,6 +176,7 @@ export const ArticleRowCard = memo(function ArticleRowCard({
       )}
 
       {!cutPanelNode && showConversionPanel && conversionPanelNode}
+
     </div>
   )
 })
