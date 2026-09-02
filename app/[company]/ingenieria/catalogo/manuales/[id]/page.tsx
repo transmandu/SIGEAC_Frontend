@@ -3,7 +3,7 @@
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { useState } from "react";
-import { BookOpen, ClipboardList, ExternalLink, Pencil, Wrench } from "lucide-react";
+import { BookOpen, ClipboardList, ExternalLink, History, Pencil, Wrench } from "lucide-react";
 
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -12,12 +12,15 @@ import { Badge } from "@/components/ui/badge";
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 import { FormSection } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
 import { ManualDialog } from "@/components/dialogs/mantenimiento/catalogo/ManualDialog";
+import { ManualRevisionDialog } from "@/components/dialogs/mantenimiento/catalogo/ManualRevisionDialog";
 import { useGetCatalogManual } from "@/hooks/mantenimiento/catalogo/useGetCatalogManual";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { formatCalendarDate } from "@/lib/date";
 import {
   CATEGORY_LABELS,
   COUNTING_METHOD_LABELS,
   MSG3_TYPE_LABELS,
+  STATUS_LABELS,
 } from "@/lib/maintenanceCatalogLabels";
 
 const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
@@ -34,10 +37,12 @@ const ManualDetailPage = () => {
   const { selectedCompany } = useCompanyStore();
   const { data: manual, isLoading } = useGetCatalogManual(selectedCompany?.slug, id);
   const [openEdit, setOpenEdit] = useState(false);
+  const [openRevision, setOpenRevision] = useState(false);
 
   if (isLoading || !manual) return <LoadingPage />;
 
   const services = manual.services ?? [];
+  const previousRevisions = manual.previous_revisions ?? [];
 
   return (
     <ContentLayout title={manual.name}>
@@ -46,10 +51,26 @@ const ManualDetailPage = () => {
 
         <div className="flex flex-col gap-3 border-b pb-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="flex flex-col gap-2">
-            <h1 className="text-3xl font-semibold tracking-tight">{manual.name}</h1>
+            <div className="flex items-center gap-2">
+              <Badge variant={manual.status === "ACTIVE" ? "default" : "secondary"}>
+                {STATUS_LABELS[manual.status]}
+              </Badge>
+              <h1 className="text-3xl font-semibold tracking-tight">{manual.name}</h1>
+            </div>
             <p className="text-sm text-muted-foreground">
               {manual.description || "Sin descripción."}
             </p>
+            {manual.superseded_by && (
+              <p className="text-sm text-muted-foreground">
+                Superado por{" "}
+                <Link
+                  href={`/${selectedCompany?.slug}/ingenieria/catalogo/manuales/${manual.superseded_by.id}`}
+                  className="font-medium text-primary hover:underline"
+                >
+                  {manual.superseded_by.revision || manual.superseded_by.name}
+                </Link>
+              </p>
+            )}
           </div>
 
           <div className="flex shrink-0 items-center gap-2">
@@ -61,6 +82,12 @@ const ManualDetailPage = () => {
                 </a>
               </ActionTriggerButton>
             )}
+            {manual.status === "ACTIVE" && (
+              <ActionTriggerButton type="button" onClick={() => setOpenRevision(true)}>
+                <History className="mr-2 size-4" />
+                Nueva Revisión
+              </ActionTriggerButton>
+            )}
             <ActionTriggerButton type="button" onClick={() => setOpenEdit(true)}>
               <Pencil className="mr-2 size-4" />
               Editar
@@ -70,8 +97,12 @@ const ManualDetailPage = () => {
 
         <FormSection icon={BookOpen} title="Datos del Manual">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <Field label="Estado">{STATUS_LABELS[manual.status]}</Field>
             <Field label="Código">{manual.manual_code || <Empty />}</Field>
             <Field label="Revisión">{manual.revision || <Empty />}</Field>
+            <Field label="Vigente desde">
+              {manual.effective_date ? formatCalendarDate(manual.effective_date) : <Empty />}
+            </Field>
             <Field label="Soporte">
               {manual.is_physical ? "Solo físico" : manual.file_url ? "Digital" : "Sin archivo"}
             </Field>
@@ -80,6 +111,31 @@ const ManualDetailPage = () => {
             <Field label="Actualizado por">{manual.updated_by || <Empty />}</Field>
           </div>
         </FormSection>
+
+        {previousRevisions.length > 0 && (
+          <FormSection
+            icon={History}
+            title="Historial de Revisiones"
+            hint="Revisiones anteriores de este mismo manual, de la más a la menos reciente."
+          >
+            <div className="flex flex-col gap-2">
+              {previousRevisions.map((prev) => (
+                <Link
+                  key={prev.id}
+                  href={`/${selectedCompany?.slug}/ingenieria/catalogo/manuales/${prev.id}`}
+                  className="flex items-center justify-between gap-2 rounded-lg border border-slate-400/40 bg-gradient-to-br from-background/70 to-background/40 p-3 text-sm transition-colors hover:border-primary/40 dark:border-slate-600/40"
+                >
+                  <span className="font-medium">{prev.revision || prev.name}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {prev.effective_date
+                      ? `Vigente desde ${formatCalendarDate(prev.effective_date)}`
+                      : "Sin fecha de vigencia"}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </FormSection>
+        )}
 
         <FormSection
           icon={Wrench}
@@ -104,6 +160,9 @@ const ManualDetailPage = () => {
                     <div className="flex flex-wrap items-center gap-2">
                       <Badge variant={service.category === "CERTIFICATE" ? "secondary" : "default"}>
                         {CATEGORY_LABELS[service.category]}
+                      </Badge>
+                      <Badge variant={service.status === "ACTIVE" ? "default" : "secondary"}>
+                        {STATUS_LABELS[service.status]}
                       </Badge>
                       <Link
                         href={`/${selectedCompany?.slug}/ingenieria/catalogo/servicios/${service.id}`}
@@ -157,6 +216,7 @@ const ManualDetailPage = () => {
       </div>
 
       <ManualDialog open={openEdit} onOpenChange={setOpenEdit} manual={manual} />
+      <ManualRevisionDialog open={openRevision} onOpenChange={setOpenRevision} manual={manual} />
     </ContentLayout>
   );
 };

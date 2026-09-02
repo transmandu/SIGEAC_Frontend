@@ -4,12 +4,10 @@ import { useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { useAuth } from "@/contexts/AuthContext";
-import { setPostLoginRedirect } from "@/lib/postLoginRedirect";
-
-// Solo rutas internas: un `from` con host propio ("//evil.com", "https://…")
-// convertiría el login en un redirector abierto.
-const safeInternalPath = (from: string | null) =>
-  from && from.startsWith("/") && !from.startsWith("//") ? from : null;
+import {
+  isSafeInternalPath,
+  setPostLoginRedirect,
+} from "@/lib/postLoginRedirect";
 
 export default function AuthRedirect() {
   const router = useRouter();
@@ -19,12 +17,17 @@ export default function AuthRedirect() {
   // candado sobrevive a la sesión anterior y hay que soltarlo a mano.
   const navigatedForUserRef = useRef<number | string | null>(null);
 
-  const { user, loading } = useAuth();
+  const { user, loading, loggingOut } = useAuth();
 
   // Quedarse sin sesión lo suelta: guardando solo el id, volver a entrar con el
   // MISMO usuario encontraba el candado cerrado y nadie navegaba.
   useEffect(() => {
     if (loading) return;
+
+    // Durante un logout la sesión aún puede leerse viva por un instante:
+    // navegar aquí devolvía al usuario a /inicio y peleaba con el replace()
+    // del propio logout, dejando el login parpadeando en bucle.
+    if (loggingOut) return;
 
     if (!user) {
       navigatedForUserRef.current = null;
@@ -36,7 +39,9 @@ export default function AuthRedirect() {
     // La ruta que el usuario pedía antes de que el middleware lo mandara al
     // login. No se navega aquí: el destino final lo decide CompanyBootstrap una
     // vez resueltas empresa y estación, así que solo se deja anotado.
-    setPostLoginRedirect(safeInternalPath(searchParams.get("from")));
+    const from = searchParams.get("from");
+
+    setPostLoginRedirect(isSafeInternalPath(from) ? from : null);
 
     navigatedForUserRef.current = user.id;
 
@@ -45,7 +50,7 @@ export default function AuthRedirect() {
     // pertenezca al usuario actual. Saltárselo metía al usuario nuevo en la
     // empresa del anterior, o dejaba el login colgado si ya no tiene acceso.
     router.replace("/inicio");
-  }, [loading, user, searchParams, router]);
+  }, [loading, loggingOut, user, searchParams, router]);
 
   return null;
 }

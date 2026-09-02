@@ -125,6 +125,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // Un destino pendiente de la sesión que termina no es de la siguiente.
       setPostLoginRedirect(null);
 
+      // El usuario se anula ANTES de navegar. removeQueries() vacía la caché,
+      // pero la query queda deshabilitada (hasToken=false) y sigue entregando su
+      // último dato: AuthRedirect veía sesión viva al aterrizar en /login y
+      // rebotaba a /inicio, en bucle con el 401 que originó este logout.
+      queryClient.setQueryData(AUTH_USER_QUERY_KEY, null);
       queryClient.removeQueries();
 
       router.replace("/login");

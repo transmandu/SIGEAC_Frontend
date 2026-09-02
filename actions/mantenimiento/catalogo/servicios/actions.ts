@@ -1,7 +1,8 @@
 import axiosInstance from "@/lib/axios"
-import { CatalogCategory, CatalogCountingMethod } from "@/types/maintenanceCatalog"
+import { CatalogCategory, CatalogCountingMethod, CatalogStatus } from "@/types/maintenanceCatalog"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner";
+import { apiErrorMessage } from "@/lib/apiErrorMessage";
 
 export interface ServiceFormData {
   maintenance_catalog_manual_id?: number | null;
@@ -11,8 +12,29 @@ export interface ServiceFormData {
   description?: string;
   counting_method?: CatalogCountingMethod | null;
   interval_value?: number | null;
+  /** Ausente al crear: siempre nace ACTIVE. Solo se manda al editar. */
+  status?: CatalogStatus;
   aircraft_ids: number[];
 }
+
+/**
+ * Un servicio cuelga de un manual: su alta/baja cambia el `services_count` del
+ * listado y la lista de servicios del detalle del manual, así que ambas vistas
+ * se invalidan junto con las del propio servicio.
+ */
+const invalidateServiceScopes = (
+  queryClient: ReturnType<typeof useQueryClient>,
+  company?: string,
+  id?: number | string,
+) => {
+  queryClient.invalidateQueries({ queryKey: ["maintenance-catalog-services"] });
+  queryClient.invalidateQueries({ queryKey: ["maintenance-catalog-manuals"] });
+  queryClient.invalidateQueries({ queryKey: ["maintenance-catalog-manual"] });
+
+  if (company && id !== undefined) {
+    queryClient.invalidateQueries({ queryKey: ["maintenance-catalog-service", company, id] });
+  }
+};
 
 export const useCreateCatalogService = () => {
   const queryClient = useQueryClient();
@@ -22,11 +44,11 @@ export const useCreateCatalogService = () => {
       await axiosInstance.post(`/${company}/maintenance-catalog-services`, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["maintenance-catalog-services"] });
+      invalidateServiceScopes(queryClient);
       toast.success("¡Creado!", { description: "El servicio/certificado ha sido registrado correctamente." });
     },
-    onError: () => {
-      toast.error("Oops!", { description: "No se pudo registrar el servicio/certificado..." });
+    onError: (error) => {
+      toast.error("Oops!", { description: apiErrorMessage(error, "No se pudo registrar el servicio/certificado...") });
     },
   });
 
@@ -41,12 +63,11 @@ export const useUpdateCatalogService = () => {
       await axiosInstance.put(`/${company}/maintenance-catalog-services/${id}`, data);
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["maintenance-catalog-services"] });
-      queryClient.invalidateQueries({ queryKey: ["maintenance-catalog-service", variables.company, variables.id] });
+      invalidateServiceScopes(queryClient, variables.company, variables.id);
       toast.success("¡Actualizado!", { description: "El servicio/certificado ha sido actualizado correctamente." });
     },
-    onError: () => {
-      toast.error("Oops!", { description: "No se pudo actualizar el servicio/certificado..." });
+    onError: (error) => {
+      toast.error("Oops!", { description: apiErrorMessage(error, "No se pudo actualizar el servicio/certificado...") });
     },
   });
 
@@ -61,12 +82,11 @@ export const useDeleteCatalogService = () => {
       await axiosInstance.delete(`/${company}/maintenance-catalog-services/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["maintenance-catalog-services"] });
+      invalidateServiceScopes(queryClient);
       toast.success("¡Eliminado!", { description: "El servicio/certificado ha sido eliminado correctamente." });
     },
-    onError: (error: any) => {
-      const message = error?.response?.data?.message;
-      toast.error("Oops!", { description: message || "No se pudo eliminar el servicio/certificado..." });
+    onError: (error) => {
+      toast.error("Oops!", { description: apiErrorMessage(error, "No se pudo eliminar el servicio/certificado...") });
     },
   });
 

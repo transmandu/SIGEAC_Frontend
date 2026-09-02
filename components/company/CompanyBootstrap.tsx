@@ -11,7 +11,7 @@ import { useGetUserLocationsByCompanyId } from "@/hooks/sistema/usuario/useGetUs
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { User } from "@/types";
 
-import { consumePostLoginRedirect } from "@/lib/postLoginRedirect";
+import { resolveLandingPath } from "@/lib/postLoginRedirect";
 import CompanySelect from "@/components/selects/CompanySelect";
 import PlaneCheckMorph from "@/components/misc/PlaneCheckMorph";
 import { Button } from "@/components/ui/button";
@@ -130,15 +130,6 @@ const CompanyBootstrap = () => {
       reset();
     };
 
-    // Destino tras el bootstrap: la ruta que el usuario pedía antes del login si
-    // es de ESTA empresa (ya validada, con estación resuelta), o su dashboard.
-    // Un `from` de otra empresa se descarta: la sesión acaba de resolverse aquí.
-    const landingFor = (slug: string) => {
-      const from = consumePostLoginRedirect();
-
-      return from?.split("/")[1] === slug ? from : `/${slug}/dashboard`;
-    };
-
     const bootstrap = async () => {
       if (selectedCompany && selectedStation) {
         setIsRedirecting(true);
@@ -172,7 +163,7 @@ const CompanyBootstrap = () => {
           setIsRedirecting(true);
           saveHistory(selectedCompany.id, selectedStation);
 
-          const target = landingFor(selectedCompany.slug);
+          const target = `/${selectedCompany.slug}/dashboard`;
 
           if (typeof window !== "undefined" && "requestAnimationFrame" in window) {
             requestAnimationFrame(() => requestAnimationFrame(() =>
@@ -211,7 +202,7 @@ const CompanyBootstrap = () => {
           saveHistory(company.id, station);
           setIsRedirecting(true);
 
-          const target = landingFor(company.slug);
+          const target = `/${company.slug}/dashboard`;
 
           if (typeof window !== "undefined" && "requestAnimationFrame" in window) {
             requestAnimationFrame(() => requestAnimationFrame(() =>
@@ -250,10 +241,32 @@ const CompanyBootstrap = () => {
     // 0.35s) cierran en ~0.65s, y el resto se ve como una pausa intencional.
     const timeout = window.setTimeout(() => {
       navigatingRef.current = true;
-      router.replace(redirectTarget);
+
+      // El `from` se consume aquí y no al calcular el destino: solo en este
+      // punto la navegación es segura. Consumirlo antes lo perdía si el
+      // bootstrap descartaba la selección (estación caída) y volvía a empezar.
+      router.replace(
+        resolveLandingPath(redirectTarget.split("/")[1], redirectTarget)
+      );
     }, 1000);
 
-    return () => window.clearTimeout(timeout);
+    // Si la navegación no prospera —un 401 la interrumpe y la sesión vuelve a
+    // /inicio— navigatingRef se quedaba en true: cortocircuitaba el bootstrap y
+    // dejaba el loading para siempre, sin poder elegir empresa. Soltarlo permite
+    // que el efecto vuelva a resolver desde cero. Solo actúa si seguimos en
+    // /inicio: aterrizar en el destino desmonta esto y el cleanup lo cancela.
+    const escape = window.setTimeout(() => {
+      if (window.location.pathname !== "/inicio") return;
+
+      navigatingRef.current = false;
+      setRedirectTarget(null);
+      setIsRedirecting(false);
+    }, 6000);
+
+    return () => {
+      window.clearTimeout(timeout);
+      window.clearTimeout(escape);
+    };
   }, [redirectTarget, router]);
 
   const shouldShowFullPageLoading =

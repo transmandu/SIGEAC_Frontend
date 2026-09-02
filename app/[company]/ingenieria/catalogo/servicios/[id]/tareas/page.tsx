@@ -100,13 +100,22 @@ const ServiceTasksPage = () => {
                         {MSG3_TYPE_LABELS[task.msg3_type]}
                       </span>
                       {task.ata && <span className="text-xs text-muted-foreground">ATA {task.ata}</span>}
+                      {task.estimated_man_hours != null && (
+                        <span className="text-xs text-muted-foreground">{task.estimated_man_hours} H-H</span>
+                      )}
+                      {task.required_skill && (
+                        <span className="text-xs text-muted-foreground">· {task.required_skill}</span>
+                      )}
                     </div>
                     <p className="text-sm font-medium">{task.description}</p>
                     {task.requirements.length > 0 && (
                       <p className="text-xs text-muted-foreground">
                         Requisitos:{" "}
                         {task.requirements
-                          .map((r) => `${r.description} (${REQUIREMENT_TYPE_LABELS[r.requirement_type]})`)
+                          .map((r) => {
+                            const qty = r.quantity != null ? `${r.quantity}${r.unit ? ` ${r.unit.label}` : ""} ` : "";
+                            return `${qty}${r.description} (${REQUIREMENT_TYPE_LABELS[r.requirement_type]})`;
+                          })
                           .join(", ")}
                       </p>
                     )}

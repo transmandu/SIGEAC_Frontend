@@ -14,18 +14,23 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
+import { CalendarDateField } from "@/components/misc/CalendarDateField";
 import {
   fieldClass,
   labelClass,
   textareaClass,
+  selectTriggerClass,
   SectionTitle,
 } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
 import {
   useCreateCatalogManual,
   useUpdateCatalogManual,
 } from "@/actions/mantenimiento/catalogo/manuales/actions";
-import { CatalogManual } from "@/types/maintenanceCatalog";
+import { STATUS_LABELS } from "@/lib/maintenanceCatalogLabels";
+import { parseCalendarDate, toCalendarPayload } from "@/lib/date";
+import { CatalogManual, CatalogStatus } from "@/types/maintenanceCatalog";
 import { useCompanyStore } from "@/stores/CompanyStore";
 
 interface ManualDialogProps {
@@ -38,8 +43,11 @@ const emptyState = {
   name: "",
   manual_code: "",
   revision: "",
+  // Fecha de calendario: se guarda como Date y se envía con toCalendarPayload.
+  effective_date: undefined as Date | undefined,
   description: "",
   is_physical: false,
+  status: "ACTIVE" as CatalogStatus,
 };
 
 export function ManualDialog({ open, onOpenChange, manual }: ManualDialogProps) {
@@ -57,8 +65,10 @@ export function ManualDialog({ open, onOpenChange, manual }: ManualDialogProps) 
             name: manual.name,
             manual_code: manual.manual_code ?? "",
             revision: manual.revision ?? "",
+            effective_date: parseCalendarDate(manual.effective_date),
             description: manual.description ?? "",
             is_physical: manual.is_physical,
+            status: manual.status,
           }
         : emptyState,
     );
@@ -71,14 +81,20 @@ export function ManualDialog({ open, onOpenChange, manual }: ManualDialogProps) 
     e.preventDefault();
     if (!selectedCompany?.slug) return;
 
-    const data = { ...form, file };
+    const data = { ...form, effective_date: toCalendarPayload(form.effective_date), file };
 
-    if (manual) {
-      await updateCatalogManual.mutateAsync({ id: manual.id, data, company: selectedCompany.slug });
-    } else {
-      await createCatalogManual.mutateAsync({ data, company: selectedCompany.slug });
+    // Solo se cierra si guardó: ante un error el toast ya avisa y lo escrito
+    // debe seguir en pantalla para corregirlo.
+    try {
+      if (manual) {
+        await updateCatalogManual.mutateAsync({ id: manual.id, data, company: selectedCompany.slug });
+      } else {
+        await createCatalogManual.mutateAsync({ data, company: selectedCompany.slug });
+      }
+      onOpenChange(false);
+    } catch {
+      // El hook de la mutación ya notificó el fallo.
     }
-    onOpenChange(false);
   };
 
   return (
@@ -125,6 +141,13 @@ export function ManualDialog({ open, onOpenChange, manual }: ManualDialogProps) 
                 placeholder="Ej: Rev. 12"
               />
             </div>
+            <div className="space-y-1.5 col-span-2">
+              <Label className={labelClass}>Vigente desde</Label>
+              <CalendarDateField
+                value={form.effective_date}
+                onChange={(date) => setForm((f) => ({ ...f, effective_date: date }))}
+              />
+            </div>
           </div>
 
           <div className="space-y-1.5">
@@ -147,6 +170,29 @@ export function ManualDialog({ open, onOpenChange, manual }: ManualDialogProps) 
               Solo se tiene el documento físico (sin archivo digital)
             </Label>
           </div>
+
+          {/* Un manual nuevo siempre nace vigente; el estado solo se ajusta
+              después, cuando una revisión posterior lo deja atrás. */}
+          {manual && (
+            <div className="space-y-1.5">
+              <Label className={labelClass}>Estado</Label>
+              <Select
+                value={form.status}
+                onValueChange={(v) => setForm((f) => ({ ...f, status: v as CatalogStatus }))}
+              >
+                <SelectTrigger className={selectTriggerClass}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(STATUS_LABELS).map(([value, label]) => (
+                    <SelectItem key={value} value={value}>
+                      {label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           {!form.is_physical && (
             <div className="space-y-1.5">

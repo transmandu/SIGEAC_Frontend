@@ -1,8 +1,11 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
+import { Badge } from "@/components/ui/badge";
 import { CatalogManual } from "@/types/maintenanceCatalog";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
+import { formatCalendarDate } from "@/lib/date";
+import { STATUS_LABELS } from "@/lib/maintenanceCatalogLabels";
 import { ManualRowActions } from "./_components/ManualRowActions";
 
 export const columns: ColumnDef<CatalogManual>[] = [
@@ -10,6 +13,17 @@ export const columns: ColumnDef<CatalogManual>[] = [
     accessorKey: "name",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Nombre" />,
     cell: ({ row }) => <p className="text-center font-medium">{row.original.name}</p>,
+  },
+  {
+    accessorKey: "status",
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Estado" />,
+    cell: ({ row }) => (
+      <div className="flex justify-center">
+        <Badge variant={row.original.status === "ACTIVE" ? "default" : "secondary"}>
+          {STATUS_LABELS[row.original.status]}
+        </Badge>
+      </div>
+    ),
   },
   {
     accessorKey: "manual_code",
@@ -26,6 +40,16 @@ export const columns: ColumnDef<CatalogManual>[] = [
     cell: ({ row }) => (
       <div className="text-center">
         {row.original.revision || <span className="text-muted-foreground">—</span>}
+      </div>
+    ),
+  },
+  {
+    accessorKey: "effective_date",
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Vigente desde" />,
+    // Columna `date`: fecha de calendario, nunca se convierte de zona.
+    cell: ({ row }) => (
+      <div className="text-center">
+        {formatCalendarDate(row.original.effective_date, "date", "—")}
       </div>
     ),
   },

@@ -29,12 +29,18 @@ export function ServiceDialog({ open, onOpenChange, service }: ServiceDialogProp
   const handleSubmit = async (data: ServiceFormData) => {
     if (!selectedCompany?.slug) return;
 
-    if (service) {
-      await updateCatalogService.mutateAsync({ id: service.id, data, company: selectedCompany.slug });
-    } else {
-      await createCatalogService.mutateAsync({ data, company: selectedCompany.slug });
+    // El diálogo se cierra solo si la mutación pasó: ante un 422/409 el toast
+    // de error ya avisa y lo escrito debe seguir en pantalla para corregirlo.
+    try {
+      if (service) {
+        await updateCatalogService.mutateAsync({ id: service.id, data, company: selectedCompany.slug });
+      } else {
+        await createCatalogService.mutateAsync({ data, company: selectedCompany.slug });
+      }
+      onOpenChange(false);
+    } catch {
+      // El hook de la mutación ya notificó el fallo.
     }
-    onOpenChange(false);
   };
 
   return (
@@ -53,9 +59,9 @@ export function ServiceDialog({ open, onOpenChange, service }: ServiceDialogProp
         <div className="max-h-[70vh] overflow-y-auto px-1 py-1">
           <ServiceForm
             flat
-            // El formulario conserva su estado entre aperturas; la llave lo
-            // reinicia al cambiar de servicio (o al volver a "nuevo").
-            key={service?.id ?? "new"}
+            // El formulario guarda su estado internamente: sin remontarlo, un
+            // alta cancelada reaparece escrita en la siguiente apertura.
+            key={`${service?.id ?? "new"}-${String(open)}`}
             service={service}
             isPending={isPending}
             onSubmit={handleSubmit}

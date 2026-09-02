@@ -6,8 +6,6 @@ import {
   ColumnFiltersState,
   flexRender,
   getCoreRowModel,
-  getFacetedRowModel,
-  getFacetedUniqueValues,
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
@@ -31,7 +29,7 @@ import {
 } from "@/components/ui/table";
 import { useGetCatalogManuals } from "@/hooks/mantenimiento/catalogo/useGetCatalogManuals";
 import { useGetAircrafts } from "@/hooks/general/aeronaves/useGetAircrafts";
-import { CATEGORY_LABELS } from "@/lib/maintenanceCatalogLabels";
+import { CATEGORY_LABELS, STATUS_LABELS } from "@/lib/maintenanceCatalogLabels";
 import { CatalogService } from "@/types/maintenanceCatalog";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { serviceGlobalFilter } from "./columns";
@@ -70,6 +68,11 @@ export function DataTable<TValue>({ columns, data }: DataTableProps<TValue>) {
     [],
   );
 
+  const statusOptions: FilterOption[] = useMemo(
+    () => Object.entries(STATUS_LABELS).map(([value, label]) => ({ label, value })),
+    [],
+  );
+
   const table = useReactTable({
     data,
     columns,
@@ -80,8 +83,6 @@ export function DataTable<TValue>({ columns, data }: DataTableProps<TValue>) {
     onGlobalFilterChange: setGlobalFilter,
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    getFacetedRowModel: getFacetedRowModel(),
-    getFacetedUniqueValues: getFacetedUniqueValues(),
     globalFilterFn: serviceGlobalFilter,
     initialState: { columnVisibility: { aircrafts: false } },
     state: { sorting, columnFilters, globalFilter },
@@ -102,6 +103,7 @@ export function DataTable<TValue>({ columns, data }: DataTableProps<TValue>) {
               { title: "Manual", column: table.getColumn("manual"), options: manualOptions },
               { title: "Aeronave", column: table.getColumn("aircrafts"), options: aircraftOptions },
               { title: "Categoría", column: table.getColumn("category"), options: categoryOptions },
+              { title: "Estado", column: table.getColumn("status"), options: statusOptions },
             ]}
           />
 
@@ -137,7 +139,9 @@ export function DataTable<TValue>({ columns, data }: DataTableProps<TValue>) {
               ))
             ) : (
               <TableRow className="hover:bg-transparent">
-                <TableCell colSpan={columns.length} className="h-40">
+                {/* Las columnas ocultas (aircrafts es solo-filtro) no se
+                    renderizan: el colSpan sale de las visibles, no de todas. */}
+                <TableCell colSpan={table.getVisibleFlatColumns().length} className="h-40">
                   <div className="flex flex-col items-center justify-center gap-2 text-center">
                     <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-muted/60 text-muted-foreground">
                       <Wrench className="h-5 w-5" />

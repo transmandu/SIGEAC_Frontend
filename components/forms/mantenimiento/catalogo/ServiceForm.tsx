@@ -19,8 +19,8 @@ import {
 } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
 import { useGetCatalogManuals } from "@/hooks/mantenimiento/catalogo/useGetCatalogManuals";
 import { useGetAircrafts } from "@/hooks/general/aeronaves/useGetAircrafts";
-import { CATEGORY_LABELS, COUNTING_METHOD_LABELS } from "@/lib/maintenanceCatalogLabels";
-import { CatalogCategory, CatalogCountingMethod, CatalogService } from "@/types/maintenanceCatalog";
+import { CATEGORY_LABELS, COUNTING_METHOD_LABELS, STATUS_LABELS } from "@/lib/maintenanceCatalogLabels";
+import { CatalogCategory, CatalogCountingMethod, CatalogService, CatalogStatus } from "@/types/maintenanceCatalog";
 import { ServiceFormData } from "@/actions/mantenimiento/catalogo/servicios/actions";
 import { useCompanyStore } from "@/stores/CompanyStore";
 
@@ -41,17 +41,31 @@ const emptyState: ServiceFormData = {
   description: "",
   counting_method: null,
   interval_value: null,
+  status: "ACTIVE",
   aircraft_ids: [],
 };
 
 export function ServiceForm({ service, isPending, onSubmit, submitLabel, flat }: ServiceFormProps) {
   const { selectedCompany } = useCompanyStore();
-  const { data: manuals = [] } = useGetCatalogManuals(selectedCompany?.slug);
+  const { data: activeManuals = [] } = useGetCatalogManuals(selectedCompany?.slug, { status: "ACTIVE" });
   const { data: aircrafts = [] } = useGetAircrafts(selectedCompany?.slug);
   const [form, setForm] = useState<ServiceFormData>(emptyState);
 
+  // El select siempre ofrece los manuales vigentes; si el servicio ya
+  // apuntaba a uno superado, se agrega aparte para no perder la referencia
+  // ni que el select se vea "vacío" al editar.
+  const manuals =
+    service?.manual && !activeManuals.some((m) => m.id === service.manual!.id)
+      ? [...activeManuals, service.manual]
+      : activeManuals;
+
   useEffect(() => {
-    if (!service) return;
+    // Sin servicio el formulario es "nuevo": se limpia en vez de conservar lo
+    // que quedó de una edición anterior.
+    if (!service) {
+      setForm(emptyState);
+      return;
+    }
     setForm({
       maintenance_catalog_manual_id: service.maintenance_catalog_manual_id,
       category: service.category,
@@ -60,6 +74,7 @@ export function ServiceForm({ service, isPending, onSubmit, submitLabel, flat }:
       description: service.description ?? "",
       counting_method: service.counting_method,
       interval_value: service.interval_value,
+      status: service.status,
       aircraft_ids: service.aircrafts?.map((a) => a.id) ?? [],
     });
   }, [service]);
@@ -151,7 +166,12 @@ export function ServiceForm({ service, isPending, onSubmit, submitLabel, flat }:
             <Select
               value={form.counting_method ?? "none"}
               onValueChange={(v) =>
-                setForm((f) => ({ ...f, counting_method: v === "none" ? null : (v as CatalogCountingMethod) }))
+                setForm((f) => {
+                  const counting_method = v === "none" ? null : (v as CatalogCountingMethod);
+                  // Sin método, el intervalo que quedara escrito viajaría al
+                  // backend como un número sin unidad.
+                  return { ...f, counting_method, interval_value: counting_method ? f.interval_value : null };
+                })
               }
             >
               <SelectTrigger className={selectTriggerClass}>
@@ -173,6 +193,10 @@ export function ServiceForm({ service, isPending, onSubmit, submitLabel, flat }:
             <Input
               type="number"
               min={0}
+              step="any"
+              // Con método de conteo el backend lo exige > 0; sin método el
+              // campo no aplica y se limpia junto con el método.
+              required={!!form.counting_method}
               disabled={!form.counting_method}
               className={fieldClass}
               value={form.interval_value ?? ""}
@@ -180,6 +204,29 @@ export function ServiceForm({ service, isPending, onSubmit, submitLabel, flat }:
               placeholder="Ej: 100"
             />
           </div>
+
+          {/* Un servicio nuevo siempre nace vigente; el estado solo se ajusta
+              después, cuando se cumple/reemplaza. */}
+          {service && (
+            <div className="space-y-1.5">
+              <Label className={labelClass}>Estado</Label>
+              <Select
+                value={form.status}
+                onValueChange={(v) => setForm((f) => ({ ...f, status: v as CatalogStatus }))}
+              >
+                <SelectTrigger className={selectTriggerClass}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(STATUS_LABELS).map(([value, label]) => (
+                    <SelectItem key={value} value={value}>
+                      {label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <div className="space-y-1.5 md:col-span-2">
             <Label className={labelClass}>Descripción</Label>

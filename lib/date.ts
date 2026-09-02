@@ -232,3 +232,19 @@ export const instantToCalendarDay = (
  */
 export const toCalendarPayload = (value: Date | null | undefined): string | undefined =>
     value ? format(value, "yyyy-MM-dd") : undefined;
+
+/**
+ * El inverso de `toCalendarPayload`: la fecha de calendario del backend como
+ * Date local, para poblar un selector. `new Date("2026-09-02")` sería medianoche
+ * UTC y en UTC−4 mostraría el día anterior.
+ */
+export const parseCalendarDate = (value: string | null | undefined): Date | undefined => {
+    if (!value) return undefined;
+
+    const match = String(value).match(CALENDAR_DATE);
+    if (!match) return undefined;
+
+    const [, y, m, d] = match;
+
+    return new Date(Number(y), Number(m) - 1, Number(d));
+};

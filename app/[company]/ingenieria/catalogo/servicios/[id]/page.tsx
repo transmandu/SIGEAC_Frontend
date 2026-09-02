@@ -19,6 +19,7 @@ import {
   COUNTING_METHOD_LABELS,
   MSG3_TYPE_LABELS,
   REQUIREMENT_TYPE_LABELS,
+  STATUS_LABELS,
 } from "@/lib/maintenanceCatalogLabels";
 
 const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
@@ -51,6 +52,9 @@ const ServiceDetailPage = () => {
               <Badge variant={service.category === "CERTIFICATE" ? "secondary" : "default"}>
                 {CATEGORY_LABELS[service.category]}
               </Badge>
+              <Badge variant={service.status === "ACTIVE" ? "default" : "secondary"}>
+                {STATUS_LABELS[service.status]}
+              </Badge>
               <h1 className="text-3xl font-semibold tracking-tight">{service.name}</h1>
             </div>
             <p className="text-sm text-muted-foreground">
@@ -58,23 +62,16 @@ const ServiceDetailPage = () => {
             </p>
           </div>
 
-          <div className="flex shrink-0 items-center gap-2">
-            <ActionTriggerButton type="button" onClick={() => setOpenEdit(true)}>
-              <Pencil className="mr-2 size-4" />
-              Editar
-            </ActionTriggerButton>
-            <ActionTriggerButton asChild>
-              <Link href={tasksHref}>
-                <ClipboardList className="mr-2 size-4" />
-                Administrar Tareas
-              </Link>
-            </ActionTriggerButton>
-          </div>
+          <ActionTriggerButton type="button" className="shrink-0" onClick={() => setOpenEdit(true)}>
+            <Pencil className="mr-2 size-4" />
+            Editar
+          </ActionTriggerButton>
         </div>
 
         <FormSection icon={Wrench} title="Datos del Servicio/Certificado">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <Field label="Categoría">{CATEGORY_LABELS[service.category]}</Field>
+            <Field label="Estado">{STATUS_LABELS[service.status]}</Field>
             <Field label="Código">{service.code || <Empty />}</Field>
             <Field label="Manual de referencia">
               {service.manual ? (
@@ -123,8 +120,8 @@ const ServiceDetailPage = () => {
           action={
             <ActionTriggerButton asChild>
               <Link href={tasksHref}>
-                <Pencil className="mr-2 size-4" />
-                Administrar
+                <ClipboardList className="mr-2 size-4" />
+                Administrar Tareas
               </Link>
             </ActionTriggerButton>
           }

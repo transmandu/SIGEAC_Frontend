@@ -4,7 +4,7 @@ import { ColumnDef, FilterFn } from "@tanstack/react-table";
 
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { Badge } from "@/components/ui/badge";
-import { CATEGORY_LABELS, COUNTING_METHOD_LABELS } from "@/lib/maintenanceCatalogLabels";
+import { CATEGORY_LABELS, COUNTING_METHOD_LABELS, STATUS_LABELS } from "@/lib/maintenanceCatalogLabels";
 import { CatalogService } from "@/types/maintenanceCatalog";
 import { ServiceRowActions } from "./_components/ServiceRowActions";
 
@@ -34,6 +34,7 @@ export const serviceGlobalFilter: FilterFn<CatalogService> = (row, _columnId, fi
     service.description,
     service.manual?.name,
     CATEGORY_LABELS[service.category],
+    STATUS_LABELS[service.status],
     ...(service.aircrafts?.map((a) => a.acronym) ?? []),
   ];
 
@@ -76,6 +77,18 @@ export const getColumns = (company: string): ColumnDef<CatalogService>[] => [
     id: "aircrafts",
     accessorFn: (row) => row.aircrafts?.map((a) => a.acronym).join(", ") ?? "",
     filterFn: includesSomeAircraft,
+  },
+  {
+    accessorKey: "status",
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Estado" />,
+    filterFn: includesSome,
+    cell: ({ row }) => (
+      <div className="flex w-full justify-center">
+        <Badge variant={row.original.status === "ACTIVE" ? "default" : "secondary"}>
+          {STATUS_LABELS[row.original.status]}
+        </Badge>
+      </div>
+    ),
   },
   {
     accessorKey: "counting_method",

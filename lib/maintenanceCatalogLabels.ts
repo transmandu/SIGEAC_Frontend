@@ -2,6 +2,7 @@ import type {
   CatalogCategory,
   CatalogCountingMethod,
   CatalogRequirementType,
+  CatalogStatus,
   Msg3TaskType,
 } from "@/types/maintenanceCatalog";
 
@@ -10,6 +11,11 @@ import type {
 export const CATEGORY_LABELS: Record<CatalogCategory, string> = {
   SERVICE: "Servicio",
   CERTIFICATE: "Certificado",
+};
+
+export const STATUS_LABELS: Record<CatalogStatus, string> = {
+  ACTIVE: "Vigente",
+  SUPERSEDED: "Superado",
 };
 
 export const COUNTING_METHOD_LABELS: Record<CatalogCountingMethod, string> = {
@@ -35,5 +41,6 @@ export const REQUIREMENT_TYPE_LABELS: Record<CatalogRequirementType, string> = {
   PART: "Parte",
   TOOL: "Herramienta",
   CONSUMABLE: "Consumible",
+  COMPONENT: "Componente",
   GENERAL: "General",
 };

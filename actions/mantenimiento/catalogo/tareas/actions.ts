@@ -2,6 +2,7 @@ import axiosInstance from "@/lib/axios"
 import { CatalogRequirementType, Msg3TaskType } from "@/types/maintenanceCatalog"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner";
+import { apiErrorMessage } from "@/lib/apiErrorMessage";
 
 export interface TaskRequirementFormData {
   id?: number;
@@ -9,6 +10,7 @@ export interface TaskRequirementFormData {
   part_number?: string;
   description: string;
   quantity?: number | null;
+  unit_id?: number | null;
   is_mandatory: boolean;
   notes?: string;
 }
@@ -19,8 +21,25 @@ export interface TaskFormData {
   msg3_type: Msg3TaskType;
   description: string;
   reference?: string;
+  estimated_man_hours?: number | null;
+  required_skill?: string;
   requirements: TaskRequirementFormData[];
 }
+
+/**
+ * Una tarea se ve desde tres lados: el servicio que la contiene, el conteo
+ * `tasks_count` del listado de servicios y la lista de tareas del detalle del
+ * manual. Los tres quedan viejos si solo se invalida el servicio.
+ */
+const invalidateTaskScopes = (
+  queryClient: ReturnType<typeof useQueryClient>,
+  company: string,
+  serviceId: number | string,
+) => {
+  queryClient.invalidateQueries({ queryKey: ["maintenance-catalog-service", company, serviceId] });
+  queryClient.invalidateQueries({ queryKey: ["maintenance-catalog-services"] });
+  queryClient.invalidateQueries({ queryKey: ["maintenance-catalog-manual"] });
+};
 
 export const useCreateCatalogTask = () => {
   const queryClient = useQueryClient();
@@ -38,11 +57,11 @@ export const useCreateCatalogTask = () => {
       await axiosInstance.post(`/${company}/maintenance-catalog-services/${serviceId}/tasks`, data);
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["maintenance-catalog-service", variables.company, variables.serviceId] });
+      invalidateTaskScopes(queryClient, variables.company, variables.serviceId);
       toast.success("¡Creada!", { description: "La tarea ha sido registrada correctamente." });
     },
-    onError: () => {
-      toast.error("Oops!", { description: "No se pudo registrar la tarea..." });
+    onError: (error) => {
+      toast.error("Oops!", { description: apiErrorMessage(error, "No se pudo registrar la tarea...") });
     },
   });
 
@@ -67,11 +86,11 @@ export const useUpdateCatalogTask = () => {
       await axiosInstance.put(`/${company}/maintenance-catalog-services/${serviceId}/tasks/${taskId}`, data);
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["maintenance-catalog-service", variables.company, variables.serviceId] });
+      invalidateTaskScopes(queryClient, variables.company, variables.serviceId);
       toast.success("¡Actualizada!", { description: "La tarea ha sido actualizada correctamente." });
     },
-    onError: () => {
-      toast.error("Oops!", { description: "No se pudo actualizar la tarea..." });
+    onError: (error) => {
+      toast.error("Oops!", { description: apiErrorMessage(error, "No se pudo actualizar la tarea...") });
     },
   });
 
@@ -94,12 +113,11 @@ export const useDeleteCatalogTask = () => {
       await axiosInstance.delete(`/${company}/maintenance-catalog-services/${serviceId}/tasks/${taskId}`);
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["maintenance-catalog-service", variables.company, variables.serviceId] });
+      invalidateTaskScopes(queryClient, variables.company, variables.serviceId);
       toast.success("¡Eliminada!", { description: "La tarea ha sido eliminada correctamente." });
     },
-    onError: (error: any) => {
-      const message = error?.response?.data?.message;
-      toast.error("Oops!", { description: message || "No se pudo eliminar la tarea..." });
+    onError: (error) => {
+      toast.error("Oops!", { description: apiErrorMessage(error, "No se pudo eliminar la tarea...") });
     },
   });
 

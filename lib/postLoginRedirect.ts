@@ -11,6 +11,20 @@
  */
 export const POST_LOGIN_REDIRECT_KEY = "post-login-redirect";
 
+/**
+ * Solo rutas internas. Se rechaza `//host` y `/\host` porque el navegador
+ * normaliza la barra invertida y ambos saldrían del dominio: sería un
+ * redirector abierto con destino controlado por la URL del login.
+ */
+export function isSafeInternalPath(path: string | null): path is string {
+  return (
+    !!path &&
+    path.startsWith("/") &&
+    !path.startsWith("//") &&
+    !path.startsWith("/\\")
+  );
+}
+
 /** `null` limpia cualquier valor anterior. */
 export function setPostLoginRedirect(path: string | null) {
   if (typeof window === "undefined") return;
@@ -37,10 +51,35 @@ export function consumePostLoginRedirect(): string | null {
 
     // Se revalida al consumir: entre que se guardó y ahora, el valor pudo ser
     // manipulado a mano en el storage.
-    return value && value.startsWith("/") && !value.startsWith("//")
-      ? value
-      : null;
+    return isSafeInternalPath(value) ? value : null;
   } catch {
     return null;
   }
+}
+
+// Rutas protegidas que no cuelgan de /{slug}: el destino es válido sin importar
+// qué empresa resolvió el bootstrap. Su acceso lo sigue filtrando ProtectedRoute.
+const TENANT_FREE_PREFIXES = ["/sistema/", "/cuenta/"];
+
+/**
+ * Destino final tras el bootstrap: el `from` pendiente si es alcanzable con la
+ * empresa ya resuelta, o `fallback` (su dashboard). Consume el `from` en el acto,
+ * así que se llama en el momento de navegar, no al calcular el destino.
+ */
+export function resolveLandingPath(slug: string, fallback: string): string {
+  const from = consumePostLoginRedirect();
+
+  if (!from) return fallback;
+
+  // `/hangar74/…` solo si la sesión resolvió esa misma empresa: el `from` puede
+  // venir de la sesión anterior, con otra compañía.
+  if (from.split("/")[1] === slug) return from;
+
+  // `/sistema/empresas` y `/cuenta/…` no dependen de la empresa. Se exige la
+  // barra final para que `/sistemaX` no cuele como `/sistema`.
+  if (TENANT_FREE_PREFIXES.some((prefix) => from.startsWith(prefix))) {
+    return from;
+  }
+
+  return fallback;
 }
