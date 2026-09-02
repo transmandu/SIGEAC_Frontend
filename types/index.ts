@@ -1279,13 +1279,33 @@ export type CourseAttendance = {
   employee: Employee;
 };
 
+export type SMSTrainingHistoryEntry = {
+  id: number;
+  employee_dni: string;
+  /** EXPIRED | RENEWED | INITIAL_TAKEN */
+  event_type: string;
+  base_course_id?: number | null;
+  course_id?: number | null;
+  last_enrollment_id?: number | null;
+  expiration: Date | null;
+  created_at?: string;
+  course?: Course | null;
+  base_course?: Course | null;
+  last_enrollment?: CourseAttendance | null;
+};
+
 export type SMSTraining = {
   employee: Employee;
-  course: Course;
-  last_enrollment: CourseAttendance;
-  expiration: Date;
+  base_course_id?: number | null;
+  /** Curso inicial (base). Null cuando venció el recurrente y hay que repetirlo. */
+  course: Course | null;
+  last_enrollment: CourseAttendance | null;
+  /** Null cuando no hay vigencia (PENDING). */
+  expiration: Date | null;
   status: string;
-  is_initial: boolean;
+  is_initial: boolean | null;
+  /** Últimas transiciones (línea de tiempo). */
+  history?: SMSTrainingHistoryEntry[];
 };
 
 export type CourseStats = {

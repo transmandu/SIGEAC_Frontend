@@ -1,11 +1,24 @@
 "use client";
 
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
-import { Badge } from "@/components/ui/badge";
 import { dateFormat } from "@/lib/utils";
 import { SMSTraining } from "@/types";
 import { ColumnDef } from "@tanstack/react-table";
-import { trainingStatusLabelEsUpper } from "@/lib/cursos/statuses";
+import { TrainingStatusBadge } from "@/components/sms/TrainingStatusBadge";
+import { TrainingHistoryDialog } from "@/components/sms/TrainingHistoryDialog";
+
+/**
+ * Cuando el estado es PENDING (el recurrente venció y hay que repetir el
+ * INICIAL), la expiración actual es null. Si hay histórico, mostramos la
+ * última fecha en que efectivamente venció.
+ */
+function lastExpiration(row: SMSTraining): Date | null {
+  if (row.expiration) return new Date(row.expiration);
+  const lastExpired = row.history
+    ?.filter((h) => h.event_type === "EXPIRED" && h.expiration)
+    .sort((a, b) => new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime())[0];
+  return lastExpired?.expiration ? new Date(lastExpired.expiration) : null;
+}
 
 export const columns: ColumnDef<SMSTraining>[] = [
   {
@@ -67,17 +80,20 @@ export const columns: ColumnDef<SMSTraining>[] = [
       <DataTableColumnHeader column={column} title="Fecha de Expiracion" />
     ),
     meta: { title: "Fecha de Expiracion" },
-    cell: ({ row }) => (
-      <div className="flex justify-center text-center">
-        {row.original.expiration ? ( // <--- Aquí la condición
-          <p className="font-medium text-center">
-            {dateFormat(row.original.expiration, "PPP")}
-          </p>
-        ) : (
-          <p className="font-medium text-center">N/A</p> // O un mensaje alternativo si no existe
-        )}
-      </div>
-    ),
+    cell: ({ row }) => {
+      const exp = lastExpiration(row.original);
+      return (
+        <div className="flex justify-center text-center">
+          {exp ? (
+            <p className="font-medium text-center">
+              {dateFormat(exp, "PPP")}
+            </p>
+          ) : (
+            <p className="font-medium text-center">N/A</p>
+          )}
+        </div>
+      );
+    },
   },
   {
     accessorKey: "status",
@@ -87,22 +103,16 @@ export const columns: ColumnDef<SMSTraining>[] = [
     meta: { title: "Estado" },
     cell: ({ row }) => (
       <div className="flex justify-center">
-        <Badge
-          className={`justify-center items-center text-center font-bold font-sans
-          ${
-            row.original.status === "PENDING" ? "bg-red-400" : "bg-green-500" // Color gris oscuro (puedes ajustar el tono)
-          }`}
-        >
-          {trainingStatusLabelEsUpper(row.original.status)}
-        </Badge>
+        <TrainingStatusBadge status={row.original.status} />
       </div>
     ),
   },
   {
     id: "actions",
     cell: ({ row }) => (
-      <div></div>
-      // <SMSActivityDropDownActions smsActivity={row.original} />
+      <div className="flex justify-center">
+        <TrainingHistoryDialog training={row.original} />
+      </div>
     ),
   },
 ];
