@@ -1,3 +1,7 @@
+## v3.8.1 — 2026-09-02
+
+- fix: link survey to act (#236)
+
 ## v3.8.0 — 2026-09-02
 
 - Merge pull request #235 from transmandu/feat/zona-horaria-por-compania
