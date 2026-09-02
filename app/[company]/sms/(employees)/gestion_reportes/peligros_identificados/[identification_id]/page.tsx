@@ -249,10 +249,25 @@ const ShowDangerIdentification = () => {
               )}
             </div>
 
-            {/* Análisis de causa raíz — 5 Porqués */}
+            {/* Causa raíz + Análisis 5 Porqués */}
             <div
               className="border border-border/60 rounded-lg overflow-hidden"
               data-tour="peligros-detalle-causa-raiz"
+            >
+              <div className="px-4 py-3 border-b border-border/60 bg-muted/30">
+                <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
+                  Causa Raíz
+                </span>
+              </div>
+              <div className="px-4 py-3">
+                <p className="text-sm text-foreground leading-relaxed">
+                  {dangerIdentification.root_cause || "N/A"}
+                </p>
+              </div>
+            </div>
+
+            <div
+              className="border border-border/60 rounded-lg overflow-hidden"
             >
               <div className="px-4 py-3 border-b border-border/60 bg-muted/30">
                 <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
