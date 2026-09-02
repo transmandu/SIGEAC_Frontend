@@ -16,6 +16,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { CertificateColumn } from "@/app/[company]/sms/(employees)/certificados/columns";
+import { formatCalendarDate } from "@/lib/date";
 
 interface EditFormValues {
   course_id: string;
@@ -153,9 +154,7 @@ const onSubmit = async (data: EditFormValues) => {
                 <div className="flex items-center justify-between w-full gap-4">
                   <span>{c.name}</span>
                   <span className="text-[11px] italic text-muted-foreground ml-auto">
-                    {c.start_date 
-                      ? new Date(c.start_date + 'T00:00:00').toLocaleDateString('es-ES') 
-                      : ''}
+                    {formatCalendarDate(c.start_date, "date", "")}
                   </span>
                 </div>
               </SelectItem>

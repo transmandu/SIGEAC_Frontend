@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 type UpdateCompanySettingsPayload = {
   quarantine_legal_days?: number;
+  timezone?: string;
 };
 
 export const useUpdateCompanySettings = () => {
@@ -28,10 +29,16 @@ export const useUpdateCompanySettings = () => {
       return data;
     },
 
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["company-settings"] });
       // El plazo cambia el vencimiento que muestran las vistas de cuarentena.
       queryClient.invalidateQueries({ queryKey: ["quarantine-articles"] });
+
+      // La zona reescribe CUALQUIER fecha en pantalla, no solo un módulo: se
+      // refresca todo para que no queden vistas cacheadas con la zona vieja.
+      if (variables.timezone) {
+        queryClient.invalidateQueries();
+      }
 
       toast.success("¡Ajustes actualizados!", {
         description: "Los cambios ya aplican en todo el sistema.",

@@ -13,6 +13,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useGetGeneralArticleIntakes } from "@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticleIntakes";
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
+import { formatInstant, instantToCalendarDay } from "@/lib/date";
 import { cn, formatQuantity } from "@/lib/utils";
 import {
   intakeStatusLabelEs,
@@ -35,6 +37,7 @@ const toApiDate = (date?: Date) =>
 const retailerOf = (intake: GeneralArticleIntake) => intake.retailer?.name ?? null;
 
 export const RecepcionesGeneralesTab = () => {
+  const timeZone = useCompanyTimezone();
   const [search, setSearch] = useState("");
   const [period, setPeriod] = useState<Period>({ label: "Todo el histórico" });
   const [retailerFilter, setRetailerFilter] = useState<string[]>([]);
@@ -129,8 +132,11 @@ export const RecepcionesGeneralesTab = () => {
 
     for (const intake of rows) {
       if (intake.arrived_at) {
-        const key = format(new Date(intake.arrived_at), "yyyy-MM");
-        byMonth[key] = (byMonth[key] ?? 0) + 1;
+        // Se agrupa por el mes de la compañía, no el del navegador.
+        const key = instantToCalendarDay(intake.arrived_at, timeZone)?.slice(0, 7);
+        if (key) {
+          byMonth[key] = (byMonth[key] ?? 0) + 1;
+        }
       }
 
       byStatus[intake.status] = (byStatus[intake.status] ?? 0) + 1;
@@ -158,7 +164,7 @@ export const RecepcionesGeneralesTab = () => {
       topArticles: topOf(byArticle),
       topRetailers: topOf(byRetailer),
     };
-  }, [rows]);
+  }, [rows, timeZone]);
 
   const hasPeriod = !!period.from || !!period.to;
   const hasFilters =
@@ -339,11 +345,7 @@ export const RecepcionesGeneralesTab = () => {
                     </span>
                   </TableCell>
                   <TableCell className="text-center tabular-nums">
-                    {intake.arrived_at
-                      ? format(new Date(intake.arrived_at), "dd/MM/yyyy", {
-                          locale: es,
-                        })
-                      : "—"}
+                    {formatInstant(intake.arrived_at, timeZone, "date", "—")}
                   </TableCell>
                   <TableCell className="text-center font-mono text-xs text-muted-foreground">
                     {intake.purchase_order?.order_number ?? "—"}

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toCalendarPayload } from "@/lib/date";
 import { useDateRangeCalculator } from "./useDateRangeCalculator";
 import { PeriodType } from "@/app/[company]/planificacion/control_vuelos/historial_vuelo/_components/PeriodFilter";
 
@@ -6,7 +7,7 @@ export const useFlightFilters = () => {
   const [selectedAcronym, setSelectedAcronym] = useState<string>("");
   const [periodType, setPeriodType] = useState<PeriodType>("current_month");
   const [selectedMonth, setSelectedMonth] = useState(
-    new Date().toISOString().slice(0, 7), // yyyy-MM
+    (toCalendarPayload(new Date()) ?? "").slice(0, 7), // yyyy-MM local
   );
   const [selectedYear, setSelectedYear] = useState(
     new Date().getFullYear().toString(),
@@ -25,7 +26,7 @@ export const useFlightFilters = () => {
   const clearFilters = () => {
     setSelectedAcronym("");
     setPeriodType("current_month");
-    setSelectedMonth(new Date().toISOString().slice(0, 7));
+    setSelectedMonth((toCalendarPayload(new Date()) ?? "").slice(0, 7));
     setSelectedYear(new Date().getFullYear().toString());
     setCustomFrom("");
     setCustomTo("");

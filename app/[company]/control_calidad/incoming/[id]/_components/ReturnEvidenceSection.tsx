@@ -2,8 +2,8 @@
 
 import EvidenceGallery from "@/components/misc/EvidenceGallery";
 import { useGetArticleReturnContext } from "@/hooks/mantenimiento/almacen/articulos/useGetArticleReturnContext";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
+import { formatInstant } from "@/lib/date";
 import { Undo2, User } from "lucide-react";
 
 /**
@@ -19,13 +19,12 @@ import { Undo2, User } from "lucide-react";
  */
 export function ReturnEvidenceSection({ articleId }: { articleId: number }) {
   const { data: context } = useGetArticleReturnContext(articleId);
+  const timeZone = useCompanyTimezone();
 
   if (!context) return null;
 
   const returnedAt = context.returned_at
-    ? format(new Date(context.returned_at), "dd MMM yyyy 'a las' HH:mm", {
-        locale: es,
-      })
+    ? formatInstant(context.returned_at, timeZone, "dd MMM yyyy 'a las' HH:mm")
     : null;
 
   return (

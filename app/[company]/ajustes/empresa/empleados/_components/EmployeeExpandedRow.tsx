@@ -2,6 +2,7 @@
 
 import { Employee } from "@/types";
 import { cn } from "@/lib/utils";
+import { formatCalendarDate } from "@/lib/date";
 
 interface Props {
   employee: Employee;
@@ -48,11 +49,7 @@ export function EmployeeExpandedRow({ employee }: Props) {
         <Item
           label="Fecha nacimiento"
           value={
-            employee.birth_date
-              ? new Intl.DateTimeFormat("es-ES", {
-                  timeZone: "UTC",
-                }).format(new Date(employee.birth_date))
-              : "—"
+            formatCalendarDate(employee.birth_date, "date", "—")
           }
         />
 

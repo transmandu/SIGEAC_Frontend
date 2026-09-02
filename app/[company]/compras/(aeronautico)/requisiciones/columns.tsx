@@ -7,8 +7,6 @@ import { Badge } from '@/components/ui/badge'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 import type { Requisition } from '@/types/purchase'
-import { format } from 'date-fns'
-import { es } from 'date-fns/locale'
 import Link from 'next/link'
 import { ChevronRight, Loader2 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
@@ -21,6 +19,7 @@ import {
   NEXT_REQUISITION_STATUS,
 } from '@/components/dialogs/mantenimiento/compras/AdvanceRequisitionStatusDialog'
 import { useState } from 'react'
+import { DEFAULT_TIMEZONE, formatInstant } from "@/lib/date"
 
 const STATUS_LABELS: Record<string, string> = {
   CREATED: 'CREADA',
@@ -144,7 +143,8 @@ const StatusCell = ({ requisition }: { requisition: Requisition }) => {
 export const getColumns = (
   selectedCompany?: { slug: string },
   onPreview?: (requisition: Requisition) => void,
-  selectedPreviewId?: number | null
+  selectedPreviewId?: number | null,
+  timeZone: string = DEFAULT_TIMEZONE
 ): ColumnDef<Requisition>[] => [
   {
     id: 'expander',
@@ -387,12 +387,10 @@ export const getColumns = (
       title: 'Fecha de Creación',
     },
     cell: ({ row }) => {
-      const date = new Date(row.original.submission_date);
-
       return (
         <div className="flex justify-center w-full">
           <span className="text-s text-slate-600 dark:text-slate-300 text-center font-medium tracking-wide uppercase">
-            {format(date, "dd MMM yyyy", { locale: es })}
+            {formatInstant(row.original.submission_date, timeZone, "short")}
           </span>
         </div>
       );

@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button"
 import { FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
-import { format, parseISO, set } from "date-fns"
+import { format, parseISO } from "date-fns"
 import { es } from "date-fns/locale"
 import { Building2, Calendar as CalendarIcon, Check, ChevronsUpDown, Layers, MinusCircle, PackagePlus, Ruler, Tag, User, UserCog } from "lucide-react"
 import { useMemo } from "react"
@@ -22,6 +22,7 @@ import { RequiredIndicator } from "./RequiredIndicator"
 import { ActiveRequisitionWarning } from "./ActiveRequisitionWarning"
 import { getRequisitionArticleKey } from "@/hooks/mantenimiento/compras/useGetActiveGeneralArticleRequisitions"
 import type { ActiveGeneralArticleRequisition } from "@/types/purchase"
+import { toCalendarPayload } from "@/lib/date";
 
 interface GeneralArticlesSectionProps {
   form: UseFormReturn<any>;
@@ -58,18 +59,8 @@ interface GeneralArticlesSectionProps {
 const AUTH_PREFIX = "auth:";
 const THIRD_PREFIX = "third:";
 
-// Conserva el día elegido en el calendario pero le pone la hora actual: si se
-// guardara a medianoche, el backend la almacena en UTC y en Venezuela (UTC-4)
-// la fecha se vería un día antes.
-const withCurrentTime = (day: Date) => {
-  const now = new Date();
-  return set(day, {
-    hours: now.getHours(),
-    minutes: now.getMinutes(),
-    seconds: now.getSeconds(),
-    milliseconds: now.getMilliseconds(),
-  });
-};
+// requested_date es una columna `date`: se manda el día tal cual se eligió. Ya
+// no hace falta pegarle la hora actual para que no se corriera al convertir.
 
 interface DestinationFieldsRowProps {
   article: RequisitionGeneralArticleForm;
@@ -182,7 +173,7 @@ function DestinationFieldsRow({
               mode="single"
               selected={requestedDate}
               onSelect={(date) =>
-                handleGeneralArticleChange(index, "requested_date", date ? withCurrentTime(date).toISOString() : undefined)
+                handleGeneralArticleChange(index, "requested_date", toCalendarPayload(date))
               }
               locale={es}
               initialFocus

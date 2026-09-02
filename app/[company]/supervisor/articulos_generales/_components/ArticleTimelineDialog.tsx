@@ -22,6 +22,7 @@ import {
 } from "lucide-react"
 import { formatCost } from "@/lib/utils"
 import { dependencyBadgeCls, formatQuantity, formatSupervisorDateTime } from "./utils/uiHelpers"
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone"
 
 const TYPE_META: Record<TimelineEventType, { icon: React.ElementType; label: string }> = {
     AUDIT: { icon: PencilLine, label: "Edición" },
@@ -111,6 +112,8 @@ export function ArticleTimelineDialog({
 }
 
 function TimelineRow({ event, isLast }: { event: TimelineEvent; isLast: boolean }) {
+    const timeZone = useCompanyTimezone()
+
     // La devolución llega como evento de despacho pero es su opuesto: repone
     // existencia, así que no puede leerse con el icono y el rótulo de salida.
     const isReturn = event.type === "DISPATCH" && event.event === "RETURNED"
@@ -141,7 +144,7 @@ function TimelineRow({ event, isLast }: { event: TimelineEvent; isLast: boolean 
                 </div>
 
                 <div className="text-[11px] text-muted-foreground/70 mt-0.5">
-                    {formatSupervisorDateTime(event.date)}
+                    {formatSupervisorDateTime(event.date, timeZone)}
                     {event.by ? ` · ${event.by}` : ""}
                 </div>
 

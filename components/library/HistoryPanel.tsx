@@ -8,8 +8,11 @@ import {
 } from 'lucide-react';
 import { QRCodeSVG } from "qrcode.react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { useCompanyTimezone } from '@/hooks/general/useCompanyTimezone';
+import { formatInstant } from '@/lib/date';
 
 export default function TraceabilityPanel({ documentId, company, onClose, user }: any) {
+  const timeZone = useCompanyTimezone();
   const [logs, setLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedQR, setSelectedQR] = useState<string | null>(null);
@@ -181,7 +184,7 @@ export default function TraceabilityPanel({ documentId, company, onClose, user }
                       </div>
                       <span className="text-[10px] text-slate-500 font-bold uppercase flex items-center gap-1">
                         <CalendarDays className="h-3 w-3" /> 
-                        {new Date(log.created_at).toLocaleDateString()}
+                        {formatInstant(log.created_at, timeZone, "date")}
                       </span>
                     </div>
 

@@ -25,6 +25,7 @@ import { useUpdateArticleStatus } from '@/actions/mantenimiento/almacen/inventar
 import type { TransitArticle } from '@/types/purchase'
 import { EditTransitArticleDialog } from './_components/EditTransitArticleDialog'
 import { PendingDocumentsDialog } from './_components/PendingDocumentsDialog'
+import { DEFAULT_TIMEZONE, formatCalendarDate, formatInstant } from "@/lib/date"
 
 const getPendingRequirements = (article: TransitArticle) =>
   (article.document_requirements ?? []).filter(
@@ -217,7 +218,8 @@ function EditTransitArticleAction({
 }
 
 export const getColumns = (
-  selectedCompany?: { slug: string }
+  selectedCompany?: { slug: string },
+  timeZone: string = DEFAULT_TIMEZONE
 ): ColumnDef<TransitArticle>[] => [
 
   {
@@ -367,18 +369,16 @@ export const getColumns = (
           ? 'ESTÁ EN RECEPCIÓN'
           : null
 
-      const formatDate = (value?: string | null) => {
-        if (!value) return null
-
-        const [year, month, day] = value.split('-').map(Number)
-        const safeDate = new Date(year, month - 1, day)
-
-        return new Intl.DateTimeFormat('es-ES', {
-          day: '2-digit',
-          month: 'long',
-          year: 'numeric',
-        }).format(safeDate).toUpperCase()
-      }
+      // created_at es un instante (se convierte a la zona de la compañía) y
+      // reception_date una fecha de calendario (se muestra tal cual). Antes se
+      // partía el string por "-", lo que reventaba con un ISO completo.
+      const formatDate = (value?: string | null) =>
+        value
+          ? (isTransit
+              ? formatInstant(value, timeZone, 'dd MMMM yyyy', '')
+              : formatCalendarDate(value, 'dd MMMM yyyy', '')
+            ).toUpperCase()
+          : null
 
       if (!date) {
         return (

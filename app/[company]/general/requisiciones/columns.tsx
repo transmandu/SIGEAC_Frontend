@@ -7,6 +7,7 @@ import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
 import RequisitionsDropdownActions from "@/components/dropdowns/mantenimiento/compras/RequisitionDropdownActions"
 
 import { cn } from "@/lib/utils"
+import { DEFAULT_TIMEZONE, formatInstant, instantToCalendarDay } from "@/lib/date"
 import type { Requisition } from "@/types/purchase"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
@@ -24,7 +25,8 @@ import RequisitionDateFilter, { type DateFilterValue } from "./_components/Requi
 // }
 
 export const getColumns = (
-  selectedCompany?: { slug: string }
+  selectedCompany?: { slug: string },
+  timeZone: string = DEFAULT_TIMEZONE
 ): ColumnDef<Requisition>[] => [
   {
     accessorKey: "order_number",
@@ -215,9 +217,11 @@ export const getColumns = (
       const raw = row.getValue<string>(columnId);
       if (!raw) return false;
 
-      // Se compara en texto ISO (yyyy-MM-dd) para no arrastrar la zona horaria
-      // del navegador, que puede correr la fecha un día.
-      const value = format(new Date(raw), "yyyy-MM-dd");
+      // Se compara en texto ISO (yyyy-MM-dd) contra el día en la zona de la
+      // compañía: filtrar por el día del navegador movería el rango.
+      const value = instantToCalendarDay(raw, timeZone);
+
+      if (!value) return false;
 
       if (filterValue.from && value < filterValue.from) return false;
       if (filterValue.to && value > filterValue.to) return false;
@@ -226,7 +230,7 @@ export const getColumns = (
     },
     cell: ({ row }) => (
       <p className="text-center text-sm text-slate-600 dark:text-slate-300 font-medium tracking-wide uppercase">
-        {format(new Date(row.original.submission_date), "dd MMM yyyy", { locale: es })}
+        {formatInstant(row.original.submission_date, timeZone, "short")}
       </p>
     )
   },

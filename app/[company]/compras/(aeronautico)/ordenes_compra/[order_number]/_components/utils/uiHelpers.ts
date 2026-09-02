@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils';
+import { formatLongUpperDate } from '@/lib/date';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -26,14 +27,6 @@ export const statusBadgeCls = (status?: string) => {
   );
 };
 
-export const formatPurchaseDate = (date?: string | Date | null): string | undefined => {
-  if (!date) return undefined;
-
-  const d = typeof date === 'string' ? new Date(date) : date;
-
-  const day = format(d, 'dd');
-  const month = format(d, 'MMMM', { locale: es }).toUpperCase();
-  const year = format(d, 'yyyy');
-
-  return `${day} ${month} ${year}`;
-};
+// Fecha de calendario: se muestra tal cual, sin convertir de zona.
+export const formatPurchaseDate = (date?: string | Date | null): string | undefined =>
+  formatLongUpperDate(date);

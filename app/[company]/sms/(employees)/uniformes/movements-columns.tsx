@@ -14,12 +14,9 @@ import {
   getUniformTypeIcon,
   MOVEMENT_TYPE_META,
 } from "@/components/sms/uniform-meta";
+import { formatCalendarDate } from "@/lib/date";
 
-const formatDate = (value?: string) => {
-  if (!value) return "---";
-  const date = new Date(value.slice(0, 10) + "T00:00:00");
-  return format(date, "dd/MM/yyyy", { locale: es });
-};
+const formatDate = (value?: string) => formatCalendarDate(value, "date", "---");
 
 const employeeFullName = (
   emp: NonNullable<UniformMovement["employee"]>

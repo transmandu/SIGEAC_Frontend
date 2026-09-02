@@ -51,6 +51,7 @@ import {
   uniformGenderLabel,
   uniformMovementTypeLabel,
 } from "@/lib/sms/uniforms";
+import { toCalendarPayload } from "@/lib/date";
 
 const ISSUANCE = "ISSUANCE";
 const ADJUSTMENT = "ADJUSTMENT";
@@ -131,7 +132,7 @@ export const RegisterUniformMovementForm = ({ onClose, itemId }: Props) => {
       uniform_item_id: itemId ? String(itemId) : "",
       movement_type: "",
       quantity: 1,
-      date: new Date().toISOString().slice(0, 10),
+      date: toCalendarPayload(new Date()),
       is_employee: true,
       employee_id: "",
       recipient_name: "",

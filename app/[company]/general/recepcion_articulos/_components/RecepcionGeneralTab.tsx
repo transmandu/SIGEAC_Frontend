@@ -39,6 +39,8 @@ import { useGetGeneralArticleIntakes } from '@/hooks/mantenimiento/almacen/almac
 import { useGetIntakeConfirmationPreview, type AppliedConversionPreview } from '@/hooks/mantenimiento/almacen/almacen_general/useGetIntakeConfirmationPreview'
 import { cn, formatQuantity } from '@/lib/utils'
 import { useCompanyStore } from '@/stores/CompanyStore'
+import { useCompanyTimezone } from '@/hooks/general/useCompanyTimezone'
+import { formatInstant } from '@/lib/date'
 import type { GeneralArticleIntake, GeneralArticleIntakeStatus } from '@/types/purchase'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
@@ -575,6 +577,8 @@ function IntakeDetailRow({
     intake: GeneralArticleIntake
     discrepancy: ReturnType<typeof getRequisitionDiscrepancy>
 }) {
+    const timeZone = useCompanyTimezone()
+
     return (
         <TableRow className="hover:bg-transparent">
             <TableCell colSpan={8} className="p-0 border-b border-border/40">
@@ -616,7 +620,7 @@ function IntakeDetailRow({
                             <span className="text-muted-foreground">
                                 <span className="uppercase">{intake.rejected_by}</span>
                                 {intake.rejected_at && (
-                                    <> — {format(new Date(intake.rejected_at), "dd/MM/yyyy HH:mm", { locale: es })}</>
+                                    <> — {formatInstant(intake.rejected_at, timeZone, "dateTime")}</>
                                 )}
                             </span>
                             <span className="italic text-red-600/80 dark:text-red-400/80">
@@ -632,6 +636,7 @@ function IntakeDetailRow({
 
 // ── Fila de entrada ──────────────────────────────────────────────────────
 const IntakeRow = memo(function IntakeRow({ intake }: { intake: GeneralArticleIntake }) {
+    const timeZone = useCompanyTimezone()
     const { selectedCompany } = useCompanyStore()
     const isPending = intake.status === 'PENDING'
     const isRejected = intake.status === 'REJECTED'
@@ -751,7 +756,7 @@ const IntakeRow = memo(function IntakeRow({ intake }: { intake: GeneralArticleIn
 
             <TableCell>
                 <span className="text-xs text-muted-foreground">
-                    {intake.arrived_at ? format(new Date(intake.arrived_at), 'dd/MM/yyyy HH:mm') : '—'}
+                    {intake.arrived_at ? formatInstant(intake.arrived_at, timeZone, 'dateTime') : '—'}
                 </span>
             </TableCell>
 
@@ -789,7 +794,7 @@ const IntakeRow = memo(function IntakeRow({ intake }: { intake: GeneralArticleIn
                         {intake.rejected_at && (
                             <>
                                 <br />
-                                El {format(new Date(intake.rejected_at), "dd/MM/yyyy HH:mm", { locale: es })}
+                                El {formatInstant(intake.rejected_at, timeZone, "dateTime")}
                             </>
                         )}
                     </span>
@@ -801,7 +806,7 @@ const IntakeRow = memo(function IntakeRow({ intake }: { intake: GeneralArticleIn
                         {intake.confirmed_at && (
                             <>
                                 <br />
-                                El {format(new Date(intake.confirmed_at), "dd/MM/yyyy HH:mm", { locale: es })}
+                                El {formatInstant(intake.confirmed_at, timeZone, "dateTime")}
                             </>
                         )}
                     </span>

@@ -11,6 +11,7 @@ import PartsList from "./parts-form/PartsList"
 import { useEffect, useMemo, useState } from "react"
 import { useFieldArray, useForm } from "react-hook-form"
 import { z } from "zod"
+import { toCalendarPayload } from "@/lib/date";
 
 
 
@@ -222,7 +223,7 @@ export function AircraftPartsInfoForm({ onNext, onBack, initialData }: {
 }) {
   const { toast } = useToast();
   const [removingPath, setRemovingPath] = useState<string | null>(null);
-  const [tempDate, setTempDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [tempDate, setTempDate] = useState<string>(toCalendarPayload(new Date()) ?? '');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const normalizedInitialData = useMemo(() => {
