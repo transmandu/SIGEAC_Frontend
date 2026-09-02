@@ -1,3 +1,8 @@
+## v3.8.0 — 2026-09-02
+
+- Merge pull request #235 from transmandu/feat/zona-horaria-por-compania
+- feat(general): mostrar las fechas en la zona horaria de la compañia
+
 ## v3.7.1 — 2026-09-02
 
 - fix: danger identification show inf correctly (#234)
