@@ -3,6 +3,8 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import libraryService from "@/lib/libraryService";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
+import { formatInstant } from "@/lib/date";
 import {
   X,
   Loader2,
@@ -45,6 +47,7 @@ export default function ShareRequestsPanel({
   onRefresh,
 }: ShareRequestsPanelProps) {
   const { user } = useAuth();
+  const timeZone = useCompanyTimezone();
   const [requests, setRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
@@ -319,9 +322,7 @@ export default function ShareRequestsPanel({
                     {statusBadge(req.status)}
                     <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-500">
                       <CalendarDays className="h-3.5 w-3.5" />
-                      {req.created_at
-                        ? new Date(req.created_at).toLocaleDateString()
-                        : "N/A"}
+                      {formatInstant(req.created_at, timeZone, "date")}
                     </div>
                   </div>
 

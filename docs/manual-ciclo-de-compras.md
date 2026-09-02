@@ -706,6 +706,35 @@ Hay un minuto de tolerancia contra el desfase de reloj entre navegador y servido
 En el registro la regla 1 va además como validación (`before_or_equal`) en
 `registerGeneralArticlesDelivery`.
 
+### En qué zona horaria vive cada fecha
+
+Desde 2026-09-02 la regla es una sola: **se guarda en UTC, se muestra en la zona de
+la compañía**. La zona es un `CompanySetting` (`timezone`) que arranca en `UTC` y que
+el `SUPERUSER` elige en Ajustes Operativos; no afecta lo que se guarda, solo cómo se
+lee.
+
+Antes convivían dos zonas en la misma fila —siete puntos del backend escribían hora
+de Caracas dentro de columnas datetime mientras el resto escribía UTC—, de modo que
+`movements.date` y su propio `created_at` diferían en cuatro horas. Eso se corrigió
+en el código y se enderezó en los datos con una migración de backfill.
+
+Lo que hay que tener presente al tocar fechas del ciclo:
+
+| Tipo | Columnas del ciclo | Al mostrar | Al enviar |
+|---|---|---|---|
+| **Instante** (`dateTime`) | `submission_date`, `arrived_at`, `confirmed_at`, `rejected_at`, `quote_date`, `purchase_date`, `movements.date` | se **convierte** a la zona de la compañía (`formatInstant`) | ISO completo (`toISOString()`) |
+| **Fecha de calendario** (`date`) | `requested_date`, `expiration_date` | **tal cual**, nunca se convierte (`formatCalendarDate`) | `yyyy-MM-dd` local (`toCalendarPayload`) |
+
+La distinción no es cosmética: una fecha de calendario convertida se corre un día
+—una requisición pedida para el 02/09 aparecía como 01/09—, y ese era el origen del
+viejo parche que sumaba un día al formatear. Al filtrar o agrupar por día sobre una
+columna de instante, el día se resuelve con `instantToCalendarDay` en la zona de la
+compañía, no con la del navegador.
+
+Los correlativos (`SAL2026SEP0001`, `PO2026SEP…`, `COT…`) y los PDFs sí se arman en
+hora local de Venezuela: son identidad del documento y lectura humana, no dato de
+ordenamiento.
+
 ### La corrección de una recepción (SUPERUSER)
 
 `PATCH /{company}/general-article-intakes/{id}` — ruta normal del intake, restringida

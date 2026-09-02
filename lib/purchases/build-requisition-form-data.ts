@@ -1,3 +1,5 @@
+import { toCalendarPayload } from "@/lib/date"
+
 /**
  * Serializes a requisition payload (which may contain `File` instances
  * nested inside `articles[].batch_articles[]` / `general_articles[]`) into a
@@ -25,7 +27,9 @@ function appendValue(formData: FormData, key: string, value: unknown): void {
     return
   }
 
-  formData.append(key, value instanceof Date ? value.toISOString() : String(value))
+  // Las fechas de la requisición son columnas `date` (requested_date): se manda
+  // el día en hora local, porque toISOString() lo correría un día hacia atrás.
+  formData.append(key, value instanceof Date ? toCalendarPayload(value) ?? "" : String(value))
 }
 
 export function buildRequisitionFormData(data: object): FormData {

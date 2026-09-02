@@ -1,5 +1,6 @@
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { formatLongUpperDate } from '@/lib/date';
 
 export const priorityLabel = (priority?: string) => {
   switch (priority) {
@@ -124,14 +125,6 @@ export const requisitionTypeLabel = (type?: string) => {
   }
 }
 
-export const formatSolicitudDate = (date?: string | Date | null): string | undefined => {
-  if (!date) return undefined;
-
-  const d = typeof date === 'string' ? new Date(date) : date;
-
-  const day = format(d, 'dd');
-  const month = format(d, 'MMMM', { locale: es }).toUpperCase();
-  const year = format(d, 'yyyy');
-
-  return `${day} ${month} ${year}`;
-};
+// Fecha de calendario: se muestra tal cual, sin convertir de zona.
+export const formatSolicitudDate = (date?: string | Date | null): string | undefined =>
+  formatLongUpperDate(date);

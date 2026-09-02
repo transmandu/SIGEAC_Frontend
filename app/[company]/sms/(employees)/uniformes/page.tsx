@@ -48,6 +48,7 @@ import { RegisterUniformMovementForm } from "@/components/forms/sms/RegisterUnif
 import { UniformArticleTypeForm } from "@/components/forms/sms/UniformArticleTypeForm";
 import { UniformBrandForm } from "@/components/forms/sms/UniformBrandForm";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { toCalendarPayload } from "@/lib/date";
 
 const UniformesPage = () => {
   const { selectedCompany } = useCompanyStore();
@@ -132,7 +133,7 @@ const UniformesPage = () => {
       link.href = url;
       link.setAttribute(
         "download",
-        `inventario_uniformes_${new Date().toISOString().slice(0, 10)}.xlsx`
+        `inventario_uniformes_${toCalendarPayload(new Date())}.xlsx`
       );
       document.body.appendChild(link);
       link.click();

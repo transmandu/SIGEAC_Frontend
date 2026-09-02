@@ -10,6 +10,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useGetImportHistoryList } from "@/hooks/sistema/reportes/useGetImportHistoryList";
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
+import { formatInstant } from "@/lib/date";
 import { useGetImportHistoryStatus } from "@/hooks/sistema/reportes/useGetImportHistoryStatus";
 import { ErrorReportImport, ImportHistoryStatus } from "@/types";
 import { format } from "date-fns";
@@ -30,6 +32,7 @@ const STATUS_VARIANT: Record<ImportHistoryStatus, "default" | "secondary" | "war
 };
 
 function ImportHistoryRow({ importItem }: { importItem: ErrorReportImport }) {
+  const timeZone = useCompanyTimezone();
   const isActive = importItem.status === "queued" || importItem.status === "running";
   const { data } = useGetImportHistoryStatus(importItem.id, isActive);
   const current = data ?? importItem;
@@ -58,7 +61,7 @@ function ImportHistoryRow({ importItem }: { importItem: ErrorReportImport }) {
         )}
       </TableCell>
       <TableCell className="whitespace-nowrap">
-        {format(new Date(current.created_at), "dd/MM/yyyy HH:mm")}
+        {formatInstant(current.created_at, timeZone, "dateTime")}
       </TableCell>
     </TableRow>
   );

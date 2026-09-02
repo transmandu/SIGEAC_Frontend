@@ -6,6 +6,7 @@ import { FileDown } from 'lucide-react'
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 import { useCompanyStore } from '@/stores/CompanyStore'
 import { useDownloadInProgressRequisitionsPdf } from '@/hooks/mantenimiento/compras/useDownloadInProgressRequisitionsPdf'
+import { toCalendarPayload } from '@/lib/date'
 
 /**
  * Botón que genera y descarga el PDF "Listado de Solicitudes en Proceso"
@@ -32,10 +33,7 @@ export function GenerateInProgressRequisitionsPdfButton() {
       const link = document.createElement('a')
 
       link.href = url
-      link.download = `listado-solicitudes-en-proceso-${new Date()
-        .toISOString()
-        .slice(0, 10)
-        .replace(/-/g, '')}.pdf`
+      link.download = `listado-solicitudes-en-proceso-${(toCalendarPayload(new Date()) ?? '').replace(/-/g, '')}.pdf`
 
       link.click()
       setTimeout(() => URL.revokeObjectURL(url), 100)

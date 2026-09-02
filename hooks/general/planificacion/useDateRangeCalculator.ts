@@ -1,4 +1,8 @@
 import { useMemo } from "react";
+import { format } from "date-fns";
+
+/** El día local del Date, sin pasar por UTC (que lo correría un día). */
+const toCalendarDay = (date: Date) => format(date, "yyyy-MM-dd");
 
 type PeriodType = "current_month" | "month" | "year" | "custom";
 
@@ -25,8 +29,8 @@ export const useDateRangeCalculator = ({
         const first = new Date(now.getFullYear(), now.getMonth(), 1);
         const last = new Date(now.getFullYear(), now.getMonth() + 1, 0);
         return {
-          first_date: first.toISOString().slice(0, 10),
-          second_date: last.toISOString().slice(0, 10),
+          first_date: toCalendarDay(first),
+          second_date: toCalendarDay(last),
         };
       }
 
@@ -35,8 +39,8 @@ export const useDateRangeCalculator = ({
         const first = new Date(Number(year), Number(month) - 1, 1);
         const last = new Date(Number(year), Number(month), 0);
         return {
-          first_date: first.toISOString().slice(0, 10),
-          second_date: last.toISOString().slice(0, 10),
+          first_date: toCalendarDay(first),
+          second_date: toCalendarDay(last),
         };
       }
 
@@ -44,8 +48,8 @@ export const useDateRangeCalculator = ({
         const first = new Date(Number(selectedYear), 0, 1);
         const last = new Date(Number(selectedYear), 11, 31);
         return {
-          first_date: first.toISOString().slice(0, 10),
-          second_date: last.toISOString().slice(0, 10),
+          first_date: toCalendarDay(first),
+          second_date: toCalendarDay(last),
         };
       }
 

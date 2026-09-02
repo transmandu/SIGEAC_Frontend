@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils'
 import { useCompanyStore } from '@/stores/CompanyStore'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
+import { DEFAULT_TIMEZONE, formatInstant } from '@/lib/date'
 import { Building2, FileText, Handshake, Loader2, Pencil, User, UserCog, Warehouse } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import EditIntakeDialog from './_components/EditIntakeDialog'
@@ -134,7 +135,9 @@ const EditIntakeButton = ({ intake }: { intake: GeneralArticleIntake }) => {
   )
 }
 
-export const getColumns = (): ColumnDef<GeneralArticleIntake>[] => [
+export const getColumns = (
+  timeZone: string = DEFAULT_TIMEZONE
+): ColumnDef<GeneralArticleIntake>[] => [
 
   {
     accessorKey: 'description',
@@ -236,7 +239,7 @@ export const getColumns = (): ColumnDef<GeneralArticleIntake>[] => [
       return (
         <div className="flex justify-center w-full">
           <span className="text-xs text-muted-foreground">
-            {arrived_at ? format(new Date(arrived_at), 'dd/MM/yyyy HH:mm') : '—'}
+            {arrived_at ? formatInstant(arrived_at, timeZone, 'dateTime') : '—'}
           </span>
         </div>
       )
@@ -346,7 +349,7 @@ export const getColumns = (): ColumnDef<GeneralArticleIntake>[] => [
               {rejected_at && (
                 <>
                   <br />
-                  El {format(new Date(rejected_at), 'dd/MM/yyyy HH:mm', { locale: es })}
+                  El {formatInstant(rejected_at, timeZone, 'dateTime')}
                 </>
               )}
               {rejection_reason && (
@@ -371,7 +374,7 @@ export const getColumns = (): ColumnDef<GeneralArticleIntake>[] => [
             {confirmed_at && (
               <>
                 <br />
-                El {format(new Date(confirmed_at), 'dd/MM/yyyy HH:mm', { locale: es })}
+                El {formatInstant(confirmed_at, timeZone, 'dateTime')}
               </>
             )}
           </span>

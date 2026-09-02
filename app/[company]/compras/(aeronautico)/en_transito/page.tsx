@@ -9,9 +9,11 @@ import TransitToolbar from './_components/TransitToolBar'
 import { useTransitArticles } from './hooks/useTransitArticles'
 import type { TransitStatusFilter } from '@/types/purchase'
 import { PageHeader } from "@/components/layout/PageHeader";
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone"
 
 const EnTransitoPage = () => {
   const { selectedCompany } = useCompanyStore()
+  const timeZone = useCompanyTimezone()
 
   const [search, setSearch] = useState('')
   const [status, setStatus] =
@@ -46,8 +48,8 @@ const EnTransitoPage = () => {
   }, [articles, deferredSearch])
 
   const columns = useMemo(
-    () => getColumns(selectedCompany ?? undefined),
-    [selectedCompany]
+    () => getColumns(selectedCompany ?? undefined, timeZone),
+    [selectedCompany, timeZone]
   )
 
   return (

@@ -4,6 +4,8 @@ import { History, X, Clock, User, Eye } from "lucide-react";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { bibliotecaVersionesSteps } from "@/components/tour/steps/general/biblioteca/biblioteca-versiones";
 import { useEffect } from "react";
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
+import { formatInstant } from "@/lib/date";
 
 interface Version {
   id: number;
@@ -33,6 +35,7 @@ export const HistoryPanel = ({
   docTitle,
   onViewVersion,
 }: HistoryPanelProps) => {
+  const timeZone = useCompanyTimezone();
   const { registerTour, unregisterTour } = useTourContext();
   useEffect(() => {
     if (isOpen) {
@@ -139,9 +142,7 @@ export const HistoryPanel = ({
 
                       <div className="flex items-center gap-1 text-slate-500 dark:text-gray-500 text-[10px] font-bold uppercase tracking-tight">
                         <Clock className="h-3 w-3" />
-                        {v.created_at
-                          ? new Date(v.created_at).toLocaleDateString()
-                          : "--/--/--"}
+                        {formatInstant(v.created_at, timeZone, "date", "--/--/--")}
                       </div>
                     </div>
 

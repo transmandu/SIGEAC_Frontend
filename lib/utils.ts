@@ -2,6 +2,7 @@ import { type ClassValue, clsx } from "clsx";
 import { addDays, format, Locale, parse, subDays } from "date-fns";
 import { twMerge } from "tailwind-merge";
 import { es } from "date-fns/locale";
+import { formatCalendarDate } from "./date";
 
 interface Period {
     from: string | Date | undefined;
@@ -156,27 +157,29 @@ export function formatCurrencyJ(
 
 // Función para formatear fechas, la forma correcta de implementar es: {formatDate(datexxx,1)}
 export const formatDate = (dateInput: string | Date, daysToAdd: number = 0) => {
-    let date = dateInput instanceof Date ? dateInput : parseServerDate(dateInput) ?? new Date(dateInput);
-
     if (daysToAdd !== 0) {
-        date = addDays(date, daysToAdd);
+        const base = dateInput instanceof Date
+            ? dateInput
+            : parseServerDate(dateInput) ?? new Date(dateInput);
+
+        if (Number.isNaN(base.getTime())) return "Fecha inválida";
+
+        return format(addDays(base, daysToAdd), "dd/MM/yyyy", { locale: es });
     }
 
-    if (Number.isNaN(date.getTime())) {
-        return "Fecha inválida";
-    }
-
-    return format(date, "dd/MM/yyyy", {
-        locale: es,
-    });
+    return formatCalendarDate(dateInput, "dd/MM/yyyy", "Fecha inválida");
 };
 
+/**
+ * Fechas de calendario (start_date, report_date, expiration...). Delega en
+ * formatCalendarDate: se muestran tal cual vienen, sin convertir de zona.
+ *
+ * Antes sumaba un día a mano para compensar que `new Date("2026-09-02")` es
+ * medianoche UTC y en UTC−4 se renderiza como el 1. Ese parche ya no hace falta
+ * porque los componentes de la fecha se leen del string sin pasar por una zona.
+ */
 export function dateFormat(date: string | Date | null | undefined, DateFormat: string) {
-    if (!date) return "N/A";
-    const newDate = addDays(new Date(date), 1);
-    return format(newDate, DateFormat, {
-        locale: es,
-    });
+    return formatCalendarDate(date, DateFormat);
 }
 
 export function timeFormat(hour: Date, outPutFormat: string = "HH:mm") {
@@ -262,36 +265,15 @@ export function parseServerDate(input?: string | Date | null): Date | undefined 
     return undefined;
 }
 
-// requested_date used to be saved as midnight UTC (no real time-of-day), which
-// Intl/date-fns then convert to the previous day once rendered in Venezuela's
-// UTC-4 offset. For those legacy values we read the calendar date straight off
-// the UTC string instead of converting it. Newer records carry the actual
-// time the action was performed, so those convert correctly to America/Caracas.
-const LEGACY_MIDNIGHT_UTC = /^(\d{4})-(\d{2})-(\d{2})T00:00:00(\.0+)?Z$/;
-
+/**
+ * `requested_date` es el día en que se pidió algo, no un instante: se muestra
+ * tal cual, sin convertir. Antes esta función resolvía a mano el caso de la
+ * medianoche UTC y fijaba America/Caracas; ahora eso vive en formatCalendarDate,
+ * que hace lo mismo para cualquier fecha de calendario.
+ */
 export function formatRequestedDate(
     input?: string | Date | null,
     dateFormat: string = "dd MMM yyyy",
 ): string {
-    if (!input) return "N/A";
-
-    const s = String(input);
-    const legacyMatch = s.match(LEGACY_MIDNIGHT_UTC);
-    if (legacyMatch) {
-        const [, y, m, d] = legacyMatch;
-        return format(new Date(Number(y), Number(m) - 1, Number(d)), dateFormat, { locale: es });
-    }
-
-    const date = input instanceof Date ? input : new Date(s);
-    if (isNaN(date.getTime())) return "N/A";
-
-    const parts = new Intl.DateTimeFormat("en-US", {
-        timeZone: "America/Caracas",
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-    }).formatToParts(date);
-    const get = (type: string) => Number(parts.find((p) => p.type === type)?.value);
-
-    return format(new Date(get("year"), get("month") - 1, get("day")), dateFormat, { locale: es });
+    return formatCalendarDate(input, dateFormat);
 }

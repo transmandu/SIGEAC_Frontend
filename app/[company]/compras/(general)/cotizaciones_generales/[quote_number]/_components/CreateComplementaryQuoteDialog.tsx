@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { format } from "date-fns"
 import { Check, Link2, Loader2, PackagePlus } from "lucide-react"
 
 import { useCreateComplementaryQuote } from "@/actions/mantenimiento/compras/cotizaciones/actions"
@@ -108,7 +107,9 @@ export default function CreateComplementaryQuoteDialog({
         quoteId: quote.id,
         company,
         data: {
-          quote_date: format(new Date(), "yyyy-MM-dd"),
+          // quote_date es dateTime: se manda el instante, no el dia suelto
+          // (un "yyyy-MM-dd" se guarda como medianoche y pierde la hora real).
+          quote_date: new Date().toISOString(),
           justification: justification.trim(),
           general_articles: selected.map((item) => ({
             general_article_quote_order_id: item.id,

@@ -26,6 +26,7 @@ import {
     mergeStatusBadgeCls,
 } from "@/app/[company]/supervisor/articulos_generales/_components/utils/uiHelpers"
 import { PageHeader } from "@/components/layout/PageHeader";
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone"
 
 /**
  * Historial de fusiones de artículos generales.
@@ -89,6 +90,7 @@ function EmptyState({ message }: { message: string }) {
 }
 
 function MergeCard({ merge }: { merge: GeneralArticleMerge }) {
+    const timeZone = useCompanyTimezone()
     const { undoMerge } = useUndoMerge()
     const isUndone = !!merge.undone_at
     const final = merge.resolution?.final
@@ -151,14 +153,14 @@ function MergeCard({ merge }: { merge: GeneralArticleMerge }) {
                     tabular
                 />
                 <MetaCell label="Fusionado por" value={merge.merged_by} icon={User} />
-                <MetaCell label="Fecha" value={formatSupervisorDateTime(merge.merged_at)} />
+                <MetaCell label="Fecha" value={formatSupervisorDateTime(merge.merged_at, timeZone)} />
             </div>
 
             {/* Pie: rastro de reversión */}
             {isUndone && (
                 <div className="flex items-center gap-2 px-5 py-2.5 border-t border-border/50 bg-muted/20">
                     <span className={dependencyBadgeCls()}>
-                        Deshecha por {merge.undone_by} · {formatSupervisorDateTime(merge.undone_at)}
+                        Deshecha por {merge.undone_by} · {formatSupervisorDateTime(merge.undone_at, timeZone)}
                     </span>
                 </div>
             )}

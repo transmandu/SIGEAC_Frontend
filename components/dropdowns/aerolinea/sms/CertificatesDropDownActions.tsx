@@ -31,6 +31,7 @@ import { useAuth } from "@/contexts/AuthContext";
 
 import EditCertificateForm from "@/components/forms/general/EditCertificateForm";
 import { cn } from "@/lib/utils";
+import { formatCalendarDate } from "@/lib/date";
 
 interface CertificatesDropDownActionsProps {
   certificate: CertificateColumn;
@@ -161,9 +162,7 @@ const CertificatesDropDownActions = ({
                     {certificate.course?.start_date && (
                       <span className="text-[11px] text-muted-foreground ml-2 italic">
                         (
-                        {new Date(
-                          certificate.course.start_date + "T00:00:00",
-                        ).toLocaleDateString("es-ES")}
+                        {formatCalendarDate(certificate.course.start_date)}
                         )
                       </span>
                     )}

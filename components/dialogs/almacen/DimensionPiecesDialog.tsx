@@ -34,6 +34,8 @@ import {
 } from "@/hooks/mantenimiento/almacen/articulos/useDimensionPieces";
 import type { GeneralArticle } from "@/types";
 import { cn } from "@/lib/utils";
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
+import { formatInstant } from "@/lib/date";
 
 // Mismo lenguaje visual que el formulario de artículo y el LoginForm.
 const glassCard = cn(
@@ -88,6 +90,7 @@ interface Props {
  * pieza sirve para un trazo concreto — que es justamente lo que hay que decidir.
  */
 const DimensionPiecesDialog = ({ article, open, onOpenChange }: Props) => {
+  const timeZone = useCompanyTimezone();
   const { selectedCompany } = useCompanyStore();
   const [expandedPiece, setExpandedPiece] = useState<number | null>(null);
   const [confirmScrap, setConfirmScrap] = useState<number | null>(null);
@@ -364,9 +367,7 @@ const DimensionPiecesDialog = ({ article, open, onOpenChange }: Props) => {
                                   )}
                                 </span>
                                 <span className="shrink-0 text-muted-foreground tabular-nums">
-                                  {cut.created_at
-                                    ? format(new Date(cut.created_at), "dd/MM/yy")
-                                    : ""}
+                                  {formatInstant(cut.created_at, timeZone, "dd/MM/yy", "")}
                                   {cut.registered_by && ` · ${cut.registered_by}`}
                                 </span>
                               </li>

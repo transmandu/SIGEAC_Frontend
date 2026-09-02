@@ -4,6 +4,22 @@ import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
 import { Badge } from "@/components/ui/badge"
 import { PaymentMethod } from "@/types"
 import { ColumnDef } from "@tanstack/react-table"
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone"
+import { formatInstant } from "@/lib/date"
+
+/**
+ * El arreglo de columnas es estático, así que la zona se resuelve dentro de una
+ * celda con nombre en vez de recibirla por parámetro.
+ */
+const CreatedAtCell = ({ value }: { value?: string | null }) => {
+  const timeZone = useCompanyTimezone()
+
+  return (
+    <span className='text-muted-foreground flex justify-center italic'>
+      {formatInstant(value, timeZone, "date")}
+    </span>
+  )
+}
 
 export const columns: ColumnDef<PaymentMethod>[] = [
   {
@@ -41,11 +57,6 @@ export const columns: ColumnDef<PaymentMethod>[] = [
       <DataTableColumnHeader column={column} title="Creado" />
     ),
     meta: { title: 'Creado' },
-    cell: ({ row }) =>
-      <>
-        <span className='text-muted-foreground flex justify-center italic'>
-          {row.original.created_at ? new Date(row.original.created_at).toLocaleDateString() : "N/A"}
-        </span>
-      </>
+    cell: ({ row }) => <CreatedAtCell value={row.original.created_at} />
   },
 ]

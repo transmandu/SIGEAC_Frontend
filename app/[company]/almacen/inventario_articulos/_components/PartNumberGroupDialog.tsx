@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useState } from "react";
 import { getStatusBadge, type IArticleSimple } from "@/app/[company]/almacen/inventario_articulos/_tables/warehouse-columns";
+import { toCalendarPayload } from "@/lib/date";
 
 type Props = {
   open: boolean;
@@ -68,7 +69,7 @@ function toSearchable(r: IArticleSimple) {
     (typeof r.consumable?.expiration_date === "string"
       ? r.consumable.expiration_date
       : r.consumable?.expiration_date instanceof Date
-        ? r.consumable.expiration_date.toISOString()
+        ? (toCalendarPayload(r.consumable.expiration_date) ?? "")
         : "");
 
   // La cantidad entra al blob solo cuando se muestra, para que buscar "5" no
@@ -88,7 +89,7 @@ function formatShelf(r: IArticleSimple) {
     (typeof r.consumable?.expiration_date === "string"
       ? r.consumable.expiration_date
       : r.consumable?.expiration_date instanceof Date
-        ? r.consumable.expiration_date.toISOString()
+        ? toCalendarPayload(r.consumable.expiration_date)
         : null);
 
   return shelf ? String(shelf).slice(0, 10) : null;

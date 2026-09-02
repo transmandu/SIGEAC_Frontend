@@ -5,6 +5,8 @@ import { useQuery } from "@tanstack/react-query";
 
 export type CompanySettings = {
   quarantine_legal_days?: string | number;
+  /** Zona con que se MUESTRAN las fechas; el guardado siempre es UTC. */
+  timezone?: string;
 };
 
 const fetchCompanySettings = async (company?: string): Promise<CompanySettings> => {
