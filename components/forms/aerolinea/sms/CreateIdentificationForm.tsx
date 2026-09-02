@@ -91,6 +91,11 @@ const FormSchema = z.object({
       message: "El analisis causa raiz no debe exceder los 2000 caracteres",
     }),
   information_source_id: z.string(),
+  root_cause: z
+    .string()
+    .max(5000, { message: "La causa raíz no debe exceder los 5000 caracteres" })
+    .optional()
+    .or(z.literal("")),
 });
 
 type FormSchemaType = z.infer<typeof FormSchema>;
@@ -159,6 +164,7 @@ export default function CreateDangerIdentificationForm({
       root_cause_analysis: initialData?.root_cause_analysis || "",
       description: initialData?.description || "",
       possible_consequences: initialData?.possible_consequences || "",
+      root_cause: initialData?.root_cause || "",
     },
   });
 
@@ -167,7 +173,7 @@ export default function CreateDangerIdentificationForm({
       const splitAndFilter = (str: string | undefined) =>
         str
           ? str
-              .split(",")
+              .split("~")
               .map((s) => s.trim())
               .filter(Boolean)
           : [];
@@ -196,7 +202,7 @@ export default function CreateDangerIdentificationForm({
     if (newDefense.trim()) {
       const updated = [...defenses, newDefense.trim()];
       setDefenses(updated);
-      form.setValue("current_defenses", updated.join(","), {
+      form.setValue("current_defenses", updated.join("~"), {
         shouldValidate: true,
       });
       setNewDefense("");
@@ -205,7 +211,7 @@ export default function CreateDangerIdentificationForm({
   const removeDefense = (index: number) => {
     const updated = defenses.filter((_, i) => i !== index);
     setDefenses(updated);
-    form.setValue("current_defenses", updated.join(","), {
+    form.setValue("current_defenses", updated.join("~"), {
       shouldValidate: true,
     });
   };
@@ -232,7 +238,7 @@ export default function CreateDangerIdentificationForm({
     if (newConsequence.trim()) {
       const updated = [...consequences, newConsequence.trim()];
       setConsequences(updated);
-      form.setValue("possible_consequences", updated.join(","), {
+      form.setValue("possible_consequences", updated.join("~"), {
         shouldValidate: true,
       });
       setNewConsequence("");
@@ -242,7 +248,7 @@ export default function CreateDangerIdentificationForm({
     const removed = consequences[index];
     const updated = consequences.filter((_, i) => i !== index);
     setConsequences(updated);
-    form.setValue("possible_consequences", updated.join(","), {
+    form.setValue("possible_consequences", updated.join("~"), {
       shouldValidate: true,
     });
     // La consecuencia a evaluar sale de esta lista: si se borra la elegida, queda huerfana.
@@ -261,7 +267,7 @@ export default function CreateDangerIdentificationForm({
     if (newAnalysis.trim()) {
       const updated = [...analyses, newAnalysis.trim()];
       setAnalyses(updated);
-      form.setValue("root_cause_analysis", updated.join(","), {
+      form.setValue("root_cause_analysis", updated.join("~"), {
         shouldValidate: true,
       });
       setNewAnalysis("");
@@ -270,7 +276,7 @@ export default function CreateDangerIdentificationForm({
   const removeAnalysis = (index: number) => {
     const updated = analyses.filter((_, i) => i !== index);
     setAnalyses(updated);
-    form.setValue("root_cause_analysis", updated.join(","), {
+    form.setValue("root_cause_analysis", updated.join("~"), {
       shouldValidate: true,
     });
   };
@@ -710,6 +716,21 @@ export default function CreateDangerIdentificationForm({
             <FormItem>
               <FormControl>
                 <Input type="hidden" {...field} />
+              </FormControl>
+              <FormMessage className="text-xs" />
+            </FormItem>
+          )}
+        />
+
+        {/* --- CAUSA RAÍZ --- */}
+        <FormField
+          control={form.control}
+          name="root_cause"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Causa Raíz</FormLabel>
+              <FormControl>
+                <Textarea placeholder="Describa la causa raíz identificada" {...field} />
               </FormControl>
               <FormMessage className="text-xs" />
             </FormItem>
