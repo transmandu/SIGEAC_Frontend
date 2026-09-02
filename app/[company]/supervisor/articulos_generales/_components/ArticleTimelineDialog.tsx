@@ -18,6 +18,7 @@ import {
     PackagePlus,
     PencilLine,
     Receipt,
+    Undo2,
 } from "lucide-react"
 import { formatCost } from "@/lib/utils"
 import { dependencyBadgeCls, formatQuantity, formatSupervisorDateTime } from "./utils/uiHelpers"
@@ -110,7 +111,12 @@ export function ArticleTimelineDialog({
 }
 
 function TimelineRow({ event, isLast }: { event: TimelineEvent; isLast: boolean }) {
-    const meta = TYPE_META[event.type] ?? TYPE_META.AUDIT
+    // La devolución llega como evento de despacho pero es su opuesto: repone
+    // existencia, así que no puede leerse con el icono y el rótulo de salida.
+    const isReturn = event.type === "DISPATCH" && event.event === "RETURNED"
+    const meta = isReturn
+        ? { icon: Undo2, label: "Devolución" }
+        : (TYPE_META[event.type] ?? TYPE_META.AUDIT)
     const Icon = meta.icon
 
     return (

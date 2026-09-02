@@ -15,6 +15,7 @@ import { useCompanyStore } from "@/stores/CompanyStore"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
 import { useCallback, useMemo, useState } from "react"
+import { toast } from "sonner"
 import { useFieldArray, useForm, useWatch } from "react-hook-form"
 import { z } from "zod"
 import type { Article, Batch, Department, GeneralArticle, ThirdParty } from "@/types"
@@ -154,6 +155,10 @@ const CONVERSION_PRECISION = 12
 // jefatura de almacén responde por ella.
 const BACKDATE_ROLES = ["JEFE_ALMACEN", "SUPERUSER"]
 
+// Tope de `max_file_uploads` de PHP (20 por defecto). Se deja un margen para
+// los demás campos del multipart, que también cuentan contra el límite.
+const MAX_EVIDENCE_FILES_PER_REQUEST = 18
+
 const flattenDepartments = (departments: Department[]): Department[] =>
     departments.flatMap((department) => [
     department,
@@ -181,6 +186,9 @@ export function useDispatchForm(
     const [convState, setConvState] = useState<ConvState>(CONV_INITIAL)
     // Trazo en curso por fila, para artículos que se miden por dimensiones.
     const [cutByKey, setCutByKey] = useState<Record<string, CutDraft>>({})
+    // Fotos de la entrega por fila. Opcionales: sirven de respaldo de cómo se
+    // entregó el artículo, y no condicionan el guardado.
+    const [evidenceByKey, setEvidenceByKey] = useState<Record<string, File[]>>({})
 
     const { createDispatchRequest } = useCreateDispatchRequest()
 
@@ -334,6 +342,11 @@ export function useDispatchForm(
         setMsgByKey((p) => { const n = { ...p }; delete n[key]; return n })
         setConvByKey((p) => { const n = { ...p }; delete n[key]; return n })
         setCutByKey((p) => { const n = { ...p }; delete n[key]; return n })
+        setEvidenceByKey((p) => { const n = { ...p }; delete n[key]; return n })
+    }, [])
+
+    const setEvidence = useCallback((key: string, files: File[]) => {
+        setEvidenceByKey((p) => ({ ...p, [key]: files }))
     }, [])
 
     /**
@@ -592,9 +605,37 @@ export function useDispatchForm(
         // a verificar el rol en vez de confiar en que llegue o no la fecha.
         const isBackdated = canBackdate && data.is_backdated && !!data.submission_date
 
+        // La evidencia se guarda contra la fila del formulario (su fieldId),
+        // pero el backend solo conoce la POSICIÓN en el array que recibe: se
+        // reindexa aquí, que es donde ambas cosas se conocen a la vez.
+        const evidences: Record<string, File[]> = {}
+
+        aeroFA.fields.forEach((field, index) => {
+            const files = evidenceByKey[aeroKey(field.id)]
+            if (files?.length) evidences[`aero:${index}`] = files
+        })
+
+        genFA.fields.forEach((field, index) => {
+            const files = evidenceByKey[genKey(field.id)]
+            if (files?.length) evidences[`general:${index}`] = files
+        })
+
+        // PHP descarta en silencio los archivos que pasen de `max_file_uploads`
+        // (20 por defecto): la salida se guardaría con menos fotos de las que
+        // el usuario adjuntó, sin error alguno. Se corta antes de enviar.
+        const totalFiles = Object.values(evidences).reduce((sum, files) => sum + files.length, 0)
+
+        if (totalFiles > MAX_EVIDENCE_FILES_PER_REQUEST) {
+            toast.error("Demasiadas evidencias", {
+                description: `Adjuntó ${totalFiles} imágenes y el servidor admite ${MAX_EVIDENCE_FILES_PER_REQUEST} por envío. Quite algunas y vuelva a intentar.`,
+            })
+            return
+        }
+
         await createDispatchRequest.mutateAsync({
             data: {
                 ...data,
+                evidences,
                 created_by: user!.username,
                 is_backdated: isBackdated,
                 submission_date: isBackdated ? format(data.submission_date!, "yyyy-MM-dd") : undefined,
@@ -652,6 +693,8 @@ export function useDispatchForm(
         convByKey,
         // dimensional cuts
         cutByKey, updateCut,
+        // evidencias de entrega (opcionales)
+        evidenceByKey, setEvidence,
         // qty handlers
         commitAeroQty, commitGenQty,
         setToMaxAero, setToMaxGen,

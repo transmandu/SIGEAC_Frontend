@@ -24,6 +24,8 @@
 9. [Conversiones de unidad: el mecanismo transversal](#9-conversiones-de-unidad-el-mecanismo-transversal)
 10. [Inventario: cómo se afecta realmente](#10-inventario-cómo-se-afecta-realmente)
 11. [Despacho (salida) y el cierre del círculo](#11-despacho-salida-y-el-cierre-del-círculo)
+    - [11.1 Devolución: lo que salió y no se usó](#111-devolución-lo-que-salió-y-no-se-usó)
+    - [11.2 Evidencia fotográfica](#112-evidencia-fotográfica)
 12. [Costos: el hilo que atraviesa todo el ciclo](#12-costos-el-hilo-que-atraviesa-todo-el-ciclo)
 13. [Manejo de discrepancias](#13-manejo-de-discrepancias)
 14. [Reposición automática (low stock)](#14-reposición-automática-low-stock)
@@ -877,7 +879,8 @@ Una salida (`DispatchOrder`, correlativo `SAL...`) puede mezclar artículos
 aeronáuticos y generales en la misma solicitud. Se registra para quién
 (departamento, aeronave, orden de trabajo, tercero) y con qué justificación.
 
-Estados: `PROCESO` → `APROBADO` / `RECHAZADO` → `CERRADO` (al devolver).
+Estados: `PENDING` → `APPROVED` / `REJECTED` → `RETURNED` (cuando ya no queda
+nada fuera del almacén; ver 11.1).
 
 El efecto sobre el artículo depende de su naturaleza:
 
@@ -903,6 +906,199 @@ respetar:
 
 `broadcastLowStockForTouchedArticles()` se llama **fuera** de la transacción, con los
 IDs acumulados por referencia durante ella. Mismo patrón que el resto del sistema.
+
+---
+
+## 11.1 Devolución: lo que salió y no se usó
+
+### Para el usuario
+
+**Dónde:** acciones de la fila, en el módulo de salidas.
+
+Cuando un artículo sale pero no se consume, **no se elimina la salida**: se
+registra su devolución. La diferencia importa porque la salida ocurrió de verdad
+—el artículo estuvo fuera del almacén— y borrarla falsearía el historial.
+
+Se elige qué artículos volvieron y en qué cantidad (puede ser parcial), se
+justifica, y se declara en qué condición regresan.
+
+**La cantidad se captura en la unidad en que se despachó**, no en la base: si
+salieron 30 UNIDADES de un trapo cuya base es METRO, se devuelven unidades. El
+diálogo muestra debajo la equivalencia en unidad base (`≈ 0.667 METRO`), que es
+lo que realmente reingresa al inventario.
+
+| Condición | Qué pasa con el artículo |
+|-----------|--------------------------|
+| Intacto (sellado) | reingresa directo al almacén y **suma stock** |
+| Con alteración | pasa a `INCOMING` y **no suma stock** hasta que un inspector lo apruebe |
+
+Esa casilla es la que cambia el botón de envío a **"Mandar para incoming"**, y
+solo aparece sobre **unidades serializadas** (herramienta, componente, parte):
+un consumible o un artículo general se manejan por cantidad, y mandarlos a
+inspección retendría todo el renglón por unas pocas unidades dudosas.
+
+Cada línea de la salida lleva su propio estado —`DISPATCHED`,
+`PARTIALLY_RETURNED`, `RETURNED`— visible en el diálogo de artículos. La orden
+completa pasa a `RETURNED` solo cuando **todas** sus líneas quedan saldadas.
+
+**Efecto en los reportes de costos:** lo devuelto deja de cobrarse. Como los
+Excel ya descargados quedan desactualizados, al registrar una devolución se
+notifica a los roles que pueden bajar ese reporte
+(`JEFE_ADMINISTRACION`, `ANALISTA_ADMINISTRACION`, más `SUPERUSER`) para que
+vuelvan a generarlo.
+
+### Para el desarrollador
+
+**Archivos:** [DispatchReturnService.php](../../../laragon/www/SIGEAC_Backend/app/Services/Warehouse/DispatchReturnService.php),
+[DispatchReturn.php](../../../laragon/www/SIGEAC_Backend/app/Models/Warehouse/Aeronautical/DispatchReturn.php)
+
+El estado vive en la **línea** (`articles_dispatch_orders.status` +
+`returned_quantity`), no solo en la orden: sin eso una devolución parcial no
+tendría dónde constar y el reporte seguiría cobrando lo que volvió.
+
+`returned_quantity` va en **unidad base**, con la misma precisión
+`decimal(28,12)` que `quantity` — con menos decimales, devolver algo capturado
+en unidad alterna dejaría un residuo que impediría cerrar la línea.
+
+**Conversión de unidad en la devolución.** La cantidad entra en la unidad de
+despacho y se traduce con el `applied_factor` **congelado en la salida**, nunca
+con la conversión vigente: si la equivalencia del artículo cambió después de
+despachar, usar el factor nuevo repondría una cantidad distinta de la que salió
+y la línea no podría cerrarse jamás. Lo resuelven `dispatchUnitToBase()` /
+`baseToDispatchUnit()` en `ArticleDispatchOrder`.
+
+Devolver el saldo completo usa el pendiente en base **tal cual**, sin pasar por
+el factor: ir y volver arrastra redondeo, y unas milésimas sobrantes dejarían la
+línea eternamente `PARTIALLY_RETURNED`.
+
+Lo que el reporte de costos cobra es `consumedQuantity()` (lo despachado menos
+lo devuelto), no `quantity`. Aplica en `dispatchBalance` y
+`dispatchTotalExpenses`; el reporte de salidas sí conserva la cantidad
+despachada, porque documenta lo que salió.
+
+**Limitación deliberada:** un artículo dimensionado solo se devuelve **completo**.
+Un trazo ya cortado no se descorta a medias, así que la devolución parcial se
+rechaza en `assertReturnable()` antes de escribir nada; la total va por
+`DimensionService::revertDispatchCuts()`.
+
+`updateStatusItems` queda marcado `@deprecated`: marcaba `RETURNED` toda orden
+que contuviera el artículo, sin cantidades ni parcialidad.
+
+**Efectos sobre lo que ya existía**, todos derivados de que el saldo de una
+línea ahora puede no ser su cantidad completa:
+
+- `destroy` repone solo el **saldo pendiente**. Reponer `quantity` entera sobre
+  una salida con devoluciones inventaba existencia (devolver 3 de 10 y luego
+  borrar la salida reponía los 10). También borra los `dispatch_return_items`,
+  que apuntan al pivote sin constraint y quedarían huérfanos.
+- `update` de una salida con devoluciones se **bloquea**: reapuntar sus líneas
+  dejaría los items de devolución describiendo otro artículo.
+- `updateQuantityArticleDispatch` no admite bajar la cantidad por debajo de lo
+  ya devuelto, y recalcula el estado de la línea (puede cerrar la orden).
+- El dashboard cuenta `APPROVED` **y** `RETURNED` —una orden devuelta sí
+  despachó— y descuenta lo devuelto de la suma que decide el reabastecimiento.
+- La **fusión** de artículos generales reescala `returned_quantity` junto con
+  `quantity`, y su rollback lo restaura: viven en la misma unidad base y
+  separarlos descuadraría el saldo.
+- La devolución emite la alerta de **low stock** (reponer puede sacar un
+  artículo de bajo stock) y, en consumibles, escribe un `Movement` explícito:
+  como el artículo ya está `STORED` y no cambia de estado, `ArticleObserver` no
+  dispararía y el reingreso no dejaría rastro en el historial de inventario.
+- El **timeline del artículo general** incluye la devolución como evento propio,
+  con su condición y justificación.
+
+Concurrencia: la línea se lee con `lockForUpdate()` y las entradas repetidas del
+mismo `article_dispatch_order_id` se funden antes de validar; sin ambas cosas,
+dos devoluciones simultáneas podrían superar entre las dos lo que salió.
+
+---
+
+## 11.2 Evidencia fotográfica
+
+### Para el usuario
+
+Tanto al **registrar una salida** como al **devolver**, cada artículo admite
+fotos de respaldo: cómo se entregó y cómo volvió. Todo es **opcional** y su
+ausencia no bloquea nada.
+
+Dos formas de adjuntar, ambas en la fila del artículo:
+
+- **Adjuntar imagen** — archivos JPG, PNG o WEBP, hasta 8 MB cada uno.
+- **Tomar foto** — abre la cámara conectada al equipo y captura sin salir del
+  sistema. Si hay varias cámaras, se elige cuál usar.
+
+Hasta 6 fotos por artículo y etapa. Las miniaturas abren un carrusel a tamaño
+completo (flechas del teclado para navegar).
+
+Dónde se ven después:
+
+| Lugar | Qué muestra |
+|-------|-------------|
+| Resumen de artículos de la salida | cómo fue entregado |
+| Historial de devoluciones | cómo fue devuelto |
+| **Ficha de inspección de incoming** | cómo volvió la pieza, con el motivo, quién la devolvió y cuándo |
+
+Esa última es la que cierra el círculo, y va en la **ficha del artículo** (donde
+el inspector llena el checklist), no en el listado: aparece justo bajo el
+encabezado, antes de la identificación, porque explica por qué la pieza está
+ahí y eso condiciona todo lo que el inspector mire después. Un artículo devuelto
+llega sin los papeles de una compra —sin orden, sin factura—, así que lo único
+que lo justifica es lo que declaró el almacén. La sección no se dibuja cuando el
+artículo llegó por la vía normal.
+
+### Para el desarrollador
+
+**Archivos:** [DispatchEvidenceService.php](../../../laragon/www/SIGEAC_Backend/app/Services/Warehouse/DispatchEvidenceService.php),
+[EvidenceCapture.tsx](../components/misc/EvidenceCapture.tsx),
+[useCameraCapture.ts](../hooks/useCameraCapture.ts)
+
+La evidencia cuelga de la **línea** (`article_dispatch_order_id`) y `stage`
+separa `DISPATCH` de `RETURN`; la de devolución apunta además a la
+`dispatch_returns` que la aportó.
+
+**El problema del orden en la creación.** Al registrar una salida las líneas
+todavía no existen, así que el formulario manda las fotos indexadas por su
+propia clave de fila (`evidences[aero:0][]`) y el controlador las traduce al id
+que le tocó a cada línea. En la devolución no hace falta: ahí las líneas ya
+existen y se indexa directamente por `article_dispatch_order_id`.
+
+**Nada de esto puede tumbar la operación.** Si una imagen falla al guardarse, el
+servicio lo registra en el log y sigue: perder una salida —con su descuento de
+stock ya hecho— por una foto sería mucho peor que quedarse sin el respaldo.
+
+**Cámara.** `getUserMedia` solo existe en contexto seguro (HTTPS o localhost);
+en una IP plana el navegador no expone la API y el hook lo dice en vez de dejar
+el botón muerto. El stream se libera siempre al cerrar o desmontar: una pista
+viva mantiene el led encendido y bloquea la cámara para otras aplicaciones. Las
+etiquetas de los dispositivos solo llegan con permiso concedido, así que se
+enumeran **después** de abrir el stream.
+
+**Archivos en disco.** `destroy` recoge las rutas antes de borrar las filas y
+elimina los archivos **fuera** de la transacción: una fila puede volver atrás,
+un archivo borrado no. Como en las facturas de compra, la cascada de BD nunca
+toca el disco.
+
+El nombre del archivo se deriva del tipo real (`guessExtension()`), no del
+nombre del cliente: una captura de cámara llega como `blob` y quedaría sin
+extensión.
+
+**Límite de PHP.** `max_file_uploads` (20 por defecto) descarta los archivos
+sobrantes **en silencio**: sin error, sin excepción, simplemente no llegan. Con
+6 fotos por artículo, una salida de cuatro artículos ya lo supera. El frontend
+corta en 18 antes de enviar y el backend registra un aviso en el log si el
+request llegó al tope. Si en producción se quiere permitir más, hay que subir
+`max_file_uploads` en `php.ini` **y** la constante del frontend.
+
+**Qué se puede borrar.** Una foto de **entrega** sí (desde su visor: se abre a
+tamaño completo y se elimina ahí, no de un clic al pasar por encima). Una de
+**devolución** no: respalda una desviación ya declarada y, en un artículo que
+pasó a inspección, sustenta el criterio del inspector.
+
+**Lo que ve el inspector** es la ÚLTIMA devolución `ALTERED` del artículo, no
+todas: una pieza puede haber ido y vuelto varias veces, y una devolución intacta
+no lo pone en incoming. El endpoint parte de la devolución y no de sus fotos,
+porque la justificación debe llegar aunque el almacén no adjuntara ninguna
+imagen.
 
 ---
 

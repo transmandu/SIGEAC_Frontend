@@ -18,27 +18,54 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useReturnToWarehouse } from "@/actions/mantenimiento/almacen/solicitudes/salida/action";
+import DispatchReturnDialog from "@/components/dialogs/mantenimiento/almacen/DispatchReturnDialog";
+import DispatchReturnHistoryDialog from "@/components/dialogs/mantenimiento/almacen/DispatchReturnHistoryDialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { Loader2, MoreHorizontal, Trash2, Undo2 } from "lucide-react";
+import { History, Loader2, MoreHorizontal, Trash2, Undo2 } from "lucide-react";
 import { useState } from "react";
 
 const DispatchRequestDropdownActions = ({
   id,
   category,
   articles,
+  status,
+  requestNumber,
 }: {
   id: string | number;
   category?: string;
   articles: DispatchArticle[];
+  status?: string;
+  requestNumber?: string;
 }) => {
   const [openDelete, setOpenDelete] = useState(false);
   const [openReturn, setOpenReturn] = useState(false);
+  const [openReturnForm, setOpenReturnForm] = useState(false);
+  const [openHistory, setOpenHistory] = useState(false);
 
   const { selectedCompany } = useCompanyStore();
   const { deleteDispatchRequest } = useDeleteDispatchRequest();
   const returnToWarehouse = useReturnToWarehouse(selectedCompany?.slug);
 
   const isHerramienta = category?.toLowerCase() === "herramienta";
+
+  // Solo se devuelve lo que llegó a salir, y solo mientras quede algo fuera
+  // del almacén. Si no aplica, la acción no se dibuja.
+  const isDispatched = status === "APPROVED" || status === "RETURNED";
+  const canReturn =
+    isDispatched &&
+    articles.some(
+      (a) =>
+        a.article_dispatch_order_id &&
+        (a.pending_quantity ?? Number(a.dispatch_quantity) ?? 0) > 0
+    );
+  const hasReturns =
+    status === "RETURNED" ||
+    articles.some((a) => (a.returned_quantity ?? 0) > 0);
 
   const handleDelete = async () => {
     if (!selectedCompany?.slug) return;
@@ -58,6 +85,21 @@ const DispatchRequestDropdownActions = ({
 
   return (
     <>
+      <DispatchReturnDialog
+        open={openReturnForm}
+        onOpenChange={setOpenReturnForm}
+        dispatchId={id}
+        requestNumber={requestNumber ?? ""}
+        articles={articles}
+      />
+
+      <DispatchReturnHistoryDialog
+        open={openHistory}
+        onOpenChange={setOpenHistory}
+        dispatchId={id}
+        requestNumber={requestNumber ?? ""}
+      />
+
       {/* Dialog: Devolver a almacén */}
       <Dialog open={openReturn} onOpenChange={setOpenReturn}>
         <DialogContent>
@@ -137,20 +179,56 @@ const DispatchRequestDropdownActions = ({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="center" className="flex gap-2 justify-center">
-          {isHerramienta && (
-            <DropdownMenuItem
-              className="cursor-pointer"
-              onSelect={() => setOpenReturn(true)}
-            >
-              <Undo2 className="size-5 text-blue-500" />
-            </DropdownMenuItem>
+          {canReturn && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onSelect={() => setOpenReturnForm(true)}
+                >
+                  <Undo2 className="size-5 text-blue-500" />
+                </DropdownMenuItem>
+              </TooltipTrigger>
+              <TooltipContent>Registrar devolución</TooltipContent>
+            </Tooltip>
           )}
-          <DropdownMenuItem
-            className="cursor-pointer"
-            onSelect={() => setOpenDelete(true)}
-          >
-            <Trash2 className="size-5 text-red-500" />
-          </DropdownMenuItem>
+          {hasReturns && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onSelect={() => setOpenHistory(true)}
+                >
+                  <History className="size-5 text-emerald-500" />
+                </DropdownMenuItem>
+              </TooltipTrigger>
+              <TooltipContent>Historial de devoluciones</TooltipContent>
+            </Tooltip>
+          )}
+          {isHerramienta && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onSelect={() => setOpenReturn(true)}
+                >
+                  <Undo2 className="size-5 text-slate-500" />
+                </DropdownMenuItem>
+              </TooltipTrigger>
+              <TooltipContent>Devolver herramienta al almacén</TooltipContent>
+            </Tooltip>
+          )}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <DropdownMenuItem
+                className="cursor-pointer"
+                onSelect={() => setOpenDelete(true)}
+              >
+                <Trash2 className="size-5 text-red-500" />
+              </DropdownMenuItem>
+            </TooltipTrigger>
+            <TooltipContent>Eliminar solicitud</TooltipContent>
+          </Tooltip>
         </DropdownMenuContent>
       </DropdownMenu>
     </>

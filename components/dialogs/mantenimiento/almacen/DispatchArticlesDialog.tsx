@@ -17,6 +17,9 @@ import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { ClipboardList, PackageOpen, Hash, Barcode, X, Package } from "lucide-react"
+import EvidenceGallery from "@/components/misc/EvidenceGallery"
+import { useDeleteDispatchEvidence } from "@/actions/mantenimiento/almacen/solicitudes/salida/action"
+import { useCompanyStore } from "@/stores/CompanyStore"
 
 
 type Article = {
@@ -26,6 +29,22 @@ type Article = {
     part_number?: string
     article_id?: string | number
     unit?: string
+    returned_quantity?: number
+    status?: "DISPATCHED" | "PARTIALLY_RETURNED" | "RETURNED"
+    /** Cómo se entregó el artículo; opcional. */
+    evidences?: { id: number; url: string | null }[]
+}
+
+/** Cómo se lee el estado de una línea; DISPATCHED no se rotula por ser lo normal. */
+const RETURN_LABELS: Record<string, { label: string; className: string }> = {
+    PARTIALLY_RETURNED: {
+        label: "Devuelto en parte",
+        className: "border-amber-500/50 text-amber-600 dark:text-amber-500",
+    },
+    RETURNED: {
+        label: "Devuelto",
+        className: "border-emerald-500/50 text-emerald-600 dark:text-emerald-500",
+    },
 }
 
 interface DispatchArticlesDialogProps {
@@ -34,19 +53,25 @@ interface DispatchArticlesDialogProps {
     justification?: string | null
 }
 
+// maximumFractionDigits y no maximumSignificantDigits: este último cuenta
+// cifras significativas, no decimales, y mostraba 1500 como "1.5" y 0.6667
+// como "0.67". Las cantidades convertidas arrastran decimales largos, así que
+// se recortan a 4 sin tocar la parte entera.
 function formatQty(value: string) {
     const n = Number(value);
 
-    if (!Number.isFinite(n) || n === 0) return "0.00";
+    if (!Number.isFinite(n)) return "0.00";
 
-    return n.toLocaleString(undefined, {
-        minimumFractionDigits: 2,      // Asegura al menos dos decimales para números como 1.50
-        maximumSignificantDigits: 2,   // Fuerza a que se detenga en la segunda cifra significativa
+    return n.toLocaleString("es-VE", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 4,
     });
 }
 
 const DispatchArticlesDialog = ({ articles = [], work_order, justification }: DispatchArticlesDialogProps) => {
     const hasArticles = articles.length > 0
+    const { selectedCompany } = useCompanyStore()
+    const { deleteDispatchEvidence } = useDeleteDispatchEvidence()
 
     return (
         <Dialog>
@@ -163,13 +188,46 @@ const DispatchArticlesDialog = ({ articles = [], work_order, justification }: Di
                                                         )}
                                                     </div>
 
-                                                    <div className="flex shrink-0 items-center gap-2 whitespace-nowrap">
+                                                    <div className="flex shrink-0 flex-col items-end gap-1.5 whitespace-nowrap">
                                                         <Badge className="text-sm">
                                                             {formatQty(a.dispatch_quantity)}
                                                             {a.unit ? ` ${a.unit}` : ""}
                                                         </Badge>
+                                                        {a.status && RETURN_LABELS[a.status] && (
+                                                            <Badge
+                                                                variant="outline"
+                                                                className={RETURN_LABELS[a.status].className}
+                                                            >
+                                                                {RETURN_LABELS[a.status].label}
+                                                                {a.status === "PARTIALLY_RETURNED" && a.returned_quantity
+                                                                    ? `: ${a.returned_quantity}`
+                                                                    : ""}
+                                                            </Badge>
+                                                        )}
                                                     </div>
                                                 </div>
+
+                                                {!!a.evidences?.length && (
+                                                    <div className="mt-3 border-t pt-3">
+                                                        <p className="mb-1.5 text-xs text-muted-foreground">
+                                                            Cómo fue entregado
+                                                        </p>
+                                                        <EvidenceGallery
+                                                            images={a.evidences}
+                                                            title="Evidencia de entrega"
+                                                            onDelete={
+                                                                selectedCompany?.slug
+                                                                    ? (id) =>
+                                                                          deleteDispatchEvidence.mutate({
+                                                                              id,
+                                                                              company: selectedCompany.slug,
+                                                                          })
+                                                                    : undefined
+                                                            }
+                                                            isDeleting={deleteDispatchEvidence.isPending}
+                                                        />
+                                                    </div>
+                                                )}
                                             </div>
                                         );
                                     })}

@@ -23,6 +23,24 @@ export type DispatchArticle = {
   description?: string;
   dispatch_quantity: string;
   category?: string;
+  unit?: string;
+  // Identifica la LÍNEA de la salida, no el artículo: es lo que devuelve la
+  // devolución, porque un mismo artículo puede figurar en varias líneas.
+  article_dispatch_order_id?: number;
+  returned_quantity?: number;
+  pending_quantity?: number;
+  status?: "DISPATCHED" | "PARTIALLY_RETURNED" | "RETURNED";
+  // Solo la unidad serializada puede mandarse a incoming: un consumible es un
+  // renglón con cantidad, no una pieza que un inspector pueda retener.
+  is_inspectable?: boolean;
+  // La devolución se captura en la unidad en que se despachó: si salieron 30
+  // UNIDADES de un artículo con base METRO, se devuelve en unidades.
+  return_unit?: string;
+  pending_in_return_unit?: number;
+  base_unit?: string;
+  uses_alternate_unit?: boolean;
+  /** Fotos de cómo se entregó el artículo; opcionales. */
+  evidences?: { id: number; url: string | null }[];
 };
 
 export type DispatchGroupRow = {

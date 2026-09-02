@@ -146,7 +146,7 @@ export function QuarantineDocumentsSection({
                     <FileUp className="absolute left-3 top-1/2 z-10 size-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
                       type="file"
-                      accept=".pdf,.jpg,.jpeg,.png"
+                      accept=".pdf,.jpg,.jpeg,.png,.webp"
                       disabled={disabled}
                       onChange={(e) =>
                         onChange(requirement.id, {

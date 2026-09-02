@@ -19,6 +19,8 @@ interface GeneralArticleRowProps {
   showConversionPanel: boolean
   conversionPanelNode: React.ReactNode
   cut?: CutDraft
+  /** Captura de evidencia fotográfica de la entrega. Opcional. */
+  evidenceNode?: React.ReactNode
   onQtyChange: (val: string) => void
   onCommit: () => void
   onSetMax: () => void
@@ -44,6 +46,7 @@ export function GeneralArticleRow({
   showConversionPanel,
   conversionPanelNode,
   cut,
+  evidenceNode,
   onQtyChange,
   onCommit,
   onSetMax,
@@ -93,6 +96,7 @@ export function GeneralArticleRow({
           />
         ) : undefined
       }
+      evidenceNode={evidenceNode}
       onQtyChange={onQtyChange}
       onCommit={onCommit}
       onSetMax={onSetMax}

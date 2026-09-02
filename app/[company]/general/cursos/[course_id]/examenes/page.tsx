@@ -86,7 +86,7 @@ const ExamAttendanceRow = ({ attendance, company, examId }: { attendance: any; c
         <Input 
           type="file" 
           className="w-56 text-xs cursor-pointer file:cursor-pointer" 
-          accept=".pdf,.jpg,.jpeg,.png"
+          accept=".pdf,.jpg,.jpeg,.png,.webp"
           onChange={(e) => setFile(e.target.files?.[0] || null)}
         />
         {attendance.document_path && !file && (
