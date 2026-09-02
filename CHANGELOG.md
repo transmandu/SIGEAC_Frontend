@@ -1,3 +1,7 @@
+## v3.7.1 — 2026-09-02
+
+- fix: danger identification show inf correctly (#234)
+
 ## v3.7.0 — 2026-09-02
 
 - Merge pull request #233 from transmandu/feat/confirmacion-cambio-estado-requisiciones
