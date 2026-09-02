@@ -1,3 +1,8 @@
+## v3.7.0 — 2026-09-02
+
+- Merge pull request #233 from transmandu/feat/confirmacion-cambio-estado-requisiciones
+- feat(compras): confirmar el avance de estado de requisiciones
+
 ## v3.6.0 — 2026-09-02
 
 - Merge pull request #232 from transmandu/feat/devoluciones-evidencias-compresion-imagenes
