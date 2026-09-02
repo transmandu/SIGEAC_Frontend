@@ -1,3 +1,8 @@
+## v3.6.0 — 2026-09-02
+
+- Merge pull request #232 from transmandu/feat/devoluciones-evidencias-compresion-imagenes
+- feat(almacen): devolucion de salidas y evidencia fotografica con camara
+
 ## v3.5.2 — 2026-09-01
 
 - fix: show add attendance when the status is CERRADO (#231)
