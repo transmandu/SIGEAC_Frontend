@@ -17,6 +17,7 @@ import {
 import { cn } from '@/lib/utils'
 import { useCompanyStore } from '@/stores/CompanyStore'
 import { useDownloadRequisitionsByStatusPdf } from '@/hooks/mantenimiento/compras/useDownloadRequisitionsByStatusPdf'
+import { toCalendarPayload } from '@/lib/date'
 
 /**
  * Estados ofrecidos. Se omiten APROBADA y NO APROBADA a propósito: son
@@ -99,10 +100,7 @@ export function DownloadRequisitionsByStatusDialog() {
       const anchor = document.createElement('a')
 
       anchor.href = url
-      anchor.download = `solicitudes-por-estado-${new Date()
-        .toISOString()
-        .slice(0, 10)
-        .replace(/-/g, '')}.pdf`
+      anchor.download = `solicitudes-por-estado-${(toCalendarPayload(new Date()) ?? '').replace(/-/g, '')}.pdf`
 
       // El ancla debe estar en el documento: Firefox ignora el click sobre un
       // elemento suelto y la descarga no ocurría.

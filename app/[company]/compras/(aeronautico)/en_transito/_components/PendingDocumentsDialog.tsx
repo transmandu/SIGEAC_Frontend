@@ -145,7 +145,7 @@ export function PendingDocumentsDialog({
                   <FileUpIcon className="absolute left-3 top-1/2 z-10 size-4 -translate-y-1/2 text-gray-500" />
                   <Input
                     type="file"
-                    accept=".pdf,.jpg,.jpeg,.png"
+                    accept=".pdf,.jpg,.jpeg,.png,.webp"
                     disabled={busy}
                     onChange={(e) => setFile(req.id, e.target.files?.[0])}
                     className="h-9 cursor-pointer pl-9 text-xs"

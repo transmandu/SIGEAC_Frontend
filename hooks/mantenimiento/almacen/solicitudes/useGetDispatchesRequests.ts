@@ -1,9 +1,16 @@
 import { AuthorizedEmployee } from "@/app/[company]/ajustes/autorizaciones/autorizados/columns";
+import type { DispatchArticle } from "@/app/[company]/almacen/solicitudes/salida/page";
 import axios from "@/lib/axios";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { MaintenanceAircraft } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 
+/**
+ * `articles` reusa DispatchArticle en vez de redeclararlo: eran dos
+ * definiciones del mismo contrato y ya habían divergido —esta se quedó sin los
+ * campos de devolución y evidencia—, así que la tabla recibía datos tipados
+ * como algo más pobre de lo que el backend manda.
+ */
 interface IDispatch {
   id: number;
   request_number: string;
@@ -17,14 +24,7 @@ interface IDispatch {
   category?: string;
   work_order?: string;
   aircraft?: MaintenanceAircraft;
-  articles: {
-    id: number;
-    part_number: string;
-    serial: string;
-    description: string;
-    category?: string;
-    dispatch_quantity: string;
-  }[];
+  articles: DispatchArticle[];
 }
 
 const fetchDispatchesRequests = async ({

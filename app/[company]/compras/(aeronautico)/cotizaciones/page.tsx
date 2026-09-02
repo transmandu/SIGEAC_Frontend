@@ -11,6 +11,7 @@ import GroupedQuotesTable from './_components/GroupedQuotesTable'
 import { isAeronauticalQuoteScope } from '@/lib/purchases/quote-scope'
 import QuoteSplitView, { useQuotePreview, useQuotePreviewSelectedId } from '@/components/side-panels/QuoteSplitView'
 import { PageHeader } from "@/components/layout/PageHeader";
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone"
 
 const QuotesOrdersPage = () => {
   return (
@@ -22,6 +23,7 @@ const QuotesOrdersPage = () => {
 
 const QuotesOrdersPageContent = () => {
   const { selectedCompany, selectedStation } = useCompanyStore()
+  const timeZone = useCompanyTimezone()
   const onPreview = useQuotePreview()
   const selectedPreviewId = useQuotePreviewSelectedId()
 
@@ -82,8 +84,8 @@ const QuotesOrdersPageContent = () => {
   }, [quotes, deferredSearch, status])
 
   const columns = useMemo(
-    () => getColumns(selectedCompany ?? undefined, onPreview ?? undefined, selectedPreviewId),
-    [selectedCompany, onPreview, selectedPreviewId]
+    () => getColumns(selectedCompany ?? undefined, onPreview ?? undefined, selectedPreviewId, timeZone),
+    [selectedCompany, onPreview, selectedPreviewId, timeZone]
   )
 
   return (

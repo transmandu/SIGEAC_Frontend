@@ -104,11 +104,11 @@ export default function AdministrationDashboardContent({
                   text-xs h-8 sm:h-7 px-4 sm:px-3
                   rounded-xl transition-all duration-200 whitespace-nowrap
                   text-slate-500 dark:text-slate-400
-                  hover:text-purple-500 dark:hover:text-purple-300
+                  hover:text-sky-600 dark:hover:text-sky-400
                   data-[state=active]:bg-white/80 dark:data-[state=active]:bg-slate-900/50
-                  data-[state=active]:text-purple-500 dark:data-[state=active]:text-purple-300
-                  data-[state=active]:shadow-[0_0_18px_rgba(168,85,247,0.18)]
-                  data-[state=active]:ring-1 data-[state=active]:ring-purple-300/40
+                  data-[state=active]:text-sky-600 dark:data-[state=active]:text-sky-400
+                  data-[state=active]:shadow-[0_0_18px_rgba(14,165,233,0.25)]
+                  data-[state=active]:ring-1 data-[state=active]:ring-sky-300/50
                 "
               >
                 <Shirt className="w-4 h-4 sm:w-3.5 sm:h-3.5 shrink-0" />

@@ -40,6 +40,7 @@ import { AdditionalInfoSection } from "./_components/AdditionalInfoSection"
 import { isHigherPriority, type Priority } from "./_components/priorityUtils"
 import { getStoragePathFromUrl } from "./_components/imageUtils"
 import { canAddRequisitionArticle } from "@/lib/purchases/requisition-article-limit"
+import { toCalendarPayload } from "@/lib/date";
 
 type WarehouseRequisitionType = "AERONAUTICAL" | "GENERAL"
 
@@ -504,7 +505,7 @@ export function CreateWarehouseRequisitionForm({
         ...prev,
         {
           description: article.description,
-          requested_date: new Date().toISOString(),
+          requested_date: toCalendarPayload(new Date()),
           variant_type: article.variant_type,
           brand_model: article.brand_model,
           quantity: 0,
@@ -552,7 +553,7 @@ export function CreateWarehouseRequisitionForm({
         ...prev,
         {
           description: "",
-          requested_date: new Date().toISOString(),
+          requested_date: toCalendarPayload(new Date()),
           variant_type: "",
           quantity: 0,
           unit_id: undefined,

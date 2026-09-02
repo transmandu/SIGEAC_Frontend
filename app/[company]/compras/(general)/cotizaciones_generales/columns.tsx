@@ -14,11 +14,10 @@ import { Link2, Store } from 'lucide-react'
 
 import type { Quote } from '@/types/purchase'
 
-import { format } from 'date-fns'
-import { es } from 'date-fns/locale'
 
 import Link from 'next/link'
 import PreviewPanelIcon from '@/components/misc/PreviewPanelIcon'
+import { DEFAULT_TIMEZONE, formatInstant } from "@/lib/date"
 
 const QUOTE_STATUS_LABELS: Record<string, string> = {
   PENDING: 'PENDIENTE',
@@ -29,7 +28,8 @@ const QUOTE_STATUS_LABELS: Record<string, string> = {
 export const getColumns = (
   selectedCompany?: { slug: string },
   onPreview?: (quote: Quote) => void,
-  selectedPreviewId?: number | null
+  selectedPreviewId?: number | null,
+  timeZone: string = DEFAULT_TIMEZONE
 ): ColumnDef<Quote>[] => [
   {
     accessorKey: 'quote_number',
@@ -132,12 +132,10 @@ export const getColumns = (
     },
 
     cell: ({ row }) => {
-      const date = new Date(row.original.quote_date);
-
       return (
         <div className="flex justify-center w-full">
           <span className="text-s text-slate-600 dark:text-slate-300 text-center font-medium tracking-wide uppercase">
-            {format(date, "dd MMM yyyy", { locale: es })}
+            {formatInstant(row.original.quote_date, timeZone, "short")}
           </span>
         </div>
       );

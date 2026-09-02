@@ -296,6 +296,17 @@ export interface LowStockConsumableBatch
   extends Pick<Batch, "id" | "name" | "min_quantity" | "unit"> {
   maximum_quantity?: number | null;
   stored_quantity: number;
+  /**
+   * Existencia que quedó FUERA de `stored_quantity` por estar declarada en otra
+   * unidad. La unidad se declara por lote, así que un renglón puede tener lotes
+   * en unidades distintas y sin equivalencia entre ellas; sumarlos daría un
+   * número sin significado, así que se apartan y se muestran aparte.
+   */
+  excluded_stock?: {
+    unit_id: number | null;
+    quantity: number;
+    unit_label: string | null;
+  }[];
   in_transit?: InTransitDetail[];
 }
 
@@ -1125,6 +1136,7 @@ export type DangerIdentification = {
   possible_consequences: string;
   consequence_to_evaluate: string;
   root_cause_analysis: string;
+  root_cause: string | null;
   information_source: InformationSource;
   risk_management_start_date: Date;
   analysis: Analysis;
@@ -1183,6 +1195,7 @@ export type MitigationTable = {
   consequence_to_evaluate: string;
   danger_type: string;
   root_cause_analysis: string;
+  root_cause: string | null;
   information_source_id: number;
   information_source: InformationSource;
   analysis: Analysis;

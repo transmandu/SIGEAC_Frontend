@@ -43,6 +43,7 @@ import { useCreateMeetingMinute, useUpdateMeetingMinute } from "@/actions/genera
 import { MeetingMinutes } from "@/types";
 import { useGetEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetEmployees";
 import { useGetAuthorizedEmployees } from "@/hooks/ajustes/autorizados/useGetAuthorizedEmployees";
+import { toCalendarPayload } from "@/lib/date";
 
 interface FormProps {
   onClose: (open: boolean) => void;
@@ -88,7 +89,7 @@ type FormSchemaType = z.infer<typeof FormSchema>;
 function buildFormData(companySlug: string, locationId: number, data: FormSchemaType): FormData {
   const fd = new FormData();
 
-  fd.append("date", data.date.toISOString().split("T")[0]);
+  fd.append("date", toCalendarPayload(data.date) ?? "");
   fd.append("place", data.place);
   fd.append("location_id", String(locationId));
 

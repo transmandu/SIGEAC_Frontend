@@ -20,6 +20,7 @@ import {
 } from "./StepPhotographicRecords";
 import { useGetDepartments } from "@/hooks/ajustes/departamento/useGetDepartment";
 import { useGetEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetEmployees";
+import { toCalendarPayload } from "@/lib/date";
 
 const STEPS = [
   { label: "General y Clasificación", step: 1 },
@@ -145,7 +146,7 @@ export function CreateChangeRequestForm() {
   const form = useForm<ChangeRequestFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      request_date: new Date().toISOString().split("T")[0],
+      request_date: toCalendarPayload(new Date()),
       department_id: 0,
       requested_by: 0,
       is_temporary: false,

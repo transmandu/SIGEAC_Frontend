@@ -1,3 +1,4 @@
+import { formatCalendarDate } from "@/lib/date";
 import type { QuarantineStatus } from "@/types/quarantine";
 
 /**
@@ -42,19 +43,8 @@ export const daysSinceYMD = (value: string) => {
   return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
 };
 
-export const formatQuarantineDate = (value?: string | null) => {
-  if (!value) return "-";
-
-  const date = parseQuarantineDate(value);
-
-  if (!date) return "-";
-
-  return date.toLocaleDateString("es-ES", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
-};
+export const formatQuarantineDate = (value?: string | null) =>
+  formatCalendarDate(value, "short", "-");
 
 /**
  * Riesgo respecto al plazo legal. Acepta los días ya calculados por el backend

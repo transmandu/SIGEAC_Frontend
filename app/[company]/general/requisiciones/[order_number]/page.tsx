@@ -9,6 +9,8 @@ import { useDeleteRequisition } from '@/actions/mantenimiento/compras/requisicio
 import { useGetRequisitionByOrderNumber } from '@/hooks/mantenimiento/compras/useGetRequisitionByOrderNumber';
 import { useCompanyStore } from '@/stores/CompanyStore';
 import { cn, formatRequestedDate } from '@/lib/utils';
+import { formatInstant } from '@/lib/date';
+import { useCompanyTimezone } from '@/hooks/general/useCompanyTimezone';
 
 import { ContentLayout } from '@/components/layout/ContentLayout';
 import LoadingPage from '@/components/misc/LoadingPage';
@@ -507,6 +509,7 @@ const RequisitionPage = () => {
   const [confirmOrderNumber, setConfirmOrderNumber] = useState('');
 
   const { selectedCompany } = useCompanyStore();
+  const timeZone = useCompanyTimezone();
   const router = useRouter();
   const { order_number } = useParams<{ order_number: string }>();
 
@@ -643,12 +646,7 @@ const RequisitionPage = () => {
               <div className="text-center space-y-1">
                 <p className="text-xs text-muted-foreground">Fecha solicitud</p>
                 <p className="font-medium">
-                  {new Intl.DateTimeFormat('es-VE', {
-                    timeZone: 'America/Caracas',
-                    year: 'numeric',
-                    month: '2-digit',
-                    day: '2-digit',
-                  }).format(new Date(data.submission_date))}
+                  {formatInstant(data.submission_date, timeZone, 'date')}
                 </p>
               </div>
             )}

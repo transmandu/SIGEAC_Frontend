@@ -42,6 +42,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { formatCalendarDate, toCalendarPayload } from "@/lib/date";
 
 interface CreateCertificateFormProps {
   onClose: () => void;
@@ -86,7 +87,7 @@ export const CreateCertificateForm = ({
   } = useForm({
     defaultValues: {
       course_id: "",
-      completion_date: new Date().toISOString().split("T")[0],
+      completion_date: toCalendarPayload(new Date()),
       document: null,
       employee_dni: "",
     },
@@ -285,11 +286,7 @@ export const CreateCertificateForm = ({
                 <div className="flex items-center gap-2">
                   <span>{course.name}</span>
                   <span className="text-[11px] italic text-muted-foreground ml-auto">
-                    {course.start_date
-                      ? new Date(
-                          course.start_date + "T00:00:00",
-                        ).toLocaleDateString("es-ES")
-                      : ""}
+                    {formatCalendarDate(course.start_date, "date", "")}
                   </span>
                 </div>
               </SelectItem>
@@ -342,7 +339,7 @@ export const CreateCertificateForm = ({
             id="dropzone-file"
             type="file"
             className="hidden"
-            accept=".pdf,.jpg,.jpeg,.png"
+            accept=".pdf,.jpg,.jpeg,.png,.webp"
             {...register("document", {
               required: "Archivo obligatorio",
               onChange: handleFileChange,

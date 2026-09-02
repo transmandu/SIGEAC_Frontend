@@ -6,6 +6,8 @@ import { cn } from '@/lib/utils'
 import type { Requisition } from '@/types/purchase'
 import Link from 'next/link'
 import { useCompanyStore } from '@/stores/CompanyStore'
+import { instantToCalendarDay } from "@/lib/date"
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone"
 
 const QUOTE_STATUS_LABELS: Record<string, string> = {
   PENDING: 'PENDIENTE',
@@ -32,6 +34,7 @@ export default function RequisitionSubRow({
 }: Props) {
 
   const { selectedCompany } = useCompanyStore()
+  const timeZone = useCompanyTimezone()
   const quotes = [...(requisition.quotes ?? [])].sort(
     (a, b) => quoteSortRank(a) - quoteSortRank(b)
   )
@@ -61,9 +64,8 @@ export default function RequisitionSubRow({
           const retailerLabel = retailerNames.length > 0
             ? retailerNames.join(', ')
             : 'No aplica "Lugar de compra" para esta cotización'
-          const decisionDate = quote.updated_at
-            ? new Date(quote.updated_at).toISOString().slice(0, 10)
-            : null
+          // Instante: el día se lee en la zona de la compañía.
+          const decisionDate = instantToCalendarDay(quote.updated_at, timeZone)
           return (
             <div
               key={quote.quote_number}

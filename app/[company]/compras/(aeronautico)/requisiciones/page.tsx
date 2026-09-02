@@ -5,6 +5,7 @@ import { ContentLayout } from '@/components/layout/ContentLayout'
 import { useGetRequisition } from '@/hooks/mantenimiento/compras/useGetRequisitions'
 import { useCompanyStore } from '@/stores/CompanyStore'
 import { getColumns } from './columns'
+import { useCompanyTimezone } from '@/hooks/general/useCompanyTimezone'
 import { DataTable } from '@/app/[company]/compras/data-table'
 import type { Requisition } from '@/types/purchase'
 import RequisitionToolBar from './_components/RequisitionToolBar'
@@ -24,6 +25,7 @@ const RequisitionsPage = () => {
 
 const RequisitionsPageContent = () => {
   const { selectedCompany, selectedStation } = useCompanyStore()
+  const timeZone = useCompanyTimezone()
   const onPreview = useRequisitionPreview()
   const selectedPreviewId = useRequisitionPreviewSelectedId()
 
@@ -70,6 +72,14 @@ const RequisitionsPageContent = () => {
       return matchesSearch && matchesStatus && matchesType && matchesPriority
     })
   }, [requisitions, deferredSearch, status, type, priority])
+
+  // Memoizadas: antes se reconstruian en cada render, y dos veces por
+  // pantalla (la vista agrupada y la plana llamaban a getColumns aparte).
+  const columns = useMemo(
+    () => getColumns(selectedCompany ?? undefined, onPreview ?? undefined, selectedPreviewId, timeZone),
+    [selectedCompany, onPreview, selectedPreviewId, timeZone]
+  )
+
 
   return (
     <ContentLayout title="Solicitudes de Compra">
@@ -124,7 +134,7 @@ const RequisitionsPageContent = () => {
             data={filteredRequisitions}
             renderTable={(rows) => (
               <DataTable
-                columns={getColumns(selectedCompany ?? undefined, onPreview ?? undefined, selectedPreviewId)}
+                columns={columns}
                 data={rows}
                 renderSubRow={(row) => (
                   <RequisitionSubRow
@@ -143,7 +153,7 @@ const RequisitionsPageContent = () => {
           />
         ) : (
           <DataTable
-            columns={getColumns(selectedCompany ?? undefined, onPreview ?? undefined, selectedPreviewId)}
+            columns={columns}
             data={filteredRequisitions}
             renderSubRow={(row) => (
               <RequisitionSubRow

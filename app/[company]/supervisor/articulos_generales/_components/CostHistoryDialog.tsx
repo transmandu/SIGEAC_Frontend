@@ -33,6 +33,7 @@ import { useEffect, useMemo, useState } from "react"
 import { DecimalInput } from "./DecimalInput"
 import SupervisorActionButton from "./SupervisorActionButton"
 import { dependencyBadgeCls, formatSupervisorDateTime } from "./utils/uiHelpers"
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone"
 
 /**
  * Editor del historial de costo combinado del grupo en fusión.
@@ -424,6 +425,7 @@ function CostEntryRow({
     onDateChange: (iso: string | null) => void
     onToggleDelete: () => void
 }) {
+    const timeZone = useCompanyTimezone()
     const isPurchase = !entry.editable
 
     return (
@@ -506,7 +508,7 @@ function CostEntryRow({
             <div className="min-w-0 flex-1 flex flex-col gap-0.5">
                 {isPurchase ? (
                     <span className="text-[11px] text-muted-foreground/70 truncate">
-                        {formatSupervisorDateTime(entry.date)}
+                        {formatSupervisorDateTime(entry.date, timeZone)}
                         {entry.by ? ` · ${entry.by}` : ""}
                     </span>
                 ) : (

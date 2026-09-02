@@ -1,6 +1,7 @@
 import axiosInstance from "@/lib/axios";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { toCalendarPayload } from "@/lib/date";
 
 /**
  * Convierte un objeto plano a FormData.
@@ -18,7 +19,7 @@ function objectToFormData(obj: Record<string, unknown>): FormData {
         .filter((item) => item !== undefined)
         .forEach((item) => {
           if (item instanceof Date) {
-            formData.append(`${key}[]`, item.toISOString().split("T")[0]);
+            formData.append(`${key}[]`, toCalendarPayload(item) ?? "");
           } else if (item === null) {
             formData.append(`${key}[]`, "");
           } else {
@@ -28,7 +29,7 @@ function objectToFormData(obj: Record<string, unknown>): FormData {
     } else if (value instanceof File) {
       formData.append(key, value);
     } else if (value instanceof Date) {
-      formData.append(key, value.toISOString().split("T")[0]);
+      formData.append(key, toCalendarPayload(value) ?? "");
     } else if (value === null) {
       formData.append(key, "");
     } else {

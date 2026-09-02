@@ -1,8 +1,7 @@
 "use client";
 
 import { createElement } from "react";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
+import { formatCalendarDate } from "@/lib/date";
 
 import { DetailItem, formatLocationLabel as sharedFormatLocationLabel } from "@/app/[company]/sms/aeronautical/gestion_de_riesgos/_components/report-helpers";
 
@@ -46,13 +45,9 @@ const renderNumberedDetailValue = (value?: string | null, fallback?: string) => 
     );
 };
 
+// Los reportes SMS fechan por día (report_date, incident_date): sin convertir.
 export const formatDisplayDate = (value?: string | Date | null) =>
-    value
-        ? (() => {
-            const date = value instanceof Date ? value : new Date(value);
-            return Number.isNaN(date.getTime()) ? "N/A" : format(date, "PPP", { locale: es });
-        })()
-        : "N/A";
+    formatCalendarDate(value, "long");
 
 export const formatLocationLabel = sharedFormatLocationLabel;
 

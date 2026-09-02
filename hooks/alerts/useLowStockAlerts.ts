@@ -173,7 +173,18 @@ export const useLowStockAlerts = () => {
             // "vacía" se tragaba el 0, que es justo el caso más urgente.
             const amount = (value: number | string) =>
                 unitValue ? `${value} ${unitValue}` : `${value}`;
-            const stockLine = `Mínimo: ${amount(batch.min_quantity)} · Cantidad restante: ${amount(stored)}`;
+
+            // Existencia en otra unidad, sin equivalencia declarada con la del
+            // renglón: no se pudo sumar, pero callarla haría ver el renglón más
+            // vacío de lo que está.
+            const excluded = (batch.excluded_stock ?? []).filter((e) => Number(e.quantity) > 0);
+            const excludedLine = excluded.length > 0
+                ? `\nAdemás hay ${excluded
+                    .map((e) => `${e.quantity} ${e.unit_label ?? "sin unidad"}`)
+                    .join(" y ")} que no se pudo sumar por estar en otra unidad.`
+                : "";
+
+            const stockLine = `Mínimo: ${amount(batch.min_quantity)} · Cantidad restante: ${amount(stored)}${excludedLine}`;
 
             return {
             id: `low-stock-consumable-batch-${batch.id}`,

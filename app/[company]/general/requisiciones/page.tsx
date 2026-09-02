@@ -7,6 +7,7 @@ import { ContentLayout } from '@/components/layout/ContentLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCompanyStore } from '@/stores/CompanyStore';
 import { useGetRequisition } from '@/hooks/mantenimiento/compras/useGetRequisitions';
+import { useCompanyTimezone } from '@/hooks/general/useCompanyTimezone';
 import { cn } from '@/lib/utils';
 import type { RequisitionType } from '@/types/purchase';
 
@@ -19,6 +20,7 @@ type TypeFilter = 'ALL' | RequisitionType;
 const RequisitionsPage = () => {
   const { user } = useAuth();
   const { selectedCompany, selectedStation } = useCompanyStore();
+  const timeZone = useCompanyTimezone();
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('ALL');
 
   const { data: requisitions, isLoading, isError } = useGetRequisition(
@@ -105,8 +107,8 @@ const RequisitionsPage = () => {
   }, [accessFilteredRequisitions, typeFilter]);
 
   const columns = useMemo(
-    () => getColumns(selectedCompany ?? undefined),
-    [selectedCompany]
+    () => getColumns(selectedCompany ?? undefined, timeZone),
+    [selectedCompany, timeZone]
   )
   
   return (

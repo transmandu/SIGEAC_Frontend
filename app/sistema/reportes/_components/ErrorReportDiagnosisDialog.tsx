@@ -32,6 +32,8 @@ import { normalizeAssetUrl } from "@/lib/utils";
 import { getErrorReportSeverityLabel } from "@/lib/errorReportSeverity";
 import { ERROR_REPORT_MODULES } from "@/lib/errorReportModules";
 import { useAddErrorReportImages, useDeleteErrorReportImage, useUpdateErrorReportDiagnosis } from "@/actions/sistema/reportes/actions";
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
+import { formatInstant } from "@/lib/date";
 import { Chip, STATUS_CHIP, sourceTone, httpStatusTone } from "./errorReportChips";
 
 interface ErrorReportDiagnosisDialogProps {
@@ -267,6 +269,7 @@ export default function ErrorReportDiagnosisDialog({
   onOpenChange,
   report,
 }: ErrorReportDiagnosisDialogProps) {
+  const timeZone = useCompanyTimezone();
   const [httpStatus, setHttpStatus] = useState(report.http_status?.toString() ?? "");
   const [technicalCause, setTechnicalCause] = useState(report.technical_cause ?? "");
   const [newStep, setNewStep] = useState("");
@@ -342,7 +345,7 @@ export default function ErrorReportDiagnosisDialog({
                 Reporte <span className="text-muted-foreground">#{report.id}</span>
               </DialogTitle>
               <p className="text-xs text-muted-foreground">
-                {format(new Date(report.reported_at), "dd MMM yyyy, HH:mm")}
+                {formatInstant(report.reported_at, timeZone, "dd MMM yyyy, HH:mm")}
               </p>
             </div>
             <div className="flex flex-wrap justify-end gap-1.5">
@@ -580,7 +583,7 @@ export default function ErrorReportDiagnosisDialog({
                       <p className="whitespace-pre-wrap text-sm leading-relaxed">{report.resolution}</p>
                       <p className="text-xs text-muted-foreground">
                         Resuelto por {report.resolved_by} el{" "}
-                        {report.resolved_at ? format(new Date(report.resolved_at), "dd/MM/yyyy HH:mm") : "—"}
+                        {formatInstant(report.resolved_at, timeZone, "dateTime", "—")}
                         {report.resolution_minutes != null && ` (${report.resolution_minutes} min)`}
                       </p>
                     </div>

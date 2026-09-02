@@ -23,6 +23,7 @@ import { es } from "date-fns/locale"
 import { CalendarIcon, Lock, Plus, RotateCcw, Trash2 } from "lucide-react"
 import { DecimalInput } from "./DecimalInput"
 import { dependencyBadgeCls, formatSupervisorDateTime } from "./utils/uiHelpers"
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone"
 
 /**
  * Historial de costo de un artículo, editable en sitio.
@@ -59,6 +60,7 @@ export function CostHistoryPanel({
     onChange: (edits: CostChangeEdits) => void
     onIntakeUnitsChange?: (edits: IntakeUnitEdits) => void
 }) {
+    const timeZone = useCompanyTimezone()
     const updated = edits.updated ?? []
     const deleted = edits.deleted ?? []
     const created = edits.created ?? []
@@ -263,7 +265,7 @@ export function CostHistoryPanel({
                             <div className="min-w-0 flex-1 flex flex-col gap-0.5">
                                 {isPurchase ? (
                                     <span className="text-[11px] text-muted-foreground/70 truncate">
-                                        {formatSupervisorDateTime(entry.date)}
+                                        {formatSupervisorDateTime(entry.date, timeZone)}
                                         {entry.by ? ` · ${entry.by}` : ""}
                                     </span>
                                 ) : (

@@ -27,6 +27,8 @@ import type {
   PurchaseOrderArticle,
   PurchaseOrderGeneralArticle,
 } from '@/types/purchase/purchase-order'
+import { formatInstant } from '@/lib/date'
+import { useCompanyTimezone } from '@/hooks/general/useCompanyTimezone'
 
 // Destino del intake, derivado de cuál referencia venga poblada (excluyentes
 // entre sí): almacén para el flujo normal, o la entidad de una entrega directa.
@@ -369,6 +371,8 @@ const GeneralArticleRow = ({ article, isCompleted }: { article: PurchaseOrderGen
 
 export default function PurchaseOrderPreviewPanel({ purchaseOrder, onClose }: Props) {
   const { selectedCompany } = useCompanyStore()
+  // Antes del early return: los hooks no pueden quedar detrás de un condicional.
+  const timeZone = useCompanyTimezone()
 
   if (!purchaseOrder) return null
 
@@ -413,9 +417,7 @@ export default function PurchaseOrderPreviewPanel({ purchaseOrder, onClose }: Pr
             <MetaItem label="CREADO POR" value={purchaseOrder.created_by?.toUpperCase?.() ?? purchaseOrder.created_by} icon={User} />
             <MetaItem
               label="FECHA DE COMPRA"
-              value={purchaseOrder.purchase_date
-                ? new Date(purchaseOrder.purchase_date).toLocaleDateString('es-VE', { day: '2-digit', month: 'short', year: 'numeric' })
-                : undefined}
+              value={formatInstant(purchaseOrder.purchase_date, timeZone, 'short', '') || undefined}
               icon={CalendarDays}
             />
             <MetaItem

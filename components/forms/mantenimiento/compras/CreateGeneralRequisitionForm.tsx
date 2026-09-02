@@ -38,6 +38,7 @@ import { AdditionalInfoSection } from "./_components/AdditionalInfoSection";
 import { isHigherPriority, type Priority } from "./_components/priorityUtils";
 import { getStoragePathFromUrl } from "./_components/imageUtils";
 import { canAddRequisitionArticle } from "@/lib/purchases/requisition-article-limit";
+import { toCalendarPayload } from "@/lib/date";
 
 /* -------------------------------------------------------------------------- */
 /*                                   SCHEMA                                   */
@@ -292,7 +293,7 @@ export function CreateGeneralRequisitionForm({
       third_party_id: data.third_party_id ? Number(data.third_party_id) : undefined,
       general_articles: data.general_articles.map((article) => ({
         ...article,
-        requested_date: article.requested_date ?? new Date().toISOString(),
+        requested_date: article.requested_date ?? toCalendarPayload(new Date()),
         // `image` solo lleva un File nuevo, o la URL del catálogo para la vista
         // previa. El backend rechaza todo lo que no sea archivo subido, así que
         // una imagen reutilizada viaja únicamente por existing_image_path.

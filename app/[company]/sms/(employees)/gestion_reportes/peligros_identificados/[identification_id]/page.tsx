@@ -1,5 +1,4 @@
 "use client";
-import { useEffect, useState } from "react";
 import CreateAnalysesDialog from "@/components/dialogs/aerolinea/sms/CreateAnalysesDialog";
 import CreateDangerIdentificationDialog from "@/components/dialogs/aerolinea/sms/CreateDangerIdentificationDialog";
 import DeleteDangerIdentificationDialog from "@/components/dialogs/aerolinea/sms/DeleteDangerIdentificationDialog";
@@ -11,21 +10,11 @@ import {
   Dialog,
   DialogContent,
   DialogHeader,
-  DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useGetDangerIdentificationById } from "@/hooks/sms/useGetDangerIdentificationById";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import {
-  AlertCircle,
-  AlertTriangle,
-  ChevronRight,
-  FileText,
-  Info,
-  Layers,
-  List,
-  Shield,
-} from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 
@@ -127,84 +116,81 @@ const ShowDangerIdentification = () => {
 
       {/* Contenido principal */}
       <div
-        className="flex flex-col justify-center items-center border border-gray-300 rounded-lg p-8 gap-6 shadow-md dark:border-gray-700"
+        className="flex flex-col items-center border border-border/60 rounded-lg p-6 gap-5"
         data-tour="peligros-detalle-header"
       >
-        <div className="flex items-center gap-3">
-          <AlertTriangle className="w-10 h-10 text-yellow-600" />
-          <h1 className="text-3xl font-bold text-center text-gray-800 dark:text-white">
-            Detalles de Identificación de Peligro
-          </h1>
-        </div>
-
         {dangerIdentification && (
-          <div className="w-full space-y-6">
+          <div className="w-full space-y-5">
+            {/* Título principal */}
+            <div className="flex items-center gap-2 pb-4 border-b border-border/60">
+              <AlertCircle className="w-5 h-5 text-muted-foreground shrink-0" />
+              <h2 className="text-base font-semibold text-foreground">
+                Peligro Identificado —{" "}
+                <span className="font-mono text-sm tracking-wide text-muted-foreground">
+                  {reportType} -{" "}
+                  {dangerIdentification.voluntary_report?.report_number ??
+                    dangerIdentification.obligatory_report?.report_number}
+                </span>
+              </h2>
+            </div>
+
             {/* Información básica del peligro */}
             <div
-              className="grid grid-cols-1 md:grid-cols-3 gap-6"
+              className="grid grid-cols-1 md:grid-cols-3 gap-4"
               data-tour="peligros-detalle-info-basica"
             >
-              <div className="border border-gray-300 dark:border-gray-600 p-6 rounded-lg space-y-3">
-                <div className="flex items-center justify-center gap-3">
-                  <AlertTriangle className="w-6 h-6 text-gray-600 dark:text-gray-300 flex-shrink-0" />
-                  <p className="text-lg font-semibold text-gray-700 dark:text-gray-300">
-                    <span className="font-bold">Peligro:</span>{" "}
-                    {dangerIdentification.danger}
-                  </p>
-                </div>
+              <div className="border border-border/60 p-4 rounded-lg">
+                <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70 block mb-1">
+                  Peligro
+                </span>
+                <p className="text-sm font-medium text-foreground">
+                  {dangerIdentification.danger}
+                </p>
               </div>
 
-              <div className="border border-gray-300 dark:border-gray-600 p-6 rounded-lg">
-                <div className="flex items-center gap-3">
-                  <Layers className="w-6 h-6 text-gray-600 dark:text-gray-300 flex-shrink-0" />
-                  <p className="text-lg font-semibold text-gray-700 dark:text-gray-300">
-                    <span className="font-bold">Área de Peligro:</span>{" "}
-                    {dangerIdentification.danger_area}
-                  </p>
-                </div>
+              <div className="border border-border/60 p-4 rounded-lg">
+                <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70 block mb-1">
+                  Área de Peligro
+                </span>
+                <p className="text-sm font-medium text-foreground">
+                  {dangerIdentification.danger_area}
+                </p>
               </div>
 
-              <div className="border border-gray-300 dark:border-gray-600 p-6 rounded-lg">
-                <div className="flex items-center gap-3">
-                  <FileText className="w-6 h-6 text-gray-600 dark:text-gray-300 flex-shrink-0" />
-                  <p className="text-lg font-semibold text-gray-700 dark:text-gray-300">
-                    <span className="font-bold">Tipo de Peligro:</span>{" "}
-                    {dangerIdentification.danger_type}
-                  </p>
-                </div>
+              <div className="border border-border/60 p-4 rounded-lg">
+                <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70 block mb-1">
+                  Tipo de Peligro
+                </span>
+                <p className="text-sm font-medium text-foreground">
+                  {dangerIdentification.danger_type}
+                </p>
               </div>
             </div>
 
+            {/* Fuente de información + Descripción */}
             <div
-              className="flex gap-2"
+              className="grid grid-cols-1 md:grid-cols-2 gap-4"
               data-tour="peligros-detalle-fuente-desc"
             >
-              {/* Fuente de información */}
               {dangerIdentification.information_source && (
-                <div className="border border-gray-300 dark:border-gray-600 p-6 rounded-lg w-full">
-                  <h3 className="text-xl font-semibold mb-4 flex items-center gap-3">
-                    <Info className="w-6 h-6" />
+                <div className="border border-border/60 p-4 rounded-lg">
+                  <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70 block mb-3">
                     Fuente de Información
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <p className="font-medium text-gray-700 dark:text-gray-300">
-                        Nombre:
-                      </p>
-                      <p className="text-gray-600 dark:text-gray-400">
+                  </span>
+                  <div className="space-y-2">
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-xs text-muted-foreground">Nombre:</span>
+                      <span className="text-sm text-foreground">
                         {dangerIdentification.information_source.name}
-                      </p>
+                      </span>
                     </div>
-                    <div className="space-y-1">
-                      <p className="font-medium text-gray-700 dark:text-gray-300">
-                        Método de identificación:
-                      </p>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground">Método:</span>
                       <Badge
-                        className={`justify-center items-center text-center font-bold text-sm px-3 py-1 ${
-                          dangerIdentification.information_source.type ===
-                          "PROACTIVO"
-                            ? "bg-green-200 text-green-800 border-green-200 dark:bg-green-900/40 dark:text-green-300 dark:border-green-700"
-                            : "bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-700"
+                        className={`text-xs font-medium px-2 py-0.5 ${
+                          dangerIdentification.information_source.type === "PROACTIVO"
+                            ? "bg-green-100 text-green-700 border-green-200 dark:bg-green-950/50 dark:text-green-400 dark:border-green-800"
+                            : "bg-red-100 text-red-700 border-red-200 dark:bg-red-950/50 dark:text-red-400 dark:border-red-800"
                         }`}
                       >
                         {dangerIdentification.information_source.type}
@@ -214,60 +200,61 @@ const ShowDangerIdentification = () => {
                 </div>
               )}
 
-              {/* Descripción */}
-              <div className="border border-gray-300 dark:border-gray-600 p-6 rounded-lg w-full">
-                <h3 className="text-xl font-semibold mb-4 flex items-center gap-3">
-                  <FileText className="w-6 h-6" />
+              <div className="border border-border/60 p-4 rounded-lg">
+                <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70 block mb-2">
                   Descripción
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+                </span>
+                <p className="text-sm text-muted-foreground leading-relaxed">
                   {dangerIdentification.description || "N/A"}
                 </p>
               </div>
             </div>
 
+            {/* Consecuencias + Defensas */}
             <div
-              className="flex gap-2"
+              className="grid grid-cols-1 md:grid-cols-2 gap-4"
               data-tour="peligros-detalle-consecuencias-defensas"
             >
-              {/* Consecuencias */}
               {dangerIdentification.possible_consequences && (
-                <div className="border border-gray-300 dark:border-gray-600 p-6 rounded-lg w-full">
-                  <h3 className="text-xl font-semibold mb-4 flex items-center gap-3">
-                    <List className="w-6 h-6" />
+                <div className="border border-border/60 p-4 rounded-lg">
+                  <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70 block mb-3">
                     Posibles Consecuencias
-                  </h3>
-                  <ul className="space-y-3">
+                  </span>
+                  <ul className="space-y-2">
                     {dangerIdentification.possible_consequences
-                      .split(",")
+                      .split("~")
                       .map((consequence, index) => (
-                        <li key={index} className="flex items-start gap-3">
-                          <ChevronRight className="w-5 h-5 mt-1 flex-shrink-0 text-gray-500" />
-                          <span className="text-gray-600 dark:text-gray-400">
-                            {consequence.trim()}
+                        <li
+                          key={index}
+                          className="flex items-start gap-2 text-sm text-muted-foreground border-b border-border/30 last:border-0 pb-2 last:pb-0"
+                        >
+                          <span className="font-mono text-xs text-muted-foreground/60 mt-0.5 select-none">
+                            {String(index + 1).padStart(2, "0")}
                           </span>
+                          <span>{consequence.trim()}</span>
                         </li>
                       ))}
                   </ul>
                 </div>
               )}
 
-              {/* Defensas actuales */}
               {dangerIdentification.current_defenses && (
-                <div className="border border-gray-300 dark:border-gray-600 p-6 rounded-lg w-full">
-                  <h3 className="text-xl font-semibold mb-4 flex items-center gap-3">
-                    <Shield className="w-6 h-6" />
+                <div className="border border-border/60 p-4 rounded-lg">
+                  <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70 block mb-3">
                     Defensas Actuales
-                  </h3>
-                  <ul className="space-y-3">
+                  </span>
+                  <ul className="space-y-2">
                     {dangerIdentification.current_defenses
-                      .split(",")
+                      .split("~")
                       .map((defense, index) => (
-                        <li key={index} className="flex items-start gap-3">
-                          <ChevronRight className="w-5 h-5 mt-1 flex-shrink-0 text-gray-500" />
-                          <span className="text-gray-600 dark:text-gray-400">
-                            {defense.trim()}
+                        <li
+                          key={index}
+                          className="flex items-start gap-2 text-sm text-muted-foreground border-b border-border/30 last:border-0 pb-2 last:pb-0"
+                        >
+                          <span className="font-mono text-xs text-muted-foreground/60 mt-0.5 select-none">
+                            {String(index + 1).padStart(2, "0")}
                           </span>
+                          <span>{defense.trim()}</span>
                         </li>
                       ))}
                   </ul>
@@ -275,59 +262,79 @@ const ShowDangerIdentification = () => {
               )}
             </div>
 
-            {/* Análisis de causa raíz */}
+            {/* Causa raíz + Análisis 5 Porqués */}
             <div
-              className="border border-gray-300 dark:border-gray-600 p-6 rounded-lg"
+              className="border border-border/60 rounded-lg overflow-hidden"
               data-tour="peligros-detalle-causa-raiz"
             >
-              <h3 className="text-xl font-semibold mb-4 flex items-center gap-3">
-                <AlertCircle className="w-6 h-6" />
-                Análisis de Causa Raíz
-              </h3>
-              <ul className="space-y-3">
+              <div className="px-4 py-3 border-b border-border/60 bg-muted/30">
+                <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
+                  Causa Raíz
+                </span>
+              </div>
+              <div className="px-4 py-3">
+                <p className="text-sm text-foreground leading-relaxed">
+                  {dangerIdentification.root_cause || "N/A"}
+                </p>
+              </div>
+            </div>
+
+            <div
+              className="border border-border/60 rounded-lg overflow-hidden"
+            >
+              <div className="px-4 py-3 border-b border-border/60 bg-muted/30">
+                <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
+                  Análisis de Causa Raíz — 5 Porqués
+                </span>
+              </div>
+              <div className="divide-y divide-border/30">
                 {dangerIdentification.root_cause_analysis
-                  .split(",")
-                  .map((analysis, index) => (
-                    <li key={index} className="flex items-start gap-3">
-                      <ChevronRight className="w-5 h-5 mt-1 flex-shrink-0 text-gray-500" />
-                      <span className="text-gray-600 dark:text-gray-400">
-                        {index === 0 ? "¿Por qué Sucedió?" : "¿Por qué?"}{" "}
-                        {analysis.trim()}
+                  .split("~")
+                  .map((analysis, index, arr) => (
+                    <div
+                      key={index}
+                      className="flex items-start gap-3 px-4 py-3 hover:bg-muted/20 transition-colors"
+                    >
+                      <span className="shrink-0 flex items-center justify-center h-6 w-6 rounded-full bg-muted/60 font-mono text-xs font-semibold text-muted-foreground select-none">
+                        {index + 1}
                       </span>
-                    </li>
+                      <div className="flex-1 min-w-0">
+                        <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70 block mb-0.5">
+                          {index === 0 ? "¿Por qué sucedió?" : `¿Por qué #${index}?`}
+                        </span>
+                        <p className="text-sm text-foreground">
+                          {analysis.trim()}
+                        </p>
+                      </div>
+                    </div>
                   ))}
-              </ul>
+              </div>
             </div>
           </div>
         )}
 
         {isError && (
-          <div className="border border-red-300 dark:border-red-700 rounded-lg p-8 w-full flex flex-col items-center gap-6">
-            <div className="flex flex-col items-center gap-4">
-              <AlertCircle className="h-14 w-14 text-red-500" />
-              <h1 className="text-2xl font-bold text-center text-red-600 dark:text-red-400">
-                Error al cargar la identificación
-              </h1>
-              <p className="text-lg text-red-700 dark:text-red-300 text-center">
-                No se pudieron cargar los datos de la identificación de peligro
-              </p>
-              <div className="flex gap-4 mt-4">
-                <Button
-                  variant="outline"
-                  onClick={() => window.location.reload()}
-                  className="border-red-300 text-red-700 hover:bg-red-100 dark:hover:bg-red-800/30 h-10 px-4"
-                >
-                  Reintentar
+          <div className="border border-border/60 rounded-lg p-8 w-full flex flex-col items-center gap-4">
+            <AlertCircle className="h-10 w-10 text-muted-foreground" />
+            <h2 className="text-lg font-semibold text-foreground">
+              Error al cargar la identificación
+            </h2>
+            <p className="text-sm text-muted-foreground text-center">
+              No se pudieron cargar los datos de la identificación de peligro
+            </p>
+            <div className="flex gap-3 mt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => window.location.reload()}
+              >
+                Reintentar
+              </Button>
+              <Link href="/transmandu/sms/peligros_identificados">
+                <Button variant="outline" size="sm">
+                  Volver a la lista
                 </Button>
-                <Link href="/transmandu/sms/peligros_identificados">
-                  <Button
-                    variant="outline"
-                    className="hover:bg-gray-100 dark:hover:bg-gray-700 h-10 px-4"
-                  >
-                    Volver a la lista
-                  </Button>
-                </Link>
-              </div>
+              </Link>
             </div>
           </div>
         )}

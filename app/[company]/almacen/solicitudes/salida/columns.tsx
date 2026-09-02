@@ -250,6 +250,8 @@ export const columns: ColumnDef<DispatchGroupRow>[] = [
           id={row.original.id}
           category={row.original.articles[0]?.category}
           articles={row.original.articles}
+          status={row.original.status}
+          requestNumber={row.original.request_number}
         />
       </div>
     ),

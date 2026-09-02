@@ -34,6 +34,58 @@ interface IDispatchRequestAction {
   department_id?: string;
   approved_by?: string
   delivered_by?: string
+  /**
+   * Fotos de la entrega, indexadas por la clave de la fila del formulario
+   * ("aero:0", "general:1"): al capturarlas la línea de la salida todavía no
+   * existe, así que el backend traduce la clave al id que le tocó. Opcional.
+   */
+  evidences?: Record<string, File[]>;
+}
+
+/**
+ * Vuelca el payload de la salida a FormData.
+ *
+ * Axios sabe serializar un objeto plano como multipart, pero no mezclado con
+ * archivos anidados: en cuanto entran las evidencias hay que construirlo a
+ * mano. Los arrays van con notación de corchetes, que es como PHP los
+ * reconstruye.
+ */
+function buildDispatchFormData(data: IDispatchRequestAction): FormData {
+  const form = new FormData();
+
+  const append = (key: string, value: unknown) => {
+    if (value === undefined || value === null) return;
+
+    if (Array.isArray(value)) {
+      value.forEach((item, index) => append(`${key}[${index}]`, item));
+      return;
+    }
+
+    if (typeof value === "object" && !(value instanceof File)) {
+      Object.entries(value as Record<string, unknown>).forEach(
+        ([childKey, childValue]) => append(`${key}[${childKey}]`, childValue),
+      );
+      return;
+    }
+
+    // Los booleanos viajan como "1"/"0": el string "false" que produce
+    // String(false) es truthy en PHP y la regla `boolean` no lo acepta.
+    form.append(
+      key,
+      typeof value === "boolean" ? (value ? "1" : "0") : (value as string | File),
+    );
+  };
+
+  Object.entries(data).forEach(([key, value]) => {
+    if (key === "evidences") return;
+    append(key, value);
+  });
+
+  Object.entries(data.evidences ?? {}).forEach(([rowKey, files]) => {
+    files.forEach((file) => form.append(`evidences[${rowKey}][]`, file));
+  });
+
+  return form;
 }
 
 export const useCreateDispatchRequest = () => {
@@ -52,11 +104,11 @@ export const useCreateDispatchRequest = () => {
       data: IDispatchRequestAction;
       company: string;
     }) => {
-      await axiosInstance.post(`/${company}/dispatch-order`, data, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      await axiosInstance.post(
+        `/${company}/dispatch-order`,
+        buildDispatchFormData(data),
+        { headers: { "Content-Type": "multipart/form-data" } },
+      );
     },
     onSuccess: (_, data) => {
       queryClient.invalidateQueries({
@@ -184,6 +236,135 @@ export const useDeleteDispatchRequest = () => {
   return {
     deleteDispatchRequest: deleteMutation,
   };
+};
+
+export interface IDispatchReturnAction {
+  // SEALED vuelve al almacén; ALTERED pasa por inspección de incoming.
+  condition: "SEALED" | "ALTERED";
+  justification: string;
+  items: {
+    article_dispatch_order_id: number;
+    quantity: number;
+  }[];
+  /** Fotos de cómo volvió cada artículo, por línea. Opcional. */
+  evidences?: Record<number, File[]>;
+}
+
+/**
+ * Arma el multipart de la devolución.
+ *
+ * Los arrays viajan con notación de corchetes porque PHP los reconstruye desde
+ * el nombre del campo; mandar JSON dentro de un FormData dejaría a Laravel con
+ * un string donde espera un array.
+ */
+function buildReturnFormData(data: IDispatchReturnAction): FormData {
+  const form = new FormData();
+
+  form.append("condition", data.condition);
+  form.append("justification", data.justification);
+
+  data.items.forEach((item, index) => {
+    form.append(
+      `items[${index}][article_dispatch_order_id]`,
+      String(item.article_dispatch_order_id)
+    );
+    form.append(`items[${index}][quantity]`, String(item.quantity));
+  });
+
+  Object.entries(data.evidences ?? {}).forEach(([lineId, files]) => {
+    files.forEach((file) => form.append(`evidences[${lineId}][]`, file));
+  });
+
+  return form;
+}
+
+// Registra el reingreso de lo que salió y no se usó. No sustituye a eliminar
+// la salida: aquí el despacho sigue constando y lo que cambia es su saldo.
+export const useCreateDispatchReturn = () => {
+  const queryClient = useQueryClient();
+  const { selectedStation } = useCompanyStore();
+
+  const returnMutation = useMutation({
+    mutationFn: async ({
+      id,
+      data,
+      company,
+    }: {
+      id: string | number;
+      data: IDispatchReturnAction;
+      company: string;
+    }) => {
+      const response = await axiosInstance.post(
+        `/${company}/dispatch-order/${id}/returns`,
+        buildReturnFormData(data),
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
+      return response.data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["dispatches-requests", variables.company, selectedStation],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["dispatch-returns", variables.id],
+      });
+      // La devolución repone stock, así que el inventario en pantalla quedó viejo.
+      queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
+      queryClient.invalidateQueries({ queryKey: ["general-articles"] });
+      queryClient.invalidateQueries({ queryKey: ["batches-in-warehouse"] });
+
+      toast.success("¡Devolución registrada!", {
+        description: "El reingreso quedó asentado en la salida.",
+      });
+    },
+    onError: (error: any) => {
+      toast.error("Oops!", {
+        description:
+          error?.response?.data?.message ||
+          "No se pudo registrar la devolución...",
+      });
+      console.log(error);
+    },
+  });
+
+  return { createDispatchReturn: returnMutation };
+};
+
+// Borra una evidencia de ENTREGA ya guardada (una foto mal tomada). El backend
+// rechaza las de devolución: respaldan una desviación ya declarada.
+export const useDeleteDispatchEvidence = () => {
+  const queryClient = useQueryClient();
+  const { selectedStation } = useCompanyStore();
+
+  const deleteMutation = useMutation({
+    mutationFn: async ({
+      id,
+      company,
+    }: {
+      id: number;
+      company: string;
+    }) => {
+      await axiosInstance.delete(`/${company}/dispatch-evidences/${id}`);
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["dispatches-requests", variables.company, selectedStation],
+      });
+      toast.success("¡Eliminada!", {
+        description: "La evidencia fue eliminada correctamente.",
+      });
+    },
+    onError: (error: any) => {
+      toast.error("Oops!", {
+        description:
+          error?.response?.data?.message ||
+          "No se pudo eliminar la evidencia...",
+      });
+      console.log(error);
+    },
+  });
+
+  return { deleteDispatchEvidence: deleteMutation };
 };
 
 // Devuelve al almacén un artículo ya despachado: la herramienta vuelve a

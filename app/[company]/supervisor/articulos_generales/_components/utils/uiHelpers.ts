@@ -1,6 +1,5 @@
 import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { DEFAULT_TIMEZONE, formatInstant, formatLongUpperDate } from '@/lib/date';
 
 /**
  * Lenguaje visual del módulo SUPERVISOR: hereda la estructura del módulo de
@@ -69,24 +68,27 @@ export const mergeStatusBadgeCls = (undone: boolean) =>
 export const dependencyBadgeCls = () =>
   'rounded-md border border-border/50 bg-muted/40 px-1.5 py-0.5 text-[10px] font-medium tabular-nums tracking-wide text-muted-foreground shadow-sm select-none';
 
-export const formatSupervisorDate = (date?: string | Date | null): string | undefined => {
-  if (!date) return undefined;
+// Fecha de calendario: se muestra tal cual, sin convertir de zona.
+export const formatSupervisorDate = (date?: string | Date | null): string | undefined =>
+  formatLongUpperDate(date);
 
-  const d = typeof date === 'string' ? new Date(date) : date;
-
-  const day = format(d, 'dd');
-  const month = format(d, 'MMMM', { locale: es }).toUpperCase();
-  const year = format(d, 'yyyy');
-
-  return `${day} ${month} ${year}`;
-};
-
-export const formatSupervisorDateTime = (date?: string | Date | null): string => {
+/**
+ * Lleva hora, así que es un instante y sí se convierte a la zona de la compañía.
+ * Por eso recibe la zona: este archivo no es un componente y no puede leerla.
+ */
+export const formatSupervisorDateTime = (
+  date?: string | Date | null,
+  timeZone: string = DEFAULT_TIMEZONE,
+): string => {
   if (!date) return '—';
 
-  const d = typeof date === 'string' ? new Date(date) : date;
+  // Un solo pase en vez de cuatro: el mes se pasa a mayúsculas después.
+  const formatted = formatInstant(date, timeZone, "dd|MMMM|yyyy|HH:mm", '');
+  if (!formatted) return '—';
 
-  return `${formatSupervisorDate(d)} · ${format(d, 'HH:mm')}`;
+  const [day, month, year, time] = formatted.split('|');
+
+  return `${day} ${month.toUpperCase()} ${year} · ${time}`;
 };
 
 export { formatQuantity } from '@/lib/utils';
