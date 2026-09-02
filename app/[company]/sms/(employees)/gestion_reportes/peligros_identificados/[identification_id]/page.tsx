@@ -121,6 +121,19 @@ const ShowDangerIdentification = () => {
       >
         {dangerIdentification && (
           <div className="w-full space-y-5">
+            {/* Título principal */}
+            <div className="flex items-center gap-2 pb-4 border-b border-border/60">
+              <AlertCircle className="w-5 h-5 text-muted-foreground shrink-0" />
+              <h2 className="text-base font-semibold text-foreground">
+                Peligro Identificado —{" "}
+                <span className="font-mono text-sm tracking-wide text-muted-foreground">
+                  {reportType} -{" "}
+                  {dangerIdentification.voluntary_report?.report_number ??
+                    dangerIdentification.obligatory_report?.report_number}
+                </span>
+              </h2>
+            </div>
+
             {/* Información básica del peligro */}
             <div
               className="grid grid-cols-1 md:grid-cols-3 gap-4"
