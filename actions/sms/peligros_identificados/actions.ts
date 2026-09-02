@@ -15,7 +15,7 @@ interface DangerIdentificationData {
     possible_consequences: string;
     consequence_to_evaluate: string;
     root_cause_analysis: string;
-    root_cause: string;
+    root_cause?: string | null;
     information_source_id: string;
   };
 }
@@ -33,7 +33,7 @@ interface UpdateDangerIdentification {
     possible_consequences: string;
     consequence_to_evaluate: string;
     root_cause_analysis: string;
-    root_cause: string;
+    root_cause?: string | null;
     information_source_id: number | string;
   };
 }
