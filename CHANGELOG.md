@@ -1,3 +1,7 @@
+## v3.8.2 — 2026-09-02
+
+- fix: employee trainning (#237)
+
 ## v3.8.1 — 2026-09-02
 
 - fix: link survey to act (#236)
