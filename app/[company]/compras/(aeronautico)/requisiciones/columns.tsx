@@ -15,6 +15,12 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useCompanyStore } from '@/stores/CompanyStore'
 import { useUpdateRequisitionStatus } from '@/actions/mantenimiento/compras/requisiciones/actions'
 import PreviewPanelIcon from '@/components/misc/PreviewPanelIcon'
+import {
+  AdvanceRequisitionStatusDialog,
+  ADVANCE_REQUISITION_TOOLTIP,
+  NEXT_REQUISITION_STATUS,
+} from '@/components/dialogs/mantenimiento/compras/AdvanceRequisitionStatusDialog'
+import { useState } from 'react'
 
 const STATUS_LABELS: Record<string, string> = {
   CREATED: 'CREADA',
@@ -43,23 +49,23 @@ const statusBadgeClass = (status?: string) => {
   )
 }
 
-const NEXT_STATUS: Record<string, string> = {
-  CREATED: 'RECEIVED',
-  RECEIVED: 'IN_PROGRESS',
-}
-
-const ADVANCE_TOOLTIP: Record<string, string> = {
-  CREATED: 'Marcar esta requisición como recibida',
-  RECEIVED: 'Iniciar proceso de atención / ejecución',
-}
-
 const StatusCell = ({ requisition }: { requisition: Requisition }) => {
   const { user } = useAuth()
   const { selectedCompany } = useCompanyStore()
   const { updateStatusRequisition } = useUpdateRequisitionStatus()
+  /**
+   * Estado desde el que se abrió la confirmación, junto al id de la fila que
+   * la abrió. Lo primero, porque al aplicarse el cambio la fila re-renderiza
+   * con un estado que ya no es avanzable y el diálogo se desmontaría en pleno
+   * cierre, dejando pegado el `pointer-events: none` de Radix. Lo segundo,
+   * porque las filas se identifican por posición: si la tabla se reordena, la
+   * celda pasa a recibir otra requisición y el diálogo abierto ya no le
+   * corresponde.
+   */
+  const [confirming, setConfirming] = useState<{ id: number; from: string } | null>(null)
 
   const status = requisition.status
-  const nextStatus = NEXT_STATUS[status as string]
+  const nextStatus = NEXT_REQUISITION_STATUS[status as string]
   const isClickable = !!nextStatus && !!selectedCompany
 
   const badge = (
@@ -71,15 +77,7 @@ const StatusCell = ({ requisition }: { requisition: Requisition }) => {
       onClick={(e) => {
         e.stopPropagation()
         if (!isClickable || updateStatusRequisition.isPending) return
-
-        updateStatusRequisition.mutate({
-          id: requisition.id,
-          data: {
-            status: nextStatus,
-            updated_by: `${user?.first_name} ${user?.last_name}`,
-          },
-          company: selectedCompany!.slug,
-        })
+        setConfirming({ id: requisition.id, from: status as string })
       }}
     >
       {updateStatusRequisition.isPending && (
@@ -89,19 +87,57 @@ const StatusCell = ({ requisition }: { requisition: Requisition }) => {
     </Badge>
   )
 
+  // Descartado si la celda pasó a representar otra requisición.
+  const active = confirming?.id === requisition.id ? confirming : null
+
+  const dialog = (
+    <AdvanceRequisitionStatusDialog
+      status={active?.from}
+      orderNumber={requisition.order_number}
+      open={!!active}
+      onOpenChange={(next) => !next && setConfirming(null)}
+      isPending={updateStatusRequisition.isPending}
+      onConfirm={() => {
+        const target = NEXT_REQUISITION_STATUS[active?.from ?? '']
+        if (!target || !selectedCompany) return
+
+        updateStatusRequisition.mutate(
+          {
+            id: requisition.id,
+            data: {
+              status: target,
+              updated_by: `${user?.first_name} ${user?.last_name}`,
+            },
+            company: selectedCompany.slug,
+          },
+          { onSettled: () => setConfirming(null) }
+        )
+      }}
+    />
+  )
+
   if (!isClickable) {
-    return badge
+    return (
+      <>
+        {badge}
+        {dialog}
+      </>
+    )
   }
 
   return (
-    <TooltipProvider delayDuration={120}>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <span className="inline-flex">{badge}</span>
-        </TooltipTrigger>
-        <TooltipContent>{ADVANCE_TOOLTIP[status as string]}</TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <>
+      <TooltipProvider delayDuration={120}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className="inline-flex">{badge}</span>
+          </TooltipTrigger>
+          <TooltipContent>{ADVANCE_REQUISITION_TOOLTIP[status as string]}</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+
+      {dialog}
+    </>
   )
 }
 

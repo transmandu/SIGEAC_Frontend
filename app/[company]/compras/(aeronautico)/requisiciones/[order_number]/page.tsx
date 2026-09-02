@@ -22,23 +22,24 @@ import RequisitionOutOfScope from './_components/RequisitionOutOfScope';
 import RequiredDocumentsSection from './_components/RequiredDocumentsSection';
 import { statusBadgeCls, requisitionStatusLabel, requisitionTypeLabel, formatSolicitudDate, priorityPageBadgeCls, priorityLabel } from './_components/utils/uiHelpers';
 import { PageHeader } from "@/components/layout/PageHeader";
-
-const NEXT_STATUS: Record<string, string> = {
-  CREATED: 'RECEIVED',
-  RECEIVED: 'IN_PROGRESS',
-}
-
-const ADVANCE_TOOLTIP: Record<string, string> = {
-  CREATED: 'Marcar esta requisición como recibida',
-  RECEIVED: 'Iniciar proceso de atención / ejecución',
-}
+import {
+  AdvanceRequisitionStatusDialog,
+  ADVANCE_REQUISITION_TOOLTIP,
+  NEXT_REQUISITION_STATUS,
+} from '@/components/dialogs/mantenimiento/compras/AdvanceRequisitionStatusDialog';
 
 function StatusBadge({ status, id, onSuccess }: { status?: string; id?: number; onSuccess: () => void }) {
   const { user } = useAuth();
   const { selectedCompany } = useCompanyStore();
   const { updateStatusRequisition } = useUpdateRequisitionStatus();
+  /**
+   * Estado desde el que se abrió la confirmación. Tras aplicarse el cambio el
+   * badge deja de ser avanzable, y sin esta copia el diálogo se desmontaría en
+   * pleno cierre dejando el `pointer-events: none` de Radix pegado en el body.
+   */
+  const [confirmingFrom, setConfirmingFrom] = useState<string | null>(null);
 
-  const nextStatus = NEXT_STATUS[status ?? ''];
+  const nextStatus = NEXT_REQUISITION_STATUS[status ?? ''];
   const isClickable = !!nextStatus && !!selectedCompany && !!id;
 
   const badge = (
@@ -49,14 +50,7 @@ function StatusBadge({ status, id, onSuccess }: { status?: string; id?: number; 
       )}
       onClick={() => {
         if (!isClickable || updateStatusRequisition.isPending) return;
-        updateStatusRequisition.mutate(
-          {
-            id: id!,
-            data: { status: nextStatus, updated_by: `${user?.first_name} ${user?.last_name}` },
-            company: selectedCompany!.slug,
-          },
-          { onSuccess }
-        );
+        setConfirmingFrom(status ?? null);
       }}
     >
       {updateStatusRequisition.isPending && <Loader2 className="mr-1 size-3 animate-spin" />}
@@ -64,17 +58,53 @@ function StatusBadge({ status, id, onSuccess }: { status?: string; id?: number; 
     </Badge>
   );
 
-  if (!isClickable) return badge;
+  const dialog = (
+    <AdvanceRequisitionStatusDialog
+      status={confirmingFrom ?? undefined}
+      open={!!confirmingFrom}
+      onOpenChange={(next) => !next && setConfirmingFrom(null)}
+      isPending={updateStatusRequisition.isPending}
+      onConfirm={() => {
+        const target = NEXT_REQUISITION_STATUS[confirmingFrom ?? ''];
+        if (!target || !selectedCompany || !id) return;
+
+        updateStatusRequisition.mutate(
+          {
+            id,
+            data: { status: target, updated_by: `${user?.first_name} ${user?.last_name}` },
+            company: selectedCompany.slug,
+          },
+          {
+            onSuccess,
+            onSettled: () => setConfirmingFrom(null),
+          }
+        );
+      }}
+    />
+  );
+
+  if (!isClickable) {
+    return (
+      <>
+        {badge}
+        {dialog}
+      </>
+    );
+  }
 
   return (
-    <TooltipProvider delayDuration={120}>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <span className="inline-flex">{badge}</span>
-        </TooltipTrigger>
-        <TooltipContent>{ADVANCE_TOOLTIP[status ?? '']}</TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <>
+      <TooltipProvider delayDuration={120}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className="inline-flex">{badge}</span>
+          </TooltipTrigger>
+          <TooltipContent>{ADVANCE_REQUISITION_TOOLTIP[status ?? '']}</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+
+      {dialog}
+    </>
   );
 }
 
