@@ -91,6 +91,11 @@ const FormSchema = z.object({
       message: "El analisis causa raiz no debe exceder los 2000 caracteres",
     }),
   information_source_id: z.string(),
+  root_cause: z
+    .string()
+    .max(5000, { message: "La causa raíz no debe exceder los 5000 caracteres" })
+    .optional()
+    .or(z.literal("")),
 });
 
 type FormSchemaType = z.infer<typeof FormSchema>;
@@ -159,6 +164,7 @@ export default function CreateDangerIdentificationForm({
       root_cause_analysis: initialData?.root_cause_analysis || "",
       description: initialData?.description || "",
       possible_consequences: initialData?.possible_consequences || "",
+      root_cause: initialData?.root_cause || "",
     },
   });
 
@@ -710,6 +716,21 @@ export default function CreateDangerIdentificationForm({
             <FormItem>
               <FormControl>
                 <Input type="hidden" {...field} />
+              </FormControl>
+              <FormMessage className="text-xs" />
+            </FormItem>
+          )}
+        />
+
+        {/* --- CAUSA RAÍZ --- */}
+        <FormField
+          control={form.control}
+          name="root_cause"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Causa Raíz</FormLabel>
+              <FormControl>
+                <Textarea placeholder="Describa la causa raíz identificada" {...field} />
               </FormControl>
               <FormMessage className="text-xs" />
             </FormItem>
