@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 
 interface SMSActivities {
   id: number;
+  activity_number: string;
   title: string;
   start: string;
   end: string;

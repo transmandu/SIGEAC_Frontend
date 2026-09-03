@@ -10,11 +10,21 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { useGetEnrolledStatus } from "@/hooks/sms/useGetEnrolledStatus";
+import {
+  EnrolledEmployeeData,
+  useGetEnrolledStatus,
+} from "@/hooks/sms/useGetEnrolledStatus";
 import { cn } from "@/lib/utils";
 import { SMSActivity } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
+import {
+  Check,
+  ChevronsUpDown,
+  Loader2,
+  Users,
+  UserPlus,
+  ListChecks,
+} from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -32,6 +42,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { Badge } from "@/components/ui/badge";
 
 interface FormProps {
   onClose: () => void;
@@ -46,21 +57,26 @@ interface EmployeeSelection {
   department: string;
   isSelected: boolean;
   wasEnrolled: boolean;
+  employee_type: "local" | "authorized";
+  authorized_employee_id?: number | null;
+  from_company_db?: string;
 }
 
 const FormSchema = z.object({
   addedEmployees: z.array(
     z.object({
-      dni: z.string(),
+      dni: z.string().nullable(),
       first_name: z.string(),
       last_name: z.string(),
+      authorized_employee_id: z.number().nullable(),
     })
   ),
   removedEmployees: z.array(
     z.object({
-      dni: z.string(),
+      dni: z.string().nullable(),
       first_name: z.string(),
       last_name: z.string(),
+      authorized_employee_id: z.number().nullable(),
     })
   ),
 });
@@ -90,6 +106,25 @@ export function AddToSMSActivity({ onClose, initialData }: FormProps) {
     },
   });
 
+  const mapToSelection = useCallback(
+    (employees: EnrolledEmployeeData[], wasEnrolled: boolean) =>
+      employees.map((e) => ({
+        dni: e.dni,
+        first_name: e.first_name,
+        last_name: e.last_name,
+        job_title:
+          typeof e.job_title === "string" ? e.job_title : e.job_title.name,
+        department:
+          typeof e.department === "string" ? e.department : e.department.name,
+        isSelected: wasEnrolled,
+        wasEnrolled,
+        employee_type: e.employee_type,
+        authorized_employee_id: e.authorized_employee_id ?? null,
+        from_company_db: e.from_company_db,
+      })),
+    []
+  );
+
   const updateFormValues = useCallback(
     (selections: EmployeeSelection[]) => {
       const added = selections.filter((e) => e.isSelected && !e.wasEnrolled);
@@ -98,18 +133,26 @@ export function AddToSMSActivity({ onClose, initialData }: FormProps) {
       form.setValue(
         "addedEmployees",
         added.map((e) => ({
-          dni: e.dni,
+          dni: e.employee_type === "local" ? e.dni : null,
           first_name: e.first_name,
           last_name: e.last_name,
+          authorized_employee_id:
+            e.employee_type === "authorized"
+              ? (e.authorized_employee_id ?? null)
+              : null,
         }))
       );
 
       form.setValue(
         "removedEmployees",
         removed.map((e) => ({
-          dni: e.dni,
+          dni: e.employee_type === "local" ? e.dni : null,
           first_name: e.first_name,
           last_name: e.last_name,
+          authorized_employee_id:
+            e.employee_type === "authorized"
+              ? (e.authorized_employee_id ?? null)
+              : null,
         }))
       );
     },
@@ -119,35 +162,23 @@ export function AddToSMSActivity({ onClose, initialData }: FormProps) {
   useEffect(() => {
     if (employeesData) {
       const selections: EmployeeSelection[] = [
-        ...(employeesData.enrolled?.map((e) => ({
-          dni: e.dni,
-          first_name: e.first_name,
-          last_name: e.last_name,
-          job_title: e.job_title.name,
-          department: e.department.name,
-          isSelected: true,
-          wasEnrolled: true,
-        })) || []),
-        ...(employeesData.not_enrolled?.map((e) => ({
-          dni: e.dni,
-          first_name: e.first_name,
-          last_name: e.last_name,
-          job_title: e.job_title.name,
-          department: e.department.name,
-          isSelected: false,
-          wasEnrolled: false,
-        })) || []),
+        ...mapToSelection(employeesData.enrolled || [], true),
+        ...mapToSelection(employeesData.not_enrolled || [], false),
       ];
 
       setEmployeeSelections(selections);
       updateFormValues(selections);
     }
-  }, [employeesData, updateFormValues]);
+  }, [employeesData, updateFormValues, mapToSelection]);
 
-  const toggleEmployeeSelection = (dni: string) => {
-    const newSelections = employeeSelections.map((emp) =>
-      emp.dni === dni ? { ...emp, isSelected: !emp.isSelected } : emp
-    );
+  const toggleEmployeeSelection = (key: string) => {
+    const newSelections = employeeSelections.map((emp) => {
+      const empKey =
+        emp.employee_type === "authorized"
+          ? `auth_${emp.authorized_employee_id}`
+          : emp.dni;
+      return empKey === key ? { ...emp, isSelected: !emp.isSelected } : emp;
+    });
 
     setEmployeeSelections(newSelections);
     updateFormValues(newSelections);
@@ -176,6 +207,16 @@ export function AddToSMSActivity({ onClose, initialData }: FormProps) {
     );
   });
 
+  const selectedCount = employeeSelections.filter((e) => e.isSelected).length;
+  const newlyAddedCount = employeeSelections.filter(
+    (e) => e.isSelected && !e.wasEnrolled
+  ).length;
+  const removedCount = employeeSelections.filter(
+    (e) => !e.isSelected && e.wasEnrolled
+  ).length;
+
+  const allSelected = employeeSelections.length > 0 && employeeSelections.every((emp) => emp.isSelected);
+
   const onSubmit = async (data: FormSchemaType) => {
     const value = {
       company: selectedCompany!.slug,
@@ -194,22 +235,71 @@ export function AddToSMSActivity({ onClose, initialData }: FormProps) {
   };
 
   if (isLoadingEnrolledEmployee) {
-    return <div className="p-4 text-center">Cargando empleados...</div>;
+    return (
+      <div className="flex flex-col items-center justify-center gap-3 py-10">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+        <span className="text-sm text-muted-foreground">
+          Cargando empleados...
+        </span>
+      </div>
+    );
   }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormLabel className="text-lg font-semibold">
-          Gestionar participantes de la actividad
-        </FormLabel>
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="flex flex-col gap-5"
+      >
+        <div className="flex items-center gap-3 pb-3 border-b border-border/60">
+          <div className="flex items-center justify-center h-9 w-9 rounded-lg bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-500 shrink-0">
+            <Users className="h-4 w-4" />
+          </div>
+          <div>
+            <h2 className="text-base font-semibold leading-tight">
+              Gestionar participantes
+            </h2>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Actividad N.° {initialData.activity_number}
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-3 gap-3">
+          <div className="flex flex-col gap-1 rounded-md border border-border/40 px-3 py-2">
+            <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
+              Seleccionados
+            </span>
+            <span className="font-mono text-lg font-bold tabular-nums">
+              {selectedCount}
+            </span>
+          </div>
+          <div className="flex flex-col gap-1 rounded-md border border-border/40 px-3 py-2">
+            <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
+              Nuevos
+            </span>
+            <span className="font-mono text-lg font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
+              +{newlyAddedCount}
+            </span>
+          </div>
+          <div className="flex flex-col gap-1 rounded-md border border-border/40 px-3 py-2">
+            <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
+              Removidos
+            </span>
+            <span className="font-mono text-lg font-bold tabular-nums text-red-600 dark:text-red-400">
+              -{removedCount}
+            </span>
+          </div>
+        </div>
 
         <FormField
           control={form.control}
           name="addedEmployees"
           render={() => (
             <FormItem>
-              <FormLabel>Participantes:</FormLabel>
+              <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Participantes
+              </FormLabel>
               <FormControl>
                 <Popover open={open} onOpenChange={setOpen}>
                   <PopoverTrigger asChild>
@@ -217,16 +307,13 @@ export function AddToSMSActivity({ onClose, initialData }: FormProps) {
                       variant="outline"
                       role="combobox"
                       aria-expanded={open}
-                      className="w-full justify-between"
+                      className="w-full justify-between h-10"
                     >
-                      {employeeSelections.filter((e) => e.isSelected).length >
-                      0 ? (
-                        <span>
-                          {
-                            employeeSelections.filter((e) => e.isSelected)
-                              .length
-                          }{" "}
-                          seleccionados
+                      {selectedCount > 0 ? (
+                        <span className="flex items-center gap-2">
+                          <UserPlus className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                          {selectedCount} seleccionado
+                          {selectedCount !== 1 ? "s" : ""}
                         </span>
                       ) : (
                         "Seleccionar participantes..."
@@ -234,54 +321,98 @@ export function AddToSMSActivity({ onClose, initialData }: FormProps) {
                       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-[400px] p-0">
+                  <PopoverContent
+                    className="w-[calc(100vw-2rem)] max-w-[480px] p-0"
+                    align="start"
+                  >
                     <Command>
                       <CommandInput
-                        placeholder="Buscar empleados..."
+                        placeholder="Buscar por nombre, DNI, puesto o departamento..."
                         value={searchQuery}
                         onValueChange={setSearchQuery}
                       />
-                      <div className="p-2 border-b">
+                      <div className="flex items-center gap-2 px-3 py-2 border-b border-border/60">
                         <Button
                           variant="ghost"
-                          className="w-full justify-start h-8"
+                          size="sm"
+                          className="h-7 px-2 text-xs"
                           onClick={toggleAllEmployees}
                         >
-                          <Check className="mr-2 h-4 w-4" />
-                          {employeeSelections.every((emp) => emp.isSelected)
-                            ? "Deseleccionar todos"
-                            : "Seleccionar todos"}
+                          {allSelected ? (
+                            <>
+                              <ListChecks className="mr-1.5 h-3.5 w-3.5" />
+                              Deseleccionar todos
+                            </>
+                          ) : (
+                            <>
+                              <Check className="mr-1.5 h-3.5 w-3.5" />
+                              Seleccionar todos
+                            </>
+                          )}
                         </Button>
                       </div>
                       <CommandList>
-                        <CommandEmpty>No se encontraron empleados</CommandEmpty>
+                        <CommandEmpty>
+                          No se encontraron empleados
+                        </CommandEmpty>
 
                         <CommandGroup heading="Todos los empleados">
-                          {filteredEmployees.map((employee) => (
-                            <CommandItem
-                              key={employee.dni}
-                              value={`${employee.first_name} ${employee.last_name} ${employee.dni} ${employee.job_title} ${employee.department}`}
-                              onSelect={() =>
-                                toggleEmployeeSelection(employee.dni)
-                              }
-                            >
-                              <Check
-                                className={cn(
-                                  "mr-2 h-4 w-4",
-                                  employee.isSelected
-                                    ? "opacity-100"
-                                    : "opacity-0"
-                                )}
-                              />
-                              {employee.first_name} {employee.last_name} -{" "}
-                              {employee.dni}
-                              {employee.wasEnrolled && (
-                                <span className="ml-2 text-xs text-muted-foreground">
-                                  (inscrito)
-                                </span>
-                              )}
-                            </CommandItem>
-                          ))}
+                          {filteredEmployees.map((employee) => {
+                            const key =
+                              employee.employee_type === "authorized"
+                                ? `auth_${employee.authorized_employee_id}`
+                                : employee.dni;
+
+                            return (
+                              <CommandItem
+                                key={key}
+                                value={`${employee.first_name} ${employee.last_name} ${employee.dni} ${employee.job_title} ${employee.department}`}
+                                onSelect={() => toggleEmployeeSelection(key)}
+                                className="py-2.5"
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4 shrink-0",
+                                    employee.isSelected
+                                      ? "opacity-100 text-emerald-600 dark:text-emerald-400"
+                                      : "opacity-0"
+                                  )}
+                                />
+                                <div className="flex flex-col gap-0.5 min-w-0 flex-1">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="text-sm font-medium truncate">
+                                      {employee.first_name}{" "}
+                                      {employee.last_name}
+                                    </span>
+                                    <span className="font-mono text-xs text-muted-foreground">
+                                      {employee.dni}
+                                    </span>
+                                    {employee.employee_type ===
+                                      "authorized" && (
+                                      <Badge
+                                        variant="outline"
+                                        className="text-[10px] px-1 py-0 shrink-0"
+                                      >
+                                        Externo
+                                        {employee.from_company_db
+                                          ? ` (${employee.from_company_db})`
+                                          : ""}
+                                      </Badge>
+                                    )}
+                                    {employee.wasEnrolled && (
+                                      <Badge className="text-[10px] px-1 py-0 shrink-0 bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-400 dark:border-emerald-800">
+                                        Inscrito
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  <span className="text-xs text-muted-foreground truncate">
+                                    {employee.job_title} ·{" "}
+                                    {employee.department}
+                                  </span>
+                                </div>
+                              </CommandItem>
+                            );
+                          })}
                         </CommandGroup>
                       </CommandList>
                     </Command>
@@ -293,18 +424,27 @@ export function AddToSMSActivity({ onClose, initialData }: FormProps) {
           )}
         />
 
-        <div className="flex justify-end space-x-2">
-          <Button variant="outline" onClick={onClose}>
+        <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-1 border-t border-border/60">
+          <Button
+            variant="outline"
+            onClick={onClose}
+            className="w-full sm:w-auto"
+          >
             Cancelar
           </Button>
           <Button
             type="submit"
             disabled={createSMSActivityAttendance.isPending}
+            className="w-full sm:w-auto h-10"
           >
             {createSMSActivityAttendance.isPending ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : null}
-            Guardar cambios
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <>
+                <UserPlus className="size-4 mr-2" />
+                Guardar cambios
+              </>
+            )}
           </Button>
         </div>
       </form>

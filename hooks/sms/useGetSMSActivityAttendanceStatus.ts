@@ -1,10 +1,20 @@
 import axiosInstance from "@/lib/axios";
-import { Employee } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 
+interface EmployeeAttendanceData {
+  dni: string;
+  first_name: string;
+  last_name: string;
+  job_title: { name: string };
+  department: { name: string };
+  employee_type: "local" | "authorized";
+  authorized_employee_id?: number | null;
+  from_company_db?: string;
+}
+
 interface EnrolledEmployees {
-  attended: Employee[];
-  not_attended: Employee[];
+  attended: EmployeeAttendanceData[];
+  not_attended: EmployeeAttendanceData[];
 }
 
 const fetchGetActivityAttendanceStatus = async ({

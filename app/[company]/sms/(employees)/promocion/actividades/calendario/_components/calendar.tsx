@@ -22,6 +22,7 @@ import { useEffect, useRef, useState, useMemo } from "react";
 
 interface SMSActivities {
   id: number;
+  activity_number: string;
   title: string;
   start: string;
   end: string;
@@ -179,6 +180,20 @@ export const Calendar = ({ events, theme = "light" }: CalendarProps) => {
                     href={`/${selectedCompany?.slug}/planificacion/ordenes_trabajo/nueva_orden_trabajo?eventId=${calendarEvent.id}`}
                     className="flex items-center"
                   ></Link>
+                </Button>
+              </div>
+            )}
+
+            {calendarEvent?.activity_number && (
+              <div className="mt-6 flex justify-center">
+                <Button asChild variant="outline" className="w-full">
+                  <Link
+                    href={`/${selectedCompany?.slug}/sms/promocion/actividades/${calendarEvent.activity_number}`}
+                    className="flex items-center justify-center gap-2"
+                  >
+                    <Hammer className="w-4 h-4" />
+                    Ver actividad
+                  </Link>
                 </Button>
               </div>
             )}

@@ -1253,7 +1253,9 @@ export type SMSActivity = {
 
 export type SMSActivityAttendance = {
   sms_activity_id: number;
-  employee_id: number;
+  employee_id?: number;
+  employee_dni?: string;
+  authorized_employee_id?: number;
   attended: boolean;
 };
 

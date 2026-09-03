@@ -424,6 +424,9 @@ const ShowSMSActivity = () => {
                             <th className="px-3 py-3 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
                               DNI
                             </th>
+                            <th className="px-3 py-3 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
+                              Origen
+                            </th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-border/30">
@@ -433,10 +436,19 @@ const ShowSMSActivity = () => {
                                 {index + 1}
                               </td>
                               <td className="whitespace-nowrap px-3 py-3 text-sm font-medium">
-                                {attended.employee.first_name} {attended.employee.last_name}
+                                {attended.employee?.first_name} {attended.employee?.last_name}
                               </td>
                               <td className="whitespace-nowrap px-3 py-3 text-sm text-muted-foreground font-mono">
-                                {attended.employee_dni}
+                                {attended.employee?.dni || attended.employee_dni || "N/A"}
+                              </td>
+                              <td className="whitespace-nowrap px-3 py-3 text-sm">
+                                {attended.employee_type === "authorized" ? (
+                                  <Badge variant="outline" className="text-[10px]">
+                                    Externo
+                                  </Badge>
+                                ) : (
+                                  <span className="text-muted-foreground">Interno</span>
+                                )}
                               </td>
                             </tr>
                           ))}
@@ -496,6 +508,9 @@ const ShowSMSActivity = () => {
                               DNI
                             </th>
                             <th className="px-3 py-3 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
+                              Origen
+                            </th>
+                            <th className="px-3 py-3 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
                               Estado
                             </th>
                           </tr>
@@ -507,10 +522,19 @@ const ShowSMSActivity = () => {
                                 {index + 1}
                               </td>
                               <td className="whitespace-nowrap px-3 py-3 text-sm font-medium">
-                                {attended.employee.first_name} {attended.employee.last_name}
+                                {attended.employee?.first_name} {attended.employee?.last_name}
                               </td>
                               <td className="hidden whitespace-nowrap px-3 py-3 text-sm text-muted-foreground font-mono sm:table-cell">
-                                {attended.employee_dni}
+                                {attended.employee?.dni || attended.employee_dni || "N/A"}
+                              </td>
+                              <td className="whitespace-nowrap px-3 py-3 text-sm">
+                                {attended.employee_type === "authorized" ? (
+                                  <Badge variant="outline" className="text-[10px]">
+                                    Externo
+                                  </Badge>
+                                ) : (
+                                  <span className="text-muted-foreground">Interno</span>
+                                )}
                               </td>
                               <td className="whitespace-nowrap px-3 py-3">
                                 <Badge
