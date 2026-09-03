@@ -1,3 +1,7 @@
+## v3.9.2 — 2026-09-03
+
+- refactor : danger identification sms (#240)
+
 ## v3.9.1 — 2026-09-03
 
 - fix: update comment for traceability movements query in FuelWarehousePage
