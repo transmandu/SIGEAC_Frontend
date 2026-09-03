@@ -147,7 +147,7 @@ export default function FuelWarehousePage() {
   const { data: movementsPage, isLoading: movementsLoading } =
     useGetFuelMovements(company, movementFilters);
   // Trazabilidad necesita ver todos los despachos, no solo la pagina actual
-  // de la pestana Movimientos: se consulta aparte con un limite alto.
+  // de la pestana Movimientos: se consulta aparte con un limite alto...
   const { data: traceabilityMovementsPage } = useGetFuelMovements(company, {
     per_page: 200,
   });
