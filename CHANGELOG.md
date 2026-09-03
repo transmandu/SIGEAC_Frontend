@@ -1,3 +1,7 @@
+## v3.9.3 — 2026-09-03
+
+- fix: add attendance sms activity (#241)
+
 ## v3.9.2 — 2026-09-03
 
 - refactor : danger identification sms (#240)
