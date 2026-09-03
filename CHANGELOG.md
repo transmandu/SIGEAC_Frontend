@@ -1,3 +1,7 @@
+## v3.8.3 — 2026-09-03
+
+- fix: render danger identification form ROS and RVP (#238)
+
 ## v3.8.2 — 2026-09-02
 
 - fix: employee trainning (#237)
