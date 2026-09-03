@@ -80,7 +80,7 @@ export function AddSMSActivityAttendanceForm({
   const [searchQuery, setSearchQuery] = useState("");
 
   const value = {
-    activity_id: initialData.id.toString(),
+    activity_number: initialData.activity_number,
     company: selectedCompany!.slug,
   };
   const { data: employeesData, isLoading: isLoadingEnrolledEmployee } =
@@ -170,7 +170,7 @@ export function AddSMSActivityAttendanceForm({
 
   const onSubmit = async (data: FormSchemaType) => {
     const value = {
-      activity_id: initialData?.id.toString(),
+      activity_number: initialData?.activity_number,
       employees_list: {
         addedEmployees: data.addedEmployees,
         removedEmployees: data.removedEmployees,
