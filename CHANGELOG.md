@@ -1,3 +1,8 @@
+## v3.9.0 — 2026-09-03
+
+- Merge pull request #239 from transmandu/feature/dispatch-return-per-line-condition
+- feat: implement dispatch return functionality with detailed item conditions
+
 ## v3.8.3 — 2026-09-03
 
 - fix: render danger identification form ROS and RVP (#238)
