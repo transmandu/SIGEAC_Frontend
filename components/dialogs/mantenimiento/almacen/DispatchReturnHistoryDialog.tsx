@@ -94,7 +94,13 @@ const DispatchReturnHistoryDialog = ({
           {returns && returns.length > 0 && (
             <div className="space-y-4">
               {returns.map((entry) => {
-                const altered = entry.condition === "ALTERED";
+                const alteredItems = entry.items.filter(
+                  (item) => item.condition === "ALTERED"
+                ).length;
+                const altered = alteredItems > 0;
+                // Devolución mixta: parte fue a inspección y parte al almacén,
+                // así que la insignia de la cabecera no puede hablar por todos.
+                const mixed = altered && alteredItems < entry.items.length;
 
                 return (
                   <div
@@ -111,7 +117,11 @@ const DispatchReturnHistoryDialog = ({
                           <PackageCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-500" />
                         )}
                         <Badge variant={altered ? "destructive" : "secondary"}>
-                          {altered ? "Enviado a incoming" : "Reingresó a almacén"}
+                          {!altered
+                            ? "Reingresó a almacén"
+                            : mixed
+                              ? `${alteredItems} de ${entry.items.length} a incoming`
+                              : "Enviado a incoming"}
                         </Badge>
                       </div>
                       <p className="text-xs text-muted-foreground tabular-nums">
@@ -122,13 +132,33 @@ const DispatchReturnHistoryDialog = ({
                     <div className="mt-3 space-y-1.5">
                       {entry.items.map((item) => (
                         <div
-                          key={item.article_dispatch_order_id}
+                          // La línea no basta como clave: una misma puede
+                          // figurar dos veces en la devolución, una intacta y
+                          // otra alterada, y las claves repetidas hacen que
+                          // React funda o descarte filas.
+                          key={`${item.article_dispatch_order_id}-${item.condition}`}
                           className="flex items-start justify-between gap-3 rounded-md bg-background/60 px-3 py-2"
                         >
                           <div className="min-w-0">
                             <p className="truncate text-sm font-medium">
                               {item.description}
                             </p>
+                            {/* Solo en las mixtas: si toda la devolución tuvo
+                                el mismo destino, la insignia de arriba ya lo
+                                dijo y repetirlo por línea es ruido. */}
+                            {mixed && (
+                              <p
+                                className={`mt-0.5 text-xs ${
+                                  item.condition === "ALTERED"
+                                    ? "text-amber-600 dark:text-amber-500"
+                                    : "text-muted-foreground"
+                                }`}
+                              >
+                                {item.condition === "ALTERED"
+                                  ? "A inspección de incoming"
+                                  : "Reingresó a almacén"}
+                              </p>
+                            )}
                             {item.part_number && item.part_number !== "N/A" && (
                               <p className="truncate text-xs text-muted-foreground">
                                 P/N {item.part_number}

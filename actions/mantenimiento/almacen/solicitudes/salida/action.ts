@@ -239,12 +239,13 @@ export const useDeleteDispatchRequest = () => {
 };
 
 export interface IDispatchReturnAction {
-  // SEALED vuelve al almacén; ALTERED pasa por inspección de incoming.
-  condition: "SEALED" | "ALTERED";
   justification: string;
   items: {
     article_dispatch_order_id: number;
     quantity: number;
+    // SEALED vuelve al almacén; ALTERED pasa por inspección de incoming. Es de
+    // cada artículo: de una misma salida puede volver uno dañado y otro sano.
+    condition: "SEALED" | "ALTERED";
   }[];
   /** Fotos de cómo volvió cada artículo, por línea. Opcional. */
   evidences?: Record<number, File[]>;
@@ -260,7 +261,6 @@ export interface IDispatchReturnAction {
 function buildReturnFormData(data: IDispatchReturnAction): FormData {
   const form = new FormData();
 
-  form.append("condition", data.condition);
   form.append("justification", data.justification);
 
   data.items.forEach((item, index) => {
@@ -269,6 +269,7 @@ function buildReturnFormData(data: IDispatchReturnAction): FormData {
       String(item.article_dispatch_order_id)
     );
     form.append(`items[${index}][quantity]`, String(item.quantity));
+    form.append(`items[${index}][condition]`, item.condition);
   });
 
   Object.entries(data.evidences ?? {}).forEach(([lineId, files]) => {

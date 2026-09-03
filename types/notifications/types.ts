@@ -1,3 +1,13 @@
+/** Un artículo dentro del detalle de DISPATCH_RETURN_REGISTERED. */
+export type DispatchReturnNotificationItem = {
+  part_number: string;
+  batch_name: string | null;
+  category: string | null;
+  quantity: number;
+  unit: string;
+  damaged: boolean;
+};
+
 export type Notification = {
   id: string;
   type: string;
@@ -19,5 +29,13 @@ export type Notification = {
     article_number?: string;
     description?: string;
     part_number?: string;
+    // DISPATCH_RETURN_REGISTERED: sin url a propósito, administración y
+    // mantenimiento no pueden abrir /almacen/solicitudes/salida. El detalle
+    // completo viaja aquí para que el frontend lo muestre en un diálogo.
+    dispatch_order_id?: number;
+    request_number?: string;
+    returned_at?: string;
+    justification?: string;
+    items?: DispatchReturnNotificationItem[];
   };
 };
