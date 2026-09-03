@@ -79,7 +79,7 @@ export function AddToSMSActivity({ onClose, initialData }: FormProps) {
   const { data: employeesData, isLoading: isLoadingEnrolledEmployee } =
     useGetEnrolledStatus({
       company: selectedCompany!.slug,
-      activity_id: initialData.id.toString(),
+      activity_number: initialData.activity_number,
     });
 
   const form = useForm<FormSchemaType>({
@@ -179,7 +179,7 @@ export function AddToSMSActivity({ onClose, initialData }: FormProps) {
   const onSubmit = async (data: FormSchemaType) => {
     const value = {
       company: selectedCompany!.slug,
-      activity_id: initialData?.id.toString(),
+      activity_number: initialData?.activity_number,
       data: {
         addedEmployees: data.addedEmployees,
         removedEmployees: data.removedEmployees,

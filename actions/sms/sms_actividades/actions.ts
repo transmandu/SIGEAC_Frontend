@@ -233,7 +233,7 @@ export const useUpdateSMSActivity = () => {
     },
     onSuccess: (_, data) => {
       queryClient.invalidateQueries({ queryKey: ["sms-activities"] });
-      queryClient.invalidateQueries({ queryKey: ["sms-activity", data.id] });
+      queryClient.invalidateQueries({ queryKey: ["sms-activity", data.data.activity_number] });
       toast.success("¡Actualizado!", {
         description: `La actividad ha sido actualizada correctamente.`,
       });
