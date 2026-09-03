@@ -1,3 +1,7 @@
+## v3.10.0 — 2026-09-03
+
+- feat: authorized employee sms act (#242)
+
 ## v3.9.3 — 2026-09-03
 
 - fix: add attendance sms activity (#241)
