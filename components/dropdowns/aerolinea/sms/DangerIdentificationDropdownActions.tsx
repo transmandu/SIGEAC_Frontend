@@ -210,15 +210,13 @@ const DangerIdentificationDropdownActions = ({
           <DialogContent className="flex flex-col max-w-3xl m-2 max-h-[calc(100vh-10rem)] overflow-auto">
             <DialogHeader>
               <DialogTitle className="text-center"></DialogTitle>
-              {dangerIdentification.voluntary_report ? (
-                <CreateDangerIdentificationForm
-                  onClose={() => setOpenEdit(false)}
-                  id={id}
-                  initialData={dangerIdentification}
-                  isEditing={true}
-                  reportType={reportType}
-                />
-              ) : null}
+              <CreateDangerIdentificationForm
+                onClose={() => setOpenEdit(false)}
+                id={id}
+                initialData={dangerIdentification}
+                isEditing={true}
+                reportType={reportType}
+              />
             </DialogHeader>
           </DialogContent>
         </Dialog>
