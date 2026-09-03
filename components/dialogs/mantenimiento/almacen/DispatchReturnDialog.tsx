@@ -19,7 +19,14 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { AlertTriangle, Barcode, Hash, Loader2, PackageOpen } from "lucide-react";
+import {
+  AlertTriangle,
+  Barcode,
+  Hash,
+  Layers,
+  Loader2,
+  PackageOpen,
+} from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -32,7 +39,10 @@ interface DispatchReturnDialogProps {
 }
 
 /** Lo que el usuario marcó devolver, por línea de la salida. */
-type Selection = Record<number, { checked: boolean; quantity: string }>;
+type Selection = Record<
+  number,
+  { checked: boolean; quantity: string; altered: boolean }
+>;
 
 // Tope de `max_file_uploads` de PHP (20 por defecto), con margen para los demás
 // campos del multipart, que también cuentan contra el límite.
@@ -59,11 +69,60 @@ function returnUnitOf(article: DispatchArticle): string {
   return article.return_unit ?? article.unit ?? "";
 }
 
+/**
+ * Part numbers alternos, siempre como array.
+ *
+ * El campo se declara `string[] | null`, pero filas antiguas quedaron
+ * guardadas como string suelto por un bug de guardado ya corregido en el
+ * backend (CreateArticleAction/UpdateArticleAction): un artículo editado
+ * antes de ese arreglo puede seguir llegando como string plano, no como
+ * array de un elemento. Sin normalizar aquí, un solo artículo con datos
+ * viejos tumbaba el diálogo entero con "map is not a function".
+ */
+function alternatePartNumbersOf(article: DispatchArticle): string[] {
+  // El tipo declarado es string[] | null y por eso no admite el caso string
+  // suelto que sí llega en runtime; el cast es el propio punto de esta
+  // función, que existe para blindar contra ese desfase.
+  const raw = article.alternative_part_number as string[] | string | null | undefined;
+  if (Array.isArray(raw)) return raw;
+  if (typeof raw === "string" && raw.trim() !== "") return [raw];
+  return [];
+}
+
 /** Redondeo de presentación: evita colas como 0.6666666667 en pantalla. */
 function formatQty(value: number): string {
   return Number(value.toFixed(4)).toLocaleString("es-VE", {
     maximumFractionDigits: 4,
   });
+}
+
+/**
+ * Texto presentable, o null si no hay dato que mostrar.
+ *
+ * El backend rellena con "N/A" lo que no tiene, y un badge con "N/A" ocupa el
+ * mismo sitio que uno con información sin aportar nada: si el campo falta, el
+ * badge no se dibuja.
+ */
+function shown(value?: string | null): string | null {
+  const text = value?.trim();
+
+  return text && text.toUpperCase() !== "N/A" ? text : null;
+}
+
+/**
+ * Cómo se nombra el artículo en la lista.
+ *
+ * El aeronáutico se identifica por su número de parte y nunca por la
+ * descripción. El general no tiene parte: su identidad ES la descripción, y lo
+ * que separa dos que la comparten son la variante y el modelo.
+ */
+function titleOf(article: DispatchArticle): string {
+  const identity =
+    article.type === "general"
+      ? shown(article.description)
+      : shown(article.part_number);
+
+  return identity ?? "Artículo sin identificar";
 }
 
 const DispatchReturnDialog = ({
@@ -78,7 +137,6 @@ const DispatchReturnDialog = ({
 
   const [selection, setSelection] = useState<Selection>({});
   const [justification, setJustification] = useState("");
-  const [isAltered, setIsAltered] = useState(false);
   // Fotos de cómo volvió cada artículo, por línea. Opcionales.
   const [evidences, setEvidences] = useState<Record<number, File[]>>({});
 
@@ -96,45 +154,94 @@ const DispatchReturnDialog = ({
     [returnable, selection]
   );
 
-  // Enviar a incoming solo tiene sentido sobre unidades serializadas: el
-  // backend rechaza la combinación, así que la casilla no se ofrece si lo
-  // seleccionado no la admite.
-  const canInspect = selected.length > 0 && selected.every((a) => a.is_inspectable);
+  // Marcado como dañado, y solo si esa línea admite inspección: el backend
+  // rechaza ALTERED sobre lo que se maneja por cantidad.
+  const isAltered = (article: DispatchArticle) =>
+    !!article.is_inspectable &&
+    !!selection[article.article_dispatch_order_id!]?.altered;
+
+  const alteredCount = selected.filter(isAltered).length;
+
+  /**
+   * Cantidad válida para esta línea, o null si no lo es.
+   *
+   * Con daño físico exige devolver TODO lo pendiente: la inspección retiene el
+   * artículo entero, así que un saldo parcial no tendría dónde quedarse. El
+   * backend lo rechaza igual; comprobarlo aquí evita el viaje.
+   */
+  const quantityErrorOf = (article: DispatchArticle): string | null => {
+    const pending = pendingOf(article);
+    const raw = selection[article.article_dispatch_order_id!]?.quantity ?? "";
+    const value = Number(raw.replace(",", "."));
+
+    if (!Number.isFinite(value) || value <= 0 || value > pending) {
+      return `Máximo ${formatQty(pending)} ${returnUnitOf(article)}`.trim();
+    }
+
+    if (isAltered(article) && Math.abs(value - pending) > 1e-9) {
+      return `Con daño físico se devuelve completo: ${formatQty(pending)} ${returnUnitOf(article)}`.trim();
+    }
+
+    return null;
+  };
 
   const isValid =
     selected.length > 0 &&
     justification.trim().length > 0 &&
-    selected.every((a) => {
-      const raw = selection[a.article_dispatch_order_id!]?.quantity ?? "";
-      const value = Number(raw.replace(",", "."));
-      return Number.isFinite(value) && value > 0 && value <= pendingOf(a);
-    });
+    selected.every((a) => quantityErrorOf(a) === null);
 
   const reset = () => {
     setSelection({});
     setJustification("");
-    setIsAltered(false);
     setEvidences({});
   };
 
-  const toggle = (article: DispatchArticle, checked: boolean) => {
-    const lineId = article.article_dispatch_order_id!;
+  // Parte de un registro completo y no de `...prev[lineId]`: sobre una línea
+  // que aún no existe, el spread de undefined dejaría fuera los campos que el
+  // tipo promete y el estado quedaría a medias.
+  const patchLine = (lineId: number, patch: Partial<Selection[number]>) => {
     setSelection((prev) => ({
       ...prev,
       [lineId]: {
-        checked,
-        // Al marcar se propone devolver todo lo pendiente, que es el caso común.
-        quantity: prev[lineId]?.quantity || String(pendingOf(article)),
+        ...(prev[lineId] ?? { checked: false, quantity: "", altered: false }),
+        ...patch,
       },
     }));
   };
 
-  const setQuantity = (lineId: number, quantity: string) => {
-    setSelection((prev) => ({
-      ...prev,
-      [lineId]: { checked: prev[lineId]?.checked ?? false, quantity },
-    }));
+  const toggle = (article: DispatchArticle, checked: boolean) =>
+    patchLine(article.article_dispatch_order_id!, {
+      checked,
+      // Al marcar se propone devolver todo lo pendiente, que es el caso común.
+      // Se conserva lo ya escrito: desmarcar y volver a marcar no debe borrar
+      // la cantidad que el usuario había corregido.
+      quantity:
+        selection[article.article_dispatch_order_id!]?.quantity ||
+        String(pendingOf(article)),
+    });
+
+  // Bajar la cantidad por debajo de lo pendiente desmarca el daño físico: son
+  // incompatibles, y desmarcarlo respeta lo último que el usuario hizo en vez
+  // de dejarlo con un error que no pidió.
+  const setQuantity = (article: DispatchArticle, quantity: string) => {
+    const value = Number(quantity.replace(",", "."));
+    const isPartial =
+      Number.isFinite(value) && Math.abs(value - pendingOf(article)) > 1e-9;
+
+    patchLine(article.article_dispatch_order_id!, {
+      quantity,
+      ...(isPartial ? { altered: false } : {}),
+    });
   };
+
+  // Marcar daño físico lleva la cantidad a todo lo pendiente: la inspección se
+  // queda con el artículo entero, así que dejar un parcial escrito solo daría
+  // un error que el usuario tendría que corregir a mano.
+  const setAltered = (article: DispatchArticle, altered: boolean) =>
+    patchLine(article.article_dispatch_order_id!, {
+      altered,
+      ...(altered ? { quantity: String(pendingOf(article)) } : {}),
+    });
 
   const handleSubmit = async () => {
     if (!selectedCompany?.slug || !isValid) return;
@@ -157,15 +264,15 @@ const DispatchReturnDialog = ({
       id: dispatchId,
       company: selectedCompany.slug,
       data: {
-        // canInspect manda: si la selección cambió y dejó de admitir incoming,
-        // la casilla ya no se muestra pero su estado podría seguir en true.
-        condition: isAltered && canInspect ? "ALTERED" : "SEALED",
         justification: justification.trim(),
         items: selected.map((a) => ({
           article_dispatch_order_id: a.article_dispatch_order_id!,
           quantity: Number(
             selection[a.article_dispatch_order_id!].quantity.replace(",", ".")
           ),
+          // isAltered vuelve a mirar is_inspectable: la casilla pudo marcarse y
+          // luego dejar de mostrarse, quedando su estado en true.
+          condition: isAltered(a) ? ("ALTERED" as const) : ("SEALED" as const),
         })),
         // Solo las fotos de artículos que realmente se devuelven: si el usuario
         // adjuntó y luego deseleccionó la línea, no hay a qué colgarlas.
@@ -223,8 +330,7 @@ const DispatchReturnDialog = ({
                   const entry = selection[lineId];
                   const checked = entry?.checked ?? false;
                   const value = Number((entry?.quantity ?? "").replace(",", "."));
-                  const invalid =
-                    checked && (!Number.isFinite(value) || value <= 0 || value > pending);
+                  const error = checked ? quantityErrorOf(article) : null;
 
                   // Se deriva de los dos saldos que ya manda el backend en vez
                   // de viajar aparte: así no puede quedar desfasado del factor
@@ -232,12 +338,16 @@ const DispatchReturnDialog = ({
                   const baseFactor =
                     pending > 0 ? (article.pending_quantity ?? 0) / pending : 1;
 
+                  const altered = isAltered(article);
+
                   return (
                     <div
                       key={lineId}
-                      className="rounded-lg border p-3 transition-colors hover:bg-muted/30"
+                      className={`rounded-lg border p-3 transition-colors hover:bg-muted/30 ${
+                        altered ? "border-amber-500/50" : ""
+                      }`}
                     >
-                      <div className="flex items-start gap-3">
+                      <div className="flex items-stretch gap-3">
                         <Checkbox
                           id={`line-${lineId}`}
                           checked={checked}
@@ -246,32 +356,62 @@ const DispatchReturnDialog = ({
                           }
                           className="mt-1"
                         />
-                        <div className="min-w-0 flex-1">
+                        <div className="flex min-w-0 flex-1 flex-col">
                           <Label
                             htmlFor={`line-${lineId}`}
                             className="cursor-pointer text-sm font-medium"
                           >
-                            {article.description?.trim() ||
-                              article.part_number?.trim() ||
-                              "Artículo sin identificar"}
+                            {titleOf(article)}
                           </Label>
 
                           <div className="mt-2 flex flex-wrap gap-2">
-                            {article.part_number &&
-                              article.part_number !== "N/A" && (
-                                <Badge variant="secondary" className="gap-1">
+                            {shown(article.variant_type) && (
+                              <Badge variant="secondary" className="font-normal">
+                                {shown(article.variant_type)}
+                              </Badge>
+                            )}
+                            {shown(article.brand_model) && (
+                              <Badge variant="secondary" className="font-normal">
+                                {shown(article.brand_model)}
+                              </Badge>
+                            )}
+                            {alternatePartNumbersOf(article)
+                              .map(shown)
+                              .filter((alt): alt is string => alt !== null)
+                              .map((alt) => (
+                                <Badge
+                                  key={alt}
+                                  variant="secondary"
+                                  className="gap-1"
+                                >
                                   <Hash className="h-3.5 w-3.5" />
-                                  <span className="font-normal">
-                                    {article.part_number}
-                                  </span>
+                                  <span className="font-normal">{alt}</span>
                                 </Badge>
-                              )}
-                            {article.serial && article.serial !== "N/A" && (
+                              ))}
+                            {shown(article.serial) && (
                               <Badge variant="secondary" className="gap-1">
                                 <Barcode className="h-3.5 w-3.5" />
                                 <span className="font-normal">
-                                  {article.serial}
+                                  {shown(article.serial)}
                                 </span>
+                              </Badge>
+                            )}
+                            {shown(article.lot_number) && (
+                              <Badge variant="secondary" className="gap-1">
+                                <Layers className="h-3.5 w-3.5" />
+                                <span className="font-normal">
+                                  {shown(article.lot_number)}
+                                </span>
+                              </Badge>
+                            )}
+                            {shown(article.category) && (
+                              <Badge variant="secondary" className="font-normal">
+                                {shown(article.category)}
+                              </Badge>
+                            )}
+                            {shown(article.batch_name) && (
+                              <Badge variant="secondary" className="font-normal">
+                                {shown(article.batch_name)}
                               </Badge>
                             )}
                             <Badge variant="outline" className="tabular-nums">
@@ -284,10 +424,22 @@ const DispatchReturnDialog = ({
                                 : ""}
                             </Badge>
                           </div>
+
+                          {/* mt-auto lo pega al fondo de la columna, que es
+                              donde cae el check de la otra: así comparten fila
+                              en vez de apilar cada una a su propio ritmo, y la
+                              tarjeta no crece al marcarlo. */}
+                          {altered && (
+                            <p className="mt-auto flex h-6 items-center gap-1.5 pt-2 text-xs text-amber-600 dark:text-amber-500">
+                              <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                              No reingresa al stock: pasa a inspección de
+                              incoming.
+                            </p>
+                          )}
                         </div>
 
                         {checked && (
-                          <div className="w-40 shrink-0">
+                          <div className="flex w-40 shrink-0 flex-col">
                             <div className="mb-1 flex items-center justify-between gap-2">
                               <Label className="text-xs text-muted-foreground">
                                 Devolver
@@ -300,21 +452,17 @@ const DispatchReturnDialog = ({
                                     [lineId]: next,
                                   }))
                                 }
-                                label={
-                                  article.description?.trim() ||
-                                  article.part_number?.trim() ||
-                                  "el artículo"
-                                }
+                                label={titleOf(article)}
                               />
                             </div>
                             <div className="relative">
                               <Input
                                 value={entry?.quantity ?? ""}
                                 onChange={(e) =>
-                                  setQuantity(lineId, e.target.value)
+                                  setQuantity(article, e.target.value)
                                 }
                                 className={`pr-14 tabular-nums ${
-                                  invalid ? "border-destructive" : ""
+                                  error ? "border-destructive" : ""
                                 }`}
                                 inputMode="decimal"
                               />
@@ -324,10 +472,9 @@ const DispatchReturnDialog = ({
                                 </span>
                               )}
                             </div>
-                            {invalid ? (
+                            {error ? (
                               <p className="mt-1 text-xs text-destructive">
-                                Máximo {formatQty(pending)}{" "}
-                                {returnUnitOf(article)}
+                                {error}
                               </p>
                             ) : (
                               // Equivale a X en la unidad base: es la cifra que
@@ -342,10 +489,36 @@ const DispatchReturnDialog = ({
                                 </p>
                               )
                             )}
+
+                            {/* La condición es de este artículo: de la misma
+                                salida puede volver uno dañado y otro intacto.
+                                Solo en unidades serializadas, las únicas que el
+                                panel de incoming sabe inspeccionar. */}
+                            {article.is_inspectable && (
+                              <div className="mt-auto flex h-6 items-center gap-2 pt-2">
+                                <Checkbox
+                                  id={`altered-${lineId}`}
+                                  checked={selection[lineId]?.altered ?? false}
+                                  onCheckedChange={(state) =>
+                                    setAltered(article, state === true)
+                                  }
+                                  className="size-3.5"
+                                />
+                                <Label
+                                  htmlFor={`altered-${lineId}`}
+                                  className={`cursor-pointer text-xs font-normal ${
+                                    altered
+                                      ? "text-amber-600 dark:text-amber-500"
+                                      : "text-muted-foreground"
+                                  }`}
+                                >
+                                  Con daño físico
+                                </Label>
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
-
                     </div>
                   );
                 })}
@@ -368,36 +541,6 @@ const DispatchReturnDialog = ({
                 />
               </div>
 
-              {canInspect && (
-                <div
-                  className={`flex items-start gap-3 rounded-lg border p-3 transition-colors ${
-                    isAltered ? "border-amber-500/50 bg-amber-500/5" : ""
-                  }`}
-                >
-                  <Checkbox
-                    id="altered"
-                    checked={isAltered}
-                    onCheckedChange={(state) => setIsAltered(state === true)}
-                    className="mt-1"
-                  />
-                  <div className="space-y-1">
-                    <Label htmlFor="altered" className="cursor-pointer text-sm font-medium">
-                      Presenta desviación de su condición de despacho
-                    </Label>
-                    <p className="text-xs text-muted-foreground">
-                      Sello violado, empaque abierto, evidencia de instalación o
-                      cualquier alteración respecto a como salió del almacén.
-                    </p>
-                    {isAltered && (
-                      <p className="flex items-start gap-1.5 pt-1 text-xs font-medium text-amber-600 dark:text-amber-500">
-                        <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                        No reingresa al stock: pasa a inspección de incoming y
-                        será el inspector quien determine su destino.
-                      </p>
-                    )}
-                  </div>
-                </div>
-              )}
             </>
           )}
         </div>
@@ -418,10 +561,14 @@ const DispatchReturnDialog = ({
             >
               {createDispatchReturn.isPending ? (
                 <Loader2 className="size-4 animate-spin" />
-              ) : isAltered && canInspect ? (
+              ) : alteredCount === 0 ? (
+                "Devolver al almacén"
+              ) : alteredCount === selected.length ? (
                 "Mandar para incoming"
               ) : (
-                "Devolver al almacén"
+                // Devolución mixta: el botón dice a dónde va cada parte, porque
+                // el destino ya no es uno solo para toda la devolución.
+                `Devolver ${selected.length - alteredCount} y mandar ${alteredCount} a incoming`
               )}
             </Button>
           )}

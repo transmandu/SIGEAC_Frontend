@@ -24,6 +24,17 @@ export type DispatchArticle = {
   dispatch_quantity: string;
   category?: string;
   unit?: string;
+  /** Decide cómo se identifica: el aeronáutico por parte, el general por descripción. */
+  type?: "aeronautical" | "general" | "unknown";
+  /** Varios por artículo: la columna es un array. */
+  alternative_part_number?: string[] | null;
+  /** Solo los consumibles lo tienen; cada compra entra como un lote nuevo. */
+  lot_number?: string | null;
+  /** Nombre del renglón que agrupa al artículo. */
+  batch_name?: string | null;
+  /** Solo en artículos generales: es lo que distingue dos de igual descripción. */
+  variant_type?: string | null;
+  brand_model?: string | null;
   // Identifica la LÍNEA de la salida, no el artículo: es lo que devuelve la
   // devolución, porque un mismo artículo puede figurar en varias líneas.
   article_dispatch_order_id?: number;

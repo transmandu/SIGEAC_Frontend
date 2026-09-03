@@ -949,7 +949,8 @@ registra su devolución. La diferencia importa porque la salida ocurrió de verd
 —el artículo estuvo fuera del almacén— y borrarla falsearía el historial.
 
 Se elige qué artículos volvieron y en qué cantidad (puede ser parcial), se
-justifica, y se declara en qué condición regresan.
+justifica, y se declara **artículo por artículo** en qué condición regresa cada
+uno.
 
 **La cantidad se captura en la unidad en que se despachó**, no en la base: si
 salieron 30 UNIDADES de un trapo cuya base es METRO, se devuelven unidades. El
@@ -961,10 +962,29 @@ lo que realmente reingresa al inventario.
 | Intacto (sellado) | reingresa directo al almacén y **suma stock** |
 | Con alteración | pasa a `INCOMING` y **no suma stock** hasta que un inspector lo apruebe |
 
-Esa casilla es la que cambia el botón de envío a **"Mandar para incoming"**, y
-solo aparece sobre **unidades serializadas** (herramienta, componente, parte):
-un consumible o un artículo general se manejan por cantidad, y mandarlos a
-inspección retendría todo el renglón por unas pocas unidades dudosas.
+**La condición es de cada artículo, no de la devolución.** De una salida de tres
+pueden volver dos, y solo uno de ellos con daño físico: ese va a inspección y el
+otro reingresa al almacén, en el mismo acto. La casilla vive dentro de la
+tarjeta del artículo y solo aparece sobre **unidades serializadas**
+(herramienta, componente, parte): un consumible o un artículo general se manejan
+por cantidad, y mandarlos a inspección retendría todo el renglón por unas pocas
+unidades dudosas.
+
+**Con daño físico se devuelve completo.** La inspección retiene el artículo
+entero, no una fracción suya, así que marcar la casilla lleva la cantidad a todo
+lo pendiente; bajarla después desmarca el daño. Son incompatibles y la UI
+resuelve el conflicto en vez de plantarle un error al usuario.
+
+El botón de envío dice a dónde va cada parte —"Devolver al almacén", "Mandar
+para incoming", o "Devolver 1 y mandar 2 a incoming" cuando la devolución es
+mixta—. En el historial, una devolución mixta rotula el destino bajo cada
+artículo; cuando todos comparten destino no se repite, porque la insignia de la
+cabecera ya lo dice.
+
+**Una salida con artículos aún en inspección no puede eliminarse.** Lo único que
+explica por qué esa pieza está en incoming son los `dispatch_return_items` que
+el borrado destruiría, y el inspector se quedaría con un artículo sin
+procedencia. Una vez resuelto, la salida vuelve a ser borrable.
 
 Cada línea de la salida lleva su propio estado —`DISPATCHED`,
 `PARTIALLY_RETURNED`, `RETURNED`— visible en el diálogo de artículos. La orden
@@ -984,6 +1004,15 @@ vuelvan a generarlo.
 El estado vive en la **línea** (`articles_dispatch_orders.status` +
 `returned_quantity`), no solo en la orden: sin eso una devolución parcial no
 tendría dónde constar y el reporte seguiría cobrando lo que volvió.
+
+**La condición también vive en la línea** (`dispatch_return_items.condition`).
+En la cabecera obligaba a que toda la devolución fuera intacta o toda alterada,
+lo que forzaba a partir en dos actos el caso corriente de "volvieron dos, uno
+dañado". `dispatch_returns.condition` se conserva como **resumen derivado**
+—`ALTERED` si alguna línea lo está—, porque el historial y el aviso a
+administración ya lo leían. Quien decida destino de un artículo debe mirar la
+línea: filtrar por la cabecera en una devolución mixta trae también los que
+volvieron sanos.
 
 `returned_quantity` va en **unidad base**, con la misma precisión
 `decimal(28,12)` que `quantity` — con menos decimales, devolver algo capturado
@@ -1005,6 +1034,20 @@ lo devuelto), no `quantity`. Aplica en `dispatchBalance` y
 `dispatchTotalExpenses`; el reporte de salidas sí conserva la cantidad
 despachada, porque documenta lo que salió.
 
+**ALTERED exige devolución total de la línea.** `changeArticleStatus` marca el
+`Article` entero como INCOMING, no una fracción: si la línea llevara más de una
+unidad, devolver parte retendría el renglón completo y el saldo restante se
+perdería —ni suma stock ni queda pendiente—. Hoy toda línea serializada es de 1,
+así que la regla no le cierra la puerta a nadie; el día que deje de serlo, falla
+en `assertReturnable()` en vez de descuadrar el inventario en silencio.
+
+**Las entradas repetidas se funden por línea Y condición**, no solo por línea:
+sumar una intacta con una alterada mandaría a inspección una cantidad que nadie
+declaró dañada. Quedan como dos `dispatch_return_items` con el mismo
+`article_dispatch_order_id` y distinto destino —por eso el historial no puede
+usar solo la línea como clave de React—, y el saldo se valida contra el
+acumulado porque cada pasada relee la línea con `lockForUpdate()`.
+
 **Limitación deliberada:** un artículo dimensionado solo se devuelve **completo**.
 Un trazo ya cortado no se descorta a medias, así que la devolución parcial se
 rechaza en `assertReturnable()` antes de escribir nada; la total va por
@@ -1019,7 +1062,12 @@ línea ahora puede no ser su cantidad completa:
 - `destroy` repone solo el **saldo pendiente**. Reponer `quantity` entera sobre
   una salida con devoluciones inventaba existencia (devolver 3 de 10 y luego
   borrar la salida reponía los 10). También borra los `dispatch_return_items`,
-  que apuntan al pivote sin constraint y quedarían huérfanos.
+  que apuntan al pivote sin constraint y quedarían huérfanos — y por eso mismo
+  **se bloquea** si algún artículo sigue en el circuito de inspección
+  (`Article::INSPECTION_STATUSES`): una línea devuelta en parte como ALTERED
+  conserva saldo pendiente y caería en la reposición, bajando a STORED una pieza
+  que nadie aprobó. El bloqueo mira el estado actual, no el histórico de haber
+  sido ALTERED, para no volverse permanente.
 - `update` de una salida con devoluciones se **bloquea**: reapuntar sus líneas
   dejaría los items de devolución describiendo otro artículo.
 - `updateQuantityArticleDispatch` no admite bajar la cantidad por debajo de lo
@@ -1123,9 +1171,11 @@ tamaño completo y se elimina ahí, no de un clic al pasar por encima). Una de
 **devolución** no: respalda una desviación ya declarada y, en un artículo que
 pasó a inspección, sustenta el criterio del inspector.
 
-**Lo que ve el inspector** es la ÚLTIMA devolución `ALTERED` del artículo, no
-todas: una pieza puede haber ido y vuelto varias veces, y una devolución intacta
-no lo pone en incoming. El endpoint parte de la devolución y no de sus fotos,
+**Lo que ve el inspector** es la ÚLTIMA devolución en que **la línea de ese
+artículo** fue `ALTERED`, no todas: una pieza puede haber ido y vuelto varias
+veces, y una devolución intacta no lo pone en incoming. El `ALTERED` se exige en
+la línea y no en la cabecera, que en una devolución mixta está alterada por
+culpa de otro artículo. El endpoint parte de la devolución y no de sus fotos,
 porque la justificación debe llegar aunque el almacén no adjuntara ninguna
 imagen.
 
