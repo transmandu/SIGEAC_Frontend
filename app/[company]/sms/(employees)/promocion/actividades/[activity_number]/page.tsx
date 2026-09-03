@@ -97,6 +97,10 @@ const ShowSMSActivity = () => {
       .filter(Boolean)
     : [];
 
+  const attendancePercentage = attendanceStats && attendanceStats.total > 0
+    ? Math.round((attendanceStats.attended / attendanceStats.total) * 100)
+    : 0;
+
   return (
     <>
       <ContentLayout title="Actividad de SMS">
@@ -173,27 +177,27 @@ const ShowSMSActivity = () => {
 
               <TabsContent value="informacion" className="space-y-5">
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                  <div className="rounded-lg border border-border/60 p-3">
+                  <div className="rounded-lg border border-border/60 bg-muted/20 p-3">
                     <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                       Título
                     </p>
                     <p className="mt-1 text-sm font-medium">{activity.title || "N/A"}</p>
                   </div>
-                  <div className="rounded-lg border border-border/60 p-3">
+                  <div className="rounded-lg border border-border/60 bg-muted/20 p-3">
                     <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                       Nombre de Actividad
                     </p>
                     <p className="mt-1 text-sm">{activity.activity_name || "N/A"}</p>
                   </div>
-                  <div className="rounded-lg border border-border/60 p-3">
+                  <div className="rounded-lg border border-border/60 bg-muted/20 p-3">
                     <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                       Número
                     </p>
-                    <p className="mt-1 text-sm tracking-wide">
+                    <p className="mt-1 text-sm font-mono tracking-wide">
                       {activity.activity_number || "N/A"}
                     </p>
                   </div>
-                  <div className="rounded-lg border border-border/60 p-3">
+                  <div className="rounded-lg border border-border/60 bg-muted/20 p-3">
                     <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                       Lugar
                     </p>
@@ -211,19 +215,19 @@ const ShowSMSActivity = () => {
                         <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                           Fecha Inicio
                         </p>
-                        <p className=" text-sm">{dateLabel(activity.start_date)}</p>
+                        <p className="text-sm">{dateLabel(activity.start_date)}</p>
                       </div>
                       <div className="space-y-1 border border-border/40 px-3 py-3">
                         <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                           Fecha Final
                         </p>
-                        <p className=" text-sm">{dateLabel(activity.end_date)}</p>
+                        <p className="text-sm">{dateLabel(activity.end_date)}</p>
                       </div>
                       <div className="space-y-1 border border-border/40 px-3 py-3">
                         <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                           Horario
                         </p>
-                        <p className=" text-sm">
+                        <p className="text-sm font-mono">
                           {activity.start_time || "N/A"} - {activity.end_time || "N/A"}
                         </p>
                       </div>
@@ -266,7 +270,7 @@ const ShowSMSActivity = () => {
                         <p className="mt-1 font-medium">
                           {activity.authorized_by.first_name || "N/A"} {activity.authorized_by.last_name || ""}
                         </p>
-                        <p className="text-xs  text-muted-foreground">
+                        <p className="text-xs text-muted-foreground">
                           DNI: {activity.authorized_by.dni || "N/A"}
                         </p>
                       </div>
@@ -277,7 +281,7 @@ const ShowSMSActivity = () => {
                         <p className="mt-1 font-medium">
                           {activity.planned_by.first_name || "N/A"} {activity.planned_by.last_name || ""}
                         </p>
-                        <p className="text-xs  text-muted-foreground">
+                        <p className="text-xs text-muted-foreground">
                           DNI: {activity.planned_by.dni || "N/A"}
                         </p>
                       </div>
@@ -300,8 +304,11 @@ const ShowSMSActivity = () => {
                           {topics.map((topic, index) => (
                             <div
                               key={`${topic}-${index}`}
-                              className="px-3 py-3 text-sm transition-colors hover:bg-muted/20"
+                              className="flex items-center gap-3 px-3 py-3 text-sm transition-colors hover:bg-muted/20"
                             >
+                              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-muted/40 text-[10px] font-medium text-muted-foreground">
+                                {index + 1}
+                              </span>
                               {topic}
                             </div>
                           ))}
@@ -376,8 +383,6 @@ const ShowSMSActivity = () => {
                         </Dialog>
                       </section>
                     )}
-
-
                   </div>
                 )}
               </TabsContent>
@@ -411,6 +416,9 @@ const ShowSMSActivity = () => {
                         <thead className="bg-muted/30">
                           <tr>
                             <th className="px-3 py-3 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
+                              #
+                            </th>
+                            <th className="px-3 py-3 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
                               Nombre Completo
                             </th>
                             <th className="px-3 py-3 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
@@ -419,12 +427,15 @@ const ShowSMSActivity = () => {
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-border/30">
-                          {attendedList.map((attended) => (
+                          {attendedList.map((attended, index) => (
                             <tr key={attended.id} className="transition-colors hover:bg-muted/20">
+                              <td className="whitespace-nowrap px-3 py-3 text-sm text-muted-foreground">
+                                {index + 1}
+                              </td>
                               <td className="whitespace-nowrap px-3 py-3 text-sm font-medium">
                                 {attended.employee.first_name} {attended.employee.last_name}
                               </td>
-                              <td className="whitespace-nowrap px-3 py-3  text-sm text-muted-foreground">
+                              <td className="whitespace-nowrap px-3 py-3 text-sm text-muted-foreground font-mono">
                                 {attended.employee_dni}
                               </td>
                             </tr>
@@ -476,10 +487,10 @@ const ShowSMSActivity = () => {
                         <thead className="bg-muted/30">
                           <tr>
                             <th className="px-3 py-3 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
-                              Nombre Completo
+                              #
                             </th>
                             <th className="px-3 py-3 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
-                              Asistencia
+                              Nombre Completo
                             </th>
                             <th className="hidden px-3 py-3 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70 sm:table-cell">
                               DNI
@@ -490,19 +501,15 @@ const ShowSMSActivity = () => {
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-border/30">
-                          {attendedList.map((attended) => (
+                          {attendedList.map((attended, index) => (
                             <tr key={attended.id} className="transition-colors hover:bg-muted/20">
+                              <td className="whitespace-nowrap px-3 py-3 text-sm text-muted-foreground">
+                                {index + 1}
+                              </td>
                               <td className="whitespace-nowrap px-3 py-3 text-sm font-medium">
                                 {attended.employee.first_name} {attended.employee.last_name}
                               </td>
-                              <td className="px-3 py-3">
-                                {attended.attended ? (
-                                  <Check className="h-5 w-5 text-green-600 dark:text-green-400" />
-                                ) : (
-                                  <X className="h-5 w-5 text-red-600 dark:text-red-400" />
-                                )}
-                              </td>
-                              <td className="hidden whitespace-nowrap px-3 py-3  text-sm text-muted-foreground sm:table-cell">
+                              <td className="hidden whitespace-nowrap px-3 py-3 text-sm text-muted-foreground font-mono sm:table-cell">
                                 {attended.employee_dni}
                               </td>
                               <td className="whitespace-nowrap px-3 py-3">
@@ -561,25 +568,37 @@ const ShowSMSActivity = () => {
                           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                             Total
                           </p>
-                          <p className=" text-xl font-bold tabular-nums">
-                            {attendanceStats.total}
-                          </p>
+                          <div className="mt-1 flex items-baseline gap-2">
+                            <p className="font-mono text-xl font-bold tabular-nums">
+                              {attendanceStats.total}
+                            </p>
+                          </div>
                         </div>
                         <div className="rounded border border-green-200 px-3 py-3 dark:border-green-800">
                           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                             Asistentes
                           </p>
-                          <p className=" text-xl font-bold tabular-nums text-green-700 dark:text-green-400">
-                            {attendanceStats.attended}
-                          </p>
+                          <div className="mt-1 flex items-baseline gap-2">
+                            <p className="font-mono text-xl font-bold tabular-nums text-green-700 dark:text-green-400">
+                              {attendanceStats.attended}
+                            </p>
+                            <span className="text-xs text-green-600 dark:text-green-500">
+                              {attendancePercentage}%
+                            </span>
+                          </div>
                         </div>
                         <div className="rounded border border-red-200 px-3 py-3 dark:border-red-800">
                           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                             Inasistentes
                           </p>
-                          <p className=" text-xl font-bold tabular-nums text-red-700 dark:text-red-400">
-                            {attendanceStats.not_attended}
-                          </p>
+                          <div className="mt-1 flex items-baseline gap-2">
+                            <p className="font-mono text-xl font-bold tabular-nums text-red-700 dark:text-red-400">
+                              {attendanceStats.not_attended}
+                            </p>
+                            <span className="text-xs text-red-600 dark:text-red-500">
+                              {100 - attendancePercentage}%
+                            </span>
+                          </div>
                         </div>
                       </div>
 
