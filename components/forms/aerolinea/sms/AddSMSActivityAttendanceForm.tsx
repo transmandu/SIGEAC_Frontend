@@ -32,6 +32,7 @@ import { Check, ChevronsUpDown } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { Badge } from "@/components/ui/badge";
 
 interface FormProps {
   onClose: () => void;
@@ -46,21 +47,26 @@ interface EmployeeSelection {
   department: string;
   isSelected: boolean;
   wasEnrolled: boolean;
+  employee_type: "local" | "authorized";
+  authorized_employee_id?: number | null;
+  from_company_db?: string;
 }
 
 const FormSchema = z.object({
   addedEmployees: z.array(
     z.object({
-      dni: z.string(),
+      dni: z.string().nullable(),
       first_name: z.string(),
       last_name: z.string(),
+      authorized_employee_id: z.number().nullable(),
     })
   ),
   removedEmployees: z.array(
     z.object({
-      dni: z.string(),
+      dni: z.string().nullable(),
       first_name: z.string(),
       last_name: z.string(),
+      authorized_employee_id: z.number().nullable(),
     })
   ),
 });
@@ -94,6 +100,35 @@ export function AddSMSActivityAttendanceForm({
     },
   });
 
+  const mapToSelection = useCallback(
+    (
+      employees: Array<{
+        dni?: string;
+        first_name: string;
+        last_name: string;
+        job_title?: { name: string };
+        department?: { name: string };
+        employee_type?: "local" | "authorized";
+        authorized_employee_id?: number | null;
+        from_company_db?: string;
+      }>,
+      wasEnrolled: boolean
+    ) =>
+      employees.map((e) => ({
+        dni: e.dni ?? "",
+        first_name: e.first_name,
+        last_name: e.last_name,
+        job_title: e.job_title?.name ?? "",
+        department: e.department?.name ?? "",
+        isSelected: wasEnrolled,
+        wasEnrolled,
+        employee_type: (e.employee_type as "local" | "authorized") ?? "local",
+        authorized_employee_id: e.authorized_employee_id ?? null,
+        from_company_db: e.from_company_db,
+      })),
+    []
+  );
+
   const updateFormValues = useCallback(
     (selections: EmployeeSelection[]) => {
       const added = selections.filter((e) => e.isSelected && !e.wasEnrolled);
@@ -102,56 +137,52 @@ export function AddSMSActivityAttendanceForm({
       form.setValue(
         "addedEmployees",
         added.map((e) => ({
-          dni: e.dni,
+          dni: e.employee_type === "local" ? e.dni : null,
           first_name: e.first_name,
           last_name: e.last_name,
+          authorized_employee_id:
+            e.employee_type === "authorized"
+              ? (e.authorized_employee_id ?? null)
+              : null,
         }))
       );
 
       form.setValue(
         "removedEmployees",
         removed.map((e) => ({
-          dni: e.dni,
+          dni: e.employee_type === "local" ? e.dni : null,
           first_name: e.first_name,
           last_name: e.last_name,
+          authorized_employee_id:
+            e.employee_type === "authorized"
+              ? (e.authorized_employee_id ?? null)
+              : null,
         }))
       );
     },
-    [form] // La dependencia ahora es el objeto 'form'
+    [form]
   );
 
   useEffect(() => {
     if (employeesData) {
       const selections: EmployeeSelection[] = [
-        ...(employeesData.attended?.map((e) => ({
-          dni: e.dni,
-          first_name: e.first_name,
-          last_name: e.last_name,
-          job_title: e.job_title.name,
-          department: e.department.name,
-          isSelected: true,
-          wasEnrolled: true,
-        })) || []),
-        ...(employeesData.not_attended?.map((e) => ({
-          dni: e.dni,
-          first_name: e.first_name,
-          last_name: e.last_name,
-          job_title: e.job_title.name,
-          department: e.department.name,
-          isSelected: false,
-          wasEnrolled: false,
-        })) || []),
+        ...mapToSelection(employeesData.attended || [], true),
+        ...mapToSelection(employeesData.not_attended || [], false),
       ];
 
       setEmployeeSelections(selections);
       updateFormValues(selections);
     }
-  }, [employeesData, updateFormValues]);
+  }, [employeesData, updateFormValues, mapToSelection]);
 
-  const toggleEmployeeSelection = (dni: string) => {
-    const newSelections = employeeSelections.map((emp) =>
-      emp.dni === dni ? { ...emp, isSelected: !emp.isSelected } : emp
-    );
+  const toggleEmployeeSelection = (key: string) => {
+    const newSelections = employeeSelections.map((emp) => {
+      const empKey =
+        emp.employee_type === "authorized"
+          ? `auth_${emp.authorized_employee_id}`
+          : emp.dni;
+      return empKey === key ? { ...emp, isSelected: !emp.isSelected } : emp;
+    });
 
     setEmployeeSelections(newSelections);
     updateFormValues(newSelections);
@@ -236,32 +267,54 @@ export function AddSMSActivityAttendanceForm({
                         <CommandEmpty>No se encontraron empleados</CommandEmpty>
 
                         <CommandGroup heading="Todos los empleados">
-                          {filteredEmployees.map((employee) => (
-                            <CommandItem
-                              key={employee.dni}
-                              value={`${employee.first_name} ${employee.last_name} ${employee.dni} ${employee.job_title} ${employee.department}`}
-                              onSelect={() =>
-                                toggleEmployeeSelection(employee.dni)
-                              }
-                            >
-                              <Check
-                                className={cn(
-                                  "mr-2 h-4 w-4",
-                                  employee.isSelected
-                                    ? "opacity-100"
-                                    : "opacity-0"
+                          {filteredEmployees.map((employee) => {
+                            const key =
+                              employee.employee_type === "authorized"
+                                ? `auth_${employee.authorized_employee_id}`
+                                : employee.dni;
+
+                            return (
+                              <CommandItem
+                                key={key}
+                                value={`${employee.first_name} ${employee.last_name} ${employee.dni} ${employee.job_title} ${employee.department}`}
+                                onSelect={() => toggleEmployeeSelection(key)}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    employee.isSelected
+                                      ? "opacity-100"
+                                      : "opacity-0"
+                                  )}
+                                />
+                                <div className="flex flex-col">
+                                  <div className="flex items-center gap-2">
+                                    {employee.first_name}{" "}
+                                    {employee.last_name} - {employee.dni}
+                                    {employee.employee_type === "authorized" && (
+                                      <Badge
+                                        variant="outline"
+                                        className="text-[10px] px-1 py-0"
+                                      >
+                                        Externo
+                                        {employee.from_company_db
+                                          ? ` (${employee.from_company_db})`
+                                          : ""}
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  <span className="text-xs text-muted-foreground">
+                                    {employee.job_title} - {employee.department}
+                                  </span>
+                                </div>
+                                {employee.wasEnrolled && (
+                                  <span className="ml-auto text-xs text-muted-foreground">
+                                    (Asistió)
+                                  </span>
                                 )}
-                              />
-                              {employee.first_name} {employee.last_name} -{" "}
-                              {employee.dni} <br />({employee.job_title}
-                              {employee.department})
-                              {employee.wasEnrolled && (
-                                <span className="ml-2 text-xs text-muted-foreground">
-                                  (Asistió)
-                                </span>
-                              )}
-                            </CommandItem>
-                          ))}
+                              </CommandItem>
+                            );
+                          })}
                         </CommandGroup>
                       </CommandList>
                     </Command>

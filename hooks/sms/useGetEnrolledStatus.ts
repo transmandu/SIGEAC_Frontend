@@ -1,25 +1,22 @@
 import axiosInstance from "@/lib/axios";
 import { useQuery } from "@tanstack/react-query";
 
-interface EmployeeData {
-  id: string;
+export interface EnrolledEmployeeData {
+  id?: string;
   first_name: string;
   last_name: string;
   dni: string;
-  dni_type: string;
-  job_title: {
-    id: string;
-    name: string;
-  };
-  department: {
-    id: string;
-    name: string;
-  };
+  dni_type?: string;
+  job_title: string | { id: string; name: string };
+  department: string | { id: string; name: string };
+  employee_type: "local" | "authorized";
+  authorized_employee_id?: number | null;
+  from_company_db?: string;
 }
 
 interface EmplooyesEnrolled {
-  enrolled: EmployeeData[];
-  not_enrolled: EmployeeData[];
+  enrolled: EnrolledEmployeeData[];
+  not_enrolled: EnrolledEmployeeData[];
 }
 
 const fetchGetEnrolledStatus = async ({

@@ -4,9 +4,10 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 interface EmployeeSelected {
-  dni: string;
+  dni: string | null;
   first_name: string;
   last_name: string;
+  authorized_employee_id?: number | null;
 }
 
 interface SMSActivityAttendanceData {

@@ -10,7 +10,10 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { useGetEnrolledStatus } from "@/hooks/sms/useGetEnrolledStatus";
+import {
+  EnrolledEmployeeData,
+  useGetEnrolledStatus,
+} from "@/hooks/sms/useGetEnrolledStatus";
 import { cn } from "@/lib/utils";
 import { SMSActivity } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -32,6 +35,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import { Badge } from "@/components/ui/badge";
 
 interface FormProps {
   onClose: () => void;
@@ -46,21 +50,26 @@ interface EmployeeSelection {
   department: string;
   isSelected: boolean;
   wasEnrolled: boolean;
+  employee_type: "local" | "authorized";
+  authorized_employee_id?: number | null;
+  from_company_db?: string;
 }
 
 const FormSchema = z.object({
   addedEmployees: z.array(
     z.object({
-      dni: z.string(),
+      dni: z.string().nullable(),
       first_name: z.string(),
       last_name: z.string(),
+      authorized_employee_id: z.number().nullable(),
     })
   ),
   removedEmployees: z.array(
     z.object({
-      dni: z.string(),
+      dni: z.string().nullable(),
       first_name: z.string(),
       last_name: z.string(),
+      authorized_employee_id: z.number().nullable(),
     })
   ),
 });
@@ -90,6 +99,25 @@ export function AddToSMSActivity({ onClose, initialData }: FormProps) {
     },
   });
 
+  const mapToSelection = useCallback(
+    (employees: EnrolledEmployeeData[], wasEnrolled: boolean) =>
+      employees.map((e) => ({
+        dni: e.dni,
+        first_name: e.first_name,
+        last_name: e.last_name,
+        job_title:
+          typeof e.job_title === "string" ? e.job_title : e.job_title.name,
+        department:
+          typeof e.department === "string" ? e.department : e.department.name,
+        isSelected: wasEnrolled,
+        wasEnrolled,
+        employee_type: e.employee_type,
+        authorized_employee_id: e.authorized_employee_id ?? null,
+        from_company_db: e.from_company_db,
+      })),
+    []
+  );
+
   const updateFormValues = useCallback(
     (selections: EmployeeSelection[]) => {
       const added = selections.filter((e) => e.isSelected && !e.wasEnrolled);
@@ -98,18 +126,26 @@ export function AddToSMSActivity({ onClose, initialData }: FormProps) {
       form.setValue(
         "addedEmployees",
         added.map((e) => ({
-          dni: e.dni,
+          dni: e.employee_type === "local" ? e.dni : null,
           first_name: e.first_name,
           last_name: e.last_name,
+          authorized_employee_id:
+            e.employee_type === "authorized"
+              ? (e.authorized_employee_id ?? null)
+              : null,
         }))
       );
 
       form.setValue(
         "removedEmployees",
         removed.map((e) => ({
-          dni: e.dni,
+          dni: e.employee_type === "local" ? e.dni : null,
           first_name: e.first_name,
           last_name: e.last_name,
+          authorized_employee_id:
+            e.employee_type === "authorized"
+              ? (e.authorized_employee_id ?? null)
+              : null,
         }))
       );
     },
@@ -119,35 +155,23 @@ export function AddToSMSActivity({ onClose, initialData }: FormProps) {
   useEffect(() => {
     if (employeesData) {
       const selections: EmployeeSelection[] = [
-        ...(employeesData.enrolled?.map((e) => ({
-          dni: e.dni,
-          first_name: e.first_name,
-          last_name: e.last_name,
-          job_title: e.job_title.name,
-          department: e.department.name,
-          isSelected: true,
-          wasEnrolled: true,
-        })) || []),
-        ...(employeesData.not_enrolled?.map((e) => ({
-          dni: e.dni,
-          first_name: e.first_name,
-          last_name: e.last_name,
-          job_title: e.job_title.name,
-          department: e.department.name,
-          isSelected: false,
-          wasEnrolled: false,
-        })) || []),
+        ...mapToSelection(employeesData.enrolled || [], true),
+        ...mapToSelection(employeesData.not_enrolled || [], false),
       ];
 
       setEmployeeSelections(selections);
       updateFormValues(selections);
     }
-  }, [employeesData, updateFormValues]);
+  }, [employeesData, updateFormValues, mapToSelection]);
 
-  const toggleEmployeeSelection = (dni: string) => {
-    const newSelections = employeeSelections.map((emp) =>
-      emp.dni === dni ? { ...emp, isSelected: !emp.isSelected } : emp
-    );
+  const toggleEmployeeSelection = (key: string) => {
+    const newSelections = employeeSelections.map((emp) => {
+      const empKey =
+        emp.employee_type === "authorized"
+          ? `auth_${emp.authorized_employee_id}`
+          : emp.dni;
+      return empKey === key ? { ...emp, isSelected: !emp.isSelected } : emp;
+    });
 
     setEmployeeSelections(newSelections);
     updateFormValues(newSelections);
@@ -257,31 +281,54 @@ export function AddToSMSActivity({ onClose, initialData }: FormProps) {
                         <CommandEmpty>No se encontraron empleados</CommandEmpty>
 
                         <CommandGroup heading="Todos los empleados">
-                          {filteredEmployees.map((employee) => (
-                            <CommandItem
-                              key={employee.dni}
-                              value={`${employee.first_name} ${employee.last_name} ${employee.dni} ${employee.job_title} ${employee.department}`}
-                              onSelect={() =>
-                                toggleEmployeeSelection(employee.dni)
-                              }
-                            >
-                              <Check
-                                className={cn(
-                                  "mr-2 h-4 w-4",
-                                  employee.isSelected
-                                    ? "opacity-100"
-                                    : "opacity-0"
+                          {filteredEmployees.map((employee) => {
+                            const key =
+                              employee.employee_type === "authorized"
+                                ? `auth_${employee.authorized_employee_id}`
+                                : employee.dni;
+
+                            return (
+                              <CommandItem
+                                key={key}
+                                value={`${employee.first_name} ${employee.last_name} ${employee.dni} ${employee.job_title} ${employee.department}`}
+                                onSelect={() => toggleEmployeeSelection(key)}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    employee.isSelected
+                                      ? "opacity-100"
+                                      : "opacity-0"
+                                  )}
+                                />
+                                <div className="flex flex-col">
+                                  <div className="flex items-center gap-2">
+                                    {employee.first_name}{" "}
+                                    {employee.last_name} - {employee.dni}
+                                    {employee.employee_type === "authorized" && (
+                                      <Badge
+                                        variant="outline"
+                                        className="text-[10px] px-1 py-0"
+                                      >
+                                        Externo
+                                        {employee.from_company_db
+                                          ? ` (${employee.from_company_db})`
+                                          : ""}
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  <span className="text-xs text-muted-foreground">
+                                    {employee.job_title} - {employee.department}
+                                  </span>
+                                </div>
+                                {employee.wasEnrolled && (
+                                  <span className="ml-auto text-xs text-muted-foreground">
+                                    (inscrito)
+                                  </span>
                                 )}
-                              />
-                              {employee.first_name} {employee.last_name} -{" "}
-                              {employee.dni}
-                              {employee.wasEnrolled && (
-                                <span className="ml-2 text-xs text-muted-foreground">
-                                  (inscrito)
-                                </span>
-                              )}
-                            </CommandItem>
-                          ))}
+                              </CommandItem>
+                            );
+                          })}
                         </CommandGroup>
                       </CommandList>
                     </Command>
