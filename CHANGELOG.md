@@ -1,3 +1,7 @@
+## v3.9.1 — 2026-09-03
+
+- fix: update comment for traceability movements query in FuelWarehousePage
+
 ## v3.9.0 — 2026-09-03
 
 - Merge pull request #239 from transmandu/feature/dispatch-return-per-line-condition
