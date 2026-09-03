@@ -517,6 +517,11 @@ export type MaintenanceControlItem = {
   first_applied_date: string;
   first_applied_value?: number | string | null;
   extra_days?: number | string | null;
+  // Límite dual ("lo que ocurra primero", ej. 6000 Hrs Ó 1825 Días): mismo
+  // cumplimiento resetea los dos relojes, por eso no lleva su propia fecha.
+  secondary_counting_method?: MaintenanceCountingMethod | null;
+  secondary_limit_value?: number | string | null;
+  secondary_first_applied_value?: number | string | null;
   latest_compliance?: MaintenanceCompliance | null;
   maintenance_control?: MaintenanceControl;
   maintenance_control_part?: MaintenanceControlPart;

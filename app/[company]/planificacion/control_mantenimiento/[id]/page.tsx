@@ -287,22 +287,50 @@ function MaintenanceItemsTable({
                 <TableCell className="font-medium">
                   <TruncatedText>{item.name}</TruncatedText>
                 </TableCell>
-                <TableCell className={cn(COL.frequency, "truncate")}>{computed.frequency}</TableCell>
+                <TableCell className={cn(COL.frequency, "truncate")}>
+                  <span className="block truncate">{computed.frequency}</span>
+                  {/* Límite dual ("lo que ocurra primero"): mismo cumplimiento, dos relojes. */}
+                  {computed.secondary && (
+                    <span className="block truncate text-xs text-muted-foreground">
+                      Ó {computed.secondary.frequency}
+                    </span>
+                  )}
+                </TableCell>
                 <TableCell className={COL.applied}>
                   <span className="block truncate">{computed.applied}</span>
                   {computed.appliedSub && (
                     <span className="block truncate text-xs text-muted-foreground">{computed.appliedSub}</span>
                   )}
                 </TableCell>
-                <TableCell className={cn(COL.next, "truncate")}>{computed.next}</TableCell>
+                <TableCell className={cn(COL.next, "truncate")}>
+                  <span className="block truncate">{computed.next}</span>
+                  {computed.secondary && (
+                    <span className="block truncate text-xs text-muted-foreground">{computed.secondary.next}</span>
+                  )}
+                </TableCell>
                 <TableCell className={cn(COL.remaining, "truncate")}>
                   <span className={cn("inline-flex items-center gap-1.5 font-semibold", meta.text)}>
                     <span className={cn("size-1.5 shrink-0 rounded-full", meta.dot)} />
                     {computed.remaining}
                   </span>
+                  {computed.secondary && (
+                    <span
+                      className={cn(
+                        "block truncate text-xs",
+                        STATUS_META[computed.secondary.status].text,
+                      )}
+                    >
+                      {computed.secondary.remaining}
+                    </span>
+                  )}
                 </TableCell>
                 <TableCell className={COL.estimate}>
                   <TruncatedText>{computed.estimate}</TruncatedText>
+                  {computed.secondary && (
+                    <span className="block truncate text-xs text-muted-foreground">
+                      {computed.secondary.estimate}
+                    </span>
+                  )}
                 </TableCell>
                 <TableCell className={COL.provider}>
                   <TruncatedText>{computed.providerName}</TruncatedText>

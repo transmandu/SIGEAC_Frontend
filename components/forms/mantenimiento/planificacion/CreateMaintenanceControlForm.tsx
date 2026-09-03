@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm, useFieldArray, useWatch, useFormContext, Control } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -17,6 +17,7 @@ import {
   Wrench,
   X,
 } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useRouter } from "next/navigation";
 
 import { Badge } from "@/components/ui/badge";
@@ -99,6 +100,13 @@ const baseItemSchema = z.object({
   // Días extra sobre la frecuencia, solo relevante cuando la unidad es
   // días (no todos los certificados vencen justo a los N días); opcional.
   extra_days: optionalInteger,
+  // Límite dual ("lo que ocurra primero", ej. 6000 Hrs Ó 1825 Días — así lo
+  // declara el manual real de Hangar 74 en la misma fila de un componente).
+  // Un mismo cumplimiento resetea los dos relojes, por eso no lleva su
+  // propia fecha de primera aplicación.
+  secondary_counting_method: countingMethodEnum.optional(),
+  secondary_limit_value: optionalNumeric,
+  secondary_first_applied_value: optionalNumeric,
 });
 
 // Los certificados son documentos a bordo: algunos sí llevan una entidad
@@ -151,7 +159,13 @@ const formSchema = z
     });
 
     const requireInitialReading = (
-      items: { counting_method: string; first_applied_value?: number }[],
+      items: {
+        counting_method: string;
+        first_applied_value?: number;
+        secondary_counting_method?: string;
+        secondary_limit_value?: number;
+        secondary_first_applied_value?: number;
+      }[],
       basePath: (string | number)[],
     ) => {
       items.forEach((item, index) => {
@@ -160,6 +174,30 @@ const formSchema = z
             code: z.ZodIssueCode.custom,
             message: "Indique las horas/ciclos que tenía la aeronave en la primera aplicación",
             path: [...basePath, index, "first_applied_value"],
+          });
+        }
+
+        if (!item.secondary_counting_method) return;
+
+        if (item.secondary_counting_method === item.counting_method) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "El límite secundario debe ser en una unidad distinta a la principal",
+            path: [...basePath, index, "secondary_counting_method"],
+          });
+        }
+        if (item.secondary_limit_value === undefined) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'Indique el límite secundario ("lo que ocurra primero")',
+            path: [...basePath, index, "secondary_limit_value"],
+          });
+        }
+        if (item.secondary_counting_method !== "DAYS" && item.secondary_first_applied_value === undefined) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Indique las horas/ciclos que tenía la aeronave en la primera aplicación del límite secundario",
+            path: [...basePath, index, "secondary_first_applied_value"],
           });
         }
       });
@@ -273,8 +311,10 @@ function NumericInput({
 
 // Fila única: el rótulo de cada campo lo pone el encabezado de la lista
 // (ItemRowsHeader), así que acá adentro no vuelve a repetirse.
+// La última columna pasó de un botón (quitar fila) a dos (límite secundario +
+// quitar fila): 32px alcanzaba para uno solo.
 const ITEM_ROW_GRID =
-  "grid grid-cols-[minmax(200px,1fr)_92px_84px_96px_84px_120px_190px_32px] items-start gap-2";
+  "grid grid-cols-[minmax(200px,1fr)_92px_84px_96px_84px_120px_190px_64px] items-start gap-2";
 
 const ITEM_ROW_LABELS = [
   "Nombre",
@@ -402,7 +442,23 @@ function ItemRow({
   const needsInitialReading = countingMethod && countingMethod !== "DAYS";
   const isDaysBased = countingMethod === "DAYS";
 
+  // Límite dual ("lo que ocurra primero"): el toggle nace abierto si el ítem
+  // ya traía un límite secundario (editar), cerrado si no (fila nueva). Solo
+  // lee el valor inicial — abrir/cerrar de ahí en más es decisión del usuario.
+  const initialSecondaryMethod = useWatch({ control, name: `${namePrefix}.secondary_counting_method` });
+  const [secondaryOpen, setSecondaryOpen] = useState(() => !!initialSecondaryMethod);
+  const secondaryCountingMethod = useWatch({ control, name: `${namePrefix}.secondary_counting_method` });
+  const secondaryNeedsInitialReading = secondaryCountingMethod && secondaryCountingMethod !== "DAYS";
+
+  const removeSecondaryLimit = () => {
+    setValue(`${namePrefix}.secondary_counting_method` as any, undefined, { shouldValidate: true });
+    setValue(`${namePrefix}.secondary_limit_value` as any, undefined, { shouldValidate: true });
+    setValue(`${namePrefix}.secondary_first_applied_value` as any, undefined, { shouldValidate: true });
+    setSecondaryOpen(false);
+  };
+
   return (
+    <div className="space-y-1.5">
     <div className={ITEM_ROW_GRID}>
       <div className="flex items-center gap-1">
         <FormField
@@ -527,16 +583,132 @@ function ItemRow({
 
       <ProviderSelect control={control} name={`${namePrefix}.maintenance_provider_id`} />
 
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon"
-        onClick={onRemove}
-        aria-label={name ? `Quitar ${name}` : "Quitar fila"}
-        className="h-11 w-8 text-muted-foreground/70 hover:text-destructive"
-      >
-        <X className="size-3.5" />
-      </Button>
+      <div className="flex items-center">
+        <TooltipProvider disableHoverableContent>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => setSecondaryOpen((v) => !v)}
+                aria-label={secondaryOpen ? "Quitar límite secundario" : "Agregar límite secundario"}
+                className={cn("size-8 shrink-0", secondaryOpen ? "text-primary" : "text-muted-foreground/70")}
+              >
+                <Plus className={cn("size-3.5 transition-transform", secondaryOpen && "rotate-45")} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              {secondaryOpen ? "Quitar límite secundario" : 'Agregar límite secundario ("lo que ocurra primero")'}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          onClick={onRemove}
+          aria-label={name ? `Quitar ${name}` : "Quitar fila"}
+          className="h-11 w-8 shrink-0 text-muted-foreground/70 hover:text-destructive"
+        >
+          <X className="size-3.5" />
+        </Button>
+      </div>
+    </div>
+
+    {secondaryOpen && (
+      <div className={cn(ITEM_ROW_GRID, "items-start")}>
+        <p className="self-center pl-1 text-xs italic text-muted-foreground">
+          Ó (lo que ocurra primero)
+        </p>
+
+        <FormField
+          control={control}
+          name={`${namePrefix}.secondary_counting_method`}
+          render={({ field }) => (
+            <FormItem className="space-y-0">
+              <Select onValueChange={field.onChange} value={field.value || undefined}>
+                <FormControl>
+                  <SelectTrigger className={selectTriggerClass}>
+                    <SelectValue placeholder="Unidad" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {(["HOURS", "CYCLES", "DAYS"] as const)
+                    .filter((unit) => unit !== countingMethod)
+                    .map((unit) => (
+                      <SelectItem key={unit} value={unit}>
+                        {unit === "HOURS" ? "Horas" : unit === "CYCLES" ? "Ciclos" : "Días"}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={control}
+          name={`${namePrefix}.secondary_limit_value`}
+          render={({ field }) => (
+            <FormItem className="space-y-0">
+              <FormControl>
+                <NumericInput
+                  placeholder="0"
+                  className={fieldClass}
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  name={field.name}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {secondaryNeedsInitialReading ? (
+          <FormField
+            control={control}
+            name={`${namePrefix}.secondary_first_applied_value`}
+            render={({ field }) => (
+              <FormItem className="space-y-0">
+                <FormControl>
+                  <NumericInput
+                    placeholder="0"
+                    className={fieldClass}
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    name={field.name}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        ) : (
+          <CompactPlaceholder />
+        )}
+
+        <CompactPlaceholder />
+        <CompactPlaceholder />
+        <CompactPlaceholder />
+
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          onClick={removeSecondaryLimit}
+          aria-label="Quitar límite secundario"
+          className="h-11 w-8 shrink-0 text-muted-foreground/70 hover:text-destructive"
+        >
+          <X className="size-3.5" />
+        </Button>
+      </div>
+    )}
     </div>
   );
 }
@@ -790,6 +962,15 @@ function mapToFormCertificate(item: NonNullable<MaintenanceControl["items"]>[num
         : undefined,
     extra_days:
       item.extra_days !== null && item.extra_days !== undefined ? Number(item.extra_days) : undefined,
+    secondary_counting_method: item.secondary_counting_method ?? undefined,
+    secondary_limit_value:
+      item.secondary_limit_value !== null && item.secondary_limit_value !== undefined
+        ? Number(item.secondary_limit_value)
+        : undefined,
+    secondary_first_applied_value:
+      item.secondary_first_applied_value !== null && item.secondary_first_applied_value !== undefined
+        ? Number(item.secondary_first_applied_value)
+        : undefined,
     maintenance_provider_id: item.maintenance_provider_id ? String(item.maintenance_provider_id) : "",
   };
 }
@@ -880,6 +1061,9 @@ export default function CreateMaintenanceControlForm({ initialData }: { initialD
       first_applied_date: format(item.first_applied_date, "yyyy-MM-dd"),
       first_applied_value: item.first_applied_value,
       extra_days: item.extra_days,
+      secondary_counting_method: item.secondary_counting_method,
+      secondary_limit_value: item.secondary_limit_value,
+      secondary_first_applied_value: item.secondary_first_applied_value,
       // En certificados es opcional (puede quedar sin elegir); los
       // servicios lo sobreescriben más abajo con el suyo, que es obligatorio.
       maintenance_provider_id: item.maintenance_provider_id || undefined,
