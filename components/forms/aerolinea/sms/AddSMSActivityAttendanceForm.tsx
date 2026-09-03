@@ -28,7 +28,14 @@ import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { SMSActivity } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Check, ChevronsUpDown } from "lucide-react";
+import {
+  Check,
+  ChevronsUpDown,
+  Users,
+  Loader2,
+  UserCheck,
+  ListChecks,
+} from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -188,6 +195,22 @@ export function AddSMSActivityAttendanceForm({
     updateFormValues(newSelections);
   };
 
+  const toggleAllEmployees = () => {
+    const allSelected = employeeSelections.every((emp) => emp.isSelected);
+
+    const newSelections = employeeSelections.map((emp) => ({
+      ...emp,
+      isSelected: !allSelected,
+    }));
+
+    setEmployeeSelections(newSelections);
+    updateFormValues(newSelections);
+  };
+
+  const allSelected =
+    employeeSelections.length > 0 &&
+    employeeSelections.every((emp) => emp.isSelected);
+
   const filteredEmployees = employeeSelections.filter((employee) => {
     const searchLower = searchQuery.toLowerCase();
     return (
@@ -198,6 +221,17 @@ export function AddSMSActivityAttendanceForm({
       employee.department.toLowerCase().includes(searchLower)
     );
   });
+
+  const selectedCount = employeeSelections.filter((e) => e.isSelected).length;
+  const previouslyAttendedCount = employeeSelections.filter(
+    (e) => e.wasEnrolled
+  ).length;
+  const newlyAddedCount = employeeSelections.filter(
+    (e) => e.isSelected && !e.wasEnrolled
+  ).length;
+  const removedCount = employeeSelections.filter(
+    (e) => !e.isSelected && e.wasEnrolled
+  ).length;
 
   const onSubmit = async (data: FormSchemaType) => {
     const value = {
@@ -216,22 +250,71 @@ export function AddSMSActivityAttendanceForm({
   };
 
   if (isLoadingEnrolledEmployee) {
-    return <div className="p-4 text-center">Cargando empleados...</div>;
+    return (
+      <div className="flex flex-col items-center justify-center gap-3 py-10">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+        <span className="text-sm text-muted-foreground">
+          Cargando empleados...
+        </span>
+      </div>
+    );
   }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormLabel className="text-lg font-semibold">
-          Gestionar asistentes al curso
-        </FormLabel>
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="flex flex-col gap-5"
+      >
+        <div className="flex items-center gap-3 pb-3 border-b border-border/60">
+          <div className="flex items-center justify-center h-9 w-9 rounded-lg bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-500 shrink-0">
+            <Users className="h-4 w-4" />
+          </div>
+          <div>
+            <h2 className="text-base font-semibold leading-tight">
+              Gestionar asistentes
+            </h2>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Actividad N.° {initialData.activity_number}
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-3 gap-3">
+          <div className="flex flex-col gap-1 rounded-md border border-border/40 px-3 py-2">
+            <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
+              Seleccionados
+            </span>
+            <span className="font-mono text-lg font-bold tabular-nums">
+              {selectedCount}
+            </span>
+          </div>
+          <div className="flex flex-col gap-1 rounded-md border border-border/40 px-3 py-2">
+            <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
+              Nuevos
+            </span>
+            <span className="font-mono text-lg font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
+              +{newlyAddedCount}
+            </span>
+          </div>
+          <div className="flex flex-col gap-1 rounded-md border border-border/40 px-3 py-2">
+            <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
+              Removidos
+            </span>
+            <span className="font-mono text-lg font-bold tabular-nums text-red-600 dark:text-red-400">
+              -{removedCount}
+            </span>
+          </div>
+        </div>
 
         <FormField
           control={form.control}
           name="addedEmployees"
           render={() => (
             <FormItem>
-              <FormLabel>Participantes:</FormLabel>
+              <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Participantes
+              </FormLabel>
               <FormControl>
                 <Popover open={open} onOpenChange={setOpen}>
                   <PopoverTrigger asChild>
@@ -239,16 +322,13 @@ export function AddSMSActivityAttendanceForm({
                       variant="outline"
                       role="combobox"
                       aria-expanded={open}
-                      className="w-full justify-between"
+                      className="w-full justify-between h-10"
                     >
-                      {employeeSelections.filter((e) => e.isSelected).length >
-                      0 ? (
-                        <span>
-                          {
-                            employeeSelections.filter((e) => e.isSelected)
-                              .length
-                          }{" "}
-                          seleccionados
+                      {selectedCount > 0 ? (
+                        <span className="flex items-center gap-2">
+                          <UserCheck className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                          {selectedCount} seleccionado
+                          {selectedCount !== 1 ? "s" : ""}
                         </span>
                       ) : (
                         "Seleccionar participantes..."
@@ -256,15 +336,40 @@ export function AddSMSActivityAttendanceForm({
                       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-[400px] p-0">
+                  <PopoverContent
+                    className="w-[calc(100vw-2rem)] max-w-[480px] p-0"
+                    align="start"
+                  >
                     <Command>
                       <CommandInput
-                        placeholder="Buscar empleados..."
+                        placeholder="Buscar por nombre, DNI, puesto o departamento..."
                         value={searchQuery}
                         onValueChange={setSearchQuery}
                       />
+                      <div className="flex items-center gap-2 px-3 py-2 border-b border-border/60">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 px-2 text-xs"
+                          onClick={toggleAllEmployees}
+                        >
+                          {allSelected ? (
+                            <>
+                              <ListChecks className="mr-1.5 h-3.5 w-3.5" />
+                              Deseleccionar todos
+                            </>
+                          ) : (
+                            <>
+                              <Check className="mr-1.5 h-3.5 w-3.5" />
+                              Seleccionar todos
+                            </>
+                          )}
+                        </Button>
+                      </div>
                       <CommandList>
-                        <CommandEmpty>No se encontraron empleados</CommandEmpty>
+                        <CommandEmpty>
+                          No se encontraron empleados
+                        </CommandEmpty>
 
                         <CommandGroup heading="Todos los empleados">
                           {filteredEmployees.map((employee) => {
@@ -278,23 +383,30 @@ export function AddSMSActivityAttendanceForm({
                                 key={key}
                                 value={`${employee.first_name} ${employee.last_name} ${employee.dni} ${employee.job_title} ${employee.department}`}
                                 onSelect={() => toggleEmployeeSelection(key)}
+                                className="py-2.5"
                               >
                                 <Check
                                   className={cn(
-                                    "mr-2 h-4 w-4",
+                                    "mr-2 h-4 w-4 shrink-0",
                                     employee.isSelected
-                                      ? "opacity-100"
+                                      ? "opacity-100 text-emerald-600 dark:text-emerald-400"
                                       : "opacity-0"
                                   )}
                                 />
-                                <div className="flex flex-col">
-                                  <div className="flex items-center gap-2">
-                                    {employee.first_name}{" "}
-                                    {employee.last_name} - {employee.dni}
-                                    {employee.employee_type === "authorized" && (
+                                <div className="flex flex-col gap-0.5 min-w-0 flex-1">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="text-sm font-medium truncate">
+                                      {employee.first_name}{" "}
+                                      {employee.last_name}
+                                    </span>
+                                    <span className="font-mono text-xs text-muted-foreground">
+                                      {employee.dni}
+                                    </span>
+                                    {employee.employee_type ===
+                                      "authorized" && (
                                       <Badge
                                         variant="outline"
-                                        className="text-[10px] px-1 py-0"
+                                        className="text-[10px] px-1 py-0 shrink-0"
                                       >
                                         Externo
                                         {employee.from_company_db
@@ -302,16 +414,17 @@ export function AddSMSActivityAttendanceForm({
                                           : ""}
                                       </Badge>
                                     )}
+                                    {employee.wasEnrolled && (
+                                      <Badge className="text-[10px] px-1 py-0 shrink-0 bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-400 dark:border-emerald-800">
+                                        Asistió
+                                      </Badge>
+                                    )}
                                   </div>
-                                  <span className="text-xs text-muted-foreground">
-                                    {employee.job_title} - {employee.department}
+                                  <span className="text-xs text-muted-foreground truncate">
+                                    {employee.job_title} ·{" "}
+                                    {employee.department}
                                   </span>
                                 </div>
-                                {employee.wasEnrolled && (
-                                  <span className="ml-auto text-xs text-muted-foreground">
-                                    (Asistió)
-                                  </span>
-                                )}
                               </CommandItem>
                             );
                           })}
@@ -326,11 +439,28 @@ export function AddSMSActivityAttendanceForm({
           )}
         />
 
-        <div className="flex justify-end space-x-2">
-          <Button variant="outline" onClick={onClose}>
+        <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-1 border-t border-border/60">
+          <Button
+            variant="outline"
+            onClick={onClose}
+            className="w-full sm:w-auto"
+          >
             Cancelar
           </Button>
-          <Button type="submit">Guardar cambios</Button>
+          <Button
+            type="submit"
+            disabled={markSMSActivityAttendance.isPending}
+            className="w-full sm:w-auto h-10"
+          >
+            {markSMSActivityAttendance.isPending ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <>
+                <UserCheck className="size-4 mr-2" />
+                Guardar cambios
+              </>
+            )}
+          </Button>
         </div>
       </form>
     </Form>
