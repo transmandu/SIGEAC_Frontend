@@ -1,3 +1,7 @@
+## v3.10.1 — 2026-09-04
+
+- fix: alter validation from zod to accept number null or string (#243)
+
 ## v3.10.0 — 2026-09-03
 
 - feat: authorized employee sms act (#242)
