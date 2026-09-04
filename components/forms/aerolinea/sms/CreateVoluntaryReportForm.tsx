@@ -46,6 +46,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Label } from "@/components/ui/label";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import FolderSelect from "@/components/library/FolderSelect";
 
 interface FormProps {
   onClose: () => void;
@@ -166,6 +167,8 @@ export function CreateVoluntaryReportForm({
         "Solo se permiten archivos PDF",
       )
       .optional(),
+
+    library_folder_path: z.string().optional(),
   });
 
   type FormSchemaType = z.infer<typeof FormSchema>;
@@ -202,6 +205,8 @@ export function CreateVoluntaryReportForm({
       }),
     },
   });
+
+  const selectedDocument = form.watch("document");
 
   useEffect(() => {
     if (initialData && isEditing) {
@@ -775,6 +780,28 @@ export function CreateVoluntaryReportForm({
             )}
           />
         </div>
+
+        {selectedDocument && (
+          <FormField
+            control={form.control}
+            name="library_folder_path"
+            render={({ field }) => (
+              <FormItem data-tour="voluntario-carpeta">
+                <FormLabel>Carpeta en Librería</FormLabel>
+                <FolderSelect
+                  company={selectedCompany?.slug}
+                  value={field.value}
+                  onChange={field.onChange}
+                />
+                <p className="text-xs text-muted-foreground">
+                  El documento guardado también estará disponible en la
+                  biblioteca dentro de esta carpeta.
+                </p>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
 
         <div className="flex justify-center items-center gap-x-4">
           <Separator className="flex-1" />

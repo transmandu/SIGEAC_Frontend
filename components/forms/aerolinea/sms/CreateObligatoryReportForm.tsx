@@ -62,6 +62,7 @@ interface FormProps {
   onClose: () => void;
 }
 import { ScrollArea } from "@/components/ui/scroll-area";
+import FolderSelect from "@/components/library/FolderSelect";
 
 export function CreateObligatoryReportForm({
   onClose,
@@ -169,6 +170,7 @@ export function CreateObligatoryReportForm({
           "Solo se permiten archivos PDF",
         )
         .optional(),
+      library_folder_path: z.string().optional(),
     })
     .refine(
       (data) => {
@@ -268,6 +270,8 @@ export function CreateObligatoryReportForm({
     },
   });
 
+  const selectedDocument = form.watch("document");
+
   const onSubmit = async (data: FormSchemaType) => {
     if (isEditing && initialData && data.report_number) {
       const value = {
@@ -276,6 +280,7 @@ export function CreateObligatoryReportForm({
         data: {
           image: data.image,
           document: data.document,
+          library_folder_path: data.library_folder_path,
           status: initialData.status,
           danger_identification_id: initialData.danger_identification?.id,
           report_number: data.report_number,
@@ -317,6 +322,7 @@ export function CreateObligatoryReportForm({
         other_incidents: data.other_incidents,
         image: data.image,
         document: data.document,
+        library_folder_path: data.library_folder_path,
         status: shouldEnableField ? "ABIERTO" : "PROCESO",
       };
 
@@ -967,6 +973,28 @@ export function CreateObligatoryReportForm({
             )}
           />
         </div>
+
+        {selectedDocument && (
+          <FormField
+            control={form.control}
+            name="library_folder_path"
+            render={({ field }) => (
+              <FormItem data-tour="obligatorio-carpeta">
+                <FormLabel>Carpeta en Librería</FormLabel>
+                <FolderSelect
+                  company={selectedCompany?.slug}
+                  value={field.value}
+                  onChange={field.onChange}
+                />
+                <p className="text-xs text-muted-foreground">
+                  El documento guardado también estará disponible en la
+                  biblioteca dentro de esta carpeta.
+                </p>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
 
         <div className="flex justify-between items-center gap-x-4">
           <Separator className="flex-1" />

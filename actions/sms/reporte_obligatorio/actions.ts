@@ -22,6 +22,7 @@ interface ObligatoryReportData {
   status: string;
   image?: File | string;
   document?: File | string;
+  library_folder_path?: string;
 }
 
 interface UpdateObligatoryReportData {
@@ -48,6 +49,7 @@ interface UpdateObligatoryReportData {
     other_incidents?: string;
     image?: string | File;
     document?: string | File;
+    library_folder_path?: string;
   };
 }
 
