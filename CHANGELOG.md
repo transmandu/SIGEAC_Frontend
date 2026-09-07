@@ -1,3 +1,7 @@
+## v3.12.0 — 2026-09-07
+
+- feat: excel report sms (#245)
+
 ## v3.11.0 — 2026-09-07
 
 - feat: implement unit conversion functionality in article management (#244)
