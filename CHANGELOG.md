@@ -1,3 +1,7 @@
+## v3.11.0 — 2026-09-07
+
+- feat: implement unit conversion functionality in article management (#244)
+
 ## v3.10.1 — 2026-09-04
 
 - fix: alter validation from zod to accept number null or string (#243)
