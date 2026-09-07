@@ -93,7 +93,10 @@ export type UnitConversionRow = {
    */
   lectura_legible?: string | null;
   captured_direction?: ConversionDirection | null;
-  /** El artículo dueño ya no existe: la fila quedó colgada. */
+  /**
+   * El artículo dueño ya no está activo (archivado, o ni siquiera queda el
+   * registro): la fila no se edita por la ruta del artículo, solo se borra.
+   */
   orphaned: boolean;
   registered_by?: string | null;
   updated_by?: string | null;
@@ -150,9 +153,14 @@ export const useMutateUnitConversionRow = (company?: string) => {
     },
   });
 
+  // Una fila huérfana no tiene artículo con el que armar la ruta anidada: esa
+  // ruta resuelve el artículo primero y responde 404 antes de mirar la
+  // conversión. Para esas existe el borrado directo por id de conversión.
   const remove = useMutation({
     mutationFn: async (row: UnitConversionRow) => {
-      const { data } = await axios.delete(pathFor(row));
+      const { data } = await axios.delete(
+        row.orphaned ? `/${company}/unit-conversions/${row.id}` : pathFor(row)
+      );
       return data;
     },
     onSuccess: () => {

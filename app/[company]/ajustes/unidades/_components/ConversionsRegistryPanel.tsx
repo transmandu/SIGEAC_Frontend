@@ -215,7 +215,8 @@ export function ConversionsRegistryPanel() {
                                                             </TooltipTrigger>
                                                             <TooltipContent className="max-w-xs">
                                                                 El artículo dueño de esta conversión ya
-                                                                no existe. Puede eliminarla sin riesgo.
+                                                                no está activo, así que la equivalencia
+                                                                no se puede editar. Solo queda eliminarla.
                                                             </TooltipContent>
                                                         </Tooltip>
                                                     </TooltipProvider>
