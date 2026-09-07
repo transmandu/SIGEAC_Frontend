@@ -1,8 +1,8 @@
 import axiosInstance from "@/lib/axios";
 import { toast } from "sonner";
 
-export const useExportPeligroReportes = () => {
-  const exportPeligroReportes = async (company: string) => {
+export const useExportDangerReports = () => {
+  const exportDangerReports = async (company: string) => {
     try {
       const response = await axiosInstance.get(
         `/${company}/sms/danger-identifications/export`,
@@ -26,5 +26,5 @@ export const useExportPeligroReportes = () => {
     }
   };
 
-  return { exportPeligroReportes };
+  return { exportDangerReports };
 };

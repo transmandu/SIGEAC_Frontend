@@ -22,6 +22,9 @@ import {
   SortingState,
   useReactTable,
 } from "@tanstack/react-table";
+import { useExportDangerReports } from "@/hooks/sms/useExportDangerReports";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { Download } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -53,6 +56,15 @@ export function DataTable<TData, TValue>({
 
   const router = useRouter();
 
+  const { selectedCompany } = useCompanyStore();
+  const { exportDangerReports } = useExportDangerReports();
+
+  const handleExport = () => {
+    if (!selectedCompany?.slug) {
+      return;
+    }
+    exportDangerReports(selectedCompany.slug);
+  };
 
   return (
     <>
@@ -76,6 +88,15 @@ export function DataTable<TData, TValue>({
           className="flex border-dashed"
         >
           Nuevo Reporte
+        </Button>
+        <Button
+          onClick={handleExport}
+          variant="outline"
+          size="sm"
+          className="flex border-dashed"
+        >
+          <Download className="mr-2 h-4 w-4" />
+          Exportar Excel
         </Button>
         <DataTableViewOptions table={table} />
       </div>
