@@ -1,3 +1,5 @@
+import { CatalogManual } from "@/types/maintenanceCatalog";
+
 export type Accountant = {
   id: number;
   name: string;
@@ -491,6 +493,11 @@ export type MaintenanceCompliance = {
   maintenance_provider?: MaintenanceProvider;
   work_order_id: number | string;
   work_order?: WorkOrder;
+  // Manual del catálogo vigente al momento de este cumplimiento — congelado
+  // al crearlo, no cambia si el manual se renombra o se revisa después.
+  maintenance_catalog_manual_id?: number | string | null;
+  manual_revision_label?: string | null;
+  catalog_manual?: CatalogManual | null;
   compliance_date: string;
   hours_reading: number | string;
   cycles_reading: number | string;
@@ -498,6 +505,94 @@ export type MaintenanceCompliance = {
   is_historical?: boolean;
   registered_by?: string;
   created_at?: string;
+};
+
+/**
+ * Un intervalo de vencimiento del ítem (unidad + límite + lectura inicial).
+ * N por ítem, máximo uno por unidad ("lo que ocurra primero", ej. 6000 Hrs
+ * Ó 1825 Días — hasta 3, ver MaintenanceControlItemInterval en el backend).
+ * initial_value es la lectura de horas/ciclos que tenía la aeronave/parte en
+ * la fecha de primera aplicación (first_applied_date, compartida por todos
+ * los intervalos del ítem); null cuando counting_method es DAYS.
+ */
+export type MaintenanceControlItemInterval = {
+  id?: number;
+  counting_method: MaintenanceCountingMethod;
+  limit_value: number | string;
+  initial_value?: number | string | null;
+};
+
+export type MaintenanceItemStatus = "OK" | "WARNING" | "CRITICAL" | "OVERDUE";
+
+/** Un intervalo ya resuelto por MaintenanceControlCalculator (backend). */
+export type ComputedMaintenanceInterval = {
+  counting_method: MaintenanceCountingMethod;
+  limit_value: number;
+  /** Lectura inicial (o del último cumplimiento) en la unidad de este intervalo; null en DAYS. */
+  applied_value: number | null;
+  next_value: number | null;
+  next_date: string | null;
+  remaining_value: number | null;
+  estimate_date: string | null;
+  /** null = no calculable (falta la lectura inicial): no aporta al estado del ítem. */
+  status: MaintenanceItemStatus | null;
+};
+
+/**
+ * Aplicada/Próximo/Remanente/Estimación/Estado de un ítem, calculado en el
+ * backend (MaintenanceControlCalculator) — única fuente de verdad, tanto
+ * para esta pantalla como para el PDF INAC-43-008. El frontend solo formatea
+ * estos números/fechas, ver lib/maintenanceControlCalc.ts.
+ */
+export type MaintenanceControlItemComputed = {
+  applied_date: string;
+  applied_value: number | null;
+  applied_unit: MaintenanceCountingMethod | null;
+  provider_name: string | null;
+  status: MaintenanceItemStatus;
+  intervals: ComputedMaintenanceInterval[];
+};
+
+/**
+ * Un ítem tal como lo devuelve GET .../snapshot — el estado del control
+ * reconstruido a una fecha pasada (MaintenanceControlSnapshotService), no
+ * un MaintenanceControlItem completo. `computed` alcanza para reusar
+ * computeMaintenanceItem() sin cambios.
+ */
+export type MaintenanceControlSnapshotItem = {
+  id: number;
+  category: "CERTIFICATE" | "SERVICE";
+  name: string;
+  /** Parte de la que cuelga el servicio; null si es de la aeronave como conjunto. */
+  maintenance_control_part_id: number | null;
+  part_label: string | null;
+  computed: MaintenanceControlItemComputed;
+};
+
+/** Identificación de una parte a la fecha consultada (TSN/CSN reconstruidos). */
+export type MaintenanceControlSnapshotPart = {
+  id: number;
+  type: string | null;
+  manufacturer: string | null;
+  part_number: string | null;
+  serial: string | null;
+  tsn: number | null;
+  csn: number | null;
+};
+
+export type MaintenanceControlSnapshot = {
+  as_of: string;
+  control: { id: number; title: string };
+  aircraft: {
+    acronym: string;
+    manufacturer: string | null;
+    model: string | null;
+    serial: string | null;
+    flight_hours: number;
+    flight_cycles: number;
+  };
+  parts: MaintenanceControlSnapshotPart[];
+  items: MaintenanceControlSnapshotItem[];
 };
 
 export type MaintenanceControlItem = {
@@ -512,16 +607,9 @@ export type MaintenanceControlItem = {
   pending_work_order?: WorkOrder | null;
   category: "CERTIFICATE" | "SERVICE";
   name: string;
-  counting_method: MaintenanceCountingMethod;
-  limit_value: number | string;
   first_applied_date: string;
-  first_applied_value?: number | string | null;
-  extra_days?: number | string | null;
-  // Límite dual ("lo que ocurra primero", ej. 6000 Hrs Ó 1825 Días): mismo
-  // cumplimiento resetea los dos relojes, por eso no lleva su propia fecha.
-  secondary_counting_method?: MaintenanceCountingMethod | null;
-  secondary_limit_value?: number | string | null;
-  secondary_first_applied_value?: number | string | null;
+  intervals: MaintenanceControlItemInterval[];
+  computed?: MaintenanceControlItemComputed;
   latest_compliance?: MaintenanceCompliance | null;
   maintenance_control?: MaintenanceControl;
   maintenance_control_part?: MaintenanceControlPart;
@@ -543,6 +631,8 @@ export type MaintenanceControl = {
   description?: string;
   has_reference_manual: boolean;
   reference_manual?: string | null;
+  maintenance_catalog_manual_id?: number | string | null;
+  catalog_manual?: CatalogManual | null;
   remaining_percentage: number | string;
   certificates_count?: number;
   services_count?: number;

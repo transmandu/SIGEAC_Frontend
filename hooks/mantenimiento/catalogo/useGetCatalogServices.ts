@@ -6,6 +6,8 @@ type Filters = {
   aircraftId?: number | string;
   category?: CatalogCategory;
   status?: CatalogStatus;
+  /** Manual de referencia del control (cabecera): acota el catálogo mostrado. */
+  manualId?: number | string;
   /** Agrega tasks.requirements — lo pide el picker para buscar por ATA/N° de parte. */
   withTasks?: boolean;
   /**
@@ -25,6 +27,7 @@ const fetchCatalogServices = async (
       aircraft_id: filters.aircraftId,
       category: filters.category,
       status: filters.status,
+      manual_id: filters.manualId,
       with_tasks: filters.withTasks ? 1 : undefined,
     },
   });
@@ -41,6 +44,7 @@ export const useGetCatalogServices = (company: string | undefined, filters: Filt
       filters.aircraftId ?? null,
       filters.category ?? null,
       filters.status ?? null,
+      filters.manualId ?? null,
       filters.withTasks ?? null,
     ],
     queryFn: () => fetchCatalogServices(company, filters),

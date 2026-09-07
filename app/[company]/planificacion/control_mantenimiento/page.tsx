@@ -21,7 +21,33 @@ const MaintenanceControlPage = () => {
     isError,
   } = useGetMaintenanceControls(companySlug);
 
-  const columns = useMemo(() => getColumns(companySlug), [companySlug]);
+  // Opciones de los filtros de Aeronave y Manual de Referencia: solo las que
+  // de verdad aparecen en la tabla, no el catálogo completo de la compañía.
+  const aircraftOptions = useMemo(() => {
+    const seen = new Set<string>();
+    (maintenanceControls ?? []).forEach((control) => {
+      const acronym = control.aircraft?.acronym;
+      if (acronym) seen.add(acronym);
+    });
+    return Array.from(seen)
+      .sort()
+      .map((acronym) => ({ value: acronym, label: acronym }));
+  }, [maintenanceControls]);
+
+  const manualOptions = useMemo(() => {
+    const seen = new Set<string>();
+    (maintenanceControls ?? []).forEach((control) => {
+      if (control.reference_manual) seen.add(control.reference_manual);
+    });
+    return Array.from(seen)
+      .sort()
+      .map((manual) => ({ value: manual, label: manual }));
+  }, [maintenanceControls]);
+
+  const columns = useMemo(
+    () => getColumns(companySlug, aircraftOptions, manualOptions),
+    [companySlug, aircraftOptions, manualOptions],
+  );
 
   if (isLoading) return <LoadingPage />;
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useId, useState } from "react";
-import { format } from "date-fns";
+import { format, startOfDay } from "date-fns";
 import { es } from "date-fns/locale";
 import { CalendarIcon, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -38,6 +38,13 @@ interface DatePickerFieldProps {
    * tienen y desalinea el input cuando comparten fila.
    */
   notApplicableInLabel?: boolean;
+  /**
+   * Acota el día elegible, en el calendario y al tipear a mano — no solo el
+   * rango de años de maxYear. Ej.: no dejar elegir antes de que existiera el
+   * registro que se está consultando, ni después de hoy.
+   */
+  minDate?: Date;
+  maxDate?: Date;
 }
 
 export function DatePickerField({
@@ -52,6 +59,8 @@ export function DatePickerField({
   required = false,
   error,
   notApplicableInLabel = false,
+  minDate,
+  maxDate,
 }: DatePickerFieldProps) {
   const [touched, setTouched] = useState(false);
   const [inputValue, setInputValue] = useState("");
@@ -99,11 +108,16 @@ export function DatePickerField({
     if (month < 1 || month > 12) return false;
     if (day < 1 || day > 31) return false;
     const date = new Date(year, month - 1, day);
-    return (
-      date.getFullYear() === year &&
-      date.getMonth() === month - 1 &&
-      date.getDate() === day
-    );
+    if (
+      date.getFullYear() !== year ||
+      date.getMonth() !== month - 1 ||
+      date.getDate() !== day
+    ) {
+      return false;
+    }
+    if (minDate && date < startOfDay(minDate)) return false;
+    if (maxDate && date > startOfDay(maxDate)) return false;
+    return true;
   };
 
   const parseDateFromInput = (dateString: string): Date | null => {
@@ -285,8 +299,11 @@ export function DatePickerField({
                 selected={value || undefined}
                 onSelect={handleCalendarSelect}
                 initialFocus
-                fromYear={1900}
-                toYear={maxYear ?? new Date().getFullYear() + 20}
+                fromYear={minDate ? minDate.getFullYear() : 1900}
+                toYear={maxDate ? maxDate.getFullYear() : (maxYear ?? new Date().getFullYear() + 20)}
+                disabled={(date) =>
+                  (!!minDate && date < startOfDay(minDate)) || (!!maxDate && date > startOfDay(maxDate))
+                }
                 captionLayout="dropdown-buttons"
               />
             </PopoverContent>

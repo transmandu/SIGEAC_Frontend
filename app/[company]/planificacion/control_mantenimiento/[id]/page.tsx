@@ -25,7 +25,7 @@ import { DownloadMaintenanceFormatButton } from "@/components/dialogs/mantenimie
 import { useGetMaintenanceControl } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceControl";
 import { useGetAircraftDailyAverage } from "@/hooks/mantenimiento/planificacion/useGetAircraftDailyAverage";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { computeMaintenanceItem, fmtNumber, ItemStatus } from "@/lib/maintenanceControlCalc";
+import { computeMaintenanceItem, fmtNumber, ItemStatus, STATUS_META } from "@/lib/maintenanceControlCalc";
 import { partTypeLabel } from "@/lib/maintenancePartTypes";
 import { FormSection } from "@/components/forms/mantenimiento/planificacion/_theme";
 import { MaintenanceControlItem } from "@/types";
@@ -63,35 +63,6 @@ function InfoSection({
   );
 }
 
-// Las mismas 4 franjas de computeMaintenanceItem, con su color y qué
-// significan en texto llano — usado tanto en la leyenda como en el texto
-// coloreado de "Remanente".
-const STATUS_META: Record<ItemStatus, { label: string; dot: string; text: string; row: string }> = {
-  OK: {
-    label: "Vigente",
-    dot: "bg-emerald-500",
-    text: "text-emerald-700 dark:text-emerald-400",
-    row: "",
-  },
-  WARNING: {
-    label: "Alerta temprana",
-    dot: "bg-amber-500",
-    text: "text-amber-700 dark:text-amber-400",
-    row: "bg-amber-500/[0.04]",
-  },
-  CRITICAL: {
-    label: "Crítico",
-    dot: "bg-orange-500",
-    text: "text-orange-700 dark:text-orange-400",
-    row: "bg-orange-500/[0.04]",
-  },
-  OVERDUE: {
-    label: "Vencido",
-    dot: "bg-red-600",
-    text: "text-red-700 dark:text-red-400",
-    row: "bg-red-600/[0.04]",
-  },
-};
 
 function StatusLegend({ remainingPercentage }: { remainingPercentage: number }) {
   const descriptions: Record<ItemStatus, string> = {
@@ -240,8 +211,6 @@ function ItemActionCell({
 function MaintenanceItemsTable({
   items,
   aircraft,
-  dailyAverage,
-  remainingPercentage,
   emptyLabel,
   company,
   controlId,
@@ -250,8 +219,6 @@ function MaintenanceItemsTable({
 }: {
   items: MaintenanceControlItem[];
   aircraft: { flight_hours: number | string; flight_cycles: number | string };
-  dailyAverage: ReturnType<typeof useGetAircraftDailyAverage>["data"];
-  remainingPercentage: number;
   emptyLabel: string;
   company: string;
   controlId: string | number;
@@ -280,7 +247,7 @@ function MaintenanceItemsTable({
         </TableHeader>
         <TableBody>
           {items.map((item) => {
-            const computed = computeMaintenanceItem(item, aircraft, dailyAverage, remainingPercentage);
+            const computed = computeMaintenanceItem(item);
             const meta = STATUS_META[computed.status];
             return (
               <TableRow key={item.id} className={cn(meta.row, "transition-colors hover:bg-primary/[0.03]")}>
@@ -289,12 +256,12 @@ function MaintenanceItemsTable({
                 </TableCell>
                 <TableCell className={cn(COL.frequency, "truncate")}>
                   <span className="block truncate">{computed.frequency}</span>
-                  {/* Límite dual ("lo que ocurra primero"): mismo cumplimiento, dos relojes. */}
-                  {computed.secondary && (
-                    <span className="block truncate text-xs text-muted-foreground">
-                      Ó {computed.secondary.frequency}
+                  {/* N intervalos ("lo que ocurra primero"): mismo cumplimiento, un reloj cada uno. */}
+                  {computed.extras.map((extra, i) => (
+                    <span key={i} className="block truncate text-xs text-muted-foreground">
+                      Ó {extra.frequency}
                     </span>
-                  )}
+                  ))}
                 </TableCell>
                 <TableCell className={COL.applied}>
                   <span className="block truncate">{computed.applied}</span>
@@ -304,33 +271,30 @@ function MaintenanceItemsTable({
                 </TableCell>
                 <TableCell className={cn(COL.next, "truncate")}>
                   <span className="block truncate">{computed.next}</span>
-                  {computed.secondary && (
-                    <span className="block truncate text-xs text-muted-foreground">{computed.secondary.next}</span>
-                  )}
+                  {computed.extras.map((extra, i) => (
+                    <span key={i} className="block truncate text-xs text-muted-foreground">
+                      {extra.next}
+                    </span>
+                  ))}
                 </TableCell>
                 <TableCell className={cn(COL.remaining, "truncate")}>
                   <span className={cn("inline-flex items-center gap-1.5 font-semibold", meta.text)}>
                     <span className={cn("size-1.5 shrink-0 rounded-full", meta.dot)} />
                     {computed.remaining}
                   </span>
-                  {computed.secondary && (
-                    <span
-                      className={cn(
-                        "block truncate text-xs",
-                        STATUS_META[computed.secondary.status].text,
-                      )}
-                    >
-                      {computed.secondary.remaining}
+                  {computed.extras.map((extra, i) => (
+                    <span key={i} className={cn("block truncate text-xs", STATUS_META[extra.status].text)}>
+                      {extra.remaining}
                     </span>
-                  )}
+                  ))}
                 </TableCell>
                 <TableCell className={COL.estimate}>
                   <TruncatedText>{computed.estimate}</TruncatedText>
-                  {computed.secondary && (
-                    <span className="block truncate text-xs text-muted-foreground">
-                      {computed.secondary.estimate}
+                  {computed.extras.map((extra, i) => (
+                    <span key={i} className="block truncate text-xs text-muted-foreground">
+                      {extra.estimate}
                     </span>
-                  )}
+                  ))}
                 </TableCell>
                 <TableCell className={COL.provider}>
                   <TruncatedText>{computed.providerName}</TruncatedText>
@@ -479,8 +443,6 @@ const MaintenanceControlDetailPage = () => {
           <MaintenanceItemsTable
             items={certificates}
             aircraft={control.aircraft}
-            dailyAverage={dailyAverage}
-            remainingPercentage={remainingPercentage}
             emptyLabel="Este control no tiene certificados registrados."
             company={company}
             controlId={control.id}
@@ -503,8 +465,6 @@ const MaintenanceControlDetailPage = () => {
           <MaintenanceItemsTable
             items={aircraftServices}
             aircraft={control.aircraft}
-            dailyAverage={dailyAverage}
-            remainingPercentage={remainingPercentage}
             emptyLabel="Este control no tiene servicios de aeronave registrados."
             company={company}
             controlId={control.id}
@@ -533,17 +493,16 @@ const MaintenanceControlDetailPage = () => {
               <MaintenanceItemsTable
                 items={partItems}
                 // Las horas/ciclos "actuales" de un servicio de parte son
-                // los de la PARTE (TSN/CSN), no los totales de la
-                // aeronave — una parte más nueva que el avión no puede
-                // medirse contra las horas de éste. El ritmo de vuelo
-                // (dailyAverage) sí es el mismo, porque avión y parte
-                // instalada acumulan horas juntos por vuelo.
+                // los de la PARTE (TSN/CSN), no los totales de la aeronave —
+                // una parte más nueva que el avión no puede medirse contra
+                // las horas de éste. El backend ya resolvió esto al calcular
+                // `item.computed` (MaintenanceControlCalculator); acá solo
+                // queda para defaultHours/defaultCycles del diálogo de
+                // registrar cumplimiento.
                 aircraft={{
                   flight_hours: part.aircraft_part?.time_since_new ?? 0,
                   flight_cycles: part.aircraft_part?.cycles_since_new ?? 0,
                 }}
-                dailyAverage={dailyAverage}
-                remainingPercentage={remainingPercentage}
                 emptyLabel="Esta parte no tiene servicios registrados."
                 company={company}
                 controlId={control.id}

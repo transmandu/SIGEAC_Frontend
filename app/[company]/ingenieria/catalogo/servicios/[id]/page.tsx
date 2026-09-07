@@ -81,8 +81,10 @@ const ServiceDetailPage = () => {
               )}
             </Field>
             <Field label="Intervalo">
-              {service.counting_method ? (
-                `${service.interval_value} ${COUNTING_METHOD_LABELS[service.counting_method]}`
+              {service.intervals.length > 0 ? (
+                service.intervals
+                  .map((i) => `${i.interval_value} ${COUNTING_METHOD_LABELS[i.counting_method]}`)
+                  .join(" Ó ")
               ) : (
                 <Empty />
               )}

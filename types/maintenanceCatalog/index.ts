@@ -60,6 +60,18 @@ export type CatalogTaskRequirement = {
     notes: string | null;
 };
 
+/**
+ * Un intervalo de vencimiento (unidad + valor). Un servicio/tarea puede
+ * tener varios a la vez ("lo que ocurra primero", ej. 6000 Hrs Ó 1825 Días
+ * — hasta 3, uno por unidad), reemplaza el viejo par
+ * counting_method/interval_value de una sola unidad.
+ */
+export type CatalogInterval = {
+    id?: number;
+    counting_method: CatalogCountingMethod;
+    interval_value: number;
+};
+
 export type CatalogTask = {
     id: number;
     maintenance_catalog_service_id: number;
@@ -70,6 +82,8 @@ export type CatalogTask = {
     reference: string | null;
     estimated_man_hours: number | null;
     required_skill: string | null;
+    /** Vacío = la tarea no tiene periodicidad propia y hereda la del servicio. */
+    intervals: CatalogInterval[];
     requirements: CatalogTaskRequirement[];
 };
 
@@ -80,8 +94,8 @@ export type CatalogService = {
     name: string;
     code: string | null;
     description: string | null;
-    counting_method: CatalogCountingMethod | null;
-    interval_value: number | null;
+    /** Vacío = certificado estático sin periodicidad recurrente (ej. seguro). */
+    intervals: CatalogInterval[];
     status: CatalogStatus;
     manual: CatalogManual | null;
     tasks?: CatalogTask[];

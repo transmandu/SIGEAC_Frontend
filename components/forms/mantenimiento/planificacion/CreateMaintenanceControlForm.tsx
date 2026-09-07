@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { useForm, useFieldArray, useWatch, useFormContext, Control } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -55,6 +55,7 @@ import {
 } from "@/actions/mantenimiento/planificacion/control_mantenimiento/actions";
 import { CreateMaintenanceProviderDialog } from "@/components/dialogs/mantenimiento/planificacion/CreateMaintenanceProviderDialog";
 import { CatalogServicePicker } from "@/components/misc/CatalogServicePicker";
+import { useGetCatalogManuals } from "@/hooks/mantenimiento/catalogo/useGetCatalogManuals";
 import { MaintenanceAircraftPart, MaintenanceControl } from "@/types";
 import { partTypeLabel, partTypeRank } from "@/lib/maintenancePartTypes";
 import {
@@ -76,10 +77,17 @@ const optionalNumeric = z.preprocess(
   z.coerce.number().min(0).optional(),
 );
 
-const optionalInteger = z.preprocess(
-  (val) => (val === "" || val === undefined || val === null ? undefined : val),
-  z.coerce.number().int().min(0).optional(),
-);
+// Un intervalo de vencimiento (unidad + límite + lectura inicial). N por
+// ítem, máximo uno por unidad ("lo que ocurra primero", ej. 6000 Hrs Ó 1825
+// Días — hasta 3, ver MaintenanceControlItemInterval en el backend).
+const intervalSchema = z.object({
+  id: z.number().optional(),
+  counting_method: countingMethodEnum,
+  limit_value: z.coerce.number().positive("Debe ser mayor a 0"),
+  // Obligatoria solo cuando la unidad no es días (ver superRefine de abajo),
+  // porque "próximo" en horas/ciclos se calcula desde acá, no de la fecha.
+  initial_value: optionalNumeric,
+});
 
 const baseItemSchema = z.object({
   // Presente solo al editar; permite al backend actualizar el mismo
@@ -90,23 +98,8 @@ const baseItemSchema = z.object({
   // eligió con el selector en vez de escribirlo a mano.
   maintenance_catalog_service_id: z.number().optional(),
   name: z.string().min(1, "Requerido"),
-  counting_method: countingMethodEnum,
-  limit_value: z.coerce.number().positive("Debe ser mayor a 0"),
   first_applied_date: z.date({ required_error: "Seleccione una fecha" }),
-  // Lectura de horas/ciclos de la aeronave en la fecha de primera aplicación;
-  // obligatoria solo cuando la unidad no es días (ver superRefine de abajo),
-  // porque "próximo" en horas/ciclos se calcula desde acá, no de la fecha.
-  first_applied_value: optionalNumeric,
-  // Días extra sobre la frecuencia, solo relevante cuando la unidad es
-  // días (no todos los certificados vencen justo a los N días); opcional.
-  extra_days: optionalInteger,
-  // Límite dual ("lo que ocurra primero", ej. 6000 Hrs Ó 1825 Días — así lo
-  // declara el manual real de Hangar 74 en la misma fila de un componente).
-  // Un mismo cumplimiento resetea los dos relojes, por eso no lleva su
-  // propia fecha de primera aplicación.
-  secondary_counting_method: countingMethodEnum.optional(),
-  secondary_limit_value: optionalNumeric,
-  secondary_first_applied_value: optionalNumeric,
+  intervals: z.array(intervalSchema).min(1, "Agregue al menos un intervalo"),
 });
 
 // Los certificados son documentos a bordo: algunos sí llevan una entidad
@@ -132,6 +125,9 @@ const formSchema = z
     description: z.string().optional(),
     has_reference_manual: z.boolean().default(false),
     reference_manual: z.string().optional(),
+    // Manual del catálogo que llenó reference_manual, si se eligió uno en vez
+    // de tipearlo a mano; el catálogo ayuda a llenar, nunca obliga.
+    maintenance_catalog_manual_id: z.number().optional(),
     remaining_percentage: z.coerce.number().min(0, "Debe ser ≥ 0").max(100, "Debe ser ≤ 100"),
     certificates: z.array(certificateSchema).default([]),
     services: z.array(itemSchema).default([]),
@@ -160,46 +156,31 @@ const formSchema = z
 
     const requireInitialReading = (
       items: {
-        counting_method: string;
-        first_applied_value?: number;
-        secondary_counting_method?: string;
-        secondary_limit_value?: number;
-        secondary_first_applied_value?: number;
+        intervals: { counting_method: string; initial_value?: number }[];
       }[],
       basePath: (string | number)[],
     ) => {
       items.forEach((item, index) => {
-        if (item.counting_method !== "DAYS" && item.first_applied_value === undefined) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: "Indique las horas/ciclos que tenía la aeronave en la primera aplicación",
-            path: [...basePath, index, "first_applied_value"],
-          });
-        }
+        const seenMethods = new Set<string>();
 
-        if (!item.secondary_counting_method) return;
+        item.intervals.forEach((interval, intervalIndex) => {
+          if (interval.counting_method !== "DAYS" && interval.initial_value === undefined) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: "Indique las horas/ciclos que tenía la aeronave en la primera aplicación",
+              path: [...basePath, index, "intervals", intervalIndex, "initial_value"],
+            });
+          }
 
-        if (item.secondary_counting_method === item.counting_method) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: "El límite secundario debe ser en una unidad distinta a la principal",
-            path: [...basePath, index, "secondary_counting_method"],
-          });
-        }
-        if (item.secondary_limit_value === undefined) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: 'Indique el límite secundario ("lo que ocurra primero")',
-            path: [...basePath, index, "secondary_limit_value"],
-          });
-        }
-        if (item.secondary_counting_method !== "DAYS" && item.secondary_first_applied_value === undefined) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: "Indique las horas/ciclos que tenía la aeronave en la primera aplicación del límite secundario",
-            path: [...basePath, index, "secondary_first_applied_value"],
-          });
-        }
+          if (seenMethods.has(interval.counting_method)) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: "No puede repetir la misma unidad en dos intervalos",
+              path: [...basePath, index, "intervals", intervalIndex, "counting_method"],
+            });
+          }
+          seenMethods.add(interval.counting_method);
+        });
       });
     };
 
@@ -210,11 +191,20 @@ const formSchema = z
 
 type FormValues = z.infer<typeof formSchema>;
 
+// Nace con la primera unidad que no esté ya usada en el ítem — nunca "HOURS"
+// a ciegas, que ya estaría tomado si el intervalo anterior también la usa.
+const emptyInterval = (usedMethods: string[] = []) => ({
+  counting_method: (ALL_COUNTING_METHODS.find((m) => !usedMethods.includes(m)) ?? "HOURS") as
+    | "HOURS"
+    | "CYCLES"
+    | "DAYS",
+  limit_value: undefined as unknown as number,
+});
+
 const emptyCertificate = () => ({
   name: "",
-  counting_method: "HOURS" as const,
-  limit_value: undefined as unknown as number,
   first_applied_date: undefined as unknown as Date,
+  intervals: [emptyInterval()],
   maintenance_provider_id: "",
 });
 
@@ -314,14 +304,13 @@ function NumericInput({
 // La última columna pasó de un botón (quitar fila) a dos (límite secundario +
 // quitar fila): 32px alcanzaba para uno solo.
 const ITEM_ROW_GRID =
-  "grid grid-cols-[minmax(200px,1fr)_92px_84px_96px_84px_120px_190px_64px] items-start gap-2";
+  "grid grid-cols-[minmax(200px,1fr)_92px_84px_96px_120px_190px_64px] items-start gap-2";
 
 const ITEM_ROW_LABELS = [
   "Nombre",
   "Unidad",
   "Límite",
   "Lectura Inicial",
-  "Días Extra",
   "1ra Fecha",
   "Realizado Por",
 ];
@@ -424,71 +413,32 @@ function ProviderSelect({ control, name }: { control: Control<any>; name: string
   );
 }
 
-function ItemRow({
+const ALL_COUNTING_METHODS = ["HOURS", "CYCLES", "DAYS"] as const;
+const COUNTING_METHOD_LABEL: Record<string, string> = { HOURS: "Horas", CYCLES: "Ciclos", DAYS: "Días" };
+
+/**
+ * Una fila de intervalo dentro de un ítem. La primera (index 0) comparte fila
+ * con nombre/fecha/proveedor/acciones del ítem — las demás ("lo que ocurra
+ * primero") son su propia fila compacta debajo, con Unidad/Límite/Lectura
+ * inicial y un botón para quitar SOLO ese intervalo.
+ */
+function IntervalFields({
   control,
   namePrefix,
-  category,
-  onRemove,
+  usedMethods,
 }: {
   control: Control<any>;
   namePrefix: string;
-  category: "CERTIFICATE" | "SERVICE";
-  onRemove: () => void;
+  usedMethods: string[];
 }) {
-  const { setValue } = useFormContext<FormValues>();
-  const aircraftId = useWatch({ control, name: "aircraft_id" });
   const countingMethod = useWatch({ control, name: `${namePrefix}.counting_method` });
-  const name = useWatch({ control, name: `${namePrefix}.name` });
   const needsInitialReading = countingMethod && countingMethod !== "DAYS";
-  const isDaysBased = countingMethod === "DAYS";
-
-  // Límite dual ("lo que ocurra primero"): el toggle nace abierto si el ítem
-  // ya traía un límite secundario (editar), cerrado si no (fila nueva). Solo
-  // lee el valor inicial — abrir/cerrar de ahí en más es decisión del usuario.
-  const initialSecondaryMethod = useWatch({ control, name: `${namePrefix}.secondary_counting_method` });
-  const [secondaryOpen, setSecondaryOpen] = useState(() => !!initialSecondaryMethod);
-  const secondaryCountingMethod = useWatch({ control, name: `${namePrefix}.secondary_counting_method` });
-  const secondaryNeedsInitialReading = secondaryCountingMethod && secondaryCountingMethod !== "DAYS";
-
-  const removeSecondaryLimit = () => {
-    setValue(`${namePrefix}.secondary_counting_method` as any, undefined, { shouldValidate: true });
-    setValue(`${namePrefix}.secondary_limit_value` as any, undefined, { shouldValidate: true });
-    setValue(`${namePrefix}.secondary_first_applied_value` as any, undefined, { shouldValidate: true });
-    setSecondaryOpen(false);
-  };
+  const availableMethods = ALL_COUNTING_METHODS.filter(
+    (unit) => unit === countingMethod || !usedMethods.includes(unit),
+  );
 
   return (
-    <div className="space-y-1.5">
-    <div className={ITEM_ROW_GRID}>
-      <div className="flex items-center gap-1">
-        <FormField
-          control={control}
-          name={`${namePrefix}.name`}
-          render={({ field }) => (
-            <FormItem className="w-full space-y-0">
-              <FormControl>
-                <Input placeholder="EJ: Certificado de Aeronavegabilidad" className={fieldClass} {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <CatalogServicePicker
-          aircraftId={aircraftId}
-          category={category}
-          onSelectService={(service) => {
-            setValue(`${namePrefix}.name` as any, service.name, { shouldValidate: true });
-            setValue(`${namePrefix}.maintenance_catalog_service_id` as any, service.id);
-            if (service.counting_method) {
-              setValue(`${namePrefix}.counting_method` as any, service.counting_method, { shouldValidate: true });
-            }
-            if (service.interval_value) {
-              setValue(`${namePrefix}.limit_value` as any, service.interval_value, { shouldValidate: true });
-            }
-          }}
-        />
-      </div>
-
+    <>
       <FormField
         control={control}
         name={`${namePrefix}.counting_method`}
@@ -501,9 +451,11 @@ function ItemRow({
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
-                <SelectItem value="HOURS">Horas</SelectItem>
-                <SelectItem value="CYCLES">Ciclos</SelectItem>
-                <SelectItem value="DAYS">Días</SelectItem>
+                {availableMethods.map((unit) => (
+                  <SelectItem key={unit} value={unit}>
+                    {COUNTING_METHOD_LABEL[unit]}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
             <FormMessage />
@@ -534,7 +486,7 @@ function ItemRow({
       {needsInitialReading ? (
         <FormField
           control={control}
-          name={`${namePrefix}.first_applied_value`}
+          name={`${namePrefix}.initial_value`}
           render={({ field }) => (
             <FormItem className="space-y-0">
               <FormControl>
@@ -554,161 +506,194 @@ function ItemRow({
       ) : (
         <CompactPlaceholder />
       )}
+    </>
+  );
+}
 
-      {isDaysBased ? (
-        <FormField
-          control={control}
-          name={`${namePrefix}.extra_days`}
-          render={({ field }) => (
-            <FormItem className="space-y-0">
-              <FormControl>
-                <NumericInput
-                  placeholder="0"
-                  className={fieldClass}
-                  value={field.value}
-                  onChange={field.onChange}
-                  onBlur={field.onBlur}
-                  name={field.name}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      ) : (
-        <CompactPlaceholder />
-      )}
+function ItemRow({
+  control,
+  namePrefix,
+  category,
+  onRemove,
+}: {
+  control: Control<any>;
+  namePrefix: string;
+  category: "CERTIFICATE" | "SERVICE";
+  onRemove: () => void;
+}) {
+  const { setValue } = useFormContext<FormValues>();
+  const aircraftId = useWatch({ control, name: "aircraft_id" });
+  const manualId = useWatch({ control, name: "maintenance_catalog_manual_id" });
+  const manualName = useWatch({ control, name: "reference_manual" });
+  const name = useWatch({ control, name: `${namePrefix}.name` });
 
-      <CompactDateField control={control} name={`${namePrefix}.first_applied_date`} />
+  const {
+    fields: intervalFields,
+    append: appendInterval,
+    remove: removeInterval,
+    replace: replaceIntervals,
+  } = useFieldArray({
+    control,
+    name: `${namePrefix}.intervals`,
+  });
+  const intervals = useWatch({ control, name: `${namePrefix}.intervals` }) as {
+    counting_method: string;
+    initial_value?: number;
+  }[];
+  const usedMethods = (intervals ?? []).map((i) => i.counting_method).filter(Boolean);
+  const canAddInterval = intervalFields.length < ALL_COUNTING_METHODS.length;
 
-      <ProviderSelect control={control} name={`${namePrefix}.maintenance_provider_id`} />
+  // La X de cada fila siempre quita SOLO ese intervalo — salvo que sea el
+  // único que le queda al ítem, ahí no puede dejarlo sin ningún límite y la
+  // X pasa a quitar el ítem completo (nombre, fecha, proveedor, todo).
+  const removeIntervalRow = (index: number) => {
+    if (intervalFields.length === 1) {
+      onRemove();
+      return;
+    }
+    removeInterval(index);
+  };
 
-      <div className="flex items-center">
-        <TooltipProvider disableHoverableContent>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                onClick={() => setSecondaryOpen((v) => !v)}
-                aria-label={secondaryOpen ? "Quitar límite secundario" : "Agregar límite secundario"}
-                className={cn("size-8 shrink-0", secondaryOpen ? "text-primary" : "text-muted-foreground/70")}
-              >
-                <Plus className={cn("size-3.5 transition-transform", secondaryOpen && "rotate-45")} />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              {secondaryOpen ? "Quitar límite secundario" : 'Agregar límite secundario ("lo que ocurra primero")'}
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          onClick={onRemove}
-          aria-label={name ? `Quitar ${name}` : "Quitar fila"}
-          className="h-11 w-8 shrink-0 text-muted-foreground/70 hover:text-destructive"
-        >
-          <X className="size-3.5" />
-        </Button>
-      </div>
-    </div>
-
-    {secondaryOpen && (
-      <div className={cn(ITEM_ROW_GRID, "items-start")}>
-        <p className="self-center pl-1 text-xs italic text-muted-foreground">
-          Ó (lo que ocurra primero)
-        </p>
-
-        <FormField
-          control={control}
-          name={`${namePrefix}.secondary_counting_method`}
-          render={({ field }) => (
-            <FormItem className="space-y-0">
-              <Select onValueChange={field.onChange} value={field.value || undefined}>
-                <FormControl>
-                  <SelectTrigger className={selectTriggerClass}>
-                    <SelectValue placeholder="Unidad" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {(["HOURS", "CYCLES", "DAYS"] as const)
-                    .filter((unit) => unit !== countingMethod)
-                    .map((unit) => (
-                      <SelectItem key={unit} value={unit}>
-                        {unit === "HOURS" ? "Horas" : unit === "CYCLES" ? "Ciclos" : "Días"}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={control}
-          name={`${namePrefix}.secondary_limit_value`}
-          render={({ field }) => (
-            <FormItem className="space-y-0">
-              <FormControl>
-                <NumericInput
-                  placeholder="0"
-                  className={fieldClass}
-                  value={field.value}
-                  onChange={field.onChange}
-                  onBlur={field.onBlur}
-                  name={field.name}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {secondaryNeedsInitialReading ? (
+  return (
+    <div className="space-y-1.5">
+      <div className={ITEM_ROW_GRID}>
+        <div className="flex items-center gap-1">
           <FormField
             control={control}
-            name={`${namePrefix}.secondary_first_applied_value`}
+            name={`${namePrefix}.name`}
             render={({ field }) => (
-              <FormItem className="space-y-0">
+              <FormItem className="w-full space-y-0">
                 <FormControl>
-                  <NumericInput
-                    placeholder="0"
-                    className={fieldClass}
-                    value={field.value}
-                    onChange={field.onChange}
-                    onBlur={field.onBlur}
-                    name={field.name}
-                  />
+                  <Input placeholder="EJ: Certificado de Aeronavegabilidad" className={fieldClass} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-        ) : (
-          <CompactPlaceholder />
-        )}
+          <CatalogServicePicker
+            aircraftId={aircraftId}
+            category={category}
+            manualId={manualId}
+            manualName={manualName}
+            onSelectService={(service) => {
+              setValue(`${namePrefix}.name` as any, service.name, { shouldValidate: true });
+              setValue(`${namePrefix}.maintenance_catalog_service_id` as any, service.id);
+              if (service.intervals?.length) {
+                // El catálogo aporta la periodicidad (unidad + límite), nunca
+                // la lectura inicial: esa es de ESTE ítem en ESTA aeronave. Se
+                // conserva la que el usuario ya hubiera cargado para la misma
+                // unidad, en vez de borrarla y dejar el formulario inválido.
+                const previousByMethod = new Map(
+                  (intervals ?? []).map((interval) => [interval.counting_method, interval.initial_value]),
+                );
 
-        <CompactPlaceholder />
-        <CompactPlaceholder />
-        <CompactPlaceholder />
+                // replaceIntervals (no setValue): el array lo gobierna
+                // useFieldArray, y escribirlo por fuera deja sus filas
+                // desincronizadas del valor real del formulario.
+                replaceIntervals(
+                  service.intervals.map((interval) => ({
+                    counting_method: interval.counting_method,
+                    limit_value: interval.interval_value,
+                    initial_value: previousByMethod.get(interval.counting_method),
+                  })),
+                );
+              }
+            }}
+          />
+        </div>
 
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          onClick={removeSecondaryLimit}
-          aria-label="Quitar límite secundario"
-          className="h-11 w-8 shrink-0 text-muted-foreground/70 hover:text-destructive"
-        >
-          <X className="size-3.5" />
-        </Button>
+        <IntervalFields control={control} namePrefix={`${namePrefix}.intervals.0`} usedMethods={usedMethods} />
+
+        <CompactDateField control={control} name={`${namePrefix}.first_applied_date`} />
+
+        <ProviderSelect control={control} name={`${namePrefix}.maintenance_provider_id`} />
+
+        <div className="flex items-center">
+          <TooltipProvider disableHoverableContent>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  disabled={!canAddInterval}
+                  onClick={() => appendInterval(emptyInterval(usedMethods))}
+                  aria-label="Agregar intervalo"
+                  className="size-8 shrink-0 text-muted-foreground/70 disabled:opacity-30"
+                >
+                  <Plus className="size-3.5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                {canAddInterval
+                  ? 'Agregar intervalo ("lo que ocurra primero")'
+                  : "Ya tiene un intervalo por cada unidad"}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={() => removeIntervalRow(0)}
+            aria-label={
+              intervalFields.length === 1 ? (name ? `Quitar ${name}` : "Quitar fila") : "Quitar este intervalo"
+            }
+            className="h-11 w-8 shrink-0 text-muted-foreground/70 hover:text-destructive"
+          >
+            <X className="size-3.5" />
+          </Button>
+        </div>
       </div>
-    )}
+
+      {intervalFields.length > 1 && (
+        <div className={cn(ITEM_ROW_GRID, "items-stretch gap-y-1.5")}>
+          {/* Una sola vez, centrado entre todas las filas extra (grid-row:
+              span sobre la misma columna de Nombre) — no es de ninguna fila
+              en particular, es la relación entre el intervalo principal y
+              todos estos. El pr-9 (no pr-1) hace que termine al ras del
+              borde derecho del INPUT de nombre, no de toda la celda: el
+              botón del picker de catálogo (size-8 + gap-1 = 36px) sigue
+              después de ese borde. */}
+          <p
+            className="flex items-center justify-end pr-9 text-right text-xs italic text-muted-foreground"
+            style={{ gridRow: `span ${intervalFields.length - 1}` }}
+          >
+            Ó (lo que ocurra primero)
+          </p>
+
+          {intervalFields.slice(1).map((field, i) => {
+            const index = i + 1;
+            return (
+              <Fragment key={field.id}>
+                <IntervalFields
+                  control={control}
+                  namePrefix={`${namePrefix}.intervals.${index}`}
+                  usedMethods={usedMethods}
+                />
+
+                {/* Fecha y Realizado Por son del ítem completo (un solo
+                    cumplimiento resetea todos los intervalos a la vez), no
+                    se repiten por fila. */}
+                <div className="col-span-2" />
+                <div className="flex items-center justify-end">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeIntervalRow(index)}
+                    aria-label="Quitar este intervalo"
+                    className="h-11 w-8 shrink-0 text-muted-foreground/70 hover:text-destructive"
+                  >
+                    <X className="size-3.5" />
+                  </Button>
+                </div>
+              </Fragment>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
@@ -946,31 +931,83 @@ function PartsSection({ control }: { control: Control<any> }) {
   );
 }
 
+/**
+ * Elige un manual del catálogo y llena reference_manual con su nombre (sigue
+ * editable a mano después) — el catálogo ayuda a llenar, nunca reemplaza el
+ * texto libre, porque no todo manual real está cargado ahí todavía.
+ */
+function CatalogManualField({ control, aircraftId }: { control: Control<any>; aircraftId?: string }) {
+  const { setValue } = useFormContext<FormValues>();
+  const { selectedCompany } = useCompanyStore();
+  const manualId = useWatch({ control, name: "maintenance_catalog_manual_id" });
+  const { data: manuals, isLoading } = useGetCatalogManuals(selectedCompany?.slug, {
+    status: "ACTIVE",
+    aircraftId,
+  });
+
+  return (
+    <FormItem className="w-full">
+      <FormLabel className={labelClass}>Manual del Catálogo</FormLabel>
+      <div className="flex items-center gap-1">
+        <SearchableSelect
+          options={manuals ?? []}
+          value={manualId ? String(manualId) : undefined}
+          loading={isLoading}
+          placeholder="Elegir del catálogo (opcional)..."
+          searchPlaceholder="Buscar manual..."
+          emptyLabel={
+            aircraftId
+              ? "Ningún manual del catálogo tiene servicios asignados a esta aeronave."
+              : "Seleccione primero una aeronave para filtrar."
+          }
+          onSelect={(manual) => {
+            setValue("maintenance_catalog_manual_id", manual.id as number, { shouldValidate: true });
+            setValue("reference_manual", manual.name, { shouldValidate: true });
+          }}
+        />
+        {manualId && (
+          <TooltipProvider disableHoverableContent>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="size-8 shrink-0 text-muted-foreground/70 hover:text-destructive"
+                  onClick={() => setValue("maintenance_catalog_manual_id", undefined, { shouldValidate: true })}
+                >
+                  <X className="size-3.5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Desvincular del catálogo (conserva el texto)</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
+      </div>
+      <FormDescription className={hintClass}>
+        Si el manual está cargado en el catálogo del Sistema, el nombre y los servicios/certificados del selector se acotan a él.
+      </FormDescription>
+    </FormItem>
+  );
+}
+
 function mapToFormCertificate(item: NonNullable<MaintenanceControl["items"]>[number]) {
   return {
     id: item.id,
     name: item.name,
-    counting_method: item.counting_method,
-    limit_value: Number(item.limit_value),
     // parseISO (no `new Date`): un string "yyyy-MM-dd" con `new Date` se
     // interpreta como medianoche UTC y en Venezuela (UTC-4) cae al día
     // anterior; parseISO lo toma en hora local.
     first_applied_date: parseISO(item.first_applied_date),
-    first_applied_value:
-      item.first_applied_value !== null && item.first_applied_value !== undefined
-        ? Number(item.first_applied_value)
-        : undefined,
-    extra_days:
-      item.extra_days !== null && item.extra_days !== undefined ? Number(item.extra_days) : undefined,
-    secondary_counting_method: item.secondary_counting_method ?? undefined,
-    secondary_limit_value:
-      item.secondary_limit_value !== null && item.secondary_limit_value !== undefined
-        ? Number(item.secondary_limit_value)
-        : undefined,
-    secondary_first_applied_value:
-      item.secondary_first_applied_value !== null && item.secondary_first_applied_value !== undefined
-        ? Number(item.secondary_first_applied_value)
-        : undefined,
+    intervals: item.intervals.map((interval) => ({
+      id: interval.id,
+      counting_method: interval.counting_method,
+      limit_value: Number(interval.limit_value),
+      initial_value:
+        interval.initial_value !== null && interval.initial_value !== undefined
+          ? Number(interval.initial_value)
+          : undefined,
+    })),
     maintenance_provider_id: item.maintenance_provider_id ? String(item.maintenance_provider_id) : "",
   };
 }
@@ -988,6 +1025,7 @@ const emptyFormValues: FormValues = {
   description: "",
   has_reference_manual: false,
   reference_manual: "",
+  maintenance_catalog_manual_id: undefined,
   remaining_percentage: 10,
   certificates: [],
   services: [],
@@ -1007,6 +1045,9 @@ function buildDefaultValues(initialData?: MaintenanceControl): FormValues {
     description: initialData.description ?? "",
     has_reference_manual: initialData.has_reference_manual,
     reference_manual: initialData.reference_manual ?? "",
+    maintenance_catalog_manual_id: initialData.maintenance_catalog_manual_id
+      ? Number(initialData.maintenance_catalog_manual_id)
+      : undefined,
     remaining_percentage: Number(initialData.remaining_percentage),
     certificates: items.filter((i) => i.category === "CERTIFICATE").map(mapToFormCertificate),
     services: items
@@ -1056,14 +1097,12 @@ export default function CreateMaintenanceControlForm({ initialData }: { initialD
       id: item.id,
       maintenance_catalog_service_id: item.maintenance_catalog_service_id,
       name: item.name,
-      counting_method: item.counting_method,
-      limit_value: item.limit_value,
       first_applied_date: format(item.first_applied_date, "yyyy-MM-dd"),
-      first_applied_value: item.first_applied_value,
-      extra_days: item.extra_days,
-      secondary_counting_method: item.secondary_counting_method,
-      secondary_limit_value: item.secondary_limit_value,
-      secondary_first_applied_value: item.secondary_first_applied_value,
+      intervals: item.intervals.map((interval) => ({
+        counting_method: interval.counting_method,
+        limit_value: interval.limit_value,
+        initial_value: interval.initial_value,
+      })),
       // En certificados es opcional (puede quedar sin elegir); los
       // servicios lo sobreescriben más abajo con el suyo, que es obligatorio.
       maintenance_provider_id: item.maintenance_provider_id || undefined,
@@ -1080,6 +1119,7 @@ export default function CreateMaintenanceControlForm({ initialData }: { initialD
       description: values.description,
       has_reference_manual: values.has_reference_manual ?? false,
       reference_manual: values.reference_manual,
+      maintenance_catalog_manual_id: values.maintenance_catalog_manual_id,
       remaining_percentage: values.remaining_percentage,
       certificates: values.certificates.map(toBaseItem),
       services: values.services.map(toServiceItem),
@@ -1122,7 +1162,7 @@ export default function CreateMaintenanceControlForm({ initialData }: { initialD
           hint="Aeronave, título y a partir de qué remanente se avisa."
           action={<CreateMaintenanceProviderDialog />}
         >
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-[minmax(150px,190px)_2fr_minmax(96px,140px)]">
             <AircraftSelect control={form.control} name="aircraft_id" excludeIds={excludeAircraftIds} />
             <FormField
               control={form.control}
@@ -1142,23 +1182,23 @@ export default function CreateMaintenanceControlForm({ initialData }: { initialD
               name="remaining_percentage"
               render={({ field }) => (
                 <FormItem className="w-full">
-                  <FormLabel className={labelClass}>% de Remanente para Alerta</FormLabel>
+                  <FormLabel className={labelClass}>% Remanente</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <NumericInput
-                        className={cn(fieldClass, "pr-8")}
+                        className={cn(fieldClass, "pr-7")}
                         value={field.value}
                         onChange={field.onChange}
                         onBlur={field.onBlur}
                         name={field.name}
                       />
-                      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                      <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
                         %
                       </span>
                     </div>
                   </FormControl>
                   <FormDescription className={hintClass}>
-                    Con cuánto remanente (sobre el límite de horas/ciclos/días) se avisa que un servicio está próximo a vencer.
+                    Remanente para alertar.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -1168,7 +1208,7 @@ export default function CreateMaintenanceControlForm({ initialData }: { initialD
               control={form.control}
               name="description"
               render={({ field }) => (
-                <FormItem className="w-full md:col-span-2">
+                <FormItem className="w-full md:col-span-3">
                   <FormLabel className={labelClass}>
                     Descripción <span className="text-muted-foreground text-xs">(Opcional)</span>
                   </FormLabel>
@@ -1186,7 +1226,7 @@ export default function CreateMaintenanceControlForm({ initialData }: { initialD
                 <FormItem
                   className={cn(
                     fieldClass,
-                    "h-auto shadow-none md:col-span-2 flex flex-row items-start space-x-3 space-y-0 p-4 hover:shadow-none",
+                    "h-auto shadow-none md:col-span-3 flex flex-row items-start space-x-3 space-y-0 p-4 hover:shadow-none",
                   )}
                 >
                   <FormControl>
@@ -1202,23 +1242,26 @@ export default function CreateMaintenanceControlForm({ initialData }: { initialD
               )}
             />
             {hasReferenceManual && (
-              <FormField
-                control={form.control}
-                name="reference_manual"
-                render={({ field }) => (
-                  <FormItem className="w-full md:col-span-2">
-                    <FormLabel className={labelClass}>Manual de Referencia</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="EJ: MAINTENANCE SCHEDULE REV. 5 DEL 15/MAY/2016"
-                        className={fieldClass}
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="grid grid-cols-1 gap-4 md:col-span-3 md:grid-cols-2">
+                <CatalogManualField control={form.control} aircraftId={aircraftId} />
+                <FormField
+                  control={form.control}
+                  name="reference_manual"
+                  render={({ field }) => (
+                    <FormItem className="w-full">
+                      <FormLabel className={labelClass}>Manual de Referencia</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="EJ: MAINTENANCE SCHEDULE REV. 5 DEL 15/MAY/2016"
+                          className={fieldClass}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             )}
           </div>
         </FormSection>

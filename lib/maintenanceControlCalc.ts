@@ -1,21 +1,43 @@
-import { addDays, differenceInCalendarDays, format, parseISO } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
-import { MaintenanceControlItem } from "@/types";
-import { AircraftDailyAverage } from "@/hooks/mantenimiento/planificacion/useGetAircraftDailyAverage";
+import { ComputedMaintenanceInterval, MaintenanceControlItem, MaintenanceItemStatus } from "@/types";
 
-// Niveles graduados en vez de un simple vigente/vencido: los dos cortes
-// intermedios son múltiplos del propio % de remanente configurado en el
-// control, así un mismo umbral define las 4 franjas de color.
-export type ItemStatus = "OK" | "WARNING" | "CRITICAL" | "OVERDUE";
+// Reexport: varios consumidores ya importan el tipo de estado desde acá.
+export type ItemStatus = MaintenanceItemStatus;
 
-const STATUS_SEVERITY: Record<ItemStatus, number> = { OK: 0, WARNING: 1, CRITICAL: 2, OVERDUE: 3 };
+/**
+ * Las mismas 4 franjas en todos lados que muestran estado de un ítem (tabla
+ * de gestión, snapshot histórico): color y qué significan en texto llano.
+ * Vivía duplicado como const local de la página de detalle.
+ */
+export const STATUS_META: Record<ItemStatus, { label: string; dot: string; text: string; row: string }> = {
+  OK: {
+    label: "Vigente",
+    dot: "bg-emerald-500",
+    text: "text-emerald-700 dark:text-emerald-400",
+    row: "",
+  },
+  WARNING: {
+    label: "Alerta temprana",
+    dot: "bg-amber-500",
+    text: "text-amber-700 dark:text-amber-400",
+    row: "bg-amber-500/[0.04]",
+  },
+  CRITICAL: {
+    label: "Crítico",
+    dot: "bg-orange-500",
+    text: "text-orange-700 dark:text-orange-400",
+    row: "bg-orange-500/[0.04]",
+  },
+  OVERDUE: {
+    label: "Vencido",
+    dot: "bg-red-600",
+    text: "text-red-700 dark:text-red-400",
+    row: "bg-red-600/[0.04]",
+  },
+};
 
-/** El límite que esté peor manda: un ítem con límite dual vence apenas UNO de los dos lo hace. */
-function worseStatus(a: ItemStatus, b: ItemStatus): ItemStatus {
-  return STATUS_SEVERITY[b] > STATUS_SEVERITY[a] ? b : a;
-}
-
-interface SingleLimitResult {
+export interface SingleLimitResult {
   frequency: string;
   next: string;
   remaining: string;
@@ -33,12 +55,11 @@ export interface ComputedMaintenanceItem {
   status: ItemStatus;
   providerName: string;
   /**
-   * Límite secundario ("lo que ocurra primero" — ej. 6000 Hrs Ó 1825 Días):
-   * mismas cinco piezas que el límite principal, presente solo si el ítem
-   * declaró un segundo counting_method. El "Aplicada"/proveedor no se
-   * repiten: un mismo cumplimiento resetea ambos relojes a la vez.
+   * Intervalos adicionales ("lo que ocurra primero" — ej. 6000 Hrs Ó 1825
+   * Días Ó 3000 Ciclos): mismas cinco piezas que el intervalo principal, uno
+   * por cada intervalo extra que declaró el ítem.
    */
-  secondary?: SingleLimitResult;
+  extras: SingleLimitResult[];
 }
 
 const UNIT_LABEL: Record<string, string> = { HOURS: "Horas", CYCLES: "Ciclos", DAYS: "Días" };
@@ -55,173 +76,105 @@ export const fmtNumber = (value: number) => {
 const fmtDate = (date: Date) => format(date, "dd/MM/yyyy", { locale: es });
 
 /**
- * remaining/threshold ya viene en la misma unidad (días, u horas/ciclos).
- * threshold = límite * (% de remanente / 100), el mismo número que ya se
- * muestra como referencia en el Excel ("15% remanente"); acá se reusa como
- * la unidad de medida de las 4 franjas: por debajo de 0 ya venció, hasta 1x
- * el umbral es crítico, hasta 2x es alerta temprana, más allá está vigente.
+ * Traduce UN intervalo ya calculado por el backend (MaintenanceControlCalculator)
+ * a las cinco piezas que muestra la tabla. Puramente presentación: la
+ * aritmética (próximo/remanente/estimación/estado) ya vino resuelta —
+ * antes vivía acá y duplicada a medias en
+ * MaintenanceControlFormPdfService::buildRow(), con riesgo real de que
+ * divergieran.
  */
-function classifyStatus(remaining: number, threshold: number): ItemStatus {
-  if (remaining < 0) return "OVERDUE";
-  if (threshold <= 0) return remaining === 0 ? "CRITICAL" : "OK";
-  if (remaining <= threshold) return "CRITICAL";
-  if (remaining <= threshold * 2) return "WARNING";
-  return "OK";
-}
-
-/**
- * Calcula frecuencia/próximo/remanente/estimación/estado de UN límite (el
- * principal o el secundario) — separado para que un ítem con límite dual
- * ("lo que ocurra primero") pueda evaluar los dos con la misma lógica.
- */
-function computeSingleLimit(params: {
-  unit: string;
-  limit: number;
-  extraDays: number;
-  appliedDate: Date;
-  initialValue: number | null;
-  currentValue: number;
-  dailyAvg: number | null | undefined;
-  threshold: number;
-}): SingleLimitResult {
-  const { unit, limit, extraDays, appliedDate, initialValue, currentValue, dailyAvg, threshold } = params;
-  const frequency = `${fmtNumber(limit)} ${UNIT_LABEL[unit]}`;
+function formatInterval(interval: ComputedMaintenanceInterval): SingleLimitResult {
+  const unit = interval.counting_method;
+  const frequency = `${fmtNumber(Number(interval.limit_value))} ${UNIT_LABEL[unit]}`;
 
   if (unit === "DAYS") {
-    const nextDate = addDays(appliedDate, limit + extraDays);
-    const remainingDays = differenceInCalendarDays(nextDate, new Date());
-
+    const remainingDays = interval.remaining_value;
     return {
-      frequency: extraDays > 0 ? `${frequency} (+${extraDays}d)` : frequency,
-      next: fmtDate(nextDate),
-      remaining: remainingDays < 0 ? `Vencido hace ${Math.abs(remainingDays)} días` : `${remainingDays} días`,
+      frequency,
+      next: interval.next_date ? fmtDate(parseISO(interval.next_date)) : "—",
+      remaining:
+        remainingDays === null
+          ? "—"
+          : remainingDays < 0
+            ? `Vencido hace ${Math.abs(remainingDays)} días`
+            : `${remainingDays} días`,
       estimate: "—",
-      status: classifyStatus(remainingDays, threshold),
+      status: interval.status ?? "OK",
     };
   }
 
-  if (initialValue === null) {
-    // No debería pasar (el formulario lo exige para horas/ciclos), pero sin
-    // el dato no hay con qué calcular.
-    return { frequency, next: "—", remaining: "Falta lectura inicial", estimate: "—", status: "OK" };
-  }
-
-  const nextDue = initialValue + limit;
-  const remainingValue = nextDue - currentValue;
-
-  let estimate = "Sin vuelos en los últimos 30 días";
-  if (dailyAvg && dailyAvg > 0) {
-    const daysUntilDue = remainingValue / dailyAvg;
-    estimate = fmtDate(addDays(new Date(), Math.round(daysUntilDue)));
+  if (interval.remaining_value === null || interval.next_value === null) {
+    // No debería pasar (el formulario exige lectura inicial en horas/ciclos),
+    // pero sin el dato no hay con qué mostrar próximo/remanente. El backend
+    // manda status null en ese caso: no cuenta para el estado del ítem.
+    return { frequency, next: "—", remaining: "Falta lectura inicial", estimate: "—", status: interval.status ?? "OK" };
   }
 
   return {
     frequency,
-    next: `${fmtNumber(nextDue)} ${UNIT_SHORT[unit]}`,
+    next: `${fmtNumber(interval.next_value)} ${UNIT_SHORT[unit]}`,
     remaining:
-      remainingValue < 0
-        ? `Vencido (${fmtNumber(Math.abs(remainingValue))} ${UNIT_SHORT[unit]})`
-        : `${fmtNumber(remainingValue)} ${UNIT_SHORT[unit]}`,
-    estimate,
-    status: classifyStatus(remainingValue, threshold),
+      interval.remaining_value < 0
+        ? `Vencido (${fmtNumber(Math.abs(interval.remaining_value))} ${UNIT_SHORT[unit]})`
+        : `${fmtNumber(interval.remaining_value)} ${UNIT_SHORT[unit]}`,
+    // Ya vencido no se estima nada hacia adelante (el backend manda
+    // estimate_date null ahí), y sin vuelos recientes tampoco hay promedio
+    // con qué proyectar: son dos "sin estimación" distintos.
+    estimate: interval.estimate_date
+      ? fmtDate(parseISO(interval.estimate_date))
+      : interval.remaining_value < 0
+        ? "—"
+        : "Sin vuelos en los últimos 30 días",
+    status: interval.status ?? "OK",
   };
 }
 
 /**
  * Traduce un certificado/servicio a lo que se muestra en el page de gestión:
- * Frecuencia, Aplicada, Próximo, Remanente y Estimación.
- *
- * En DÍAS "Próximo" ya es una fecha exacta (fecha aplicada + límite), así
- * que no hace falta "Estimación" aparte.
- *
- * En HORAS/CICLOS "Próximo" es un valor (no una fecha, porque depende de
- * cuánto vuele la aeronave); "Estimación" proyecta esa fecha usando el
- * promedio de horas/ciclos volados por día en los últimos 30 días — misma
- * lógica que "PROMEDIO ÚLTIMO MES" del Excel de referencia. El remanente se
- * calcula contra las horas/ciclos TOTALES actuales de la aeronave, no
- * contra la lectura que tenía en la fecha de primera aplicación.
- *
- * El % de remanente del control no interviene en "Estimación": solo define
- * las franjas de color del estado.
- *
- * Si el ítem tiene cumplimientos registrados, "Aplicada" (y de ahí en más
- * todo el cálculo) usa el MÁS RECIENTE en vez del dato de creación — igual
- * "Realizado Por" refleja quién hizo ese último cumplimiento, no
- * necesariamente quien quedó anotado al crear el certificado/servicio.
- *
- * Límite secundario ("lo que ocurra primero", ej. 6000 Hrs Ó 1825 Días —
- * el Excel de referencia declara ambos en la misma fila de un componente):
- * mismo cumplimiento, dos relojes. El estado final del ítem es el peor de
- * los dos — replicado en PHP en MaintenanceControlFormPdfService::buildRow(),
- * misma regla, mantenerlos en sincronía si se toca uno.
+ * Frecuencia, Aplicada, Próximo, Remanente y Estimación. Todo el cálculo
+ * (incluido el estado combinado de varios intervalos, "lo que ocurra
+ * primero") ya viene resuelto en `item.computed` desde el backend — acá solo
+ * se formatea para pantalla.
  */
-export function computeMaintenanceItem(
-  item: MaintenanceControlItem,
-  aircraft: { flight_hours: number | string; flight_cycles: number | string },
-  dailyAverage: AircraftDailyAverage | undefined,
-  remainingPercentage: number,
-): ComputedMaintenanceItem {
+/**
+ * Solo lo que hace falta para calcular: un MaintenanceControlItem completo
+ * lo cumple, y también un MaintenanceControlSnapshotItem (estado a una
+ * fecha pasada) que no trae los demás campos del ítem.
+ */
+type ComputableItem = Pick<MaintenanceControlItem, "computed" | "latest_compliance" | "maintenance_provider">;
+
+export function computeMaintenanceItem(item: ComputableItem): ComputedMaintenanceItem {
+  const computed = item.computed;
   const latest = item.latest_compliance;
-  const providerName = latest?.maintenance_provider?.name ?? item.maintenance_provider?.name ?? "—";
-  const appliedDate = latest ? parseISO(latest.compliance_date) : parseISO(item.first_applied_date);
-  const applied = fmtDate(appliedDate);
 
-  const initialValueFor = (unit: string, firstAppliedValue: number | string | null | undefined): number | null => {
-    if (latest) return Number(unit === "HOURS" ? latest.hours_reading : latest.cycles_reading);
-    return firstAppliedValue !== null && firstAppliedValue !== undefined ? Number(firstAppliedValue) : null;
-  };
-  const currentValueFor = (unit: string) =>
-    unit === "HOURS" ? Number(aircraft.flight_hours) : Number(aircraft.flight_cycles);
-  const dailyAvgFor = (unit: string) =>
-    unit === "HOURS" ? dailyAverage?.daily_average_hours : dailyAverage?.daily_average_cycles;
-
-  const unit = item.counting_method;
-  const limit = Number(item.limit_value);
-  const extraDays = item.extra_days !== null && item.extra_days !== undefined ? Number(item.extra_days) : 0;
-  const threshold = limit * (remainingPercentage / 100);
-
-  const primaryInitialValue = unit === "DAYS" ? null : initialValueFor(unit, item.first_applied_value);
-
-  const primary = computeSingleLimit({
-    unit,
-    limit,
-    extraDays,
-    appliedDate,
-    initialValue: primaryInitialValue,
-    currentValue: unit === "DAYS" ? 0 : currentValueFor(unit),
-    dailyAvg: unit === "DAYS" ? null : dailyAvgFor(unit),
-    threshold,
-  });
-
-  const base: ComputedMaintenanceItem = {
-    ...primary,
-    applied,
-    appliedSub: primaryInitialValue !== null ? `${fmtNumber(primaryInitialValue)} ${UNIT_SHORT[unit]}` : undefined,
-    providerName,
-  };
-
-  if (!item.secondary_counting_method) {
-    return base;
+  // Defensivo: computed siempre debería venir del backend (index/show ya lo
+  // adjuntan); sin él no hay con qué calcular nada.
+  if (!computed) {
+    return {
+      frequency: "—",
+      applied: "—",
+      next: "—",
+      remaining: "—",
+      estimate: "—",
+      status: "OK",
+      providerName: latest?.maintenance_provider?.name ?? item.maintenance_provider?.name ?? "—",
+      extras: [],
+    };
   }
 
-  const secondaryUnit = item.secondary_counting_method;
-  const secondaryLimit = Number(item.secondary_limit_value);
-  const secondaryThreshold = secondaryLimit * (remainingPercentage / 100);
-
-  const secondary = computeSingleLimit({
-    unit: secondaryUnit,
-    limit: secondaryLimit,
-    extraDays: 0,
-    appliedDate,
-    initialValue: secondaryUnit === "DAYS" ? null : initialValueFor(secondaryUnit, item.secondary_first_applied_value),
-    currentValue: secondaryUnit === "DAYS" ? 0 : currentValueFor(secondaryUnit),
-    dailyAvg: secondaryUnit === "DAYS" ? null : dailyAvgFor(secondaryUnit),
-    threshold: secondaryThreshold,
-  });
+  const [primaryInterval, ...extraIntervals] = computed.intervals;
+  const primary = formatInterval(primaryInterval);
+  const extras = extraIntervals.map(formatInterval);
 
   return {
-    ...base,
-    status: worseStatus(base.status, secondary.status),
-    secondary,
+    ...primary,
+    applied: fmtDate(parseISO(computed.applied_date)),
+    appliedSub:
+      computed.applied_value !== null && computed.applied_unit
+        ? `${fmtNumber(computed.applied_value)} ${UNIT_SHORT[computed.applied_unit]}`
+        : undefined,
+    providerName: computed.provider_name ?? "—",
+    status: computed.status,
+    extras,
   };
 }

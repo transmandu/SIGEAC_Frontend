@@ -1,17 +1,28 @@
 import axiosInstance from "@/lib/axios"
-import { MaintenanceCountingMethod } from "@/types"
+import { MaintenanceControlItemInterval } from "@/types"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner";
+
+/**
+ * Primer mensaje de validación que haya devuelto el backend, sea del campo
+ * que sea. Antes solo se leía `errors.aircraft_id`, así que un error de
+ * cualquier otro campo (lectura inicial incoherente, unidad repetida...)
+ * caía en el texto genérico y el usuario no tenía forma de saber qué
+ * corregir.
+ */
+const firstBackendError = (error: any): string | undefined => {
+  const errors = error?.response?.data?.errors
+  const firstMessage = errors && Object.values(errors).flat()[0]
+
+  return (firstMessage as string | undefined) ?? error?.response?.data?.message
+}
 
 interface MaintenanceItemData {
   id?: number,
   maintenance_catalog_service_id?: number,
   name: string,
-  counting_method: MaintenanceCountingMethod,
-  limit_value: number,
   first_applied_date: string,
-  first_applied_value?: number,
-  extra_days?: number,
+  intervals: MaintenanceControlItemInterval[],
   maintenance_provider_id?: string,
 }
 
@@ -47,9 +58,8 @@ export const useCreateMaintenanceControl = () => {
       })
     },
     onError: (error: any) => {
-      const backendMessage = error?.response?.data?.errors?.aircraft_id?.[0]
       toast.error('Oops!', {
-        description: backendMessage || 'No se pudo registrar el control de mantenimiento...'
+        description: firstBackendError(error) || 'No se pudo registrar el control de mantenimiento...'
       })
       console.log(error)
     },
@@ -75,9 +85,8 @@ export const useUpdateMaintenanceControl = () => {
       })
     },
     onError: (error: any) => {
-      const backendMessage = error?.response?.data?.errors?.aircraft_id?.[0]
       toast.error('Oops!', {
-        description: backendMessage || 'No se pudo actualizar el control de mantenimiento...'
+        description: firstBackendError(error) || 'No se pudo actualizar el control de mantenimiento...'
       })
       console.log(error)
     },
@@ -108,9 +117,13 @@ export const useLinkPendingWorkOrder = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["maintenance-controls"], exact: false });
     },
-    onError: (error) => {
+    // El backend valida coherencia (misma aeronave, orden abierta, ítem
+    // realmente crítico, sin otra orden ya atendiéndolo) y devuelve el motivo
+    // exacto: mostrarlo importa más que un mensaje genérico.
+    onError: (error: any) => {
       toast.error("Oops!", {
-        description: "No se pudo asociar la Orden de Trabajo al ítem...",
+        description:
+          error?.response?.data?.message ?? "No se pudo asociar la Orden de Trabajo al ítem...",
       });
       console.log(error);
     },

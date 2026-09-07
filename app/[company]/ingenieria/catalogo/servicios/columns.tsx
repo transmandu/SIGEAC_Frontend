@@ -91,13 +91,15 @@ export const getColumns = (company: string): ColumnDef<CatalogService>[] => [
     ),
   },
   {
-    accessorKey: "counting_method",
+    accessorKey: "intervals",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Intervalo" />,
     cell: ({ row }) => (
       <div className="text-center">
-        {row.original.counting_method ? (
+        {row.original.intervals.length > 0 ? (
           <span>
-            {row.original.interval_value} {COUNTING_METHOD_LABELS[row.original.counting_method]}
+            {row.original.intervals
+              .map((i) => `${i.interval_value} ${COUNTING_METHOD_LABELS[i.counting_method]}`)
+              .join(" Ó ")}
           </span>
         ) : (
           <span className="text-muted-foreground">—</span>

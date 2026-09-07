@@ -1,5 +1,5 @@
 import axiosInstance from "@/lib/axios"
-import { CatalogCategory, CatalogCountingMethod, CatalogStatus } from "@/types/maintenanceCatalog"
+import { CatalogCategory, CatalogInterval, CatalogStatus } from "@/types/maintenanceCatalog"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner";
 import { apiErrorMessage } from "@/lib/apiErrorMessage";
@@ -10,8 +10,8 @@ export interface ServiceFormData {
   name: string;
   code?: string;
   description?: string;
-  counting_method?: CatalogCountingMethod | null;
-  interval_value?: number | null;
+  /** Vacío = certificado estático sin periodicidad recurrente (ej. seguro). */
+  intervals: CatalogInterval[];
   /** Ausente al crear: siempre nace ACTIVE. Solo se manda al editar. */
   status?: CatalogStatus;
   aircraft_ids: number[];

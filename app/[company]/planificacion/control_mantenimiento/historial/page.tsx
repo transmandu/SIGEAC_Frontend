@@ -120,6 +120,7 @@ const HistorialCumplimientosPage = () => {
                     <TableHead className="bg-muted/40 font-semibold">Certificado / Servicio</TableHead>
                     <TableHead className="bg-muted/40 font-semibold">Parte</TableHead>
                     <TableHead className="bg-muted/40 font-semibold">Fecha</TableHead>
+                    <TableHead className="bg-muted/40 font-semibold">Manual / Rev.</TableHead>
                     <TableHead className="bg-muted/40 font-semibold">Horas</TableHead>
                     <TableHead className="bg-muted/40 font-semibold">Ciclos</TableHead>
                     <TableHead className="bg-muted/40 font-semibold">Realizado Por</TableHead>
@@ -161,6 +162,13 @@ const HistorialCumplimientosPage = () => {
                           )}
                         </TableCell>
                         <TableCell>{format(parseISO(compliance.compliance_date), "dd/MM/yyyy", { locale: es })}</TableCell>
+                        <TableCell>
+                          {compliance.manual_revision_label ? (
+                            <TruncatedText>{compliance.manual_revision_label}</TruncatedText>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
+                        </TableCell>
                         <TableCell>{fmtNumber(Number(compliance.hours_reading))}</TableCell>
                         <TableCell>{fmtNumber(Number(compliance.cycles_reading))}</TableCell>
                         <TableCell>

@@ -170,9 +170,12 @@ const ManualDetailPage = () => {
                       >
                         {service.name}
                       </Link>
-                      {service.counting_method && (
+                      {service.intervals.length > 0 && (
                         <span className="text-xs text-muted-foreground">
-                          cada {service.interval_value} {COUNTING_METHOD_LABELS[service.counting_method]}
+                          cada{" "}
+                          {service.intervals
+                            .map((i) => `${i.interval_value} ${COUNTING_METHOD_LABELS[i.counting_method]}`)
+                            .join(" Ó ")}
                         </span>
                       )}
                     </div>

@@ -4,15 +4,21 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { useIsOmac } from "@/hooks/sistema/useIsOmac";
 import { useGetMaintenanceControls } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceControls";
 import { computeMaintenanceItem } from "@/lib/maintenanceControlCalc";
-import { MaintenanceControl, MaintenanceControlItem } from "@/types";
+import { MaintenanceControl } from "@/types";
 import { CriticalAlert } from "./types";
 
 /**
- * Mismo acceso que el ítem de menú de Control de Mantenimiento (módulo aún
- * en desarrollo, ver lib/menus/planification.ts): solo SUPERUSER, y solo en
- * empresas OMAC. Se ensancha el día que el módulo se libere a más roles.
+ * Mismo acceso que el ítem de menú de Control de Mantenimiento (ver
+ * lib/menus/planification.ts): estos roles, y solo en empresas OMAC. Las dos
+ * listas tienen que moverse juntas — si el menú abre el módulo a un rol que
+ * acá falta, ese usuario ve los vencimientos en la pantalla pero nunca recibe
+ * la alerta crítica, que es de lo que vive el módulo.
  */
-const ROLES_WITH_MAINTENANCE_CONTROL_ALERT_ACCESS = ["SUPERUSER"];
+const ROLES_WITH_MAINTENANCE_CONTROL_ALERT_ACCESS = [
+  "ANALISTA_PLANIFICACION",
+  "JEFE_PLANIFICACION",
+  "SUPERUSER",
+];
 
 /**
  * Vencimientos de Control de Mantenimiento en estado CRÍTICO o VENCIDO. La
@@ -51,19 +57,7 @@ export const useMaintenanceControlAlerts = () => {
             if (!aircraft) continue;
 
             for (const item of control.items ?? []) {
-                const currentValue = item.maintenance_control_part?.aircraft_part
-                    ? {
-                        flight_hours: item.maintenance_control_part.aircraft_part.time_since_new ?? 0,
-                        flight_cycles: item.maintenance_control_part.aircraft_part.cycles_since_new ?? 0,
-                    }
-                    : { flight_hours: aircraft.flight_hours, flight_cycles: aircraft.flight_cycles };
-
-                const computed = computeMaintenanceItem(
-                    item as MaintenanceControlItem,
-                    currentValue,
-                    undefined,
-                    Number(control.remaining_percentage ?? 10),
-                );
+                const computed = computeMaintenanceItem(item);
 
                 if (computed.status !== "CRITICAL" && computed.status !== "OVERDUE") continue;
 

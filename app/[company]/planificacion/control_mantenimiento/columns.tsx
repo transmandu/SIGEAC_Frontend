@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { ColumnDef } from "@tanstack/react-table"
-import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
+import { DataTableColumnHeader, dateRangeFilterFn } from "@/components/tables/DataTableHeader"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
@@ -29,11 +29,23 @@ function CountChip({ icon: Icon, value }: { icon: LucideIcon; value?: number }) 
   )
 }
 
-export const getColumns = (companySlug: string): ColumnDef<MaintenanceControl>[] => [
+export const getColumns = (
+  companySlug: string,
+  aircraftOptions: { value: string; label: string }[] = [],
+  manualOptions: { value: string; label: string }[] = [],
+): ColumnDef<MaintenanceControl>[] => [
   {
     accessorKey: "aircraft",
     accessorFn: (row) => row.aircraft?.acronym ?? "",
-    header: ({ column }) => <DataTableColumnHeader filter column={column} title="Aeronave" />,
+    header: ({ column }) => (
+      <DataTableColumnHeader
+        filter
+        filterOptions={aircraftOptions}
+        searchableOptions
+        column={column}
+        title="Aeronave"
+      />
+    ),
     cell: ({ row }) => (
       <div className="flex items-center justify-center gap-2">
         <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
@@ -50,7 +62,7 @@ export const getColumns = (companySlug: string): ColumnDef<MaintenanceControl>[]
   },
   {
     accessorKey: "description",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Descripción" />,
+    header: ({ column }) => <DataTableColumnHeader filter column={column} title="Descripción" />,
     cell: ({ row }) => (
       <span className="text-sm text-muted-foreground line-clamp-1">
         {row.original.description || "Sin descripción"}
@@ -58,8 +70,16 @@ export const getColumns = (companySlug: string): ColumnDef<MaintenanceControl>[]
     ),
   },
   {
-    accessorKey: "has_reference_manual",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Manual de Referencia" />,
+    accessorKey: "reference_manual",
+    header: ({ column }) => (
+      <DataTableColumnHeader
+        filter
+        filterOptions={manualOptions}
+        searchableOptions
+        column={column}
+        title="Manual de Referencia"
+      />
+    ),
     cell: ({ row }) => (
       <div className="flex justify-center">
         {row.original.has_reference_manual ? (
@@ -89,7 +109,8 @@ export const getColumns = (companySlug: string): ColumnDef<MaintenanceControl>[]
   },
   {
     accessorKey: "created_at",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Fecha" />,
+    filterFn: dateRangeFilterFn,
+    header: ({ column }) => <DataTableColumnHeader dateRangeFilter column={column} title="Creación" />,
     cell: ({ row }) => (
       <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
         <Calendar className="h-4 w-4" />

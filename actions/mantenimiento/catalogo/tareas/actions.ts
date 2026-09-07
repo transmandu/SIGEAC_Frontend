@@ -1,5 +1,5 @@
 import axiosInstance from "@/lib/axios"
-import { CatalogRequirementType, Msg3TaskType } from "@/types/maintenanceCatalog"
+import { CatalogInterval, CatalogRequirementType, Msg3TaskType } from "@/types/maintenanceCatalog"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner";
 import { apiErrorMessage } from "@/lib/apiErrorMessage";
@@ -23,6 +23,8 @@ export interface TaskFormData {
   reference?: string;
   estimated_man_hours?: number | null;
   required_skill?: string;
+  /** Vacío = la tarea no tiene periodicidad propia y hereda la del servicio. */
+  intervals: CatalogInterval[];
   requirements: TaskRequirementFormData[];
 }
 

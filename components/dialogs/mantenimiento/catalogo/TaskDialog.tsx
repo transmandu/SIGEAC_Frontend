@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
+import { IntervalListEditor } from "@/components/misc/IntervalListEditor";
 import {
   fieldClass,
   labelClass,
@@ -62,6 +63,7 @@ const emptyState: TaskFormData = {
   reference: "",
   estimated_man_hours: null,
   required_skill: "",
+  intervals: [],
   requirements: [],
 };
 
@@ -84,6 +86,7 @@ export function TaskDialog({ open, onOpenChange, serviceId, task }: TaskDialogPr
             reference: task.reference ?? "",
             estimated_man_hours: task.estimated_man_hours,
             required_skill: task.required_skill ?? "",
+            intervals: task.intervals.map((i) => ({ counting_method: i.counting_method, interval_value: i.interval_value })),
             requirements: task.requirements.map((r) => ({
               id: r.id,
               requirement_type: r.requirement_type,
@@ -238,6 +241,19 @@ export function TaskDialog({ open, onOpenChange, serviceId, task }: TaskDialogPr
                   onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
                 />
               </div>
+            </div>
+
+            <div className="mt-4">
+              <IntervalListEditor
+                intervals={form.intervals}
+                onChange={(intervals) => setForm((f) => ({ ...f, intervals }))}
+                fieldClass={fieldClass}
+                selectTriggerClass={selectTriggerClass}
+                labelClass={labelClass}
+              />
+              <p className="mt-1 text-xs text-muted-foreground">
+                Vacío = la tarea hereda la periodicidad del servicio que la agrupa.
+              </p>
             </div>
           </section>
 

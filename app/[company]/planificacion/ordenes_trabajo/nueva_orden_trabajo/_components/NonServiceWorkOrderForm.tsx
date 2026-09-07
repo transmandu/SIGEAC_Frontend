@@ -342,6 +342,17 @@ const NonServiceWorkOrderForm = () => {
                   <FormItem className="flex flex-col space-y-3 mt-1.5">
                     <FormLabel>Aeronave</FormLabel>
 
+                    {maintenanceControlItemId ? (
+                      // Al guardar, la OT se ata a ese ítem de Control de
+                      // Mantenimiento: cambiar de aeronave acá dejaría el
+                      // vínculo apuntando a otra máquina, y el backend lo
+                      // rechaza cuando la orden ya está creada.
+                      <div className="flex h-10 items-center rounded-md border border-input bg-muted/40 px-3 text-sm">
+                        {aircrafts?.find((aircraft) => aircraft.id.toString() === field.value)?.acronym ?? (
+                          <Loader2 className="size-4 animate-spin" />
+                        )}
+                      </div>
+                    ) : (
                     <Popover>
                       <PopoverTrigger asChild>
                         <FormControl>
@@ -403,9 +414,12 @@ const NonServiceWorkOrderForm = () => {
                         </Command>
                       </PopoverContent>
                     </Popover>
+                    )}
 
                     <FormDescription className="text-xs">
-                      Aeronave que recibirá el servicio.
+                      {maintenanceControlItemId
+                        ? "Fijada por el ítem de Control de Mantenimiento que origina esta orden."
+                        : "Aeronave que recibirá el servicio."}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>

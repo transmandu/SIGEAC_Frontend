@@ -2,7 +2,9 @@
 
 import { DataTablePagination } from "@/components/tables/DataTablePagination";
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 import {
   Table,
   TableBody,
@@ -23,10 +25,11 @@ import {
   SortingState,
   useReactTable,
 } from "@tanstack/react-table";
-import { PlaneTakeoff, PlusCircle, Search } from "lucide-react";
+import { PlaneTakeoff, PlusCircle, Search, X } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { MaintenanceControl } from "@/types";
+import { MaintenanceControlSnapshotDialog } from "@/components/dialogs/mantenimiento/planificacion/MaintenanceControlSnapshotDialog";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -78,21 +81,47 @@ export function DataTable<TData, TValue>({
   return (
     <div>
       <div className="flex items-center justify-between gap-3 py-4">
-        <ActionTriggerButton asChild>
-          <Link href={`/${selectedCompany?.slug}/planificacion/control_mantenimiento/crear`}>
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Crear Control de Mantenimiento
-          </Link>
-        </ActionTriggerButton>
+        <div className="flex items-center gap-2">
+          <ActionTriggerButton asChild>
+            <Link href={`/${selectedCompany?.slug}/planificacion/control_mantenimiento/crear`}>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Crear Control de Mantenimiento
+            </Link>
+          </ActionTriggerButton>
 
-        <div className="relative w-full sm:w-72">
-          <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+          <MaintenanceControlSnapshotDialog />
+        </div>
+
+        {/* Mismo lenguaje visual que los ActionTriggerButton de al lado
+            (h-10, borde y sombra estándar, realce azul al apuntar/enfocar):
+            antes era un input suelto h-9 que rompía la línea de la fila. */}
+        <div className="relative w-full sm:w-80">
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={globalFilter}
             onChange={(e) => setGlobalFilter(e.target.value)}
             placeholder="Buscar por aeronave, título o descripción..."
-            className="h-9 pl-8 text-sm"
+            className={cn(
+              "h-10 rounded-md pl-9 text-sm",
+              "border-border bg-background shadow-sm",
+              "transition-all duration-200",
+              "hover:border-primary/40 hover:shadow-md",
+              "focus-visible:border-primary/40 focus-visible:ring-2 focus-visible:ring-primary/20",
+              globalFilter ? "pr-9" : undefined,
+            )}
           />
+          {globalFilter ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => setGlobalFilter("")}
+              aria-label="Limpiar búsqueda"
+              className="absolute right-1 top-1/2 h-8 w-8 -translate-y-1/2"
+            >
+              <X className="h-4 w-4 text-muted-foreground" />
+            </Button>
+          ) : null}
         </div>
       </div>
       <div className="mb-4 overflow-hidden rounded-xl border border-slate-400/50 shadow-sm dark:border-slate-600/50">

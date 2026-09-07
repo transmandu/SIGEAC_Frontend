@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { format } from "date-fns";
+import { format, startOfDay } from "date-fns";
 import { CheckCircle2, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -40,7 +40,11 @@ import {
 } from "@/components/forms/mantenimiento/planificacion/_theme";
 
 const formSchema = z.object({
-  compliance_date: z.date({ required_error: "Seleccione una fecha" }),
+  compliance_date: z
+    .date({ required_error: "Seleccione una fecha" })
+    .refine((date) => startOfDay(date) <= startOfDay(new Date()), {
+      message: "No puede registrarse un cumplimiento con fecha futura",
+    }),
   hours_reading: z.coerce.number().min(0, "Debe ser ≥ 0"),
   cycles_reading: z.coerce.number().min(0, "Debe ser ≥ 0"),
   maintenance_provider_id: z.string().min(1, "Seleccione quién lo realizó"),
@@ -151,6 +155,10 @@ export function RegisterComplianceDialog({
                     label="Fecha de Cumplimiento"
                     value={field.value}
                     setValue={(date) => field.onChange(date ?? undefined)}
+                    // Un cumplimiento a futuro se adueña del cálculo del ítem
+                    // (es el "más reciente") e infla su remanente; el backend
+                    // lo rechaza, acá ni se ofrece.
+                    maxDate={new Date()}
                     required
                   />
                   <FormMessage />

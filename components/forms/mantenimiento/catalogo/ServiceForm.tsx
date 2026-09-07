@@ -19,8 +19,9 @@ import {
 } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
 import { useGetCatalogManuals } from "@/hooks/mantenimiento/catalogo/useGetCatalogManuals";
 import { useGetAircrafts } from "@/hooks/general/aeronaves/useGetAircrafts";
-import { CATEGORY_LABELS, COUNTING_METHOD_LABELS, STATUS_LABELS } from "@/lib/maintenanceCatalogLabels";
-import { CatalogCategory, CatalogCountingMethod, CatalogService, CatalogStatus } from "@/types/maintenanceCatalog";
+import { IntervalListEditor } from "@/components/misc/IntervalListEditor";
+import { CATEGORY_LABELS, STATUS_LABELS } from "@/lib/maintenanceCatalogLabels";
+import { CatalogCategory, CatalogService, CatalogStatus } from "@/types/maintenanceCatalog";
 import { ServiceFormData } from "@/actions/mantenimiento/catalogo/servicios/actions";
 import { useCompanyStore } from "@/stores/CompanyStore";
 
@@ -39,8 +40,7 @@ const emptyState: ServiceFormData = {
   name: "",
   code: "",
   description: "",
-  counting_method: null,
-  interval_value: null,
+  intervals: [],
   status: "ACTIVE",
   aircraft_ids: [],
 };
@@ -72,8 +72,7 @@ export function ServiceForm({ service, isPending, onSubmit, submitLabel, flat }:
       name: service.name,
       code: service.code ?? "",
       description: service.description ?? "",
-      counting_method: service.counting_method,
-      interval_value: service.interval_value,
+      intervals: service.intervals.map((i) => ({ counting_method: i.counting_method, interval_value: i.interval_value })),
       status: service.status,
       aircraft_ids: service.aircrafts?.map((a) => a.id) ?? [],
     });
@@ -161,47 +160,13 @@ export function ServiceForm({ service, isPending, onSubmit, submitLabel, flat }:
             />
           </div>
 
-          <div className="space-y-1.5">
-            <Label className={labelClass}>Método de conteo</Label>
-            <Select
-              value={form.counting_method ?? "none"}
-              onValueChange={(v) =>
-                setForm((f) => {
-                  const counting_method = v === "none" ? null : (v as CatalogCountingMethod);
-                  // Sin método, el intervalo que quedara escrito viajaría al
-                  // backend como un número sin unidad.
-                  return { ...f, counting_method, interval_value: counting_method ? f.interval_value : null };
-                })
-              }
-            >
-              <SelectTrigger className={selectTriggerClass}>
-                <SelectValue placeholder="Sin intervalo (certificado estático)" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">Sin intervalo</SelectItem>
-                {Object.entries(COUNTING_METHOD_LABELS).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>
-                    {label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-1.5">
-            <Label className={labelClass}>Intervalo</Label>
-            <Input
-              type="number"
-              min={0}
-              step="any"
-              // Con método de conteo el backend lo exige > 0; sin método el
-              // campo no aplica y se limpia junto con el método.
-              required={!!form.counting_method}
-              disabled={!form.counting_method}
-              className={fieldClass}
-              value={form.interval_value ?? ""}
-              onChange={(e) => setForm((f) => ({ ...f, interval_value: e.target.value ? Number(e.target.value) : null }))}
-              placeholder="Ej: 100"
+          <div className="space-y-1.5 md:col-span-2">
+            <IntervalListEditor
+              intervals={form.intervals}
+              onChange={(intervals) => setForm((f) => ({ ...f, intervals }))}
+              fieldClass={fieldClass}
+              selectTriggerClass={selectTriggerClass}
+              labelClass={labelClass}
             />
           </div>
 

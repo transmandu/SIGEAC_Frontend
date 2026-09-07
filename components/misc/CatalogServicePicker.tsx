@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { BookOpen, ChevronLeft, ClipboardList } from "lucide-react";
+import { BookOpen, ChevronLeft, ClipboardList, ListFilter } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -21,6 +21,14 @@ interface CatalogServicePickerProps {
   aircraftId?: string | number;
   category?: CatalogCategory;
   trigger?: React.ReactNode;
+  /**
+   * Manual de referencia elegido en la cabecera del control: acota el
+   * catálogo mostrado a ese manual por defecto, con opción de ampliar a
+   * todos — un mismo avión puede tener varios manuales cargados (AFM, MPD,
+   * de un componente...) y no todo certificado del control viene del mismo.
+   */
+  manualId?: string | number;
+  manualName?: string;
   /** Modo "servicio": seleccionar un servicio/certificado completo (Control de Mantenimiento). */
   onSelectService?: (service: CatalogService) => void;
   /** Modo "tarea": navega a las tareas de un servicio y selecciona una (Órdenes de Trabajo). */
@@ -63,6 +71,8 @@ export function CatalogServicePicker({
   aircraftId,
   category,
   trigger,
+  manualId,
+  manualName,
   onSelectService,
   onSelectTask,
 }: CatalogServicePickerProps) {
@@ -70,10 +80,15 @@ export function CatalogServicePicker({
   const [open, setOpen] = useState(false);
   const [drillServiceId, setDrillServiceId] = useState<number | null>(null);
   const [search, setSearch] = useState("");
+  // Nace acotado al manual de la cabecera si hay uno; el usuario puede
+  // ampliar a todo el catálogo de la aeronave dentro del mismo diálogo.
+  const [showAllManuals, setShowAllManuals] = useState(false);
+  const effectiveManualId = showAllManuals ? undefined : manualId;
 
   const { data: services = [], isLoading } = useGetCatalogServices(selectedCompany?.slug, {
     aircraftId,
     category,
+    manualId: effectiveManualId,
     // El picker es de consumo: un servicio/certificado superado no debe
     // volver a seleccionarse para un nuevo control u orden de trabajo.
     status: "ACTIVE",
@@ -148,6 +163,7 @@ export function CatalogServicePicker({
           if (!next) {
             setDrillServiceId(null);
             setSearch("");
+            setShowAllManuals(false);
           }
         }}
       >
@@ -170,6 +186,17 @@ export function CatalogServicePicker({
               onSelectTask ? "Buscar por ATA, N° de parte, descripción..." : "Buscar servicio o certificado..."
             }
           />
+
+          {manualId && !showAllManuals && (
+            <button
+              type="button"
+              onClick={() => setShowAllManuals(true)}
+              className="flex items-center gap-1.5 self-start rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-xs text-primary transition-colors hover:bg-primary/20"
+            >
+              <ListFilter className="size-3" />
+              Acotado a {manualName ?? "el manual de referencia"} · ver todos
+            </button>
+          )}
 
           <div className="flex-1 space-y-2 overflow-y-auto px-1 py-1">
             {isLoading ? (
@@ -213,7 +240,9 @@ export function CatalogServicePicker({
                 <p className="p-4 text-center text-sm text-muted-foreground">
                   {term
                     ? `Ningún servicio/certificado coincide con "${search}".`
-                    : "Esta aeronave no tiene servicios/certificados asignados en el catálogo."}
+                    : effectiveManualId
+                      ? "Ningún servicio/certificado de este manual está asignado a la aeronave — pruebe \"ver todos\"."
+                      : "Esta aeronave no tiene servicios/certificados asignados en el catálogo."}
                 </p>
               ) : (
                 filteredServices.map((service) => (
@@ -228,8 +257,10 @@ export function CatalogServicePicker({
                       <p className="text-xs text-muted-foreground">
                         {CATEGORY_LABELS[service.category]}
                         {service.manual ? ` · ${service.manual.name}` : ""}
-                        {service.counting_method
-                          ? ` · ${service.interval_value} ${COUNTING_METHOD_LABELS[service.counting_method]}`
+                        {service.intervals.length > 0
+                          ? ` · ${service.intervals
+                              .map((i) => `${i.interval_value} ${COUNTING_METHOD_LABELS[i.counting_method]}`)
+                              .join(" Ó ")}`
                           : ""}
                       </p>
                     </div>
