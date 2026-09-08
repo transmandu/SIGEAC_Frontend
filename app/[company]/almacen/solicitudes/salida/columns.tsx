@@ -10,6 +10,7 @@ import {
   MapPin,
   Package,
   Plane,
+  Truck,
   Users,
   Wrench
 } from 'lucide-react';
@@ -62,12 +63,28 @@ export const columns: ColumnDef<DispatchGroupRow>[] = [
         align="center"
       />
     ),
-    cell: ({ row }) => (
-      <p className="text-center font-semibold tabular-nums">
-        {row.original.request_number}
-      </p>
-    ),
-    size: 110,
+    cell: ({ row }) => {
+      const destination = row.original.destination_location
+
+      return (
+        <div className="flex flex-col items-center gap-1">
+          <p className="text-center font-semibold tabular-nums">
+            {row.original.request_number}
+          </p>
+
+          {/* Un traslado es una salida más, pero su material vuelve a la
+              compañía: la etiqueta evita leerlo como una entrega perdida y
+              dice a dónde fue. */}
+          {destination && (
+            <span className="inline-flex items-center gap-1 rounded-full border border-sky-200/70 bg-sky-50 px-2 py-0.5 text-[10px] font-medium text-sky-700 dark:border-sky-800/60 dark:bg-sky-950/40 dark:text-sky-300">
+              <Truck className="size-3" />
+              Traslado a {destination}
+            </span>
+          )}
+        </div>
+      )
+    },
+    size: 130,
   },
 
   {

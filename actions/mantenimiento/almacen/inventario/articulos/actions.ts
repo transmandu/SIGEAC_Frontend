@@ -1016,3 +1016,76 @@ export const useUpdateToolArticleStatus = () => {
     updateToolArticleStatus: updateToolArticleStatusMutation,
   };
 };
+
+/**
+ * Compras determina a qué sede pertenece un artículo con destino indeterminado.
+ *
+ * Es el cierre de ese estado, y tiene dos desenlaces según la sede elegida: si
+ * es la sede donde el artículo ya está, entra a recepción y sigue el camino
+ * normal; si es otra, se abre un traslado y el material queda en tránsito
+ * hasta que esa sede acuse recibo.
+ */
+export const useDetermineArticleDestination = () => {
+  const { selectedCompany } = useCompanyStore();
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: async ({
+      id,
+      allocations,
+      justification,
+    }: {
+      id: number;
+      /**
+       * Cuánto va a cada sede: lo que llegó puede repartirse entre varias.
+       * Las que son traslado llevan además a quién se le atribuye la salida en
+       * la sede que la recibe; la que se queda aquí no abre salida y no los usa.
+       */
+      allocations: {
+        location_id: number;
+        quantity: number;
+        requested_by?: string;
+        department_id?: number;
+      }[];
+      justification?: string;
+    }) => {
+      const { data } = await axiosInstance.patch(
+        `/${selectedCompany?.slug}/articles/${id}/determine-destination`,
+        { allocations, justification: justification || null },
+      );
+      return data;
+    },
+    onSuccess: (data) => {
+      const company = selectedCompany?.slug;
+
+      queryClient.invalidateQueries({ queryKey: ["articles"] });
+      queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
+      queryClient.invalidateQueries({ queryKey: ["article-status-history"] });
+      queryClient.invalidateQueries({ queryKey: ["incoming-transfers"] });
+      queryClient.invalidateQueries({ queryKey: ["dispatches-requests"] });
+      if (company) {
+        queryClient.invalidateQueries({ queryKey: ["articles", company, "TO_DETERMINATE"] });
+        queryClient.invalidateQueries({ queryKey: ["articles", company, "RECEPTION"] });
+      }
+
+      // Se abre una salida por sede destino: nombrarlas evita que compras
+      // tenga que ir a buscarlas para saber qué se generó.
+      const numbers: string[] = data?.request_numbers ?? [];
+
+      toast.success("¡Destino determinado!", {
+        description: numbers.length
+          ? `Se abrió ${numbers.length === 1 ? "el traslado" : "un traslado por sede"}: ${numbers.join(", ")}. Quedará en tránsito hasta que la otra sede lo reciba.`
+          : "El artículo pasó a recepción de esta sede.",
+      });
+    },
+    onError: (error: any) => {
+      toast.error("Oops!", {
+        description:
+          error?.response?.data?.message ||
+          "No se pudo determinar el destino del artículo.",
+      });
+    },
+  });
+
+  return { determineDestination: mutation };
+};

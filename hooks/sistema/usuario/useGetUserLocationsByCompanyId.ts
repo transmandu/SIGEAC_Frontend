@@ -1,14 +1,13 @@
 import axiosInstance from "@/lib/axios";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
-interface locationsByCompanyId {
+export interface locationsByCompanyId {
   id: number;
   address: string;
   type: string;
   cod_iata: string;
   isMainBase: boolean;
 }
-[];
 
 const fetchUserLocationsByCompanyId = async (
   company_id: number

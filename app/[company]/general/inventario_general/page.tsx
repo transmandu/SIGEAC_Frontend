@@ -1,98 +1,22 @@
 "use client";
 
 import { ContentLayout } from "@/components/layout/ContentLayout";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useAuth } from "@/contexts/AuthContext";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useGetGeneralArticles } from "@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticles";
-import { GeneralArticle } from "@/types";
 import { Loader2, X } from "lucide-react";
 import { useState, useMemo } from "react";
 import { DataTable } from "./data-table";
-import { columns as generalColumns } from "@/app/[company]/almacen/inventario_articulos/_tables/general-columns";
+import { generalConsultaColumns } from "@/components/tables/GeneralArticleConsultaColumns";
 import { PageHeader } from "@/components/layout/PageHeader";
-
-const ROLES_WITH_QUANTITY_VISIBLE = [
-  "ASISTENTE_COMPRAS",
-  "SERVICIOS_GENERALES",
-  "ENGINEERING",
-];
 
 const InventarioGeneralPage = () => {
   const { selectedCompany } = useCompanyStore();
-  const { user } = useAuth();
 
   const [search, setSearch] = useState("");
 
   const { data: articlesGeneral, isLoading } = useGetGeneralArticles();
-
-  const canSeeQuantity = useMemo(
-    () =>
-      (user?.roles ?? []).some((r) =>
-        ROLES_WITH_QUANTITY_VISIBLE.includes(r.name),
-      ),
-    [user?.roles],
-  );
-
-  const columnsWithoutActions = useMemo(() => {
-    const filtered = generalColumns.filter((col) => {
-      const key = col.id ?? (col as any).accessorKey;
-
-      // Esta vista es de consulta: no muestra la imagen de referencia, y la
-      // unidad ya viaja junto a la cantidad en la celda de abajo.
-      if (["image", "unit"].includes(key)) return false;
-
-      return (
-        col.id !== "actions" &&
-        col.id !== "acciones" &&
-        (typeof col.header === "string"
-          ? col.header.toLowerCase() !== "acciones"
-          : true) &&
-        (canSeeQuantity ||
-          !["minimum_quantity", "maximum_quantity"].includes(key))
-      );
-    });
-
-    if (!canSeeQuantity) return filtered;
-
-    return filtered.map((col) => {
-      if (col.id !== "quantity" && (col as any).accessorKey !== "quantity") {
-        return col;
-      }
-
-      return {
-        ...col,
-        cell: ({ row }: any) => {
-          const article = row.original as GeneralArticle;
-          const qty = Number(article.quantity ?? 0);
-          const unitLabel = article.general_primary_unit?.label;
-
-          if (qty <= 0) {
-            return (
-              <div className="flex justify-center">
-                <Badge variant="destructive" className="px-2 py-1 text-xs">
-                  No Disponible
-                </Badge>
-              </div>
-            );
-          }
-
-          return (
-            <div className="flex justify-center">
-              <Badge
-                variant="secondary"
-                className="tabular-nums px-2 py-1 text-xs"
-              >
-                {qty} {unitLabel ?? ""}
-              </Badge>
-            </div>
-          );
-        },
-      };
-    });
-  }, [canSeeQuantity]);
 
   const data = useMemo(() => {
     if (!articlesGeneral) return [];
@@ -144,7 +68,7 @@ const InventarioGeneralPage = () => {
             <Loader2 className="size-12 animate-spin text-primary" />
           </div>
         ) : (
-          <DataTable columns={columnsWithoutActions} data={data} />
+          <DataTable columns={generalConsultaColumns} data={data} />
         )}
       </div>
     </ContentLayout>

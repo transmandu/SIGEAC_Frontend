@@ -2,7 +2,8 @@
 
 import * as React from "react"
 import { type DialogProps } from "@radix-ui/react-dialog"
-import { Command as CommandPrimitive } from "cmdk"
+import { Command as CommandPrimitive, useCommandState } from "cmdk"
+import { useComposedRefs } from "@radix-ui/react-compose-refs"
 import { Search } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -59,21 +60,36 @@ CommandInput.displayName = CommandPrimitive.Input.displayName
 const CommandList = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.List>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.List>
->(({ className, onWheel, ...props }, ref) => (
-  <CommandPrimitive.List
-    ref={ref}
-    className={cn("max-h-[300px] overflow-y-auto overflow-x-hidden", className)}
-    onWheel={(e) => {
-      // Popovers/comboboxes portal outside the Dialog's DOM subtree, so the
-      // Dialog's scroll-lock (react-remove-scroll) doesn't recognize this list
-      // as scrollable and cancels the wheel event. Stop it here so native
-      // scrolling reaches this list before the document-level lock sees it.
-      e.stopPropagation()
-      onWheel?.(e)
-    }}
-    {...props}
-  />
-))
+>(({ className, onWheel, ...props }, ref) => {
+  const listRef = React.useRef<HTMLDivElement>(null)
+  const composedRef = useComposedRefs(ref, listRef)
+  const search = useCommandState((state) => state.search)
+
+  // cmdk oculta los items que no casan pero no toca el scroll, y solo hace
+  // scrollIntoView cuando cambia el item seleccionado: si el primer resultado
+  // ya era el activo, la lista se queda a la altura en la que estabas y los
+  // resultados quedan arriba, fuera de la vista. En layout effect para correr
+  // antes de ese scrollIntoView y no pisarlo cuando sí ocurre.
+  React.useLayoutEffect(() => {
+    listRef.current?.scrollTo({ top: 0 })
+  }, [search])
+
+  return (
+    <CommandPrimitive.List
+      ref={composedRef}
+      className={cn("max-h-[300px] overflow-y-auto overflow-x-hidden", className)}
+      onWheel={(e) => {
+        // Popovers/comboboxes portal outside the Dialog's DOM subtree, so the
+        // Dialog's scroll-lock (react-remove-scroll) doesn't recognize this list
+        // as scrollable and cancels the wheel event. Stop it here so native
+        // scrolling reaches this list before the document-level lock sees it.
+        e.stopPropagation()
+        onWheel?.(e)
+      }}
+      {...props}
+    />
+  )
+})
 
 CommandList.displayName = CommandPrimitive.List.displayName
 

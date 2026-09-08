@@ -10,6 +10,7 @@ import { useGetDepartments } from "@/hooks/ajustes/departamento/useGetDepartment
 import { useGetEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetEmployees"
 import { useGetMaintenanceAircrafts } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts"
 import { useGetThirdParties } from "@/hooks/general/terceros/useGetThirdParties"
+import { useGetLocationsByCompany } from "@/hooks/sistema/useGetLocationsByCompany"
 import { useAuth } from "@/contexts/AuthContext"
 import { useCompanyStore } from "@/stores/CompanyStore"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -31,7 +32,7 @@ interface BatchesWithCountProp extends Batch {
 export type MsgLevel = "error" | "warn"
 export type RowMsg = { msg: string; level: MsgLevel } | undefined
 export type ConversionTarget = "aero" | "general"
-export type DispatchType = "aircraft" | "department" | "authorized" | "third_party"
+export type DispatchType = "aircraft" | "department" | "authorized" | "third_party" | "location"
 export type ItemCategory = "consumable" | "component" | "part"
 
 type ConvState = {
@@ -87,10 +88,27 @@ const GeneralItemSchema = z.object({
     cut: CutSchema.optional(),
 })
 
+/** Campos que el formulario dibuja y por tanto pueden mostrar un error del servidor. */
+const SERVER_ERROR_FIELDS = new Set([
+    "work_order",
+    "dispatch_type",
+    "requested_by",
+    "justification",
+    "submission_date",
+    "department_id",
+    "aircraft_id",
+    "authorized_employee_id",
+    "third_party_id",
+    "destination_location_id",
+    "third_party_requested_by",
+    "third_party_receiver",
+    "third_party_authorizer",
+])
+
 export const FormSchema = z
     .object({
         work_order: z.string(),
-        dispatch_type: z.enum(["aircraft", "department", "authorized", "third_party"], {
+        dispatch_type: z.enum(["aircraft", "department", "authorized", "third_party", "location"], {
             message: "Debe seleccionar el tipo de despacho.",
         }),
         requested_by: z.string(),
@@ -108,6 +126,9 @@ export const FormSchema = z
         aircraft_id: z.string().optional(),
         authorized_employee_id: z.string().optional(),
         third_party_id: z.string().optional(),
+        // Sede a la que va el material. Convierte la salida en un traslado: no
+        // se cierra al registrarse, queda esperando el acuse de esa sede.
+        destination_location_id: z.string().optional(),
         aeronautical_articles: z.array(AeronauticalItemSchema).default([]),
         general_articles: z.array(GeneralItemSchema).default([]),
     })
@@ -118,7 +139,7 @@ export const FormSchema = z
         }
     })
     .superRefine((data, ctx) => {
-        if ((data.dispatch_type === "aircraft" || data.dispatch_type === "department") && !data.requested_by.trim()) {
+        if ((data.dispatch_type === "aircraft" || data.dispatch_type === "department" || data.dispatch_type === "location") && !data.requested_by.trim()) {
             ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Debe seleccionar quien recibe.", path: ["requested_by"] })
         }
         if (data.dispatch_type === "aircraft" && !data.aircraft_id) {
@@ -132,6 +153,9 @@ export const FormSchema = z
         }
         if (data.dispatch_type === "third_party" && !data.third_party_id) {
             ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Debe seleccionar un tercero.", path: ["third_party_id"] })
+        }
+        if (data.dispatch_type === "location" && !data.destination_location_id) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Debe seleccionar la sede destino.", path: ["destination_location_id"] })
         }
         if (data.is_backdated && !data.submission_date) {
             ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Debe indicar la fecha real de la salida.", path: ["submission_date"] })
@@ -203,6 +227,19 @@ export function useDispatchForm(
     const { data: authorizedEmployees, isLoading: isAuthorizedEmployeesLoading } = useGetAuthorizedEmployees(selectedCompany?.slug)
     const { data: thirdParties, isLoading: isThirdPartiesLoading } = useGetThirdParties()
 
+    // Sedes a las que se puede trasladar: todas las de la compañía menos
+    // aquella desde la que se está despachando, que no es un destino.
+    const { data: allLocations, isLoading: isLocationsLoading } = useGetLocationsByCompany(selectedCompany?.slug)
+
+    // Sin estación no hay origen del que sacar material, así que tampoco hay
+    // traslado posible: se ofrece vacío en vez de la lista completa, donde la
+    // propia sede figuraría como destino.
+    const transferLocations = useMemo(
+        () => selectedStation
+            ? (allLocations ?? []).filter((location) => `${location.id}` !== `${selectedStation}`)
+            : [],
+        [allLocations, selectedStation])
+
     // 1. Usamos el parámetro dinámico `itemCategory` para la búsqueda
     const { data: batches, isPending: isBatchesLoading } = useGetBatchesWithInWarehouseArticles({
         location_id: Number(selectedStation!),
@@ -222,6 +259,7 @@ export function useDispatchForm(
             requested_by: "",
             department_id: "",
             third_party_id: "",
+            destination_location_id: "",
             status: "proceso",
             is_backdated: false,
             aeronautical_articles: [],
@@ -257,6 +295,16 @@ export function useDispatchForm(
         return map
     }, [batches])
 
+    // El nombre del lote vive un nivel por encima del artículo y se pierde al
+    // aplanar; es lo que identifica la fila una vez seleccionada.
+    const aeroBatchNameById = useMemo(() => {
+        const map = new Map<number, string>()
+        batches?.forEach((b: BatchesWithCountProp) =>
+            b.articles?.forEach((a) => { if (a?.id != null && b.name) map.set(a.id, b.name) })
+        )
+        return map
+    }, [batches])
+
     const genById = useMemo(() => {
         const map = new Map<number, GeneralArticle>()
         hardwareArticles.forEach((a) => map.set(a.id, a))
@@ -266,7 +314,10 @@ export function useDispatchForm(
     const getAeroMax = useCallback((id: number) => aeroById.get(id)?.quantity || 0, [aeroById])
     const getGenMax = useCallback((id: number) => genById.get(id)?.quantity || 0, [genById])
 
-    const internalReceiverRequired = dispatchType === "aircraft" || dispatchType === "department"
+    // Tres estados, no dos: mientras no hay tipo elegido no se sabe todavía si
+    // hará falta un responsable interno, y eso no es lo mismo que no hacer falta.
+    const internalReceiverRequired =
+        dispatchType === "aircraft" || dispatchType === "department" || dispatchType === "location"
 
     const selectedThirdParty = useMemo(
         () => thirdParties?.find((p) => p.id.toString() === thirdPartyId) ?? null,
@@ -537,7 +588,8 @@ export function useDispatchForm(
         if (value !== "aircraft") setValue("aircraft_id", "")
         if (value !== "authorized") setValue("authorized_employee_id", "")
         if (value !== "third_party") { setValue("third_party_id", ""); setOpenThirdParty(false) }
-        if (value !== "aircraft" && value !== "department") { setValue("requested_by", ""); setOpenEmployee(false) }
+        if (value !== "location") setValue("destination_location_id", "")
+        if (value !== "aircraft" && value !== "department" && value !== "location") { setValue("requested_by", ""); setOpenEmployee(false) }
     }, [setValue])
 
     // ── Validation ────────────────────────────────────────────────────────────
@@ -565,6 +617,21 @@ export function useDispatchForm(
     // ── Submit ────────────────────────────────────────────────────────────────
 
     const onSubmit = async (data: FormSchemaType) => {
+        // Un trazo sale de UNA lámina concreta de este almacén: al otro lado no
+        // hay una pieza equivalente a la que sumarle el retazo. El backend lo
+        // rechaza con 422; avisarlo aquí evita perder lo ya capturado.
+        if (data.dispatch_type === "location") {
+            const cutRow = genFA.fields.find((field) => cutByKey[genKey(field.id)])
+
+            if (cutRow) {
+                setRowMsg(genKey(cutRow.id), {
+                    msg: "Un trazo cortado no puede trasladarse a otra sede",
+                    level: "error",
+                })
+                return
+            }
+        }
+
         // `quantity` viaja en la unidad de la fila y el disponible está en base:
         // sin aplicar el factor, 900 mL se compararía contra 3 GALON.
         for (let i = 0; i < data.aeronautical_articles.length; i++) {
@@ -632,6 +699,8 @@ export function useDispatchForm(
             return
         }
 
+        let failed = false
+
         await createDispatchRequest.mutateAsync({
             data: {
                 ...data,
@@ -651,9 +720,35 @@ export function useDispatchForm(
                 user_id: Number(user!.id),
                 aircraft_id: data.dispatch_type === "aircraft" ? data.aircraft_id : undefined,
                 department_id: data.dispatch_type === "department" ? data.department_id : undefined,
+                // Con sede destino el backend abre un traslado: la salida queda
+                // en tránsito hasta que esa sede acusa recibo.
+                destination_location_id: data.dispatch_type === "location" ? data.destination_location_id : undefined,
             },
             company: selectedCompany!.slug,
+        }).catch((error: any) => {
+            failed = true
+
+            // El toast del action ya avisa qué pasó; esto señala EN QUÉ campo.
+            // Solo los que el formulario dibuja: un setError sobre un nombre
+            // que no existe (created_by, user_id, aeronautical_articles.0.…)
+            // queda en formState sin que nada lo muestre y bloquea el reenvío
+            // de forma invisible, porque handleSubmit no lo revalida.
+            const fieldErrors = error?.response?.data?.errors
+
+            if (fieldErrors) {
+                for (const [name, messages] of Object.entries(fieldErrors)) {
+                    if (!SERVER_ERROR_FIELDS.has(name)) continue
+
+                    const message = Array.isArray(messages) ? messages[0] : String(messages)
+                    form.setError(name as keyof FormSchemaType, { type: "server", message })
+                }
+            }
         })
+
+        // El diálogo solo se cierra si la salida se creó: al fallar hay que
+        // dejar en pantalla lo capturado para corregirlo.
+        if (failed) return
+
         onClose()
     }
 
@@ -673,6 +768,7 @@ export function useDispatchForm(
         aircrafts, isAircraftsLoading,
         authorizedEmployees, isAuthorizedEmployeesLoading,
         thirdParties, isThirdPartiesLoading,
+        transferLocations, isLocationsLoading,
         batches, isBatchesLoading,
         employees, employeesLoading,
         hardwareArticles, isHardwareLoading,
@@ -686,6 +782,7 @@ export function useDispatchForm(
         watchedAero, watchedGen,
         aeroSelectedSet, genSelectedSet,
         aeroById, genById,
+        aeroBatchNameById,
         getAeroMax, getGenMax,
         // qty state
         qtyByKey, setQtyByKey,

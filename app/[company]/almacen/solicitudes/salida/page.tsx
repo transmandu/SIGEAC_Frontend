@@ -70,6 +70,15 @@ export type DispatchGroupRow = {
   }
   work_order?: string;
   articles: DispatchArticle[];
+  /**
+   * Sede destino: solo la llevan los traslados entre sedes propias. Mientras el
+   * estado sea IN_TRANSFER el material salió del almacén pero la otra sede
+   * todavía no ha acusado recibo.
+   */
+  destination_location?: string | null;
+  received_by?: string | null;
+  received_at?: string | null;
+  rejection_reason?: string | null;
 };
 
 const DispatchRequestPage = () => {
