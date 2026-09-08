@@ -1,3 +1,7 @@
+## v3.13.0 — 2026-09-08
+
+- feat: enhance tool dispatch form and backdated dispatch field (#246)
+
 ## v3.12.0 — 2026-09-07
 
 - feat: excel report sms (#245)
