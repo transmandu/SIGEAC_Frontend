@@ -264,10 +264,10 @@ export function ToolDispatchForm({ onClose }: FormProps) {
                       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                   </PopoverTrigger>
-                    <PopoverContent className="w-[min(var(--radix-popover-trigger-width),calc(100vw-2rem))] max-w-[calc(100vw-2rem)] p-0">
+                    <PopoverContent className="p-0" matchTriggerWidth>
                       <Command>
                         <CommandInput placeholder="Buscar una herramienta" />
-                      <CommandList onWheelCapture={(event) => event.stopPropagation()}>
+                      <CommandList>
                         <CommandEmpty className="flex justify-center">
                           {isBatchesLoading ? (
                             <Loader2 className="size-4 animate-spin" />

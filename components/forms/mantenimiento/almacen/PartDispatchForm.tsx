@@ -23,7 +23,7 @@ import {
     Loader2,
     PackagePlus,
     Plane,
-    UserCheck,
+    Truck,
     Users,
     X,
 } from "lucide-react"
@@ -35,6 +35,8 @@ import EvidenceCapture from "@/components/misc/EvidenceCapture"
 import { ArticleRowCard } from "./_components/ArticleRowCard"
 import { GeneralArticleRow } from "./_components/GeneralArticleRow"
 import { BackdatedDispatchField } from "./_components/BackdatedDispatchField"
+import { truncateText } from "./_components/truncate"
+import { SearchAwareGroup } from "./_components/SearchAwareGroup"
 import { aeroKey, genKey, useDispatchForm } from "./_hooks/useDispatchForm"
 
 interface FormProps {
@@ -43,7 +45,9 @@ interface FormProps {
 
 const DISPATCH_TYPES = [
     { value: "aircraft" as const, label: "Aeronave", icon: Plane },
-    { value: "authorized" as const, label: "Autorizados", icon: UserCheck },
+    // El material no sale de la compañía: viaja a otra sede propia y queda
+    // esperando que allá acusen recibo.
+    { value: "location" as const, label: "Otra sede", icon: Truck },
     { value: "third_party" as const, label: "Terceros", icon: Users },
 ]
 
@@ -53,8 +57,8 @@ export function PartDispatchForm({ onClose }: FormProps) {
         openAdd, setOpenAdd, addTab, setAddTab,
         openEmployee, setOpenEmployee, openThirdParty, setOpenThirdParty,
         aircrafts, isAircraftsLoading,
-        authorizedEmployees, isAuthorizedEmployeesLoading,
         thirdParties, isThirdPartiesLoading,
+        transferLocations, isLocationsLoading,
         batches, isBatchesLoading,
         employees, employeesLoading,
         hardwareArticles, isHardwareLoading,
@@ -63,7 +67,7 @@ export function PartDispatchForm({ onClose }: FormProps) {
         aeroFA, genFA,
         watchedAero, watchedGen,
         aeroSelectedSet, genSelectedSet,
-        aeroById, genById,
+        aeroById, genById, aeroBatchNameById,
         getAeroMax, getGenMax,
         qtyByKey, setQtyByKey, msgByKey, convByKey,
         cutByKey, updateCut,
@@ -99,11 +103,11 @@ export function PartDispatchForm({ onClose }: FormProps) {
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col space-y-6 w-full">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="flex w-full min-w-0 flex-col space-y-6">
 
                 <div className="space-y-4">
                     <SectionHeader label="Personal Responsable" />
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+                    <div className="grid grid-cols-1 items-start gap-4 md:grid-cols-2 [&>*]:min-w-0">
                         <div className="space-y-2">
                             <label className="text-sm font-medium">Entregado por</label>
                             <Input className="h-10" disabled value={`${user?.first_name ?? ""} ${user?.last_name ?? ""}`.trim()} />
@@ -134,7 +138,7 @@ export function PartDispatchForm({ onClose }: FormProps) {
                                                         </Button>
                                                     </FormControl>
                                                 </PopoverTrigger>
-                                                <PopoverContent className="w-full p-0" align="start">
+                                                <PopoverContent className="p-0" align="start" matchTriggerWidth>
                                                     {employeesLoading ? (
                                                         <div className="flex items-center justify-center py-6">
                                                             <Loader2 className="size-4 animate-spin text-muted-foreground" />
@@ -170,12 +174,12 @@ export function PartDispatchForm({ onClose }: FormProps) {
                                     )
                                 }}
                             />
-                        ) : (
+                        ) : dispatchType ? (
                             <div className="mt-3 text-center items-center rounded-md border border-dashed p-4 text-sm text-muted-foreground">
-                                Para <span className="font-medium">{dispatchType === "authorized" ? "Autorizados" : "Terceros"}</span>{" "}
+                                Para <span className="font-medium">Terceros</span>{" "}
                                 no se selecciona responsable interno en esta sección.
                             </div>
-                        )}
+                        ) : null}
                     </div>
                 </div>
 
@@ -190,20 +194,20 @@ export function PartDispatchForm({ onClose }: FormProps) {
                                 <FormItem>
                                     <FormLabel className="flex justify-center mb-2">Tipo de Despacho</FormLabel>
                                     <FormControl>
-                                        <div className="inline-flex rounded-lg border bg-muted/30 p-1 gap-1">
+                                        <div className="inline-flex max-w-full flex-wrap justify-center rounded-lg border bg-muted/30 p-1 gap-1">
                                             {DISPATCH_TYPES.map(({ value, label, icon: Icon }) => (
                                                 <button
                                                     key={value}
                                                     type="button"
                                                     onClick={() => handleDispatchTypeChange(value, field.onChange)}
                                                     className={cn(
-                                                        "flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all",
+                                                        "flex items-center gap-2 whitespace-nowrap px-3 py-1.5 rounded-md text-sm font-medium transition-all",
                                                         field.value === value
                                                             ? "bg-background text-foreground shadow-sm"
                                                             : "text-muted-foreground hover:text-foreground"
                                                     )}
                                                 >
-                                                    <Icon className="h-4 w-4" />
+                                                    <Icon className="h-4 w-4 shrink-0" />
                                                     {label}
                                                 </button>
                                             ))}
@@ -215,7 +219,10 @@ export function PartDispatchForm({ onClose }: FormProps) {
                         />
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className={cn(
+                        "grid grid-cols-1 gap-4 [&>*]:min-w-0",
+                        canBackdate ? "md:grid-cols-3" : "md:grid-cols-2"
+                    )}>
                         <FormField
                             control={form.control}
                             name="work_order"
@@ -230,12 +237,14 @@ export function PartDispatchForm({ onClose }: FormProps) {
                             )}
                         />
 
+                        <BackdatedDispatchField form={form} canBackdate={canBackdate} />
+
                         {dispatchType === "aircraft" && (
                             <FormField
                                 control={form.control}
                                 name="aircraft_id"
                                 render={({ field }) => (
-                                    <FormItem className="mt-1">
+                                    <FormItem>
                                         <FormLabel className="text-sm font-medium">Aeronave</FormLabel>
                                         <Select value={field.value ?? ""} onValueChange={field.onChange} disabled={isAircraftsLoading}>
                                             <FormControl>
@@ -262,37 +271,45 @@ export function PartDispatchForm({ onClose }: FormProps) {
                             />
                         )}
 
-                        {dispatchType === "authorized" && (
+                        {dispatchType === "location" && (
                             <FormField
                                 control={form.control}
-                                name="authorized_employee_id"
+                                name="destination_location_id"
                                 render={({ field }) => (
-                                    <FormItem className="mt-1">
-                                        <FormLabel className="text-sm font-medium">Empleado Autorizado</FormLabel>
-                                        <Select value={field.value ?? ""} onValueChange={field.onChange} disabled={isAuthorizedEmployeesLoading}>
+                                    <FormItem>
+                                        <FormLabel className="text-sm font-medium">Sede destino</FormLabel>
+                                        <Select
+                                            value={field.value ?? ""}
+                                            onValueChange={field.onChange}
+                                            disabled={isLocationsLoading}
+                                        >
                                             <FormControl>
                                                 <SelectTrigger className="h-10">
-                                                    <SelectValue placeholder="Seleccione un empleado..." />
+                                                    <SelectValue placeholder="Seleccione la sede destino..." />
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
-                                                {isAuthorizedEmployeesLoading && (
+                                                {isLocationsLoading && (
                                                     <div className="flex items-center justify-center py-4">
                                                         <Loader2 className="size-4 animate-spin text-muted-foreground" />
                                                     </div>
                                                 )}
-                                                {authorizedEmployees?.map((a: any) => (
-                                                    <SelectItem key={a.id} value={a.id.toString()}>
-                                                        {a.employee_name} - {a.from_company_db.toUpperCase()}
+                                                {transferLocations?.map((location) => (
+                                                    <SelectItem key={location.id} value={location.id.toString()}>
+                                                        {location.cod_iata} — {location.address}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
                                         </Select>
+                                        <p className="text-xs text-muted-foreground">
+                                            La salida quedará en tránsito hasta que esa sede confirme la recepción.
+                                        </p>
                                         <FormMessage />
                                     </FormItem>
                                 )}
                             />
                         )}
+
 
                         {dispatchType === "third_party" && (
                             <FormField
@@ -315,7 +332,7 @@ export function PartDispatchForm({ onClose }: FormProps) {
                                                     </Button>
                                                 </FormControl>
                                             </PopoverTrigger>
-                                            <PopoverContent className="w-full p-0" align="start">
+                                            <PopoverContent className="p-0" align="start" matchTriggerWidth>
                                                 {isThirdPartiesLoading ? (
                                                     <div className="flex items-center justify-center py-6">
                                                         <Loader2 className="size-4 animate-spin text-muted-foreground" />
@@ -361,7 +378,7 @@ export function PartDispatchForm({ onClose }: FormProps) {
                     </div>
 
                     {dispatchType === "third_party" && (
-                        <div className="flex gap-2 items-center">
+                        <div className="grid grid-cols-1 items-start gap-2 md:grid-cols-3">
                             <FormField
                                 control={form.control}
                                 name="third_party_requested_by"
@@ -392,8 +409,8 @@ export function PartDispatchForm({ onClose }: FormProps) {
                                 control={form.control}
                                 name="third_party_authorizer"
                                 render={({ field }) => (
-                                    <FormItem className="mt-1 w-full">
-                                        <FormLabel className="text-sm font-medium w-full">Autorizado Por</FormLabel>
+                                    <FormItem className="w-full">
+                                        <FormLabel className="text-sm font-medium">Autorizado Por</FormLabel>
                                         <Select value={field.value ?? ""} onValueChange={field.onChange}>
                                             <FormControl>
                                                 <SelectTrigger className="h-10 w-full">
@@ -413,8 +430,6 @@ export function PartDispatchForm({ onClose }: FormProps) {
                             />
                         </div>
                     )}
-
-                    <BackdatedDispatchField form={form} canBackdate={canBackdate} />
                 </div>
 
                 <div className="space-y-4">
@@ -424,7 +439,7 @@ export function PartDispatchForm({ onClose }: FormProps) {
                         <label className="text-sm font-medium flex items-center justify-between">
                             Agregar artículo
                             <span className="text-xs text-muted-foreground">
-                                Aeronáuticos: {aeronauticalCount} · Generales: {generalCount}
+                                Partes: {aeronauticalCount} · General/Ferretería: {generalCount}
                             </span>
                         </label>
 
@@ -445,27 +460,29 @@ export function PartDispatchForm({ onClose }: FormProps) {
                                 </Button>
                             </PopoverTrigger>
 
-                            <PopoverContent
-                                className="w-[min(var(--radix-popover-trigger-width),calc(100vw-2rem))] max-w-[calc(100vw-2rem)] p-0"
-                                align="start"
-                            >
-                                <div className="p-2 border-b flex items-center justify-between gap-2">
-                                    <div className="flex items-center gap-2">
+                            <PopoverContent className="p-0" align="start" matchTriggerWidth>
+                                {/* La X va absoluta para que los tabs queden
+                                    centrados en el desplegable y no desplazados
+                                    por el ancho del botón de cerrar. */}
+                                <div className="relative border-b p-2">
+                                    <div className="flex flex-wrap items-center justify-center gap-2 px-10">
                                         <Button type="button" variant={addTab === "aero" ? "default" : "outline"} className="h-8" onClick={() => setAddTab("aero")}>
-                                            Aeronáuticos <span className="ml-2 text-xs opacity-80">({aeronauticalCount})</span>
+                                            Partes <span className="ml-2 text-xs opacity-80">({aeronauticalCount})</span>
                                         </Button>
                                         <Button type="button" variant={addTab === "general" ? "default" : "outline"} className="h-8" onClick={() => setAddTab("general")}>
-                                            Generales <span className="ml-2 text-xs opacity-80">({generalCount})</span>
+                                            General/Ferretería <span className="ml-2 text-xs opacity-80">({generalCount})</span>
                                         </Button>
                                     </div>
-                                    <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={() => setOpenAdd(false)}>
+                                    <Button type="button" variant="ghost" size="icon" className="absolute right-2 top-2 h-8 w-8" onClick={() => setOpenAdd(false)}>
                                         <X className="h-4 w-4" />
                                     </Button>
                                 </div>
 
-                                <Command>
+                                {/* key por tab: sin remontar, el texto buscado
+                                    sigue filtrando la otra lista al cambiar. */}
+                                <Command key={addTab}>
                                     <CommandInput placeholder={addTab === "aero" ? "Buscar por lote, parte, serial o descripción..." : "Buscar por descripción, modelo o tipo..."} />
-                                    <CommandList onWheelCapture={(event) => event.stopPropagation()}>
+                                    <CommandList>
                                         <CommandEmpty>No se han encontrado artículos...</CommandEmpty>
 
                                         {addTab === "aero" ? (
@@ -473,7 +490,7 @@ export function PartDispatchForm({ onClose }: FormProps) {
                                                 <div className="flex items-center justify-center py-6"><Loader2 className="size-4 animate-spin" /></div>
                                             ) : (
                                                 batches?.map((batch: any) => (
-                                                    <CommandGroup key={`aero-${batch.batch_id}`} heading={batch.name}>
+                                                    <SearchAwareGroup key={`aero-${batch.batch_id}`} heading={batch.name}>
                                                         {batch.articles.map((article: any) => {
                                                             const already = aeroSelectedSet.has(Number(article.id))
                                                             return (
@@ -489,13 +506,13 @@ export function PartDispatchForm({ onClose }: FormProps) {
                                                                             {article.part_number} {article.serial ? `· ${article.serial}` : ""}
                                                                         </span>
                                                                         <span className="text-xs text-muted-foreground truncate">
-                                                                            {article.description ?? "Sin descripción"} · Disp: {article.quantity} {article.unit}
+                                                                            {truncateText(article.description) || "Sin descripción"} · Disp: {article.quantity} {article.unit}
                                                                         </span>
                                                                     </div>
                                                                 </CommandItem>
                                                             )
                                                         })}
-                                                    </CommandGroup>
+                                                    </SearchAwareGroup>
                                                 ))
                                             )
                                         ) : isHardwareLoading ? (
@@ -513,7 +530,7 @@ export function PartDispatchForm({ onClose }: FormProps) {
                                                         >
                                                             <Check className={cn("mr-2 h-4 w-4", already ? "opacity-100" : "opacity-0")} />
                                                             <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-                                                                <span className="font-medium truncate">{ga.description ?? "N/A"}</span>
+                                                                <span className="font-medium truncate">{truncateText(ga.description) || "N/A"}</span>
                                                                 <span className="text-xs text-muted-foreground truncate">
                                                                     {ga.brand_model ?? "N/A"} · {ga.variant_type ?? "N/A"} · Disp: {ga.quantity ?? 0} {ga.general_primary_unit?.label ?? ""}
                                                                 </span>
@@ -539,26 +556,22 @@ export function PartDispatchForm({ onClose }: FormProps) {
 
                     {aeroFA.fields.length > 0 && (
                         <div className="space-y-2">
-                            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Material aeronáutico</p>
+                            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Partes</p>
                             {aeroFA.fields.map((f, index) => {
                                 const key = aeroKey(f.id)
                                 const item = watchedAero[index]
                                 const articleId = Number(item?.article_id || 0)
                                 const article = articleId ? aeroById.get(articleId) : undefined
                                 const max = articleId ? getAeroMax(articleId) : 0
-                                const batchName = item?.batch_id
-                                    ? batches?.find((batch: any) => Number(batch.batch_id) === Number(item.batch_id))?.name
-                                    : undefined
 
                                 return (
                                     <ArticleRowCard
                                         key={f.id}
                                         title={article?.part_number ?? (articleId ? `ID: ${articleId}` : "Artículo")}
                                         subtitle={[
-                                            article?.serial ? `Serial: ${article.serial}` : article?.description ?? "Sin descripción",
-                                            article?.description && article?.serial ? article.description : null,
+                                            aeroBatchNameById.get(articleId) ?? "Sin lote",
+                                            article?.serial ? `Serial: ${article.serial}` : null,
                                             `Disponible: ${article?.quantity ?? 0} ${article?.unit ?? ""}`,
-                                            batchName ? `Lote: ${batchName}` : null,
                                         ].filter(Boolean).join(" · ")}
                                         qty={qtyByKey[key] ?? ""}
                                         max={max}
@@ -588,7 +601,7 @@ export function PartDispatchForm({ onClose }: FormProps) {
 
                     {genFA.fields.length > 0 && (
                         <div className="space-y-2">
-                            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Artículos generales</p>
+                            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">General/Ferretería</p>
                             {genFA.fields.map((f, index) => {
                                 const key = genKey(f.id)
                                 const item = watchedGen[index]

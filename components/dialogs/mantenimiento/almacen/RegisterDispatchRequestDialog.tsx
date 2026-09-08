@@ -1,6 +1,5 @@
 'use client'
 
-import { Button } from "@/components/ui/button"
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 import {
   Dialog,
@@ -11,139 +10,93 @@ import {
   DialogTrigger
 } from "@/components/ui/dialog"
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { useState } from "react"
 import { ConsumableDispatchForm } from "@/components/forms/mantenimiento/almacen/ConsumableDispatchRequestForm"
 import { ToolDispatchForm } from "@/components/forms/mantenimiento/almacen/ToolDispatchForm"
 import { ComponentDispatchForm } from "@/components/forms/mantenimiento/almacen/ComponentDispatchForm"
 import { PartDispatchForm } from "@/components/forms/mantenimiento/almacen/PartDispatchForm"
-import { ChevronDown } from "lucide-react"
+import { Drill, Package2, PaintBucket, Puzzle } from "lucide-react"
 
+const CATEGORIES = [
+  { value: "consumible", label: "Consumible", icon: PaintBucket },
+  { value: "componente", label: "Componente", icon: Package2 },
+  { value: "parte", label: "Parte", icon: Puzzle },
+  { value: "herramienta", label: "Herramienta", icon: Drill },
+]
 
 export function RegisterDispatchRequestDialog() {
   const [open, setOpen] = useState<boolean>(false);
   const [category, setCategory] = useState<string | null>(null);
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next)
+        // Radix desmonta el contenido al cerrar y el formulario se limpia solo,
+        // pero la categoría vive aquí: sin reiniciarla, al reabrir aparece el
+        // formulario de la salida anterior en vez del estado inicial.
+        if (!next) setCategory(null)
+      }}
+    >
       <DialogTrigger asChild>
         <ActionTriggerButton className="flex items-center justify-center gap-2">
           Registrar Salida
         </ActionTriggerButton>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <div className="flex items-center justify-between">
-            <div>
+      <DialogContent className="flex max-h-[90vh] w-[calc(100vw-3rem)] max-w-4xl flex-col overflow-hidden">
+        {/* pr-8: el botón de cerrar del Dialog va posicionado absoluto sobre
+            esta esquina y taparía el selector. */}
+        <DialogHeader className="shrink-0 pr-8">
+          <div className="flex items-end justify-between gap-4">
+            <div className="min-w-0">
               <DialogTitle className="text-2xl">Registro de Salida</DialogTitle>
-              <DialogDescription className="mt-2">
+              <DialogDescription className="mt-1">
+                Registre la salida de material del almacén.
               </DialogDescription>
             </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                {category ? (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex items-center gap-2 h-8"
-                  >
-                    <Badge variant="default" className="text-xs px-2 py-0.5">
-                      {category.toUpperCase()}
-                    </Badge>
-                    <ChevronDown className="h-3 w-3" />
-                  </Button>
-                ) : (
-                  <Button variant="outline" size="sm" className="h-8">
-                    <span className="text-muted-foreground">Seleccionar tipo...</span>
-                    <ChevronDown className="h-3 w-3 ml-2" />
-                  </Button>
-                )}
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-[180px]">
-                <DropdownMenuItem
-                  onClick={() => setCategory("consumible")}
-                  className={category === "consumible" ? "bg-accent" : ""}
-                >
-                  Consumible
-                  {category === "consumible" && (
-                    <span className="ml-auto text-xs">✓</span>
-                  )}
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => setCategory("componente")}
-                  className={category === "componente" ? "bg-accent" : ""}
-                >
-                  Componente
-                  {category === "componente" && (
-                    <span className="ml-auto text-xs">✓</span>
-                  )}
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => setCategory("parte")}
-                  className={category === "parte" ? "bg-accent" : ""}
-                >
-                  Parte
-                  {category === "parte" && <span className="ml-auto text-xs">✓</span>}
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => setCategory("herramienta")}
-                  className={category === "herramienta" ? "bg-accent" : ""}
-                >
-                  Herramienta
-                  {category === "herramienta" && (
-                    <span className="ml-auto text-xs">✓</span>
-                  )}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <div className="shrink-0 space-y-1.5">
+              <label htmlFor="dispatch-category" className="text-sm font-medium">
+                Tipo de artículo
+              </label>
+              <Select value={category ?? ""} onValueChange={setCategory}>
+                <SelectTrigger id="dispatch-category" className="h-9 w-[190px]">
+                  <SelectValue placeholder="Seleccione..." />
+                </SelectTrigger>
+                <SelectContent align="end">
+                  {CATEGORIES.map(({ value, label, icon: Icon }) => (
+                    <SelectItem key={value} value={value}>
+                      <span className="flex items-center gap-2">
+                        <Icon className="size-4 shrink-0 text-muted-foreground" />
+                        {label}
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </DialogHeader>
-        {category ? (
-          <>
-            {
-              category === 'consumible' && (
-                <ConsumableDispatchForm
-                  key="consumible"
-                  onClose={() => setOpen(false)}
-                />
-              )
-            }
-            {
-              category === 'herramienta' && (
-                <ToolDispatchForm
-                  key="herramienta"
-                  onClose={() => setOpen(false)}
-                />
-              )
-            }
-            {
-              category === 'componente' && (
-                <ComponentDispatchForm
-                  key="componente"
-                  onClose={() => setOpen(false)}
-                />
-              )
-            }
-            {
-              category === 'parte' && (
-                <PartDispatchForm 
-                  key="parte" 
-                  onClose={() => setOpen(false)} 
-                />
-              )
-            }
-          </>
-        ) : (
-          <div className="py-8 text-center">
-            <p className="text-sm text-muted-foreground">
-              Seleccione un tipo de artículo desde el menú superior para comenzar.
-            </p>
+        {category && (
+          <div className="min-w-0 flex-1 overflow-y-auto px-1 py-1">
+            {category === 'consumible' && (
+              <ConsumableDispatchForm key="consumible" onClose={() => setOpen(false)} />
+            )}
+            {category === 'herramienta' && (
+              <ToolDispatchForm key="herramienta" onClose={() => setOpen(false)} />
+            )}
+            {category === 'componente' && (
+              <ComponentDispatchForm key="componente" onClose={() => setOpen(false)} />
+            )}
+            {category === 'parte' && (
+              <PartDispatchForm key="parte" onClose={() => setOpen(false)} />
+            )}
           </div>
         )}
       </DialogContent>
