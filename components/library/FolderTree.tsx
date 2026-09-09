@@ -18,6 +18,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const departmentStyles = [
   { color: "bg-blue-500", shape: "rounded-full" },
@@ -356,9 +362,12 @@ function FolderTree({
             className={`flex items-center gap-2.5 flex-1 p-1.5 text-[14px] font-semibold text-left truncate ${isSelected ? "text-blue-700 dark:text-blue-300" : "text-slate-700 dark:text-slate-200"}`}
           >
             {getDeptShape(idx + depth)}
-            <span className="truncate" title={dept.departmentName}>
-              {dept.departmentName}
-            </span>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="truncate">{dept.departmentName}</span>
+              </TooltipTrigger>
+              <TooltipContent>{dept.departmentName}</TooltipContent>
+            </Tooltip>
             {isLoading && (
               <Loader2 className="h-3.5 w-3.5 animate-spin shrink-0 ml-1 text-blue-500" />
             )}
@@ -409,10 +418,20 @@ function FolderTree({
     );
   };
 
+  if (departmentFolders.length === 0) {
+    return (
+      <p className="px-2 py-6 text-center text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">
+        No tienes departamentos asignados
+      </p>
+    );
+  }
+
   return (
-    <div className="space-y-0.5">
-      {departmentFolders.map((d, i) => renderDept(d, i, 0))}
-    </div>
+    <TooltipProvider delayDuration={300}>
+      <div className="space-y-0.5">
+        {departmentFolders.map((d, i) => renderDept(d, i, 0))}
+      </div>
+    </TooltipProvider>
   );
 }
 

@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { Pencil } from 'lucide-react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import libraryService from '@/lib/libraryService';
 import { toast } from 'sonner';
@@ -52,9 +51,6 @@ export default function RenameFolderDialog({
       <DialogContent className="bg-white dark:bg-[#1a1c1e] border-none text-slate-900 dark:text-white sm:max-w-[380px] rounded-2xl overflow-hidden p-0 outline-none shadow-2xl">
         <div className="bg-slate-50 dark:bg-gray-800/40 px-6 py-5 border-b border-slate-200 dark:border-gray-700">
           <div className="flex items-center gap-2">
-            <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-              <Pencil className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-            </div>
             <DialogTitle className="text-lg font-bold text-slate-800 dark:text-white tracking-tight uppercase">
               Renombrar Carpeta
             </DialogTitle>

@@ -14,6 +14,7 @@ import {
   ChevronDown,
   Folder,
 } from "lucide-react";
+import { toast } from "sonner";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { bibliotecaUploadSteps } from "@/components/tour/steps/general/biblioteca/biblioteca-upload";
 
@@ -125,6 +126,7 @@ export default function UploadModal({
           }
         } catch (error) {
           console.error("Error al cargar datos:", error);
+          toast.error("No se pudieron cargar departamentos y categorías");
         } finally {
           setLoadingData(false);
         }
@@ -171,15 +173,17 @@ export default function UploadModal({
       if (["pdf", "xlsx", "xls"].includes(ext || "")) {
         setFile(droppedFile);
       } else {
-        alert("Solo se permiten archivos PDF o Excel.");
+        toast.error("Solo se permiten archivos PDF o Excel.");
       }
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!file || !formData.category_id || !formData.department_id)
-      return alert("Completa los campos.");
+    if (!file || !formData.category_id || !formData.department_id) {
+      toast.error("Completa los campos obligatorios.");
+      return;
+    }
 
     setLoading(true);
     const data = new FormData();
@@ -201,7 +205,9 @@ export default function UploadModal({
       onSuccess();
       handleInternalClose();
     } catch (error: any) {
-      alert("Error al guardar: " + (error.response?.data?.message || "Error"));
+      toast.error(
+        error.response?.data?.message || "No se pudo guardar el documento",
+      );
     } finally {
       setLoading(false);
     }
@@ -499,13 +505,13 @@ export default function UploadModal({
                       : "Haz clic o arrastra un archivo"}
                 </p>
                 <p className="text-[10px] text-slate-400 truncate max-w-[200px] font-bold uppercase tracking-tighter">
-                  {file ? file.name : "PDF (Max 10MB)"}
+                  {file ? file.name : "PDF o Excel (Max 10MB)"}
                 </p>
               </div>
               <input
                 type="file"
                 className="hidden"
-                accept=".pdf"
+                accept=".pdf,.xlsx,.xls"
                 onChange={(e) =>
                   setFile(e.target.files ? e.target.files[0] : null)
                 }

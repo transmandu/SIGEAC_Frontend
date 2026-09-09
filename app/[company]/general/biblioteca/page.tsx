@@ -38,6 +38,24 @@ import libraryService, { FolderNode, Document } from "@/lib/libraryService";
 import axiosInstance from "@/lib/axios";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/layout/PageHeader";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+
+// El árbol puede venir anidado, así que un find() plano no encuentra a los hijos.
+const findDepartmentByName = (nodes: any[], name: string): any | null => {
+  for (const node of nodes) {
+    if (node?.name === name) return node;
+
+    const found = findDepartmentByName(node?.descendants ?? [], name);
+    if (found) return found;
+  }
+
+  return null;
+};
 
 const BibliotecaPage = () => {
   const params = useParams();
@@ -64,11 +82,17 @@ const BibliotecaPage = () => {
         setShowFilters(false);
       }
     };
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setShowFilters(false);
+    };
+
     if (showFilters) {
       document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("keydown", handleEscape);
     }
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
     };
   }, [showFilters]);
 
@@ -277,15 +301,17 @@ const BibliotecaPage = () => {
   const filteredDocs = useMemo(() => {
     let docs = currentDeptDocs;
 
-    if (selectedFolderPath === "/") {
+    // Sin carpeta elegida la vista es la raíz: filtrarla igual que "/" evita que
+    // se cuelen los documentos de las subcarpetas bajo el breadcrumb "Raíz".
+    if (!selectedFolderPath || selectedFolderPath === "/") {
       docs = docs.filter((d) => !d.folder_path || d.folder_path === "/");
-    } else if (selectedFolderPath) {
+    } else {
       docs = docs.filter((d) => d.folder_path === selectedFolderPath);
     }
 
     if (searchTerm) {
       docs = docs.filter((d) =>
-        d.title.toLowerCase().includes(searchTerm.toLowerCase()),
+        (d.title ?? "").toLowerCase().includes(searchTerm.toLowerCase()),
       );
     }
 
@@ -330,6 +356,7 @@ const BibliotecaPage = () => {
       setCategoriesList(response.data || []);
     } catch (error) {
       console.error("Error al cargar categorías:", error);
+      toast.error("No se pudieron cargar las categorías");
     }
   }, [companySlug]);
 
@@ -340,15 +367,16 @@ const BibliotecaPage = () => {
       });
       const list = Array.isArray(res) ? res : res.data || [];
       setPendingRequestCount(list.length);
-    } catch {
-      setPendingRequestCount(0);
+    } catch (error) {
+      // Un fallo de red no se muestra como "no hay solicitudes": se deja el
+      // contador anterior en lugar de ponerlo a cero.
+      console.error("Error al consultar solicitudes pendientes:", error);
     }
   }, [companySlug]);
 
   const initialLoad = useCallback(async () => {
     setLoading(true);
-    await Promise.all([fetchDocs(), fetchCategories()]);
-    refreshPendingCount();
+    await Promise.all([fetchDocs(), fetchCategories(), refreshPendingCount()]);
     setLoading(false);
   }, [fetchDocs, fetchCategories, refreshPendingCount]);
 
@@ -366,6 +394,7 @@ const BibliotecaPage = () => {
         setFoldersMap((prev) => ({ ...prev, [deptId]: res.folders || [] }));
       } catch (error) {
         console.error("Error al cargar carpetas:", error);
+        toast.error("No se pudieron cargar las carpetas del departamento");
       } finally {
         setLoadingDeptIds((prev) => prev.filter((id) => id !== deptId));
       }
@@ -396,18 +425,7 @@ const BibliotecaPage = () => {
       (d: any) => Array.isArray(d.descendants) && d.descendants.length > 0,
     );
     if (hasNestedDescendants) {
-      const roots = departments.map(buildNode);
-
-      try {
-        // eslint-disable-next-line no-console
-        console.debug &&
-          console.debug(
-            "Built departmentFolders hierarchy from nested descendants:",
-            roots,
-          );
-      } catch {}
-
-      return roots;
+      return departments.map(buildNode);
     }
 
     const nodes: Record<number, DepartmentFolderGroup> = {};
@@ -431,15 +449,6 @@ const BibliotecaPage = () => {
         roots.push(node);
       }
     });
-
-    try {
-      // eslint-disable-next-line no-console
-      console.debug &&
-        console.debug(
-          "Built departmentFolders hierarchy from flat list:",
-          roots,
-        );
-    } catch {}
 
     return roots;
   }, [departments, foldersMap]);
@@ -466,11 +475,14 @@ const BibliotecaPage = () => {
       toast.success("Documento movido exitosamente");
       setSelectedDeptName(departmentName);
       setSelectedFolderPath(folderPath);
+
+      // El departamento destino puede ser un hijo del árbol, y sus carpetas ya
+      // están cacheadas: hay que refrescarlas, no solo pedirlas si faltan.
+      const target = findDepartmentByName(departments, departmentName);
+
       await Promise.all([
         fetchDocs(),
-        handleToggleDept(
-          departments.find((d) => d.name === departmentName)?.id ?? 0,
-        ),
+        target ? handleFolderRefresh(target.id) : Promise.resolve(),
       ]);
     } catch (error: any) {
       toast.error(
@@ -493,6 +505,7 @@ const BibliotecaPage = () => {
         setFoldersMap((prev) => ({ ...prev, [deptId]: res.folders || [] }));
       } catch (error) {
         console.error("Error al refrescar carpetas:", error);
+        toast.error("No se pudieron refrescar las carpetas");
       }
     },
     [companySlug],
@@ -584,23 +597,18 @@ const BibliotecaPage = () => {
           </div>
         ) : (
           <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-            {/* HEADER */}
-            <div className="flex flex-col gap-2 mb-8">
+            <div className="mb-6 flex flex-col gap-2 border-b pb-4">
               <h1
-                className="text-5xl font-black text-center text-slate-900 dark:text-white uppercase tracking-tighter"
+                className="text-3xl font-semibold tracking-tight"
                 data-tour="biblioteca-title"
               >
                 Biblioteca Digital
               </h1>
-              <p className="text-[11px] font-bold tracking-[0.2em] text-slate-400 dark:text-slate-500 text-center uppercase">
-                Gestión de documentos técnicos y certificados de{" "}
-                <span className="text-blue-600 dark:text-blue-400">
-                  {companySlug}
-                </span>
+              <p className="text-sm text-muted-foreground">
+                Gestión de documentos técnicos y certificados de {companySlug}.
               </p>
             </div>
 
-            {/* CONTROLES */}
             <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex flex-wrap items-center gap-3">
                 {canManage && (
@@ -630,10 +638,7 @@ const BibliotecaPage = () => {
                     {isDipDirector && (
                       <Button
                         data-tour="biblioteca-solicitudes-btn"
-                        onClick={() => {
-                          setShareRequestsOpen(true);
-                          setPendingRequestCount(0);
-                        }}
+                        onClick={() => setShareRequestsOpen(true)}
                         variant="outline"
                         size="sm"
                         className="w-fit flex items-center gap-1.5 rounded-xl border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:text-white font-bold text-[10px] uppercase tracking-widest px-5 h-10 shadow-sm transition-all active:scale-95"
@@ -685,23 +690,31 @@ const BibliotecaPage = () => {
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="flex-1 bg-transparent border-none outline-none px-3 text-[10px] font-bold tracking-widest text-slate-700 dark:text-white placeholder:text-slate-300 uppercase"
                   />
-                  {/* Botón de filtro con indicador */}
-                  <button
-                    data-tour="biblioteca-filter-btn"
-                    type="button"
-                    onClick={() => setShowFilters(!showFilters)}
-                    className={`flex items-center justify-center h-full px-3.5 border-l border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 transition-all text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 relative ${
-                      selectedCategory || selectedStatus
-                        ? "text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/10"
-                        : ""
-                    }`}
-                    title="Filtros avanzados"
-                  >
-                    <SlidersHorizontal className="h-4 w-4" />
-                    {(selectedCategory || selectedStatus) && (
-                      <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-blue-600 dark:bg-blue-400 animate-pulse" />
-                    )}
-                  </button>
+                  <TooltipProvider delayDuration={120}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          data-tour="biblioteca-filter-btn"
+                          type="button"
+                          aria-label="Filtros avanzados"
+                          aria-expanded={showFilters}
+                          aria-haspopup="dialog"
+                          onClick={() => setShowFilters(!showFilters)}
+                          className={`flex items-center justify-center h-full px-3.5 border-l border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 transition-all text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 relative ${
+                            selectedCategory || selectedStatus
+                              ? "text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/10"
+                              : ""
+                          }`}
+                        >
+                          <SlidersHorizontal className="h-4 w-4" />
+                          {(selectedCategory || selectedStatus) && (
+                            <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-blue-600 dark:bg-blue-400 animate-pulse" />
+                          )}
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent>Filtros avanzados</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
 
                 {/* POPOVER DE FILTROS */}
@@ -711,7 +724,7 @@ const BibliotecaPage = () => {
                       className="flex items-center justify-between mb-4 pb-2 border-b border-slate-100 dark:border-slate-800"
                       data-tour="biblioteca-filter-limpiar"
                     >
-                      <span className="text-[11px] font-black uppercase tracking-wider text-slate-855 dark:text-white">
+                      <span className="text-[11px] font-black uppercase tracking-wider text-slate-800 dark:text-white">
                         Filtros
                       </span>
                       {(selectedCategory || selectedStatus || searchTerm) && (
@@ -787,23 +800,17 @@ const BibliotecaPage = () => {
                 </div>
               )}
               <div className="flex min-h-[400px]">
-                {/* SIDEBAR - Carpetas */}
                 <div className="w-[380px] shrink-0 border-r border-slate-200 dark:border-slate-800 p-5 pt-8 flex flex-col">
                   <div
-                    className="flex items-center gap-3 mb-6 border-b pb-6 border-slate-200 dark:border-slate-800 shrink-0"
+                    className="flex flex-col gap-1 mb-6 border-b pb-6 border-slate-200 dark:border-slate-800 shrink-0"
                     data-tour="biblioteca-carpetas-header"
                   >
-                    <div className="p-2 bg-slate-800 dark:bg-slate-200 rounded-lg">
-                      <FolderOpen className="h-5 w-5 text-white dark:text-slate-900" />
-                    </div>
-                    <div>
-                      <h2 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-[0.1em]">
-                        Carpetas
-                      </h2>
-                      <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 tracking-wide">
-                        Organización departamental
-                      </p>
-                    </div>
+                    <h2 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-[0.1em]">
+                      Carpetas
+                    </h2>
+                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 tracking-wide">
+                      Organización departamental
+                    </p>
                   </div>
                   <div
                     className="flex-1 overflow-y-auto max-h-[500px] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-200 dark:[&::-webkit-scrollbar-thumb]:bg-slate-700 [&::-webkit-scrollbar-thumb]:rounded-full pr-2"
@@ -848,25 +855,19 @@ const BibliotecaPage = () => {
                   )}
                 </div>
 
-                {/* CONTENIDO - Documentos */}
                 <div
                   className="flex-1 p-8"
                   data-tour="biblioteca-documentos-header"
                 >
-                  <div className="flex items-center gap-3 mb-6 border-b pb-6 border-slate-200 dark:border-slate-800">
-                    <div className="p-2 bg-blue-600 rounded-lg">
-                      <FolderOpen className="h-5 w-5 text-white" />
-                    </div>
-                    <div>
-                      <h2 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-[0.1em]">
-                        Documentos
-                      </h2>
-                      <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 tracking-wide">
-                        {selectedDeptName
-                          ? `${selectedDeptName} — ${breadcrumbText}`
-                          : "Selecciona una carpeta"}
-                      </p>
-                    </div>
+                  <div className="flex flex-col gap-1 mb-6 border-b pb-6 border-slate-200 dark:border-slate-800">
+                    <h2 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-[0.1em]">
+                      Documentos
+                    </h2>
+                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 tracking-wide">
+                      {selectedDeptName
+                        ? `${selectedDeptName} — ${breadcrumbText}`
+                        : "Selecciona una carpeta"}
+                    </p>
                   </div>
 
                   <div className="overflow-x-auto">

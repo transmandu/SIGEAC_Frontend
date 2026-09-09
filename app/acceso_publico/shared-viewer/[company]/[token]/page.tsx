@@ -13,6 +13,7 @@ import '@react-pdf-viewer/core/lib/styles/index.css';
 import '@react-pdf-viewer/default-layout/lib/styles/index.css';
 
 import libraryService from '@/lib/libraryService';
+import { toast } from 'sonner';
 
 export default function PublicNativeViewerPage() {
   const params = useParams();
@@ -118,14 +119,15 @@ export default function PublicNativeViewerPage() {
 
   const handleDownload = async () => {
     try {
-      const blobUrl = await libraryService.getFileBlob(company, token);
+      // Pasa por el endpoint de descarga: es el backend quien comprueba el flag.
+      const blobUrl = await libraryService.downloadSharedFile(company, token);
       const a = document.createElement('a');
       a.href = blobUrl;
       a.download = `${docTitle || 'documento'}.pdf`;
       a.click();
       URL.revokeObjectURL(blobUrl);
-    } catch {
-      // silent
+    } catch (err: any) {
+      toast.error(err?.message || 'No se pudo descargar el documento.');
     }
   };
 
