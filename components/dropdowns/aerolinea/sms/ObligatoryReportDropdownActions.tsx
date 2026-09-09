@@ -50,9 +50,21 @@ const ObligatoryReportDropdownActions = ({
 
   const { deleteObligatoryReport } = useDeleteObligatoryReport();
 
+  const useManagementPdf =
+    obligatoryReport.status === "CERRADO" &&
+    Boolean(obligatoryReport.danger_identification?.id);
+
   const pdfEndpoint = selectedCompany?.slug
-    ? `/${selectedCompany.slug}/sms/obligatory-reports/${obligatoryReport.id}/format-pdf`
+    ? `/${selectedCompany.slug}/sms/obligatory-reports/${obligatoryReport.id}/${useManagementPdf ? "management-pdf" : "format-pdf"}`
     : "";
+
+  const pdfTitle = useManagementPdf
+    ? "Vista previa del reporte de gestión"
+    : "Vista previa del formato del reporte";
+
+  const pdfDescription = useManagementPdf
+    ? "Revisa el reporte de gestión antes de descargarlo."
+    : "Revisa el formato del reporte antes de descargarlo.";
 
   const handleDelete = async (id: number | string) => {
     const value = {
@@ -131,9 +143,11 @@ const ObligatoryReportDropdownActions = ({
           open={openPdf}
           onOpenChange={setOpenPdf}
           endpoint={pdfEndpoint}
-          fileName={`TMD_FOR_SMS_REPORTE_OBLIGATORIO_DE_SUCESOS_${obligatoryReport.report_number || obligatoryReport.id}`}
-          title="Vista previa del reporte obligatorio"
-          description="Revisa el reporte antes de descargarlo."
+          fileName={useManagementPdf
+            ? `TMD_GESTION_RIESGO_${obligatoryReport.report_number || obligatoryReport.id}`
+            : `TMD_FOR_SMS_REPORTE_OBLIGATORIO_DE_SUCESOS_${obligatoryReport.report_number || obligatoryReport.id}`}
+          title={pdfTitle}
+          description={pdfDescription}
         />
       )}
 

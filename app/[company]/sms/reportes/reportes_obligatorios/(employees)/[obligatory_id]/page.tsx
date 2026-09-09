@@ -197,7 +197,7 @@ const ShowObligatoryReport = () => {
                     Hora:
                   </span>
                   <span className="text-sm">
-                    {obligatoryReport.incident_time}
+                    {obligatoryReport.incident_time?.substring(0, 5)}
                   </span>
                 </div>
               </div>
@@ -355,7 +355,7 @@ const ShowObligatoryReport = () => {
                     <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                       Hora de Vuelo
                     </span>
-                    <p className="text-sm">{obligatoryReport.flight_time}</p>
+                    <p className="text-sm">{obligatoryReport.flight_time?.substring(0, 5)}</p>
                   </div>
                   <div>
                     <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
