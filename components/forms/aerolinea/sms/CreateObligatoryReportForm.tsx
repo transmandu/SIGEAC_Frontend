@@ -153,6 +153,8 @@ export function CreateObligatoryReportForm({
         (val) => (val === null || val === undefined ? "" : val),
         z.string().optional(),
       ),
+      email: z.string().email("Email inválido").optional().nullable(),
+      phone_number: z.string().optional().nullable(),
       image: z
         .instanceof(File)
         .refine((file) => file.size <= 10 * 1024 * 1024, "Max 10MB")
@@ -253,6 +255,8 @@ export function CreateObligatoryReportForm({
         ? JSON.parse(initialData.incidents)
         : [],
       other_incidents: initialData?.other_incidents ?? "",
+      email: initialData?.email ?? null,
+      phone_number: initialData?.phone_number ?? null,
       report_date: initialData?.report_date
         ? new Date(initialData?.report_date)
         : new Date(),
@@ -294,6 +298,8 @@ export function CreateObligatoryReportForm({
           flight_alt_destiny: data.flight_alt_destiny,
           incidents: data.incidents,
           other_incidents: data.other_incidents,
+          email: data.email,
+          phone_number: data.phone_number,
         },
       };
       await updateObligatoryReport.mutateAsync(value);
@@ -318,6 +324,8 @@ export function CreateObligatoryReportForm({
         image: data.image,
         document: data.document,
         status: shouldEnableField ? "ABIERTO" : "PROCESO",
+        email: data.email,
+        phone_number: data.phone_number,
       };
 
       try {
@@ -548,6 +556,45 @@ export function CreateObligatoryReportForm({
                   </PopoverContent>
                 </Popover>
                 <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <div className="flex gap-2 items-center justify-center">
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                  <Input
+                    type="email"
+                    placeholder="correo@ejemplo.com"
+                    {...field}
+                    value={field.value ?? ""}
+                  />
+                </FormControl>
+                <FormMessage className="text-xs" />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="phone_number"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormLabel>Teléfono</FormLabel>
+                <FormControl>
+                  <Input
+                    type="tel"
+                    placeholder="Número de teléfono"
+                    {...field}
+                    value={field.value ?? ""}
+                  />
+                </FormControl>
+                <FormMessage className="text-xs" />
               </FormItem>
             )}
           />
