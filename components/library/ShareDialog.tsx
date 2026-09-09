@@ -101,15 +101,17 @@ export default function ShareDialog({
       const res = await axiosInstance.get(
         `/${company}/library/documents/${doc.id}/versions`,
       );
-      const data = res.data?.data?.versions || res.data?.data || [];
+      const data = res.data?.data?.versions ?? [];
       const list = Array.isArray(data) ? data : [];
+      // Ya vienen ordenadas de más reciente a más antigua desde el backend.
       setVersions(list);
       if (list.length > 0) {
-        const sorted = [...list].sort((a: any, b: any) => b.id - a.id);
-        setVersionId(sorted[0].id.toString());
+        setVersionId(list[0].id.toString());
       }
-    } catch {
+    } catch (error) {
+      console.error("Error al cargar versiones:", error);
       setVersions([]);
+      toast.error("No se pudieron cargar las versiones del documento");
     }
   };
 
@@ -234,13 +236,7 @@ export default function ShareDialog({
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md bg-white dark:bg-[#141618] border-slate-300 dark:border-gray-800 shadow-2xl p-0 overflow-hidden outline-none rounded-[2rem]">
         <div className="bg-white dark:bg-gray-800/30 border-b border-slate-200 dark:border-gray-800">
-          <div
-            className="px-6 py-5 flex items-center gap-2"
-            data-tour="biblioteca-share-title"
-          >
-            <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-              <Share2 className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-            </div>
+          <div className="px-6 py-5" data-tour="biblioteca-share-title">
             <DialogTitle className="text-xs font-bold text-slate-800 dark:text-white uppercase tracking-widest">
               Compartir Documento
             </DialogTitle>
@@ -340,9 +336,9 @@ export default function ShareDialog({
                       </p>
                     </div>
                   ) : (
-                    activeShares.map((share, idx) => (
+                    activeShares.map((share) => (
                       <div
-                        key={idx}
+                        key={share.id}
                         onClick={() => setSelectedShareUrl(share.share_url)}
                         className="group p-5 bg-white dark:bg-white/[0.01] border border-slate-300 dark:border-gray-800 rounded-2xl hover:border-blue-400 dark:hover:border-blue-500 transition-all cursor-pointer flex items-center justify-between shadow-sm hover:shadow-md"
                       >
@@ -473,17 +469,15 @@ export default function ShareDialog({
                         onChange={(e) => setVersionId(e.target.value)}
                         className="w-full h-11 px-4 border border-slate-300 dark:border-gray-800 rounded-2xl bg-white dark:bg-white/[0.02] text-slate-800 dark:text-white text-sm font-medium appearance-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all pr-10 cursor-pointer outline-none shadow-sm"
                       >
-                        {versions
-                          .sort((a: any, b: any) => b.id - a.id)
-                          .map((v: any) => (
-                            <option
-                              key={v.id}
-                              value={v.id}
-                              className="bg-white dark:bg-[#1a1c1e]"
-                            >
-                              {v.version_label || v.version_number}
-                            </option>
-                          ))}
+                        {versions.map((v: any) => (
+                          <option
+                            key={v.id}
+                            value={v.id}
+                            className="bg-white dark:bg-[#1a1c1e]"
+                          >
+                            {v.version_label || v.version_number}
+                          </option>
+                        ))}
                       </select>
                       <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
                     </div>

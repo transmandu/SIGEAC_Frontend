@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FolderPlus, ChevronDown, Building2 } from 'lucide-react';
+import { ChevronDown, Building2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import libraryService, { FolderNode } from '@/lib/libraryService';
 import { toast } from 'sonner';
@@ -102,17 +102,15 @@ export default function CreateFolderDialog({
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="bg-white dark:bg-[#1a1c1e] border-none text-slate-900 dark:text-white sm:max-w-[420px] rounded-2xl overflow-hidden p-0 outline-none shadow-2xl">
         <div className="bg-slate-50 dark:bg-gray-800/40 px-6 py-5 border-b border-slate-200 dark:border-gray-700">
-          <div className="flex items-center gap-2">
-            <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-              <FolderPlus className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-            </div>
-            <DialogTitle className="text-lg font-bold text-slate-800 dark:text-white tracking-tight uppercase">
-              Nueva Carpeta
-            </DialogTitle>
-          </div>
+          <DialogTitle className="text-lg font-bold text-slate-800 dark:text-white tracking-tight uppercase">
+            Nueva Carpeta
+          </DialogTitle>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-5">
+        <form
+          onSubmit={handleSubmit}
+          className="p-6 space-y-5 max-h-[65vh] overflow-y-auto"
+        >
           <div className="space-y-1.5" data-tour="biblioteca-folder-create-name">
             <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-gray-400">
               Nombre de la carpeta

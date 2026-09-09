@@ -79,16 +79,24 @@ export default function ShareRequestsPanel({
     return () => unregisterTour("biblioteca-solicitudes");
   }, [registerTour, unregisterTour, steps]);
 
+  // Solo el Director DIP aprueba o rechaza; con cualquier DIRECTOR se pintaban
+  // botones que el backend rechazaba después con 403.
   const isDipDirector = useMemo(() => {
     if (!user) return false;
+
     const isSuperUser = user.roles?.some((role: any) =>
       ["SUPERUSER", "ADMIN", "ADMINISTRADOR"].includes(role.name.toUpperCase()),
     );
-    const isDirector = user.employee?.some((emp: any) => {
-      const jobName = emp.job_title?.name?.toUpperCase() || "";
-      return jobName.includes("DIRECTOR");
-    });
-    return !!(isSuperUser || isDirector);
+
+    if (isSuperUser) return true;
+
+    return (
+      user.employee?.some((emp: any) => {
+        const isDIP = emp.department?.acronym?.toUpperCase() === "DIP";
+        const isDir = emp.job_title?.name?.toUpperCase().includes("DIRECTOR");
+        return isDIP && isDir;
+      }) ?? false
+    );
   }, [user]);
 
   const fetchRequests = useCallback(async () => {
@@ -97,8 +105,10 @@ export default function ShareRequestsPanel({
     try {
       const res = await libraryService.getShareRequests(company);
       setRequests(Array.isArray(res) ? res : res.data || []);
-    } catch {
+    } catch (error) {
+      console.error("Error al cargar solicitudes:", error);
       setRequests([]);
+      toast.error("No se pudieron cargar las solicitudes");
     } finally {
       setLoading(false);
     }
@@ -157,30 +167,10 @@ export default function ShareRequestsPanel({
     const svg = document.querySelector(
       `[data-qr-value="${url}"]`,
     ) as SVGElement;
+    // Sin el SVG en pantalla no hay QR que exportar: antes se descargaba un
+    // PNG en blanco de 1x1 y el usuario se quedaba con un archivo inservible.
     if (!svg) {
-      const tempSvg = document.createElementNS(
-        "http://www.w3.org/2000/svg",
-        "svg",
-      );
-      tempSvg.innerHTML = `<rect width="1" height="1" fill="white"/>`;
-      const svgData = new XMLSerializer().serializeToString(tempSvg);
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
-      const img = new Image();
-      img.onload = () => {
-        canvas.width = 220;
-        canvas.height = 220;
-        if (ctx) {
-          ctx.fillStyle = "white";
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
-          ctx.drawImage(img, 110, 110);
-          const link = document.createElement("a");
-          link.download = `QR_${title.replace(/[^a-zA-Z0-9]/g, "_")}.png`;
-          link.href = canvas.toDataURL("image/png");
-          link.click();
-        }
-      };
-      img.src = "data:image/svg+xml;base64," + btoa(svgData);
+      toast.error("No se pudo generar la imagen del QR. Abre el detalle e inténtalo de nuevo.");
       return;
     }
     const svgData = new XMLSerializer().serializeToString(svg);
@@ -241,9 +231,6 @@ export default function ShareRequestsPanel({
             className="flex items-center gap-2"
             data-tour="biblioteca-requests-title"
           >
-            <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-              <Share2 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-            </div>
             <div>
               <h2 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-tight">
                 Solicitudes
@@ -522,9 +509,6 @@ export default function ShareRequestsPanel({
         <DialogContent className="bg-white dark:bg-[#1a1c1e] border-none text-slate-900 dark:text-white sm:max-w-[480px] rounded-2xl overflow-hidden p-0 outline-none shadow-2xl !z-[100]">
           <div className="bg-slate-50 dark:bg-slate-800/50 px-6 py-5 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
             <div className="flex items-center gap-2">
-              <div className="p-1.5 bg-blue-100 dark:bg-blue-500/20 rounded-lg">
-                <Info className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-              </div>
               <DialogTitle className="text-lg font-bold text-slate-800 dark:text-white tracking-tight uppercase">
                 Detalles de la Solicitud
               </DialogTitle>

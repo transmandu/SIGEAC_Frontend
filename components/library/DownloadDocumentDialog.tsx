@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { Download, FileText, ChevronDown, Clock } from "lucide-react";
+import { FileText, ChevronDown, Clock } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import axiosInstance from "@/lib/axios";
 import { downloadDocumentFile } from "@/lib/Library/download-helper";
@@ -13,6 +13,7 @@ interface Version {
   id: number;
   version_number: string;
   version_label?: string;
+  file_path?: string;
   change_log: string;
   created_at: string;
 }
@@ -84,7 +85,15 @@ export const DownloadDocumentDialog = ({
       const label = isBase
         ? "VIGENTE"
         : versionObj?.version_label || versionObj?.version_number || "VERSION";
-      const fileName = `${doc.title.replace(/\s+/g, "_")}_${label}.pdf`;
+
+      // La extensión sale del archivo real: forzar .pdf dejaba los Excel sin abrir.
+      const source = isBase
+        ? doc.document || doc.file_path
+        : versionObj?.file_path;
+      const ext = String(source ?? "").split(".").pop()?.toLowerCase();
+      const safeExt = ["pdf", "xlsx", "xls"].includes(ext || "") ? ext : "pdf";
+      const safeTitle = String(doc.title ?? "documento").replace(/\s+/g, "_");
+      const fileName = `${safeTitle}_${label}.${safeExt}`;
 
       await downloadDocumentFile(url, fileName);
       toast.success("Descarga iniciada");
@@ -118,14 +127,9 @@ export const DownloadDocumentDialog = ({
           className="bg-slate-50 dark:bg-slate-800/50 px-6 py-5 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center"
           data-tour="biblioteca-download-title"
         >
-          <div className="flex items-center gap-2">
-            <div className="p-1.5 bg-blue-100 dark:bg-blue-500/20 rounded-lg">
-              <Download className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-            </div>
-            <DialogTitle className="text-lg font-bold text-slate-800 dark:text-white tracking-tight uppercase">
-              Gestión de Descarga
-            </DialogTitle>
-          </div>
+          <DialogTitle className="text-lg font-bold text-slate-800 dark:text-white tracking-tight uppercase">
+            Gestión de Descarga
+          </DialogTitle>
         </div>
 
         <div className="p-6 space-y-5">
