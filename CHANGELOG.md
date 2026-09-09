@@ -1,3 +1,7 @@
+## v3.15.0 — 2026-09-09
+
+- feat: add obligatory report pdf format (#248)
+
 ## v3.14.0 — 2026-09-09
 
 - feat: enhance dashboard modal with tooltips and error handling (#247)
