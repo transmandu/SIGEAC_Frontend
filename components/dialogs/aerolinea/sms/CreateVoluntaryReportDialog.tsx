@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -28,18 +27,17 @@ export default function CreateVoluntaryReportDialog({
   const [open, setOpen] = useState(false);
   return (
     <>
-      <Card className="flex">
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button
-              onClick={() => setOpen(true)}
-              variant="outline"
-              size="sm"
-              className="flex border-dashed"
-            >
-              {title}
-            </Button>
-          </DialogTrigger>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild>
+          <Button
+            onClick={() => setOpen(true)}
+            variant="outline"
+            size="sm"
+            className="h-9 w-full"
+          >
+            {title}
+          </Button>
+        </DialogTrigger>
 
           <DialogContent className="flex flex-col max-w-3xl max-h-[calc(100vh-10rem)] m-2 overflow-auto">
             <DialogHeader>
@@ -58,7 +56,6 @@ export default function CreateVoluntaryReportDialog({
             )}
           </DialogContent>
         </Dialog>
-      </Card>
     </>
   );
 }
