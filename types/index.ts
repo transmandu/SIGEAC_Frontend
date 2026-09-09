@@ -1070,6 +1070,8 @@ export type ObligatoryReport = {
   other_incidents: string;
   status: string;
   danger_identification: DangerIdentification;
+  email?: string | null;
+  phone_number?: string | null;
   image?: string;
   document?: string;
   imageUrl?: string;

@@ -49,7 +49,7 @@ export const columns: ColumnDef<ObligatoryReport>[] = [
       <DataTableColumnHeader filter column={column} title="Hora del Vuelo" />
     ),
     cell: ({ row }) => {
-        return <p className="font-medium text-center">{row.original.flight_time}</p>;
+        return <p className="font-medium text-center">{row.original.flight_time?.substring(0, 5)}</p>;
     },
   },
   {
@@ -58,7 +58,7 @@ export const columns: ColumnDef<ObligatoryReport>[] = [
       <DataTableColumnHeader filter column={column} title="Hora del suceso" />
     ),
     cell: ({ row }) => {
-        const incident_time = row.original.incident_time;
+        const incident_time = row.original.incident_time?.substring(0, 5);
         return <p className="font-medium text-center">{incident_time}</p>;
     },
   },

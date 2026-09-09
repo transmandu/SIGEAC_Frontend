@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -28,18 +27,17 @@ export default function CreateObligatoryReportDialog({
   const [open, setOpen] = useState(false);
   return (
     <>
-      <Card className="flex">
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button
-              onClick={() => setOpen(true)}
-              variant="outline"
-              size="sm"
-              className=" hidden h-8 lg:flex"
-            >
-              {title}
-            </Button>
-          </DialogTrigger>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild>
+          <Button
+            onClick={() => setOpen(true)}
+            variant="outline"
+            size="sm"
+            className="h-9 w-full"
+          >
+            {title}
+          </Button>
+        </DialogTrigger>
           <DialogContent className="flex flex-col max-w-2xl m-2 max-h-screen overflow-auto">
             <DialogHeader>
               <DialogTitle></DialogTitle>
@@ -57,7 +55,6 @@ export default function CreateObligatoryReportDialog({
             )}
           </DialogContent>
         </Dialog>
-      </Card>
     </>
   );
 }

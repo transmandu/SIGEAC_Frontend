@@ -2,7 +2,6 @@
 
 import { useDeleteVoluntaryReport } from "@/actions/sms/reporte_voluntario/actions";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -38,18 +37,17 @@ export default function PreviewVoluntaryReportPdfDialog({
   });
   return (
     <>
-      <Card className="flex">
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button
-              onClick={() => setOpen(true)}
-              variant="outline"
-              size="sm"
-              className=" hidden lg:flex"
-            >
-              {title}
-            </Button>
-          </DialogTrigger>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild>
+          <Button
+            onClick={() => setOpen(true)}
+            variant="outline"
+            size="sm"
+            className="h-9 w-full"
+          >
+            {title}
+          </Button>
+        </DialogTrigger>
 
           <DialogContent className="sm:max-w-[65%] max-h-[80vh]">
             <DialogHeader>
@@ -82,7 +80,6 @@ export default function PreviewVoluntaryReportPdfDialog({
             </div>
           </DialogContent>
         </Dialog>
-      </Card>
     </>
   );
 }
