@@ -1,3 +1,7 @@
+## v3.14.0 — 2026-09-09
+
+- feat: enhance dashboard modal with tooltips and error handling (#247)
+
 ## v3.13.0 — 2026-09-08
 
 - feat: enhance tool dispatch form and backdated dispatch field (#246)
