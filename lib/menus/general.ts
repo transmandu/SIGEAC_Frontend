@@ -105,6 +105,7 @@ export function buildGeneralGroup({ pathname, currentCompany, userRoles }: MenuC
                 active: pathname.includes(inventarioHref),
                 icon: PackageSearch,
                 roles: [],
+                excludedRoles: ["JEFE_ALMACEN", "ANALISTA_ALMACEN"],
                 submenus: [],
                 requiresOmac: true,
             },

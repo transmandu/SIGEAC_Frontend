@@ -6,6 +6,7 @@ export type Submenu = {
     label: string;
     active: boolean;
     roles?: string[];
+    excludedRoles?: string[];
     moduleValue?: string | string[];
     requiresOmac?: boolean;
 };
@@ -16,6 +17,7 @@ export type Menu = {
     active: boolean;
     icon: LucideIcon;
     roles?: string[];
+    excludedRoles?: string[];
     moduleValue?: string | string[];
     submenus: Submenu[];
     requiresOmac?: boolean;

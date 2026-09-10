@@ -173,6 +173,49 @@ const serializeFormValue = (value: unknown) => {
   return value?.toString() ?? "";
 };
 
+/**
+ * Vuelca el payload del artículo en un FormData.
+ *
+ * Multipart solo transporta strings y File, así que los objetos y los arrays
+ * de objetos (`dimension`, `conversions`) van como JSON en un campo plano —el
+ * backend los decodifica en prepareForValidation—. Sin esto caían en
+ * `toString()` y llegaban como "[object Object]", que el backend rechazaba con
+ * un 422 sin mensaje visible.
+ */
+const appendArticleFormData = (formData: FormData, data: Record<string, any>) => {
+  Object.entries(data).forEach(([key, value]) => {
+    if (value === undefined || value === null) return;
+
+    if (value instanceof File) {
+      formData.append(key, value);
+      return;
+    }
+
+    if (value instanceof Date) {
+      formData.append(key, serializeFormValue(value));
+      return;
+    }
+
+    if (Array.isArray(value)) {
+      if (value.some((item) => typeof item === "object" && item !== null)) {
+        formData.append(key, JSON.stringify(value));
+      } else {
+        value.forEach((item) => formData.append(`${key}[]`, serializeFormValue(item)));
+      }
+      return;
+    }
+
+    if (typeof value === "object") {
+      formData.append(key, JSON.stringify(value));
+      return;
+    }
+
+    formData.append(key, serializeFormValue(value));
+  });
+
+  return formData;
+};
+
 export type IncomingCheck = {
   check_id: number;
   result: CheckResult;
@@ -204,21 +247,8 @@ export const useCreateArticle = () => {
       company: string;
       data: ArticleData;
     }) => {
-      // Va en multipart por la imagen: los arrays se aplanan con [] y las
-      // fechas se normalizan, porque FormData solo transporta strings y File.
-      const formData = new FormData();
-
-      Object.entries(data).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          if (Array.isArray(value)) {
-            value.forEach((item) => formData.append(`${key}[]`, item));
-          } else if (value instanceof File) {
-            formData.append(key, value);
-          } else {
-            formData.append(key, serializeFormValue(value));
-          }
-        }
-      });
+      // Va en multipart por la imagen del artículo.
+      const formData = appendArticleFormData(new FormData(), data);
 
       return await axiosInstance.post(`/${company}/article`, formData);
     },
@@ -254,19 +284,7 @@ export const useCreateToReviewArticle = () => {
       company: string;
       data: ConsumableArticle | ComponentArticle | ToolArticle;
     }) => {
-      const formData = new FormData();
-
-      Object.entries(data).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          if (value instanceof File) {
-            formData.append(key, value);
-          } else if (Array.isArray(value)) {
-            value.forEach((item) => formData.append(`${key}[]`, item));
-          } else {
-            formData.append(key, serializeFormValue(value));
-          }
-        }
-      });
+      const formData = appendArticleFormData(new FormData(), data);
 
       await axiosInstance.post(`/${company}/article`, formData, {
         headers: {
@@ -769,20 +787,7 @@ export const useEditArticle = () => {
       company: string;
       data: any; // Usamos any para facilitar el mapeo de los diversos tipos
     }) => {
-      const formData = new FormData();
-
-      // Mapeo dinámico de campos al FormData
-      Object.entries(data).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          if (value instanceof File) {
-            formData.append(key, value);
-          } else if (Array.isArray(value)) {
-            value.forEach((item) => formData.append(`${key}[]`, item));
-          } else {
-            formData.append(key, serializeFormValue(value));
-          }
-        }
-      });
+      const formData = appendArticleFormData(new FormData(), data);
 
       return await axiosInstance.post(
         `/${company}/update-article/${data.id}`,
@@ -833,34 +838,7 @@ export const useUpdateArticle = () => {
       company: string;
       data: Record<string, any>;
     }) => {
-      const formData = new FormData();
-
-      Object.entries(data).forEach(([key, value]) => {
-        if (value === undefined || value === null) return;
-
-        // Files
-        if (value instanceof File) {
-          formData.append(key, value);
-          return;
-        }
-
-        // Arrays
-        if (Array.isArray(value)) {
-          value.forEach((item) => {
-            formData.append(`${key}[]`, item);
-          });
-          return;
-        }
-
-        // Objects (ej: unit, nested data)
-        if (typeof value === "object") {
-          formData.append(key, JSON.stringify(value));
-          return;
-        }
-
-        // Primitives
-        formData.append(key, serializeFormValue(value));
-      });
+      const formData = appendArticleFormData(new FormData(), data);
 
       return await axiosInstance.post(
         `/${company}/update-article/${id}`,
