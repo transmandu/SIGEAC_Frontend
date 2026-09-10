@@ -159,7 +159,7 @@ export default function StatusCellWithPopover({ tool }: Props) {
                                                                     mode="single"
                                                                     selected={field.value}
                                                                     onSelect={(d) => form.setValue('calibration_date', d!)}
-                                                                    initialFocus
+                                                                    autoFocus
                                                                     month={field.value}
                                                                 />
                                                             </PopoverContent>

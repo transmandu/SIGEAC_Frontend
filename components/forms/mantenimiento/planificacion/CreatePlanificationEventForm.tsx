@@ -242,7 +242,7 @@ const CreatePlanificationEventForm = ({
                           field.onChange(newDateTime)
                         }
                       }}
-                      initialFocus
+                      autoFocus
                     />
                   </PopoverContent>
                 </Popover>
@@ -311,7 +311,7 @@ const CreatePlanificationEventForm = ({
                           field.onChange(newDateTime)
                         }
                       }}
-                      initialFocus
+                      autoFocus
                     />
                   </PopoverContent>
                 </Popover>

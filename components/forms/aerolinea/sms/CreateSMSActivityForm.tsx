@@ -349,20 +349,10 @@ export default function CreateSMSActivityForm({
                       selected={field.value}
                       onSelect={field.onChange}
                       disabled={false}
-                      initialFocus
-                      fromYear={1988}
-                      toYear={new Date().getFullYear() + 5}
-                      captionLayout="dropdown-buttons"
-                      components={{
-                        Dropdown: (props) => (
-                          <select
-                            {...props}
-                            className="bg-popover text-popover-foreground"
-                          >
-                            {props.children}
-                          </select>
-                        ),
-                      }}
+                      autoFocus
+                      startMonth={new Date(1988, 0)}
+                      endMonth={new Date(new Date().getFullYear() + 5, 11)}
+                      captionLayout="dropdown"
                     />
                   </PopoverContent>
                 </Popover>
@@ -404,20 +394,10 @@ export default function CreateSMSActivityForm({
                       selected={field.value}
                       onSelect={field.onChange}
                       disabled={false}
-                      initialFocus
-                      fromYear={1988}
-                      toYear={new Date().getFullYear() + 5}
-                      captionLayout="dropdown-buttons"
-                      components={{
-                        Dropdown: (props) => (
-                          <select
-                            {...props}
-                            className="bg-popover text-popover-foreground"
-                          >
-                            {props.children}
-                          </select>
-                        ),
-                      }}
+                      autoFocus
+                      startMonth={new Date(1988, 0)}
+                      endMonth={new Date(new Date().getFullYear() + 5, 11)}
+                      captionLayout="dropdown"
                     />
                   </PopoverContent>
                 </Popover>

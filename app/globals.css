@@ -2,10 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* 1. IMPORTS DE LA LIBRERÍA PDF 
-*/
-@import '@react-pdf-viewer/core/lib/styles/index.css';
-@import '@react-pdf-viewer/default-layout/lib/styles/index.css';
 
 @layer base {
   :root {

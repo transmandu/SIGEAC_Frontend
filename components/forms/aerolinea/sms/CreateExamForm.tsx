@@ -122,10 +122,10 @@ export function CreateExamForm({ onClose, courseId }: FormProps) {
                       mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
-                      initialFocus
-                      fromYear={1980}
-                      toYear={new Date().getFullYear() + 5}
-                      captionLayout="dropdown-buttons"
+                      autoFocus
+                      startMonth={new Date(1980, 0)}
+                      endMonth={new Date(new Date().getFullYear() + 5, 11)}
+                      captionLayout="dropdown"
                     />
                   </PopoverContent>
                 </Popover>

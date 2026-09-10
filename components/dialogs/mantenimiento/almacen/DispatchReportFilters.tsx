@@ -483,7 +483,7 @@ export function DispatchReportFilters({
                     : 1
                 }
                 showOutsideDays={false}
-                toMonth={new Date()}
+                endMonth={new Date()}
                 locale={es}
                 disabled={(d) => d > new Date()}
                 className={cn(
@@ -496,7 +496,7 @@ export function DispatchReportFilters({
                   "[&_.rdp-day_range_end]:bg-slate-300"
                 )}
                 formatters={{
-                  formatMonthCaption: (date) =>
+                  formatCaption: (date) =>
                     format(date, "MMMM yyyy", { locale: es }).toUpperCase(),
                 }}
               />

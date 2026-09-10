@@ -318,10 +318,10 @@ export function CreateMeetingMinuteForm({
                             mode="single"
                             selected={field.value}
                             onSelect={field.onChange}
-                            initialFocus
-                            fromYear={2020}
-                            toYear={new Date().getFullYear() + 1}
-                            captionLayout="dropdown-buttons"
+                            autoFocus
+                            startMonth={new Date(2020, 0)}
+                            endMonth={new Date(new Date().getFullYear() + 1, 11)}
+                            captionLayout="dropdown"
                           />
                         </PopoverContent>
                       </Popover>

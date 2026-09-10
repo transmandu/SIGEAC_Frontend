@@ -475,10 +475,10 @@ function CostDateButton({
                         if (!date) return
                         onChange(format(date, "yyyy-MM-dd"))
                     }}
-                    initialFocus
-                    fromYear={1900}
-                    toYear={new Date().getFullYear() + 1}
-                    captionLayout="dropdown-buttons"
+                    autoFocus
+                    startMonth={new Date(1900, 0)}
+                    endMonth={new Date(new Date().getFullYear() + 1, 11)}
+                    captionLayout="dropdown"
                     disabled={(date) => date > new Date()}
                 />
             </PopoverContent>

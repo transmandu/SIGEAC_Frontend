@@ -389,7 +389,7 @@ function ConfirmIntakeAction({ intake }: { intake: GeneralArticleIntake }) {
                                         selected={confirmedAt}
                                         onSelect={handleDateSelect}
                                         locale={es}
-                                        initialFocus
+                                        autoFocus
                                         disabled={arrivedAt ? { before: arrivedAt } : undefined}
                                     />
                                 </PopoverContent>

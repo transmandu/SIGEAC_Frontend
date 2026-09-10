@@ -284,10 +284,10 @@ export function DatePickerField({
                 mode="single"
                 selected={value || undefined}
                 onSelect={handleCalendarSelect}
-                initialFocus
-                fromYear={1900}
-                toYear={maxYear ?? new Date().getFullYear() + 20}
-                captionLayout="dropdown-buttons"
+                autoFocus
+                startMonth={new Date(1900, 0)}
+                endMonth={new Date(maxYear ?? new Date().getFullYear() + 20, 11)}
+                captionLayout="dropdown"
               />
             </PopoverContent>
           </Popover>

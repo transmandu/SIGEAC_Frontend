@@ -502,7 +502,7 @@ const DateTimeField = ({
               selected={value ?? undefined}
               onSelect={handleDateSelect}
               locale={es}
-              initialFocus
+              autoFocus
             />
           </PopoverContent>
         </Popover>

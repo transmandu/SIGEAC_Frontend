@@ -384,7 +384,7 @@ export default function RegisterGeneralArticlesDeliveryDialog({
                     selected={arrivedAt}
                     onSelect={handleDateSelect}
                     locale={es}
-                    initialFocus
+                    autoFocus
                   />
                 </PopoverContent>
               </Popover>

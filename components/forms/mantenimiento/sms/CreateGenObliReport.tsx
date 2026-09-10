@@ -275,17 +275,10 @@ export function CreateGenObliReport({
                           mode="single"
                           selected={field.value}
                           onSelect={field.onChange}
-                          initialFocus
-                          fromYear={1980}
-                          toYear={new Date().getFullYear()}
-                          captionLayout="dropdown-buttons"
-                          components={{
-                            Dropdown: (props) => (
-                              <select {...props} className="bg-popover text-popover-foreground">
-                                {props.children}
-                              </select>
-                            ),
-                          }}
+                          autoFocus
+                          startMonth={new Date(1980, 0)}
+                          endMonth={new Date(new Date().getFullYear(), 11)}
+                          captionLayout="dropdown"
                         />
                       </PopoverContent>
                     </Popover>
@@ -348,17 +341,10 @@ export function CreateGenObliReport({
                           mode="single"
                           selected={field.value}
                           onSelect={field.onChange}
-                          initialFocus
-                          fromYear={1980}
-                          toYear={new Date().getFullYear()}
-                          captionLayout="dropdown-buttons"
-                          components={{
-                            Dropdown: (props) => (
-                              <select {...props} className="bg-popover text-popover-foreground">
-                                {props.children}
-                              </select>
-                            ),
-                          }}
+                          autoFocus
+                          startMonth={new Date(1980, 0)}
+                          endMonth={new Date(new Date().getFullYear(), 11)}
+                          captionLayout="dropdown"
                         />
                       </PopoverContent>
                     </Popover>

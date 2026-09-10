@@ -283,7 +283,7 @@ export default function CreateCargoShipmentForm({
                           setOpenCalendar(false);
                         }}
                         disabled={calendarDisabledDates}
-                        initialFocus
+                        autoFocus
                       />
                     </PopoverContent>
                   </Popover>

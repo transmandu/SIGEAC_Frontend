@@ -23,7 +23,6 @@ import {
 } from "@/components/ui/table";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Button } from "react-day-picker";
 import CreateMitigationMeasureDialog from "@/components/dialogs/aerolinea/sms/CreateMitigationMeasureDialog";
 
 interface DataTableProps<TData, TValue> {

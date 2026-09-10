@@ -372,20 +372,10 @@ export function CreateVoluntaryReportForm({
                         mode="single"
                         selected={field.value}
                         onSelect={field.onChange}
-                        initialFocus
-                        fromYear={2000}
-                        toYear={new Date().getFullYear()}
-                        captionLayout="dropdown-buttons"
-                        components={{
-                          Dropdown: (props) => (
-                            <select
-                              {...props}
-                              className="bg-popover text-popover-foreground"
-                            >
-                              {props.children}
-                            </select>
-                          ),
-                        }}
+                        autoFocus
+                        startMonth={new Date(2000, 0)}
+                        endMonth={new Date(new Date().getFullYear(), 11)}
+                        captionLayout="dropdown"
                       />
                     </PopoverContent>
                   </Popover>
@@ -423,20 +413,10 @@ export function CreateVoluntaryReportForm({
                         mode="single"
                         selected={field.value}
                         onSelect={field.onChange}
-                        initialFocus
-                        fromYear={2000}
-                        toYear={new Date().getFullYear()}
-                        captionLayout="dropdown-buttons"
-                        components={{
-                          Dropdown: (props) => (
-                            <select
-                              {...props}
-                              className="bg-popover text-popover-foreground"
-                            >
-                              {props.children}
-                            </select>
-                          ),
-                        }}
+                        autoFocus
+                        startMonth={new Date(2000, 0)}
+                        endMonth={new Date(new Date().getFullYear(), 11)}
+                        captionLayout="dropdown"
                       />
                     </PopoverContent>
                   </Popover>
