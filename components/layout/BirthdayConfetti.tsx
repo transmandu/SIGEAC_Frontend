@@ -6,16 +6,16 @@ import Confetti from "react-confetti";
 import { toast } from "sonner";
 
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { useGetMyBirthdayToday } from "@/hooks/general/calendario/useGetMyBirthdayToday";
+import { useGetMyBirthdayToday } from "@/hooks/sistema/usuario/useGetMyBirthdayToday";
 
 const SESSION_KEY = "sigeac_birthday_confetti_shown";
 const DURATION_MS = 6000;
 
 /**
- * El cumpleaños del calendario ya es "anual" (mismo mes/día, el año no
- * importa) — esto es la versión festiva de esa misma regla: si hoy coincide,
- * dos cañones de confeti desde las esquinas inferiores apuntando al centro,
- * una sola vez por sesión (no se repite en cada navegación).
+ * Saludo al usuario cuando entra en su cumpleaños: dos cañones de confeti
+ * desde las esquinas inferiores apuntando al centro, una sola vez por sesión
+ * (el sessionStorage evita repetirlo en cada navegación — la consulta en sí
+ * no se cachea, porque su respuesta cambia a la medianoche).
  */
 export default function BirthdayConfetti() {
   const { selectedCompany } = useCompanyStore();

@@ -6,7 +6,7 @@ import { Settings } from "lucide-react";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/contexts/AuthContext";
+import { useIsSuperuser } from "@/hooks/helpers/useIsSuperuser";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { EventCalendar } from "./_components/EventCalendar";
@@ -24,9 +24,8 @@ const glassButtonClass = cn(
 );
 
 const EventCalendarPage = () => {
-  const { user } = useAuth();
   const { selectedCompany } = useCompanyStore();
-  const isSuperuser = (user?.roles ?? []).some((role) => role.name === "SUPERUSER");
+  const isSuperuser = useIsSuperuser();
 
   return (
     <ContentLayout title="Calendario de Eventos">

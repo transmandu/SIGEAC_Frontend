@@ -167,12 +167,14 @@ export function ManualEventsPanel({ company }: ManualEventsPanelProps) {
                   pegado al overflow-hidden del wrapper de Radix y se corta. */}
               <AccordionContent className="px-4 pb-4 !pt-2">
                 <p className="mb-2 text-xs font-medium text-muted-foreground">Quién lo ve</p>
+                {/* A diferencia de las fuentes de sistema, un evento manual
+                    sin reglas lo ve todo el mundo — el editor lo dice solo. */}
                 <VisibilityRulesEditor
                   company={company}
                   subject={{ calendarEventId: event.id }}
                   rules={rulesByEvent[event.id] ?? []}
                   isLoading={isLoadingRules}
-                  hint="Sin ninguna regla acá, este evento es visible para todos."
+                  visibilityDefault="allow"
                 />
               </AccordionContent>
             </AccordionItem>

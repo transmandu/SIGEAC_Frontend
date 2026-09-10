@@ -21,15 +21,16 @@ const ACCORDION_ITEM_CLASS =
   "rounded-xl !border !border-slate-400/40 bg-gradient-to-br from-background/70 to-background/40 backdrop-blur-md shadow-sm dark:!border-slate-600/40";
 
 /**
- * Cumpleaños es la única fuente con un default "allow dentro del árbol
- * propio" — sus reglas son una elevación, no el único portón. El resto es
- * deny por defecto: sin reglas, nadie más que SUPERUSER las ve.
+ * El comportamiento sin reglas (deny/allow/own) lo declara cada provider y
+ * VisibilityRulesEditor lo muestra solo. Acá quedan únicamente las fuentes
+ * cuyo default 'own' necesita explicar CUÁL es su regla propia — eso sí es
+ * conocimiento del módulo, no algo derivable del enum.
  */
 const SOURCE_HINTS: Record<string, string> = {
   employee_birthday:
-    "Por defecto, cada quien ya ve los cumpleaños de su propio departamento y su árbol. Las reglas de acá son una EXCEPCIÓN que eleva a ver TODOS los cumpleaños (ej. Presidencia, RRHH).",
+    "Cada quien ya ve los cumpleaños de su propio departamento y su árbol. Las reglas de acá son una EXCEPCIÓN que eleva a ver TODOS los cumpleaños (ej. Presidencia, RRHH).",
   sms_course:
-    "Los cursos no se configuran acá: los ve quien esté afiliado a SMS Y esté inscrito en ese curso puntual — no requiere reglas.",
+    "Los ve quien esté afiliado a SMS Y esté inscrito en ese curso puntual. La inscripción real manda: no hace falta configurar reglas acá.",
 };
 
 interface SourceAccessPanelProps {
@@ -92,6 +93,7 @@ export function SourceAccessPanel({ company }: SourceAccessPanelProps) {
               subject={{ sourceKey: source.key }}
               rules={rulesBySource[source.key] ?? []}
               isLoading={isLoadingRules}
+              visibilityDefault={source.visibility_default}
               hint={SOURCE_HINTS[source.key]}
             />
           </AccordionContent>

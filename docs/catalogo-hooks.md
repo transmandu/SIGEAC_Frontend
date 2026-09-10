@@ -342,7 +342,6 @@ Los marcados `_(useMutation)_` son las lecturas a demanda de la [sección 5](#5-
 | `useGetCalendarEventTypes` | `general/calendario/useGetCalendarEventTypes.ts` | ["calendar-event-types", company] | `—` |
 | `useGetManualCalendarEvents` | `general/calendario/useGetManualCalendarEvents.ts` | ["calendar-manual-events", company] | `—` |
 | `useGetAllCalendarVisibilityRules` | `general/calendario/useGetAllCalendarVisibilityRules.ts` | ["calendar-visibility-rules", "all", company] | `—` |
-| `useGetMyBirthdayToday` | `general/calendario/useGetMyBirthdayToday.ts` | ["my-birthday-today", company] | `—` |
 | `useGetClientByDni` | `general/clientes/useGetClientByDni.ts` | ["clients", company, dni] | `—` |
 | `useGetClientAddBalanceById` | `general/clientes/useGetClientUpdateBalanceById.ts` | ["balance", company , id ] | `—` |
 | `useGetClients` | `general/clientes/useGetClients.ts` | ["clients", company] | `—` |
@@ -493,6 +492,7 @@ Los marcados `_(useMutation)_` son las lecturas a demanda de la [sección 5](#5-
 | `useUserLocationsByCompanyId` | `sistema/usuario/useGetUserLocationsByCompanyId.ts` | — | `—` |
 | `useGetUsers` | `sistema/usuario/useGetUsers.ts` | ['users'] | `—` |
 | `useMyEmployee` | `sistema/usuario/useMyEmployee.ts` | ["me-employee", companySlug, user?.id] | `—` |
+| `useGetMyBirthdayToday` | `sistema/usuario/useGetMyBirthdayToday.ts` | ["my-birthday-today", company] | `—` |
 | `useRequestPasswordReset` | `sistema/usuario/usePasswordResetRequests.ts` | _(useMutation)_ | `/password-reset-requests` |
 | `usePendingPasswordResets` | `sistema/usuario/usePasswordResetRequests.ts` | ["password-reset-requests", "pending"] | `/password-reset-requests/pending` |
 | `usePasswordResetRequests` | `sistema/usuario/usePasswordResetRequests.ts` | ["password-reset-requests", status ?? "all"] | `/password-reset-requests` |

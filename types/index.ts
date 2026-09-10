@@ -673,9 +673,15 @@ export type CalendarEventType = {
   updated_by?: string;
 };
 
+/** Cómo se comporta una fuente sin ninguna regla configurada. */
+export type CalendarVisibilityDefault = "deny" | "allow" | "own";
+
 export type CalendarEventSourceInfo = {
   key: string;
   label: string;
+  /** Etiqueta genérica que pinta la celda del mes; la manda el provider, no el cliente. */
+  short_label: string;
+  visibility_default: CalendarVisibilityDefault;
 };
 
 export type CalendarVisibilityScopeType = "SOURCE" | "EVENT";
@@ -1062,6 +1068,13 @@ export type User = {
   last_name: string;
   email: string;
   isActive: boolean;
+  /**
+   * Única fuente de verdad del rol SUPERUSER: la calcula el backend
+   * (User::isAdmin) y viaja en el payload del usuario autenticado. No derivar
+   * SUPERUSER recorriendo `roles` — es un rol GLOBAL (company_id null) y esa
+   * segunda fórmula puede separarse de la del backend. Ver useIsSuperuser().
+   */
+  is_superuser?: boolean;
   roles?: {
     id: number;
     name: string;

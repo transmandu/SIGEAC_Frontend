@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Check, ChevronsUpDown, Loader2, Plus, Trash2, UserX, Users } from "lucide-react";
+import { Check, ChevronsUpDown, Eye, EyeOff, Loader2, Plus, ShieldCheck, Trash2, UserX, Users } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
@@ -34,7 +34,7 @@ import {
   useCreateCalendarVisibilityRule,
   useDeleteCalendarVisibilityRule,
 } from "@/actions/general/calendario/actions";
-import { CalendarVisibilityGrantType, CalendarVisibilityRule } from "@/types";
+import { CalendarVisibilityDefault, CalendarVisibilityGrantType, CalendarVisibilityRule } from "@/types";
 
 const GRANT_LABELS: Record<CalendarVisibilityGrantType, string> = {
   DEPARTMENT: "Departamento",
@@ -42,6 +42,31 @@ const GRANT_LABELS: Record<CalendarVisibilityGrantType, string> = {
   USER: "Usuario puntual",
   EXCLUDE_USER: "Excluir usuario",
   ALL: "Todos",
+};
+
+/**
+ * Qué pasa SIN reglas. No es el mismo default en todas partes — las fuentes de
+ * sistema son deny y los eventos manuales allow — y esa asimetría no puede ser
+ * un comportamiento invisible: se dice siempre, con o sin reglas cargadas. El
+ * valor lo declara cada provider en el backend (visibilityDefault), no se
+ * adivina acá por la clave de la fuente.
+ */
+const DEFAULT_META: Record<CalendarVisibilityDefault, { icon: typeof Eye; label: string; className: string }> = {
+  deny: {
+    icon: EyeOff,
+    label: "Sin reglas, solo el SUPERUSER lo ve. Cada regla que agregues ABRE el acceso.",
+    className: "border-amber-500/40 bg-amber-500/5 text-amber-700 dark:text-amber-400",
+  },
+  allow: {
+    icon: Eye,
+    label: "Sin reglas, lo ve TODO EL MUNDO. La primera regla que agregues lo restringe a quien nombres.",
+    className: "border-blue-500/40 bg-blue-500/5 text-blue-700 dark:text-blue-400",
+  },
+  own: {
+    icon: ShieldCheck,
+    label: "Esta fuente decide sola quién la ve.",
+    className: "border-slate-400/40 bg-background/40 text-muted-foreground dark:border-slate-600/40",
+  },
 };
 
 const NEEDS_DEPARTMENT: CalendarVisibilityGrantType[] = ["DEPARTMENT", "DEPARTMENT_TREE"];
@@ -52,11 +77,20 @@ interface VisibilityRulesEditorProps {
   subject: { sourceKey?: string; calendarEventId?: number };
   rules: CalendarVisibilityRule[];
   isLoading: boolean;
-  /** Si es cumpleaños, las reglas son una ELEVACIÓN sobre el árbol propio, no el único portón — se lo aclaramos al usuario. */
+  /** Comportamiento sin ninguna regla; lo declara el provider. */
+  visibilityDefault: CalendarVisibilityDefault;
+  /** Detalle propio de la fuente, cuando su regla base necesita explicarse (ej. cumpleaños, cursos). */
   hint?: string;
 }
 
-export function VisibilityRulesEditor({ company, subject, rules, isLoading, hint }: VisibilityRulesEditorProps) {
+export function VisibilityRulesEditor({
+  company,
+  subject,
+  rules,
+  isLoading,
+  visibilityDefault,
+  hint,
+}: VisibilityRulesEditorProps) {
   const [grantType, setGrantType] = useState<CalendarVisibilityGrantType>("DEPARTMENT");
   const [departmentId, setDepartmentId] = useState<string>("");
   const [userSearchOpen, setUserSearchOpen] = useState(false);
@@ -108,13 +142,23 @@ export function VisibilityRulesEditor({ company, subject, rules, isLoading, hint
     return user ? `${user.first_name} ${user.last_name} (${user.username})` : `Usuario #${rule.user_id}`;
   };
 
+  const defaultMeta = DEFAULT_META[visibilityDefault];
+  const DefaultIcon = defaultMeta.icon;
+
   return (
     <div className="flex flex-col gap-4">
-      {hint && (
-        <p className="rounded-lg border border-slate-400/30 bg-background/40 px-3 py-2 text-xs leading-relaxed text-muted-foreground dark:border-slate-600/30">
-          {hint}
-        </p>
-      )}
+      <div
+        className={cn(
+          "flex items-start gap-2 rounded-lg border px-3 py-2 text-xs leading-relaxed",
+          defaultMeta.className,
+        )}
+      >
+        <DefaultIcon className="mt-0.5 size-3.5 shrink-0" />
+        <div className="flex flex-col gap-1">
+          <span>{defaultMeta.label}</span>
+          {hint && <span className="text-muted-foreground">{hint}</span>}
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
         <Select value={grantType} onValueChange={(value) => setGrantType(value as CalendarVisibilityGrantType)}>

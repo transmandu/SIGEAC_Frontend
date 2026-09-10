@@ -13,7 +13,8 @@ import { createResizePlugin } from "@schedule-x/resize";
 import "@schedule-x/theme-shadcn/dist/index.css";
 import { endOfMonth, format, isSameDay, startOfMonth } from "date-fns";
 import { es } from "date-fns/locale";
-import { CalendarClock, CalendarX2, ListFilter, NotebookText, PencilLine } from "lucide-react";
+import { ArrowUpRight, CalendarClock, CalendarX2, ListFilter, NotebookText, PencilLine } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useGetCalendarEvents } from "@/hooks/general/calendario/useGetCalendarEvents";
 import { useGetCalendarEventSources } from "@/hooks/general/calendario/useGetCalendarEventSources";
+import { useIsSuperuser } from "@/hooks/helpers/useIsSuperuser";
 import { useUpdateCalendarEvent, useDeleteCalendarEvent } from "@/actions/general/calendario/actions";
 import { dateToPlainDateLocal, dateToZonedDateTime, temporalToDate } from "@/lib/scheduleXTemporal";
 import { cn } from "@/lib/utils";
@@ -94,13 +96,14 @@ const DEFAULT_EVENT_COLOR = "#8b5cf6";
  * vive en el clic (eventModal, sigue usando el título completo) y en la
  * lista lateral. Por eso acá se pinta una etiqueta corta y genérica, nunca
  * el título completo que arma el backend.
+ *
+ * Esas etiquetas llegan en `short_label` de GET /calendar-event-sources: las
+ * declara cada provider. Antes eran un mapa cableado acá, así que registrar
+ * una fuente nueva en el backend (que es todo lo que el diseño pide) dejaba
+ * sus eventos sin etiqueta y sin color propio, pintados con el azul de tema
+ * de Schedule-X, hasta que alguien se acordara de tocar también el cliente.
  */
-const GRID_SHORT_LABEL: Record<string, string> = {
-  employee_birthday: "🎂 Cumpleaños",
-  sms_course: "Curso SMS",
-  maintenance_control: "Vencimiento Mtto.",
-  work_order: "Orden de Trabajo",
-};
+type ShortLabels = Record<string, string>;
 
 /** Punto de color + etiqueta corta, para "marker" (siempre "Vencimiento", nunca el detalle puntual). */
 function monthGridDot(color: string, label: string): string {
@@ -151,7 +154,7 @@ function coloredEventCard(color: string, label: string): string {
   );
 }
 
-function toScheduleXEvents(events: LocalCalendarEvent[]): ScheduleXEvent[] {
+function toScheduleXEvents(events: LocalCalendarEvent[], shortLabels: ShortLabels): ScheduleXEvent[] {
   return events.map((event) => {
     // all_day usa los componentes LOCALES del Date (dateToPlainDateLocal), no
     // un huso horario: event.start/end ya se armaron con esos mismos
@@ -172,25 +175,24 @@ function toScheduleXEvents(events: LocalCalendarEvent[]): ScheduleXEvent[] {
     };
 
     if (event.display === "marker") {
-      // "Vencimiento", no el consumible puntual — ese detalle vive en la
-      // lista lateral y al hacer clic. calendarId lo pinta sutil (ver
-      // `calendars` en useNextCalendarApp) para que no ocupe una barra
+      // Etiqueta corta de su fuente, no el consumible puntual — ese detalle
+      // vive en la lista lateral y al hacer clic. calendarId lo pinta sutil
+      // (ver `calendars` en useNextCalendarApp) para que no ocupe una barra
       // completa como un evento real.
-      scheduleXEvent._customContent = { monthGrid: monthGridDot(event.color ?? "currentColor", "Vencimiento") };
+      const label = (event.sourceKey && shortLabels[event.sourceKey]) || "Vencimiento";
+      scheduleXEvent._customContent = { monthGrid: monthGridDot(event.color ?? "currentColor", label) };
       scheduleXEvent.calendarId = MARKER_CALENDAR_ID;
-    } else if (event.sourceKey && GRID_SHORT_LABEL[event.sourceKey]) {
-      // Etiqueta genérica del tipo ("🎂 Cumpleaños"), no el detalle puntual —
-      // ese vive en la lista lateral y al hacer clic. calendarId con
-      // container transparente: si no, el azul de tema de Schedule-X se ve
-      // detrás del color propio y los mezcla.
-      scheduleXEvent._customContent = {
-        monthGrid: coloredEventCard(event.color ?? DEFAULT_EVENT_COLOR, GRID_SHORT_LABEL[event.sourceKey]),
-      };
-      scheduleXEvent.calendarId = CUSTOM_CALENDAR_ID;
-    } else if (!event.sourceKey) {
-      // Evento manual: su propio color si tiene tipo asignado, si no el
-      // morado por defecto — nunca el azul de tema de Schedule-X.
-      scheduleXEvent._customContent = { monthGrid: coloredEventCard(event.color ?? DEFAULT_EVENT_COLOR, event.title) };
+    } else {
+      // Fuente de sistema: la etiqueta genérica de su provider ("🎂
+      // Cumpleaños"). Evento manual (sin sourceKey): su propio título, que
+      // ya es el que escribió una persona. El fallback al título cubre una
+      // fuente cuyo short_label todavía no llegó — antes ese caso se quedaba
+      // sin _customContent y sin calendarId, y Schedule-X lo pintaba con el
+      // azul de su tema.
+      const label = (event.sourceKey && shortLabels[event.sourceKey]) || event.title;
+      // calendarId con container transparente: si no, el azul de tema de
+      // Schedule-X se ve detrás del color propio y los mezcla.
+      scheduleXEvent._customContent = { monthGrid: coloredEventCard(event.color ?? DEFAULT_EVENT_COLOR, label) };
       scheduleXEvent.calendarId = CUSTOM_CALENDAR_ID;
     }
 
@@ -216,8 +218,13 @@ function formatModalDateRange(start: Date, end: Date, allDay: boolean): string {
 
 export function EventCalendar() {
   const { resolvedTheme } = useTheme();
+  const router = useRouter();
   const { selectedCompany } = useCompanyStore();
   const companySlug = selectedCompany?.slug;
+  // Hoy solo SUPERUSER crea eventos manuales, así que es el único que puede
+  // llegar a tener uno propio que arrastrar. El backend sigue siendo quien
+  // decide evento por evento (`editable`): esto solo habilita el gesto.
+  const canEdit = useIsSuperuser();
 
   const [visibleRange, setVisibleRange] = useState<{ start: Date; end: Date }>(() => ({
     start: startOfMonth(new Date()),
@@ -227,12 +234,21 @@ export function EventCalendar() {
   const [editingEvent, setEditingEvent] = useState<LocalCalendarEvent | undefined>();
   const [hiddenSourceKeys, setHiddenSourceKeys] = useState<Set<string>>(new Set());
 
+  // Días de calendario, no instantes: el backend recorta por día y así dos
+  // visitas al mismo mes comparten la misma entrada de caché — ver
+  // useGetCalendarEvents.
   const { data: eventDtos = [] } = useGetCalendarEvents(
     companySlug,
-    visibleRange.start.toISOString(),
-    visibleRange.end.toISOString(),
+    format(visibleRange.start, "yyyy-MM-dd"),
+    format(visibleRange.end, "yyyy-MM-dd"),
   );
-  const { data: sources = [] } = useGetCalendarEventSources(companySlug);
+  // Las etiquetas cortas de la grilla salen de acá, así que hasta que llegue
+  // no hay con qué rotular: se espera para no pintar primero el título largo
+  // y cambiarlo a la etiqueta corta un instante después. `&& !!companySlug`
+  // porque en react-query v5 una query deshabilitada queda en isPending para
+  // siempre — sin eso, un slug ausente dejaría el calendario vacío sin fin.
+  const { data: sources = [], isPending } = useGetCalendarEventSources(companySlug);
+  const isLoadingSources = isPending && !!companySlug;
   const { updateCalendarEvent } = useUpdateCalendarEvent();
   const { deleteCalendarEvent } = useDeleteCalendarEvent();
 
@@ -262,6 +278,26 @@ export function EventCalendar() {
     return labels;
   }, [sources]);
 
+  // La versión corta, para la celda del mes — la declara cada provider.
+  const shortLabels = useMemo<ShortLabels>(() => {
+    const labels: ShortLabels = {};
+    for (const source of sources) labels[source.key] = source.short_label;
+    return labels;
+  }, [sources]);
+
+  /**
+   * Los eventos de sistema traen la `url` de su módulo dueño ya construida,
+   * pero SIN el prefijo de empresa: el slug es del cliente (cada quien está
+   * parado en la suya), el backend no tiene por qué saberlo.
+   */
+  const openEventUrl = useCallback(
+    (url: string) => {
+      if (!companySlug) return;
+      router.push(`/${companySlug}${url}`);
+    },
+    [companySlug, router],
+  );
+
   const availableFilterKeys = useMemo(() => {
     const keys = new Set<string>();
     for (const event of events) keys.add(event.sourceKey ?? MANUAL_SOURCE_KEY);
@@ -278,8 +314,11 @@ export function EventCalendar() {
   };
 
   const visibleEvents = useMemo(
-    () => events.filter((event) => !hiddenSourceKeys.has(event.sourceKey ?? MANUAL_SOURCE_KEY)),
-    [events, hiddenSourceKeys],
+    () =>
+      isLoadingSources
+        ? []
+        : events.filter((event) => !hiddenSourceKeys.has(event.sourceKey ?? MANUAL_SOURCE_KEY)),
+    [events, hiddenSourceKeys, isLoadingSources],
   );
 
   const eventsServiceRef = useRef(createEventsServicePlugin());
@@ -289,8 +328,8 @@ export function EventCalendar() {
   // congelado en el primer render — cuando `visibleEvents` todavía es [] y
   // `companySlug` puede ser undefined. Sin este ref, onEventUpdate nunca
   // encontraba el evento arrastrado y el cambio se perdía en silencio.
-  const latest = useRef({ visibleEvents, companySlug, updateCalendarEvent });
-  latest.current = { visibleEvents, companySlug, updateCalendarEvent };
+  const latest = useRef({ visibleEvents, companySlug, updateCalendarEvent, shortLabels });
+  latest.current = { visibleEvents, companySlug, updateCalendarEvent, shortLabels };
 
   // Mismo motivo, para los customComponents: el efecto que monta el
   // calendario en @schedule-x/react depende de la IDENTIDAD del objeto
@@ -307,9 +346,28 @@ export function EventCalendar() {
   }>({ events, sourceLabels, currentMonth: { start: visibleRange.start, end: visibleRange.end } });
 
   const eventModal = useMemo(() => createEventModalPlugin(), []);
-  const dragAndDrop = useMemo(() => createDragAndDropPlugin(), []);
-  const resizePlugin = useMemo(() => createResizePlugin(15), []);
-  const scheduleXEvents = useMemo(() => toScheduleXEvents(visibleEvents), [visibleEvents]);
+  const scheduleXEvents = useMemo(
+    () => toScheduleXEvents(visibleEvents, shortLabels),
+    [visibleEvents, shortLabels],
+  );
+
+  /**
+   * Arrastrar y redimensionar SOLO para quien puede escribir. Antes los dos
+   * plugins se registraban siempre: cualquier usuario podía arrastrar un
+   * evento, y onEventUpdate lo devolvía a su sitio de un salto, sin decir por
+   * qué — un botón muerto con otra forma.
+   *
+   * Se decide por rol y no por "¿hay algún evento editable?" porque el
+   * calendario se construye UNA sola vez (useNextCalendarApp, deps []) y en
+   * ese momento todavía no llegaron los eventos; el rol sí está resuelto.
+   * onEventUpdate mantiene igual su verificación por evento: el rol habilita
+   * el gesto, `editable` (del backend, ya sea SUPERUSER o autor) decide sobre
+   * cuál se guarda.
+   */
+  const editingPlugins = useMemo(
+    () => (canEdit ? [createDragAndDropPlugin(), createResizePlugin(15)] : []),
+    [canEdit],
+  );
 
   const calendar = useNextCalendarApp({
     // Un solo view registrado: sin selector de vistas, siempre mes.
@@ -341,7 +399,7 @@ export function EventCalendar() {
         darkColors: { main: "transparent", container: "transparent", onContainer: "transparent" },
       },
     },
-    plugins: [dragAndDrop, eventsServiceRef.current, eventModal, resizePlugin],
+    plugins: [eventsServiceRef.current, eventModal, ...editingPlugins],
     callbacks: {
       onRangeUpdate: (range) => {
         const start = temporalToDate(range.start);
@@ -354,15 +412,21 @@ export function EventCalendar() {
         );
       },
       onEventUpdate: (event) => {
-        const { visibleEvents: currentEvents, companySlug: currentCompany, updateCalendarEvent: update } = latest.current;
+        const {
+          visibleEvents: currentEvents,
+          companySlug: currentCompany,
+          updateCalendarEvent: update,
+          shortLabels: labels,
+        } = latest.current;
         const source = currentEvents.find((e) => e.id === event.id);
-        // Solo los eventos manuales se pueden arrastrar/redimensionar; los
-        // automáticos son de solo lectura (los calcula su propio módulo). Al
-        // soltar uno de esos, Schedule-X ya lo movió en su estado interno: se
+        // El gesto ya está reservado a quien puede escribir (ver
+        // editingPlugins), pero dentro de eso los eventos automáticos siguen
+        // siendo de solo lectura: los calcula su propio módulo. Al soltar uno
+        // de esos, Schedule-X ya lo movió en su estado interno, así que se
         // repinta la lista real para devolverlo a su sitio en el acto, en vez
         // de dejarlo en una fecha falsa hasta el próximo refetch.
         if (!source?.editable || !currentCompany) {
-          eventsServiceRef.current.set(toScheduleXEvents(currentEvents));
+          eventsServiceRef.current.set(toScheduleXEvents(currentEvents, labels));
 
           return;
         }
@@ -464,10 +528,24 @@ export function EventCalendar() {
               )}
             </div>
 
-            {/* Sin acción disponible no se dibuja el botón: solo los eventos
-                manuales se pueden editar. */}
-            {source?.editable && (
-              <div className="mt-4 flex justify-end">
+            {/* Sin acción disponible no se dibuja el botón: los automáticos
+                se ven en su propio módulo, los manuales se editan acá. */}
+            {(source?.url || source?.editable) && (
+              <div className="mt-4 flex justify-end gap-2">
+                {source?.url && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      close();
+                      openEventUrl(source.url as string);
+                    }}
+                    className="inline-flex items-center gap-2 rounded-lg border border-slate-400/60 px-3 py-1.5 text-sm font-medium transition-colors hover:border-blue-400/40 hover:text-primary dark:border-slate-600/60"
+                  >
+                    <ArrowUpRight className="size-4" />
+                    Ver detalle
+                  </button>
+                )}
+                {source?.editable && (
                 <button
                   type="button"
                   onClick={() => {
@@ -479,6 +557,7 @@ export function EventCalendar() {
                   <PencilLine className="size-4" />
                   Editar
                 </button>
+                )}
               </div>
             )}
           </div>
@@ -499,9 +578,11 @@ export function EventCalendar() {
         );
       },
     }),
-    // Deps [] a propósito: ver renderData arriba — cambiar la identidad de
-    // este objeto desmonta y vuelve a montar el calendario entero.
-    [openEditDialog],
+    // Deps mínimas a propósito: ver renderData arriba — cambiar la identidad
+    // de este objeto desmonta y vuelve a montar el calendario entero. Las dos
+    // callbacks son estables (useCallback), así que en la práctica esto se
+    // memoiza una sola vez.
+    [openEditDialog, openEventUrl],
   );
 
   // Se SOLAPA con el mes, no "empieza dentro del mes": un evento del 28 de
@@ -576,22 +657,59 @@ export function EventCalendar() {
             </div>
           ) : (
             <TooltipProvider disableHoverableContent delayDuration={200}>
-              {eventsInView.map((event) =>
-                event.editable ? (
-                  <Tooltip key={event.id}>
-                    <TooltipTrigger asChild>
-                      <button
-                        type="button"
-                        onClick={() => openEditDialog(event.id)}
-                        className="w-full rounded-lg border border-slate-400/40 bg-background/60 p-2.5 text-left text-sm transition-colors hover:border-blue-400/40 dark:border-slate-600/40"
-                      >
-                        <p className="truncate font-medium leading-tight">{event.title}</p>
-                        <p className="mt-0.5 text-xs text-muted-foreground">{formatSidebarTime(event)}</p>
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent>{event.title}</TooltipContent>
-                  </Tooltip>
-                ) : (
+              {eventsInView.map((event) => {
+                // Tres formas de fila, por lo que se puede HACER con ella: el
+                // evento manual propio se edita, el automático con módulo
+                // dueño lleva a su ficha, y el resto solo informa. Nunca se
+                // dibuja una fila que parece accionable y no hace nada.
+                if (event.editable) {
+                  return (
+                    <Tooltip key={event.id}>
+                      <TooltipTrigger asChild>
+                        <button
+                          type="button"
+                          onClick={() => openEditDialog(event.id)}
+                          className="w-full rounded-lg border border-slate-400/40 bg-background/60 p-2.5 text-left text-sm transition-colors hover:border-blue-400/40 dark:border-slate-600/40"
+                        >
+                          <p className="truncate font-medium leading-tight">{event.title}</p>
+                          <p className="mt-0.5 text-xs text-muted-foreground">{formatSidebarTime(event)}</p>
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent>{event.title}</TooltipContent>
+                    </Tooltip>
+                  );
+                }
+
+                if (event.url) {
+                  return (
+                    <Tooltip key={event.id}>
+                      <TooltipTrigger asChild>
+                        <button
+                          type="button"
+                          onClick={() => openEventUrl(event.url as string)}
+                          className={cn(
+                            "group w-full rounded-lg border border-transparent p-2.5 text-left text-sm transition-colors",
+                            "hover:border-blue-400/40 hover:bg-background/60",
+                            event.display === "marker" ? "opacity-70" : "bg-background/40",
+                          )}
+                        >
+                          <div className="flex items-center gap-1.5">
+                            <span
+                              className="size-1.5 shrink-0 rounded-full"
+                              style={{ backgroundColor: event.color ?? "hsl(var(--muted-foreground))" }}
+                            />
+                            <p className="truncate leading-tight">{event.title}</p>
+                            <ArrowUpRight className="ml-auto size-3.5 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+                          </div>
+                          <p className="mt-0.5 pl-3 text-xs text-muted-foreground">{formatSidebarTime(event)}</p>
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent>Ver detalle: {event.title}</TooltipContent>
+                    </Tooltip>
+                  );
+                }
+
+                return (
                   <Tooltip key={event.id}>
                     <TooltipTrigger asChild>
                       <div
@@ -612,8 +730,8 @@ export function EventCalendar() {
                     </TooltipTrigger>
                     <TooltipContent>{event.title}</TooltipContent>
                   </Tooltip>
-                ),
-              )}
+                );
+              })}
             </TooltipProvider>
           )}
         </div>
