@@ -3,7 +3,7 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, XCircle, Clock } from "lucide-react";
+import { CheckCircle2, XCircle, Clock, Ruler } from "lucide-react";
 import { addDays, format, parseISO } from "date-fns";
 import ArticleDropdownActions from "@/components/dropdowns/mantenimiento/almacen/ArticleDropdownActions";
 import { WarehouseResponse } from "@/hooks/mantenimiento/almacen/articulos/useGetWarehouseArticlesByCategory";
@@ -22,7 +22,7 @@ import ArticleImageCell from "@/components/misc/ArticleImageCell";
 import ArticleStatusSincePopover, {
     tracksStatusSince,
 } from "@/components/misc/ArticleStatusSincePopover";
-import { Aircraft } from "@/types";
+import { Aircraft, ArticleDimension } from "@/types";
 export interface IArticleSimple {
     id: number;
     part_number: string;
@@ -60,10 +60,11 @@ export interface IArticleSimple {
     };
     consumable?: {
         expiration_date?: string | Date | null;
-        fabrication_date?: string | Date | null;
         shelf_life?: string | Date | null;
         unit?: Unit;
     };
+    /** Perfil dimensional del consumible; ausente si no se mide por trazos. */
+    dimension?: ArticleDimension | null;
 
     // ✅ grouping helpers
     __isGroup?: boolean;
@@ -185,12 +186,13 @@ export const flattenArticles = (
                         }
                         : undefined,
 
+                dimension: article.dimension ?? undefined,
+
                 consumable:
                     batch.category === "CONSUMABLE"
                         ? {
                             expiration_date: (article as any).expiration_date ?? null,
-                            fabrication_date: (article as any).fabrication_date ?? null,
-                            shelf_life: (article as any).shelf_life ?? null, // ✅ AGREGAR ESTA LÍNEA
+                            shelf_life: (article as any).shelf_life ?? null,
                             unit: article.unit ?? undefined,
                         }
                         : undefined,
@@ -268,6 +270,36 @@ const quantityCol: ColumnDef<IArticleSimple> = {
                 : Number(row.original.quantity ?? 0);
 
         const unit = row.original.unit?.value ?? "u";
+        const dim = row.original.dimension;
+
+        // Mismo criterio que el inventario general: en un artículo dimensionado
+        // la cantidad son piezas, y lo que determina qué se puede cortar es el
+        // saldo real. La fila de agrupación cuenta artículos, no piezas.
+        if (dim && !isGroup) {
+            return (
+                <div className="flex flex-col items-center gap-1">
+                    <Badge
+                        variant={q > 0 ? "default" : "destructive"}
+                        className="text-xs font-bold px-3 py-1 tabular-nums"
+                    >
+                        {q > 0 ? `${q} pza.` : "No Disponible"}
+                    </Badge>
+                    <span className="text-[11px] text-muted-foreground tabular-nums">
+                        {dim.total_remaining} {dim.magnitude_label} en{" "}
+                        {dim.available_pieces} pza.
+                    </span>
+                    <Badge
+                        variant="secondary"
+                        className="flex items-center gap-1 px-2 py-0.5 text-[11px]"
+                    >
+                        <Ruler className="h-3 w-3" />
+                        {dim.axes === 2
+                            ? `${dim.piece_length} × ${dim.piece_width} ${dim.measure_unit_label ?? ""}`
+                            : `${dim.piece_length} ${dim.measure_unit_label ?? ""}`}
+                    </Badge>
+                </div>
+            );
+        }
 
         return (
             <div className="flex justify-center items-center">
