@@ -1,3 +1,8 @@
+## v3.17.0 — 2026-09-10
+
+- Merge pull request #250 from transmandu/feat/vista-consumibles-dimension
+- feat: add dimension property to article interfaces and update related logic
+
 ## v3.16.0 — 2026-09-10
 
 - Merge pull request #249 from transmandu/fix/menu-almacen-creacion-consumible
