@@ -38,12 +38,6 @@ const parseHostnamePattern = (value) => {
 const hostnamePattern = parseHostnamePattern(process.env.NEXT_PUBLIC_HOSTNAME);
 
 const nextConfig = {
-  turbopack: {
-    resolveAlias: {
-      // pdfjs-dist pide `canvas` desde una rama que sólo corre en Node.
-      canvas: "./lib/empty-module.ts",
-    },
-  },
   env: {
     NEXT_PUBLIC_APP_VERSION: pkg.version,
     NEXT_PUBLIC_COMMIT: resolveCommit() ?? "",

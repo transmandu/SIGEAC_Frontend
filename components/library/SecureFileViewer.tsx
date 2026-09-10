@@ -3,14 +3,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Loader2, ShieldCheck, Lock, Frown, RotateCcw } from 'lucide-react';
-import { Worker, Viewer } from '@react-pdf-viewer/core';
-import { defaultLayoutPlugin } from '@react-pdf-viewer/default-layout';
+import { SecurePdfViewer } from '@/components/library/SecurePdfViewer';
 import { Button } from '@/components/ui/button';
 
-// @ts-ignore - Ignorar error cosmético de TS en PC nueva
-import '@react-pdf-viewer/core/lib/styles/index.css';
-// @ts-ignore - Ignorar error cosmético de TS en PC nueva
-import '@react-pdf-viewer/default-layout/lib/styles/index.css';
 
 interface SecureFileViewerProps {
   isOpen: boolean;
@@ -107,30 +102,6 @@ export default function SecureFileViewer({ isOpen, onClose, title, fetchBlobUrl,
 
   // OJO: defaultLayoutPlugin usa hooks internamente — debe llamarse directo
   // en el cuerpo del componente (nunca dentro de useMemo/useCallback).
-  const defaultLayoutPluginInstance = defaultLayoutPlugin({
-    sidebarTabs: () => [],
-    renderToolbar: (Toolbar) => (
-      <Toolbar>
-        {(slots) => {
-          const { Zoom, ZoomIn, ZoomOut, EnterFullScreen, NumberOfPages, CurrentPageInput } = slots;
-          return (
-            <div className="flex items-center justify-between w-full px-4">
-              <div className="flex items-center gap-2">
-                <ZoomOut /> <Zoom /> <ZoomIn />
-              </div>
-              <div className="flex items-center gap-2 text-gray-400 text-xs font-bold">
-                <CurrentPageInput /> / <NumberOfPages />
-              </div>
-              <div className="flex items-center">
-                <EnterFullScreen />
-              </div>
-            </div>
-          );
-        }}
-      </Toolbar>
-    ),
-  });
-
   // Ref a la última función de carga: evita que el efecto de abajo se
   // re-dispare por un simple cambio de identidad de `fetchBlobUrl` cuando
   // el caller la pasa inline (nueva función en cada render).
@@ -274,14 +245,7 @@ export default function SecureFileViewer({ isOpen, onClose, title, fetchBlobUrl,
                     />
                   </div>
                 ) : (
-                  <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
-                    <Viewer
-                      fileUrl={fileUrl}
-                      plugins={[defaultLayoutPluginInstance]}
-                      theme={currentTheme}
-                      defaultScale={1.0}
-                    />
-                  </Worker>
+                  <SecurePdfViewer fileUrl={fileUrl} theme={currentTheme} />
                 )}
               </div>
             )
