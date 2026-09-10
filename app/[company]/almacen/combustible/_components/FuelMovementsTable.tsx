@@ -57,7 +57,7 @@ export function FuelMovementsTable({
   );
 
   return (
-    <div className="overflow-hidden rounded-xl bg-card shadow-sm">
+    <div className="overflow-hidden rounded-xl bg-card shadow-xs">
       <Table>
         <TableHeader>
           <TableRow className="hover:bg-transparent">

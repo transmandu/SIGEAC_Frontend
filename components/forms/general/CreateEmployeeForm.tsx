@@ -432,7 +432,7 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
                                     URL.revokeObjectURL(photoPreview);
                                     setPhotoPreview(null);
                                   }}
-                                  className="absolute -top-1 -right-1 h-6 w-6 rounded-full bg-red-500 text-white flex items-center justify-center shadow"
+                                  className="absolute -top-1 -right-1 h-6 w-6 rounded-full bg-red-500 text-white flex items-center justify-center shadow-sm"
                                 >
                                   <X className="h-3 w-3" />
                                 </button>
@@ -774,7 +774,7 @@ export function CreateEmployeeForm({ onSuccess }: { onSuccess?: () => void }) {
                           }}
                         />
                       </FormControl>
-                      <FormLabel className="!mt-0">
+                      <FormLabel className="mt-0!">
                         ¿Crear usuario para este empleado?
                       </FormLabel>
                     </FormItem>

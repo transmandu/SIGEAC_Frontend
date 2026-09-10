@@ -42,7 +42,7 @@ const itemBase = `
   duration-200
   ease-out
   hover:bg-muted
-  hover:shadow-sm
+  hover:shadow-xs
   active:scale-95
 `
 
@@ -91,7 +91,7 @@ const CompanyDropdownActions = ({ company }: Props) => {
                   transition-all duration-200
                   hover:bg-muted/70
                   hover:border-border/50
-                  hover:shadow-sm
+                  hover:shadow-xs
                   data-[state=open]:bg-muted
                 "
               >

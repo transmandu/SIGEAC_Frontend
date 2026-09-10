@@ -572,7 +572,7 @@ export function CreateGenVolReport({
                           <button
                             type="button"
                             onClick={() => handleRemoveConsequence(index)}
-                            className="hover:text-destructive focus:outline-none transition-colors"
+                            className="hover:text-destructive focus:outline-hidden transition-colors"
                           >
                             <X className="size-3.5" />
                           </button>

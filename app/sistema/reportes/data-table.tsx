@@ -55,7 +55,7 @@ export function DataTable<TData extends RowData>({
 
   return (
     <div>
-      <div className="mb-4 overflow-hidden rounded-2xl border border-slate-200/80 bg-background/60 shadow-sm shadow-slate-200/40 backdrop-blur-sm dark:border-slate-800/80 dark:shadow-none">
+      <div className="mb-4 overflow-hidden rounded-2xl border border-slate-200/80 bg-background/60 shadow-xs shadow-slate-200/40 backdrop-blur-xs dark:border-slate-800/80 dark:shadow-none">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (

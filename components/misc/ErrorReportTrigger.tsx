@@ -64,7 +64,7 @@ export default function ErrorReportTrigger() {
             </button>
           </TooltipTrigger>
 
-          <TooltipContent side="bottom" className="z-[1001]">
+          <TooltipContent side="bottom" className="z-1001">
             {isSuperUser ? "Gestión de reportes de SIGEAC" : "Reportar un problema a IT"}
           </TooltipContent>
         </Tooltip>

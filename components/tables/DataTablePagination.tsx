@@ -122,7 +122,7 @@ export function DataTablePagination<TData extends RowData>({
                 hover:text-foreground
                 hover:bg-white dark:hover:bg-slate-800/50
                 border border-transparent hover:border-slate-200/40 dark:hover:border-slate-700/40
-                shadow-none hover:shadow-sm
+                shadow-none hover:shadow-xs
                 transition-all
               "
               onClick={action}

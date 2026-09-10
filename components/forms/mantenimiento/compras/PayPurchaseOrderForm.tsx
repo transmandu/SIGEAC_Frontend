@@ -40,10 +40,10 @@ import { InvoicesField, createInvoiceEntry, type InvoiceEntry } from "./Invoices
 const LABEL_CLS = "select-none text-[10px] leading-none text-muted-foreground uppercase";
 
 const INPUT_CLS =
-  "h-9 rounded-lg border-border/50 bg-background/80 text-sm shadow-sm transition-shadow focus-visible:ring-1 focus-visible:ring-primary/40 focus-visible:ring-offset-0";
+  "h-9 rounded-lg border-border/50 bg-background/80 text-sm shadow-xs transition-shadow focus-visible:ring-1 focus-visible:ring-primary/40 focus-visible:ring-offset-0";
 
 const SELECT_TRIGGER_CLS =
-  "h-9 rounded-lg border-border/50 bg-background/80 text-sm shadow-sm focus:ring-1 focus:ring-primary/40 focus:ring-offset-0";
+  "h-9 rounded-lg border-border/50 bg-background/80 text-sm shadow-xs focus:ring-1 focus:ring-primary/40 focus:ring-offset-0";
 
 const FormSchema = z.object({
   tax: z.string(),
@@ -329,7 +329,7 @@ export function PayPurchaseOrderForm({ onClose, po, isAeronautical = false }: Fo
               className={cn(
                 "flex items-center gap-2 rounded-lg border px-3 py-2 transition-colors",
                 field.value
-                  ? "border-primary/20 bg-primary/[0.04]"
+                  ? "border-primary/20 bg-primary/4"
                   : "border-border/40 bg-muted/10"
               )}
             >
@@ -341,7 +341,7 @@ export function PayPurchaseOrderForm({ onClose, po, isAeronautical = false }: Fo
                 />
               </FormControl>
               <Truck className={cn("size-3.5", field.value ? "text-primary" : "text-muted-foreground/60")} />
-              <FormLabel className="!mt-0 text-xs font-medium cursor-pointer select-none text-foreground/90">
+              <FormLabel className="mt-0! text-xs font-medium cursor-pointer select-none text-foreground/90">
                 Ya conozco los datos de envío
               </FormLabel>
               <span className="text-[11px] text-muted-foreground/70 select-none">
@@ -759,7 +759,7 @@ export function PayPurchaseOrderForm({ onClose, po, isAeronautical = false }: Fo
             type="submit"
             className="
               w-[400px] h-10 rounded-lg
-              shadow-sm
+              shadow-xs
               transition-colors
               flex items-center justify-center gap-2
             "

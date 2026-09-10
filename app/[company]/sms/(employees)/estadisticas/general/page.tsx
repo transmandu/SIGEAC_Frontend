@@ -193,7 +193,7 @@ const GeneralReportStats = () => {
         {/* Peligros Identificados vs Gestionados */}
         {shouldShow("bar-chart") && (
           <div
-            className="flex flex-col justify-center items-center p-4 rounded-lg shadow border"
+            className="flex flex-col justify-center items-center p-4 rounded-lg shadow-sm border"
             data-tour="stats-general-chart-bar"
           >
             {isLoadingBarChart ? (
@@ -227,7 +227,7 @@ const GeneralReportStats = () => {
         {/* Numero de Reportes vs Tipo de Peligro (General) */}
         {shouldShow("type-chart") && (
           <div
-            className="p-4 rounded-lg shadow border"
+            className="p-4 rounded-lg shadow-sm border"
             data-tour="stats-general-chart-type"
           >
             {isLoadingIdentificationData ? (
@@ -263,7 +263,7 @@ const GeneralReportStats = () => {
 
         {shouldShow("post-risk-bar") && (
           <div
-            className="p-4 rounded-lg shadow border"
+            className="p-4 rounded-lg shadow-sm border"
             data-tour="stats-general-chart-pre-risk-bar"
           >
             {isLoadingTotalRiskData ? (
@@ -296,7 +296,7 @@ const GeneralReportStats = () => {
 
         {shouldShow("pre-risk-pie") && (
           <div
-            className="flex flex-col justify-center items-center p-4 rounded-lg shadow border"
+            className="flex flex-col justify-center items-center p-4 rounded-lg shadow-sm border"
             data-tour="stats-general-chart-pre-risk-pie"
           >
             {isLoadingTotalRiskData ? (
@@ -329,7 +329,7 @@ const GeneralReportStats = () => {
 
         {shouldShow("pre-risk-bar") && (
           <div
-            className="p-4 rounded-lg shadow border"
+            className="p-4 rounded-lg shadow-sm border"
             data-tour="stats-general-chart-post-risk-bar"
           >
             {isLoadingTotalPostRiskData ? (
@@ -362,7 +362,7 @@ const GeneralReportStats = () => {
 
         {shouldShow("post-risk-pie") && (
           <div
-            className="flex flex-col justify-center items-center p-4 rounded-lg shadow border"
+            className="flex flex-col justify-center items-center p-4 rounded-lg shadow-sm border"
             data-tour="stats-general-chart-post-risk-pie"
           >
             {isLoadingTotalPostRiskData ? (
@@ -395,7 +395,7 @@ const GeneralReportStats = () => {
 
         {shouldShow("source-type") && (
           <div
-            className="flex flex-col justify-center items-center p-4 rounded-lg shadow border"
+            className="flex flex-col justify-center items-center p-4 rounded-lg shadow-sm border"
             data-tour="stats-general-chart-source-type"
           >
             {isLoadingReportSourceTypeData ? (
@@ -428,7 +428,7 @@ const GeneralReportStats = () => {
 
         {shouldShow("source-name") && (
           <div
-            className="flex-col p-4 rounded-lg shadow border"
+            className="flex-col p-4 rounded-lg shadow-sm border"
             data-tour="stats-general-chart-source-name"
           >
             {isLoadingReportSourceNameData ? (
@@ -461,7 +461,7 @@ const GeneralReportStats = () => {
 
         {shouldShow("area-chart") && (
           <div
-            className="p-4 rounded-lg shadow border"
+            className="p-4 rounded-lg shadow-sm border"
             data-tour="stats-general-chart-area"
           >
             {isLoadingReportsByAreaData ? (

@@ -470,7 +470,7 @@ const buildFormData = (values: FormValues, original: any) => {
 
                 {/* CONTENIDO (imagen centrada) */}
                 <div className="flex justify-center items-center flex-1">
-                <div className="relative w-40 h-40 rounded-full overflow-hidden border-2 border-muted shadow-sm bg-background">
+                <div className="relative w-40 h-40 rounded-full overflow-hidden border-2 border-muted shadow-xs bg-background">
                     {imageSrc ? (
                         <Image
                         src={imageSrc}

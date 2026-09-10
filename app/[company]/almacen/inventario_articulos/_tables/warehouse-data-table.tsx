@@ -120,7 +120,7 @@ export function DataTable<TData extends RowData>({
   // por debajo al hacer scroll horizontal, no montarse sobre dropdowns ni
   // diálogos.
   const stickyHeadClass =
-    "sticky right-0 z-[2] bg-background transition-colors group-hover:[background:var(--sticky-hover-bg)]"
+    "sticky right-0 z-2 bg-background transition-colors group-hover:[background:var(--sticky-hover-bg)]"
   // La celda necesita fondo opaco (tapa lo que pasa por debajo al hacer
   // scroll), pero la fila tiñe con muted/50 translúcido. color-mix reproduce
   // esa mezcla ya compuesta sobre el fondo, así el tono coincide exactamente;
@@ -128,7 +128,7 @@ export function DataTable<TData extends RowData>({
   const stickyHoverBg =
     "color-mix(in srgb, hsl(var(--muted)) 50%, hsl(var(--background)))"
   const stickyCellClass =
-    "sticky right-0 z-[1] bg-background transition-colors group-hover:[background:var(--sticky-hover-bg)] group-data-[state=selected]:bg-muted"
+    "sticky right-0 z-1 bg-background transition-colors group-hover:[background:var(--sticky-hover-bg)] group-data-[state=selected]:bg-muted"
 
   return (
     <div className="space-y-4">

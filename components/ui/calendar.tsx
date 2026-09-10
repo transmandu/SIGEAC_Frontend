@@ -61,7 +61,7 @@ function CaptionDropdown({
       </SelectTrigger>
       {/* Sin `popper`: ese modo ata el desplegable al ancho del disparador y
           los doce meses no entrarían. */}
-      <SelectContent position="item-aligned" className="max-h-[18rem] min-w-[6rem]">
+      <SelectContent position="item-aligned" className="max-h-72 min-w-24">
         {options.map((option) => (
           <SelectItem
             key={option.value}
@@ -112,7 +112,7 @@ function Calendar({
         month_caption: "relative flex h-8 items-center justify-center pt-1",
         caption_label: "text-sm font-medium capitalize",
         dropdowns:
-          "flex items-center justify-center gap-1 [&_[data-radix-select-trigger]]:capitalize",
+          "flex items-center justify-center gap-1 **:data-radix-select-trigger:capitalize",
         month_grid: "w-full border-collapse",
         weekdays: "flex",
         weekday:

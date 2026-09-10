@@ -286,7 +286,7 @@ export const getColumns = (
           <Badge
             variant="outline"
             className={cn(
-              'whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-sm transition-colors duration-150 cursor-default uppercase',
+              'whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-xs transition-colors duration-150 cursor-default uppercase',
               isPending
                 ? 'border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300'
                 : isRejected

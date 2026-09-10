@@ -40,7 +40,7 @@ function getDeptShape(index: number) {
   const style = departmentStyles[index % departmentStyles.length];
   return (
     <div
-      className={`w-3.5 h-3.5 shrink-0 shadow-sm ${style.color} ${style.shape}`}
+      className={`w-3.5 h-3.5 shrink-0 shadow-xs ${style.color} ${style.shape}`}
     />
   );
 }

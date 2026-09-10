@@ -115,13 +115,13 @@ const DonutChart = ({
               }
             }}
             onMouseLeave={() => setHovered(null)}
-            className="outline-none"
+            className="outline-hidden"
           >
             {chartData.map((entry, index) => (
               <Cell
                 key={`cell-${index}`}
                 fill={entry.color}
-                className="transition-all duration-300 cursor-pointer hover:opacity-90 outline-none"
+                className="transition-all duration-300 cursor-pointer hover:opacity-90 outline-hidden"
               />
             ))}
           </Pie>
@@ -229,13 +229,13 @@ const HalfDonutChart = ({
               }
             }}
             onMouseLeave={() => setHovered(null)}
-            className="outline-none"
+            className="outline-hidden"
           >
             {chartData.map((entry, index) => (
               <Cell
                 key={`cell-${index}`}
                 fill={entry.color}
-                className="transition-all duration-300 cursor-pointer hover:opacity-90 outline-none"
+                className="transition-all duration-300 cursor-pointer hover:opacity-90 outline-hidden"
               />
             ))}
           </Pie>
@@ -376,7 +376,7 @@ const VerticalBarChart = ({
               <Cell
                 key={`cell-${index}`}
                 fill={entry.color}
-                className="transition-all duration-300 cursor-pointer hover:opacity-90 outline-none"
+                className="transition-all duration-300 cursor-pointer hover:opacity-90 outline-hidden"
               />
             ))}
           </Bar>
@@ -641,7 +641,7 @@ export default function DashboardModal({
   return (
     <TooltipProvider delayDuration={300}>
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="bg-slate-100 dark:bg-[#0a0c10] border border-slate-200/60 dark:border-white/10 text-slate-900 dark:text-white max-w-[1200px] w-[95vw] rounded-[2rem] p-0 outline-none shadow-2xl">
+      <DialogContent className="bg-slate-100 dark:bg-[#0a0c10] border border-slate-200/60 dark:border-white/10 text-slate-900 dark:text-white max-w-[1200px] w-[95vw] rounded-4xl p-0 outline-hidden shadow-2xl">
         <div
           className="bg-white dark:bg-slate-900 px-8 py-5 border-b border-slate-200/80 dark:border-white/5 flex items-center justify-between"
           data-tour="biblioteca-dashboard-title"
@@ -668,7 +668,7 @@ export default function DashboardModal({
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
               {canViewCharts && chartData.length > 0 && (
                 <div
-                  className="col-span-1 lg:col-span-1 bg-white dark:bg-slate-900 rounded-[2rem] p-6 shadow-sm border border-slate-200/50 dark:border-white/5 flex flex-col justify-between"
+                  className="col-span-1 lg:col-span-1 bg-white dark:bg-slate-900 rounded-4xl p-6 shadow-xs border border-slate-200/50 dark:border-white/5 flex flex-col justify-between"
                   data-tour="biblioteca-dashboard-distribucion"
                 >
                   <div>
@@ -716,7 +716,7 @@ export default function DashboardModal({
               )}
 
               {isSingleDeptView && statusChartData.length > 0 && (
-                <div className="col-span-1 lg:col-span-1 bg-white dark:bg-slate-900 rounded-[2rem] p-6 shadow-sm border border-slate-200/50 dark:border-white/5 flex flex-col justify-between">
+                <div className="col-span-1 lg:col-span-1 bg-white dark:bg-slate-900 rounded-4xl p-6 shadow-xs border border-slate-200/50 dark:border-white/5 flex flex-col justify-between">
                   <div>
                     <h3 className="text-[14px] font-black text-slate-800 dark:text-white tracking-tight">
                       Estado de Documentos
@@ -749,7 +749,7 @@ export default function DashboardModal({
 
               {(canViewCharts || isSingleDeptView) && (
                 <div
-                  className={`${isSingleDeptView ? (statusChartData.length > 0 ? "col-span-1 lg:col-span-3" : "col-span-1 lg:col-span-4") : "col-span-1 lg:col-span-2"} bg-white dark:bg-slate-900 rounded-[2rem] p-6 shadow-sm border border-slate-200/50 dark:border-white/5`}
+                  className={`${isSingleDeptView ? (statusChartData.length > 0 ? "col-span-1 lg:col-span-3" : "col-span-1 lg:col-span-4") : "col-span-1 lg:col-span-2"} bg-white dark:bg-slate-900 rounded-4xl p-6 shadow-xs border border-slate-200/50 dark:border-white/5`}
                   data-tour="biblioteca-dashboard-accesos"
                 >
                   <h3 className="text-[14px] font-black text-slate-800 dark:text-white tracking-tight">
@@ -785,7 +785,7 @@ export default function DashboardModal({
 
               {canViewCharts && (
                 <div
-                  className="col-span-1 lg:col-span-1 bg-white dark:bg-slate-900 rounded-[2rem] p-6 shadow-sm border border-slate-200/50 dark:border-white/5 flex flex-col justify-between"
+                  className="col-span-1 lg:col-span-1 bg-white dark:bg-slate-900 rounded-4xl p-6 shadow-xs border border-slate-200/50 dark:border-white/5 flex flex-col justify-between"
                   data-tour="biblioteca-dashboard-solicitudes"
                 >
                   <div>
@@ -839,7 +839,7 @@ export default function DashboardModal({
                 ).map((card) => (
                   <div
                     key={card.label}
-                    className="bg-white dark:bg-slate-900 rounded-[2rem] p-6 shadow-sm border border-slate-200/50 dark:border-white/5 flex flex-col justify-between group hover:-translate-y-1 transition-transform duration-300"
+                    className="bg-white dark:bg-slate-900 rounded-4xl p-6 shadow-xs border border-slate-200/50 dark:border-white/5 flex flex-col justify-between group hover:-translate-y-1 transition-transform duration-300"
                   >
                     <div className="flex justify-between items-center mb-4">
                       <div

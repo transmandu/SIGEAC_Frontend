@@ -266,7 +266,7 @@ export function DatePickerField({
               </button>
             </PopoverTrigger>
             <PopoverContent
-              className="z-[100] w-auto rounded-xl border-slate-400/60 p-0 shadow-lg dark:border-slate-600/60"
+              className="z-100 w-auto rounded-xl border-slate-400/60 p-0 shadow-lg dark:border-slate-600/60"
               align="end"
               side="bottom"
               sideOffset={8}

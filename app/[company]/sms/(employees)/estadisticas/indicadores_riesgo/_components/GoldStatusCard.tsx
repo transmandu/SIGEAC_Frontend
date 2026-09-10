@@ -93,7 +93,7 @@ export const GoalStatusCard: React.FC<GoalStatusCardProps> = ({
 
           {/* Resultado (solo para meta alcanzada) */}
           {currentConfig.showResult && (
-            <div className="bg-white border border-green-200 rounded-xl p-4 shadow-sm">
+            <div className="bg-white border border-green-200 rounded-xl p-4 shadow-xs">
               <div className="text-center">
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <CheckCircle2 className="h-4 w-4 text-black" />
@@ -109,7 +109,7 @@ export const GoalStatusCard: React.FC<GoalStatusCardProps> = ({
           )}
 
           {/* Período de fechas */}
-          <div className="bg-white border border-purple-200 rounded-xl p-4 shadow-sm">
+          <div className="bg-white border border-purple-200 rounded-xl p-4 shadow-xs">
             <div className="flex items-center justify-center gap-2 mb-2">
               <Calendar className="h-4 w-4 text-black" />
               <span className="font-medium text-sm text-black">PERÍODO EVALUADO</span>

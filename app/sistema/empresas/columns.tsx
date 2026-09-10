@@ -184,7 +184,7 @@ export const getColumns = (): AppColumnDef<Company>[] => [
             dark:text-slate-300
             text-center
             whitespace-normal
-            break-words
+            wrap-break-word
             leading-snug
           "
           title={row.original.fiscal_address ?? ''}

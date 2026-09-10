@@ -384,12 +384,12 @@ const CompanyBootstrap = () => {
                 variant="ghost"
                 className={cn(
                   "h-9 w-[368px] rounded-lg text-sm font-normal",
-                  "bg-gradient-to-br from-background/70 to-background/40",
+                  "bg-linear-to-br from-background/70 to-background/40",
                   "backdrop-blur-md",
                   "border border-slate-400/60 dark:border-slate-600/60",
-                  "shadow-sm",
+                  "shadow-xs",
                   "text-slate-700 dark:text-slate-200",
-                  "hover:border-blue-400/30 hover:bg-gradient-to-br",
+                  "hover:border-blue-400/30 hover:bg-linear-to-br",
                   "hover:from-background/70 hover:to-background/40",
                   "hover:shadow-md hover:shadow-blue-500/10",
                   "transition-all duration-200",

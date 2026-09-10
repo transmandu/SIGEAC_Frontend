@@ -28,7 +28,7 @@ export function ReturnEvidenceSection({ articleId }: { articleId: number }) {
     : null;
 
   return (
-    <section className="rounded-xl border border-amber-500/40 bg-amber-500/[0.04] p-5">
+    <section className="rounded-xl border border-amber-500/40 bg-amber-500/4 p-5">
       <div className="flex items-center gap-2">
         <Undo2 className="h-4 w-4 text-amber-600 dark:text-amber-500" />
         <p className="text-[11px] font-medium uppercase tracking-widest text-amber-700 dark:text-amber-500">

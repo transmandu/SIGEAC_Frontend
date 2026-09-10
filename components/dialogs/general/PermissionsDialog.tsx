@@ -54,7 +54,7 @@ const PermissionsDialog = ({ permissions, roleName }: DialogProps) => {
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
               {
                 Object.values(groupedByModule).map(module => (
-                  <div key={module.id} className="border p-4 rounded-lg shadow-sm w-[320px]">
+                  <div key={module.id} className="border p-4 rounded-lg shadow-xs w-[320px]">
                     <h3 className="text-lg font-semibold text-center ">{module.name}
                       <Separator className="m-1" />
                     </h3>

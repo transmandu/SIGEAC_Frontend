@@ -24,7 +24,7 @@ function TintedCard({
 }) {
   return (
     <div
-      className={`relative overflow-hidden rounded-3xl border bg-background/75 backdrop-blur-xl shadow-sm ${className}`}
+      className={`relative overflow-hidden rounded-3xl border bg-background/75 backdrop-blur-xl shadow-xs ${className}`}
       style={{
         borderColor: "rgba(37,99,235,0.15)",
         backgroundImage: `
@@ -104,7 +104,7 @@ export default function SMSReportIndicator({
     }
 
     return (
-      <div className="[&_.recharts-default-legend]:!pt-2 [&_.recharts-legend-wrapper]:!translate-y-[-18px]">
+      <div className="[&_.recharts-default-legend]:pt-2! [&_.recharts-legend-wrapper]:translate-y-[-18px]!">
         <BarChartComponent
           data={barChartData}
           title=""
@@ -209,7 +209,7 @@ export default function SMSReportIndicator({
                       <div
                         className={`w-px h-2.5 rounded-full transition-all duration-300 ${
                           active
-                            ? "bg-gradient-to-b from-blue-500 to-cyan-400 opacity-90"
+                            ? "bg-linear-to-b from-blue-500 to-cyan-400 opacity-90"
                             : "bg-slate-300/50"
                         }`}
                       />

@@ -166,7 +166,7 @@ export default function SecureFileViewer({ isOpen, onClose, title, fetchBlobUrl,
       onPointerDown={(e) => e.stopPropagation()}
       onMouseDown={(e) => e.stopPropagation()}
       onClick={(e) => e.stopPropagation()}
-      className={`pointer-events-auto fixed inset-0 z-[200] flex items-center justify-center p-2 md:p-6 backdrop-blur-sm transition-colors duration-300 ${currentTheme === 'dark' ? 'bg-black/95' : 'bg-slate-900/40'
+      className={`pointer-events-auto fixed inset-0 z-200 flex items-center justify-center p-2 md:p-6 backdrop-blur-xs transition-colors duration-300 ${currentTheme === 'dark' ? 'bg-black/95' : 'bg-slate-900/40'
       }`}>
       <div className={`relative w-full h-full max-w-7xl rounded-2xl overflow-hidden border flex flex-col shadow-2xl transition-all duration-300 ${currentTheme === 'dark' ? 'bg-[#111214] border-gray-800' : 'bg-white border-gray-300'
         }`}>
@@ -219,7 +219,7 @@ export default function SecureFileViewer({ isOpen, onClose, title, fetchBlobUrl,
                   variant="default"
                   className="bg-emerald-600 hover:bg-emerald-700 w-full sm:w-auto flex items-center gap-2 group transition-all active:scale-95"
                 >
-                  <RotateCcw className="h-4 w-4 group-hover:rotate-[-90deg] transition-transform" />
+                  <RotateCcw className="h-4 w-4 group-hover:-rotate-90 transition-transform" />
                   Reintentar
                 </Button>
                 <Button

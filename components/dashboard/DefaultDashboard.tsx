@@ -89,7 +89,7 @@ export default function DefaultDashboard({ companySlug }: DefaultDashboardProps)
             flex items-center justify-center text-sm
             text-gray-500 dark:text-gray-300
             bg-white/50 dark:bg-gray-900/40
-            px-4 py-2 rounded-full shadow-sm
+            px-4 py-2 rounded-full shadow-xs
             border border-gray-100 dark:border-gray-800
             backdrop-blur-md
           "

@@ -38,7 +38,7 @@ export function EvaluationWorkflowTabs({
                 >
                     <span className="flex min-w-0 items-center gap-2">
                         <FileText className="h-4 w-4 shrink-0" />
-                        <span className="break-words leading-snug">Plan y análisis</span>
+                        <span className="wrap-break-word leading-snug">Plan y análisis</span>
                     </span>
                     <Badge variant="outline" className="shrink-0">
                         {hasPlanAndAnalysis ? 'Listo' : 'Pendiente'}
@@ -52,7 +52,7 @@ export function EvaluationWorkflowTabs({
                 >
                     <span className="flex min-w-0 items-center gap-2">
                         <ShieldCheck className="h-4 w-4 shrink-0" />
-                        <span className="break-words leading-snug">Medidas de mitigación</span>
+                        <span className="wrap-break-word leading-snug">Medidas de mitigación</span>
                     </span>
                     <Badge variant="outline" className="shrink-0">
                         {currentMeasuresCount}
@@ -66,7 +66,7 @@ export function EvaluationWorkflowTabs({
                 >
                     <span className="flex min-w-0 items-center gap-2">
                         <ClipboardCheck className="h-4 w-4 shrink-0" />
-                        <span className="break-words leading-snug">Controles de seguimiento</span>
+                        <span className="wrap-break-word leading-snug">Controles de seguimiento</span>
                     </span>
                     <Badge variant="outline" className="shrink-0">
                         {totalControls}
@@ -80,7 +80,7 @@ export function EvaluationWorkflowTabs({
                 >
                     <span className="flex min-w-0 items-center gap-2">
                         <FileText className="h-4 w-4 shrink-0" />
-                        <span className="break-words leading-snug">Análisis post mitigación</span>
+                        <span className="wrap-break-word leading-snug">Análisis post mitigación</span>
                     </span>
                     <Badge variant="outline" className="shrink-0">
                         {hasPostMitigationAnalysis ? 'Listo' : 'Pendiente'}

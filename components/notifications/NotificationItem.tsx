@@ -142,7 +142,7 @@ export default function NotificationItem({
         'group relative flex items-center gap-3 px-3 py-2',
         'mx-1 cursor-pointer overflow-hidden rounded-xl',
         'bg-muted/20 hover:bg-muted/40',
-        'shadow-sm transition-all',
+        'shadow-xs transition-all',
         // Mientras navega, ignoramos clicks extra: la ruta destino puede tardar
         // y el usuario tiende a insistir sobre una fila que se ve inerte.
         isNavigating && 'pointer-events-none'
@@ -190,7 +190,7 @@ export default function NotificationItem({
           <div
             className="
               absolute inset-0
-              bg-gradient-to-l
+              bg-linear-to-l
               from-black/30
               via-black/10
               to-transparent
@@ -215,7 +215,7 @@ export default function NotificationItem({
                     backdrop-blur-md
 
                     border border-border/40
-                    shadow-sm
+                    shadow-xs
 
                     hover:bg-background
                     active:scale-95
@@ -227,7 +227,7 @@ export default function NotificationItem({
                 </button>
               </TooltipTrigger>
 
-              <TooltipContent side="left" className="z-[1001]">
+              <TooltipContent side="left" className="z-1001">
                 Marcar como leído
               </TooltipContent>
             </Tooltip>
@@ -236,7 +236,7 @@ export default function NotificationItem({
       )}
       
       {/* ICON */}
-      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center">
         <div
           className={cn(
             'flex h-10 w-10 items-center justify-center rounded-xl transition-colors',
@@ -274,7 +274,7 @@ export default function NotificationItem({
 
           <span
             className={cn(
-              'flex-shrink-0 whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-medium',
+              'shrink-0 whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-medium',
               isUnread
                 ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400'
                 : 'bg-muted text-muted-foreground'

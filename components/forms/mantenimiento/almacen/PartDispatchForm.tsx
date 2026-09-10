@@ -107,7 +107,7 @@ export function PartDispatchForm({ onClose }: FormProps) {
 
                 <div className="space-y-4">
                     <SectionHeader label="Personal Responsable" />
-                    <div className="grid grid-cols-1 items-start gap-4 md:grid-cols-2 [&>*]:min-w-0">
+                    <div className="grid grid-cols-1 items-start gap-4 md:grid-cols-2 *:min-w-0">
                         <div className="space-y-2">
                             <label className="text-sm font-medium">Entregado por</label>
                             <Input className="h-10" disabled value={`${user?.first_name ?? ""} ${user?.last_name ?? ""}`.trim()} />
@@ -203,7 +203,7 @@ export function PartDispatchForm({ onClose }: FormProps) {
                                                     className={cn(
                                                         "flex items-center gap-2 whitespace-nowrap px-3 py-1.5 rounded-md text-sm font-medium transition-all",
                                                         field.value === value
-                                                            ? "bg-background text-foreground shadow-sm"
+                                                            ? "bg-background text-foreground shadow-xs"
                                                             : "text-muted-foreground hover:text-foreground"
                                                     )}
                                                 >
@@ -220,7 +220,7 @@ export function PartDispatchForm({ onClose }: FormProps) {
                     </div>
 
                     <div className={cn(
-                        "grid grid-cols-1 gap-4 [&>*]:min-w-0",
+                        "grid grid-cols-1 gap-4 *:min-w-0",
                         canBackdate ? "md:grid-cols-3" : "md:grid-cols-2"
                     )}>
                         <FormField

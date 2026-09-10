@@ -120,7 +120,7 @@ const AircraftsPage = () => {
           <div className="relative w-full lg:w-72">
             <Filter className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none z-10" />
             <Select value={selectedOperator} onValueChange={setSelectedOperator}>
-              <SelectTrigger className="pl-9 h-11 border-2 hover:border-primary/50 transition-colors bg-background/50 backdrop-blur">
+              <SelectTrigger className="pl-9 h-11 border-2 hover:border-primary/50 transition-colors bg-background/50 backdrop-blur-sm">
                 <SelectValue placeholder="Todos los operadores" />
               </SelectTrigger>
               <SelectContent>
@@ -147,7 +147,7 @@ const AircraftsPage = () => {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
               placeholder="Buscar por matrícula, serial, fabricante..."
-              className="pl-9 h-11 border-2 hover:border-primary/50 focus:border-primary transition-colors bg-background/50 backdrop-blur"
+              className="pl-9 h-11 border-2 hover:border-primary/50 focus:border-primary transition-colors bg-background/50 backdrop-blur-sm"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
@@ -206,7 +206,7 @@ const AircraftsPage = () => {
                     <AccordionItem
                       key={key}
                       value={key}
-                      className="border-2 border-border/50 rounded-xl overflow-hidden bg-card hover:border-primary/30 transition-all duration-200 shadow-sm hover:shadow-md"
+                      className="border-2 border-border/50 rounded-xl overflow-hidden bg-card hover:border-primary/30 transition-all duration-200 shadow-xs hover:shadow-md"
                     >
                       <AccordionTrigger className="px-6 py-4 hover:bg-primary/5 hover:no-underline group transition-colors">
                         <div className="flex items-center justify-between w-full pr-4">
@@ -259,7 +259,7 @@ const AircraftsPage = () => {
               </Accordion>
             ) : (
               /* Vista simple cuando hay un operador seleccionado */
-              <div className="rounded-xl border-2 border-border/50 bg-card overflow-hidden shadow-sm">
+              <div className="rounded-xl border-2 border-border/50 bg-card overflow-hidden shadow-xs">
                 <div className="bg-primary/5 px-6 py-4 border-b border-border/50">
                   <div className="flex items-center gap-3">
                     <div className="p-2 rounded-lg bg-primary/10">
@@ -328,7 +328,7 @@ const AircraftsPage = () => {
       ) : (
         aircrafts && aircrafts.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 px-4">
-            <div className="p-8 rounded-3xl bg-gradient-to-br from-primary/10 to-primary/5 mb-6">
+            <div className="p-8 rounded-3xl bg-linear-to-br from-primary/10 to-primary/5 mb-6">
               <PlusCircle className="h-20 w-20 text-primary" />
             </div>
             <h3 className="text-2xl font-bold mb-3">No hay aeronaves registradas</h3>

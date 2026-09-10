@@ -51,7 +51,7 @@ export function ChecklistGroupUI({
                     size="sm"
                     variant={ok ? "default" : "outline"}
                     onClick={() => onChange(it.key, true)}
-                    className={cn(ok && "shadow-sm")}
+                    className={cn(ok && "shadow-xs")}
                   >
                     OK
                   </Button>

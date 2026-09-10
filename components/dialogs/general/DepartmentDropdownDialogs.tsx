@@ -121,7 +121,7 @@ const DepartmentDropdownDialogs = ({
         "
         >
         <div className="flex items-start gap-4">
-            <div className="flex items-center justify-center size-14 rounded-2xl bg-blue-500/[0.08] border border-blue-500/10">
+            <div className="flex items-center justify-center size-14 rounded-2xl bg-blue-500/8 border border-blue-500/10">
             <Pencil className="size-6 text-blue-600" />
             </div>
 
@@ -159,7 +159,7 @@ const DepartmentDropdownDialogs = ({
       <Dialog open={openDelete} onOpenChange={setOpenDelete}>
         <DialogContent className={dialogClass}>
           <DialogHeader className="px-6 pt-8 pb-3 flex flex-col items-center text-center space-y-3">
-            <div className="flex items-center justify-center size-12 rounded-2xl bg-red-500/[0.08] border border-red-500/15">
+            <div className="flex items-center justify-center size-12 rounded-2xl bg-red-500/8 border border-red-500/15">
               <Trash2 className="size-5 text-red-600" />
             </div>
 
@@ -176,7 +176,7 @@ const DepartmentDropdownDialogs = ({
             </DialogDescription>
           </DialogHeader>
 
-          <div className="mx-6 mt-4 p-3 rounded-xl border border-red-500/20 bg-red-500/[0.05] text-sm text-red-600 flex gap-2">
+          <div className="mx-6 mt-4 p-3 rounded-xl border border-red-500/20 bg-red-500/5 text-sm text-red-600 flex gap-2">
             <AlertTriangle className="size-4 mt-[2px]" />
             Esta acción no se puede deshacer.
           </div>

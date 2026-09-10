@@ -65,7 +65,7 @@ const DateFilter = () => {
           disabled={false}
           size={"sm"}
           variant={"outline"}
-          className="lg:w-auto w-full h-9 rounded-md px-3 font-normal bg-primary hover:bg-primary/90 hover:text-white border-none focus:ring-offset-0 focus:ring-transparent outline-none text-white focus:bg-white/30 transition"
+          className="lg:w-auto w-full h-9 rounded-md px-3 font-normal bg-primary hover:bg-primary/90 hover:text-white border-none focus:ring-offset-0 focus:ring-transparent outline-hidden text-white focus:bg-white/30 transition"
         >
           <span>{formatDateRange(paramState)}</span>
           <ChevronDown className="size-4 mr-2 opacity-50" />

@@ -274,7 +274,7 @@ export function CreateGeneralQuoteForm({
             type="submit"
             className="
               w-[400px] h-10 rounded-lg
-              shadow-sm
+              shadow-xs
               transition-colors
               flex items-center justify-center gap-2
             "

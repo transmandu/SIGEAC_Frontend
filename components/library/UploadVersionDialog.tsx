@@ -120,7 +120,7 @@ export const UploadVersionDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md bg-white dark:bg-[#1a1c1e] border-slate-300 dark:border-gray-800 shadow-2xl p-0 overflow-hidden outline-none">
+      <DialogContent className="sm:max-w-md bg-white dark:bg-[#1a1c1e] border-slate-300 dark:border-gray-800 shadow-2xl p-0 overflow-hidden outline-hidden">
         <div
           className="bg-white dark:bg-gray-800/40 px-6 py-4 border-b border-slate-200 dark:border-gray-700"
           data-tour="biblioteca-version-title"
@@ -133,7 +133,7 @@ export const UploadVersionDialog = ({
         <div className="p-6 space-y-5 bg-slate-50 dark:bg-[#1a1c1e]/50 max-h-[65vh] overflow-y-auto">
           {/* Info Documento Padre */}
           <div
-            className="p-3 bg-white dark:bg-white/[0.02] border border-slate-300 dark:border-gray-800 rounded-xl shadow-sm"
+            className="p-3 bg-white dark:bg-white/2 border border-slate-300 dark:border-gray-800 rounded-xl shadow-xs"
             data-tour="biblioteca-version-documento"
           >
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
@@ -182,7 +182,7 @@ export const UploadVersionDialog = ({
                     ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 scale-[1.01] shadow-inner"
                     : selectedFile
                       ? "border-green-500 bg-green-50/30 dark:bg-green-900/10 hover:border-blue-400"
-                      : "border-slate-300 dark:border-gray-800 bg-white dark:bg-gray-800/40 hover:border-blue-400 hover:bg-slate-100 dark:hover:bg-gray-800 shadow-sm"
+                      : "border-slate-300 dark:border-gray-800 bg-white dark:bg-gray-800/40 hover:border-blue-400 hover:bg-slate-100 dark:hover:bg-gray-800 shadow-xs"
                 }`}
             >
               <div className="flex flex-col items-center justify-center text-center px-4 pointer-events-none">
@@ -231,7 +231,7 @@ export const UploadVersionDialog = ({
               <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-gray-400">
                 Vigencia
               </label>
-              <div className="grid grid-cols-2 h-11 bg-slate-200 dark:bg-gray-800/50 rounded-xl p-1 border border-slate-300 dark:border-gray-800 shadow-sm">
+              <div className="grid grid-cols-2 h-11 bg-slate-200 dark:bg-gray-800/50 rounded-xl p-1 border border-slate-300 dark:border-gray-800 shadow-xs">
                 <button
                   type="button"
                   onClick={() => setManualRequiresExpiry(false)}
@@ -266,7 +266,7 @@ export const UploadVersionDialog = ({
                   type="date"
                   value={expirationDate}
                   onChange={(e) => setExpirationDate(e.target.value)}
-                  className="w-full h-11 px-3 border border-slate-300 dark:border-gray-800 rounded-xl bg-white dark:bg-[#1a1c1e] text-xs text-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-sm"
+                  className="w-full h-11 px-3 border border-slate-300 dark:border-gray-800 rounded-xl bg-white dark:bg-[#1a1c1e] text-xs text-slate-700 dark:text-white outline-hidden focus:ring-2 focus:ring-blue-500 transition-all shadow-xs"
                 />
               </div>
             )}
@@ -284,7 +284,7 @@ export const UploadVersionDialog = ({
               placeholder="Ej: Actualización de procedimientos por auditoría"
               value={changeLog}
               onChange={(e) => setChangeLog(e.target.value)}
-              className="w-full h-20 p-3 text-xs border border-slate-300 dark:border-gray-800 rounded-xl bg-white dark:bg-transparent text-slate-700 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none resize-none placeholder:text-slate-400 shadow-sm"
+              className="w-full h-20 p-3 text-xs border border-slate-300 dark:border-gray-800 rounded-xl bg-white dark:bg-transparent text-slate-700 dark:text-white focus:ring-2 focus:ring-blue-500 outline-hidden resize-none placeholder:text-slate-400 shadow-xs"
             />
           </div>
 
@@ -296,7 +296,7 @@ export const UploadVersionDialog = ({
             </label>
             <input
               type="text"
-              className="w-full h-11 px-4 border border-slate-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-slate-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder:text-slate-400 shadow-sm"
+              className="w-full h-11 px-4 border border-slate-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-slate-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-hidden transition-all placeholder:text-slate-400 shadow-xs"
               placeholder="Ej. Rev A, Borrador, Final..."
               value={versionLabel}
               onChange={(e) => setVersionLabel(e.target.value)}

@@ -51,7 +51,7 @@ export const HistoryPanel = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex justify-end overflow-hidden animate-in fade-in duration-300">
+    <div className="fixed inset-0 z-100 flex justify-end overflow-hidden animate-in fade-in duration-300">
       {/* Overlay con blur sutil */}
       <div
         className="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px]"
@@ -81,7 +81,7 @@ export const HistoryPanel = ({
         {/* Cuerpo del Panel: Usando bg-slate-50 para contraste */}
         <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-6 bg-slate-50 dark:bg-[#141618] custom-scrollbar">
           {/* Info del Documento Actual: Tarjeta blanca sobre fondo slate-50 */}
-          <div className="p-4 bg-white dark:bg-white/[0.02] border border-slate-300 dark:border-gray-800 rounded-2xl shadow-sm">
+          <div className="p-4 bg-white dark:bg-white/2 border border-slate-300 dark:border-gray-800 rounded-2xl shadow-xs">
             <p className="text-[10px] uppercase font-bold text-slate-500 tracking-widest">
               Documento Seleccionado
             </p>
@@ -111,7 +111,7 @@ export const HistoryPanel = ({
                 {versions.map((v) => (
                   <div
                     key={v.id}
-                    className="group p-4 flex flex-col gap-3 bg-white dark:bg-white/[0.01] border border-slate-300 dark:border-gray-800 rounded-2xl hover:border-blue-400 dark:hover:border-blue-500 transition-all shadow-sm hover:shadow-md"
+                    className="group p-4 flex flex-col gap-3 bg-white dark:bg-white/1 border border-slate-300 dark:border-gray-800 rounded-2xl hover:border-blue-400 dark:hover:border-blue-500 transition-all shadow-xs hover:shadow-md"
                   >
                     {/* Fila superior: Versión y Estado */}
                     <div className="flex items-center justify-between">
@@ -144,7 +144,7 @@ export const HistoryPanel = ({
                     </div>
 
                     {/* Detalle del cambio */}
-                    <div className="bg-slate-50 dark:bg-white/[0.03] p-3 rounded-xl border border-slate-200 dark:border-gray-800/50">
+                    <div className="bg-slate-50 dark:bg-white/3 p-3 rounded-xl border border-slate-200 dark:border-gray-800/50">
                       <p className="text-[10px] font-bold text-slate-500 dark:text-gray-500 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
                         Justificación
                       </p>
@@ -170,7 +170,7 @@ export const HistoryPanel = ({
                       <button
                         data-tour="biblioteca-version-view-btn"
                         onClick={() => onViewVersion(v.id)}
-                        className="flex items-center gap-1.5 h-8 px-4 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-blue-700 text-slate-700 dark:text-white border border-slate-300 dark:border-transparent rounded-xl transition-all active:scale-95 shadow-sm"
+                        className="flex items-center gap-1.5 h-8 px-4 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-blue-700 text-slate-700 dark:text-white border border-slate-300 dark:border-transparent rounded-xl transition-all active:scale-95 shadow-xs"
                       >
                         <Eye className="h-3.5 w-3.5 text-blue-600 dark:text-white" />
                         <span className="text-[10px] font-bold uppercase tracking-widest">

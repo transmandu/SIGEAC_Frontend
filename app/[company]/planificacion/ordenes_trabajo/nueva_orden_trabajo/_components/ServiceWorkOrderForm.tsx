@@ -509,7 +509,7 @@ const ServiceWorkOrderForm = () => {
                               </Badge>
                             </div>
                           </DialogHeader>
-                          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 flex-grow overflow-hidden">
+                          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 grow overflow-hidden">
                             {/* Panel de servicios */}
                             <div className="border-r pr-4 overflow-y-auto col-span-1">
                               <h3 className="font-bold mb-2">Servicios</h3>
@@ -567,7 +567,7 @@ const ServiceWorkOrderForm = () => {
                                                 checked={selectedTasks.some(t => t.task_id === task.id)}
                                                 onCheckedChange={() => handleTaskSelect(task, service)}
                                               />
-                                              <Label className="flex-grow">{task.description}</Label>
+                                              <Label className="grow">{task.description}</Label>
                                             </div>
                                           ))}
                                         </div>

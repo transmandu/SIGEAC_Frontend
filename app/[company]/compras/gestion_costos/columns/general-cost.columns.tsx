@@ -51,7 +51,7 @@ export function getGeneralCostColumns({
       ),
       cell: ({ row }) => (
         <div className="flex justify-center w-full">
-          <span className="block max-w-[320px] break-words text-sm font-semibold text-foreground text-center">
+          <span className="block max-w-[320px] wrap-break-word text-sm font-semibold text-foreground text-center">
             {row.original.description ?? '—'}
           </span>
         </div>
@@ -68,7 +68,7 @@ export function getGeneralCostColumns({
       ),
       cell: ({ row }) => (
         <div className="flex justify-center w-full">
-          <span className="block max-w-[240px] break-words text-sm text-slate-600 dark:text-slate-300 text-center">
+          <span className="block max-w-[240px] wrap-break-word text-sm text-slate-600 dark:text-slate-300 text-center">
             {row.original.brand_model ?? '—'}
           </span>
         </div>
@@ -85,7 +85,7 @@ export function getGeneralCostColumns({
       ),
       cell: ({ row }) => (
         <div className="flex justify-center w-full">
-          <span className="block max-w-[220px] break-words text-sm text-slate-500 dark:text-slate-400 text-center">
+          <span className="block max-w-[220px] wrap-break-word text-sm text-slate-500 dark:text-slate-400 text-center">
             {row.original.variant_type ?? '—'}
           </span>
         </div>
@@ -207,7 +207,7 @@ export function getGeneralCostColumns({
             <div
               className={cn(
                 'group flex items-center gap-1.5 rounded-md border px-2 py-1 transition-all',
-                'bg-white/70 dark:bg-slate-900/40 backdrop-blur-sm',
+                'bg-white/70 dark:bg-slate-900/40 backdrop-blur-xs',
                 modified
                   ? 'border-emerald-500/60 bg-emerald-50/70 dark:bg-emerald-900/20'
                   : 'border-slate-200 dark:border-slate-700/60'

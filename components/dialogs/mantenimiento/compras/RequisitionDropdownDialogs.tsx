@@ -175,7 +175,7 @@ const RequisitionDropdownDialogs = ({
                 flex items-center justify-center
                 size-12 rounded-2xl
                 border border-red-500/15
-                bg-red-500/[0.08]
+                bg-red-500/8
                 "
             >
                 <Trash2 className="size-5 text-red-600" />
@@ -194,7 +194,7 @@ const RequisitionDropdownDialogs = ({
             </DialogHeader>
 
             {/* WARNING BOX */}
-            <div className="mx-6 mt-4 p-3 rounded-xl border border-red-500/20 bg-red-500/[0.05] text-sm text-red-600 flex gap-2 leading-relaxed">
+            <div className="mx-6 mt-4 p-3 rounded-xl border border-red-500/20 bg-red-500/5 text-sm text-red-600 flex gap-2 leading-relaxed">
             <AlertTriangle className="size-4 mt-[2px]" />
             <div>
                 Esta acción es <b>irreversible</b> y eliminará permanentemente el registro del sistema.
@@ -251,7 +251,7 @@ const RequisitionDropdownDialogs = ({
                 flex items-center justify-center
                 size-12 rounded-2xl
                 border border-red-500/15
-                bg-red-500/[0.08]
+                bg-red-500/8
                 "
             >
                 <AlertOctagon className="size-5 text-red-600" />
@@ -271,7 +271,7 @@ const RequisitionDropdownDialogs = ({
             </DialogHeader>
 
             {/* WARNING BOX */}
-            <div className="mx-6 mt-4 p-3 rounded-xl border border-red-500/20 bg-red-500/[0.05] text-sm text-red-600 flex gap-2 leading-relaxed">
+            <div className="mx-6 mt-4 p-3 rounded-xl border border-red-500/20 bg-red-500/5 text-sm text-red-600 flex gap-2 leading-relaxed">
             <AlertTriangle className="size-4 mt-[2px]" />
             <div>
                 Esta acción es <b>irreversible</b>. Se eliminarán también todas sus cotizaciones (incluyendo
@@ -330,7 +330,7 @@ const RequisitionDropdownDialogs = ({
                 flex items-center justify-center
                 size-12 rounded-2xl
                 border border-orange-500/15
-                bg-orange-500/[0.08]
+                bg-orange-500/8
                 "
             >
                 <ClipboardX className="size-5 text-orange-600" />
@@ -350,7 +350,7 @@ const RequisitionDropdownDialogs = ({
             </DialogHeader>
 
             {/* WARNING BOX */}
-            <div className="mx-6 mt-4 p-3 rounded-xl border border-orange-500/20 bg-orange-500/[0.05] text-sm text-orange-600 flex gap-2 leading-relaxed">
+            <div className="mx-6 mt-4 p-3 rounded-xl border border-orange-500/20 bg-orange-500/5 text-sm text-orange-600 flex gap-2 leading-relaxed">
             <AlertTriangle className="size-4 mt-[2px]" />
             <div>
                 Esta acción es <b>irreversible</b>. La requisición será marcada como rechazada permanentemente.
@@ -371,7 +371,7 @@ const RequisitionDropdownDialogs = ({
                   bg-background/70
                   px-3 py-2 text-sm
                   text-foreground
-                  outline-none
+                  outline-hidden
                   focus:border-orange-400/50
                   focus:ring-2 focus:ring-orange-500/10
                   transition
@@ -462,7 +462,7 @@ const RequisitionDropdownDialogs = ({
                   size-10 shrink-0
                   rounded-xl
                   border border-primary/10
-                  bg-primary/[0.08]
+                  bg-primary/8
                 "
               >
                 <Receipt className="size-4.5 text-primary" />

@@ -47,7 +47,7 @@ export default function PurchaseOrderSplitView({ children }: PurchaseOrderSplitV
         {selected && (
           <div
             className="
-              fixed right-0 top-0 bottom-0 z-[900]
+              fixed right-0 top-0 bottom-0 z-900
               hidden lg:flex flex-col
               w-[420px]
               border-l bg-background

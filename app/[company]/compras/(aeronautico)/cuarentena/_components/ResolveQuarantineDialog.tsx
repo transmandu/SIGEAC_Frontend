@@ -203,12 +203,12 @@ export function ResolveQuarantineDialog({ record, open, onOpenChange }: Props) {
 
               <div className="flex items-center gap-2">
                 {cycles.length > 1 && (
-                  <Badge className="select-none rounded-md border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold text-amber-700 shadow-sm dark:text-amber-300">
+                  <Badge className="select-none rounded-md border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold text-amber-700 shadow-xs dark:text-amber-300">
                     Intento {cycles.length}
                   </Badge>
                 )}
                 {record.is_overdue && (
-                  <Badge className="select-none gap-1 rounded-md border border-red-500/30 bg-red-500/10 px-2 py-0.5 text-[10px] font-semibold text-red-700 shadow-sm dark:text-red-300">
+                  <Badge className="select-none gap-1 rounded-md border border-red-500/30 bg-red-500/10 px-2 py-0.5 text-[10px] font-semibold text-red-700 shadow-xs dark:text-red-300">
                     <AlertTriangle className="size-3" />
                     Plazo vencido
                   </Badge>

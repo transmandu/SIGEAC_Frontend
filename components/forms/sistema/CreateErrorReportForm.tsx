@@ -78,13 +78,13 @@ const SEVERITY_TONE: Record<string, ChipTone> = {
 };
 
 const SEVERITY_ACTIVE_CLASS: Record<ChipTone, string> = {
-  sky: "border-sky-400 bg-sky-500 text-white shadow-sm shadow-sky-500/30",
-  amber: "border-amber-400 bg-amber-500 text-white shadow-sm shadow-amber-500/30",
-  orange: "border-orange-400 bg-orange-500 text-white shadow-sm shadow-orange-500/30",
-  rose: "border-rose-400 bg-rose-500 text-white shadow-sm shadow-rose-500/30",
-  emerald: "border-emerald-400 bg-emerald-500 text-white shadow-sm shadow-emerald-500/30",
-  indigo: "border-indigo-400 bg-indigo-500 text-white shadow-sm shadow-indigo-500/30",
-  slate: "border-slate-400 bg-slate-600 text-white shadow-sm shadow-slate-500/30",
+  sky: "border-sky-400 bg-sky-500 text-white shadow-xs shadow-sky-500/30",
+  amber: "border-amber-400 bg-amber-500 text-white shadow-xs shadow-amber-500/30",
+  orange: "border-orange-400 bg-orange-500 text-white shadow-xs shadow-orange-500/30",
+  rose: "border-rose-400 bg-rose-500 text-white shadow-xs shadow-rose-500/30",
+  emerald: "border-emerald-400 bg-emerald-500 text-white shadow-xs shadow-emerald-500/30",
+  indigo: "border-indigo-400 bg-indigo-500 text-white shadow-xs shadow-indigo-500/30",
+  slate: "border-slate-400 bg-slate-600 text-white shadow-xs shadow-slate-500/30",
 };
 
 const HTTP_QUICK_PICKS = [
@@ -187,7 +187,7 @@ export default function CreateErrorReportForm({ onClose, showAdvancedFields = fa
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="flex min-h-0 flex-1 flex-col">
         {/* ───────── Sticky header ───────── */}
-        <div className="shrink-0 border-b border-slate-200/80 bg-gradient-to-b from-slate-50 to-background px-6 pb-4 pt-6 dark:border-slate-800/80 dark:from-slate-900/40">
+        <div className="shrink-0 border-b border-slate-200/80 bg-linear-to-b from-slate-50 to-background px-6 pb-4 pt-6 dark:border-slate-800/80 dark:from-slate-900/40">
           <DialogTitle className="text-lg font-semibold tracking-tight">
             Reportar un problema o sugerencia
           </DialogTitle>
@@ -299,7 +299,7 @@ export default function CreateErrorReportForm({ onClose, showAdvancedFields = fa
                       type="button"
                       onClick={() => handleRemoveImage(index)}
                       aria-label={`Quitar imagen ${index + 1}`}
-                      className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-destructive-foreground opacity-0 shadow transition-opacity group-hover:opacity-100"
+                      className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-destructive-foreground opacity-0 shadow-sm transition-opacity group-hover:opacity-100"
                     >
                       <X className="h-3 w-3" />
                     </button>
@@ -387,7 +387,7 @@ export default function CreateErrorReportForm({ onClose, showAdvancedFields = fa
                       className={cn(
                         "select-none rounded-full border px-3 py-1 font-mono text-xs font-medium transition-all",
                         active
-                          ? "border-primary bg-primary text-white shadow-sm shadow-primary/30"
+                          ? "border-primary bg-primary text-white shadow-xs shadow-primary/30"
                           : "border-slate-200/80 bg-slate-50/60 text-muted-foreground hover:border-slate-300 dark:border-slate-800/80 dark:bg-slate-900/30"
                       )}
                     >
@@ -406,7 +406,7 @@ export default function CreateErrorReportForm({ onClose, showAdvancedFields = fa
                   className={cn(
                     "select-none rounded-full border px-3 py-1 text-xs font-medium transition-all",
                     customHttpOpen
-                      ? "border-primary bg-primary text-white shadow-sm shadow-primary/30"
+                      ? "border-primary bg-primary text-white shadow-xs shadow-primary/30"
                       : "border-slate-200/80 bg-slate-50/60 text-muted-foreground hover:border-slate-300 dark:border-slate-800/80 dark:bg-slate-900/30"
                   )}
                 >
@@ -419,7 +419,7 @@ export default function CreateErrorReportForm({ onClose, showAdvancedFields = fa
                     className={cn(
                       "select-none rounded-full border px-3 py-1 text-xs font-medium transition-all",
                       !httpStatus
-                        ? "border-slate-400 bg-slate-600 text-white shadow-sm shadow-slate-500/30"
+                        ? "border-slate-400 bg-slate-600 text-white shadow-xs shadow-slate-500/30"
                         : "border-slate-200/80 bg-slate-50/60 text-muted-foreground hover:border-slate-300 dark:border-slate-800/80 dark:bg-slate-900/30"
                     )}
                   >
@@ -451,7 +451,7 @@ export default function CreateErrorReportForm({ onClose, showAdvancedFields = fa
         </div>
 
         {/* ───────── Sticky footer ───────── */}
-        <div className="flex shrink-0 items-center justify-end gap-2 border-t border-slate-200/80 bg-gradient-to-t from-slate-50 to-background px-6 py-3.5 dark:border-slate-800/80 dark:from-slate-900/40">
+        <div className="flex shrink-0 items-center justify-end gap-2 border-t border-slate-200/80 bg-linear-to-t from-slate-50 to-background px-6 py-3.5 dark:border-slate-800/80 dark:from-slate-900/40">
           <Button type="button" variant="outline" size="sm" onClick={onClose}>
             Cancelar
           </Button>

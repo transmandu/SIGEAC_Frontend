@@ -96,7 +96,7 @@ export function SecurePdfViewerContent({
   const isDark = theme === "dark";
 
   return (
-    <div ref={containerRef} className="flex h-full flex-col">
+    <div ref={containerRef} className="secure-pdf-viewer flex h-full flex-col">
       <div
         data-tour={toolbarTour}
         className={`flex items-center justify-between border-b px-4 py-2 ${

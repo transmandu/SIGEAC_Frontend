@@ -142,7 +142,7 @@ const CreateNoRutineForm = ({ id, onClose }: { id: string, onClose: () => void }
 
   return (
     <div className="max-w-3xl mx-auto">
-      <Card className="border-none shadow-sm">
+      <Card className="border-none shadow-xs">
         <CardHeader>
           <CardTitle className="text-xl font-semibold">
             Generar - No Rutinaria

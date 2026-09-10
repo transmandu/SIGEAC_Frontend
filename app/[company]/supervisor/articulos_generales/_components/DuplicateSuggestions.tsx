@@ -23,7 +23,7 @@ export function DuplicateSuggestions({
 }) {
     if (groups.length === 0) {
         return (
-            <div className="relative rounded-xl border border-border/60 bg-gradient-to-b from-muted/30 to-muted/10 p-5 shadow-sm">
+            <div className="relative rounded-xl border border-border/60 bg-linear-to-b from-muted/30 to-muted/10 p-5 shadow-xs">
                 <div className="min-h-[140px] flex items-center justify-center">
                     <div className="flex flex-col items-center gap-1.5 text-muted-foreground/60 select-none">
                         <ShieldCheck className="size-4 opacity-60" />
@@ -62,7 +62,7 @@ function SuggestionCard({
     const Icon = group.reason === "UNIT" ? Ruler : Tags
 
     return (
-        <div className="relative rounded-xl border border-border/60 bg-gradient-to-b from-muted/30 to-muted/10 shadow-sm overflow-hidden">
+        <div className="relative rounded-xl border border-border/60 bg-linear-to-b from-muted/30 to-muted/10 shadow-xs overflow-hidden">
 
             {/* ── Encabezado ──────────────────────────────────────────────── */}
             <div className="flex items-center gap-3 px-5 pt-4 pb-3 select-none">

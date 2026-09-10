@@ -87,7 +87,7 @@ const RequisitionStatusCell = ({
           Dejarlo fluir hacia una sola linea desalineaba unas filas con otras. */}
       <span
         className={cn(
-          "flex w-[6.5rem] shrink-0 flex-col items-center rounded-xl px-2 py-1 text-[11px] font-medium leading-tight select-none cursor-default",
+          "flex w-26 shrink-0 flex-col items-center rounded-xl px-2 py-1 text-[11px] font-medium leading-tight select-none cursor-default",
           config.cls,
         )}
       >

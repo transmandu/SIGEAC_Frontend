@@ -44,10 +44,10 @@ const iconBase = (color: "red" | "orange" | "green") => `
   border
   ${
     color === "red"
-      ? "border-red-500/15 bg-red-500/[0.08] text-red-600"
+      ? "border-red-500/15 bg-red-500/8 text-red-600"
       : color === "orange"
-      ? "border-orange-500/15 bg-orange-500/[0.08] text-orange-600"
-      : "border-emerald-500/15 bg-emerald-500/[0.08] text-emerald-600"
+      ? "border-orange-500/15 bg-orange-500/8 text-orange-600"
+      : "border-emerald-500/15 bg-emerald-500/8 text-emerald-600"
   }
 `
 
@@ -59,8 +59,8 @@ const warningBox = (color: "red" | "orange") => `
   mx-6 mt-4 p-3 rounded-xl border text-sm leading-relaxed flex gap-2
   ${
     color === "red"
-      ? "border-red-500/20 bg-red-500/[0.05] text-red-600"
-      : "border-orange-500/20 bg-orange-500/[0.05] text-orange-600"
+      ? "border-red-500/20 bg-red-500/5 text-red-600"
+      : "border-orange-500/20 bg-orange-500/5 text-orange-600"
   }
 `
 
@@ -348,7 +348,7 @@ const QuoteDropdownDialogs = ({
                 bg-background/70
                 px-3 py-2 text-sm
                 text-foreground
-                outline-none
+                outline-hidden
                 focus:border-red-400/50
                 focus:ring-2 focus:ring-red-500/10
                 transition
@@ -405,7 +405,7 @@ const QuoteDropdownDialogs = ({
               </span>.
             </DialogDescription>
           </DialogHeader>
-          <div className="mx-6 mt-4 p-3 rounded-xl border border-emerald-500/20 bg-emerald-500/[0.05] text-sm text-emerald-600 flex gap-2 leading-relaxed">
+          <div className="mx-6 mt-4 p-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 text-sm text-emerald-600 flex gap-2 leading-relaxed">
             <Receipt className="size-4 mt-[2px]" />
             <div>
               Esta acción creará una orden de compra y actualizará el flujo de la solicitud.

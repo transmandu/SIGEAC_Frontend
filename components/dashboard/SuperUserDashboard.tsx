@@ -74,7 +74,7 @@ export default function SuperUserDashboard({
   return (
     <ContentLayout title={`SuperUser Dashboard / ${companySlug || ""}`}>
 
-      <header className="border-b bg-background/60 backdrop-blur-md shadow-sm">
+      <header className="border-b bg-background/60 backdrop-blur-md shadow-xs">
 
         <div className="
           container mx-auto px-4
@@ -95,7 +95,7 @@ export default function SuperUserDashboard({
                 relative flex items-center justify-center
                 h-10 w-10 sm:h-12 sm:w-12
                 rounded-2xl border border-red-500/30
-                bg-red-500/10 text-red-500 shadow-sm
+                bg-red-500/10 text-red-500 shadow-xs
               ">
                 <Shield className="h-5 w-5 sm:h-6 sm:w-6" />
               </div>
@@ -133,10 +133,10 @@ export default function SuperUserDashboard({
               <SelectTrigger className="
                 h-10 px-3
                 rounded-xl
-                bg-gradient-to-br from-background/70 to-background/40
+                bg-linear-to-br from-background/70 to-background/40
                 backdrop-blur-md
                 border border-slate-400/60 dark:border-slate-600/60
-                shadow-sm
+                shadow-xs
                 hover:shadow-md hover:shadow-red-500/10
                 hover:border-red-400/30
                 transition-all

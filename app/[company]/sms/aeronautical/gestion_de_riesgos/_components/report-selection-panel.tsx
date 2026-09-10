@@ -75,7 +75,7 @@ export function ReportSelectionPanel({
                                 No se pudieron cargar los reportes voluntarios.
                             </div>
                         ) : voluntaryReports.length ? (
-                            <div className="max-h-[32rem] space-y-3 overflow-y-auto pr-1">
+                            <div className="max-h-128 space-y-3 overflow-y-auto pr-1">
                                 {voluntaryReports.map((report) => (
                                     <ReportCard
                                         key={report.id}
@@ -105,7 +105,7 @@ export function ReportSelectionPanel({
                                 No se pudieron cargar los reportes obligatorios.
                             </div>
                         ) : obligatoryReports.length ? (
-                            <div className="max-h-[32rem] space-y-3 overflow-y-auto pr-1">
+                            <div className="max-h-128 space-y-3 overflow-y-auto pr-1">
                                 {obligatoryReports.map((report) => (
                                     <ReportCard
                                         key={report.id}

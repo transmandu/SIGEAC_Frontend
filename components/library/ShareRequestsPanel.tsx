@@ -251,7 +251,7 @@ export default function ShareRequestsPanel({
 
         {/* Tabs */}
         <div
-          className="flex gap-1 px-4 py-3 border-b border-slate-200 dark:border-gray-800 bg-slate-50 dark:bg-white/[0.02]"
+          className="flex gap-1 px-4 py-3 border-b border-slate-200 dark:border-gray-800 bg-slate-50 dark:bg-white/2"
           data-tour="biblioteca-requests-tab-pendientes"
         >
           {tabs.map((tab) => (
@@ -262,7 +262,7 @@ export default function ShareRequestsPanel({
               className={`relative flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all
               ${
                 activeTab === tab.key
-                  ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 shadow-sm"
+                  ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 shadow-xs"
                   : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/50"
               }`}
             >
@@ -301,7 +301,7 @@ export default function ShareRequestsPanel({
               {filteredRequests.map((req: any) => (
                 <div
                   key={req.id}
-                  className="bg-white dark:bg-[#111214] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all"
+                  className="bg-white dark:bg-[#111214] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-xs hover:shadow-md transition-all"
                   data-tour="biblioteca-requests-card"
                 >
                   {/* Status and Date row */}
@@ -335,7 +335,7 @@ export default function ShareRequestsPanel({
                         {req.requested_by_name || "N/A"}
                       </p>
                     </div>
-                    <div className="w-[1px] h-8 bg-slate-200 dark:bg-slate-700 mx-4"></div>
+                    <div className="w-px h-8 bg-slate-200 dark:bg-slate-700 mx-4"></div>
                     <div className="flex-1">
                       <p className="text-[9px] font-bold uppercase text-slate-400 mb-1 tracking-wider">
                         Destinatario
@@ -441,7 +441,7 @@ export default function ShareRequestsPanel({
                           <div className="space-y-2">
                             <textarea
                               placeholder="Motivo del rechazo..."
-                              className="w-full h-16 px-3 py-2 text-[11px] border border-red-300 dark:border-red-800 rounded-lg bg-white dark:bg-gray-800 text-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-red-500 resize-none"
+                              className="w-full h-16 px-3 py-2 text-[11px] border border-red-300 dark:border-red-800 rounded-lg bg-white dark:bg-gray-800 text-slate-700 dark:text-white outline-hidden focus:ring-2 focus:ring-red-500 resize-none"
                               value={rejectReason}
                               onChange={(e) => setRejectReason(e.target.value)}
                             />
@@ -472,7 +472,7 @@ export default function ShareRequestsPanel({
                               data-tour="biblioteca-requests-aprobar"
                               onClick={() => handleApprove(req.id)}
                               disabled={actionLoading === req.id}
-                              className="flex-1 py-2 text-[10px] font-bold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 disabled:opacity-50 uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-sm active:scale-[0.98] transition-all"
+                              className="flex-1 py-2 text-[10px] font-bold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 disabled:opacity-50 uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-xs active:scale-[0.98] transition-all"
                             >
                               {actionLoading === req.id ? (
                                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -484,7 +484,7 @@ export default function ShareRequestsPanel({
                             <button
                               data-tour="biblioteca-requests-rechazar"
                               onClick={() => setRejectingId(req.id)}
-                              className="flex-1 py-2 text-[10px] font-bold text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50 uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-sm active:scale-[0.98] transition-all"
+                              className="flex-1 py-2 text-[10px] font-bold text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50 uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-xs active:scale-[0.98] transition-all"
                             >
                               <XCircle className="h-3.5 w-3.5" />
                               RECHAZAR
@@ -506,7 +506,7 @@ export default function ShareRequestsPanel({
         open={!!selectedDetails}
         onOpenChange={() => setSelectedDetails(null)}
       >
-        <DialogContent className="bg-white dark:bg-[#1a1c1e] border-none text-slate-900 dark:text-white sm:max-w-[480px] rounded-2xl overflow-hidden p-0 outline-none shadow-2xl !z-[100]">
+        <DialogContent className="bg-white dark:bg-[#1a1c1e] border-none text-slate-900 dark:text-white sm:max-w-[480px] rounded-2xl overflow-hidden p-0 outline-hidden shadow-2xl z-100!">
           <div className="bg-slate-50 dark:bg-slate-800/50 px-6 py-5 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
             <div className="flex items-center gap-2">
               <DialogTitle className="text-lg font-bold text-slate-800 dark:text-white tracking-tight uppercase">

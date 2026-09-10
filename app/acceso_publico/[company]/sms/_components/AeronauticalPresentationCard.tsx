@@ -11,7 +11,7 @@ const AeronauticalPresentationCard = ({ company }: PresentationCardProps) => {
 
     return (
         <section className="mb-8 w-full">
-            <div className="relative overflow-hidden rounded-[2rem] border border-border/60 shadow-2xl">
+            <div className="relative overflow-hidden rounded-4xl border border-border/60 shadow-2xl">
                 <div className="relative h-[380px] w-full sm:h-[520px] lg:h-[700px]">
                     <Image
                         src={`${storageBaseUrl}images/sms/sms_airplane_page.png`}
@@ -21,8 +21,8 @@ const AeronauticalPresentationCard = ({ company }: PresentationCardProps) => {
                         className="object-cover object-center"
                     />
 
-                    <div className="absolute inset-0 bg-gradient-to-r from-slate-950/30 via-transparent to-transparent" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/55 via-transparent to-transparent" />
+                    <div className="absolute inset-0 bg-linear-to-r from-slate-950/30 via-transparent to-transparent" />
+                    <div className="absolute inset-0 bg-linear-to-t from-slate-950/55 via-transparent to-transparent" />
 
                     <div className="absolute left-5 top-5 sm:left-8 sm:top-8 lg:left-12 lg:top-12">
                         <div className="inline-flex items-center rounded-full border border-white/15 bg-slate-950/35 px-4 py-1.5 text-[11px] font-medium uppercase tracking-[0.24em] text-white/90 backdrop-blur-md">

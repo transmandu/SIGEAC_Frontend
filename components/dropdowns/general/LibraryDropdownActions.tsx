@@ -43,7 +43,7 @@ const itemBase = `
   size-9
   rounded-xl
   transition-all duration-200 ease-out
-  hover:bg-muted hover:shadow-sm
+  hover:bg-muted hover:shadow-xs
   active:scale-95
 `;
 
@@ -164,7 +164,7 @@ export const LibraryDropdownActions = ({
     <TooltipProvider delayDuration={120}>
       <DropdownMenu open={openDropdown} onOpenChange={setOpenDropdown}>
         <DropdownMenuTrigger asChild>
-          <button className="p-2 text-slate-400 hover:bg-slate-200 dark:hover:bg-gray-800 rounded-lg transition-all outline-none">
+          <button className="p-2 text-slate-400 hover:bg-slate-200 dark:hover:bg-gray-800 rounded-lg transition-all outline-hidden">
             <MoreVertical className="h-4 w-4" />
           </button>
         </DropdownMenuTrigger>

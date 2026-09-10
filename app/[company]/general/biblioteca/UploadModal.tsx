@@ -232,7 +232,7 @@ export default function UploadModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 text-left">
+    <div className="fixed inset-0 z-100 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 text-left">
       <div className="bg-white dark:bg-[#1a1c1e] rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden border border-slate-300 dark:border-gray-800 animate-in zoom-in-95 duration-200">
         {/* Header */}
         <div className="bg-white dark:bg-gray-800/60 px-6 py-4 border-b border-slate-200 dark:border-gray-700 flex justify-between items-center">
@@ -275,7 +275,7 @@ export default function UploadModal({
             <input
               type="text"
               required
-              className="w-full h-11 px-4 border border-slate-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-slate-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder:text-slate-400 shadow-sm"
+              className="w-full h-11 px-4 border border-slate-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-slate-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-hidden transition-all placeholder:text-slate-400 shadow-xs"
               placeholder="Ej. Manual de Mantenimiento 2026"
               value={formData.title}
               onChange={(e) =>
@@ -292,7 +292,7 @@ export default function UploadModal({
             </label>
             <input
               type="text"
-              className="w-full h-11 px-4 border border-slate-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-slate-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder:text-slate-400 shadow-sm"
+              className="w-full h-11 px-4 border border-slate-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-slate-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-hidden transition-all placeholder:text-slate-400 shadow-xs"
               placeholder="Ej. Rev A, Borrador, Final..."
               value={versionLabel}
               onChange={(e) => setVersionLabel(e.target.value)}
@@ -314,7 +314,7 @@ export default function UploadModal({
                     (!isSuperUser && departments.length === 1) ||
                     !!departmentId
                   }
-                  className="w-full h-11 pl-4 pr-10 border border-slate-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-slate-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer appearance-none relative z-10 disabled:opacity-80 shadow-sm"
+                  className="w-full h-11 pl-4 pr-10 border border-slate-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-slate-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-hidden cursor-pointer appearance-none relative z-10 disabled:opacity-80 shadow-xs"
                   value={formData.department_id}
                   onChange={(e) =>
                     setFormData({
@@ -356,7 +356,7 @@ export default function UploadModal({
                 <select
                   required
                   disabled={loadingData}
-                  className={`w-full h-11 pl-4 pr-10 border rounded-xl bg-white dark:bg-gray-800 text-slate-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer appearance-none relative z-10 shadow-sm ${formData.category_id === "otro" ? "border-blue-500" : "border-slate-300 dark:border-gray-700"}`}
+                  className={`w-full h-11 pl-4 pr-10 border rounded-xl bg-white dark:bg-gray-800 text-slate-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-hidden cursor-pointer appearance-none relative z-10 shadow-xs ${formData.category_id === "otro" ? "border-blue-500" : "border-slate-300 dark:border-gray-700"}`}
                   value={formData.category_id}
                   onChange={(e) =>
                     setFormData({ ...formData, category_id: e.target.value })
@@ -394,7 +394,7 @@ export default function UploadModal({
               <input
                 type="text"
                 required
-                className="w-full h-10 px-4 border border-blue-500 rounded-xl bg-blue-50/30 dark:bg-blue-900/10 text-slate-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                className="w-full h-10 px-4 border border-blue-500 rounded-xl bg-blue-50/30 dark:bg-blue-900/10 text-slate-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-hidden"
                 placeholder="Nombre de la categoría"
                 value={newCategoryName}
                 onChange={(e) => setNewCategoryName(e.target.value)}
@@ -412,7 +412,7 @@ export default function UploadModal({
                 <select
                   value={selectedFolderPath}
                   onChange={(e) => setSelectedFolderPath(e.target.value)}
-                  className="w-full h-11 pl-4 pr-10 border border-slate-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-slate-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none appearance-none cursor-pointer shadow-sm"
+                  className="w-full h-11 pl-4 pr-10 border border-slate-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-slate-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-hidden appearance-none cursor-pointer shadow-xs"
                 >
                   <option value="">Raíz (sin carpeta)</option>
                   {flattenFolders(folders).map((f) => (
@@ -431,7 +431,7 @@ export default function UploadModal({
             <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-gray-400 flex items-center gap-2">
               <Calendar className="h-3.5 w-3.5 text-blue-500" /> Vigencia
             </label>
-            <div className="grid grid-cols-2 gap-2 p-1 bg-slate-200 dark:bg-gray-800/80 rounded-xl border border-slate-300 dark:border-gray-700 shadow-sm">
+            <div className="grid grid-cols-2 gap-2 p-1 bg-slate-200 dark:bg-gray-800/80 rounded-xl border border-slate-300 dark:border-gray-700 shadow-xs">
               <button
                 type="button"
                 className={`py-2 text-[10px] font-bold rounded-lg transition-all ${!hasExpiry ? "bg-white dark:bg-gray-600 shadow-md text-blue-600 dark:text-blue-400" : "text-slate-500"}`}
@@ -465,7 +465,7 @@ export default function UploadModal({
               <input
                 type="date"
                 required
-                className="w-full h-11 px-4 border border-slate-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-slate-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none shadow-sm"
+                className="w-full h-11 px-4 border border-slate-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-slate-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-hidden shadow-xs"
                 value={formData.expiration_date}
                 onChange={(e) =>
                   setFormData({ ...formData, expiration_date: e.target.value })
@@ -486,7 +486,7 @@ export default function UploadModal({
                     ? "border-blue-500 bg-blue-50/50 dark:bg-blue-900/30 scale-[1.01] shadow-inner"
                     : file
                       ? "border-green-500 bg-green-50/30 dark:bg-green-900/10 hover:border-blue-400"
-                      : "border-slate-300 dark:border-gray-700 bg-white dark:bg-gray-800/40 hover:border-blue-400 hover:bg-slate-100 dark:hover:bg-gray-800 shadow-sm"
+                      : "border-slate-300 dark:border-gray-700 bg-white dark:bg-gray-800/40 hover:border-blue-400 hover:bg-slate-100 dark:hover:bg-gray-800 shadow-xs"
                 }`}
             >
               <div className="flex flex-col items-center justify-center text-center px-4 pointer-events-none">

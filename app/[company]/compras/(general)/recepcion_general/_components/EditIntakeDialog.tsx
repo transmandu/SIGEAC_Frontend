@@ -397,7 +397,7 @@ export default function EditIntakeDialog({
                 bg-slate-500/10 text-slate-600
                 hover:bg-slate-500/20
                 border border-slate-500/20
-                shadow-sm transition-colors
+                shadow-xs transition-colors
                 dark:bg-slate-400/10 dark:text-slate-300
                 dark:hover:bg-slate-400/20 dark:border-slate-400/20
               "
@@ -413,7 +413,7 @@ export default function EditIntakeDialog({
                 bg-amber-500/20 text-amber-900
                 hover:bg-amber-500/30
                 border border-amber-500/30
-                shadow-sm transition-colors
+                shadow-xs transition-colors
                 flex items-center justify-center gap-2
                 dark:bg-amber-400/10 dark:text-amber-100
                 dark:hover:bg-amber-400/20 dark:border-amber-400/20

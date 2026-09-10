@@ -98,7 +98,7 @@ export default function RequestPasswordResetDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[26rem]">
+      <DialogContent className="sm:max-w-104">
         <DialogHeader>
           <div className="flex items-center gap-3">
             {/* El icono acompaña el estado: llave -> escudo al confirmar. */}

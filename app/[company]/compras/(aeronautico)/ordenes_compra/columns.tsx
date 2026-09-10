@@ -214,7 +214,7 @@ export const getColumns = (
                 text-[10px]
                 font-semibold
                 tracking-wide
-                shadow-sm
+                shadow-xs
                 transition-colors duration-150
                 cursor-default
               `,

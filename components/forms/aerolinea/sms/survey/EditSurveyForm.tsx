@@ -323,7 +323,7 @@ function QuestionItem({
                 variant="ghost"
                 size="sm"
                 onClick={() => setIsMinimized(!isMinimized)}
-                className="p-1 h-auto flex-shrink-0"
+                className="p-1 h-auto shrink-0"
               >
                 {isMinimized ? (
                   <ChevronDown className="h-4 w-4" />
@@ -341,7 +341,7 @@ function QuestionItem({
                 variant="ghost"
                 size="sm"
                 onClick={() => remove(questionIndex)}
-                className="flex-shrink-0"
+                className="shrink-0"
               >
                 <Trash2 className="h-4 w-4 text-red-500" />
               </Button>
@@ -381,7 +381,7 @@ function QuestionItem({
                           onValueChange={handleTypeChange}
                           className="flex flex-col space-y-4 min-w-max"
                         >
-                          <FormItem className="flex items-center space-x-2 flex-shrink-0">
+                          <FormItem className="flex items-center space-x-2 shrink-0">
                             <FormControl>
                               <RadioGroupItem value="SINGLE" />
                             </FormControl>
@@ -389,7 +389,7 @@ function QuestionItem({
                               Selección Simple
                             </FormLabel>
                           </FormItem>
-                          <FormItem className="flex items-center space-x-2 flex-shrink-0">
+                          <FormItem className="flex items-center space-x-2 shrink-0">
                             <FormControl>
                               <RadioGroupItem value="MULTIPLE" />
                             </FormControl>
@@ -397,7 +397,7 @@ function QuestionItem({
                               Selección Múltiple
                             </FormLabel>
                           </FormItem>
-                          <FormItem className="flex items-center space-x-2 flex-shrink-0">
+                          <FormItem className="flex items-center space-x-2 shrink-0">
                             <FormControl>
                               <RadioGroupItem value="OPEN" />
                             </FormControl>
@@ -436,10 +436,10 @@ function QuestionItem({
               {questionType !== "OPEN" && (
                 <div className="space-y-3 overflow-hidden">
                   <div className="flex justify-between items-center overflow-hidden">
-                    <FormLabel className="whitespace-nowrap flex-shrink-0">
+                    <FormLabel className="whitespace-nowrap shrink-0">
                       Opciones de Respuesta
                     </FormLabel>
-                    <span className="text-sm text-gray-500 whitespace-nowrap flex-shrink-0 ml-2">
+                    <span className="text-sm text-gray-500 whitespace-nowrap shrink-0 ml-2">
                       {
                         options.filter((opt: any) => opt.text.trim() !== "")
                           .length
@@ -488,12 +488,12 @@ function QuestionItem({
                     <div className="flex items-center gap-2 text-xs p-2 rounded border overflow-hidden">
                       {questionType === "SINGLE" ? (
                         <>
-                          <Circle className="h-3 w-3 text-blue-600 flex-shrink-0" />
-                          <span className="text-blue-600 whitespace-nowrap flex-shrink-0">
+                          <Circle className="h-3 w-3 text-blue-600 shrink-0" />
+                          <span className="text-blue-600 whitespace-nowrap shrink-0">
                             Debe tener exactamente 1 respuesta correcta
                           </span>
                           {correctOptionsCount !== 1 && (
-                            <span className="text-red-500 ml-auto whitespace-nowrap flex-shrink-0">
+                            <span className="text-red-500 ml-auto whitespace-nowrap shrink-0">
                               {correctOptionsCount === 0
                                 ? "Selecciona la respuesta correcta"
                                 : correctOptionsCount > 1
@@ -504,13 +504,13 @@ function QuestionItem({
                         </>
                       ) : (
                         <>
-                          <CheckSquare className="h-3 w-3 text-blue-600 flex-shrink-0" />
-                          <span className="text-blue-600 whitespace-nowrap flex-shrink-0">
+                          <CheckSquare className="h-3 w-3 text-blue-600 shrink-0" />
+                          <span className="text-blue-600 whitespace-nowrap shrink-0">
                             Marca todas las opciones correctas
                           </span>
                           {(correctOptionsCount === 0 ||
                             correctOptionsCount === options.length) && (
-                              <span className="text-red-500 ml-auto whitespace-nowrap flex-shrink-0">
+                              <span className="text-red-500 ml-auto whitespace-nowrap shrink-0">
                                 {correctOptionsCount === 0
                                   ? "Debe haber al menos una correcta"
                                   : "Debe haber al menos una incorrecta"}

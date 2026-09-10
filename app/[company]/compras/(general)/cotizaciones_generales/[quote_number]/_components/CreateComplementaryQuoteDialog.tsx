@@ -160,7 +160,7 @@ export default function CreateComplementaryQuoteDialog({
                 size-10 shrink-0
                 rounded-xl
                 border border-primary/10
-                bg-primary/[0.08]
+                bg-primary/8
               "
             >
               <PackagePlus className="size-4.5 text-primary" />
@@ -205,7 +205,7 @@ export default function CreateComplementaryQuoteDialog({
                     className={cn(
                       "rounded-lg border overflow-hidden transition-colors",
                       included
-                        ? "border-primary/40 bg-primary/[0.04]"
+                        ? "border-primary/40 bg-primary/4"
                         : "border-border/60 bg-background/60"
                     )}
                   >
@@ -328,7 +328,7 @@ export default function CreateComplementaryQuoteDialog({
                 hover:bg-slate-500/20
                 active:bg-slate-500/30
                 border border-slate-500/20
-                shadow-sm
+                shadow-xs
                 transition-colors
                 dark:bg-slate-400/10
                 dark:text-slate-300
@@ -343,7 +343,7 @@ export default function CreateComplementaryQuoteDialog({
               disabled={!canSubmit}
               className="
                 h-10 rounded-lg px-5
-                shadow-sm
+                shadow-xs
                 transition-colors
                 flex items-center justify-center gap-2
               "

@@ -31,7 +31,7 @@ export default function NotFound() {
   return (
     <div className="relative min-h-dvh w-dvw flex items-center justify-center overflow-hidden bg-background select-none">
 
-      <div className="absolute inset-0 bg-gradient-to-b from-sky-500/15 via-transparent to-background dark:from-sky-400/10" />
+      <div className="absolute inset-0 bg-linear-to-b from-sky-500/15 via-transparent to-background dark:from-sky-400/10" />
       <div className="absolute inset-0 opacity-[0.08] bg-[radial-gradient(circle_at_20%_10%,black,transparent_45%),radial-gradient(circle_at_80%_60%,black,transparent_50%)] dark:opacity-[0.12]" />
 
       <motion.div

@@ -147,7 +147,7 @@ export function CostHistoryPanel({
             </div>
 
             {history.length === 0 && created.length === 0 && (
-                <div className="rounded-xl border border-border/60 bg-gradient-to-b from-muted/30 to-muted/10 py-10 text-center">
+                <div className="rounded-xl border border-border/60 bg-linear-to-b from-muted/30 to-muted/10 py-10 text-center">
                     <span className="text-[11px] uppercase tracking-widest text-muted-foreground/60 select-none">
                         Sin historial de costo
                     </span>
@@ -195,7 +195,7 @@ export function CostHistoryPanel({
                                                     "h-8 w-24 bg-background border-border/60 text-xs",
                                                     intakeId !== null &&
                                                         pendingIntakeUnit(intakeId) !== undefined &&
-                                                        "border-primary/60 bg-primary/[0.06]",
+                                                        "border-primary/60 bg-primary/6",
                                                 )}
                                             >
                                                 <SelectValue placeholder="Unidad" />
@@ -221,7 +221,7 @@ export function CostHistoryPanel({
                                             "h-8 w-20 bg-background border-border/60",
                                             changeId !== null &&
                                                 pendingRow(changeId)?.cost !== undefined &&
-                                                "border-primary/60 bg-primary/[0.06]",
+                                                "border-primary/60 bg-primary/6",
                                         )}
                                         value={
                                             changeId !== null
@@ -333,7 +333,7 @@ export function CostHistoryPanel({
                 {created.map((row, index) => (
                     <div
                         key={`new-${index}`}
-                        className="flex items-center gap-3 rounded-lg border border-primary/40 bg-primary/[0.06] px-3 py-2"
+                        className="flex items-center gap-3 rounded-lg border border-primary/40 bg-primary/6 px-3 py-2"
                     >
                         <span className={dependencyBadgeCls()}>MANUAL</span>
 
@@ -466,7 +466,7 @@ function CostDateButton({
                     {valid ? format(valid, "dd/MM/yyyy", { locale: es }) : "Sin fecha"}
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0 z-[100]" align="start">
+            <PopoverContent className="w-auto p-0 z-100" align="start">
                 <Calendar
                     locale={es}
                     mode="single"

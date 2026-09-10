@@ -653,7 +653,7 @@ export function CreateWarehouseRequisitionForm({
                 className={cn(
                   "flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-medium transition-colors duration-200",
                   requisitionType === "AERONAUTICAL"
-                    ? "bg-background text-blue-600 shadow-sm"
+                    ? "bg-background text-blue-600 shadow-xs"
                     : "text-muted-foreground hover:text-blue-600"
                 )}
               >
@@ -666,7 +666,7 @@ export function CreateWarehouseRequisitionForm({
                 className={cn(
                   "flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-medium transition-colors duration-200",
                   requisitionType === "GENERAL"
-                    ? "bg-background text-blue-600 shadow-sm"
+                    ? "bg-background text-blue-600 shadow-xs"
                     : "text-muted-foreground hover:text-blue-600"
                 )}
               >

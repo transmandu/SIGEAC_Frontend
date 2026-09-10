@@ -79,7 +79,7 @@ export const getColumns = (
     meta: { title: 'Descripción' },
     cell: ({ row }) => (
       <div className="flex justify-center w-full">
-        <span className="block max-w-[380px] text-sm text-slate-600 dark:text-slate-300 text-center whitespace-normal break-words leading-snug" title={row.original.description ?? ''}>
+        <span className="block max-w-[380px] text-sm text-slate-600 dark:text-slate-300 text-center whitespace-normal wrap-break-word leading-snug" title={row.original.description ?? ''}>
           {row.original.description ?? '—'}
         </span>
       </div>
@@ -99,7 +99,7 @@ export const getColumns = (
       return (
         <div className="flex justify-center w-full">
           <Badge
-            className={cn(`whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-sm transition-colors duration-150 cursor-default hover:scale-100 hover:translate-y-0`,
+            className={cn(`whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-xs transition-colors duration-150 cursor-default hover:scale-100 hover:translate-y-0`,
             isNational
               ? `border-blue-500/30 bg-blue-500/15 text-blue-700 dark:text-blue-300`
               : `border-sky-400/30 bg-sky-400/10 text-sky-600 dark:text-sky-300`

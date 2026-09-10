@@ -122,7 +122,7 @@ export const DownloadDocumentDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-white dark:bg-[#1a1c1e] border-none text-slate-900 dark:text-white sm:max-w-[480px] rounded-2xl overflow-hidden p-0 outline-none shadow-2xl">
+      <DialogContent className="bg-white dark:bg-[#1a1c1e] border-none text-slate-900 dark:text-white sm:max-w-[480px] rounded-2xl overflow-hidden p-0 outline-hidden shadow-2xl">
         <div
           className="bg-slate-50 dark:bg-slate-800/50 px-6 py-5 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center"
           data-tour="biblioteca-download-title"
@@ -146,7 +146,7 @@ export const DownloadDocumentDialog = ({
               onClick={() => setDownloadMode("document")}
               className={`group p-4 border rounded-2xl cursor-pointer transition-all ${
                 downloadMode === "document"
-                  ? "border-blue-500 bg-blue-50/40 dark:bg-blue-500/10 shadow-sm"
+                  ? "border-blue-500 bg-blue-50/40 dark:bg-blue-500/10 shadow-xs"
                   : "border-slate-300 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 bg-white dark:bg-transparent"
               }`}
               data-tour="biblioteca-download-current"
@@ -175,7 +175,7 @@ export const DownloadDocumentDialog = ({
               onClick={() => setDownloadMode("version")}
               className={`group p-4 border rounded-2xl cursor-pointer transition-all ${
                 downloadMode === "version"
-                  ? "border-primary bg-primary/5 shadow-sm"
+                  ? "border-primary bg-primary/5 shadow-xs"
                   : "border-slate-300 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 bg-white dark:bg-transparent"
               }`}
               data-tour="biblioteca-download-version"
@@ -207,7 +207,7 @@ export const DownloadDocumentDialog = ({
                           setSelectedVersionToDownload(e.target.value)
                         }
                         disabled={isProcessing || loadingVersions}
-                        className="w-full h-10 pl-3 pr-10 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-[#111214] text-[11px] font-bold text-slate-700 dark:text-white outline-none appearance-none"
+                        className="w-full h-10 pl-3 pr-10 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-[#111214] text-[11px] font-bold text-slate-700 dark:text-white outline-hidden appearance-none"
                       >
                         {loadingVersions ? (
                           <option value="">Cargando Versiones...</option>

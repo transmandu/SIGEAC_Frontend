@@ -86,7 +86,7 @@ function PartsSummaryTree({ parts, level = 0 }: { parts: AircraftPart[], level?:
                         <CollapsibleTrigger className="w-full">
                             <div className="flex items-center justify-between p-3 hover:bg-muted/50 transition-colors text-left">
                                 <div className="flex items-center gap-2">
-                                    <ChevronDown className="h-4 w-4 transition-transform [[data-state=closed]>&]:rotate-[-90deg]" />
+                                    <ChevronDown className="h-4 w-4 transition-transform [[data-state=closed]>&]:-rotate-90" />
                                     <div className="flex flex-col">
                                         <span className="font-medium text-sm">{part.part_name || `Parte ${index + 1}`}</span>
                                         <span className="text-xs text-muted-foreground">

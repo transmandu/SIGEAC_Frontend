@@ -177,7 +177,7 @@ export const getColumns = (legalDays: number): AppColumnDef<QuarantineRecord>[] 
 
     cell: ({ row }) => (
       <div className="flex w-full items-center justify-center px-2 text-center">
-        <span className="block w-full break-words text-sm font-medium text-slate-800 dark:text-slate-200">
+        <span className="block w-full wrap-break-word text-sm font-medium text-slate-800 dark:text-slate-200">
           {row.original.article?.batch?.name ?? 'Sin descripción'}
         </span>
       </div>
@@ -262,7 +262,7 @@ export const getColumns = (legalDays: number): AppColumnDef<QuarantineRecord>[] 
         <div className="flex w-full flex-col items-center gap-1">
           <Badge
             className={cn(
-              'select-none whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-sm',
+              'select-none whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-xs',
               expired && 'border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300',
               warning && 'border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300',
               !expired && !warning && 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
@@ -305,7 +305,7 @@ export const getColumns = (legalDays: number): AppColumnDef<QuarantineRecord>[] 
         <div className="flex w-full justify-center">
           <Badge
             className={cn(
-              'gap-1 whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-sm transition-colors duration-150',
+              'gap-1 whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-xs transition-colors duration-150',
               isOpen && 'border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300',
               isPending && 'border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300',
               !isOpen && !isPending && 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',

@@ -95,7 +95,7 @@ export function QuizResultsDialog({
           <DialogHeader>
             <DialogTitle className="text-center text-2xl">
               {isPerfectScore ? (
-                <div className="text-3xl font-extrabold bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 bg-clip-text text-transparent">
+                <div className="text-3xl font-extrabold bg-linear-to-r from-amber-500 via-yellow-400 to-amber-500 bg-clip-text text-transparent">
                   ¡Perfecto! 100%
                 </div>
               ) : (
@@ -146,9 +146,9 @@ export function QuizResultsDialog({
                 >
                   <div className="flex items-start gap-3">
                     {detail.is_correct ? (
-                      <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                      <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5 shrink-0" />
                     ) : (
-                      <XCircle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
+                      <XCircle className="h-5 w-5 text-red-600 mt-0.5 shrink-0" />
                     )}
                     <div className="flex-1 space-y-2">
                       <p className="font-medium ">
@@ -174,7 +174,7 @@ export function QuizResultsDialog({
                       {/* Respuesta correcta (solo se muestra cuando es incorrecta) */}
                       {!detail.is_correct && detail.correct_answer && (
                         <div className="flex items-start gap-2 bg-green-50/25 dark:bg-green-500/25 p-2 rounded border border-green-200">
-                          <Lightbulb className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                          <Lightbulb className="h-4 w-4 text-green-600 mt-0.5 shrink-0" />
                           <div>
                             <span className="text-sm font-medium text-green-800 dark:text-white">
                               Respuesta correcta:{" "}

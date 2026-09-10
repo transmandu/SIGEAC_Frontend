@@ -100,7 +100,7 @@ export default function CreateFolderDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="bg-white dark:bg-[#1a1c1e] border-none text-slate-900 dark:text-white sm:max-w-[420px] rounded-2xl overflow-hidden p-0 outline-none shadow-2xl">
+      <DialogContent className="bg-white dark:bg-[#1a1c1e] border-none text-slate-900 dark:text-white sm:max-w-[420px] rounded-2xl overflow-hidden p-0 outline-hidden shadow-2xl">
         <div className="bg-slate-50 dark:bg-gray-800/40 px-6 py-5 border-b border-slate-200 dark:border-gray-700">
           <DialogTitle className="text-lg font-bold text-slate-800 dark:text-white tracking-tight uppercase">
             Nueva Carpeta
@@ -117,7 +117,7 @@ export default function CreateFolderDialog({
             </label>
             <input
               type="text" required
-              className="w-full h-11 px-4 border border-slate-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-slate-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+              className="w-full h-11 px-4 border border-slate-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-slate-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-hidden transition-all"
               placeholder="Ej. Manuales 2026"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -135,7 +135,7 @@ export default function CreateFolderDialog({
                 <select
                   value={selectedDeptId}
                   onChange={(e) => setSelectedDeptId(e.target.value)}
-                  className="w-full h-11 pl-4 pr-10 border border-slate-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-slate-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none appearance-none cursor-pointer"
+                  className="w-full h-11 pl-4 pr-10 border border-slate-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-slate-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-hidden appearance-none cursor-pointer"
                 >
                   {!departmentId && <option value="">Seleccionar departamento</option>}
                   {departments.map(d => (
@@ -155,7 +155,7 @@ export default function CreateFolderDialog({
               <select
                 value={parentId}
                 onChange={(e) => setParentId(e.target.value)}
-                className="w-full h-11 pl-4 pr-10 border border-slate-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-slate-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none appearance-none cursor-pointer"
+                className="w-full h-11 pl-4 pr-10 border border-slate-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-slate-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-hidden appearance-none cursor-pointer"
                 disabled={!selectedDeptId}
               >
                 <option value="">Raíz</option>

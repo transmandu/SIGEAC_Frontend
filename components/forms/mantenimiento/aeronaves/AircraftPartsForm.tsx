@@ -373,7 +373,7 @@ export function AircraftPartsInfoForm({ onNext, onBack, initialData }: {
       <form onSubmit={(e) => e.preventDefault()} className="space-y-6 mt-4">
         {/* MODAL DE CONFIRMACIÓN DE REMOCIÓN */}
         {removingPath && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
             <Card className="w-full max-w-md p-6 shadow-2xl">
               <div className="flex items-center gap-3 mb-4 text-destructive">
                 <AlertTriangle size={24} />

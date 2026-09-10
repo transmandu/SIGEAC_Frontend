@@ -224,7 +224,7 @@ export const getColumns = (legalDays: number): AppColumnDef<QuarantineRecord>[] 
         <div className="flex justify-center">
           <Badge
             className={cn(
-              "select-none gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-sm",
+              "select-none gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-xs",
               isOpen && "border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300",
               isPending && "border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300",
               !isOpen && !isPending &&

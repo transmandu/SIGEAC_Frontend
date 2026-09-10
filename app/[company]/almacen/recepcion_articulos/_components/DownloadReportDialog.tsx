@@ -218,7 +218,7 @@ export function DownloadReportDialog({
                 align="center"
                 side="bottom"
                 sideOffset={10}
-                className="p-3 w-auto min-w-[320px] rounded-2xl border border-slate-200/60 dark:border-slate-800/60 shadow-xl backdrop-blur bg-white/90 dark:bg-slate-950/90"
+                className="p-3 w-auto min-w-[320px] rounded-2xl border border-slate-200/60 dark:border-slate-800/60 shadow-xl backdrop-blur-sm bg-white/90 dark:bg-slate-950/90"
               >
                 {/* ================= PRESETS ================= */}
                 <div className="flex items-center justify-center gap-2 mb-2 flex-wrap">

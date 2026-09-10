@@ -234,7 +234,7 @@ export default function ShareDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md bg-white dark:bg-[#141618] border-slate-300 dark:border-gray-800 shadow-2xl p-0 overflow-hidden outline-none rounded-[2rem]">
+      <DialogContent className="sm:max-w-md bg-white dark:bg-[#141618] border-slate-300 dark:border-gray-800 shadow-2xl p-0 overflow-hidden outline-hidden rounded-4xl">
         <div className="bg-white dark:bg-gray-800/30 border-b border-slate-200 dark:border-gray-800">
           <div className="px-6 py-5" data-tour="biblioteca-share-title">
             <DialogTitle className="text-xs font-bold text-slate-800 dark:text-white uppercase tracking-widest">
@@ -297,7 +297,7 @@ export default function ShareDialog({
                   >
                     <ArrowLeft className="h-3 w-3" /> Volver al listado
                   </button>
-                  <div className="p-4 bg-white rounded-[2rem] shadow-xl border border-slate-200 mb-6">
+                  <div className="p-4 bg-white rounded-4xl shadow-xl border border-slate-200 mb-6">
                     <QRCodeSVG
                       id="qr-gen"
                       value={selectedShareUrl}
@@ -329,7 +329,7 @@ export default function ShareDialog({
                       Consultando accesos...
                     </div>
                   ) : activeShares.length === 0 ? (
-                    <div className="py-16 text-center space-y-3 border-2 border-dashed border-slate-300 dark:border-gray-800 rounded-[2rem] bg-white/50 dark:bg-white/[0.01]">
+                    <div className="py-16 text-center space-y-3 border-2 border-dashed border-slate-300 dark:border-gray-800 rounded-4xl bg-white/50 dark:bg-white/1">
                       <QrCode className="h-10 w-10 text-slate-300 dark:text-gray-700 mx-auto" />
                       <p className="text-[10px] font-bold text-slate-500 dark:text-gray-500 uppercase tracking-widest">
                         Sin accesos vigentes
@@ -340,7 +340,7 @@ export default function ShareDialog({
                       <div
                         key={share.id}
                         onClick={() => setSelectedShareUrl(share.share_url)}
-                        className="group p-5 bg-white dark:bg-white/[0.01] border border-slate-300 dark:border-gray-800 rounded-2xl hover:border-blue-400 dark:hover:border-blue-500 transition-all cursor-pointer flex items-center justify-between shadow-sm hover:shadow-md"
+                        className="group p-5 bg-white dark:bg-white/1 border border-slate-300 dark:border-gray-800 rounded-2xl hover:border-blue-400 dark:hover:border-blue-500 transition-all cursor-pointer flex items-center justify-between shadow-xs hover:shadow-md"
                       >
                         <div className="space-y-2">
                           <div className="flex flex-col">
@@ -386,11 +386,11 @@ export default function ShareDialog({
             </div>
           ) : generatedUrl ? (
             <div className="flex flex-col items-center animate-in zoom-in-95 duration-300 py-2">
-              <div className="p-4 bg-white rounded-[2rem] shadow-xl border border-slate-200 mb-6">
+              <div className="p-4 bg-white rounded-4xl shadow-xl border border-slate-200 mb-6">
                 <QRCodeSVG id="qr-gen" value={generatedUrl} size={180} />
               </div>
               <div className="w-full space-y-2 mb-6">
-                <div className="flex items-center gap-2 bg-white dark:bg-white/[0.02] p-1.5 rounded-2xl border border-slate-300 dark:border-gray-800 shadow-sm">
+                <div className="flex items-center gap-2 bg-white dark:bg-white/2 p-1.5 rounded-2xl border border-slate-300 dark:border-gray-800 shadow-xs">
                   <div className="flex-1 px-3 text-[10px] font-mono text-blue-600 dark:text-blue-400 truncate">
                     {generatedUrl}
                   </div>
@@ -457,7 +457,7 @@ export default function ShareDialog({
                     Versión
                   </label>
                   {versions.length <= 1 ? (
-                    <div className="w-full h-11 px-4 border border-slate-300 dark:border-gray-800 rounded-2xl bg-white dark:bg-white/[0.02] text-sm font-medium flex items-center text-slate-700 dark:text-slate-300 shadow-sm">
+                    <div className="w-full h-11 px-4 border border-slate-300 dark:border-gray-800 rounded-2xl bg-white dark:bg-white/2 text-sm font-medium flex items-center text-slate-700 dark:text-slate-300 shadow-xs">
                       {versions[0]?.version_label ||
                         versions[0]?.version_number ||
                         "Última versión"}
@@ -467,7 +467,7 @@ export default function ShareDialog({
                       <select
                         value={versionId}
                         onChange={(e) => setVersionId(e.target.value)}
-                        className="w-full h-11 px-4 border border-slate-300 dark:border-gray-800 rounded-2xl bg-white dark:bg-white/[0.02] text-slate-800 dark:text-white text-sm font-medium appearance-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all pr-10 cursor-pointer outline-none shadow-sm"
+                        className="w-full h-11 px-4 border border-slate-300 dark:border-gray-800 rounded-2xl bg-white dark:bg-white/2 text-slate-800 dark:text-white text-sm font-medium appearance-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all pr-10 cursor-pointer outline-hidden shadow-xs"
                       >
                         {versions.map((v: any) => (
                           <option
@@ -503,7 +503,7 @@ export default function ShareDialog({
                           setDuration(e.target.value);
                         }
                       }}
-                      className="w-full h-11 px-4 border border-slate-300 dark:border-gray-800 rounded-2xl bg-white dark:bg-white/[0.02] text-slate-800 dark:text-white text-sm font-medium appearance-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all pr-10 cursor-pointer outline-none shadow-sm"
+                      className="w-full h-11 px-4 border border-slate-300 dark:border-gray-800 rounded-2xl bg-white dark:bg-white/2 text-slate-800 dark:text-white text-sm font-medium appearance-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all pr-10 cursor-pointer outline-hidden shadow-xs"
                     >
                       <option value="24" className="bg-white dark:bg-[#1a1c1e]">
                         24 horas
@@ -538,7 +538,7 @@ export default function ShareDialog({
                         placeholder="Horas (24-168)"
                         value={customHours}
                         onChange={(e) => setCustomHours(e.target.value)}
-                        className="w-full h-11 px-4 border border-slate-300 dark:border-gray-800 rounded-2xl bg-white dark:bg-white/[0.02] text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 shadow-sm transition-all dark:text-white placeholder:text-slate-400"
+                        className="w-full h-11 px-4 border border-slate-300 dark:border-gray-800 rounded-2xl bg-white dark:bg-white/2 text-sm font-medium outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 shadow-xs transition-all dark:text-white placeholder:text-slate-400"
                       />
                     </div>
                   )}
@@ -560,7 +560,7 @@ export default function ShareDialog({
                   value={sharedWithName}
                   onChange={(e) => setSharedWithName(e.target.value)}
                   placeholder="Nombre de la persona o área que recibirá el enlace"
-                  className="w-full h-11 px-4 border border-slate-300 dark:border-gray-800 rounded-2xl bg-white dark:bg-white/[0.02] text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 shadow-sm transition-all dark:text-white placeholder:text-slate-400"
+                  className="w-full h-11 px-4 border border-slate-300 dark:border-gray-800 rounded-2xl bg-white dark:bg-white/2 text-sm font-medium outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 shadow-xs transition-all dark:text-white placeholder:text-slate-400"
                   maxLength={255}
                 />
               </div>
@@ -573,13 +573,13 @@ export default function ShareDialog({
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
                   placeholder="¿Por qué necesitas compartir este documento? (mín. 10 caracteres)"
-                  className="w-full h-24 px-4 py-3 border border-slate-300 dark:border-gray-800 rounded-2xl bg-white dark:bg-white/[0.02] text-sm font-medium resize-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 dark:text-white outline-none transition-all shadow-sm placeholder:text-slate-400"
+                  className="w-full h-24 px-4 py-3 border border-slate-300 dark:border-gray-800 rounded-2xl bg-white dark:bg-white/2 text-sm font-medium resize-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 dark:text-white outline-hidden transition-all shadow-xs placeholder:text-slate-400"
                   maxLength={500}
                 />
               </div>
 
               <label
-                className="flex items-center gap-3 p-3 bg-white dark:bg-white/[0.02] rounded-2xl border border-slate-300 dark:border-gray-800 cursor-pointer select-none shadow-sm"
+                className="flex items-center gap-3 p-3 bg-white dark:bg-white/2 rounded-2xl border border-slate-300 dark:border-gray-800 cursor-pointer select-none shadow-xs"
                 data-tour="biblioteca-share-readonly"
               >
                 <input

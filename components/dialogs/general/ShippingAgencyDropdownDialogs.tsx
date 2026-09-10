@@ -18,8 +18,8 @@ const iconBase = (color: "blue" | "red") => `
   border
   ${
     color === "red"
-      ? "border-red-500/15 bg-red-500/[0.08] text-red-600"
-      : "border-blue-500/15 bg-blue-500/[0.08] text-blue-600"
+      ? "border-red-500/15 bg-red-500/8 text-red-600"
+      : "border-blue-500/15 bg-blue-500/8 text-blue-600"
   }
 `
 const title = "text-[16px] font-semibold tracking-tight"
@@ -28,7 +28,7 @@ const warningBox = (color: "red") => `
   mx-6 mt-4 p-3 rounded-xl border text-sm leading-relaxed flex gap-2
   ${
     color === "red"
-      ? "border-red-500/20 bg-red-500/[0.05] text-red-600"
+      ? "border-red-500/20 bg-red-500/5 text-red-600"
       : ""
   }
 `

@@ -206,7 +206,7 @@ export default function CreateCargoShipmentForm({
           }}
           className="space-y-3"
         >
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-4 border border-border p-4 rounded-xl shadow-sm bg-card">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-4 border border-border p-4 rounded-xl shadow-xs bg-card">
             {/* Aeronave */}
             <div className="flex flex-col space-y-2">
               <ComboboxField
