@@ -601,8 +601,8 @@ export type MaintenanceControlItem = {
   maintenance_control_part_id?: number | null;
   maintenance_provider_id?: number | string | null;
   maintenance_provider?: MaintenanceProvider;
-  // OT creada para resolver el estado crítico; mientras esté puesta (y esa
-  // OT no esté CLOSED) no se puede registrar un nuevo cumplimiento.
+  // OT abierta para resolver el estado crítico. No bloquea el cumplimiento:
+  // se usa para precargarla al registrarlo y se limpia sola al hacerlo.
   pending_work_order_id?: number | string | null;
   pending_work_order?: WorkOrder | null;
   category: "CERTIFICATE" | "SERVICE";

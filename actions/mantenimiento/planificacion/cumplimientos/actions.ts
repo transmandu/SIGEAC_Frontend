@@ -5,7 +5,7 @@ import { toast } from "sonner";
 export interface CreateMaintenanceComplianceData {
   maintenance_control_item_id: number,
   maintenance_provider_id: string,
-  work_order_id: string,
+  work_order_id?: string,
   compliance_date: string,
   hours_reading: number,
   cycles_reading: number,

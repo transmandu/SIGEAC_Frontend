@@ -48,7 +48,7 @@ const formSchema = z.object({
   hours_reading: z.coerce.number().min(0, "Debe ser ≥ 0"),
   cycles_reading: z.coerce.number().min(0, "Debe ser ≥ 0"),
   maintenance_provider_id: z.string().min(1, "Seleccione quién lo realizó"),
-  work_order_id: z.string().min(1, "Seleccione la Orden de Trabajo"),
+  work_order_id: z.string().optional(),
   notes: z.string().optional(),
 });
 
@@ -80,6 +80,8 @@ interface RegisterComplianceDialogProps {
   aircraftId: number | string;
   defaultHours?: number;
   defaultCycles?: number;
+  /** OT abierta para resolver este ítem, si el usuario ya la creó desde el estado crítico. */
+  pendingWorkOrder?: { id: number | string; order_number: string } | null;
 }
 
 export function RegisterComplianceDialog({
@@ -88,6 +90,7 @@ export function RegisterComplianceDialog({
   aircraftId,
   defaultHours,
   defaultCycles,
+  pendingWorkOrder,
 }: RegisterComplianceDialogProps) {
   const [open, setOpen] = useState(false);
   const { selectedCompany } = useCompanyStore();
@@ -102,7 +105,9 @@ export function RegisterComplianceDialog({
       hours_reading: defaultHours ?? (undefined as unknown as number),
       cycles_reading: defaultCycles ?? (undefined as unknown as number),
       maintenance_provider_id: "",
-      work_order_id: "",
+      // Ya viene resuelta si el ítem estaba atado a una OT: fue la que se abrió
+      // para resolverlo, no tiene sentido hacerla elegir de nuevo.
+      work_order_id: pendingWorkOrder ? String(pendingWorkOrder.id) : "",
       notes: "",
     },
   });
@@ -113,7 +118,7 @@ export function RegisterComplianceDialog({
       data: {
         maintenance_control_item_id: itemId,
         maintenance_provider_id: values.maintenance_provider_id,
-        work_order_id: values.work_order_id,
+        work_order_id: values.work_order_id || undefined,
         compliance_date: format(values.compliance_date, "yyyy-MM-dd"),
         hours_reading: values.hours_reading,
         cycles_reading: values.cycles_reading,
@@ -220,7 +225,14 @@ export function RegisterComplianceDialog({
               name="work_order_id"
               render={({ field }) => (
                 <FormItem className="w-full">
-                  <FormLabel className={labelClass}>Orden de Trabajo</FormLabel>
+                  <FormLabel className={labelClass}>
+                    Orden de Trabajo <span className="text-muted-foreground text-xs">(Opcional)</span>
+                  </FormLabel>
+                  {pendingWorkOrder && (
+                    <p className="text-xs text-muted-foreground">
+                      Precargada la OT {pendingWorkOrder.order_number}, abierta para resolver este ítem.
+                    </p>
+                  )}
                   <SearchableSelect
                     options={(workOrders ?? []).map((wo) => ({ ...wo, name: wo.order_number }))}
                     value={field.value}

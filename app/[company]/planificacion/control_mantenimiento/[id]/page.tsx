@@ -106,7 +106,7 @@ const COL = {
   estimate: "w-[120px]",
   provider: "w-[150px]",
   workOrder: "w-[130px]",
-  actions: "w-[44px]",
+  actions: "w-[72px]",
 };
 
 // Columnas como "Estimación" pueden llevar texto largo ("Sin vuelos en los
@@ -125,10 +125,9 @@ function TruncatedText({ children }: { children: string }) {
   );
 }
 
-// Punto 5 de la reunión de planificación: desde que un ítem entra en estado
-// crítico/vencido, no se puede registrar un nuevo cumplimiento hasta abrir
-// (y cerrar) una Orden de Trabajo real para resolverlo — el ítem queda
-// "atado" a esa OT (pending_work_order) mientras no esté CLOSED.
+// Un ítem crítico/vencido sugiere abrir una Orden de Trabajo, pero no obliga:
+// registrar el cumplimiento siempre está disponible. Si ya hay una OT abierta
+// atendiéndolo, el diálogo de cumplimiento la trae precargada.
 function ItemActionCell({
   item,
   status,
@@ -151,60 +150,58 @@ function ItemActionCell({
   if (!item.id) return null;
 
   const pendingWorkOrder = item.pending_work_order;
-  const isBlockedByWorkOrder = !!pendingWorkOrder && pendingWorkOrder.status !== "CLOSED";
+  const hasOpenWorkOrder = !!pendingWorkOrder && pendingWorkOrder.status !== "CLOSED";
+  const isCritical = status === "CRITICAL" || status === "OVERDUE";
 
-  if (isBlockedByWorkOrder) {
-    return (
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Link
-            href={`/${company}/planificacion/ordenes_trabajo/${pendingWorkOrder!.order_number}`}
-            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground hover:underline"
-          >
-            <Clock className="size-3.5 shrink-0" />
-            <span className="truncate">{pendingWorkOrder!.order_number}</span>
-          </Link>
-        </TooltipTrigger>
-        <TooltipContent>
-          Bloqueado hasta que se cierre la Orden de Trabajo {pendingWorkOrder!.order_number}.
-        </TooltipContent>
-      </Tooltip>
-    );
-  }
-
-  const needsWorkOrder = (status === "CRITICAL" || status === "OVERDUE") && !pendingWorkOrder;
-
-  if (needsWorkOrder) {
-    const params = new URLSearchParams({
-      aircraft_id: String(aircraftId),
-      maintenance_control_item_id: String(item.id),
-      maintenance_control_id: String(controlId),
-      task_description: `${item.name}${aircraftAcronym ? ` — ${aircraftAcronym}` : ""}: servicio en estado crítico del Control de Mantenimiento.`,
-    });
-
-    return (
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Link href={`/${company}/planificacion/ordenes_trabajo/nueva_orden_trabajo?${params.toString()}`}>
-            <Button variant="ghost" size="icon" className="h-7 w-7 text-orange-600 hover:text-orange-700">
-              <Wrench className="size-4" />
-              <span className="sr-only">Crear Orden de Trabajo</span>
-            </Button>
-          </Link>
-        </TooltipTrigger>
-        <TooltipContent>Crear Orden de Trabajo</TooltipContent>
-      </Tooltip>
-    );
-  }
+  const newWorkOrderParams = new URLSearchParams({
+    aircraft_id: String(aircraftId),
+    maintenance_control_item_id: String(item.id),
+    maintenance_control_id: String(controlId),
+    task_description: `${item.name}${aircraftAcronym ? ` — ${aircraftAcronym}` : ""}: servicio en estado crítico del Control de Mantenimiento.`,
+  });
 
   return (
-    <RegisterComplianceDialog
-      itemId={item.id}
-      itemName={item.name}
-      aircraftId={aircraftId}
-      defaultHours={defaultHours}
-      defaultCycles={defaultCycles}
-    />
+    <div className="flex items-center justify-end gap-0.5">
+      {hasOpenWorkOrder ? (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Link
+              href={`/${company}/planificacion/ordenes_trabajo/${pendingWorkOrder!.order_number}`}
+              className="flex items-center text-muted-foreground hover:text-foreground"
+            >
+              <Clock className="size-3.5 shrink-0" />
+              <span className="sr-only">Ver Orden de Trabajo {pendingWorkOrder!.order_number}</span>
+            </Link>
+          </TooltipTrigger>
+          <TooltipContent>
+            Orden de Trabajo {pendingWorkOrder!.order_number} abierta para este ítem.
+          </TooltipContent>
+        </Tooltip>
+      ) : (
+        isCritical && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link href={`/${company}/planificacion/ordenes_trabajo/nueva_orden_trabajo?${newWorkOrderParams.toString()}`}>
+                <Button variant="ghost" size="icon" className="h-7 w-7 text-orange-600 hover:text-orange-700">
+                  <Wrench className="size-4" />
+                  <span className="sr-only">Crear Orden de Trabajo</span>
+                </Button>
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent>Crear Orden de Trabajo</TooltipContent>
+          </Tooltip>
+        )
+      )}
+
+      <RegisterComplianceDialog
+        itemId={item.id}
+        itemName={item.name}
+        aircraftId={aircraftId}
+        defaultHours={defaultHours}
+        defaultCycles={defaultCycles}
+        pendingWorkOrder={hasOpenWorkOrder ? pendingWorkOrder : null}
+      />
+    </div>
   );
 }
 
