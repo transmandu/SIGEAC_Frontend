@@ -50,3 +50,15 @@ export const trainingStatusLabelEs = (status?: string | null) => {
 /** Igual que trainingStatusLabelEs, en mayúsculas: "VÁLIDO". */
 export const trainingStatusLabelEsUpper = (status?: string | null) =>
   trainingStatusLabelEs(status).toLocaleUpperCase("es");
+
+/** Eventos de la línea de tiempo del entrenamiento (employee_training_history). */
+export const TRAINING_EVENT_ES: Record<string, string> = {
+  EXPIRED: "Vencido",
+  RENEWED: "Renovado",
+  INITIAL_TAKEN: "Inicial tomado",
+};
+
+export const trainingEventLabelEs = (event?: string | null) => {
+  if (!event) return "N/A";
+  return TRAINING_EVENT_ES[event.trim().toUpperCase()] ?? event;
+};

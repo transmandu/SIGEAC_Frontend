@@ -14,6 +14,8 @@ export type DestinationArticle = {
   batch?: {
     id: number;
     name?: string | null;
+    /** Consumible, herramienta, componente o parte: el tipo real del artículo. */
+    category?: string | null;
     warehouse?: {
       id: number;
       name?: string | null;

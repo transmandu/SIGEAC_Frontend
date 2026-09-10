@@ -9,6 +9,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { SMSActivity } from "@/types";
 import {
   ClipboardPen,
@@ -91,75 +97,107 @@ const SMSActivityDropDownActions = ({
 
         <DropdownMenuContent
           align="center"
-          className="flex-col gap-2 justify-center"
+          className="flex flex-row gap-2 p-2"
         >
-          {smsActivity.status !== "CERRADO" && (
-            <DropdownMenuItem onClick={() => setOpenDelete(true)}>
-              <Trash2 className="size-5 text-red-500" />
-              <p className="pl-2">Eliminar</p>
-            </DropdownMenuItem>
-          )}
-
-          {smsActivity.status !== "CERRADO" && (
-            <DropdownMenuItem
-              onClick={() => {
-                router.push(
-                  `/${selectedCompany?.slug}/sms/promocion/actividades/editar/${smsActivity.activity_number}`,
-                );
-              }}
-            >
-              <ClipboardPen className="size-5" />
-              <p className="pl-2">Editar</p>
-            </DropdownMenuItem>
-          )}
-
-          <DropdownMenuItem
-            onClick={() => {
-              router.push(
-                `/${selectedCompany?.slug}/sms/promocion/actividades/${smsActivity.activity_number}`
-              );
-            }}
-          >
-            <EyeIcon className="size-5" />
-            <p className="pl-2">Ver</p>
-          </DropdownMenuItem>
-
-          {/* OPCIÓN PARA REABRIR (Solo si está CERRADO) */}
-          {smsActivity.status === "CERRADO" && (
-            <DropdownMenuItem onClick={() => setOpenReopen(true)}>
-              <LockOpen className="size-5 text-green-600" />
-              <p className="pl-2">Reabrir Actividad</p>
-            </DropdownMenuItem>
-          )}
-
-          {smsActivity.status === "ABIERTO" && (
-            <DropdownMenuItem onClick={() => setOpenAdd(true)}>
-              <Plus className="size-5" />
-              <p className="pl-2">Agregar personas</p>
-            </DropdownMenuItem>
-          )}
-
-          {ActivityDate <= realNow && smsActivity.status === "ABIERTO" && (
-            <DropdownMenuItem onClick={() => setOpenAttendance(true)}>
-              <UserCheck className="size-5" />
-              <p className="pl-2">Asistencia</p>
-            </DropdownMenuItem>
-          )}
-
-          {smsActivity.activity_name === "BOLETÍN"
-            && (
-              <DropdownMenuItem onClick={() => setOpenLink(true)}>
-                <Link className="size-5" />
-                <p className="pl-2">Linkear</p>
-              </DropdownMenuItem>
+          <TooltipProvider>
+            {smsActivity.status !== "CERRADO" && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuItem onClick={() => setOpenDelete(true)}>
+                    <Trash2 className="size-4 text-red-500" />
+                  </DropdownMenuItem>
+                </TooltipTrigger>
+                <TooltipContent>Eliminar</TooltipContent>
+              </Tooltip>
             )}
 
-          {realNow >= ActivityDate && smsActivity.status === "ABIERTO" && (
-            <DropdownMenuItem onClick={() => setCloseActivity(true)}>
-              <LockKeyhole className="size-5" />
-              <p className="pl-2">Finalizar Actividad</p>
-            </DropdownMenuItem>
-          )}
+            {smsActivity.status !== "CERRADO" && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      router.push(
+                        `/${selectedCompany?.slug}/sms/promocion/actividades/editar/${smsActivity.activity_number}`,
+                      );
+                    }}
+                  >
+                    <ClipboardPen className="size-4" />
+                  </DropdownMenuItem>
+                </TooltipTrigger>
+                <TooltipContent>Editar</TooltipContent>
+              </Tooltip>
+            )}
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenuItem
+                  onClick={() => {
+                    router.push(
+                      `/${selectedCompany?.slug}/sms/promocion/actividades/${smsActivity.activity_number}`
+                    );
+                  }}
+                >
+                  <EyeIcon className="size-4" />
+                </DropdownMenuItem>
+              </TooltipTrigger>
+              <TooltipContent>Ver</TooltipContent>
+            </Tooltip>
+
+            {smsActivity.status === "CERRADO" && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuItem onClick={() => setOpenReopen(true)}>
+                    <LockOpen className="size-4 text-green-600" />
+                  </DropdownMenuItem>
+                </TooltipTrigger>
+                <TooltipContent>Reabrir Actividad</TooltipContent>
+              </Tooltip>
+            )}
+
+            {smsActivity.status === "ABIERTO" && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuItem onClick={() => setOpenAdd(true)}>
+                    <Plus className="size-4" />
+                  </DropdownMenuItem>
+                </TooltipTrigger>
+                <TooltipContent>Agregar personas</TooltipContent>
+              </Tooltip>
+            )}
+
+            {ActivityDate <= realNow && smsActivity.status === "ABIERTO" && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuItem onClick={() => setOpenAttendance(true)}>
+                    <UserCheck className="size-4" />
+                  </DropdownMenuItem>
+                </TooltipTrigger>
+                <TooltipContent>Asistencia</TooltipContent>
+              </Tooltip>
+            )}
+
+            {smsActivity.activity_name === "BOLETÍN" && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuItem onClick={() => setOpenLink(true)}>
+                    <Link className="size-4" />
+                  </DropdownMenuItem>
+                </TooltipTrigger>
+                <TooltipContent>Linkear</TooltipContent>
+              </Tooltip>
+            )}
+
+            {realNow >= ActivityDate && smsActivity.status === "ABIERTO" && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuItem onClick={() => setCloseActivity(true)}>
+                    <LockKeyhole className="size-4" />
+                  </DropdownMenuItem>
+                </TooltipTrigger>
+                <TooltipContent>Finalizar Actividad</TooltipContent>
+              </Tooltip>
+            )}
+          </TooltipProvider>
         </DropdownMenuContent>
       </DropdownMenu>
 

@@ -1,7 +1,7 @@
 import axiosInstance from '@/lib/axios';
 import { useCompanyStore } from '@/stores/CompanyStore';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { Aircraft, Unit } from "@/types";
+import { Aircraft, ArticleDimension, Unit } from "@/types";
 
 export interface IWarehouseArticle {
     batch_id: number;
@@ -42,7 +42,10 @@ export interface IWarehouseArticle {
                 fabrication_date?: string | Date | null;
             };
         };
+        /** Perfil dimensional del consumible; ausente si no se mide por trazos. */
+        dimension?: ArticleDimension | null;
         expiration_date?: string | null; // Para componentes y consumibles: viene directamente en el artículo
+        shelf_life?: string | null; // Solo consumibles
         condition: {
             name: string;
         };

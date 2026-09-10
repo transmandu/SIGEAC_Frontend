@@ -6,12 +6,18 @@ import { Clock, CheckCheck } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { Check, Bell, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useTransition } from 'react';
+import { useState, useTransition } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useCompanyStore } from '@/stores/CompanyStore';
 import { useMarkNotificationAsRead } from '@/actions/notifications/actions';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import DispatchReturnNotificationDialog from '@/components/dialogs/mantenimiento/almacen/DispatchReturnNotificationDialog';
+
+// Tipos que abren un diálogo con el detalle en vez de navegar: su payload no
+// trae url a propósito porque el destinatario no puede abrir la pantalla de
+// origen (ver DispatchReturnRegisteredNotification en el backend).
+const DIALOG_TYPES = ['DISPATCH_RETURN_REGISTERED'];
 
 const ITEM_COLORS = [
   {
@@ -85,6 +91,7 @@ export default function NotificationItem({
   const router = useRouter();
 
   const [isNavigating, startNavigation] = useTransition();
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const { selectedCompany } = useCompanyStore();
 
@@ -92,6 +99,7 @@ export default function NotificationItem({
     useMarkNotificationAsRead(selectedCompany?.slug!);
 
   const isUnread = !notification.read_at;
+  const opensDialog = DIALOG_TYPES.includes(notification.data?.type);
 
   const handleMarkAsRead = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -102,14 +110,19 @@ export default function NotificationItem({
   };
 
   const handleNavigate = () => {
-    const url = notification.data?.url;
-    if (!url) return;
-
-    // Navegar cuenta como leerla, pero solo la primera vez: si ya está leída
+    // Abrir cuenta como leerla, pero solo la primera vez: si ya está leída
     // evitamos un PATCH redundante en cada visita desde la notificación.
     if (isUnread) {
       markAsRead(notification.id);
     }
+
+    if (opensDialog) {
+      setDialogOpen(true);
+      return;
+    }
+
+    const url = notification.data?.url;
+    if (!url) return;
 
     // useTransition nos da el pending real de la navegación de App Router,
     // que router.push por sí solo no expone.
@@ -121,6 +134,7 @@ export default function NotificationItem({
   const colors = getNotificationColors(notification.id);
 
   return (
+    <>
     <div
       onClick={handleNavigate}
       aria-busy={isNavigating}
@@ -300,5 +314,14 @@ export default function NotificationItem({
         </div>
       </div>
     </div>
+
+    {opensDialog && (
+      <DispatchReturnNotificationDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        notification={notification}
+      />
+    )}
+    </>
   );
 }

@@ -8,12 +8,15 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+} from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
-  DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useGetVoluntaryReportById } from "@/hooks/sms/useGetVoluntaryReportById";
@@ -32,7 +35,7 @@ import {
   User,
   File,
   Download,
-  CalendarCheck,
+  Image as ImageIcon,
 } from "lucide-react";
 import Image from "next/image";
 import ImageZoom from "@/components/ui/ImageZoom";
@@ -82,7 +85,7 @@ const ShowVoluntaryReport = () => {
 
     return (
       <div
-        className="flex flex-wrap gap-3 justify-center mb-10"
+        className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5"
         data-tour="voluntario-detalle-acciones"
       >
         {voluntaryReport.status === "ABIERTO" && (
@@ -94,7 +97,7 @@ const ShowVoluntaryReport = () => {
                 reportType="RVP"
               />
             ) : (
-              <Button variant="outline" size="sm" asChild>
+              <Button variant="outline" size="sm" className="h-9 w-full" asChild>
                 <Link
                   href={`/${selectedCompany?.slug}/sms/gestion_reportes/peligros_identificados/${voluntaryReport.danger_identification_id}`}
                 >
@@ -124,6 +127,9 @@ const ShowVoluntaryReport = () => {
     );
   };
 
+  const sectionLabel = "text-xs font-medium uppercase tracking-wide text-muted-foreground";
+  const fieldValue = "text-sm";
+
   // ==========================================================
   // CARDS
   // ==========================================================
@@ -142,77 +148,60 @@ const ShowVoluntaryReport = () => {
     const reportData = voluntaryReport as any;
 
     return (
-      <Card data-tour="voluntario-detalle-info">
+      <Card
+        className="shadow-none border-border/60"
+        data-tour="voluntario-detalle-info"
+      >
         <CardHeader className="pb-3">
-          <h3 className="text-lg font-semibold flex items-center gap-2">
-            <FileText className="w-5 h-5" />
+          <h3 className={`font-semibold flex items-center gap-2 ${fieldValue}`}>
+            <FileText className="w-4 h-4 text-muted-foreground" />
             Información General
           </h3>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Número de Reporte */}
-          <div className="flex items-center gap-3">
-            <FileText className="w-5 h-5 flex-shrink-0" />
-            <div>
-              <p className="text-sm font-medium">Número de Reporte</p>
-              <p className="font-semibold">
-                {reportData?.report_number
-                  ? `RVP-${reportData.report_number}`
-                  : "N/A"}
-              </p>
-            </div>
+        <CardContent className="space-y-3">
+          <div>
+            <p className={sectionLabel}>Número de Reporte</p>
+            <p className={`${fieldValue} font-mono tracking-wide`}>
+              {reportData?.report_number
+                ? `RVP-${reportData.report_number}`
+                : "N/A"}
+            </p>
           </div>
 
-          {/* Fecha del Reporte */}
-          <div className="flex items-center gap-3">
-            <Calendar className="w-5 h-5 flex-shrink-0" />
-            <div>
-              <p className="text-sm font-medium">Fecha del Reporte</p>
-              <p className="font-medium">
-                {/* Ajustado para usar el valor de reportData */}
-                {reportData?.report_date
-                  ? format(
-                      new Date(reportData.report_date.replace(/-/g, "/")),
-                      "PPP",
-                      { locale: es },
-                    )
-                  : "N/A"}
-              </p>
-            </div>
+          <div>
+            <p className={sectionLabel}>Fecha del Reporte</p>
+            <p className={fieldValue}>
+              {reportData?.report_date
+                ? format(
+                    new Date(reportData.report_date.replace(/-/g, "/")),
+                    "PPP",
+                    { locale: es },
+                  )
+                : "N/A"}
+            </p>
           </div>
 
-          {/* Estado */}
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <AlertCircle className="w-5 h-5 flex-shrink-0" />
-              <span className="text-sm font-medium">Estado</span>
-            </div>
+            <span className={sectionLabel}>Estado</span>
             <Badge
-              variant={
-                reportData?.status === "CERRADO" ? "default" : "secondary"
-              }
-              className={
+              className={`text-xs font-semibold ${
                 reportData?.status === "CERRADO"
-                  ? "bg-green-100 text-green-800"
-                  : "bg-red-100 text-red-800"
-              }
+                  ? "bg-green-100 text-green-700 border border-green-200 dark:bg-green-950/50 dark:text-green-400 dark:border-green-800"
+                  : reportData?.status === "PROCESO" || reportData?.status === "PENDIENTE"
+                    ? "bg-amber-100 text-amber-700 border border-amber-200 dark:bg-amber-950/50 dark:text-amber-400 dark:border-amber-800"
+                    : "bg-red-100 text-red-700 border border-red-200 dark:bg-red-950/50 dark:text-red-400 dark:border-red-800"
+              }`}
             >
               {reportData?.status || "PENDIENTE"}
             </Badge>
           </div>
 
-          {/* Fecha de Cierre: Solo aparece si el estado es CERRADO y la fecha existe */}
           {reportData?.status === "CERRADO" && reportData?.close_date && (
-            <div className="flex items-center gap-3 pt-3 mt-2 border-t border-dashed">
-              <CalendarCheck className="w-5 h-5 flex-shrink-0 text-green-600" />
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  Fecha de Cierre
-                </p>
-                <p className="font-semibold text-green-700">
-                  {formatFriendlyDate(reportData.close_date)}
-                </p>
-              </div>
+            <div className="pt-3 mt-2 border-t border-border/60">
+              <p className={sectionLabel}>Fecha de Cierre</p>
+              <p className={`${fieldValue} text-green-700 dark:text-green-400`}>
+                {formatFriendlyDate(reportData.close_date)}
+              </p>
             </div>
           )}
         </CardContent>
@@ -221,27 +210,30 @@ const ShowVoluntaryReport = () => {
   };
 
   const renderLocationInfo = () => (
-    <Card data-tour="voluntario-detalle-ubicacion">
+    <Card
+      className="shadow-none border-border/60"
+      data-tour="voluntario-detalle-ubicacion"
+    >
       <CardHeader className="pb-3">
-        <h3 className="text-lg font-semibold flex items-center gap-2">
-          <MapPin className="w-5 h-5" />
+        <h3 className={`font-semibold flex items-center gap-2 ${fieldValue}`}>
+          <MapPin className="w-4 h-4 text-muted-foreground" />
           Ubicación del Peligro
         </h3>
       </CardHeader>
       <CardContent className="space-y-3">
         <div>
-          <p className="text-sm font-medium mb-1">Área</p>
-          <p className="font-medium">{voluntaryReport?.danger_area || "N/A"}</p>
+          <p className={sectionLabel}>Área</p>
+          <p className={fieldValue}>{voluntaryReport?.danger_area || "N/A"}</p>
         </div>
         <div>
-          <p className="text-sm font-medium mb-1">Base</p>
-          <p className="font-medium">
+          <p className={sectionLabel}>Base</p>
+          <p className={fieldValue}>
             {voluntaryReport?.danger_location || "N/A"}
           </p>
         </div>
         <div>
-          <p className="text-sm font-medium mb-1">Localización exacta</p>
-          <p className="font-medium">
+          <p className={sectionLabel}>Localización exacta</p>
+          <p className={fieldValue}>
             {voluntaryReport?.airport_location || "N/A"}
           </p>
         </div>
@@ -250,15 +242,18 @@ const ShowVoluntaryReport = () => {
   );
 
   const renderIdentificationDate = () => (
-    <Card data-tour="voluntario-detalle-fecha">
+    <Card
+      className="shadow-none border-border/60"
+      data-tour="voluntario-detalle-fecha"
+    >
       <CardHeader className="pb-3">
-        <h3 className="text-lg font-semibold flex items-center gap-2">
-          <Calendar className="w-5 h-5" />
+        <h3 className={`font-semibold flex items-center gap-2 ${fieldValue}`}>
+          <Calendar className="w-4 h-4 text-muted-foreground" />
           Fecha de Identificación
         </h3>
       </CardHeader>
       <CardContent>
-        <p className="font-medium">
+        <p className={fieldValue}>
           {dateFormat(voluntaryReport?.identification_date || "", "PPP")}
         </p>
       </CardContent>
@@ -266,15 +261,15 @@ const ShowVoluntaryReport = () => {
   );
 
   const renderDescription = () => (
-    <Card>
+    <Card className="shadow-none border-border/60">
       <CardHeader className="pb-3">
-        <h3 className="text-lg font-semibold flex items-center gap-2">
-          <FileText className="w-5 h-5" />
+        <h3 className={`font-semibold flex items-center gap-2 ${fieldValue}`}>
+          <FileText className="w-4 h-4 text-muted-foreground" />
           Descripción
         </h3>
       </CardHeader>
       <CardContent>
-        <p className="leading-relaxed ">
+        <p className="text-sm leading-relaxed">
           {voluntaryReport?.description || "N/A"}
         </p>
       </CardContent>
@@ -282,10 +277,10 @@ const ShowVoluntaryReport = () => {
   );
 
   const renderConsequences = () => (
-    <Card>
+    <Card className="shadow-none border-border/60">
       <CardHeader className="pb-3">
-        <h3 className="text-lg font-semibold flex items-center gap-2">
-          <AlertTriangle className="w-5 h-5" />
+        <h3 className={`font-semibold flex items-center gap-2 ${fieldValue}`}>
+          <AlertTriangle className="w-4 h-4 text-muted-foreground" />
           Posibles Consecuencias
         </h3>
       </CardHeader>
@@ -296,14 +291,14 @@ const ShowVoluntaryReport = () => {
               (consequence, index) =>
                 consequence.trim() && (
                   <li key={index} className="flex items-start gap-2">
-                    <ChevronRight className="w-4 h-4 mt-1 flex-shrink-0" />
-                    <span className="">{consequence.trim()}</span>
+                    <ChevronRight className="w-4 h-4 mt-0.5 flex-shrink-0 text-muted-foreground" />
+                    <span className="text-sm">{consequence.trim()}</span>
                   </li>
                 ),
             )}
           </ul>
         ) : (
-          <p className="">N/A</p>
+          <p className="text-sm">N/A</p>
         )}
       </CardContent>
     </Card>
@@ -317,42 +312,45 @@ const ShowVoluntaryReport = () => {
       !voluntaryReport?.reporter_last_name;
 
     return (
-      <Card data-tour="voluntario-detalle-reportante">
+      <Card
+        className="shadow-none border-border/60"
+        data-tour="voluntario-detalle-reportante"
+      >
         <CardHeader className="pb-3">
-          <h3 className="text-lg font-semibold flex items-center gap-2">
-            <User className="w-5 h-5" />
+          <h3 className={`font-semibold flex items-center gap-2 ${fieldValue}`}>
+            <User className="w-4 h-4 text-muted-foreground" />
             Información del Reportero
           </h3>
         </CardHeader>
         <CardContent>
           {isAnonymous ? (
-            <p>
+            <p className="text-sm">
               Reportado por: <span className="font-medium">Anónimo</span>
             </p>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <p className="text-sm font-medium flex items-center gap-2 mb-1">
-                  <User className="w-4 h-4" /> Nombre
+                <p className={`${sectionLabel} flex items-center gap-1.5 mb-1`}>
+                  <User className="w-3.5 h-3.5" /> Nombre
                 </p>
-                <p className="font-medium">
+                <p className={fieldValue}>
                   {voluntaryReport.reporter_name || "N/A"}{" "}
                   {voluntaryReport.reporter_last_name}
                 </p>
               </div>
               <div>
-                <p className="text-sm font-medium flex items-center gap-2 mb-1">
-                  <Mail className="w-4 h-4" /> Email
+                <p className={`${sectionLabel} flex items-center gap-1.5 mb-1`}>
+                  <Mail className="w-3.5 h-3.5" /> Email
                 </p>
-                <p className="font-medium">
+                <p className={`${fieldValue} font-mono`}>
                   {voluntaryReport.reporter_email || "N/A"}
                 </p>
               </div>
               <div>
-                <p className="text-sm font-medium flex items-center gap-2 mb-1">
-                  <Phone className="w-4 h-4" /> Teléfono
+                <p className={`${sectionLabel} flex items-center gap-1.5 mb-1`}>
+                  <Phone className="w-3.5 h-3.5" /> Teléfono
                 </p>
-                <p className="font-medium">
+                <p className={`${fieldValue} font-mono`}>
                   {voluntaryReport.reporter_phone || "N/A"}
                 </p>
               </div>
@@ -366,12 +364,16 @@ const ShowVoluntaryReport = () => {
   const renderAttachments = () => (
     <div className="space-y-4" data-tour="voluntario-detalle-archivos">
       {voluntaryReport?.imageUrl && (
-        <Card>
+        <Card className="shadow-none border-border/60">
           <CardHeader className="pb-3 flex flex-row items-center justify-between">
-            <h3 className="text-lg font-semibold">Imagen Adjunta</h3>
+            <h3 className={`font-semibold flex items-center gap-2 ${fieldValue}`}>
+              <ImageIcon className="w-4 h-4 text-muted-foreground" />
+              Imagen Adjunta
+            </h3>
             <Button
               variant="outline"
               size="sm"
+              className="h-9"
               onClick={() => {
                 if (!voluntaryReport?.imageUrl) return;
                 handleDownloadImage(
@@ -393,7 +395,7 @@ const ShowVoluntaryReport = () => {
                     alt="Imagen del reporte"
                     fill
                     crossOrigin="use-credentials"
-                    className="w-full h-full object-contain rounded-md border group-hover:border-gray-400 transition-all"
+                    className="w-full h-full object-contain rounded-md border border-border/60 group-hover:border-border transition-all"
                     onError={(e) => {
                       console.error("Error cargando imagen:", e);
                     }}
@@ -407,8 +409,22 @@ const ShowVoluntaryReport = () => {
               </DialogTrigger>
 
               <DialogContent className="max-w-4xl max-h-[90vh] w-[95vw]">
-                <DialogHeader>
-                  <DialogTitle>Imagen del Reporte</DialogTitle>
+                <DialogHeader className="pb-2 border-b border-border/60">
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-center h-9 w-9 rounded-lg bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-500 shrink-0">
+                      <ImageIcon className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <h2 className="text-base font-semibold leading-tight">
+                        Imagen del Reporte
+                      </h2>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {voluntaryReport.report_number
+                          ? `RVP-${voluntaryReport.report_number}`
+                          : "Reporte voluntario"}
+                      </p>
+                    </div>
+                  </div>
                 </DialogHeader>
                 <div
                   className="relative h-[60vh] flex justify-center"
@@ -431,14 +447,16 @@ const ShowVoluntaryReport = () => {
       )}
 
       {voluntaryReport?.documentUrl && (
-        <div className="border border-gray-300 dark:border-gray-600 p-6 rounded-lg text-center">
-          <h3 className="text-xl font-semibold mb-4">Documento Adjunto</h3>
+        <div className="border border-border/60 p-5 rounded-lg text-center">
+          <h3 className="text-xs font-semibold uppercase tracking-wide mb-4">
+            Documento Adjunto
+          </h3>
           <a
             href={`${voluntaryReport.documentUrl}`}
             download={`RVP-${voluntaryReport.report_number}.pdf`}
-            className="inline-flex items-center px-5 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-primary/90"
           >
-            <File className="w-5 h-5 mr-2" />
+            <File className="w-4 h-4 mr-2" />
             Descargar Documento Adjunto
           </a>
         </div>
@@ -457,21 +475,21 @@ const ShowVoluntaryReport = () => {
       {/* LOADING */}
       {isLoading && (
         <div className="flex justify-center items-center h-64">
-          <Loader2 className="w-8 h-8 animate-spin" />
+          <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
         </div>
       )}
 
       {/* CONTENT */}
       {voluntaryReport && (
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <div className="space-y-5">
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
             {renderBasicInfo()}
             {renderLocationInfo()}
             {renderIdentificationDate()}
           </div>
 
           <div
-            className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+            className="grid grid-cols-1 lg:grid-cols-2 gap-4"
             data-tour="voluntario-detalle-descripcion"
           >
             {renderDescription()}
@@ -485,11 +503,13 @@ const ShowVoluntaryReport = () => {
 
       {/* ERROR */}
       {isError && (
-        <Card className="border-red-200 mt-4">
+        <Card className="shadow-none border border-red-200 dark:border-red-800 mt-4">
           <CardContent className="pt-6">
-            <div className="flex items-center gap-3 text-red-700">
-              <AlertCircle className="w-5 h-5" />
-              <p>Ha ocurrido un error al cargar el reporte voluntario...</p>
+            <div className="flex items-center gap-3 text-red-700 dark:text-red-300">
+              <AlertCircle className="w-4 h-4" />
+              <p className="text-sm">
+                Ha ocurrido un error al cargar el reporte voluntario...
+              </p>
             </div>
           </CardContent>
         </Card>

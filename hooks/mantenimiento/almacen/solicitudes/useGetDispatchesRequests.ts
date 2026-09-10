@@ -20,7 +20,16 @@ interface IDispatch {
   justification: string;
   destination_place: string;
   submission_date: string;
-  status: "PENDING" | "APPROVED" | "REJECTED" | "RETURNED";
+  status: "PENDING" | "IN_TRANSFER" | "APPROVED" | "REJECTED" | "RETURNED";
+  /**
+   * Sede destino: solo la llevan los traslados. Es lo que distingue una salida
+   * hacia otra estación propia de una entrega corriente, y mientras el estado
+   * sea IN_TRANSFER el material sigue en camino sin acusar.
+   */
+  destination_location?: string | null;
+  received_by?: string | null;
+  received_at?: string | null;
+  rejection_reason?: string | null;
   category?: string;
   work_order?: string;
   aircraft?: MaintenanceAircraft;

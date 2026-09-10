@@ -1,3 +1,70 @@
+## v3.17.0 — 2026-09-10
+
+- Merge pull request #250 from transmandu/feat/vista-consumibles-dimension
+- feat: add dimension property to article interfaces and update related logic
+
+## v3.16.0 — 2026-09-10
+
+- Merge pull request #249 from transmandu/fix/menu-almacen-creacion-consumible
+- feat: enhance article form data handling and menu role access control
+
+## v3.15.0 — 2026-09-09
+
+- feat: add obligatory report pdf format (#248)
+
+## v3.14.0 — 2026-09-09
+
+- feat: enhance dashboard modal with tooltips and error handling (#247)
+
+## v3.13.0 — 2026-09-08
+
+- feat: enhance tool dispatch form and backdated dispatch field (#246)
+
+## v3.12.0 — 2026-09-07
+
+- feat: excel report sms (#245)
+
+## v3.11.0 — 2026-09-07
+
+- feat: implement unit conversion functionality in article management (#244)
+
+## v3.10.1 — 2026-09-04
+
+- fix: alter validation from zod to accept number null or string (#243)
+
+## v3.10.0 — 2026-09-03
+
+- feat: authorized employee sms act (#242)
+
+## v3.9.3 — 2026-09-03
+
+- fix: add attendance sms activity (#241)
+
+## v3.9.2 — 2026-09-03
+
+- refactor : danger identification sms (#240)
+
+## v3.9.1 — 2026-09-03
+
+- fix: update comment for traceability movements query in FuelWarehousePage
+
+## v3.9.0 — 2026-09-03
+
+- Merge pull request #239 from transmandu/feature/dispatch-return-per-line-condition
+- feat: implement dispatch return functionality with detailed item conditions
+
+## v3.8.3 — 2026-09-03
+
+- fix: render danger identification form ROS and RVP (#238)
+
+## v3.8.2 — 2026-09-02
+
+- fix: employee trainning (#237)
+
+## v3.8.1 — 2026-09-02
+
+- fix: link survey to act (#236)
+
 ## v3.8.0 — 2026-09-02
 
 - Merge pull request #235 from transmandu/feat/zona-horaria-por-compania

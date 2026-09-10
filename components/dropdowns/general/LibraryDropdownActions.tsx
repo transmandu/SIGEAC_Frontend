@@ -9,6 +9,8 @@ import {
   History,
   UploadCloud,
   Download,
+  Eye,
+  Loader2,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -16,6 +18,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import axiosInstance from "@/lib/axios";
 import { toast } from "sonner";
 
@@ -25,6 +33,19 @@ import ShareDialog from "@/components/library/ShareDialog";
 import { DeleteDocumentDialog } from "@/components/library/DeleteDocumentDialog";
 import { UploadVersionDialog } from "@/components/library/UploadVersionDialog";
 import { DownloadDocumentDialog } from "@/components/library/DownloadDocumentDialog";
+
+const iconBase =
+  "size-[18px] transition-all duration-200 ease-out group-hover:scale-110";
+
+const itemBase = `
+  group
+  flex items-center justify-center
+  size-9
+  rounded-xl
+  transition-all duration-200 ease-out
+  hover:bg-muted hover:shadow-sm
+  active:scale-95
+`;
 
 interface Role {
   id: number;
@@ -54,6 +75,7 @@ interface Props {
   user: User | null;
   canManage: boolean;
   isDipDirector: boolean;
+  onView: (id: number) => void;
   onDelete: (id: number | string) => Promise<void>;
   onRefresh: () => Promise<void>;
 }
@@ -63,12 +85,14 @@ export const LibraryDropdownActions = ({
   user,
   canManage,
   isDipDirector,
+  onView,
   onDelete,
   onRefresh,
 }: Props) => {
   const params = useParams();
   const company = params.company as string;
 
+  const [openDropdown, setOpenDropdown] = useState(false);
   const [viewerOpen, setViewerOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -120,9 +144,11 @@ export const LibraryDropdownActions = ({
       const response = await axiosInstance.get(
         `/${company}/library/documents/${doc.id}/versions`,
       );
-      setVersionList(response.data.data.versions || response.data.data || []);
+      const versions = response.data?.data?.versions;
+      setVersionList(Array.isArray(versions) ? versions : []);
       setHistoryOpen(true);
     } catch (error) {
+      console.error("Error al cargar versiones:", error);
       toast.error("Error al cargar versiones");
     } finally {
       setLoadingVersions(false);
@@ -135,8 +161,8 @@ export const LibraryDropdownActions = ({
   };
 
   return (
-    <>
-      <DropdownMenu>
+    <TooltipProvider delayDuration={120}>
+      <DropdownMenu open={openDropdown} onOpenChange={setOpenDropdown}>
         <DropdownMenuTrigger asChild>
           <button className="p-2 text-slate-400 hover:bg-slate-200 dark:hover:bg-gray-800 rounded-lg transition-all outline-none">
             <MoreVertical className="h-4 w-4" />
@@ -144,75 +170,141 @@ export const LibraryDropdownActions = ({
         </DropdownMenuTrigger>
 
         <DropdownMenuContent
-          align="end"
-          className="w-52 bg-white dark:bg-[#1a1c1e] border-slate-200 dark:border-gray-700 text-slate-800 dark:text-white shadow-2xl"
+          align="center"
+          sideOffset={3}
+          className="
+            flex items-center justify-center gap-1.5
+            rounded-2xl
+            border border-border/50
+            bg-background/90
+            backdrop-blur-xl
+            shadow-xl
+            p-1.5
+            animate-in fade-in zoom-in-95 duration-200
+            overflow-visible
+          "
         >
-          {canManage && (
-            <>
-              <div className="" data-tour="biblioteca-share-btn">
-                <DropdownMenuItem
-                  onClick={() => setShareOpen(true)}
-                  className="gap-2 cursor-pointer"
-                >
-                  <Share2 className="h-4 w-4 text-blue-500" />
-                  <span className="text-xs font-medium">Compartir</span>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span data-tour="biblioteca-doc-view-btn">
+                <DropdownMenuItem asChild className="p-0 focus:bg-transparent">
+                  <button
+                    onClick={() => {
+                      setOpenDropdown(false);
+                      onView(doc.id);
+                    }}
+                    className={`${itemBase} text-blue-600`}
+                  >
+                    <Eye className={iconBase} />
+                  </button>
                 </DropdownMenuItem>
-              </div>
-              <div className="h-px bg-slate-200 dark:bg-gray-700 my-1" />
-            </>
+              </span>
+            </TooltipTrigger>
+            <TooltipContent>Ver documento</TooltipContent>
+          </Tooltip>
+
+          {canManage && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span data-tour="biblioteca-share-btn">
+                  <DropdownMenuItem asChild className="p-0 focus:bg-transparent">
+                    <button
+                      onClick={() => {
+                        setOpenDropdown(false);
+                        setShareOpen(true);
+                      }}
+                      className={`${itemBase} text-blue-600`}
+                    >
+                      <Share2 className={iconBase} />
+                    </button>
+                  </DropdownMenuItem>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>Compartir</TooltipContent>
+            </Tooltip>
           )}
 
           {canManage && (
-            <div data-tour="biblioteca-upload-version-btn">
-              <DropdownMenuItem
-                onClick={() => setUploadOpen(true)}
-                className="gap-2 cursor-pointer"
-              >
-                <UploadCloud className="h-4 w-4 text-blue-500" />
-                <span className="text-xs font-medium">Subir nueva versión</span>
-              </DropdownMenuItem>
-            </div>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span data-tour="biblioteca-upload-version-btn">
+                  <DropdownMenuItem asChild className="p-0 focus:bg-transparent">
+                    <button
+                      onClick={() => {
+                        setOpenDropdown(false);
+                        setUploadOpen(true);
+                      }}
+                      className={`${itemBase} text-blue-600`}
+                    >
+                      <UploadCloud className={iconBase} />
+                    </button>
+                  </DropdownMenuItem>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>Subir nueva versión</TooltipContent>
+            </Tooltip>
           )}
 
           {canDownload && (
-            <div className="" data-tour="biblioteca-download-btn">
-              <DropdownMenuItem
-                onClick={() => setDownloadOpen(true)}
-                className="gap-2 cursor-pointer"
-              >
-                <Download className="h-4 w-4 text-emerald-500" />
-                <span className="text-xs font-medium">Descargar PDF</span>
-              </DropdownMenuItem>
-            </div>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span data-tour="biblioteca-download-btn">
+                  <DropdownMenuItem asChild className="p-0 focus:bg-transparent">
+                    <button
+                      onClick={() => {
+                        setOpenDropdown(false);
+                        setDownloadOpen(true);
+                      }}
+                      className={`${itemBase} text-emerald-600`}
+                    >
+                      <Download className={iconBase} />
+                    </button>
+                  </DropdownMenuItem>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>Descargar</TooltipContent>
+            </Tooltip>
           )}
 
-          <div className="" data-tour="biblioteca-version-history-btn">
-            <DropdownMenuItem
-              onClick={handleFetchVersions}
-              className="gap-2 cursor-pointer"
-            >
-              <History
-                className={`h-4 w-4 text-primary ${loadingVersions ? "animate-spin" : ""}`}
-              />
-              <span className="text-xs font-medium">
-                Historial de versiones
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span data-tour="biblioteca-version-history-btn">
+                <DropdownMenuItem asChild className="p-0 focus:bg-transparent">
+                  <button
+                    onClick={handleFetchVersions}
+                    className={`${itemBase} text-primary`}
+                  >
+                    {loadingVersions ? (
+                      <Loader2 className={`${iconBase} animate-spin`} />
+                    ) : (
+                      <History className={iconBase} />
+                    )}
+                  </button>
+                </DropdownMenuItem>
               </span>
-            </DropdownMenuItem>
-          </div>
+            </TooltipTrigger>
+            <TooltipContent>Historial de versiones</TooltipContent>
+          </Tooltip>
 
           {canManage && (
-            <>
-              <div className="h-px bg-slate-200 dark:bg-gray-700 my-1" />
-              <div className="" data-tour="biblioteca-delete-doc-btn">
-                <DropdownMenuItem
-                  onClick={() => setDeleteOpen(true)}
-                  className="gap-2 cursor-pointer text-red-500 focus:bg-red-500/10 focus:text-red-500"
-                >
-                  <Trash2 className="h-4 w-4" />
-                  <span className="text-xs font-bold">Eliminar</span>
-                </DropdownMenuItem>
-              </div>
-            </>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span data-tour="biblioteca-delete-doc-btn">
+                  <DropdownMenuItem asChild className="p-0 focus:bg-transparent">
+                    <button
+                      onClick={() => {
+                        setOpenDropdown(false);
+                        setDeleteOpen(true);
+                      }}
+                      className={`${itemBase} text-red-600`}
+                    >
+                      <Trash2 className={iconBase} />
+                    </button>
+                  </DropdownMenuItem>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>Eliminar</TooltipContent>
+            </Tooltip>
           )}
         </DropdownMenuContent>
       </DropdownMenu>
@@ -266,6 +358,6 @@ export const LibraryDropdownActions = ({
           setSelectedVersionId(null);
         }}
       />
-    </>
+    </TooltipProvider>
   );
 };

@@ -1,38 +1,48 @@
 import axiosInstance from "@/lib/axios";
-import { Employee } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 
+interface EmployeeAttendanceData {
+  dni: string;
+  first_name: string;
+  last_name: string;
+  job_title: { name: string };
+  department: { name: string };
+  employee_type: "local" | "authorized";
+  authorized_employee_id?: number | null;
+  from_company_db?: string;
+}
+
 interface EnrolledEmployees {
-  attended: Employee[];
-  not_attended: Employee[];
+  attended: EmployeeAttendanceData[];
+  not_attended: EmployeeAttendanceData[];
 }
 
 const fetchGetActivityAttendanceStatus = async ({
-  activity_id,
+  activity_number,
   company,
 }: {
-  activity_id: string;
+  activity_number: string;
   company: string | null;
 }): Promise<EnrolledEmployees> => {
   const { data } = await axiosInstance.get(
-    `/${company}/sms/activities/${activity_id}/employee-attendance-status`
+    `/${company}/sms/activities/${activity_number}/employee-attendance-status`
   );
   return data;
 };
 
 export const useGetSMSActivityAttendanceStatus = ({
-  activity_id,
+  activity_number,
   company,
 }: {
   company: string | null;
-  activity_id: string;
+  activity_number: string;
 }) => {
   const value = {
-    activity_id: activity_id,
+    activity_number: activity_number,
     company: company,
   };
   return useQuery<EnrolledEmployees>({
-    queryKey: ["sms-activity-attendance-status",activity_id],
+    queryKey: ["sms-activity-attendance-status", activity_number],
     queryFn: () => fetchGetActivityAttendanceStatus(value),
     staleTime: 1000 * 60 * 5,
   });

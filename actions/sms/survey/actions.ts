@@ -443,6 +443,52 @@ export const useUpdateSurveyInfo = () => {
   };
 };
 
+export const useLinkSurveyToActivity = () => {
+  const queryClient = useQueryClient();
+  const { selectedCompany } = useCompanyStore();
+
+  const linkMutation = useMutation({
+    mutationFn: async ({
+      company,
+      activity_id,
+      survey_id,
+    }: {
+      company: string;
+      activity_id: number;
+      survey_id: string;
+    }) => {
+      const response = await axiosInstance.patch(
+        `/${company}/sms/activity-survey`,
+        { activity_id, survey_id },
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["sms-activities"] });
+      queryClient.invalidateQueries({
+        queryKey: [
+          "surveys-without-activity",
+          selectedCompany?.slug,
+        ],
+      });
+      toast.success("¡Vinculado!", {
+        description:
+          "La encuesta ha sido vinculada a la actividad correctamente.",
+      });
+    },
+    onError: (error) => {
+      toast.error("Oops!", {
+        description:
+          "No se pudo vincular la encuesta a la actividad...",
+      });
+      console.log(error);
+    },
+  });
+  return {
+    linkSurveyToActivity: linkMutation,
+  };
+};
+
 interface SettingData {
   id: string;
   company?: string;

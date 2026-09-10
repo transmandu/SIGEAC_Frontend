@@ -2,17 +2,19 @@ import axiosInstance from "@/lib/axios";
 import { useQuery } from "@tanstack/react-query";
 
 interface EmployeeData {
-  id: string;
+  id?: string;
   first_name: string;
   last_name: string;
   dni: string;
 }
+
 interface AttendanceData {
   id: string;
   attended: Boolean;
-  employee_dni: string;
-  sms_activityNumber: string;
-  employee: EmployeeData;
+  employee_dni: string | null;
+  authorized_employee_id: number | null;
+  employee_type: "local" | "authorized";
+  employee: EmployeeData | null;
 }
 
 const fetchAttendanceList = async ({

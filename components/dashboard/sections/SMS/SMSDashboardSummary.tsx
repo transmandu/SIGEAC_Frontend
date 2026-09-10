@@ -29,7 +29,7 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { trainingStatusLabelEsUpper } from "@/lib/cursos/statuses";
+import { TrainingStatusBadge } from "@/components/sms/TrainingStatusBadge";
 
 interface DashboardSummaryProps {
   companySlug: string;
@@ -187,17 +187,7 @@ export default function DashboardSummary({ companySlug }: DashboardSummaryProps)
                     <div className="flex justify-between items-center">
                       <span className="text-slate-500">Status:</span>
 
-                      <span
-                        className={`text-[11px] px-2 py-0.5 rounded font-medium ${
-                          t.status === "VALID"
-                            ? "bg-green-100 text-green-700"
-                            : t.status === "EXPIRING_SOON"
-                              ? "bg-yellow-100 text-yellow-700"
-                              : "bg-red-100 text-red-700"
-                        }`}
-                      >
-                        {trainingStatusLabelEsUpper(t.status)}
-                      </span>
+                      <TrainingStatusBadge status={t.status} />
                     </div>
 
                     {/* CURSO */}
@@ -214,7 +204,23 @@ export default function DashboardSummary({ companySlug }: DashboardSummaryProps)
                     <div className="flex justify-between">
                       <span className="text-slate-500">Vence:</span>
                       <span className="text-slate-700 dark:text-slate-300">
-                        {dateFormat(t.expiration, "dd/MM/yyyy")}
+                        {t.expiration
+                          ? dateFormat(t.expiration, "dd/MM/yyyy")
+                          : (() => {
+                              const last = t.history
+                                ?.filter(
+                                  (h) =>
+                                    h.event_type === "EXPIRED" && h.expiration
+                                )
+                                .sort(
+                                  (a, b) =>
+                                    new Date(b.created_at ?? 0).getTime() -
+                                    new Date(a.created_at ?? 0).getTime()
+                                )[0];
+                              return last?.expiration
+                                ? dateFormat(last.expiration, "dd/MM/yyyy")
+                                : "N/A";
+                            })()}
                       </span>
                     </div>
                   </div>

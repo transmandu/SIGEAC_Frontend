@@ -1,6 +1,7 @@
 "use client"
 
 import { CreateBatchDialog } from "@/components/dialogs/mantenimiento/almacen/CreateBatchDialog"
+import { SearchAcrossLocationsDialog } from "@/components/dialogs/mantenimiento/almacen/SearchAcrossLocationsDialog"
 import { ContentLayout } from "@/components/layout/ContentLayout"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -14,7 +15,7 @@ import { useAuth } from "@/contexts/AuthContext"
 import { TooltipArrow } from "@radix-ui/react-tooltip"
 import type { SortingState } from "@tanstack/react-table"
 import { parseISO } from "date-fns"
-import { Loader2, Package2, PaintBucket, Puzzle, Wrench, X } from "lucide-react"
+import { Loader2, MapPin, Package2, PaintBucket, Puzzle, Wrench, X } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { FaFilePdf } from "react-icons/fa"
 import { RiFileExcel2Fill } from "react-icons/ri"
@@ -62,6 +63,7 @@ const InventarioArticulosPage = () => {
     ["ENGINEERING", "SUPERUSER"].includes(role),
   )
   const [activeTab, setActiveTab] = useState<InventoryTab>("aeronautic")
+  const [searchAcrossOpen, setSearchAcrossOpen] = useState(false)
   const [activeCategory, setActiveCategory] = useState<Category>("all")
   const { exporting, exportPdf, exportExcel } = useInventoryExport()
 
@@ -347,21 +349,40 @@ const InventarioArticulosPage = () => {
           </div>
 
           <div className="space-y-2">
-            <div className="relative max-w-xl mx-auto">
-              <Input
-                placeholder={search.placeholder}
-                value={search.value}
-                onChange={(e) => search.onChange(e.target.value)}
-                className="pr-8 h-11"
-              />
-              {search.value && (
+            <div className="mx-auto flex max-w-xl items-center gap-2">
+              <div className="relative flex-1">
+                <Input
+                  placeholder={search.placeholder}
+                  value={search.value}
+                  onChange={(e) => search.onChange(e.target.value)}
+                  className="pr-8 h-11"
+                />
+                {search.value && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
+                    onClick={() => search.onChange("")}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+
+              {/* El buscador de arriba filtra ESTA sede; este consulta las
+                  demás sin cambiar la estación en la que se trabaja.
+                  Solo en aeronáutico: la consulta es por número de parte y un
+                  artículo general no tiene, así que ahí no habría nada que
+                  preguntar. */}
+              {activeTab === "aeronautic" && (
                 <Button
-                  variant="ghost"
-                  size="sm"
-                  className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
-                  onClick={() => search.onChange("")}
+                  type="button"
+                  variant="outline"
+                  className="h-11 shrink-0 gap-2"
+                  onClick={() => setSearchAcrossOpen(true)}
                 >
-                  <X className="h-4 w-4" />
+                  <MapPin className="size-4" />
+                  Consultar en sedes
                 </Button>
               )}
             </div>
@@ -601,6 +622,11 @@ const InventarioArticulosPage = () => {
           onOpenChange={setGroupOpen}
           partNumber={groupPn}
           rows={groupRows}
+        />
+
+        <SearchAcrossLocationsDialog
+          open={searchAcrossOpen}
+          onOpenChange={setSearchAcrossOpen}
         />
       </TooltipProvider>
     </ContentLayout>

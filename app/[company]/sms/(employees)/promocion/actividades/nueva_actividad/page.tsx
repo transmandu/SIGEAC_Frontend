@@ -11,9 +11,13 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useCreateSMSActivity } from "@/actions/sms/sms_actividades/actions";
+import { useLinkSurveyToActivity } from "@/actions/sms/survey/actions";
+import { LinkSurveyToActivityForm } from "@/components/forms/aerolinea/sms/survey/LinkSurveyToActivityForm";
+import { Survey } from "@/types";
 import { PageHeader } from "@/components/layout/PageHeader";
 
 type Step = 1 | 2;
+type SurveyMode = "create" | "link";
 
 const CreateSMSActivity = () => {
   const router = useRouter();
@@ -22,8 +26,10 @@ const CreateSMSActivity = () => {
   const [activityData, setActivityData] = useState<any>(null);
   const [categoryNames, setCategoryNames] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [surveyMode, setSurveyMode] = useState<SurveyMode>("create");
 
   const { createSMSActivity } = useCreateSMSActivity();
+  const { linkSurveyToActivity } = useLinkSurveyToActivity();
 
   const hasBoletin = categoryNames.some((name) =>
     name.toUpperCase().includes("BOLETIN")
@@ -61,6 +67,7 @@ const CreateSMSActivity = () => {
 
     setActivityData(data);
     setCategoryNames(selectedCategoryNames);
+    setSurveyMode("create");
     setStep(2);
   };
 
@@ -116,6 +123,35 @@ const CreateSMSActivity = () => {
     }
   };
 
+  const handleLinkSubmit = async (survey: Survey) => {
+    if (!activityData || !selectedCompany?.slug) return;
+    setIsSubmitting(true);
+
+    try {
+      const result = await createSMSActivity.mutateAsync({
+        company: selectedCompany.slug,
+        data: { ...activityData },
+      });
+
+      const createdId = result?.data?.id;
+      if (!createdId) {
+        throw new Error("No se pudo obtener el id de la actividad creada");
+      }
+
+      await linkSurveyToActivity.mutateAsync({
+        company: selectedCompany.slug,
+        activity_id: createdId,
+        survey_id: survey.id.toString(),
+      });
+
+      router.push(`/${selectedCompany.slug}/sms/promocion/actividades`);
+    } catch (error) {
+      console.error("Error al crear actividad y vincular encuesta", error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <ContentLayout
       title={
@@ -157,11 +193,39 @@ const CreateSMSActivity = () => {
       </div>
 
       <div className={cn("space-y-4", step !== 2 || !hasEncuesta ? "hidden" : "")}>
-        <CreateSurveyForm
-          onClose={handleClose}
-          onStepSubmit={handleCombinedSubmit}
-          isSubmitting={isSubmitting}
-        />
+        <div className="flex justify-center gap-2">
+          {[
+            { label: "Crear nueva encuesta", value: "create" as SurveyMode },
+            { label: "Vincular encuesta existente", value: "link" as SurveyMode },
+          ].map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => setSurveyMode(opt.value)}
+              disabled={isSubmitting}
+              className={`px-4 py-2 text-sm rounded-md border transition-colors ${surveyMode === opt.value
+                ? "bg-primary text-primary-foreground border-primary"
+                : "bg-background text-foreground border-border hover:bg-muted"
+                }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+
+        {surveyMode === "create" ? (
+          <CreateSurveyForm
+            onClose={handleClose}
+            onStepSubmit={handleCombinedSubmit}
+            isSubmitting={isSubmitting}
+          />
+        ) : (
+          <LinkSurveyToActivityForm
+            onStepSubmit={handleLinkSubmit}
+            onBack={handleBack}
+            loading={isSubmitting}
+          />
+        )}
         <div className="flex justify-start">
           <Button
             type="button"

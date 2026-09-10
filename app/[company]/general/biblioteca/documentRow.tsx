@@ -1,9 +1,10 @@
 'use client';
 
 import { useMemo, useCallback } from 'react';
-import { FileText, Clock, AlertCircle, Eye } from 'lucide-react';
+import { FileText, Clock, AlertCircle } from 'lucide-react';
 import { LibraryDropdownActions } from "@/components/dropdowns/general/LibraryDropdownActions";
 import { Document } from '@/lib/libraryService';
+import { formatCalendarDate } from '@/lib/date';
 
 const fileTypeDetails: any = {
   pdf: { color: 'text-red-600', bgColor: 'bg-red-500/10', iconColor: 'text-red-700 dark:text-red-400', label: 'PDF' },
@@ -81,12 +82,10 @@ export default function DocumentRow({ doc, onView, onDelete, onRefresh, canManag
   const fileDetails = getFileDetails(activeFileType, doc?.title);
   const statusInfo = getStatusDetails(activeExpiryStatus, activeExpirationDate);
 
-  let displayExpirationDate = 'Permanente';
-  if (activeExpirationDate) {
-    const datePart = String(activeExpirationDate).substring(0, 10);
-    const [year, month, day] = datePart.split('-');
-    displayExpirationDate = `${day}-${month}-${year}`;
-  }
+  // Fecha de calendario: se muestra tal cual la manda el backend, sin convertir.
+  const displayExpirationDate = activeExpirationDate
+    ? formatCalendarDate(activeExpirationDate, 'date', 'Permanente')
+    : 'Permanente';
 
   const handleDragStart = useCallback((e: React.DragEvent) => {
     e.dataTransfer.setData('text/plain', doc.id.toString());
@@ -143,24 +142,15 @@ export default function DocumentRow({ doc, onView, onDelete, onRefresh, canManag
       </div>
 
       <div className="flex items-center gap-1 shrink-0 ml-2" data-tour="biblioteca-doc-actions">
-        <button
-          data-tour="biblioteca-doc-view-btn"
-          onClick={() => onView(doc.id)}
-          aria-label="Ver documento"
-          title="Ver documento"
-          className="p-2 text-slate-400 hover:text-blue-700 dark:hover:text-white hover:bg-blue-50 dark:hover:bg-blue-600 rounded-lg transition-colors"
-        >
-          <Eye className="h-4 w-4" />
-        </button>
-
-          <LibraryDropdownActions
-            doc={docWithVersionData}
-            user={user}
-            canManage={canManage}
-            isDipDirector={isDipDirector}
-            onDelete={onDelete}
-            onRefresh={onRefresh}
-          />
+        <LibraryDropdownActions
+          doc={docWithVersionData}
+          user={user}
+          canManage={canManage}
+          isDipDirector={isDipDirector}
+          onView={onView}
+          onDelete={onDelete}
+          onRefresh={onRefresh}
+        />
       </div>
     </div>
   );

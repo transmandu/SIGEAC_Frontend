@@ -2,6 +2,7 @@
 
 import { DataTablePagination } from "@/components/tables/DataTablePagination";
 import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -21,6 +22,9 @@ import {
   SortingState,
   useReactTable,
 } from "@tanstack/react-table";
+import { useExportDangerReports } from "@/hooks/sms/useExportDangerReports";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { Download } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -61,6 +65,16 @@ export function DataTable<TData, TValue>({
 
   const isFiltered = table.getState().columnFilters.length > 0;
 
+  const { selectedCompany } = useCompanyStore();
+  const { exportDangerReports } = useExportDangerReports();
+
+  const handleExport = () => {
+    if (!selectedCompany?.slug) {
+      return;
+    }
+    exportDangerReports(selectedCompany.slug);
+  };
+
   return (
     <>
       <div className="flex flex-col gap-2 mb-4">
@@ -72,7 +86,18 @@ export function DataTable<TData, TValue>({
       </div>
 
       <div className="flex items-center justify-between py-4 gap-5">
-        <CreateVoluntaryReportDialog title="Nuevo" />
+        <div className="flex items-center gap-2">
+          <CreateVoluntaryReportDialog title="Nuevo" />
+          <Button
+            onClick={handleExport}
+            variant="outline"
+            size="sm"
+            className="flex border-dashed"
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Exportar Excel
+          </Button>
+        </div>
 
         <DataTableViewOptions table={table} />
       </div>

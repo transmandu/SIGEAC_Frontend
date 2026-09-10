@@ -14,7 +14,15 @@ export function filterMenuGroups(
         );
     };
 
-    const hasRoleAccess = (menuItem: { roles?: string[] }): boolean => {
+    // La exclusión pesa más que la inclusión: un rol excluido no ve la opción
+    // aunque califique por otro de sus roles.
+    const hasRoleAccess = (menuItem: {
+        roles?: string[];
+        excludedRoles?: string[];
+    }): boolean => {
+        if (menuItem.excludedRoles?.some((role) => userRoles.includes(role))) {
+            return false;
+        }
         return (
             !menuItem.roles ||
             menuItem.roles.length === 0 ||

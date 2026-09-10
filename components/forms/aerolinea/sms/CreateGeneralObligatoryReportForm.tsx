@@ -125,6 +125,8 @@ export function CreateGeneralObligatoryReportForm({
         (val) => (val === null || val === undefined ? "" : val),
         z.string().optional()
       ),
+      email: z.string().email("Email inválido").optional().nullable(),
+      phone_number: z.string().optional().nullable(),
       image: z
         .instanceof(File)
         .refine((file) => file.size <= 5 * 1024 * 1024, "Max 5MB")
@@ -224,6 +226,8 @@ export function CreateGeneralObligatoryReportForm({
       incident_date: initialData?.incident_date
         ? new Date(initialData?.incident_date)
         : new Date(),
+      email: initialData?.email ?? null,
+      phone_number: initialData?.phone_number ?? null,
       flight_time: initialData?.flight_time
         ? initialData.flight_time.substring(0, 5) // Extraemos solo HH:mm
         : "00:00",
@@ -253,6 +257,8 @@ export function CreateGeneralObligatoryReportForm({
       image: data.image,
       document: data.document,
       status: "PROCESO",
+      email: data.email,
+      phone_number: data.phone_number,
     };
 
     try {
@@ -422,6 +428,45 @@ export function CreateGeneralObligatoryReportForm({
                   </PopoverContent>
                 </Popover>
                 <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <div className="flex gap-2 items-center justify-center">
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                  <Input
+                    type="email"
+                    placeholder="correo@ejemplo.com"
+                    {...field}
+                    value={field.value ?? ""}
+                  />
+                </FormControl>
+                <FormMessage className="text-xs" />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="phone_number"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormLabel>Teléfono</FormLabel>
+                <FormControl>
+                  <Input
+                    type="tel"
+                    placeholder="Número de teléfono"
+                    {...field}
+                    value={field.value ?? ""}
+                  />
+                </FormControl>
+                <FormMessage className="text-xs" />
               </FormItem>
             )}
           />

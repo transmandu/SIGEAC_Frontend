@@ -4,6 +4,9 @@ import { useQuery } from "@tanstack/react-query";
 
 export interface DispatchReturnItem {
   article_dispatch_order_id: number;
+  // El destino de ESTE artículo. La condición de la devolución solo dice que
+  // alguno de sus artículos fue a inspección, no cuál.
+  condition: "SEALED" | "ALTERED";
   // En la unidad en que se despachó, que es en la que se registró la
   // devolución; `base_quantity` es lo que realmente movió el inventario.
   quantity: number;
@@ -18,7 +21,8 @@ export interface DispatchReturnItem {
 
 export interface DispatchReturn {
   id: number;
-  // SEALED volvió intacto al almacén; ALTERED pasó a inspección de incoming.
+  // Resumen: ALTERED si ALGUNO de sus artículos pasó a inspección. El destino
+  // de cada uno está en su propio item.
   condition: "SEALED" | "ALTERED";
   justification: string;
   returned_by: string;

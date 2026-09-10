@@ -4,14 +4,15 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 interface EmployeeSelected {
-  dni: string;
+  dni: string | null;
   first_name: string;
   last_name: string;
+  authorized_employee_id?: number | null;
 }
 
 interface SMSActivityAttendanceData {
   company: string | null;
-  activity_id: string;
+  activity_number: string;
   data: {
     addedEmployees: EmployeeSelected[];
     removedEmployees: EmployeeSelected[];
@@ -19,7 +20,7 @@ interface SMSActivityAttendanceData {
 }
 
 interface SMSActivityAttendaceData {
-  activity_id: string;
+  activity_number: string;
   employees_list: {
     addedEmployees: EmployeeSelected[];
     removedEmployees: EmployeeSelected[];
@@ -32,10 +33,10 @@ export const useCreateSMSActivityAttendance = () => {
     mutationFn: async ({
       company,
       data,
-      activity_id,
+      activity_number,
     }: SMSActivityAttendanceData) => {
       const response = await axiosInstance.post(
-        `/${company}/sms/activities/${activity_id}/enrollements`,
+        `/${company}/sms/activities/${activity_number}/enrollements`,
         data,
         {
           headers: {
@@ -47,21 +48,21 @@ export const useCreateSMSActivityAttendance = () => {
     },
     onSuccess: (_, data) => {
       queryClient.invalidateQueries({ queryKey: ["sms-activity-attendance"] });
-      queryClient.invalidateQueries({ queryKey: ["enrollment-status-by-activity",data.activity_id] });
+      queryClient.invalidateQueries({ queryKey: ["enrollment-status-by-activity", data.company, data.activity_number] });
       queryClient.invalidateQueries({
         queryKey: ["enrolled-employees"],
       });
 
       queryClient.invalidateQueries({
-        queryKey: ["sms-activity", data.activity_id],
+        queryKey: ["sms-activity", data.activity_number],
       });
 
       queryClient.invalidateQueries({
-        queryKey: ["sms-activity-attendance-list", data.activity_id],
+        queryKey: ["sms-activity-attendance-list", data.activity_number],
       });
 
       queryClient.invalidateQueries({
-        queryKey: ["sms-activity-attendance-stats", data.activity_id],
+        queryKey: ["sms-activity-attendance-stats", data.activity_number],
       });
 
       toast.success("Actualizado!", {
@@ -85,30 +86,30 @@ export const useMarkSMSActivityAttendance = () => {
   const queryClient = useQueryClient();
   const markSMSActivityAttendanceMutation = useMutation({
     mutationFn: async ({
-      activity_id,
+      activity_number,
       employees_list,
     }: SMSActivityAttendaceData) => {
       await axiosInstance.patch(
-        `/${selectedCompany?.slug}/sms/mark-sms-activity-attendance/${activity_id}`,
+        `/${selectedCompany?.slug}/sms/mark-sms-activity-attendance/${activity_number}`,
         employees_list
       );
     },
     onSuccess: (_, data) => {
       queryClient.invalidateQueries({
-        queryKey: ["sms-activity", data.activity_id],
+        queryKey: ["sms-activity", data.activity_number],
       });
 
       queryClient.invalidateQueries({
-        queryKey: ["sms-activity-attendance-list", data.activity_id],
+        queryKey: ["sms-activity-attendance-list", data.activity_number],
       });
 
       queryClient.invalidateQueries({
-        queryKey: ["sms-activity-attendance-stats", data.activity_id],
+        queryKey: ["sms-activity-attendance-stats", data.activity_number],
       });
       queryClient.invalidateQueries({ queryKey: ["sms-activities"] });
       
       queryClient.invalidateQueries({
-        queryKey: ["sms-activity-attendance-status", data.activity_id],
+        queryKey: ["sms-activity-attendance-status", data.activity_number],
       });
       toast.success("¡Actualizado!", {
         description: `La asistancia ha sido actualizada correctamente.`,

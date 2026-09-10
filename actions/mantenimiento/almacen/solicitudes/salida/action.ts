@@ -32,6 +32,12 @@ interface IDispatchRequestAction {
   aircraft_id?: string;
   authorized_employee_id?: string;
   department_id?: string;
+  /**
+   * Sede destino: convierte la salida en un traslado entre sedes. El backend
+   * la deja en tránsito hasta que esa sede acusa recibo, en vez de cerrarla
+   * en el acto como el resto de las salidas.
+   */
+  destination_location_id?: string;
   approved_by?: string
   delivered_by?: string
   /**
@@ -239,12 +245,13 @@ export const useDeleteDispatchRequest = () => {
 };
 
 export interface IDispatchReturnAction {
-  // SEALED vuelve al almacén; ALTERED pasa por inspección de incoming.
-  condition: "SEALED" | "ALTERED";
   justification: string;
   items: {
     article_dispatch_order_id: number;
     quantity: number;
+    // SEALED vuelve al almacén; ALTERED pasa por inspección de incoming. Es de
+    // cada artículo: de una misma salida puede volver uno dañado y otro sano.
+    condition: "SEALED" | "ALTERED";
   }[];
   /** Fotos de cómo volvió cada artículo, por línea. Opcional. */
   evidences?: Record<number, File[]>;
@@ -260,7 +267,6 @@ export interface IDispatchReturnAction {
 function buildReturnFormData(data: IDispatchReturnAction): FormData {
   const form = new FormData();
 
-  form.append("condition", data.condition);
   form.append("justification", data.justification);
 
   data.items.forEach((item, index) => {
@@ -269,6 +275,7 @@ function buildReturnFormData(data: IDispatchReturnAction): FormData {
       String(item.article_dispatch_order_id)
     );
     form.append(`items[${index}][quantity]`, String(item.quantity));
+    form.append(`items[${index}][condition]`, item.condition);
   });
 
   Object.entries(data.evidences ?? {}).forEach(([lineId, files]) => {
@@ -395,4 +402,75 @@ export const useReturnToWarehouse = (company?: string) => {
       });
     },
   });
+};
+
+/**
+ * Acuse de recibo de un traslado entre sedes.
+ *
+ * Es lo que cierra el ciclo: hasta que la sede destino confirma, el material
+ * no está en el inventario de nadie. Al aprobar entra en recepción de esa
+ * sede; al rechazar vuelve al almacén de origen.
+ */
+export const useAcknowledgeTransfer = () => {
+  const queryClient = useQueryClient();
+  const { selectedStation } = useCompanyStore();
+
+  const acknowledgeMutation = useMutation({
+    mutationFn: async ({
+      id,
+      company,
+      status,
+      received_by,
+      location_id,
+      rejection_reason,
+    }: {
+      id: string | number;
+      company: string;
+      status: "APPROVED" | "REJECTED";
+      received_by: string;
+      /**
+       * Sede que acusa: una salida puede repartirse entre varias y cada una
+       * confirma solo sus propias líneas.
+       */
+      location_id: string | number;
+      rejection_reason?: string;
+    }) => {
+      const { data } = await axiosInstance.patch(
+        `/${company}/dispatch-order/${id}/acknowledge`,
+        { status, received_by, location_id, rejection_reason },
+      );
+      return data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["incoming-transfers", variables.company, selectedStation],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["dispatches-requests", variables.company, selectedStation],
+      });
+      // Al aprobar, los artículos entran a RECEPCIÓN de esta sede: el
+      // inventario y la bandeja de recepción cambian.
+      queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
+      queryClient.invalidateQueries({ queryKey: ["articles"] });
+
+      toast.success(
+        variables.status === "APPROVED" ? "¡Recibido!" : "Traslado rechazado",
+        {
+          description:
+            variables.status === "APPROVED"
+              ? "Los artículos entraron a recepción de esta sede."
+              : "Los artículos vuelven al almacén de origen.",
+        },
+      );
+    },
+    onError: (error: any) => {
+      toast.error("Oops!", {
+        description:
+          error?.response?.data?.message ||
+          "No se pudo registrar el acuse del traslado.",
+      });
+    },
+  });
+
+  return { acknowledgeTransfer: acknowledgeMutation };
 };
