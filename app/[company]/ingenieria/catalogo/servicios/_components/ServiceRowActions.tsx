@@ -2,9 +2,19 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ClipboardList, Eye, MoreHorizontal, Pencil } from "lucide-react";
+import { ClipboardList, Eye, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,6 +23,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ServiceDialog } from "@/components/dialogs/mantenimiento/catalogo/ServiceDialog";
+import { useDeleteCatalogService } from "@/actions/mantenimiento/catalogo/servicios/actions";
+import { useAuth } from "@/contexts/AuthContext";
 import { CatalogService } from "@/types/maintenanceCatalog";
 
 const itemBase =
@@ -20,9 +32,16 @@ const itemBase =
 const iconBase = "size-[18px] transition-all duration-200 ease-out group-hover:scale-110";
 
 export function ServiceRowActions({ service, company }: { service: CatalogService; company: string }) {
+  const { user } = useAuth();
+  const { deleteCatalogService } = useDeleteCatalogService();
   const [openDropdown, setOpenDropdown] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
+  const [openDelete, setOpenDelete] = useState(false);
   const base = `/${company}/ingenieria/catalogo/servicios/${service.id}`;
+
+  // Eliminar es sanear un dato que nunca debió existir: un servicio que solo
+  // dejó de aplicar se retira con SUPERSEDED, y eso sí lo hace Ingeniería.
+  const isSuperUser = user?.roles?.some((role) => role.name === "SUPERUSER");
 
   return (
     <TooltipProvider delayDuration={120}>
@@ -81,10 +100,53 @@ export function ServiceRowActions({ service, company }: { service: CatalogServic
             </TooltipTrigger>
             <TooltipContent>Administrar tareas</TooltipContent>
           </Tooltip>
+
+          {isSuperUser && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span>
+                  <DropdownMenuItem asChild className="p-0 focus:bg-transparent">
+                    <button
+                      onClick={() => {
+                        setOpenDropdown(false);
+                        setOpenDelete(true);
+                      }}
+                      className={`${itemBase} text-red-600`}
+                    >
+                      <Trash2 className={iconBase} />
+                    </button>
+                  </DropdownMenuItem>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>Eliminar servicio</TooltipContent>
+            </Tooltip>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
 
       <ServiceDialog open={openEdit} onOpenChange={setOpenEdit} service={service} />
+
+      <AlertDialog open={openDelete} onOpenChange={setOpenDelete}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar este servicio/certificado?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Se eliminará &quot;{service.name}&quot; con sus tareas y requisitos. Si ya se usó en un Control de
+              Mantenimiento o una Orden de Trabajo, el sistema lo rechazará: en ese caso márquelo como superado.
+              Esta acción no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => deleteCatalogService.mutate({ id: service.id, company })}
+            >
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </TooltipProvider>
   );
 }

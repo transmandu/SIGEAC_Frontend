@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -12,9 +12,10 @@ import {
   SortingState,
   useReactTable,
 } from "@tanstack/react-table";
-import { BookOpen, Plus } from "lucide-react";
+import { BookOpen, PlusCircle } from "lucide-react";
 
 import { DataTablePagination } from "@/components/tables/DataTablePagination";
+import { DataTableFilterPopover, FilterOption } from "@/components/tables/DataTableFilterPopover";
 import { DataTableSearchInput } from "@/components/tables/DataTableSearchInput";
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 import {
@@ -26,17 +27,33 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ManualDialog } from "@/components/dialogs/mantenimiento/catalogo/ManualDialog";
+import { STATUS_LABELS } from "@/lib/maintenanceCatalogLabels";
+import { CatalogManual } from "@/types/maintenanceCatalog";
+import { manualGlobalFilter } from "./columns";
 
-interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[];
-  data: TData[];
+interface DataTableProps<TValue> {
+  columns: ColumnDef<CatalogManual, TValue>[];
+  data: CatalogManual[];
 }
 
-export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData, TValue>) {
+export function DataTable<TValue>({ columns, data }: DataTableProps<TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
   const [openCreate, setOpenCreate] = useState(false);
+
+  const statusOptions: FilterOption[] = useMemo(
+    () => Object.entries(STATUS_LABELS).map(([value, label]) => ({ label, value })),
+    [],
+  );
+
+  const supportOptions: FilterOption[] = useMemo(
+    () => [
+      { label: "Digital", value: "DIGITAL" },
+      { label: "Solo físico", value: "PHYSICAL" },
+    ],
+    [],
+  );
 
   const table = useReactTable({
     data,
@@ -48,24 +65,34 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
     onGlobalFilterChange: setGlobalFilter,
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    globalFilterFn: "includesString",
+    globalFilterFn: manualGlobalFilter,
+    initialState: { columnVisibility: { support: false } },
     state: { sorting, columnFilters, globalFilter },
   });
 
   return (
     <div>
-      <div className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 py-4 lg:flex-row lg:items-center lg:justify-between">
         <ActionTriggerButton type="button" onClick={() => setOpenCreate(true)}>
-          <Plus className="mr-2 h-4 w-4" />
+          <PlusCircle className="mr-2 h-4 w-4" />
           Nuevo Manual
         </ActionTriggerButton>
 
-        <DataTableSearchInput
-          value={globalFilter}
-          onChange={setGlobalFilter}
-          placeholder="Buscar manual..."
-          className="w-full sm:w-80"
-        />
+        <div className="flex items-center gap-2">
+          <DataTableFilterPopover
+            groups={[
+              { title: "Estado", column: table.getColumn("status"), options: statusOptions },
+              { title: "Soporte", column: table.getColumn("support"), options: supportOptions },
+            ]}
+          />
+
+          <DataTableSearchInput
+            value={globalFilter}
+            onChange={setGlobalFilter}
+            placeholder="Buscar manual..."
+            className="w-full sm:w-72"
+          />
+        </div>
       </div>
       <div className="mb-4 overflow-hidden rounded-xl border border-slate-400/50 shadow-sm dark:border-slate-600/50">
         <Table>
@@ -91,7 +118,9 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
               ))
             ) : (
               <TableRow className="hover:bg-transparent">
-                <TableCell colSpan={columns.length} className="h-40">
+                {/* Las columnas ocultas (support es solo-filtro) no se
+                    renderizan: el colSpan sale de las visibles, no de todas. */}
+                <TableCell colSpan={table.getVisibleFlatColumns().length} className="h-40">
                   <div className="flex flex-col items-center justify-center gap-2 text-center">
                     <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-muted/60 text-muted-foreground">
                       <BookOpen className="h-5 w-5" />

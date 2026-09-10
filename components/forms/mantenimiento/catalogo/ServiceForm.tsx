@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Loader2, Wrench } from "lucide-react";
+import { BookOpen, Loader2, Wrench } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,8 +20,9 @@ import {
 import { useGetCatalogManuals } from "@/hooks/mantenimiento/catalogo/useGetCatalogManuals";
 import { useGetAircrafts } from "@/hooks/general/aeronaves/useGetAircrafts";
 import { IntervalListEditor } from "@/components/misc/IntervalListEditor";
+import { ServiceTasksEditor } from "@/components/forms/mantenimiento/catalogo/ServiceTasksEditor";
 import { CATEGORY_LABELS, STATUS_LABELS } from "@/lib/maintenanceCatalogLabels";
-import { CatalogCategory, CatalogService, CatalogStatus } from "@/types/maintenanceCatalog";
+import { CatalogCategory, CatalogManual, CatalogService, CatalogStatus } from "@/types/maintenanceCatalog";
 import { ServiceFormData } from "@/actions/mantenimiento/catalogo/servicios/actions";
 import { useCompanyStore } from "@/stores/CompanyStore";
 
@@ -32,6 +33,11 @@ interface ServiceFormProps {
   submitLabel: string;
   /** Dentro de un diálogo las tarjetas de sección anidan cristal sobre cristal. */
   flat?: boolean;
+  /**
+   * Alta desde el detalle de un manual: el manual queda fijo (se muestra, no
+   * se elige) y el formulario suma las tareas para crear todo de una vez.
+   */
+  lockedManual?: CatalogManual;
 }
 
 const emptyState: ServiceFormData = {
@@ -43,9 +49,10 @@ const emptyState: ServiceFormData = {
   intervals: [],
   status: "ACTIVE",
   aircraft_ids: [],
+  tasks: [],
 };
 
-export function ServiceForm({ service, isPending, onSubmit, submitLabel, flat }: ServiceFormProps) {
+export function ServiceForm({ service, isPending, onSubmit, submitLabel, flat, lockedManual }: ServiceFormProps) {
   const { selectedCompany } = useCompanyStore();
   const { data: activeManuals = [] } = useGetCatalogManuals(selectedCompany?.slug, { status: "ACTIVE" });
   const { data: aircrafts = [] } = useGetAircrafts(selectedCompany?.slug);
@@ -63,7 +70,7 @@ export function ServiceForm({ service, isPending, onSubmit, submitLabel, flat }:
     // Sin servicio el formulario es "nuevo": se limpia en vez de conservar lo
     // que quedó de una edición anterior.
     if (!service) {
-      setForm(emptyState);
+      setForm({ ...emptyState, maintenance_catalog_manual_id: lockedManual?.id ?? null });
       return;
     }
     setForm({
@@ -76,7 +83,7 @@ export function ServiceForm({ service, isPending, onSubmit, submitLabel, flat }:
       status: service.status,
       aircraft_ids: service.aircrafts?.map((a) => a.id) ?? [],
     });
-  }, [service]);
+  }, [service, lockedManual]);
 
   const toggleAircraft = (id: number, checked: boolean) => {
     setForm((f) => ({
@@ -118,25 +125,37 @@ export function ServiceForm({ service, isPending, onSubmit, submitLabel, flat }:
 
           <div className="space-y-1.5">
             <Label className={labelClass}>Manual de referencia</Label>
-            <Select
-              value={form.maintenance_catalog_manual_id ? String(form.maintenance_catalog_manual_id) : "none"}
-              onValueChange={(v) =>
-                setForm((f) => ({ ...f, maintenance_catalog_manual_id: v === "none" ? null : Number(v) }))
-              }
-            >
-              <SelectTrigger className={selectTriggerClass}>
-                <SelectValue placeholder="Sin manual" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">Sin manual</SelectItem>
-                {manuals.map((manual) => (
-                  <SelectItem key={manual.id} value={String(manual.id)}>
-                    {manual.name}
-                    {manual.revision ? ` (${manual.revision})` : ""}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {lockedManual ? (
+              // Se entró desde el detalle de este manual: mostrarlo como un
+              // select abierto invita a cambiarlo y a salirse del contexto.
+              <div className="flex h-10 items-center gap-2 rounded-md border border-input bg-muted/40 px-3 text-sm">
+                <BookOpen className="size-4 shrink-0 text-muted-foreground" />
+                <span className="truncate">
+                  {lockedManual.name}
+                  {lockedManual.revision ? ` (${lockedManual.revision})` : ""}
+                </span>
+              </div>
+            ) : (
+              <Select
+                value={form.maintenance_catalog_manual_id ? String(form.maintenance_catalog_manual_id) : "none"}
+                onValueChange={(v) =>
+                  setForm((f) => ({ ...f, maintenance_catalog_manual_id: v === "none" ? null : Number(v) }))
+                }
+              >
+                <SelectTrigger className={selectTriggerClass}>
+                  <SelectValue placeholder="Sin manual" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Sin manual</SelectItem>
+                  {manuals.map((manual) => (
+                    <SelectItem key={manual.id} value={String(manual.id)}>
+                      {manual.name}
+                      {manual.revision ? ` (${manual.revision})` : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
 
           <div className="space-y-1.5">
@@ -232,6 +251,17 @@ export function ServiceForm({ service, isPending, onSubmit, submitLabel, flat }:
           ))}
         </div>
       </section>
+
+      {/* Solo en el alta encadenada: al editar, las tareas se administran en
+          la página del servicio, que ya las guarda una por una. */}
+      {lockedManual && !service && (
+        <section className={flat ? undefined : sectionClass}>
+          <ServiceTasksEditor
+            tasks={form.tasks ?? []}
+            onChange={(tasks) => setForm((f) => ({ ...f, tasks }))}
+          />
+        </section>
+      )}
 
       <div className="flex justify-end">
         <ActionTriggerButton type="submit" disabled={isPending}>

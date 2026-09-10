@@ -3,7 +3,7 @@
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { useState } from "react";
-import { BookOpen, ClipboardList, ExternalLink, History, Pencil, Wrench } from "lucide-react";
+import { BookOpen, ClipboardList, ExternalLink, History, Pencil, Plus, Wrench } from "lucide-react";
 
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -13,6 +13,7 @@ import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 import { FormSection } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
 import { ManualDialog } from "@/components/dialogs/mantenimiento/catalogo/ManualDialog";
 import { ManualRevisionDialog } from "@/components/dialogs/mantenimiento/catalogo/ManualRevisionDialog";
+import { ServiceDialog } from "@/components/dialogs/mantenimiento/catalogo/ServiceDialog";
 import { useGetCatalogManual } from "@/hooks/mantenimiento/catalogo/useGetCatalogManual";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { formatCalendarDate } from "@/lib/date";
@@ -38,6 +39,7 @@ const ManualDetailPage = () => {
   const { data: manual, isLoading } = useGetCatalogManual(selectedCompany?.slug, id);
   const [openEdit, setOpenEdit] = useState(false);
   const [openRevision, setOpenRevision] = useState(false);
+  const [openService, setOpenService] = useState(false);
 
   if (isLoading || !manual) return <LoadingPage />;
 
@@ -141,6 +143,14 @@ const ManualDetailPage = () => {
           icon={Wrench}
           title="Servicios y Certificados"
           hint="Lo que este manual declara, con las tareas de cada uno."
+          action={
+            manual.status === "ACTIVE" ? (
+              <ActionTriggerButton type="button" onClick={() => setOpenService(true)}>
+                <Plus className="mr-2 size-4" />
+                Agregar Servicio
+              </ActionTriggerButton>
+            ) : undefined
+          }
         >
           {services.length === 0 ? (
             <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-slate-400/40 py-10 text-center dark:border-slate-600/40">
@@ -220,6 +230,7 @@ const ManualDetailPage = () => {
 
       <ManualDialog open={openEdit} onOpenChange={setOpenEdit} manual={manual} />
       <ManualRevisionDialog open={openRevision} onOpenChange={setOpenRevision} manual={manual} />
+      <ServiceDialog open={openService} onOpenChange={setOpenService} lockedManual={manual} />
     </ContentLayout>
   );
 };

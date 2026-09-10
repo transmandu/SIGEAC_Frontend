@@ -10,16 +10,18 @@ import {
   useUpdateCatalogService,
   ServiceFormData,
 } from "@/actions/mantenimiento/catalogo/servicios/actions";
-import { CatalogService } from "@/types/maintenanceCatalog";
+import { CatalogManual, CatalogService } from "@/types/maintenanceCatalog";
 import { useCompanyStore } from "@/stores/CompanyStore";
 
 interface ServiceDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   service?: CatalogService;
+  /** Alta desde el detalle de un manual: queda fijo y habilita las tareas. */
+  lockedManual?: CatalogManual;
 }
 
-export function ServiceDialog({ open, onOpenChange, service }: ServiceDialogProps) {
+export function ServiceDialog({ open, onOpenChange, service, lockedManual }: ServiceDialogProps) {
   const { selectedCompany } = useCompanyStore();
   const { createCatalogService } = useCreateCatalogService();
   const { updateCatalogService } = useUpdateCatalogService();
@@ -51,7 +53,11 @@ export function ServiceDialog({ open, onOpenChange, service }: ServiceDialogProp
             <SectionTitle
               icon={Wrench}
               title={service ? "Editar Servicio/Certificado" : "Nuevo Servicio/Certificado"}
-              hint="Las tareas y sus requisitos se agregan después, desde la acción de tareas."
+              hint={
+                lockedManual && !service
+                  ? `Lo que ${lockedManual.name} declara: el servicio y sus tareas se registran juntos.`
+                  : "Las tareas y sus requisitos se agregan después, desde la acción de tareas."
+              }
             />
           </DialogTitle>
         </DialogHeader>
@@ -63,6 +69,7 @@ export function ServiceDialog({ open, onOpenChange, service }: ServiceDialogProp
             // alta cancelada reaparece escrita en la siguiente apertura.
             key={`${service?.id ?? "new"}-${String(open)}`}
             service={service}
+            lockedManual={lockedManual}
             isPending={isPending}
             onSubmit={handleSubmit}
             submitLabel={service ? "Guardar Cambios" : "Crear Servicio/Certificado"}

@@ -1,8 +1,9 @@
 import axiosInstance from "@/lib/axios"
-import { CatalogStatus } from "@/types/maintenanceCatalog"
+import { CatalogCategory, CatalogInterval, CatalogStatus } from "@/types/maintenanceCatalog"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner";
 import { apiErrorMessage } from "@/lib/apiErrorMessage";
+import { TaskFormData } from "@/actions/mantenimiento/catalogo/tareas/actions";
 
 export interface ManualFormData {
   name: string;
@@ -16,12 +17,57 @@ export interface ManualFormData {
   file?: File | null;
 }
 
+/**
+ * Un servicio que se arrastra a la revisión nueva. Va completo y no por id:
+ * entre una revisión y otra el manual pudo cambiar intervalos, tareas o
+ * requisitos, y el usuario los corrige antes de copiar. `source_service_id`
+ * marca de cuál venía para que el backend lo deje SUPERSEDED.
+ */
+export interface RevisionServiceFormData {
+  source_service_id?: number;
+  category: CatalogCategory;
+  name: string;
+  code?: string;
+  description?: string;
+  intervals: CatalogInterval[];
+  aircraft_ids: number[];
+  /** Los ids de requisito que traiga una tarea precargada se descartan al
+   *  serializar: la copia crea filas propias, no reutiliza las del original. */
+  tasks: TaskFormData[];
+}
+
 export interface ManualRevisionFormData {
   revision?: string;
   effective_date?: string;
   description?: string;
   is_physical: boolean;
   file?: File | null;
+  /** Contenido arrastrado desde la revisión anterior, ya revisado. */
+  services: RevisionServiceFormData[];
+}
+
+/**
+ * Aplana un valor anidado en claves `services[0][tasks][1][description]`, que
+ * es como PHP reconstruye un arreglo dentro de un multipart. Los nulos se
+ * omiten: FormData los mandaría como la cadena "null" y `nullable` no la
+ * dejaría pasar.
+ */
+function appendNested(formData: FormData, key: string, value: unknown): void {
+  if (value === null || value === undefined || value === "") return;
+
+  if (Array.isArray(value)) {
+    value.forEach((item, index) => appendNested(formData, `${key}[${index}]`, item));
+    return;
+  }
+
+  if (typeof value === "object") {
+    Object.entries(value as Record<string, unknown>).forEach(([childKey, childValue]) =>
+      appendNested(formData, `${key}[${childKey}]`, childValue),
+    );
+    return;
+  }
+
+  formData.append(key, typeof value === "boolean" ? (value ? "1" : "0") : String(value));
 }
 
 function toManualFormData(data: ManualFormData): FormData {
@@ -113,6 +159,11 @@ export const useCreateManualRevision = () => {
       if (data.effective_date) formData.append("effective_date", data.effective_date);
       if (data.description) formData.append("description", data.description);
       if (data.file) formData.append("file", data.file);
+
+      // El envío es multipart por el archivo, así que el árbol de servicios se
+      // aplana campo por campo: serializarlo como un JSON en una sola clave
+      // dejaría a Laravel validando una cadena en vez del arreglo.
+      appendNested(formData, "services", data.services);
 
       const { data: response } = await axiosInstance.post(
         `/${company}/maintenance-catalog-manuals/${id}/revision`,

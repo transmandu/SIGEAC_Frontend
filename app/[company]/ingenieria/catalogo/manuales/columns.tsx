@@ -1,12 +1,40 @@
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
+import { ColumnDef, FilterFn } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { CatalogManual } from "@/types/maintenanceCatalog";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { formatCalendarDate } from "@/lib/date";
 import { STATUS_LABELS } from "@/lib/maintenanceCatalogLabels";
 import { ManualRowActions } from "./_components/ManualRowActions";
+
+// Los filtros facetados entregan un arreglo de valores seleccionados; sin esto
+// TanStack compara el arreglo contra el valor de la celda y nunca coincide.
+const includesSome: FilterFn<CatalogManual> = (row, columnId, filterValue: string[]) => {
+  if (!filterValue?.length) return true;
+  return filterValue.includes(String(row.getValue(columnId)));
+};
+
+/**
+ * La columna de estado guarda "ACTIVE"/"SUPERSEDED", así que un filtro global
+ * sobre los valores de celda no encuentra "vigente". El buscador se arma sobre
+ * el texto que el usuario ve, igual que en servicios.
+ */
+export const manualGlobalFilter: FilterFn<CatalogManual> = (row, _columnId, filterValue: string) => {
+  const term = filterValue.trim().toLowerCase();
+  if (!term) return true;
+
+  const manual = row.original;
+  const haystack = [
+    manual.name,
+    manual.manual_code,
+    manual.revision,
+    manual.description,
+    STATUS_LABELS[manual.status],
+  ];
+
+  return haystack.some((value) => value?.toLowerCase().includes(term));
+};
 
 export const columns: ColumnDef<CatalogManual>[] = [
   {
@@ -17,6 +45,7 @@ export const columns: ColumnDef<CatalogManual>[] = [
   {
     accessorKey: "status",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Estado" />,
+    filterFn: includesSome,
     cell: ({ row }) => (
       <div className="flex justify-center">
         <Badge variant={row.original.status === "ACTIVE" ? "default" : "secondary"}>
@@ -57,6 +86,12 @@ export const columns: ColumnDef<CatalogManual>[] = [
     accessorKey: "services_count",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Servicios" />,
     cell: ({ row }) => <div className="text-center">{row.original.services_count ?? 0}</div>,
+  },
+  // Columna solo-filtro: se oculta desde el estado de la tabla (ver data-table).
+  {
+    id: "support",
+    accessorFn: (row) => (row.is_physical ? "PHYSICAL" : "DIGITAL"),
+    filterFn: includesSome,
   },
   {
     id: "actions",

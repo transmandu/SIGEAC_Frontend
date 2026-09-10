@@ -3,6 +3,7 @@ import { CatalogCategory, CatalogInterval, CatalogStatus } from "@/types/mainten
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner";
 import { apiErrorMessage } from "@/lib/apiErrorMessage";
+import { TaskFormData } from "@/actions/mantenimiento/catalogo/tareas/actions";
 
 export interface ServiceFormData {
   maintenance_catalog_manual_id?: number | null;
@@ -15,6 +16,9 @@ export interface ServiceFormData {
   /** Ausente al crear: siempre nace ACTIVE. Solo se manda al editar. */
   status?: CatalogStatus;
   aircraft_ids: number[];
+  /** Solo en el alta encadenada desde el detalle del manual: el servicio y sus
+   *  tareas entran en una sola transacción. La edición no las toca. */
+  tasks?: TaskFormData[];
 }
 
 /**

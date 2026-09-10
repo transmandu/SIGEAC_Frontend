@@ -1,24 +1,34 @@
 "use client";
 
-import { useParams } from "next/navigation";
-import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
-import { ClipboardList, Pencil, Plane, Wrench } from "lucide-react";
+import { Pencil, Plane, Trash2, Wrench } from "lucide-react";
 
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
 import LoadingPage from "@/components/misc/LoadingPage";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 import { FormSection } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
 import { ServiceDialog } from "@/components/dialogs/mantenimiento/catalogo/ServiceDialog";
+import { ServiceTaskList } from "@/components/forms/mantenimiento/catalogo/ServiceTaskList";
 import { useGetCatalogService } from "@/hooks/mantenimiento/catalogo/useGetCatalogService";
+import { useDeleteCatalogService } from "@/actions/mantenimiento/catalogo/servicios/actions";
+import { useAuth } from "@/contexts/AuthContext";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import {
   CATEGORY_LABELS,
   COUNTING_METHOD_LABELS,
-  MSG3_TYPE_LABELS,
-  REQUIREMENT_TYPE_LABELS,
   STATUS_LABELS,
 } from "@/lib/maintenanceCatalogLabels";
 
@@ -33,13 +43,19 @@ const Empty = () => <span className="text-muted-foreground">—</span>;
 
 const ServiceDetailPage = () => {
   const { id } = useParams<{ id: string }>();
+  const router = useRouter();
+  const { user } = useAuth();
   const { selectedCompany } = useCompanyStore();
   const { data: service, isLoading } = useGetCatalogService(selectedCompany?.slug, id);
+  const { deleteCatalogService } = useDeleteCatalogService();
   const [openEdit, setOpenEdit] = useState(false);
+  const [openDelete, setOpenDelete] = useState(false);
+
+  // Eliminar es sanear un dato que nunca debió existir: un servicio que solo
+  // dejó de aplicar se retira con SUPERSEDED, y eso sí lo hace Ingeniería.
+  const isSuperUser = user?.roles?.some((role) => role.name === "SUPERUSER");
 
   if (isLoading || !service) return <LoadingPage />;
-
-  const tasksHref = `/${selectedCompany?.slug}/ingenieria/catalogo/servicios/${service.id}/tareas`;
 
   return (
     <ContentLayout title={service.name}>
@@ -62,10 +78,18 @@ const ServiceDetailPage = () => {
             </p>
           </div>
 
-          <ActionTriggerButton type="button" className="shrink-0" onClick={() => setOpenEdit(true)}>
-            <Pencil className="mr-2 size-4" />
-            Editar
-          </ActionTriggerButton>
+          <div className="flex shrink-0 items-center gap-2">
+            <ActionTriggerButton type="button" onClick={() => setOpenEdit(true)}>
+              <Pencil className="mr-2 size-4" />
+              Editar
+            </ActionTriggerButton>
+            {isSuperUser && (
+              <ActionTriggerButton type="button" onClick={() => setOpenDelete(true)}>
+                <Trash2 className="mr-2 size-4" />
+                Eliminar
+              </ActionTriggerButton>
+            )}
+          </div>
         </div>
 
         <FormSection icon={Wrench} title="Datos del Servicio/Certificado">
@@ -91,6 +115,7 @@ const ServiceDetailPage = () => {
             </Field>
             <Field label="Tareas registradas">{service.tasks?.length ?? 0}</Field>
             <Field label="Registrado por">{service.registered_by || <Empty />}</Field>
+            <Field label="Actualizado por">{service.updated_by || <Empty />}</Field>
             <div className="sm:col-span-2 lg:col-span-3">
               <Field label="Descripción">{service.description || <Empty />}</Field>
             </div>
@@ -115,54 +140,42 @@ const ServiceDetailPage = () => {
           )}
         </FormSection>
 
-        <FormSection
-          icon={ClipboardList}
-          title="Tareas"
-          hint="Las tareas que se ejecutan cuando este servicio genera una orden de trabajo."
-          action={
-            <ActionTriggerButton asChild>
-              <Link href={tasksHref}>
-                <ClipboardList className="mr-2 size-4" />
-                Administrar Tareas
-              </Link>
-            </ActionTriggerButton>
-          }
-        >
-          {!service.tasks || service.tasks.length === 0 ? (
-            <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-slate-400/40 py-10 text-center dark:border-slate-600/40">
-              <ClipboardList className="size-6 text-muted-foreground/60" />
-              <p className="text-sm text-muted-foreground">Sin tareas registradas todavía.</p>
-            </div>
-          ) : (
-            <div className="flex flex-col gap-2.5">
-              {service.tasks.map((task) => (
-                <div
-                  key={task.id}
-                  className="rounded-xl border border-slate-400/40 bg-gradient-to-br from-background/70 to-background/40 p-3.5 shadow-sm backdrop-blur-md dark:border-slate-600/40"
-                >
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
-                      {MSG3_TYPE_LABELS[task.msg3_type]}
-                    </span>
-                    {task.ata && <span className="text-xs text-muted-foreground">ATA {task.ata}</span>}
-                  </div>
-                  <p className="mt-1 text-sm font-medium">{task.description}</p>
-                  {task.requirements.length > 0 && (
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      Requisitos:{" "}
-                      {task.requirements
-                        .map((r) => `${r.description} (${REQUIREMENT_TYPE_LABELS[r.requirement_type]})`)
-                        .join(", ")}
-                    </p>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </FormSection>
+        <ServiceTaskList service={service} />
       </div>
 
       <ServiceDialog open={openEdit} onOpenChange={setOpenEdit} service={service} />
+
+      <AlertDialog open={openDelete} onOpenChange={setOpenDelete}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar este servicio/certificado?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Se eliminará &quot;{service.name}&quot; con sus tareas y requisitos. Si ya se usó en un Control de
+              Mantenimiento o una Orden de Trabajo, el sistema lo rechazará: en ese caso márquelo como superado.
+              Esta acción no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={async () => {
+                if (!selectedCompany?.slug) return;
+                // La página que se está viendo deja de existir: se vuelve al
+                // listado, pero solo si el borrado pasó (puede dar 409).
+                try {
+                  await deleteCatalogService.mutateAsync({ id: service.id, company: selectedCompany.slug });
+                  router.push(`/${selectedCompany.slug}/ingenieria/catalogo/servicios`);
+                } catch {
+                  // El hook de la mutación ya notificó el fallo.
+                }
+              }}
+            >
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </ContentLayout>
   );
 };
