@@ -50,7 +50,7 @@ import { useAutoScheduleGenerator } from "@/hooks/mantenimiento/planificacion/us
 import { useGetWorkOrderEmployees } from "@/hooks/mantenimiento/planificacion/useGetWorkOrderEmployees";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { WorkOrder } from "@/types";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { ChevronLeft, Loader2, Pencil, User2 } from "lucide-react";

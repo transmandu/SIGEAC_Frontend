@@ -3,7 +3,7 @@
 import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useCreateAuthorizedEmployee } from "@/actions/ajustes/autorizados/actions";
 import { useGetEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetEmployees";

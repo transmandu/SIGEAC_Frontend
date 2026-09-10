@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo, useRef } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import * as z from "zod";
 import { useRouter } from "next/navigation";
 import { Loader2, Image as ImageIcon, Package, Ruler, Scale, Tag, X } from "lucide-react";

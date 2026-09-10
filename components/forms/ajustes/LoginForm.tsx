@@ -19,7 +19,7 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import loadingGif from "@/public/loading2.gif";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import Image from "next/image";
 import { useForm } from "react-hook-form";
 import { z } from "zod";

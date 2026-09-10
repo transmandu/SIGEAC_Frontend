@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/form";
 
 import { Input } from "@/components/ui/input";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -68,11 +68,11 @@ export function CreateGenVolReport({
 
   const FormSchema = z.object({
     identification_date: z
-      .date({ required_error: "La fecha de identificación es obligatoria" })
+      .date({ error: "La fecha de identificación es obligatoria" })
       .default(() => new Date())
       .refine((val) => !isNaN(val.getTime()), { message: "Fecha inválida" }),
     report_date: z
-      .date({ required_error: "La fecha de reporte es obligatoria" })
+      .date({ error: "La fecha de reporte es obligatoria" })
       .default(() => new Date())
       .refine((val) => !isNaN(val.getTime()), { message: "Fecha inválida" }),
 

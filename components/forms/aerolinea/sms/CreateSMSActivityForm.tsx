@@ -43,7 +43,7 @@ import { useGetEmployeesByDepartment } from "@/hooks/sistema/useGetEmployeesByDe
 import { cn, parseServerDate } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { SMSActivity } from "@/types";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { CalendarIcon, Check, ChevronsUpDown, Loader2, Plus, X } from "lucide-react";

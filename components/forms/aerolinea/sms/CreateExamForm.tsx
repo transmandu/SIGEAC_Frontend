@@ -10,7 +10,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useCreateCourseExam } from "@/actions/general/cursos/actions";
@@ -41,7 +41,7 @@ export function CreateExamForm({ onClose, courseId }: FormProps) {
     name: z.string().min(1, "El nombre es obligatorio"),
     description: z.string().min(1, "La descripción es obligatoria"),
     exam_date: z
-      .date({ required_error: "La fecha es obligatoria" })
+      .date({ error: "La fecha es obligatoria" })
       .refine((val) => !isNaN(val.getTime()), { message: "Fecha no válida" }),
   });
 

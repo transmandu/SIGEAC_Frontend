@@ -13,7 +13,7 @@ import { useGetDepartments } from "@/hooks/ajustes/departamento/useGetDepartment
 import { useGetThirdParties } from "@/hooks/general/terceros/useGetThirdParties"
 import { useGetAuthorizedEmployees } from "@/hooks/ajustes/autorizados/useGetAuthorizedEmployees"
 import { useCompanyStore } from "@/stores/CompanyStore"
-import { zodResolver } from "@hookform/resolvers/zod"
+import { zodResolver } from "@/lib/zod-resolver"
 import { Loader2, Send, Plane, Package } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useForm } from "react-hook-form"

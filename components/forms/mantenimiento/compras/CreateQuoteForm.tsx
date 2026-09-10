@@ -7,7 +7,7 @@ import { useGetLocationsByCompanyId } from "@/hooks/sistema/useGetLocationsByCom
 import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits";
 import { useGetConditions } from "@/hooks/administracion/useGetConditions";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { Loader2, PackageSearch } from "lucide-react";
 import { useEffect, useMemo } from "react";
 import { useForm, useWatch } from "react-hook-form";

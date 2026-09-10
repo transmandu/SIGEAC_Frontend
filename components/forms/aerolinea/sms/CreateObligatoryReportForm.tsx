@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/form";
 
 import { Input } from "@/components/ui/input";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -113,13 +113,13 @@ export function CreateObligatoryReportForm({
         message: "Formato de hora inválido (HH:mm)",
       }),
       pilot_id: z.string({
-        required_error: "El piloto es requerido.",
+        error: "El piloto es requerido.",
       }),
       copilot_id: z.string({
-        required_error: "El copiloto es requerido.",
+        error: "El copiloto es requerido.",
       }),
       aircraft_id: z.string({
-        required_error: "La aeronave es requerida.",
+        error: "La aeronave es requerida.",
       }),
       flight_number: z.string(),
       flight_origin: z

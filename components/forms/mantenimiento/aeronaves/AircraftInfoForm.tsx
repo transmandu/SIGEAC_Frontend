@@ -8,7 +8,7 @@ import { useGetLocationsByCompanyId } from "@/hooks/sistema/useGetLocationsByCom
 import { useGetClients } from "@/hooks/general/clientes/useGetClients"
 import { cn } from "@/lib/utils"
 import { useCompanyStore } from "@/stores/CompanyStore"
-import { zodResolver } from "@hookform/resolvers/zod"
+import { zodResolver } from "@/lib/zod-resolver"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import { CalendarIcon, Check, ChevronsUpDown, Loader2 } from "lucide-react"
@@ -51,7 +51,7 @@ const AircraftInfoSchema = z.object({
     manufacturer_id: z.string().min(1, "Debe seleccionar un fabricante"),
     client_name: z.string().min(1, "El nombre del cliente es obligatorio"),
     authorizing: z.enum(["PROPIETARIO", "EXPLOTADOR"], {
-        required_error: "Debe seleccionar el tipo de autorización",
+        error: "Debe seleccionar el tipo de autorización",
     }),
     serial: z.string().min(1, "El serial es obligatorio"),
     model: z.string().min(1, "El modelo es obligatorio"),

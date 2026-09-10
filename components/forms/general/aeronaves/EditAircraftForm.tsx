@@ -28,7 +28,7 @@ import { useGetLocationsByCompanies } from "@/hooks/sistema/useGetLocationsByCom
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { Aircraft } from "@/types";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { format } from "date-fns";
 import { es } from "date-fns/locale/es";
 import { CalendarIcon, Check, ChevronsUpDown, Loader2 } from "lucide-react";
@@ -77,7 +77,7 @@ const FormSchema = z.object({
       message: "La matricula tiene un máximo 8 caracteres alfanuméricos.",
     }),
   fabricant_date: z.date({
-    required_error: "La fecha de vuelo es requerida",
+    error: "La fecha de vuelo es requerida",
   }),
   owner: z
     .string()

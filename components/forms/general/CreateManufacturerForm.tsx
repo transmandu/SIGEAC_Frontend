@@ -17,7 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -31,7 +31,7 @@ const formSchema = z.object({
   }),
   description: z.string().optional(),
   type: z.enum(["AIRCRAFT", "ENGINE", "APU", "PROPELLER", "GENERAL", "PART", "TOOL"], {
-    required_error: "Debe seleccionar un tipo",
+    error: "Debe seleccionar un tipo",
   }),
 });
 

@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger, } from "@/components/ui/popover";
 import { useGetLocationsByCompanies } from "@/hooks/sistema/useGetLocationsByCompanies";
 import { cn } from "@/lib/utils";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { format } from "date-fns";
 import { es } from "date-fns/locale/es";
 import { CalendarIcon, Check, ChevronsUpDown, Loader2 } from "lucide-react";
@@ -59,7 +59,7 @@ const FormSchema = z.object({
       message: "La matricula tiene un máximo 8 caracteres alfanuméricos.",
     }),
   fabricant_date: z.date({
-    required_error: "La fecha de vuelo es requerida",
+    error: "La fecha de vuelo es requerida",
   }),
   owner: z
     .string()

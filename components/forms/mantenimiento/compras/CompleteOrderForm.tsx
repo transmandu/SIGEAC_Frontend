@@ -27,7 +27,7 @@ import { useGetPaymentMethods } from "@/hooks/general/metodos_pago/useGetPayment
 import { useGetShippingAgencies } from "@/hooks/general/agencias_envio/useGetShippingAgencies";
 import { cn } from "@/lib/utils";
 import type { PurchaseOrder } from "@/types/purchase";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { Building2, ClipboardCheck, Loader2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";

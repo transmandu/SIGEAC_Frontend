@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card"
 import { Form, FormLabel } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/components/ui/use-toast"
-import { zodResolver } from "@hookform/resolvers/zod"
+import { zodResolver } from "@/lib/zod-resolver"
 import { AlertTriangle } from "lucide-react"
 import PartsList from "./parts-form/PartsList"
 import { useEffect, useMemo, useState } from "react"
@@ -33,7 +33,7 @@ const PartSchema: any = z.object({
   cycles_since_new: z.number().nullable().optional(),
   cycles_since_overhaul: z.number().nullable().optional(),
 
-  condition_type: z.enum(["NEW", "OVERHAULED"], { required_error: "Condici\u00f3n requerida" }),
+  condition_type: z.enum(["NEW", "OVERHAULED"], { error: "Condici\u00f3n requerida" }),
   is_father: z.boolean().default(false),
   removed_date: z.string().nullable().optional(),
 
@@ -347,7 +347,7 @@ export function AircraftPartsInfoForm({ onNext, onBack, initialData }: {
     const parsed = PartsFormSchema.safeParse({ parts: activeParts });
     form.clearErrors();
     if (!parsed.success) {
-      parsed.error.errors.forEach(err => {
+      parsed.error.issues.forEach(err => {
         // err.path = ["parts", activeIdx, "fieldName"] or ["parts", activeIdx, "sub_parts", n, "fieldName"]
         const [, activeIdx, ...fieldPath] = err.path as (string | number)[];
         const orig = origIndices[activeIdx as number];

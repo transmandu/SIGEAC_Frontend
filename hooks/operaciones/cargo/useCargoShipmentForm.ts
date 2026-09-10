@@ -2,7 +2,7 @@
 
 import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { format, startOfMonth, endOfMonth, parseISO, isValid } from "date-fns";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -30,7 +30,7 @@ const itemSchema = z.object({
 
 export const formSchema = z
   .object({
-    registration_date: z.date({ required_error: "La fecha es requerida" }),
+    registration_date: z.date({ error: "La fecha es requerida" }),
     carrier_id: z.coerce.number().min(1, "El transportista es requerido"),
     issuer: z.number().min(1, "El emisor es requerido"),
     pilot_id: z.string().min(1, "Debe elegir un piloto"),

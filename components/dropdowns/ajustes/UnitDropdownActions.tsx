@@ -13,7 +13,7 @@ import { useDeleteUnit, useUpdateUnit } from "@/actions/ajustes/unidades/actions
 import { Loader2, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import {

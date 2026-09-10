@@ -4,7 +4,7 @@ import type { KeyboardEvent } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { Loader2, X } from "lucide-react";
 
 import {
@@ -182,7 +182,12 @@ export default function CreateMitigationPlanAnalysis({
   const isAnalysisOnly = mode === "analysis-only";
 
   const form = useForm<FormValues>({
-    resolver: zodResolver(isAnalysisOnly ? ANALYSIS_ONLY_SCHEMA : FORM_SCHEMA),
+    // En modo "solo análisis" el esquema valida menos campos, pero el
+    // formulario sigue teniendo los seis, así que el resolver se expone con el
+    // tipo del formulario y no con el del esquema de turno.
+    resolver: zodResolver(
+      (isAnalysisOnly ? ANALYSIS_ONLY_SCHEMA : FORM_SCHEMA) as z.ZodType<FormValues>,
+    ),
     defaultValues: getDefaultValues(mitigationPlan, analysis, suggestedAnalysis),
   });
 

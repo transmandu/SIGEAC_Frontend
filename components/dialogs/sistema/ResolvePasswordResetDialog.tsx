@@ -12,7 +12,7 @@ import {
   ShieldAlert,
 } from "lucide-react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { z } from "zod";
 import { toast } from "sonner";
 

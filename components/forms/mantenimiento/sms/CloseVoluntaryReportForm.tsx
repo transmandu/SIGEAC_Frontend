@@ -1,6 +1,6 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { CalendarIcon, Loader2, LockKeyhole, Paperclip } from "lucide-react";
@@ -29,7 +29,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 
 const FORM_SCHEMA = z.object({
   close_date: z.date({
-    required_error: "Seleccione la fecha de cierre",
+    error: "Seleccione la fecha de cierre",
   }),
   management_doc: z
     .custom<File>((value) => value instanceof File, {

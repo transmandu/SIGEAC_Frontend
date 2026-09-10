@@ -35,7 +35,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { WorkOrder } from "@/types";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import {
@@ -58,7 +58,7 @@ const editWorkOrderSchema = z.object({
   elaborated_by: z.string().min(1, "Campo obligatorio"),
   reviewed_by: z.string().min(1, "Campo obligatorio"),
   approved_by: z.string().min(1, "Campo obligatorio"),
-  date: z.date({ required_error: "La fecha es obligatoria" }),
+  date: z.date({ error: "La fecha es obligatoria" }),
   document: z
       .instanceof(File)
       .refine((f) => f.size <= 10 * 1024 * 1024, "Máximo 10MB")

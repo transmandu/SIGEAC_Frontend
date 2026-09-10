@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
-import { zodResolver } from "@hookform/resolvers/zod"
+import { zodResolver } from "@/lib/zod-resolver"
 import { ChevronRight, Plus, Trash } from 'lucide-react'
 import { useState } from 'react'
 import { useForm } from "react-hook-form"

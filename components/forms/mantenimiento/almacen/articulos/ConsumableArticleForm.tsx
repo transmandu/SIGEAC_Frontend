@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { z } from "zod";
 import { format, parseISO } from "date-fns";
 import { CalendarDays, Package, Ruler, Scale } from "lucide-react";

@@ -14,7 +14,7 @@ import { useUpdateFollowUpControl } from "@/actions/sms/controles_de_seguimiento
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { FollowUpControl } from "@/types";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { CalendarIcon, Loader2 } from "lucide-react";

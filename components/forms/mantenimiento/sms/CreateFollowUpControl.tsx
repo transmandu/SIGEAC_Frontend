@@ -6,7 +6,7 @@ import { es } from "date-fns/locale";
 import { CalendarIcon, Loader2, Paperclip } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 
 import {
     useCreateFollowUpControl,
@@ -36,7 +36,7 @@ import { FollowUpControl } from "@/types/sms/mantenimiento";
 const FORM_SCHEMA = z.object({
     description: z.string().min(3, "Describa el control de seguimiento"),
     date: z.date({
-        required_error: "Seleccione la fecha del control",
+        error: "Seleccione la fecha del control",
     }),
     image: z.instanceof(File).optional(),
     document: z.instanceof(File).optional(),

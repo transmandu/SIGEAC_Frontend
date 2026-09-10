@@ -27,7 +27,7 @@ import { useGetSMSActivityAttendanceStatus } from "@/hooks/sms/useGetSMSActivity
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { SMSActivity } from "@/types";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import {
   Check,
   ChevronsUpDown,

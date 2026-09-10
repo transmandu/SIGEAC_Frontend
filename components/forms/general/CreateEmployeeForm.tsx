@@ -40,7 +40,7 @@ import { useGetRoles } from '@/hooks/sistema/usuario/useGetRoles';
 import { useGetUsers } from '@/hooks/sistema/usuario/useGetUsers';
 import { cn } from '@/lib/utils';
 import { useCompanyStore } from '@/stores/CompanyStore';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { zodResolver } from "@/lib/zod-resolver";
 import { Check, ChevronsUpDown, Eye, EyeOff, Loader2, Camera, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
