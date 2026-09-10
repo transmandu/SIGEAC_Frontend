@@ -1,3 +1,8 @@
+## v3.16.0 — 2026-09-10
+
+- Merge pull request #249 from transmandu/fix/menu-almacen-creacion-consumible
+- feat: enhance article form data handling and menu role access control
+
 ## v3.15.0 — 2026-09-09
 
 - feat: add obligatory report pdf format (#248)
