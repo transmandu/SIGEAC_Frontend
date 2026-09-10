@@ -1,11 +1,11 @@
 'use client'
 
-import { Row } from '@tanstack/react-table'
+import { type AppRow } from "@/lib/table";
 import { Hash } from 'lucide-react'
 import type { TransitArticle } from '@/types/purchase'
 
 type Props = {
-  row: Row<TransitArticle>
+  row: AppRow<TransitArticle>
 }
 
 export default function TransitSubRow({ row }: Props) {

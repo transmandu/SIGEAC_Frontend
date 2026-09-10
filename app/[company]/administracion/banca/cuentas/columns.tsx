@@ -9,10 +9,10 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { BankAccount } from "@/types";
-import { ColumnDef } from "@tanstack/react-table";
+import { type AppColumnDef } from "@/lib/table";
 import { Users } from "lucide-react";
 
-export const columns: ColumnDef<BankAccount>[] = [
+export const columns: AppColumnDef<BankAccount>[] = [
   {
     accessorKey: "name",
     header: ({ column }) => (

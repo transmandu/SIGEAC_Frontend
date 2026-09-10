@@ -1,31 +1,40 @@
 "use client"
 
 import React, { useMemo, useState } from "react"
-import { ColumnDef, ColumnFiltersState, ExpandedState, Row, SortingState, VisibilityState, flexRender, getCoreRowModel, getExpandedRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table"
+import {
+  ColumnFiltersState,
+  ExpandedState,
+  flexRender,
+  type RowData,
+  SortingState,
+  useTable,
+  ColumnVisibilityState,
+} from "@tanstack/react-table";
+import { appTableFeatures, type AppColumnDef, type AppRow } from "@/lib/table";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { DataTablePagination } from "@/components/tables/DataTablePagination"
 import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions"
 import { CreateCompanyDialog } from "@/components/dialogs/ajustes/CreateCompanyDialog"
 
-interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[]
+interface DataTableProps<TData extends RowData> {
+  columns: AppColumnDef<TData>[]
   data: TData[]
   loading?: boolean
-  renderSubRow?: (row: Row<TData>) => React.ReactNode
-  canExpandRow?: (row: Row<TData>) => boolean
+  renderSubRow?: (row: AppRow<TData>) => React.ReactNode
+  canExpandRow?: (row: AppRow<TData>) => boolean
 }
 
-function DataTableInner<TData, TValue>({
+function DataTableInner<TData extends RowData>({
   columns,
   data,
   loading = false,
   renderSubRow,
   canExpandRow,
-}: DataTableProps<TData, TValue>) {
+}: DataTableProps<TData>) {
 
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
+  const [columnVisibility, setColumnVisibility] = useState<ColumnVisibilityState>({})
   const [expanded, setExpanded] = useState<ExpandedState>({})
 
   const [pagination, setPagination] = useState({
@@ -35,7 +44,8 @@ function DataTableInner<TData, TValue>({
 
   const stableData = useMemo(() => data, [data])
 
-  const table = useReactTable({
+  const table = useTable({
+    features: appTableFeatures,
     data: stableData,
     columns,
     state: {
@@ -50,11 +60,6 @@ function DataTableInner<TData, TValue>({
     onColumnVisibilityChange: setColumnVisibility,
     onPaginationChange: setPagination,
     onExpandedChange: setExpanded,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getExpandedRowModel: getExpandedRowModel(),
 
     getRowCanExpand: (row) => {
       if (!renderSubRow) return false

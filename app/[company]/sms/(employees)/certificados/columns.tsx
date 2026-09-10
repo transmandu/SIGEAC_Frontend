@@ -1,6 +1,6 @@
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
+import { type AppColumnDef } from "@/lib/table";
 import { User, Calendar } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -23,7 +23,7 @@ export type CertificateColumn = {
 
 // --- HEMOS ELIMINADO EL ANTIGUO ActionsCell DE AQUÍ PARA LIMPIAR EL CÓDIGO ---
 
-export const getColumns = (companySlug: string): ColumnDef<CertificateColumn>[] => [
+export const getColumns = (companySlug: string): AppColumnDef<CertificateColumn>[] => [
   {
     id: "employee",
     accessorFn: (row) => `${row.employee?.first_name} ${row.employee?.last_name} ${row.employee?.dni}`,

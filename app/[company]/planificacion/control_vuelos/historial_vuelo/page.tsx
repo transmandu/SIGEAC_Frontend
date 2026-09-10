@@ -101,7 +101,7 @@ const HistorialVueloPage = () => {
                 No hay vuelos para el período seleccionado
               </div>
             ) : (
-              <DataTable<FlightControl, []>
+              <DataTable<FlightControl>
                 columns={columns}
                 data={flights}
                 totalRecords={flights.length}

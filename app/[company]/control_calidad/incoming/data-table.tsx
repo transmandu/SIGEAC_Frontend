@@ -2,25 +2,22 @@
 
 import React, { useEffect, useState } from "react"
 import {
-  ColumnDef,
   ColumnFiltersState,
   flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
+  type RowData,
   RowSelectionState,
   SortingState,
-  useReactTable,
-} from "@tanstack/react-table"
+  useTable,
+} from "@tanstack/react-table";
+import { appTableFeatures, type AppColumnDef } from "@/lib/table";
 
 import { Badge } from "@/components/ui/badge";
 import { DataTablePagination } from "@/components/tables/DataTablePagination"
 import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
-interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[]
+interface DataTableProps<TData extends RowData> {
+  columns: AppColumnDef<TData>[]
   data: TData[]
   onSelectionChange?: (rows: TData[]) => void
   toolbar?: React.ReactNode
@@ -28,28 +25,25 @@ interface DataTableProps<TData, TValue> {
   groupBy?: string
 }
 
-export function DataTable<TData, TValue>({
+export function DataTable<TData extends RowData>({
   columns,
   data,
   onSelectionChange,
   toolbar,
   getRowId,
   groupBy,
-}: DataTableProps<TData, TValue>) {
+}: DataTableProps<TData>) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
 
-  const table = useReactTable({
+  const table = useTable({
+    features: appTableFeatures,
     data,
     columns,
     getRowId: getRowId as any,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
     onRowSelectionChange: setRowSelection,
     state: { sorting, columnFilters, rowSelection },
     enableRowSelection: true,

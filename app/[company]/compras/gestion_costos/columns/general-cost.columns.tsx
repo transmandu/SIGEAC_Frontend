@@ -1,6 +1,6 @@
 'use client'
 
-import { ColumnDef } from '@tanstack/react-table'
+import { type AppColumnDef } from "@/lib/table";
 import { DataTableColumnHeader } from '@/components/tables/DataTableHeader'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -37,7 +37,7 @@ const isModified = (
 export function getGeneralCostColumns({
   onCostChange,
   onViewHistory,
-}: GeneralCostColumnsArgs): ColumnDef<GeneralCostRow>[] {
+}: GeneralCostColumnsArgs): AppColumnDef<GeneralCostRow>[] {
 
   return [
 

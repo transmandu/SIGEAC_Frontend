@@ -1,6 +1,6 @@
 'use client'
 
-import { ColumnDef } from '@tanstack/react-table'
+import { type AppColumnDef } from "@/lib/table";
 import { ChevronRight } from 'lucide-react'
 import { DataTableColumnHeader } from '@/components/tables/DataTableHeader'
 import { Badge } from '@/components/ui/badge'
@@ -10,7 +10,7 @@ import VendorDropdownActions from '@/components/dropdowns/general/VendorDropdown
 
 export const getColumns = (
   selectedCompany?: { slug: string }
-): ColumnDef<Vendor>[] => [
+): AppColumnDef<Vendor>[] => [
   {
     id: 'expander',
     size: 40,

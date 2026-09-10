@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ColumnDef } from '@tanstack/react-table'
+import { type AppColumnDef } from "@/lib/table";
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
@@ -137,7 +137,7 @@ const EditIntakeButton = ({ intake }: { intake: GeneralArticleIntake }) => {
 
 export const getColumns = (
   timeZone: string = DEFAULT_TIMEZONE
-): ColumnDef<GeneralArticleIntake>[] => [
+): AppColumnDef<GeneralArticleIntake>[] => [
 
   {
     accessorKey: 'description',

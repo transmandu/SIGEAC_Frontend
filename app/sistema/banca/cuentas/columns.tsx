@@ -4,10 +4,10 @@ import { BankAccountDropdownActions } from "@/components/dropdowns/ajustes/Banco
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
 import { Badge } from "@/components/ui/badge"
 import { BankAccount } from "@/types"
-import { ColumnDef } from "@tanstack/react-table"
+import { type AppColumnDef } from "@/lib/table";
 import Link from "next/link"
 
-export const columns: ColumnDef<BankAccount>[] = [
+export const columns: AppColumnDef<BankAccount>[] = [
   {
     accessorKey: "name",
     header: ({ column }) => (

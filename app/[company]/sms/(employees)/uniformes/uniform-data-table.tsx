@@ -2,16 +2,13 @@
 
 import { ReactNode, useState } from "react";
 import {
-  ColumnDef,
   ColumnFiltersState,
   flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
+  type RowData,
   SortingState,
-  useReactTable,
+  useTable,
 } from "@tanstack/react-table";
+import { appTableFeatures, type AppColumnDef } from "@/lib/table";
 
 import {
   Table,
@@ -27,34 +24,31 @@ import { Search } from "lucide-react";
 import { DataTablePagination } from "@/components/tables/DataTablePagination";
 import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions";
 
-interface UniformDataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[];
+interface UniformDataTableProps<TData extends RowData> {
+  columns: AppColumnDef<TData>[];
   data: TData[];
   toolbar?: ReactNode;
   searchPlaceholder?: string;
   emptyMessage?: string;
 }
 
-export function UniformDataTable<TData, TValue>({
+export function UniformDataTable<TData extends RowData>({
   columns,
   data,
   toolbar,
   searchPlaceholder = "Buscar...",
   emptyMessage = "No se encontraron registros...",
-}: UniformDataTableProps<TData, TValue>) {
+}: UniformDataTableProps<TData>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
 
-  const table = useReactTable({
+  const table = useTable({
+    features: appTableFeatures,
     data,
     columns,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: "includesString",
     state: { sorting, columnFilters, globalFilter },

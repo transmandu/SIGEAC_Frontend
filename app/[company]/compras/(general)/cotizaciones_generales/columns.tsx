@@ -1,6 +1,6 @@
 'use client'
 
-import { ColumnDef } from '@tanstack/react-table'
+import { type AppColumnDef } from "@/lib/table";
 
 import { DataTableColumnHeader } from '@/components/tables/DataTableHeader'
 import QuoteDropdownActions from '@/components/dropdowns/mantenimiento/compras/QuoteDropdownActions'
@@ -30,7 +30,7 @@ export const getColumns = (
   onPreview?: (quote: Quote) => void,
   selectedPreviewId?: number | null,
   timeZone: string = DEFAULT_TIMEZONE
-): ColumnDef<Quote>[] => [
+): AppColumnDef<Quote>[] => [
   {
     accessorKey: 'quote_number',
     size: 210,

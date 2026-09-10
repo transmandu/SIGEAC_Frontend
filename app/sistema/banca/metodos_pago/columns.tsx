@@ -3,7 +3,7 @@
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
 import { Badge } from "@/components/ui/badge"
 import { PaymentMethod } from "@/types"
-import { ColumnDef } from "@tanstack/react-table"
+import { type AppColumnDef } from "@/lib/table";
 import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone"
 import { formatInstant } from "@/lib/date"
 
@@ -21,7 +21,7 @@ const CreatedAtCell = ({ value }: { value?: string | null }) => {
   )
 }
 
-export const columns: ColumnDef<PaymentMethod>[] = [
+export const columns: AppColumnDef<PaymentMethod>[] = [
   {
     accessorKey: "name",
     header: ({ column }) => (

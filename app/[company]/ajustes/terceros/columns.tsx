@@ -1,13 +1,13 @@
 "use client"
 
-import { ColumnDef } from "@tanstack/react-table"
+import { type AppColumnDef } from "@/lib/table";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
 import ThirdPartyDropdownActions from "@/components/dropdowns/general/ThirdPartyDropdownActions"
 import { ThirdParty } from "@/types"
 import { getThirdPartyTypeLabel } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 
-export const columns: ColumnDef<ThirdParty>[] = [
+export const columns: AppColumnDef<ThirdParty>[] = [
   {
     accessorKey: "name",
     size: 320,

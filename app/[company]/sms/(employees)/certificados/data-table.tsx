@@ -2,16 +2,13 @@
 
 import { useState, useEffect, useMemo } from "react";
 import {
-  ColumnDef,
   ColumnFiltersState,
   flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
+  type RowData,
   SortingState,
-  useReactTable,
+  useTable,
 } from "@tanstack/react-table";
+import { appTableFeatures, type AppColumnDef } from "@/lib/table";
 
 import {
   Table,
@@ -30,19 +27,19 @@ import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { getCertificadosSteps } from "@/components/tour/steps/general/cursos/certificados/certificados";
 
-interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[];
+interface DataTableProps<TData extends RowData> {
+  columns: AppColumnDef<TData>[];
   data: TData[];
   onOpenModal: () => void;
   user?: any;
 }
 
-export function DataTableCertificates<TData, TValue>({
+export function DataTableCertificates<TData extends RowData>({
   columns,
   data,
   onOpenModal,
   user,
-}: DataTableProps<TData, TValue>) {
+}: DataTableProps<TData>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
@@ -70,15 +67,12 @@ export function DataTableCertificates<TData, TValue>({
     return rolesPermitidos.includes(roleName?.toUpperCase());
   });
 
-  const table = useReactTable({
+  const table = useTable({
+    features: appTableFeatures,
     data,
     columns,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: "includesString",
     state: {

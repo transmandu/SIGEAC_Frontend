@@ -1,17 +1,16 @@
 "use client"
 
 import {
-  Column,
-  ColumnDef,
   ColumnFiltersState,
   flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
   SortingState,
-  useReactTable,
-} from "@tanstack/react-table"
+  useTable,
+} from "@tanstack/react-table";
+import {
+  appTableFeatures,
+  type AppColumn,
+  type AppColumnDef,
+} from "@/lib/table";
 
 // import { CreateBatchDialog } from "@/components/dialogs/mantenimiento/almacen/CreateBatchDialog"
 import { DataTablePagination } from "@/components/tables/DataTablePagination"
@@ -43,11 +42,11 @@ const REPORT_ROLES = ["JEFE_ALMACEN", "ANALISTA_ALMACEN", "SUPERUSER"]
 // .table-sticky-right (globals.css) ya resuelve el fondo opaco, el tono exacto
 // del hover via color-mix y el z-index del thead. Repetirlo con utilidades
 // sueltas superponia dos capas translucidas y la celda quedaba mas oscura.
-const isSticky = (column: Column<Requisition, unknown>) =>
+const isSticky = (column: AppColumn<Requisition, unknown>) =>
   column.columnDef.meta?.sticky === "right"
 
 interface DataTableProps<TValue> {
-  columns: ColumnDef<Requisition, TValue>[]
+  columns: AppColumnDef<Requisition>[]
   data: Requisition[]
   loading?: boolean
 }
@@ -64,17 +63,14 @@ export function DataTable<TValue>({
   )
   const [globalFilter, setGlobalFilter] = useState("")
 
-  const table = useReactTable({
+  const table = useTable({
+    features: appTableFeatures,
     data,
     columns,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: requisitionGlobalFilter,
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
     state: {
       sorting,
       columnFilters,

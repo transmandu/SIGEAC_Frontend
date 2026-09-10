@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { formatQuarantineDate, quarantineRisk } from "@/lib/warehouse/quarantine"
 import type { QuarantineRecord } from "@/types/quarantine"
-import { ColumnDef } from "@tanstack/react-table"
+import { type AppColumnDef } from "@/lib/table";
 import {
   AlertTriangle,
   CalendarClock,
@@ -25,7 +25,7 @@ function riskBadge(state: ReturnType<typeof quarantineRisk>["state"]) {
   return { variant: "outline" as const, label: "SIN FECHA" }
 }
 
-export const getColumns = (legalDays: number): ColumnDef<QuarantineRecord>[] => [
+export const getColumns = (legalDays: number): AppColumnDef<QuarantineRecord>[] => [
   {
     accessorKey: "article.batch.name",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Descripción" />,

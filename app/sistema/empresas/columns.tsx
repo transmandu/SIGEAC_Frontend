@@ -1,6 +1,6 @@
 'use client'
 
-import { ColumnDef } from '@tanstack/react-table'
+import { type AppColumnDef } from "@/lib/table";
 import { ChevronRight } from 'lucide-react'
 
 import { DataTableColumnHeader } from '@/components/tables/DataTableHeader'
@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { Company } from '@/types'
 
-export const getColumns = (): ColumnDef<Company>[] => [
+export const getColumns = (): AppColumnDef<Company>[] => [
   {
     id: 'expander',
     size: 40,

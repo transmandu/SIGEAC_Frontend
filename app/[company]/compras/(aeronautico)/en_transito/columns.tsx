@@ -1,6 +1,6 @@
 'use client'
 
-import { ColumnDef } from '@tanstack/react-table'
+import { type AppColumnDef } from "@/lib/table";
 import { useState } from 'react'
 import {
   CheckCircle2,
@@ -220,7 +220,7 @@ function EditTransitArticleAction({
 export const getColumns = (
   selectedCompany?: { slug: string },
   timeZone: string = DEFAULT_TIMEZONE
-): ColumnDef<TransitArticle>[] => [
+): AppColumnDef<TransitArticle>[] => [
 
   {
     id: 'expander',

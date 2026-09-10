@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { ColumnDef } from "@tanstack/react-table"
+import { type AppColumnDef } from "@/lib/table";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
@@ -12,7 +12,7 @@ import { ArrowRight, Hash, MapPin, Clock, Repeat2, Calendar } from "lucide-react
 import { formatDate } from "@/lib/utils"
 
 
-export const getColumns = (companySlug: string): ColumnDef<FlightControl>[] => [
+export const getColumns = (companySlug: string): AppColumnDef<FlightControl>[] => [
   {
     id: "select",
     header: ({ table }) => (

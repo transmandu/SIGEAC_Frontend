@@ -1,6 +1,6 @@
 'use client'
 
-import { ColumnDef } from '@tanstack/react-table'
+import { type AppColumnDef } from "@/lib/table";
 import { DataTableColumnHeader } from '@/components/tables/DataTableHeader'
 import RequisitionsDropdownActions from '@/components/dropdowns/mantenimiento/compras/RequisitionDropdownActions'
 import { Badge } from '@/components/ui/badge'
@@ -145,7 +145,7 @@ export const getColumns = (
   onPreview?: (requisition: Requisition) => void,
   selectedPreviewId?: number | null,
   timeZone: string = DEFAULT_TIMEZONE
-): ColumnDef<Requisition>[] => [
+): AppColumnDef<Requisition>[] => [
   {
     id: 'expander',
     size: 50,

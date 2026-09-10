@@ -7,7 +7,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { cn } from '@/lib/utils'
 import { formatQuarantineDate, quarantineRisk } from '@/lib/warehouse/quarantine'
 import type { QuarantineRecord } from '@/types/quarantine'
-import { ColumnDef } from '@tanstack/react-table'
+import { type AppColumnDef } from "@/lib/table";
 import {
   AlertTriangle,
   CalendarClock,
@@ -95,7 +95,7 @@ function ResolveAction({ record }: { record: QuarantineRecord }) {
   )
 }
 
-export const getColumns = (legalDays: number): ColumnDef<QuarantineRecord>[] => [
+export const getColumns = (legalDays: number): AppColumnDef<QuarantineRecord>[] => [
   {
     id: 'expander',
     size: 50,

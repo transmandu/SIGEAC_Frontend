@@ -4,7 +4,7 @@ import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { WarehouseResponse } from "@/hooks/mantenimiento/almacen/articulos/useGetWarehouseArticlesByCategory";
-import { ColumnDef } from "@tanstack/react-table";
+import { type AppColumnDef } from "@/lib/table";
 import { addDays, format, parseISO } from "date-fns";
 import CheckingArticleDropdownActions from "./_components/CheckingArticleDropdownActionts";
 
@@ -66,7 +66,7 @@ export const flattenArticles = (
   );
 };
 
-const baseCols: ColumnDef<IArticleSimple>[] = [
+const baseCols: AppColumnDef<IArticleSimple>[] = [
   {
     accessorKey: "part_number",
     header: ({ column }) => (
@@ -196,7 +196,7 @@ const baseCols: ColumnDef<IArticleSimple>[] = [
   },
 ];
 
-const selectionColumn: ColumnDef<IArticleSimple> = {
+const selectionColumn: AppColumnDef<IArticleSimple> = {
   id: "select",
   header: ({ table }) => (
     <div className="flex justify-center">
@@ -224,7 +224,7 @@ const selectionColumn: ColumnDef<IArticleSimple> = {
 };
 
 // Columnas para COMPONENTE (baseCols + acciones)
-const componenteCols: ColumnDef<IArticleSimple>[] = [
+const componenteCols: AppColumnDef<IArticleSimple>[] = [
   ...baseCols,
   {
     id: "actions",
@@ -239,7 +239,7 @@ const componenteCols: ColumnDef<IArticleSimple>[] = [
 ];
 
 // Columnas extra para CONSUMIBLE
-export const consumibleCols: ColumnDef<IArticleSimple>[] = [
+export const consumibleCols: AppColumnDef<IArticleSimple>[] = [
   ...baseCols,
   {
     accessorKey: "min_quantity",
@@ -278,7 +278,7 @@ const parseDateLocal = (dateString: string): Date => {
 };
 
 // Columnas extra para HERRAMIENTA
-export const herramientaCols: ColumnDef<IArticleSimple>[] = [
+export const herramientaCols: AppColumnDef<IArticleSimple>[] = [
   ...baseCols,
   {
     accessorKey: "calibration_date",
@@ -333,7 +333,7 @@ export const herramientaCols: ColumnDef<IArticleSimple>[] = [
 // Columnas por categoría
 export const getColumnsByCategory = (
   cat: "COMPONENT" | "CONSUMABLE" | "TOOL" | "PART",
-): ColumnDef<IArticleSimple>[] => {
+): AppColumnDef<IArticleSimple>[] => {
   if (cat === "TOOL") return [selectionColumn, ...herramientaCols];
   if (cat === "CONSUMABLE") return [selectionColumn, ...consumibleCols];
   return [selectionColumn, ...componenteCols]; // componente u otros

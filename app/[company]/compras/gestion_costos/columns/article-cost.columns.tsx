@@ -1,6 +1,6 @@
 'use client'
 
-import { ColumnDef } from '@tanstack/react-table'
+import { type AppColumnDef } from "@/lib/table";
 import { DataTableColumnHeader } from '@/components/tables/DataTableHeader'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
@@ -31,9 +31,9 @@ const normalizeCostInput = (value: string) => {
 export function getArticleCostColumns({
   onCostChange,
   showUnit = false,
-}: ArticleCostColumnsArgs): ColumnDef<ArticleCostRow>[] {
+}: ArticleCostColumnsArgs): AppColumnDef<ArticleCostRow>[] {
 
-  const unitColumn: ColumnDef<ArticleCostRow> = {
+  const unitColumn: AppColumnDef<ArticleCostRow> = {
     accessorKey: 'unit_label',
     size: 120,
     header: ({ column }) => (

@@ -1,6 +1,6 @@
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
+import { type AppColumnDef } from "@/lib/table";
 
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 
@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { dateFormat } from "@/lib/utils";
 import { VoluntaryReport } from "@/types";
 
-export const columns: ColumnDef<VoluntaryReport>[] = [
+export const columns: AppColumnDef<VoluntaryReport>[] = [
   {
     accessorKey: "report_number",
     header: ({ column }) => (

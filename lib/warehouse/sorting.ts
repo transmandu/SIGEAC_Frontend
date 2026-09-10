@@ -1,4 +1,5 @@
-import type { Row, SortingFn } from "@tanstack/react-table";
+import { type RowData } from "@tanstack/react-table";
+import { type AppRow, type AppSortFn } from "@/lib/table";
 
 const EMPTY = new Set(["", "n/a", "—", "-", "sin asignar", "sin descripción", "sin condición"]);
 
@@ -55,8 +56,8 @@ export const compareAlphanumeric = (a: string, b: string): number => {
  * no sirve cuando la celda combina campos (serial/lote) o lee un anidado.
  */
 export const textSortingFn =
-  <TData,>(accessor: (row: TData) => unknown): SortingFn<TData> =>
-  (rowA: Row<TData>, rowB: Row<TData>) => {
+  <TData extends RowData,>(accessor: (row: TData) => unknown): AppSortFn<TData> =>
+  (rowA: AppRow<TData>, rowB: AppRow<TData>) => {
     const a = accessor(rowA.original);
     const b = accessor(rowB.original);
 
@@ -71,8 +72,8 @@ export const textSortingFn =
   };
 
 export const numericSortingFn =
-  <TData,>(accessor: (row: TData) => number | null | undefined): SortingFn<TData> =>
-  (rowA: Row<TData>, rowB: Row<TData>) => {
+  <TData extends RowData,>(accessor: (row: TData) => number | null | undefined): AppSortFn<TData> =>
+  (rowA: AppRow<TData>, rowB: AppRow<TData>) => {
     const a = accessor(rowA.original);
     const b = accessor(rowB.original);
 
@@ -86,8 +87,8 @@ export const numericSortingFn =
   };
 
 export const dateSortingFn =
-  <TData,>(accessor: (row: TData) => Date | null | undefined): SortingFn<TData> =>
-  (rowA: Row<TData>, rowB: Row<TData>) => {
+  <TData extends RowData,>(accessor: (row: TData) => Date | null | undefined): AppSortFn<TData> =>
+  (rowA: AppRow<TData>, rowB: AppRow<TData>) => {
     const a = accessor(rowA.original);
     const b = accessor(rowB.original);
 

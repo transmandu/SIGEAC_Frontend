@@ -1,6 +1,6 @@
 'use client'
 
-import { ColumnDef } from '@tanstack/react-table'
+import { type AppColumnDef } from "@/lib/table";
 import { getArticleCostColumns } from './article-cost.columns'
 import { getGeneralCostColumns } from './general-cost.columns'
 import type { CostType, BuildColumnsArgs } from '@/types/purchase'
@@ -12,7 +12,7 @@ export const getColumns = ({
   onCostChange,
   onViewHistory,
   category,
-}: BuildColumnsArgs): ColumnDef<any>[] => {
+}: BuildColumnsArgs): AppColumnDef<any>[] => {
   if (type === 'GENERAL') {
     return getGeneralCostColumns({
       onCostChange,

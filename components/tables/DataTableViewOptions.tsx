@@ -1,7 +1,8 @@
 "use client";
 
 import { SlidersHorizontal } from "lucide-react";
-import { Table } from "@tanstack/react-table";
+import { type RowData } from "@tanstack/react-table";
+import { type AppTable } from "@/lib/table";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -13,11 +14,11 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 
-interface DataTableViewOptionsProps<TData> {
-  table: Table<TData>;
+interface DataTableViewOptionsProps<TData extends RowData> {
+  table: AppTable<TData>;
 }
 
-export function DataTableViewOptions<TData>({
+export function DataTableViewOptions<TData extends RowData>({
   table,
 }: DataTableViewOptionsProps<TData>) {
   return (

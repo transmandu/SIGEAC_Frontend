@@ -1,7 +1,7 @@
 import DispatchArticlesDialog from '@/components/dialogs/mantenimiento/almacen/DispatchArticlesDialog';
 import DispatchRequestDropdownActions from '@/components/dropdowns/mantenimiento/almacen/DispatchRequestDropdownActions';
 import { DataTableColumnHeader } from '@/components/tables/DataTableHeader';
-import { ColumnDef } from '@tanstack/react-table';
+import { type AppColumnDef } from "@/lib/table";
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import {
@@ -24,7 +24,7 @@ function safeDateLabel(raw?: string | null) {
   return format(d, 'dd MMM yyyy', { locale: es });
 }
 
-export const columns: ColumnDef<DispatchGroupRow>[] = [
+export const columns: AppColumnDef<DispatchGroupRow>[] = [
   // {
   //   id: 'expand',
   //   header: () => null,

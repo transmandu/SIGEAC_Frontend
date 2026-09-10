@@ -1,6 +1,6 @@
 'use client'
 
-import { ColumnDef } from "@tanstack/react-table"
+import { type AppColumnDef } from "@/lib/table";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
 import { Badge } from "@/components/ui/badge"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
@@ -22,7 +22,7 @@ export const getColumns = (
   selectedCompany?: { slug: string },
   onPreview?: (po: PurchaseOrder) => void,
   selectedPreviewId?: number | null
-): ColumnDef<PurchaseOrder>[] => [
+): AppColumnDef<PurchaseOrder>[] => [
 
   {
     accessorKey: "order_number",

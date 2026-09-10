@@ -1,11 +1,7 @@
 "use client";
 
-import {
-  ColumnDef,
-  flexRender,
-  getCoreRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
+import { flexRender, type RowData, useTable } from "@tanstack/react-table";
+import { appTableFeatures, type AppColumnDef } from "@/lib/table";
 
 import { DataTablePagination } from "@/components/tables/DataTablePagination";
 import {
@@ -18,8 +14,8 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 
-interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[];
+interface DataTableProps<TData extends RowData> {
+  columns: AppColumnDef<TData>[];
   data: TData[];
   loading?: boolean;
   pageIndex: number;
@@ -29,7 +25,7 @@ interface DataTableProps<TData, TValue> {
   onRowClick?: (row: TData) => void;
 }
 
-export function DataTable<TData, TValue>({
+export function DataTable<TData extends RowData>({
   columns,
   data,
   loading = false,
@@ -38,11 +34,11 @@ export function DataTable<TData, TValue>({
   pageCount,
   onPaginationChange,
   onRowClick,
-}: DataTableProps<TData, TValue>) {
-  const table = useReactTable({
+}: DataTableProps<TData>) {
+  const table = useTable({
+    features: appTableFeatures,
     data,
     columns,
-    getCoreRowModel: getCoreRowModel(),
     manualPagination: true,
     pageCount,
     state: {

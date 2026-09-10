@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ColumnDef } from "@tanstack/react-table";
+import { type AppColumnDef } from "@/lib/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -100,7 +100,7 @@ const ArticleTypeRowActions = ({
 
 export const getArticleTypesColumns = (
   handlers: Handlers
-): ColumnDef<UniformArticleType>[] => [
+): AppColumnDef<UniformArticleType>[] => [
   {
     accessorKey: "name",
     header: "Tipo de artículo",

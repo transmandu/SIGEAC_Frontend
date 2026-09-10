@@ -1,6 +1,6 @@
 "use client"
 
-import { ColumnDef } from "@tanstack/react-table"
+import { type AppColumnDef } from "@/lib/table";
 import { MoreHorizontal, SquarePen, Trash2 } from "lucide-react"
 
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
@@ -30,7 +30,7 @@ const fmtNumber = (n: any) => {
     return isNaN(num) ? "0" : num.toLocaleString('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 3 })
 }
 
-export const columns: ColumnDef<MaintenanceAircraft>[] = [
+export const columns: AppColumnDef<MaintenanceAircraft>[] = [
   {
     id: "select",
     header: ({ table }) => (
