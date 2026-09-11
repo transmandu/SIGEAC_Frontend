@@ -117,7 +117,7 @@ export default function CreateFolderDialog({
             </label>
             <input
               type="text" required
-              className="w-full h-11 px-4 border border-slate-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-slate-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-hidden transition-all"
+              className="placeholder:text-gray-400 w-full h-11 px-4 border border-slate-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-slate-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-hidden transition-all"
               placeholder="Ej. Manuales 2026"
               value={name}
               onChange={(e) => setName(e.target.value)}

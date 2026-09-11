@@ -441,7 +441,7 @@ export default function ShareRequestsPanel({
                           <div className="space-y-2">
                             <textarea
                               placeholder="Motivo del rechazo..."
-                              className="w-full h-16 px-3 py-2 text-[11px] border border-red-300 dark:border-red-800 rounded-lg bg-white dark:bg-gray-800 text-slate-700 dark:text-white outline-hidden focus:ring-2 focus:ring-red-500 resize-none"
+                              className="placeholder:text-gray-400 w-full h-16 px-3 py-2 text-[11px] border border-red-300 dark:border-red-800 rounded-lg bg-white dark:bg-gray-800 text-slate-700 dark:text-white outline-hidden focus:ring-2 focus:ring-red-500 resize-none"
                               value={rejectReason}
                               onChange={(e) => setRejectReason(e.target.value)}
                             />

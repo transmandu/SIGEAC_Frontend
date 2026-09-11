@@ -394,7 +394,7 @@ export default function UploadModal({
               <input
                 type="text"
                 required
-                className="w-full h-10 px-4 border border-blue-500 rounded-xl bg-blue-50/30 dark:bg-blue-900/10 text-slate-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-hidden"
+                className="placeholder:text-gray-400 w-full h-10 px-4 border border-blue-500 rounded-xl bg-blue-50/30 dark:bg-blue-900/10 text-slate-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-hidden"
                 placeholder="Nombre de la categoría"
                 value={newCategoryName}
                 onChange={(e) => setNewCategoryName(e.target.value)}

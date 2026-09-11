@@ -109,6 +109,15 @@
   ::file-selector-button {
     border-color: var(--color-gray-200, currentcolor);
   }
+
+  /* Tailwind 3 ponía `cursor: pointer` en todo botón desde su preflight y la 4
+     lo quitó para seguir el default del navegador. Sin esto los 1600 botones de
+     la aplicación quedan con la flecha en lugar de la manito, porque ninguno
+     declara el cursor por su cuenta. */
+  button:not(:disabled),
+  [role='button']:not(:disabled) {
+    cursor: pointer;
+  }
 }
 
 @utility glass-surface {
@@ -277,142 +286,6 @@
   }
 }
 
-/* Modo oscuro de las superficies de cristal: son selectores
-   descendientes de `.dark`, no utilidades. */
-.dark .glass-surface {
-  background-image: linear-gradient(
-    180deg,
-    hsl(226 32% 14% / 0.78) 0%,
-    hsl(226 36% 11% / 0.7) 100%
-  );
-  border-bottom-color: hsl(226 24% 30% / 0.8);
-  box-shadow:
-    inset 0 1px 0 0 hsl(0 0% 100% / 0.07),
-    0 1px 2px 0 hsl(0 0% 0% / 0.3);
-}
-
-.dark .glass-surface::before {
-  background: linear-gradient(
-    100deg,
-    transparent 20%,
-    hsl(var(--primary) / 0.16) 42%,
-    hsl(0 0% 100% / 0.1) 50%,
-    hsl(var(--primary) / 0.16) 58%,
-    transparent 80%
-  );
-  background-size: 220% 100%;
-}
-
-.dark .glass-surface::after {
-  background: linear-gradient(
-    90deg,
-    transparent,
-    hsl(var(--primary) / 0.38) 20%,
-    hsl(210 55% 62% / 0.5) 50%,
-    hsl(var(--primary) / 0.38) 80%,
-    transparent
-  );
-}
-
-.dark .glass-surface[data-scrolled='true'] {
-  background-image: linear-gradient(
-    180deg,
-    hsl(226 35% 16% / 0.72) 0%,
-    hsl(226 38% 12% / 0.62) 100%
-  );
-  border-bottom-color: hsl(var(--primary) / 0.3);
-  box-shadow:
-    inset 0 1px 0 0 hsl(0 0% 100% / 0.1),
-    0 4px 16px -4px hsl(0 0% 0% / 0.45),
-    0 12px 40px -12px hsl(var(--primary) / 0.22);
-}
-@supports not (
-  (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))
-) {
-  & .glass-surface {
-    background-image: linear-gradient(
-      180deg,
-      hsl(226 32% 14%) 0%,
-      hsl(226 36% 11%) 100%
-    );
-  }
-}
-
-.dark .glass-panel {
-  background-image: linear-gradient(
-    160deg,
-    hsl(226 32% 14% / 0.8) 0%,
-    hsl(226 36% 11% / 0.72) 55%,
-    hsl(226 34% 12% / 0.76) 100%
-  );
-  border-right-color: hsl(226 24% 30% / 0.8);
-  box-shadow:
-    inset -1px 0 0 0 hsl(0 0% 100% / 0.05),
-    2px 0 12px -6px hsl(0 0% 0% / 0.45);
-}
-
-@supports not (
-  (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))
-) {
-  & .glass-panel {
-    background-image: linear-gradient(
-      160deg,
-      hsl(226 32% 14%) 0%,
-      hsl(226 36% 11%) 100%
-    );
-  }
-}
-
-.dark .glass-control {
-  background-image: linear-gradient(
-    160deg,
-    hsl(226 28% 22% / 0.85) 0%,
-    hsl(226 32% 16% / 0.75) 100%
-  );
-  border-color: hsl(226 20% 36%);
-  box-shadow:
-    inset 0 1px 0 0 hsl(0 0% 100% / 0.1),
-    0 1px 3px 0 hsl(0 0% 0% / 0.35);
-}
-
-.dark .glass-control:hover {
-  background-image: linear-gradient(
-    160deg,
-    hsl(226 32% 28% / 0.9) 0%,
-    hsl(226 36% 20% / 0.8) 100%
-  );
-  border-color: hsl(var(--primary) / 0.45);
-  box-shadow:
-    inset 0 1px 0 0 hsl(0 0% 100% / 0.14),
-    0 3px 12px -2px hsl(var(--primary) / 0.28);
-}
-
-.dark .login-card {
-  background-color: hsl(226 42% 14%);
-  border-color: hsl(226 25% 32%);
-  box-shadow:
-    inset 0 1px 0 0 hsl(0 0% 100% / 0.07),
-    0 1px 2px 0 hsl(0 0% 0% / 0.3),
-    0 16px 36px -12px hsl(0 0% 0% / 0.55);
-}
-
-@media (max-width: 1023.98px) {
-  & .login-card {
-    box-shadow:
-      inset 0 1px 0 0 hsl(0 0% 100% / 0.06),
-      0 6px 20px -12px hsl(0 0% 0% / 0.5);
-  }
-}
-@media (min-width: 1024px) {
-  & .login-panel {
-    background-color: hsl(var(--primary) / 0.7);
-  }
-}
-
-.dark .row-pending {
-  animation-name: row-pending-pulse-dark;
-}
-
 @utility glass-panel {
   /* Sin soporte de backdrop-filter: se cae a un fondo sólido legible. */
 
@@ -563,6 +436,7 @@
 }
 
 @utility login-panel {
+  /* Lado azul: color plano, borde recto. Solo desde lg. */
   @media (min-width: 1024px) {
     background-color: hsl(var(--primary));
 
@@ -573,8 +447,6 @@
 }
 
 @utility row-pending {
-  /* Lado azul: color plano, borde recto. Solo desde lg. */
-
   /* Fila con acción pendiente: latido suave en ámbar. No parpadeo duro, que
      resulta agresivo en una tabla que se mira mucho rato. */
   animation: row-pending-pulse 2.4s ease-in-out infinite;

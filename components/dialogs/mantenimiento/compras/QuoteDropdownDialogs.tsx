@@ -342,7 +342,7 @@ const QuoteDropdownDialogs = ({
               value={Observation}
               onChange={(e) => setObservation(e.target.value)}
               placeholder="Ej: precio no competitivo, proveedor no cumple requisitos..."
-              className="
+              className="placeholder:text-gray-400 
                 w-full min-h-[90px] resize-none
                 rounded-xl border border-border/60
                 bg-background/70
