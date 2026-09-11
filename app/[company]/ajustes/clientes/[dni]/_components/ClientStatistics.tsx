@@ -44,6 +44,7 @@ import {
   ResponsiveContainer,
   CartesianGrid,
   Cell,
+  type MouseHandlerDataParam,
 } from "recharts";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
@@ -129,9 +130,14 @@ const ClientStatistics = () => {
   }, [selectedYear, clientStats]);
 
   // Manejar clic en una barra del gráfico
-  const handleBarClick = (data: any) => {
-    if (data?.activePayload?.[0]?.payload) {
-      const monthNumber = data.activePayload[0].payload.month;
+  // recharts 3 saca activePayload del objeto del handler: ahora solo llega el
+  // índice de la barra activa, como texto, y el dato se busca en monthlyData.
+  const handleBarClick = ({ activeIndex }: MouseHandlerDataParam) => {
+    const entry =
+      activeIndex == null ? undefined : monthlyData[Number(activeIndex)];
+
+    if (entry) {
+      const monthNumber = entry.month;
       setSelectedMonth(monthNumber);
 
       // Encuentra el nombre del mes en español

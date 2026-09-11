@@ -16,6 +16,20 @@ const Toaster = ({ ...props }: ToasterProps) => {
       // y sonner además pausa el temporizador con el mouse encima, así que sin
       // esto no hay forma de descartar un aviso ya leído.
       closeButton
+      // Los colores van por las variables de sonner y no por las clases de
+      // abajo. Desde Tailwind 4 las utilidades viven en una @layer real y el
+      // CSS sin capa que sonner inyecta en runtime les gana siempre, sin que
+      // importe la especificidad: con las clases solas el toast salía negro
+      // puro en oscuro en lugar del fondo del tema. Estas tres variables son
+      // las que la propia hoja de sonner lee, y como no usamos `richColors`
+      // también cubren los toasts de éxito y de error.
+      style={
+        {
+          "--normal-bg": "hsl(var(--background))",
+          "--normal-text": "hsl(var(--foreground))",
+          "--normal-border": "hsl(var(--border))",
+        } as React.CSSProperties
+      }
       toastOptions={{
         classNames: {
           toast:

@@ -96,11 +96,11 @@ const DynamicBarChart = ({
           width={730}
           height={250}
           data={data}
-          // recharts 3 dejó de pasar activePayload al handler: ahora viene el
-          // índice de la barra activa y el dato se busca en el arreglo.
+          // recharts 3 dejó de pasar activePayload al handler: ahora entrega el
+          // índice de la barra activa, y lo entrega como texto ("2") o null, así
+          // que el dato se busca en el arreglo.
           onClick={({ activeIndex }) => {
-            const entry =
-              typeof activeIndex === "number" ? data[activeIndex] : undefined;
+            const entry = activeIndex == null ? undefined : data[Number(activeIndex)];
 
             if (entry) {
               handleBarClick(entry);

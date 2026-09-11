@@ -1,4 +1,7 @@
 import { zodResolver as hookformZodResolver } from "@hookform/resolvers/zod";
+// Aplica los mensajes por defecto en español; es el único punto por el que pasa
+// toda validación de formulario de la app.
+import "@/lib/zod-messages";
 import type { FieldValues, Resolver } from "react-hook-form";
 import type * as z from "zod";
 

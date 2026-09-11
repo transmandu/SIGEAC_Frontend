@@ -100,7 +100,7 @@ function Calendar({
         // meses, así que se posiciona sobre la fila del título.
         months: "relative flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
         month: "space-y-3",
-        nav: "absolute inset-x-0 top-1 z-10 flex items-center justify-between",
+        nav: "absolute inset-x-1 top-1 z-10 flex items-center justify-between",
         button_previous: cn(
           buttonVariants({ variant: "ghost" }),
           "h-7 w-7 rounded-md p-0 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground",
@@ -129,20 +129,36 @@ function Calendar({
           buttonVariants({ variant: "ghost" }),
           "h-9 w-9 rounded-md p-0 font-normal transition-colors",
         ),
-        selected:
-          "[&>button]:bg-primary [&>button]:font-medium [&>button]:text-primary-foreground [&>button:hover]:bg-primary [&>button:hover]:text-primary-foreground [&>button:focus]:bg-primary [&>button:focus]:text-primary-foreground",
+        // El relleno del día del medio de un rango tiene que ganarle al de
+        // `selected`, y en Tailwind 4 las dos utilidades tienen la misma
+        // especificidad: se marca el medio con una clase propia y `selected` la
+        // excluye, en vez de depender del orden del CSS generado.
+        selected: [
+          "[&:not(.dia-medio-de-rango)>button]:bg-primary",
+          "[&:not(.dia-medio-de-rango)>button]:font-medium",
+          "[&:not(.dia-medio-de-rango)>button]:text-primary-foreground",
+          "[&:not(.dia-medio-de-rango)>button:hover]:bg-primary",
+          "[&:not(.dia-medio-de-rango)>button:hover]:text-primary-foreground",
+          "[&:not(.dia-medio-de-rango)>button:focus]:bg-primary",
+          "[&:not(.dia-medio-de-rango)>button:focus]:text-primary-foreground",
+        ].join(" "),
         // Anillo en vez de relleno: el día de hoy dejaba de distinguirse en
         // cuanto quedaba seleccionado, porque ambos pintaban el fondo. El
         // selector con `data-selected` gana por especificidad, no por orden.
-        today:
-          "[&>button]:font-semibold [&>button]:text-primary [&>button]:ring-1 [&>button]:ring-inset [&>button]:ring-primary/40 [&[data-selected=true]>button]:text-primary-foreground [&[data-selected=true]>button]:ring-0",
+        today: [
+          "[&>button]:font-semibold",
+          "[&:not(.dia-medio-de-rango)>button]:text-primary",
+          "[&>button]:ring-1 [&>button]:ring-inset [&>button]:ring-primary/40",
+          "[&[data-selected=true]:not(.dia-medio-de-rango)>button]:text-primary-foreground",
+          "[&[data-selected=true]>button]:ring-0",
+        ].join(" "),
         outside:
           "[&>button]:text-muted-foreground/60 [&[data-selected=true]>button]:bg-accent/50 [&[data-selected=true]>button]:text-muted-foreground [&[data-selected=true]>button]:opacity-30",
         disabled: "[&>button]:text-muted-foreground [&>button]:opacity-40",
         range_start: "rounded-l-md",
         range_end: "rounded-r-md",
         range_middle:
-          "[&>button]:bg-accent [&>button]:text-accent-foreground [&>button]:rounded-none",
+          "dia-medio-de-rango [&>button]:bg-accent [&>button]:text-accent-foreground [&>button]:rounded-none",
         hidden: "invisible",
         ...classNames,
       }}
