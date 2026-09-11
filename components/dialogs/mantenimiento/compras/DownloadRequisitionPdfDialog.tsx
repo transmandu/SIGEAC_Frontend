@@ -136,7 +136,7 @@ export default function DownloadRequisitionPdfDialog({
             <div
               className="
                 flex size-11 shrink-0 items-center justify-center
-                rounded-xl border bg-background shadow-sm
+                rounded-xl border bg-background shadow-xs
                 text-blue-600
               "
             >

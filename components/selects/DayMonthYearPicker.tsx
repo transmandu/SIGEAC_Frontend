@@ -53,7 +53,7 @@ export function DayMonthYearPicker({ date, onDateChange, className }: Props) {
               setOpen(false);
             }
           }}
-          initialFocus
+          autoFocus
         />
       </PopoverContent>
     </Popover>

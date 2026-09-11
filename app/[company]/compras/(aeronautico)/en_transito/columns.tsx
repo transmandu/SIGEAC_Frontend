@@ -1,6 +1,6 @@
 'use client'
 
-import { ColumnDef } from '@tanstack/react-table'
+import { type AppColumnDef } from "@/lib/table";
 import { useState } from 'react'
 import {
   CheckCircle2,
@@ -220,7 +220,7 @@ function EditTransitArticleAction({
 export const getColumns = (
   selectedCompany?: { slug: string },
   timeZone: string = DEFAULT_TIMEZONE
-): ColumnDef<TransitArticle>[] => [
+): AppColumnDef<TransitArticle>[] => [
 
   {
     id: 'expander',
@@ -335,7 +335,7 @@ export const getColumns = (
 
     cell: ({ row }) => (
       <div className="flex items-center justify-center w-full text-center px-2">
-        <span className="block w-full text-sm font-medium text-slate-800 dark:text-slate-200 break-words">
+        <span className="block w-full text-sm font-medium text-slate-800 dark:text-slate-200 wrap-break-word">
           {row.original.batch?.name ?? 'Sin descripción'}
         </span>
       </div>
@@ -467,7 +467,7 @@ export const getColumns = (
                     text-[10px]
                     font-semibold
                     tracking-wide
-                    shadow-sm
+                    shadow-xs
                     transition-colors duration-150
                     cursor-default
                   `,

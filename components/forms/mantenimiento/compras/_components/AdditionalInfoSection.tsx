@@ -64,12 +64,12 @@ function ImageUploadField({ value, onChange }: { value: File | undefined; onChan
         type="button"
         onClick={handleClick}
         className={cn(
-          "relative w-full overflow-hidden rounded-md border-2 border-dashed transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+          "relative w-full overflow-hidden rounded-md border-2 border-dashed transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
           value
             ? "border-muted-foreground/40 hover:border-muted-foreground/70"
             : "border-muted-foreground/40 hover:border-muted-foreground/60",
           // Compact aspect ratio area
-          "aspect-[16/9]"
+          "aspect-video"
         )}
       >
         {value ? (
@@ -128,7 +128,7 @@ export function AdditionalInfoSection({ form }: AdditionalInfoSectionProps) {
                 <FormControl>
                   <Textarea
                     placeholder="Ej: Necesidad de la pieza X para instalación..."
-                    className="min-h-[60px] lg:min-h-0 lg:flex-1 resize-none rounded-md border-muted-foreground/30 bg-muted/20 shadow-sm hover:border-muted-foreground/50 focus-visible:border-muted-foreground/50 focus-visible:ring-1 focus-visible:ring-muted-foreground/10 focus-visible:ring-offset-0 transition-colors"
+                    className="min-h-[60px] lg:min-h-0 lg:flex-1 resize-none rounded-md border-muted-foreground/30 bg-muted/20 shadow-xs hover:border-muted-foreground/50 focus-visible:border-muted-foreground/50 focus-visible:ring-1 focus-visible:ring-muted-foreground/10 focus-visible:ring-offset-0 transition-colors"
                     {...field}
                   />
                 </FormControl>

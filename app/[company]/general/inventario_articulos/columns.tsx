@@ -1,6 +1,6 @@
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
+import { type AppColumnDef } from "@/lib/table";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { Badge } from "@/components/ui/badge";
 import { addDays, format, parseISO } from "date-fns";
@@ -108,7 +108,7 @@ export const aggregateByPartNumber = (list: IArticleSimple[]): IArticleSimple[] 
   });
 };
 
-const baseCols: ColumnDef<IArticleSimple>[] = [
+const baseCols: AppColumnDef<IArticleSimple>[] = [
   {
     accessorKey: "part_number",
     header: ({ column }) => (
@@ -255,7 +255,7 @@ const baseCols: ColumnDef<IArticleSimple>[] = [
 ];
 
 // Columnas para COMPONENTE
-export const componenteCols: ColumnDef<IArticleSimple>[] = [
+export const componenteCols: AppColumnDef<IArticleSimple>[] = [
   ...baseCols,
   // {
   //   id: "actions",
@@ -271,7 +271,7 @@ export const componenteCols: ColumnDef<IArticleSimple>[] = [
 ];
 
 // Columnas extra para CONSUMIBLE
-export const consumibleCols: ColumnDef<IArticleSimple>[] = [
+export const consumibleCols: AppColumnDef<IArticleSimple>[] = [
   ...baseCols,
 ];
 
@@ -288,7 +288,7 @@ const parseDateLocal = (dateString: string): Date => {
 };
 
 // Columnas extra para HERRAMIENTA
-export const herramientaCols: ColumnDef<IArticleSimple>[] = [
+export const herramientaCols: AppColumnDef<IArticleSimple>[] = [
   ...baseCols,
   {
     accessorKey: "calibration_date",
@@ -344,7 +344,7 @@ export const herramientaCols: ColumnDef<IArticleSimple>[] = [
 // Columnas por categoría
 export const getColumnsByCategory = (
   cat: "COMPONENT" | "CONSUMABLE" | "TOOL" | "PART",
-): ColumnDef<IArticleSimple>[] => {
+): AppColumnDef<IArticleSimple>[] => {
   if (cat === "TOOL") return herramientaCols;
   if (cat === "CONSUMABLE") return consumibleCols;
   if (cat === "COMPONENT") return componenteCols;

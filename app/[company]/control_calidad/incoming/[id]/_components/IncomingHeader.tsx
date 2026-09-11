@@ -51,7 +51,7 @@ export function IncomingHeader({
     : article?.serial;
 
   return (
-    <div className="rounded-[28px] border border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,252,247,0.96),rgba(248,250,252,0.94))] p-6 shadow-sm">
+    <div className="rounded-[28px] border border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,252,247,0.96),rgba(248,250,252,0.94))] p-6 shadow-xs">
       <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
         <div className="min-w-0 space-y-4">
           <div className="flex flex-wrap items-center gap-2">

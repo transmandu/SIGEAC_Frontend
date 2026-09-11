@@ -27,7 +27,7 @@ import { useGetPaymentMethods } from "@/hooks/general/metodos_pago/useGetPayment
 import { useGetShippingAgencies } from "@/hooks/general/agencias_envio/useGetShippingAgencies";
 import { cn } from "@/lib/utils";
 import type { PurchaseOrder } from "@/types/purchase";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { Building2, ClipboardCheck, Loader2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -39,10 +39,10 @@ import { InvoicesField, createInvoiceEntry, type InvoiceEntry } from "./Invoices
 const LABEL_CLS = "select-none text-[10px] leading-none text-muted-foreground uppercase";
 
 const INPUT_CLS =
-  "h-9 rounded-lg border-border/50 bg-background/80 text-sm shadow-sm transition-shadow focus-visible:ring-1 focus-visible:ring-primary/40 focus-visible:ring-offset-0";
+  "h-9 rounded-lg border-border/50 bg-background/80 text-sm shadow-xs transition-shadow focus-visible:ring-1 focus-visible:ring-primary/40 focus-visible:ring-offset-0";
 
 const SELECT_TRIGGER_CLS =
-  "h-9 rounded-lg border-border/50 bg-background/80 text-sm shadow-sm focus:ring-1 focus:ring-primary/40 focus:ring-offset-0";
+  "h-9 rounded-lg border-border/50 bg-background/80 text-sm shadow-xs focus:ring-1 focus:ring-primary/40 focus:ring-offset-0";
 
 const FormSchema = z.object({
   tax: z.string(),
@@ -720,7 +720,7 @@ export function CompleteOrderForm({ onClose, po, isAeronautical = false }: FormP
             type="submit"
             className="
               w-[400px] h-10 rounded-lg
-              shadow-sm
+              shadow-xs
               transition-colors
               flex items-center justify-center gap-2
             "

@@ -20,12 +20,12 @@ const MetaItem = ({ label, value, icon: Icon, wrap, clamp }: MetaItemProps) => {
         className={cn(
           'text-sm font-medium flex gap-1.5',
           wrap || clamp ? 'items-start' : 'items-center',
-          wrap && !clamp && 'text-wrap break-words'
+          wrap && !clamp && 'text-wrap wrap-break-word'
         )}
       >
         {Icon && <Icon className="size-3.5 text-muted-foreground/50 shrink-0 mt-0.5" />}
         {clamp ? (
-          <span className="line-clamp-2 break-words" title={value ?? undefined}>
+          <span className="line-clamp-2 wrap-break-word" title={value ?? undefined}>
             {value ?? '—'}
           </span>
         ) : (

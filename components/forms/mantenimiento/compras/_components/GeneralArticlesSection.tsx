@@ -176,7 +176,7 @@ function DestinationFieldsRow({
                 handleGeneralArticleChange(index, "requested_date", toCalendarPayload(date))
               }
               locale={es}
-              initialFocus
+              autoFocus
             />
           </PopoverContent>
         </Popover>

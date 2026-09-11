@@ -66,7 +66,7 @@ export default function CourseListDialog({
             Lista de cursos {from && to ? `entre ${from} y ${to}` : ""}
           </DialogDescription>
         </DialogHeader>
-        <div className="flex flex-col justify-center items-center p-4 rounded-lg shadow border">
+        <div className="flex flex-col justify-center items-center p-4 rounded-lg shadow-sm border">
           {isLoadingCharData ? (
             <div className="flex justify-center items-center h-48">
               <Loader2 className="size-24 animate-spin" />

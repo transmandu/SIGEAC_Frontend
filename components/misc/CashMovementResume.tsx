@@ -34,7 +34,7 @@ const CashMovementResume = ({ movement }: { movement: CashMovement }) => {
     .toUpperCase();
 
   return (
-    <Card className="border-none shadow-sm">
+    <Card className="border-none shadow-xs">
       <CardHeader className="pb-3">
         <CardTitle className="flex justify-center items-start">
           <div className="flex flex-col items-center gap-2">

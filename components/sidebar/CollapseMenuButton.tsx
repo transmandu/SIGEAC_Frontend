@@ -54,7 +54,7 @@ export function CollapseMenuButton({
     "group relative h-11 w-full justify-start overflow-hidden rounded-xl border px-3 text-[13px] transition-all duration-200",
     "border-transparent bg-transparent text-muted-foreground hover:border-border/70 hover:bg-muted/40 hover:text-foreground",
     (active || isSubmenuActive) &&
-      "border-border/80 bg-muted/60 text-foreground shadow-sm shadow-black/5"
+      "border-border/80 bg-muted/60 text-foreground shadow-xs shadow-black/5"
   );
 
   useEffect(() => {
@@ -126,7 +126,7 @@ export function CollapseMenuButton({
             className={cn(
               "group relative m-1 h-10 w-[calc(100%-0.5rem)] justify-start rounded-xl border border-transparent bg-transparent px-3 text-muted-foreground transition-all duration-200",
               "hover:border-border/60 hover:bg-muted/35 hover:text-foreground",
-              active && "border-border/70 bg-background/65 backdrop-blur-sm text-foreground"
+              active && "border-border/70 bg-background/65 backdrop-blur-xs text-foreground"
             )}
             asChild
           >
@@ -167,7 +167,7 @@ export function CollapseMenuButton({
                   "group h-11 w-full justify-start rounded-xl border border-transparent bg-transparent px-3 text-muted-foreground transition-all duration-200",
                   "hover:border-border/70 hover:bg-muted/40 hover:text-foreground",
                   (active || isSubmenuActive) &&
-                    "border-border/80 bg-muted/60 text-foreground shadow-sm shadow-black/5"
+                    "border-border/80 bg-muted/60 text-foreground shadow-xs shadow-black/5"
                 )}
               >
                 <div className="w-full items-center flex justify-between">
@@ -209,7 +209,7 @@ export function CollapseMenuButton({
         side="right"
         sideOffset={18}
         align="start"
-        className="min-w-[220px] rounded-xl border-border/70 bg-popover/95 p-2 shadow-xl shadow-black/10 backdrop-blur"
+        className="min-w-[220px] rounded-xl border-border/70 bg-popover/95 p-2 shadow-xl shadow-black/10 backdrop-blur-sm"
       >
         <DropdownMenuLabel className="max-w-[190px] px-2 pb-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
           {label}

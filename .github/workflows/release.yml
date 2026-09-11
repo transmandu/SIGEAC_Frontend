@@ -91,9 +91,23 @@ jobs:
         run: |
           set -euo pipefail
 
-          # npm version sin tag ni commit: los crea el paso siguiente junto al
+          # Se escribe la versión con node y no con `npm version`: el proyecto
+          # usa pnpm y `npm version` genera un package-lock.json, así que cada
+          # release dejaría dos lockfiles compitiendo. Con node tampoco hace
+          # falta instalar pnpm en el runner, porque acá no se instalan
+          # dependencias. El tag y el commit los crea el paso siguiente junto al
           # changelog, para que todo entre en un único commit.
-          npm version "$VERSION" --no-git-tag-version --allow-same-version
+          node -e '
+            const fs = require("fs");
+            const version = process.env.VERSION;
+            if (!/^\d+\.\d+\.\d+$/.test(version)) {
+              console.error("Versión inválida: " + version);
+              process.exit(1);
+            }
+            const pkg = JSON.parse(fs.readFileSync("package.json", "utf8"));
+            pkg.version = version;
+            fs.writeFileSync("package.json", JSON.stringify(pkg, null, 2) + "\n");
+          '
 
           if git rev-parse "$PREVIOUS" >/dev/null 2>&1; then
             range="$PREVIOUS..HEAD"

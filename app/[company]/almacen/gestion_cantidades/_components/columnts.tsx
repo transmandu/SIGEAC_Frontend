@@ -1,7 +1,7 @@
 "use client"
 
 import React from "react"
-import { ColumnDef } from "@tanstack/react-table"
+import { type AppColumnDef } from "@/lib/table";
 import { Badge } from "@/components/ui/badge"
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
 import { GeneralArticle } from "@/types"
@@ -18,7 +18,7 @@ export function buildGeneralInventoryColumns({
     baseQuantities,
     editedQuantities,
     onQuantityChange,
-}: BuildColumnsArgs): ColumnDef<GeneralArticle>[] {
+}: BuildColumnsArgs): AppColumnDef<GeneralArticle>[] {
     return [
         {
             accessorKey: "description",

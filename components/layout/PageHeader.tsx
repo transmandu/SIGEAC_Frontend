@@ -110,7 +110,7 @@ export function PageHeader({
                                             <Popover>
                                                 <PopoverTrigger
                                                     aria-label={`Ver ruta intermedia: ${hiddenLabels}`}
-                                                    className="flex items-center rounded-sm transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                                                    className="flex items-center rounded-sm transition-colors hover:text-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring"
                                                 >
                                                     <BreadcrumbEllipsis className="h-4 w-4" />
                                                 </PopoverTrigger>

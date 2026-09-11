@@ -168,7 +168,7 @@ export default function CriticalAlertsButton() {
                 }
                 className={cn(
                   "flex items-center justify-center",
-                  "fixed bottom-6 right-6 z-[1003]",
+                  "fixed bottom-6 right-6 z-1003",
                   "h-14 w-14 rounded-full",
                   "backdrop-blur-md",
                   "shadow-[0_8px_30px_rgba(0,0,0,0.18)]",
@@ -176,10 +176,10 @@ export default function CriticalAlertsButton() {
                   // Sin nada accionable el botón deja de gritar: todo lo bajo
                   // de stock ya está comprado y solo falta que llegue.
                   !isCountActionable
-                    ? "bg-gradient-to-br from-primary to-blue-600 text-white ring-primary/40 hover:from-primary hover:to-blue-500"
+                    ? "bg-linear-to-br from-primary to-blue-600 text-white ring-primary/40 hover:from-primary hover:to-blue-500"
                     : isHazardTone
-                      ? "bg-gradient-to-br from-red-600 to-red-800 text-white ring-red-500/50 hover:from-red-600 hover:to-red-700"
-                      : "bg-gradient-to-br from-red-500 to-rose-600 text-white ring-red-400/40 hover:from-red-500 hover:to-rose-500"
+                      ? "bg-linear-to-br from-red-600 to-red-800 text-white ring-red-500/50 hover:from-red-600 hover:to-red-700"
+                      : "bg-linear-to-br from-red-500 to-rose-600 text-white ring-red-400/40 hover:from-red-500 hover:to-rose-500"
                 )}
               >
                 {/* El latido solo acompaña a lo que exige acción. */}
@@ -195,10 +195,10 @@ export default function CriticalAlertsButton() {
                 )}
 
                 {!isCountActionable
-                  ? <Truck className="relative h-6 w-6 drop-shadow-sm" />
+                  ? <Truck className="relative h-6 w-6 drop-shadow-xs" />
                   : isHazardTone
-                    ? <Biohazard className="relative h-6 w-6 drop-shadow-sm" />
-                    : <AlertTriangle className="relative h-6 w-6 drop-shadow-sm" />}
+                    ? <Biohazard className="relative h-6 w-6 drop-shadow-xs" />
+                    : <AlertTriangle className="relative h-6 w-6 drop-shadow-xs" />}
 
                 <motion.span
                   key={count}
@@ -217,7 +217,7 @@ export default function CriticalAlertsButton() {
                         ? "text-red-700 ring-red-600/40"
                         : "text-red-600 ring-red-500/30",
                     "text-[11px] font-bold",
-                    "shadow-sm ring-2"
+                    "shadow-xs ring-2"
                   )}
                 >
                   {count > 99 ? "99+" : count}
@@ -226,7 +226,7 @@ export default function CriticalAlertsButton() {
             </PopoverTrigger>
           </TooltipTrigger>
 
-          <TooltipContent side="left" className="z-[1002]">
+          <TooltipContent side="left" className="z-1002">
             {isCountActionable
               ? `${summary}${inTransitCount > 0 ? ` · ${inTransitCount} en camino` : ""}`
               : `${inTransitCount} artículo${inTransitCount === 1 ? "" : "s"} bajo mínimo, ya en camino`}
@@ -251,7 +251,7 @@ export default function CriticalAlertsButton() {
           }
         }}
         className={cn(
-          "z-[1002] flex max-h-[70vh] w-96 max-w-[calc(100vw-3rem)] animate-none flex-col overflow-hidden rounded-2xl border-none p-0 shadow-2xl data-[state=closed]:animate-none data-[state=open]:animate-none",
+          "z-1002 flex max-h-[70vh] w-96 max-w-[calc(100vw-3rem)] animate-none flex-col overflow-hidden rounded-2xl border-none p-0 shadow-2xl data-[state=closed]:animate-none data-[state=open]:animate-none",
           !open && "pointer-events-none"
         )}
         style={{
@@ -267,10 +267,10 @@ export default function CriticalAlertsButton() {
           className={cn(
             "shrink-0 border-b px-4 py-3",
             !isCountActionable
-              ? "bg-gradient-to-r from-primary/10 to-blue-500/10"
+              ? "bg-linear-to-r from-primary/10 to-blue-500/10"
               : isHazardTone
-                ? "bg-gradient-to-r from-red-600/15 to-red-800/10"
-                : "bg-gradient-to-r from-red-500/10 to-rose-500/10"
+                ? "bg-linear-to-r from-red-600/15 to-red-800/10"
+                : "bg-linear-to-r from-red-500/10 to-rose-500/10"
           )}
         >
           <p className="text-sm font-semibold">Alertas críticas</p>

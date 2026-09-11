@@ -170,8 +170,8 @@ export function PartNumberGroupDialog({
    * Bajé el ancho de descripción para que no absorba todo.
    */
   const gridCols = showQuantity
-    ? "[grid-template-columns:150px_260px_120px_140px_120px_160px_160px_64px]"
-    : "[grid-template-columns:150px_260px_120px_140px_160px_160px_64px]";
+    ? "grid-cols-[150px_260px_120px_140px_120px_160px_160px_64px]"
+    : "grid-cols-[150px_260px_120px_140px_160px_160px_64px]";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

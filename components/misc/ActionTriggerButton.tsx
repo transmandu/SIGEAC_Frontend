@@ -120,16 +120,16 @@ export const ActionTriggerButton = React.forwardRef<
         // translúcida con blur.
         "border-border bg-background",
         "text-foreground font-medium",
-        "shadow-sm transition-all duration-200",
+        "shadow-xs transition-all duration-200",
         // El fondo no cambia al apuntar; el único tinte es el brillo que sigue
         // al cursor. `hover:bg-transparent` anula el gris de la variante.
         "hover:bg-transparent",
         "hover:border-primary/40 hover:text-primary hover:shadow-md",
-        "hover:-translate-y-[1px]",
-        "active:translate-y-0 active:shadow-sm",
+        "hover:-translate-y-px",
+        "active:translate-y-0 active:shadow-xs",
         "focus-visible:ring-2 focus-visible:ring-primary/20",
         // Deshabilitado no debe insinuar interacción: sin elevación ni realce.
-        "disabled:opacity-50 disabled:shadow-sm disabled:hover:translate-y-0",
+        "disabled:opacity-50 disabled:shadow-xs disabled:hover:translate-y-0",
         className,
       )}
       style={style}

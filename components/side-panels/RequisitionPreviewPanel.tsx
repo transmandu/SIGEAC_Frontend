@@ -40,7 +40,7 @@ const statusBadgeClass = (status?: string) => {
   const approved = status === 'APPROVED'
 
   return cn(
-    'select-none whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-sm',
+    'select-none whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-xs',
     created && 'border-slate-500/30 bg-slate-500/10 text-slate-700 dark:text-slate-300',
     received && 'border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300',
     process && 'border-yellow-500/30 bg-yellow-500/10 text-yellow-700 dark:text-yellow-300',
@@ -114,7 +114,7 @@ const ArticleRow = ({
     {/* ── Nivel 1: título + detalles ───────────────────── */}
     <div className="flex flex-col gap-1 px-3 pt-3 pb-2.5">
       <div className="flex items-start justify-between gap-2">
-        <span className="text-sm font-semibold leading-snug break-words">{title}</span>
+        <span className="text-sm font-semibold leading-snug wrap-break-word">{title}</span>
         {typeBadge && (
           <span className="select-none shrink-0 rounded bg-muted/60 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide text-muted-foreground/80">
             {typeBadge}
@@ -139,7 +139,7 @@ const ArticleRow = ({
         {destinations.map(({ key, label, value }) => (
           <div key={key} className="flex items-baseline gap-1.5 text-[11px]">
             <span className="shrink-0 text-muted-foreground/60">{label}:</span>
-            <span className="text-foreground/80 break-words">{value}</span>
+            <span className="text-foreground/80 wrap-break-word">{value}</span>
           </div>
         ))}
       </div>
@@ -250,7 +250,7 @@ export default function RequisitionPreviewPanel({ requisition, onClose }: Props)
 
         {/* ── Justificación / Observación ─────────────────── */}
         <div className="grid grid-cols-1 gap-3">
-          <div className="rounded-md border border-border/60 bg-gradient-to-b from-muted/30 to-muted/10 p-3">
+          <div className="rounded-md border border-border/60 bg-linear-to-b from-muted/30 to-muted/10 p-3">
             <div className="flex items-center gap-2 mb-2 select-none">
               <FileText className="size-3.5 text-muted-foreground/60" />
               <span className="text-[10px] font-semibold tracking-widest text-muted-foreground">
@@ -263,7 +263,7 @@ export default function RequisitionPreviewPanel({ requisition, onClose }: Props)
           </div>
 
           {requisition.observation && (
-            <div className="rounded-md border border-border/60 bg-gradient-to-b from-muted/30 to-muted/10 p-3">
+            <div className="rounded-md border border-border/60 bg-linear-to-b from-muted/30 to-muted/10 p-3">
               <div className="flex items-center gap-2 mb-2 select-none">
                 <MessageSquare className="size-3.5 text-muted-foreground/60" />
                 <span className="text-[10px] font-semibold tracking-widest text-muted-foreground">

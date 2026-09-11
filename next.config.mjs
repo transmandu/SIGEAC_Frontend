@@ -57,13 +57,13 @@ const nextConfig = {
     ],
     dangerouslyAllowSVG: true,
     unoptimized: false,
+    // Next 16 pasó el default a [75] y coercería el quality={100} de la foto
+    // del empleado, que es el único lugar que pide calidad máxima.
+    qualities: [75, 100],
+    // Y el default pasó de 60 s a 4 h: las imágenes son subidas del backend
+    // que el usuario reemplaza y espera ver al instante.
+    minimumCacheTTL: 60,
   },
-  // --- Funciona el visualizador seguro ---
-  webpack: (config) => {
-    config.resolve.alias.canvas = false;
-    return config;
-  },
-  
 };
 
 export default nextConfig;

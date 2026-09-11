@@ -48,7 +48,7 @@ export function SelectCompanyState({
 
       <div
         aria-hidden
-        className="my-8 h-px w-16 bg-gradient-to-r from-transparent via-border to-transparent"
+        className="my-8 h-px w-16 bg-linear-to-r from-transparent via-border to-transparent"
       />
 
       <p className="text-xs uppercase tracking-widest text-muted-foreground/70">

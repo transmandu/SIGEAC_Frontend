@@ -1,5 +1,6 @@
 import type React from "react"
-import type { Column } from "@tanstack/react-table"
+import { type RowData } from "@tanstack/react-table";
+import { type AppColumn } from "@/lib/table";
 import { ArrowDownIcon, ArrowDownNarrowWide, ArrowUpIcon, EyeOff } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -13,13 +14,13 @@ import {
 import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
 
-interface DataTableColumnHeaderProps<TData, TValue> extends React.HTMLAttributes<HTMLDivElement> {
-  column: Column<TData, TValue>
+interface DataTableColumnHeaderProps<TData extends RowData, TValue> extends React.HTMLAttributes<HTMLDivElement> {
+  column: AppColumn<TData, TValue>
   title: string
   filter?: boolean
 }
 
-export function DataTableColumnHeader<TData, TValue>({
+export function DataTableColumnHeader<TData extends RowData, TValue>({
   column,
   filter,
   title,

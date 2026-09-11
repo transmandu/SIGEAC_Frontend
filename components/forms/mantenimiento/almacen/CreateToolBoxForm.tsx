@@ -11,7 +11,7 @@ import { useGetEmployeesForBox } from "@/hooks/mantenimiento/almacen/caja_herram
 import { cn } from "@/lib/utils"
 import { useCompanyStore } from "@/stores/CompanyStore"
 import { Article, Batch, ToolBox } from "@/types"
-import { zodResolver } from "@hookform/resolvers/zod"
+import { zodResolver } from "@/lib/zod-resolver"
 import { Box, Check, ChevronsUpDown, Loader2, User, Wrench, X } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { useForm } from "react-hook-form"

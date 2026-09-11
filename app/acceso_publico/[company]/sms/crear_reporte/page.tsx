@@ -103,7 +103,7 @@ const SelectReportType = () => {
                         className="flex items-start text-xs sm:text-sm text-gray-600 leading-tight"
                       >
                         <div
-                          className={`w-1.5 h-1.5 rounded-full mr-2 mt-1.5 flex-shrink-0 ${report.dotColor}`}
+                          className={`w-1.5 h-1.5 rounded-full mr-2 mt-1.5 shrink-0 ${report.dotColor}`}
                         />
                         <span>{feature}</span>
                       </li>
@@ -123,7 +123,7 @@ const SelectReportType = () => {
                     }
                   >
                     <span className="truncate">{report.buttonText}</span>
-                    <ArrowRight className="ml-1 lg:ml-2 h-3 w-3 lg:h-4 lg:w-4 transition-transform group-hover:translate-x-1 flex-shrink-0" />
+                    <ArrowRight className="ml-1 lg:ml-2 h-3 w-3 lg:h-4 lg:w-4 transition-transform group-hover:translate-x-1 shrink-0" />
                   </Button>
                 </CardContent>
               </Card>
@@ -135,7 +135,7 @@ const SelectReportType = () => {
         <Card className="border-black">
           <CardContent className="p-4 sm:p-6">
             <div className="flex items-start space-x-3 sm:space-x-4">
-              <HelpCircle className="h-5 w-5 sm:h-6 sm:w-6 mt-0.5 flex-shrink-0" />
+              <HelpCircle className="h-5 w-5 sm:h-6 sm:w-6 mt-0.5 shrink-0" />
               <div className="flex-1 min-w-0">
                 <h3 className="font-semibold text-sm sm:text-base mb-1 sm:mb-2">
                   ¿No estás seguro qué tipo de reporte usar?

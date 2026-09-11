@@ -51,7 +51,7 @@ const RolesDialog = ({ roles, names, companies = [] }: RolesDialogProps) => {
                 roles.map(role => {
                   const company = companies.find((c) => String(c.id) === String(role.company_id))
                   return (
-                    <div onClick={() => router.push('/administracion/usuarios_permisos/roles')} key={role.id} className="flex flex-col border border-border items-center justify-center p-3 rounded-md shadow-sm hover:scale-105 hover:bg-accent transition-all hover:cursor-pointer gap-1">
+                    <div onClick={() => router.push('/administracion/usuarios_permisos/roles')} key={role.id} className="flex flex-col border border-border items-center justify-center p-3 rounded-md shadow-xs hover:scale-105 hover:bg-accent transition-all hover:cursor-pointer gap-1">
                       {company && (
                         <Badge variant="outline" className="text-[10px] text-muted-foreground font-medium">
                           {company.name}

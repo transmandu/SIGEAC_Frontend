@@ -23,7 +23,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ComboboxField } from "@/components/ui/ComboboxField";
 import { AgreementItem } from "@/components/forms/general/AgreementItem";
 
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 import { format } from "date-fns";
@@ -52,7 +52,7 @@ interface FormProps {
 }
 
 const FormSchema = z.object({
-  date: z.date({ required_error: "La fecha es obligatoria" }),
+  date: z.date({ error: "La fecha es obligatoria" }),
   place: z.string().min(1, "El lugar es obligatorio"),
   objective: z.string().optional(),
   topics: z.array(z.object({
@@ -60,8 +60,8 @@ const FormSchema = z.object({
   })).optional(),
   photo: z.any().optional(),
   document: z.any().optional(),
-  chaired_by: z.string({ required_error: "Seleccione quien preside" }),
-  filled_out_by: z.string({ required_error: "Seleccione quien diligencia" }),
+  chaired_by: z.string({ error: "Seleccione quien preside" }),
+  filled_out_by: z.string({ error: "Seleccione quien diligencia" }),
   reviewed_by: z.string().optional(),
   approved_by: z.string().optional(),
   attendees: z.array(z.object({
@@ -318,10 +318,10 @@ export function CreateMeetingMinuteForm({
                             mode="single"
                             selected={field.value}
                             onSelect={field.onChange}
-                            initialFocus
-                            fromYear={2020}
-                            toYear={new Date().getFullYear() + 1}
-                            captionLayout="dropdown-buttons"
+                            autoFocus
+                            startMonth={new Date(2020, 0)}
+                            endMonth={new Date(new Date().getFullYear() + 1, 11)}
+                            captionLayout="dropdown"
                           />
                         </PopoverContent>
                       </Popover>

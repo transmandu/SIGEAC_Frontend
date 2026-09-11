@@ -190,7 +190,7 @@ const CertificatesDropDownActions = ({
                 <Button
                   onClick={handleDelete}
                   disabled={isPending}
-                  className="flex-1 sm:flex-none sm:w-32 bg-red-600 hover:bg-red-700 text-white shadow-sm shadow-red-200 transition-all"
+                  className="flex-1 sm:flex-none sm:w-32 bg-red-600 hover:bg-red-700 text-white shadow-xs shadow-red-200 transition-all"
                 >
                   {isPending ? (
                     <Loader2 className="h-4 w-4 animate-spin" />

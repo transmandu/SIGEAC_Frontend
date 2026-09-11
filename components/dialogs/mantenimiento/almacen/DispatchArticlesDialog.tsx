@@ -241,7 +241,7 @@ const DispatchArticlesDialog = ({ articles = [], work_order, justification }: Di
                     {/* Justificación - izquierda */}
                     <div className="flex flex-col text-sm max-w-[70%]">
                         <span className="font-medium text-foreground"> Justificación: </span>
-                        <span className="text-muted-foreground italic break-words"> {justification?.trim() || "Sin justificación"} </span>
+                        <span className="text-muted-foreground italic wrap-break-word"> {justification?.trim() || "Sin justificación"} </span>
                     </div>
                     {/* Botón cerrar - derecha */}
                     <DialogClose asChild>

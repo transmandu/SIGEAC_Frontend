@@ -63,7 +63,7 @@ export function MonthYearPicker({
           data-tour={dataTour}
           variant="outline"
           className={cn(
-            "w-[180px] justify-start text-left font-medium bg-background border-input shadow-sm",
+            "w-[180px] justify-start text-left font-medium bg-background border-input shadow-xs",
             className,
           )}
           disabled={disabled}

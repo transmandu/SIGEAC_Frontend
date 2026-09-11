@@ -66,7 +66,7 @@ export function ArticleSelectionTable({
             {/* ── Listado ─────────────────────────────────────────────────── */}
             <div className="flex flex-col gap-1.5 max-h-[480px] overflow-y-auto pr-1">
                 {filtered.length === 0 && (
-                    <div className="flex flex-col items-center gap-1.5 rounded-xl border border-border/60 bg-gradient-to-b from-muted/30 to-muted/10 py-12 text-muted-foreground/60 select-none">
+                    <div className="flex flex-col items-center gap-1.5 rounded-xl border border-border/60 bg-linear-to-b from-muted/30 to-muted/10 py-12 text-muted-foreground/60 select-none">
                         <PackageSearch className="size-4 opacity-60" />
                         <span className="text-[11px] tracking-widest uppercase">
                             Sin resultados
@@ -131,9 +131,9 @@ function ArticleRow({
             }}
             className={cn(
                 "group rounded-lg border bg-background/70 px-3 py-2.5 cursor-pointer transition-colors duration-150",
-                "hover:bg-muted/30 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/30",
+                "hover:bg-muted/30 focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-primary/30",
                 selected
-                    ? "border-primary/50 bg-primary/[0.06]"
+                    ? "border-primary/50 bg-primary/6"
                     : "border-border/60",
             )}
         >

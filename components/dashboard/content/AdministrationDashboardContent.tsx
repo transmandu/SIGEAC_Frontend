@@ -59,7 +59,7 @@ export default function AdministrationDashboardContent({
               <TabsTrigger
                 value="REPORTS"
                 className="
-                  flex-shrink-0 sm:flex-1
+                  shrink-0 sm:flex-1
                   flex items-center justify-center gap-2
                   text-xs h-8 sm:h-7 px-4 sm:px-3
                   rounded-xl transition-all duration-200 whitespace-nowrap
@@ -79,7 +79,7 @@ export default function AdministrationDashboardContent({
               <TabsTrigger
                 value="REQUEST_SUMMARY"
                 className="
-                  flex-shrink-0 sm:flex-1
+                  shrink-0 sm:flex-1
                   flex items-center justify-center gap-2
                   text-xs h-8 sm:h-7 px-4 sm:px-3
                   rounded-xl transition-all duration-200 whitespace-nowrap
@@ -99,7 +99,7 @@ export default function AdministrationDashboardContent({
               <TabsTrigger
                 value="UNIFORM_REPORT"
                 className="
-                  flex-shrink-0 sm:flex-1
+                  shrink-0 sm:flex-1
                   flex items-center justify-center gap-2
                   text-xs h-8 sm:h-7 px-4 sm:px-3
                   rounded-xl transition-all duration-200 whitespace-nowrap

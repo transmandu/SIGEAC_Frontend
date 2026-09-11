@@ -23,7 +23,7 @@ const LogoutOverlay = () => {
 
   return (
     <motion.div
-      className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-background"
+      className="fixed inset-0 z-9999 flex flex-col items-center justify-center bg-background"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.25, ease: "easeOut" }}

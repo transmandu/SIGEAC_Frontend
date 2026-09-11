@@ -110,7 +110,7 @@ export default function ArticleStatusHistoryDialog({
                 return (
                   <li key={`${entry.from}-${entry.status}`} className="ml-6">
                     <span
-                      className={`absolute -left-[7px] flex size-3.5 rounded-full border-2 border-background ${
+                      className={`absolute left-[-7px] flex size-3.5 rounded-full border-2 border-background ${
                         isCurrent ? "bg-primary" : "bg-muted-foreground"
                       }`}
                     />

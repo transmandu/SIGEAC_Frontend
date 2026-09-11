@@ -69,7 +69,7 @@ export default function NotificationPanel({
               duration: 0.2,
             }}
             onClick={onClose}
-            className="fixed inset-0 z-[999] bg-black/40"
+            className="fixed inset-0 z-999 bg-black/40"
           />
 
           {/* PANEL */}
@@ -89,10 +89,10 @@ export default function NotificationPanel({
               stiffness: 320,
               damping: 32,
             }}
-            className="fixed right-0 top-0 bottom-0 z-[1000] w-full sm:w-[420px] border-l bg-background shadow-[0_0_50px_rgba(0,0,0,0.15)] flex flex-col"
+            className="fixed right-0 top-0 bottom-0 z-1000 w-full sm:w-[420px] border-l bg-background shadow-[0_0_50px_rgba(0,0,0,0.15)] flex flex-col"
           >
             {/* HEADER */}
-            <div className="sticky top-0 z-20 border-b bg-background/95 backdrop-blur px-5 py-4">
+            <div className="sticky top-0 z-20 border-b bg-background/95 backdrop-blur-sm px-5 py-4">
               <div className="flex items-start justify-between">
 
                 {/* LEFT */}
@@ -113,13 +113,13 @@ export default function NotificationPanel({
                                 Notificaciones
                               </h2>
 
-                              <span className="absolute -bottom-[2px] left-0 h-px w-full origin-left scale-x-0 bg-border/50 transition-transform duration-300 ease-out group-hover:scale-x-100" />
+                              <span className="absolute bottom-[-2px] left-0 h-px w-full origin-left scale-x-0 bg-border/50 transition-transform duration-300 ease-out group-hover:scale-x-100" />
                             </div>
                           </div>
                         </Link>
                       </TooltipTrigger>
 
-                      <TooltipContent side="right" align="center" sideOffset={8} className="z-[1001]">
+                      <TooltipContent side="right" align="center" sideOffset={8} className="z-1001">
                         Ir al panel
                       </TooltipContent>
                     </Tooltip>
@@ -154,7 +154,7 @@ export default function NotificationPanel({
                           </button>
                         </TooltipTrigger>
 
-                        <TooltipContent side="bottom" className="z-[1001]">
+                        <TooltipContent side="bottom" className="z-1001">
                           Marcar todas como leídas
                         </TooltipContent>
                       </Tooltip>
@@ -173,7 +173,7 @@ export default function NotificationPanel({
                         </button>
                       </TooltipTrigger>
 
-                      <TooltipContent side="bottom" className="z-[1001]">
+                      <TooltipContent side="bottom" className="z-1001">
                         Cerrar
                       </TooltipContent>
                     </Tooltip>
@@ -217,7 +217,7 @@ export default function NotificationPanel({
             {/* FOOTER */}
 
             {canClearNotifications && (
-              <div className="border-t bg-background/80 backdrop-blur px-4 py-3">
+              <div className="border-t bg-background/80 backdrop-blur-sm px-4 py-3">
                 <div className="flex items-center justify-center gap-6">
 
                   {/* VACÍAR LEÍDAS */}
@@ -233,7 +233,7 @@ export default function NotificationPanel({
                         </button>
                       </TooltipTrigger>
 
-                      <TooltipContent side="top" className="z-[1001]">
+                      <TooltipContent side="top" className="z-1001">
                         Eliminar leídas
                       </TooltipContent>
                     </Tooltip>
@@ -255,7 +255,7 @@ export default function NotificationPanel({
                         </button>
                       </TooltipTrigger>
 
-                      <TooltipContent side="top" className="z-[1001]">
+                      <TooltipContent side="top" className="z-1001">
                         Eliminar todo
                       </TooltipContent>
                     </Tooltip>

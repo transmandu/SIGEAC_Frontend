@@ -1,6 +1,6 @@
 "use client"
 
-import { ColumnDef } from "@tanstack/react-table"
+import { type AppColumnDef } from "@/lib/table";
 import { MoreHorizontal, SquarePen, Trash2 } from "lucide-react"
 
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
@@ -24,7 +24,7 @@ import { MaintenanceService } from "@/types"
 import Link from "next/link"
 import MaintenanceServiceDropdownActions from "@/components/dropdowns/mantenimiento/ordenes_trabajo/MaintenanceServiceDropdownActionts"
 
-export const columns: ColumnDef<MaintenanceService>[] = [
+export const columns: AppColumnDef<MaintenanceService>[] = [
   {
     id: "select",
     header: ({ table }) => (

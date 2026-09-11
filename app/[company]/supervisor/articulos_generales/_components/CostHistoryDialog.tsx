@@ -183,7 +183,7 @@ export function CostHistoryDialog({
                     {/* ── Registros existentes ────────────────────────────── */}
                     <div className="flex flex-col gap-1.5">
                         {persisted.length === 0 && (
-                            <div className="rounded-xl border border-border/60 bg-gradient-to-b from-muted/30 to-muted/10 py-10 text-center">
+                            <div className="rounded-xl border border-border/60 bg-linear-to-b from-muted/30 to-muted/10 py-10 text-center">
                                 <span className="text-[11px] uppercase tracking-widest text-muted-foreground/60 select-none">
                                     Sin historial de costo
                                 </span>
@@ -282,7 +282,7 @@ export function CostHistoryDialog({
                             {created.map((row, index) => (
                                 <div
                                     key={index}
-                                    className="flex items-center gap-3 rounded-lg border border-primary/40 bg-primary/[0.06] px-3 py-2"
+                                    className="flex items-center gap-3 rounded-lg border border-primary/40 bg-primary/6 px-3 py-2"
                                 >
                                     <span className={dependencyBadgeCls()}>MANUAL</span>
 
@@ -457,7 +457,7 @@ function CostEntryRow({
                             <SelectTrigger
                                 className={cn(
                                     "h-8 w-28 bg-background border-border/60 text-xs",
-                                    unitCorrected && "border-primary/60 bg-primary/[0.06]",
+                                    unitCorrected && "border-primary/60 bg-primary/6",
                                 )}
                             >
                                 <SelectValue placeholder="Unidad" />
@@ -604,7 +604,7 @@ function CostDateButton({
                     {valid ? format(valid, "dd/MM/yyyy", { locale: es }) : "Sin fecha"}
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0 z-[100]" align="start">
+            <PopoverContent className="w-auto p-0 z-100" align="start">
                 <Calendar
                     locale={es}
                     mode="single"
@@ -615,10 +615,10 @@ function CostDateButton({
                         // creación del costo, la hora no aporta al ordenamiento.
                         onChange(format(date, "yyyy-MM-dd"))
                     }}
-                    initialFocus
-                    fromYear={1900}
-                    toYear={new Date().getFullYear() + 1}
-                    captionLayout="dropdown-buttons"
+                    autoFocus
+                    startMonth={new Date(1900, 0)}
+                    endMonth={new Date(new Date().getFullYear() + 1, 11)}
+                    captionLayout="dropdown"
                     disabled={(date) => date > new Date()}
                 />
             </PopoverContent>

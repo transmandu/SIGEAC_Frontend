@@ -1,6 +1,6 @@
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
+import { type AppColumnDef } from "@/lib/table";
 
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 
@@ -27,7 +27,7 @@ const SurveyNumberCell = ({ surveyNumber }: { surveyNumber: string }) => {
   );
 };
 
-export const columns: ColumnDef<Survey>[] = [
+export const columns: AppColumnDef<Survey>[] = [
   {
     accessorKey: "survey_number",
     header: ({ column }) => (

@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/form";
 
 import { Input } from "@/components/ui/input";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -116,7 +116,7 @@ export default function RedirectionForm({ onClose }: FormProps) {
                     disabled={(date) =>
                       date > new Date() || date < new Date("1900-01-01")
                     }
-                    initialFocus
+                    autoFocus
                     locale={es}
                   />
                 </PopoverContent>

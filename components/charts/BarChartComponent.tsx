@@ -103,7 +103,7 @@ const BarChartComponent = ({
             />
 
             <Tooltip
-              formatter={(value: number) => value.toLocaleString("es-ES")}
+              formatter={(value) => Number(value).toLocaleString("es-ES")}
               labelFormatter={() => "Resumen"}
               contentStyle={{
                 backgroundColor: isDark ? "#1f2937" : "#ffffff",

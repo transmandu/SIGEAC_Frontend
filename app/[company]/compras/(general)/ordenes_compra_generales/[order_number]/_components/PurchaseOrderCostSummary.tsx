@@ -28,7 +28,7 @@ const CostRow = ({ label, value }: { label: string; value: number | null | undef
 
 const PurchaseOrderCostSummary = ({ costs, paymentMethod, bankAccount, card, isAeronautical }: PurchaseOrderCostSummaryProps) => {
   return (
-    <div className="relative mx-auto max-w-md w-full rounded-xl border border-border/60 bg-gradient-to-b from-muted/30 to-muted/10 p-4 shadow-sm">
+    <div className="relative mx-auto max-w-md w-full rounded-xl border border-border/60 bg-linear-to-b from-muted/30 to-muted/10 p-4 shadow-xs">
       <div className="flex items-center gap-3 mb-2.5 select-none">
         <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground whitespace-nowrap">
           COSTOS

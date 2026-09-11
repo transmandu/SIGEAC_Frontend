@@ -128,7 +128,7 @@ function FloatingTourMenu() {
     <div
       ref={ref}
       data-tour-menu="true"
-      className="fixed bottom-4 right-4 z-[100] flex flex-col items-end gap-2 pointer-events-auto"
+      className="fixed bottom-4 right-4 z-100 flex flex-col items-end gap-2 pointer-events-auto"
     >
       {open && (
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl w-64 p-2">

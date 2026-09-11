@@ -11,7 +11,7 @@ interface InfoSectionProps {
 
 const InfoSection = ({ title, icon: Icon, content, emptyMessage, compact }: InfoSectionProps) => {
   return (
-    <div className={`relative mx-auto min-w-0 rounded-xl border border-border/60 bg-gradient-to-b from-muted/30 to-muted/10 shadow-sm ${compact ? 'max-w-2xl p-4' : 'p-5'}`}>
+    <div className={`relative mx-auto min-w-0 rounded-xl border border-border/60 bg-linear-to-b from-muted/30 to-muted/10 shadow-xs ${compact ? 'max-w-2xl p-4' : 'p-5'}`}>
       <div className="flex items-center gap-3 mb-3 select-none">
         <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground whitespace-nowrap">
           {title}

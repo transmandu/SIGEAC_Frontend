@@ -11,7 +11,7 @@ import { useGetDepartments } from "@/hooks/ajustes/departamento/useGetDepartment
 import { useGetLocationsByCompany } from "@/hooks/sistema/useGetLocationsByCompany";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useGetUsers } from "@/hooks/sistema/useGetUsers";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { Loader2, Upload, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState, useRef } from "react";
@@ -470,7 +470,7 @@ const buildFormData = (values: FormValues, original: any) => {
 
                 {/* CONTENIDO (imagen centrada) */}
                 <div className="flex justify-center items-center flex-1">
-                <div className="relative w-40 h-40 rounded-full overflow-hidden border-2 border-muted shadow-sm bg-background">
+                <div className="relative w-40 h-40 rounded-full overflow-hidden border-2 border-muted shadow-xs bg-background">
                     {imageSrc ? (
                         <Image
                         src={imageSrc}

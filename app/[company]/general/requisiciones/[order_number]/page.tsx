@@ -143,7 +143,7 @@ const RequiredDocumentsPopover = ({ batches }: RequiredDocumentsPopoverProps) =>
             {items.map((article, idx) => (
               <li
                 key={`${article.article_part_number}-${idx}`}
-                className="rounded-md border bg-background/60 px-2.5 py-1.5 shadow-sm"
+                className="rounded-md border bg-background/60 px-2.5 py-1.5 shadow-xs"
               >
                 <span className="block text-xs font-semibold text-foreground/90 truncate">
                   P/N: {article.article_part_number}
@@ -624,7 +624,7 @@ const RequisitionPage = () => {
           )}
 
           {/* USUARIOS + FECHA + AIRCRAFT */}
-          <div className="grid gap-6 text-sm [grid-template-columns:repeat(auto-fit,minmax(180px,1fr))]">
+          <div className="grid gap-6 text-sm grid-cols-[repeat(auto-fit,minmax(180px,1fr))]">
 
             <div className="text-center space-y-1">
               <p className="text-xs text-muted-foreground">Creado por</p>
@@ -787,7 +787,7 @@ const RequisitionPage = () => {
         <AlertDialogContent>
           <AlertDialogHeader className="flex flex-col items-center text-center space-y-3">
 
-            <div className="flex items-center justify-center size-12 rounded-2xl border border-red-500/15 bg-red-500/[0.08]">
+            <div className="flex items-center justify-center size-12 rounded-2xl border border-red-500/15 bg-red-500/8">
               <Trash2 className="size-5 text-red-600" />
             </div>
 
@@ -815,7 +815,7 @@ const RequisitionPage = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
 
-          <div className="mx-1 p-3 rounded-xl border border-red-500/20 bg-red-500/[0.05] text-sm text-red-600 flex gap-2 leading-relaxed">
+          <div className="mx-1 p-3 rounded-xl border border-red-500/20 bg-red-500/5 text-sm text-red-600 flex gap-2 leading-relaxed">
             <AlertTriangle className="size-4 mt-[2px] shrink-0" />
             <div>
               Esta operación es <b>irreversible</b>. Verifica que realmente deseas eliminar este registro antes de continuar.

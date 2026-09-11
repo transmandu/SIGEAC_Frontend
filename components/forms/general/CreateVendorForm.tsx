@@ -1,7 +1,7 @@
 "use client";
 
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import {
@@ -39,7 +39,7 @@ const FormSchema = z.object({
     .min(2, { message: "La dirección debe tener al menos 2 caracteres." })
     .max(100, { message: "La dirección tiene un máximo de 100 caracteres." }),
   type: z.enum(["VENDOR", "BENEFICIARY"], {
-    required_error: "Selecciona un tipo.",
+    error: "Selecciona un tipo.",
   }),
 });
 

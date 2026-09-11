@@ -96,9 +96,14 @@ const DynamicBarChart = ({
           width={730}
           height={250}
           data={data}
-          onClick={({ activePayload }) => {
-            if (activePayload && activePayload[0] && activePayload[0].payload) {
-              handleBarClick(activePayload[0].payload as pieChartData);
+          // recharts 3 dejó de pasar activePayload al handler: ahora entrega el
+          // índice de la barra activa, y lo entrega como texto ("2") o null, así
+          // que el dato se busca en el arreglo.
+          onClick={({ activeIndex }) => {
+            const entry = activeIndex == null ? undefined : data[Number(activeIndex)];
+
+            if (entry) {
+              handleBarClick(entry);
             }
           }}
         >
@@ -112,8 +117,8 @@ const DynamicBarChart = ({
               isCustomizedAxis
                 ? (props) => (
                     <CustomizedAxisTick
-                      x={props.x}
-                      y={props.y}
+                      x={Number(props.x)}
+                      y={Number(props.y)}
                       payload={props.payload}
                       theme={theme === "light" ? "light" : "dark"}
                       fontSize={fontSize || 12}

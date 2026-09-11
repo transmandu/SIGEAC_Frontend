@@ -6,7 +6,7 @@ import { es } from "date-fns/locale";
 import { CalendarIcon, Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 
 import {
     useCreateMitigationMeasure,
@@ -42,7 +42,7 @@ const FORM_SCHEMA = z.object({
         .string()
         .min(3, "Indique quién supervisa la medida"),
     estimated_date: z.date({
-        required_error: "Seleccione la fecha estimada",
+        error: "Seleccione la fecha estimada",
     }),
     execution_date: z.date().optional().nullable(),
 });
@@ -212,20 +212,10 @@ export default function CreateMitigationMeasure({
                                              mode="single"
                                              selected={field.value}
                                              onSelect={field.onChange}
-                                             initialFocus
-                                             fromYear={1980}
-                                             toYear={new Date().getFullYear() + 20}
-                                             captionLayout="dropdown-buttons"
-                                             components={{
-                                                 Dropdown: (props) => (
-                                                     <select
-                                                         {...props}
-                                                         className="bg-popover text-popover-foreground"
-                                                     >
-                                                         {props.children}
-                                                     </select>
-                                                 ),
-                                             }}
+                                             autoFocus
+                                             startMonth={new Date(1980, 0)}
+                                             endMonth={new Date(new Date().getFullYear() + 20, 11)}
+                                             captionLayout="dropdown"
                                          />
                                      </PopoverContent>
                                  </Popover>
@@ -270,20 +260,10 @@ export default function CreateMitigationMeasure({
                                              mode="single"
                                              selected={field.value || undefined}
                                              onSelect={field.onChange}
-                                             initialFocus
-                                             fromYear={1980}
-                                             toYear={new Date().getFullYear() + 20}
-                                             captionLayout="dropdown-buttons"
-                                             components={{
-                                                 Dropdown: (props) => (
-                                                     <select
-                                                         {...props}
-                                                         className="bg-popover text-popover-foreground"
-                                                     >
-                                                         {props.children}
-                                                     </select>
-                                                 ),
-                                             }}
+                                             autoFocus
+                                             startMonth={new Date(1980, 0)}
+                                             endMonth={new Date(new Date().getFullYear() + 20, 11)}
+                                             captionLayout="dropdown"
                                          />
                                      </PopoverContent>
                                  </Popover>

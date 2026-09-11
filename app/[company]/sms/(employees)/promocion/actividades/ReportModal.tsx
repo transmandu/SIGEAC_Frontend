@@ -74,7 +74,7 @@ export function ReportModal() {
                       mode="single"
                       selected={reportFrom}
                       onSelect={setReportFrom}
-                      initialFocus
+                      autoFocus
                       locale={es}
                     />
                   </PopoverContent>
@@ -103,7 +103,7 @@ export function ReportModal() {
                       selected={reportTo}
                       onSelect={setReportTo}
                       disabled={(date) => (reportFrom ? date < reportFrom : false)}
-                      initialFocus
+                      autoFocus
                       locale={es}
                     />
                   </PopoverContent>

@@ -1,12 +1,12 @@
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
+import { type AppColumnDef } from "@/lib/table";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import MitigationMeasureDropdownActions from "@/components/dropdowns/aerolinea/sms/MitigationMeasuresDropDownActions";
 import { MitigationMeasure } from "@/types";
 import FollowUpControlDialog from "@/app/[company]/sms/(employees)/gestion_reportes/planes_de_mitigacion/_components/FollowUpControlDialog";
 
-export const columns: ColumnDef<MitigationMeasure>[] = [
+export const columns: AppColumnDef<MitigationMeasure>[] = [
   {
     accessorKey: "description",
     header: ({ column }) => (

@@ -63,7 +63,7 @@ export const MeasuresCell = ({ measures, planId }: MeasuresCellProps) => {
             </DialogDescription>
           </DialogHeader>
 
-          <Card className="p-4 rounded-lg shadow-sm">
+          <Card className="p-4 rounded-lg shadow-xs">
             <div className="space-y-3">
               {safeMeasures.map((measure) => (
                 <div key={measure.id} className="p-3 ">

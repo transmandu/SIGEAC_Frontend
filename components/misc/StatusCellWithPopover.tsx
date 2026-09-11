@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { toolStatusLabelEsUpper } from '@/lib/warehouse/statuses';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { zodResolver } from "@/lib/zod-resolver";
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -159,7 +159,7 @@ export default function StatusCellWithPopover({ tool }: Props) {
                                                                     mode="single"
                                                                     selected={field.value}
                                                                     onSelect={(d) => form.setValue('calibration_date', d!)}
-                                                                    initialFocus
+                                                                    autoFocus
                                                                     month={field.value}
                                                                 />
                                                             </PopoverContent>

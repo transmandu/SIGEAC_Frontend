@@ -1,7 +1,8 @@
 "use client"
 
 import type React from "react"
-import type { Column } from "@tanstack/react-table"
+import { type RowData } from "@tanstack/react-table";
+import { type AppColumn } from "@/lib/table";
 import { ArrowDownIcon, ArrowDownNarrowWide, ArrowUpIcon, EyeOff, Calendar } from "lucide-react"
 import { parse, format, isValid } from "date-fns"
 import { es } from "date-fns/locale/es"
@@ -11,14 +12,14 @@ import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
 import { useState, useEffect } from "react"
 
-interface DataTableColumnHeaderProps<TData, TValue> extends React.HTMLAttributes<HTMLDivElement> {
-  column: Column<TData, TValue>
+interface DataTableColumnHeaderProps<TData extends RowData, TValue> extends React.HTMLAttributes<HTMLDivElement> {
+  column: AppColumn<TData, TValue>
   title: string
   filter?: boolean
   isDate?: boolean
 }
 
-export function DataTableColumnHeaderAct<TData, TValue>({
+export function DataTableColumnHeaderAct<TData extends RowData, TValue>({
   column,
   filter,
   title,

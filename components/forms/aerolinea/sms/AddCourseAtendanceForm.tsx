@@ -14,7 +14,7 @@ import { useGetCourseEnrolledEmployees } from "@/hooks/sms/useGetCourseEnrolledE
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { Course } from "@/types";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";

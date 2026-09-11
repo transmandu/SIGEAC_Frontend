@@ -191,7 +191,7 @@ const RequisitionPage = () => {
 
               <div className="flex items-end gap-3 sm:gap-4 flex-wrap">
 
-                <h1 className="text-xl sm:text-2xl md:text-3xl font-semibold tracking-tight min-w-0 break-words">
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-semibold tracking-tight min-w-0 wrap-break-word">
                   {order_number}
                 </h1>
 

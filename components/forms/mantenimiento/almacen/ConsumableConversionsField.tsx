@@ -144,7 +144,7 @@ export function ConsumableConversionsField({
 
             {/* Tope de ~3 filas: más allá scrollea en vez de estirar el formulario. */}
             {value.length > 0 && (
-                <div className="max-h-[8.5rem] space-y-1.5 overflow-y-auto pr-1">
+                <div className="max-h-34 space-y-1.5 overflow-y-auto pr-1">
                     {value.map((row) => {
                         const label =
                             units.find((unit) => unit.id === row.unit_id)?.label ?? "—";

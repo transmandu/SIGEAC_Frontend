@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";

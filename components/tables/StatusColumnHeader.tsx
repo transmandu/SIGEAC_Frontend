@@ -1,6 +1,7 @@
 "use client";
 
-import { Column } from "@tanstack/react-table";
+import { type RowData } from "@tanstack/react-table";
+import { type AppColumn } from "@/lib/table";
 import {
   ArrowDownIcon,
   ArrowDownNarrowWide,
@@ -25,15 +26,15 @@ import {
   TOOL_STATUS_OPTIONS,
 } from "@/lib/warehouse/statuses";
 
-interface StatusColumnHeaderProps<TData, TValue> {
-  column: Column<TData, TValue>;
+interface StatusColumnHeaderProps<TData extends RowData, TValue> {
+  column: AppColumn<TData, TValue>;
   value?: string;
   onValueChange?: (value: string | undefined) => void;
   /** Los subestados de calibración solo aplican a la pestaña de herramientas. */
   showToolStatuses?: boolean;
 }
 
-export function StatusColumnHeader<TData, TValue>({
+export function StatusColumnHeader<TData extends RowData, TValue>({
   column,
   value,
   onValueChange,

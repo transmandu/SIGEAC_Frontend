@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo, useRef } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import * as z from "zod";
 import { useRouter } from "next/navigation";
 import { Loader2, Image as ImageIcon, Package, Ruler, Scale, Tag, X } from "lucide-react";
@@ -45,10 +45,10 @@ import { NumericInput } from "./_components/NumericInput";
 // realce azul al pasar el cursor.
 const fieldClass = cn(
     "h-10 rounded-lg text-sm",
-    "bg-gradient-to-br from-background/70 to-background/40",
+    "bg-linear-to-br from-background/70 to-background/40",
     "backdrop-blur-md",
     "border border-slate-400/60 dark:border-slate-600/60",
-    "shadow-sm",
+    "shadow-xs",
     "hover:border-blue-400/30",
     "hover:shadow-md hover:shadow-blue-500/10",
     "transition-all duration-200",
@@ -58,12 +58,12 @@ const fieldClass = cn(
     // que hay detrás de cada combobox— nunca lo es, así que los selectores
     // utilizables salían apagados y con cursor de bloqueo.
     "disabled:cursor-not-allowed disabled:opacity-60",
-    "disabled:hover:border-slate-400/60 disabled:hover:shadow-sm dark:disabled:hover:border-slate-600/60",
+    "disabled:hover:border-slate-400/60 disabled:hover:shadow-xs dark:disabled:hover:border-slate-600/60",
     "[&:is(input,textarea):read-only]:cursor-not-allowed",
     "[&:is(input,textarea):read-only]:opacity-60",
     "[&:is(input,textarea):read-only]:bg-muted/40",
     "[&:is(input,textarea):read-only]:hover:border-slate-400/60",
-    "[&:is(input,textarea):read-only]:hover:shadow-sm",
+    "[&:is(input,textarea):read-only]:hover:shadow-xs",
 );
 
 const numericFieldClass = cn(fieldClass, "tabular-nums");
@@ -89,10 +89,10 @@ const onlyNumeric = (raw: string) => {
 /** Tarjeta de sección: el mismo cristal de los campos, un escalón más tenue. */
 const sectionClass = cn(
     "rounded-xl p-4",
-    "bg-gradient-to-br from-background/70 to-background/40",
+    "bg-linear-to-br from-background/70 to-background/40",
     "backdrop-blur-md",
     "border border-slate-400/50 dark:border-slate-600/50",
-    "shadow-sm",
+    "shadow-xs",
 );
 
 const SectionTitle = ({
@@ -566,7 +566,7 @@ const CreateGeneralArticleForm = ({
                                 className={cn(
                                     fieldClass,
                                     "flex w-full cursor-pointer items-center gap-2 px-3",
-                                    "focus-visible:outline-none focus-visible:border-blue-400/60",
+                                    "focus-visible:outline-hidden focus-visible:border-blue-400/60",
                                     isDraggingImage && "border-primary bg-primary/5",
                                     imageError && "border-destructive",
                                 )}

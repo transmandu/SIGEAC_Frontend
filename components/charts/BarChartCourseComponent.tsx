@@ -28,8 +28,8 @@ interface courseStats {
 interface BarChartProps {
   data: courseStats;
   title?: string;
-  width: string;
-  height: string;
+  width: `${number}%` | number;
+  height: `${number}%` | number;
   bar_first_name: string;
   bar_second_name: string;
 }

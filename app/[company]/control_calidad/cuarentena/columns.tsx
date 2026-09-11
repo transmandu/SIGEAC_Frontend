@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { formatQuarantineDate, quarantineRisk } from "@/lib/warehouse/quarantine"
 import type { QuarantineRecord } from "@/types/quarantine"
-import { ColumnDef } from "@tanstack/react-table"
+import { type AppColumnDef } from "@/lib/table";
 import {
   AlertTriangle,
   CalendarClock,
@@ -25,7 +25,7 @@ function riskBadge(state: ReturnType<typeof quarantineRisk>["state"]) {
   return { variant: "outline" as const, label: "SIN FECHA" }
 }
 
-export const getColumns = (legalDays: number): ColumnDef<QuarantineRecord>[] => [
+export const getColumns = (legalDays: number): AppColumnDef<QuarantineRecord>[] => [
   {
     accessorKey: "article.batch.name",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Descripción" />,
@@ -224,7 +224,7 @@ export const getColumns = (legalDays: number): ColumnDef<QuarantineRecord>[] => 
         <div className="flex justify-center">
           <Badge
             className={cn(
-              "select-none gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-sm",
+              "select-none gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-xs",
               isOpen && "border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300",
               isPending && "border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300",
               !isOpen && !isPending &&

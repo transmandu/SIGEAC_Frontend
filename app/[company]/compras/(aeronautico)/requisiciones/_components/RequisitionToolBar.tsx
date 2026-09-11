@@ -20,7 +20,7 @@ type Props = {
   placeholder?: string
 }
 
-const selectTriggerClass = `h-8 w-full pl-8 text-xs bg-white/80 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-700/60 transition-colors focus:ring-1 focus:ring-primary/40 data-[placeholder]:text-muted-foreground [&>span]:truncate`
+const selectTriggerClass = `h-8 w-full pl-8 text-xs bg-white/80 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-700/60 transition-colors focus:ring-1 focus:ring-primary/40 data-placeholder:text-muted-foreground [&>span]:truncate`
 const selectContentClass = `border-slate-200/60 dark:border-slate-700/60`
 
 const GroupFilter = ({

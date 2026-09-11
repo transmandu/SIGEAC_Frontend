@@ -1,11 +1,495 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+@import 'tw-animate-css';
 
-/* 1. IMPORTS DE LA LIBRERÍA PDF 
+@custom-variant dark (&:is(.dark *));
+
+@utility container {
+  margin-inline: auto;
+  padding-inline: 2rem;
+  @media (width >= --theme(--breakpoint-sm)) {
+    max-width: none;
+  }
+  @media (width >= 1400px) {
+    max-width: 1400px;
+  }
+}
+
+@theme {
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+  --animate-moveBackground: moveBackground 30s linear infinite;
+  --animate-indeterminate: indeterminate 1.1s ease-in-out infinite;
+
+  --background-image-planeBg1: url('/plane1.jpg');
+  --background-image-planeBg2: url('/plane2.jpg');
+  --background-image-clouds: url('/clouds.avif');
+  --background-image-night: url('/night.avif');
+  --background-image-plane: url('/plane3.png');
+  --background-image-notFound: url('/404.avif');
+
+  @keyframes accordion-down {
+    from {
+      height: 0;
+    }
+    to {
+      height: var(--radix-accordion-content-height);
+    }
+  }
+  @keyframes accordion-up {
+    from {
+      height: var(--radix-accordion-content-height);
+    }
+    to {
+      height: 0;
+    }
+  }
+  @keyframes moveBackground {
+    0%,
+    100% {
+      transform: translate3d(0, 0, 0) scale(1.15);
+    }
+    50% {
+      transform: translate3d(-6%, 0, 0) scale(1.15);
+    }
+  }
+  @keyframes indeterminate {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(400%);
+    }
+  }
+}
+
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
 */
-@import '@react-pdf-viewer/core/lib/styles/index.css';
-@import '@react-pdf-viewer/default-layout/lib/styles/index.css';
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+
+  /* Tailwind 3 ponía `cursor: pointer` en todo botón desde su preflight y la 4
+     lo quitó para seguir el default del navegador. Sin esto los 1600 botones de
+     la aplicación quedan con la flecha en lugar de la manito, porque ninguno
+     declara el cursor por su cuenta. */
+  button:not(:disabled),
+  [role='button']:not(:disabled) {
+    cursor: pointer;
+  }
+}
+
+@utility glass-surface {
+  /* ============================================================
+     LIQUID GLASS — Navbar
+     Se construye por capas sobre el <header>:
+       fondo translúcido -> ::before (brillo especular) -> ::after
+       (hairline superior) -> contenido.
+     El blur real vive en .glass-surface; las capas solo pintan luz,
+     así que no se recalcula el desenfoque al animar.
+     ============================================================ */
+  position: relative;
+
+  /* Tinte azulado en vez de --background puro: sobre un fondo blanco,
+       difuminar blanco sobre blanco no produce ningún efecto visible.
+       El tinte da la "sustancia" del cristal. */
+  background-image: linear-gradient(
+    180deg,
+    hsl(226 35% 99.5% / 0.8) 0%,
+    hsl(226 28% 98% / 0.7) 100%
+  );
+  -webkit-backdrop-filter: blur(24px) saturate(155%) brightness(1.03);
+  backdrop-filter: blur(24px) saturate(155%) brightness(1.03);
+
+  /* Borde inferior siempre presente: separa navbar de página aunque
+       no haya contenido detrás que refractar. */
+  border-bottom: 1px solid hsl(226 25% 91% / 0.9);
+
+  box-shadow:
+    inset 0 1px 0 0 hsl(0 0% 100% / 0.85),
+    0 1px 2px 0 hsl(226 40% 20% / 0.04);
+
+  transition:
+    background-color 0.4s ease,
+    box-shadow 0.4s ease,
+    border-color 0.4s ease;
+
+  .dark & {
+    background-image: linear-gradient(
+      180deg,
+      hsl(226 32% 14% / 0.78) 0%,
+      hsl(226 36% 11% / 0.7) 100%
+    );
+    border-bottom-color: hsl(226 24% 30% / 0.8);
+    box-shadow:
+      inset 0 1px 0 0 hsl(0 0% 100% / 0.07),
+      0 1px 2px 0 hsl(0 0% 0% / 0.3);
+  }
+
+  /* Brillo especular: banda diagonal que recorre el cristal. */
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(
+      100deg,
+      transparent 15%,
+      hsl(var(--primary) / 0.06) 38%,
+      hsl(0 0% 100% / 0.55) 50%,
+      hsl(var(--primary) / 0.06) 62%,
+      transparent 85%
+    );
+    background-size: 220% 100%;
+    background-position: var(--glass-sheen, 120%) 0;
+    opacity: var(--glass-sheen-opacity, 0);
+    transition: opacity 0.5s ease;
+  }
+
+  .dark &::before {
+    background: linear-gradient(
+      100deg,
+      transparent 20%,
+      hsl(var(--primary) / 0.16) 42%,
+      hsl(0 0% 100% / 0.1) 50%,
+      hsl(var(--primary) / 0.16) 58%,
+      transparent 80%
+    );
+    background-size: 220% 100%;
+  }
+
+  /* Filo de luz en el borde inferior: marca dónde termina el cristal
+     y empieza la página. Se enciende al hacer scroll. */
+  &::after {
+    content: '';
+    position: absolute;
+    inset: auto 0 -1px 0;
+    height: 1px;
+    pointer-events: none;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      hsl(var(--primary) / 0.22) 20%,
+      hsl(var(--primary) / 0.38) 50%,
+      hsl(var(--primary) / 0.22) 80%,
+      transparent
+    );
+    opacity: var(--glass-edge-opacity, 0);
+    transition: opacity 0.5s ease;
+  }
+
+  .dark &::after {
+    background: linear-gradient(
+      90deg,
+      transparent,
+      hsl(var(--primary) / 0.38) 20%,
+      hsl(210 55% 62% / 0.5) 50%,
+      hsl(var(--primary) / 0.38) 80%,
+      transparent
+    );
+  }
+
+  /* Estado desplazado: el cristal "toma cuerpo" y proyecta sombra. */
+  &[data-scrolled='true'] {
+    background-image: linear-gradient(
+      180deg,
+      hsl(226 40% 99% / 0.7) 0%,
+      hsl(226 32% 97% / 0.58) 100%
+    );
+    border-bottom-color: hsl(226 30% 87% / 0.95);
+    box-shadow:
+      inset 0 1px 0 0 hsl(0 0% 100% / 0.9),
+      0 4px 16px -4px hsl(226 35% 35% / 0.09),
+      0 12px 40px -12px hsl(var(--primary) / 0.12);
+  }
+
+  .dark &[data-scrolled='true'] {
+    background-image: linear-gradient(
+      180deg,
+      hsl(226 35% 16% / 0.72) 0%,
+      hsl(226 38% 12% / 0.62) 100%
+    );
+    border-bottom-color: hsl(var(--primary) / 0.3);
+    box-shadow:
+      inset 0 1px 0 0 hsl(0 0% 100% / 0.1),
+      0 4px 16px -4px hsl(0 0% 0% / 0.45),
+      0 12px 40px -12px hsl(var(--primary) / 0.22);
+  }
+  @supports not (
+    (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))
+  ) {
+    background-image: linear-gradient(
+      180deg,
+      hsl(226 35% 99.5%) 0%,
+      hsl(226 28% 98%) 100%
+    );
+
+    .dark & {
+      background-image: linear-gradient(
+        180deg,
+        hsl(226 32% 14%) 0%,
+        hsl(226 36% 11%) 100%
+      );
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+
+    &::before {
+      transition: none;
+    }
+
+    &::after {
+      transition: none;
+    }
+  }
+}
+
+@utility glass-panel {
+  /* Sin soporte de backdrop-filter: se cae a un fondo sólido legible. */
+
+  /* Panel lateral: mismo cristal que el navbar, pero con el gradiente y el
+     filo en vertical, para que ambos se lean como una sola superficie. */
+  position: relative;
+  background-image: linear-gradient(
+    160deg,
+    hsl(226 35% 99.5% / 0.82) 0%,
+    hsl(226 28% 98% / 0.72) 55%,
+    hsl(226 30% 97.5% / 0.76) 100%
+  );
+  -webkit-backdrop-filter: blur(24px) saturate(155%) brightness(1.03);
+  backdrop-filter: blur(24px) saturate(155%) brightness(1.03);
+  border-right: 1px solid hsl(226 25% 91% / 0.9);
+  box-shadow:
+    inset -1px 0 0 0 hsl(0 0% 100% / 0.7),
+    2px 0 12px -6px hsl(226 35% 35% / 0.1);
+
+  .dark & {
+    background-image: linear-gradient(
+      160deg,
+      hsl(226 32% 14% / 0.8) 0%,
+      hsl(226 36% 11% / 0.72) 55%,
+      hsl(226 34% 12% / 0.76) 100%
+    );
+    border-right-color: hsl(226 24% 30% / 0.8);
+    box-shadow:
+      inset -1px 0 0 0 hsl(0 0% 100% / 0.05),
+      2px 0 12px -6px hsl(0 0% 0% / 0.45);
+  }
+
+  @supports not (
+    (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))
+  ) {
+    background-image: linear-gradient(
+      160deg,
+      hsl(226 35% 99.5%) 0%,
+      hsl(226 28% 98%) 100%
+    );
+
+    .dark & {
+      background-image: linear-gradient(
+        160deg,
+        hsl(226 32% 14%) 0%,
+        hsl(226 36% 11%) 100%
+      );
+    }
+  }
+}
+
+@utility glass-control {
+  /* Controles del navbar: superficie de cristal, no botones opacos. */
+  background-image: linear-gradient(
+    160deg,
+    hsl(0 0% 100% / 0.92) 0%,
+    hsl(226 25% 97.5% / 0.78) 100%
+  );
+  -webkit-backdrop-filter: blur(10px) saturate(140%);
+  backdrop-filter: blur(10px) saturate(140%);
+  border-color: hsl(226 22% 88%);
+  box-shadow:
+    inset 0 1px 0 0 hsl(0 0% 100%),
+    0 1px 3px 0 hsl(226 25% 30% / 0.07);
+  transition:
+    background-image 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+
+  &:hover {
+    background-image: linear-gradient(
+      160deg,
+      hsl(0 0% 100%) 0%,
+      hsl(226 35% 96.5% / 0.95) 100%
+    );
+    border-color: hsl(var(--primary) / 0.32);
+    box-shadow:
+      inset 0 1px 0 0 hsl(0 0% 100%),
+      0 3px 12px -2px hsl(var(--primary) / 0.18);
+  }
+
+  .dark & {
+    background-image: linear-gradient(
+      160deg,
+      hsl(226 28% 22% / 0.85) 0%,
+      hsl(226 32% 16% / 0.75) 100%
+    );
+    border-color: hsl(226 20% 36%);
+    box-shadow:
+      inset 0 1px 0 0 hsl(0 0% 100% / 0.1),
+      0 1px 3px 0 hsl(0 0% 0% / 0.35);
+  }
+
+  .dark &:hover {
+    background-image: linear-gradient(
+      160deg,
+      hsl(226 32% 28% / 0.9) 0%,
+      hsl(226 36% 20% / 0.8) 100%
+    );
+    border-color: hsl(var(--primary) / 0.45);
+    box-shadow:
+      inset 0 1px 0 0 hsl(0 0% 100% / 0.14),
+      0 3px 12px -2px hsl(var(--primary) / 0.28);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+@utility login-card {
+  /* ----------------------------------------------------------------
+     Login: superficie de la tarjeta y panel lateral
+     ---------------------------------------------------------------- */
+
+  /* La tarjeta es el color de superficie de la app, sin velos encima: los
+     grises poco saturados sobre el azul se leían sucios. Todo el relieve
+     viene de la sombra y del borde de luz superior, no de capas traslúcidas. */
+  background-color: hsl(var(--card));
+  border: 1px solid hsl(var(--border) / 0.7);
+  box-shadow:
+    inset 0 1px 0 0 hsl(0 0% 100% / 0.9),
+    0 1px 2px 0 hsl(226 30% 20% / 0.06),
+    0 16px 36px -12px hsl(226 35% 20% / 0.22);
+
+  .dark & {
+    background-color: hsl(226 42% 14%);
+    border-color: hsl(226 25% 32%);
+    box-shadow:
+      inset 0 1px 0 0 hsl(0 0% 100% / 0.07),
+      0 1px 2px 0 hsl(0 0% 0% / 0.3),
+      0 16px 36px -12px hsl(0 0% 0% / 0.55);
+  }
+
+  @media (max-width: 1023.98px) {
+    box-shadow:
+      inset 0 1px 0 0 hsl(0 0% 100% / 0.9),
+      0 6px 20px -12px hsl(226 35% 20% / 0.2);
+
+    .dark & {
+      box-shadow:
+        inset 0 1px 0 0 hsl(0 0% 100% / 0.06),
+        0 6px 20px -12px hsl(0 0% 0% / 0.5);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+@utility login-panel {
+  /* Lado azul: color plano, borde recto. Solo desde lg. */
+  @media (min-width: 1024px) {
+    background-color: hsl(var(--primary));
+
+    .dark & {
+      background-color: hsl(var(--primary) / 0.7);
+    }
+  }
+}
+
+@utility row-pending {
+  /* Fila con acción pendiente: latido suave en ámbar. No parpadeo duro, que
+     resulta agresivo en una tabla que se mira mucho rato. */
+  animation: row-pending-pulse 2.4s ease-in-out infinite;
+
+  .dark & {
+    animation-name: row-pending-pulse-dark;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    /* Sin animación, pero la fila debe seguir distinguiéndose. */
+    animation: none;
+    background-color: hsl(38 92% 50% / 0.12);
+    box-shadow: inset 3px 0 0 0 hsl(38 92% 50% / 0.8);
+  }
+}
+
+@utility tasks-table {
+  /* El brillo animado se desactiva si el usuario pidió menos movimiento. */
+
+  /* Estilos generales de tablas */
+  & th {
+    @apply font-semibold text-sm bg-muted/30;
+  }
+
+  & td {
+    @apply align-top;
+  }
+}
+
+/* El visor de la biblioteca no se imprime: es una de sus protecciones. */
+@media print {
+  .secure-pdf-viewer {
+    display: none !important;
+  }
+}
+
+/* La clase la pone schedule-x en tiempo de ejecución, así que no aparece en
+   el código y un @utility no se emitiría. */
+.sx-react-calendar-wrapper {
+  width: 1200px;
+  max-width: 100vw;
+  height: 800px;
+  max-height: 90vh;
+}
 
 @layer base {
   :root {
@@ -122,7 +606,6 @@
 }
 
 @layer components {
-
   /* Sonner ancla el botón de cerrar al borde izquierdo y lo saca del toast con
      un translate negativo. Lo reanclamos a la derecha y dentro del contenedor. */
   [data-sonner-toaster] {
@@ -161,284 +644,6 @@
       opacity: 1;
     }
   }
-
-  /* ============================================================
-     LIQUID GLASS — Navbar
-     Se construye por capas sobre el <header>:
-       fondo translúcido -> ::before (brillo especular) -> ::after
-       (hairline superior) -> contenido.
-     El blur real vive en .glass-surface; las capas solo pintan luz,
-     así que no se recalcula el desenfoque al animar.
-     ============================================================ */
-  .glass-surface {
-    position: relative;
-
-    /* Tinte azulado en vez de --background puro: sobre un fondo blanco,
-       difuminar blanco sobre blanco no produce ningún efecto visible.
-       El tinte da la "sustancia" del cristal. */
-    background-image: linear-gradient(180deg,
-        hsl(226 35% 99.5% / 0.80) 0%,
-        hsl(226 28% 98% / 0.70) 100%);
-    -webkit-backdrop-filter: blur(24px) saturate(155%) brightness(1.03);
-    backdrop-filter: blur(24px) saturate(155%) brightness(1.03);
-
-    /* Borde inferior siempre presente: separa navbar de página aunque
-       no haya contenido detrás que refractar. */
-    border-bottom: 1px solid hsl(226 25% 91% / 0.9);
-
-    box-shadow:
-      inset 0 1px 0 0 hsl(0 0% 100% / 0.85),
-      0 1px 2px 0 hsl(226 40% 20% / 0.04);
-
-    transition:
-      background-color 0.4s ease,
-      box-shadow 0.4s ease,
-      border-color 0.4s ease;
-  }
-
-  .dark .glass-surface {
-    background-image: linear-gradient(180deg,
-        hsl(226 32% 14% / 0.78) 0%,
-        hsl(226 36% 11% / 0.70) 100%);
-    border-bottom-color: hsl(226 24% 30% / 0.8);
-    box-shadow:
-      inset 0 1px 0 0 hsl(0 0% 100% / 0.07),
-      0 1px 2px 0 hsl(0 0% 0% / 0.3);
-  }
-
-  /* Brillo especular: banda diagonal que recorre el cristal. */
-  .glass-surface::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background: linear-gradient(100deg,
-        transparent 15%,
-        hsl(var(--primary) / 0.06) 38%,
-        hsl(0 0% 100% / 0.55) 50%,
-        hsl(var(--primary) / 0.06) 62%,
-        transparent 85%);
-    background-size: 220% 100%;
-    background-position: var(--glass-sheen, 120%) 0;
-    opacity: var(--glass-sheen-opacity, 0);
-    transition: opacity 0.5s ease;
-  }
-
-  .dark .glass-surface::before {
-    background: linear-gradient(100deg,
-        transparent 20%,
-        hsl(var(--primary) / 0.16) 42%,
-        hsl(0 0% 100% / 0.10) 50%,
-        hsl(var(--primary) / 0.16) 58%,
-        transparent 80%);
-    background-size: 220% 100%;
-  }
-
-  /* Filo de luz en el borde inferior: marca dónde termina el cristal
-     y empieza la página. Se enciende al hacer scroll. */
-  .glass-surface::after {
-    content: "";
-    position: absolute;
-    inset: auto 0 -1px 0;
-    height: 1px;
-    pointer-events: none;
-    background: linear-gradient(90deg,
-        transparent,
-        hsl(var(--primary) / 0.22) 20%,
-        hsl(var(--primary) / 0.38) 50%,
-        hsl(var(--primary) / 0.22) 80%,
-        transparent);
-    opacity: var(--glass-edge-opacity, 0);
-    transition: opacity 0.5s ease;
-  }
-
-  .dark .glass-surface::after {
-    background: linear-gradient(90deg,
-        transparent,
-        hsl(var(--primary) / 0.38) 20%,
-        hsl(210 55% 62% / 0.5) 50%,
-        hsl(var(--primary) / 0.38) 80%,
-        transparent);
-  }
-
-  /* Estado desplazado: el cristal "toma cuerpo" y proyecta sombra. */
-  .glass-surface[data-scrolled="true"] {
-    background-image: linear-gradient(180deg,
-        hsl(226 40% 99% / 0.70) 0%,
-        hsl(226 32% 97% / 0.58) 100%);
-    border-bottom-color: hsl(226 30% 87% / 0.95);
-    box-shadow:
-      inset 0 1px 0 0 hsl(0 0% 100% / 0.9),
-      0 4px 16px -4px hsl(226 35% 35% / 0.09),
-      0 12px 40px -12px hsl(var(--primary) / 0.12);
-  }
-
-  .dark .glass-surface[data-scrolled="true"] {
-    background-image: linear-gradient(180deg,
-        hsl(226 35% 16% / 0.72) 0%,
-        hsl(226 38% 12% / 0.62) 100%);
-    border-bottom-color: hsl(var(--primary) / 0.3);
-    box-shadow:
-      inset 0 1px 0 0 hsl(0 0% 100% / 0.1),
-      0 4px 16px -4px hsl(0 0% 0% / 0.45),
-      0 12px 40px -12px hsl(var(--primary) / 0.22);
-  }
-
-  /* Sin soporte de backdrop-filter: se cae a un fondo sólido legible. */
-  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-    .glass-surface {
-      background-image: linear-gradient(180deg,
-          hsl(226 35% 99.5%) 0%,
-          hsl(226 28% 98%) 100%);
-    }
-
-    .dark .glass-surface {
-      background-image: linear-gradient(180deg,
-          hsl(226 32% 14%) 0%,
-          hsl(226 36% 11%) 100%);
-    }
-  }
-
-  /* Panel lateral: mismo cristal que el navbar, pero con el gradiente y el
-     filo en vertical, para que ambos se lean como una sola superficie. */
-  .glass-panel {
-    position: relative;
-    background-image: linear-gradient(160deg,
-        hsl(226 35% 99.5% / 0.82) 0%,
-        hsl(226 28% 98% / 0.72) 55%,
-        hsl(226 30% 97.5% / 0.76) 100%);
-    -webkit-backdrop-filter: blur(24px) saturate(155%) brightness(1.03);
-    backdrop-filter: blur(24px) saturate(155%) brightness(1.03);
-    border-right: 1px solid hsl(226 25% 91% / 0.9);
-    box-shadow:
-      inset -1px 0 0 0 hsl(0 0% 100% / 0.7),
-      2px 0 12px -6px hsl(226 35% 35% / 0.10);
-  }
-
-  .dark .glass-panel {
-    background-image: linear-gradient(160deg,
-        hsl(226 32% 14% / 0.80) 0%,
-        hsl(226 36% 11% / 0.72) 55%,
-        hsl(226 34% 12% / 0.76) 100%);
-    border-right-color: hsl(226 24% 30% / 0.8);
-    box-shadow:
-      inset -1px 0 0 0 hsl(0 0% 100% / 0.05),
-      2px 0 12px -6px hsl(0 0% 0% / 0.45);
-  }
-
-  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-    .glass-panel {
-      background-image: linear-gradient(160deg,
-          hsl(226 35% 99.5%) 0%,
-          hsl(226 28% 98%) 100%);
-    }
-
-    .dark .glass-panel {
-      background-image: linear-gradient(160deg,
-          hsl(226 32% 14%) 0%,
-          hsl(226 36% 11%) 100%);
-    }
-  }
-
-  /* Controles del navbar: superficie de cristal, no botones opacos. */
-  .glass-control {
-    background-image: linear-gradient(160deg,
-        hsl(0 0% 100% / 0.92) 0%,
-        hsl(226 25% 97.5% / 0.78) 100%);
-    -webkit-backdrop-filter: blur(10px) saturate(140%);
-    backdrop-filter: blur(10px) saturate(140%);
-    border-color: hsl(226 22% 88%);
-    box-shadow:
-      inset 0 1px 0 0 hsl(0 0% 100%),
-      0 1px 3px 0 hsl(226 25% 30% / 0.07);
-    transition:
-      background-image 0.2s ease,
-      border-color 0.2s ease,
-      box-shadow 0.2s ease;
-  }
-
-  .glass-control:hover {
-    background-image: linear-gradient(160deg,
-        hsl(0 0% 100%) 0%,
-        hsl(226 35% 96.5% / 0.95) 100%);
-    border-color: hsl(var(--primary) / 0.32);
-    box-shadow:
-      inset 0 1px 0 0 hsl(0 0% 100%),
-      0 3px 12px -2px hsl(var(--primary) / 0.18);
-  }
-
-  .dark .glass-control {
-    background-image: linear-gradient(160deg,
-        hsl(226 28% 22% / 0.85) 0%,
-        hsl(226 32% 16% / 0.75) 100%);
-    border-color: hsl(226 20% 36%);
-    box-shadow:
-      inset 0 1px 0 0 hsl(0 0% 100% / 0.10),
-      0 1px 3px 0 hsl(0 0% 0% / 0.35);
-  }
-
-  .dark .glass-control:hover {
-    background-image: linear-gradient(160deg,
-        hsl(226 32% 28% / 0.9) 0%,
-        hsl(226 36% 20% / 0.8) 100%);
-    border-color: hsl(var(--primary) / 0.45);
-    box-shadow:
-      inset 0 1px 0 0 hsl(0 0% 100% / 0.14),
-      0 3px 12px -2px hsl(var(--primary) / 0.28);
-  }
-
-  /* ----------------------------------------------------------------
-     Login: superficie de la tarjeta y panel lateral
-     ---------------------------------------------------------------- */
-
-  /* La tarjeta es el color de superficie de la app, sin velos encima: los
-     grises poco saturados sobre el azul se leían sucios. Todo el relieve
-     viene de la sombra y del borde de luz superior, no de capas traslúcidas. */
-  .login-card {
-    background-color: hsl(var(--card));
-    border: 1px solid hsl(var(--border) / 0.7);
-    box-shadow:
-      inset 0 1px 0 0 hsl(0 0% 100% / 0.9),
-      0 1px 2px 0 hsl(226 30% 20% / 0.06),
-      0 16px 36px -12px hsl(226 35% 20% / 0.22);
-  }
-
-  .dark .login-card {
-    background-color: hsl(226 42% 14%);
-    border-color: hsl(226 25% 32%);
-    box-shadow:
-      inset 0 1px 0 0 hsl(0 0% 100% / 0.07),
-      0 1px 2px 0 hsl(0 0% 0% / 0.3),
-      0 16px 36px -12px hsl(0 0% 0% / 0.55);
-  }
-
-  @media (max-width: 1023.98px) {
-    .login-card {
-      box-shadow:
-        inset 0 1px 0 0 hsl(0 0% 100% / 0.9),
-        0 6px 20px -12px hsl(226 35% 20% / 0.20);
-    }
-
-    .dark .login-card {
-      box-shadow:
-        inset 0 1px 0 0 hsl(0 0% 100% / 0.06),
-        0 6px 20px -12px hsl(0 0% 0% / 0.5);
-    }
-  }
-
-  /* Lado azul: color plano, borde recto. Solo desde lg. */
-  @media (min-width: 1024px) {
-    .login-panel {
-      background-color: hsl(var(--primary));
-    }
-
-    .dark .login-panel {
-      background-color: hsl(var(--primary) / 0.7);
-    }
-  }
-
-  /* Fila con acción pendiente: latido suave en ámbar. No parpadeo duro, que
-     resulta agresivo en una tabla que se mira mucho rato. */
   @keyframes row-pending-pulse {
     0%, 100% {
       background-color: hsl(38 92% 50% / 0.06);
@@ -450,14 +655,6 @@
     }
   }
 
-  .row-pending {
-    animation: row-pending-pulse 2.4s ease-in-out infinite;
-  }
-
-  .dark .row-pending {
-    animation-name: row-pending-pulse-dark;
-  }
-
   @keyframes row-pending-pulse-dark {
     0%, 100% {
       background-color: hsl(38 92% 50% / 0.08);
@@ -466,78 +663,6 @@
     50% {
       background-color: hsl(38 92% 50% / 0.18);
       box-shadow: inset 3px 0 0 0 hsl(38 92% 60% / 0.9);
-    }
-  }
-
-  /* El brillo animado se desactiva si el usuario pidió menos movimiento. */
-  @media (prefers-reduced-motion: reduce) {
-
-    /* Sin animación, pero la fila debe seguir distinguiéndose. */
-    .row-pending {
-      animation: none;
-      background-color: hsl(38 92% 50% / 0.12);
-      box-shadow: inset 3px 0 0 0 hsl(38 92% 50% / 0.8);
-    }
-
-
-    .glass-surface,
-    .glass-surface::before,
-    .glass-surface::after,
-    .glass-control,
-    .login-card {
-      transition: none;
-    }
-  }
-
-  /* Estilos generales de tablas */
-  .tasks-table th {
-    @apply font-semibold text-sm bg-muted/30;
-  }
-
-  .tasks-table td {
-    @apply align-top;
-  }
-
-  .sx-react-calendar-wrapper {
-    width: 1200px;
-    max-width: 100vw;
-    height: 800px;
-    max-height: 90vh;
-  }
-
-  /* 2. BLINDAJE DEL VISOR SEGURO 
-  */
-  .custom-pdf-viewer {
-    /* Bloquea la selección de texto para evitar copias */
-    user-select: none !important;
-    -webkit-user-select: none !important;
-    -moz-user-select: none !important;
-    -ms-user-select: none !important;
-  }
-
-  /* Forzamos el tema oscuro en la librería para que no brille en blanco al cargar */
-  .rpv-core__viewer {
-    background-color: #0e0f11 !important;
-  }
-
-  .rpv-core__inner-pages {
-    background-color: #0e0f11 !important;
-  }
-
-  /* Estilos para el Toolbar de la librería (ajuste visual) */
-  .rpv-core__toolbar {
-    background-color: #1a1c1e !important;
-    border-bottom: 1px solid #1f2937 !important;
-    color: #f3f4f6 !important;
-  }
-
-  /* BLOQUEO DE IMPRESIÓN: Si el usuario intenta imprimir, la página saldrá en blanco */
-  @media print {
-
-    .custom-pdf-viewer,
-    .rpv-core__viewer,
-    body {
-      display: none !important;
     }
   }
 }

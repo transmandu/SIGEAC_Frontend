@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { AnimatePresence, motion } from 'framer-motion'
+import { AnimatePresence, motion } from "motion/react"
 import { ArrowLeft, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -57,7 +57,7 @@ export default function BackButton({
           border border-slate-200/80
           bg-slate-100
           text-slate-700
-          shadow-sm
+          shadow-xs
           backdrop-blur-md
           transition-all duration-200
           hover:bg-slate-200/70
@@ -162,7 +162,7 @@ export default function BackButton({
         <div
           className="
             absolute inset-y-0 left-0 w-1/3
-            bg-gradient-to-r
+            bg-linear-to-r
             from-transparent
             via-white/20
             to-transparent
@@ -192,7 +192,7 @@ export default function BackButton({
             px-3 py-1.5
             text-xs font-medium
             shadow-xl
-            backdrop-blur
+            backdrop-blur-sm
           "
         >
           {tooltip}

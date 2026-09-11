@@ -19,7 +19,7 @@ function TintedCard({
 }) {
   return (
     <Card
-      className="relative w-full max-w-lg overflow-hidden rounded-3xl border bg-background/70 backdrop-blur-xl shadow-sm shadow-black/5"
+      className="relative w-full max-w-lg overflow-hidden rounded-3xl border bg-background/70 backdrop-blur-xl shadow-xs shadow-black/5"
       style={{
         borderColor: `rgba(${tone}, 0.18)`,
         backgroundImage: `linear-gradient(to bottom right, rgba(${tone}, 0.05), transparent 65%)`,
@@ -44,7 +44,7 @@ export const ReporteUniformesTab = () => {
           }}
         />
 
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-sky-400/[0.02] via-transparent to-transparent" />
+        <div className="pointer-events-none absolute inset-0 bg-linear-to-br from-sky-400/2 via-transparent to-transparent" />
 
         <CardHeader className="relative text-center space-y-5 pb-6">
           <div className="flex justify-center">
