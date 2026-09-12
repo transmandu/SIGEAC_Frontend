@@ -1,0 +1,14 @@
+{
+  "recommendations": [
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+    "bradlc.vscode-tailwindcss",
+    "editorconfig.editorconfig",
+    "yoavbls.pretty-ts-errors",
+    "usernamehw.errorlens"
+  ],
+  "unwantedRecommendations": [
+    "hookyqr.beautify",
+    "ms-vscode.vscode-typescript-next"
+  ]
+}

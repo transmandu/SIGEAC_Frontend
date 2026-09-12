@@ -10,7 +10,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "format:changed": "node scripts/format-changed.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",

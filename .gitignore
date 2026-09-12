@@ -47,5 +47,9 @@ AGENTS.md
 /.codex
 
 # editor
-/.vscode/
+# .vscode se ignora salvo los archivos que el equipo comparte a proposito:
+# la config de formateo y las extensiones recomendadas deben llegar a todos.
+/.vscode/*
+!/.vscode/settings.json
+!/.vscode/extensions.json
 /.idea/
