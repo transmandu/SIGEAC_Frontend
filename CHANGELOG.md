@@ -1,3 +1,7 @@
+## v4.0.1 — 2026-09-12
+
+- chore: sacar config local de editor y de IA del control de versiones
+
 ## v4.0.0 — 2026-09-11
 
 - Merge pull request #253 from transmandu/fix7pr-yaml-versiones
