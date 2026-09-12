@@ -1,18 +1,13 @@
 "use client"
 
 import {
-  ColumnDef,
   ColumnFiltersState,
-  Row,
-  SortingState,
   flexRender,
-  getCoreRowModel,
-  getExpandedRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table"
+  type RowData,
+  SortingState,
+  useTable,
+} from "@tanstack/react-table";
+import { appTableFeatures, type AppColumnDef, type AppRow } from "@/lib/table";
 
 import { useState } from "react"
 import { cn } from "@/lib/utils"
@@ -32,17 +27,17 @@ import { DataTablePagination } from "@/components/tables/DataTablePagination"
 import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions"
 import { CreateEmployeeDialog } from "@/components/dialogs/general/CreateEmployeeDialog"
 
-interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[]
+interface DataTableProps<TData extends RowData> {
+  columns: AppColumnDef<TData>[]
   data: TData[]
-  renderSubComponent?: (props: { row: Row<TData> }) => React.ReactNode
+  renderSubComponent?: (props: { row: AppRow<TData> }) => React.ReactNode
 }
 
-export function DataTable<TData, TValue>({
+export function DataTable<TData extends RowData>({
   columns,
   data,
   renderSubComponent,
-}: DataTableProps<TData, TValue>) {
+}: DataTableProps<TData>) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [expandedRowId, setExpandedRowId] = useState<string | false>(false)
@@ -53,7 +48,8 @@ export function DataTable<TData, TValue>({
     pageSize: 10,
   })
 
-  const table = useReactTable({
+  const table = useTable({
+    features: appTableFeatures,
     data,
     columns,
 
@@ -67,11 +63,6 @@ export function DataTable<TData, TValue>({
     onColumnFiltersChange: setColumnFilters,
     onPaginationChange: setPagination,
 
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getExpandedRowModel: getExpandedRowModel(),
 
     getRowCanExpand: () => true,
 
@@ -80,7 +71,7 @@ export function DataTable<TData, TValue>({
     autoResetPageIndex: false,
   })
 
-  const isFiltered = table.getState().columnFilters.length > 0
+  const isFiltered = table.state.columnFilters.length > 0
 
   return (
     <div>

@@ -173,13 +173,13 @@ php artisan serve
 cd SIGEAC_Frontend
 
 # 2. Instalar dependencias
-npm install
+pnpm install
 
 # 3. Configurar .env.local
 #    NEXT_PUBLIC_API_BASE_URL=http://localhost:8000/api
 
 # 4. Iniciar servidor de desarrollo
-npm run dev
+pnpm dev
 ```
 
 ### 2.4 Verificación

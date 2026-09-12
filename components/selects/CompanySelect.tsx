@@ -67,10 +67,10 @@ const CompanySelect = () => {
         <SelectTrigger
           className={cn(
             BASE_TRIGGER,
-            "bg-gradient-to-br from-background/70 to-background/40",
+            "bg-linear-to-br from-background/70 to-background/40",
             "backdrop-blur-md",
             "border border-slate-400/60 dark:border-slate-600/60",
-            "shadow-sm",
+            "shadow-xs",
             "text-slate-700 dark:text-slate-200",
             "hover:border-blue-400/30",
             "hover:shadow-md hover:shadow-blue-500/10",
@@ -114,10 +114,10 @@ const CompanySelect = () => {
         <SelectTrigger
           className={cn(
             BASE_TRIGGER,
-            "bg-gradient-to-br from-background/70 to-background/40",
+            "bg-linear-to-br from-background/70 to-background/40",
             "backdrop-blur-md",
             "border border-slate-400/60 dark:border-slate-600/60",
-            "shadow-sm",
+            "shadow-xs",
             "text-slate-700 dark:text-slate-200",
             "hover:border-blue-400/30",
             "hover:shadow-md hover:shadow-blue-500/10",

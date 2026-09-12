@@ -12,7 +12,7 @@ export function ScaleConnectionPanel() {
   const isConnecting = state.status === "connecting";
 
   return (
-    <div className="flex items-center gap-3 rounded-lg border border-border bg-card p-3 shadow-sm">
+    <div className="flex items-center gap-3 rounded-lg border border-border bg-card p-3 shadow-xs">
       <ScaleStatusBadge />
 
       {state.isSimulated && (

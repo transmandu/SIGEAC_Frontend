@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { Column } from '@tanstack/react-table';
+import { type RowData } from '@tanstack/react-table';
+import { type AppColumn } from '@/lib/table';
 import type { DateRange } from 'react-day-picker';
 import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -60,9 +61,9 @@ export interface FilterOption {
   label: string;
 }
 
-interface DataTableColumnHeaderProps<TData, TValue>
+interface DataTableColumnHeaderProps<TData extends RowData, TValue>
   extends React.HTMLAttributes<HTMLDivElement> {
-  column: Column<TData, TValue>;
+  column: AppColumn<TData, TValue>;
   title: string;
   filter?: boolean;
   /**
@@ -94,7 +95,7 @@ const normalize = (value: string) =>
     .toLowerCase()
     .trim();
 
-export function DataTableColumnHeader<TData, TValue>({
+export function DataTableColumnHeader<TData extends RowData, TValue>({
   column,
   filter = false,
   filterOptions,
@@ -284,10 +285,10 @@ export function DataTableColumnHeader<TData, TValue>({
                             : undefined,
                         )
                       }
-                      captionLayout="dropdown-buttons"
-                      fromYear={1900}
-                      toYear={new Date().getFullYear() + 5}
-                      initialFocus
+                      captionLayout="dropdown"
+                      startMonth={new Date(1900, 0)}
+                      endMonth={new Date(new Date().getFullYear() + 5, 11)}
+                      autoFocus
                     />
                   </PopoverContent>
                 </Popover>

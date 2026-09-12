@@ -16,8 +16,8 @@ import { Plus, Ruler, Scale, X } from "lucide-react"
 
 const fieldClass = cn(
     "h-9 rounded-lg text-sm tabular-nums",
-    "bg-gradient-to-br from-background/70 to-background/40 backdrop-blur-md",
-    "border border-slate-400/60 dark:border-slate-600/60 shadow-sm",
+    "bg-linear-to-br from-background/70 to-background/40 backdrop-blur-md",
+    "border border-slate-400/60 dark:border-slate-600/60 shadow-xs",
     "hover:border-blue-400/30 transition-all duration-200",
 )
 

@@ -1,6 +1,6 @@
 "use client"
 
-import { ColumnDef } from "@tanstack/react-table"
+import { type AppColumnDef } from "@/lib/table";
 
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
 import {
@@ -20,7 +20,7 @@ import { Info } from "lucide-react"
 import Link from "next/link"
 
 
-export const columns: ColumnDef<User>[] = [
+export const columns: AppColumnDef<User>[] = [
   {
     accessorKey: "first_name",
     header: ({ column }) => (

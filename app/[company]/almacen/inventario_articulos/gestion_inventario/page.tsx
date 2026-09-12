@@ -13,7 +13,7 @@ import { useInventoryExport } from "@/hooks/mantenimiento/almacen/reportes/useGe
 import { useCompanyStore } from "@/stores/CompanyStore"
 import { useAuth } from "@/contexts/AuthContext"
 import { TooltipArrow } from "@radix-ui/react-tooltip"
-import type { SortingState } from "@tanstack/react-table"
+import { SortingState } from "@tanstack/react-table";
 import { parseISO } from "date-fns"
 import { Loader2, MapPin, Package2, PaintBucket, Puzzle, Wrench, X } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"

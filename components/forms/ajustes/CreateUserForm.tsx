@@ -31,7 +31,7 @@ import { useGetRoles } from "@/hooks/sistema/usuario/useGetRoles";
 import { useGetUsers } from "@/hooks/sistema/usuario/useGetUsers";
 import { cn } from "@/lib/utils";
 import loadingGif from '@/public/loading2.gif';
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { Check, ChevronsUpDown, Eye, EyeOff, Loader2 } from 'lucide-react';
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";

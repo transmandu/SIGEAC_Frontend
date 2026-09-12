@@ -1,6 +1,6 @@
 "use client";
 
-import type { Control } from "react-hook-form";
+import type { Control, FieldValues, Path } from "react-hook-form";
 
 import {
     FormControl,
@@ -26,7 +26,7 @@ import { NumericTextInput } from "@/components/forms/mantenimiento/almacen/_comp
  * pertenecía a cuál: aquí cada límite es una fila con su nombre, y las tres
  * columnas siempre significan lo mismo — horas, ciclos y fecha tope.
  */
-export const LifeLimitRow = ({
+export const LifeLimitRow = <T extends FieldValues,>({
     control,
     title,
     hint,
@@ -36,7 +36,7 @@ export const LifeLimitRow = ({
     onCalendarChange,
     disabled,
 }: {
-    control: Control<any>;
+    control: Control<T>;
     title: string;
     hint?: string;
     hoursName: string;
@@ -54,7 +54,7 @@ export const LifeLimitRow = ({
         <div className="grid grid-cols-1 items-start gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <FormField
                 control={control}
-                name={hoursName}
+                name={hoursName as Path<T>}
                 render={({ field }) => (
                     <FormItem className="w-full">
                         {/* `h-4`: la fecha tope lleva la casilla "No aplica" en
@@ -79,7 +79,7 @@ export const LifeLimitRow = ({
 
             <FormField
                 control={control}
-                name={cyclesName}
+                name={cyclesName as Path<T>}
                 render={({ field }) => (
                     <FormItem className="w-full">
                         <FormLabel className={cn(labelClass, "flex h-4 items-center")}>

@@ -21,7 +21,7 @@ export function ReadOnlyField({
           <div className="text-xs text-muted-foreground">{label}</div>
           <div
             className={cn(
-              "mt-1 text-sm font-medium break-words",
+              "mt-1 text-sm font-medium wrap-break-word",
               mono && "font-mono"
             )}
           >

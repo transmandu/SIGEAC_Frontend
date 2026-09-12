@@ -44,7 +44,7 @@ function TintedCard({
 }) {
   return (
     <Card
-      className="relative overflow-hidden rounded-2xl sm:rounded-3xl border bg-background/70 backdrop-blur-xl shadow-sm"
+      className="relative overflow-hidden rounded-2xl sm:rounded-3xl border bg-background/70 backdrop-blur-xl shadow-xs"
       style={{
         borderColor: `rgba(${tone}, 0.22)`,
         backgroundImage: `linear-gradient(to bottom right, rgba(${tone}, 0.06), transparent 60%)`,
@@ -145,7 +145,7 @@ export default function ArticlesSummary({
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6 text-center">
 
               <div>
-                <div className="text-lg sm:text-xl font-bold bg-gradient-to-b from-sky-600 to-cyan-500 bg-clip-text text-transparent">
+                <div className="text-lg sm:text-xl font-bold bg-linear-to-b from-sky-600 to-cyan-500 bg-clip-text text-transparent">
                   {data.storedCount ?? 0}%
                 </div>
                 <p className="text-xs sm:text-sm text-slate-500">
@@ -154,7 +154,7 @@ export default function ArticlesSummary({
               </div>
 
               <div>
-                <div className="flex items-center justify-center gap-1 text-lg sm:text-xl font-bold bg-gradient-to-b from-indigo-600 to-blue-500 bg-clip-text text-transparent">
+                <div className="flex items-center justify-center gap-1 text-lg sm:text-xl font-bold bg-linear-to-b from-indigo-600 to-blue-500 bg-clip-text text-transparent">
                   <Archive className="size-3.5 sm:size-4 shrink-0" />
                   {data.generalArticlesAvailablePercentage ?? 0}%
                 </div>
@@ -164,7 +164,7 @@ export default function ArticlesSummary({
               </div>
 
               <div>
-                <div className="text-lg sm:text-xl font-bold bg-gradient-to-b from-blue-600 to-sky-500 bg-clip-text text-transparent">
+                <div className="text-lg sm:text-xl font-bold bg-linear-to-b from-blue-600 to-sky-500 bg-clip-text text-transparent">
                   {data.dispatchCount ?? 0}
                 </div>
                 <p className="text-xs sm:text-sm text-slate-500">
@@ -173,7 +173,7 @@ export default function ArticlesSummary({
               </div>
 
               <div>
-                <div className="text-lg sm:text-xl font-bold bg-gradient-to-b from-slate-700 to-slate-500 dark:from-slate-200 dark:to-slate-400 bg-clip-text text-transparent">
+                <div className="text-lg sm:text-xl font-bold bg-linear-to-b from-slate-700 to-slate-500 dark:from-slate-200 dark:to-slate-400 bg-clip-text text-transparent">
                   {data.dispatchAircraftCount ?? 0}
                 </div>
                 <p className="text-xs sm:text-sm text-slate-500">
@@ -182,7 +182,7 @@ export default function ArticlesSummary({
               </div>
 
               <div>
-                <div className="text-lg sm:text-xl font-bold bg-gradient-to-b from-cyan-600 to-sky-500 bg-clip-text text-transparent">
+                <div className="text-lg sm:text-xl font-bold bg-linear-to-b from-cyan-600 to-sky-500 bg-clip-text text-transparent">
                   {data.dispatchWorkOrderCount ?? 0}
                 </div>
                 <p className="text-xs sm:text-sm text-slate-500">
@@ -221,7 +221,7 @@ export default function ArticlesSummary({
                 <div className="min-w-[500px]">
                   <div className="overflow-y-auto max-h-[180px] sm:max-h-[220px]">
                     <Table>
-                      <TableHeader className="sticky top-0 bg-background/80 backdrop-blur">
+                      <TableHeader className="sticky top-0 bg-background/80 backdrop-blur-sm">
                         <TableRow>
                           <TableHead className="text-center w-[40%]">Descripción</TableHead>
                           <TableHead className="text-center w-[30%]">Part Number</TableHead>
@@ -233,15 +233,15 @@ export default function ArticlesSummary({
                         {data.articlesOutOfStock?.length ? (
                           data.articlesOutOfStock.map((item) => (
                             <TableRow key={item.id}>
-                              <TableCell className="text-center break-words whitespace-normal">
+                              <TableCell className="text-center wrap-break-word whitespace-normal">
                                 {item.description}
                               </TableCell>
 
-                              <TableCell className="text-center break-words">
+                              <TableCell className="text-center wrap-break-word">
                                 {item.part_number}
                               </TableCell>
 
-                              <TableCell className="text-center break-words">
+                              <TableCell className="text-center wrap-break-word">
                                 {item.category}
                               </TableCell>
                             </TableRow>

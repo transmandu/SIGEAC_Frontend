@@ -1,6 +1,6 @@
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
+import { type AppColumnDef } from "@/lib/table";
 import { useState, type MouseEvent } from "react";
 import {
   Droplets,
@@ -73,7 +73,7 @@ function DetermineDestinationButton({ article }: { article: DestinationArticle }
   );
 }
 
-export const columns: ColumnDef<DestinationArticle>[] = [
+export const columns: AppColumnDef<DestinationArticle>[] = [
   {
     accessorKey: "part_number",
     header: ({ column }) => (

@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { ColumnDef } from "@tanstack/react-table";
+import { type AppColumnDef } from "@/lib/table";
 import { CargoManifest } from "@/types";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { Button } from "@/components/ui/button";
@@ -129,7 +129,7 @@ const ActionsCell = ({ row, company }: { row: any; company: string }) => {
 
 export const getManifestColumns = (
   company: string,
-): ColumnDef<CargoManifest>[] => [
+): AppColumnDef<CargoManifest>[] => [
   {
     accessorKey: "manifest_number",
     header: ({ column }) => (

@@ -51,7 +51,7 @@ export default function NewCargoShipmentPage() {
           </div>
         </div>
 
-        <Card className="border-none shadow-none md:border md:shadow-sm md:bg-card text-center">
+        <Card className="border-none shadow-none md:border md:shadow-xs md:bg-card text-center">
           <CardHeader className="hidden md:flex px-6 pt-6 pb-2">
             <CardTitle>Formulario de Registro</CardTitle>
             <CardDescription>

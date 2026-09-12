@@ -52,10 +52,10 @@ export function CalendarDateField({
             onChange(date);
             setOpen(false);
           }}
-          captionLayout="dropdown-buttons"
-          fromYear={1990}
-          toYear={new Date().getFullYear() + 5}
-          initialFocus
+          captionLayout="dropdown"
+          startMonth={new Date(1990, 0)}
+          endMonth={new Date(new Date().getFullYear() + 5, 11)}
+          autoFocus
         />
       </PopoverContent>
     </Popover>

@@ -111,7 +111,7 @@ export default function ErrorReportKpiCards({ activeStatus, onSelect }: ErrorRep
             type="button"
             onClick={() => onSelect(active ? undefined : card.status)}
             className={cn(
-              "group relative flex items-center gap-3 rounded-2xl border border-slate-200/80 bg-background/60 p-4 text-left shadow-sm shadow-slate-200/40 backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:shadow-md dark:border-slate-800/80 dark:shadow-none",
+              "group relative flex items-center gap-3 rounded-2xl border border-slate-200/80 bg-background/60 p-4 text-left shadow-xs shadow-slate-200/40 backdrop-blur-xs transition-all hover:-translate-y-0.5 hover:shadow-md dark:border-slate-800/80 dark:shadow-none",
               active && cn("ring-2", tone.ring, tone.activeBg)
             )}
           >

@@ -33,8 +33,8 @@ export const StepBadge = ({
             {completed ? <CheckCircle2 className="h-4 w-4" /> : step}
         </div>
         <div className="min-w-0">
-            <p className="break-words text-sm font-medium leading-tight">{title}</p>
-            <p className="break-words text-xs text-muted-foreground">
+            <p className="wrap-break-word text-sm font-medium leading-tight">{title}</p>
+            <p className="wrap-break-word text-xs text-muted-foreground">
                 {completed ? 'Completado o en edición' : 'Pendiente'}
             </p>
         </div>

@@ -1,0 +1,17 @@
+# Configuración de pnpm. No hay workspaces: este archivo existe porque desde
+# pnpm 10 es donde viven los ajustes del gestor.
+
+# Scripts de instalación permitidos. pnpm los bloquea todos por defecto, que es
+# la puerta por la que entra un paquete comprometido. En este árbol solo
+# unrs-resolver (del resolvedor de imports de ESLint) trae uno, y se comprobó
+# que ESLint resuelve igual sin ejecutarlo: su binario nativo llega por
+# dependencias opcionales. Queda en false a propósito, no por olvido.
+allowBuilds:
+  unrs-resolver: false
+
+# Cuarentena para versiones recién publicadas, en minutos (24 h). Es la defensa
+# concreta contra el patrón de los gusanos del registro, que se propagan en las
+# horas siguientes a una publicación comprometida. Contrapartida: si hace falta
+# un paquete publicado hoy mismo, hay que bajar este número a mano para esa
+# instalación.
+minimumReleaseAge: 1440

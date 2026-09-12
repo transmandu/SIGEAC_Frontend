@@ -1,6 +1,6 @@
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
+import { type AppColumnDef } from "@/lib/table";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { SMSActivity } from "@/types";
 import { dateFormat } from "@/lib/utils";
@@ -62,7 +62,7 @@ const StatusBadge = ({ status }: { status: string }) => {
 };
 
 // Columnas de la tabla
-export const columns: ColumnDef<SMSActivityTableRow>[] = [
+export const columns: AppColumnDef<SMSActivityTableRow>[] = [
   {
     accessorKey: "activity_number",
     header: ({ column }) => (

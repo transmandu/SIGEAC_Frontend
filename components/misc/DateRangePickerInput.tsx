@@ -124,7 +124,7 @@ const DateRangePickerInput = ({
   };
 
   return (
-    <div className="flex flex-col gap-3 p-3 border rounded-lg bg-card text-card-foreground shadow-sm">
+    <div className="flex flex-col gap-3 p-3 border rounded-lg bg-card text-card-foreground shadow-xs">
       {/* Modo y granularidad */}
 
       <div className="flex flex-col items-center gap-2 border-b pb-3 w-full">

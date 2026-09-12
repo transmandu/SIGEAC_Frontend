@@ -50,7 +50,7 @@ import { useAutoScheduleGenerator } from "@/hooks/mantenimiento/planificacion/us
 import { useGetWorkOrderEmployees } from "@/hooks/mantenimiento/planificacion/useGetWorkOrderEmployees";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { WorkOrder } from "@/types";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { ChevronLeft, Loader2, Pencil, User2 } from "lucide-react";
@@ -513,7 +513,7 @@ export const TaskDetailsDialog = ({
                           className="flex items-start gap-4 rounded-lg border p-3 hover:bg-muted transition"
                         >
                           {/* Fecha y hora */}
-                          <div className="text-xs text-muted-foreground w-28 flex-shrink-0">
+                          <div className="text-xs text-muted-foreground w-28 shrink-0">
                             {`${format(startDate, "d 'de' MMMM 'de' yyyy, H:mm", { locale: es })} – ${format(endDate, "d 'de' MMMM 'de' yyyy, H:mm", { locale: es })}`}
                           </div>
 

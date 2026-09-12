@@ -572,7 +572,7 @@ const BibliotecaPage = () => {
 
       <div className="flex flex-col gap-y-4">
         {loading ? (
-          <div className="w-full rounded-[2rem] border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#1a1c1e] shadow-xl animate-pulse overflow-hidden">
+          <div className="w-full rounded-4xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#1a1c1e] shadow-xl animate-pulse overflow-hidden">
             <div className="flex min-h-[400px]">
               <div className="w-[380px] shrink-0 border-r border-slate-200 dark:border-slate-800 p-5">
                 <div className="h-3 w-16 bg-slate-200 dark:bg-slate-700 rounded mb-4" />
@@ -618,7 +618,7 @@ const BibliotecaPage = () => {
                       onClick={() => setIsModalOpen(true)}
                       variant="outline"
                       size="sm"
-                      className="w-fit flex items-center gap-1.5 rounded-xl border-blue-600 text-blue-600 hover:bg-blue-50 dark:border-blue-500 dark:text-blue-400 dark:hover:bg-blue-500/10 dark:hover:text-blue-300 font-bold text-[10px] uppercase tracking-widest px-5 h-10 shadow-sm transition-all active:scale-95"
+                      className="w-fit flex items-center gap-1.5 rounded-xl border-blue-600 text-blue-600 hover:bg-blue-50 dark:border-blue-500 dark:text-blue-400 dark:hover:bg-blue-500/10 dark:hover:text-blue-300 font-bold text-[10px] uppercase tracking-widest px-5 h-10 shadow-xs transition-all active:scale-95"
                     >
                       <Plus className="h-4 w-4" />
                       Subir Documento
@@ -629,7 +629,7 @@ const BibliotecaPage = () => {
                       onClick={() => setAuditTarget("global")}
                       variant="outline"
                       size="sm"
-                      className="w-fit flex items-center gap-1.5 rounded-xl border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:text-white font-bold text-[10px] uppercase tracking-widest px-5 h-10 shadow-sm transition-all active:scale-95"
+                      className="w-fit flex items-center gap-1.5 rounded-xl border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:text-white font-bold text-[10px] uppercase tracking-widest px-5 h-10 shadow-xs transition-all active:scale-95"
                     >
                       <History className="h-4 w-4" />
                       Historial
@@ -641,7 +641,7 @@ const BibliotecaPage = () => {
                         onClick={() => setShareRequestsOpen(true)}
                         variant="outline"
                         size="sm"
-                        className="w-fit flex items-center gap-1.5 rounded-xl border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:text-white font-bold text-[10px] uppercase tracking-widest px-5 h-10 shadow-sm transition-all active:scale-95"
+                        className="w-fit flex items-center gap-1.5 rounded-xl border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:text-white font-bold text-[10px] uppercase tracking-widest px-5 h-10 shadow-xs transition-all active:scale-95"
                       >
                         <Send className="h-4 w-4" />
                         Solicitudes
@@ -661,7 +661,7 @@ const BibliotecaPage = () => {
                         onClick={() => setDashboardOpen(true)}
                         variant="outline"
                         size="sm"
-                        className="w-fit flex items-center gap-1.5 rounded-xl border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:text-white font-bold text-[10px] uppercase tracking-widest px-5 h-10 shadow-sm transition-all active:scale-95"
+                        className="w-fit flex items-center gap-1.5 rounded-xl border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:text-white font-bold text-[10px] uppercase tracking-widest px-5 h-10 shadow-xs transition-all active:scale-95"
                       >
                         <BarChart className="h-4 w-4" />
                         Dashboard
@@ -677,7 +677,7 @@ const BibliotecaPage = () => {
                 ref={popoverRef}
               >
                 <div
-                  className="flex items-center w-full bg-white dark:bg-[#111214] border border-slate-300 dark:border-slate-800 rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500 transition-all overflow-hidden h-10"
+                  className="flex items-center w-full bg-white dark:bg-[#111214] border border-slate-300 dark:border-slate-800 rounded-xl shadow-xs focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500 transition-all overflow-hidden h-10"
                   data-tour="biblioteca-search-input"
                 >
                   <div className="pl-4">
@@ -688,7 +688,7 @@ const BibliotecaPage = () => {
                     placeholder="BUSCAR DOCUMENTO..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="flex-1 bg-transparent border-none outline-none px-3 text-[10px] font-bold tracking-widest text-slate-700 dark:text-white placeholder:text-slate-300 uppercase"
+                    className="flex-1 bg-transparent border-none outline-hidden px-3 text-[10px] font-bold tracking-widest text-slate-700 dark:text-white placeholder:text-slate-300 uppercase"
                   />
                   <TooltipProvider delayDuration={120}>
                     <Tooltip>
@@ -753,7 +753,7 @@ const BibliotecaPage = () => {
                         <select
                           value={selectedCategory}
                           onChange={(e) => setSelectedCategory(e.target.value)}
-                          className="w-full h-9 px-3 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-[#111214] text-slate-700 dark:text-white text-[10px] font-bold tracking-wider uppercase focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all cursor-pointer"
+                          className="w-full h-9 px-3 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-[#111214] text-slate-700 dark:text-white text-[10px] font-bold tracking-wider uppercase focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-hidden transition-all cursor-pointer"
                         >
                           <option value="">TODAS LAS CATEGORÍAS</option>
                           {categoriesToDisplay.map((cat) => (
@@ -775,7 +775,7 @@ const BibliotecaPage = () => {
                         <select
                           value={selectedStatus}
                           onChange={(e) => setSelectedStatus(e.target.value)}
-                          className="w-full h-9 px-3 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-[#111214] text-slate-700 dark:text-white text-[10px] font-bold tracking-wider uppercase focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all cursor-pointer"
+                          className="w-full h-9 px-3 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-[#111214] text-slate-700 dark:text-white text-[10px] font-bold tracking-wider uppercase focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-hidden transition-all cursor-pointer"
                         >
                           <option value="">TODOS LOS ESTADOS</option>
                           <option value="vigente">VIGENTE</option>
@@ -790,7 +790,7 @@ const BibliotecaPage = () => {
             </div>
 
             {/* TARJETA ÚNICA: SIDEBAR + CONTENIDO */}
-            <div className="w-full rounded-[2rem] border border-slate-200 dark:border-slate-800 dark:bg-[#1a1c1e] bg-white shadow-xl shadow-slate-200/50 dark:shadow-none relative overflow-hidden">
+            <div className="w-full rounded-4xl border border-slate-200 dark:border-slate-800 dark:bg-[#1a1c1e] bg-white shadow-xl shadow-slate-200/50 dark:shadow-none relative overflow-hidden">
               {movingDocument && (
                 <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-white/75 dark:bg-[#1a1c1e]/75 backdrop-blur-[2px]">
                   <Loader2 className="h-9 w-9 animate-spin text-blue-600 dark:text-blue-400" />
@@ -805,7 +805,7 @@ const BibliotecaPage = () => {
                     className="flex flex-col gap-1 mb-6 border-b pb-6 border-slate-200 dark:border-slate-800 shrink-0"
                     data-tour="biblioteca-carpetas-header"
                   >
-                    <h2 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-[0.1em]">
+                    <h2 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-widest">
                       Carpetas
                     </h2>
                     <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 tracking-wide">
@@ -860,7 +860,7 @@ const BibliotecaPage = () => {
                   data-tour="biblioteca-documentos-header"
                 >
                   <div className="flex flex-col gap-1 mb-6 border-b pb-6 border-slate-200 dark:border-slate-800">
-                    <h2 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-[0.1em]">
+                    <h2 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-widest">
                       Documentos
                     </h2>
                     <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 tracking-wide">
@@ -979,7 +979,7 @@ const BibliotecaPage = () => {
       )}
 
       {auditTarget && (
-        <div className="fixed inset-0 z-[100] flex justify-end overflow-hidden">
+        <div className="fixed inset-0 z-100 flex justify-end overflow-hidden">
           <div
             className="absolute inset-0 bg-black/40 backdrop-blur-[2px] animate-in fade-in duration-300"
             onClick={() => setAuditTarget(null)}
@@ -995,7 +995,7 @@ const BibliotecaPage = () => {
       )}
 
       {shareRequestsOpen && (
-        <div className="fixed inset-0 z-[100] flex justify-end overflow-hidden">
+        <div className="fixed inset-0 z-100 flex justify-end overflow-hidden">
           <div
             className="absolute inset-0 bg-black/40 backdrop-blur-[2px] animate-in fade-in duration-300"
             onClick={() => setShareRequestsOpen(false)}

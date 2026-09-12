@@ -39,7 +39,7 @@ export function createInvoiceEntry(): InvoiceEntry {
 const LABEL_CLS = "select-none text-[10px] leading-none text-muted-foreground uppercase";
 
 const INPUT_CLS =
-  "h-9 rounded-lg border-border/50 bg-background/80 text-sm shadow-sm transition-shadow focus-visible:ring-1 focus-visible:ring-teal-500/40 focus-visible:ring-offset-0";
+  "h-9 rounded-lg border-border/50 bg-background/80 text-sm shadow-xs transition-shadow focus-visible:ring-1 focus-visible:ring-teal-500/40 focus-visible:ring-offset-0";
 
 function fileLabel(entry: InvoiceEntry) {
   if (entry.file) return entry.file.name;
@@ -103,7 +103,7 @@ function InvoiceRow({ entry, onChange, onRemove }: InvoiceRowProps) {
               variant="outline"
               onClick={() => fileInputRef.current?.click()}
               className={cn(
-                "h-9 max-w-[190px] shrink-0 justify-start gap-1.5 rounded-lg border-border/50 bg-background/80 px-3 text-sm shadow-sm",
+                "h-9 max-w-[190px] shrink-0 justify-start gap-1.5 rounded-lg border-border/50 bg-background/80 px-3 text-sm shadow-xs",
                 label
                   ? "border-teal-500/30 bg-teal-500/10 text-teal-700 hover:bg-teal-500/20 dark:text-teal-300"
                   : "text-muted-foreground"
@@ -129,7 +129,7 @@ function InvoiceRow({ entry, onChange, onRemove }: InvoiceRowProps) {
               variant="outline"
               size="icon"
               onClick={onRemove}
-              className="h-9 w-9 shrink-0 rounded-lg border-border/50 bg-background/80 text-muted-foreground shadow-sm hover:text-destructive"
+              className="h-9 w-9 shrink-0 rounded-lg border-border/50 bg-background/80 text-muted-foreground shadow-xs hover:text-destructive"
             >
               <Trash2 className="size-4" />
             </Button>

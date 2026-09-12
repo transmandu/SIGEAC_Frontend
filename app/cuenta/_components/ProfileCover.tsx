@@ -32,12 +32,12 @@ const ProfileCover = ({
   const fullName = `${user.first_name} ${user.last_name}`.trim();
 
   return (
-    <section className="overflow-hidden rounded-2xl border bg-card shadow-sm">
+    <section className="overflow-hidden rounded-2xl border bg-card shadow-xs">
       {/* Portada: gradiente sobre la marca, sin imagen que descargar. */}
-      <div className="relative h-32 bg-gradient-to-br from-primary/85 via-primary/60 to-primary/25 sm:h-40">
+      <div className="relative h-32 bg-linear-to-br from-primary/85 via-primary/60 to-primary/25 sm:h-40">
         <div
           aria-hidden
-          className="absolute inset-0 opacity-[0.18] [background-image:radial-gradient(circle_at_1px_1px,white_1px,transparent_0)] [background-size:18px_18px]"
+          className="absolute inset-0 opacity-[0.18] bg-[radial-gradient(circle_at_1px_1px,white_1px,transparent_0)] bg-size-[18px_18px]"
         />
       </div>
 

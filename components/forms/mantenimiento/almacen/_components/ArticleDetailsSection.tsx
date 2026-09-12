@@ -1,7 +1,7 @@
 "use client";
 
 import { FileText } from "lucide-react";
-import type { Control } from "react-hook-form";
+import type { Control, FieldValues, Path } from "react-hook-form";
 
 import ArticleDocumentsSelector from "@/components/misc/ArticleDocumentsSelector";
 import type { ArticleDocumentSelection } from "@/actions/mantenimiento/almacen/inventario/articulos/actions";
@@ -34,7 +34,7 @@ export const savedImageUrl = (image?: File | string | null) =>
  * de los formularios, y el selector saltaba de fila al marcarla porque el grid
  * de dos columnas recibía tres hijos condicionales.
  */
-export const ArticleDetailsSection = ({
+export const ArticleDetailsSection = <T extends FieldValues,>({
     control,
     descriptionName = "description",
     descriptionLabel = "Observaciones",
@@ -51,7 +51,7 @@ export const ArticleDetailsSection = ({
     consignedRequirements,
     disabled,
 }: {
-    control: Control<any>;
+    control: Control<T>;
     descriptionName?: string;
     descriptionLabel?: string;
     descriptionPlaceholder?: string;
@@ -79,7 +79,7 @@ export const ArticleDetailsSection = ({
             <div className="space-y-4">
                 <FormField
                     control={control}
-                    name={descriptionName}
+                    name={descriptionName as Path<T>}
                     render={({ field }) => (
                         <FormItem>
                             <FormLabel className={labelClass}>{descriptionLabel}</FormLabel>

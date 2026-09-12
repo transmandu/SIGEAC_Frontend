@@ -10,7 +10,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -385,10 +385,10 @@ export default function CreateDangerIdentificationForm({
                       mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
-                      initialFocus
-                      fromYear={2000}
-                      toYear={new Date().getFullYear()}
-                      captionLayout="dropdown-buttons"
+                      autoFocus
+                      startMonth={new Date(2000, 0)}
+                      endMonth={new Date(new Date().getFullYear(), 11)}
+                      captionLayout="dropdown"
                     />
                   </PopoverContent>
                 </Popover>

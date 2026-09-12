@@ -365,7 +365,7 @@ export function MergeDialog({
                                         className={cn(
                                             "flex items-center gap-3 rounded-lg border px-3 py-2.5 cursor-pointer transition-colors duration-150",
                                             isSurvivor
-                                                ? "border-primary/50 bg-primary/[0.06]"
+                                                ? "border-primary/50 bg-primary/6"
                                                 : "border-border/60 bg-background/70 hover:bg-muted/30",
                                         )}
                                     >
@@ -471,7 +471,7 @@ export function MergeDialog({
                         supervisor, solo un dato que falta y que puede aportar
                         aquí mismo. */}
                     {unitsToConvert.length > 0 && (
-                        <section className="rounded-xl border border-primary/40 bg-primary/[0.07] p-4 shadow-sm">
+                        <section className="rounded-xl border border-primary/40 bg-primary/[0.07] p-4 shadow-xs">
                             <div className="flex items-center gap-2.5 mb-2">
                                 <AlertTriangle className="size-4 text-primary shrink-0" />
                                 <span className="text-[11px] font-semibold uppercase tracking-widest text-primary">
@@ -699,7 +699,7 @@ function MergePreviewPanel({
         units.find((unit) => unit.id === preview.final.primary_unit_id)?.label ?? ""
 
     return (
-        <section className="relative rounded-xl border border-border/60 bg-gradient-to-b from-muted/30 to-muted/10 p-5 shadow-sm">
+        <section className="relative rounded-xl border border-border/60 bg-linear-to-b from-muted/30 to-muted/10 p-5 shadow-xs">
             <div className="flex items-center gap-3 mb-3 select-none">
                 <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground whitespace-nowrap">
                     Resultado de la fusión

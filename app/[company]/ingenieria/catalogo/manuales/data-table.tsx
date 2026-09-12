@@ -2,16 +2,12 @@
 
 import { useMemo, useState } from "react";
 import {
-  ColumnDef,
   ColumnFiltersState,
   flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
   SortingState,
-  useReactTable,
+  useTable,
 } from "@tanstack/react-table";
+import { appTableFeatures, type AppColumnDef } from "@/lib/table";
 import { BookOpen, PlusCircle } from "lucide-react";
 
 import { DataTablePagination } from "@/components/tables/DataTablePagination";
@@ -31,12 +27,12 @@ import { STATUS_LABELS } from "@/lib/maintenanceCatalogLabels";
 import { CatalogManual } from "@/types/maintenanceCatalog";
 import { manualGlobalFilter } from "./columns";
 
-interface DataTableProps<TValue> {
-  columns: ColumnDef<CatalogManual, TValue>[];
+interface DataTableProps {
+  columns: AppColumnDef<CatalogManual>[];
   data: CatalogManual[];
 }
 
-export function DataTable<TValue>({ columns, data }: DataTableProps<TValue>) {
+export function DataTable({ columns, data }: DataTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
@@ -55,16 +51,13 @@ export function DataTable<TValue>({ columns, data }: DataTableProps<TValue>) {
     [],
   );
 
-  const table = useReactTable({
+  const table = useTable({
+    features: appTableFeatures,
     data,
     columns,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onGlobalFilterChange: setGlobalFilter,
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
     globalFilterFn: manualGlobalFilter,
     initialState: { columnVisibility: { support: false } },
     state: { sorting, columnFilters, globalFilter },

@@ -1,16 +1,13 @@
 "use client"
 
 import {
-  ColumnDef,
   ColumnFiltersState,
   flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
+  type RowData,
   SortingState,
-  useReactTable,
-} from "@tanstack/react-table"
+  useTable,
+} from "@tanstack/react-table";
+import { appTableFeatures, type AppColumnDef } from "@/lib/table";
 
 import { CreateUserDialog } from "@/components/dialogs/ajustes/CreateUserDialog"
 import { DataTableFacetedFilter, Option } from "@/components/tables/DataTableFacetedFilter"
@@ -32,15 +29,15 @@ import { Role } from "@/types"
 import { KeyRound, ListRestart } from "lucide-react"
 import { useMemo, useState } from "react"
 
-interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[]
+interface DataTableProps<TData extends RowData> {
+  columns: AppColumnDef<TData>[]
   data: TData[]
 }
 
-export function DataTable<TData, TValue>({
+export function DataTable<TData extends RowData>({
   columns,
   data,
-}: DataTableProps<TData, TValue>) {
+}: DataTableProps<TData>) {
 
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(
@@ -72,17 +69,14 @@ export function DataTable<TData, TValue>({
 
   const formattedRoles = formatData(roles);
 
-  const table = useReactTable({
+  const table = useTable({
+    features: appTableFeatures,
     data,
     columns,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onPaginationChange: setPagination,
     autoResetPageIndex: false,
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
     state: {
       sorting,
       columnFilters,
@@ -90,7 +84,7 @@ export function DataTable<TData, TValue>({
     }
   })
 
-  const isFiltered = table.getState().columnFilters.length > 0
+  const isFiltered = table.state.columnFilters.length > 0
   return (
     <div>
       <div className="flex items-center py-4">

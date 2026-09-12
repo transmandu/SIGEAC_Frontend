@@ -1,7 +1,8 @@
 "use client";
 
 import { CheckIcon, ListFilter, ListRestart } from "lucide-react";
-import type { Column } from "@tanstack/react-table";
+import type { RowData } from "@tanstack/react-table";
+import type { AppColumn } from "@/lib/table";
 
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -24,14 +25,14 @@ export interface FilterOption {
   description?: string;
 }
 
-export interface FilterGroup<TData> {
+export interface FilterGroup<TData extends RowData> {
   /** Etiqueta del grupo dentro del popover. */
   title: string;
-  column?: Column<TData, unknown>;
+  column?: AppColumn<TData, unknown>;
   options: FilterOption[];
 }
 
-interface DataTableFilterPopoverProps<TData> {
+interface DataTableFilterPopoverProps<TData extends RowData> {
   groups: FilterGroup<TData>[];
   className?: string;
 }
@@ -40,7 +41,7 @@ interface DataTableFilterPopoverProps<TData> {
  * Un único disparador para todos los filtros de la tabla: cada grupo es una
  * sección del mismo popover, en vez de un botón por columna.
  */
-export function DataTableFilterPopover<TData>({
+export function DataTableFilterPopover<TData extends RowData>({
   groups,
   className,
 }: DataTableFilterPopoverProps<TData>) {

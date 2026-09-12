@@ -1,6 +1,6 @@
 "use client";
 
-import { ColumnDef, FilterFn } from "@tanstack/react-table";
+import { type AppColumnDef, type AppFilterFn } from "@/lib/table";
 
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { Badge } from "@/components/ui/badge";
@@ -10,12 +10,12 @@ import { ServiceRowActions } from "./_components/ServiceRowActions";
 
 // Los filtros facetados entregan un arreglo de valores seleccionados; sin esto
 // TanStack compara el arreglo contra el valor de la celda y nunca coincide.
-const includesSome: FilterFn<CatalogService> = (row, columnId, filterValue: string[]) => {
+const includesSome: AppFilterFn<CatalogService> = (row, columnId, filterValue: string[]) => {
   if (!filterValue?.length) return true;
   return filterValue.includes(String(row.getValue(columnId)));
 };
 
-const includesSomeAircraft: FilterFn<CatalogService> = (row, _columnId, filterValue: string[]) => {
+const includesSomeAircraft: AppFilterFn<CatalogService> = (row, _columnId, filterValue: string[]) => {
   if (!filterValue?.length) return true;
   const ids = row.original.aircrafts?.map((a) => String(a.id)) ?? [];
   return ids.some((id) => filterValue.includes(id));
@@ -23,7 +23,7 @@ const includesSomeAircraft: FilterFn<CatalogService> = (row, _columnId, filterVa
 
 // La columna de manual guarda el id (lo que filtra el facetado), así que el
 // buscador se arma sobre el texto real en vez de los valores de las celdas.
-export const serviceGlobalFilter: FilterFn<CatalogService> = (row, _columnId, filterValue: string) => {
+export const serviceGlobalFilter: AppFilterFn<CatalogService> = (row, _columnId, filterValue: string) => {
   const term = filterValue.trim().toLowerCase();
   if (!term) return true;
 
@@ -41,7 +41,7 @@ export const serviceGlobalFilter: FilterFn<CatalogService> = (row, _columnId, fi
   return haystack.some((value) => value?.toLowerCase().includes(term));
 };
 
-export const getColumns = (company: string): ColumnDef<CatalogService>[] => [
+export const getColumns = (company: string): AppColumnDef<CatalogService>[] => [
   {
     accessorKey: "name",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Nombre" />,

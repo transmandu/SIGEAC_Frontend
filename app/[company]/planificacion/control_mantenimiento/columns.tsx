@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { ColumnDef } from "@tanstack/react-table"
+import { type AppColumnDef } from "@/lib/table"
 import { DataTableColumnHeader, dateRangeFilterFn } from "@/components/tables/DataTableHeader"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -33,7 +33,7 @@ export const getColumns = (
   companySlug: string,
   aircraftOptions: { value: string; label: string }[] = [],
   manualOptions: { value: string; label: string }[] = [],
-): ColumnDef<MaintenanceControl>[] => [
+): AppColumnDef<MaintenanceControl>[] => [
   {
     accessorKey: "aircraft",
     accessorFn: (row) => row.aircraft?.acronym ?? "",

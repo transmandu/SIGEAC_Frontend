@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useGetSurveyByNumber } from "@/hooks/sms/survey/useGetSurveyByNumber";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { z } from "zod";
 import { Loader2, CheckCircle2, AlertCircle, Check } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
@@ -82,7 +82,7 @@ export default function SurveyResponseForm() {
     const [showResults, setShowResults] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
 
-    const surveyResponseSchema = survey
+    const surveyResponseSchema: z.ZodType<SurveyResponseType> = survey
         ? createSurveyValidator(survey, user, emailValidation)
         : z.object({
             survey_number: z.string(),

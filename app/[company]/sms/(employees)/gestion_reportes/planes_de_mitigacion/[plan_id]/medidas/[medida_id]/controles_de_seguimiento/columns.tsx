@@ -1,6 +1,6 @@
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
+import { type AppColumnDef } from "@/lib/table";
 
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 
@@ -12,7 +12,7 @@ import { FollowUpControl } from "@/types";
 import { es } from "date-fns/locale";
 import { format, parseISO } from "date-fns";
 
-export const columns: ColumnDef<FollowUpControl>[] = [
+export const columns: AppColumnDef<FollowUpControl>[] = [
   {
     accessorKey: "description",
     header: ({ column }) => (

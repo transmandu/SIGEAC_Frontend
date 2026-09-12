@@ -178,7 +178,7 @@ function CompactCheckRow({
   return (
     <div
       className={cn(
-        "rounded-lg border-[2px] p-3 transition-colors",
+        "rounded-lg border-2 p-3 transition-colors",
         value === true &&
         "border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/20",
         value === false &&
@@ -301,7 +301,7 @@ function StampCheckRow({
           className={cn(
             "flex h-12 w-16 flex-col items-center justify-center rounded-lg border text-xs font-semibold transition-all",
             value === true
-              ? "border-emerald-500 bg-emerald-500 text-white shadow-sm"
+              ? "border-emerald-500 bg-emerald-500 text-white shadow-xs"
               : "border-border bg-background text-muted-foreground hover:border-emerald-400 hover:bg-emerald-50 dark:hover:border-emerald-600 dark:hover:bg-emerald-950/30"
           )}
           aria-pressed={value === true}
@@ -317,7 +317,7 @@ function StampCheckRow({
           className={cn(
             "flex h-12 w-16 flex-col items-center justify-center rounded-lg border text-xs font-semibold transition-all",
             value === "NA"
-              ? "border-slate-400 bg-slate-400 text-white shadow-sm dark:border-slate-500 dark:bg-slate-500"
+              ? "border-slate-400 bg-slate-400 text-white shadow-xs dark:border-slate-500 dark:bg-slate-500"
               : "border-border bg-background text-muted-foreground hover:border-slate-400 hover:bg-slate-50 dark:hover:border-slate-600 dark:hover:bg-slate-800",
             critical && "cursor-not-allowed opacity-40 hover:border-border hover:bg-background"
           )}
@@ -332,7 +332,7 @@ function StampCheckRow({
           className={cn(
             "flex h-12 w-16 flex-col items-center justify-center rounded-lg border text-xs font-semibold transition-all",
             value === false
-              ? "border-red-500 bg-red-500 text-white shadow-sm"
+              ? "border-red-500 bg-red-500 text-white shadow-xs"
               : "border-border bg-background text-muted-foreground hover:border-red-400 hover:bg-red-50 dark:hover:border-red-600 dark:hover:bg-red-950/30"
           )}
           aria-pressed={value === false}

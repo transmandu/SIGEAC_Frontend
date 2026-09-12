@@ -112,7 +112,7 @@ export function CarnetCell({ photoUrl }: Props) {
                         bg-background/80
                         backdrop-blur-md
                         text-foreground
-                        shadow-sm
+                        shadow-xs
                         hover:bg-muted
                         hover:scale-105
                         active:scale-95

@@ -2,16 +2,10 @@
 
 import { useState, useEffect, useRef } from "react";
 import { X, Loader2, ShieldCheck, Lock, Frown, RotateCcw } from "lucide-react";
-import { Worker, Viewer } from "@react-pdf-viewer/core";
-import { defaultLayoutPlugin } from "@react-pdf-viewer/default-layout";
+import { SecurePdfViewer } from "@/components/library/SecurePdfViewer";
 import { Button } from "@/components/ui/button";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { bibliotecaVisualizadorSteps } from "@/components/tour/steps/general/biblioteca/biblioteca-visualizador";
-
-// @ts-ignore - Ignorar error cosmético de TS en PC nueva
-import "@react-pdf-viewer/core/lib/styles/index.css";
-// @ts-ignore - Ignorar error cosmético de TS en PC nueva
-import "@react-pdf-viewer/default-layout/lib/styles/index.css";
 
 import libraryService from "@/lib/libraryService";
 
@@ -81,39 +75,6 @@ export default function SecureViewer({
     };
   }, [isOpen]);
 
-  const defaultLayoutPluginInstance = defaultLayoutPlugin({
-    sidebarTabs: () => [],
-    renderToolbar: (Toolbar) => (
-      <div className="" data-tour="biblioteca-viewer-toolbar">
-        <Toolbar>
-          {(slots) => {
-            const {
-              Zoom,
-              ZoomIn,
-              ZoomOut,
-              EnterFullScreen,
-              NumberOfPages,
-              CurrentPageInput,
-            } = slots;
-            return (
-              <div className="flex items-center justify-between w-full px-4">
-                <div className="flex items-center gap-2">
-                  <ZoomOut /> <Zoom /> <ZoomIn />
-                </div>
-                <div className="flex items-center gap-2 text-gray-400 text-xs font-bold">
-                  <CurrentPageInput /> / <NumberOfPages />
-                </div>
-                <div className="flex items-center">
-                  <EnterFullScreen />
-                </div>
-              </div>
-            );
-          }}
-        </Toolbar>
-      </div>
-    ),
-  });
-
   useEffect(() => {
     if (!isOpen || !documentId) return;
 
@@ -172,7 +133,7 @@ export default function SecureViewer({
 
   return (
     <div
-      className={`fixed inset-0 z-[200] flex items-center justify-center p-2 md:p-6 backdrop-blur-sm transition-colors duration-300 ${
+      className={`fixed inset-0 z-200 flex items-center justify-center p-2 md:p-6 backdrop-blur-xs transition-colors duration-300 ${
         currentTheme === "dark" ? "bg-black/95" : "bg-slate-900/40"
       }`}
     >
@@ -250,7 +211,7 @@ export default function SecureViewer({
                   variant="default"
                   className="bg-emerald-600 hover:bg-emerald-700 w-full sm:w-auto flex items-center gap-2 group transition-all active:scale-95"
                 >
-                  <RotateCcw className="h-4 w-4 group-hover:rotate-[-90deg] transition-transform" />
+                  <RotateCcw className="h-4 w-4 group-hover:-rotate-90 transition-transform" />
                   Reintentar
                 </Button>
                 <Button
@@ -265,14 +226,11 @@ export default function SecureViewer({
           ) : (
             fileUrl && (
               <div className="h-full">
-                <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
-                  <Viewer
-                    fileUrl={fileUrl}
-                    plugins={[defaultLayoutPluginInstance]}
-                    theme={currentTheme}
-                    defaultScale={1.0}
-                  />
-                </Worker>
+                <SecurePdfViewer
+                  fileUrl={fileUrl}
+                  theme={currentTheme}
+                  toolbarTour="biblioteca-viewer-toolbar"
+                />
               </div>
             )
           )}

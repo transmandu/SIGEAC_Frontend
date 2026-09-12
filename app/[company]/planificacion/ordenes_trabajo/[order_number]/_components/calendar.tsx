@@ -1,5 +1,10 @@
 "use client";
-import { dateToZonedDateTime, temporalToDate } from "@/lib/scheduleXTemporal";
+import {
+  calendarMomentToDate,
+  calendarTimeZone,
+  toCalendarMoment,
+  type CalendarMoment,
+} from "@/lib/calendar-temporal";
 import { WorkOrderTaskEvent } from "@/types";
 import {
   createViewDay,
@@ -64,12 +69,18 @@ const priorityCalendars = {
 };
 
 
+/** El mismo evento ya traducido a lo que schedule-x pide desde la 3. */
+type scheduleXTaskEvent = Omit<WorkOrderTaskEvent, "start" | "end"> & {
+  start: CalendarMoment;
+  end: CalendarMoment;
+};
+
 // schedule-x v3 pide Temporal en vez de strings para start/end de cada evento.
-function toScheduleXEvents(events: WorkOrderTaskEvent[]): ScheduleXEvent[] {
+function toScheduleXEvents(events: WorkOrderTaskEvent[]): scheduleXTaskEvent[] {
   return events.map((event) => ({
     ...event,
-    start: dateToZonedDateTime(new Date(event.start)),
-    end: dateToZonedDateTime(new Date(event.end)),
+    start: toCalendarMoment(event.start),
+    end: toCalendarMoment(event.end),
   }));
 }
 
@@ -82,6 +93,9 @@ export const Calendar = ({ events, theme = "light" }: CalendarProps) => {
     views: [createViewMonthGrid(), createViewWeek(), createViewDay()],
     calendars: priorityCalendars,
     events: scheduleXEvents,
+    // Misma zona en la que se arman los eventos: con el default (UTC)
+    // schedule-x los corre al offset local.
+    timezone: calendarTimeZone(),
     locale: "es-ES",
     defaultView: "month-grid",
     isResponsive: true,
@@ -90,9 +104,9 @@ export const Calendar = ({ events, theme = "light" }: CalendarProps) => {
   });
 
   const customComponents = useMemo(() => ({
-    eventModal: ({ calendarEvent, close }: { calendarEvent: ScheduleXEvent; close: () => void }) => {
-      const startDate = temporalToDate(calendarEvent.start);
-      const endDate = temporalToDate(calendarEvent.end);
+    eventModal: ({ calendarEvent, close }: { calendarEvent: scheduleXTaskEvent; close: () => void }) => {
+      const startDate = calendarMomentToDate(calendarEvent.start);
+      const endDate = calendarMomentToDate(calendarEvent.end);
       return (
         <div className="text-foreground p-6 rounded-lg shadow-xl max-w-md w-full border border-border">
           <div className="flex gap-2 items-center mb-4">

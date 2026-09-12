@@ -1,5 +1,6 @@
 import { CheckIcon, PlusCircle } from "lucide-react"
-import type { Column } from "@tanstack/react-table"
+import { type RowData } from "@tanstack/react-table";
+import { type AppColumn } from "@/lib/table";
 
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
@@ -28,13 +29,13 @@ export interface Option {
   withCount?: boolean
 }
 
-interface DataTableFacetedFilterProps<TData, TValue> {
-  column?: Column<TData, TValue>
+interface DataTableFacetedFilterProps<TData extends RowData, TValue> {
+  column?: AppColumn<TData, TValue>
   title?: string
   options: Option[]
 }
 
-export function DataTableFacetedFilter<TData, TValue>({
+export function DataTableFacetedFilter<TData extends RowData, TValue>({
   column,
   title,
   options,
@@ -125,9 +126,9 @@ export function DataTableFacetedFilter<TData, TValue>({
                       />
                     )}
                     <div className="flex flex-1 flex-col">
-                      <span className="whitespace-normal break-words">{option.label}</span>
+                      <span className="whitespace-normal wrap-break-word">{option.label}</span>
                       {option.description && (
-                        <span className="whitespace-normal break-words text-xs text-muted-foreground">
+                        <span className="whitespace-normal wrap-break-word text-xs text-muted-foreground">
                           {option.description}
                         </span>
                       )}

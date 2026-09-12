@@ -15,24 +15,21 @@ import {
 } from "@/components/ui/table";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import {
-  ColumnDef,
   ColumnFiltersState,
   flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
+  type RowData,
   SortingState,
-  useReactTable,
+  useTable,
 } from "@tanstack/react-table";
+import { appTableFeatures, type AppColumnDef } from "@/lib/table";
 import { PlaneTakeoff, PlusCircle, Search, X } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { MaintenanceControl } from "@/types";
 import { MaintenanceControlSnapshotDialog } from "@/components/dialogs/mantenimiento/planificacion/MaintenanceControlSnapshotDialog";
 
-interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[];
+interface DataTableProps<TData extends RowData> {
+  columns: AppColumnDef<TData>[];
   data: TData[];
 }
 
@@ -50,24 +47,21 @@ function globalMaintenanceControlFilter(row: { original: MaintenanceControl }, t
   return haystack.includes(needle);
 }
 
-export function DataTable<TData, TValue>({
+export function DataTable<TData extends RowData>({
   columns,
   data,
-}: DataTableProps<TData, TValue>) {
+}: DataTableProps<TData>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
 
-  const table = useReactTable({
+  const table = useTable({
+    features: appTableFeatures,
     data,
     columns,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onGlobalFilterChange: setGlobalFilter,
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
     globalFilterFn: globalMaintenanceControlFilter as any,
     state: {
       sorting,

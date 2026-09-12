@@ -1,6 +1,6 @@
 "use client"
 
-import { ColumnDef } from "@tanstack/react-table"
+import { type AppColumnDef } from "@/lib/table";
 
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
 
@@ -9,7 +9,7 @@ import { ToolBox } from "@/types"
 import ToolBoxToolsDialog from "@/components/dialogs/mantenimiento/almacen/ToolBoxToolsDialog"
 import ToolBoxDropdownActions from "@/components/dropdowns/mantenimiento/ordenes_trabajo/ToolBoxDropdownActions"
 
-export const columns: ColumnDef<ToolBox>[] = [
+export const columns: AppColumnDef<ToolBox>[] = [
   // {
   //   id: "select",
   //   header: ({ table }) => (

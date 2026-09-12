@@ -1,6 +1,6 @@
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
+import { type AppColumnDef } from "@/lib/table";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, XCircle, Clock, Ruler } from "lucide-react";
@@ -226,9 +226,9 @@ const toDate = (value: string | Date | null | undefined): Date | null => {
 
 // ✅ Columna cantidad (solo consumible y all)
 // Ahora: si es grupo, muestra __groupCount aquí (sin badge en PN)
-const quantityCol: ColumnDef<IArticleSimple> = {
+const quantityCol: AppColumnDef<IArticleSimple> = {
     accessorKey: "quantity",
-    sortingFn: numericSortingFn((row) =>
+    sortFn: numericSortingFn((row) =>
         row.stock != null
             ? Number(row.stock)
             : row.__isGroup
@@ -319,7 +319,7 @@ const quantityCol: ColumnDef<IArticleSimple> = {
  * muestra en cualquier estado —el historial siempre se puede consultar— y es el
  * propio dropdown el que decide qué ítems ofrece según el estado y el rol.
  */
-const actionsCol: ColumnDef<IArticleSimple> = {
+const actionsCol: AppColumnDef<IArticleSimple> = {
     id: "actions",
     // El sticky y el fondo los aplica la celda desde meta.sticky: repetirlos
     // aquí pintaba un bloque opaco que no seguía el hover de la fila.
@@ -348,10 +348,10 @@ const buildBaseCols = (
     statusFilter?: string,
     onStatusFilterChange?: (value: string | undefined) => void,
     showToolStatuses = false,
-): ColumnDef<IArticleSimple>[] => [
+): AppColumnDef<IArticleSimple>[] => [
     {
         accessorKey: "part_number",
-        sortingFn: textSortingFn((row) => row.part_number),
+        sortFn: textSortingFn((row) => row.part_number),
         // El alterno cuenta como el mismo artículo, igual que en el backend.
         filterFn: (row, _id, value) => {
             const raw = String(value ?? "").trim().toLowerCase();
@@ -379,7 +379,7 @@ const buildBaseCols = (
     {
         accessorKey: "serial",
         // La celda cae a lot_number cuando no hay serial; ordenar/filtrar sigue lo mostrado.
-        sortingFn: textSortingFn((row) => row.serial || row.lot_number),
+        sortFn: textSortingFn((row) => row.serial || row.lot_number),
         // La fila agrupada muestra "—", pero se queda si alguno de sus artículos
         // tiene el serial buscado.
         filterFn: (row, _id, value) => {
@@ -414,7 +414,7 @@ const buildBaseCols = (
     },
     {
         accessorKey: "batch_name",
-        sortingFn: textSortingFn((row) => row.batch_name),
+        sortFn: textSortingFn((row) => row.batch_name),
         // Acentos aparte: "DESCRIPCION" debe encontrar "Descripción".
         filterFn: (row, _id, value) => {
             const raw = normalizeText(String(value ?? ""));
@@ -463,7 +463,7 @@ const buildBaseCols = (
     {
         accessorKey: "condition",
         // Se muestra traducida: ordenar por el código crudo daría otro orden.
-        sortingFn: textSortingFn(
+        sortFn: textSortingFn(
             (row) => formatCondition(row.condition)?.es ?? row.condition,
         ),
         // El valor del selector es el `conditions.name` crudo; un grupo calza si
@@ -525,7 +525,7 @@ const buildBaseCols = (
 
     {
         accessorKey: "status",
-        sortingFn: textSortingFn((row) => formatStatusLabel(row.status ?? "")),
+        sortFn: textSortingFn((row) => formatStatusLabel(row.status ?? "")),
         // Un mismo filtro cubre dos campos: los subestados de calibración viven
         // en tools.status, el resto en articles.status.
         filterFn: (row, _id, value) => {
@@ -594,7 +594,7 @@ const buildBaseCols = (
     },
     {
         accessorKey: "zone",
-        sortingFn: textSortingFn((row) => row.zone),
+        sortFn: textSortingFn((row) => row.zone),
         // La ubicación vive en el artículo, no en el grupo: la fila agrupada
         // muestra "—" pero debe quedarse si alguno de sus artículos calza.
         filterFn: (row, _id, value) => {
@@ -632,7 +632,7 @@ export const buildComponenteCols = (
     statusFilter?: string,
     onStatusFilterChange?: (value: string | undefined) => void,
     showQuantity = true,
-): ColumnDef<IArticleSimple>[] => [
+): AppColumnDef<IArticleSimple>[] => [
     ...buildBaseCols(statusFilter, onStatusFilterChange),
     ...(showQuantity ? [quantityCol] : []),
     actionsCol,
@@ -642,12 +642,12 @@ export const buildComponenteCols = (
 export const buildConsumibleCols = (
     statusFilter?: string,
     onStatusFilterChange?: (value: string | undefined) => void,
-): ColumnDef<IArticleSimple>[] => [
+): AppColumnDef<IArticleSimple>[] => [
     ...buildBaseCols(statusFilter, onStatusFilterChange),
     quantityCol,
     {
         id: "expiration_date",
-        sortingFn: dateSortingFn((row) => toDate(row.consumable?.expiration_date)),
+        sortFn: dateSortingFn((row) => toDate(row.consumable?.expiration_date)),
         header: ({ column }) => (
             <DataTableColumnHeader column={column} title="Proximo Vencimiento" />
         ),
@@ -709,7 +709,7 @@ export const buildConsumibleCols = (
     },
     {
         id: "shelf_life",
-        sortingFn: dateSortingFn((row) => toDate(row.consumable?.shelf_life)),
+        sortFn: dateSortingFn((row) => toDate(row.consumable?.shelf_life)),
         header: ({ column }) => (
             <DataTableColumnHeader column={column} title="Shelf Life" />
         ),
@@ -776,12 +776,12 @@ export const buildConsumibleCols = (
 export const buildHerramientaCols = (
     statusFilter?: string,
     onStatusFilterChange?: (value: string | undefined) => void,
-): ColumnDef<IArticleSimple>[] => [
+): AppColumnDef<IArticleSimple>[] => [
     ...buildBaseCols(statusFilter, onStatusFilterChange, true),
     {
         id: "model",
         accessorFn: (row) => row.tool?.model ?? "",
-        sortingFn: textSortingFn((row) => row.tool?.model),
+        sortFn: textSortingFn((row) => row.tool?.model),
         header: ({ column }) => (
             <DataTableColumnHeader filter column={column} title="Modelo" />
         ),
@@ -794,7 +794,7 @@ export const buildHerramientaCols = (
     {
         id: "calibration_date",
         accessorFn: (row) => row.tool?.calibration_date ?? "",
-        sortingFn: dateSortingFn((row) =>
+        sortFn: dateSortingFn((row) =>
             row.tool?.calibration_date ? parseDateLocal(row.tool.calibration_date) : null,
         ),
         header: ({ column }) => (
@@ -815,7 +815,7 @@ export const buildHerramientaCols = (
     },
     {
         id: "next_calibration",
-        sortingFn: dateSortingFn((row) =>
+        sortFn: dateSortingFn((row) =>
             row.tool?.next_calibration && row.tool.calibration_date
                 ? addDays(
                     parseDateLocal(row.tool.calibration_date),
@@ -858,7 +858,7 @@ export const buildHerramientaCols = (
 export const buildAllCategoriesCols = (
     statusFilter?: string,
     onStatusFilterChange?: (value: string | undefined) => void,
-): ColumnDef<IArticleSimple>[] => [
+): AppColumnDef<IArticleSimple>[] => [
     // "Todos" mezcla categorías, así que también trae herramientas: el selector
     // de estado necesita sus subestados de calibración.
     ...buildBaseCols(statusFilter, onStatusFilterChange, true),
@@ -871,7 +871,7 @@ export const getColumnsByCategory = (
     statusFilter?: string,
     onStatusFilterChange?: (value: string | undefined) => void,
     showQuantity = true,
-): ColumnDef<IArticleSimple>[] => {
+): AppColumnDef<IArticleSimple>[] => {
     if (cat === "TOOL") return buildHerramientaCols(statusFilter, onStatusFilterChange);
     if (cat === "CONSUMABLE") return buildConsumibleCols(statusFilter, onStatusFilterChange);
     if (cat === "COMPONENT") return buildComponenteCols(statusFilter, onStatusFilterChange, showQuantity);

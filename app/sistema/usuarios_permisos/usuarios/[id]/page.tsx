@@ -1,5 +1,6 @@
 'use client'
 
+import { use } from "react";
 import { ContentLayout } from '@/components/layout/ContentLayout'
 import LoadingPage from '@/components/misc/LoadingPage'
 
@@ -22,8 +23,9 @@ import { cn } from '@/lib/utils'
 import { Mail, User as UserIcon } from 'lucide-react'
 import { PageHeader } from "@/components/layout/PageHeader";
 
-const UserByIdPage = ({ params }: { params: { id: string } }) => {
-  const { data: user, isLoading, isError } = useGetUserById(params.id)
+const UserByIdPage = ({ params }: { params: Promise<{ id: string }> }) => {
+  const { id } = use(params);
+  const { data: user, isLoading, isError } = useGetUserById(id)
 
   if (isLoading) return <LoadingPage />
 

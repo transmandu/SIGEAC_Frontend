@@ -1,3 +1,25 @@
+## v4.0.0 — 2026-09-11
+
+- Merge pull request #253 from transmandu/fix7pr-yaml-versiones
+- fix(docs): update installation instructions to use pnpm instead of npm
+- Merge pull request #252 from transmandu/build/actualizacion-dependencias
+- fix(deps): reparar lo que las nuevas versiones cambiaron de comportamiento
+- fix(estilos): reparar lo que la migración a Tailwind 4 alteró del aspecto
+- build: migrar de npm a pnpm 12 con política de cadena de suministro
+- build: fijar el piso de Node y la versión de TypeScript del editor
+- feat(calendario)!: migrar los cuatro calendarios a la API Temporal de schedule-x 3
+- build(deps): TypeScript 6.0.3
+- build(deps): zod 4.6.2
+- fix(calendario)!: volver @schedule-x a la 2.36, que es la API que usa el código
+- build(deps)!: migrar a Tailwind 4
+- feat(biblioteca)!: reemplazar el visor de PDF por react-pdf sobre pdfjs 6
+- refactor(tablas)!: migrar a TanStack Table v9
+- build(deps)!: subir zod 4 y @hookform/resolvers 5
+- build(deps): subir date-fns 4, zustand 5, recharts 3 y laravel-echo 2
+- build(deps)!: migrar a React 19, Next 16 y ESLint flat config
+- build(deps): actualizar menores y parches dentro de cada major
+- build(deps): quitar dependencias sin uso
+
 ## v3.17.0 — 2026-09-10
 
 - Merge pull request #250 from transmandu/feat/vista-consumibles-dimension

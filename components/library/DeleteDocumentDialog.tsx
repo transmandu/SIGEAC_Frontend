@@ -127,7 +127,7 @@ export const DeleteDocumentDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-white dark:bg-[#1a1c1e] border-none text-slate-900 dark:text-white sm:max-w-[480px] rounded-2xl overflow-hidden p-0 outline-none shadow-2xl">
+      <DialogContent className="bg-white dark:bg-[#1a1c1e] border-none text-slate-900 dark:text-white sm:max-w-[480px] rounded-2xl overflow-hidden p-0 outline-hidden shadow-2xl">
         <div
           className="bg-slate-50 dark:bg-gray-800/40 px-6 py-5 border-b border-slate-200 dark:border-gray-700"
           data-tour="biblioteca-delete-title"
@@ -153,7 +153,7 @@ export const DeleteDocumentDialog = ({
               onClick={() => setDeleteMode("version")}
               className={`group p-4 border rounded-2xl cursor-pointer transition-all ${
                 deleteMode === "version"
-                  ? "border-orange-500 bg-orange-50/40 dark:bg-orange-500/10 shadow-sm"
+                  ? "border-orange-500 bg-orange-50/40 dark:bg-orange-500/10 shadow-xs"
                   : "border-slate-300 dark:border-gray-800 hover:border-slate-400 bg-white dark:bg-transparent"
               }`}
             >
@@ -186,7 +186,7 @@ export const DeleteDocumentDialog = ({
                           setSelectedVersionToDelete(e.target.value)
                         }
                         disabled={isProcessing || loadingVersions}
-                        className="w-full h-10 pl-3 pr-10 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-[#111214] text-[11px] font-bold text-slate-700 dark:text-white outline-none appearance-none"
+                        className="w-full h-10 pl-3 pr-10 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-[#111214] text-[11px] font-bold text-slate-700 dark:text-white outline-hidden appearance-none"
                       >
                         {loadingVersions ? (
                           <option value="">Cargando Versiones...</option>
@@ -219,7 +219,7 @@ export const DeleteDocumentDialog = ({
               onClick={() => setDeleteMode("document")}
               className={`group p-4 border rounded-2xl cursor-pointer transition-all ${
                 deleteMode === "document"
-                  ? "border-red-500 bg-red-50/40 dark:bg-red-500/10 shadow-sm"
+                  ? "border-red-500 bg-red-50/40 dark:bg-red-500/10 shadow-xs"
                   : "border-slate-300 dark:border-gray-800 hover:border-slate-400 bg-white dark:bg-transparent"
               }`}
             >

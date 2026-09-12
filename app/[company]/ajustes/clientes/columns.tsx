@@ -1,13 +1,13 @@
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
+import { type AppColumnDef } from "@/lib/table";
 import { Client } from "@/types";
 import ClientDropdownActions from "@/components/dropdowns/general/ClientDropdownActions";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { cn, formatCurrency } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 
-export const columns: ColumnDef<Client>[] = [
+export const columns: AppColumnDef<Client>[] = [
   {
     accessorKey: "name",
     header: ({ column }) => (

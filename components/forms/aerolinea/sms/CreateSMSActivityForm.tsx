@@ -43,7 +43,7 @@ import { useGetEmployeesByDepartment } from "@/hooks/sistema/useGetEmployeesByDe
 import { cn, parseServerDate } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { SMSActivity } from "@/types";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { CalendarIcon, Check, ChevronsUpDown, Loader2, Plus, X } from "lucide-react";
@@ -349,20 +349,10 @@ export default function CreateSMSActivityForm({
                       selected={field.value}
                       onSelect={field.onChange}
                       disabled={false}
-                      initialFocus
-                      fromYear={1988}
-                      toYear={new Date().getFullYear() + 5}
-                      captionLayout="dropdown-buttons"
-                      components={{
-                        Dropdown: (props) => (
-                          <select
-                            {...props}
-                            className="bg-popover text-popover-foreground"
-                          >
-                            {props.children}
-                          </select>
-                        ),
-                      }}
+                      autoFocus
+                      startMonth={new Date(1988, 0)}
+                      endMonth={new Date(new Date().getFullYear() + 5, 11)}
+                      captionLayout="dropdown"
                     />
                   </PopoverContent>
                 </Popover>
@@ -404,20 +394,10 @@ export default function CreateSMSActivityForm({
                       selected={field.value}
                       onSelect={field.onChange}
                       disabled={false}
-                      initialFocus
-                      fromYear={1988}
-                      toYear={new Date().getFullYear() + 5}
-                      captionLayout="dropdown-buttons"
-                      components={{
-                        Dropdown: (props) => (
-                          <select
-                            {...props}
-                            className="bg-popover text-popover-foreground"
-                          >
-                            {props.children}
-                          </select>
-                        ),
-                      }}
+                      autoFocus
+                      startMonth={new Date(1988, 0)}
+                      endMonth={new Date(new Date().getFullYear() + 5, 11)}
+                      captionLayout="dropdown"
                     />
                   </PopoverContent>
                 </Popover>
@@ -580,7 +560,7 @@ export default function CreateSMSActivityForm({
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent
-                    className="w-[var(--radix-popover-trigger-width)] p-0"
+                    className="w-(--radix-popover-trigger-width) p-0"
                     align="start"
                   >
                     <Command>

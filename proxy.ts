@@ -20,7 +20,7 @@ const isUsableToken = (token: string) => {
   return raw.trim().length > 0 && raw.includes('|');
 };
 
-export default async function middleware(req: NextRequest) {
+export default async function proxy(req: NextRequest) {
   const currentPath = req.nextUrl.pathname;
 
   // 3. Verificación más eficiente de rutas

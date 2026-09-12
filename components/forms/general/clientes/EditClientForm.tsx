@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Client } from "@/types";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Separator } from "@/components/ui/separator";
@@ -72,7 +72,7 @@ const formSchema = z.object({
     }),
   pay_credit_days: z.coerce
     .number({
-      invalid_type_error: "Solo se permiten números", // Mensaje si no es convertible
+      error: "Solo se permiten números", // Mensaje si no es convertible
     })
     .int("Debe ser un número entero")
     .min(1, { message: "Mínimo 1 día" })

@@ -280,7 +280,7 @@ export function DatePickerField({
               </button>
             </PopoverTrigger>
             <PopoverContent
-              className="z-[100] w-auto rounded-xl border-slate-400/60 p-0 shadow-lg dark:border-slate-600/60"
+              className="z-100 w-auto rounded-xl border-slate-400/60 p-0 shadow-lg dark:border-slate-600/60"
               align="end"
               side="bottom"
               sideOffset={8}
@@ -298,13 +298,21 @@ export function DatePickerField({
                 mode="single"
                 selected={value || undefined}
                 onSelect={handleCalendarSelect}
-                initialFocus
-                fromYear={minDate ? minDate.getFullYear() : 1900}
-                toYear={maxDate ? maxDate.getFullYear() : (maxYear ?? new Date().getFullYear() + 20)}
-                disabled={(date) =>
-                  (!!minDate && date < startOfDay(minDate)) || (!!maxDate && date > startOfDay(maxDate))
+                autoFocus
+                startMonth={new Date(minDate ? minDate.getFullYear() : 1900, 0)}
+                endMonth={
+                  new Date(
+                    maxDate
+                      ? maxDate.getFullYear()
+                      : (maxYear ?? new Date().getFullYear() + 20),
+                    11,
+                  )
                 }
-                captionLayout="dropdown-buttons"
+                disabled={(date) =>
+                  (!!minDate && date < startOfDay(minDate)) ||
+                  (!!maxDate && date > startOfDay(maxDate))
+                }
+                captionLayout="dropdown"
               />
             </PopoverContent>
           </Popover>

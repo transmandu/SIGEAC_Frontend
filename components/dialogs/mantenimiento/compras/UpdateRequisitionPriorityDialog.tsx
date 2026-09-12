@@ -132,7 +132,7 @@ const UpdateRequisitionPriorityDialog = ({ req, open, setOpen, onSuccess }: Prop
               flex items-center justify-center
               size-12 rounded-2xl
               border border-amber-500/15
-              bg-amber-500/[0.08]
+              bg-amber-500/8
             "
           >
             <Tag className="size-5 text-amber-600" />

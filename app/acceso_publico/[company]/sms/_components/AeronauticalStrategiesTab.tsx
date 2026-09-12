@@ -77,7 +77,7 @@ const AeronauticalStrategiesTab = ({
 
     return (
         <TabsContent value="estrategias" className="mt-6 space-y-4">
-            <Card className="min-h-[300px] border-border/60 shadow-lg bg-gradient-to-b from-background to-muted/20">
+            <Card className="min-h-[300px] border-border/60 shadow-lg bg-linear-to-b from-background to-muted/20">
                 <CardHeader>
                     <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
                         <span className="w-2 h-8 bg-yellow-500 rounded-full mr-2" />

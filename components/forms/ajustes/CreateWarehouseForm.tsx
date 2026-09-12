@@ -21,7 +21,7 @@ import { useCreateWarehouse } from "@/actions/mantenimiento/almacen/almacenes/ac
 import { Input } from "@/components/ui/input"
 import { useGetCompaniesWithWarehouses } from "@/hooks/sistema/useGetCompaniesWithWarehouses"
 import { useGetLocationsByCompanyId } from "@/hooks/sistema/useGetLocationsByCompanyId"
-import { zodResolver } from "@hookform/resolvers/zod"
+import { zodResolver } from "@/lib/zod-resolver"
 import { Loader2 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"

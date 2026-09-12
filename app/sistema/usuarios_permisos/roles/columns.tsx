@@ -1,6 +1,6 @@
 "use client"
 
-import { ColumnDef } from "@tanstack/react-table"
+import { type AppColumnDef } from "@/lib/table";
 
 import PermissionsDialog from "@/components/dialogs/general/PermissionsDialog"
 import RolesDropdownActions from "@/components/dropdowns/ajustes/RolesDropdownActions"
@@ -12,7 +12,7 @@ import Image from "next/image"
 
 
 
-export const columns: ColumnDef<Role>[] = [
+export const columns: AppColumnDef<Role>[] = [
     {
     accessorKey: "label",
     header: ({ column }) => (

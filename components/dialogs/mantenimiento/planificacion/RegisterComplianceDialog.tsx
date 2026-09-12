@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { z } from "zod";
 import { format, startOfDay } from "date-fns";
 import { CheckCircle2, Loader2 } from "lucide-react";
@@ -41,7 +41,7 @@ import {
 
 const formSchema = z.object({
   compliance_date: z
-    .date({ required_error: "Seleccione una fecha" })
+    .date({ error: "Seleccione una fecha" })
     .refine((date) => startOfDay(date) <= startOfDay(new Date()), {
       message: "No puede registrarse un cumplimiento con fecha futura",
     }),

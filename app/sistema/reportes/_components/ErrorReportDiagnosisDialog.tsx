@@ -91,7 +91,7 @@ function ConsoleField({
           onChange={(e) => onChange?.(e.target.value)}
           placeholder={placeholder}
           rows={4}
-          className="w-full resize-none bg-transparent px-3 py-2.5 font-mono text-[13px] leading-relaxed text-slate-200 placeholder:text-slate-600 focus:outline-none"
+          className="w-full resize-none bg-transparent px-3 py-2.5 font-mono text-[13px] leading-relaxed text-slate-200 placeholder:text-slate-600 focus:outline-hidden"
         />
       )}
     </div>
@@ -206,7 +206,7 @@ function Lightbox({
 
   return (
     <div
-      className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/85 backdrop-blur-sm"
+      className="fixed inset-0 z-80 flex items-center justify-center bg-slate-950/85 backdrop-blur-xs"
       onClick={onClose}
     >
       <button
@@ -338,7 +338,7 @@ export default function ErrorReportDiagnosisDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex max-h-[85vh] flex-col overflow-hidden p-0 sm:max-w-[620px]">
         {/* ───────── Sticky header ───────── */}
-        <DialogHeader className="shrink-0 border-b border-slate-200/80 bg-gradient-to-b from-slate-50 to-background px-6 pb-4 pt-6 dark:border-slate-800/80 dark:from-slate-900/40">
+        <DialogHeader className="shrink-0 border-b border-slate-200/80 bg-linear-to-b from-slate-50 to-background px-6 pb-4 pt-6 dark:border-slate-800/80 dark:from-slate-900/40">
           <div className="flex items-start justify-between gap-3 pr-6">
             <div className="space-y-1.5">
               <DialogTitle className="text-lg font-semibold tracking-tight">
@@ -503,7 +503,7 @@ export default function ErrorReportDiagnosisDialog({
                             onClick={() => handleDeleteImage(image.id)}
                             disabled={deleteErrorReportImage.isPending}
                             aria-label="Eliminar imagen"
-                            className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-destructive-foreground opacity-0 shadow transition-opacity group-hover:opacity-100"
+                            className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-destructive-foreground opacity-0 shadow-sm transition-opacity group-hover:opacity-100"
                           >
                             <X className="h-3 w-3" />
                           </button>
@@ -595,7 +595,7 @@ export default function ErrorReportDiagnosisDialog({
         </Tabs>
 
         {/* ───────── Sticky footer ───────── */}
-        <div className="flex shrink-0 items-center justify-end gap-2 border-t border-slate-200/80 bg-gradient-to-t from-slate-50 to-background px-6 py-3.5 dark:border-slate-800/80 dark:from-slate-900/40">
+        <div className="flex shrink-0 items-center justify-end gap-2 border-t border-slate-200/80 bg-linear-to-t from-slate-50 to-background px-6 py-3.5 dark:border-slate-800/80 dark:from-slate-900/40">
           <Button type="button" variant="outline" size="sm" onClick={() => onOpenChange(false)}>
             {canEdit ? "Cancelar" : "Cerrar"}
           </Button>

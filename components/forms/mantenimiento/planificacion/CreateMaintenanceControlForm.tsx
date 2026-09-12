@@ -2,7 +2,7 @@
 
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { useForm, useFieldArray, useWatch, useFormContext, Control } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { z } from "zod";
 import { format, parseISO } from "date-fns";
 import {
@@ -98,7 +98,7 @@ const baseItemSchema = z.object({
   // eligió con el selector en vez de escribirlo a mano.
   maintenance_catalog_service_id: z.number().optional(),
   name: z.string().min(1, "Requerido"),
-  first_applied_date: z.date({ required_error: "Seleccione una fecha" }),
+  first_applied_date: z.date({ error: "Seleccione una fecha" }),
   intervals: z.array(intervalSchema).min(1, "Agregue al menos un intervalo"),
 });
 
@@ -372,10 +372,10 @@ function CompactDateField({ control, name }: { control: Control<any>; name: stri
                 selected={field.value}
                 onSelect={field.onChange}
                 disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
-                captionLayout="dropdown-buttons"
-                fromYear={1900}
-                toYear={new Date().getFullYear()}
-                initialFocus
+                captionLayout="dropdown"
+                startMonth={new Date(1900, 0)}
+                endMonth={new Date(new Date().getFullYear(), 11)}
+                autoFocus
               />
             </PopoverContent>
           </Popover>
@@ -1089,6 +1089,11 @@ export default function CreateMaintenanceControlForm({ initialData }: { initialD
     defaultValues: buildDefaultValues(initialData),
   });
 
+  // Los subcomponentes de este archivo reciben `Control<any>` porque atienden
+  // campos de varias formas; desde react-hook-form 7.87 el genérico es
+  // invariante y el Control concreto ya no entra sin ensancharlo aquí.
+  const control = form.control as unknown as Control<any>;
+
   const hasReferenceManual = form.watch("has_reference_manual");
   const aircraftId = form.watch("aircraft_id");
 
@@ -1163,7 +1168,7 @@ export default function CreateMaintenanceControlForm({ initialData }: { initialD
           action={<CreateMaintenanceProviderDialog />}
         >
           <div className="grid grid-cols-1 gap-4 md:grid-cols-[minmax(150px,190px)_2fr_minmax(96px,140px)]">
-            <AircraftSelect control={form.control} name="aircraft_id" excludeIds={excludeAircraftIds} />
+            <AircraftSelect control={control} name="aircraft_id" excludeIds={excludeAircraftIds} />
             <FormField
               control={form.control}
               name="title"
@@ -1243,7 +1248,7 @@ export default function CreateMaintenanceControlForm({ initialData }: { initialD
             />
             {hasReferenceManual && (
               <div className="grid grid-cols-1 gap-4 md:col-span-3 md:grid-cols-2">
-                <CatalogManualField control={form.control} aircraftId={aircraftId} />
+                <CatalogManualField control={control} aircraftId={aircraftId} />
                 <FormField
                   control={form.control}
                   name="reference_manual"
@@ -1274,7 +1279,7 @@ export default function CreateMaintenanceControlForm({ initialData }: { initialD
               hint="Documentos a bordo de la aeronave: aeronavegabilidad, seguro, radio, ELT..."
             >
               <MaintenanceItemRows
-                control={form.control}
+                control={control}
                 name="certificates"
                 category="CERTIFICATE"
                 emptyLabel="Agregue los certificados de la aeronave."
@@ -1288,7 +1293,7 @@ export default function CreateMaintenanceControlForm({ initialData }: { initialD
               hint="Inspecciones periódicas de la aeronave como conjunto."
             >
               <MaintenanceItemRows
-                control={form.control}
+                control={control}
                 name="services"
                 category="SERVICE"
                 emptyLabel="Agregue los servicios de la aeronave."
@@ -1301,7 +1306,7 @@ export default function CreateMaintenanceControlForm({ initialData }: { initialD
               title="Partes de la Aeronave"
               hint="Motores, turbinas y hélices con servicios propios."
             >
-              <PartsSection control={form.control} />
+              <PartsSection control={control} />
             </FormSection>
           </>
         ) : (

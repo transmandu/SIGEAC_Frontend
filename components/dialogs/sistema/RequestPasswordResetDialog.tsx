@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { CheckCircle2, KeyRound, Loader2, Mail, ShieldCheck } from "lucide-react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
@@ -98,7 +98,7 @@ export default function RequestPasswordResetDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[26rem]">
+      <DialogContent className="sm:max-w-104">
         <DialogHeader>
           <div className="flex items-center gap-3">
             {/* El icono acompaña el estado: llave -> escudo al confirmar. */}

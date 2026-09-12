@@ -34,7 +34,7 @@ import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits";
 import { batches_categories } from "@/lib/batches_categories";
 import { generateSlug, getValueFromLabel } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { Loader2, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";

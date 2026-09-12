@@ -134,7 +134,7 @@ export default function NotificationBell() {
                       rounded-full
                       bg-red-500 text-white
                       text-[10px] font-medium
-                      shadow-sm
+                      shadow-xs
                     "
                   >
                     {unreadCount > 9 ? '+9' : unreadCount}
@@ -144,7 +144,7 @@ export default function NotificationBell() {
             </button>
           </TooltipTrigger>
 
-          <TooltipContent side="bottom" className="z-[1001]">
+          <TooltipContent side="bottom" className="z-1001">
             Notificaciones
           </TooltipContent>
         </Tooltip>

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { MoreHorizontal, Loader2, Pencil, Trash2 } from "lucide-react";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 

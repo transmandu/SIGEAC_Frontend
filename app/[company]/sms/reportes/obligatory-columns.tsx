@@ -1,6 +1,6 @@
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
+import { type AppColumnDef } from "@/lib/table";
 
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 
@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { dateFormat } from "@/lib/utils";
 import { ObligatoryReport } from "@/types";
 
-export const columns: ColumnDef<ObligatoryReport>[] = [
+export const columns: AppColumnDef<ObligatoryReport>[] = [
   {
     accessorKey: "report_number",
     header: ({ column }) => (

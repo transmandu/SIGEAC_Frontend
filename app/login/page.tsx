@@ -53,8 +53,8 @@ const Login = () => {
       </Suspense>
 
       {/* min-h en vez de h fija: en móviles bajos el contenido puede crecer. */}
-      <div className="relative min-h-[100dvh] w-full">
-        <div className="flex min-h-[100dvh] flex-col lg:flex-row">
+      <div className="relative min-h-dvh w-full">
+        <div className="flex min-h-dvh flex-col lg:flex-row">
 
           {/* Toggler de móvil: en desktop vive dentro de la tarjeta. Va en
               position absolute para no robarle ancho a la fila en lg. */}
@@ -72,7 +72,7 @@ const Login = () => {
             <Logo
               width={712}
               height={344}
-              className="w-48 sm:w-60 lg:w-[22rem] max-w-full dark:opacity-90 dark:brightness-95"
+              className="w-48 sm:w-60 lg:w-88 max-w-full dark:opacity-90 dark:brightness-95"
             />
           </motion.div>
 
@@ -82,7 +82,7 @@ const Login = () => {
 
             <motion.div
               {...fadeIn(0.08)}
-              className="login-card relative z-10 w-full max-w-[31rem] rounded-2xl p-6 sm:p-9 lg:p-12"
+              className="login-card relative z-10 w-full max-w-124 rounded-2xl p-6 sm:p-9 lg:p-12"
             >
               <div className="hidden lg:flex w-full justify-end">
                 <ThemeToggler />

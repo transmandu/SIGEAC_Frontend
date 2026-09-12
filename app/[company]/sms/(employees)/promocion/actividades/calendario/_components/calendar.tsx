@@ -2,13 +2,19 @@
 import { useUpdateCalendarSMSActivity } from "@/actions/sms/sms_actividades/actions";
 import CreateSMSActivityDialog from "@/components/dialogs/aerolinea/sms/CreateSMSActivityDialog";
 import { Button } from "@/components/ui/button";
-import { dateToZonedDateTime, temporalToDate } from "@/lib/scheduleXTemporal";
+import {
+  calendarMomentToDate,
+  calendarMomentToString,
+  calendarMomentToTime,
+  toCalendarMoment,
+  type CalendarMoment,
+  calendarTimeZone,
+} from "@/lib/calendar-temporal";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import {
   createViewDay,
   createViewMonthGrid,
   createViewWeek,
-  type CalendarEvent as ScheduleXEvent,
 } from "@schedule-x/calendar";
 import { createDragAndDropPlugin } from "@schedule-x/drag-and-drop";
 import { createEventModalPlugin } from "@schedule-x/event-modal";
@@ -32,6 +38,12 @@ interface SMSActivities {
   calendarId: string;
   status: "ABIERTO" | "CERRADO" | "PENDIENTE"; // Asegúrate de que esta propiedad existe
 }
+
+/** El mismo evento ya traducido a lo que schedule-x pide desde la 3. */
+type scheduleXActivityEvent = Omit<SMSActivities, "start" | "end"> & {
+  start: CalendarMoment;
+  end: CalendarMoment;
+};
 
 type CalendarProps = {
   events: SMSActivities[];
@@ -82,15 +94,6 @@ const eventStatus = {
   },
 };
 
-// schedule-x v3 pide Temporal en vez de strings para start/end de cada evento.
-function toScheduleXEvents(events: SMSActivities[]): ScheduleXEvent[] {
-  return events.map((event) => ({
-    ...event,
-    start: dateToZonedDateTime(new Date(event.start)),
-    end: dateToZonedDateTime(new Date(event.end)),
-  }));
-}
-
 export const Calendar = ({ events, theme = "light" }: CalendarProps) => {
   const { selectedCompany } = useCompanyStore();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -100,7 +103,17 @@ export const Calendar = ({ events, theme = "light" }: CalendarProps) => {
   const eventModal = useMemo(() => createEventModalPlugin(), []);
   const dragAndDrop = useMemo(() => createDragAndDropPlugin(), []);
   const resizePlugin = useMemo(() => createResizePlugin(30), []);
-  const scheduleXEvents = useMemo(() => toScheduleXEvents(events), [events]);
+
+  // schedule-x 3 dejó de aceptar texto en start/end.
+  const calendarEvents = useMemo<scheduleXActivityEvent[]>(
+    () =>
+      events.map((event) => ({
+        ...event,
+        start: toCalendarMoment(event.start),
+        end: toCalendarMoment(event.end),
+      })),
+    [events],
+  );
 
   const { updateCalendarSMSActivity } = useUpdateCalendarSMSActivity();
 
@@ -108,9 +121,12 @@ export const Calendar = ({ events, theme = "light" }: CalendarProps) => {
   const calendar = useNextCalendarApp({
     views: [createViewMonthGrid(), createViewWeek(), createViewDay()],
     calendars: eventStatus,
-    events: scheduleXEvents,
+    events: calendarEvents,
+    // Misma zona en la que se arman los eventos: con el default (UTC)
+    // schedule-x los corre al offset local.
+    timezone: calendarTimeZone(),
     locale: "es-ES",
-    defaultView: "month-grid",
+    defaultView: "month",
     isResponsive: true,
     plugins: [dragAndDrop, eventsServiceRef.current, eventModal, resizePlugin],
     dayBoundaries: { start: "06:00", end: "18:00" },
@@ -120,22 +136,24 @@ export const Calendar = ({ events, theme = "light" }: CalendarProps) => {
         setIsDialogOpen(true);
       },
       onDoubleClickDateTime: (dateTime) => {
-        setSelectedDate(format(temporalToDate(dateTime), "yyyy-MM-dd HH:mm"));
+        setSelectedDate(calendarMomentToString(dateTime));
         setIsDialogOpen(true);
       },
       onEventUpdate: async (event) => {
-        const startDate = temporalToDate(event.start);
-        const endDate = temporalToDate(event.end);
         try {
           await updateCalendarSMSActivity.mutateAsync({
             company: selectedCompany!.slug,
             id: event.id as string,
             data: {
+              // El spread traería los Temporal crudos: start y end vuelven a
+              // texto para el backend.
               ...event,
-              start_date: startDate,
-              end_date: endDate,
-              start_time: format(startDate, "HH:mm"),
-              end_time: format(endDate, "HH:mm"),
+              start: calendarMomentToString(event.start),
+              end: calendarMomentToString(event.end),
+              start_date: calendarMomentToDate(event.start),
+              end_date: calendarMomentToDate(event.end),
+              start_time: calendarMomentToTime(event.start),
+              end_time: calendarMomentToTime(event.end),
               status: event.calendarId,
             },
           });
@@ -151,11 +169,11 @@ export const Calendar = ({ events, theme = "light" }: CalendarProps) => {
       eventModal: ({
         calendarEvent,
       }: {
-        calendarEvent: ScheduleXEvent;
+        calendarEvent: scheduleXActivityEvent;
         close: () => void;
       }) => {
-        const startDate = temporalToDate(calendarEvent.start);
-        const endDate = temporalToDate(calendarEvent.end);
+        const startDate = calendarMomentToDate(calendarEvent.start);
+        const endDate = calendarMomentToDate(calendarEvent.end);
 
         return (
           <div className="text-foreground p-6 rounded-lg shadow-xl max-w-md w-full border border-border">
@@ -218,10 +236,10 @@ export const Calendar = ({ events, theme = "light" }: CalendarProps) => {
 
   // ✅ Refrescar eventos en el servicio solo cuando cambian
   useEffect(() => {
-    if (scheduleXEvents && eventsServiceRef.current) {
-      eventsServiceRef.current.set(scheduleXEvents);
+    if (calendarEvents && eventsServiceRef.current) {
+      eventsServiceRef.current.set(calendarEvents);
     }
-  }, [scheduleXEvents]);
+  }, [calendarEvents]);
 
   // ✅ Actualizar tema dinámicamente
   useEffect(() => {

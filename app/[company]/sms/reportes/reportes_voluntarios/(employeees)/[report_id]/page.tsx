@@ -291,7 +291,7 @@ const ShowVoluntaryReport = () => {
               (consequence, index) =>
                 consequence.trim() && (
                   <li key={index} className="flex items-start gap-2">
-                    <ChevronRight className="w-4 h-4 mt-0.5 flex-shrink-0 text-muted-foreground" />
+                    <ChevronRight className="w-4 h-4 mt-0.5 shrink-0 text-muted-foreground" />
                     <span className="text-sm">{consequence.trim()}</span>
                   </li>
                 ),

@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { ArrowLeft, CheckCircle, Loader2, Plane, Settings, ChevronDown } from "lucide-react";
-import { useState, useEffect, useCallback } from "react";
+import { use, useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { AircraftInfoForm } from "@/components/forms/mantenimiento/aeronaves/AircraftInfoForm";
 import { AircraftPartsInfoForm } from "@/components/forms/mantenimiento/aeronaves/AircraftPartsForm";
@@ -86,7 +86,7 @@ function PartsSummaryTree({ parts, level = 0 }: { parts: AircraftPart[], level?:
                         <CollapsibleTrigger className="w-full">
                             <div className="flex items-center justify-between p-3 hover:bg-muted/50 transition-colors text-left">
                                 <div className="flex items-center gap-2">
-                                    <ChevronDown className="h-4 w-4 transition-transform [[data-state=closed]>&]:rotate-[-90deg]" />
+                                    <ChevronDown className="h-4 w-4 transition-transform [[data-state=closed]>&]:-rotate-90" />
                                     <div className="flex flex-col">
                                         <span className="font-medium text-sm">{part.part_name || `Parte ${index + 1}`}</span>
                                         <span className="text-xs text-muted-foreground">
@@ -129,7 +129,8 @@ function PartsSummaryTree({ parts, level = 0 }: { parts: AircraftPart[], level?:
     );
 }
 
-export default function EditAircraftPage({ params }: { params: { acronym: string, company: string } }) {
+export default function EditAircraftPage({ params }: { params: Promise<{ acronym: string, company: string }> }) {
+    const { acronym } = use(params);
     const [currentStep, setCurrentStep] = useState(1);
     const [aircraftData, setAircraftData] = useState<AircraftInfoType>();
     const [partsData, setPartsData] = useState<PartsData>({ parts: [] });
@@ -141,7 +142,7 @@ export default function EditAircraftPage({ params }: { params: { acronym: string
     // Obtener datos de la aeronave
     const { data: aircraft, isLoading, isError } = useGetMaintenanceAircraftByAcronym(
         selectedCompany?.slug,
-        params.acronym
+        acronym
     );
 
     // Obtener lista de clientes para buscar el cliente de la aeronave
@@ -322,7 +323,7 @@ export default function EditAircraftPage({ params }: { params: { acronym: string
 
                 <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
                     <h2 className="text-2xl font-bold text-destructive">Aeronave no encontrada</h2>
-                    <p className="text-muted-foreground">No se pudo cargar la información de la aeronave {params.acronym}</p>
+                    <p className="text-muted-foreground">No se pudo cargar la información de la aeronave {acronym}</p>
                     <Button onClick={handleCancel} variant="outline">
                         <ArrowLeft className="h-4 w-4 mr-2" />
                         Volver a Aeronaves

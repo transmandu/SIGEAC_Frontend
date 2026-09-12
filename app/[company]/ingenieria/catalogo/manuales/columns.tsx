@@ -1,6 +1,6 @@
 "use client";
 
-import { ColumnDef, FilterFn } from "@tanstack/react-table";
+import { type AppColumnDef, type AppFilterFn } from "@/lib/table";
 import { Badge } from "@/components/ui/badge";
 import { CatalogManual } from "@/types/maintenanceCatalog";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
@@ -10,7 +10,7 @@ import { ManualRowActions } from "./_components/ManualRowActions";
 
 // Los filtros facetados entregan un arreglo de valores seleccionados; sin esto
 // TanStack compara el arreglo contra el valor de la celda y nunca coincide.
-const includesSome: FilterFn<CatalogManual> = (row, columnId, filterValue: string[]) => {
+const includesSome: AppFilterFn<CatalogManual> = (row, columnId, filterValue: string[]) => {
   if (!filterValue?.length) return true;
   return filterValue.includes(String(row.getValue(columnId)));
 };
@@ -20,7 +20,7 @@ const includesSome: FilterFn<CatalogManual> = (row, columnId, filterValue: strin
  * sobre los valores de celda no encuentra "vigente". El buscador se arma sobre
  * el texto que el usuario ve, igual que en servicios.
  */
-export const manualGlobalFilter: FilterFn<CatalogManual> = (row, _columnId, filterValue: string) => {
+export const manualGlobalFilter: AppFilterFn<CatalogManual> = (row, _columnId, filterValue: string) => {
   const term = filterValue.trim().toLowerCase();
   if (!term) return true;
 
@@ -36,7 +36,7 @@ export const manualGlobalFilter: FilterFn<CatalogManual> = (row, _columnId, filt
   return haystack.some((value) => value?.toLowerCase().includes(term));
 };
 
-export const columns: ColumnDef<CatalogManual>[] = [
+export const columns: AppColumnDef<CatalogManual>[] = [
   {
     accessorKey: "name",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Nombre" />,

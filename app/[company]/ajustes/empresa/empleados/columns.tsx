@@ -1,6 +1,6 @@
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
+import { type AppColumnDef } from "@/lib/table";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { Employee } from "@/types";
 import { CarnetCell } from "@/app/[company]/ajustes/empresa/empleados/_components/CarnetCell";
@@ -28,7 +28,7 @@ export const getEmployeeColumns = (
   mode: EmployeeMode,
   expandedRowId: string | false,
   setExpandedRowId: (id: string | false) => void
-): ColumnDef<Employee>[] => {
+): AppColumnDef<Employee>[] => {
   return [
     {
       id: "expander",

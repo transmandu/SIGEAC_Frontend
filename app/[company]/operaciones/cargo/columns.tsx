@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useDeleteCargoShipment } from "@/actions/cargo/actions";
-import { ColumnDef } from "@tanstack/react-table";
+import { type AppColumnDef } from "@/lib/table";
 import { CargoShipment } from "@/types";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { format, parseISO, isValid } from "date-fns";
@@ -124,7 +124,7 @@ export const getColumns = (
   isCurrentMonth: boolean,
   company: string,
   canWrite: boolean = true,
-): ColumnDef<CargoShipment>[] => [
+): AppColumnDef<CargoShipment>[] => [
   {
     accessorKey: "guide_number",
     header: ({ column }) => (
