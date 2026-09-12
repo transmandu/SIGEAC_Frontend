@@ -1,6 +1,6 @@
 {
   "name": "sigec_frontend",
-  "version": "4.0.2",
+  "version": "4.0.3",
   "packageManager": "pnpm@12.3.4",
   "private": true,
   "engines": {

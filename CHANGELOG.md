@@ -1,3 +1,7 @@
+## v4.0.3 — 2026-09-12
+
+- docs: como abrir los dos repos a la vez sin romper el LSP de Laravel
+
 ## v4.0.2 — 2026-09-12
 
 - chore: formato automatico compartido por todo el equipo
