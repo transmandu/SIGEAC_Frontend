@@ -1,3 +1,7 @@
+## v4.1.0 — 2026-09-12
+
+- feat: refactor consumable dispatch form and add ConsumableArticleRow component
+
 ## v4.0.3 — 2026-09-12
 
 - docs: como abrir los dos repos a la vez sin romper el LSP de Laravel
