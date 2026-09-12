@@ -1,3 +1,7 @@
+## v4.0.2 — 2026-09-12
+
+- chore: formato automatico compartido por todo el equipo
+
 ## v4.0.1 — 2026-09-12
 
 - chore: sacar config local de editor y de IA del control de versiones
