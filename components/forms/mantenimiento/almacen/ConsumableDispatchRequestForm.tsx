@@ -18,7 +18,7 @@ import { useMemo } from "react"
 import { SectionHeader } from "./_components/SectionHeader"
 import { ConversionPanel } from "./_components/ConversionPanel"
 import EvidenceCapture from "@/components/misc/EvidenceCapture"
-import { ArticleRowCard } from "./_components/ArticleRowCard"
+import { ConsumableArticleRow } from "./_components/ConsumableArticleRow"
 import { GeneralArticleRow } from "./_components/GeneralArticleRow"
 import { BackdatedDispatchField } from "./_components/BackdatedDispatchField"
 import { truncateText } from "./_components/truncate"
@@ -48,7 +48,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
         allDepartments, isDepartmentsLoading,
         aircrafts, isAircraftsLoading,
         authorizedEmployees, isAuthorizedEmployeesLoading,
-        thirdParties, isThirdPartiesLoading,
+        isThirdPartiesLoading,
         transferLocations, isLocationsLoading,
         batches, isBatchesLoading,
         employees, employeesLoading,
@@ -61,7 +61,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
         aeroById, genById, aeroBatchNameById,
         getAeroMax, getGenMax,
         qtyByKey, setQtyByKey, msgByKey, convByKey,
-        cutByKey, updateCut,
+        cutByKey, updateCut, updateAeroCut,
         evidenceByKey, setEvidence,
         commitAeroQty, commitGenQty,
         setToMaxAero, setToMaxGen,
@@ -619,20 +619,18 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                                 const article = articleId ? aeroById.get(articleId) : undefined
                                 const max = articleId ? getAeroMax(articleId) : 0
                                 return (
-                                    <ArticleRowCard
+                                    <ConsumableArticleRow
                                         key={f.id}
-                                        title={article?.part_number ?? (articleId ? `ID: ${articleId}` : "Artículo")}
-                                        subtitle={`${aeroBatchNameById.get(articleId) ?? "Sin lote"} · Disponible: ${article?.quantity ?? 0} ${article?.unit ?? ""}`}
+                                        article={article}
+                                        articleId={articleId}
+                                        batchName={aeroBatchNameById.get(articleId)}
                                         qty={qtyByKey[key] ?? ""}
                                         max={max}
                                         rowMsg={msgByKey[key]}
-                                        disabled={!article}
-                                        canConvert={!!article && article.unit !== "u"}
+                                        conversion={convByKey[key]}
                                         showConversionPanel={convState.target === "aero" && convState.rowFieldId === f.id && !!article && article.unit !== "u"}
                                         conversionPanelNode={conversionPanelNode}
-                                        accentClass="border-l-blue-500/50"
-                                        baseUnitLabel={article?.unit ?? undefined}
-                                        conversion={convByKey[key]}
+                                        cut={cutByKey[key]}
                                         evidenceNode={
                                             <EvidenceCapture
                                                 files={evidenceByKey[key] ?? []}
@@ -645,6 +643,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                                         onSetMax={() => setToMaxAero(index, f.id)}
                                         onOpenConversion={() => openConversionForAero(index, f.id, articleId)}
                                         onRemove={() => removeAeroRow(index, f.id)}
+                                        onCutChange={(next) => updateAeroCut(index, f.id, next)}
                                     />
                                 )
                             })}
@@ -715,12 +714,12 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                     <Button
                         type="button" variant="outline" onClick={onClose}
                         disabled={createDispatchRequest?.isPending}
-                        className="min-w-[100px] h-10"
+                        className="min-w-25 h-10"
                     >
                         Cancelar
                     </Button>
                     <Button
-                        className="bg-primary text-white hover:bg-primary/90 disabled:bg-primary/70 min-w-[120px] h-10"
+                        className="bg-primary text-white hover:bg-primary/90 disabled:bg-primary/70 min-w-30 h-10"
                         disabled={createDispatchRequest?.isPending || aeronauticalCount + generalCount === 0 || hasBlockingQtyError || hasInvalidQty}
                         type="submit"
                     >
