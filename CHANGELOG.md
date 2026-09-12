@@ -1,3 +1,15 @@
+## v4.0.3 — 2026-09-12
+
+- docs: como abrir los dos repos a la vez sin romper el LSP de Laravel
+
+## v4.0.2 — 2026-09-12
+
+- chore: formato automatico compartido por todo el equipo
+
+## v4.0.1 — 2026-09-12
+
+- chore: sacar config local de editor y de IA del control de versiones
+
 ## v4.0.0 — 2026-09-11
 
 - Merge pull request #253 from transmandu/fix7pr-yaml-versiones

@@ -1,0 +1,39 @@
+name: Formato
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  prettier:
+    name: Prettier
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # Solo los archivos que toca el PR. El resto del repo todavia no sigue
+      # el preset y se ira normalizando a medida que se edite cada archivo.
+      - name: Verificar formato de los archivos del PR
+        run: |
+          FILES=$(git diff --name-only --diff-filter=d \
+            origin/${{ github.base_ref }}...HEAD \
+            | grep -E '\.(ts|tsx|js|jsx|json|css)$' || true)
+
+          if [ -z "$FILES" ]; then
+            echo "El PR no toca archivos formateables."
+            exit 0
+          fi
+
+          echo "$FILES"
+          echo "$FILES" | xargs pnpm exec prettier --check
