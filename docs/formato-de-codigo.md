@@ -47,7 +47,14 @@ Si el CI marca tu PR, `pnpm format:changed` y un commit lo resuelven.
 No hay que hacer nada: `.vscode/settings.json` viene en el repo. Al abrir el
 proyecto, VS Code ofrece instalar las extensiones recomendadas — acepta.
 
-Está en modo `modifications`: al guardar formatea solo las líneas que tocaste.
+El frontend está en modo `modifications`: al guardar formatea solo las líneas
+que tocaste. En el backend Pint lo corre la extensión oficial de Laravel
+(`Laravel.pint.runOnSave`), no un formateador aparte.
+
+> **Si trabajas los dos repos a la vez**, ábrelos como workspace multi-root en
+> vez de como carpetas sueltas (*File → Open Workspace from File*). La extensión
+> de Laravel busca `artisan` en la raíz: si la raíz es el frontend, no lo
+> encuentra y su servidor de lenguaje falla en bucle.
 
 ### PhpStorm / WebStorm
 
