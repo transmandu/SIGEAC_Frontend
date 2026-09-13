@@ -10,6 +10,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useCompanyStore } from "@/stores/CompanyStore";
 
 type ReportKind = "RVP" | "ROS";
@@ -36,15 +42,22 @@ export function ReportDetailActions({ id, kind }: ReportDetailActionsProps) {
           <MoreHorizontal className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="min-w-40">
-        <DropdownMenuItem
-          onClick={() => {
-            router.push(href);
-          }}
-        >
-          <EyeIcon className="mr-2 h-4 w-4" />
-          Ver detalle
-        </DropdownMenuItem>
+
+      <DropdownMenuContent align="center" className="flex flex-row gap-2 p-2">
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <DropdownMenuItem
+                onClick={() => {
+                  router.push(href);
+                }}
+              >
+                <EyeIcon className="size-4" />
+              </DropdownMenuItem>
+            </TooltipTrigger>
+            <TooltipContent>Ver detalle</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </DropdownMenuContent>
     </DropdownMenu>
   );

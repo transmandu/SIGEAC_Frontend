@@ -7,6 +7,7 @@ import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import VoluntaryReportDropdownActions from "@/components/dropdowns/aerolinea/sms/VoluntaryReportDropDownMenu";
 import { Badge } from "@/components/ui/badge";
 import { dateFormat } from "@/lib/utils";
+import { getBadgeStatusClass } from "@/lib/sms/utils";
 import { VoluntaryReport } from "@/types";
 
 export const columns: AppColumnDef<VoluntaryReport>[] = [
@@ -88,22 +89,15 @@ export const columns: AppColumnDef<VoluntaryReport>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Estado del Reporte" />
     ),
-    cell: ({ row }) => (
-      <div className="flex justify-center">
-        <Badge
-          className={`justify-center items-center text-center font-bold font-sans pointer-events-none
-      ${
-        row.original.status === "CERRADO"
-          ? "bg-green-400"
-          : row.original.status === "PROCESO"
-            ? "bg-gray-500" // Color gris oscuro (puedes ajustar el tono)
-            : "bg-red-400"
-      }`}
-        >
-          {row.original.status}
-        </Badge>
-      </div>
-    ),
+    cell: ({ row }) => {
+      const badgeClasses = getBadgeStatusClass(row.original.status);
+
+      return (
+        <div className="flex justify-center">
+          <Badge className={badgeClasses}>{row.original.status}</Badge>
+        </div>
+      );
+    },
   },
   {
     id: "actions",
