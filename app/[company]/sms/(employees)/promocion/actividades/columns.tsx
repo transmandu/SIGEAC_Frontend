@@ -61,10 +61,23 @@ const StatusBadge = ({ status }: { status: string }) => {
   );
 };
 
+const activityNumberSortFn = (rowA: { original: SMSActivityTableRow }, rowB: { original: SMSActivityTableRow }) => {
+  const parseActivityNumber = (val?: string) => {
+    if (!val) return { num: 0, year: 0 };
+    const parts = val.split("-");
+    return { num: parseInt(parts[0], 10) || 0, year: parseInt(parts[1], 10) || 0 };
+  };
+  const a = parseActivityNumber(rowA.original.activity_number);
+  const b = parseActivityNumber(rowB.original.activity_number);
+  if (a.year !== b.year) return b.year - a.year;
+  return b.num - a.num;
+};
+
 // Columnas de la tabla
 export const columns: AppColumnDef<SMSActivityTableRow>[] = [
   {
     accessorKey: "activity_number",
+    sortingFn: activityNumberSortFn,
     header: ({ column }) => (
       <DataTableColumnHeader filter column={column} title="Numero de actividad" />
     ),
