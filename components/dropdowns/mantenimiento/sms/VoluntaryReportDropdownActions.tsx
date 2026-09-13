@@ -5,8 +5,18 @@ import { useRouter } from "next/navigation";
 
 import CloseVoluntaryReportForm from "@/components/forms/mantenimiento/sms/CloseVoluntaryReportForm";
 import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { getResult } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useState } from "react";
@@ -66,81 +76,65 @@ export function VoluntaryReportDropdownActions({ report, kind }: ReportDetailAct
 
   return (
     <>
-      <TooltipProvider>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Abrir acciones</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent align="end" className="w-auto p-2 flex flex-row gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => router.push(href)}
-            >
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <EyeIcon className="h-4 w-4" />
-                </TooltipTrigger>
-                <TooltipContent side="bottom">Ver detalle</TooltipContent>
-              </Tooltip>
-            </Button>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="h-8 w-8 p-0">
+            <span className="sr-only">Abrir acciones</span>
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+
+        <DropdownMenuContent
+          align="center"
+          className="flex flex-row gap-2 p-2"
+        >
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenuItem onClick={() => router.push(href)}>
+                  <EyeIcon className="size-4" />
+                </DropdownMenuItem>
+              </TooltipTrigger>
+              <TooltipContent>Ver detalle</TooltipContent>
+            </Tooltip>
 
             {report &&
               (report.status === "ABIERTO" ||
                 report.status === "EN_PROCESO") && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => setOpenDelete(true)}
-                >
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Trash2 className="h-4 w-4 text-red-500" />
-                    </TooltipTrigger>
-                    <TooltipContent side="bottom">Eliminar</TooltipContent>
-                  </Tooltip>
-                </Button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <DropdownMenuItem onClick={() => setOpenDelete(true)}>
+                      <Trash2 className="size-4 text-red-500" />
+                    </DropdownMenuItem>
+                  </TooltipTrigger>
+                  <TooltipContent>Eliminar</TooltipContent>
+                </Tooltip>
               )}
 
             {report.status === "EN_PROCESO" && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => setOpenAccept(true)}
-                >
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <CheckCheck className="h-4 w-4 text-green-400" />
-                    </TooltipTrigger>
-                    <TooltipContent side="bottom">Aceptar</TooltipContent>
-                  </Tooltip>
-                </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuItem onClick={() => setOpenAccept(true)}>
+                    <CheckCheck className="size-4 text-green-400" />
+                  </DropdownMenuItem>
+                </TooltipTrigger>
+                <TooltipContent>Aceptar</TooltipContent>
+              </Tooltip>
             )}
 
             {canCloseReport && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => setOpenCloseReport(true)}
-                >
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <LockKeyhole className="h-4 w-4" />
-                    </TooltipTrigger>
-                    <TooltipContent side="bottom">Cerrar reporte</TooltipContent>
-                  </Tooltip>
-                </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuItem onClick={() => setOpenCloseReport(true)}>
+                    <LockKeyhole className="size-4" />
+                  </DropdownMenuItem>
+                </TooltipTrigger>
+                <TooltipContent>Cerrar reporte</TooltipContent>
+              </Tooltip>
             )}
-          </PopoverContent>
-        </Popover>
-      </TooltipProvider>
+          </TooltipProvider>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
       {/* Accept dialog */}
       <Dialog open={openAccept} onOpenChange={setOpenAccept}>
