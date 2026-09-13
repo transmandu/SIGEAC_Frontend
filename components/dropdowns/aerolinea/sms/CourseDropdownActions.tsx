@@ -142,7 +142,7 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
                 </Tooltip>
               </Button>
 
-              {course.status === "ABIERTO" && (
+              {course.status !== "CERRADO" && (
                 <Button
                   variant="ghost"
                   size="icon"
