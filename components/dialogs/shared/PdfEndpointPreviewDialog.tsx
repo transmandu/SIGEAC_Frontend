@@ -22,6 +22,7 @@ interface PdfEndpointPreviewDialogProps {
   title?: string;
   description?: string;
   className?: string;
+  fileExtension?: string;
 }
 
 export function PdfEndpointPreviewDialog({
@@ -32,6 +33,7 @@ export function PdfEndpointPreviewDialog({
   title = "Vista previa del PDF",
   description = "Revisa el documento antes de descargarlo.",
   className,
+  fileExtension = "pdf",
 }: PdfEndpointPreviewDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -50,7 +52,10 @@ export function PdfEndpointPreviewDialog({
     const response = await axiosInstance.get(endpoint, {
       responseType: "blob",
     });
-    return new Blob([response.data], { type: "application/pdf" });
+    // Conservamos el content-type real del servidor: además de PDF los
+    // endpoints pueden servir imágenes (ej. certificados jpg/png).
+    const blob = response.data as Blob;
+    return blob.type ? blob : new Blob([blob], { type: "application/pdf" });
   }, [endpoint]);
 
   const ensurePreview = useCallback(async () => {
@@ -106,7 +111,7 @@ export function PdfEndpointPreviewDialog({
       const link = document.createElement("a");
 
       link.href = url;
-      link.download = `${fileName}.pdf`;
+      link.download = `${fileName}.${fileExtension}`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);

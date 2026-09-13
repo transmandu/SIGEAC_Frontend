@@ -28,6 +28,7 @@ import {
 import { type CertificateColumn } from "@/app/[company]/sms/(employees)/certificados/columns";
 import { useDeleteSMSCertificate } from "@/actions/sms/certificates/actions";
 import { useAuth } from "@/contexts/AuthContext";
+import { PdfEndpointPreviewDialog } from "@/components/dialogs/shared/PdfEndpointPreviewDialog";
 
 import EditCertificateForm from "@/components/forms/general/EditCertificateForm";
 import { cn } from "@/lib/utils";
@@ -45,6 +46,7 @@ const CertificatesDropDownActions = ({
   const { user } = useAuth();
   const [openDelete, setOpenDelete] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
+  const [openPdf, setOpenPdf] = useState(false);
 
   const { mutateAsync: deleteCertificate, isPending } =
     useDeleteSMSCertificate();
@@ -53,16 +55,29 @@ const CertificatesDropDownActions = ({
     ["JEFE_SMS", "ANALISTA_SMS", "SUPERUSER"].includes(role.name.toUpperCase()),
   );
 
-  const handleView = () => {
-    if (!certificate.document || !companySlug) return;
-    const encodedPath = btoa(certificate.document)
-      .replace(/\+/g, "-")
-      .replace(/\//g, "_")
-      .replace(/=+$/, "");
+  // Endpoint y metadatos para la vista previa del certificado
+  const encodedPath = certificate.document
+    ? btoa(certificate.document)
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_")
+        .replace(/=+$/, "")
+    : "";
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-    const url = `${apiUrl}/${companySlug}/sms/certificates/serve/${encodedPath}`;
-    window.open(url, "_blank");
+  const serveEndpoint =
+    companySlug && encodedPath
+      ? `/${companySlug}/sms/certificates/serve/${encodedPath}`
+      : "";
+
+  const baseFileName =
+    certificate.document?.split("/").pop()?.replace(/\.[^.]+$/, "") ??
+    `certificado_${certificate.id}`;
+
+  const fileExtension =
+    certificate.document?.split(".").pop()?.toLowerCase() ?? "pdf";
+
+  const handleView = () => {
+    if (!serveEndpoint) return;
+    setOpenPdf(true);
   };
 
   const handleDelete = async () => {
@@ -202,6 +217,19 @@ const CertificatesDropDownActions = ({
             </DialogContent>
           </Dialog>
         </>
+      )}
+
+      {/* DIALOGO DE VISTA PREVIA DEL CERTIFICADO */}
+      {serveEndpoint && (
+        <PdfEndpointPreviewDialog
+          open={openPdf}
+          onOpenChange={setOpenPdf}
+          endpoint={serveEndpoint}
+          fileName={baseFileName}
+          fileExtension={fileExtension}
+          title="Vista previa del certificado"
+          description="Revisa el certificado antes de descargarlo."
+        />
       )}
     </>
   );
