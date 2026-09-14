@@ -1,3 +1,7 @@
+## v4.2.0 — 2026-09-14
+
+- feat: select any employee from the company (#255)
+
 ## v4.1.1 — 2026-09-14
 
 - fix: sms requeriments (#254)
