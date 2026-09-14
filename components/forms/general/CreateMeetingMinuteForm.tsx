@@ -41,7 +41,7 @@ import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useCreateMeetingMinute, useUpdateMeetingMinute } from "@/actions/general/minutas_reunion/actions";
 import { MeetingMinutes } from "@/types";
-import { useGetEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetEmployees";
+import { useGetAllEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetAllEmployees";
 import { useGetAuthorizedEmployees } from "@/hooks/ajustes/autorizados/useGetAuthorizedEmployees";
 import { toCalendarPayload } from "@/lib/date";
 
@@ -141,7 +141,7 @@ export function CreateMeetingMinuteForm({
 }: FormProps) {
   const { selectedCompany, selectedStation } = useCompanyStore();
   const companySlug = selectedCompany?.slug ?? "";
-  const { data: employees, isLoading: employeesLoading } = useGetEmployeesByCompany(companySlug);
+  const { data: employees, isLoading: employeesLoading } = useGetAllEmployeesByCompany(companySlug);
   const { data: authorizedEmployees, isLoading: authorizedEmployeesLoading } = useGetAuthorizedEmployees(companySlug);
   const { createMeetingMinute } = useCreateMeetingMinute();
   const { updateMeetingMinute } = useUpdateMeetingMinute();
