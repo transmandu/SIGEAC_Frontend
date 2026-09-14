@@ -1,3 +1,7 @@
+## v4.1.1 — 2026-09-14
+
+- fix: sms requeriments (#254)
+
 ## v4.1.0 — 2026-09-12
 
 - feat: refactor consumable dispatch form and add ConsumableArticleRow component
