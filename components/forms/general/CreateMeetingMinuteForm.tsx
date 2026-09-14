@@ -44,6 +44,7 @@ import {
   useUpdateMeetingMinute,
 } from "@/actions/general/minutas_reunion/actions";
 import { MeetingMinutes } from "@/types";
+import { useGetEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetEmployees";
 import { useGetAllEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetAllEmployees";
 import { useGetAuthorizedEmployees } from "@/hooks/ajustes/autorizados/useGetAuthorizedEmployees";
 import { toCalendarPayload } from "@/lib/date";
@@ -186,6 +187,8 @@ export function CreateMeetingMinuteForm({
   const { selectedCompany, selectedStation } = useCompanyStore();
   const companySlug = selectedCompany?.slug ?? "";
   const { data: employees, isLoading: employeesLoading } =
+    useGetEmployeesByCompany(companySlug);
+  const { data: allEmployees, isLoading: allEmployeesLoading } =
     useGetAllEmployeesByCompany(companySlug);
   const { data: authorizedEmployees, isLoading: authorizedEmployeesLoading } =
     useGetAuthorizedEmployees(companySlug);
@@ -195,6 +198,11 @@ export function CreateMeetingMinuteForm({
   const [step, setStep] = useState(1);
 
   const employeeOptions = (employees ?? []).map((e) => ({
+    value: String(e.id),
+    label: `${e.first_name} ${e.last_name}`.trim(),
+  }));
+
+  const allEmployeeOptions = (allEmployees ?? []).map((e) => ({
     value: String(e.id),
     label: `${e.first_name} ${e.last_name}`.trim(),
   }));
@@ -452,11 +460,8 @@ export function CreateMeetingMinuteForm({
 
             <Separator className="border-border/60" />
 
-            {/* Motivo */}
+            {/* Objetivo */}
             <div className="space-y-3">
-              <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                Motivo
-              </span>
 
               <FormField
                 control={form.control}
@@ -627,8 +632,9 @@ export function CreateMeetingMinuteForm({
                         form={form}
                         name={`attendees.${index}.employee_id`}
                         label="Empleado"
-                        placeholder="Seleccionar..."
-                        options={employeeOptions}
+                        placeholder={allEmployeesLoading ? "Cargando..." : "Seleccionar..."}
+                        options={allEmployeeOptions}
+                        disabled={allEmployeesLoading}
                       />
                     )}
 
