@@ -29,7 +29,7 @@ const EventCalendarPage = () => {
 
   return (
     <ContentLayout title="Calendario de Eventos">
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-6 pb-16">
         <PageHeader />
 
         <div className="flex flex-col gap-2 border-b pb-4">

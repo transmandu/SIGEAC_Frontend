@@ -321,15 +321,25 @@ export function EventCalendar() {
     [events, hiddenSourceKeys, isLoadingSources],
   );
 
-  const eventsServiceRef = useRef(createEventsServicePlugin());
+  // useState con inicializador perezoso, no useRef: el plugin se crea una
+  // sola vez igual, pero así se lee como un valor normal en el render — no
+  // como `.current` de un ref, que la regla react-hooks/refs no permite leer
+  // durante el render (ver `plugins` en useNextCalendarApp más abajo).
+  const [eventsService] = useState(() => createEventsServicePlugin());
 
   // `useNextCalendarApp` construye el calendario UNA sola vez (su useEffect
   // tiene deps []), así que todo lo que capturen sus `callbacks` queda
   // congelado en el primer render — cuando `visibleEvents` todavía es [] y
   // `companySlug` puede ser undefined. Sin este ref, onEventUpdate nunca
   // encontraba el evento arrastrado y el cambio se perdía en silencio.
+  // La escritura de `.current` se hace en un efecto (no durante el render)
+  // para cumplir con react-hooks/refs — el valor sigue quedando tan
+  // actualizado como antes, solo que un tick después del render en vez de
+  // durante él.
   const latest = useRef({ visibleEvents, companySlug, updateCalendarEvent, shortLabels });
-  latest.current = { visibleEvents, companySlug, updateCalendarEvent, shortLabels };
+  useEffect(() => {
+    latest.current = { visibleEvents, companySlug, updateCalendarEvent, shortLabels };
+  });
 
   // Mismo motivo, para los customComponents: el efecto que monta el
   // calendario en @schedule-x/react depende de la IDENTIDAD del objeto
@@ -399,7 +409,7 @@ export function EventCalendar() {
         darkColors: { main: "transparent", container: "transparent", onContainer: "transparent" },
       },
     },
-    plugins: [eventsServiceRef.current, eventModal, ...editingPlugins],
+    plugins: [eventsService, eventModal, ...editingPlugins],
     callbacks: {
       onRangeUpdate: (range) => {
         const start = temporalToDate(range.start);
@@ -426,7 +436,7 @@ export function EventCalendar() {
         // repinta la lista real para devolverlo a su sitio en el acto, en vez
         // de dejarlo en una fecha falsa hasta el próximo refetch.
         if (!source?.editable || !currentCompany) {
-          eventsServiceRef.current.set(toScheduleXEvents(currentEvents, labels));
+          eventsService.set(toScheduleXEvents(currentEvents, labels));
 
           return;
         }
@@ -451,8 +461,8 @@ export function EventCalendar() {
   // El calendario solo lee `events` al montarse; los cambios posteriores
   // (editar/eliminar/arrastrar/refetch) hay que empujarlos por el plugin.
   useEffect(() => {
-    eventsServiceRef.current.set(scheduleXEvents);
-  }, [scheduleXEvents]);
+    eventsService.set(scheduleXEvents);
+  }, [eventsService, scheduleXEvents]);
 
   useEffect(() => {
     calendar?.setTheme(resolvedTheme === "dark" ? "dark" : "light");
@@ -498,7 +508,13 @@ export function EventCalendar() {
     return { start: startOfMonth(midpoint), end: endOfMonth(midpoint) };
   }, [visibleRange]);
 
-  renderData.current = { events, sourceLabels, currentMonth };
+  // Igual que `latest` arriba: se escribe en un efecto (no durante el
+  // render) para cumplir react-hooks/refs, sin cambiar cuándo queda
+  // disponible el valor fresco para `customComponents` (después del render,
+  // como ya ocurría implícitamente).
+  useEffect(() => {
+    renderData.current = { events, sourceLabels, currentMonth };
+  });
 
   const customComponents = useMemo(
     () => ({
@@ -509,7 +525,7 @@ export function EventCalendar() {
         const endDate = temporalToDate(calendarEvent.end);
 
         return (
-          <div className="w-full max-w-md rounded-xl border border-slate-400/50 bg-gradient-to-br from-background/95 to-background/90 p-5 shadow-xl backdrop-blur-md dark:border-slate-600/50">
+          <div className="w-full max-w-md rounded-xl border border-slate-400/50 bg-linear-to-br from-background/95 to-background/90 p-5 shadow-xl backdrop-blur-md dark:border-slate-600/50">
             <h3 className="mb-1 text-base font-semibold leading-tight">{calendarEvent.title}</h3>
             <p className="mb-3 text-xs text-muted-foreground">
               {labels[source?.sourceKey ?? MANUAL_SOURCE_KEY] ?? "Evento"}
@@ -595,20 +611,30 @@ export function EventCalendar() {
   }, [visibleEvents, currentMonth]);
 
   return (
-    <div className="flex h-[720px] gap-4">
+    // overflow-hidden acá: sin esto, si el contenido interno del calendario
+    // de Schedule-X (grilla de mes con 6 semanas) es más alto que 720px, se
+    // desborda por fuera de esta caja en vez de recortarse — el div del
+    // calendario "se ve" más alto que el aside de al lado aunque la caja de
+    // ambos mida lo mismo.
+    <div className="flex h-200 gap-4 overflow-hidden">
       <div
         className={cn(
-          "min-w-0 flex-1",
+          // h-full + min-h-0: sin min-h-0, un flex item solo TOMA a h-full
+          // como mínimo — si el contenido interno de Schedule-X es más alto
+          // (ej. un mes con 6 semanas), el div crece más allá de h-[720px] y
+          // el aside de al lado (que sí respeta el límite por su
+          // overflow-hidden) queda visiblemente más corto.
+          "h-full min-h-0 min-w-0 flex-1",
           "[&_.sx-react-calendar-wrapper]:h-full [&_.sx-react-calendar-wrapper]:w-full",
           // !important: el CSS propio de Schedule-X (.is-shadcn .sx__range-heading)
           // tiene la misma especificidad y gana por orden de carga sin esto.
-          "[&_.sx__range-heading]:!uppercase [&_.sx__range-heading]:!tracking-wide",
+          "[&_.sx__range-heading]:uppercase! [&_.sx__range-heading]:tracking-wide!",
         )}
       >
         <ScheduleXCalendar calendarApp={calendar} customComponents={customComponents} />
       </div>
 
-      <aside className="flex w-72 shrink-0 flex-col gap-3 overflow-hidden rounded-xl border border-slate-400/40 bg-gradient-to-br from-background/60 to-background/30 p-4 backdrop-blur-sm dark:border-slate-600/40">
+      <aside className="flex h-full w-72 shrink-0 flex-col gap-3 overflow-hidden rounded-xl border border-slate-400/40 bg-linear-to-br from-background/60 to-background/30 p-4 backdrop-blur-sm dark:border-slate-600/40">
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-semibold uppercase tracking-wide">
             {format(currentMonth.start, "MMMM yyyy", { locale: es })}
@@ -649,7 +675,12 @@ export function EventCalendar() {
             de las filas fuera de vista, que es lo que aporta virtualizar, sin
             sumar una dependencia. contain-intrinsic-size reserva el alto
             aproximado de cada fila para que la barra de scroll no salte. */}
-        <div className="flex-1 space-y-2 overflow-y-auto [&>*]:[content-visibility:auto] [&>*]:[contain-intrinsic-size:auto_58px]">
+        {/* min-h-0: sin esto, este hijo flex de un flex-col solo TOMA a
+            flex-1 como mínimo — con pocos eventos su contenido real es más
+            bajo que el espacio disponible, así que se encoge a su contenido
+            en vez de llenarlo, y el aside (con overflow-hidden) queda
+            visiblemente más corto que el calendario de al lado. */}
+        <div className="min-h-0 flex-1 space-y-2 overflow-y-auto *:[content-visibility:auto] *:[contain-intrinsic-size:auto_58px]">
           {eventsInView.length === 0 ? (
             <div className="flex h-full flex-col items-center justify-center gap-2 text-center text-muted-foreground">
               <CalendarX2 className="size-6" />
