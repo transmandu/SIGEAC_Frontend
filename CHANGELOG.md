@@ -1,3 +1,7 @@
+## v4.2.1 — 2026-09-14
+
+- fix: meeting minute form doesnt show employees (#256)
+
 ## v4.2.0 — 2026-09-14
 
 - feat: select any employee from the company (#255)
