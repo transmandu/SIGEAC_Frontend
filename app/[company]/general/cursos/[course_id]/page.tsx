@@ -3,9 +3,22 @@ import BarChartCourseComponent from "@/components/charts/BarChartCourseComponent
 import { PieChartComponent } from "@/components/charts/PieChartComponent";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { PdfEndpointPreviewDialog } from "@/components/dialogs/shared/PdfEndpointPreviewDialog";
 import { useGetCourseAttendanceList } from "@/hooks/curso/useGetCourseAttendanceList";
 import { useGetCourseAttendanceStats } from "@/hooks/curso/useGetCourseAttendanceStats";
+import {
+  CourseExamDocument,
+  useGetCourseExamDocuments,
+} from "@/hooks/curso/useGetCourseExamDocuments";
 import { useGetCourseById } from "@/hooks/curso/useGetCourseById";
+import { getExamDocumentUrl } from "@/lib/cursos/exam-documents";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { AreaChartIcon } from "lucide-react";
 import {
@@ -15,6 +28,7 @@ import {
   Calendar,
   CheckCheck,
   Clock,
+  Eye,
   FileText,
   Loader2,
   Users,
@@ -24,6 +38,79 @@ import { useParams } from "next/navigation";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { formatCalendarDate } from "@/lib/date";
 import { courseStatusLabelEsUpper } from "@/lib/cursos/statuses";
+import { useState } from "react";
+
+const ExamPreviewCell = ({
+  company,
+  docs,
+  employeeName,
+  dni,
+}: {
+  company?: string;
+  docs?: CourseExamDocument[];
+  employeeName: string;
+  dni: string;
+}) => {
+  const [preview, setPreview] = useState<{
+    endpoint: string;
+    fileName: string;
+    title: string;
+  } | null>(null);
+
+  if (!docs || docs.length === 0) {
+    return <span className="text-xs text-muted-foreground">Sin examen</span>;
+  }
+
+  return (
+    <>
+      <div className="flex items-center gap-1">
+        {docs.map((doc) => {
+          const endpoint = getExamDocumentUrl(company, doc.document_path);
+          if (!endpoint) return null;
+          return (
+            <TooltipProvider key={doc.exam_id}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() =>
+                      setPreview({
+                        endpoint,
+                        fileName: `examen_${doc.exam_name}_${dni}`,
+                        title: `${doc.exam_name} - ${employeeName}`,
+                      })
+                    }
+                  >
+                    <Eye className="size-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  Ver examen {doc.exam_name}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          );
+        })}
+      </div>
+
+      {preview && (
+        <PdfEndpointPreviewDialog
+          open={!!preview}
+          onOpenChange={(value) => {
+            if (!value) setPreview(null);
+          }}
+          endpoint={preview.endpoint}
+          fileName={preview.fileName}
+          title={preview.title}
+          description="Revisa el examen antes de descargarlo."
+        />
+      )}
+    </>
+  );
+};
 
 const ShowCourse = () => {
   const { course_id } = useParams<{ course_id: string }>();
@@ -46,6 +133,15 @@ const ShowCourse = () => {
     isLoading: isAttendanceStatsLoading,
     isError: isAttendanceStatsError,
   } = useGetCourseAttendanceStats(course_id);
+
+  const {
+    data: examDocuments,
+    isLoading: isExamDocumentsLoading,
+    isError: isExamDocumentsError,
+  } = useGetCourseExamDocuments({
+    company: selectedCompany?.slug,
+    course_id,
+  });
 
   const PieChartData = AttendanceStats
     ? [
@@ -245,6 +341,9 @@ const ShowCourse = () => {
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                             DNI
                           </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                            Examen
+                          </th>
                         </tr>
                       </thead>
                       <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
@@ -265,6 +364,22 @@ const ShowCourse = () => {
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                               {attendance.employee_dni}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm">
+                              {isExamDocumentsLoading ? (
+                                <Loader2 className="size-4 animate-spin text-blue-500" />
+                              ) : isExamDocumentsError ? (
+                                <span className="text-xs text-red-500">
+                                  Error
+                                </span>
+                              ) : (
+                                <ExamPreviewCell
+                                  company={selectedCompany?.slug}
+                                  docs={examDocuments?.[attendance.employee_dni]}
+                                  employeeName={`${attendance.employee.first_name} ${attendance.employee.last_name}`}
+                                  dni={attendance.employee_dni}
+                                />
+                              )}
                             </td>
                           </tr>
                         ))}

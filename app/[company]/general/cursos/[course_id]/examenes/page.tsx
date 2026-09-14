@@ -24,6 +24,9 @@ import { Switch } from "@/components/ui/switch";
 import { useUpdateCourseExamResult } from "@/actions/general/cursos/actions";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { formatCalendarDate } from "@/lib/date";
+import { PdfEndpointPreviewDialog } from "@/components/dialogs/shared/PdfEndpointPreviewDialog";
+import { getExamDocumentUrl } from "@/lib/cursos/exam-documents";
+import { Eye } from "lucide-react";
 
 const ExamAttendanceRow = ({ attendance, company, examId }: { attendance: any; company: string; examId: string }) => {
   const [score, setScore] = useState(attendance.score || "");
@@ -34,8 +37,15 @@ const ExamAttendanceRow = ({ attendance, company, examId }: { attendance: any; c
       : true
   );
   const [file, setFile] = useState<File | null>(null);
+  const [previewDoc, setPreviewDoc] = useState<{
+    endpoint: string;
+    fileName: string;
+    title: string;
+  } | null>(null);
 
   const { updateCourseExamResult } = useUpdateCourseExamResult();
+  const isAttended =
+    attendance.attended === true || attendance.attended === 1;
 
   const handleSave = () => {
     const formData = new FormData();
@@ -47,7 +57,7 @@ const ExamAttendanceRow = ({ attendance, company, examId }: { attendance: any; c
     if (attendance.course_attendance_id) {
       formData.append("course_attendance_id", attendance.course_attendance_id.toString());
     }
-    if (file) formData.append("document", file);
+    if (file && isAttended) formData.append("document", file);
 
     updateCourseExamResult.mutate({
       company,
@@ -58,8 +68,15 @@ const ExamAttendanceRow = ({ attendance, company, examId }: { attendance: any; c
     });
   };
 
+  const documentEndpoint = getExamDocumentUrl(
+    company,
+    attendance.document_path,
+  );
+  const employeeName = `${attendance.employee.first_name} ${attendance.employee.last_name}`;
+
   return (
-    <tr key={attendance.id}>
+    <>
+      <tr key={attendance.id}>
       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
         <div className="flex flex-col">
           <span>{attendance.employee.first_name} {attendance.employee.last_name}</span>
@@ -82,15 +99,36 @@ const ExamAttendanceRow = ({ attendance, company, examId }: { attendance: any; c
         />
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm">
-        <Input 
-          type="file" 
-          className="w-56 text-xs cursor-pointer file:cursor-pointer" 
+        <Input
+          type="file"
+          className="w-56 text-xs cursor-pointer file:cursor-pointer disabled:cursor-not-allowed"
           accept=".pdf,.jpg,.jpeg,.png,.webp"
+          disabled={!isAttended}
           onChange={(e) => setFile(e.target.files?.[0] || null)}
         />
-        {attendance.document_path && !file && (
-          <span className="text-[10px] text-blue-500 mt-1 block font-medium">
+        {!isAttended && (
+          <span className="block mt-1 text-[10px] text-red-500 font-medium">
+            No asistió al curso, no puede subir examen
+          </span>
+        )}
+        {isAttended && attendance.document_path && documentEndpoint && !file && (
+          <span className="flex items-center gap-1 text-[10px] text-blue-500 mt-1 font-medium">
             Documento guardado
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-5 w-5"
+              onClick={() =>
+                setPreviewDoc({
+                  endpoint: documentEndpoint,
+                  fileName: `examen_${attendance.employee_dni}`,
+                  title: `Examen - ${employeeName}`,
+                })
+              }
+            >
+              <Eye className="size-3.5" />
+            </Button>
           </span>
         )}
       </td>
@@ -99,7 +137,21 @@ const ExamAttendanceRow = ({ attendance, company, examId }: { attendance: any; c
           {updateCourseExamResult.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Guardar"}
         </Button>
       </td>
-    </tr>
+      </tr>
+
+      {previewDoc && (
+        <PdfEndpointPreviewDialog
+          open={!!previewDoc}
+          onOpenChange={(value) => {
+            if (!value) setPreviewDoc(null);
+          }}
+          endpoint={previewDoc.endpoint}
+          fileName={previewDoc.fileName}
+          title={previewDoc.title}
+          description="Revisa el examen antes de descargarlo."
+        />
+      )}
+    </>
   );
 };
 
