@@ -55,17 +55,6 @@ export type RowConversion = { unitId: number; unitLabel: string; factor: number;
 
 // ── Schema ─────────────────────────────────────────────────────────────────────
 
-const AeronauticalItemSchema = z.object({
-    article_id: z.coerce.number(),
-    quantity: z.coerce.number(),
-    serial: z.string().nullable().optional(),
-    batch_id: z.coerce.number().optional(),
-    // Unidad en que se capturó `quantity`. Omitirla significa "ya está en la
-    // unidad base". La conversión a base la hace el backend con el factor del
-    // artículo, que es el único que puede validarla y congelarla en el movimiento.
-    unit_id: z.coerce.number().nullable().optional(),
-})
-
 // Trazo cortado de una pieza, para artículos que se miden por dimensiones.
 // El backend descuenta el saldo de esa pieza concreta y no una cantidad
 // fungible; ver App\Services\Warehouse\DimensionService.
@@ -78,6 +67,20 @@ const CutSchema = z.object({
     // Unidad en que se escribieron las medidas; el backend aplica la
     // equivalencia del artículo antes de descontar.
     unit_id: z.coerce.number().nullable().optional(),
+})
+
+const AeronauticalItemSchema = z.object({
+    article_id: z.coerce.number(),
+    quantity: z.coerce.number(),
+    serial: z.string().nullable().optional(),
+    batch_id: z.coerce.number().optional(),
+    // Unidad en que se capturó `quantity`. Omitirla significa "ya está en la
+    // unidad base". La conversión a base la hace el backend con el factor del
+    // artículo, que es el único que puede validarla y congelarla en el movimiento.
+    unit_id: z.coerce.number().nullable().optional(),
+    // Un consumible también puede estar dimensionado: el perfil es polimórfico
+    // y el trazo se captura igual que en un artículo general.
+    cut: CutSchema.optional(),
 })
 
 const GeneralItemSchema = z.object({
@@ -404,9 +407,17 @@ export function useDispatchForm(
      * Vuelca el trazo al formulario. La cantidad se deja en 0: en un artículo
      * dimensionado el descuento lo determina el corte, y mandar además un
      * número aquí haría que el backend recibiera dos cifras que pueden discrepar.
+     *
+     * Sirve a las dos listas: tanto un consumible como un artículo general
+     * pueden estar dimensionados, y el trazo se captura igual en ambos.
      */
-    const updateCut = useCallback((index: number, fieldId: string, next: CutDraft) => {
-        const key = genKey(fieldId)
+    const updateCutFor = useCallback((
+        target: ConversionTarget,
+        index: number,
+        fieldId: string,
+        next: CutDraft,
+    ) => {
+        const key = target === "aero" ? aeroKey(fieldId) : genKey(fieldId)
         setCutByKey((p) => ({ ...p, [key]: next }))
         setRowMsg(key, undefined)
 
@@ -416,22 +427,38 @@ export function useDispatchForm(
                 : parseFloat(next.length) > 0
         )
 
+        const payload = ready
+            ? {
+                  piece_id: next.piece_id!,
+                  input_mode: next.input_mode,
+                  length: next.input_mode === "MEASURES" ? parseFloat(next.length) || undefined : undefined,
+                  width: next.input_mode === "MEASURES" && next.width ? parseFloat(next.width) : undefined,
+                  magnitude: next.input_mode === "MAGNITUDE" ? parseFloat(next.magnitude) || undefined : undefined,
+                  unit_id: next.input_mode === "MEASURES" ? next.unit_id : undefined,
+              }
+            : undefined
+
+        if (target === "aero") {
+            setValue(`aeronautical_articles.${index}.quantity`, 0)
+            setValue(`aeronautical_articles.${index}.unit_id`, null)
+            setValue(`aeronautical_articles.${index}.cut`, payload)
+            return
+        }
+
         setValue(`general_articles.${index}.quantity`, 0)
         setValue(`general_articles.${index}.unit_id`, null)
-        setValue(
-            `general_articles.${index}.cut`,
-            ready
-                ? {
-                      piece_id: next.piece_id!,
-                      input_mode: next.input_mode,
-                      length: next.input_mode === "MEASURES" ? parseFloat(next.length) || undefined : undefined,
-                      width: next.input_mode === "MEASURES" && next.width ? parseFloat(next.width) : undefined,
-                      magnitude: next.input_mode === "MAGNITUDE" ? parseFloat(next.magnitude) || undefined : undefined,
-                      unit_id: next.input_mode === "MEASURES" ? next.unit_id : undefined,
-                  }
-                : undefined,
-        )
+        setValue(`general_articles.${index}.cut`, payload)
     }, [setValue, setRowMsg])
+
+    const updateCut = useCallback(
+        (index: number, fieldId: string, next: CutDraft) => updateCutFor("general", index, fieldId, next),
+        [updateCutFor],
+    )
+
+    const updateAeroCut = useCallback(
+        (index: number, fieldId: string, next: CutDraft) => updateCutFor("aero", index, fieldId, next),
+        [updateCutFor],
+    )
 
     // El máximo está en unidad base, así que "usar máximo" descarta la
     // conversión vigente: la fila queda en base, como el número que escribe.
@@ -600,18 +627,18 @@ export function useDispatchForm(
     )
 
     const hasInvalidQty = useMemo(() => {
-        const aeroInvalid = aeroFA.fields.some((f) => (parseFloat(qtyByKey[aeroKey(f.id)] ?? "0") || 0) <= 0)
-
         // Una fila dimensional no tiene cantidad: lo que la completa es el
         // trazo (de qué pieza sale y con qué medidas). Exigirle un `quantity`
-        // dejaba el botón de guardar muerto sin explicar por qué.
-        const genInvalid = genFA.fields.some((f) => {
-            const cut = cutByKey[genKey(f.id)]
+        // dejaba el botón de guardar muerto sin explicar por qué. Vale igual
+        // para consumibles y para generales: los dos pueden dimensionarse.
+        const rowInvalid = (key: string) => {
+            const cut = cutByKey[key]
             if (cut) return !isCutComplete(cut)
-            return (parseFloat(qtyByKey[genKey(f.id)] ?? "0") || 0) <= 0
-        })
+            return (parseFloat(qtyByKey[key] ?? "0") || 0) <= 0
+        }
 
-        return aeroInvalid || genInvalid
+        return aeroFA.fields.some((f) => rowInvalid(aeroKey(f.id)))
+            || genFA.fields.some((f) => rowInvalid(genKey(f.id)))
     }, [aeroFA.fields, genFA.fields, qtyByKey, cutByKey])
 
     // ── Submit ────────────────────────────────────────────────────────────────
@@ -621,10 +648,13 @@ export function useDispatchForm(
         // hay una pieza equivalente a la que sumarle el retazo. El backend lo
         // rechaza con 422; avisarlo aquí evita perder lo ya capturado.
         if (data.dispatch_type === "location") {
-            const cutRow = genFA.fields.find((field) => cutByKey[genKey(field.id)])
+            const cutKey = [
+                ...aeroFA.fields.map((field) => aeroKey(field.id)),
+                ...genFA.fields.map((field) => genKey(field.id)),
+            ].find((key) => cutByKey[key])
 
-            if (cutRow) {
-                setRowMsg(genKey(cutRow.id), {
+            if (cutKey) {
+                setRowMsg(cutKey, {
                     msg: "Un trazo cortado no puede trasladarse a otra sede",
                     level: "error",
                 })
@@ -636,8 +666,20 @@ export function useDispatchForm(
         // sin aplicar el factor, 900 mL se compararía contra 3 GALON.
         for (let i = 0; i < data.aeronautical_articles.length; i++) {
             const item = data.aeronautical_articles[i]
-            const max = getAeroMax(item.article_id)
             const key = aeroFA.fields[i]?.id ? aeroKey(aeroFA.fields[i].id) : null
+
+            // Un trazo no se compara contra el stock escalar: su límite es el
+            // saldo de la pieza de la que sale, y eso lo valida el backend.
+            const draft = key ? cutByKey[key] : undefined
+            if (draft) {
+                if (!isCutComplete(draft)) {
+                    if (key) setRowMsg(key, { msg: "Indique la pieza y las medidas del trazo", level: "error" })
+                    return
+                }
+                continue
+            }
+
+            const max = getAeroMax(item.article_id)
             const conv = key ? convByKey[key] : undefined
             const inBase = Number((item.quantity * (conv?.factor ?? 1)).toFixed(CONVERSION_PRECISION))
             if (item.quantity <= 0) { if (key) setRowMsg(key, { msg: "La cantidad debe ser mayor a 0", level: "error" }); return }
@@ -789,7 +831,7 @@ export function useDispatchForm(
         msgByKey,
         convByKey,
         // dimensional cuts
-        cutByKey, updateCut,
+        cutByKey, updateCut, updateAeroCut,
         // evidencias de entrega (opcionales)
         evidenceByKey, setEvidence,
         // qty handlers
