@@ -61,11 +61,17 @@ const StatusBadge = ({ status }: { status: string }) => {
   );
 };
 
-const activityNumberSortFn = (rowA: { original: SMSActivityTableRow }, rowB: { original: SMSActivityTableRow }) => {
+const activityNumberSortFn = (
+  rowA: { original: SMSActivityTableRow },
+  rowB: { original: SMSActivityTableRow },
+) => {
   const parseActivityNumber = (val?: string) => {
     if (!val) return { num: 0, year: 0 };
     const parts = val.split("-");
-    return { num: parseInt(parts[0], 10) || 0, year: parseInt(parts[1], 10) || 0 };
+    return {
+      num: parseInt(parts[0], 10) || 0,
+      year: parseInt(parts[1], 10) || 0,
+    };
   };
   const a = parseActivityNumber(rowA.original.activity_number);
   const b = parseActivityNumber(rowB.original.activity_number);
@@ -79,10 +85,16 @@ export const columns: AppColumnDef<SMSActivityTableRow>[] = [
     accessorKey: "activity_number",
     sortFn: activityNumberSortFn,
     header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Numero de actividad" />
+      <DataTableColumnHeader
+        filter
+        column={column}
+        title="Numero de actividad"
+      />
     ),
     meta: { title: "Numero de actividad" },
-    cell: ({ row }) => <ActivityNumberLink value={row.original.activity_number} />,
+    cell: ({ row }) => (
+      <ActivityNumberLink value={row.original.activity_number} />
+    ),
   },
   {
     accessorKey: "activity_name",
@@ -118,12 +130,13 @@ export const columns: AppColumnDef<SMSActivityTableRow>[] = [
       <DataTableColumnHeader filter column={column} title="Fecha de Inicio" />
     ),
     meta: { title: "Duracion de la Actividad" },
-    cell: ({ row }) =>
+    cell: ({ row }) => (
       <div className="flex justify-center text-center">
         <p className="font-medium text-center">
           {dateFormat(row.original.start_date, "PPP")}
         </p>
-      </div>,
+      </div>
+    ),
   },
   {
     accessorKey: "status",

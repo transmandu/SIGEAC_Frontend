@@ -14,7 +14,12 @@ export type CertificateColumn = {
     start_date?: string;
     end_date?: string;
   };
-  employee?: { first_name: string; last_name: string; dni: string; photo_url?: string };
+  employee?: {
+    first_name: string;
+    last_name: string;
+    dni: string;
+    photo_url?: string;
+  };
   completion_date: string;
   document: string;
 };
@@ -67,7 +72,9 @@ const IdentityCell = ({
   </div>
 );
 
-export const getColumns = (companySlug: string): AppColumnDef<CertificatesRow>[] => [
+export const getColumns = (
+  companySlug: string,
+): AppColumnDef<CertificatesRow>[] => [
   {
     id: "employee",
     accessorFn: (row) => {
@@ -102,16 +109,13 @@ export const getColumns = (companySlug: string): AppColumnDef<CertificatesRow>[]
   {
     id: "course",
     accessorFn: (row) =>
-      isGroup(row) ? "" : (row as CertificateColumn).course?.name ?? "",
+      isGroup(row) ? "" : ((row as CertificateColumn).course?.name ?? ""),
     header: "Curso",
     cell: ({ row }) => {
       if (row.depth === 0 && isGroup(row.original)) {
         const count = row.original.subRows.length;
         return (
-          <Badge
-            variant="outline"
-            className="text-[11px] font-medium"
-          >
+          <Badge variant="outline" className="text-[11px] font-medium">
             {count} {count === 1 ? "certificado" : "certificados"}
           </Badge>
         );
@@ -128,9 +132,7 @@ export const getColumns = (companySlug: string): AppColumnDef<CertificatesRow>[]
     header: "Inicio / Culminación",
     cell: ({ row }) => {
       if (row.depth === 0 && isGroup(row.original)) {
-        return (
-          <span className="text-sm text-muted-foreground/70">—</span>
-        );
+        return <span className="text-sm text-muted-foreground/70">—</span>;
       }
 
       const start = (row.original as CertificateColumn).course?.start_date;
@@ -142,13 +144,17 @@ export const getColumns = (companySlug: string): AppColumnDef<CertificatesRow>[]
       return (
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-1.5 text-[11px]">
-            <span className="font-bold text-green-600 dark:text-green-500 uppercase w-10">Desde:</span>
+            <span className="font-bold text-green-600 dark:text-green-500 uppercase w-10">
+              Desde:
+            </span>
             <span className="font-medium text-foreground">
               {formatUTCDate(start)}
             </span>
           </div>
           <div className="flex items-center gap-1.5 text-[11px]">
-            <span className="font-bold text-red-600 dark:text-red-500 uppercase w-10">Hasta:</span>
+            <span className="font-bold text-red-600 dark:text-red-500 uppercase w-10">
+              Hasta:
+            </span>
             <span className="font-medium text-foreground">
               {formatUTCDate(end)}
             </span>
@@ -170,7 +176,9 @@ export const getColumns = (companySlug: string): AppColumnDef<CertificatesRow>[]
         <div className="flex items-center gap-2 text-muted-foreground">
           <Calendar className="h-3.5 w-3.5 opacity-70" />
           <span className="text-sm font-medium">
-            {formatCalendarDate((row.original as CertificateColumn).completion_date)}
+            {formatCalendarDate(
+              (row.original as CertificateColumn).completion_date,
+            )}
           </span>
         </div>
       );

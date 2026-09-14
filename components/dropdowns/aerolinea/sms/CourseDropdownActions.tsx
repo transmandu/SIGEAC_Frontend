@@ -16,8 +16,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { Course } from "@/types";
 import { startOfDay } from "date-fns";
@@ -85,13 +94,20 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
         <TooltipProvider>
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0" data-tour="cursos-actions">
+              <Button
+                variant="ghost"
+                className="h-8 w-8 p-0"
+                data-tour="cursos-actions"
+              >
                 <span className="sr-only">Abrir menu</span>
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </PopoverTrigger>
 
-            <PopoverContent align="end" className="w-auto p-2 flex flex-row gap-2">
+            <PopoverContent
+              align="end"
+              className="w-auto p-2 flex flex-row gap-2"
+            >
               {course.status !== "CERRADO" && (
                 <Button
                   variant="ghost"
@@ -153,7 +169,9 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
                     <TooltipTrigger asChild>
                       <Plus className="h-4 w-4" />
                     </TooltipTrigger>
-                    <TooltipContent side="bottom">Agregar personas</TooltipContent>
+                    <TooltipContent side="bottom">
+                      Agregar personas
+                    </TooltipContent>
                   </Tooltip>
                 </Button>
               )}
@@ -185,7 +203,9 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
                     <TooltipTrigger asChild>
                       <FilePlus className="h-4 w-4" />
                     </TooltipTrigger>
-                    <TooltipContent side="bottom">Agregar Examen</TooltipContent>
+                    <TooltipContent side="bottom">
+                      Agregar Examen
+                    </TooltipContent>
                   </Tooltip>
                 </Button>
               )}
@@ -204,7 +224,9 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
                   <TooltipTrigger asChild>
                     <FileText className="h-4 w-4" />
                   </TooltipTrigger>
-                  <TooltipContent side="bottom">Gestionar Examenes</TooltipContent>
+                  <TooltipContent side="bottom">
+                    Gestionar Examenes
+                  </TooltipContent>
                 </Tooltip>
               </Button>
 

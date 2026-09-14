@@ -1,6 +1,13 @@
 "use client";
 
-import { CheckCheck, EyeIcon, Loader2, LockKeyhole, MoreHorizontal, Trash2 } from "lucide-react";
+import {
+  CheckCheck,
+  EyeIcon,
+  Loader2,
+  LockKeyhole,
+  MoreHorizontal,
+  Trash2,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import CloseVoluntaryReportForm from "@/components/forms/mantenimiento/sms/CloseVoluntaryReportForm";
@@ -20,17 +27,29 @@ import {
 import { getResult } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useState } from "react";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useAcceptVoluntaryReport, useDeleteVoluntaryReport } from "@/actions/mantenimiento/sms/reporte_voluntario/actions";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  useAcceptVoluntaryReport,
+  useDeleteVoluntaryReport,
+} from "@/actions/mantenimiento/sms/reporte_voluntario/actions";
 import { VoluntaryReport, ObligatoryReport } from "@/types/sms/mantenimiento";
-
 
 type ReportDetailActionsProps = {
   report: VoluntaryReport | ObligatoryReport;
-  kind: 'RVP' | 'ROS';
+  kind: "RVP" | "ROS";
 };
 
-export function VoluntaryReportDropdownActions({ report, kind }: ReportDetailActionsProps) {
+export function VoluntaryReportDropdownActions({
+  report,
+  kind,
+}: ReportDetailActionsProps) {
   const { selectedCompany } = useCompanyStore();
   const router = useRouter();
   const { acceptVoluntaryReport } = useAcceptVoluntaryReport();
@@ -39,7 +58,8 @@ export function VoluntaryReportDropdownActions({ report, kind }: ReportDetailAct
   const [openDelete, setOpenDelete] = useState<boolean>(false);
   const { deleteVoluntaryReport } = useDeleteVoluntaryReport();
 
-  const mitigationAnalysis = report.hazard_notification?.mitigation_plan?.analysis;
+  const mitigationAnalysis =
+    report.hazard_notification?.mitigation_plan?.analysis;
   const closeResult = mitigationAnalysis?.result
     ? getResult(mitigationAnalysis.result)
     : undefined;
@@ -48,7 +68,7 @@ export function VoluntaryReportDropdownActions({ report, kind }: ReportDetailAct
     mitigationAnalysis &&
     mitigationAnalysis.result &&
     report.status !== "CERRADO" &&
-    (closeResult === "TOLERABLE" || closeResult === "ACEPTABLE")
+    (closeResult === "TOLERABLE" || closeResult === "ACEPTABLE"),
   );
 
   const handleAccept = async () => {
@@ -84,10 +104,7 @@ export function VoluntaryReportDropdownActions({ report, kind }: ReportDetailAct
           </Button>
         </DropdownMenuTrigger>
 
-        <DropdownMenuContent
-          align="center"
-          className="flex flex-row gap-2 p-2"
-        >
+        <DropdownMenuContent align="center" className="flex flex-row gap-2 p-2">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -212,7 +229,8 @@ export function VoluntaryReportDropdownActions({ report, kind }: ReportDetailAct
               Cerrar reporte voluntario
             </DialogTitle>
             <DialogDescription className="text-center">
-              Adjunte el documento PDF de cierre y seleccione la fecha de cierre.
+              Adjunte el documento PDF de cierre y seleccione la fecha de
+              cierre.
             </DialogDescription>
           </DialogHeader>
 

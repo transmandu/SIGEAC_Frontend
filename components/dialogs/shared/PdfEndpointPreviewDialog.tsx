@@ -132,7 +132,7 @@ export function PdfEndpointPreviewDialog({
       <DialogContent
         className={cn(
           "max-w-7xl w-[95vw] h-[90vh] md:h-[85vh] flex flex-col overflow-hidden gap-4 p-6",
-          className
+          className,
         )}
       >
         <DialogHeader className="shrink-0">

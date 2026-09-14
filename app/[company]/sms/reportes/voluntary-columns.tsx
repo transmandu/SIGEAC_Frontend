@@ -56,7 +56,7 @@ export const columns: AppColumnDef<VoluntaryReport>[] = [
       );
     },
   },
- /* {
+  /* {
     accessorKey: "danger_location",
     header: ({ column }) => (
       <DataTableColumnHeader

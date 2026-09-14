@@ -69,8 +69,10 @@ const CertificatesDropDownActions = ({
       : "";
 
   const baseFileName =
-    certificate.document?.split("/").pop()?.replace(/\.[^.]+$/, "") ??
-    `certificado_${certificate.id}`;
+    certificate.document
+      ?.split("/")
+      .pop()
+      ?.replace(/\.[^.]+$/, "") ?? `certificado_${certificate.id}`;
 
   const fileExtension =
     certificate.document?.split(".").pop()?.toLowerCase() ?? "pdf";
@@ -176,9 +178,7 @@ const CertificatesDropDownActions = ({
                     </span>
                     {certificate.course?.start_date && (
                       <span className="text-[11px] text-muted-foreground ml-2 italic">
-                        (
-                        {formatCalendarDate(certificate.course.start_date)}
-                        )
+                        ({formatCalendarDate(certificate.course.start_date)})
                       </span>
                     )}
                   </div>

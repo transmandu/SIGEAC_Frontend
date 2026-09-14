@@ -24,16 +24,16 @@ export const useGetCourseExamDocuments = ({ company, course_id }: Props) => {
     queryKey: ["course-exam-documents", course_id],
     queryFn: async (): Promise<Record<string, CourseExamDocument[]>> => {
       const examsResponse = await axiosInstance.get(
-        `/general/${company}/course/${course_id}/exams`
+        `/general/${company}/course/${course_id}/exams`,
       );
       const exams = examsResponse.data;
 
       const attendancesResponses = await Promise.all(
         exams.map((exam: { id: number }) =>
           axiosInstance.get(
-            `/general/${company}/course-exam/${exam.id}/attendance`
-          )
-        )
+            `/general/${company}/course-exam/${exam.id}/attendance`,
+          ),
+        ),
       );
 
       const byDni: Record<string, CourseExamDocument[]> = {};
@@ -41,7 +41,7 @@ export const useGetCourseExamDocuments = ({ company, course_id }: Props) => {
       exams.forEach(
         (
           exam: { id: number; name: string; exam_date?: string | null },
-          index: number
+          index: number,
         ) => {
           const attendances = attendancesResponses[index].data;
           attendances.forEach(
@@ -63,9 +63,9 @@ export const useGetCourseExamDocuments = ({ company, course_id }: Props) => {
                 approved: attendance.approved,
                 document_path: attendance.document_path,
               });
-            }
+            },
           );
-        }
+        },
       );
 
       return byDni;

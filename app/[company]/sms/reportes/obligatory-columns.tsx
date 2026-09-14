@@ -37,9 +37,9 @@ export const columns: AppColumnDef<ObligatoryReport>[] = [
     cell: ({ row }) => {
       return (
         <p className="font-medium text-center">
-        {row.original.report_date
-          ? dateFormat(row.original.report_date, "PPP")
-          : "N/A"}
+          {row.original.report_date
+            ? dateFormat(row.original.report_date, "PPP")
+            : "N/A"}
         </p>
       );
     },
@@ -50,7 +50,11 @@ export const columns: AppColumnDef<ObligatoryReport>[] = [
       <DataTableColumnHeader filter column={column} title="Hora del Vuelo" />
     ),
     cell: ({ row }) => {
-        return <p className="font-medium text-center">{row.original.flight_time?.substring(0, 5)}</p>;
+      return (
+        <p className="font-medium text-center">
+          {row.original.flight_time?.substring(0, 5)}
+        </p>
+      );
     },
   },
   {
@@ -59,8 +63,8 @@ export const columns: AppColumnDef<ObligatoryReport>[] = [
       <DataTableColumnHeader filter column={column} title="Hora del suceso" />
     ),
     cell: ({ row }) => {
-        const incident_time = row.original.incident_time?.substring(0, 5);
-        return <p className="font-medium text-center">{incident_time}</p>;
+      const incident_time = row.original.incident_time?.substring(0, 5);
+      return <p className="font-medium text-center">{incident_time}</p>;
     },
   },
 

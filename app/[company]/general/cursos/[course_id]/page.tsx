@@ -289,9 +289,7 @@ const ShowCourse = () => {
                         <p className="text-sm text-gray-500 dark:text-gray-400">
                           Fecha de inicio:
                         </p>
-                        <p>
-                          {formatCalendarDate(course.start_date, "long")}
-                        </p>
+                        <p>{formatCalendarDate(course.start_date, "long")}</p>
                       </div>
                       <div>
                         <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -375,7 +373,9 @@ const ShowCourse = () => {
                               ) : (
                                 <ExamPreviewCell
                                   company={selectedCompany?.slug}
-                                  docs={examDocuments?.[attendance.employee_dni]}
+                                  docs={
+                                    examDocuments?.[attendance.employee_dni]
+                                  }
                                   employeeName={`${attendance.employee.first_name} ${attendance.employee.last_name}`}
                                   dni={attendance.employee_dni}
                                 />

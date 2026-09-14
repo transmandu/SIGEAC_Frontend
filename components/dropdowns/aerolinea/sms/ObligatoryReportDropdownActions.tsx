@@ -90,10 +90,7 @@ const ObligatoryReportDropdownActions = ({
           </Button>
         </DropdownMenuTrigger>
 
-        <DropdownMenuContent
-          align="center"
-          className="flex flex-row gap-2 p-2"
-        >
+        <DropdownMenuContent align="center" className="flex flex-row gap-2 p-2">
           <TooltipProvider>
             {obligatoryReport.status === "ABIERTO" && (
               <Tooltip>
@@ -134,7 +131,7 @@ const ObligatoryReportDropdownActions = ({
                 <DropdownMenuItem
                   onClick={() => {
                     router.push(
-                      `/transmandu/sms/reportes/reportes_obligatorios/${obligatoryReport.id}`
+                      `/transmandu/sms/reportes/reportes_obligatorios/${obligatoryReport.id}`,
                     );
                   }}
                 >
@@ -177,97 +174,99 @@ const ObligatoryReportDropdownActions = ({
           open={openPdf}
           onOpenChange={setOpenPdf}
           endpoint={pdfEndpoint}
-          fileName={useManagementPdf
-            ? `TMD_GESTION_RIESGO_${obligatoryReport.report_number || obligatoryReport.id}`
-            : `TMD_FOR_SMS_REPORTE_OBLIGATORIO_DE_SUCESOS_${obligatoryReport.report_number || obligatoryReport.id}`}
+          fileName={
+            useManagementPdf
+              ? `TMD_GESTION_RIESGO_${obligatoryReport.report_number || obligatoryReport.id}`
+              : `TMD_FOR_SMS_REPORTE_OBLIGATORIO_DE_SUCESOS_${obligatoryReport.report_number || obligatoryReport.id}`
+          }
           title={pdfTitle}
           description={pdfDescription}
         />
       )}
 
-        <Dialog open={openDelete} onOpenChange={setOpenDelete}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle className="text-center">
-                ¿Seguro que desea eliminar el reporte?
-              </DialogTitle>
-              <DialogDescription className="text-center p-2 mb-0 pb-0">
-                Esta acción es irreversible y estaría eliminando por completo el
-                reporte seleccionado.
-              </DialogDescription>
-            </DialogHeader>
+      <Dialog open={openDelete} onOpenChange={setOpenDelete}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-center">
+              ¿Seguro que desea eliminar el reporte?
+            </DialogTitle>
+            <DialogDescription className="text-center p-2 mb-0 pb-0">
+              Esta acción es irreversible y estaría eliminando por completo el
+              reporte seleccionado.
+            </DialogDescription>
+          </DialogHeader>
 
-            <DialogFooter className="flex flex-col-reverse gap-2 md:gap-0">
-              <Button
-                className="bg-rose-400 hover:bg-white hover:text-black hover:border hover:border-black"
-                onClick={() => setOpenDelete(false)}
-                type="submit"
-              >
-                Cancelar
-              </Button>
+          <DialogFooter className="flex flex-col-reverse gap-2 md:gap-0">
+            <Button
+              className="bg-rose-400 hover:bg-white hover:text-black hover:border hover:border-black"
+              onClick={() => setOpenDelete(false)}
+              type="submit"
+            >
+              Cancelar
+            </Button>
 
-              <Button
-                disabled={deleteObligatoryReport.isPending}
-                className="hover:bg-white hover:text-black hover:border hover:border-black transition-all"
-                onClick={() => {
-                  if (obligatoryReport.id) {
-                    handleDelete(obligatoryReport.id);
-                  }
-                }}
-              >
-                {deleteObligatoryReport.isPending ? (
-                  <Loader2 className="size-4 animate-spin" />
-                ) : (
-                  <p>Confirmar</p>
-                )}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+            <Button
+              disabled={deleteObligatoryReport.isPending}
+              className="hover:bg-white hover:text-black hover:border hover:border-black transition-all"
+              onClick={() => {
+                if (obligatoryReport.id) {
+                  handleDelete(obligatoryReport.id);
+                }
+              }}
+            >
+              {deleteObligatoryReport.isPending ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <p>Confirmar</p>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-        <Dialog open={openEdit} onOpenChange={setOpenEdit}>
-          <DialogContent className="flex flex-col max-w-2xl m-2">
-            <DialogHeader>
-              <DialogTitle className="text-center"></DialogTitle>
-              <CreateObligatoryReportForm
-                initialData={obligatoryReport}
-                isEditing={true}
-                onClose={() => setOpenEdit(false)}
-              />
-            </DialogHeader>
-          </DialogContent>
-        </Dialog>
+      <Dialog open={openEdit} onOpenChange={setOpenEdit}>
+        <DialogContent className="flex flex-col max-w-2xl m-2">
+          <DialogHeader>
+            <DialogTitle className="text-center"></DialogTitle>
+            <CreateObligatoryReportForm
+              initialData={obligatoryReport}
+              isEditing={true}
+              onClose={() => setOpenEdit(false)}
+            />
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
 
-        <Dialog open={openAccept} onOpenChange={setOpenAccept}>
-          <DialogContent className="flex flex-col max-w-2xl m-2">
-            <DialogHeader>
-              <DialogTitle className="text-center"></DialogTitle>
-              <AcceptObligatoryReport
-                initialData={obligatoryReport}
-                onClose={() => setOpenAccept(false)}
-              ></AcceptObligatoryReport>
-            </DialogHeader>
-          </DialogContent>
-        </Dialog>
+      <Dialog open={openAccept} onOpenChange={setOpenAccept}>
+        <DialogContent className="flex flex-col max-w-2xl m-2">
+          <DialogHeader>
+            <DialogTitle className="text-center"></DialogTitle>
+            <AcceptObligatoryReport
+              initialData={obligatoryReport}
+              onClose={() => setOpenAccept(false)}
+            ></AcceptObligatoryReport>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
 
-        <Dialog
-          open={openCreateDangerIdentification}
-          onOpenChange={setOpenCreateDangerIdentification}
-        >
-          <DialogContent className="flex flex-col max-w-2xl m-2">
-            <DialogHeader>
-              <DialogTitle></DialogTitle>
-              <DialogDescription></DialogDescription>
-            </DialogHeader>
+      <Dialog
+        open={openCreateDangerIdentification}
+        onOpenChange={setOpenCreateDangerIdentification}
+      >
+        <DialogContent className="flex flex-col max-w-2xl m-2">
+          <DialogHeader>
+            <DialogTitle></DialogTitle>
+            <DialogDescription></DialogDescription>
+          </DialogHeader>
 
-            {obligatoryReport.id && (
-              <CreateDangerIdentificationForm
-                id={obligatoryReport.id}
-                reportType="ROS"
-              />
-            )}
-          </DialogContent>
-        </Dialog>
+          {obligatoryReport.id && (
+            <CreateDangerIdentificationForm
+              id={obligatoryReport.id}
+              reportType="ROS"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

@@ -18,7 +18,13 @@ import {
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { useUpdateCourseExamResult } from "@/actions/general/cursos/actions";
@@ -28,13 +34,21 @@ import { PdfEndpointPreviewDialog } from "@/components/dialogs/shared/PdfEndpoin
 import { getExamDocumentUrl } from "@/lib/cursos/exam-documents";
 import { Eye } from "lucide-react";
 
-const ExamAttendanceRow = ({ attendance, company, examId }: { attendance: any; company: string; examId: string }) => {
+const ExamAttendanceRow = ({
+  attendance,
+  company,
+  examId,
+}: {
+  attendance: any;
+  company: string;
+  examId: string;
+}) => {
   const [score, setScore] = useState(attendance.score || "");
-  
+
   const [approved, setApproved] = useState(
     attendance.approved !== undefined && attendance.approved !== null
       ? attendance.approved === 1 || attendance.approved === true
-      : true
+      : true,
   );
   const [file, setFile] = useState<File | null>(null);
   const [previewDoc, setPreviewDoc] = useState<{
@@ -44,8 +58,7 @@ const ExamAttendanceRow = ({ attendance, company, examId }: { attendance: any; c
   } | null>(null);
 
   const { updateCourseExamResult } = useUpdateCourseExamResult();
-  const isAttended =
-    attendance.attended === true || attendance.attended === 1;
+  const isAttended = attendance.attended === true || attendance.attended === 1;
 
   const handleSave = () => {
     const formData = new FormData();
@@ -55,7 +68,10 @@ const ExamAttendanceRow = ({ attendance, company, examId }: { attendance: any; c
     formData.append("exam_id", examId);
     formData.append("employee_dni", attendance.employee_dni);
     if (attendance.course_attendance_id) {
-      formData.append("course_attendance_id", attendance.course_attendance_id.toString());
+      formData.append(
+        "course_attendance_id",
+        attendance.course_attendance_id.toString(),
+      );
     }
     if (file && isAttended) formData.append("document", file);
 
@@ -77,66 +93,78 @@ const ExamAttendanceRow = ({ attendance, company, examId }: { attendance: any; c
   return (
     <>
       <tr key={attendance.id}>
-      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-        <div className="flex flex-col">
-          <span>{attendance.employee.first_name} {attendance.employee.last_name}</span>
-          <span className="text-xs text-muted-foreground">{attendance.employee_dni}</span>
-        </div>
-      </td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm">
-        <Input 
-          type="number" 
-          placeholder="Ej: 85" 
-          className="w-24" 
-          value={score}
-          onChange={(e) => setScore(e.target.value)}
-        />
-      </td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm">
-        <Switch 
-          checked={approved}
-          onCheckedChange={setApproved}
-        />
-      </td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm">
-        <Input
-          type="file"
-          className="w-56 text-xs cursor-pointer file:cursor-pointer disabled:cursor-not-allowed"
-          accept=".pdf,.jpg,.jpeg,.png,.webp"
-          disabled={!isAttended}
-          onChange={(e) => setFile(e.target.files?.[0] || null)}
-        />
-        {!isAttended && (
-          <span className="block mt-1 text-[10px] text-red-500 font-medium">
-            No asistió al curso, no puede subir examen
-          </span>
-        )}
-        {isAttended && attendance.document_path && documentEndpoint && !file && (
-          <span className="flex items-center gap-1 text-[10px] text-blue-500 mt-1 font-medium">
-            Documento guardado
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="h-5 w-5"
-              onClick={() =>
-                setPreviewDoc({
-                  endpoint: documentEndpoint,
-                  fileName: `examen_${attendance.employee_dni}`,
-                  title: `Examen - ${employeeName}`,
-                })
-              }
-            >
-              <Eye className="size-3.5" />
-            </Button>
-          </span>
-        )}
-      </td>
-      <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
-        <Button size="sm" onClick={handleSave} disabled={updateCourseExamResult.isPending}>
-          {updateCourseExamResult.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Guardar"}
-        </Button>
-      </td>
+        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+          <div className="flex flex-col">
+            <span>
+              {attendance.employee.first_name} {attendance.employee.last_name}
+            </span>
+            <span className="text-xs text-muted-foreground">
+              {attendance.employee_dni}
+            </span>
+          </div>
+        </td>
+        <td className="px-6 py-4 whitespace-nowrap text-sm">
+          <Input
+            type="number"
+            placeholder="Ej: 85"
+            className="w-24"
+            value={score}
+            onChange={(e) => setScore(e.target.value)}
+          />
+        </td>
+        <td className="px-6 py-4 whitespace-nowrap text-sm">
+          <Switch checked={approved} onCheckedChange={setApproved} />
+        </td>
+        <td className="px-6 py-4 whitespace-nowrap text-sm">
+          <Input
+            type="file"
+            className="w-56 text-xs cursor-pointer file:cursor-pointer disabled:cursor-not-allowed"
+            accept=".pdf,.jpg,.jpeg,.png,.webp"
+            disabled={!isAttended}
+            onChange={(e) => setFile(e.target.files?.[0] || null)}
+          />
+          {!isAttended && (
+            <span className="block mt-1 text-[10px] text-red-500 font-medium">
+              No asistió al curso, no puede subir examen
+            </span>
+          )}
+          {isAttended &&
+            attendance.document_path &&
+            documentEndpoint &&
+            !file && (
+              <span className="flex items-center gap-1 text-[10px] text-blue-500 mt-1 font-medium">
+                Documento guardado
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-5 w-5"
+                  onClick={() =>
+                    setPreviewDoc({
+                      endpoint: documentEndpoint,
+                      fileName: `examen_${attendance.employee_dni}`,
+                      title: `Examen - ${employeeName}`,
+                    })
+                  }
+                >
+                  <Eye className="size-3.5" />
+                </Button>
+              </span>
+            )}
+        </td>
+        <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
+          <Button
+            size="sm"
+            onClick={handleSave}
+            disabled={updateCourseExamResult.isPending}
+          >
+            {updateCourseExamResult.isPending ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              "Guardar"
+            )}
+          </Button>
+        </td>
       </tr>
 
       {previewDoc && (
@@ -161,10 +189,10 @@ const ManageExamsPage = () => {
   const { selectedCompany } = useCompanyStore();
   const [selectedExamId, setSelectedExamId] = useState<string>("");
 
-  const {
-    data: course,
-    isLoading: isCourseLoading,
-  } = useGetCourseById({ id: course_id, company: selectedCompany?.slug });
+  const { data: course, isLoading: isCourseLoading } = useGetCourseById({
+    id: course_id,
+    company: selectedCompany?.slug,
+  });
 
   const {
     data: exams,
@@ -182,7 +210,9 @@ const ManageExamsPage = () => {
     exam_id: selectedExamId,
   });
 
-  const selectedExam = exams?.find((exam) => exam.id.toString() === selectedExamId);
+  const selectedExam = exams?.find(
+    (exam) => exam.id.toString() === selectedExamId,
+  );
 
   return (
     <ContentLayout title="Gestionar Exámenes">
@@ -286,10 +316,10 @@ const ManageExamsPage = () => {
                       </thead>
                       <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                         {attendanceList.map((attendance: any) => (
-                          <ExamAttendanceRow 
-                            key={attendance.row_id ?? attendance.employee_dni} 
-                            attendance={attendance} 
-                            company={selectedCompany?.slug || ""} 
+                          <ExamAttendanceRow
+                            key={attendance.row_id ?? attendance.employee_dni}
+                            attendance={attendance}
+                            company={selectedCompany?.slug || ""}
                             examId={selectedExamId}
                           />
                         ))}
