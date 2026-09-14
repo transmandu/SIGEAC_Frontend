@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { CreateCertificateForm } from "@/components/forms/general/CreateCertificateForm";
 import { DataTableCertificates } from "./data-table";
-import { getColumns, CertificateColumn } from "./columns";
+import { getColumns, CertificateColumn, CertificateGroup } from "./columns";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { certificadosCrearSteps } from "@/components/tour/steps/general/cursos/certificados/certificados-crear";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -70,6 +70,34 @@ const CertificatesPage = () => {
     }));
   }, [rawCertificates]);
 
+  // Agrupa por empleado (DNI) para que cada persona aparezca una sola vez
+  // y sus certificados queden como sub-filas expandibles.
+  const certificatesByEmployee: CertificateGroup[] = useMemo(() => {
+    const groups = new Map<string, CertificateGroup>();
+    for (const cert of certificates) {
+      const dni = cert.employee?.dni;
+      if (!dni) continue;
+      let group = groups.get(dni);
+      if (!group) {
+        group = {
+          __isGroup: true,
+          id: dni,
+          employee: cert.employee!,
+          certificates: [],
+          subRows: [],
+        };
+        groups.set(dni, group);
+      }
+      group.certificates.push(cert);
+      group.subRows.push(cert);
+    }
+    return Array.from(groups.values()).sort((a, b) =>
+      `${a.employee.last_name} ${a.employee.first_name}`.localeCompare(
+        `${b.employee.last_name} ${b.employee.first_name}`,
+      ),
+    );
+  }, [certificates]);
+
   return (
     <ContentLayout title="Certificados">
       <PageHeader className="mb-6" />
@@ -85,7 +113,7 @@ const CertificatesPage = () => {
           <div className="animate-in fade-in duration-500">
             <DataTableCertificates
               columns={tableColumns}
-              data={certificates}
+              data={certificatesByEmployee}
               onOpenModal={() => setOpen(true)}
               user={user}
             />

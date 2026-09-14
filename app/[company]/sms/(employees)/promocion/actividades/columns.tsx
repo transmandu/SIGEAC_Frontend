@@ -77,7 +77,7 @@ const activityNumberSortFn = (rowA: { original: SMSActivityTableRow }, rowB: { o
 export const columns: AppColumnDef<SMSActivityTableRow>[] = [
   {
     accessorKey: "activity_number",
-    sortingFn: activityNumberSortFn,
+    sortFn: activityNumberSortFn,
     header: ({ column }) => (
       <DataTableColumnHeader filter column={column} title="Numero de actividad" />
     ),
