@@ -3,7 +3,7 @@
 import CourseDropdownActions from "@/components/dropdowns/aerolinea/sms/CourseDropdownActions";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { Badge } from "@/components/ui/badge";
-import { dateFormat } from "@/lib/utils";
+import { formatCalendarDate } from "@/lib/date";
 import { Course } from "@/types";
 import { type AppColumnDef } from "@/lib/table";
 import { courseStatusLabelEsUpper } from "@/lib/cursos/statuses";
@@ -28,7 +28,7 @@ export const columns: AppColumnDef<Course>[] = [
     cell: ({ row }) => {
       return (
         <p className="font-medium text-center">
-          {dateFormat(row.original.start_date, "PPP")}
+          {formatCalendarDate(row.original.start_date, "long")}
         </p>
       );
     },
@@ -46,7 +46,7 @@ export const columns: AppColumnDef<Course>[] = [
     cell: ({ row }) => {
       return (
         <p className="font-medium text-center">
-          {dateFormat(row.original.end_date, "PPP")}
+          {formatCalendarDate(row.original.end_date, "long")}
         </p>
       );
     },
@@ -84,16 +84,20 @@ export const columns: AppColumnDef<Course>[] = [
     ),
     meta: { title: "Estado" },
     cell: ({ row }) => {
-      const color =
-        row.original.status === "CLOSED"
-          ? "bg-red-500 hover:bg-red-700"
-          : row.original.status === "OPEN"
-            ? "bg-green-500 hover:bg-green-700"
-            : "bg-gray-200"; // Agrega una clase por defecto para otros estados
+      const status = row.original.status;
+      const badgeClass =
+        status === "CLOSED"
+          ? "bg-green-100 text-green-700 border-green-200 dark:bg-green-950/40 dark:text-green-400 dark:border-green-800"
+          : status === "OPEN"
+            ? "bg-red-100 text-red-700 border-red-200 dark:bg-red-950/40 dark:text-red-400 dark:border-red-800"
+            : "bg-muted text-muted-foreground border-border/60";
       return (
         <div className="flex justify-center">
-          <Badge className={`flex justify-center ${color}`}>
-            {courseStatusLabelEsUpper(row.original.status)}
+          <Badge
+            variant="outline"
+            className={`justify-center items-center text-center font-medium text-[11px] px-2.5 py-0.5 border ${badgeClass}`}
+          >
+            {courseStatusLabelEsUpper(status)}
           </Badge>
         </div>
       );

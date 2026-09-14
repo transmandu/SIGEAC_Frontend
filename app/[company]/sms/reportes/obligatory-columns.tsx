@@ -7,6 +7,7 @@ import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import ObligatoryReportDropdownActions from "@/components/dropdowns/aerolinea/sms/ObligatoryReportDropdownActions";
 import { Badge } from "@/components/ui/badge";
 import { dateFormat } from "@/lib/utils";
+import { getBadgeStatusClass } from "@/lib/sms/utils";
 import { ObligatoryReport } from "@/types";
 
 export const columns: AppColumnDef<ObligatoryReport>[] = [
@@ -36,9 +37,9 @@ export const columns: AppColumnDef<ObligatoryReport>[] = [
     cell: ({ row }) => {
       return (
         <p className="font-medium text-center">
-        {row.original.report_date
-          ? dateFormat(row.original.report_date, "PPP")
-          : "N/A"}
+          {row.original.report_date
+            ? dateFormat(row.original.report_date, "PPP")
+            : "N/A"}
         </p>
       );
     },
@@ -49,7 +50,11 @@ export const columns: AppColumnDef<ObligatoryReport>[] = [
       <DataTableColumnHeader filter column={column} title="Hora del Vuelo" />
     ),
     cell: ({ row }) => {
-        return <p className="font-medium text-center">{row.original.flight_time?.substring(0, 5)}</p>;
+      return (
+        <p className="font-medium text-center">
+          {row.original.flight_time?.substring(0, 5)}
+        </p>
+      );
     },
   },
   {
@@ -58,8 +63,8 @@ export const columns: AppColumnDef<ObligatoryReport>[] = [
       <DataTableColumnHeader filter column={column} title="Hora del suceso" />
     ),
     cell: ({ row }) => {
-        const incident_time = row.original.incident_time?.substring(0, 5);
-        return <p className="font-medium text-center">{incident_time}</p>;
+      const incident_time = row.original.incident_time?.substring(0, 5);
+      return <p className="font-medium text-center">{incident_time}</p>;
     },
   },
 
@@ -79,22 +84,15 @@ export const columns: AppColumnDef<ObligatoryReport>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Estado" />
     ),
-    cell: ({ row }) => (
-      <div className="flex justify-center">
-        <Badge
-          className={`justify-center items-center text-center font-bold font-sans
-      ${
-        row.original.status === "CERRADO"
-          ? "bg-green-400"
-          : row.original.status === "PROCESO"
-          ? "bg-gray-500" // Color gris oscuro (puedes ajustar el tono)
-          : "bg-red-400"
-      }`}
-        >
-          {row.original.status}
-        </Badge>
-      </div>
-    ),
+    cell: ({ row }) => {
+      const badgeClasses = getBadgeStatusClass(row.original.status);
+
+      return (
+        <div className="flex justify-center">
+          <Badge className={badgeClasses}>{row.original.status}</Badge>
+        </div>
+      );
+    },
   },
 
   {

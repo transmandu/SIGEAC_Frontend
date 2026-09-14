@@ -3,12 +3,23 @@ import BarChartCourseComponent from "@/components/charts/BarChartCourseComponent
 import { PieChartComponent } from "@/components/charts/PieChartComponent";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { PdfEndpointPreviewDialog } from "@/components/dialogs/shared/PdfEndpointPreviewDialog";
 import { useGetCourseAttendanceList } from "@/hooks/curso/useGetCourseAttendanceList";
 import { useGetCourseAttendanceStats } from "@/hooks/curso/useGetCourseAttendanceStats";
+import {
+  CourseExamDocument,
+  useGetCourseExamDocuments,
+} from "@/hooks/curso/useGetCourseExamDocuments";
 import { useGetCourseById } from "@/hooks/curso/useGetCourseById";
+import { getExamDocumentUrl } from "@/lib/cursos/exam-documents";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
 import { AreaChartIcon } from "lucide-react";
 import {
   AlertCircle,
@@ -17,6 +28,7 @@ import {
   Calendar,
   CheckCheck,
   Clock,
+  Eye,
   FileText,
   Loader2,
   Users,
@@ -24,7 +36,81 @@ import {
 } from "lucide-react";
 import { useParams } from "next/navigation";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { formatCalendarDate } from "@/lib/date";
 import { courseStatusLabelEsUpper } from "@/lib/cursos/statuses";
+import { useState } from "react";
+
+const ExamPreviewCell = ({
+  company,
+  docs,
+  employeeName,
+  dni,
+}: {
+  company?: string;
+  docs?: CourseExamDocument[];
+  employeeName: string;
+  dni: string;
+}) => {
+  const [preview, setPreview] = useState<{
+    endpoint: string;
+    fileName: string;
+    title: string;
+  } | null>(null);
+
+  if (!docs || docs.length === 0) {
+    return <span className="text-xs text-muted-foreground">Sin examen</span>;
+  }
+
+  return (
+    <>
+      <div className="flex items-center gap-1">
+        {docs.map((doc) => {
+          const endpoint = getExamDocumentUrl(company, doc.document_path);
+          if (!endpoint) return null;
+          return (
+            <TooltipProvider key={doc.exam_id}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() =>
+                      setPreview({
+                        endpoint,
+                        fileName: `examen_${doc.exam_name}_${dni}`,
+                        title: `${doc.exam_name} - ${employeeName}`,
+                      })
+                    }
+                  >
+                    <Eye className="size-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  Ver examen {doc.exam_name}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          );
+        })}
+      </div>
+
+      {preview && (
+        <PdfEndpointPreviewDialog
+          open={!!preview}
+          onOpenChange={(value) => {
+            if (!value) setPreview(null);
+          }}
+          endpoint={preview.endpoint}
+          fileName={preview.fileName}
+          title={preview.title}
+          description="Revisa el examen antes de descargarlo."
+        />
+      )}
+    </>
+  );
+};
 
 const ShowCourse = () => {
   const { course_id } = useParams<{ course_id: string }>();
@@ -47,6 +133,15 @@ const ShowCourse = () => {
     isLoading: isAttendanceStatsLoading,
     isError: isAttendanceStatsError,
   } = useGetCourseAttendanceStats(course_id);
+
+  const {
+    data: examDocuments,
+    isLoading: isExamDocumentsLoading,
+    isError: isExamDocumentsError,
+  } = useGetCourseExamDocuments({
+    company: selectedCompany?.slug,
+    course_id,
+  });
 
   const PieChartData = AttendanceStats
     ? [
@@ -106,8 +201,8 @@ const ShowCourse = () => {
                   <div className="flex items-center gap-2">
                     <Calendar className="w-5 h-5 text-gray-600 dark:text-gray-300" />
                     <p className="text-gray-700 dark:text-gray-300">
-                      {format(course.start_date, "PPP", { locale: es })} -{" "}
-                      {format(course.end_date, "PPP", { locale: es })}
+                      {formatCalendarDate(course.start_date, "long")} -{" "}
+                      {formatCalendarDate(course.end_date, "long")}
                     </p>
                   </div>
                 </div>
@@ -122,12 +217,13 @@ const ShowCourse = () => {
                       </span>
                     </div>
                     <Badge
-                      className={`font-bold ${
+                      variant="outline"
+                      className={`font-medium border px-2.5 py-0.5 ${
                         course.status === "CLOSED"
-                          ? "bg-red-600"
+                          ? "bg-green-100 text-green-700 border-green-200 dark:bg-green-950/40 dark:text-green-400 dark:border-green-800"
                           : course.status === "OPEN"
-                            ? "bg-green-400"
-                            : "bg-gray-500"
+                            ? "bg-red-100 text-red-700 border-red-200 dark:bg-red-950/40 dark:text-red-400 dark:border-red-800"
+                            : "bg-muted text-muted-foreground border-border/60"
                       }`}
                     >
                       {courseStatusLabelEsUpper(course.status)}
@@ -193,15 +289,13 @@ const ShowCourse = () => {
                         <p className="text-sm text-gray-500 dark:text-gray-400">
                           Fecha de inicio:
                         </p>
-                        <p>
-                          {format(course.start_date, "PPP", { locale: es })}
-                        </p>
+                        <p>{formatCalendarDate(course.start_date, "long")}</p>
                       </div>
                       <div>
                         <p className="text-sm text-gray-500 dark:text-gray-400">
                           Fecha de fin:
                         </p>
-                        <p>{format(course.end_date, "PPP", { locale: es })}</p>
+                        <p>{formatCalendarDate(course.end_date, "long")}</p>
                       </div>
                     </div>
                   </div>
@@ -245,6 +339,9 @@ const ShowCourse = () => {
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                             DNI
                           </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                            Examen
+                          </th>
                         </tr>
                       </thead>
                       <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
@@ -265,6 +362,24 @@ const ShowCourse = () => {
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                               {attendance.employee_dni}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm">
+                              {isExamDocumentsLoading ? (
+                                <Loader2 className="size-4 animate-spin text-blue-500" />
+                              ) : isExamDocumentsError ? (
+                                <span className="text-xs text-red-500">
+                                  Error
+                                </span>
+                              ) : (
+                                <ExamPreviewCell
+                                  company={selectedCompany?.slug}
+                                  docs={
+                                    examDocuments?.[attendance.employee_dni]
+                                  }
+                                  employeeName={`${attendance.employee.first_name} ${attendance.employee.last_name}`}
+                                  dni={attendance.employee_dni}
+                                />
+                              )}
                             </td>
                           </tr>
                         ))}
