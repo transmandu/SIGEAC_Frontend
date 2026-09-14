@@ -462,7 +462,6 @@ export function CreateMeetingMinuteForm({
 
             {/* Objetivo */}
             <div className="space-y-3">
-
               <FormField
                 control={form.control}
                 name="objective"
@@ -632,7 +631,9 @@ export function CreateMeetingMinuteForm({
                         form={form}
                         name={`attendees.${index}.employee_id`}
                         label="Empleado"
-                        placeholder={allEmployeesLoading ? "Cargando..." : "Seleccionar..."}
+                        placeholder={
+                          allEmployeesLoading ? "Cargando..." : "Seleccionar..."
+                        }
                         options={allEmployeeOptions}
                         disabled={allEmployeesLoading}
                       />
