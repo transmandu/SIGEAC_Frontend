@@ -7,8 +7,6 @@ import { useGetCourseExamAttendance } from "@/hooks/curso/useGetCourseExamAttend
 import { useGetCourseExams } from "@/hooks/curso/useGetCourseExams";
 import { useGetCourseById } from "@/hooks/curso/useGetCourseById";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
 import {
   AlertCircle,
   ArrowLeft,
@@ -25,6 +23,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { useUpdateCourseExamResult } from "@/actions/general/cursos/actions";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { formatCalendarDate } from "@/lib/date";
 
 const ExamAttendanceRow = ({ attendance, company, examId }: { attendance: any; company: string; examId: string }) => {
   const [score, setScore] = useState(attendance.score || "");
@@ -183,7 +182,7 @@ const ManageExamsPage = () => {
                 <SelectContent>
                   {exams.map((exam) => (
                     <SelectItem key={exam.id} value={exam.id.toString()}>
-                      {exam.name} - {format(new Date(exam.exam_date), "dd/MM/yyyy")}
+                      {exam.name} - {formatCalendarDate(exam.exam_date, "date")}
                     </SelectItem>
                   ))}
                 </SelectContent>

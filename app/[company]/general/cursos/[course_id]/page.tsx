@@ -7,8 +7,6 @@ import { useGetCourseAttendanceList } from "@/hooks/curso/useGetCourseAttendance
 import { useGetCourseAttendanceStats } from "@/hooks/curso/useGetCourseAttendanceStats";
 import { useGetCourseById } from "@/hooks/curso/useGetCourseById";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
 import { AreaChartIcon } from "lucide-react";
 import {
   AlertCircle,
@@ -24,6 +22,7 @@ import {
 } from "lucide-react";
 import { useParams } from "next/navigation";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { formatCalendarDate } from "@/lib/date";
 import { courseStatusLabelEsUpper } from "@/lib/cursos/statuses";
 
 const ShowCourse = () => {
@@ -106,8 +105,8 @@ const ShowCourse = () => {
                   <div className="flex items-center gap-2">
                     <Calendar className="w-5 h-5 text-gray-600 dark:text-gray-300" />
                     <p className="text-gray-700 dark:text-gray-300">
-                      {format(course.start_date, "PPP", { locale: es })} -{" "}
-                      {format(course.end_date, "PPP", { locale: es })}
+                      {formatCalendarDate(course.start_date, "long")} -{" "}
+                      {formatCalendarDate(course.end_date, "long")}
                     </p>
                   </div>
                 </div>
@@ -122,12 +121,13 @@ const ShowCourse = () => {
                       </span>
                     </div>
                     <Badge
-                      className={`font-bold ${
+                      variant="outline"
+                      className={`font-medium border px-2.5 py-0.5 ${
                         course.status === "CLOSED"
-                          ? "bg-red-600"
+                          ? "bg-green-100 text-green-700 border-green-200 dark:bg-green-950/40 dark:text-green-400 dark:border-green-800"
                           : course.status === "OPEN"
-                            ? "bg-green-400"
-                            : "bg-gray-500"
+                            ? "bg-red-100 text-red-700 border-red-200 dark:bg-red-950/40 dark:text-red-400 dark:border-red-800"
+                            : "bg-muted text-muted-foreground border-border/60"
                       }`}
                     >
                       {courseStatusLabelEsUpper(course.status)}
@@ -194,14 +194,14 @@ const ShowCourse = () => {
                           Fecha de inicio:
                         </p>
                         <p>
-                          {format(course.start_date, "PPP", { locale: es })}
+                          {formatCalendarDate(course.start_date, "long")}
                         </p>
                       </div>
                       <div>
                         <p className="text-sm text-gray-500 dark:text-gray-400">
                           Fecha de fin:
                         </p>
-                        <p>{format(course.end_date, "PPP", { locale: es })}</p>
+                        <p>{formatCalendarDate(course.end_date, "long")}</p>
                       </div>
                     </div>
                   </div>
