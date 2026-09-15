@@ -1,87 +1,84 @@
 import type { Group, Menu, MenuFilterContext } from "@/lib/menus/types";
 
 export function filterMenuGroups(
-  groups: Group[],
-  { currentCompany, userRoles }: MenuFilterContext,
+    groups: Group[],
+    { currentCompany, userRoles }: MenuFilterContext,
 ): Group[] {
-  const isValidHref = (href: string): boolean => {
-    return (
-      href.length > 0 &&
-      !href.includes("undefined") &&
-      (href.startsWith("/") ||
-        href.startsWith("http://") ||
-        href.startsWith("https://"))
-    );
-  };
+    const isValidHref = (href: string): boolean => {
+        return (
+            href.length > 0 &&
+            !href.includes("undefined") &&
+            (href.startsWith("/") ||
+                href.startsWith("http://") ||
+                href.startsWith("https://"))
+        );
+    };
 
-  // La exclusión pesa más que la inclusión: un rol excluido no ve la opción
-  // aunque califique por otro de sus roles.
-  const hasRoleAccess = (menuItem: {
-    roles?: string[];
-    excludedRoles?: string[];
-  }): boolean => {
-    if (menuItem.excludedRoles?.some((role) => userRoles.includes(role))) {
-      return false;
-    }
-    return (
-      !menuItem.roles ||
-      menuItem.roles.length === 0 ||
-      menuItem.roles.some((role) => userRoles.includes(role))
-    );
-  };
+    // La exclusión pesa más que la inclusión: un rol excluido no ve la opción
+    // aunque califique por otro de sus roles.
+    const hasRoleAccess = (menuItem: {
+        roles?: string[];
+        excludedRoles?: string[];
+    }): boolean => {
+        if (menuItem.excludedRoles?.some((role) => userRoles.includes(role))) {
+            return false;
+        }
+        return (
+            !menuItem.roles ||
+            menuItem.roles.length === 0 ||
+            menuItem.roles.some((role) => userRoles.includes(role))
+        );
+    };
 
-  const isModuleActive = (moduleValue?: string | string[]): boolean => {
-    if (!moduleValue || !currentCompany) return true;
-    if (!Array.isArray(currentCompany.modules)) return false;
-    const values = Array.isArray(moduleValue) ? moduleValue : [moduleValue];
-    return currentCompany.modules.some((module) =>
-      values.includes(module.value),
-    );
-  };
+    const isModuleActive = (moduleValue?: string | string[]): boolean => {
+        if (!moduleValue || !currentCompany) return true;
+        const values = Array.isArray(moduleValue) ? moduleValue : [moduleValue];
+        return currentCompany.modules.some((module) => values.includes(module.value));
+    };
 
-  const hasOmacAccess = (item: { requiresOmac?: boolean }): boolean => {
-    if (item.requiresOmac === undefined) return true;
-    return item.requiresOmac === currentCompany?.isOMAC;
-  };
+    const hasOmacAccess = (item: { requiresOmac?: boolean }): boolean => {
+        if (item.requiresOmac === undefined) return true;
+        return item.requiresOmac === currentCompany?.isOMAC;
+    };
 
-  return groups
-    .filter((group) => isModuleActive(group.moduleValue))
-    .map((group) => {
-      const filteredMenus = group.menus.filter(
-        (menu) =>
-          isModuleActive(menu.moduleValue) &&
-          hasRoleAccess(menu) &&
-          hasOmacAccess(menu),
-      );
+    return groups
+        .filter((group) => isModuleActive(group.moduleValue))
+        .map((group) => {
+            const filteredMenus = group.menus.filter(
+                (menu) =>
+                    isModuleActive(menu.moduleValue) &&
+                    hasRoleAccess(menu) &&
+                    hasOmacAccess(menu),
+            );
 
-      const mappedMenus = filteredMenus
-        .map((menu) => {
-          const submenus = menu.submenus.filter(
-            (sub) =>
-              isModuleActive(sub.moduleValue) &&
-              hasRoleAccess(sub) &&
-              hasOmacAccess(sub) &&
-              isValidHref(sub.href),
-          );
+            const mappedMenus = filteredMenus
+                .map((menu) => {
+                    const submenus = menu.submenus.filter(
+                        (sub) =>
+                            isModuleActive(sub.moduleValue) &&
+                            hasRoleAccess(sub) &&
+                            hasOmacAccess(sub) &&
+                            isValidHref(sub.href),
+                    );
 
-          const href = isValidHref(menu.href) ? menu.href : submenus[0]?.href;
+                    const href = isValidHref(menu.href) ? menu.href : submenus[0]?.href;
 
-          if (!href) {
-            return null;
-          }
+                    if (!href) {
+                        return null;
+                    }
 
-          return {
-            ...menu,
-            href,
-            submenus,
-          };
+                    return {
+                        ...menu,
+                        href,
+                        submenus,
+                    };
+                })
+                .filter((menu): menu is Menu => menu !== null);
+
+            return {
+                ...group,
+                menus: mappedMenus,
+            };
         })
-        .filter((menu): menu is Menu => menu !== null);
-
-      return {
-        ...group,
-        menus: mappedMenus,
-      };
-    })
-    .filter((group) => group.menus.length > 0);
+        .filter((group) => group.menus.length > 0);
 }
