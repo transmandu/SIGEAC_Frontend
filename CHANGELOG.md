@@ -1,3 +1,9 @@
+## v4.6.1 — 2026-09-15
+
+- Merge pull request #262 from transmandu/fix/critical-article-popover
+- fix: add missing commas for consistency in CriticalAlertsButton and DashboardLayout
+- fix: replace Popover with Tooltip for critical alerts button interaction
+
 ## v4.6.0 — 2026-09-15
 
 - feat: the input date in couse form with option to select year and month (#261)
