@@ -1,3 +1,7 @@
+## v4.6.3 — 2026-09-15
+
+- fix: show all employeees in minute form (#264)
+
 ## v4.6.2 — 2026-09-15
 
 - refactor: qr code hangar 74 with new icon (#263)
