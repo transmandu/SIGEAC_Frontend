@@ -120,7 +120,7 @@ const SelectReportType = () => {
                     className="w-full mt-3 lg:mt-4 group text-xs sm:text-sm"
                     onClick={() =>
                       router.push(
-                        `/acceso_publico/${company}/sms/crear_reporte/${report.type}`
+                        `/acceso_publico/${company}/sms/crear_reporte/${report.type}`,
                       )
                     }
                   >
