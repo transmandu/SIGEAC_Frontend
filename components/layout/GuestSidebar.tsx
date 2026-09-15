@@ -21,7 +21,7 @@ export function GuestSidebar() {
       className={cn(
         "fixed top-0 left-0 z-20 h-screen -translate-x-full lg:translate-x-0",
         "transition-[width] ease-in-out duration-300",
-        isOpen === false ? "w-22.5" : "w-72"
+        isOpen === false ? "w-22.5" : "w-72",
       )}
     >
       <SidebarToggle isOpen={isOpen} setIsOpen={setIsOpen} />
@@ -32,13 +32,13 @@ export function GuestSidebar() {
         <div
           className={cn(
             "flex justify-center items-center mb-1 mt-4",
-            "px-4 py-4"
+            "px-4 py-4",
           )}
         >
           <Button
             className={cn(
               "transition-transform ease-in-out duration-300 w-full justify-center",
-              isOpen === false ? "translate-x-1" : "translate-x-0"
+              isOpen === false ? "translate-x-1" : "translate-x-0",
             )}
             variant="link"
             asChild

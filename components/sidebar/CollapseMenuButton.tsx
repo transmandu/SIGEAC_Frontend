@@ -10,13 +10,13 @@ import { DropdownMenuArrow } from "@radix-ui/react-dropdown-menu";
 import {
   Collapsible,
   CollapsibleContent,
-  CollapsibleTrigger
+  CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import {
   Tooltip,
   TooltipTrigger,
   TooltipContent,
-  TooltipProvider
+  TooltipProvider,
 } from "@/components/ui/tooltip";
 import {
   DropdownMenu,
@@ -24,7 +24,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
   DropdownMenuContent,
-  DropdownMenuSeparator
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 
 type Submenu = {
@@ -46,14 +46,15 @@ export function CollapseMenuButton({
   label,
   active,
   submenus,
-  isOpen
+  isOpen,
 }: CollapseMenuButtonProps) {
   const isSubmenuActive = submenus.some((submenu) => submenu.active);
   const [isCollapsed, setIsCollapsed] = useState<boolean>(isSubmenuActive);
   // Al navegar a una ruta de este grupo, se abre solo. Se compara contra el
   // valor previo en vez de forzarlo en cada render, para no reabrir el grupo
   // que el usuario acaba de cerrar estando dentro de una de sus rutas.
-  const [wasSubmenuActive, setWasSubmenuActive] = useState<boolean>(isSubmenuActive);
+  const [wasSubmenuActive, setWasSubmenuActive] =
+    useState<boolean>(isSubmenuActive);
 
   if (wasSubmenuActive !== isSubmenuActive) {
     setWasSubmenuActive(isSubmenuActive);
@@ -67,7 +68,7 @@ export function CollapseMenuButton({
     "group relative h-11 w-full justify-start overflow-hidden rounded-xl border px-3 text-[13px] transition-all duration-200",
     "border-transparent bg-transparent text-muted-foreground hover:border-border/70 hover:bg-muted/40 hover:text-foreground",
     (active || isSubmenuActive) &&
-      "border-border/80 bg-muted/60 text-foreground shadow-xs shadow-black/5"
+      "border-border/80 bg-muted/60 text-foreground shadow-xs shadow-black/5",
   );
 
   return isOpen ? (
@@ -84,7 +85,7 @@ export function CollapseMenuButton({
           <span
             className={cn(
               "absolute left-0 top-1/2 h-6 w-0.75 -translate-y-1/2 rounded-r-full bg-primary opacity-0 transition-opacity duration-200",
-              (active || isSubmenuActive) && "opacity-100"
+              (active || isSubmenuActive) && "opacity-100",
             )}
           />
           <div className="w-full items-center flex justify-between gap-2">
@@ -93,7 +94,7 @@ export function CollapseMenuButton({
                 className={cn(
                   "mr-3 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-transparent bg-muted/30 text-muted-foreground transition-all duration-200 group-hover:border-border/60 group-hover:bg-background/70 group-hover:text-foreground",
                   (active || isSubmenuActive) &&
-                    "glass-control text-foreground"
+                    "glass-control text-foreground",
                 )}
               >
                 <Icon size={18} />
@@ -103,7 +104,7 @@ export function CollapseMenuButton({
                   "min-w-0 flex-1 truncate text-left text-[13px] font-medium transition-all duration-200",
                   isOpen
                     ? "translate-x-0 opacity-100"
-                    : "-translate-x-96 opacity-0"
+                    : "-translate-x-96 opacity-0",
                 )}
               >
                 {label}
@@ -114,9 +115,9 @@ export function CollapseMenuButton({
                 "shrink-0 whitespace-nowrap text-muted-foreground transition-colors duration-200 group-hover:text-foreground",
                 isOpen
                   ? "translate-x-0 opacity-100"
-                  : "-translate-x-96 opacity-0"
-            )}
-          >
+                  : "-translate-x-96 opacity-0",
+              )}
+            >
               <ChevronDown
                 size={18}
                 className="transition-transform duration-200"
@@ -135,7 +136,8 @@ export function CollapseMenuButton({
               // estrechaba el submenú, ya el más angosto por la sangría.
               "group relative my-0.5 h-10 w-full justify-start rounded-xl border border-transparent bg-transparent px-2 text-muted-foreground transition-all duration-200",
               "hover:border-border/60 hover:bg-muted/35 hover:text-foreground",
-              active && "border-border/70 bg-background/65 backdrop-blur-xs text-foreground"
+              active &&
+                "border-border/70 bg-background/65 backdrop-blur-xs text-foreground",
             )}
             asChild
           >
@@ -154,7 +156,7 @@ export function CollapseMenuButton({
                   "min-w-0 flex-1 truncate text-left text-[13px] font-medium",
                   isOpen
                     ? "translate-x-0 opacity-100"
-                    : "-translate-x-96 opacity-0"
+                    : "-translate-x-96 opacity-0",
                 )}
               >
                 {label}
@@ -176,7 +178,7 @@ export function CollapseMenuButton({
                   "group h-11 w-full justify-start rounded-xl border border-transparent bg-transparent px-3 text-muted-foreground transition-all duration-200",
                   "hover:border-border/70 hover:bg-muted/40 hover:text-foreground",
                   (active || isSubmenuActive) &&
-                    "border-border/80 bg-muted/60 text-foreground shadow-xs shadow-black/5"
+                    "border-border/80 bg-muted/60 text-foreground shadow-xs shadow-black/5",
                 )}
               >
                 <div className="w-full items-center flex justify-between">
@@ -186,7 +188,7 @@ export function CollapseMenuButton({
                         "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-transparent bg-muted/30 text-muted-foreground transition-all duration-200 group-hover:border-border/60 group-hover:bg-background/70 group-hover:text-foreground",
                         (active || isSubmenuActive) &&
                           "glass-control text-foreground",
-                        isOpen === false ? "mx-auto" : "mr-3"
+                        isOpen === false ? "mx-auto" : "mr-3",
                       )}
                     >
                       <Icon size={18} />
@@ -194,7 +196,7 @@ export function CollapseMenuButton({
                     <p
                       className={cn(
                         "max-w-50 truncate text-[13px] font-medium",
-                        isOpen === false ? "opacity-0" : "opacity-100"
+                        isOpen === false ? "opacity-0" : "opacity-100",
                       )}
                     >
                       {label}
@@ -230,14 +232,14 @@ export function CollapseMenuButton({
             asChild
             className={cn(
               "rounded-lg px-0 focus:bg-transparent",
-              active && "bg-transparent"
+              active && "bg-transparent",
             )}
           >
             <Link className="cursor-pointer" href={href}>
               <div
                 className={cn(
                   "flex w-full items-center rounded-lg border border-transparent px-2 py-2 text-[13px] font-medium text-muted-foreground transition-all duration-200 hover:border-border/60 hover:bg-muted/35 hover:text-foreground",
-                  active && "border-border/70 bg-muted/50 text-foreground"
+                  active && "border-border/70 bg-muted/50 text-foreground",
                 )}
               >
                 <span className="mr-2 flex h-6 w-6 items-center justify-center text-muted-foreground/80">

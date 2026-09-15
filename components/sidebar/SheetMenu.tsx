@@ -4,15 +4,9 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import {
-  PanelLeftOpen,
-  PanelLeftClose,
-} from "lucide-react";
+import { PanelLeftOpen, PanelLeftClose } from "lucide-react";
 
-import {
-  AnimatePresence,
-  motion,
-} from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 
 import { cn } from "@/lib/utils";
 
@@ -34,8 +28,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import Logo from "@/components/misc/Logo";
 
 export function SheetMenu() {
-  const { selectedCompany, selectedStation } =
-    useCompanyStore();
+  const { selectedCompany, selectedStation } = useCompanyStore();
 
   const [open, setOpen] = useState(false);
 
@@ -71,7 +64,7 @@ export function SheetMenu() {
             "h-9 w-9 rounded-lg",
             "border",
             "text-foreground/80",
-            "hover:text-foreground"
+            "hover:text-foreground",
           )}
         >
           <AnimatePresence mode="wait" initial={false}>

@@ -4,15 +4,9 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import {
-  PanelLeftOpen,
-  PanelLeftClose,
-} from "lucide-react";
+import { PanelLeftOpen, PanelLeftClose } from "lucide-react";
 
-import {
-  AnimatePresence,
-  motion,
-} from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 
 import { cn } from "@/lib/utils";
 
@@ -61,7 +55,7 @@ export function GuestSheetMenu() {
             "h-9 w-9 rounded-lg",
             "border",
             "text-foreground/80",
-            "hover:text-foreground"
+            "hover:text-foreground",
           )}
         >
           <AnimatePresence mode="wait" initial={false}>
@@ -129,10 +123,7 @@ export function GuestSheetMenu() {
         {/* HEADER */}
         <SheetHeader>
           <div className="flex justify-center items-center mt-4 mb-2 px-4 py-4 rounded-md">
-            <Link
-              href="/"
-              className="flex items-center justify-center"
-            >
+            <Link href="/" className="flex items-center justify-center">
               <Logo width={120} height={120} />
             </Link>
           </div>

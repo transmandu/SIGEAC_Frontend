@@ -39,7 +39,7 @@ export function GuestMenu({ isOpen }: GuestMenuProps) {
       "group relative my-0.5 h-11 w-full justify-start overflow-hidden rounded-xl border pl-2 pr-2 text-[13px] transition-all duration-200",
       "border-transparent bg-transparent text-muted-foreground hover:border-border/70 hover:bg-muted/40 hover:text-foreground",
       active &&
-      "border-border/80 bg-muted/60 text-foreground shadow-xs shadow-black/5"
+        "border-border/80 bg-muted/60 text-foreground shadow-xs shadow-black/5",
     );
 
   return (
@@ -64,17 +64,14 @@ export function GuestMenu({ isOpen }: GuestMenuProps) {
                             <span
                               className={cn(
                                 "absolute left-0 top-1/2 h-6 w-0.75 -translate-y-1/2 rounded-r-full bg-primary opacity-0 transition-opacity duration-200",
-                                isActive && "opacity-100"
+                                isActive && "opacity-100",
                               )}
                             />
                             <span
                               className={cn(
                                 "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-transparent bg-muted/30 text-muted-foreground transition-all duration-200 group-hover:border-border/60 group-hover:bg-background/70 group-hover:text-foreground",
-                                isActive &&
-                                  "glass-control text-foreground",
-                                isOpen === false
-                                  ? "mx-auto"
-                                  : "mr-3"
+                                isActive && "glass-control text-foreground",
+                                isOpen === false ? "mx-auto" : "mr-3",
                               )}
                             >
                               <item.icon size={18} />
@@ -85,7 +82,7 @@ export function GuestMenu({ isOpen }: GuestMenuProps) {
                                 // hidden al colapsar: ver la nota en Menu.
                                 isOpen === false
                                   ? "hidden"
-                                  : "translate-x-0 opacity-100"
+                                  : "translate-x-0 opacity-100",
                               )}
                             >
                               {item.label}
@@ -95,10 +92,7 @@ export function GuestMenu({ isOpen }: GuestMenuProps) {
                       </TooltipTrigger>
 
                       {isOpen === false && (
-                        <TooltipContent
-                          side="right"
-                          className="rounded-lg"
-                        >
+                        <TooltipContent side="right" className="rounded-lg">
                           {item.label}
                         </TooltipContent>
                       )}
