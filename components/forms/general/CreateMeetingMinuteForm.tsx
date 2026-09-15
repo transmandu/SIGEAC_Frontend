@@ -458,9 +458,11 @@ export function CreateMeetingMinuteForm({
                   form={form}
                   name="chaired_by"
                   label="Presidida por"
-                  placeholder="Seleccionar..."
-                  options={employeeOptions}
-                  disabled={employeesLoading}
+                  placeholder={
+                    allEmployeesLoading ? "Cargando..." : "Seleccionar..."
+                  }
+                  options={allEmployeeOptions}
+                  disabled={allEmployeesLoading}
                 />
               </div>
             </div>
