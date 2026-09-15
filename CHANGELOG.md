@@ -1,3 +1,7 @@
+## v4.2.2 — 2026-09-15
+
+- refactor: sms activities table (#257)
+
 ## v4.2.1 — 2026-09-14
 
 - fix: meeting minute form doesnt show employees (#256)
