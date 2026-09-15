@@ -3,10 +3,9 @@
 import { ChevronDown, Minus } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { CollapseMenuButton } from "@/components/sidebar/CollapseMenuButton";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
     Tooltip,
     TooltipContent,
@@ -22,6 +21,19 @@ interface MenuProps {
     isOpen: boolean | undefined;
 }
 
+// Devuelve {} en el servidor, donde no hay localStorage: el primer render debe
+// coincidir con el del cliente o Next reporta un hydration mismatch.
+function readCollapsedGroups(storageKey: string): Record<string, boolean> {
+    if (typeof window === "undefined") return {};
+
+    try {
+        const saved = localStorage.getItem(storageKey);
+        return saved ? JSON.parse(saved) : {};
+    } catch {
+        return {};
+    }
+}
+
 export function Menu({ isOpen }: MenuProps) {
     const { user } = useAuth();
     const pathname = usePathname();
@@ -32,22 +44,19 @@ export function Menu({ isOpen }: MenuProps) {
     );
 
     const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
+    // La clave cambia al cambiar de empresa, y cada empresa recuerda sus propios
+    // grupos cerrados. Se ajusta durante el render en vez de en un efecto: así no
+    // hay un primer pintado con los grupos abiertos que luego salta al estado real.
+    const [loadedKey, setLoadedKey] = useState<string | null>(null);
+
+    if (loadedKey !== storageKey) {
+        setLoadedKey(storageKey);
+        setCollapsedGroups(readCollapsedGroups(storageKey));
+    }
 
     const isSuperUser = user?.roles?.some(
         (role) => role.name === "SUPERUSER"
     );
-
-    useEffect(() => {
-        try {
-            const saved = localStorage.getItem(storageKey);
-
-            setCollapsedGroups(
-                saved ? JSON.parse(saved) : {}
-            );
-        } catch {
-            setCollapsedGroups({});
-        }
-    }, [storageKey]);
 
     const toggleGroup = (groupLabel: string) => {
         setCollapsedGroups((prev) => {
@@ -71,29 +80,23 @@ export function Menu({ isOpen }: MenuProps) {
         return getMenuList(pathname, selectedCompany, userRoles);
     }, [pathname, selectedCompany, user?.roles]);
 
-    const menuContainerHeight = useMemo(() => {
-        return isOpen === undefined
-            ? "calc(100vh - 48px - 36px - 16px - 32px)"
-            : "calc(100vh - 32px - 40px - 32px)";
-    }, [isOpen]);
-
     const getItemClassName = (active: boolean) =>
         cn(
-            "group relative m-1 h-11 w-full justify-start overflow-hidden rounded-xl border pl-2 pr-3 text-[13px] transition-all duration-200",
+            // my-0.5 en vez de m-1: el margen lateral recortaba cada item por
+            // ambos lados y lo desalineaba del encabezado de grupo, que no lo lleva.
+            "group relative my-0.5 h-11 w-full justify-start overflow-hidden rounded-xl border pl-2 pr-2 text-[13px] transition-all duration-200",
             "border-transparent bg-transparent text-muted-foreground hover:border-border/70 hover:bg-muted/40 hover:text-foreground",
             active &&
             "border-border/80 bg-muted/60 text-foreground shadow-xs shadow-black/5"
         );
 
     return (
-        <ScrollArea className="flex-1 [&>div>div[style]]:block!">
-            <nav className="mt-6 h-full w-full" aria-label="Main navigation">
-                <ul
-                    className={cn(
-                        "flex flex-col items-start gap-2 px-2",
-                        `min-h-[${menuContainerHeight}]`
-                    )}
-                >
+        // Scroll nativo en vez de ScrollArea de Radix: el thumb virtual de Radix
+        // se recalcula en JS y el menú bajaba a tirones. El nativo hereda la
+        // inercia y el suavizado del sistema.
+        <div className="flex-1 overflow-y-auto overscroll-contain scrollbar-modern">
+            <nav className="mt-6 w-full" aria-label="Main navigation">
+                <ul className="flex flex-col items-start gap-2 px-1 pb-4">
                 {menuList.map(({ groupLabel, menus }, index) => {
                     const isCollapsed =
                         collapsedGroups[groupLabel] ?? false;
@@ -124,7 +127,9 @@ export function Menu({ isOpen }: MenuProps) {
 
                                         <p
                                             className={cn(
-                                                "relative z-10 max-w-[180px] truncate text-[10px] font-semibold uppercase tracking-[0.24em] text-muted-foreground/90 transition-colors",
+                                                // min-w-0 shrink en vez de un max-w fijo: el encabezado
+                                                // usa el ancho que haya y solo trunca si de verdad falta.
+                                                "relative z-10 min-w-0 shrink truncate text-[10px] font-semibold uppercase tracking-[0.24em] text-muted-foreground/90 transition-colors",
 
                                                 // SOLO hover effect si es superuser
                                                 isSuperUser && "group-hover:text-foreground"
@@ -187,7 +192,7 @@ export function Menu({ isOpen }: MenuProps) {
                                                                 <Link href={href}>
                                                                     <span
                                                                         className={cn(
-                                                                            "absolute left-0 top-1/2 h-6 w-[3px] -translate-y-1/2 rounded-r-full bg-primary opacity-0 transition-opacity duration-200",
+                                                                            "absolute left-0 top-1/2 h-6 w-0.75 -translate-y-1/2 rounded-r-full bg-primary opacity-0 transition-opacity duration-200",
                                                                             active && "opacity-100"
                                                                         )}
                                                                     />
@@ -205,9 +210,11 @@ export function Menu({ isOpen }: MenuProps) {
                                                                     </span>
                                                                     <p
                                                                         className={cn(
-                                                                            "truncate text-left text-[13px] font-medium transition-all duration-200",
+                                                                            "min-w-0 flex-1 truncate text-left text-[13px] font-medium transition-all duration-200",
+                                                                            // hidden al colapsar: con flex-1 el label seguiría
+                                                                            // ocupando ancho y el mx-auto del icono no centraría.
                                                                             isOpen === false
-                                                                                ? "-translate-x-96 opacity-0"
+                                                                                ? "hidden"
                                                                                 : "translate-x-0 opacity-100"
                                                                         )}
                                                                     >
@@ -245,6 +252,6 @@ export function Menu({ isOpen }: MenuProps) {
                 })}
                 </ul>
             </nav>
-        </ScrollArea>
+        </div>
     );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -43,11 +43,16 @@ export function SheetMenu() {
 
   /**
    * El Navbar es persistente, así que este Sheet ya no se desmonta al
-   * navegar. Se cierra explícitamente al cambiar de ruta.
+   * navegar. Se cierra explícitamente al cambiar de ruta, comparando contra
+   * la ruta previa durante el render: en un efecto, el Sheet llegaba a
+   * pintarse abierto sobre la página nueva antes de cerrarse.
    */
-  useEffect(() => {
+  const [lastPathname, setLastPathname] = useState(pathname);
+
+  if (lastPathname !== pathname) {
+    setLastPathname(pathname);
     setOpen(false);
-  }, [pathname]);
+  }
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>

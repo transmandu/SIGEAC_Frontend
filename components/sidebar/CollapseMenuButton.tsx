@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ChevronDown, Dot, LucideIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -50,18 +50,25 @@ export function CollapseMenuButton({
 }: CollapseMenuButtonProps) {
   const isSubmenuActive = submenus.some((submenu) => submenu.active);
   const [isCollapsed, setIsCollapsed] = useState<boolean>(isSubmenuActive);
+  // Al navegar a una ruta de este grupo, se abre solo. Se compara contra el
+  // valor previo en vez de forzarlo en cada render, para no reabrir el grupo
+  // que el usuario acaba de cerrar estando dentro de una de sus rutas.
+  const [wasSubmenuActive, setWasSubmenuActive] = useState<boolean>(isSubmenuActive);
+
+  if (wasSubmenuActive !== isSubmenuActive) {
+    setWasSubmenuActive(isSubmenuActive);
+
+    if (isSubmenuActive) {
+      setIsCollapsed(true);
+    }
+  }
+
   const triggerClassName = cn(
     "group relative h-11 w-full justify-start overflow-hidden rounded-xl border px-3 text-[13px] transition-all duration-200",
     "border-transparent bg-transparent text-muted-foreground hover:border-border/70 hover:bg-muted/40 hover:text-foreground",
     (active || isSubmenuActive) &&
       "border-border/80 bg-muted/60 text-foreground shadow-xs shadow-black/5"
   );
-
-  useEffect(() => {
-    if (isSubmenuActive) {
-      setIsCollapsed(true);
-    }
-  }, [isSubmenuActive]);
 
   return isOpen ? (
     <Collapsible
@@ -76,12 +83,12 @@ export function CollapseMenuButton({
         <Button variant="ghost" className={triggerClassName}>
           <span
             className={cn(
-              "absolute left-0 top-1/2 h-6 w-[3px] -translate-y-1/2 rounded-r-full bg-primary opacity-0 transition-opacity duration-200",
+              "absolute left-0 top-1/2 h-6 w-0.75 -translate-y-1/2 rounded-r-full bg-primary opacity-0 transition-opacity duration-200",
               (active || isSubmenuActive) && "opacity-100"
             )}
           />
-          <div className="w-full items-center flex justify-between">
-            <div className="flex items-center">
+          <div className="w-full items-center flex justify-between gap-2">
+            <div className="flex min-w-0 flex-1 items-center">
               <span
                 className={cn(
                   "mr-3 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-transparent bg-muted/30 text-muted-foreground transition-all duration-200 group-hover:border-border/60 group-hover:bg-background/70 group-hover:text-foreground",
@@ -93,7 +100,7 @@ export function CollapseMenuButton({
               </span>
               <p
                 className={cn(
-                  "max-w-[150px] truncate text-left text-[13px] font-medium transition-all duration-200",
+                  "min-w-0 flex-1 truncate text-left text-[13px] font-medium transition-all duration-200",
                   isOpen
                     ? "translate-x-0 opacity-100"
                     : "-translate-x-96 opacity-0"
@@ -104,7 +111,7 @@ export function CollapseMenuButton({
             </div>
             <div
               className={cn(
-                "whitespace-nowrap text-muted-foreground transition-colors duration-200 group-hover:text-foreground",
+                "shrink-0 whitespace-nowrap text-muted-foreground transition-colors duration-200 group-hover:text-foreground",
                 isOpen
                   ? "translate-x-0 opacity-100"
                   : "-translate-x-96 opacity-0"
@@ -118,13 +125,15 @@ export function CollapseMenuButton({
           </div>
         </Button>
       </CollapsibleTrigger>
-      <CollapsibleContent className="overflow-hidden pl-4 data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down">
+      <CollapsibleContent className="overflow-hidden pl-2 data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down">
         {submenus.map(({ href, label, active }, index) => (
           <Button
             key={index}
             variant="ghost"
             className={cn(
-              "group relative m-1 h-10 w-[calc(100%-0.5rem)] justify-start rounded-xl border border-transparent bg-transparent px-3 text-muted-foreground transition-all duration-200",
+              // my-0.5 + w-full: el m-1 lateral con su w-[calc(100%-0.5rem)]
+              // estrechaba el submenú, ya el más angosto por la sangría.
+              "group relative my-0.5 h-10 w-full justify-start rounded-xl border border-transparent bg-transparent px-2 text-muted-foreground transition-all duration-200",
               "hover:border-border/60 hover:bg-muted/35 hover:text-foreground",
               active && "border-border/70 bg-background/65 backdrop-blur-xs text-foreground"
             )}
@@ -137,12 +146,12 @@ export function CollapseMenuButton({
                   index === submenus.length - 1 && "h-0"
                 )}
               /> */}
-              <span className="mr-3 ml-2 flex h-6 w-6 shrink-0 items-center justify-center text-muted-foreground/80">
+              <span className="mr-2 flex h-6 w-6 shrink-0 items-center justify-center text-muted-foreground/80">
                 <Dot size={16} />
               </span>
               <p
                 className={cn(
-                  "max-w-[170px] truncate text-[13px] font-medium",
+                  "min-w-0 flex-1 truncate text-left text-[13px] font-medium",
                   isOpen
                     ? "translate-x-0 opacity-100"
                     : "-translate-x-96 opacity-0"
@@ -184,7 +193,7 @@ export function CollapseMenuButton({
                     </span>
                     <p
                       className={cn(
-                        "max-w-[200px] truncate text-[13px] font-medium",
+                        "max-w-50 truncate text-[13px] font-medium",
                         isOpen === false ? "opacity-0" : "opacity-100"
                       )}
                     >
@@ -209,9 +218,9 @@ export function CollapseMenuButton({
         side="right"
         sideOffset={18}
         align="start"
-        className="min-w-[220px] rounded-xl border-border/70 bg-popover/95 p-2 shadow-xl shadow-black/10 backdrop-blur-sm"
+        className="min-w-55 rounded-xl border-border/70 bg-popover/95 p-2 shadow-xl shadow-black/10 backdrop-blur-sm"
       >
-        <DropdownMenuLabel className="max-w-[190px] px-2 pb-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+        <DropdownMenuLabel className="max-w-47.5 px-2 pb-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
           {label}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
@@ -234,7 +243,7 @@ export function CollapseMenuButton({
                 <span className="mr-2 flex h-6 w-6 items-center justify-center text-muted-foreground/80">
                   <Dot size={16} />
                 </span>
-                <p className="max-w-[180px] truncate">{label}</p>
+                <p className="max-w-45 truncate">{label}</p>
               </div>
             </Link>
           </DropdownMenuItem>

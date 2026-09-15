@@ -21,12 +21,13 @@ export function GuestSidebar() {
       className={cn(
         "fixed top-0 left-0 z-20 h-screen -translate-x-full lg:translate-x-0",
         "transition-[width] ease-in-out duration-300",
-        isOpen === false ? "w-[90px]" : "w-72"
+        isOpen === false ? "w-22.5" : "w-72"
       )}
     >
       <SidebarToggle isOpen={isOpen} setIsOpen={setIsOpen} />
 
-      <div className="glass-panel relative h-full flex flex-col px-3 py-4 overflow-y-auto">
+      {/* El scroll vive en GuestMenu, no aquí: anidarlos daba dos barras. */}
+      <div className="glass-panel relative h-full flex flex-col px-2 py-4 overflow-hidden">
         {/* LOGO CONTAINER */}
         <div
           className={cn(
