@@ -1,8 +1,21 @@
 import { UseFormReturn } from "react-hook-form";
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { DatePickerField } from "@/components/ui/DatePickerField";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ComboboxField } from "@/components/ui/ComboboxField";
 import { Loader2 } from "lucide-react";
 import { Department, Employee, ChangeType } from "@/types";
@@ -57,12 +70,17 @@ export function StepGeneralAndClassification({
             name="request_date"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  Fecha de Solicitud
-                </FormLabel>
-                <FormControl>
-                  <Input type="date" {...field} />
-                </FormControl>
+                <DatePickerField
+                  label="Fecha de Solicitud"
+                  value={
+                    field.value
+                      ? new Date(field.value + "T00:00:00")
+                      : undefined
+                  }
+                  setValue={(d) =>
+                    field.onChange(d ? d.toISOString().slice(0, 10) : "")
+                  }
+                />
                 <FormMessage />
               </FormItem>
             )}
@@ -75,7 +93,9 @@ export function StepGeneralAndClassification({
               </FormLabel>
               <div className="flex items-center gap-2 h-9 px-3 border border-border/60 rounded-md">
                 <Loader2 className="size-4 animate-spin text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">Cargando...</span>
+                <span className="text-sm text-muted-foreground">
+                  Cargando...
+                </span>
               </div>
             </FormItem>
           ) : (
@@ -97,7 +117,9 @@ export function StepGeneralAndClassification({
               </FormLabel>
               <div className="flex items-center gap-2 h-9 px-3 border border-border/60 rounded-md">
                 <Loader2 className="size-4 animate-spin text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">Cargando...</span>
+                <span className="text-sm text-muted-foreground">
+                  Cargando...
+                </span>
               </div>
             </FormItem>
           ) : (
@@ -167,7 +189,10 @@ export function StepGeneralAndClassification({
                   name="temporary_duration_unit"
                   render={({ field }) => (
                     <FormControl>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
                         <SelectTrigger className="w-[120px]">
                           <SelectValue placeholder="Unidad" />
                         </SelectTrigger>

@@ -12,12 +12,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
+import { DatePickerField } from "@/components/ui/DatePickerField";
 import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ComboboxField } from "@/components/ui/ComboboxField";
@@ -26,10 +21,7 @@ import { AgreementItem } from "@/components/forms/general/AgreementItem";
 import { zodResolver } from "@/lib/zod-resolver";
 import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
 import {
-  CalendarIcon,
   ChevronLeft,
   ChevronRight,
   Loader2,
@@ -399,42 +391,12 @@ export function CreateMeetingMinuteForm({
                   name="date"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
-                      <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">
-                        Fecha
-                      </FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                "w-full pl-3 text-left font-normal",
-                                !field.value && "text-muted-foreground",
-                              )}
-                            >
-                              {field.value ? (
-                                format(field.value, "PPP", { locale: es })
-                              ) : (
-                                <span>Seleccionar fecha</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            autoFocus
-                            startMonth={new Date(2020, 0)}
-                            endMonth={
-                              new Date(new Date().getFullYear() + 1, 11)
-                            }
-                            captionLayout="dropdown"
-                          />
-                        </PopoverContent>
-                      </Popover>
+                      <DatePickerField
+                        label="Fecha"
+                        value={field.value}
+                        setValue={(d) => field.onChange(d)}
+                        required
+                      />
                       <FormMessage className="text-xs" />
                     </FormItem>
                   )}
