@@ -31,12 +31,14 @@ const TONE_COPY = {
     empty: "Todo lo bajo de mínimo ya está comprado",
   },
   hazard: {
-    summary: (n: number) => `${n} artículo${n === 1 ? "" : "s"} retenido${n === 1 ? "" : "s"} en cuarentena`,
+    summary: (n: number) =>
+      `${n} artículo${n === 1 ? "" : "s"} retenido${n === 1 ? "" : "s"} en cuarentena`,
     short: (n: number) => `${n} en cuarentena`,
     empty: "Sin artículos retenidos",
   },
   mixed: {
-    summary: (n: number) => `${n} alerta${n === 1 ? "" : "s"} pendiente${n === 1 ? "" : "s"}`,
+    summary: (n: number) =>
+      `${n} alerta${n === 1 ? "" : "s"} pendiente${n === 1 ? "" : "s"}`,
     short: (n: number) => `${n} pendiente${n === 1 ? "" : "s"}`,
     empty: "Nada pendiente",
   },
@@ -58,15 +60,20 @@ export default function CriticalAlertsButton() {
 
   // Con varias clases a la vista el resumen las separa; si no, basta el tono.
   // Se arma recorriendo lo que llegó, así un tono nuevo aparece sin tocar esto.
-  const summary = tone === "mixed"
-    ? Object.entries(toneCounts)
-        .filter(([, n]) => (n ?? 0) > 0)
-        .map(([key, n]) => TONE_COPY[key as keyof typeof TONE_COPY].short(n ?? 0))
-        .join(" · ")
-    : copy.summary(actionableCount);
+  const summary =
+    tone === "mixed"
+      ? Object.entries(toneCounts)
+          .filter(([, n]) => (n ?? 0) > 0)
+          .map(([key, n]) =>
+            TONE_COPY[key as keyof typeof TONE_COPY].short(n ?? 0),
+          )
+          .join(" · ")
+      : copy.summary(actionableCount);
   const dismiss = useDismissedAlertsStore((state) => state.dismiss);
   const hideInTransit = useAlertFiltersStore((state) => state.hideInTransit);
-  const toggleInTransit = useAlertFiltersStore((state) => state.toggleInTransit);
+  const toggleInTransit = useAlertFiltersStore(
+    (state) => state.toggleInTransit,
+  );
   const hasAlerts = count > 0;
   const [open, setOpen] = useState(false);
   const [tooltipOpen, setTooltipOpen] = useState(false);
@@ -81,7 +88,7 @@ export default function CriticalAlertsButton() {
   // quede inclinado a medio giro; el leve patinaje extra es imperceptible.
   const BUTTON_DIAMETER = 56;
   const PANEL_WIDTH = 384;
-  const ROLL_DURATION_S = 0.40;
+  const ROLL_DURATION_S = 0.4;
 
   // Botón y panel comparten el borde derecho, así que la distancia hasta el
   // centro del panel sale de sus anchos. Antes se medía un ancla en el DOM,
@@ -177,7 +184,7 @@ export default function CriticalAlertsButton() {
                   ? "bg-linear-to-br from-primary to-blue-600 text-white ring-primary/40 hover:from-primary hover:to-blue-500"
                   : isHazardTone
                     ? "bg-linear-to-br from-red-600 to-red-800 text-white ring-red-500/50 hover:from-red-600 hover:to-red-700"
-                    : "bg-linear-to-br from-red-500 to-rose-600 text-white ring-red-400/40 hover:from-red-500 hover:to-rose-500"
+                    : "bg-linear-to-br from-red-500 to-rose-600 text-white ring-red-400/40 hover:from-red-500 hover:to-rose-500",
               )}
             >
               {/* El latido solo acompaña a lo que exige acción. */}
@@ -185,18 +192,24 @@ export default function CriticalAlertsButton() {
                 <motion.span
                   className={cn(
                     "absolute inset-0 rounded-full",
-                    isHazardTone ? "bg-red-700/50" : "bg-red-500/50"
+                    isHazardTone ? "bg-red-700/50" : "bg-red-500/50",
                   )}
                   animate={{ scale: [1, 1.35, 1], opacity: [0.55, 0, 0.55] }}
-                  transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
+                  transition={{
+                    duration: 2.2,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
                 />
               )}
 
-              {!isCountActionable
-                ? <Truck className="relative h-6 w-6 drop-shadow-xs" />
-                : isHazardTone
-                  ? <Biohazard className="relative h-6 w-6 drop-shadow-xs" />
-                  : <AlertTriangle className="relative h-6 w-6 drop-shadow-xs" />}
+              {!isCountActionable ? (
+                <Truck className="relative h-6 w-6 drop-shadow-xs" />
+              ) : isHazardTone ? (
+                <Biohazard className="relative h-6 w-6 drop-shadow-xs" />
+              ) : (
+                <AlertTriangle className="relative h-6 w-6 drop-shadow-xs" />
+              )}
 
               <motion.span
                 key={count}
@@ -215,7 +228,7 @@ export default function CriticalAlertsButton() {
                       ? "text-red-700 ring-red-600/40"
                       : "text-red-600 ring-red-500/30",
                   "text-[11px] font-bold",
-                  "shadow-xs ring-2"
+                  "shadow-xs ring-2",
                 )}
               >
                 {count > 99 ? "99+" : count}
@@ -242,7 +255,7 @@ export default function CriticalAlertsButton() {
           "fixed bottom-24 right-6 z-1002",
           "flex max-h-[70vh] w-96 max-w-[calc(100vw-3rem)] flex-col overflow-hidden",
           "rounded-2xl bg-popover text-popover-foreground shadow-2xl",
-          !open && "pointer-events-none"
+          !open && "pointer-events-none",
         )}
         style={{
           opacity: open ? 1 : 0,
@@ -261,7 +274,7 @@ export default function CriticalAlertsButton() {
               ? "bg-linear-to-r from-primary/10 to-blue-500/10"
               : isHazardTone
                 ? "bg-linear-to-r from-red-600/15 to-red-800/10"
-                : "bg-linear-to-r from-red-500/10 to-rose-500/10"
+                : "bg-linear-to-r from-red-500/10 to-rose-500/10",
           )}
         >
           <p className="text-sm font-semibold">Alertas críticas</p>
@@ -282,10 +295,14 @@ export default function CriticalAlertsButton() {
                 "text-[11px] font-medium transition-colors",
                 hideInTransit
                   ? "border-primary/40 bg-primary/10 text-primary hover:bg-primary/15"
-                  : "border-border bg-background/60 text-muted-foreground hover:bg-muted"
+                  : "border-border bg-background/60 text-muted-foreground hover:bg-muted",
               )}
             >
-              {hideInTransit ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+              {hideInTransit ? (
+                <EyeOff className="h-3 w-3" />
+              ) : (
+                <Eye className="h-3 w-3" />
+              )}
               {hideInTransit
                 ? `Mostrar ${inTransitCount} en camino`
                 : `Ocultar ${inTransitCount} en camino`}
@@ -304,7 +321,8 @@ export default function CriticalAlertsButton() {
                 <Truck className="h-6 w-6 text-primary" />
                 <p className="text-sm font-medium">Nada pendiente de pedir</p>
                 <p className="text-xs text-muted-foreground">
-                  {inTransitCount} artículo{inTransitCount === 1 ? "" : "s"} bajo mínimo
+                  {inTransitCount} artículo{inTransitCount === 1 ? "" : "s"}{" "}
+                  bajo mínimo
                   {inTransitCount === 1 ? " está" : " están"} en camino.
                 </p>
               </div>
