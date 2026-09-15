@@ -54,11 +54,10 @@ export function DataTable<TData extends RowData>({
   return (
     <>
       <div className="flex flex-col gap-2 mb-4">
-        <h1 className="text-5xl font-bold text-center">
-          Actividades de SMS
-        </h1>
+        <h1 className="text-5xl font-bold text-center">Actividades de SMS</h1>
         <p className="text-sm italic text-muted-foreground text-center">
-          Aquí se pueden visualizar las actividades de SMS planificadas y ejecutadas hasta el momento
+          Aquí se pueden visualizar las actividades de SMS planificadas y
+          ejecutadas hasta el momento
         </p>
       </div>
 
@@ -67,7 +66,9 @@ export function DataTable<TData extends RowData>({
         <div className="flex items-center gap-2">
           <Button
             onClick={() => {
-              router.push(`/${selectedCompany?.slug}/sms/promocion/actividades/nueva_actividad`);
+              router.push(
+                `/${selectedCompany?.slug}/sms/promocion/actividades/nueva_actividad`,
+              );
             }}
             variant="outline"
             size="sm"
@@ -95,9 +96,9 @@ export function DataTable<TData extends RowData>({
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
                     </TableHead>
                   );
                 })}
