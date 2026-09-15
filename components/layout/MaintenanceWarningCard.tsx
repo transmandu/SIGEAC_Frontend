@@ -44,7 +44,7 @@ export function MaintenanceWarningCard({ alert }: { alert: CriticalAlert }) {
       initial={{ opacity: 0, y: -8, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-      className="rounded-xl border border-amber-500/40 bg-amber-500/[0.05] p-3.5"
+      className="rounded-xl border border-amber-500/40 bg-amber-500/5 p-3.5"
     >
       <div className="flex items-start gap-3">
         <div className="relative mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center">
