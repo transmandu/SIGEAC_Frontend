@@ -3,6 +3,7 @@
 import { ReactQRCode } from "@lglab/react-qr-code";
 import { useRef } from "react";
 import { Download } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface QRGeneratorProps {
   value: string;
@@ -15,6 +16,7 @@ interface QRGeneratorProps {
   innerColor?: string;
   outerColor?: string;
   moduleColor?: string;
+  imageSrc?: string;
   buttonDataTour?: string;
   linkDataTour?: string;
 }
@@ -29,6 +31,7 @@ const QRGenerator = ({
   bgColor = "#FFFFFF",
   showDownloadButton = true,
   showLink = false,
+  imageSrc = "/aircraft.png",
   buttonDataTour,
   linkDataTour,
 }: QRGeneratorProps) => {
@@ -84,9 +87,9 @@ const QRGenerator = ({
   };
 
   return (
-    <div className="flex flex-col items-center gap-4">
+    <div className="flex w-full min-w-0 flex-col items-center gap-4">
       {/* Mantenemos el div contenedor para que la lógica de descarga encuentre el SVG */}
-      <div ref={qrRef}>
+      <div ref={qrRef} className="mx-auto w-full max-w-fit">
         <ReactQRCode
           finderPatternInnerSettings={{
             style: "outpoint-lg",
@@ -104,8 +107,9 @@ const QRGenerator = ({
           value={value}
           size={size}
           background={bgColor}
+          svgProps={{ style: { maxWidth: "100%", height: "auto" } }}
           imageSettings={{
-            src: "/aircraft.png",
+            src: imageSrc,
             width: 60,
             height: 40,
             excavate: true,
@@ -119,7 +123,7 @@ const QRGenerator = ({
           href={value}
           target="_blank"
           rel="noopener noreferrer"
-          className="underline text-sm break-all max-w-xs text-center hover:scale-105 transition-all"
+          className="min-w-0 max-w-full break-all text-center text-sm text-muted-foreground underline underline-offset-4 transition-colors hover:text-foreground"
           data-tour={linkDataTour}
         >
           {value}
@@ -127,14 +131,15 @@ const QRGenerator = ({
       )}
 
       {showDownloadButton && (
-        <button
+        <Button
           onClick={downloadQRCode}
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+          variant="outline"
+          className="w-full gap-2 border-border/60 bg-card text-card-foreground transition-colors hover:border-primary/50 hover:bg-accent hover:text-accent-foreground"
           data-tour={buttonDataTour}
         >
-          <Download size={16} />
+          <Download className="h-4 w-4" />
           Descargar QR
-        </button>
+        </Button>
       )}
     </div>
   );
