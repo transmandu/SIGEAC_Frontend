@@ -1,3 +1,7 @@
+## v4.6.4 — 2026-09-15
+
+- revert: rollback release to v4.6.2 (#265)
+
 ## v4.6.2 — 2026-09-15
 
 - refactor: qr code hangar 74 with new icon (#263)
