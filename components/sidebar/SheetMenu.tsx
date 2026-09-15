@@ -1,18 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import {
-  PanelLeftOpen,
-  PanelLeftClose,
-} from "lucide-react";
+import { PanelLeftOpen, PanelLeftClose } from "lucide-react";
 
-import {
-  AnimatePresence,
-  motion,
-} from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 
 import { cn } from "@/lib/utils";
 
@@ -34,8 +28,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import Logo from "@/components/misc/Logo";
 
 export function SheetMenu() {
-  const { selectedCompany, selectedStation } =
-    useCompanyStore();
+  const { selectedCompany, selectedStation } = useCompanyStore();
 
   const [open, setOpen] = useState(false);
 
@@ -43,11 +36,16 @@ export function SheetMenu() {
 
   /**
    * El Navbar es persistente, así que este Sheet ya no se desmonta al
-   * navegar. Se cierra explícitamente al cambiar de ruta.
+   * navegar. Se cierra explícitamente al cambiar de ruta, comparando contra
+   * la ruta previa durante el render: en un efecto, el Sheet llegaba a
+   * pintarse abierto sobre la página nueva antes de cerrarse.
    */
-  useEffect(() => {
+  const [lastPathname, setLastPathname] = useState(pathname);
+
+  if (lastPathname !== pathname) {
+    setLastPathname(pathname);
     setOpen(false);
-  }, [pathname]);
+  }
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -66,7 +64,7 @@ export function SheetMenu() {
             "h-9 w-9 rounded-lg",
             "border",
             "text-foreground/80",
-            "hover:text-foreground"
+            "hover:text-foreground",
           )}
         >
           <AnimatePresence mode="wait" initial={false}>
