@@ -39,9 +39,9 @@ const ActivityNumberLink = ({ value }: { value?: string }) => {
 const StatusBadge = ({ status }: { status: string }) => {
   const statusClassName: Record<string, string> = {
     ABIERTO:
-      "bg-green-100 text-green-700 border-green-200 dark:bg-green-950/40 dark:text-green-400 dark:border-green-800",
-    CERRADO:
       "bg-red-100 text-red-700 border-red-200 dark:bg-red-950/40 dark:text-red-400 dark:border-red-800",
+    CERRADO:
+      "bg-green-100 text-green-700 border-green-200 dark:bg-green-950/40 dark:text-green-400 dark:border-green-800",
     PROCESO:
       "bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-950/50 dark:text-amber-400 dark:border-amber-800",
     PENDIENTE:
@@ -61,15 +61,40 @@ const StatusBadge = ({ status }: { status: string }) => {
   );
 };
 
+const activityNumberSortFn = (
+  rowA: { original: SMSActivityTableRow },
+  rowB: { original: SMSActivityTableRow },
+) => {
+  const parseActivityNumber = (val?: string) => {
+    if (!val) return { num: 0, year: 0 };
+    const parts = val.split("-");
+    return {
+      num: parseInt(parts[0], 10) || 0,
+      year: parseInt(parts[1], 10) || 0,
+    };
+  };
+  const a = parseActivityNumber(rowA.original.activity_number);
+  const b = parseActivityNumber(rowB.original.activity_number);
+  if (a.year !== b.year) return b.year - a.year;
+  return b.num - a.num;
+};
+
 // Columnas de la tabla
 export const columns: AppColumnDef<SMSActivityTableRow>[] = [
   {
     accessorKey: "activity_number",
+    sortFn: activityNumberSortFn,
     header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Numero de actividad" />
+      <DataTableColumnHeader
+        filter
+        column={column}
+        title="Numero de actividad"
+      />
     ),
     meta: { title: "Numero de actividad" },
-    cell: ({ row }) => <ActivityNumberLink value={row.original.activity_number} />,
+    cell: ({ row }) => (
+      <ActivityNumberLink value={row.original.activity_number} />
+    ),
   },
   {
     accessorKey: "activity_name",
@@ -105,12 +130,13 @@ export const columns: AppColumnDef<SMSActivityTableRow>[] = [
       <DataTableColumnHeader filter column={column} title="Fecha de Inicio" />
     ),
     meta: { title: "Duracion de la Actividad" },
-    cell: ({ row }) =>
+    cell: ({ row }) => (
       <div className="flex justify-center text-center">
         <p className="font-medium text-center">
           {dateFormat(row.original.start_date, "PPP")}
         </p>
-      </div>,
+      </div>
+    ),
   },
   {
     accessorKey: "status",

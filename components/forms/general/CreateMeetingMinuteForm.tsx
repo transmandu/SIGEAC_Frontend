@@ -39,9 +39,13 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { useCreateMeetingMinute, useUpdateMeetingMinute } from "@/actions/general/minutas_reunion/actions";
+import {
+  useCreateMeetingMinute,
+  useUpdateMeetingMinute,
+} from "@/actions/general/minutas_reunion/actions";
 import { MeetingMinutes } from "@/types";
 import { useGetEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetEmployees";
+import { useGetAllEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetAllEmployees";
 import { useGetAuthorizedEmployees } from "@/hooks/ajustes/autorizados/useGetAuthorizedEmployees";
 import { toCalendarPayload } from "@/lib/date";
 
@@ -55,38 +59,54 @@ const FormSchema = z.object({
   date: z.date({ error: "La fecha es obligatoria" }),
   place: z.string().min(1, "El lugar es obligatorio"),
   objective: z.string().optional(),
-  topics: z.array(z.object({
-    value: z.string().min(1, "El tema no puede estar vacío"),
-  })).optional(),
+  topics: z
+    .array(
+      z.object({
+        value: z.string().min(1, "El tema no puede estar vacío"),
+      }),
+    )
+    .optional(),
   photo: z.any().optional(),
   document: z.any().optional(),
   chaired_by: z.string({ error: "Seleccione quien preside" }),
   filled_out_by: z.string({ error: "Seleccione quien diligencia" }),
   reviewed_by: z.string().optional(),
   approved_by: z.string().optional(),
-  attendees: z.array(z.object({
-    employee_id: z.string().optional(),
-    authorized_employee_id: z.string().optional(),
-    attendee_name: z.string().optional(),
-    job_title: z.string().optional(),
-    has_attended: z.boolean().default(true),
-    is_external: z.boolean().default(false),
-    is_authorized: z.boolean().default(false),
-  })).optional(),
-  agreements: z.array(z.object({
-    description: z.string().min(1, "La descripción es obligatoria"),
-    responsible_employee_id: z.string().optional(),
-    responsible_authorized_employee_id: z.string().optional(),
-    responsible_name: z.string().optional(),
-    responsible_job_title: z.string().optional(),
-    is_external: z.boolean().default(false),
-    is_authorized: z.boolean().default(false),
-  })).optional(),
+  attendees: z
+    .array(
+      z.object({
+        employee_id: z.string().optional(),
+        authorized_employee_id: z.string().optional(),
+        attendee_name: z.string().optional(),
+        job_title: z.string().optional(),
+        has_attended: z.boolean().default(true),
+        is_external: z.boolean().default(false),
+        is_authorized: z.boolean().default(false),
+      }),
+    )
+    .optional(),
+  agreements: z
+    .array(
+      z.object({
+        description: z.string().min(1, "La descripción es obligatoria"),
+        responsible_employee_id: z.string().optional(),
+        responsible_authorized_employee_id: z.string().optional(),
+        responsible_name: z.string().optional(),
+        responsible_job_title: z.string().optional(),
+        is_external: z.boolean().default(false),
+        is_authorized: z.boolean().default(false),
+      }),
+    )
+    .optional(),
 });
 
 type FormSchemaType = z.infer<typeof FormSchema>;
 
-function buildFormData(companySlug: string, locationId: number, data: FormSchemaType): FormData {
+function buildFormData(
+  companySlug: string,
+  locationId: number,
+  data: FormSchemaType,
+): FormData {
   const fd = new FormData();
 
   fd.append("date", toCalendarPayload(data.date) ?? "");
@@ -107,29 +127,54 @@ function buildFormData(companySlug: string, locationId: number, data: FormSchema
   if (data.reviewed_by) fd.append("reviewed_by", String(data.reviewed_by));
   if (data.approved_by) fd.append("approved_by", String(data.approved_by));
 
-  data.attendees?.filter((a) => a.employee_id || a.authorized_employee_id || a.attendee_name).forEach((a, i) => {
-    if (a.is_authorized) {
-      if (a.authorized_employee_id) fd.append(`attendees[${i}][authorized_employee_id]`, String(a.authorized_employee_id));
-    } else if (a.is_external) {
-      if (a.attendee_name) fd.append(`attendees[${i}][attendee_name]`, a.attendee_name);
-      if (a.job_title) fd.append(`attendees[${i}][job_title]`, a.job_title);
-    } else {
-      if (a.employee_id) fd.append(`attendees[${i}][employee_id]`, String(a.employee_id));
-    }
-    fd.append(`attendees[${i}][has_attended]`, a.has_attended ? "1" : "0");
-  });
+  data.attendees
+    ?.filter(
+      (a) => a.employee_id || a.authorized_employee_id || a.attendee_name,
+    )
+    .forEach((a, i) => {
+      if (a.is_authorized) {
+        if (a.authorized_employee_id)
+          fd.append(
+            `attendees[${i}][authorized_employee_id]`,
+            String(a.authorized_employee_id),
+          );
+      } else if (a.is_external) {
+        if (a.attendee_name)
+          fd.append(`attendees[${i}][attendee_name]`, a.attendee_name);
+        if (a.job_title) fd.append(`attendees[${i}][job_title]`, a.job_title);
+      } else {
+        if (a.employee_id)
+          fd.append(`attendees[${i}][employee_id]`, String(a.employee_id));
+      }
+      fd.append(`attendees[${i}][has_attended]`, a.has_attended ? "1" : "0");
+    });
 
-  data.agreements?.filter((a) => a.description).forEach((a, i) => {
-    fd.append(`agreements[${i}][description]`, a.description);
-    if (a.is_authorized) {
-      if (a.responsible_authorized_employee_id) fd.append(`agreements[${i}][responsible_authorized_employee_id]`, String(a.responsible_authorized_employee_id));
-    } else if (a.is_external) {
-      if (a.responsible_name) fd.append(`agreements[${i}][responsible_name]`, a.responsible_name);
-      if (a.responsible_job_title) fd.append(`agreements[${i}][responsible_job_title]`, a.responsible_job_title);
-    } else {
-      if (a.responsible_employee_id) fd.append(`agreements[${i}][responsible_employee_id]`, String(a.responsible_employee_id));
-    }
-  });
+  data.agreements
+    ?.filter((a) => a.description)
+    .forEach((a, i) => {
+      fd.append(`agreements[${i}][description]`, a.description);
+      if (a.is_authorized) {
+        if (a.responsible_authorized_employee_id)
+          fd.append(
+            `agreements[${i}][responsible_authorized_employee_id]`,
+            String(a.responsible_authorized_employee_id),
+          );
+      } else if (a.is_external) {
+        if (a.responsible_name)
+          fd.append(`agreements[${i}][responsible_name]`, a.responsible_name);
+        if (a.responsible_job_title)
+          fd.append(
+            `agreements[${i}][responsible_job_title]`,
+            a.responsible_job_title,
+          );
+      } else {
+        if (a.responsible_employee_id)
+          fd.append(
+            `agreements[${i}][responsible_employee_id]`,
+            String(a.responsible_employee_id),
+          );
+      }
+    });
 
   return fd;
 }
@@ -141,8 +186,12 @@ export function CreateMeetingMinuteForm({
 }: FormProps) {
   const { selectedCompany, selectedStation } = useCompanyStore();
   const companySlug = selectedCompany?.slug ?? "";
-  const { data: employees, isLoading: employeesLoading } = useGetEmployeesByCompany(companySlug);
-  const { data: authorizedEmployees, isLoading: authorizedEmployeesLoading } = useGetAuthorizedEmployees(companySlug);
+  const { data: employees, isLoading: employeesLoading } =
+    useGetEmployeesByCompany(companySlug);
+  const { data: allEmployees, isLoading: allEmployeesLoading } =
+    useGetAllEmployeesByCompany(companySlug);
+  const { data: authorizedEmployees, isLoading: authorizedEmployeesLoading } =
+    useGetAuthorizedEmployees(companySlug);
   const { createMeetingMinute } = useCreateMeetingMinute();
   const { updateMeetingMinute } = useUpdateMeetingMinute();
 
@@ -153,19 +202,27 @@ export function CreateMeetingMinuteForm({
     label: `${e.first_name} ${e.last_name}`.trim(),
   }));
 
+  const allEmployeeOptions = (allEmployees ?? []).map((e) => ({
+    value: String(e.id),
+    label: `${e.first_name} ${e.last_name}`.trim(),
+  }));
+
   const authorizedEmployeeOptions = (authorizedEmployees ?? []).map((a) => ({
     value: String(a.id),
     label: a.employee_name || a.dni_employee,
     badge: a.from_company_db,
   }));
 
-  const parseStringArray = (val: string | string[] | undefined | null): { value: string }[] => {
+  const parseStringArray = (
+    val: string | string[] | undefined | null,
+  ): { value: string }[] => {
     if (!val) return [];
     if (Array.isArray(val)) return val.map((v) => ({ value: String(v) }));
     try {
       const parsed = JSON.parse(val);
-      if (Array.isArray(parsed)) return parsed.map((v: string) => ({ value: String(v) }));
-    } catch { }
+      if (Array.isArray(parsed))
+        return parsed.map((v: string) => ({ value: String(v) }));
+    } catch {}
     return val.trim() ? [{ value: val }] : [];
   };
 
@@ -174,30 +231,56 @@ export function CreateMeetingMinuteForm({
     defaultValues: {
       date: initialData?.date ? new Date(initialData.date) : undefined,
       place: initialData?.place ?? "",
-      objective: typeof initialData?.objective === "string" ? initialData.objective : "",
+      objective:
+        typeof initialData?.objective === "string" ? initialData.objective : "",
       topics: parseStringArray(initialData?.topics),
-      chaired_by: typeof initialData?.chaired_by === "object" ? String((initialData.chaired_by as any)?.id ?? "") : String(initialData?.chaired_by ?? ""),
-      filled_out_by: typeof initialData?.filled_out_by === "object" ? String((initialData.filled_out_by as any)?.id ?? "") : String(initialData?.filled_out_by ?? ""),
-      reviewed_by: typeof initialData?.reviewed_by === "object" ? String((initialData.reviewed_by as any)?.id ?? "") : String(initialData?.reviewed_by ?? ""),
-      approved_by: typeof initialData?.approved_by === "object" ? String((initialData.approved_by as any)?.id ?? "") : String(initialData?.approved_by ?? ""),
-      attendees: initialData?.attendees?.map((a) => ({
-        employee_id: a.employee_id ? String(a.employee_id) : "",
-        authorized_employee_id: a.authorized_employee_id ? String(a.authorized_employee_id) : "",
-        attendee_name: a.attendee_name ?? "",
-        job_title: a.job_title ?? "",
-        has_attended: a.has_attended,
-        is_external: !a.employee_id && !a.authorized_employee_id && !!a.attendee_name,
-        is_authorized: !!a.authorized_employee_id,
-      })) ?? [],
-      agreements: initialData?.agreements?.map((a) => ({
-        description: a.description,
-        responsible_employee_id: a.responsible_employee_id ? String(a.responsible_employee_id) : "",
-        responsible_authorized_employee_id: a.responsible_authorized_employee_id ? String(a.responsible_authorized_employee_id) : "",
-        responsible_name: a.responsible_name ?? "",
-        responsible_job_title: a.responsible_job_title ?? "",
-        is_external: !a.responsible_employee_id && !a.responsible_authorized_employee_id && !!a.responsible_name,
-        is_authorized: !!a.responsible_authorized_employee_id,
-      })) ?? [],
+      chaired_by:
+        typeof initialData?.chaired_by === "object"
+          ? String((initialData.chaired_by as any)?.id ?? "")
+          : String(initialData?.chaired_by ?? ""),
+      filled_out_by:
+        typeof initialData?.filled_out_by === "object"
+          ? String((initialData.filled_out_by as any)?.id ?? "")
+          : String(initialData?.filled_out_by ?? ""),
+      reviewed_by:
+        typeof initialData?.reviewed_by === "object"
+          ? String((initialData.reviewed_by as any)?.id ?? "")
+          : String(initialData?.reviewed_by ?? ""),
+      approved_by:
+        typeof initialData?.approved_by === "object"
+          ? String((initialData.approved_by as any)?.id ?? "")
+          : String(initialData?.approved_by ?? ""),
+      attendees:
+        initialData?.attendees?.map((a) => ({
+          employee_id: a.employee_id ? String(a.employee_id) : "",
+          authorized_employee_id: a.authorized_employee_id
+            ? String(a.authorized_employee_id)
+            : "",
+          attendee_name: a.attendee_name ?? "",
+          job_title: a.job_title ?? "",
+          has_attended: a.has_attended,
+          is_external:
+            !a.employee_id && !a.authorized_employee_id && !!a.attendee_name,
+          is_authorized: !!a.authorized_employee_id,
+        })) ?? [],
+      agreements:
+        initialData?.agreements?.map((a) => ({
+          description: a.description,
+          responsible_employee_id: a.responsible_employee_id
+            ? String(a.responsible_employee_id)
+            : "",
+          responsible_authorized_employee_id:
+            a.responsible_authorized_employee_id
+              ? String(a.responsible_authorized_employee_id)
+              : "",
+          responsible_name: a.responsible_name ?? "",
+          responsible_job_title: a.responsible_job_title ?? "",
+          is_external:
+            !a.responsible_employee_id &&
+            !a.responsible_authorized_employee_id &&
+            !!a.responsible_name,
+          is_authorized: !!a.responsible_authorized_employee_id,
+        })) ?? [],
     },
   });
 
@@ -219,7 +302,8 @@ export function CreateMeetingMinuteForm({
     remove: removeAgreement,
   } = useFieldArray({ control: form.control, name: "agreements" });
 
-  const isPending = createMeetingMinute.isPending || updateMeetingMinute.isPending;
+  const isPending =
+    createMeetingMinute.isPending || updateMeetingMinute.isPending;
 
   const onSubmit = async (data: FormSchemaType) => {
     if (!companySlug || !selectedStation) return;
@@ -227,7 +311,11 @@ export function CreateMeetingMinuteForm({
     const fd = buildFormData(companySlug, Number(selectedStation), data);
 
     if (isEditing && initialData) {
-      await updateMeetingMinute.mutateAsync({ company: companySlug, id: initialData.id, data: fd });
+      await updateMeetingMinute.mutateAsync({
+        company: companySlug,
+        id: initialData.id,
+        data: fd,
+      });
     } else {
       await createMeetingMinute.mutateAsync({ company: companySlug, data: fd });
     }
@@ -250,7 +338,12 @@ export function CreateMeetingMinuteForm({
           ].map((s, i) => (
             <React.Fragment key={s.num}>
               {i > 0 && (
-                <div className={cn("w-12 h-px mx-2", step > i ? "bg-primary" : "bg-border")} />
+                <div
+                  className={cn(
+                    "w-12 h-px mx-2",
+                    step > i ? "bg-primary" : "bg-border",
+                  )}
+                />
               )}
               <div className="flex items-center gap-2">
                 <div
@@ -258,18 +351,33 @@ export function CreateMeetingMinuteForm({
                     "flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold border",
                     step >= s.num
                       ? "bg-primary text-primary-foreground border-primary"
-                      : "bg-muted text-muted-foreground border-border"
+                      : "bg-muted text-muted-foreground border-border",
                   )}
                 >
                   {step > s.num ? (
-                    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                    <svg
+                      className="h-3.5 w-3.5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2.5}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M4.5 12.75l6 6 9-13.5"
+                      />
                     </svg>
                   ) : (
                     s.num
                   )}
                 </div>
-                <span className={cn("text-xs font-medium whitespace-nowrap", step >= s.num ? "text-foreground" : "text-muted-foreground")}>
+                <span
+                  className={cn(
+                    "text-xs font-medium whitespace-nowrap",
+                    step >= s.num ? "text-foreground" : "text-muted-foreground",
+                  )}
+                >
                   {s.label}
                 </span>
               </div>
@@ -301,7 +409,7 @@ export function CreateMeetingMinuteForm({
                               variant="outline"
                               className={cn(
                                 "w-full pl-3 text-left font-normal",
-                                !field.value && "text-muted-foreground"
+                                !field.value && "text-muted-foreground",
                               )}
                             >
                               {field.value ? (
@@ -320,7 +428,9 @@ export function CreateMeetingMinuteForm({
                             onSelect={field.onChange}
                             autoFocus
                             startMonth={new Date(2020, 0)}
-                            endMonth={new Date(new Date().getFullYear() + 1, 11)}
+                            endMonth={
+                              new Date(new Date().getFullYear() + 1, 11)
+                            }
                             captionLayout="dropdown"
                           />
                         </PopoverContent>
@@ -350,12 +460,8 @@ export function CreateMeetingMinuteForm({
 
             <Separator className="border-border/60" />
 
-            {/* Motivo */}
+            {/* Objetivo */}
             <div className="space-y-3">
-              <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                Motivo
-              </span>
-
               <FormField
                 control={form.control}
                 name="objective"
@@ -365,7 +471,11 @@ export function CreateMeetingMinuteForm({
                       Objetivo
                     </FormLabel>
                     <FormControl>
-                      <Textarea placeholder="Objetivo de la reunión" className="min-h-[80px]" {...field} />
+                      <Textarea
+                        placeholder="Objetivo de la reunión"
+                        className="min-h-[80px]"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage className="text-xs" />
                   </FormItem>
@@ -425,12 +535,16 @@ export function CreateMeetingMinuteForm({
               </div>
 
               {attendeeFields.length === 0 && (
-                <p className="text-xs text-muted-foreground">No hay participantes agregados.</p>
+                <p className="text-xs text-muted-foreground">
+                  No hay participantes agregados.
+                </p>
               )}
 
               {attendeeFields.map((field, index) => {
                 const isExternal = form.watch(`attendees.${index}.is_external`);
-                const isAuthorized = form.watch(`attendees.${index}.is_authorized`);
+                const isAuthorized = form.watch(
+                  `attendees.${index}.is_authorized`,
+                );
                 return (
                   <div
                     key={field.id}
@@ -449,9 +563,18 @@ export function CreateMeetingMinuteForm({
                                   onCheckedChange={(checked) => {
                                     f.onChange(checked);
                                     if (checked) {
-                                      form.setValue(`attendees.${index}.is_external`, false);
-                                      form.setValue(`attendees.${index}.attendee_name`, "");
-                                      form.setValue(`attendees.${index}.job_title`, "");
+                                      form.setValue(
+                                        `attendees.${index}.is_external`,
+                                        false,
+                                      );
+                                      form.setValue(
+                                        `attendees.${index}.attendee_name`,
+                                        "",
+                                      );
+                                      form.setValue(
+                                        `attendees.${index}.job_title`,
+                                        "",
+                                      );
                                     }
                                   }}
                                 />
@@ -473,8 +596,14 @@ export function CreateMeetingMinuteForm({
                                   onCheckedChange={(checked) => {
                                     f.onChange(checked);
                                     if (checked) {
-                                      form.setValue(`attendees.${index}.is_authorized`, false);
-                                      form.setValue(`attendees.${index}.authorized_employee_id`, "");
+                                      form.setValue(
+                                        `attendees.${index}.is_authorized`,
+                                        false,
+                                      );
+                                      form.setValue(
+                                        `attendees.${index}.authorized_employee_id`,
+                                        "",
+                                      );
                                     }
                                   }}
                                 />
@@ -502,8 +631,11 @@ export function CreateMeetingMinuteForm({
                         form={form}
                         name={`attendees.${index}.employee_id`}
                         label="Empleado"
-                        placeholder="Seleccionar..."
-                        options={employeeOptions}
+                        placeholder={
+                          allEmployeesLoading ? "Cargando..." : "Seleccionar..."
+                        }
+                        options={allEmployeeOptions}
+                        disabled={allEmployeesLoading}
                       />
                     )}
 
@@ -512,7 +644,11 @@ export function CreateMeetingMinuteForm({
                         form={form}
                         name={`attendees.${index}.authorized_employee_id`}
                         label="Empleado autorizado"
-                        placeholder={authorizedEmployeesLoading ? "Cargando..." : "Seleccionar..."}
+                        placeholder={
+                          authorizedEmployeesLoading
+                            ? "Cargando..."
+                            : "Seleccionar..."
+                        }
                         searchPlaceholder="Buscar empleado autorizado..."
                         emptyText="No hay empleados autorizados."
                         options={authorizedEmployeeOptions}
@@ -606,7 +742,9 @@ export function CreateMeetingMinuteForm({
                   </Button>
                 </div>
                 {topicFields.length === 0 && (
-                  <p className="text-xs text-muted-foreground">No hay temas agregados.</p>
+                  <p className="text-xs text-muted-foreground">
+                    No hay temas agregados.
+                  </p>
                 )}
                 {topicFields.map((field, index) => (
                   <div key={field.id} className="flex items-start gap-2">
@@ -666,7 +804,9 @@ export function CreateMeetingMinuteForm({
               </div>
 
               {agreementFields.length === 0 && (
-                <p className="text-xs text-muted-foreground">No hay acuerdos agregados.</p>
+                <p className="text-xs text-muted-foreground">
+                  No hay acuerdos agregados.
+                </p>
               )}
 
               {agreementFields.map((field, index) => (
@@ -787,7 +927,11 @@ export function CreateMeetingMinuteForm({
         {/* Navigation */}
         <div className="flex items-center justify-between gap-3">
           {step > 1 ? (
-            <Button type="button" variant="outline" onClick={() => setStep(step - 1)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setStep(step - 1)}
+            >
               <ChevronLeft className="size-4 mr-1" />
               Anterior
             </Button>

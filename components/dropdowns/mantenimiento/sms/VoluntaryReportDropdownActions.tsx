@@ -1,26 +1,55 @@
 "use client";
 
-import { CheckCheck, EyeIcon, Loader2, LockKeyhole, MoreHorizontal, Trash2 } from "lucide-react";
+import {
+  CheckCheck,
+  EyeIcon,
+  Loader2,
+  LockKeyhole,
+  MoreHorizontal,
+  Trash2,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import CloseVoluntaryReportForm from "@/components/forms/mantenimiento/sms/CloseVoluntaryReportForm";
 import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { getResult } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useState } from "react";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useAcceptVoluntaryReport, useDeleteVoluntaryReport } from "@/actions/mantenimiento/sms/reporte_voluntario/actions";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  useAcceptVoluntaryReport,
+  useDeleteVoluntaryReport,
+} from "@/actions/mantenimiento/sms/reporte_voluntario/actions";
 import { VoluntaryReport, ObligatoryReport } from "@/types/sms/mantenimiento";
-
 
 type ReportDetailActionsProps = {
   report: VoluntaryReport | ObligatoryReport;
-  kind: 'RVP' | 'ROS';
+  kind: "RVP" | "ROS";
 };
 
-export function VoluntaryReportDropdownActions({ report, kind }: ReportDetailActionsProps) {
+export function VoluntaryReportDropdownActions({
+  report,
+  kind,
+}: ReportDetailActionsProps) {
   const { selectedCompany } = useCompanyStore();
   const router = useRouter();
   const { acceptVoluntaryReport } = useAcceptVoluntaryReport();
@@ -29,7 +58,8 @@ export function VoluntaryReportDropdownActions({ report, kind }: ReportDetailAct
   const [openDelete, setOpenDelete] = useState<boolean>(false);
   const { deleteVoluntaryReport } = useDeleteVoluntaryReport();
 
-  const mitigationAnalysis = report.hazard_notification?.mitigation_plan?.analysis;
+  const mitigationAnalysis =
+    report.hazard_notification?.mitigation_plan?.analysis;
   const closeResult = mitigationAnalysis?.result
     ? getResult(mitigationAnalysis.result)
     : undefined;
@@ -38,7 +68,7 @@ export function VoluntaryReportDropdownActions({ report, kind }: ReportDetailAct
     mitigationAnalysis &&
     mitigationAnalysis.result &&
     report.status !== "CERRADO" &&
-    (closeResult === "TOLERABLE" || closeResult === "ACEPTABLE")
+    (closeResult === "TOLERABLE" || closeResult === "ACEPTABLE"),
   );
 
   const handleAccept = async () => {
@@ -66,81 +96,62 @@ export function VoluntaryReportDropdownActions({ report, kind }: ReportDetailAct
 
   return (
     <>
-      <TooltipProvider>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Abrir acciones</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent align="end" className="w-auto p-2 flex flex-row gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => router.push(href)}
-            >
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <EyeIcon className="h-4 w-4" />
-                </TooltipTrigger>
-                <TooltipContent side="bottom">Ver detalle</TooltipContent>
-              </Tooltip>
-            </Button>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="h-8 w-8 p-0">
+            <span className="sr-only">Abrir acciones</span>
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+
+        <DropdownMenuContent align="center" className="flex flex-row gap-2 p-2">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenuItem onClick={() => router.push(href)}>
+                  <EyeIcon className="size-4" />
+                </DropdownMenuItem>
+              </TooltipTrigger>
+              <TooltipContent>Ver detalle</TooltipContent>
+            </Tooltip>
 
             {report &&
               (report.status === "ABIERTO" ||
                 report.status === "EN_PROCESO") && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => setOpenDelete(true)}
-                >
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Trash2 className="h-4 w-4 text-red-500" />
-                    </TooltipTrigger>
-                    <TooltipContent side="bottom">Eliminar</TooltipContent>
-                  </Tooltip>
-                </Button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <DropdownMenuItem onClick={() => setOpenDelete(true)}>
+                      <Trash2 className="size-4 text-red-500" />
+                    </DropdownMenuItem>
+                  </TooltipTrigger>
+                  <TooltipContent>Eliminar</TooltipContent>
+                </Tooltip>
               )}
 
             {report.status === "EN_PROCESO" && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => setOpenAccept(true)}
-                >
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <CheckCheck className="h-4 w-4 text-green-400" />
-                    </TooltipTrigger>
-                    <TooltipContent side="bottom">Aceptar</TooltipContent>
-                  </Tooltip>
-                </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuItem onClick={() => setOpenAccept(true)}>
+                    <CheckCheck className="size-4 text-green-400" />
+                  </DropdownMenuItem>
+                </TooltipTrigger>
+                <TooltipContent>Aceptar</TooltipContent>
+              </Tooltip>
             )}
 
             {canCloseReport && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => setOpenCloseReport(true)}
-                >
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <LockKeyhole className="h-4 w-4" />
-                    </TooltipTrigger>
-                    <TooltipContent side="bottom">Cerrar reporte</TooltipContent>
-                  </Tooltip>
-                </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuItem onClick={() => setOpenCloseReport(true)}>
+                    <LockKeyhole className="size-4" />
+                  </DropdownMenuItem>
+                </TooltipTrigger>
+                <TooltipContent>Cerrar reporte</TooltipContent>
+              </Tooltip>
             )}
-          </PopoverContent>
-        </Popover>
-      </TooltipProvider>
+          </TooltipProvider>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
       {/* Accept dialog */}
       <Dialog open={openAccept} onOpenChange={setOpenAccept}>
@@ -218,7 +229,8 @@ export function VoluntaryReportDropdownActions({ report, kind }: ReportDetailAct
               Cerrar reporte voluntario
             </DialogTitle>
             <DialogDescription className="text-center">
-              Adjunte el documento PDF de cierre y seleccione la fecha de cierre.
+              Adjunte el documento PDF de cierre y seleccione la fecha de
+              cierre.
             </DialogDescription>
           </DialogHeader>
 

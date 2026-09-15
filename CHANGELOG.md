@@ -1,3 +1,23 @@
+## v4.3.0 — 2026-09-15
+
+- feat: add dialog to show certificates sms (#258)
+
+## v4.2.2 — 2026-09-15
+
+- refactor: sms activities table (#257)
+
+## v4.2.1 — 2026-09-14
+
+- fix: meeting minute form doesnt show employees (#256)
+
+## v4.2.0 — 2026-09-14
+
+- feat: select any employee from the company (#255)
+
+## v4.1.1 — 2026-09-14
+
+- fix: sms requeriments (#254)
+
 ## v4.1.0 — 2026-09-12
 
 - feat: refactor consumable dispatch form and add ConsumableArticleRow component
