@@ -3,7 +3,6 @@
 import { useState, useEffect, useMemo } from "react";
 import {
   ColumnFiltersState,
-  ExpandedState,
   flexRender,
   type RowData,
   SortingState,
@@ -27,11 +26,13 @@ import { DataTablePagination } from "@/components/tables/DataTablePagination";
 import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { getCertificadosSteps } from "@/components/tour/steps/general/cursos/certificados/certificados";
+import { type CertificateGroup } from "./columns";
 
 interface DataTableProps<TData extends RowData> {
   columns: AppColumnDef<TData>[];
   data: TData[];
   onOpenModal: () => void;
+  onEmployeeClick: (employee: CertificateGroup) => void;
   user?: any;
 }
 
@@ -39,12 +40,12 @@ export function DataTableCertificates<TData extends RowData>({
   columns,
   data,
   onOpenModal,
+  onEmployeeClick,
   user,
 }: DataTableProps<TData>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
-  const [expanded, setExpanded] = useState<ExpandedState>({});
   const { registerTour, unregisterTour } = useTourContext();
 
   const steps = useMemo(
@@ -97,14 +98,9 @@ export function DataTableCertificates<TData extends RowData>({
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
-    onExpandedChange: setExpanded,
-    getSubRows: (row: any) => row?.subRows,
-    getRowCanExpand: (row: any) =>
-      row.depth === 0 && Array.isArray(row?.subRows) && row.subRows.length > 0,
     state: {
       sorting,
       columnFilters,
-      expanded,
     },
   });
 
@@ -173,13 +169,14 @@ export function DataTableCertificates<TData extends RowData>({
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => {
                 const isGroupRow = row.depth === 0;
-                const canExpand = row.getCanExpand();
                 return (
                   <TableRow
                     key={row.id}
                     data-state={row.getIsSelected() && "selected"}
                     onClick={() => {
-                      if (canExpand) row.toggleExpanded();
+                      if (isGroupRow && (row.original as any).__isGroup) {
+                        onEmployeeClick(row.original as CertificateGroup);
+                      }
                     }}
                     className={`
                       border-b border-border/40
