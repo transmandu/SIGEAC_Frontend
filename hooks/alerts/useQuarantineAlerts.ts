@@ -4,7 +4,7 @@ import { quarantineHazard } from "@/lib/warehouse/quarantine";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useMemo } from "react";
 import { useQuarantineLegalDays } from "@/hooks/general/useCompanySettings";
-import { useIsOmac } from "@/hooks/sistema/useIsOmac";
+import { useCriticalAlertSources } from "./useCriticalAlertSources";
 import { CriticalAlert } from "./types";
 
 /**
@@ -29,15 +29,17 @@ export const useQuarantineAlerts = () => {
     const { selectedCompany } = useCompanyStore();
     const legalDays = useQuarantineLegalDays();
 
-    const { data: isOmac } = useIsOmac(selectedCompany?.slug);
+    const { hasSource } = useCriticalAlertSources();
 
-    // El ciclo de cuarentena solo existe en talleres OMAC —igual que el ítem de
-    // menú—, así que sin eso no hay nada que alertar ni adónde enlazar.
+    // Antes esto miraba `isOMAC`, que responde otra pregunta: qué TIPO de
+    // empresa es, no si el módulo está montado. Una empresa OMAC sin las
+    // migraciones de cuarentena pasaba ese filtro y pedía contra tablas que no
+    // existen. Ahora el backend confirma que la fuente está de verdad.
     const canSeeQuarantineAlerts = useMemo(
         () =>
-            !!isOmac
+            hasSource("quarantine_article")
             && (user?.roles ?? []).some((r) => ROLES_WITH_QUARANTINE_ALERT_ACCESS.includes(r.name)),
-        [isOmac, user?.roles],
+        [hasSource, user?.roles],
     );
 
     // Solo lo que espera corrección: un artículo ya enviado a re-inspección no

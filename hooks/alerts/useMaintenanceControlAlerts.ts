@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { useIsOmac } from "@/hooks/sistema/useIsOmac";
+import { useCriticalAlertSources } from "./useCriticalAlertSources";
 import { useGetMaintenanceControls } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceControls";
 import { computeMaintenanceItem } from "@/lib/maintenanceControlCalc";
 import { ComputedMaintenanceInterval, MaintenanceControl, MaintenanceControlItem } from "@/types";
@@ -73,13 +73,17 @@ export const useMaintenanceControlAlerts = () => {
     const { selectedCompany } = useCompanyStore();
     const companySlug = selectedCompany?.slug;
 
-    const { data: isOmac } = useIsOmac(companySlug);
+    const { hasSource } = useCriticalAlertSources();
 
+    // Antes esto miraba `isOMAC`, que dice qué TIPO de empresa es y no si el
+    // módulo está montado: hay empresas OMAC sin Control de Mantenimiento, y
+    // ahí la alerta pedía contra tablas inexistentes. El backend confirma que
+    // la fuente existe de verdad.
     const canSeeMaintenanceControlAlerts = useMemo(
         () =>
-            !!isOmac
+            hasSource("maintenance_control")
             && (user?.roles ?? []).some((r) => ROLES_WITH_MAINTENANCE_CONTROL_ALERT_ACCESS.includes(r.name)),
-        [isOmac, user?.roles],
+        [hasSource, user?.roles],
     );
 
     const { data, isLoading } = useGetMaintenanceControls(

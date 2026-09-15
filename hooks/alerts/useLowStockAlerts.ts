@@ -4,6 +4,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { useGetLowStockGeneralArticles, useGetLowStockConsumableArticles } from "./useGetLowStockArticles";
 import { useCreateRequisitionFromLowStockAlert } from "@/actions/mantenimiento/compras/requisiciones/actions";
 import { useLowStockAlertsRealtime } from "./useLowStockAlertsRealtime";
+import { useCriticalAlertSources } from "./useCriticalAlertSources";
 import { CriticalAlert } from "./types";
 import { InTransitDetail } from "@/types";
 
@@ -60,23 +61,35 @@ export const useLowStockAlerts = () => {
     const { selectedStation, selectedCompany } = useCompanyStore();
     const { createRequisitionFromLowStockAlert } = useCreateRequisitionFromLowStockAlert();
 
-    const canSeeLowStockAlerts = useMemo(
+    const { hasSource } = useCriticalAlertSources();
+
+    const hasRoleAccess = useMemo(
         () => (user?.roles ?? []).some((r) => ROLES_WITH_LOW_STOCK_ALERT_ACCESS.includes(r.name)),
         [user?.roles],
     );
 
-    const { data: lowStockGeneralArticles, isLoading: isLoadingGeneral } = useGetLowStockGeneralArticles(canSeeLowStockAlerts);
-    const { data: lowStockConsumableArticles, isLoading: isLoadingConsumables } = useGetLowStockConsumableArticles(canSeeLowStockAlerts && SHOW_CONSUMABLE_ALERTS);
+    // El rol autoriza; la fuente dice si hay de dónde sacar la alerta. Las dos
+    // se preguntan por separado porque el almacén general y el de consumibles
+    // son módulos distintos: hay empresas con uno y sin el otro, y pedir el
+    // que falta era un 500 contra una tabla inexistente.
+    const canSeeGeneralAlerts = hasRoleAccess && hasSource("low_stock_general");
+    const canSeeConsumableAlerts = hasRoleAccess && hasSource("low_stock_consumable");
 
-    useLowStockAlertsRealtime(selectedStation, canSeeLowStockAlerts);
+    const { data: lowStockGeneralArticles, isLoading: isLoadingGeneral } = useGetLowStockGeneralArticles(canSeeGeneralAlerts);
+    const { data: lowStockConsumableArticles, isLoading: isLoadingConsumables } = useGetLowStockConsumableArticles(canSeeConsumableAlerts && SHOW_CONSUMABLE_ALERTS);
+
+    // El canal solo avisa que algo cambió en alguno de los dos inventarios; sin
+    // ninguno de los dos en esta empresa no hay query que invalidar y la
+    // suscripción sería a un canal del que nunca llega nada.
+    useLowStockAlertsRealtime(selectedStation, canSeeGeneralAlerts || canSeeConsumableAlerts);
 
     const generalArticles = useMemo(
-        () => (canSeeLowStockAlerts ? (lowStockGeneralArticles ?? []) : []),
-        [canSeeLowStockAlerts, lowStockGeneralArticles],
+        () => (canSeeGeneralAlerts ? (lowStockGeneralArticles ?? []) : []),
+        [canSeeGeneralAlerts, lowStockGeneralArticles],
     );
     const consumableArticles = useMemo(
-        () => (canSeeLowStockAlerts ? (lowStockConsumableArticles ?? []) : []),
-        [canSeeLowStockAlerts, lowStockConsumableArticles],
+        () => (canSeeConsumableAlerts ? (lowStockConsumableArticles ?? []) : []),
+        [canSeeConsumableAlerts, lowStockConsumableArticles],
     );
 
     const alerts = useMemo<CriticalAlert[]>(() => {
@@ -232,6 +245,10 @@ export const useLowStockAlerts = () => {
 
     return {
         alerts,
-        isLoading: isLoadingGeneral || (SHOW_CONSUMABLE_ALERTS && isLoadingConsumables),
+        // Un query deshabilitado queda en `isLoading` para siempre en React
+        // Query: sin acotarlo a las fuentes que sí se piden, una empresa sin
+        // almacén dejaba el botón de alertas cargando indefinidamente.
+        isLoading: (canSeeGeneralAlerts && isLoadingGeneral)
+            || (canSeeConsumableAlerts && SHOW_CONSUMABLE_ALERTS && isLoadingConsumables),
     };
 };
