@@ -24,6 +24,7 @@ const QrCodePage = () => {
   const { data: isOMAC } = useIsOmac(selectedCompany?.slug);
   const { registerTour, unregisterTour } = useTourContext();
   const qrColor = isOMAC ? "#FFC800" : "#1F7FDB";
+  const qrInnerColor = isOMAC ? "#000000" : qrColor;
   const qrImage = isOMAC ? "/tools.png" : "/aircraft.png";
 
   useEffect(() => {
@@ -63,7 +64,7 @@ const QrCodePage = () => {
                 fileName={`crear-reporte-sms-${selectedCompany?.slug}`}
                 bgColor="#FFF"
                 outerColor="#000000"
-                innerColor={qrColor}
+                innerColor={qrInnerColor}
                 moduleColor={qrColor}
                 imageSrc={qrImage}
                 showLink={true}
@@ -94,7 +95,7 @@ const QrCodePage = () => {
                 fileName={`pagina-sms-${selectedCompany?.slug}`}
                 bgColor="#FFF"
                 outerColor="#000000"
-                innerColor={qrColor}
+                innerColor={qrInnerColor}
                 moduleColor="#000000"
                 imageSrc={qrImage}
                 showLink={true}

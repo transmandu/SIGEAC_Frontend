@@ -133,10 +133,11 @@ const QRGenerator = ({
       {showDownloadButton && (
         <Button
           onClick={downloadQRCode}
-          className="w-full bg-transparent"
+          variant="outline"
+          className="w-full gap-2 border-border/60 bg-card text-card-foreground transition-colors hover:border-primary/50 hover:bg-accent hover:text-accent-foreground"
           data-tour={buttonDataTour}
         >
-          <Download className="mr-2 h-4 w-4" />
+          <Download className="h-4 w-4" />
           Descargar QR
         </Button>
       )}
