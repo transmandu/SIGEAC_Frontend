@@ -1,3 +1,7 @@
+## v4.6.2 — 2026-09-15
+
+- refactor: qr code hangar 74 with new icon (#263)
+
 ## v4.6.1 — 2026-09-15
 
 - Merge pull request #262 from transmandu/fix/critical-article-popover
