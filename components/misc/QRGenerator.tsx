@@ -16,6 +16,7 @@ interface QRGeneratorProps {
   innerColor?: string;
   outerColor?: string;
   moduleColor?: string;
+  imageSrc?: string;
   buttonDataTour?: string;
   linkDataTour?: string;
 }
@@ -30,6 +31,7 @@ const QRGenerator = ({
   bgColor = "#FFFFFF",
   showDownloadButton = true,
   showLink = false,
+  imageSrc = "/aircraft.png",
   buttonDataTour,
   linkDataTour,
 }: QRGeneratorProps) => {
@@ -107,7 +109,7 @@ const QRGenerator = ({
           background={bgColor}
           svgProps={{ style: { maxWidth: "100%", height: "auto" } }}
           imageSettings={{
-            src: "/aircraft.png",
+            src: imageSrc,
             width: 60,
             height: 40,
             excavate: true,
@@ -131,7 +133,7 @@ const QRGenerator = ({
       {showDownloadButton && (
         <Button
           onClick={downloadQRCode}
-          className="w-full"
+          className="w-full bg-transparent"
           data-tour={buttonDataTour}
         >
           <Download className="mr-2 h-4 w-4" />

@@ -24,6 +24,7 @@ const QrCodePage = () => {
   const { data: isOMAC } = useIsOmac(selectedCompany?.slug);
   const { registerTour, unregisterTour } = useTourContext();
   const qrColor = isOMAC ? "#FFC800" : "#1F7FDB";
+  const qrImage = isOMAC ? "/tools.png" : "/aircraft.png";
 
   useEffect(() => {
     registerTour("codigos-qr", "Códigos QR", qrSteps);
@@ -64,6 +65,7 @@ const QrCodePage = () => {
                 outerColor="#000000"
                 innerColor={qrColor}
                 moduleColor={qrColor}
+                imageSrc={qrImage}
                 showLink={true}
                 showDownloadButton={true}
                 size={300}
@@ -94,6 +96,7 @@ const QrCodePage = () => {
                 outerColor="#000000"
                 innerColor={qrColor}
                 moduleColor="#000000"
+                imageSrc={qrImage}
                 showLink={true}
                 showDownloadButton={true}
                 size={300}
