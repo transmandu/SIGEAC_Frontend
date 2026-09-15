@@ -1,3 +1,7 @@
+## v4.3.0 — 2026-09-15
+
+- feat: add dialog to show certificates sms (#258)
+
 ## v4.2.2 — 2026-09-15
 
 - refactor: sms activities table (#257)
