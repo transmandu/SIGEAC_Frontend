@@ -1,3 +1,7 @@
+## v4.6.5 — 2026-09-15
+
+- fix: show inactive employee in sms activities (#266)
+
 ## v4.6.4 — 2026-09-15
 
 - revert: rollback release to v4.6.2 (#265)
