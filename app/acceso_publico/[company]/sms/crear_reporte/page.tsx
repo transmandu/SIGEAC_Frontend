@@ -30,10 +30,11 @@ const SelectReportType = () => {
         "Feedback constructivo",
       ],
       buttonText: "Crear Reporte Voluntario",
-      color: "border-green-500 hover:border-green-600",
-      bgColor: "bg-green-100",
-      textColor: "text-green-600",
-      dotColor: "bg-green-500",
+      borderColor:
+        "border-green-300 hover:border-green-400 dark:border-green-800 dark:hover:border-green-700",
+      iconBg: "bg-green-100 dark:bg-green-950/60",
+      iconText: "text-green-600 dark:text-green-400",
+      dotColor: "bg-green-500 dark:bg-green-400",
     },
     {
       type: "obligatorio",
@@ -47,22 +48,23 @@ const SelectReportType = () => {
         "Seguimiento obligatorio",
       ],
       buttonText: "Crear Reporte Obligatorio",
-      color: "border-red-500 hover:border-red-600",
-      bgColor: "bg-red-100",
-      textColor: "text-red-600",
-      dotColor: "bg-red-500",
+      borderColor:
+        "border-red-300 hover:border-red-400 dark:border-red-800 dark:hover:border-red-700",
+      iconBg: "bg-red-100 dark:bg-red-950/60",
+      iconText: "text-red-600 dark:text-red-400",
+      dotColor: "bg-red-500 dark:bg-red-400",
     },
   ];
 
   return (
     <GuestContentLayout title="Tipo de reporte">
       <div className="max-w-4xl mx-auto space-y-6 lg:space-y-8 px-4 sm:px-6 lg:px-8">
-        {/* Header con información */}
+        {/* Header */}
         <div className="text-center space-y-3 lg:space-y-4">
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground">
             Crear Nuevo Reporte
           </h1>
-          <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
             Selecciona el tipo de reporte que mejor se adapte a la situación que
             deseas reportar. Tu contribución ayuda a mantener un ambiente de
             trabajo más seguro.
@@ -76,31 +78,32 @@ const SelectReportType = () => {
             return (
               <Card
                 key={report.type}
-                className={`cursor-pointer transition-all duration-300 hover:shadow-lg border ${report.color} h-full flex flex-col`}
+                className={`cursor-pointer transition-colors duration-200 border ${report.borderColor} h-full flex flex-col`}
               >
-                <CardHeader className="text-center pb-3 lg:pb-4">
-                  <div className="flex justify-center mb-3 lg:mb-4">
+                <CardHeader className="pb-3 lg:pb-4">
+                  <div className="flex items-center gap-3">
                     <div
-                      className={`p-2 sm:p-3 rounded-full ${report.bgColor} ${report.textColor}`}
+                      className={`flex items-center justify-center h-10 w-10 rounded-lg ${report.iconBg} ${report.iconText} shrink-0`}
                     >
-                      <IconComponent className="w-6 h-6 sm:w-8 sm:h-8" />
+                      <IconComponent className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-base sm:text-lg">
+                        {report.title}
+                      </CardTitle>
+                      <CardDescription className="text-xs sm:text-sm mt-0.5 leading-relaxed">
+                        {report.description}
+                      </CardDescription>
                     </div>
                   </div>
-                  <CardTitle className="text-lg sm:text-xl lg:text-2xl">
-                    {report.title}
-                  </CardTitle>
-                  <CardDescription className="text-sm sm:text-base mt-1 lg:mt-2 leading-relaxed">
-                    {report.description}
-                  </CardDescription>
                 </CardHeader>
 
                 <CardContent className="space-y-3 lg:space-y-4 flex-1 flex flex-col">
-                  {/* Lista de características */}
-                  <ul className="space-y-1 lg:space-y-2 flex-1">
+                  <ul className="space-y-1.5 flex-1">
                     {report.features.map((feature, index) => (
                       <li
                         key={index}
-                        className="flex items-start text-xs sm:text-sm text-gray-600 leading-tight"
+                        className="flex items-start text-xs sm:text-sm text-muted-foreground leading-tight"
                       >
                         <div
                           className={`w-1.5 h-1.5 rounded-full mr-2 mt-1.5 shrink-0 ${report.dotColor}`}
@@ -110,7 +113,6 @@ const SelectReportType = () => {
                     ))}
                   </ul>
 
-                  {/* Botón de acción */}
                   <Button
                     variant={
                       report.type === "voluntario" ? "default" : "destructive"
@@ -118,7 +120,7 @@ const SelectReportType = () => {
                     className="w-full mt-3 lg:mt-4 group text-xs sm:text-sm"
                     onClick={() =>
                       router.push(
-                        `/acceso_publico/${company}/sms/crear_reporte/${report.type}`
+                        `/acceso_publico/${company}/sms/crear_reporte/${report.type}`,
                       )
                     }
                   >
@@ -132,12 +134,12 @@ const SelectReportType = () => {
         </div>
 
         {/* Información adicional */}
-        <Card className="border-black">
+        <Card className="border-border">
           <CardContent className="p-4 sm:p-6">
-            <div className="flex items-start space-x-3 sm:space-x-4">
-              <HelpCircle className="h-5 w-5 sm:h-6 sm:w-6 mt-0.5 shrink-0" />
+            <div className="flex items-start gap-3 sm:gap-4">
+              <HelpCircle className="h-5 w-5 sm:h-6 sm:w-6 mt-0.5 shrink-0 text-muted-foreground" />
               <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-sm sm:text-base mb-1 sm:mb-2">
+                <h3 className="font-semibold text-sm sm:text-base mb-1 sm:mb-2 text-foreground">
                   ¿No estás seguro qué tipo de reporte usar?
                 </h3>
                 <div className="flex items-center">
