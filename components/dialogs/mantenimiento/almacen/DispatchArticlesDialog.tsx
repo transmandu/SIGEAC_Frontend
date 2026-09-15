@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
-import { ClipboardList, PackageOpen, Hash, Barcode, X, Package } from "lucide-react"
+import { ClipboardList, PackageOpen, Hash, Barcode, Tag, X, Package } from "lucide-react"
 import EvidenceGallery from "@/components/misc/EvidenceGallery"
 import { useDeleteDispatchEvidence } from "@/actions/mantenimiento/almacen/solicitudes/salida/action"
 import { useCompanyStore } from "@/stores/CompanyStore"
@@ -33,6 +33,25 @@ type Article = {
     status?: "DISPATCHED" | "PARTIALLY_RETURNED" | "RETURNED"
     /** Cómo se entregó el artículo; opcional. */
     evidences?: { id: number; url: string | null }[]
+    /** Decide cómo se identifica: el aeronáutico por parte, el general por descripción. */
+    type?: "aeronautical" | "general" | "unknown"
+    /** Solo aeronáutico: el renglón que lo agrupa. */
+    batch_name?: string | null
+    /** Solo aeronáutico: categoría del renglón (CONSUMABLE/COMPONENT/PART/TOOL). */
+    category?: string | null
+    alternative_part_number?: string[] | null
+    /** Solo consumibles: cada compra entra como un lote nuevo. */
+    lot_number?: string | null
+    /** Solo general: lo que distingue dos artículos con la misma descripción. */
+    variant_type?: string | null
+    brand_model?: string | null
+}
+
+const CATEGORY_LABEL: Record<string, string> = {
+    CONSUMABLE: "Consumible",
+    COMPONENT: "Componente",
+    PART: "Parte",
+    TOOL: "Herramienta",
 }
 
 /** Cómo se lee el estado de una línea; DISPATCHED no se rotula por ser lo normal. */
@@ -129,7 +148,7 @@ const DispatchArticlesDialog = ({ articles = [], work_order, justification }: Di
                         </div>
                     ) : (
                         <>
-                            <ScrollArea className="h-[320px] pr-3 max-w-full">
+                            <ScrollArea className="h-80 pr-3 max-w-full">
                                 <div className="space-y-2">
                                     {articles.map((a, idx) => {
                                         const key =
@@ -138,15 +157,38 @@ const DispatchArticlesDialog = ({ articles = [], work_order, justification }: Di
                                             a.serial ??
                                             `${a.description ?? "item"}-${idx}`;
 
-                                        const title =
-                                            a.part_number !== "N/A"
-                                                ? a.part_number?.trim() ||
-                                                a.description?.trim() ||
-                                                "Artículo sin identificar"
-                                                : a.description?.trim() || "Artículo sin identificar";
-                                        const hasPnTitle =
-                                            !!a.part_number?.trim() &&
-                                            a.part_number?.trim() !== "N/A";
+                                        const isGeneral = a.type === "general";
+
+                                        // Aeronáutico: se identifica por su parte, no por la
+                                        // descripción. El renglón (batch) es el subtítulo.
+                                        // General: no tiene parte propia, lo identifica su
+                                        // descripción, y no hay un subtítulo natural.
+                                        const title = isGeneral
+                                            ? a.description?.trim() || "Artículo sin identificar"
+                                            : a.part_number?.trim() || a.description?.trim() || "Artículo sin identificar";
+                                        const subtitle = isGeneral ? null : a.batch_name?.trim() || null;
+
+                                        // alternative_part_number puede llegar como null, un
+                                        // string suelto (si el backend aún no lo serializó
+                                        // como array) o un array real: se normaliza antes de
+                                        // iterar para no reventar en runtime por un shape
+                                        // inesperado del API.
+                                        const altPartNumbers = Array.isArray(a.alternative_part_number)
+                                            ? a.alternative_part_number
+                                            : a.alternative_part_number
+                                                ? [a.alternative_part_number]
+                                                : [];
+
+                                        const badges = isGeneral
+                                            ? [
+                                                a.variant_type ? { icon: Hash, text: a.variant_type } : null,
+                                                a.brand_model ? { icon: Barcode, text: a.brand_model } : null,
+                                            ].filter(Boolean) as { icon: typeof Hash; text: string }[]
+                                            : [
+                                                ...altPartNumbers.map((alt) => ({ icon: Hash, text: `Alt: ${alt}` })),
+                                                a.serial ? { icon: Barcode, text: a.serial } : null,
+                                                a.category ? { icon: Tag, text: CATEGORY_LABEL[a.category] ?? a.category } : null,
+                                            ].filter(Boolean) as { icon: typeof Hash; text: string }[];
 
                                         return (
                                             <div
@@ -159,31 +201,20 @@ const DispatchArticlesDialog = ({ articles = [], work_order, justification }: Di
                                                             {title}
                                                         </p>
 
-                                                        {hasPnTitle &&
-                                                            a.description?.trim() &&
-                                                            a.description !== "N/A" && (
-                                                                <p className="mt-1 text-xs text-muted-foreground truncate">
-                                                                    {a.description.trim()}
-                                                                </p>
-                                                            )}
-                                                        {(a.part_number || a.serial) && (
+                                                        {subtitle && (
+                                                            <p className="mt-1 text-xs text-muted-foreground truncate">
+                                                                {subtitle}
+                                                            </p>
+                                                        )}
+
+                                                        {badges.length > 0 && (
                                                             <div className="mt-2 flex flex-wrap gap-2">
-                                                                {a.part_number && (
-                                                                    <Badge variant="secondary" className="gap-1">
-                                                                        <Hash className="h-3.5 w-3.5" />
-                                                                        <span className="font-normal">
-                                                                            {a.part_number}
-                                                                        </span>
+                                                                {badges.map(({ icon: Icon, text }, badgeIdx) => (
+                                                                    <Badge key={`${text}-${badgeIdx}`} variant="secondary" className="gap-1">
+                                                                        <Icon className="h-3.5 w-3.5" />
+                                                                        <span className="font-normal">{text}</span>
                                                                     </Badge>
-                                                                )}
-                                                                {a.serial && (
-                                                                    <Badge variant="secondary" className="gap-1">
-                                                                        <Barcode className="h-3.5 w-3.5" />
-                                                                        <span className="font-normal">
-                                                                            {a.serial}
-                                                                        </span>
-                                                                    </Badge>
-                                                                )}
+                                                                ))}
                                                             </div>
                                                         )}
                                                     </div>

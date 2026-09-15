@@ -12,6 +12,7 @@
   "[json]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
   "[jsonc]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
   "[css]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+  "[tailwindcss]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
 
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit"
@@ -23,6 +24,15 @@
   "tailwindCSS.includeLanguages": {
     "typescript": "javascript",
     "typescriptreact": "javascript"
+  },
+
+  // globals.css usa sintaxis de Tailwind v4 (@theme, @utility, @custom-variant,
+  // --theme()) que el validador CSS nativo de VSCode no reconoce y marca como
+  // "unknown at rule". Asociarlo al languageId "tailwindcss" (registrado por la
+  // extension oficial) hace que ese archivo se valide con soporte real de v4 en
+  // vez de con el linter CSS generico, sin tocar la validacion del resto de CSS.
+  "files.associations": {
+    "app/globals.css": "tailwindcss"
   },
 
   "files.eol": "\n",

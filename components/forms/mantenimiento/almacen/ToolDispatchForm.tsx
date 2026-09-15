@@ -223,7 +223,7 @@ export function ToolDispatchForm({ onClose }: FormProps) {
                 <FormLabel>Recibe / MTTO</FormLabel>
                 <Select onValueChange={field.onChange}>
                   <FormControl>
-                    <SelectTrigger className="w-[240px]">
+                    <SelectTrigger className="w-60">
                       <SelectValue placeholder="Seleccione el responsable..." />
                     </SelectTrigger>
                   </FormControl>
@@ -256,7 +256,7 @@ export function ToolDispatchForm({ onClose }: FormProps) {
                       variant="outline"
                       role="combobox"
                       aria-expanded={open}
-                      className="w-[200px] justify-between"
+                      className="w-50 justify-between"
                     >
                       {articleSelected
                         ? `${articleSelected.serial}`
@@ -348,7 +348,7 @@ export function ToolDispatchForm({ onClose }: FormProps) {
                   disabled={isAircraftsLoading}
                 >
                   <FormControl>
-                    <SelectTrigger className="w-[230px]">
+                    <SelectTrigger className="w-57.5">
                       <SelectValue placeholder="Seleccione una aeronave..." />
                     </SelectTrigger>
                   </FormControl>

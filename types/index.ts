@@ -803,6 +803,16 @@ export type ThirdParty = {
   type: string;
 };
 
+export type Workshop = {
+  id: number;
+  name: string;
+  rif?: string | null;
+  address?: string | null;
+  phone?: string | null;
+  contact_name?: string | null;
+  status: "ACTIVE" | "INACTIVE";
+};
+
 export type Permission = {
   id: number;
   name: string;

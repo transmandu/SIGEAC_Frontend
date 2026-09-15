@@ -1,18 +1,14 @@
 "use client"
 
 import * as React from "react"
-import { useCommandState } from "cmdk"
 import { CommandGroup } from "@/components/ui/command"
 
 /**
- * Agrupa por lote solo mientras no se busca.
+ * Agrupa por lote, con encabezado siempre visible.
  *
- * Al filtrar, cmdk reordena grupos e items por puntuación moviendo nodos por
- * todo el DOM. Con un grupo por lote son decenas de contenedores
- * reacomodándose, y la lista da saltos. Sin encabezados los items quedan planos
- * en un único grupo y el reordenamiento no se nota.
- *
- * Debe renderizarse dentro de un <Command>: useCommandState lee su contexto.
+ * El encabezado (nombre del renglón) también se muestra mientras se busca:
+ * sin él, buscar por número de parte devuelve resultados de varios renglones
+ * distintos sin forma de saber a cuál pertenece cada uno.
  */
 export function SearchAwareGroup({
     heading,
@@ -21,7 +17,5 @@ export function SearchAwareGroup({
     heading: string
     children: React.ReactNode
 }) {
-    const searching = useCommandState((state) => state.search).trim().length > 0
-
-    return <CommandGroup heading={searching ? undefined : heading}>{children}</CommandGroup>
+    return <CommandGroup heading={heading}>{children}</CommandGroup>
 }

@@ -12,7 +12,7 @@ import {
   FuelVehicleType,
 } from "@/types";
 
-export const FUEL_ALLOWED_ROLES = ["SUPERUSER", "JEFE_ALMACEN"];
+export const FUEL_ALLOWED_ROLES = ["SUPERUSER", "JEFE_ALMACEN", "ANALISTA_ALMACEN"];
 
 // Formatos de placa venezolana vigentes (equivalente a la validacion del backend).
 export const FUEL_PLATE_REGEX =

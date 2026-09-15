@@ -67,16 +67,33 @@ export function buildWarehouseGroup({ pathname, currentCompany }: MenuContext): 
             },
 
             {
-                // Sin submenús: el traslado se confirma en Recepción de
-                // Artículos, que es donde se recibe todo lo que llega.
+                // Dos flujos bajo un mismo padre: la salida corriente de
+                // material (traslados y terceros incluidos) y la salida a
+                // taller, que lleva su propio storyline de sucesos hasta que
+                // el material reingresa a inventario.
                 href: `/${currentCompany?.slug}/almacen/solicitudes/salida`,
-                label: "Solicitudes de Salidas",
+                label: "Solicitud de Salida",
                 active: pathname.includes(
                     `/${currentCompany?.slug}/almacen/solicitudes/salida`,
                 ),
                 icon: ClipboardCopy,
                 roles: ALMACEN_ROLES,
-                submenus: [],
+                submenus: [
+                    {
+                        href: `/${currentCompany?.slug}/almacen/solicitudes/salida`,
+                        label: "Salida de Material",
+                        active:
+                            pathname ===
+                            `/${currentCompany?.slug}/almacen/solicitudes/salida`,
+                    },
+                    {
+                        href: `/${currentCompany?.slug}/almacen/solicitudes/salida_taller`,
+                        label: "Salida a Taller",
+                        active: pathname.includes(
+                            `/${currentCompany?.slug}/almacen/solicitudes/salida_taller`,
+                        ),
+                    },
+                ],
             },
 
             {

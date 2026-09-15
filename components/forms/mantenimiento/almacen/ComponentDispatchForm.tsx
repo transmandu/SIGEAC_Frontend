@@ -502,7 +502,7 @@ export function ComponentDispatchForm({ onClose }: FormProps) {
                                                                             {article.part_number} {article.serial ? `· ${article.serial}` : ""}
                                                                         </span>
                                                                         <span className="text-xs text-muted-foreground truncate">
-                                                                            {truncateText(article.description) || "Sin descripción"} · Disp: {article.quantity} {article.unit}
+                                                                            {truncateText(article.description) || "Sin nota"} · Disp: {article.quantity} {article.unit}
                                                                         </span>
                                                                     </div>
                                                                 </CommandItem>
@@ -655,12 +655,12 @@ export function ComponentDispatchForm({ onClose }: FormProps) {
                     <Button
                         type="button" variant="outline" onClick={onClose}
                         disabled={createDispatchRequest?.isPending}
-                        className="min-w-[100px] h-10"
+                        className="min-w-25 h-10"
                     >
                         Cancelar
                     </Button>
                     <Button
-                        className="bg-primary text-white hover:bg-primary/90 disabled:bg-primary/70 min-w-[120px] h-10"
+                        className="bg-primary text-white hover:bg-primary/90 disabled:bg-primary/70 min-w-30 h-10"
                         disabled={
                             createDispatchRequest?.isPending ||
                             aeronauticalCount + generalCount === 0 ||

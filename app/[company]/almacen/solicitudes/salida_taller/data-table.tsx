@@ -8,7 +8,7 @@ import {
 } from "@tanstack/react-table";
 import { appTableFeatures, type AppColumnDef } from "@/lib/table";
 
-import { RegisterDispatchRequestDialog } from "@/components/dialogs/mantenimiento/almacen/RegisterDispatchRequestDialog"
+import { RegisterWorkshopDispatchDialog } from "@/components/dialogs/mantenimiento/almacen/RegisterWorkshopDispatchDialog"
 import { CursorPagination } from "@/components/tables/CursorPagination"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -22,12 +22,11 @@ import {
 } from "@/components/ui/table"
 import { Loader2, Search, X } from "lucide-react"
 import { useState } from "react"
-import { WarehouseDispatchReportDialog } from "@/components/dialogs/mantenimiento/almacen/WarehouseDispatchReportDialog"
-import type { DispatchGroupRow } from "./page"
+import type { WorkshopDispatch } from "@/hooks/mantenimiento/almacen/salida_taller/useGetWorkshopDispatches"
 
 interface DataTableProps {
-  columns: AppColumnDef<DispatchGroupRow>[]
-  data: DispatchGroupRow[]
+  columns: AppColumnDef<WorkshopDispatch>[]
+  data: WorkshopDispatch[]
   search: string
   onSearchChange: (value: string) => void
   isFetching?: boolean
@@ -54,21 +53,16 @@ export function DataTable({
   pageSize,
   onPageSizeChange,
 }: DataTableProps) {
-
   const [sorting, setSorting] = useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(
-    []
-  )
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
 
   // La búsqueda y la paginación corren en el servidor (ver
-  // useGetDispatchesByLocation): la tabla solo ordena/filtra por columna
-  // sobre la página ya traída, no sobre el historial completo.
+  // useGetWorkshopDispatches): la tabla solo ordena/filtra por columna sobre
+  // la página ya traída.
   //
-  // manualPagination: sin esto, paginatedRowModel (activo en
-  // appTableFeatures para las tablas que sí paginan client-side) recorta la
-  // página del servidor a su propio pageSize por defecto (10) — la tabla
-  // mostraría 10 de las 50 filas que ya llegaron, aunque el selector dijera
-  // 50. pageSize se fija al tamaño real pedido para que nunca recorte.
+  // manualPagination: sin esto, paginatedRowModel recorta la página del
+  // servidor a su pageSize por defecto (10) — se mostrarían 10 de las 50
+  // filas ya traídas aunque el selector dijera 50.
   const table = useTable({
     features: appTableFeatures,
     data,
@@ -76,23 +70,20 @@ export function DataTable({
     manualPagination: true,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
-    state: {
-      sorting,
-      columnFilters,
-      pagination: { pageIndex: 0, pageSize },
-    }
+    state: { sorting, columnFilters, pagination: { pageIndex: 0, pageSize } },
   })
 
   return (
     <>
       <div className="flex flex-col gap-2 mb-4">
-        <h1 className="text-5xl font-bold text-center">Registro de Salidas</h1>
-        <p className="text-sm italic text-muted-foreground text-center">Aquí puede ver el registro de movimientos de los articulos, así como también solicitar la salida de uno.</p>
+        <h1 className="text-5xl font-bold text-center">Salidas a Taller</h1>
+        <p className="text-sm italic text-muted-foreground text-center">
+          Seguimiento de artículos enviados a talleres externos hasta su reingreso a inventario.
+        </p>
       </div>
       <div className="flex flex-col gap-2 py-4 sm:flex-row sm:items-center">
         <div className="flex items-center gap-x-2">
-          <RegisterDispatchRequestDialog />
-          <WarehouseDispatchReportDialog/>
+          <RegisterWorkshopDispatchDialog />
         </div>
 
         <div className="relative w-full sm:ml-auto sm:w-90">
@@ -124,28 +115,20 @@ export function DataTable({
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                    </TableHead>
-                  )
-                })}
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(header.column.columnDef.header, header.getContext())}
+                  </TableHead>
+                ))}
               </TableRow>
             ))}
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
+                <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}

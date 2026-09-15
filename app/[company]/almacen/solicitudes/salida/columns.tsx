@@ -191,8 +191,8 @@ export const columns: AppColumnDef<DispatchGroupRow>[] = [
 
       if (dept) {
         return (
-          <div className="text-left leading-tight flex flex-col items-center justify-center">
-            <p className="font-medium">{dept}</p>
+          <div className="flex flex-col items-center justify-center leading-tight">
+            <p className="font-medium text-center">{dept}</p>
             <p className="text-xs text-muted-foreground">Departamento</p>
           </div>
         );

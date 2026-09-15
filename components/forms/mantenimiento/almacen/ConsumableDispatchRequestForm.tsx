@@ -561,7 +561,7 @@ export function ConsumableDispatchForm({ onClose }: FormProps) {
                                                                             {article.part_number} {article.serial ? `· ${article.serial}` : ""}
                                                                         </span>
                                                                         <span className="text-xs text-muted-foreground truncate">
-                                                                            {truncateText(article.description) || "Sin descripción"} · Disp: {article.quantity} {article.unit}
+                                                                            {truncateText(article.description) || "Sin nota"} · Disp: {article.quantity} {article.unit}
                                                                         </span>
                                                                     </div>
                                                                 </CommandItem>

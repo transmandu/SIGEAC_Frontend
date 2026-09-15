@@ -83,7 +83,21 @@ export type DispatchGroupRow = {
 
 const DispatchRequestPage = () => {
   const { selectedCompany } = useCompanyStore();
-  const { data: dispatches, isLoading: isDispatchesLoading, isError } = useGetDispatchesByLocation()
+  const {
+    data: dispatches,
+    isLoading: isDispatchesLoading,
+    isFetching: isDispatchesFetching,
+    isError,
+    search,
+    setSearch,
+    nextPage,
+    prevPage,
+    hasNextPage,
+    hasPrevPage,
+    pageIndex,
+    pageSize,
+    setPageSize,
+  } = useGetDispatchesByLocation()
 
   return (
     <ContentLayout title='Salida'>
@@ -98,8 +112,20 @@ const DispatchRequestPage = () => {
         }
         {
           dispatches && (
-            <DataTable columns={columns} data={dispatches} />
-
+            <DataTable
+              columns={columns}
+              data={dispatches}
+              search={search}
+              onSearchChange={setSearch}
+              isFetching={isDispatchesFetching}
+              onNextPage={nextPage}
+              onPrevPage={prevPage}
+              hasNextPage={hasNextPage}
+              hasPrevPage={hasPrevPage}
+              pageIndex={pageIndex}
+              pageSize={pageSize}
+              onPageSizeChange={setPageSize}
+            />
           )
         }
         {
