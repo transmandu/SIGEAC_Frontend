@@ -1,7 +1,7 @@
 "use client";
 
 import { type AppColumnDef } from "@/lib/table";
-import { Calendar, ChevronRight } from "lucide-react";
+import { Calendar } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import CertificatesDropDownActions from "@/components/dropdowns/aerolinea/sms/CertificatesDropDownActions";
@@ -39,17 +39,10 @@ const isGroup = (row: CertificatesRow): row is CertificateGroup =>
 
 const IdentityCell = ({
   emp,
-  isOpen,
 }: {
   emp: NonNullable<CertificateColumn["employee"]>;
-  isOpen: boolean;
 }) => (
   <div className="flex items-center gap-3">
-    <ChevronRight
-      className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${
-        isOpen ? "rotate-90" : ""
-      }`}
-    />
     <Avatar className="h-10 w-10 border border-blue-200 shadow-xs">
       <AvatarImage
         src={emp?.photo_url ?? ""}
@@ -86,24 +79,9 @@ export const getColumns = (
     header: "Empleado / DNI",
     cell: ({ row }) => {
       if (row.depth === 0 && isGroup(row.original)) {
-        return (
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              row.getToggleExpandedHandler()();
-            }}
-            className="flex w-full items-center text-left"
-          >
-            <IdentityCell
-              emp={row.original.employee}
-              isOpen={row.getIsExpanded()}
-            />
-          </button>
-        );
+        return <IdentityCell emp={row.original.employee} />;
       }
-      // Sub-fila de certificado: la identidad la aporta la fila de grupo.
-      return <div className="pl-8" />;
+      return null;
     },
   },
   {
