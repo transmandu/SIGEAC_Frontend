@@ -1,3 +1,7 @@
+## v4.4.0 — 2026-09-15
+
+- feat: new calendar to select year and month (#259)
+
 ## v4.3.0 — 2026-09-15
 
 - feat: add dialog to show certificates sms (#258)
