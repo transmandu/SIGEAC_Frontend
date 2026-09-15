@@ -4,8 +4,48 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { useIsOmac } from "@/hooks/sistema/useIsOmac";
 import { useGetMaintenanceControls } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceControls";
 import { computeMaintenanceItem } from "@/lib/maintenanceControlCalc";
-import { MaintenanceControl } from "@/types";
-import { CriticalAlert } from "./types";
+import { ComputedMaintenanceInterval, MaintenanceControl, MaintenanceControlItem } from "@/types";
+import { CriticalAlert, MaintenanceWarningMeta } from "./types";
+
+const STATUS_SEVERITY: Record<string, number> = { OK: 0, WARNING: 1, CRITICAL: 2, OVERDUE: 3 };
+
+/**
+ * El intervalo que causó el status del ítem: mismo criterio "el peor manda"
+ * que MaintenanceControlCalculator::worse() en el backend. Se usa para tomar
+ * el objetivo/remanente/progreso a mostrar cuando el ítem tiene más de un
+ * intervalo ("lo que ocurra primero").
+ */
+function worstInterval(intervals: ComputedMaintenanceInterval[]): ComputedMaintenanceInterval | undefined {
+  return intervals
+    .filter((interval) => interval.status !== null)
+    .reduce<ComputedMaintenanceInterval | undefined>((worst, interval) => {
+      if (!worst) return interval;
+      return (STATUS_SEVERITY[interval.status!] ?? -1) > (STATUS_SEVERITY[worst.status!] ?? -1) ? interval : worst;
+    }, undefined);
+}
+
+function buildMaintenanceWarningMeta(item: MaintenanceControlItem, aircraftAcronym: string): MaintenanceWarningMeta | undefined {
+  const intervals = item.computed?.intervals ?? [];
+  const interval = worstInterval(intervals);
+  if (!interval || interval.remaining_value === null) return undefined;
+
+  const limitValue = Number(interval.limit_value);
+  const remainingValue = interval.remaining_value;
+  const consumed = limitValue > 0 ? Math.min(Math.max((limitValue - remainingValue) / limitValue, 0), 1) : 0;
+
+  const part = item.maintenance_control_part?.aircraft_part;
+
+  return {
+    category: item.category,
+    scope: part ? "part" : "aircraft",
+    partLabel: part?.part_name,
+    unit: interval.counting_method,
+    limitValue,
+    remainingValue,
+    progress: consumed,
+    aircraftAcronym,
+  };
+}
 
 /**
  * Mismo acceso que el ítem de menú de Control de Mantenimiento (ver
@@ -21,10 +61,12 @@ const ROLES_WITH_MAINTENANCE_CONTROL_ALERT_ACCESS = [
 ];
 
 /**
- * Vencimientos de Control de Mantenimiento en estado CRÍTICO o VENCIDO. La
- * clasificación reutiliza lib/maintenanceControlCalc.ts —la misma regla que
- * dibuja el estado en el detalle del control— para que la alerta nunca
- * diverja de lo que esa pantalla ya muestra.
+ * Vencimientos de Control de Mantenimiento en estado ALERTA TEMPRANA,
+ * CRÍTICO o VENCIDO. La clasificación reutiliza lib/maintenanceControlCalc.ts
+ * —la misma regla que dibuja el estado en el detalle del control— para que la
+ * alerta nunca diverja de lo que esa pantalla ya muestra. WARNING usa su
+ * propia tarjeta (variant "maintenance-warning"); CRITICAL/OVERDUE siguen en
+ * la tarjeta genérica de stock, sin cambios de diseño.
  */
 export const useMaintenanceControlAlerts = () => {
     const { user } = useAuth();
@@ -59,9 +101,31 @@ export const useMaintenanceControlAlerts = () => {
             for (const item of control.items ?? []) {
                 const computed = computeMaintenanceItem(item);
 
-                if (computed.status !== "CRITICAL" && computed.status !== "OVERDUE") continue;
+                if (computed.status !== "CRITICAL" && computed.status !== "OVERDUE" && computed.status !== "WARNING") continue;
 
                 const partLabel = item.maintenance_control_part?.aircraft_part?.part_name;
+
+                if (computed.status === "WARNING") {
+                    result.push({
+                        id: `maintenance-control-item-${item.id}`,
+                        source: "maintenance-control-item",
+                        sourceId: item.id ?? 0,
+                        variant: "maintenance-warning",
+                        tone: "maintenance",
+                        // Por debajo de CRITICAL(90)/OVERDUE(150): es la fuente
+                        // menos urgente de mantenimiento en la lista.
+                        weight: 40,
+                        // El plazo corre igual aunque se oculte el aviso.
+                        isDismissable: false,
+                        title: item.name,
+                        label: [aircraft.acronym, partLabel].filter(Boolean).join(" · "),
+                        severity: "warning",
+                        href: companySlug ? `/${companySlug}/planificacion/control_mantenimiento/${control.id}` : undefined,
+                        hrefLabel: "Ver control de mantenimiento",
+                        maintenanceMeta: buildMaintenanceWarningMeta(item, aircraft.acronym),
+                    } satisfies CriticalAlert);
+                    continue;
+                }
 
                 result.push({
                     id: `maintenance-control-item-${item.id}`,

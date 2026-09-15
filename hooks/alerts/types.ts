@@ -14,7 +14,7 @@ export type CriticalAlertSeverity = "warning" | "critical" | "in-transit";
  * quien agrega las alertas no sabe qué significa ninguno, solo despacha.
  * Agregar una fuente con diseño propio es agregar un valor y su tarjeta.
  */
-export type CriticalAlertVariant = "stock" | "quarantine-hazard";
+export type CriticalAlertVariant = "stock" | "quarantine-hazard" | "maintenance-warning";
 
 /**
  * Vocabulario con el que el botón y el encabezado describen esta alerta. Los
@@ -34,6 +34,28 @@ export type QuarantineHazardMeta = {
     daysElapsed: number;
     legalDays: number;
     remaining: number | null;
+};
+
+/**
+ * A qué nivel del avión cuelga el ítem en alerta temprana: la aeronave como
+ * conjunto, o una parte instalada (motor/hélice/APU/turbina) con sus propias
+ * horas/ciclos. Gobierna el badge de "dónde" en la tarjeta.
+ */
+export type MaintenanceWarningScope = "aircraft" | "part";
+
+/** Presente solo en la variante `maintenance-warning`; datos para el badge de tipo, el objetivo y la barra de progreso. */
+export type MaintenanceWarningMeta = {
+    category: "CERTIFICATE" | "SERVICE";
+    scope: MaintenanceWarningScope;
+    partLabel?: string;
+    unit: "HOURS" | "CYCLES" | "DAYS";
+    /** Valor objetivo del intervalo que causó la alerta (el límite configurado). */
+    limitValue: number;
+    /** Remanente hasta ese objetivo, en la misma unidad. */
+    remainingValue: number;
+    /** 0 a 1, para la barra: cuánto del intervalo ya se consumió. */
+    progress: number;
+    aircraftAcronym: string;
 };
 
 export type CriticalAlert = {
@@ -64,6 +86,8 @@ export type CriticalAlert = {
     countsAsPending?: boolean;
     /** Presente solo en la variante de cuarentena; gobierna color y barra. */
     hazard?: QuarantineHazardMeta;
+    /** Presente solo en la variante `maintenance-warning`; gobierna el badge de tipo, objetivo y progreso. */
+    maintenanceMeta?: MaintenanceWarningMeta;
     title: string;
     /**
      * Sujeto concreto de la alerta (ej. la identidad del artículo), separado

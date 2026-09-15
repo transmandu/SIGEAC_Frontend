@@ -10,6 +10,7 @@ import { disintegrate } from "@/lib/disintegrate";
 import { Button } from "@/components/ui/button";
 import { CriticalAlert, alertVariant, isAlertDismissable } from "@/hooks/alerts/types";
 import { QuarantineHazardCard } from "./QuarantineHazardCard";
+import { MaintenanceWarningCard } from "./MaintenanceWarningCard";
 
 /**
  * Despacha cada alerta a la tarjeta de su variante. No conoce el diseño de
@@ -29,6 +30,10 @@ export function CriticalAlertCard({
 }) {
   if (alertVariant(alert) === "quarantine-hazard") {
     return <QuarantineHazardCard alert={alert} />;
+  }
+
+  if (alertVariant(alert) === "maintenance-warning") {
+    return <MaintenanceWarningCard alert={alert} />;
   }
 
   return <StockAlertCard alert={alert} onConfirm={onConfirm} onDismiss={onDismiss} isConfirming={isConfirming} />;
