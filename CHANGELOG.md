@@ -1,3 +1,9 @@
+## v4.6.6 — 2026-09-15
+
+- Merge pull request #267 from transmandu/fix/visual-menu-fallos
+- fix: standardize CSS syntax and improve formatting across sidebar components
+- fix: adjust sidebar and menu styles for improved layout and performance
+
 ## v4.6.5 — 2026-09-15
 
 - fix: show inactive employee in sms activities (#266)
