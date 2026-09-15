@@ -1,3 +1,7 @@
+## v4.6.0 — 2026-09-15
+
+- feat: the input date in couse form with option to select year and month (#261)
+
 ## v4.5.0 — 2026-09-15
 
 - feat: add qr code for sms hangar74 (#260)
