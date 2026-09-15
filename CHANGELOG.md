@@ -1,3 +1,7 @@
+## v4.5.0 — 2026-09-15
+
+- feat: add qr code for sms hangar74 (#260)
+
 ## v4.4.0 — 2026-09-15
 
 - feat: new calendar to select year and month (#259)
