@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
 import {
@@ -156,7 +156,8 @@ export default function MoveDocumentsDialog({
   }, [open, selectedDeptId, onLoadFolders]);
 
   const deptGroup = useMemo(
-    () => (selectedDeptId ? findGroup(departmentFolders, selectedDeptId) : null),
+    () =>
+      selectedDeptId ? findGroup(departmentFolders, selectedDeptId) : null,
     [departmentFolders, selectedDeptId],
   );
 
@@ -203,7 +204,8 @@ export default function MoveDocumentsDialog({
             Mover documentos
           </DialogTitle>
           <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 mt-1">
-            {documentIds.length} documento{documentIds.length === 1 ? "" : "s"} seleccionado{documentIds.length === 1 ? "" : "s"}
+            {documentIds.length} documento{documentIds.length === 1 ? "" : "s"}{" "}
+            seleccionado{documentIds.length === 1 ? "" : "s"}
           </p>
         </div>
 
@@ -212,7 +214,8 @@ export default function MoveDocumentsDialog({
           {departments.length > 1 && (
             <div className="space-y-1.5">
               <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-gray-400 flex items-center gap-2">
-                <Building2 className="h-3.5 w-3.5 text-blue-500" /> Departamento destino
+                <Building2 className="h-3.5 w-3.5 text-blue-500" /> Departamento
+                destino
               </label>
               <div className="relative">
                 <select
@@ -234,7 +237,8 @@ export default function MoveDocumentsDialog({
           {/* Carpeta destino */}
           <div className="space-y-1.5">
             <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-gray-400 flex items-center gap-2">
-              <FolderTreeIcon className="h-3.5 w-3.5 text-blue-500" /> Carpeta destino
+              <FolderTreeIcon className="h-3.5 w-3.5 text-blue-500" /> Carpeta
+              destino
             </label>
 
             <div className="border border-slate-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 max-h-[320px] overflow-y-auto p-2 space-y-0.5 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-200 dark:[&::-webkit-scrollbar-thumb]:bg-slate-700 [&::-webkit-scrollbar-thumb]:rounded-full">

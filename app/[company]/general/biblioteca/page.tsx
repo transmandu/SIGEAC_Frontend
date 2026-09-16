@@ -481,10 +481,7 @@ const BibliotecaPage = () => {
       setSelectedFolderPath(folderPath);
       setSelectedDocumentIds([]);
 
-      await Promise.all([
-        fetchDocs(),
-        handleFolderRefresh(departmentId),
-      ]);
+      await Promise.all([fetchDocs(), handleFolderRefresh(departmentId)]);
     } catch (error: any) {
       toast.error(
         error.response?.data?.message || "Error al mover el documento",
@@ -529,10 +526,7 @@ const BibliotecaPage = () => {
       // Se refrescan las carpetas de todos los departamentos ya cargados (el
       // destino y los de origen) y los documentos, para que el cambio del
       // grupo por departamento y por carpeta se refleje de inmediato.
-      await Promise.all([
-        fetchDocs(),
-        refreshAllLoadedFolders(),
-      ]);
+      await Promise.all([fetchDocs(), refreshAllLoadedFolders()]);
 
       if (target) {
         setSelectedDeptName(target.name);
@@ -911,7 +905,8 @@ const BibliotecaPage = () => {
                     <div className="mb-4 flex items-center gap-3 rounded-xl border border-blue-200 dark:border-blue-500/30 bg-blue-50 dark:bg-blue-900/20 px-4 py-2.5 animate-in fade-in slide-in-from-top-2 duration-200">
                       <span className="text-[10px] font-black uppercase tracking-widest text-blue-700 dark:text-blue-300">
                         {selectedDocumentIds.length} documento
-                        {selectedDocumentIds.length === 1 ? "" : "s"} seleccionado
+                        {selectedDocumentIds.length === 1 ? "" : "s"}{" "}
+                        seleccionado
                         {selectedDocumentIds.length === 1 ? "" : "s"}
                       </span>
                       <Button

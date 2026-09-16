@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useMemo } from 'react';
-import { FolderOpen } from 'lucide-react';
+import { useMemo } from "react";
+import { FolderOpen } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
-import DocumentRow from './documentRow';
-import { Document } from '@/lib/libraryService';
+import DocumentRow from "./documentRow";
+import { Document } from "@/lib/libraryService";
 
 interface DocumentTableProps {
   company: string;
@@ -77,15 +77,15 @@ export default function DocumentTable({
       {selectionEnabled && (
         <div className="flex items-center gap-4 p-3 pl-4 border-b border-slate-200 dark:border-slate-800">
           <Checkbox
-            checked={someSelected ? 'indeterminate' : allSelected}
+            checked={someSelected ? "indeterminate" : allSelected}
             onCheckedChange={handleToggleAll}
             aria-label="Seleccionar todos"
             className="border-slate-300 dark:border-slate-600 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
           />
           <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">
             {selectedIds.length > 0
-              ? `${selectedIds.length} seleccionado${selectedIds.length === 1 ? '' : 's'}`
-              : `${documents.length} documento${documents.length === 1 ? '' : 's'}`}
+              ? `${selectedIds.length} seleccionado${selectedIds.length === 1 ? "" : "s"}`
+              : `${documents.length} documento${documents.length === 1 ? "" : "s"}`}
           </span>
           <span className="flex-1 text-right text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">
             Seleccionar todos
