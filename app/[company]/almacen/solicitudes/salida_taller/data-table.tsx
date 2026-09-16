@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import {
   ColumnFiltersState,
@@ -8,10 +8,10 @@ import {
 } from "@tanstack/react-table";
 import { appTableFeatures, type AppColumnDef } from "@/lib/table";
 
-import { RegisterWorkshopDispatchDialog } from "@/components/dialogs/mantenimiento/almacen/RegisterWorkshopDispatchDialog"
-import { CursorPagination } from "@/components/tables/CursorPagination"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { RegisterWorkshopDispatchDialog } from "@/components/dialogs/mantenimiento/almacen/RegisterWorkshopDispatchDialog";
+import { CursorPagination } from "@/components/tables/CursorPagination";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -19,29 +19,29 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import { Loader2, Search, X } from "lucide-react"
-import { useState } from "react"
-import type { WorkshopDispatch } from "@/hooks/mantenimiento/almacen/salida_taller/useGetWorkshopDispatches"
+} from "@/components/ui/table";
+import { Loader2, Search, X } from "lucide-react";
+import { useState } from "react";
+import type { WorkshopDispatch } from "@/hooks/mantenimiento/almacen/salida_taller/useGetWorkshopDispatches";
 
 interface DataTableProps {
-  columns: AppColumnDef<WorkshopDispatch>[]
-  data: WorkshopDispatch[]
-  search: string
-  onSearchChange: (value: string) => void
-  isFetching?: boolean
+  columns: AppColumnDef<WorkshopDispatch>[];
+  data: WorkshopDispatch[];
+  search: string;
+  onSearchChange: (value: string) => void;
+  isFetching?: boolean;
   /** Primera carga: el shell (cabecera, buscador, acciones) se mantiene y solo el cuerpo de la tabla muestra el estado de carga. */
-  isLoading?: boolean
+  isLoading?: boolean;
   /** El fallo también se muestra dentro del cuerpo: el buscador sigue en pantalla para corregir la consulta. */
-  isError?: boolean
-  onRetry?: () => void
-  onNextPage: () => void
-  onPrevPage: () => void
-  hasNextPage: boolean
-  hasPrevPage: boolean
-  pageIndex: number
-  pageSize: number
-  onPageSizeChange: (size: number) => void
+  isError?: boolean;
+  onRetry?: () => void;
+  onNextPage: () => void;
+  onPrevPage: () => void;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+  pageIndex: number;
+  pageSize: number;
+  onPageSizeChange: (size: number) => void;
 }
 
 export function DataTable({
@@ -61,8 +61,8 @@ export function DataTable({
   pageSize,
   onPageSizeChange,
 }: DataTableProps) {
-  const [sorting, setSorting] = useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
   // La búsqueda y la paginación corren en el servidor (ver
   // useGetWorkshopDispatches): la tabla solo ordena/filtra por columna sobre
@@ -79,14 +79,15 @@ export function DataTable({
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     state: { sorting, columnFilters, pagination: { pageIndex: 0, pageSize } },
-  })
+  });
 
   return (
     <>
       <div className="flex flex-col gap-2 mb-4">
         <h1 className="text-5xl font-bold text-center">Salidas a Taller</h1>
         <p className="text-sm italic text-muted-foreground text-center">
-          Seguimiento de artículos enviados a talleres externos hasta su reingreso a inventario.
+          Seguimiento de artículos enviados a talleres externos hasta su
+          reingreso a inventario.
         </p>
       </div>
       <div className="flex flex-col gap-2 py-4 sm:flex-row sm:items-center">
@@ -127,7 +128,10 @@ export function DataTable({
                   <TableHead key={header.id}>
                     {header.isPlaceholder
                       ? null
-                      : flexRender(header.column.columnDef.header, header.getContext())}
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
                   </TableHead>
                 ))}
               </TableRow>
@@ -136,7 +140,10 @@ export function DataTable({
           <TableBody>
             {isLoading ? (
               <TableRow className="hover:bg-transparent">
-                <TableCell colSpan={columns.length} className="h-24 text-center text-muted-foreground">
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center text-muted-foreground"
+                >
                   <span className="inline-flex items-center gap-x-2">
                     <Loader2 className="h-4 w-4 animate-spin" />
                     Cargando salidas a taller...
@@ -145,13 +152,21 @@ export function DataTable({
               </TableRow>
             ) : isError ? (
               <TableRow className="hover:bg-transparent">
-                <TableCell colSpan={columns.length} className="h-24 text-center">
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
                   <div className="flex flex-col items-center gap-y-2">
                     <span className="text-sm text-muted-foreground">
                       Ha ocurrido un error al cargar las salidas a taller.
                     </span>
                     {onRetry && (
-                      <Button type="button" variant="outline" size="sm" onClick={onRetry}>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={onRetry}
+                      >
                         Reintentar
                       </Button>
                     )}
@@ -160,17 +175,26 @@ export function DataTable({
               </TableRow>
             ) : table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && "selected"}
+                >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center text-muted-foreground">
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center text-muted-foreground"
+                >
                   No se ha encontrado ningún resultado...
                 </TableCell>
               </TableRow>
@@ -188,5 +212,5 @@ export function DataTable({
         onPageSizeChange={onPageSizeChange}
       />
     </>
-  )
+  );
 }

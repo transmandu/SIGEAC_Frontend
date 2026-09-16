@@ -105,8 +105,12 @@ export const useRegisterWorkshopDispatchEvent = () => {
       return data;
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["workshop-dispatches", variables.company] });
-      queryClient.invalidateQueries({ queryKey: ["workshop-dispatch", variables.company, variables.id] });
+      queryClient.invalidateQueries({
+        queryKey: ["workshop-dispatches", variables.company],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["workshop-dispatch", variables.company, variables.id],
+      });
 
       toast.success("¡Suceso registrado!", {
         description: "El evento fue agregado al storyline de la salida.",
@@ -156,8 +160,12 @@ export const useCloseWorkshopDispatch = () => {
       return response;
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["workshop-dispatches", variables.company] });
-      queryClient.invalidateQueries({ queryKey: ["workshop-dispatch", variables.company, variables.id] });
+      queryClient.invalidateQueries({
+        queryKey: ["workshop-dispatches", variables.company],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["workshop-dispatch", variables.company, variables.id],
+      });
       queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
       queryClient.invalidateQueries({ queryKey: ["general-articles"] });
 

@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { CommandGroup } from "@/components/ui/command"
+import * as React from "react";
+import { CommandGroup } from "@/components/ui/command";
 
 /**
  * Agrupa por lote, con encabezado siempre visible.
@@ -11,11 +11,11 @@ import { CommandGroup } from "@/components/ui/command"
  * distintos sin forma de saber a cuál pertenece cada uno.
  */
 export function SearchAwareGroup({
-    heading,
-    children,
+  heading,
+  children,
 }: {
-    heading: string
-    children: React.ReactNode
+  heading: string;
+  children: React.ReactNode;
 }) {
-    return <CommandGroup heading={heading}>{children}</CommandGroup>
+  return <CommandGroup heading={heading}>{children}</CommandGroup>;
 }

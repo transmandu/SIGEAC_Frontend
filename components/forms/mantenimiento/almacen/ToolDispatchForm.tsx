@@ -32,7 +32,11 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
 import { BackdatedDispatchField } from "./_components/BackdatedDispatchField";
 import {
@@ -43,37 +47,39 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const FormSchema = z.object({
-  requested_by: z.string(),
-  // La salida se registra el día en que ocurre: la fecha la pone el backend.
-  // Sólo el registro extemporáneo la trae, y sólo si el rol lo habilita.
-  is_backdated: z.boolean().default(false),
-  submission_date: z.date().optional(),
-  articles: z.array(
-    z.object({
-      article_id: z.coerce.number(),
-      serial: z.string().nullable(),
-      quantity: z.number(),
-      batch_id: z.number(),
+const FormSchema = z
+  .object({
+    requested_by: z.string(),
+    // La salida se registra el día en que ocurre: la fecha la pone el backend.
+    // Sólo el registro extemporáneo la trae, y sólo si el rol lo habilita.
+    is_backdated: z.boolean().default(false),
+    submission_date: z.date().optional(),
+    articles: z.array(
+      z.object({
+        article_id: z.coerce.number(),
+        serial: z.string().nullable(),
+        quantity: z.number(),
+        batch_id: z.number(),
+      }),
+      {
+        message: "Debe seleccionar el (los) articulos que se van a despachar.",
+      },
+    ),
+    justification: z.string({
+      message: "Debe ingresar una justificación de la salida.",
     }),
-    {
-      message: "Debe seleccionar el (los) articulos que se van a despachar.",
+    department_id: z.string(),
+    status: z.string(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.is_backdated && !data.submission_date) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Debe indicar la fecha real de la salida.",
+        path: ["submission_date"],
+      });
     }
-  ),
-  justification: z.string({
-    message: "Debe ingresar una justificación de la salida.",
-  }),
-  department_id: z.string(),
-  status: z.string(),
-}).superRefine((data, ctx) => {
-  if (data.is_backdated && !data.submission_date) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "Debe indicar la fecha real de la salida.",
-      path: ["submission_date"],
-    });
-  }
-});
+  });
 
 type FormSchemaType = z.infer<typeof FormSchema>;
 
@@ -129,9 +135,8 @@ export function ToolDispatchForm({ onClose }: FormProps) {
     acronym: "MANP",
   });
 
-  const { data: aircrafts, isLoading: isAircraftsLoading } = useGetMaintenanceAircrafts(
-    selectedCompany?.slug
-  );
+  const { data: aircrafts, isLoading: isAircraftsLoading } =
+    useGetMaintenanceAircrafts(selectedCompany?.slug);
 
   // useEffect(() => {
   //   if (selectedStation) {
@@ -167,7 +172,7 @@ export function ToolDispatchForm({ onClose }: FormProps) {
   const { setValue } = form;
 
   const canBackdate = (user?.roles ?? []).some((role) =>
-    BACKDATE_ROLES.includes(role.name.toUpperCase())
+    BACKDATE_ROLES.includes(role.name.toUpperCase()),
   );
 
   const onSubmit = async (data: FormSchemaType) => {
@@ -175,13 +180,16 @@ export function ToolDispatchForm({ onClose }: FormProps) {
     // Sin registro extemporáneo no se manda fecha: el backend la sella con el
     // momento real de creación. La bandera viaja aparte para que allá se vuelva
     // a verificar el rol en vez de confiar en que llegue o no la fecha.
-    const isBackdated = canBackdate && data.is_backdated && !!data.submission_date;
+    const isBackdated =
+      canBackdate && data.is_backdated && !!data.submission_date;
     const formattedData = {
       ...rest,
       aeronautical_articles: articles,
       created_by: `${user?.employee[0].dni}`,
       is_backdated: isBackdated,
-      submission_date: isBackdated ? format(data.submission_date!, "yyyy-MM-dd") : undefined,
+      submission_date: isBackdated
+        ? format(data.submission_date!, "yyyy-MM-dd")
+        : undefined,
       category: "herramienta",
       user_id: Number(user!.id),
       isDepartment: isDepartment,
@@ -197,7 +205,7 @@ export function ToolDispatchForm({ onClose }: FormProps) {
   const handleArticleSelect = (
     id: number,
     serial: string | null,
-    batch_id: number
+    batch_id: number,
   ) => {
     setValue("articles", [
       {
@@ -264,9 +272,9 @@ export function ToolDispatchForm({ onClose }: FormProps) {
                       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                   </PopoverTrigger>
-                    <PopoverContent className="p-0" matchTriggerWidth>
-                      <Command>
-                        <CommandInput placeholder="Buscar una herramienta" />
+                  <PopoverContent className="p-0" matchTriggerWidth>
+                    <Command>
+                      <CommandInput placeholder="Buscar una herramienta" />
                       <CommandList>
                         <CommandEmpty className="flex justify-center">
                           {isBatchesLoading ? (
@@ -288,7 +296,8 @@ export function ToolDispatchForm({ onClose }: FormProps) {
                           >
                             {batch.articles.map((article) => {
                               const isInUse = article.status === "InUse";
-                              const isExpired = article.tool_status === "EXPIRED";
+                              const isExpired =
+                                article.tool_status === "EXPIRED";
                               return (
                                 <CommandItem
                                   disabled={isInUse || isExpired}
@@ -298,7 +307,7 @@ export function ToolDispatchForm({ onClose }: FormProps) {
                                     handleArticleSelect(
                                       article.id!,
                                       article.serial ? article.serial : null,
-                                      batch.batch_id
+                                      batch.batch_id,
                                     );
                                     setArticleSelected(article);
                                   }}
@@ -308,17 +317,19 @@ export function ToolDispatchForm({ onClose }: FormProps) {
                                       "mr-2 h-4 w-4",
                                       articleSelected?.id === article.id
                                         ? "opacity-100"
-                                        : "opacity-0"
+                                        : "opacity-0",
                                     )}
                                   />
                                   <p className="min-w-0 truncate font-medium">
                                     <span className="text-muted-foreground">
                                       SN:{" "}
                                     </span>
-                                    {article.serial}{" "}
-                                    {isInUse && "- En uso"}
+                                    {article.serial} {isInUse && "- En uso"}
                                     {isExpired && (
-                                      <span className="text-destructive"> - Vencida</span>
+                                      <span className="text-destructive">
+                                        {" "}
+                                        - Vencida
+                                      </span>
                                     )}
                                   </p>
                                 </CommandItem>
@@ -358,11 +369,13 @@ export function ToolDispatchForm({ onClose }: FormProps) {
                         <Loader2 className="size-4 animate-spin text-muted-foreground" />
                       </div>
                     )}
-                    {!isAircraftsLoading && aircrafts && aircrafts.length === 0 && (
-                      <div className="py-4 text-center text-sm text-muted-foreground">
-                        No hay aeronaves disponibles
-                      </div>
-                    )}
+                    {!isAircraftsLoading &&
+                      aircrafts &&
+                      aircrafts.length === 0 && (
+                        <div className="py-4 text-center text-sm text-muted-foreground">
+                          No hay aeronaves disponibles
+                        </div>
+                      )}
                     {aircrafts &&
                       aircrafts.map((aircraft) => (
                         <SelectItem

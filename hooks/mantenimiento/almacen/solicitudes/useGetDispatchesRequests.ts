@@ -126,7 +126,9 @@ export const useGetDispatchesByLocation = () => {
       }
     },
     prevPage: () => {
-      setCursorStack((stack) => (stack.length > 1 ? stack.slice(0, -1) : stack));
+      setCursorStack((stack) =>
+        stack.length > 1 ? stack.slice(0, -1) : stack,
+      );
     },
     search,
     setSearch: (value: string) => {

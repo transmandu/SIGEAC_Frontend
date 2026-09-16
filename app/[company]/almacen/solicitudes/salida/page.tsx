@@ -1,19 +1,18 @@
-'use client'
+"use client";
 
-import { columns } from '@/app/[company]/almacen/solicitudes/salida/columns'
-import { ContentLayout } from '@/components/layout/ContentLayout'
+import { columns } from "@/app/[company]/almacen/solicitudes/salida/columns";
+import { ContentLayout } from "@/components/layout/ContentLayout";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { useGetDispatchesByLocation } from '@/hooks/mantenimiento/almacen/solicitudes/useGetDispatchesRequests'
-import { useCompanyStore } from '@/stores/CompanyStore'
-import { Department, MaintenanceAircraft } from '@/types'
-import { DataTable } from './data-table'
+} from "@/components/ui/dropdown-menu";
+import { useGetDispatchesByLocation } from "@/hooks/mantenimiento/almacen/solicitudes/useGetDispatchesRequests";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { Department, MaintenanceAircraft } from "@/types";
+import { DataTable } from "./data-table";
 import { PageHeader } from "@/components/layout/PageHeader";
-
 
 export type DispatchArticle = {
   id: number | null;
@@ -59,14 +58,14 @@ export type DispatchGroupRow = {
   status: string;
   requested_by: string;
   created_by: string;
-  aircraft?: MaintenanceAircraft
+  aircraft?: MaintenanceAircraft;
   justification: string | null;
   department?: Department;
   submission_date: string | null;
   authorized_employee?: {
     full_name: string;
     from_company_db: string;
-  }
+  };
   work_order?: string;
   articles: DispatchArticle[];
   /**
@@ -97,11 +96,11 @@ const DispatchRequestPage = () => {
     pageIndex,
     pageSize,
     setPageSize,
-  } = useGetDispatchesByLocation()
+  } = useGetDispatchesByLocation();
 
   return (
-    <ContentLayout title='Salida'>
-      <div className='flex flex-col gap-y-2'>
+    <ContentLayout title="Salida">
+      <div className="flex flex-col gap-y-2">
         <PageHeader className="mb-4" />
         {/* La tabla se monta siempre: la carga de datos se muestra dentro del
             cuerpo, para que el buscador y las acciones no se desmonten en cada
@@ -125,7 +124,7 @@ const DispatchRequestPage = () => {
         />
       </div>
     </ContentLayout>
-  )
-}
+  );
+};
 
-export default DispatchRequestPage
+export default DispatchRequestPage;

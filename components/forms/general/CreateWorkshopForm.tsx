@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import {
   Form,
@@ -7,34 +7,36 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Separator } from "@/components/ui/separator"
-import { Button } from "@/components/ui/button"
-import { zodResolver } from "@/lib/zod-resolver"
-import { Loader2 } from "lucide-react"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
-import { useCreateWorkshop } from "@/actions/general/talleres/actions"
-import { useCompanyStore } from "@/stores/CompanyStore"
-import type { Workshop } from "@/types"
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
+import { zodResolver } from "@/lib/zod-resolver";
+import { Loader2 } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { useCreateWorkshop } from "@/actions/general/talleres/actions";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import type { Workshop } from "@/types";
 
 const FormSchema = z.object({
-  name: z.string().min(3, { message: "El nombre debe tener al menos 3 caracteres." }),
+  name: z
+    .string()
+    .min(3, { message: "El nombre debe tener al menos 3 caracteres." }),
   rif: z.string().optional(),
   address: z.string().optional(),
   phone: z.string().optional(),
   contact_name: z.string().optional(),
-})
+});
 
 interface FormProps {
-  onClose: () => void
-  onSuccess?: (workshop: Workshop) => void
+  onClose: () => void;
+  onSuccess?: (workshop: Workshop) => void;
 }
 
 export function CreateWorkshopForm({ onClose, onSuccess }: FormProps) {
-  const { selectedCompany } = useCompanyStore()
-  const { createWorkshop } = useCreateWorkshop()
+  const { selectedCompany } = useCompanyStore();
+  const { createWorkshop } = useCreateWorkshop();
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -45,27 +47,27 @@ export function CreateWorkshopForm({ onClose, onSuccess }: FormProps) {
       phone: "",
       contact_name: "",
     },
-  })
+  });
 
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
     try {
       const result = await createWorkshop.mutateAsync({
         company: selectedCompany?.slug,
         data,
-      })
-      if (onSuccess && result) onSuccess(result)
-      onClose()
+      });
+      if (onSuccess && result) onSuccess(result);
+      onClose();
     } catch (error) {
-      console.log(error)
+      console.log(error);
     }
-  }
+  };
 
   return (
     <Form {...form}>
       <form
         onSubmit={(e) => {
-          e.stopPropagation()
-          form.handleSubmit(onSubmit)(e)
+          e.stopPropagation();
+          form.handleSubmit(onSubmit)(e);
         }}
         className="flex flex-col space-y-3"
       >
@@ -144,9 +146,13 @@ export function CreateWorkshopForm({ onClose, onSuccess }: FormProps) {
           disabled={createWorkshop?.isPending}
           type="submit"
         >
-          {createWorkshop?.isPending ? <Loader2 className="size-4 animate-spin" /> : <p>Crear</p>}
+          {createWorkshop?.isPending ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <p>Crear</p>
+          )}
         </Button>
       </form>
     </Form>
-  )
+  );
 }

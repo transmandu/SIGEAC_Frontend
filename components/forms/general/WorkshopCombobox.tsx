@@ -12,7 +12,11 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import type { Workshop } from "@/types";
 
 interface WorkshopComboboxProps {
@@ -58,7 +62,7 @@ export function WorkshopCombobox({
             "h-10 w-full min-w-0 justify-between font-normal",
             !selected && "text-muted-foreground",
             invalid && "border-destructive/60 ring-1 ring-destructive/30",
-            triggerClassName
+            triggerClassName,
           )}
         >
           <span className="min-w-0 truncate">
@@ -93,7 +97,9 @@ export function WorkshopCombobox({
                   <Check
                     className={cn(
                       "mr-2 size-4 shrink-0",
-                      workshop.id.toString() === value ? "opacity-100" : "opacity-0"
+                      workshop.id.toString() === value
+                        ? "opacity-100"
+                        : "opacity-0",
                     )}
                   />
                   <span className="min-w-0 truncate">{workshop.name}</span>

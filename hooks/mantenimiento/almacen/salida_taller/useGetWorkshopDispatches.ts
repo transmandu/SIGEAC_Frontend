@@ -19,7 +19,13 @@ export type WorkshopDispatchArticle = {
   general_article_id: number | null;
   quantity: number;
   status: "DISPATCHED" | "PARTIALLY_RETURNED" | "RETURNED";
-  article?: { id: number; part_number?: string; serial?: string; description?: string; batch?: { id: number; name?: string } };
+  article?: {
+    id: number;
+    part_number?: string;
+    serial?: string;
+    description?: string;
+    batch?: { id: number; name?: string };
+  };
   general_article?: { id: number; description?: string };
 };
 
@@ -91,11 +97,24 @@ export const useGetWorkshopDispatches = () => {
   const resetPaging = () => setCursorStack([null]);
 
   const query = useQuery<CursorPage>({
-    queryKey: ["workshop-dispatches", selectedCompany?.slug, selectedStation, cursor, debouncedSearch, pageSize],
+    queryKey: [
+      "workshop-dispatches",
+      selectedCompany?.slug,
+      selectedStation,
+      cursor,
+      debouncedSearch,
+      pageSize,
+    ],
     queryFn: async () => {
       const { data } = await axiosInstance.get(
         `/${selectedCompany?.slug}/${selectedStation}/workshop-dispatch-order`,
-        { params: { cursor: cursor ?? undefined, search: debouncedSearch || undefined, per_page: pageSize } },
+        {
+          params: {
+            cursor: cursor ?? undefined,
+            search: debouncedSearch || undefined,
+            per_page: pageSize,
+          },
+        },
       );
       return data;
     },
@@ -115,7 +134,9 @@ export const useGetWorkshopDispatches = () => {
       }
     },
     prevPage: () => {
-      setCursorStack((stack) => (stack.length > 1 ? stack.slice(0, -1) : stack));
+      setCursorStack((stack) =>
+        stack.length > 1 ? stack.slice(0, -1) : stack,
+      );
     },
     pageSize,
     setPageSize: (value: number) => {

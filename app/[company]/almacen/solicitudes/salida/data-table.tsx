@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import {
   ColumnFiltersState,
@@ -8,10 +8,10 @@ import {
 } from "@tanstack/react-table";
 import { appTableFeatures, type AppColumnDef } from "@/lib/table";
 
-import { RegisterDispatchRequestDialog } from "@/components/dialogs/mantenimiento/almacen/RegisterDispatchRequestDialog"
-import { CursorPagination } from "@/components/tables/CursorPagination"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { RegisterDispatchRequestDialog } from "@/components/dialogs/mantenimiento/almacen/RegisterDispatchRequestDialog";
+import { CursorPagination } from "@/components/tables/CursorPagination";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -19,30 +19,30 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import { Loader2, Search, X } from "lucide-react"
-import { useState } from "react"
-import { WarehouseDispatchReportDialog } from "@/components/dialogs/mantenimiento/almacen/WarehouseDispatchReportDialog"
-import type { DispatchGroupRow } from "./page"
+} from "@/components/ui/table";
+import { Loader2, Search, X } from "lucide-react";
+import { useState } from "react";
+import { WarehouseDispatchReportDialog } from "@/components/dialogs/mantenimiento/almacen/WarehouseDispatchReportDialog";
+import type { DispatchGroupRow } from "./page";
 
 interface DataTableProps {
-  columns: AppColumnDef<DispatchGroupRow>[]
-  data: DispatchGroupRow[]
-  search: string
-  onSearchChange: (value: string) => void
-  isFetching?: boolean
+  columns: AppColumnDef<DispatchGroupRow>[];
+  data: DispatchGroupRow[];
+  search: string;
+  onSearchChange: (value: string) => void;
+  isFetching?: boolean;
   /** Primera carga: el shell (cabecera, buscador, acciones) se mantiene y solo el cuerpo de la tabla muestra el estado de carga. */
-  isLoading?: boolean
+  isLoading?: boolean;
   /** El fallo también se muestra dentro del cuerpo: el buscador sigue en pantalla para corregir la consulta. */
-  isError?: boolean
-  onRetry?: () => void
-  onNextPage: () => void
-  onPrevPage: () => void
-  hasNextPage: boolean
-  hasPrevPage: boolean
-  pageIndex: number
-  pageSize: number
-  onPageSizeChange: (size: number) => void
+  isError?: boolean;
+  onRetry?: () => void;
+  onNextPage: () => void;
+  onPrevPage: () => void;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+  pageIndex: number;
+  pageSize: number;
+  onPageSizeChange: (size: number) => void;
 }
 
 export function DataTable({
@@ -62,11 +62,8 @@ export function DataTable({
   pageSize,
   onPageSizeChange,
 }: DataTableProps) {
-
-  const [sorting, setSorting] = useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(
-    []
-  )
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
   // La búsqueda y la paginación corren en el servidor (ver
   // useGetDispatchesByLocation): la tabla solo ordena/filtra por columna
@@ -88,19 +85,22 @@ export function DataTable({
       sorting,
       columnFilters,
       pagination: { pageIndex: 0, pageSize },
-    }
-  })
+    },
+  });
 
   return (
     <>
       <div className="flex flex-col gap-2 mb-4">
         <h1 className="text-5xl font-bold text-center">Registro de Salidas</h1>
-        <p className="text-sm italic text-muted-foreground text-center">Aquí puede ver el registro de movimientos de los articulos, así como también solicitar la salida de uno.</p>
+        <p className="text-sm italic text-muted-foreground text-center">
+          Aquí puede ver el registro de movimientos de los articulos, así como
+          también solicitar la salida de uno.
+        </p>
       </div>
       <div className="flex flex-col gap-2 py-4 sm:flex-row sm:items-center">
         <div className="flex items-center gap-x-2">
           <RegisterDispatchRequestDialog />
-          <WarehouseDispatchReportDialog/>
+          <WarehouseDispatchReportDialog />
         </div>
 
         <div className="relative w-full sm:ml-auto sm:w-90">
@@ -138,11 +138,11 @@ export function DataTable({
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
                     </TableHead>
-                  )
+                  );
                 })}
               </TableRow>
             ))}
@@ -150,7 +150,10 @@ export function DataTable({
           <TableBody>
             {isLoading ? (
               <TableRow className="hover:bg-transparent">
-                <TableCell colSpan={columns.length} className="h-24 text-center text-muted-foreground">
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center text-muted-foreground"
+                >
                   <span className="inline-flex items-center gap-x-2">
                     <Loader2 className="h-4 w-4 animate-spin" />
                     Cargando salidas...
@@ -159,13 +162,21 @@ export function DataTable({
               </TableRow>
             ) : isError ? (
               <TableRow className="hover:bg-transparent">
-                <TableCell colSpan={columns.length} className="h-24 text-center">
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
                   <div className="flex flex-col items-center gap-y-2">
                     <span className="text-sm text-muted-foreground">
                       Ha ocurrido un error al cargar las salidas.
                     </span>
                     {onRetry && (
-                      <Button type="button" variant="outline" size="sm" onClick={onRetry}>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={onRetry}
+                      >
                         Reintentar
                       </Button>
                     )}
@@ -180,14 +191,20 @@ export function DataTable({
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center text-muted-foreground">
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center text-muted-foreground"
+                >
                   No se ha encontrado ningún resultado...
                 </TableCell>
               </TableRow>
@@ -205,5 +222,5 @@ export function DataTable({
         onPageSizeChange={onPageSizeChange}
       />
     </>
-  )
+  );
 }

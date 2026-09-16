@@ -3,21 +3,21 @@ import {
   ChevronLast,
   ChevronLeft,
   ChevronRight,
-} from "lucide-react"
+} from "lucide-react";
 
 import { type RowData } from "@tanstack/react-table";
 import { type AppTable } from "@/lib/table";
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from "@/components/ui/select";
 
 interface DataTablePaginationProps<TData extends RowData> {
-  table: AppTable<TData>
+  table: AppTable<TData>;
 }
 
 export function DataTablePagination<TData extends RowData>({
@@ -31,11 +31,9 @@ export function DataTablePagination<TData extends RowData>({
         bg-transparent
       "
     >
-
       <div className="flex-1 text-sm text-muted-foreground" />
 
       <div className="flex items-center space-x-6 lg:space-x-8">
-
         {/* PAGE SIZE */}
         <div className="flex items-center space-x-2">
           <p className="text-xs font-medium text-muted-foreground">
@@ -86,7 +84,6 @@ export function DataTablePagination<TData extends RowData>({
 
         {/* NAV */}
         <div className="flex items-center space-x-2">
-
           {[
             {
               icon: ChevronFirst,
@@ -132,9 +129,8 @@ export function DataTablePagination<TData extends RowData>({
               <Icon className="h-4 w-4" />
             </Button>
           ))}
-
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -1,28 +1,28 @@
-"use client"
+"use client";
 
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { ConditionCombobox } from "@/components/forms/general/compras/_components/ConditionCombobox"
-import { Textarea } from "@/components/ui/textarea"
-import { cn } from "@/lib/utils"
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { ConditionCombobox } from "@/components/forms/general/compras/_components/ConditionCombobox";
+import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 import {
   useRegisterWorkshopDispatchEvent,
   useCloseWorkshopDispatch,
-} from "@/actions/mantenimiento/almacen/salida_taller/action"
-import { useGetWorkshopDispatch } from "@/hooks/mantenimiento/almacen/salida_taller/useGetWorkshopDispatches"
-import { useGetConditions } from "@/hooks/general/condiciones/useGetConditions"
-import { useCompanyStore } from "@/stores/CompanyStore"
-import { format, parseISO } from "date-fns"
-import { es } from "date-fns/locale"
+} from "@/actions/mantenimiento/almacen/salida_taller/action";
+import { useGetWorkshopDispatch } from "@/hooks/mantenimiento/almacen/salida_taller/useGetWorkshopDispatches";
+import { useGetConditions } from "@/hooks/general/condiciones/useGetConditions";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { format, parseISO } from "date-fns";
+import { es } from "date-fns/locale";
 import {
   CheckCircle2,
   ClipboardList,
@@ -31,13 +31,13 @@ import {
   PackageCheck,
   Plus,
   Truck,
-} from "lucide-react"
-import { useMemo, useState } from "react"
+} from "lucide-react";
+import { useMemo, useState } from "react";
 
 interface Props {
-  dispatchId: number
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  dispatchId: number;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
 const EVENT_PRESETS = [
@@ -46,7 +46,7 @@ const EVENT_PRESETS = [
   "DIAGNOSTICO",
   "APROBACION_PRESUPUESTO",
   "RETRASO",
-]
+];
 
 const EVENT_LABEL: Record<string, string> = {
   DEPARTED: "Salió del almacén",
@@ -56,61 +56,79 @@ const EVENT_LABEL: Record<string, string> = {
   APROBACION_PRESUPUESTO: "Aprobación de presupuesto",
   RETRASO: "Retraso",
   RETURNED: "Cerrado: reingresó a inventario",
-}
+};
 
 function formatMoment(value: string) {
-  const date = parseISO(value)
-  return isNaN(date.getTime()) ? value : format(date, "dd/MM/yyyy HH:mm", { locale: es })
+  const date = parseISO(value);
+  return isNaN(date.getTime())
+    ? value
+    : format(date, "dd/MM/yyyy HH:mm", { locale: es });
 }
 
-export function WorkshopDispatchTimelineDialog({ dispatchId, open, onOpenChange }: Props) {
-  const { selectedCompany } = useCompanyStore()
-  const { data: dispatch, isLoading } = useGetWorkshopDispatch(open ? dispatchId : undefined)
-  const { data: conditions, isLoading: isConditionsLoading } = useGetConditions(selectedCompany?.slug)
-  const { registerWorkshopDispatchEvent } = useRegisterWorkshopDispatchEvent()
-  const { closeWorkshopDispatch } = useCloseWorkshopDispatch()
+export function WorkshopDispatchTimelineDialog({
+  dispatchId,
+  open,
+  onOpenChange,
+}: Props) {
+  const { selectedCompany } = useCompanyStore();
+  const { data: dispatch, isLoading } = useGetWorkshopDispatch(
+    open ? dispatchId : undefined,
+  );
+  const { data: conditions, isLoading: isConditionsLoading } = useGetConditions(
+    selectedCompany?.slug,
+  );
+  const { registerWorkshopDispatchEvent } = useRegisterWorkshopDispatchEvent();
+  const { closeWorkshopDispatch } = useCloseWorkshopDispatch();
 
-  const [eventType, setEventType] = useState("")
-  const [description, setDescription] = useState("")
+  const [eventType, setEventType] = useState("");
+  const [description, setDescription] = useState("");
 
-  const [closing, setClosing] = useState(false)
-  const [conditionByLine, setConditionByLine] = useState<Record<number, string>>({})
+  const [closing, setClosing] = useState(false);
+  const [conditionByLine, setConditionByLine] = useState<
+    Record<number, string>
+  >({});
 
-  const workshopDispatch = dispatch?.workshop_dispatch
-  const events = workshopDispatch?.events ?? []
-  const isOpenCycle = workshopDispatch?.status === "IN_WORKSHOP"
+  const workshopDispatch = dispatch?.workshop_dispatch;
+  const events = workshopDispatch?.events ?? [];
+  const isOpenCycle = workshopDispatch?.status === "IN_WORKSHOP";
 
   // El cierre reingresa TODO lo que sigue fuera, no solo lo serializado: el
   // backend rechaza el cierre si falta cualquier línea con saldo pendiente
   // (ver WorkshopDispatchService::close). Se usa `articles`, ya aplanado por
   // el backend con categoría, descripción y saldo por línea.
   const pendingLines = useMemo(
-    () => (dispatch?.articles ?? []).filter(
-      (line) => line.article_dispatch_order_id != null && line.status !== "RETURNED",
-    ),
+    () =>
+      (dispatch?.articles ?? []).filter(
+        (line) =>
+          line.article_dispatch_order_id != null && line.status !== "RETURNED",
+      ),
     [dispatch],
-  )
+  );
 
   // Solo lo serializado lleva condición de aeronavegabilidad. Un consumible
   // (aunque sea aeronáutico) y un artículo general vuelven por cantidad y el
   // backend no les pide condición (ver WorkshopDispatchService::returnLine).
   const linesNeedingCondition = useMemo(
-    () => pendingLines.filter((line) => line.type === "aeronautical" && line.category !== "CONSUMABLE"),
+    () =>
+      pendingLines.filter(
+        (line) =>
+          line.type === "aeronautical" && line.category !== "CONSUMABLE",
+      ),
     [pendingLines],
-  )
+  );
 
   const quantityOnlyLines = useMemo(
     () => pendingLines.filter((line) => !linesNeedingCondition.includes(line)),
     [pendingLines, linesNeedingCondition],
-  )
+  );
 
   const resetEventForm = () => {
-    setEventType("")
-    setDescription("")
-  }
+    setEventType("");
+    setDescription("");
+  };
 
   const handleAddEvent = () => {
-    if (!eventType.trim()) return
+    if (!eventType.trim()) return;
     registerWorkshopDispatchEvent.mutate(
       {
         id: dispatchId,
@@ -119,41 +137,43 @@ export function WorkshopDispatchTimelineDialog({ dispatchId, open, onOpenChange 
         description: description.trim() || undefined,
       },
       { onSuccess: resetEventForm },
-    )
-  }
+    );
+  };
 
   const canClose =
     pendingLines.length > 0 &&
-    linesNeedingCondition.every((line) => !!conditionByLine[line.article_dispatch_order_id!])
+    linesNeedingCondition.every(
+      (line) => !!conditionByLine[line.article_dispatch_order_id!],
+    );
 
   const handleClose = () => {
-    if (!canClose) return
+    if (!canClose) return;
     closeWorkshopDispatch.mutate(
       {
         id: dispatchId,
         company: selectedCompany!.slug,
         data: {
           items: pendingLines.map((line) => {
-            const lineId = line.article_dispatch_order_id!
-            const condition = conditionByLine[lineId]
+            const lineId = line.article_dispatch_order_id!;
+            const condition = conditionByLine[lineId];
 
             return {
               article_dispatch_order_id: lineId,
               condition_id: condition ? Number(condition) : undefined,
-            }
+            };
           }),
         },
       },
       { onSuccess: () => setClosing(false) },
-    )
-  }
+    );
+  };
 
   return (
     <Dialog
       open={open}
       onOpenChange={(next) => {
-        onOpenChange(next)
-        if (!next) setClosing(false)
+        onOpenChange(next);
+        if (!next) setClosing(false);
       }}
     >
       <DialogContent className="flex h-[85vh] w-[calc(100vw-2rem)] max-w-4xl flex-col gap-0 overflow-hidden p-0">
@@ -166,7 +186,10 @@ export function WorkshopDispatchTimelineDialog({ dispatchId, open, onOpenChange 
               Salida a Taller — {dispatch?.request_number ?? "..."}
             </DialogTitle>
             {workshopDispatch && (
-              <Badge variant={isOpenCycle ? "secondary" : "default"} className="shrink-0">
+              <Badge
+                variant={isOpenCycle ? "secondary" : "default"}
+                className="shrink-0"
+              >
                 {isOpenCycle ? "En taller" : "Reingresado"}
               </Badge>
             )}
@@ -208,7 +231,11 @@ export function WorkshopDispatchTimelineDialog({ dispatchId, open, onOpenChange 
                     <li key={entry.id} className="ml-6">
                       <span className="absolute -left-1.75 mt-1 flex size-3.5 rounded-full border-2 border-background bg-primary" />
                       <div className="flex flex-wrap items-center gap-2">
-                        <Badge variant={entry.event === "RETURNED" ? "default" : "outline"}>
+                        <Badge
+                          variant={
+                            entry.event === "RETURNED" ? "default" : "outline"
+                          }
+                        >
                           {EVENT_LABEL[entry.event] ?? entry.event}
                         </Badge>
                         <span className="text-xs text-muted-foreground">
@@ -246,7 +273,9 @@ export function WorkshopDispatchTimelineDialog({ dispatchId, open, onOpenChange 
                             key={preset}
                             type="button"
                             size="sm"
-                            variant={eventType === preset ? "default" : "outline"}
+                            variant={
+                              eventType === preset ? "default" : "outline"
+                            }
                             className="h-8 rounded-full text-xs"
                             onClick={() => setEventType(preset)}
                           >
@@ -261,7 +290,9 @@ export function WorkshopDispatchTimelineDialog({ dispatchId, open, onOpenChange 
                         </Label>
                         <Input
                           placeholder="Ej: Se recibió cotización"
-                          value={EVENT_PRESETS.includes(eventType) ? "" : eventType}
+                          value={
+                            EVENT_PRESETS.includes(eventType) ? "" : eventType
+                          }
                           onChange={(e) => setEventType(e.target.value)}
                           className="h-10 bg-background"
                         />
@@ -284,7 +315,10 @@ export function WorkshopDispatchTimelineDialog({ dispatchId, open, onOpenChange 
                         type="button"
                         className="w-full"
                         onClick={handleAddEvent}
-                        disabled={!eventType.trim() || registerWorkshopDispatchEvent.isPending}
+                        disabled={
+                          !eventType.trim() ||
+                          registerWorkshopDispatchEvent.isPending
+                        }
                       >
                         {registerWorkshopDispatchEvent.isPending ? (
                           <Loader2 className="size-4 animate-spin mr-2" />
@@ -314,21 +348,23 @@ export function WorkshopDispatchTimelineDialog({ dispatchId, open, onOpenChange 
                       Cerrar ciclo
                     </div>
                     <p className="mb-4 text-xs text-muted-foreground">
-                      El cierre reingresa todo lo que sigue fuera. Indique con qué
-                      condición de aeronavegabilidad vuelve cada serializado (ej: OVERHAUL).
+                      El cierre reingresa todo lo que sigue fuera. Indique con
+                      qué condición de aeronavegabilidad vuelve cada serializado
+                      (ej: OVERHAUL).
                     </p>
 
                     <div className="w-full space-y-4 text-left">
                       {pendingLines.length === 0 ? (
                         <p className="text-center text-sm text-muted-foreground italic">
-                          Esta salida no tiene artículos pendientes de reingreso.
+                          Esta salida no tiene artículos pendientes de
+                          reingreso.
                         </p>
                       ) : (
                         <>
                           {linesNeedingCondition.length > 0 && (
                             <div className="space-y-2">
                               {linesNeedingCondition.map((line) => {
-                                const lineId = line.article_dispatch_order_id!
+                                const lineId = line.article_dispatch_order_id!;
                                 return (
                                   <div
                                     key={lineId}
@@ -338,25 +374,39 @@ export function WorkshopDispatchTimelineDialog({ dispatchId, open, onOpenChange 
                                   >
                                     <div className="min-w-0">
                                       <p className="text-sm font-medium truncate">
-                                        {line.description ?? line.batch_name ?? `Artículo #${line.id}`}
+                                        {line.description ??
+                                          line.batch_name ??
+                                          `Artículo #${line.id}`}
                                       </p>
                                       <p className="text-xs text-muted-foreground truncate">
                                         {[
-                                          line.part_number && line.part_number !== "N/A" ? `P/N: ${line.part_number}` : null,
-                                          line.serial && line.serial !== "N/A" ? `S/N: ${line.serial}` : null,
-                                        ].filter(Boolean).join(" · ") || "Sin datos"}
+                                          line.part_number &&
+                                          line.part_number !== "N/A"
+                                            ? `P/N: ${line.part_number}`
+                                            : null,
+                                          line.serial && line.serial !== "N/A"
+                                            ? `S/N: ${line.serial}`
+                                            : null,
+                                        ]
+                                          .filter(Boolean)
+                                          .join(" · ") || "Sin datos"}
                                       </p>
                                     </div>
                                     <ConditionCombobox
                                       value={conditionByLine[lineId] ?? ""}
-                                      onChange={(val) => setConditionByLine((p) => ({ ...p, [lineId]: val }))}
+                                      onChange={(val) =>
+                                        setConditionByLine((p) => ({
+                                          ...p,
+                                          [lineId]: val,
+                                        }))
+                                      }
                                       conditions={conditions}
                                       disabled={isConditionsLoading}
                                       triggerClassName="h-9 w-full"
                                       placeholder="Condición..."
                                     />
                                   </div>
-                                )
+                                );
                               })}
                             </div>
                           )}
@@ -378,7 +428,8 @@ export function WorkshopDispatchTimelineDialog({ dispatchId, open, onOpenChange 
                                     {line.description ?? `Artículo #${line.id}`}
                                   </span>
                                   <span className="shrink-0 tabular-nums text-muted-foreground">
-                                    {line.pending_quantity ?? line.dispatch_quantity}
+                                    {line.pending_quantity ??
+                                      line.dispatch_quantity}
                                     {line.unit ? ` ${line.unit}` : ""}
                                   </span>
                                 </div>
@@ -402,7 +453,11 @@ export function WorkshopDispatchTimelineDialog({ dispatchId, open, onOpenChange 
                         )}
                         Confirmar reingreso
                       </Button>
-                      <Button type="button" variant="ghost" onClick={() => setClosing(false)}>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={() => setClosing(false)}
+                      >
                         Cancelar
                       </Button>
                     </div>
@@ -418,5 +473,5 @@ export function WorkshopDispatchTimelineDialog({ dispatchId, open, onOpenChange 
         )}
       </DialogContent>
     </Dialog>
-  )
+  );
 }

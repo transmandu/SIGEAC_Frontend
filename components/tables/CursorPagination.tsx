@@ -1,22 +1,22 @@
-import { ChevronLeft, ChevronRight } from "lucide-react"
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from "@/components/ui/select";
 
 interface CursorPaginationProps {
-  pageIndex: number
-  pageSize: number
-  onPageSizeChange: (size: number) => void
-  onPrevPage: () => void
-  onNextPage: () => void
-  hasPrevPage: boolean
-  hasNextPage: boolean
+  pageIndex: number;
+  pageSize: number;
+  onPageSizeChange: (size: number) => void;
+  onPrevPage: () => void;
+  onNextPage: () => void;
+  hasPrevPage: boolean;
+  hasNextPage: boolean;
 }
 
 /**
@@ -41,11 +41,9 @@ export function CursorPagination({
         bg-transparent
       "
     >
-
       <div className="flex-1 text-sm text-muted-foreground" />
 
       <div className="flex items-center space-x-6 lg:space-x-8">
-
         {/* PAGE SIZE */}
         <div className="flex items-center space-x-2">
           <p className="text-xs font-medium text-muted-foreground">
@@ -91,7 +89,6 @@ export function CursorPagination({
 
         {/* NAV */}
         <div className="flex items-center space-x-2">
-
           {[
             {
               icon: ChevronLeft,
@@ -125,9 +122,8 @@ export function CursorPagination({
               <Icon className="h-4 w-4" />
             </Button>
           ))}
-
         </div>
       </div>
     </div>
-  )
+  );
 }

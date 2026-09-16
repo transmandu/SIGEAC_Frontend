@@ -1,25 +1,28 @@
-'use client'
+"use client";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger
-} from "@/components/ui/dialog"
-import { useState } from "react"
-import { CreateWorkshopForm } from "@/components/forms/general/CreateWorkshopForm"
-import { Plus } from "lucide-react"
-import type { Workshop } from "@/types"
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { useState } from "react";
+import { CreateWorkshopForm } from "@/components/forms/general/CreateWorkshopForm";
+import { Plus } from "lucide-react";
+import type { Workshop } from "@/types";
 
 interface CreateWorkshopDialogProps {
-  onSuccess?: (workshop: Workshop) => void,
-  triggerButton?: React.ReactNode,
+  onSuccess?: (workshop: Workshop) => void;
+  triggerButton?: React.ReactNode;
 }
 
-export function CreateWorkshopDialog({ onSuccess, triggerButton }: CreateWorkshopDialogProps) {
+export function CreateWorkshopDialog({
+  onSuccess,
+  triggerButton,
+}: CreateWorkshopDialogProps) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -28,7 +31,7 @@ export function CreateWorkshopDialog({ onSuccess, triggerButton }: CreateWorksho
         {triggerButton || (
           <Button
             onClick={() => setOpen(true)}
-            variant={'outline'}
+            variant={"outline"}
             className="flex items-center justify-center gap-2 h-8 border-dashed"
           >
             <Plus className="h-4 w-4" />
@@ -49,5 +52,5 @@ export function CreateWorkshopDialog({ onSuccess, triggerButton }: CreateWorksho
         />
       </DialogContent>
     </Dialog>
-  )
+  );
 }

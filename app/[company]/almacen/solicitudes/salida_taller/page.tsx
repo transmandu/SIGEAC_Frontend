@@ -1,12 +1,12 @@
-'use client'
+"use client";
 
-import { buildColumns } from '@/app/[company]/almacen/solicitudes/salida_taller/columns'
-import { ContentLayout } from '@/components/layout/ContentLayout'
-import { PageHeader } from "@/components/layout/PageHeader"
-import { WorkshopDispatchTimelineDialog } from '@/components/dialogs/mantenimiento/almacen/WorkshopDispatchTimelineDialog'
-import { useGetWorkshopDispatches } from '@/hooks/mantenimiento/almacen/salida_taller/useGetWorkshopDispatches'
-import { useMemo, useState } from 'react'
-import { DataTable } from './data-table'
+import { buildColumns } from "@/app/[company]/almacen/solicitudes/salida_taller/columns";
+import { ContentLayout } from "@/components/layout/ContentLayout";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { WorkshopDispatchTimelineDialog } from "@/components/dialogs/mantenimiento/almacen/WorkshopDispatchTimelineDialog";
+import { useGetWorkshopDispatches } from "@/hooks/mantenimiento/almacen/salida_taller/useGetWorkshopDispatches";
+import { useMemo, useState } from "react";
+import { DataTable } from "./data-table";
 
 const WorkshopDispatchPage = () => {
   const {
@@ -24,14 +24,14 @@ const WorkshopDispatchPage = () => {
     pageIndex,
     pageSize,
     setPageSize,
-  } = useGetWorkshopDispatches()
-  const [timelineId, setTimelineId] = useState<number | null>(null)
+  } = useGetWorkshopDispatches();
+  const [timelineId, setTimelineId] = useState<number | null>(null);
 
-  const columns = useMemo(() => buildColumns((id) => setTimelineId(id)), [])
+  const columns = useMemo(() => buildColumns((id) => setTimelineId(id)), []);
 
   return (
-    <ContentLayout title='Salida a Taller'>
-      <div className='flex flex-col gap-y-2'>
+    <ContentLayout title="Salida a Taller">
+      <div className="flex flex-col gap-y-2">
         <PageHeader className="mb-4" />
         {/* La tabla se monta siempre: la carga de datos se muestra dentro del
             cuerpo, para que el buscador y las acciones no se desmonten en cada
@@ -59,11 +59,13 @@ const WorkshopDispatchPage = () => {
         <WorkshopDispatchTimelineDialog
           dispatchId={timelineId}
           open={timelineId !== null}
-          onOpenChange={(open) => { if (!open) setTimelineId(null) }}
+          onOpenChange={(open) => {
+            if (!open) setTimelineId(null);
+          }}
         />
       )}
     </ContentLayout>
-  )
-}
+  );
+};
 
-export default WorkshopDispatchPage
+export default WorkshopDispatchPage;

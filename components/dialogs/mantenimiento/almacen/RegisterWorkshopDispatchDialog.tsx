@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 import {
@@ -7,10 +7,10 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger
-} from "@/components/ui/dialog"
-import { useState } from "react"
-import { WorkshopDispatchForm } from "@/components/forms/mantenimiento/almacen/salida_taller/WorkshopDispatchForm"
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { useState } from "react";
+import { WorkshopDispatchForm } from "@/components/forms/mantenimiento/almacen/salida_taller/WorkshopDispatchForm";
 
 export function RegisterWorkshopDispatchDialog() {
   const [open, setOpen] = useState<boolean>(false);
@@ -26,7 +26,8 @@ export function RegisterWorkshopDispatchDialog() {
         <DialogHeader className="shrink-0">
           <DialogTitle className="text-2xl">Salida a Taller</DialogTitle>
           <DialogDescription>
-            Registre la salida de artículos hacia un taller externo para reparación u overhaul.
+            Registre la salida de artículos hacia un taller externo para
+            reparación u overhaul.
           </DialogDescription>
         </DialogHeader>
         <div className="min-w-0 flex-1 overflow-y-auto px-1 py-1">
@@ -34,5 +35,5 @@ export function RegisterWorkshopDispatchDialog() {
         </div>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
