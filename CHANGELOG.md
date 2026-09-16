@@ -1,3 +1,7 @@
+## v4.8.0 — 2026-09-16
+
+- feat: save reports in library (#268)
+
 ## v4.7.1 — 2026-09-16
 
 - Merge pull request #270 from transmandu/dependabot/github_actions/actions-da512a7850
