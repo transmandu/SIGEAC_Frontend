@@ -1,3 +1,73 @@
+## v4.8.0 — 2026-09-16
+
+- feat: save reports in library (#268)
+
+## v4.7.1 — 2026-09-16
+
+- Merge pull request #270 from transmandu/dependabot/github_actions/actions-da512a7850
+- ci: bump the actions group with 5 updates
+
+## v4.7.0 — 2026-09-16
+
+- Merge pull request #269 from transmandu/fix/yml-action-workflow
+- feat: add Dependabot configuration and summary workflow for dependency updates
+
+## v4.6.6 — 2026-09-15
+
+- Merge pull request #267 from transmandu/fix/visual-menu-fallos
+- fix: standardize CSS syntax and improve formatting across sidebar components
+- fix: adjust sidebar and menu styles for improved layout and performance
+
+## v4.6.5 — 2026-09-15
+
+- fix: show inactive employee in sms activities (#266)
+
+## v4.6.4 — 2026-09-15
+
+- revert: rollback release to v4.6.2 (#265)
+
+## v4.6.2 — 2026-09-15
+
+- refactor: qr code hangar 74 with new icon (#263)
+
+## v4.6.1 — 2026-09-15
+
+- Merge pull request #262 from transmandu/fix/critical-article-popover
+- fix: add missing commas for consistency in CriticalAlertsButton and DashboardLayout
+- fix: replace Popover with Tooltip for critical alerts button interaction
+
+## v4.6.0 — 2026-09-15
+
+- feat: the input date in couse form with option to select year and month (#261)
+
+## v4.5.0 — 2026-09-15
+
+- feat: add qr code for sms hangar74 (#260)
+
+## v4.4.0 — 2026-09-15
+
+- feat: new calendar to select year and month (#259)
+
+## v4.3.0 — 2026-09-15
+
+- feat: add dialog to show certificates sms (#258)
+
+## v4.2.2 — 2026-09-15
+
+- refactor: sms activities table (#257)
+
+## v4.2.1 — 2026-09-14
+
+- fix: meeting minute form doesnt show employees (#256)
+
+## v4.2.0 — 2026-09-14
+
+- feat: select any employee from the company (#255)
+
+## v4.1.1 — 2026-09-14
+
+- fix: sms requeriments (#254)
+
 ## v4.1.0 — 2026-09-12
 
 - feat: refactor consumable dispatch form and add ConsumableArticleRow component

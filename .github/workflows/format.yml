@@ -1,39 +1,131 @@
 name: Formato
 
+# Formatea los archivos del PR y commitea el resultado en la misma rama.
+#
+# Antes esto corria prettier --check y fallaba en rojo, dejando al autor la
+# tarea mecanica de correr el formateador y volver a subir. La maquina sabe
+# exactamente como debe quedar el archivo: que lo escriba ella. El check ya no
+# pregunta "venia formateado" sino "quedo formateado".
+#
+# Solo los archivos que toca el PR. El resto del repo todavia no sigue el
+# preset y se ira normalizando a medida que se edite cada archivo.
+
 on:
   pull_request:
     branches: [main]
+
+# Necesario para commitear en la rama del PR.
+permissions:
+  contents: write
+
+# Si llegan dos pushes seguidos, la corrida vieja se cancela. Sin esto, dos
+# jobs podrian intentar commitear a la vez sobre la misma rama.
+concurrency:
+  group: formato-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 
 jobs:
   prettier:
     name: Prettier
     runs-on: ubuntu-latest
+
+    # El bot commitea; sin esto sus propios commits dispararian otra corrida.
+    if: github.actor != 'github-actions[bot]'
+
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
+          # Por defecto el checkout de un PR deja la HEAD en modo detached.
+          # Hay que estar sobre la rama real para poder hacer push.
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile
 
-      # Solo los archivos que toca el PR. El resto del repo todavia no sigue
-      # el preset y se ira normalizando a medida que se edite cada archivo.
-      - name: Verificar formato de los archivos del PR
+      - name: Formatear los archivos del PR
+        id: fmt
+        env:
+          BASE: ${{ github.base_ref }}
         run: |
+          set -euo pipefail
+
           FILES=$(git diff --name-only --diff-filter=d \
-            origin/${{ github.base_ref }}...HEAD \
-            | grep -E '\.(ts|tsx|js|jsx|json|css)$' || true)
+            "origin/${BASE}...HEAD" \
+            | grep -E '\.(ts|tsx|js|jsx|mjs|cjs|json|css)$' || true)
 
           if [ -z "$FILES" ]; then
             echo "El PR no toca archivos formateables."
+            echo "cambios=no" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-          echo "$FILES"
-          echo "$FILES" | xargs pnpm exec prettier --check
+          echo "Archivos del PR:"
+          echo "$FILES" | sed 's/^/  /'
+
+          # --write, no --check: prettier reescribe lo que haga falta.
+          # --ignore-unknown evita que un archivo excluido por .prettierignore
+          # corte la corrida entera.
+          echo "$FILES" | xargs pnpm exec prettier --write --ignore-unknown
+
+          if git diff --quiet; then
+            echo "Todo ya estaba formateado."
+            echo "cambios=no" >> "$GITHUB_OUTPUT"
+          else
+            echo "cambios=si" >> "$GITHUB_OUTPUT"
+            {
+              echo "arreglados<<EOF"
+              git diff --name-only
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
+          fi
+
+      # Un PR desde un fork no da permiso de escritura sobre la rama de
+      # origen: GitHub no lo permite, y no hay configuracion que lo cambie.
+      # En ese caso el workflow avisa y termina en verde, en vez de bloquear
+      # un PR por algo que su autor no puede resolver desde aca.
+      - name: Avisar si viene de un fork
+        if: >
+          steps.fmt.outputs.cambios == 'si' &&
+          github.event.pull_request.head.repo.full_name != github.repository
+        run: |
+          echo "::warning::Este PR viene de un fork y el formato no se puede"
+          echo "::warning::commitear automaticamente. Corre 'pnpm format:changed'"
+          echo "::warning::en tu rama y vuelve a subir."
+          echo "Archivos que necesitan formato:"
+          echo "${{ steps.fmt.outputs.arreglados }}"
+
+      - name: Commitear el formato
+        if: >
+          steps.fmt.outputs.cambios == 'si' &&
+          github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          ARREGLADOS: ${{ steps.fmt.outputs.arreglados }}
+        run: |
+          set -euo pipefail
+
+          git config user.name  'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+          git add --update
+
+          # "style" mantiene la convencion de pr-title.yml y sube el parche,
+          # no la menor: formatear no agrega funcionalidad.
+          git commit -m 'style: formato automatico (prettier)' \
+                     -m "$ARREGLADOS"
+
+          git push origin "HEAD:${{ github.event.pull_request.head.ref }}"
+
+          echo "### Formato aplicado" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Se formatearon y commitearon estos archivos:" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          echo "$ARREGLADOS" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"

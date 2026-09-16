@@ -1,28 +1,26 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { ChevronLeft, ChevronRight } from "lucide-react"
-import { DayPicker, type ChevronProps, type DropdownProps } from "react-day-picker"
-
-import { cn } from "@/lib/utils"
-import { buttonVariants } from "@/components/ui/button"
+import * as React from "react";
+import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { es } from "date-fns/locale"
+  DayPicker,
+  type ChevronProps,
+  type DropdownProps,
+} from "react-day-picker";
 
-export type CalendarProps = React.ComponentProps<typeof DayPicker>
+import { cn } from "@/lib/utils";
+import { buttonVariants } from "@/components/ui/button";
+import { es } from "date-fns/locale";
+
+export type CalendarProps = React.ComponentProps<typeof DayPicker>;
 
 /**
  * Selector de mes/año de la cabecera.
  *
  * react-day-picker trae uno propio: un `<select>` nativo transparente encima de
- * una caja. El navegador le dibuja su flecha nativa, que no sigue el tema ni el
- * modo oscuro; por eso se reemplaza por el Select de la aplicación.
+ * una caja. Se reemplaza por selects nativos con tema propio: montados en su
+ * propio portal, el `Select` de la app disparaba el clic-fuera del popover que
+ * contiene al calendario y el control se cerraba sin llegar a usarse.
  */
 function CaptionDropdown({
   value,
@@ -30,58 +28,68 @@ function CaptionDropdown({
   options = [],
   "aria-label": ariaLabel,
 }: DropdownProps) {
-  const selected = options.find((option) => `${option.value}` === `${value}`)
+  const label = (ariaLabel ?? "").toLowerCase();
+  const isYear =
+    label.includes("año") ||
+    (options.length > 0 &&
+      options.every(
+        (o) => typeof o.label === "string" && /^\d{1,4}$/.test(o.label.trim()),
+      ));
+
+  const yearValues = options
+    .map((o) => Number(o.value))
+    .filter((n) => !Number.isNaN(n));
+  const minYear = yearValues[0] ?? new Date().getFullYear() - 100;
+  const maxYear = yearValues[yearValues.length - 1] ?? new Date().getFullYear();
+  const years: number[] = [];
+  for (let y = Math.min(minYear, maxYear); y <= Math.max(minYear, maxYear); y++)
+    years.push(y);
+
+  const selectClass = cn(
+    "flex h-8 items-center gap-1 rounded-md border-none bg-transparent px-2 text-sm font-medium capitalize shadow-none focus:ring-0 focus:ring-offset-0 hover:bg-accent",
+  );
+
+  const optionsFor: {
+    value: number | string;
+    label: string;
+    disabled?: boolean;
+  }[] = isYear
+    ? years.map((y) => ({ value: y, label: `${y}`, disabled: false }))
+    : options;
 
   return (
-    <Select
-      value={`${value}`}
-      onValueChange={(next) => {
-        // El componente espera el evento de cambio del `<select>` nativo que
-        // reemplaza: solo lee `target.value`.
-        onChange?.({
-          target: { value: next },
-        } as React.ChangeEvent<HTMLSelectElement>)
-      }}
-      onOpenChange={(open) => {
-        if (!open) {
-          // Radix bloquea los eventos del cuerpo mientras el desplegable está
-          // abierto y los restaura al cerrar; si el popover que lo contiene se
-          // desmonta en ese mismo instante, la limpieza no llega a ocurrir.
-          setTimeout(() => {
-            document.body.style.pointerEvents = ""
-          }, 0)
-        }
-      }}
-    >
-      <SelectTrigger
+    <div className="relative">
+      <span className={cn(selectClass, "pointer-events-none")}>
+        {isYear
+          ? `${value}`
+          : options.find((o) => `${o.value}` === `${value}`)?.label}
+        <ChevronDown className="h-4 w-4 opacity-50" />
+      </span>
+      <select
         aria-label={ariaLabel}
-        className="h-8 w-fit gap-1 border-none bg-transparent px-2 text-sm font-medium capitalize shadow-none focus:ring-0 focus:ring-offset-0 hover:bg-accent"
+        value={`${value}`}
+        onChange={(e) => onChange?.(e as React.ChangeEvent<HTMLSelectElement>)}
+        className={cn(selectClass, "absolute inset-0 opacity-0")}
       >
-        <SelectValue>{selected?.label}</SelectValue>
-      </SelectTrigger>
-      {/* Sin `popper`: ese modo ata el desplegable al ancho del disparador y
-          los doce meses no entrarían. */}
-      <SelectContent position="item-aligned" className="max-h-72 min-w-24">
-        {options.map((option) => (
-          <SelectItem
+        {optionsFor.map((option) => (
+          <option
             key={option.value}
             value={`${option.value}`}
-            disabled={option.disabled}
-            className="capitalize"
+            disabled={option.disabled === true}
           >
             {option.label}
-          </SelectItem>
+          </option>
         ))}
-      </SelectContent>
-    </Select>
-  )
+      </select>
+    </div>
+  );
 }
 
 /** Un solo componente para las dos flechas: decide por la orientación. */
 function CaptionChevron({ orientation }: ChevronProps) {
-  const Icon = orientation === "left" ? ChevronLeft : ChevronRight
+  const Icon = orientation === "left" ? ChevronLeft : ChevronRight;
 
-  return <Icon className="h-4 w-4" />
+  return <Icon className="h-4 w-4" />;
 }
 
 function Calendar({
@@ -98,7 +106,8 @@ function Calendar({
       classNames={{
         // La navegación ya no vive dentro de la cabecera: es hermana de los
         // meses, así que se posiciona sobre la fila del título.
-        months: "relative flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
+        months:
+          "relative flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
         month: "space-y-3",
         nav: "absolute inset-x-1 top-1 z-10 flex items-center justify-between",
         button_previous: cn(
@@ -111,8 +120,7 @@ function Calendar({
         ),
         month_caption: "relative flex h-8 items-center justify-center pt-1",
         caption_label: "text-sm font-medium capitalize",
-        dropdowns:
-          "flex items-center justify-center gap-1 **:data-radix-select-trigger:capitalize",
+        dropdowns: "flex items-center justify-center gap-1",
         month_grid: "w-full border-collapse",
         weekdays: "flex",
         weekday:
@@ -168,8 +176,8 @@ function Calendar({
       }}
       {...props}
     />
-  )
+  );
 }
-Calendar.displayName = "Calendar"
+Calendar.displayName = "Calendar";
 
-export { Calendar }
+export { Calendar };
