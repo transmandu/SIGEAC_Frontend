@@ -35,12 +35,12 @@ jobs:
       # de que version a cual, si es mayor/menor/parche, y el ecosistema.
       - name: Leer metadatos del PR
         id: meta
-        uses: dependabot/fetch-metadata@v2
+        uses: dependabot/fetch-metadata@v3
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Construir y publicar el resumen
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         env:
           # Umbral de compatibilidad exigido. Ver la nota larga en el paso de
           # evaluacion mas abajo sobre que mide realmente este numero.
