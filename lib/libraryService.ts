@@ -167,10 +167,20 @@ const libraryService = {
         return response.json();
     },
 
-    moveDocument: async (company: string, documentId: number, folderPath: string) => {
+    moveDocument: async (company: string, documentId: number, folderPath: string, departmentId?: number) => {
         const response = await axiosInstance.patch(`/${company}/library/documents/${documentId}/move`, {
-            folder_path: folderPath
+            folder_path: folderPath,
+            ...(departmentId != null ? { department_id: departmentId } : {}),
         });
+        return response.data;
+    },
+
+    moveDocumentsBatch: async (company: string, data: {
+        document_ids: number[];
+        department_id: number;
+        folder_path: string;
+    }) => {
+        const response = await axiosInstance.post(`/${company}/library/documents/move-batch`, data);
         return response.data;
     },
 

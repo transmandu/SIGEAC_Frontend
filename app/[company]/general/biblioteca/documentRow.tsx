@@ -2,6 +2,7 @@
 
 import { useMemo, useCallback } from 'react';
 import { FileText, Clock, AlertCircle } from 'lucide-react';
+import { Checkbox } from "@/components/ui/checkbox";
 import { LibraryDropdownActions } from "@/components/dropdowns/general/LibraryDropdownActions";
 import { Document } from '@/lib/libraryService';
 import { formatCalendarDate } from '@/lib/date';
@@ -35,9 +36,11 @@ interface DocumentRowProps {
   canManage: boolean;
   isDipDirector: boolean;
   user: any;
+  selected?: boolean;
+  onToggleSelect?: () => void;
 }
 
-export default function DocumentRow({ doc, onView, onDelete, onRefresh, canManage, isDipDirector, user }: DocumentRowProps) {
+export default function DocumentRow({ doc, onView, onDelete, onRefresh, canManage, isDipDirector, user, selected = false, onToggleSelect }: DocumentRowProps) {
 
   const latestVersion = useMemo(() => {
     if (doc?.latest_version) return doc.latest_version;
@@ -108,6 +111,16 @@ export default function DocumentRow({ doc, onView, onDelete, onRefresh, canManag
       className="group flex items-center gap-4 p-3 transition-colors border-l-2 border-l-transparent hover:border-l-blue-600 border-b border-slate-200 dark:border-transparent bg-white hover:bg-slate-100 dark:bg-transparent dark:hover:bg-white/5 cursor-grab active:cursor-grabbing"
       data-tour="biblioteca-doc-row"
     >
+      {onToggleSelect && (
+        <div className="shrink-0 pl-1" onClick={(e) => e.stopPropagation()}>
+          <Checkbox
+            checked={selected}
+            onCheckedChange={() => onToggleSelect()}
+            aria-label={`Seleccionar ${doc.title || 'documento'}`}
+            className="border-slate-300 dark:border-slate-600 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+          />
+        </div>
+      )}
       <div className={`p-2 rounded-lg ${fileDetails.bgColor} shrink-0 border border-current/10`}>
         <FileText className={`h-5 w-5 ${fileDetails.iconColor}`} strokeWidth={2}/>
       </div>

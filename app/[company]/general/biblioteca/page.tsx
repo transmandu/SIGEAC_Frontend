@@ -20,6 +20,7 @@ import {
   SlidersHorizontal,
   X,
   Filter,
+  ArrowRightLeft,
 } from "lucide-react";
 import { useGetDepartments } from "@/hooks/ajustes/departamento/useGetDepartment";
 import DocumentTable from "./DocumentTable";
@@ -34,6 +35,7 @@ import RenameFolderDialog from "@/components/library/RenameFolderDialog";
 import DeleteFolderDialog from "@/components/library/DeleteFolderDialog";
 import ShareRequestsPanel from "@/components/library/ShareRequestsPanel";
 import DashboardModal from "@/components/library/DashboardModal";
+import MoveDocumentsDialog from "@/components/library/MoveDocumentsDialog";
 import libraryService, { FolderNode, Document } from "@/lib/libraryService";
 import axiosInstance from "@/lib/axios";
 import { toast } from "sonner";
@@ -46,16 +48,6 @@ import {
 } from "@/components/ui/tooltip";
 
 // El árbol puede venir anidado, así que un find() plano no encuentra a los hijos.
-const findDepartmentByName = (nodes: any[], name: string): any | null => {
-  for (const node of nodes) {
-    if (node?.name === name) return node;
-
-    const found = findDepartmentByName(node?.descendants ?? [], name);
-    if (found) return found;
-  }
-
-  return null;
-};
 
 const BibliotecaPage = () => {
   const params = useParams();
@@ -106,6 +98,8 @@ const BibliotecaPage = () => {
   );
   const [loadingDeptIds, setLoadingDeptIds] = useState<number[]>([]);
   const [movingDocument, setMovingDocument] = useState(false);
+  const [selectedDocumentIds, setSelectedDocumentIds] = useState<number[]>([]);
+  const [moveDialogOpen, setMoveDialogOpen] = useState(false);
 
   const [groupedDocuments, setGroupedDocuments] = useState<
     Record<string, Document[]>
@@ -467,22 +461,29 @@ const BibliotecaPage = () => {
   const handleDropDocument = async (
     documentId: number,
     folderPath: string,
+    departmentId: number,
     departmentName: string,
   ) => {
+    if (!departmentId) return;
     setMovingDocument(true);
     try {
-      await libraryService.moveDocument(companySlug, documentId, folderPath);
+      await libraryService.moveDocument(
+        companySlug,
+        documentId,
+        folderPath,
+        departmentId,
+      );
       toast.success("Documento movido exitosamente");
+
+      // El destino se navega y se refresca tras la mutación para que el
+      // documento aparezca en la nueva carpeta y el árbol quede al día.
       setSelectedDeptName(departmentName);
       setSelectedFolderPath(folderPath);
-
-      // El departamento destino puede ser un hijo del árbol, y sus carpetas ya
-      // están cacheadas: hay que refrescarlas, no solo pedirlas si faltan.
-      const target = findDepartmentByName(departments, departmentName);
+      setSelectedDocumentIds([]);
 
       await Promise.all([
         fetchDocs(),
-        target ? handleFolderRefresh(target.id) : Promise.resolve(),
+        handleFolderRefresh(departmentId),
       ]);
     } catch (error: any) {
       toast.error(
@@ -509,6 +510,36 @@ const BibliotecaPage = () => {
       }
     },
     [companySlug],
+  );
+
+  const refreshAllLoadedFolders = useCallback(async () => {
+    const ids = Object.keys(foldersMapRef.current).map(Number);
+    await Promise.all(ids.map((id) => handleFolderRefresh(id)));
+  }, [handleFolderRefresh]);
+
+  const handleBatchMoveSuccess = useCallback(
+    async (departmentId: number, folderPath: string) => {
+      const target = departments.find(
+        (d) => Number(d.id) === Number(departmentId),
+      );
+
+      setSelectedDocumentIds([]);
+      setMoveDialogOpen(false);
+
+      // Se refrescan las carpetas de todos los departamentos ya cargados (el
+      // destino y los de origen) y los documentos, para que el cambio del
+      // grupo por departamento y por carpeta se refleje de inmediato.
+      await Promise.all([
+        fetchDocs(),
+        refreshAllLoadedFolders(),
+      ]);
+
+      if (target) {
+        setSelectedDeptName(target.name);
+        setSelectedFolderPath(folderPath);
+      }
+    },
+    [departments, fetchDocs, refreshAllLoadedFolders],
   );
 
   useLibraryNotifications(
@@ -554,6 +585,12 @@ const BibliotecaPage = () => {
       setSelectedDeptName(departments[0].name);
     }
   }, [departments, selectedDeptName]);
+
+  // Al navegar a otro departamento/carpeta la selección anterior deja de tener
+  // sentido: se limpia para evitar mover documentos que ya no están visibles.
+  useEffect(() => {
+    setSelectedDocumentIds([]);
+  }, [selectedDeptName, selectedFolderPath]);
 
   const { registerTour, unregisterTour } = useTourContext();
 
@@ -870,6 +907,32 @@ const BibliotecaPage = () => {
                     </p>
                   </div>
 
+                  {selectedDocumentIds.length > 0 && canManage && (
+                    <div className="mb-4 flex items-center gap-3 rounded-xl border border-blue-200 dark:border-blue-500/30 bg-blue-50 dark:bg-blue-900/20 px-4 py-2.5 animate-in fade-in slide-in-from-top-2 duration-200">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-blue-700 dark:text-blue-300">
+                        {selectedDocumentIds.length} documento
+                        {selectedDocumentIds.length === 1 ? "" : "s"} seleccionado
+                        {selectedDocumentIds.length === 1 ? "" : "s"}
+                      </span>
+                      <Button
+                        onClick={() => setMoveDialogOpen(true)}
+                        variant="outline"
+                        size="sm"
+                        className="w-fit flex items-center gap-1.5 rounded-xl border-blue-600 text-blue-600 hover:bg-blue-100 dark:border-blue-500 dark:text-blue-400 dark:hover:bg-blue-500/10 dark:hover:text-blue-300 font-bold text-[10px] uppercase tracking-widest px-4 h-9 shadow-xs transition-all active:scale-95 ml-auto"
+                      >
+                        <ArrowRightLeft className="h-4 w-4" />
+                        Mover a...
+                      </Button>
+                      <button
+                        onClick={() => setSelectedDocumentIds([])}
+                        aria-label="Limpiar selección"
+                        className="flex items-center justify-center h-9 w-9 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-700 transition-all"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  )}
+
                   <div className="overflow-x-auto">
                     {!selectedDeptName ? (
                       <div
@@ -915,6 +978,8 @@ const BibliotecaPage = () => {
                         canManage={canManage}
                         isDipDirector={isDipDirector}
                         user={user}
+                        selectedIds={selectedDocumentIds}
+                        onSelectionChange={setSelectedDocumentIds}
                       />
                     )}
                   </div>
@@ -1017,6 +1082,20 @@ const BibliotecaPage = () => {
         open={dashboardOpen}
         onClose={() => setDashboardOpen(false)}
         company={companySlug}
+      />
+
+      <MoveDocumentsDialog
+        open={moveDialogOpen}
+        onClose={() => setMoveDialogOpen(false)}
+        company={companySlug}
+        documentIds={selectedDocumentIds}
+        departmentFolders={departmentFolders}
+        departments={departments.map((d) => ({
+          id: Number(d.id),
+          name: d.name,
+        }))}
+        onLoadFolders={handleToggleDept}
+        onSuccess={handleBatchMoveSuccess}
       />
     </ContentLayout>
   );
