@@ -1,3 +1,13 @@
+## v4.7.1 — 2026-09-16
+
+- Merge pull request #270 from transmandu/dependabot/github_actions/actions-da512a7850
+- ci: bump the actions group with 5 updates
+
+## v4.7.0 — 2026-09-16
+
+- Merge pull request #269 from transmandu/fix/yml-action-workflow
+- feat: add Dependabot configuration and summary workflow for dependency updates
+
 ## v4.6.6 — 2026-09-15
 
 - Merge pull request #267 from transmandu/fix/visual-menu-fallos

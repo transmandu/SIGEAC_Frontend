@@ -1,0 +1,267 @@
+name: Resumen de dependencias
+
+# Cada PR que abre Dependabot recibe un comentario con:
+#   - que es cada dependencia y para que sirve, en lenguaje llano
+#   - de que version a que version va
+#   - si el salto rompe compatibilidad
+#   - el puntaje de compatibilidad de GitHub y si llega al minimo exigido
+#   - enlaces al changelog de cada paquete
+#
+# El PR de Dependabot trae esa informacion, pero desperdigada en tablas y
+# etiquetas que solo se leen si ya sabes donde mirar. Este resumen la junta
+# arriba y la traduce.
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+
+# pull_request_target corre con permisos de escritura sobre el repo. Por eso
+# este workflow NUNCA hace checkout de la rama del PR ni ejecuta codigo de
+# ella: solo lee metadatos a traves de la API. Si alguna vez hace falta
+# compilar algo del PR, tiene que ser en otro workflow con pull_request.
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  resumen:
+    # github.actor es el que abrio el PR; Dependabot no puede suplantarlo.
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+
+    steps:
+      # Traduce el titulo/rama del PR a datos estructurados: que paquetes,
+      # de que version a cual, si es mayor/menor/parche, y el ecosistema.
+      - name: Leer metadatos del PR
+        id: meta
+        uses: dependabot/fetch-metadata@v3
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Construir y publicar el resumen
+        uses: actions/github-script@v9
+        env:
+          # Umbral de compatibilidad exigido. Ver la nota larga en el paso de
+          # evaluacion mas abajo sobre que mide realmente este numero.
+          UMBRAL_COMPATIBILIDAD: '80'
+          DEPS_JSON: ${{ steps.meta.outputs.updated-dependencies-json }}
+          TIPO_SALTO: ${{ steps.meta.outputs.update-type }}
+          ECOSISTEMA: ${{ steps.meta.outputs.package-ecosystem }}
+          ES_SEGURIDAD: ${{ steps.meta.outputs.alert-state }}
+        with:
+          script: |
+            const UMBRAL = Number(process.env.UMBRAL_COMPATIBILIDAD);
+            const deps = JSON.parse(process.env.DEPS_JSON || '[]');
+            const ecosistema = process.env.ECOSISTEMA || '';
+            const esSeguridad = (process.env.ES_SEGURIDAD || '') !== '';
+
+            if (deps.length === 0) {
+              core.info('El PR no declara dependencias actualizadas; no hay nada que resumir.');
+              return;
+            }
+
+            // --- Puntaje de compatibilidad -------------------------------
+            //
+            // GitHub calcula, para cada salto de version concreto, en que
+            // porcentaje de repositorios publicos que hicieron ese mismo
+            // salto el CI siguio pasando. Es la unica metrica de
+            // "compatibilidad" que existe, y viene con dos limitaciones que
+            // hay que tener presentes al leer el resumen:
+            //
+            //   - No es configurable. Dependabot no puede filtrar por ella;
+            //     por eso se evalua aqui, despues de que el PR ya existe.
+            //   - Para paquetes poco usados suele no haber datos suficientes
+            //     y el puntaje es desconocido, que no significa "malo".
+            //
+            // Por eso el puntaje NO bloquea nada por si solo: marca el PR
+            // para que lo mires con mas cuidado. La señal fuerte sigue
+            // siendo tu propio CI sobre este codigo.
+            const badge = 'https://api.dependabot.com/badges/compatibility_score';
+
+            async function puntaje(dep) {
+              if (!dep.prevVersion || !dep.newVersion) return null;
+              const url = `${badge}?dependency-name=${encodeURIComponent(dep.dependencyName)}`
+                + `&package-manager=${encodeURIComponent(ecosistema)}`
+                + `&previous-version=${encodeURIComponent(dep.prevVersion)}`
+                + `&new-version=${encodeURIComponent(dep.newVersion)}`;
+              try {
+                const r = await fetch(url, { redirect: 'follow' });
+                if (!r.ok) return null;
+                const svg = await r.text();
+                const m = svg.match(/(\d{1,3})\s*%/);
+                return m ? Number(m[1]) : null;
+              } catch (e) {
+                core.info(`No se pudo leer el puntaje de ${dep.dependencyName}: ${e.message}`);
+                return null;
+              }
+            }
+
+            const filas = [];
+            for (const d of deps) {
+              filas.push({ ...d, score: await puntaje(d) });
+            }
+
+            // --- Veredicto -----------------------------------------------
+            const bajas = filas.filter(f => f.score !== null && f.score < UMBRAL);
+            const sinDatos = filas.filter(f => f.score === null);
+            const mayores = filas.filter(f =>
+              f.prevVersion && f.newVersion &&
+              f.prevVersion.split('.')[0] !== f.newVersion.split('.')[0]);
+
+            // --- Texto para cualquiera -----------------------------------
+            const nombres = filas.map(f => f.dependencyName);
+            const lista = nombres.length === 1
+              ? `**${nombres[0]}**`
+              : `**${nombres.length} componentes** (${nombres.slice(0, 3).join(', ')}` +
+                (nombres.length > 3 ? `, y ${nombres.length - 3} mas)` : ')');
+
+            let llano;
+            if (esSeguridad) {
+              llano = `Este cambio corrige una **falla de seguridad conocida** en ${lista}. ` +
+                `Conviene revisarlo y aplicarlo pronto: mientras no se aplique, ` +
+                `la falla sigue presente en el sistema.`;
+            } else if (mayores.length > 0) {
+              // En un PR agrupado casi nunca son mayores todos: nombrar solo
+              // los que si lo son evita alarmar sobre paquetes que no cambian
+              // de forma.
+              const nom = mayores.map(m => `**${m.dependencyName}**`).join(', ');
+              const encabezado = mayores.length === filas.length
+                ? `Este cambio actualiza ${lista} a una **version mayor**.`
+                : `Este cambio actualiza ${lista}. De esos, ${nom} ` +
+                  `${mayores.length === 1 ? 'pasa' : 'pasan'} a una **version mayor**; ` +
+                  `${filas.length - mayores.length === 1 ? 'el otro es' : 'los demas son'} ` +
+                  `mantenimiento de rutina.`;
+              llano = `${encabezado} Una version mayor significa que los autores ` +
+                `cambiaron como funciona el componente por dentro, y algo del sistema ` +
+                `que dependia de la forma anterior puede dejar de funcionar. Necesita ` +
+                `revision y pruebas antes de aplicarse.`;
+            } else {
+              llano = `Este cambio actualiza ${lista} a una version mas reciente, con ` +
+                `**correcciones y mejoras internas**. No cambia como se usa el sistema ` +
+                `ni lo que ve el usuario. Es mantenimiento de rutina.`;
+            }
+
+            if (bajas.length > 0) {
+              llano += `\n\n> **Atencion.** En otros proyectos que hicieron este mismo ` +
+                `salto de version, las pruebas automaticas fallaron con mas frecuencia ` +
+                `de la aceptable (menos de ${UMBRAL}% de exito). No quiere decir que ` +
+                `aqui vaya a fallar, pero si que merece una revision mas cuidadosa de ` +
+                `lo habitual.`;
+            }
+
+            // --- Tabla tecnica -------------------------------------------
+            function changelog(nombre) {
+              if (ecosistema === 'composer') return `https://packagist.org/packages/${nombre}`;
+              // 'npm' aqui cubre tambien a pnpm: fetch-metadata reporta el
+              // ecosistema, no el gestor, y npmjs.com es el registro del que
+              // pnpm descarga igual.
+              if (ecosistema === 'npm') return `https://www.npmjs.com/package/${nombre}`;
+              if (ecosistema === 'github_actions') return `https://github.com/${nombre}/releases`;
+              return `https://github.com/search?q=${encodeURIComponent(nombre)}`;
+            }
+
+            function salto(f) {
+              if (!f.prevVersion || !f.newVersion) return '—';
+              const [a] = f.prevVersion.split('.');
+              const [b] = f.newVersion.split('.');
+              if (a !== b) return '**mayor** (puede romper)';
+              const ma = f.prevVersion.split('.')[1], mb = f.newVersion.split('.')[1];
+              return ma !== mb ? 'menor (agrega)' : 'parche (corrige)';
+            }
+
+            function marca(s) {
+              if (s === null) return 'sin datos';
+              return s < UMBRAL ? `**${s}%** — bajo el ${UMBRAL}%` : `${s}%`;
+            }
+
+            const tabla = [
+              '| Paquete | Actual | Nueva | Tipo de salto | Compatibilidad | Alcance |',
+              '|---|---|---|---|---|---|',
+              ...filas.map(f =>
+                `| [\`${f.dependencyName}\`](${changelog(f.dependencyName)}) ` +
+                `| \`${f.prevVersion || '—'}\` | \`${f.newVersion || '—'}\` ` +
+                `| ${salto(f)} | ${marca(f.score)} ` +
+                `| ${f.dependencyType === 'direct:development' ? 'desarrollo' : 'produccion'} |`),
+            ].join('\n');
+
+            let notas = '';
+            if (sinDatos.length > 0) {
+              notas += `\n- ${sinDatos.length} paquete(s) sin puntaje de compatibilidad. ` +
+                `GitHub lo calcula a partir de repos publicos que hicieron el mismo salto; ` +
+                `si son pocos, no hay dato. **Sin datos no es lo mismo que mal puntaje.**\n`;
+            }
+            if (bajas.length > 0) {
+              notas += `\n- Bajo el umbral: ${bajas.map(b => `\`${b.dependencyName}\` (${b.score}%)`).join(', ')}. ` +
+                `Revisar el changelog antes de mergear.\n`;
+            }
+
+            const cuerpo = [
+              '## Resumen de esta actualizacion',
+              '',
+              '### Que cambia, en pocas palabras',
+              '',
+              llano,
+              '',
+              '<details>',
+              '<summary><b>Detalle tecnico</b></summary>',
+              '',
+              tabla,
+              notas,
+              '',
+              `Umbral de compatibilidad exigido: **${UMBRAL}%**. El puntaje mide en que ` +
+              'porcentaje de repositorios publicos que hicieron este mismo salto el CI ' +
+              'siguio pasando. Es una señal de apoyo, no una garantia: la señal que manda ' +
+              'es el CI de este repositorio.',
+              '',
+              '</details>',
+              '',
+              '---',
+              '<sub>Generado automaticamente. Para cambiar las reglas, editar ' +
+              '`.github/dependabot.yml` o este workflow.</sub>',
+            ].join('\n');
+
+            // Un solo comentario por PR: en cada push se reescribe el mismo
+            // en vez de apilar uno nuevo.
+            const marcador = '<!-- resumen-dependencias -->';
+            const { data: previos } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+            });
+            const mio = previos.find(c =>
+              c.user.type === 'Bot' && c.body.includes(marcador));
+
+            const payload = { body: `${marcador}\n${cuerpo}` };
+            if (mio) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner, repo: context.repo.repo,
+                comment_id: mio.id, ...payload,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner, repo: context.repo.repo,
+                issue_number: context.payload.pull_request.number, ...payload,
+              });
+            }
+
+            // --- Etiquetas -----------------------------------------------
+            // Hacen visible el estado en la lista de PRs, sin abrir cada uno.
+            const etiquetas = [];
+            if (bajas.length > 0) etiquetas.push('compatibilidad-baja');
+            if (mayores.length > 0) etiquetas.push('cambio-mayor');
+            if (esSeguridad) etiquetas.push('seguridad');
+
+            if (etiquetas.length > 0) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.pull_request.number,
+                labels: etiquetas,
+              }).catch(e => core.info(`No se pudieron poner etiquetas: ${e.message}`));
+            }
+
+            if (bajas.length > 0) {
+              core.warning(
+                `${bajas.length} dependencia(s) bajo el ${UMBRAL}% de compatibilidad.`);
+            }

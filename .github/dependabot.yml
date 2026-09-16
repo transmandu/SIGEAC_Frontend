@@ -1,0 +1,179 @@
+version: 2
+
+# Actualizaciones de dependencias del frontend.
+#
+# Tres reglas gobiernan todo lo de abajo:
+#
+#   1. Mensual. Un PR de dependencias a mitad de sprint es ruido; una vez al
+#      mes es una tarea que cabe en la planificacion.
+#   2. Nada recien publicado. Una version se deja reposar 7 dias antes de que
+#      Dependabot la proponga. Ese es el plazo en el que aparecen los bugs de
+#      release y en el que se detecta un paquete comprometido. Es la misma
+#      defensa que minimumReleaseAge en pnpm-workspace.yaml, pero aplicada a
+#      lo que Dependabot propone, no a lo que pnpm instala.
+#   3. Agrupado. Este arbol tiene ~70 dependencias directas; sin agrupar serian
+#      decenas de PRs cada mes. Los parches y menores viajan juntos por
+#      familia. Las mayores van sueltas, una por una, porque son las que rompen
+#      y hay que poder revertir cada una por separado.
+#
+# Las actualizaciones de SEGURIDAD (las que Dependabot abre por un CVE) no
+# pasan por nada de esto: ignoran el calendario y la cuarentena, y llegan el
+# mismo dia. Eso es comportamiento de GitHub, no hay que configurarlo aqui.
+
+updates:
+  # ------------------------------------------------------------------- pnpm
+  #
+  # Este proyecto usa pnpm, no npm. El valor de abajo dice "npm" igual, y es
+  # correcto: Dependabot llama "npm" al ecosistema de JavaScript entero, y
+  # elige el gestor por el lockfile que encuentra. Como aqui hay un
+  # pnpm-lock.yaml (y ningun package-lock.json), resuelve con pnpm y es el
+  # pnpm-lock.yaml lo que actualiza en cada PR.
+  #
+  # No cambiar a "pnpm": ese valor no existe y Dependabot rechazaria el
+  # archivo entero, dejando el repo sin ninguna actualizacion.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: monthly
+      day: monday
+      time: '06:00'
+      timezone: America/Caracas
+
+    cooldown:
+      default-days: 7
+      semver-major-days: 14
+
+    open-pull-requests-limit: 8
+    versioning-strategy: increase
+
+    labels:
+      - dependencias
+      - frontend
+    commit-message:
+      prefix: 'build'
+      prefix-development: 'chore'
+      include: scope
+
+    groups:
+      # React y sus tipos se mueven juntos. Subir react sin @types/react deja
+      # el arbol con tipos que no corresponden al runtime.
+      react:
+        applies-to: version-updates
+        patterns:
+          - react
+          - react-dom
+          - '@types/react'
+          - '@types/react-dom'
+        update-types:
+          - minor
+          - patch
+
+      # Next y su config de ESLint van atados: eslint-config-next sigue la
+      # version de Next.
+      next:
+        applies-to: version-updates
+        patterns:
+          - next
+          - eslint-config-next
+        update-types:
+          - minor
+          - patch
+
+      # ~22 paquetes de Radix. Publican en bloque y comparten primitivas
+      # internas; mezclarlos a distinta version es lo que produce bugs raros
+      # de foco y de portal.
+      radix-ui:
+        applies-to: version-updates
+        patterns:
+          - '@radix-ui/*'
+        update-types:
+          - minor
+          - patch
+
+      # Las 8 piezas de @schedule-x publican siempre la misma version.
+      schedule-x:
+        applies-to: version-updates
+        patterns:
+          - '@schedule-x/*'
+        update-types:
+          - minor
+          - patch
+
+      tanstack:
+        applies-to: version-updates
+        patterns:
+          - '@tanstack/*'
+        update-types:
+          - minor
+          - patch
+
+      # Tailwind v4 reparte el motor entre tailwindcss, el plugin de postcss y
+      # postcss mismo.
+      tailwind:
+        applies-to: version-updates
+        patterns:
+          - tailwindcss
+          - '@tailwindcss/*'
+          - postcss
+          - tw-animate-css
+          - tailwind-merge
+        update-types:
+          - minor
+          - patch
+
+      # Todo lo que solo corre en tu maquina o en CI: eslint, prettier,
+      # typescript, jiti, @types/node. No llega al bundle: si lint y build
+      # pasan, entra.
+      herramientas-dev:
+        applies-to: version-updates
+        dependency-type: development
+        patterns:
+          - '*'
+        update-types:
+          - minor
+          - patch
+
+      # El resto de produccion que no cae en las familias de arriba.
+      produccion:
+        applies-to: version-updates
+        dependency-type: production
+        patterns:
+          - '*'
+        update-types:
+          - minor
+          - patch
+
+    ignore:
+      # pdfjs-dist esta clavado sin ^ a proposito (5.4.296): react-pdf exige
+      # que la version del worker coincida exactamente con la de la libreria.
+      # Subirlo solo rompe el visor de PDF en tiempo de ejecucion, no en build.
+      # Se sube a mano, junto con react-pdf.
+      - dependency-name: 'pdfjs-dist'
+
+      # Preact esta aqui como alias de compatibilidad junto a @preact/signals;
+      # una mayor suya cambia el runtime de firmas. A mano.
+      - dependency-name: 'preact'
+        update-types:
+          - version-update:semver-major
+
+  # ------------------------------------------------------- GitHub Actions
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+      day: monday
+      time: '06:00'
+      timezone: America/Caracas
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 2
+    labels:
+      - dependencias
+      - ci
+    commit-message:
+      prefix: 'ci'
+    groups:
+      actions:
+        applies-to: version-updates
+        patterns:
+          - '*'
