@@ -52,7 +52,10 @@ function ancestorPaths(value?: string): string[] {
 /** Convierte una ruta técnica en una etiqueta legible ("/A/B" -> "A / B"). */
 function formatPathLabel(value?: string): string {
   if (!value || value === "/") return "Raíz";
-  return value.replace(/^\/+|\/+$/g, "").split("/").join(" / ");
+  return value
+    .replace(/^\/+|\/+$/g, "")
+    .split("/")
+    .join(" / ");
 }
 
 interface FolderRowProps {
@@ -78,75 +81,73 @@ function FolderRow({
   const isRoot = node.id === "root";
 
   return (
-<div>
-        <div
-          role="button"
-          tabIndex={0}
-          onClick={() => onSelect(node.path)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              onSelect(node.path);
-            }
-          }}
+    <div>
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={() => onSelect(node.path)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onSelect(node.path);
+          }
+        }}
         className={cn(
           "group flex w-full items-center gap-1.5 py-1.5 px-2 text-sm rounded-md border text-left cursor-pointer transition-colors",
           isSelected
             ? "bg-muted/60 border-border/60 font-medium text-foreground"
             : "border-transparent text-foreground/90 hover:bg-muted/20",
         )}
-        >
-          {hasChildren ? (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onToggle(node.path);
-              }}
-              className="p-0.5 shrink-0 text-muted-foreground/70 hover:bg-muted/40 rounded"
-              aria-label={isExpanded ? "Contraer" : "Expandir"}
-            >
-              {isExpanded ? (
-                <ChevronDown className="h-3.5 w-3.5" />
-              ) : (
-                <ChevronRight className="h-3.5 w-3.5" />
-              )}
-            </button>
-          ) : (
-            <span className="w-4 shrink-0" />
-          )}
-
-          {isExpanded ? (
-            <FolderOpen className="h-3.5 w-3.5 shrink-0 text-foreground/80" />
-          ) : (
-            <Folder className="h-3.5 w-3.5 shrink-0 text-muted-foreground/70" />
-          )}
-
-          <span className="truncate flex-1" title={node.name}>
-            {node.name}
-          </span>
-
-          {isSelected && (
-            <Check className="h-3.5 w-3.5 shrink-0 text-primary" />
-          )}
-        </div>
-
-        {hasChildren && isExpanded && (
-          <div className="pl-3 border-l border-border/40">
-            {node.children.map((child) => (
-              <FolderRow
-                key={child.id}
-                node={child}
-                level={level + 1}
-                selected={selected}
-                expanded={expanded}
-                onSelect={onSelect}
-                onToggle={onToggle}
-              />
-            ))}
-          </div>
+      >
+        {hasChildren ? (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggle(node.path);
+            }}
+            className="p-0.5 shrink-0 text-muted-foreground/70 hover:bg-muted/40 rounded"
+            aria-label={isExpanded ? "Contraer" : "Expandir"}
+          >
+            {isExpanded ? (
+              <ChevronDown className="h-3.5 w-3.5" />
+            ) : (
+              <ChevronRight className="h-3.5 w-3.5" />
+            )}
+          </button>
+        ) : (
+          <span className="w-4 shrink-0" />
         )}
+
+        {isExpanded ? (
+          <FolderOpen className="h-3.5 w-3.5 shrink-0 text-foreground/80" />
+        ) : (
+          <Folder className="h-3.5 w-3.5 shrink-0 text-muted-foreground/70" />
+        )}
+
+        <span className="truncate flex-1" title={node.name}>
+          {node.name}
+        </span>
+
+        {isSelected && <Check className="h-3.5 w-3.5 shrink-0 text-primary" />}
       </div>
+
+      {hasChildren && isExpanded && (
+        <div className="pl-3 border-l border-border/40">
+          {node.children.map((child) => (
+            <FolderRow
+              key={child.id}
+              node={child}
+              level={level + 1}
+              selected={selected}
+              expanded={expanded}
+              onSelect={onSelect}
+              onToggle={onToggle}
+            />
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -249,7 +250,10 @@ export default function FolderSelect({
           >
             <span className="flex items-center gap-2 overflow-hidden flex-1 min-w-0">
               <Folder className="h-3.5 w-3.5 shrink-0 text-muted-foreground/70" />
-              <span className="truncate min-w-0" title={value ? formatPathLabel(value) : undefined}>
+              <span
+                className="truncate min-w-0"
+                title={value ? formatPathLabel(value) : undefined}
+              >
                 {value ? formatPathLabel(value) : "Seleccione una carpeta"}
               </span>
             </span>
@@ -300,7 +304,7 @@ export default function FolderSelect({
               <FolderRow
                 node={rootNode}
                 level={0}
-                selected={includeRoot ? value ?? "" : ""}
+                selected={includeRoot ? (value ?? "") : ""}
                 expanded={expanded}
                 onSelect={includeRoot ? handleSelect : () => {}}
                 onToggle={toggle}
