@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -17,6 +17,13 @@ interface CursorPaginationProps {
   onNextPage: () => void;
   hasPrevPage: boolean;
   hasNextPage: boolean;
+  /**
+   * La página pedida todavía no ha llegado y en pantalla siguen las filas de
+   * la anterior. El clic ocurre aquí, así que aquí tiene que verse que algo
+   * pasó: sin esta señal el usuario ve los mismos datos durante ~1s y cree que
+   * el botón no hizo nada.
+   */
+  isTransitioning?: boolean;
 }
 
 /**
@@ -32,6 +39,7 @@ export function CursorPagination({
   onNextPage,
   hasPrevPage,
   hasNextPage,
+  isTransitioning = false,
 }: CursorPaginationProps) {
   return (
     <div
@@ -85,6 +93,13 @@ export function CursorPagination({
           <span className="mx-1 text-foreground font-semibold tabular-nums">
             {pageIndex + 1}
           </span>
+
+          {/* El número ya cambió (sale del cursor local, no de la respuesta),
+              así que el spinner es lo que distingue "página 2 cargando" de
+              "página 2 lista". */}
+          {isTransitioning && (
+            <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
+          )}
         </div>
 
         {/* NAV */}
