@@ -58,7 +58,6 @@ export type WorkshopDispatch = {
     requested_by: string | null;
     receiver: string | null;
     authorizer: string | null;
-    expected_return_date: string | null;
     status: "IN_WORKSHOP" | "RETURNED";
     workshop?: { id: number; name: string };
     events: WorkshopDispatchEvent[];

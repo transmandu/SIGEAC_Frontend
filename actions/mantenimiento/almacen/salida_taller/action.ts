@@ -3,6 +3,16 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
+/** Trazo de una pieza dimensionada, mismas reglas que la salida normal. */
+interface ICutPayload {
+  piece_id: number;
+  input_mode: "MEASURES" | "MAGNITUDE";
+  length?: number;
+  width?: number;
+  magnitude?: number;
+  unit_id?: number | null;
+}
+
 interface IWorkshopDispatchAction {
   workshop_id: number;
   requested_by?: string;
@@ -13,11 +23,13 @@ interface IWorkshopDispatchAction {
     article_id: number;
     quantity: number;
     unit_id?: number | null;
+    cut?: ICutPayload;
   }[];
   general_articles?: {
     general_article_id: number;
     quantity: number;
     unit_id?: number | null;
+    cut?: ICutPayload;
   }[];
 }
 
@@ -113,9 +125,14 @@ export const useRegisterWorkshopDispatchEvent = () => {
 
 export interface ICloseWorkshopDispatchAction {
   description?: string;
+  /**
+   * Deben ir TODAS las líneas con saldo pendiente, no solo las serializadas:
+   * el backend rechaza el cierre si falta alguna. `condition_id` solo aplica a
+   * lo serializado; en consumibles y artículos generales va sin definir.
+   */
   items: {
     article_dispatch_order_id: number;
-    condition_id: number;
+    condition_id?: number;
   }[];
 }
 

@@ -80,12 +80,28 @@ export function WorkshopDispatchTimelineDialog({ dispatchId, open, onOpenChange 
   const events = workshopDispatch?.events ?? []
   const isOpenCycle = workshopDispatch?.status === "IN_WORKSHOP"
 
-  // Solo las líneas aeronáuticas serializadas llevan condición de reingreso:
-  // un consumible o artículo general no tiene ese concepto (ver
-  // WorkshopDispatchService::returnLine en el backend).
-  const aeroLines = useMemo(
-    () => (dispatch?.articles_dispatch ?? []).filter((line) => line.article_id != null && line.status === "DISPATCHED"),
+  // El cierre reingresa TODO lo que sigue fuera, no solo lo serializado: el
+  // backend rechaza el cierre si falta cualquier línea con saldo pendiente
+  // (ver WorkshopDispatchService::close). Se usa `articles`, ya aplanado por
+  // el backend con categoría, descripción y saldo por línea.
+  const pendingLines = useMemo(
+    () => (dispatch?.articles ?? []).filter(
+      (line) => line.article_dispatch_order_id != null && line.status !== "RETURNED",
+    ),
     [dispatch],
+  )
+
+  // Solo lo serializado lleva condición de aeronavegabilidad. Un consumible
+  // (aunque sea aeronáutico) y un artículo general vuelven por cantidad y el
+  // backend no les pide condición (ver WorkshopDispatchService::returnLine).
+  const linesNeedingCondition = useMemo(
+    () => pendingLines.filter((line) => line.type === "aeronautical" && line.category !== "CONSUMABLE"),
+    [pendingLines],
+  )
+
+  const quantityOnlyLines = useMemo(
+    () => pendingLines.filter((line) => !linesNeedingCondition.includes(line)),
+    [pendingLines, linesNeedingCondition],
   )
 
   const resetEventForm = () => {
@@ -106,7 +122,9 @@ export function WorkshopDispatchTimelineDialog({ dispatchId, open, onOpenChange 
     )
   }
 
-  const canClose = aeroLines.length > 0 && aeroLines.every((line) => !!conditionByLine[line.id])
+  const canClose =
+    pendingLines.length > 0 &&
+    linesNeedingCondition.every((line) => !!conditionByLine[line.article_dispatch_order_id!])
 
   const handleClose = () => {
     if (!canClose) return
@@ -115,10 +133,15 @@ export function WorkshopDispatchTimelineDialog({ dispatchId, open, onOpenChange 
         id: dispatchId,
         company: selectedCompany!.slug,
         data: {
-          items: aeroLines.map((line) => ({
-            article_dispatch_order_id: line.id,
-            condition_id: Number(conditionByLine[line.id]),
-          })),
+          items: pendingLines.map((line) => {
+            const lineId = line.article_dispatch_order_id!
+            const condition = conditionByLine[lineId]
+
+            return {
+              article_dispatch_order_id: lineId,
+              condition_id: condition ? Number(condition) : undefined,
+            }
+          }),
         },
       },
       { onSuccess: () => setClosing(false) },
@@ -183,7 +206,7 @@ export function WorkshopDispatchTimelineDialog({ dispatchId, open, onOpenChange 
                 <ol className="relative ml-3 space-y-6 border-l border-border">
                   {events.map((entry) => (
                     <li key={entry.id} className="ml-6">
-                      <span className="absolute -left-[7px] mt-1 flex size-3.5 rounded-full border-2 border-background bg-primary" />
+                      <span className="absolute -left-1.75 mt-1 flex size-3.5 rounded-full border-2 border-background bg-primary" />
                       <div className="flex flex-wrap items-center gap-2">
                         <Badge variant={entry.event === "RETURNED" ? "default" : "outline"}>
                           {EVENT_LABEL[entry.event] ?? entry.event}
@@ -291,45 +314,78 @@ export function WorkshopDispatchTimelineDialog({ dispatchId, open, onOpenChange 
                       Cerrar ciclo
                     </div>
                     <p className="mb-4 text-xs text-muted-foreground">
-                      Indique con qué condición de aeronavegabilidad vuelve cada artículo (ej: OVERHAUL).
+                      El cierre reingresa todo lo que sigue fuera. Indique con qué
+                      condición de aeronavegabilidad vuelve cada serializado (ej: OVERHAUL).
                     </p>
 
-                    <div className="w-full text-left">
-                      {aeroLines.length === 0 ? (
+                    <div className="w-full space-y-4 text-left">
+                      {pendingLines.length === 0 ? (
                         <p className="text-center text-sm text-muted-foreground italic">
-                          Esta salida no tiene artículos aeronáuticos pendientes de reingreso.
+                          Esta salida no tiene artículos pendientes de reingreso.
                         </p>
                       ) : (
-                        <div className="space-y-2">
-                          {aeroLines.map((line) => (
-                            <div
-                              key={line.id}
-                              className={cn(
-                                "space-y-2 rounded-md border bg-background p-3",
-                              )}
-                            >
-                              <div className="min-w-0">
-                                <p className="text-sm font-medium truncate">
-                                  {line.article?.batch?.name ?? `Artículo #${line.article_id}`}
-                                </p>
-                                <p className="text-xs text-muted-foreground truncate">
-                                  {[
-                                    line.article?.part_number ? `P/N: ${line.article.part_number}` : null,
-                                    line.article?.serial ? `S/N: ${line.article.serial}` : null,
-                                  ].filter(Boolean).join(" · ") || "Sin datos"}
-                                </p>
-                              </div>
-                              <ConditionCombobox
-                                value={conditionByLine[line.id] ?? ""}
-                                onChange={(val) => setConditionByLine((p) => ({ ...p, [line.id]: val }))}
-                                conditions={conditions}
-                                disabled={isConditionsLoading}
-                                triggerClassName="h-9 w-full"
-                                placeholder="Condición..."
-                              />
+                        <>
+                          {linesNeedingCondition.length > 0 && (
+                            <div className="space-y-2">
+                              {linesNeedingCondition.map((line) => {
+                                const lineId = line.article_dispatch_order_id!
+                                return (
+                                  <div
+                                    key={lineId}
+                                    className={cn(
+                                      "space-y-2 rounded-md border bg-background p-3",
+                                    )}
+                                  >
+                                    <div className="min-w-0">
+                                      <p className="text-sm font-medium truncate">
+                                        {line.description ?? line.batch_name ?? `Artículo #${line.id}`}
+                                      </p>
+                                      <p className="text-xs text-muted-foreground truncate">
+                                        {[
+                                          line.part_number && line.part_number !== "N/A" ? `P/N: ${line.part_number}` : null,
+                                          line.serial && line.serial !== "N/A" ? `S/N: ${line.serial}` : null,
+                                        ].filter(Boolean).join(" · ") || "Sin datos"}
+                                      </p>
+                                    </div>
+                                    <ConditionCombobox
+                                      value={conditionByLine[lineId] ?? ""}
+                                      onChange={(val) => setConditionByLine((p) => ({ ...p, [lineId]: val }))}
+                                      conditions={conditions}
+                                      disabled={isConditionsLoading}
+                                      triggerClassName="h-9 w-full"
+                                      placeholder="Condición..."
+                                    />
+                                  </div>
+                                )
+                              })}
                             </div>
-                          ))}
-                        </div>
+                          )}
+
+                          {/* Consumibles y artículos generales: reingresan por
+                              cantidad y el backend no les pide condición, pero
+                              deben ir en el cierre o lo rechaza. */}
+                          {quantityOnlyLines.length > 0 && (
+                            <div className="space-y-1.5 rounded-md border border-dashed bg-muted/40 p-3">
+                              <p className="text-xs font-medium text-muted-foreground">
+                                Reingresan por cantidad
+                              </p>
+                              {quantityOnlyLines.map((line) => (
+                                <div
+                                  key={line.article_dispatch_order_id}
+                                  className="flex items-center justify-between gap-2 text-xs"
+                                >
+                                  <span className="min-w-0 truncate">
+                                    {line.description ?? `Artículo #${line.id}`}
+                                  </span>
+                                  <span className="shrink-0 tabular-nums text-muted-foreground">
+                                    {line.pending_quantity ?? line.dispatch_quantity}
+                                    {line.unit ? ` ${line.unit}` : ""}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </>
                       )}
                     </div>
 
