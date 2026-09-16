@@ -1,6 +1,6 @@
 "use client"
 
-import { ColumnDef } from "@tanstack/react-table"
+import { type AppColumnDef } from "@/lib/table";
 
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
 
@@ -9,7 +9,7 @@ import UnitDropdownActions from "@/components/dropdowns/ajustes/UnitDropdownActi
 import { Badge } from "@/components/ui/badge"
 import { Ruler } from "lucide-react"
 
-export const columns: ColumnDef<Unit>[] = [
+export const columns: AppColumnDef<Unit>[] = [
   {
     accessorKey: "label",
     header: ({ column }) => (

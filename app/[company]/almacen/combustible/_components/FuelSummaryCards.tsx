@@ -36,21 +36,21 @@ const FUEL_ACCENT: Record<
 > = {
   GASOLINE: {
     icon: Flame,
-    card: "border-amber-200/70 bg-gradient-to-br from-amber-50 to-orange-50/40 dark:border-amber-500/20 dark:from-amber-500/10 dark:to-orange-500/5",
+    card: "border-amber-200/70 bg-linear-to-br from-amber-50 to-orange-50/40 dark:border-amber-500/20 dark:from-amber-500/10 dark:to-orange-500/5",
     title: "text-amber-700 dark:text-amber-400",
     badge: "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400",
     divider: "divide-amber-200/60 dark:divide-amber-500/20",
-    barWarehouse: "bg-gradient-to-r from-orange-600 to-amber-500",
-    barVehicle: "bg-gradient-to-r from-amber-400 to-yellow-300",
+    barWarehouse: "bg-linear-to-r from-orange-600 to-amber-500",
+    barVehicle: "bg-linear-to-r from-amber-400 to-yellow-300",
   },
   DIESEL: {
     icon: Droplet,
-    card: "border-emerald-200/70 bg-gradient-to-br from-emerald-50 to-teal-50/40 dark:border-emerald-500/20 dark:from-emerald-500/10 dark:to-teal-500/5",
+    card: "border-emerald-200/70 bg-linear-to-br from-emerald-50 to-teal-50/40 dark:border-emerald-500/20 dark:from-emerald-500/10 dark:to-teal-500/5",
     title: "text-emerald-700 dark:text-emerald-400",
     badge: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400",
     divider: "divide-emerald-200/60 dark:divide-emerald-500/20",
-    barWarehouse: "bg-gradient-to-r from-emerald-600 to-emerald-500",
-    barVehicle: "bg-gradient-to-r from-teal-400 to-teal-300",
+    barWarehouse: "bg-linear-to-r from-emerald-600 to-emerald-500",
+    barVehicle: "bg-linear-to-r from-teal-400 to-teal-300",
   },
 };
 
@@ -76,7 +76,7 @@ function GroupedFuelCard({
   return (
     <div
       className={cn(
-        "overflow-hidden rounded-2xl border shadow-sm",
+        "overflow-hidden rounded-2xl border shadow-xs",
         accent.card,
       )}
     >

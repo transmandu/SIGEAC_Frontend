@@ -1,7 +1,7 @@
 "use client";
 
 import { Warehouse } from "lucide-react";
-import type { Control } from "react-hook-form";
+import type { Control, FieldValues, Path } from "react-hook-form";
 
 import {
     FormControl,
@@ -38,13 +38,13 @@ const FIELDS = [
  * Antes solo existía en los formularios de recepción; se muestra en los dos
  * destinos porque el dato es del artículo, no del acto de recepcionarlo.
  */
-export const WarehouseDetailsSection = ({
+export const WarehouseDetailsSection = <T extends FieldValues,>({
     control,
     receptionDate,
     onReceptionDateChange,
     disabled,
 }: {
-    control: Control<any>;
+    control: Control<T>;
     /** Sin estos dos, la sección omite la fecha. */
     receptionDate?: Date | null;
     onReceptionDateChange?: (date: Date | null | undefined) => void;
@@ -60,7 +60,7 @@ export const WarehouseDetailsSection = ({
                 <FormField
                     key={entry.name}
                     control={control}
-                    name={entry.name}
+                    name={entry.name as Path<T>}
                     render={({ field }) => (
                         <FormItem className="w-full">
                             {/* `h-4`: la fecha de recepción lleva la casilla "No

@@ -125,7 +125,7 @@ const RequiredItemsSection = ({
 }) => {
   if (!items.length) return null;
   return (
-    <Card className="shadow-sm border-border/60">
+    <Card className="shadow-xs border-border/60">
       <CardHeader className="pb-3 border-b border-border/60">
         <CardTitle className="text-base flex items-center gap-2">
           <FileText className="h-4 w-4 text-muted-foreground" />
@@ -164,7 +164,7 @@ const FinancialResourcesSection = ({
   if (!resources.length) return null;
   const total = resources.reduce((acc, r) => acc + Number(r.estimated_value), 0);
   return (
-    <Card className="shadow-sm border-border/60">
+    <Card className="shadow-xs border-border/60">
       <CardHeader className="pb-3 border-b border-border/60">
         <CardTitle className="text-base flex items-center gap-2">
           <DollarSign className="h-4 w-4 text-muted-foreground" />
@@ -222,7 +222,7 @@ const RiskAssessmentsSection = ({
 }) => {
   if (!risks.length) return null;
   return (
-    <Card className="shadow-sm border-border/60">
+    <Card className="shadow-xs border-border/60">
       <CardHeader className="pb-3 border-b border-border/60">
         <CardTitle className="text-base flex items-center gap-2">
           <AlertTriangle className="h-4 w-4 text-muted-foreground" />
@@ -279,7 +279,7 @@ const RiskAssessmentsSection = ({
 const ActivitiesSection = ({ activities }: { activities: ChangeActivity[] }) => {
   if (!activities.length) return null;
   return (
-    <Card className="shadow-sm border-border/60">
+    <Card className="shadow-xs border-border/60">
       <CardHeader className="pb-3 border-b border-border/60">
         <CardTitle className="text-base flex items-center gap-2">
           <Activity className="h-4 w-4 text-muted-foreground" />
@@ -336,7 +336,7 @@ const PhotographicRecordsSection = ({
   }));
 
   return (
-    <Card className="shadow-sm border-border/60">
+    <Card className="shadow-xs border-border/60">
       <CardHeader className="pb-3 border-b border-border/60">
         <CardTitle className="text-base flex items-center gap-2">
           <Camera className="h-4 w-4 text-muted-foreground" />
@@ -510,7 +510,7 @@ export default function GestionDeCambioDetailPage() {
 
         {/* Info cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          <Card className="shadow-sm border-border/60">
+          <Card className="shadow-xs border-border/60">
             <CardHeader className="pb-3 border-b border-border/60">
               <CardTitle className="text-base flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -547,7 +547,7 @@ export default function GestionDeCambioDetailPage() {
             </CardContent>
           </Card>
 
-          <Card className="shadow-sm border-border/60">
+          <Card className="shadow-xs border-border/60">
             <CardHeader className="pb-3 border-b border-border/60">
               <CardTitle className="text-base flex items-center gap-2">
                 <User className="h-4 w-4 text-muted-foreground" />
@@ -582,7 +582,7 @@ export default function GestionDeCambioDetailPage() {
             </CardContent>
           </Card>
 
-          <Card className="shadow-sm border-border/60">
+          <Card className="shadow-xs border-border/60">
             <CardHeader className="pb-3 border-b border-border/60">
               <CardTitle className="text-base flex items-center gap-2">
                 <AlertTriangle className="h-4 w-4 text-muted-foreground" />
@@ -617,7 +617,7 @@ export default function GestionDeCambioDetailPage() {
         </div>
 
         {/* Description, Scope, Justification */}
-        <Card className="shadow-sm border-border/60">
+        <Card className="shadow-xs border-border/60">
           <CardHeader className="pb-3 border-b border-border/60">
             <CardTitle className="text-base">Descripción del Cambio</CardTitle>
           </CardHeader>

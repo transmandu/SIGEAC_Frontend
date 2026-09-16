@@ -22,7 +22,7 @@ import { useBankingPermissions } from "@/hooks/general/cuentas_bancarias/useBank
 import { useGetBankAccounts } from "@/hooks/general/cuentas_bancarias/useGetBankAccounts";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { BankCard } from "@/types";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { Loader2 } from "lucide-react";
 import { useMemo } from "react";
 import { useForm } from "react-hook-form";

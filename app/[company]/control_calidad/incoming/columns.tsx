@@ -2,10 +2,10 @@
 
 import IncomingArticleDropdownActions from "@/components/dropdowns/mantenimiento/control_calidad/IncomingArticleDropdownActions"
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
-import { ColumnDef } from "@tanstack/react-table"
+import { type AppColumnDef } from "@/lib/table";
 import { IncomingArticle } from "./IncomingTypes"
 
-export const columns: ColumnDef<IncomingArticle>[] = [
+export const columns: AppColumnDef<IncomingArticle>[] = [
   {
     accessorKey: "order_number",
     header: ({ column }) => (

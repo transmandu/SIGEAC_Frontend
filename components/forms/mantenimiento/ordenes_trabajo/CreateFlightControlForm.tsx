@@ -10,7 +10,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { AIRPORT_CODE_REGEX, AirportCombobox } from "@/components/selects/AirportCombobox";
 import { useGetMaintenanceAircrafts } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { CalendarIcon, Check, ChevronsUpDown, Loader2, Plus, X } from "lucide-react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
@@ -46,7 +46,7 @@ const flightEntrySchema = z.object({
   aircraft_operator: z.string().optional(),
   origin: airportCodeSchema,
   destination: airportCodeSchema,
-  flight_date: z.date({ required_error: "Seleccione una fecha" }),
+  flight_date: z.date({ error: "Seleccione una fecha" }),
   flight_hours: z.coerce.number().min(0, "Debe ser ≥ 0").optional(),
   flight_cycles: z.coerce.number().min(0, "Debe ser ≥ 0").optional(),
 });
@@ -61,7 +61,7 @@ const editFormSchema = z.object({
   aircraft_operator: z.string().optional(),
   origin: airportCodeSchema,
   destination: airportCodeSchema,
-  flight_date: z.date({ required_error: "Seleccione una fecha" }),
+  flight_date: z.date({ error: "Seleccione una fecha" }),
   flight_hours: z.coerce.number().min(0, "Debe ser ≥ 0").optional(),
   flight_cycles: z.coerce.number().min(0, "Debe ser ≥ 0").optional(),
   aircraft_id: z.string().min(1, "Seleccione una aeronave"),
@@ -212,7 +212,7 @@ function DateField({ control, name }: { control: any; name: string }) {
                 disabled={(date) =>
                   date > new Date() || date < new Date("1900-01-01")
                 }
-                initialFocus
+                autoFocus
               />
             </PopoverContent>
           </Popover>
@@ -313,7 +313,7 @@ function EditForm({
                       disabled={(date) =>
                         date > new Date() || date < new Date("1900-01-01")
                       }
-                      initialFocus
+                      autoFocus
                     />
                   </PopoverContent>
                 </Popover>

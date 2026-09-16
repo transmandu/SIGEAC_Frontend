@@ -1,6 +1,6 @@
 "use client"
 
-import { ColumnDef } from "@tanstack/react-table"
+import { type AppColumnDef } from "@/lib/table";
 
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
 
@@ -10,7 +10,7 @@ import { addDays, format } from "date-fns"
 import { es } from "date-fns/locale"
 
 
-export const columns: ColumnDef<ActivityReport>[] = [
+export const columns: AppColumnDef<ActivityReport>[] = [
   // {
   //   id: "select",
   //   header: ({ table }) => (

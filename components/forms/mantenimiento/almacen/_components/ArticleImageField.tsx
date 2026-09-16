@@ -125,7 +125,7 @@ export const ArticleImageField = ({
                     fieldClass,
                     "flex w-full items-center gap-2 px-3",
                     disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer",
-                    "focus-visible:border-blue-400/60 focus-visible:outline-none",
+                    "focus-visible:border-blue-400/60 focus-visible:outline-hidden",
                     isDragging && "border-primary bg-primary/5",
                     error && "border-destructive",
                 )}

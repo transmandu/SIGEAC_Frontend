@@ -35,7 +35,7 @@ export const TokenList = ({
                     className={cn(
                         "inline-flex max-w-full items-center gap-1.5 rounded-md py-1 pl-2.5 pr-1",
                         "border border-slate-400/50 bg-background/70 dark:border-slate-600/50",
-                        "text-[13px] tabular-nums shadow-sm",
+                        "text-[13px] tabular-nums shadow-xs",
                     )}
                 >
                     {numbered && (

@@ -67,7 +67,7 @@ export default function RequisitionSubRow({
           return (
             <div
               key={quote.quote_number}
-              className="group flex items-center justify-between gap-3 rounded-lg border px-3 py-2 bg-background/70 backdrop-blur-sm border-slate-200/70 dark:border-slate-700/60 hover:border-primary/40 hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition-all"
+              className="group flex items-center justify-between gap-3 rounded-lg border px-3 py-2 bg-background/70 backdrop-blur-xs border-slate-200/70 dark:border-slate-700/60 hover:border-primary/40 hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition-all"
             >
             <div className="flex items-center gap-2.5">
               <div className="flex h-8 w-8 items-center justify-center rounded-md bg-slate-100 dark:bg-slate-800">
@@ -107,7 +107,7 @@ export default function RequisitionSubRow({
                 </div>
                 <Badge
                   className={cn(
-                    `whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-sm transition-colors duration-150 cursor-default`,
+                    `whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-xs transition-colors duration-150 cursor-default`,
 
                     approved && `border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300`,
 

@@ -17,7 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -29,7 +29,7 @@ const formSchema = z.object({
     message: "El nombre debe tener al menos 3 caracteres.",
   }),
   type: z.string({
-    required_error: "Debe seleccionar un tipo.",
+    error: "Debe seleccionar un tipo.",
   }).min(1, { message: "Debe seleccionar un tipo." }),
 });
 

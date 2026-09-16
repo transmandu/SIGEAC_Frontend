@@ -1,6 +1,6 @@
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
+import { type AppColumnDef } from "@/lib/table";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -25,7 +25,7 @@ const employeeFullName = (
     .filter(Boolean)
     .join(" ");
 
-export const movementsColumns: ColumnDef<UniformMovement>[] = [
+export const movementsColumns: AppColumnDef<UniformMovement>[] = [
   {
     accessorKey: "date",
     header: "Fecha",

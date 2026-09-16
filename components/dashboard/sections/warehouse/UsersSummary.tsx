@@ -41,7 +41,7 @@ function TintedCard({
 }) {
   return (
     <Card
-      className={`relative overflow-hidden rounded-3xl border bg-background/70 backdrop-blur-xl shadow-sm ${className}`}
+      className={`relative overflow-hidden rounded-3xl border bg-background/70 backdrop-blur-xl shadow-xs ${className}`}
       style={{
         borderColor: `rgba(${tone}, 0.22)`,
         backgroundImage: `linear-gradient(to bottom right, rgba(${tone}, 0.06), transparent 60%)`,
@@ -144,7 +144,7 @@ export default function UsersSummary({
                   <div className="overflow-y-auto max-h-[260px] lg:max-h-[320px]">
 
                     <Table>
-                      <TableHeader className="sticky top-0 bg-background/80 backdrop-blur">
+                      <TableHeader className="sticky top-0 bg-background/80 backdrop-blur-sm">
                         <TableRow>
                           <TableHead className="text-center">Nombre</TableHead>
                           <TableHead className="text-center">Cargo</TableHead>

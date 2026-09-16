@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { zodResolver } from "@/lib/zod-resolver";
 import axios from 'axios';
 import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
@@ -43,11 +43,11 @@ import { getNotificationSource } from './workflow-helpers';
 
 const FORM_SCHEMA = z.object({
     hazard_notification_id: z.coerce
-        .number({ invalid_type_error: 'Seleccione una notificación.' })
+        .number({ error: 'Seleccione una notificación.' })
         .int()
         .positive('Seleccione una notificación.'),
     probability: z.coerce
-        .number({ invalid_type_error: 'Seleccione la probabilidad.' })
+        .number({ error: 'Seleccione la probabilidad.' })
         .int()
         .min(1, 'La probabilidad debe estar entre 1 y 5.')
         .max(5, 'La probabilidad debe estar entre 1 y 5.'),

@@ -2,16 +2,13 @@
 
 import { useState, useEffect, useMemo } from "react";
 import {
-  ColumnDef,
   ColumnFiltersState,
   flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
+  type RowData,
   SortingState,
-  useReactTable,
+  useTable,
 } from "@tanstack/react-table";
+import { appTableFeatures, type AppColumnDef } from "@/lib/table";
 
 import {
   Table,
@@ -29,20 +26,23 @@ import { DataTablePagination } from "@/components/tables/DataTablePagination";
 import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { getCertificadosSteps } from "@/components/tour/steps/general/cursos/certificados/certificados";
+import { type CertificateGroup } from "./columns";
 
-interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[];
+interface DataTableProps<TData extends RowData> {
+  columns: AppColumnDef<TData>[];
   data: TData[];
   onOpenModal: () => void;
+  onEmployeeClick: (employee: CertificateGroup) => void;
   user?: any;
 }
 
-export function DataTableCertificates<TData, TValue>({
+export function DataTableCertificates<TData extends RowData>({
   columns,
   data,
   onOpenModal,
+  onEmployeeClick,
   user,
-}: DataTableProps<TData, TValue>) {
+}: DataTableProps<TData>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
@@ -70,21 +70,37 @@ export function DataTableCertificates<TData, TValue>({
     return rolesPermitidos.includes(roleName?.toUpperCase());
   });
 
-  const table = useReactTable({
-    data,
+  /**
+   * Filtro por grupos: mantiene el empleado si coincide con su identidad o
+   * con el nombre de cualquiera de sus certificados (cursos).
+   */
+  const filteredData = useMemo(() => {
+    const q = (globalFilter ?? "").trim().toLowerCase();
+    if (!q) return data;
+    return data.filter((row: any) => {
+      if (!row?.__isGroup) return false;
+      const emp = row.employee;
+      if (!emp) return false;
+      const identity =
+        `${emp.last_name} ${emp.first_name} ${emp.dni}`.toLowerCase();
+      if (identity.includes(q)) return true;
+      return (row.certificates ?? []).some((cert: any) =>
+        String(cert.course?.name ?? "")
+          .toLowerCase()
+          .includes(q),
+      );
+    });
+  }, [data, globalFilter]);
+
+  const table = useTable({
+    features: appTableFeatures,
+    data: filteredData,
     columns,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    onGlobalFilterChange: setGlobalFilter,
-    globalFilterFn: "includesString",
     state: {
       sorting,
       columnFilters,
-      globalFilter,
     },
   });
 
@@ -151,21 +167,38 @@ export function DataTableCertificates<TData, TValue>({
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext(),
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
+              table.getRowModel().rows.map((row) => {
+                const isGroupRow = row.depth === 0;
+                return (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                    onClick={() => {
+                      if (isGroupRow && (row.original as any).__isGroup) {
+                        onEmployeeClick(row.original as CertificateGroup);
+                      }
+                    }}
+                    className={`
+                      border-b border-border/40
+                      transition-colors
+                      ${
+                        isGroupRow
+                          ? "bg-muted/15 cursor-pointer select-none hover:bg-muted/25"
+                          : "hover:bg-muted/10"
+                      }
+                    `}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id} className="py-2">
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                );
+              })
             ) : (
               <TableRow>
                 <TableCell

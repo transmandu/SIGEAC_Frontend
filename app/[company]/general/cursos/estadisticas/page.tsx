@@ -134,7 +134,7 @@ const CourseStatsPage = () => {
 
       <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-2 gap-4">
         <div
-          className="flex flex-col justify-center items-center p-4 rounded-lg shadow border"
+          className="flex flex-col justify-center items-center p-4 rounded-lg shadow-sm border"
           data-tour="estadisticas-barras"
         >
           {isLoadingBarChart ? (
@@ -161,7 +161,7 @@ const CourseStatsPage = () => {
         </div>
 
         <div
-          className="flex flex-col justify-center items-center p-4 rounded-lg shadow border"
+          className="flex flex-col justify-center items-center p-4 rounded-lg shadow-sm border"
           data-tour="estadisticas-pastel"
         >
           {isLoadingBarChart ? (

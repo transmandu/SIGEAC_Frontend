@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/form";
 
 import { Input } from "@/components/ui/input";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -114,13 +114,13 @@ export function CreateObligatoryReportForm({
         message: "Formato de hora inválido (HH:mm)",
       }),
       pilot_id: z.string({
-        required_error: "El piloto es requerido.",
+        error: "El piloto es requerido.",
       }),
       copilot_id: z.string({
-        required_error: "El copiloto es requerido.",
+        error: "El copiloto es requerido.",
       }),
       aircraft_id: z.string({
-        required_error: "La aeronave es requerida.",
+        error: "La aeronave es requerida.",
       }),
       flight_number: z.string(),
       flight_origin: z
@@ -154,6 +154,8 @@ export function CreateObligatoryReportForm({
         (val) => (val === null || val === undefined ? "" : val),
         z.string().optional(),
       ),
+      email: z.string().email("Email inválido").optional().nullable(),
+      phone_number: z.string().optional().nullable(),
       image: z
         .instanceof(File)
         .refine((file) => file.size <= 10 * 1024 * 1024, "Max 10MB")
@@ -255,6 +257,8 @@ export function CreateObligatoryReportForm({
         ? JSON.parse(initialData.incidents)
         : [],
       other_incidents: initialData?.other_incidents ?? "",
+      email: initialData?.email ?? null,
+      phone_number: initialData?.phone_number ?? null,
       report_date: initialData?.report_date
         ? new Date(initialData?.report_date)
         : new Date(),
@@ -299,6 +303,8 @@ export function CreateObligatoryReportForm({
           flight_alt_destiny: data.flight_alt_destiny,
           incidents: data.incidents,
           other_incidents: data.other_incidents,
+          email: data.email,
+          phone_number: data.phone_number,
         },
       };
       await updateObligatoryReport.mutateAsync(value);
@@ -324,6 +330,8 @@ export function CreateObligatoryReportForm({
         document: data.document,
         library_folder_path: data.library_folder_path,
         status: shouldEnableField ? "ABIERTO" : "PROCESO",
+        email: data.email,
+        phone_number: data.phone_number,
       };
 
       try {
@@ -482,20 +490,10 @@ export function CreateObligatoryReportForm({
                       selected={field.value}
                       onSelect={field.onChange}
                       disabled={(date) => date > new Date()} // Solo deshabilitar fechas futuras
-                      initialFocus
-                      fromYear={1980} // Año mínimo que se mostrará
-                      toYear={new Date().getFullYear()} // Año máximo (actual)
-                      captionLayout="dropdown-buttons" // Selectores de año/mes
-                      components={{
-                        Dropdown: (props) => (
-                          <select
-                            {...props}
-                            className="bg-popover text-popover-foreground"
-                          >
-                            {props.children}
-                          </select>
-                        ),
-                      }}
+                      autoFocus
+                      startMonth={new Date(1980, 0)} // Año mínimo que se mostrará
+                      endMonth={new Date(new Date().getFullYear(), 11)} // Año máximo (actual)
+                      captionLayout="dropdown" // Selectores de año/mes
                     />
                   </PopoverContent>
                 </Popover>
@@ -536,24 +534,53 @@ export function CreateObligatoryReportForm({
                       selected={field.value}
                       onSelect={field.onChange}
                       disabled={(date) => date > new Date()} // Solo deshabilitar fechas futuras
-                      initialFocus
-                      fromYear={1980} // Año mínimo que se mostrará
-                      toYear={new Date().getFullYear()} // Año máximo (actual)
-                      captionLayout="dropdown-buttons" // Selectores de año/mes
-                      components={{
-                        Dropdown: (props) => (
-                          <select
-                            {...props}
-                            className="bg-popover text-popover-foreground"
-                          >
-                            {props.children}
-                          </select>
-                        ),
-                      }}
+                      autoFocus
+                      startMonth={new Date(1980, 0)} // Año mínimo que se mostrará
+                      endMonth={new Date(new Date().getFullYear(), 11)} // Año máximo (actual)
+                      captionLayout="dropdown" // Selectores de año/mes
                     />
                   </PopoverContent>
                 </Popover>
                 <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <div className="flex gap-2 items-center justify-center">
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                  <Input
+                    type="email"
+                    placeholder="correo@ejemplo.com"
+                    {...field}
+                    value={field.value ?? ""}
+                  />
+                </FormControl>
+                <FormMessage className="text-xs" />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="phone_number"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormLabel>Teléfono</FormLabel>
+                <FormControl>
+                  <Input
+                    type="tel"
+                    placeholder="Número de teléfono"
+                    {...field}
+                    value={field.value ?? ""}
+                  />
+                </FormControl>
+                <FormMessage className="text-xs" />
               </FormItem>
             )}
           />

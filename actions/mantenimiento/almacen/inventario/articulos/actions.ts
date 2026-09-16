@@ -173,6 +173,49 @@ const serializeFormValue = (value: unknown) => {
   return value?.toString() ?? "";
 };
 
+/**
+ * Vuelca el payload del artículo en un FormData.
+ *
+ * Multipart solo transporta strings y File, así que los objetos y los arrays
+ * de objetos (`dimension`, `conversions`) van como JSON en un campo plano —el
+ * backend los decodifica en prepareForValidation—. Sin esto caían en
+ * `toString()` y llegaban como "[object Object]", que el backend rechazaba con
+ * un 422 sin mensaje visible.
+ */
+const appendArticleFormData = (formData: FormData, data: Record<string, any>) => {
+  Object.entries(data).forEach(([key, value]) => {
+    if (value === undefined || value === null) return;
+
+    if (value instanceof File) {
+      formData.append(key, value);
+      return;
+    }
+
+    if (value instanceof Date) {
+      formData.append(key, serializeFormValue(value));
+      return;
+    }
+
+    if (Array.isArray(value)) {
+      if (value.some((item) => typeof item === "object" && item !== null)) {
+        formData.append(key, JSON.stringify(value));
+      } else {
+        value.forEach((item) => formData.append(`${key}[]`, serializeFormValue(item)));
+      }
+      return;
+    }
+
+    if (typeof value === "object") {
+      formData.append(key, JSON.stringify(value));
+      return;
+    }
+
+    formData.append(key, serializeFormValue(value));
+  });
+
+  return formData;
+};
+
 export type IncomingCheck = {
   check_id: number;
   result: CheckResult;
@@ -204,21 +247,8 @@ export const useCreateArticle = () => {
       company: string;
       data: ArticleData;
     }) => {
-      // Va en multipart por la imagen: los arrays se aplanan con [] y las
-      // fechas se normalizan, porque FormData solo transporta strings y File.
-      const formData = new FormData();
-
-      Object.entries(data).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          if (Array.isArray(value)) {
-            value.forEach((item) => formData.append(`${key}[]`, item));
-          } else if (value instanceof File) {
-            formData.append(key, value);
-          } else {
-            formData.append(key, serializeFormValue(value));
-          }
-        }
-      });
+      // Va en multipart por la imagen del artículo.
+      const formData = appendArticleFormData(new FormData(), data);
 
       return await axiosInstance.post(`/${company}/article`, formData);
     },
@@ -254,19 +284,7 @@ export const useCreateToReviewArticle = () => {
       company: string;
       data: ConsumableArticle | ComponentArticle | ToolArticle;
     }) => {
-      const formData = new FormData();
-
-      Object.entries(data).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          if (value instanceof File) {
-            formData.append(key, value);
-          } else if (Array.isArray(value)) {
-            value.forEach((item) => formData.append(`${key}[]`, item));
-          } else {
-            formData.append(key, serializeFormValue(value));
-          }
-        }
-      });
+      const formData = appendArticleFormData(new FormData(), data);
 
       await axiosInstance.post(`/${company}/article`, formData, {
         headers: {
@@ -769,20 +787,7 @@ export const useEditArticle = () => {
       company: string;
       data: any; // Usamos any para facilitar el mapeo de los diversos tipos
     }) => {
-      const formData = new FormData();
-
-      // Mapeo dinámico de campos al FormData
-      Object.entries(data).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          if (value instanceof File) {
-            formData.append(key, value);
-          } else if (Array.isArray(value)) {
-            value.forEach((item) => formData.append(`${key}[]`, item));
-          } else {
-            formData.append(key, serializeFormValue(value));
-          }
-        }
-      });
+      const formData = appendArticleFormData(new FormData(), data);
 
       return await axiosInstance.post(
         `/${company}/update-article/${data.id}`,
@@ -833,34 +838,7 @@ export const useUpdateArticle = () => {
       company: string;
       data: Record<string, any>;
     }) => {
-      const formData = new FormData();
-
-      Object.entries(data).forEach(([key, value]) => {
-        if (value === undefined || value === null) return;
-
-        // Files
-        if (value instanceof File) {
-          formData.append(key, value);
-          return;
-        }
-
-        // Arrays
-        if (Array.isArray(value)) {
-          value.forEach((item) => {
-            formData.append(`${key}[]`, item);
-          });
-          return;
-        }
-
-        // Objects (ej: unit, nested data)
-        if (typeof value === "object") {
-          formData.append(key, JSON.stringify(value));
-          return;
-        }
-
-        // Primitives
-        formData.append(key, serializeFormValue(value));
-      });
+      const formData = appendArticleFormData(new FormData(), data);
 
       return await axiosInstance.post(
         `/${company}/update-article/${id}`,
@@ -1015,4 +993,77 @@ export const useUpdateToolArticleStatus = () => {
   return {
     updateToolArticleStatus: updateToolArticleStatusMutation,
   };
+};
+
+/**
+ * Compras determina a qué sede pertenece un artículo con destino indeterminado.
+ *
+ * Es el cierre de ese estado, y tiene dos desenlaces según la sede elegida: si
+ * es la sede donde el artículo ya está, entra a recepción y sigue el camino
+ * normal; si es otra, se abre un traslado y el material queda en tránsito
+ * hasta que esa sede acuse recibo.
+ */
+export const useDetermineArticleDestination = () => {
+  const { selectedCompany } = useCompanyStore();
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: async ({
+      id,
+      allocations,
+      justification,
+    }: {
+      id: number;
+      /**
+       * Cuánto va a cada sede: lo que llegó puede repartirse entre varias.
+       * Las que son traslado llevan además a quién se le atribuye la salida en
+       * la sede que la recibe; la que se queda aquí no abre salida y no los usa.
+       */
+      allocations: {
+        location_id: number;
+        quantity: number;
+        requested_by?: string;
+        department_id?: number;
+      }[];
+      justification?: string;
+    }) => {
+      const { data } = await axiosInstance.patch(
+        `/${selectedCompany?.slug}/articles/${id}/determine-destination`,
+        { allocations, justification: justification || null },
+      );
+      return data;
+    },
+    onSuccess: (data) => {
+      const company = selectedCompany?.slug;
+
+      queryClient.invalidateQueries({ queryKey: ["articles"] });
+      queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
+      queryClient.invalidateQueries({ queryKey: ["article-status-history"] });
+      queryClient.invalidateQueries({ queryKey: ["incoming-transfers"] });
+      queryClient.invalidateQueries({ queryKey: ["dispatches-requests"] });
+      if (company) {
+        queryClient.invalidateQueries({ queryKey: ["articles", company, "TO_DETERMINATE"] });
+        queryClient.invalidateQueries({ queryKey: ["articles", company, "RECEPTION"] });
+      }
+
+      // Se abre una salida por sede destino: nombrarlas evita que compras
+      // tenga que ir a buscarlas para saber qué se generó.
+      const numbers: string[] = data?.request_numbers ?? [];
+
+      toast.success("¡Destino determinado!", {
+        description: numbers.length
+          ? `Se abrió ${numbers.length === 1 ? "el traslado" : "un traslado por sede"}: ${numbers.join(", ")}. Quedará en tránsito hasta que la otra sede lo reciba.`
+          : "El artículo pasó a recepción de esta sede.",
+      });
+    },
+    onError: (error: any) => {
+      toast.error("Oops!", {
+        description:
+          error?.response?.data?.message ||
+          "No se pudo determinar el destino del artículo.",
+      });
+    },
+  });
+
+  return { determineDestination: mutation };
 };

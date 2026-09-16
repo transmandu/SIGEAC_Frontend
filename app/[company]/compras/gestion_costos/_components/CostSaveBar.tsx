@@ -99,7 +99,7 @@ const CostSaveBar = ({
               'h-8 px-3 gap-2 text-xs',
               'bg-primary hover:bg-primary/90',
               'text-white',
-              'shadow-sm'
+              'shadow-xs'
             )}
           >
             <Save className="h-3.5 w-3.5" />

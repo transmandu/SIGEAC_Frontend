@@ -313,12 +313,12 @@ export function AdministrationDispatchReportDialog({ roleNames = [] }: Administr
       </DialogTrigger>
 
       <DialogContent className="sm:max-w-[580px] p-0 overflow-visible">
-        <div className="relative bg-gradient-to-br from-primary/5 via-background to-background px-6 pt-8 pb-1">
+        <div className="relative bg-linear-to-br from-primary/5 via-background to-background px-6 pt-8 pb-1">
           <div className="absolute inset-0 bg-grid-white/[0.02]" />
 
           <DialogHeader className="relative">
             <div className="flex items-center gap-4">
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-3xl border bg-background shadow-sm">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-3xl border bg-background shadow-xs">
                 <FileText className="h-7 w-7 text-primary" />
               </div>
 
@@ -421,7 +421,7 @@ export function AdministrationDispatchReportDialog({ roleNames = [] }: Administr
               {withCosts ? (
                 <Button
                   size="lg"
-                  className="w-full h-12 rounded-2xl font-medium shadow-sm transition-all hover:shadow-md active:scale-[0.98] bg-primary hover:bg-primary/90 text-white"
+                  className="w-full h-12 rounded-2xl font-medium shadow-xs transition-all hover:shadow-md active:scale-[0.98] bg-primary hover:bg-primary/90 text-white"
                   onClick={handleDownloadCostReport}
                   disabled={!canDownload || loadingDownload}
                 >
@@ -440,7 +440,7 @@ export function AdministrationDispatchReportDialog({ roleNames = [] }: Administr
                 <div className="grid grid-cols-[1fr_auto] gap-4 items-center">
                   <Button
                     size="lg"
-                    className="h-12 rounded-2xl font-medium shadow-sm transition-all hover:shadow-md active:scale-[0.98]"
+                    className="h-12 rounded-2xl font-medium shadow-xs transition-all hover:shadow-md active:scale-[0.98]"
                     onClick={() => handleDownload("dispatch")}
                     disabled={!canDownload || loadingDownload}
                   >
@@ -462,7 +462,7 @@ export function AdministrationDispatchReportDialog({ roleNames = [] }: Administr
                         <Button
                           size="lg"
                           variant="outline"
-                          className="h-12 px-4 rounded-2xl border-green-200 bg-green-50/80 text-green-700 shadow-sm transition-all hover:bg-green-100 hover:border-green-300 hover:shadow-md active:scale-[0.98] dark:border-green-900 dark:bg-green-950/30 dark:text-green-400 dark:hover:bg-green-950/50"
+                          className="h-12 px-4 rounded-2xl border-green-200 bg-green-50/80 text-green-700 shadow-xs transition-all hover:bg-green-100 hover:border-green-300 hover:shadow-md active:scale-[0.98] dark:border-green-900 dark:bg-green-950/30 dark:text-green-400 dark:hover:bg-green-950/50"
                           onClick={() => handleExcel("dispatch")}
                           disabled={!canDownload || loadingDownload}
                         >
@@ -470,7 +470,7 @@ export function AdministrationDispatchReportDialog({ roleNames = [] }: Administr
                         </Button>
                       </TooltipTrigger>
 
-                      <TooltipContent side="top" align="center" sideOffset={10} avoidCollisions={false} className="z-[9999] whitespace-nowrap rounded-xl px-3 py-1.5">
+                      <TooltipContent side="top" align="center" sideOffset={10} avoidCollisions={false} className="z-9999 whitespace-nowrap rounded-xl px-3 py-1.5">
                         Descargar en Excel
                       </TooltipContent>
                     </Tooltip>
@@ -484,7 +484,7 @@ export function AdministrationDispatchReportDialog({ roleNames = [] }: Administr
                 <div className="grid grid-cols-[1fr_auto] gap-4 items-center">
                   <Button
                     size="lg"
-                    className="h-12 rounded-2xl font-medium shadow-sm transition-all hover:shadow-md active:scale-[0.98]"
+                    className="h-12 rounded-2xl font-medium shadow-xs transition-all hover:shadow-md active:scale-[0.98]"
                     onClick={() => handleDownload("balance")}
                     disabled={!canDownload || loadingDownload}
                   >
@@ -506,7 +506,7 @@ export function AdministrationDispatchReportDialog({ roleNames = [] }: Administr
                         <Button
                           size="lg"
                           variant="outline"
-                          className="h-12 px-4 rounded-2xl border-green-200 bg-green-50/80 text-green-700 shadow-sm transition-all hover:bg-green-100 hover:border-green-300 hover:shadow-md active:scale-[0.98] dark:border-green-900 dark:bg-green-950/30 dark:text-green-400 dark:hover:bg-green-950/50"
+                          className="h-12 px-4 rounded-2xl border-green-200 bg-green-50/80 text-green-700 shadow-xs transition-all hover:bg-green-100 hover:border-green-300 hover:shadow-md active:scale-[0.98] dark:border-green-900 dark:bg-green-950/30 dark:text-green-400 dark:hover:bg-green-950/50"
                           onClick={() => handleExcel("balance")}
                           disabled={!canDownload || loadingDownload}
                         >
@@ -514,7 +514,7 @@ export function AdministrationDispatchReportDialog({ roleNames = [] }: Administr
                         </Button>
                       </TooltipTrigger>
 
-                      <TooltipContent  side="top" align="center" sideOffset={10} avoidCollisions={false} className="z-[9999] whitespace-nowrap rounded-xl px-3 py-1.5">
+                      <TooltipContent  side="top" align="center" sideOffset={10} avoidCollisions={false} className="z-9999 whitespace-nowrap rounded-xl px-3 py-1.5">
                         Descargar en Excel
                       </TooltipContent>
                     </Tooltip>

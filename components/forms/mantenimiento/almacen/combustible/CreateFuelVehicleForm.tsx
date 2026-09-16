@@ -21,7 +21,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { applyFuelValidationErrors, FUEL_PLATE_REGEX, FUEL_TYPES, FUEL_VEHICLE_TYPES } from "@/lib/fuel";
 import { FuelType, FuelVehicleType } from "@/types";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -40,11 +40,11 @@ const formSchema = z
     model: z.string().max(100).optional(),
     color: z.string().max(50).optional(),
     type: z.enum(["car", "truck", "motorcycle", "crane", "mule", "other"], {
-      required_error: "Debe seleccionar un tipo",
+      error: "Debe seleccionar un tipo",
     }),
     type_other: z.string().max(100).optional(),
     fuel_type: z.enum(["GASOLINE", "DIESEL"], {
-      required_error: "Debe seleccionar el tipo de combustible",
+      error: "Debe seleccionar el tipo de combustible",
     }),
     responsible: z.string().optional(),
     tank_capacity_liters: z.coerce

@@ -231,7 +231,7 @@ export function IncomingSidebar({
   return (
     <aside className="xl:sticky xl:top-6">
       <div className="space-y-4 xl:max-h-[calc(100vh-96px)] xl:overflow-y-auto xl:pr-1">
-        <Card className="overflow-hidden rounded-[28px] border-slate-200/80 shadow-sm">
+        <Card className="overflow-hidden rounded-[28px] border-slate-200/80 shadow-xs">
           <CardHeader className="border-b border-slate-200/80 bg-[linear-gradient(180deg,rgba(15,23,42,0.98),rgba(30,41,59,0.96))] text-slate-50">
             <div className="flex items-start justify-between gap-3">
               <div>

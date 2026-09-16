@@ -1,13 +1,13 @@
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
+import { type AppColumnDef } from "@/lib/table";
 
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 
 import { Badge } from "@/components/ui/badge";
 import { ResponsesBySurvey } from "@/hooks/sms/survey/useGetResponsesBySurvey";
 
-export const columns: ColumnDef<ResponsesBySurvey>[] = [
+export const columns: AppColumnDef<ResponsesBySurvey>[] = [
   {
     accessorKey: "survey_number",
     header: ({ column }) => (

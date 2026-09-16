@@ -37,7 +37,7 @@ const itemBase = `
   size-9
   rounded-xl
   transition-all duration-200 ease-out
-  hover:bg-muted hover:shadow-sm
+  hover:bg-muted hover:shadow-xs
   active:scale-95
 `;
 
@@ -88,7 +88,7 @@ const ShippingAgencyDropdownActions = ({
                 transition-all duration-200
                 hover:bg-muted/70
                 hover:border-border/50
-                hover:shadow-sm
+                hover:shadow-xs
                 data-[state=open]:bg-muted
               "
               data-tour="agencias-envio-actions"

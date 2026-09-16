@@ -1,13 +1,13 @@
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
+import { type AppColumnDef } from "@/lib/table";
 
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { MitigationTable } from "@/types";
 
-export const columns: ColumnDef<MitigationTable>[] = [
+export const columns: AppColumnDef<MitigationTable>[] = [
   {
     id: "select",
     header: ({ table }) => (

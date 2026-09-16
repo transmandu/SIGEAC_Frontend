@@ -26,21 +26,21 @@ import type { LucideIcon } from "lucide-react";
  */
 const lockedFieldClass = cn(
     "disabled:cursor-not-allowed disabled:opacity-60",
-    "disabled:hover:border-slate-400/60 disabled:hover:shadow-sm dark:disabled:hover:border-slate-600/60",
+    "disabled:hover:border-slate-400/60 disabled:hover:shadow-xs dark:disabled:hover:border-slate-600/60",
     "[&:is(input,textarea):read-only]:cursor-not-allowed",
     "[&:is(input,textarea):read-only]:opacity-60",
     "[&:is(input,textarea):read-only]:bg-muted/40",
     "[&:is(input,textarea):read-only]:hover:border-slate-400/60",
-    "[&:is(input,textarea):read-only]:hover:shadow-sm",
+    "[&:is(input,textarea):read-only]:hover:shadow-xs",
     "dark:[&:is(input,textarea):read-only]:hover:border-slate-600/60",
 );
 
 export const fieldClass = cn(
     "h-11 rounded-lg text-[15px]",
-    "bg-gradient-to-br from-background/70 to-background/40",
+    "bg-linear-to-br from-background/70 to-background/40",
     "backdrop-blur-md",
     "border border-slate-400/60 dark:border-slate-600/60",
-    "shadow-sm",
+    "shadow-xs",
     "hover:border-blue-400/30",
     "hover:shadow-md hover:shadow-blue-500/10",
     "transition-all duration-200",
@@ -74,10 +74,10 @@ export const hintClass = "text-[13px] text-muted-foreground";
 
 export const sectionClass = cn(
     "rounded-xl p-4",
-    "bg-gradient-to-br from-background/70 to-background/40",
+    "bg-linear-to-br from-background/70 to-background/40",
     "backdrop-blur-md",
     "border border-slate-400/50 dark:border-slate-600/50",
-    "shadow-sm",
+    "shadow-xs",
 );
 
 export const SectionTitle = ({

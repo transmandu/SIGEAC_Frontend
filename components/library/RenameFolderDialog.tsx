@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { Pencil } from 'lucide-react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import libraryService from '@/lib/libraryService';
 import { toast } from 'sonner';
@@ -49,12 +48,9 @@ export default function RenameFolderDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="bg-white dark:bg-[#1a1c1e] border-none text-slate-900 dark:text-white sm:max-w-[380px] rounded-2xl overflow-hidden p-0 outline-none shadow-2xl">
+      <DialogContent className="bg-white dark:bg-[#1a1c1e] border-none text-slate-900 dark:text-white sm:max-w-[380px] rounded-2xl overflow-hidden p-0 outline-hidden shadow-2xl">
         <div className="bg-slate-50 dark:bg-gray-800/40 px-6 py-5 border-b border-slate-200 dark:border-gray-700">
           <div className="flex items-center gap-2">
-            <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-              <Pencil className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-            </div>
             <DialogTitle className="text-lg font-bold text-slate-800 dark:text-white tracking-tight uppercase">
               Renombrar Carpeta
             </DialogTitle>
@@ -68,7 +64,7 @@ export default function RenameFolderDialog({
             </label>
             <input
               type="text" required autoFocus
-              className="w-full h-11 px-4 border border-slate-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-slate-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+              className="w-full h-11 px-4 border border-slate-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-slate-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-hidden transition-all"
               value={name}
               onChange={(e) => setName(e.target.value)}
               maxLength={120}

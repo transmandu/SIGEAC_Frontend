@@ -57,7 +57,7 @@ export default function ActionPlanDialog({
                 <CardContent className="p-3 md:p-6">
                   <div className="flex items-start gap-2 md:gap-4">
                     {/* Círculo del número de paso (fijo) */}
-                    <div className="flex-shrink-0 w-6 h-6 md:w-8 md:h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-semibold text-sm md:text-base">
+                    <div className="shrink-0 w-6 h-6 md:w-8 md:h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-semibold text-sm md:text-base">
                       {index + 1}
                     </div>
 
@@ -77,10 +77,10 @@ export default function ActionPlanDialog({
                             className="flex items-start text-xs md:text-base"
                           >
                             {/* Número de ítem (fijo) */}
-                            <span className="text-blue-500 mr-2 mt-0.5 font-bold flex-shrink-0">
+                            <span className="text-blue-500 mr-2 mt-0.5 font-bold shrink-0">
                               {itemIndex + 1}.
                             </span>
-                            <span className="leading-relaxed w-full break-words whitespace-normal">
+                            <span className="leading-relaxed w-full wrap-break-word whitespace-normal">
                               {item}
                             </span>
                           </li>

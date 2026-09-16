@@ -109,7 +109,7 @@ export function NotificationSelectionPanel({
                         No se pudieron cargar las notificaciones de peligro.
                     </div>
                 ) : notifications.length ? (
-                    <div className="max-h-[40rem] space-y-3 overflow-y-auto pr-1">
+                    <div className="max-h-160 space-y-3 overflow-y-auto pr-1">
                         {notifications.map((notification) => (
                             <HazardNotificationCard
                                 key={notification.id}

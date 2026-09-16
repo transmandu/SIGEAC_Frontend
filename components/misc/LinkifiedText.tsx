@@ -32,7 +32,7 @@ const LinkifiedText = ({ text, className }: LinkifiedTextProps) => {
   const parts = text.split(URL_REGEX);
 
   return (
-    <span className={cn('break-words', className)}>
+    <span className={cn('wrap-break-word', className)}>
       {parts.map((part, index) => {
         // Los índices impares son las capturas del regex, es decir las URLs
         if (index % 2 === 0 || !part) return <Fragment key={index}>{part}</Fragment>;
@@ -47,7 +47,7 @@ const LinkifiedText = ({ text, className }: LinkifiedTextProps) => {
               href={href}
               target="_blank"
               rel="noopener noreferrer"
-              className="font-medium text-primary underline underline-offset-2 decoration-primary/40 hover:decoration-primary transition-colors break-words"
+              className="font-medium text-primary underline underline-offset-2 decoration-primary/40 hover:decoration-primary transition-colors wrap-break-word"
             >
               {url}
             </a>

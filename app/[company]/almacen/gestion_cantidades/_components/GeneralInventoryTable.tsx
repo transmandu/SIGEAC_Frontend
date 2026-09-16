@@ -4,12 +4,9 @@ import React, { useMemo, useState } from "react"
 import {
   ColumnFiltersState,
   SortingState,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table"
+  useTable,
+} from "@tanstack/react-table";
+import { appTableFeatures } from "@/lib/table";
 
 import { GeneralArticle } from "@/types"
 import { GeneralInventoryToolbar } from "./GeneralInventoryToolbar"
@@ -51,7 +48,8 @@ export function GeneralInventoryTable({
     [baseQuantities, editedQuantities, onQuantityChange]
   )
 
-  const table = useReactTable({
+  const table = useTable({
+    features: appTableFeatures,
     data: articles,
     columns,
     state: {
@@ -61,7 +59,6 @@ export function GeneralInventoryTable({
     },
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
-    getPaginationRowModel: getPaginationRowModel(),
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: (row, _columnId, filterValue) => {
       const q = String(filterValue ?? "").toLowerCase().trim()
@@ -73,9 +70,6 @@ export function GeneralInventoryTable({
 
       return d.includes(q) || b.includes(q) || v.includes(q)
     },
-    getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getSortedRowModel: getSortedRowModel(),
   })
 
   const filteredCount = table.getFilteredRowModel().rows.length

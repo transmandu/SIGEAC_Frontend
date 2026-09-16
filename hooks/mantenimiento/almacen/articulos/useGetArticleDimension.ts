@@ -53,27 +53,34 @@ export type ArticleDimensionResponse =
     };
 
 /**
- * Estado dimensional de un artículo general: si se mide por dimensiones, qué
- * piezas hay y cuánto queda en cada una. Es lo que alimenta el selector de
- * pieza al armar una salida.
+ * Los dos tipos de artículo que pueden medirse por dimensiones. El id que
+ * acompaña es el `general_article_id` o, en un consumible, su `article_id`:
+ * así lo direcciona el resto del módulo de almacén.
+ */
+export type DimensionableType = "general-articles" | "consumables";
+
+/**
+ * Estado dimensional de un artículo: si se mide por dimensiones, qué piezas
+ * hay y cuánto queda en cada una. Es lo que alimenta el selector de pieza al
+ * armar una salida.
  */
 const fetchArticleDimension = async (
-  general_article_id: number | null,
+  type: DimensionableType,
+  id: number | null,
   company?: string
 ): Promise<ArticleDimensionResponse> => {
-  const { data } = await axios.get(
-    `/${company}/general-articles/${general_article_id}/dimension`
-  );
+  const { data } = await axios.get(`/${company}/articles/${type}/${id}/dimension`);
   return data;
 };
 
 export const useGetArticleDimension = (
-  general_article_id: number | null,
-  company?: string
+  id: number | null,
+  company?: string,
+  type: DimensionableType = "general-articles"
 ) => {
   return useQuery<ArticleDimensionResponse, Error>({
-    queryKey: ["article-dimension", company, general_article_id],
-    queryFn: () => fetchArticleDimension(general_article_id, company!),
-    enabled: !!general_article_id && !!company,
+    queryKey: ["article-dimension", company, type, id],
+    queryFn: () => fetchArticleDimension(type, id, company!),
+    enabled: !!id && !!company,
   });
 };

@@ -3,7 +3,7 @@
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { dateFormat } from "@/lib/utils";
 import { ChangeRequest, ChangeStatus } from "@/types";
-import { ColumnDef } from "@tanstack/react-table";
+import { type AppColumnDef } from "@/lib/table";
 import { Badge } from "@/components/ui/badge";
 import ChangeManagementActions from "@/components/dropdowns/aerolinea/sms/ChangeManagementActions";
 
@@ -52,7 +52,7 @@ const CHANGE_TYPE_LABELS: Record<string, string> = {
   other: "Otro",
 };
 
-export const columns: ColumnDef<ChangeRequest>[] = [
+export const columns: AppColumnDef<ChangeRequest>[] = [
   {
     accessorKey: "request_date",
     header: ({ column }) => (

@@ -16,7 +16,7 @@ import {
 } from "@/hooks/sms/useGetEnrolledStatus";
 import { cn } from "@/lib/utils";
 import { SMSActivity } from "@/types";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import {
   Check,
   ChevronsUpDown,

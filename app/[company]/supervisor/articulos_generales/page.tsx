@@ -83,12 +83,12 @@ export default function SupervisarArticulosGeneralesPage() {
 
                         <div className="flex flex-col min-w-0 w-full">
                             <div className="flex items-center gap-3 flex-wrap">
-                                <h1 className="text-2xl md:text-3xl font-semibold tracking-tight min-w-0 break-words">
+                                <h1 className="text-2xl md:text-3xl font-semibold tracking-tight min-w-0 wrap-break-word">
                                     Artículos Generales
                                 </h1>
 
                                 {!!candidates?.length && (
-                                    <Badge className="rounded-md border border-primary/30 bg-primary/10 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-primary shadow-sm select-none">
+                                    <Badge className="rounded-md border border-primary/30 bg-primary/10 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-primary shadow-xs select-none">
                                         {candidates.length} POSIBLES DUPLICADOS
                                     </Badge>
                                 )}
@@ -136,7 +136,7 @@ export default function SupervisarArticulosGeneralesPage() {
 
                 {/* ── Contenido ───────────────────────────────────────────── */}
                 {isError ? (
-                    <div className="relative rounded-xl border border-border/60 bg-gradient-to-b from-muted/30 to-muted/10 p-5 shadow-sm">
+                    <div className="relative rounded-xl border border-border/60 bg-linear-to-b from-muted/30 to-muted/10 p-5 shadow-xs">
                         <div className="min-h-[140px] flex items-center justify-center">
                             <div className="flex flex-col items-center gap-1.5 text-muted-foreground/60 select-none">
                                 <PackageX className="size-4 opacity-60" />

@@ -190,7 +190,7 @@ const Statistics = () => {
       <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-2 gap-4">
         {shouldShow("bar-chart") && (
           <div
-            className="p-4 rounded-lg shadow border"
+            className="p-4 rounded-lg shadow-sm border"
             data-tour="stats-voluntarios-chart-bar"
           >
             {isLoadingBarChart ? (
@@ -223,7 +223,7 @@ const Statistics = () => {
 
         {shouldShow("location") && (
           <div
-            className="p-4 rounded-lg shadow border"
+            className="p-4 rounded-lg shadow-sm border"
             data-tour="stats-voluntarios-chart-location"
           >
             {isLoadingReportsByLocationData ? (
@@ -248,7 +248,7 @@ const Statistics = () => {
 
         {shouldShow("tipo") && (
           <div
-            className="p-4 rounded-lg shadow border"
+            className="p-4 rounded-lg shadow-sm border"
             data-tour="stats-voluntarios-chart-tipo"
           >
             {isLoadingDynamicData ? (
@@ -273,7 +273,7 @@ const Statistics = () => {
 
         {shouldShow("area-bar") && (
           <div
-            className="p-4 rounded-lg shadow border"
+            className="p-4 rounded-lg shadow-sm border"
             data-tour="stats-voluntarios-chart-area"
           >
             {isLoadingPieCharData ? (
@@ -298,7 +298,7 @@ const Statistics = () => {
 
         {shouldShow("pre-riesgo") && (
           <div
-            className="p-4 rounded-lg shadow border"
+            className="p-4 rounded-lg shadow-sm border"
             data-tour="stats-voluntarios-chart-pre-riesgo-pie"
           >
             {isLoadingRisk ? (
@@ -323,7 +323,7 @@ const Statistics = () => {
 
         {shouldShow("pre-riesgo-bar") && (
           <div
-            className="p-4 rounded-lg shadow border"
+            className="p-4 rounded-lg shadow-sm border"
             data-tour="stats-voluntarios-chart-pre-riesgo-bar"
           >
             {isLoadingRisk ? (
@@ -348,7 +348,7 @@ const Statistics = () => {
 
         {shouldShow("post-riesgo-bar") && (
           <div
-            className="p-4 rounded-lg shadow border"
+            className="p-4 rounded-lg shadow-sm border"
             data-tour="stats-voluntarios-chart-post-riesgo-pie"
           >
             {isLoadingPostRisk ? (
@@ -373,7 +373,7 @@ const Statistics = () => {
 
         {shouldShow("post-riesgo-bar") && (
           <div
-            className="p-4 rounded-lg shadow border"
+            className="p-4 rounded-lg shadow-sm border"
             data-tour="stats-voluntarios-chart-post-riesgo-bar"
           >
             {isLoadingPostRisk ? (
@@ -398,7 +398,7 @@ const Statistics = () => {
 
         {shouldShow("fuente-id") && (
           <div
-            className="p-4 rounded-lg shadow border"
+            className="p-4 rounded-lg shadow-sm border"
             data-tour="stats-voluntarios-chart-fuente"
           >
             {isLoadingSourceName ? (
@@ -423,7 +423,7 @@ const Statistics = () => {
 
         {shouldShow("metodo-id") && (
           <div
-            className="p-4 rounded-lg shadow border"
+            className="p-4 rounded-lg shadow-sm border"
             data-tour="stats-voluntarios-chart-metodo"
           >
             {isLoadingSourceType ? (

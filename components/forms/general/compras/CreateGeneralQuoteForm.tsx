@@ -6,7 +6,7 @@ import { useGetLocationsByCompanyId } from "@/hooks/sistema/useGetLocationsByCom
 import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits";
 import { useGetRetailers } from "@/hooks/general/comercios/useGetRetailers";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { Loader2, PackageSearch } from "lucide-react";
 import { useEffect, useMemo } from "react";
 import { useForm, useWatch } from "react-hook-form";
@@ -274,7 +274,7 @@ export function CreateGeneralQuoteForm({
             type="submit"
             className="
               w-[400px] h-10 rounded-lg
-              shadow-sm
+              shadow-xs
               transition-colors
               flex items-center justify-center gap-2
             "

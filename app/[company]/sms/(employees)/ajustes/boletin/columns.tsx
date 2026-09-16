@@ -1,6 +1,6 @@
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
+import { type AppColumnDef } from "@/lib/table";
 
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 
@@ -10,7 +10,7 @@ import DocumentDisplayDialog from "@/components/dialogs/aerolinea/sms/DocumentDi
 import { Button } from "@/components/ui/button";
 import SafetyBulletinDropdownActions from "@/components/dropdowns/aerolinea/sms/SafetyBulletinDropDownActions";
 
-export const columns: ColumnDef<SafetyBulletin>[] = [
+export const columns: AppColumnDef<SafetyBulletin>[] = [
   {
     accessorKey: "title",
     header: ({ column }) => (

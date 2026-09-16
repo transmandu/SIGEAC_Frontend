@@ -99,7 +99,7 @@ export default function FeaturesDialog({
                         key={itemIndex}
                         className="flex items-start text-sm text-gray-700 dark:text-gray-300 leading-relaxed"
                       >
-                        <span className="text-blue-500 mr-2 mt-1 flex-shrink-0">
+                        <span className="text-blue-500 mr-2 mt-1 shrink-0">
                           •
                         </span>
                         <span>{item}</span>

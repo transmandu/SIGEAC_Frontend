@@ -10,12 +10,14 @@ import { useGetGeneralArticles } from "@/hooks/mantenimiento/almacen/almacen_gen
 import {
   Drill,
   Loader2,
+  MapPin,
   Package2,
   PaintBucket,
   Puzzle,
   Wrench,
   X,
 } from "lucide-react";
+import { SearchAcrossLocationsDialog } from "@/components/dialogs/mantenimiento/almacen/SearchAcrossLocationsDialog";
 import { useEffect, useState, useMemo } from "react";
 import {
   flattenArticles,
@@ -25,7 +27,7 @@ import {
 } from "./columns";
 import { DataTable } from "./data-table";
 import { useGetWarehouseArticlesByCategory } from "@/hooks/mantenimiento/almacen/articulos/useGetWarehouseArticlesByCategory";
-import { columns as GeneralColums } from "@/app/[company]/almacen/inventario_articulos/_tables/general-columns";
+import { generalConsultaColumns } from "@/components/tables/GeneralArticleConsultaColumns";
 import { PageHeader } from "@/components/layout/PageHeader";
 
 const ROLES_WITH_QUANTITY_VISIBLE = ["ENGINEERING", "SUPERUSER"];
@@ -35,6 +37,7 @@ const InventarioArticulosPage = () => {
   const { user } = useAuth();
 
   const [activeMainTab, setActiveMainTab] = useState("aeronautic");
+  const [searchAcrossOpen, setSearchAcrossOpen] = useState(false);
 
   const [activeCategory, setActiveCategory] = useState<
     "COMPONENT" | "CONSUMABLE" | "TOOL" | "PART" | "all"
@@ -98,18 +101,6 @@ const InventarioArticulosPage = () => {
           : true),
     );
   }, [activeCategory, canSeeQuantity]);
-
-  // 2. Columnas Generales filtradas
-  const generalColsWithoutActions = useMemo(() => {
-    return GeneralColums.filter(
-      (col) =>
-        col.id !== "actions" &&
-        col.id !== "acciones" &&
-        (typeof col.header === "string"
-          ? col.header.toLowerCase() !== "acciones"
-          : true),
-    );
-  }, []);
 
   useEffect(() => {
     if (activeCategory !== "COMPONENT") setComponentCondition("all");
@@ -179,21 +170,40 @@ const InventarioArticulosPage = () => {
         </div>
 
         {/* Búsqueda */}
-        <div className="relative max-w-xl mx-auto w-full">
-          <Input
-            placeholder={dynamicPlaceholder}
-            value={partNumberSearch}
-            onChange={(e) => setPartNumberSearch(e.target.value)}
-            className="pr-8 h-11"
-          />
-          {partNumberSearch && (
+        <div className="mx-auto flex w-full max-w-xl items-center gap-2">
+          <div className="relative flex-1">
+            <Input
+              placeholder={dynamicPlaceholder}
+              value={partNumberSearch}
+              onChange={(e) => setPartNumberSearch(e.target.value)}
+              className="pr-8 h-11"
+            />
+            {partNumberSearch && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
+                onClick={handleClearSearch}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+
+          {/* El buscador de arriba filtra ESTA sede; este consulta las demás
+              sin cambiar la estación en la que se trabaja.
+              Solo en aeronáutico: la consulta es por número de parte y un
+              artículo general no tiene, así que ahí no habría nada que
+              preguntar. */}
+          {activeMainTab === "aeronautic" && (
             <Button
-              variant="ghost"
-              size="sm"
-              className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
-              onClick={handleClearSearch}
+              type="button"
+              variant="outline"
+              className="h-11 shrink-0 gap-2"
+              onClick={() => setSearchAcrossOpen(true)}
             >
-              <X className="h-4 w-4" />
+              <MapPin className="size-4" />
+              Consultar en sedes
             </Button>
           )}
         </div>
@@ -277,12 +287,18 @@ const InventarioArticulosPage = () => {
               </div>
             ) : (
               <DataTable
-                columns={generalColsWithoutActions}
+                columns={generalConsultaColumns}
                 data={getCurrentGeneralData()}
               />
             )}
           </TabsContent>
         </Tabs>
+
+        <SearchAcrossLocationsDialog
+          open={searchAcrossOpen}
+          onOpenChange={setSearchAcrossOpen}
+          variant="general"
+        />
       </div>
     </ContentLayout>
   );

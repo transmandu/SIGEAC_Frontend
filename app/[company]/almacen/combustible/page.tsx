@@ -340,7 +340,7 @@ export default function FuelWarehousePage() {
               {activeFuelTab === "movements" && (
                 <motion.span
                   layoutId="fuel-tabs-pill"
-                  className="absolute inset-0 rounded-full bg-background shadow-sm"
+                  className="absolute inset-0 rounded-full bg-background shadow-xs"
                   transition={{ type: "spring", stiffness: 420, damping: 34 }}
                 />
               )}
@@ -360,7 +360,7 @@ export default function FuelWarehousePage() {
               {activeFuelTab === "vehicles" && (
                 <motion.span
                   layoutId="fuel-tabs-pill"
-                  className="absolute inset-0 rounded-full bg-background shadow-sm"
+                  className="absolute inset-0 rounded-full bg-background shadow-xs"
                   transition={{ type: "spring", stiffness: 420, damping: 34 }}
                 />
               )}
@@ -380,7 +380,7 @@ export default function FuelWarehousePage() {
               {activeFuelTab === "traceability" && (
                 <motion.span
                   layoutId="fuel-tabs-pill"
-                  className="absolute inset-0 rounded-full bg-background shadow-sm"
+                  className="absolute inset-0 rounded-full bg-background shadow-xs"
                   transition={{ type: "spring", stiffness: 420, damping: 34 }}
                 />
               )}

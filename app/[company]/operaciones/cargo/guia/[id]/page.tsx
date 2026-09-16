@@ -138,7 +138,7 @@ export default function CargoDetailsPage() {
         {/* Sección de Tarjetas de Información */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Tarjeta 1: Detalles Generales */}
-          <Card className="shadow-sm" data-tour="cargo-detalle-card-generales">
+          <Card className="shadow-xs" data-tour="cargo-detalle-card-generales">
             <CardHeader className="pb-3 border-b bg-muted/10">
               <CardTitle className="text-base flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-blue-500" />
@@ -184,7 +184,7 @@ export default function CargoDetailsPage() {
           </Card>
 
           {/* Tarjeta 2: Cliente */}
-          <Card className="shadow-sm" data-tour="cargo-detalle-card-cliente">
+          <Card className="shadow-xs" data-tour="cargo-detalle-card-cliente">
             <CardHeader className="pb-3 border-b bg-muted/10">
               <CardTitle className="text-base flex items-center gap-2">
                 <User className="h-4 w-4 text-green-500" />
@@ -223,7 +223,7 @@ export default function CargoDetailsPage() {
           </Card>
 
           {/* Tarjeta 3: Logística / Vuelo */}
-          <Card className="shadow-sm" data-tour="cargo-detalle-card-vuelo">
+          <Card className="shadow-xs" data-tour="cargo-detalle-card-vuelo">
             <CardHeader className="pb-3 border-b bg-muted/10">
               <CardTitle className="text-base flex items-center gap-2">
                 <Plane className="h-4 w-4 text-orange-500" />
@@ -270,7 +270,7 @@ export default function CargoDetailsPage() {
         </div>
 
         {/* Sección de Manifiesto de Carga (Items) */}
-        <Card className="shadow-sm mt-4" data-tour="cargo-detalle-manifiesto">
+        <Card className="shadow-xs mt-4" data-tour="cargo-detalle-manifiesto">
           <CardHeader className="pb-3 border-b">
             <CardTitle className="text-lg flex items-center gap-2">
               <Package className="h-5 w-5 text-indigo-500" />

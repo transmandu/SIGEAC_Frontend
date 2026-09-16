@@ -10,9 +10,10 @@ import { useGetDepartments } from "@/hooks/ajustes/departamento/useGetDepartment
 import { useGetEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetEmployees"
 import { useGetMaintenanceAircrafts } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts"
 import { useGetThirdParties } from "@/hooks/general/terceros/useGetThirdParties"
+import { useGetLocationsByCompany } from "@/hooks/sistema/useGetLocationsByCompany"
 import { useAuth } from "@/contexts/AuthContext"
 import { useCompanyStore } from "@/stores/CompanyStore"
-import { zodResolver } from "@hookform/resolvers/zod"
+import { zodResolver } from "@/lib/zod-resolver"
 import { format } from "date-fns"
 import { useCallback, useMemo, useState } from "react"
 import { toast } from "sonner"
@@ -31,7 +32,7 @@ interface BatchesWithCountProp extends Batch {
 export type MsgLevel = "error" | "warn"
 export type RowMsg = { msg: string; level: MsgLevel } | undefined
 export type ConversionTarget = "aero" | "general"
-export type DispatchType = "aircraft" | "department" | "authorized" | "third_party"
+export type DispatchType = "aircraft" | "department" | "authorized" | "third_party" | "location"
 export type ItemCategory = "consumable" | "component" | "part"
 
 type ConvState = {
@@ -54,17 +55,6 @@ export type RowConversion = { unitId: number; unitLabel: string; factor: number;
 
 // ── Schema ─────────────────────────────────────────────────────────────────────
 
-const AeronauticalItemSchema = z.object({
-    article_id: z.coerce.number(),
-    quantity: z.coerce.number(),
-    serial: z.string().nullable().optional(),
-    batch_id: z.coerce.number().optional(),
-    // Unidad en que se capturó `quantity`. Omitirla significa "ya está en la
-    // unidad base". La conversión a base la hace el backend con el factor del
-    // artículo, que es el único que puede validarla y congelarla en el movimiento.
-    unit_id: z.coerce.number().nullable().optional(),
-})
-
 // Trazo cortado de una pieza, para artículos que se miden por dimensiones.
 // El backend descuenta el saldo de esa pieza concreta y no una cantidad
 // fungible; ver App\Services\Warehouse\DimensionService.
@@ -79,6 +69,20 @@ const CutSchema = z.object({
     unit_id: z.coerce.number().nullable().optional(),
 })
 
+const AeronauticalItemSchema = z.object({
+    article_id: z.coerce.number(),
+    quantity: z.coerce.number(),
+    serial: z.string().nullable().optional(),
+    batch_id: z.coerce.number().optional(),
+    // Unidad en que se capturó `quantity`. Omitirla significa "ya está en la
+    // unidad base". La conversión a base la hace el backend con el factor del
+    // artículo, que es el único que puede validarla y congelarla en el movimiento.
+    unit_id: z.coerce.number().nullable().optional(),
+    // Un consumible también puede estar dimensionado: el perfil es polimórfico
+    // y el trazo se captura igual que en un artículo general.
+    cut: CutSchema.optional(),
+})
+
 const GeneralItemSchema = z.object({
     general_article_id: z.coerce.number(),
     quantity: z.coerce.number(),
@@ -87,10 +91,27 @@ const GeneralItemSchema = z.object({
     cut: CutSchema.optional(),
 })
 
+/** Campos que el formulario dibuja y por tanto pueden mostrar un error del servidor. */
+const SERVER_ERROR_FIELDS = new Set([
+    "work_order",
+    "dispatch_type",
+    "requested_by",
+    "justification",
+    "submission_date",
+    "department_id",
+    "aircraft_id",
+    "authorized_employee_id",
+    "third_party_id",
+    "destination_location_id",
+    "third_party_requested_by",
+    "third_party_receiver",
+    "third_party_authorizer",
+])
+
 export const FormSchema = z
     .object({
         work_order: z.string(),
-        dispatch_type: z.enum(["aircraft", "department", "authorized", "third_party"], {
+        dispatch_type: z.enum(["aircraft", "department", "authorized", "third_party", "location"], {
             message: "Debe seleccionar el tipo de despacho.",
         }),
         requested_by: z.string(),
@@ -108,6 +129,9 @@ export const FormSchema = z
         aircraft_id: z.string().optional(),
         authorized_employee_id: z.string().optional(),
         third_party_id: z.string().optional(),
+        // Sede a la que va el material. Convierte la salida en un traslado: no
+        // se cierra al registrarse, queda esperando el acuse de esa sede.
+        destination_location_id: z.string().optional(),
         aeronautical_articles: z.array(AeronauticalItemSchema).default([]),
         general_articles: z.array(GeneralItemSchema).default([]),
     })
@@ -118,7 +142,7 @@ export const FormSchema = z
         }
     })
     .superRefine((data, ctx) => {
-        if ((data.dispatch_type === "aircraft" || data.dispatch_type === "department") && !data.requested_by.trim()) {
+        if ((data.dispatch_type === "aircraft" || data.dispatch_type === "department" || data.dispatch_type === "location") && !data.requested_by.trim()) {
             ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Debe seleccionar quien recibe.", path: ["requested_by"] })
         }
         if (data.dispatch_type === "aircraft" && !data.aircraft_id) {
@@ -132,6 +156,9 @@ export const FormSchema = z
         }
         if (data.dispatch_type === "third_party" && !data.third_party_id) {
             ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Debe seleccionar un tercero.", path: ["third_party_id"] })
+        }
+        if (data.dispatch_type === "location" && !data.destination_location_id) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Debe seleccionar la sede destino.", path: ["destination_location_id"] })
         }
         if (data.is_backdated && !data.submission_date) {
             ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Debe indicar la fecha real de la salida.", path: ["submission_date"] })
@@ -203,6 +230,19 @@ export function useDispatchForm(
     const { data: authorizedEmployees, isLoading: isAuthorizedEmployeesLoading } = useGetAuthorizedEmployees(selectedCompany?.slug)
     const { data: thirdParties, isLoading: isThirdPartiesLoading } = useGetThirdParties()
 
+    // Sedes a las que se puede trasladar: todas las de la compañía menos
+    // aquella desde la que se está despachando, que no es un destino.
+    const { data: allLocations, isLoading: isLocationsLoading } = useGetLocationsByCompany(selectedCompany?.slug)
+
+    // Sin estación no hay origen del que sacar material, así que tampoco hay
+    // traslado posible: se ofrece vacío en vez de la lista completa, donde la
+    // propia sede figuraría como destino.
+    const transferLocations = useMemo(
+        () => selectedStation
+            ? (allLocations ?? []).filter((location) => `${location.id}` !== `${selectedStation}`)
+            : [],
+        [allLocations, selectedStation])
+
     // 1. Usamos el parámetro dinámico `itemCategory` para la búsqueda
     const { data: batches, isPending: isBatchesLoading } = useGetBatchesWithInWarehouseArticles({
         location_id: Number(selectedStation!),
@@ -222,6 +262,7 @@ export function useDispatchForm(
             requested_by: "",
             department_id: "",
             third_party_id: "",
+            destination_location_id: "",
             status: "proceso",
             is_backdated: false,
             aeronautical_articles: [],
@@ -257,6 +298,16 @@ export function useDispatchForm(
         return map
     }, [batches])
 
+    // El nombre del lote vive un nivel por encima del artículo y se pierde al
+    // aplanar; es lo que identifica la fila una vez seleccionada.
+    const aeroBatchNameById = useMemo(() => {
+        const map = new Map<number, string>()
+        batches?.forEach((b: BatchesWithCountProp) =>
+            b.articles?.forEach((a) => { if (a?.id != null && b.name) map.set(a.id, b.name) })
+        )
+        return map
+    }, [batches])
+
     const genById = useMemo(() => {
         const map = new Map<number, GeneralArticle>()
         hardwareArticles.forEach((a) => map.set(a.id, a))
@@ -266,7 +317,10 @@ export function useDispatchForm(
     const getAeroMax = useCallback((id: number) => aeroById.get(id)?.quantity || 0, [aeroById])
     const getGenMax = useCallback((id: number) => genById.get(id)?.quantity || 0, [genById])
 
-    const internalReceiverRequired = dispatchType === "aircraft" || dispatchType === "department"
+    // Tres estados, no dos: mientras no hay tipo elegido no se sabe todavía si
+    // hará falta un responsable interno, y eso no es lo mismo que no hacer falta.
+    const internalReceiverRequired =
+        dispatchType === "aircraft" || dispatchType === "department" || dispatchType === "location"
 
     const selectedThirdParty = useMemo(
         () => thirdParties?.find((p) => p.id.toString() === thirdPartyId) ?? null,
@@ -353,9 +407,17 @@ export function useDispatchForm(
      * Vuelca el trazo al formulario. La cantidad se deja en 0: en un artículo
      * dimensionado el descuento lo determina el corte, y mandar además un
      * número aquí haría que el backend recibiera dos cifras que pueden discrepar.
+     *
+     * Sirve a las dos listas: tanto un consumible como un artículo general
+     * pueden estar dimensionados, y el trazo se captura igual en ambos.
      */
-    const updateCut = useCallback((index: number, fieldId: string, next: CutDraft) => {
-        const key = genKey(fieldId)
+    const updateCutFor = useCallback((
+        target: ConversionTarget,
+        index: number,
+        fieldId: string,
+        next: CutDraft,
+    ) => {
+        const key = target === "aero" ? aeroKey(fieldId) : genKey(fieldId)
         setCutByKey((p) => ({ ...p, [key]: next }))
         setRowMsg(key, undefined)
 
@@ -365,22 +427,38 @@ export function useDispatchForm(
                 : parseFloat(next.length) > 0
         )
 
+        const payload = ready
+            ? {
+                  piece_id: next.piece_id!,
+                  input_mode: next.input_mode,
+                  length: next.input_mode === "MEASURES" ? parseFloat(next.length) || undefined : undefined,
+                  width: next.input_mode === "MEASURES" && next.width ? parseFloat(next.width) : undefined,
+                  magnitude: next.input_mode === "MAGNITUDE" ? parseFloat(next.magnitude) || undefined : undefined,
+                  unit_id: next.input_mode === "MEASURES" ? next.unit_id : undefined,
+              }
+            : undefined
+
+        if (target === "aero") {
+            setValue(`aeronautical_articles.${index}.quantity`, 0)
+            setValue(`aeronautical_articles.${index}.unit_id`, null)
+            setValue(`aeronautical_articles.${index}.cut`, payload)
+            return
+        }
+
         setValue(`general_articles.${index}.quantity`, 0)
         setValue(`general_articles.${index}.unit_id`, null)
-        setValue(
-            `general_articles.${index}.cut`,
-            ready
-                ? {
-                      piece_id: next.piece_id!,
-                      input_mode: next.input_mode,
-                      length: next.input_mode === "MEASURES" ? parseFloat(next.length) || undefined : undefined,
-                      width: next.input_mode === "MEASURES" && next.width ? parseFloat(next.width) : undefined,
-                      magnitude: next.input_mode === "MAGNITUDE" ? parseFloat(next.magnitude) || undefined : undefined,
-                      unit_id: next.input_mode === "MEASURES" ? next.unit_id : undefined,
-                  }
-                : undefined,
-        )
+        setValue(`general_articles.${index}.cut`, payload)
     }, [setValue, setRowMsg])
+
+    const updateCut = useCallback(
+        (index: number, fieldId: string, next: CutDraft) => updateCutFor("general", index, fieldId, next),
+        [updateCutFor],
+    )
+
+    const updateAeroCut = useCallback(
+        (index: number, fieldId: string, next: CutDraft) => updateCutFor("aero", index, fieldId, next),
+        [updateCutFor],
+    )
 
     // El máximo está en unidad base, así que "usar máximo" descarta la
     // conversión vigente: la fila queda en base, como el número que escribe.
@@ -537,7 +615,8 @@ export function useDispatchForm(
         if (value !== "aircraft") setValue("aircraft_id", "")
         if (value !== "authorized") setValue("authorized_employee_id", "")
         if (value !== "third_party") { setValue("third_party_id", ""); setOpenThirdParty(false) }
-        if (value !== "aircraft" && value !== "department") { setValue("requested_by", ""); setOpenEmployee(false) }
+        if (value !== "location") setValue("destination_location_id", "")
+        if (value !== "aircraft" && value !== "department" && value !== "location") { setValue("requested_by", ""); setOpenEmployee(false) }
     }, [setValue])
 
     // ── Validation ────────────────────────────────────────────────────────────
@@ -548,29 +627,59 @@ export function useDispatchForm(
     )
 
     const hasInvalidQty = useMemo(() => {
-        const aeroInvalid = aeroFA.fields.some((f) => (parseFloat(qtyByKey[aeroKey(f.id)] ?? "0") || 0) <= 0)
-
         // Una fila dimensional no tiene cantidad: lo que la completa es el
         // trazo (de qué pieza sale y con qué medidas). Exigirle un `quantity`
-        // dejaba el botón de guardar muerto sin explicar por qué.
-        const genInvalid = genFA.fields.some((f) => {
-            const cut = cutByKey[genKey(f.id)]
+        // dejaba el botón de guardar muerto sin explicar por qué. Vale igual
+        // para consumibles y para generales: los dos pueden dimensionarse.
+        const rowInvalid = (key: string) => {
+            const cut = cutByKey[key]
             if (cut) return !isCutComplete(cut)
-            return (parseFloat(qtyByKey[genKey(f.id)] ?? "0") || 0) <= 0
-        })
+            return (parseFloat(qtyByKey[key] ?? "0") || 0) <= 0
+        }
 
-        return aeroInvalid || genInvalid
+        return aeroFA.fields.some((f) => rowInvalid(aeroKey(f.id)))
+            || genFA.fields.some((f) => rowInvalid(genKey(f.id)))
     }, [aeroFA.fields, genFA.fields, qtyByKey, cutByKey])
 
     // ── Submit ────────────────────────────────────────────────────────────────
 
     const onSubmit = async (data: FormSchemaType) => {
+        // Un trazo sale de UNA lámina concreta de este almacén: al otro lado no
+        // hay una pieza equivalente a la que sumarle el retazo. El backend lo
+        // rechaza con 422; avisarlo aquí evita perder lo ya capturado.
+        if (data.dispatch_type === "location") {
+            const cutKey = [
+                ...aeroFA.fields.map((field) => aeroKey(field.id)),
+                ...genFA.fields.map((field) => genKey(field.id)),
+            ].find((key) => cutByKey[key])
+
+            if (cutKey) {
+                setRowMsg(cutKey, {
+                    msg: "Un trazo cortado no puede trasladarse a otra sede",
+                    level: "error",
+                })
+                return
+            }
+        }
+
         // `quantity` viaja en la unidad de la fila y el disponible está en base:
         // sin aplicar el factor, 900 mL se compararía contra 3 GALON.
         for (let i = 0; i < data.aeronautical_articles.length; i++) {
             const item = data.aeronautical_articles[i]
-            const max = getAeroMax(item.article_id)
             const key = aeroFA.fields[i]?.id ? aeroKey(aeroFA.fields[i].id) : null
+
+            // Un trazo no se compara contra el stock escalar: su límite es el
+            // saldo de la pieza de la que sale, y eso lo valida el backend.
+            const draft = key ? cutByKey[key] : undefined
+            if (draft) {
+                if (!isCutComplete(draft)) {
+                    if (key) setRowMsg(key, { msg: "Indique la pieza y las medidas del trazo", level: "error" })
+                    return
+                }
+                continue
+            }
+
+            const max = getAeroMax(item.article_id)
             const conv = key ? convByKey[key] : undefined
             const inBase = Number((item.quantity * (conv?.factor ?? 1)).toFixed(CONVERSION_PRECISION))
             if (item.quantity <= 0) { if (key) setRowMsg(key, { msg: "La cantidad debe ser mayor a 0", level: "error" }); return }
@@ -632,6 +741,8 @@ export function useDispatchForm(
             return
         }
 
+        let failed = false
+
         await createDispatchRequest.mutateAsync({
             data: {
                 ...data,
@@ -651,9 +762,35 @@ export function useDispatchForm(
                 user_id: Number(user!.id),
                 aircraft_id: data.dispatch_type === "aircraft" ? data.aircraft_id : undefined,
                 department_id: data.dispatch_type === "department" ? data.department_id : undefined,
+                // Con sede destino el backend abre un traslado: la salida queda
+                // en tránsito hasta que esa sede acusa recibo.
+                destination_location_id: data.dispatch_type === "location" ? data.destination_location_id : undefined,
             },
             company: selectedCompany!.slug,
+        }).catch((error: any) => {
+            failed = true
+
+            // El toast del action ya avisa qué pasó; esto señala EN QUÉ campo.
+            // Solo los que el formulario dibuja: un setError sobre un nombre
+            // que no existe (created_by, user_id, aeronautical_articles.0.…)
+            // queda en formState sin que nada lo muestre y bloquea el reenvío
+            // de forma invisible, porque handleSubmit no lo revalida.
+            const fieldErrors = error?.response?.data?.errors
+
+            if (fieldErrors) {
+                for (const [name, messages] of Object.entries(fieldErrors)) {
+                    if (!SERVER_ERROR_FIELDS.has(name)) continue
+
+                    const message = Array.isArray(messages) ? messages[0] : String(messages)
+                    form.setError(name as keyof FormSchemaType, { type: "server", message })
+                }
+            }
         })
+
+        // El diálogo solo se cierra si la salida se creó: al fallar hay que
+        // dejar en pantalla lo capturado para corregirlo.
+        if (failed) return
+
         onClose()
     }
 
@@ -673,6 +810,7 @@ export function useDispatchForm(
         aircrafts, isAircraftsLoading,
         authorizedEmployees, isAuthorizedEmployeesLoading,
         thirdParties, isThirdPartiesLoading,
+        transferLocations, isLocationsLoading,
         batches, isBatchesLoading,
         employees, employeesLoading,
         hardwareArticles, isHardwareLoading,
@@ -686,13 +824,14 @@ export function useDispatchForm(
         watchedAero, watchedGen,
         aeroSelectedSet, genSelectedSet,
         aeroById, genById,
+        aeroBatchNameById,
         getAeroMax, getGenMax,
         // qty state
         qtyByKey, setQtyByKey,
         msgByKey,
         convByKey,
         // dimensional cuts
-        cutByKey, updateCut,
+        cutByKey, updateCut, updateAeroCut,
         // evidencias de entrega (opcionales)
         evidenceByKey, setEvidence,
         // qty handlers

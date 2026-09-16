@@ -1,6 +1,6 @@
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
+import { type AppColumnDef } from "@/lib/table";
 
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 
@@ -8,7 +8,7 @@ import DangerIdentificationDropdownActions from "@/components/dropdowns/aeroline
 import { Badge } from "@/components/ui/badge";
 import { DangerIdentification } from "@/types";
 
-export const columns: ColumnDef<DangerIdentification>[] = [
+export const columns: AppColumnDef<DangerIdentification>[] = [
   {
     accessorFn: (row) => {
       if (row.voluntary_report?.report_number) {

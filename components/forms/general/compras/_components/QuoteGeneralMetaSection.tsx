@@ -107,7 +107,7 @@ export function QuoteGeneralMetaSection({
                         selected={field.value}
                         onSelect={field.onChange}
                         locale={es}
-                        initialFocus
+                        autoFocus
                       />
                     </PopoverContent>
                   </Popover>

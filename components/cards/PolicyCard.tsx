@@ -57,7 +57,7 @@ export function PolicyCard({
   };
   return (
     <Card className={cn("w-full flex flex-col", className)}>
-      <CardContent className="p-6 flex flex-col flex-grow">
+      <CardContent className="p-6 flex flex-col grow">
         {/* Icono */}
 
         <div
@@ -98,7 +98,7 @@ export function PolicyCard({
             {/* Descripción */}
             <p
               className={cn(
-                "text-sm sm:text-base text-left sm:text-justify flex-grow",
+                "text-sm sm:text-base text-left sm:text-justify grow",
                 descriptionClassName
               )}
             >

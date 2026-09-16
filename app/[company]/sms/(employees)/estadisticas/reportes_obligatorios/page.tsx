@@ -352,7 +352,7 @@ const Statistics = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {shouldShow("bar-chart") && (
           <div
-            className="p-4 rounded-lg shadow border"
+            className="p-4 rounded-lg shadow-sm border"
             data-tour="stats-oblig-chart-bar"
           >
             {isLoadingBarChart ? (
@@ -379,7 +379,7 @@ const Statistics = () => {
 
         {shouldShow("tipo") && (
           <div
-            className="p-4 rounded-lg shadow border"
+            className="p-4 rounded-lg shadow-sm border"
             data-tour="stats-oblig-chart-tipo"
           >
             {isLoadingDynamicData ? (
@@ -404,7 +404,7 @@ const Statistics = () => {
 
         {shouldShow("area-bar") && (
           <div
-            className="p-4 rounded-lg shadow border"
+            className="p-4 rounded-lg shadow-sm border"
             data-tour="stats-oblig-chart-area"
           >
             {isLoadingPieCharData ? (
@@ -429,7 +429,7 @@ const Statistics = () => {
 
         {shouldShow("metodo-id") && (
           <div
-            className="p-4 rounded-lg shadow border"
+            className="p-4 rounded-lg shadow-sm border"
             data-tour="stats-oblig-chart-metodo"
           >
             {isLoadingSourceType ? (
@@ -454,7 +454,7 @@ const Statistics = () => {
 
         {shouldShow("fuente-id") && (
           <div
-            className="p-4 rounded-lg shadow border"
+            className="p-4 rounded-lg shadow-sm border"
             data-tour="stats-oblig-chart-fuente"
           >
             {isLoadingSourceName ? (
@@ -479,7 +479,7 @@ const Statistics = () => {
 
         {shouldShow("pre-riesgo") && (
           <div
-            className="p-4 rounded-lg shadow border"
+            className="p-4 rounded-lg shadow-sm border"
             data-tour="stats-oblig-chart-pre-riesgo-pie"
           >
             {isLoadingRisk ? (
@@ -504,7 +504,7 @@ const Statistics = () => {
 
         {shouldShow("pre-riesgo-bar") && (
           <div
-            className="p-4 rounded-lg shadow border"
+            className="p-4 rounded-lg shadow-sm border"
             data-tour="stats-oblig-chart-pre-riesgo-bar"
           >
             {isLoadingRisk ? (
@@ -529,7 +529,7 @@ const Statistics = () => {
 
         {shouldShow("post-riesgo") && (
           <div
-            className="p-4 rounded-lg shadow border"
+            className="p-4 rounded-lg shadow-sm border"
             data-tour="stats-oblig-chart-post-riesgo-pie"
           >
             {isLoadingPostRisk ? (
@@ -554,7 +554,7 @@ const Statistics = () => {
 
         {shouldShow("post-riesgo-bar") && (
           <div
-            className="p-4 rounded-lg shadow border"
+            className="p-4 rounded-lg shadow-sm border"
             data-tour="stats-oblig-chart-post-riesgo-bar"
           >
             {isLoadingPostRisk ? (

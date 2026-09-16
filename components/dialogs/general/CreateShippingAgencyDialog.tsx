@@ -43,7 +43,7 @@ export function CreateShippingAgencyDialog() {
       </DialogTrigger>
 
       <DialogContent className="sm:max-w-[560px] p-0 overflow-hidden rounded-3xl border border-border/50 bg-background/95 backdrop-blur-xl shadow-2xl">
-        <div className="relative px-6 pt-8 pb-5 bg-gradient-to-br from-blue-500/5 via-background to-background">
+        <div className="relative px-6 pt-8 pb-5 bg-linear-to-br from-blue-500/5 via-background to-background">
           <DialogHeader className="space-y-3">
             <div className="flex items-center gap-4">
               <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-blue-500/10 bg-blue-500/10 text-blue-600 dark:text-blue-400">

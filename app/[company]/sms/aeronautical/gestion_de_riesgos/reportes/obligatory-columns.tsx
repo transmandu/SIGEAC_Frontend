@@ -1,6 +1,6 @@
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
+import { type AppColumnDef } from "@/lib/table";
 
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 
@@ -10,7 +10,7 @@ import { ObligatoryReport } from "@/types/sms/mantenimiento";
 import { getBadgeStatusClass } from "@/lib/sms/utils";
 import { ReportDetailActions } from "./_components/report-detail-actions";
 
-export const columns: ColumnDef<ObligatoryReport>[] = [
+export const columns: AppColumnDef<ObligatoryReport>[] = [
 
     {
         accessorKey: "report_date",

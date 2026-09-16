@@ -19,7 +19,7 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import loadingGif from "@/public/loading2.gif";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import Image from "next/image";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -32,10 +32,10 @@ import { ArrowRight, Eye, EyeOff } from "lucide-react";
 // "Administrar el sistema": cristal suave con borde slate.
 const fieldClass = cn(
   "h-10 rounded-lg text-sm",
-  "bg-gradient-to-br from-background/70 to-background/40",
+  "bg-linear-to-br from-background/70 to-background/40",
   "backdrop-blur-md",
   "border border-slate-400/60 dark:border-slate-600/60",
-  "shadow-sm",
+  "shadow-xs",
   "hover:border-blue-400/30",
   "hover:shadow-md hover:shadow-blue-500/10",
   "transition-all duration-200"
@@ -192,7 +192,7 @@ export function LoginForm() {
           variant="ghost"
           className={cn(
             "group relative h-10 w-full overflow-hidden rounded-lg text-sm font-medium",
-            "shadow-sm transition-all duration-200",
+            "shadow-xs transition-all duration-200",
             "active:scale-[0.99]",
             // El variant ghost trae hover:bg-accent/text-accent-foreground y
             // tailwind-merge no los quita (grupos distintos al degradado).
@@ -202,7 +202,7 @@ export function LoginForm() {
                 // en ambos temas o la animación no se distingue.
                 "bg-slate-50 border border-slate-300 dark:bg-slate-100 dark:border-slate-300 text-slate-700 hover:text-slate-700"
               : cn(
-                  "bg-gradient-to-br from-primary to-primary/85",
+                  "bg-linear-to-br from-primary to-primary/85",
                   "text-primary-foreground hover:text-primary-foreground",
                   "border border-primary/70",
                   "hover:from-primary hover:to-primary",
@@ -223,7 +223,7 @@ export function LoginForm() {
               width={170}
               height={170}
               alt="Cargando"
-              className="h-[9rem] w-auto max-w-none object-contain"
+              className="h-36 w-auto max-w-none object-contain"
               unoptimized
             />
           ) : (

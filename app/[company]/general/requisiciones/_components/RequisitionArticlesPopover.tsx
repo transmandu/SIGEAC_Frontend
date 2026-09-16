@@ -56,7 +56,7 @@ const ArticleRow = ({
   unit,
   lifecycleStage,
 }: ArticleRowProps) => (
-  <div className="flex w-fit items-center gap-3 rounded-md border bg-background/60 px-2.5 py-1.5 shadow-sm transition-colors hover:bg-muted/40">
+  <div className="flex w-fit items-center gap-3 rounded-md border bg-background/60 px-2.5 py-1.5 shadow-xs transition-colors hover:bg-muted/40">
     <div
       className={cn(
         'flex h-7 w-7 shrink-0 items-center justify-center rounded-md',

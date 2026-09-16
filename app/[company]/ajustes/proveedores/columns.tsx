@@ -1,6 +1,6 @@
 'use client'
 
-import { ColumnDef } from '@tanstack/react-table'
+import { type AppColumnDef } from "@/lib/table";
 import { ChevronRight } from 'lucide-react'
 import { DataTableColumnHeader } from '@/components/tables/DataTableHeader'
 import { Badge } from '@/components/ui/badge'
@@ -10,7 +10,7 @@ import VendorDropdownActions from '@/components/dropdowns/general/VendorDropdown
 
 export const getColumns = (
   selectedCompany?: { slug: string }
-): ColumnDef<Vendor>[] => [
+): AppColumnDef<Vendor>[] => [
   {
     id: 'expander',
     size: 40,
@@ -99,7 +99,7 @@ export const getColumns = (
       return (
         <div className="flex justify-center w-full">
           <Badge
-            className={cn(`whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-sm transition-colors duration-150 cursor-default hover:scale-100 hover:translate-y-0`,
+            className={cn(`whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-xs transition-colors duration-150 cursor-default hover:scale-100 hover:translate-y-0`,
             isVendor
               ? `border-blue-500/30 bg-blue-500/15 text-blue-700 dark:text-blue-300`
               : `border-emerald-400/30 bg-emerald-400/10 text-emerald-600 dark:text-emerald-300`

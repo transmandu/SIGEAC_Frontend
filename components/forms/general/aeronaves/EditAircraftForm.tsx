@@ -28,7 +28,7 @@ import { useGetLocationsByCompanies } from "@/hooks/sistema/useGetLocationsByCom
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { Aircraft } from "@/types";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { format } from "date-fns";
 import { es } from "date-fns/locale/es";
 import { CalendarIcon, Check, ChevronsUpDown, Loader2 } from "lucide-react";
@@ -77,7 +77,7 @@ const FormSchema = z.object({
       message: "La matricula tiene un máximo 8 caracteres alfanuméricos.",
     }),
   fabricant_date: z.date({
-    required_error: "La fecha de vuelo es requerida",
+    error: "La fecha de vuelo es requerida",
   }),
   owner: z
     .string()
@@ -326,20 +326,10 @@ export function EditAircraftForm({ aircraft, onClose }: EditAircraftFormProps) {
                       disabled={(date) =>
                         date > new Date() || date < new Date("1999-04-27")
                       }
-                      initialFocus
-                      fromYear={1980} // Año mínimo que se mostrará
-                      toYear={new Date().getFullYear()} // Año máximo (actual)
-                      captionLayout="dropdown-buttons" // Selectores de año/mes
-                      components={{
-                        Dropdown: (props) => (
-                          <select
-                            {...props}
-                            className="bg-popover text-popover-foreground"
-                          >
-                            {props.children}
-                          </select>
-                        ),
-                      }}
+                      autoFocus
+                      startMonth={new Date(1980, 0)} // Año mínimo que se mostrará
+                      endMonth={new Date(new Date().getFullYear(), 11)} // Año máximo (actual)
+                      captionLayout="dropdown" // Selectores de año/mes
                     />
                   </PopoverContent>
                 </Popover>

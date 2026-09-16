@@ -113,14 +113,28 @@ const libraryService = {
     },
 
     /**
-     * Registra una acción (VIEW/DOWNLOAD) en la auditoría
+     * Descarga de un enlace público. El backend rechaza con 403 si el enlace es
+     * de solo lectura: la decisión no puede quedar en el cliente.
      */
-    registerLog: async (company: string, documentId: number, action: 'VIEW' | 'DOWNLOAD') => {
-        const response = await axiosInstance.post(`/${company}/library/logs`, {
-            document_id: documentId,
-            action: action
-        });
-        return response.data;
+    downloadSharedFile: async (company: string, token: string) => {
+        const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api';
+        const encodedToken = encodeURIComponent(token);
+
+        const response = await fetch(
+            `${baseUrl}/${company}/library/shared/content/${encodedToken}?download=1`,
+            { method: 'GET' },
+        );
+
+        if (!response.ok) {
+            throw new Error(
+                response.status === 403
+                    ? 'Este enlace es de solo lectura: la descarga no está permitida.'
+                    : 'No se pudo descargar el documento.',
+            );
+        }
+
+        const blob = await response.blob();
+        return URL.createObjectURL(blob);
     },
 
     getFolders: async (company: string, departmentId: number) => {

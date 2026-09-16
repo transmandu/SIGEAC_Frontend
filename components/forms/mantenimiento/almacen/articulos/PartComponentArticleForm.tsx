@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { z } from "zod";
 import { format, parseISO } from "date-fns";
 import { CalendarDays, Timer } from "lucide-react";
@@ -63,7 +63,7 @@ import type { ArticleFormProps } from "./types";
 import { useArticleForm, useReportFormState } from "./useArticleForm";
 
 const numeric = z.coerce
-    .number({ invalid_type_error: "Debe ingresar una cantidad numérica" })
+    .number({ error: "Debe ingresar una cantidad numérica" })
     .min(0, "No puede ser negativo.")
     .optional()
     .or(z.literal("").transform(() => undefined));

@@ -196,7 +196,7 @@ export const CreateCertificateForm = ({
               </Button>
             </PopoverTrigger>
             <PopoverContent
-              className="w-[var(--radix-popover-trigger-width)] p-0 shadow-md"
+              className="w-(--radix-popover-trigger-width) p-0 shadow-md"
               align="start"
               onWheel={(e) => e.stopPropagation()}
             >

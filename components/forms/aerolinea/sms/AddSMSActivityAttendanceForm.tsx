@@ -27,7 +27,7 @@ import { useGetSMSActivityAttendanceStatus } from "@/hooks/sms/useGetSMSActivity
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { SMSActivity } from "@/types";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import {
   Check,
   ChevronsUpDown,
@@ -40,6 +40,14 @@ import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Badge } from "@/components/ui/badge";
+
+const normalizeAuthorizedEmployeeId = (
+  value: unknown
+): number | null => {
+  if (value === undefined || value === null || value === "") return null;
+  const parsed = Number(value);
+  return Number.isNaN(parsed) ? null : parsed;
+};
 
 interface FormProps {
   onClose: () => void;
@@ -123,14 +131,16 @@ export function AddSMSActivityAttendanceForm({
     ) =>
       employees.map((e) => ({
         dni: e.dni ?? "",
-        first_name: e.first_name,
-        last_name: e.last_name,
+        first_name: e.first_name ?? "",
+        last_name: e.last_name ?? "",
         job_title: e.job_title?.name ?? "",
         department: e.department?.name ?? "",
         isSelected: wasEnrolled,
         wasEnrolled,
         employee_type: (e.employee_type as "local" | "authorized") ?? "local",
-        authorized_employee_id: e.authorized_employee_id ?? null,
+        authorized_employee_id: normalizeAuthorizedEmployeeId(
+          e.authorized_employee_id
+        ),
         from_company_db: e.from_company_db,
       })),
     []

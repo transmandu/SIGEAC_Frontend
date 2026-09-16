@@ -23,7 +23,7 @@ export const reasonLabel = (reason?: string) =>
   DUPLICATE_REASON_LABELS[reason ?? ''] ?? reason ?? '—';
 
 const badgeBase =
-  'rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-sm transition-colors duration-150 cursor-default hover:scale-100 hover:translate-y-0 select-none';
+  'rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-xs transition-colors duration-150 cursor-default hover:scale-100 hover:translate-y-0 select-none';
 
 /**
  * Badge del motivo por el que el detector agrupó unos artículos. Ambos motivos
@@ -66,7 +66,7 @@ export const mergeStatusBadgeCls = (undone: boolean) =>
  * propósito: son datos informativos, no estados que exijan atención.
  */
 export const dependencyBadgeCls = () =>
-  'rounded-md border border-border/50 bg-muted/40 px-1.5 py-0.5 text-[10px] font-medium tabular-nums tracking-wide text-muted-foreground shadow-sm select-none';
+  'rounded-md border border-border/50 bg-muted/40 px-1.5 py-0.5 text-[10px] font-medium tabular-nums tracking-wide text-muted-foreground shadow-xs select-none';
 
 // Fecha de calendario: se muestra tal cual, sin convertir de zona.
 export const formatSupervisorDate = (date?: string | Date | null): string | undefined =>

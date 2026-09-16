@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/form";
 
 import { Input } from "@/components/ui/input";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -31,7 +31,7 @@ export function AcceptObligatoryReport({ onClose, initialData }: FormProps) {
   const FormSchema = z.object({
     report_number: z
       .string({
-        required_error: "El número de reporte es requerido.", // Mensaje si el campo está ausente
+        error: "El número de reporte es requerido.", // Mensaje si el campo está ausente
       })
       .min(1, { message: "El número de reporte no puede estar vacío." }) // Mensaje si es una cadena vacía
       .refine((val) => !isNaN(Number(val)), {

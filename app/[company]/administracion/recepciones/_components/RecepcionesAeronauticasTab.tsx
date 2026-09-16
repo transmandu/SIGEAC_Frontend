@@ -1,6 +1,6 @@
 "use client";
 
-import { DownloadReportDialog } from "@/app/[company]/general/recepcion_articulos/_components/DownloadReportDialog";
+import { DownloadReportDialog } from "@/app/[company]/almacen/recepcion_articulos/_components/DownloadReportDialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

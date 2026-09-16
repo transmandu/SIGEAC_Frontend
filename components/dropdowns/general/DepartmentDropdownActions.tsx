@@ -25,7 +25,7 @@ const iconBase =
   "size-[18px] transition-all duration-200 ease-out group-hover:scale-110"
 
 const itemBase =
-  "group relative flex items-center justify-center size-9 rounded-xl transition-all duration-200 ease-out hover:bg-muted hover:shadow-sm active:scale-95"
+  "group relative flex items-center justify-center size-9 rounded-xl transition-all duration-200 ease-out hover:bg-muted hover:shadow-xs active:scale-95"
 
 const DepartmentDropdownActions = ({ department }: { department: Department }) => {
   const [openDropdown, setOpenDropdown] = useState(false)
@@ -40,7 +40,7 @@ const DepartmentDropdownActions = ({ department }: { department: Department }) =
             <Button
               variant="ghost"
               size="icon"
-              className="size-8 rounded-xl border border-transparent transition-all duration-200 hover:bg-muted/70 hover:border-border/50 hover:shadow-sm data-[state=open]:bg-muted"
+              className="size-8 rounded-xl border border-transparent transition-all duration-200 hover:bg-muted/70 hover:border-border/50 hover:shadow-xs data-[state=open]:bg-muted"
             >
               <MoreHorizontal className="size-4" />
             </Button>

@@ -1,7 +1,8 @@
 "use client"
 
 import React from "react"
-import { flexRender, Table as ReactTable } from "@tanstack/react-table"
+import { flexRender, type RowData } from "@tanstack/react-table";
+import { type AppTable } from "@/lib/table";
 import {
   Table,
   TableBody,
@@ -12,12 +13,12 @@ import {
 } from "@/components/ui/table"
 import { DataTablePagination } from "@/components/tables/DataTablePagination"
 
-type Props<TData> = {
-  table: ReactTable<TData>
+type Props<TData extends RowData> = {
+  table: AppTable<TData>
   colSpan: number
 }
 
-export function GeneralInventoryDataTable<TData>({ table, colSpan }: Props<TData>) {
+export function GeneralInventoryDataTable<TData extends RowData>({ table, colSpan }: Props<TData>) {
   return (
     <div className="rounded-md border mb-4">
         <Table>

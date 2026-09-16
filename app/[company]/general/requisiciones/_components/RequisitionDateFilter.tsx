@@ -1,6 +1,6 @@
 'use client'
 
-import { Column } from '@tanstack/react-table'
+import { type AppColumn } from "@/lib/table";
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { ArrowDownIcon, ArrowUpIcon, CalendarDays, CalendarX } from 'lucide-react'
@@ -42,7 +42,7 @@ export interface DateFilterValue {
 }
 
 interface Props {
-  column: Column<Requisition, unknown>
+  column: AppColumn<Requisition, unknown>
   title: string
 }
 

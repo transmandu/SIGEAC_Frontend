@@ -134,14 +134,14 @@ export const AircraftDropdownActions = ({
             <div
               className={`p-6 text-white rounded-t-lg ${
                 aircraft.status === "EN POSESION"
-                  ? "bg-gradient-to-r from-green-600 to-emerald-500"
+                  ? "bg-linear-to-r from-green-600 to-emerald-500"
                   : aircraft.status === "RENTADO"
-                    ? "bg-gradient-to-r from-amber-500 to-yellow-500"
-                    : "bg-gradient-to-r from-red-600 to-red-500"
+                    ? "bg-linear-to-r from-amber-500 to-yellow-500"
+                    : "bg-linear-to-r from-red-600 to-red-500"
               }`}
             >
               <div className="flex items-center gap-4">
-                <div className="bg-white p-3 rounded-lg shadow-sm border">
+                <div className="bg-white p-3 rounded-lg shadow-xs border">
                   <PlaneIcon
                     className={`h-10 w-10 ${
                       aircraft.status === "EN POSESION"

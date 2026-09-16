@@ -128,7 +128,7 @@ const ShowSurvey = () => {
                     className="p-4 hover:bg-gray-50 transition-colors"
                   >
                     <div className="flex items-start gap-3">
-                      <div className="flex-shrink-0 w-6 h-6rounded text-xs flex items-center justify-center font-medium mt-0.5">
+                      <div className="shrink-0 w-6 h-6rounded text-xs flex items-center justify-center font-medium mt-0.5">
                         {index + 1}
                       </div>
 
@@ -137,7 +137,7 @@ const ShowSurvey = () => {
                           <h3 className="font-medium text-sm leading-relaxed">
                             {question.text}
                           </h3>
-                          <div className="flex items-center gap-2 flex-shrink-0">
+                          <div className="flex items-center gap-2 shrink-0">
                             <Badge variant="outline" className="text-xs">
                               <TypeIcon className="w-3 h-3 mr-1" />
                               {typeBadge.label}
@@ -169,7 +169,7 @@ const ShowSurvey = () => {
                                 }`}
                               >
                                 <div
-                                  className={`w-3 h-3 rounded border flex-shrink-0 ${
+                                  className={`w-3 h-3 rounded border shrink-0 ${
                                     question.type === "SINGLE"
                                       ? "rounded-full"
                                       : "rounded"
@@ -192,7 +192,7 @@ const ShowSurvey = () => {
                                 </span>
                                 {surveyData.type === "QUIZ" &&
                                   option.is_correct && (
-                                    <CheckCircle className="w-3 h-3 text-green-500 flex-shrink-0" />
+                                    <CheckCircle className="w-3 h-3 text-green-500 shrink-0" />
                                   )}
                               </div>
                             ))}

@@ -64,7 +64,7 @@ export const AirlineSMSTabs = ({ company, surveyNumbers }: SMSTabsProps) => {
                     className="flex-col sm:flex-row items-center justify-center gap-2 px-2 sm:px-4 mt-5 sm:mt-0"
                 >
                     <div>
-                        <BookOpen className="h-4 w-4 flex-shrink-0" />
+                        <BookOpen className="h-4 w-4 shrink-0" />
                     </div>
                     <div>
                         <span className="truncate text-xs sm:text-sm">Políticas</span>
@@ -75,7 +75,7 @@ export const AirlineSMSTabs = ({ company, surveyNumbers }: SMSTabsProps) => {
                     className="flex-col sm:flex-row items-center justify-center gap-2 px-2 sm:px-4 mt-5 sm:mt-0"
                 >
                     <div>
-                        <Building className="h-4 w-4 flex-shrink-0" />
+                        <Building className="h-4 w-4 shrink-0" />
                     </div>
                     <div>
                         <span className="truncate text-xs sm:text-sm">Empresa</span>
@@ -86,7 +86,7 @@ export const AirlineSMSTabs = ({ company, surveyNumbers }: SMSTabsProps) => {
                     className="flex-col sm:flex-row items-center justify-center gap-2 px-2 sm:px-4 mb-4 sm:mb-0"
                 >
                     <div>
-                        <Target className="h-4 w-4 flex-shrink-0" />
+                        <Target className="h-4 w-4 shrink-0" />
                     </div>
                     <div>
                         <span className="truncate text-xs sm:text-sm">Estrategias</span>
@@ -97,7 +97,7 @@ export const AirlineSMSTabs = ({ company, surveyNumbers }: SMSTabsProps) => {
                     className="flex-col sm:flex-row items-center justify-center gap-2 px-2 sm:px-4 mb-4 sm:mb-0"
                 >
                     <div>
-                        <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+                        <AlertTriangle className="h-4 w-4 shrink-0" />
                     </div>
                     <div>
                         <span className="truncate text-xs sm:text-sm">

@@ -86,7 +86,7 @@ const StatusPill = ({ status }: { status: string }) => {
   return (
     <span
       className={cn(
-        'select-none whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-sm',
+        'select-none whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-xs',
         pill?.className,
       )}
     >
@@ -185,7 +185,7 @@ export function AdvanceRequisitionStatusDialog({
           <Button
             onClick={onConfirm}
             disabled={isPending}
-            className="h-9 gap-1.5 text-xs font-semibold shadow-sm transition-all hover:shadow-md"
+            className="h-9 gap-1.5 text-xs font-semibold shadow-xs transition-all hover:shadow-md"
           >
             {isPending ? (
               <Loader2 className="size-3.5 animate-spin" />

@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/form";
 
 import { Input } from "@/components/ui/input";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -85,13 +85,13 @@ export function CreateGeneralObligatoryReportForm({
         message: "Formato de hora inválido (HH:mm)",
       }),
       pilot_id: z.string({
-        required_error: "El piloto es requerido.",
+        error: "El piloto es requerido.",
       }),
       copilot_id: z.string({
-        required_error: "El copiloto es requerido.",
+        error: "El copiloto es requerido.",
       }),
       aircraft_id: z.string({
-        required_error: "La aeronave es requerida.",
+        error: "La aeronave es requerida.",
       }),
       flight_number: z.string(),
       flight_origin: z
@@ -125,6 +125,8 @@ export function CreateGeneralObligatoryReportForm({
         (val) => (val === null || val === undefined ? "" : val),
         z.string().optional()
       ),
+      email: z.string().email("Email inválido").optional().nullable(),
+      phone_number: z.string().optional().nullable(),
       image: z
         .instanceof(File)
         .refine((file) => file.size <= 5 * 1024 * 1024, "Max 5MB")
@@ -224,6 +226,8 @@ export function CreateGeneralObligatoryReportForm({
       incident_date: initialData?.incident_date
         ? new Date(initialData?.incident_date)
         : new Date(),
+      email: initialData?.email ?? null,
+      phone_number: initialData?.phone_number ?? null,
       flight_time: initialData?.flight_time
         ? initialData.flight_time.substring(0, 5) // Extraemos solo HH:mm
         : "00:00",
@@ -253,6 +257,8 @@ export function CreateGeneralObligatoryReportForm({
       image: data.image,
       document: data.document,
       status: "PROCESO",
+      email: data.email,
+      phone_number: data.phone_number,
     };
 
     try {
@@ -350,20 +356,10 @@ export function CreateGeneralObligatoryReportForm({
                       mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
-                      initialFocus
-                      fromYear={1980} // Año mínimo que se mostrará
-                      toYear={new Date().getFullYear()} // Año máximo (actual)
-                      captionLayout="dropdown-buttons" // Selectores de año/mes
-                      components={{
-                        Dropdown: (props) => (
-                          <select
-                            {...props}
-                            className="bg-popover text-popover-foreground"
-                          >
-                            {props.children}
-                          </select>
-                        ),
-                      }}
+                      autoFocus
+                      startMonth={new Date(1980, 0)} // Año mínimo que se mostrará
+                      endMonth={new Date(new Date().getFullYear(), 11)} // Año máximo (actual)
+                      captionLayout="dropdown" // Selectores de año/mes
                     />
                   </PopoverContent>
                 </Popover>
@@ -404,24 +400,53 @@ export function CreateGeneralObligatoryReportForm({
                       selected={field.value}
                       onSelect={field.onChange}
 
-                      initialFocus
-                      fromYear={1980} // Año mínimo que se mostrará
-                      toYear={new Date().getFullYear()} // Año máximo (actual)
-                      captionLayout="dropdown-buttons" // Selectores de año/mes
-                      components={{
-                        Dropdown: (props) => (
-                          <select
-                            {...props}
-                            className="bg-popover text-popover-foreground"
-                          >
-                            {props.children}
-                          </select>
-                        ),
-                      }}
+                      autoFocus
+                      startMonth={new Date(1980, 0)} // Año mínimo que se mostrará
+                      endMonth={new Date(new Date().getFullYear(), 11)} // Año máximo (actual)
+                      captionLayout="dropdown" // Selectores de año/mes
                     />
                   </PopoverContent>
                 </Popover>
                 <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <div className="flex gap-2 items-center justify-center">
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                  <Input
+                    type="email"
+                    placeholder="correo@ejemplo.com"
+                    {...field}
+                    value={field.value ?? ""}
+                  />
+                </FormControl>
+                <FormMessage className="text-xs" />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="phone_number"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormLabel>Teléfono</FormLabel>
+                <FormControl>
+                  <Input
+                    type="tel"
+                    placeholder="Número de teléfono"
+                    {...field}
+                    value={field.value ?? ""}
+                  />
+                </FormControl>
+                <FormMessage className="text-xs" />
               </FormItem>
             )}
           />

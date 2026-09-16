@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 // contraste en vez de bajar el brillo, porque oscurecer sobre un fondo ya
 // oscuro (y con fondos translúcidos tipo bg-red-500/10) no se percibe.
 const badgeVariants = cva(
-  "inline-flex w-fit select-none items-center whitespace-nowrap rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-[filter,color,background-color,border-color] duration-150 hover:brightness-95 dark:hover:brightness-100 dark:hover:contrast-125 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+  "inline-flex w-fit select-none items-center whitespace-nowrap rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-[filter,color,background-color,border-color] duration-150 hover:brightness-95 dark:hover:brightness-100 dark:hover:contrast-125 focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2",
   {
     variants: {
       variant: {

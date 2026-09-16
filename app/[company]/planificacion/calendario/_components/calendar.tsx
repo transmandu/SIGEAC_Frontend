@@ -2,6 +2,13 @@
 import { useUpdatePlanificationEvent } from "@/actions/mantenimiento/planificacion/eventos/actions";
 import CreatePlanificationEventDialog from "@/components/dialogs/mantenimiento/planificacion/calendario/CreatePlanificationEventDialog";
 import { Button } from "@/components/ui/button";
+import {
+  calendarMomentToDate,
+  calendarMomentToString,
+  toCalendarMoment,
+  type CalendarMoment,
+  calendarTimeZone,
+} from "@/lib/calendar-temporal";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { PlanificationEvent } from "@/types";
 import {
@@ -20,6 +27,12 @@ import { es } from "date-fns/locale";
 import { ClockIcon, Hammer, NotebookIcon, PencilLine } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState, useMemo } from "react";
+
+/** El mismo evento ya traducido a lo que schedule-x pide desde la 3. */
+type scheduleXPlanificationEvent = Omit<PlanificationEvent, "start" | "end"> & {
+  start: CalendarMoment;
+  end: CalendarMoment;
+};
 
 type CalendarProps = {
   events: PlanificationEvent[];
@@ -79,25 +92,39 @@ export const Calendar = ({ events, theme = "light" }: CalendarProps) => {
   const dragAndDrop = useMemo(() => createDragAndDropPlugin(), []);
   const resizePlugin = useMemo(() => createResizePlugin(30), []);
 
+  // schedule-x 3 dejó de aceptar texto en start/end.
+  const calendarEvents = useMemo<scheduleXPlanificationEvent[]>(
+    () =>
+      events.map((event) => ({
+        ...event,
+        start: toCalendarMoment(event.start),
+        end: toCalendarMoment(event.end),
+      })),
+    [events],
+  );
+
   const { updatePlanificationEvent } = useUpdatePlanificationEvent();
 
   // ✅ Esta llamada es correcta, fuera de useMemo
   const calendar = useNextCalendarApp({
     views: [createViewMonthGrid(), createViewWeek(), createViewDay()],
     calendars: priorityCalendars,
-    events,
+    events: calendarEvents,
+    // Misma zona en la que se arman los eventos: con el default (UTC)
+    // schedule-x los corre al offset local.
+    timezone: calendarTimeZone(),
     locale: "es-ES",
     defaultView: "month",
     isResponsive: true,
     plugins: [dragAndDrop, eventsServiceRef.current, eventModal, resizePlugin],
     dayBoundaries: { start: '06:00', end: '18:00' },
     callbacks: {
-      onDoubleClickDate: (date: string) => {
-        setSelectedDate(`${date} 06:00`);
+      onDoubleClickDate: (date) => {
+        setSelectedDate(`${date.toString()} 06:00`);
         setIsDialogOpen(true);
       },
-      onDoubleClickDateTime: (dateTime: string) => {
-        setSelectedDate(dateTime);
+      onDoubleClickDateTime: (dateTime) => {
+        setSelectedDate(calendarMomentToString(dateTime));
         setIsDialogOpen(true);
       },
       onEventUpdate: async (event) => {
@@ -105,9 +132,13 @@ export const Calendar = ({ events, theme = "light" }: CalendarProps) => {
           company: selectedCompany!.slug,
           id: event.id as string,
           data: {
+            // El spread traería los Temporal crudos: start y end vuelven a
+            // texto, igual que antes de schedule-x 3.
             ...event,
-            start_date: event.start,
-            end_date: event.end,
+            start: calendarMomentToString(event.start),
+            end: calendarMomentToString(event.end),
+            start_date: calendarMomentToString(event.start),
+            end_date: calendarMomentToString(event.end),
           },
         });
       },
@@ -115,9 +146,9 @@ export const Calendar = ({ events, theme = "light" }: CalendarProps) => {
   });
 
   const customComponents = useMemo(() => ({
-    eventModal: ({ calendarEvent }: { calendarEvent: PlanificationEvent; close: () => void }) => {
-      const startDate = new Date(calendarEvent.start);
-      const endDate = new Date(calendarEvent.end);
+    eventModal: ({ calendarEvent }: { calendarEvent: scheduleXPlanificationEvent; close: () => void }) => {
+      const startDate = calendarMomentToDate(calendarEvent.start);
+      const endDate = calendarMomentToDate(calendarEvent.end);
 
       return (
         <div className="text-foreground p-6 rounded-lg shadow-xl max-w-md w-full border border-border">
@@ -169,10 +200,10 @@ export const Calendar = ({ events, theme = "light" }: CalendarProps) => {
 
   // ✅ Refrescar eventos en el servicio solo cuando cambian
   useEffect(() => {
-    if (events && eventsServiceRef.current) {
-      eventsServiceRef.current.set(events);
+    if (calendarEvents && eventsServiceRef.current) {
+      eventsServiceRef.current.set(calendarEvents);
     }
-  }, [events]);
+  }, [calendarEvents]);
 
   // ✅ Actualizar tema dinámicamente
   useEffect(() => {

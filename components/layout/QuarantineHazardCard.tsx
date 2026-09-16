@@ -14,7 +14,7 @@ import { CriticalAlert, QuarantineHazardMeta } from "@/hooks/alerts/types";
  */
 const TIER_STYLES = [
     {
-        card: "border-amber-500/30 bg-amber-500/[0.04]",
+        card: "border-amber-500/30 bg-amber-500/4",
         badge: "bg-amber-500/15 text-amber-600",
         bar: "bg-amber-500",
         title: "text-amber-700 dark:text-amber-500",
@@ -26,25 +26,25 @@ const TIER_STYLES = [
         title: "text-amber-700 dark:text-amber-500",
     },
     {
-        card: "border-orange-500/60 bg-orange-500/[0.09]",
+        card: "border-orange-500/60 bg-orange-500/9",
         badge: "bg-orange-500/20 text-orange-700",
         bar: "bg-orange-500",
         title: "text-orange-700 dark:text-orange-500",
     },
     {
-        card: "border-red-500/60 bg-red-500/[0.09]",
+        card: "border-red-500/60 bg-red-500/9",
         badge: "bg-red-500/20 text-red-700",
         bar: "bg-red-500",
         title: "text-red-700 dark:text-red-500",
     },
     {
-        card: "border-red-600/80 bg-red-600/[0.12] shadow-[0_0_0_1px_rgba(220,38,38,0.15)]",
+        card: "border-red-600/80 bg-red-600/12 shadow-[0_0_0_1px_rgba(220,38,38,0.15)]",
         badge: "bg-red-600/25 text-red-700",
         bar: "bg-red-600",
         title: "text-red-700 dark:text-red-400",
     },
     {
-        card: "border-red-700 bg-red-700/[0.16] shadow-[0_0_18px_-4px_rgba(185,28,28,0.55)]",
+        card: "border-red-700 bg-red-700/16 shadow-[0_0_18px_-4px_rgba(185,28,28,0.55)]",
         badge: "bg-red-700/30 text-red-800 dark:text-red-300",
         bar: "bg-red-700",
         title: "text-red-800 dark:text-red-300",

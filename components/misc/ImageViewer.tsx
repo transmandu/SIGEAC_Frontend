@@ -47,7 +47,7 @@ const ImageViewer = ({ openImage, onClose }: ImageViewerProps) => {
       role="dialog"
       aria-modal="true"
       aria-label="Imagen ampliada"
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-100 flex items-center justify-center bg-black/80 p-4 backdrop-blur-xs"
       onClick={onClose}
     >
       <button

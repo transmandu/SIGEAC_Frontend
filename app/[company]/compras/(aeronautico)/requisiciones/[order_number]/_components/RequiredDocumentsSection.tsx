@@ -19,7 +19,7 @@ const RequiredDocumentsSection = ({ batches }: RequiredDocumentsSectionProps) =>
   }, [batches]);
 
   return (
-    <div className="relative flex h-full flex-col rounded-xl border border-border/60 bg-gradient-to-b from-muted/30 to-muted/10 p-4 sm:p-5 shadow-sm">
+    <div className="relative flex h-full flex-col rounded-xl border border-border/60 bg-linear-to-b from-muted/30 to-muted/10 p-4 sm:p-5 shadow-xs">
       <div className="flex items-center gap-2 mb-3 select-none shrink-0">
         <FileBadge className="size-3 text-muted-foreground/70 shrink-0" />
         <span className="text-[9px] sm:text-[10px] font-semibold tracking-widest text-muted-foreground whitespace-nowrap">

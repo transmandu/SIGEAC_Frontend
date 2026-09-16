@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/tabs";
 import { useGetPermissions } from "@/hooks/sistema/usuario/useGetPermissions";
 import { Company, Module } from "@/types";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { Loader, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";

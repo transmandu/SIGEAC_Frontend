@@ -1,6 +1,6 @@
 "use client"
 
-import { ColumnDef } from "@tanstack/react-table"
+import { type AppColumnDef } from "@/lib/table";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
 import { Badge } from "@/components/ui/badge"
 import { GeneralArticle } from "@/types"
@@ -12,10 +12,10 @@ import { Ruler } from "lucide-react"
 
 export const buildGeneralColumns = (
     unitOptions: { value: string; label: string }[] = [],
-): ColumnDef<GeneralArticle>[] => [
+): AppColumnDef<GeneralArticle>[] => [
     {
         accessorKey: "description",
-        sortingFn: textSortingFn((row) => row.description),
+        sortFn: textSortingFn((row) => row.description),
         header: ({ column }) => (
             <div className="flex justify-center">
                 <DataTableColumnHeader filter column={column} title="Descripción" />
@@ -40,7 +40,7 @@ export const buildGeneralColumns = (
     },
     {
         accessorKey: "brand_model",
-        sortingFn: textSortingFn((row) => row.brand_model),
+        sortFn: textSortingFn((row) => row.brand_model),
         header: ({ column }) => (
             <div className="flex justify-center">
                 <DataTableColumnHeader filter column={column} title="Marca / Modelo" />
@@ -65,7 +65,7 @@ export const buildGeneralColumns = (
     },
     {
         accessorKey: "variant_type",
-        sortingFn: textSortingFn((row) => row.variant_type),
+        sortFn: textSortingFn((row) => row.variant_type),
         header: ({ column }) => (
             <div className="flex justify-center">
                 <DataTableColumnHeader filter column={column} title="Present. / Especif." />
@@ -105,7 +105,7 @@ export const buildGeneralColumns = (
     },
     {
         accessorKey: "quantity",
-        sortingFn: numericSortingFn((row) => Number(row.quantity ?? 0)),
+        sortFn: numericSortingFn((row) => Number(row.quantity ?? 0)),
         filterFn: (row, _id, value) => {
             const raw = String(value ?? "").trim()
             if (!raw) return true

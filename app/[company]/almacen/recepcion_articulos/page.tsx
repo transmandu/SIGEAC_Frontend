@@ -9,6 +9,7 @@ import { ShieldOff } from 'lucide-react'
 import { useState } from 'react'
 import { ArticulosEnTransitoTab } from './_components/ArticulosEnTransitoTab'
 import { RecepcionGeneralTab } from './_components/RecepcionGeneralTab'
+import { TrasladosEntreSedesTab } from './_components/TrasladosEntreSedesTab'
 import { PageHeader } from "@/components/layout/PageHeader";
 
 const ALMACEN_ROLES = ['ALMACEN', 'JEFE_ALMACEN', 'ANALISTA_ALMACEN', 'SUPERUSER']
@@ -57,11 +58,18 @@ const RecepcionArticulosPage = () => {
                 >
                     <TabsList>
                         <TabsTrigger value="transito">Artículos en Tránsito</TabsTrigger>
+                        {/* Recibir un traslado es recibir: la diferencia con una
+                            compra es de dónde viene, no lo que el almacén hace. */}
+                        <TabsTrigger value="traslados">Traslados entre Sedes</TabsTrigger>
                         <TabsTrigger value="recepcion-general">Recepción General</TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="transito">
                         {visitedTabs.has('transito') && <ArticulosEnTransitoTab />}
+                    </TabsContent>
+
+                    <TabsContent value="traslados">
+                        {visitedTabs.has('traslados') && <TrasladosEntreSedesTab />}
                     </TabsContent>
 
                     <TabsContent value="recepcion-general">

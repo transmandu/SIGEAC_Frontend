@@ -2,7 +2,6 @@
 
 import { useDeleteObligatoryReport } from "@/actions/sms/reporte_obligatorio/actions";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -37,18 +36,17 @@ export default function DeleteObligatoryReportDialog(data: data) {
 
   return (
     <>
-      <Card className="flex">
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button
-              onClick={() => setOpen(true)}
-              variant="outline"
-              size="sm"
-              className=" hidden h-8 lg:flex"
-            >
-              Eliminar
-            </Button>
-          </DialogTrigger>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild>
+          <Button
+            onClick={() => setOpen(true)}
+            variant="outline"
+            size="sm"
+            className="h-9 w-full"
+          >
+            Eliminar
+          </Button>
+        </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle className="text-center">
@@ -83,7 +81,6 @@ export default function DeleteObligatoryReportDialog(data: data) {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </Card>
     </>
   );
 }

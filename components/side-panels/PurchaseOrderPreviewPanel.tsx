@@ -73,7 +73,7 @@ const statusBadgeClass = (status?: string) => {
   const completed = status === 'COMPLETED'
 
   return cn(
-    'select-none whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-sm',
+    'select-none whitespace-nowrap rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-xs',
     paid && 'border-yellow-500/30 bg-yellow-500/10 text-yellow-700 dark:text-yellow-300',
     completed && 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
     !paid && !completed && 'border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300'
@@ -154,7 +154,7 @@ const BatchArticleRow = ({ article, isCompleted }: { article: PurchaseOrderArtic
         className="flex w-full items-start justify-between gap-2 px-3 pt-3 pb-2.5 text-left hover:bg-muted/30 transition-colors"
       >
         <div className="min-w-0 flex-1 space-y-1">
-          <span className="block text-sm font-semibold leading-snug break-words">
+          <span className="block text-sm font-semibold leading-snug wrap-break-word">
             {batchName}
           </span>
 
@@ -168,7 +168,7 @@ const BatchArticleRow = ({ article, isCompleted }: { article: PurchaseOrderArtic
             <span className="shrink-0 text-[9px] px-1.5 py-[2px] rounded bg-primary/10 text-primary border border-primary/20 font-medium select-none">
               P/N
             </span>
-            <span className="text-[13px] font-medium text-foreground/90 break-words">
+            <span className="text-[13px] font-medium text-foreground/90 wrap-break-word">
               {req?.article_part_number ?? 'N/A'}
             </span>
           </div>
@@ -279,7 +279,7 @@ const GeneralArticleRow = ({ article, isCompleted }: { article: PurchaseOrderGen
       >
         <div className="min-w-0 flex-1 space-y-1">
           <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-sm font-semibold leading-snug break-words">
+            <span className="text-sm font-semibold leading-snug wrap-break-word">
               {req?.description ?? 'Artículo'}
             </span>
             <Badge className={intakeBadgeClass(intakeStatus)}>
@@ -440,7 +440,7 @@ export default function PurchaseOrderPreviewPanel({ purchaseOrder, onClose }: Pr
 
         {/* ── Observación ─────────────────────────────────── */}
         {purchaseOrder.observation && (
-          <div className="rounded-md border border-border/60 bg-gradient-to-b from-muted/30 to-muted/10 p-3">
+          <div className="rounded-md border border-border/60 bg-linear-to-b from-muted/30 to-muted/10 p-3">
             <div className="flex items-center gap-2 mb-2 select-none">
               <FileText className="size-3.5 text-muted-foreground/60" />
               <span className="text-[10px] font-semibold tracking-widest text-muted-foreground">

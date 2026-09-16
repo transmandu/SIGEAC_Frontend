@@ -1,6 +1,6 @@
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
+import { type AppColumnDef } from "@/lib/table";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -22,7 +22,7 @@ const STATUS_ICON: Record<ErrorReport["status"], typeof AlertTriangle> = {
 
 export const getColumns = (
   onViewDetail: (report: ErrorReport) => void
-): ColumnDef<ErrorReport>[] => [
+): AppColumnDef<ErrorReport>[] => [
   {
     accessorKey: "reported_at",
     header: "Fecha",

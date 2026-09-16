@@ -19,7 +19,7 @@ interface PersonProps {
 
 export const PersonCard = ({ role, image, description }: PersonProps) => {
   return (
-    <Card className="relative overflow-hidden bg-transparent border border-transparent shadow-sm">
+    <Card className="relative overflow-hidden bg-transparent border border-transparent shadow-xs">
       <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr] gap-0 min-h-[350px]">
 
         {/* IMAGE SECTION */}

@@ -44,12 +44,12 @@ export function CustomCard({
     return (
         <Card className={cn("w-full flex flex-col ", className)}>
             <CardDescription className="hidden"></CardDescription>
-            <CardContent className="p-6 flex flex-col flex-grow items-center sm:items-stretch">
+            <CardContent className="p-6 flex flex-col grow items-center sm:items-stretch">
                 <div className="flex sm:flex-col items-center justify-center sm:flex-1 w-full">
                     <div className="flex flex-col items-center sm:flex-1">
                         {/* Imagen - Ajustada para verse completa */}
                         {imageUrl && (
-                            <div className="mb-4 flex justify-center relative h-32 w-32 sm:h-60 sm:w-60 flex-shrink-0">
+                            <div className="mb-4 flex justify-center relative h-32 w-32 sm:h-60 sm:w-60 shrink-0">
                                 <Image
                                     src={`${process.env.NEXT_PUBLIC_STORAGE_BASE_URL}${imageUrl}`}
                                     alt={imageAlt}

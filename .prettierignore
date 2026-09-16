@@ -1,0 +1,9 @@
+node_modules
+.next
+out
+build
+public
+pnpm-lock.yaml
+CHANGELOG.md
+next-env.d.ts
+*.tsbuildinfo

@@ -8,7 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useGetUsers } from "@/hooks/sistema/usuario/useGetUsers";
 import loadingGif from '@/public/loading2.gif';
 import { User } from "@/types";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { Eye, EyeOff } from 'lucide-react';
 import Image from "next/image";
 import { useEffect, useState } from "react";

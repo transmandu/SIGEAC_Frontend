@@ -39,7 +39,7 @@ export function ItemsTable({
   });
 
   return (
-    <div className="border border-border rounded-xl shadow-sm bg-card overflow-hidden">
+    <div className="border border-border rounded-xl shadow-xs bg-card overflow-hidden">
       {/* Encabezado */}
       <div className="flex items-center px-4 py-4 border-b border-border/80 bg-muted/20">
         <div className="flex items-center gap-6 w-1/3">
@@ -218,7 +218,7 @@ export function ItemsTable({
 
 function TotalCell({ value }: { value: string }) {
   return (
-    <div className="text-center font-bold text-sm bg-background py-1.5 rounded-md border border-border/50 shadow-sm text-primary tabular-nums">
+    <div className="text-center font-bold text-sm bg-background py-1.5 rounded-md border border-border/50 shadow-xs text-primary tabular-nums">
       {value}
     </div>
   );

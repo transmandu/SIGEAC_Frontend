@@ -198,7 +198,7 @@ export const AeronauticalSMSTabs = ({ company, surveyNumbers }: SMSTabsProps) =>
                             value={tab.value}
                             className="flex min-h-12 items-center justify-center gap-2 rounded-2xl px-3 py-3 text-xs sm:text-sm"
                         >
-                            <Icon className="h-4 w-4 flex-shrink-0" />
+                            <Icon className="h-4 w-4 shrink-0" />
                             <span>{tab.label}</span>
                         </TabsTrigger>
                     );
@@ -245,7 +245,7 @@ export const AeronauticalSMSTabs = ({ company, surveyNumbers }: SMSTabsProps) =>
                             </CardContent>
                         </Card>
 
-                        <Card className="border-border/60 bg-gradient-to-br from-muted/20 via-background to-background shadow-lg">
+                        <Card className="border-border/60 bg-linear-to-br from-muted/20 via-background to-background shadow-lg">
                             <CardHeader className="space-y-2">
                                 <CardTitle className="text-xl">
                                     Reportes de seguridad
@@ -318,7 +318,7 @@ export const AeronauticalSMSTabs = ({ company, surveyNumbers }: SMSTabsProps) =>
                                         index={index}
                                         icon={policy.icon}
                                         description={policy.description}
-                                        className="h-full border border-border/60 bg-background/90 shadow-sm"
+                                        className="h-full border border-border/60 bg-background/90 shadow-xs"
                                     />
                                 ))}
                             </div>
@@ -345,7 +345,7 @@ export const AeronauticalSMSTabs = ({ company, surveyNumbers }: SMSTabsProps) =>
                                     fill
                                     className="object-cover"
                                 />
-                                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
+                                <div className="absolute inset-0 bg-linear-to-t from-slate-950/80 via-transparent to-transparent" />
 
                                 <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-4 p-5 text-white">
                                     <div className="max-w-2xl space-y-2">

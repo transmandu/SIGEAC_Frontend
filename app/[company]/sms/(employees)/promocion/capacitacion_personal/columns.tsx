@@ -3,7 +3,7 @@
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { dateFormat } from "@/lib/utils";
 import { SMSTraining } from "@/types";
-import { ColumnDef } from "@tanstack/react-table";
+import { type AppColumnDef } from "@/lib/table";
 import { TrainingStatusBadge } from "@/components/sms/TrainingStatusBadge";
 import { TrainingHistoryDialog } from "@/components/sms/TrainingHistoryDialog";
 
@@ -20,7 +20,7 @@ function lastExpiration(row: SMSTraining): Date | null {
   return lastExpired?.expiration ? new Date(lastExpired.expiration) : null;
 }
 
-export const columns: ColumnDef<SMSTraining>[] = [
+export const columns: AppColumnDef<SMSTraining>[] = [
   {
     accessorKey: "employee",
     header: ({ column }) => (

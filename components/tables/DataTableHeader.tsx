@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { Column } from '@tanstack/react-table';
+import { type RowData } from "@tanstack/react-table";
+import { type AppColumn } from "@/lib/table";
 import type { LucideIcon } from 'lucide-react';
 import {
   ArrowDownIcon,
@@ -30,9 +31,9 @@ export interface FilterOption {
   label: string;
 }
 
-interface DataTableColumnHeaderProps<TData, TValue>
+interface DataTableColumnHeaderProps<TData extends RowData, TValue>
   extends React.HTMLAttributes<HTMLDivElement> {
-  column: Column<TData, TValue>;
+  column: AppColumn<TData, TValue>;
   title: string;
   filter?: boolean;
   /** Opciones fijas en vez de texto libre. */
@@ -52,7 +53,7 @@ const normalize = (value: string) =>
     .toLowerCase()
     .trim();
 
-export function DataTableColumnHeader<TData, TValue>({
+export function DataTableColumnHeader<TData extends RowData, TValue>({
   column,
   filter = false,
   filterOptions,

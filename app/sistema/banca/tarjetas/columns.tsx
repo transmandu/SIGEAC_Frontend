@@ -4,9 +4,9 @@ import { BankCardDropdownActions } from "@/components/dropdowns/ajustes/BancosPa
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
 import { Badge } from "@/components/ui/badge"
 import { BankCard } from "@/types"
-import { ColumnDef } from "@tanstack/react-table"
+import { type AppColumnDef } from "@/lib/table";
 
-export const columns: ColumnDef<BankCard>[] = [
+export const columns: AppColumnDef<BankCard>[] = [
   {
     accessorKey: "name",
     header: ({ column }) => (

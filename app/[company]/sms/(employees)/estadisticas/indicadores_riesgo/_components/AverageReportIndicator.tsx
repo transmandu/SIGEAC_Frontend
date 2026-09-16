@@ -170,7 +170,7 @@ export const AverageReportIndicator: React.FC<AverageReportIndicatorProps> = ({
     if (!alertType || !obligatoryAverageData) return null;
 
     return (
-      <div className="flex justify-center items-center p-4 rounded-lg shadow border w-full">
+      <div className="flex justify-center items-center p-4 rounded-lg shadow-sm border w-full">
         <IncidentAlertCard type={alertType} data={obligatoryAverageData} />
       </div>
     );
@@ -201,7 +201,7 @@ export const AverageReportIndicator: React.FC<AverageReportIndicatorProps> = ({
 
       {/* Gráfico principal */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-4">
-        <div className="flex flex-col justify-center items-center p-4 rounded-lg shadow border">
+        <div className="flex flex-col justify-center items-center p-4 rounded-lg shadow-sm border">
           {renderMainChart()}
         </div>
       </div>

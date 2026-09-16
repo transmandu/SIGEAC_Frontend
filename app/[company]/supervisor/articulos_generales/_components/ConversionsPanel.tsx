@@ -91,7 +91,7 @@ export function ConversionsPanel({
     return (
         <div className="flex flex-col gap-3">
             {conversions.length === 0 && created.length === 0 && !adding && (
-                <div className="rounded-xl border border-border/60 bg-gradient-to-b from-muted/30 to-muted/10 py-10 text-center">
+                <div className="rounded-xl border border-border/60 bg-linear-to-b from-muted/30 to-muted/10 py-10 text-center">
                     <span className="text-[11px] uppercase tracking-widest text-muted-foreground/60 select-none">
                         Sin conversiones registradas
                     </span>
@@ -112,7 +112,7 @@ export function ConversionsPanel({
                                 isDeleted
                                     ? "border-border/40 bg-muted/20 opacity-50"
                                     : pending !== undefined
-                                      ? "border-primary/50 bg-primary/[0.06]"
+                                      ? "border-primary/50 bg-primary/6"
                                       : "border-border/60 bg-background/70",
                             )}
                         >
@@ -208,7 +208,7 @@ export function ConversionsPanel({
                 {created.map((row, index) => (
                     <div
                         key={`new-${index}`}
-                        className="flex items-center gap-3 rounded-lg border border-primary/40 bg-primary/[0.06] px-3 py-2.5"
+                        className="flex items-center gap-3 rounded-lg border border-primary/40 bg-primary/6 px-3 py-2.5"
                     >
                         <span className="text-sm text-muted-foreground shrink-0">
                             1{" "}
@@ -325,7 +325,7 @@ function NewConversionRow({
     const rightLabel = direction === "base_per_unit" ? baseUnitLabel : unitLabel
 
     return (
-        <div className="flex flex-col gap-2 rounded-lg border border-primary/40 bg-primary/[0.06] px-3 py-2.5">
+        <div className="flex flex-col gap-2 rounded-lg border border-primary/40 bg-primary/6 px-3 py-2.5">
             {/* Con la base cambiada y sin guardar, el catálogo filtraría por la
                 base vieja y ofrecería factores que ya no aplican. */}
             {!!articleId && !baseUnitChanged && (

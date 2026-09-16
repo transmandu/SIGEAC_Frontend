@@ -1,18 +1,15 @@
 "use client";
 
 import {
-  ColumnDef,
   ColumnFiltersState,
+  flexRender,
+  type RowData,
   RowSelectionState,
   SortingState,
-  VisibilityState,
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
+  useTable,
+  ColumnVisibilityState,
 } from "@tanstack/react-table";
+import { appTableFeatures, type AppColumnDef } from "@/lib/table";
 import {
   Table,
   TableBody,
@@ -24,41 +21,38 @@ import {
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 
-interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[];
+interface DataTableProps<TData extends RowData> {
+  columns: AppColumnDef<TData>[];
   data: TData[];
   onSelectionChange?: (ids: number[]) => void;
   selectionResetKey?: number;
 }
 
-export function DataTable<TData, TValue>({
+export function DataTable<TData extends RowData>({
   columns,
   data,
   onSelectionChange,
   selectionResetKey,
-}: DataTableProps<TData, TValue>) {
+}: DataTableProps<TData>) {
   // ============================================
   // STATE MANAGEMENT
   // ============================================
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [columnVisibility, setColumnVisibility] = useState<ColumnVisibilityState>({});
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
 
   // ============================================
   // TABLE CONFIGURATION
   // ============================================
-  const table = useReactTable({
+  const table = useTable({
+    features: appTableFeatures,
     data,
     columns,
     getRowId: (row, index) => String((row as { id?: number | string }).id ?? index),
     enableRowSelection: true,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     onSortingChange: setSorting,
-    getSortedRowModel: getSortedRowModel(),
     onColumnFiltersChange: setColumnFilters,
-    getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
     state: {
@@ -149,7 +143,7 @@ export function DataTable<TData, TValue>({
           <div className="flex items-center space-x-2">
             <p className="text-sm font-medium">Filas por página</p>
             <select
-              value={table.getState().pagination.pageSize}
+              value={table.state.pagination.pageSize}
               onChange={(e) => table.setPageSize(Number(e.target.value))}
               className="h-8 w-[70px] rounded-md border border-input bg-transparent px-2 py-1 text-sm"
             >
@@ -161,7 +155,7 @@ export function DataTable<TData, TValue>({
             </select>
           </div>
           <div className="flex w-[100px] items-center justify-center text-sm font-medium">
-            Página {table.getState().pagination.pageIndex + 1} de{" "}
+            Página {table.state.pagination.pageIndex + 1} de{" "}
             {table.getPageCount()}
           </div>
           <div className="flex items-center space-x-2">

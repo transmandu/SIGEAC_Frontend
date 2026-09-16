@@ -25,7 +25,7 @@ const FeatureCard: React.FC<FeatureCardProps> = ({ image, title, items }) => {
       </h3>
 
       {/* Lista de items */}
-      <ul className="space-y-2 flex-grow">
+      <ul className="space-y-2 grow">
         {items.map((item, index) => (
           <li key={index} className="flex items-start text-gray-700">
             <span className="text-green-500 mr-2 mt-1">•</span>

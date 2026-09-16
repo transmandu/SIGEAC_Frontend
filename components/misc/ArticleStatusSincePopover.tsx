@@ -41,7 +41,7 @@ export default function ArticleStatusSincePopover({
                 <span
                     role="button"
                     tabIndex={0}
-                    className="cursor-pointer rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    className="cursor-pointer rounded-full outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
                 >
                     {children}
                 </span>

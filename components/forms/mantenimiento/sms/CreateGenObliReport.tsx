@@ -10,7 +10,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useState } from "react";
@@ -69,10 +69,10 @@ export function CreateGenObliReport({
       phone: z.string().optional(),
       email: z.string().email("Formato de correo inválido").optional().or(z.literal("")),
       report_date: z
-        .date({ required_error: "La fecha de reporte es obligatoria" })
+        .date({ error: "La fecha de reporte es obligatoria" })
         .refine((val) => !isNaN(val.getTime()), { message: "Fecha inválida" }),
       incident_date: z
-        .date({ required_error: "La fecha de incidente es obligatoria" })
+        .date({ error: "La fecha de incidente es obligatoria" })
         .refine((val) => !isNaN(val.getTime()), { message: "Fecha inválida" }),
       incident_time: z.string().regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, {
         message: "Formato de hora inválido (HH:mm)",
@@ -275,17 +275,10 @@ export function CreateGenObliReport({
                           mode="single"
                           selected={field.value}
                           onSelect={field.onChange}
-                          initialFocus
-                          fromYear={1980}
-                          toYear={new Date().getFullYear()}
-                          captionLayout="dropdown-buttons"
-                          components={{
-                            Dropdown: (props) => (
-                              <select {...props} className="bg-popover text-popover-foreground">
-                                {props.children}
-                              </select>
-                            ),
-                          }}
+                          autoFocus
+                          startMonth={new Date(1980, 0)}
+                          endMonth={new Date(new Date().getFullYear(), 11)}
+                          captionLayout="dropdown"
                         />
                       </PopoverContent>
                     </Popover>
@@ -348,17 +341,10 @@ export function CreateGenObliReport({
                           mode="single"
                           selected={field.value}
                           onSelect={field.onChange}
-                          initialFocus
-                          fromYear={1980}
-                          toYear={new Date().getFullYear()}
-                          captionLayout="dropdown-buttons"
-                          components={{
-                            Dropdown: (props) => (
-                              <select {...props} className="bg-popover text-popover-foreground">
-                                {props.children}
-                              </select>
-                            ),
-                          }}
+                          autoFocus
+                          startMonth={new Date(1980, 0)}
+                          endMonth={new Date(new Date().getFullYear(), 11)}
+                          captionLayout="dropdown"
                         />
                       </PopoverContent>
                     </Popover>

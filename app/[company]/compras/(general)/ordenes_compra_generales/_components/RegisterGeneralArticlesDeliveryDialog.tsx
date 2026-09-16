@@ -191,7 +191,7 @@ export default function RegisterGeneralArticlesDeliveryDialog({
         {/* HEADER */}
         <DialogHeader className="shrink-0 border-b border-border/40 bg-muted/20 px-6 pt-5 pb-4 text-left">
           <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center size-10 shrink-0 rounded-xl border border-primary/10 bg-primary/[0.08]">
+            <div className="flex items-center justify-center size-10 shrink-0 rounded-xl border border-primary/10 bg-primary/8">
               <PackageCheck className="size-4.5 text-primary" />
             </div>
 
@@ -384,7 +384,7 @@ export default function RegisterGeneralArticlesDeliveryDialog({
                     selected={arrivedAt}
                     onSelect={handleDateSelect}
                     locale={es}
-                    initialFocus
+                    autoFocus
                   />
                 </PopoverContent>
               </Popover>
@@ -410,7 +410,7 @@ export default function RegisterGeneralArticlesDeliveryDialog({
               hover:bg-slate-500/20
               active:bg-slate-500/30
               border border-slate-500/20
-              shadow-sm
+              shadow-xs
               transition-colors
               dark:bg-slate-400/10
               dark:text-slate-300
@@ -425,7 +425,7 @@ export default function RegisterGeneralArticlesDeliveryDialog({
             disabled={!canSubmit}
             className="
               h-10 rounded-lg px-5
-              shadow-sm
+              shadow-xs
               transition-colors
               flex items-center justify-center gap-2
             "
@@ -465,7 +465,7 @@ const ArticleRow = ({
       className={cn(
         "flex w-full items-center justify-between gap-3 rounded-lg border px-3 py-2 text-left transition-colors",
         checked
-          ? "border-primary/40 bg-primary/[0.04]"
+          ? "border-primary/40 bg-primary/4"
           : "border-border/60 bg-background/60 opacity-60"
       )}
     >

@@ -224,7 +224,7 @@ export default function ImageZoom({
             className="absolute left-1/2 -translate-x-1/2 bottom-6 z-20"
             onPointerDown={(e) => e.stopPropagation()}
           >
-            <div className="bg-white/90 backdrop-blur-sm shadow-lg rounded-md px-3 py-1 flex items-center gap-3">
+            <div className="bg-white/90 backdrop-blur-xs shadow-lg rounded-md px-3 py-1 flex items-center gap-3">
               <button
                 type="button"
                 aria-label="Reducir zoom"
@@ -261,7 +261,7 @@ export default function ImageZoom({
       {showControls && controlsPlacement === 'below' && (
         // Controles debajo de la imagen: centrados y con un offset configurable (`controlsOffset`)
         <div className="flex justify-center" style={{ marginTop: `${controlsOffset}px` }} onPointerDown={(e) => e.stopPropagation()}>
-          <div className="bg-white/90 backdrop-blur-sm shadow-lg rounded-md px-3 py-1 flex items-center gap-3">
+          <div className="bg-white/90 backdrop-blur-xs shadow-lg rounded-md px-3 py-1 flex items-center gap-3">
             <button
               type="button"
               aria-label="Reducir zoom"

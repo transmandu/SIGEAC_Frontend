@@ -4,9 +4,9 @@ import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import MeetingMinuteDropDownActions from "@/components/dropdowns/aerolinea/sms/MeetingMinuteDropDownActions";
 import { dateFormat } from "@/lib/utils";
 import { MeetingMinutes } from "@/types";
-import { ColumnDef } from "@tanstack/react-table";
+import { type AppColumnDef } from "@/lib/table";
 
-export const columns: ColumnDef<MeetingMinutes>[] = [
+export const columns: AppColumnDef<MeetingMinutes>[] = [
   {
     accessorKey: "minute_number",
     header: ({ column }) => (

@@ -45,7 +45,7 @@ function TintedCard({
 }) {
   return (
     <Card
-      className="relative overflow-hidden rounded-3xl border bg-background/70 backdrop-blur-xl shadow-sm"
+      className="relative overflow-hidden rounded-3xl border bg-background/70 backdrop-blur-xl shadow-xs"
       style={{
         borderColor: `rgba(${tone}, 0.22)`,
         backgroundImage: `linear-gradient(to bottom right, rgba(${tone}, 0.06), transparent 60%)`,
@@ -145,7 +145,7 @@ export default function ToolsSummary({ data, isLoading, isError }: Props) {
             <div className="overflow-hidden rounded-xl border border-sky-100/40 dark:border-sky-900/20">
               <div className="overflow-y-auto max-h-[220px]">
                 <Table>
-                  <TableHeader className="sticky top-0 bg-background/80 backdrop-blur">
+                  <TableHeader className="sticky top-0 bg-background/80 backdrop-blur-sm">
                     <TableRow>
                       <TableHead className="text-center">
                         Descripción
@@ -211,7 +211,7 @@ export default function ToolsSummary({ data, isLoading, isError }: Props) {
             <div className="overflow-hidden rounded-xl border border-sky-100/40 dark:border-sky-900/20">
               <div className="overflow-y-auto max-h-[220px]">
                 <Table>
-                  <TableHeader className="sticky top-0 bg-background/80 backdrop-blur">
+                  <TableHeader className="sticky top-0 bg-background/80 backdrop-blur-sm">
                     <TableRow>
                       <TableHead className="text-center">
                         Descripción

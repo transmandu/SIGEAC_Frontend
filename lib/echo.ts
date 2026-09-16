@@ -4,7 +4,7 @@ import axiosInstance from '@/lib/axios'
 
 declare global {
   interface Window {
-    __echo?: Echo
+    __echo?: Echo<'reverb'>
     Pusher: any
   }
 }
@@ -46,11 +46,11 @@ const createEcho = () => {
   })
 }
 
-export const getEcho = (): Echo | null => {
+export const getEcho = (): Echo<'reverb'> | null => {
   if (typeof window === 'undefined') return null
 
   if (!window.__echo) {
-    window.__echo = createEcho() as Echo
+    window.__echo = createEcho() as Echo<'reverb'>
   }
 
   return window.__echo

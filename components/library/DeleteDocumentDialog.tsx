@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { Trash2, FileText, Layers, ChevronDown } from "lucide-react";
+import { FileText, Layers, ChevronDown } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import axiosInstance from "@/lib/axios";
 import { toast } from "sonner";
@@ -81,7 +81,10 @@ export const DeleteDocumentDialog = ({
         await axiosInstance.delete(`/${company}/library/documents/${doc.id}`);
         toast.success("Documento eliminado correctamente");
       } else {
-        if (!selectedVersionToDelete) return;
+        if (!selectedVersionToDelete) {
+          toast.error("Selecciona la versión que quieres eliminar");
+          return;
+        }
         await axiosInstance.delete(
           `/${company}/library/versions/${selectedVersionToDelete}`,
         );
@@ -105,12 +108,12 @@ export const DeleteDocumentDialog = ({
     }
   };
 
-  const filteredVersions = useMemo(() => {
-    return versionList.filter((v) => {
-      const vNum = String(v.version_number).toLowerCase();
-      return vNum !== "v1.0" && vNum !== "1.0" && vNum !== "1";
-    });
-  }, [versionList]);
+  // Con una sola versión no hay nada que borrar por separado: el backend
+  // rechaza dejar el documento sin archivo y devuelve 422.
+  const filteredVersions = useMemo(
+    () => (versionList.length > 1 ? versionList : []),
+    [versionList],
+  );
 
   useEffect(() => {
     if (isOpen && doc?.id) {
@@ -124,20 +127,14 @@ export const DeleteDocumentDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-white dark:bg-[#1a1c1e] border-none text-slate-900 dark:text-white sm:max-w-[480px] rounded-2xl overflow-hidden p-0 outline-none shadow-2xl">
-        {/* Cabecera: bg-slate-50 y border-slate-200 */}
+      <DialogContent className="bg-white dark:bg-[#1a1c1e] border-none text-slate-900 dark:text-white sm:max-w-[480px] rounded-2xl overflow-hidden p-0 outline-hidden shadow-2xl">
         <div
-          className="bg-slate-50 dark:bg-gray-800/40 px-6 py-5 border-b border-slate-200 dark:border-gray-700 flex justify-between items-center"
+          className="bg-slate-50 dark:bg-gray-800/40 px-6 py-5 border-b border-slate-200 dark:border-gray-700"
           data-tour="biblioteca-delete-title"
         >
-          <div className="flex items-center gap-2">
-            <div className="p-1.5 bg-red-100 dark:bg-red-900/30 rounded-lg">
-              <Trash2 className="h-5 w-5 text-red-600 dark:text-red-400" />
-            </div>
-            <DialogTitle className="text-lg font-bold text-slate-800 dark:text-white tracking-tight uppercase">
-              Gestión de Eliminación
-            </DialogTitle>
-          </div>
+          <DialogTitle className="text-lg font-bold text-slate-800 dark:text-white tracking-tight uppercase">
+            Gestión de Eliminación
+          </DialogTitle>
         </div>
 
         <div className="p-6 space-y-5">
@@ -156,7 +153,7 @@ export const DeleteDocumentDialog = ({
               onClick={() => setDeleteMode("version")}
               className={`group p-4 border rounded-2xl cursor-pointer transition-all ${
                 deleteMode === "version"
-                  ? "border-orange-500 bg-orange-50/40 dark:bg-orange-500/10 shadow-sm"
+                  ? "border-orange-500 bg-orange-50/40 dark:bg-orange-500/10 shadow-xs"
                   : "border-slate-300 dark:border-gray-800 hover:border-slate-400 bg-white dark:bg-transparent"
               }`}
             >
@@ -189,7 +186,7 @@ export const DeleteDocumentDialog = ({
                           setSelectedVersionToDelete(e.target.value)
                         }
                         disabled={isProcessing || loadingVersions}
-                        className="w-full h-10 pl-3 pr-10 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-[#111214] text-[11px] font-bold text-slate-700 dark:text-white outline-none appearance-none"
+                        className="w-full h-10 pl-3 pr-10 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-[#111214] text-[11px] font-bold text-slate-700 dark:text-white outline-hidden appearance-none"
                       >
                         {loadingVersions ? (
                           <option value="">Cargando Versiones...</option>
@@ -222,7 +219,7 @@ export const DeleteDocumentDialog = ({
               onClick={() => setDeleteMode("document")}
               className={`group p-4 border rounded-2xl cursor-pointer transition-all ${
                 deleteMode === "document"
-                  ? "border-red-500 bg-red-50/40 dark:bg-red-500/10 shadow-sm"
+                  ? "border-red-500 bg-red-50/40 dark:bg-red-500/10 shadow-xs"
                   : "border-slate-300 dark:border-gray-800 hover:border-slate-400 bg-white dark:bg-transparent"
               }`}
             >

@@ -2,36 +2,33 @@
 
 import React, { useMemo, useState } from "react"
 import {
-  ColumnDef,
   ColumnFiltersState,
-  SortingState,
-  VisibilityState,
   flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table"
+  type RowData,
+  SortingState,
+  useTable,
+  ColumnVisibilityState,
+} from "@tanstack/react-table";
+import { appTableFeatures, type AppColumnDef } from "@/lib/table";
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { DataTablePagination } from "@/components/tables/DataTablePagination"
 
-interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[]
+interface DataTableProps<TData extends RowData> {
+  columns: AppColumnDef<TData>[]
   data: TData[]
   loading?: boolean
 }
 
-function DataTableInner<TData, TValue>({
+function DataTableInner<TData extends RowData>({
   columns,
   data,
   loading = false,
-}: DataTableProps<TData, TValue>) {
+}: DataTableProps<TData>) {
 
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
+  const [columnVisibility, setColumnVisibility] = useState<ColumnVisibilityState>({})
 
   const [pagination, setPagination] = useState({
     pageIndex: 0,
@@ -40,7 +37,8 @@ function DataTableInner<TData, TValue>({
 
   const stableData = useMemo(() => data, [data])
 
-  const table = useReactTable({
+  const table = useTable({
+    features: appTableFeatures,
     data: stableData,
     columns,
     state: {
@@ -53,10 +51,6 @@ function DataTableInner<TData, TValue>({
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
     onPaginationChange: setPagination,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
   })
 
   const rows = table.getRowModel().rows

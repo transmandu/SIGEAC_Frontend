@@ -2,20 +2,15 @@
 
 import React, { useMemo, useState, useCallback } from 'react'
 import {
-  ColumnDef,
   ColumnFiltersState,
   ExpandedState,
-  Row,
-  SortingState,
-  VisibilityState,
   flexRender,
-  getCoreRowModel,
-  getExpandedRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from '@tanstack/react-table'
+  type RowData,
+  SortingState,
+  useTable,
+  ColumnVisibilityState,
+} from "@tanstack/react-table";
+import { appTableFeatures, type AppColumnDef, type AppRow } from "@/lib/table";
 
 import {
   Table,
@@ -29,13 +24,13 @@ import {
 import { DataTablePagination } from '@/components/tables/DataTablePagination'
 import { useComprasPageSize } from './use-compras-page-size'
 
-export interface DataTableProps<TData> {
-  columns: ColumnDef<TData, any>[]
+export interface DataTableProps<TData extends RowData> {
+  columns: AppColumnDef<TData, any>[]
   data: TData[]
   loading?: boolean
   disablePagination?: boolean
-  renderSubRow?: (row: Row<TData>) => React.ReactNode
-  canExpandRow?: (row: Row<TData>) => boolean
+  renderSubRow?: (row: AppRow<TData>) => React.ReactNode
+  canExpandRow?: (row: AppRow<TData>) => boolean
   /** Pass arbitrary meta to the table instance (e.g. { costDrafts }) */
   meta?: Record<string, unknown>
   /** Custom slot rendered above the table (e.g. toolbar buttons) */
@@ -63,7 +58,7 @@ export interface DataTableProps<TData> {
   onPaginationChange?: (pageIndex: number, pageSize: number) => void
 }
 
-function DataTableInner<TData>({
+function DataTableInner<TData extends RowData>({
   columns,
   data,
   loading = false,
@@ -85,7 +80,7 @@ function DataTableInner<TData>({
 }: DataTableProps<TData>) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
+  const [columnVisibility, setColumnVisibility] = useState<ColumnVisibilityState>({})
   const [expanded, setExpanded] = useState<ExpandedState>({})
 
   const persistedPageSize = useComprasPageSize((s) =>
@@ -135,7 +130,8 @@ function DataTableInner<TData>({
 
   const stableData = useMemo(() => data, [data])
 
-  const table = useReactTable({
+  const table = useTable({
+    features: appTableFeatures,
     data: stableData,
     columns,
     state: {
@@ -151,11 +147,9 @@ function DataTableInner<TData>({
     onColumnVisibilityChange: setColumnVisibility,
     onExpandedChange: setExpanded,
     onPaginationChange: handlePaginationChange,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: isManual ? undefined : getPaginationRowModel(),
-    getExpandedRowModel: getExpandedRowModel(),
+    // v9 trae el row model en el bundle de features: la paginación de
+    // servidor se declara, no se logra omitiéndolo.
+    manualPagination: isManual,
     rowCount: isManual ? (totalRows ?? 0) : undefined,
     pageCount: isManual ? (pageCount ?? 0) : undefined,
     getRowCanExpand: (row) => {
@@ -311,6 +305,6 @@ function DataTableInner<TData>({
   )
 }
 
-export const DataTable = React.memo(DataTableInner) as <TData>(
+export const DataTable = React.memo(DataTableInner) as <TData extends RowData>(
   props: DataTableProps<TData>,
 ) => React.ReactElement

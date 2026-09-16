@@ -18,14 +18,14 @@ export function GuestNavbar() {
       <div className="relative mx-4 sm:mx-8 flex h-14 items-center">
 
         {/* IZQUIERDA */}
-        <div className="flex items-center gap-4 flex-shrink-0 max-w-[40%] overflow-hidden z-0">
+        <div className="flex items-center gap-4 shrink-0 max-w-[40%] overflow-hidden z-0">
           <GuestSheetMenu />
 
           <PageTitle />
         </div>
 
         {/* DERECHA */}
-        <div className="flex items-center gap-2 ml-auto flex-shrink-0 z-10">
+        <div className="flex items-center gap-2 ml-auto shrink-0 z-10">
           <ThemeToggler />
           <GuestUserNav />
         </div>

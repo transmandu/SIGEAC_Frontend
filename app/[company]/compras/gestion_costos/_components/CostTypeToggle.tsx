@@ -2,7 +2,7 @@
 
 import { cn } from '@/lib/utils'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence } from "motion/react"
 import {
   Boxes,
   Wrench,
@@ -132,7 +132,7 @@ const CostTypeToggle = ({
             transition={{ duration: 0.2, ease: 'easeOut' }}
             className={cn(
               'flex flex-wrap justify-center gap-2',
-              'px-12 py-1.5 rounded-xl border backdrop-blur-sm', // ⬅️ más ancho también aquí
+              'px-12 py-1.5 rounded-xl border backdrop-blur-xs', // ⬅️ más ancho también aquí
               'bg-slate-200/50 border-slate-200/40',
               'dark:bg-slate-800/60 dark:border-slate-800/60'
             )}
@@ -152,7 +152,7 @@ const CostTypeToggle = ({
                       ? [
                           'bg-white/80 dark:bg-slate-900/60',
                           'text-primary',
-                          'shadow-sm',
+                          'shadow-xs',
                           'ring-1 ring-primary/30',
                         ]
                       : [

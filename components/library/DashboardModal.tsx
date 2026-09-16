@@ -18,6 +18,13 @@ import {
   YAxis,
   CartesianGrid,
 } from "recharts";
+import { toast } from "sonner";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useTourContext } from "@/components/tour/TourProvider";
 import { bibliotecaDashboardSteps } from "@/components/tour/steps/general/biblioteca/biblioteca-dashboard";
 
@@ -108,13 +115,13 @@ const DonutChart = ({
               }
             }}
             onMouseLeave={() => setHovered(null)}
-            className="outline-none"
+            className="outline-hidden"
           >
             {chartData.map((entry, index) => (
               <Cell
                 key={`cell-${index}`}
                 fill={entry.color}
-                className="transition-all duration-300 cursor-pointer hover:opacity-90 outline-none"
+                className="transition-all duration-300 cursor-pointer hover:opacity-90 outline-hidden"
               />
             ))}
           </Pie>
@@ -143,10 +150,7 @@ const DonutChart = ({
       <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center pointer-events-none">
         {hovered ? (
           <>
-            <span
-              className="text-[10px] font-black text-slate-800 dark:text-white truncate max-w-[80%] uppercase tracking-wider"
-              title={hovered.label}
-            >
+            <span className="text-[10px] font-black text-slate-800 dark:text-white truncate max-w-[80%] uppercase tracking-wider">
               {hovered.label}
             </span>
             <span className="text-lg font-black text-blue-600 dark:text-blue-400 mt-0.5">
@@ -225,13 +229,13 @@ const HalfDonutChart = ({
               }
             }}
             onMouseLeave={() => setHovered(null)}
-            className="outline-none"
+            className="outline-hidden"
           >
             {chartData.map((entry, index) => (
               <Cell
                 key={`cell-${index}`}
                 fill={entry.color}
-                className="transition-all duration-300 cursor-pointer hover:opacity-90 outline-none"
+                className="transition-all duration-300 cursor-pointer hover:opacity-90 outline-hidden"
               />
             ))}
           </Pie>
@@ -372,7 +376,7 @@ const VerticalBarChart = ({
               <Cell
                 key={`cell-${index}`}
                 fill={entry.color}
-                className="transition-all duration-300 cursor-pointer hover:opacity-90 outline-none"
+                className="transition-all duration-300 cursor-pointer hover:opacity-90 outline-hidden"
               />
             ))}
           </Bar>
@@ -456,7 +460,9 @@ export default function DashboardModal({
         setDocuments(docsRes.data || docsRes || {});
         setTraceability(traceRes.data || traceRes || []);
         setShareRequests(Array.isArray(reqRes) ? reqRes : reqRes.data || []);
-      } catch {
+      } catch (error) {
+        console.error("Error al cargar el panel:", error);
+        toast.error("No se pudieron cargar los datos del panel");
         setDocuments({});
         setTraceability([]);
         setShareRequests([]);
@@ -633,24 +639,20 @@ export default function DashboardModal({
   }, [isSingleDeptView, userDeptName]);
 
   return (
+    <TooltipProvider delayDuration={300}>
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="bg-slate-100 dark:bg-[#0a0c10] border border-slate-200/60 dark:border-white/10 text-slate-900 dark:text-white max-w-[1200px] w-[95vw] rounded-[2rem] overflow-hidden p-0 outline-none shadow-2xl">
+      <DialogContent className="bg-slate-100 dark:bg-[#0a0c10] border border-slate-200/60 dark:border-white/10 text-slate-900 dark:text-white max-w-[1200px] w-[95vw] rounded-4xl p-0 outline-hidden shadow-2xl">
         <div
           className="bg-white dark:bg-slate-900 px-8 py-5 border-b border-slate-200/80 dark:border-white/5 flex items-center justify-between"
           data-tour="biblioteca-dashboard-title"
         >
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-blue-500 rounded-2xl shadow-sm">
-              <BarChart className="h-6 w-6 text-white" />
-            </div>
-            <div>
-              <DialogTitle className="text-xl font-black text-slate-800 dark:text-white tracking-tight">
-                Estadísticas de la Biblioteca
-              </DialogTitle>
-              <p className="text-[12px] font-medium text-slate-500 dark:text-slate-400">
-                {subtitleText}
-              </p>
-            </div>
+          <div className="flex flex-col gap-1">
+            <DialogTitle className="text-xl font-black text-slate-800 dark:text-white tracking-tight">
+              Estadísticas de la Biblioteca
+            </DialogTitle>
+            <p className="text-[12px] font-medium text-slate-500 dark:text-slate-400">
+              {subtitleText}
+            </p>
           </div>
         </div>
 
@@ -666,7 +668,7 @@ export default function DashboardModal({
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
               {canViewCharts && chartData.length > 0 && (
                 <div
-                  className="col-span-1 lg:col-span-1 bg-white dark:bg-slate-900 rounded-[2rem] p-6 shadow-sm border border-slate-200/50 dark:border-white/5 flex flex-col justify-between"
+                  className="col-span-1 lg:col-span-1 bg-white dark:bg-slate-900 rounded-4xl p-6 shadow-xs border border-slate-200/50 dark:border-white/5 flex flex-col justify-between"
                   data-tour="biblioteca-dashboard-distribucion"
                 >
                   <div>
@@ -699,12 +701,14 @@ export default function DashboardModal({
                             className="w-2.5 h-2.5 rounded-full shrink-0"
                             style={{ backgroundColor: d.color }}
                           />
-                          <span
-                            className="text-[9px] font-bold text-slate-500 truncate"
-                            title={d.label}
-                          >
-                            {d.label.substring(0, 18)}
-                          </span>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span className="text-[9px] font-bold text-slate-500 truncate">
+                                {d.label.substring(0, 18)}
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent>{d.label}</TooltipContent>
+                          </Tooltip>
                         </div>
                       ))}
                   </div>
@@ -712,7 +716,7 @@ export default function DashboardModal({
               )}
 
               {isSingleDeptView && statusChartData.length > 0 && (
-                <div className="col-span-1 lg:col-span-1 bg-white dark:bg-slate-900 rounded-[2rem] p-6 shadow-sm border border-slate-200/50 dark:border-white/5 flex flex-col justify-between">
+                <div className="col-span-1 lg:col-span-1 bg-white dark:bg-slate-900 rounded-4xl p-6 shadow-xs border border-slate-200/50 dark:border-white/5 flex flex-col justify-between">
                   <div>
                     <h3 className="text-[14px] font-black text-slate-800 dark:text-white tracking-tight">
                       Estado de Documentos
@@ -745,7 +749,7 @@ export default function DashboardModal({
 
               {(canViewCharts || isSingleDeptView) && (
                 <div
-                  className={`${isSingleDeptView ? (statusChartData.length > 0 ? "col-span-1 lg:col-span-3" : "col-span-1 lg:col-span-4") : "col-span-1 lg:col-span-2"} bg-white dark:bg-slate-900 rounded-[2rem] p-6 shadow-sm border border-slate-200/50 dark:border-white/5`}
+                  className={`${isSingleDeptView ? (statusChartData.length > 0 ? "col-span-1 lg:col-span-3" : "col-span-1 lg:col-span-4") : "col-span-1 lg:col-span-2"} bg-white dark:bg-slate-900 rounded-4xl p-6 shadow-xs border border-slate-200/50 dark:border-white/5`}
                   data-tour="biblioteca-dashboard-accesos"
                 >
                   <h3 className="text-[14px] font-black text-slate-800 dark:text-white tracking-tight">
@@ -781,7 +785,7 @@ export default function DashboardModal({
 
               {canViewCharts && (
                 <div
-                  className="col-span-1 lg:col-span-1 bg-white dark:bg-slate-900 rounded-[2rem] p-6 shadow-sm border border-slate-200/50 dark:border-white/5 flex flex-col justify-between"
+                  className="col-span-1 lg:col-span-1 bg-white dark:bg-slate-900 rounded-4xl p-6 shadow-xs border border-slate-200/50 dark:border-white/5 flex flex-col justify-between"
                   data-tour="biblioteca-dashboard-solicitudes"
                 >
                   <div>
@@ -821,9 +825,12 @@ export default function DashboardModal({
                 </div>
               )}
 
-              {/* Tarjetas de Métricas Rápidas */}
+              {/* Clases literales: Tailwind purga en compilación y una
+                  interpolada (lg:grid-cols-${n}) nunca llega a generarse. */}
               <div
-                className={`col-span-1 lg:col-span-4 grid grid-cols-2 lg:grid-cols-${(isDipDirector ? cards : cards.filter((c) => c.label !== "Solicitudes")).length} gap-6`}
+                className={`col-span-1 lg:col-span-4 grid grid-cols-2 gap-6 ${
+                  isDipDirector ? "lg:grid-cols-4" : "lg:grid-cols-3"
+                }`}
                 data-tour="biblioteca-dashboard-metrics"
               >
                 {(isDipDirector
@@ -832,7 +839,7 @@ export default function DashboardModal({
                 ).map((card) => (
                   <div
                     key={card.label}
-                    className="bg-white dark:bg-slate-900 rounded-[2rem] p-6 shadow-sm border border-slate-200/50 dark:border-white/5 flex flex-col justify-between group hover:-translate-y-1 transition-transform duration-300"
+                    className="bg-white dark:bg-slate-900 rounded-4xl p-6 shadow-xs border border-slate-200/50 dark:border-white/5 flex flex-col justify-between group hover:-translate-y-1 transition-transform duration-300"
                   >
                     <div className="flex justify-between items-center mb-4">
                       <div
@@ -859,5 +866,6 @@ export default function DashboardModal({
         </div>
       </DialogContent>
     </Dialog>
+    </TooltipProvider>
   );
 }

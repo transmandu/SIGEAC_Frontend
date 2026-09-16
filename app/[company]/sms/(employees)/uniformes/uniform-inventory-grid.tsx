@@ -212,7 +212,7 @@ export function UniformInventoryGrid({
   return (
     <div className="space-y-4">
       {/* Filter bar: category tabs + sub-filters */}
-      <div className="overflow-hidden rounded-lg border bg-card shadow-sm">
+      <div className="overflow-hidden rounded-lg border bg-card shadow-xs">
         <div className="flex overflow-x-auto border-b">
           <button
             onClick={() => setCategory("all")}
@@ -504,7 +504,7 @@ function UniformStackCard({
           type="button"
           onClick={() => setOpen((o) => !o)}
           aria-expanded={open}
-          className="block w-full text-left outline-none transition-colors hover:bg-muted/20 focus-visible:bg-muted/20"
+          className="block w-full text-left outline-hidden transition-colors hover:bg-muted/20 focus-visible:bg-muted/20"
         >
           <div className="flex items-start gap-3 p-4 pb-3">
             <span className="grid size-10 shrink-0 place-items-center rounded-md border border-border/60 bg-muted/40 text-muted-foreground">

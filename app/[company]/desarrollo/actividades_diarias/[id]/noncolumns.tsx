@@ -1,13 +1,13 @@
 "use client"
 
-import { ColumnDef } from "@tanstack/react-table"
+import { type AppColumnDef } from "@/lib/table";
 
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
 
 import ActivityDropdownActions from "@/components/dropdowns/aerolinea/desarrollo/ActivityDropdownActions"
 import { Activity } from "@/types"
 
-export const non_user_columns: ColumnDef<Activity>[] = [
+export const non_user_columns: AppColumnDef<Activity>[] = [
   {
     accessorKey: "description",
     header: ({ column }) => (

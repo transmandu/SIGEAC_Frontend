@@ -9,7 +9,7 @@ import { useGetMaintenanceAircrafts } from '@/hooks/mantenimiento/planificacion/
 import { useGetWorkOrderEmployees } from "@/hooks/mantenimiento/planificacion/useGetWorkOrderEmployees"
 import { useGetWorkOrders } from '@/hooks/mantenimiento/planificacion/useGetWorkOrders'
 import { useCompanyStore } from "@/stores/CompanyStore"
-import { zodResolver } from "@hookform/resolvers/zod"
+import { zodResolver } from "@/lib/zod-resolver"
 import { Loader2, Send } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useForm } from "react-hook-form"

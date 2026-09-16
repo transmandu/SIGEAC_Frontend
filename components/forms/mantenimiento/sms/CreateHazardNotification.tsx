@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { z } from "zod";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -44,7 +44,7 @@ import { InformationSource } from "@/types";
 
 const FormSchema = z.object({
     reception_date: z.date({
-        required_error: "La fecha de recepción es obligatoria",
+        error: "La fecha de recepción es obligatoria",
     }),
     identification_area: z.string().min(1, "El área es obligatoria"),
     danger_type: z.string().min(1, "El tipo de peligro es obligatorio"),
@@ -211,20 +211,10 @@ export default function CreateHazardNotification({
                                             mode="single"
                                             selected={field.value}
                                             onSelect={field.onChange}
-                                            initialFocus
-                                            fromYear={1980}
-                                            toYear={new Date().getFullYear() + 20}
-                                            captionLayout="dropdown-buttons"
-                                            components={{
-                                                Dropdown: (props) => (
-                                                    <select
-                                                        {...props}
-                                                        className="bg-popover text-popover-foreground"
-                                                    >
-                                                        {props.children}
-                                                    </select>
-                                                ),
-                                            }}
+                                            autoFocus
+                                            startMonth={new Date(1980, 0)}
+                                            endMonth={new Date(new Date().getFullYear() + 20, 11)}
+                                            captionLayout="dropdown"
                                         />
                                     </PopoverContent>
                                 </Popover>

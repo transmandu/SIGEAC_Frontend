@@ -77,7 +77,7 @@ export const SearchableZoneSelect = React.memo(({
               placeholder="Buscar zona..."
               value={searchQuery}
               onValueChange={setSearchQuery}
-              className="flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-hidden placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
             />
           </div>
           <CommandList className="max-h-[200px]">

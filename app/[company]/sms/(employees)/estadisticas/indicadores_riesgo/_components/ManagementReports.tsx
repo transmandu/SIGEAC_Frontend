@@ -201,12 +201,12 @@ export const ManagementReports: React.FC<ManagementReportsProps> = ({
       {/* Charts Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-4">
         {/* Bar Chart */}
-        <div className="flex flex-col justify-center items-center p-4 rounded-lg shadow border">
+        <div className="flex flex-col justify-center items-center p-4 rounded-lg shadow-sm border">
           {renderBarChart()}
         </div>
 
         {/* Pie Chart */}
-        <div className="flex flex-col justify-center items-center p-4 rounded-lg shadow border">
+        <div className="flex flex-col justify-center items-center p-4 rounded-lg shadow-sm border">
           {renderPieChart()}
           {isErrorBarChart && (
             <p className="text-sm text-muted-foreground">

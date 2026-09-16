@@ -218,7 +218,7 @@ export function DownloadReportDialog({
                 align="center"
                 side="bottom"
                 sideOffset={10}
-                className="p-3 w-auto min-w-[320px] rounded-2xl border border-slate-200/60 dark:border-slate-800/60 shadow-xl backdrop-blur bg-white/90 dark:bg-slate-950/90"
+                className="p-3 w-auto min-w-[320px] rounded-2xl border border-slate-200/60 dark:border-slate-800/60 shadow-xl backdrop-blur-sm bg-white/90 dark:bg-slate-950/90"
               >
                 {/* ================= PRESETS ================= */}
                 <div className="flex items-center justify-center gap-2 mb-2 flex-wrap">
@@ -359,7 +359,7 @@ export function DownloadReportDialog({
                         : 1
                     }
                     showOutsideDays={false}
-                    toMonth={new Date()}
+                    endMonth={new Date()}
                     locale={es}
                     disabled={(d) => d > new Date()}
                     className={cn(
@@ -372,7 +372,7 @@ export function DownloadReportDialog({
                       '[&_.rdp-day_range_end]:bg-slate-300'
                     )}
                     formatters={{
-                      formatMonthCaption: (date) =>
+                      formatCaption: (date) =>
                         format(date, 'MMMM yyyy', { locale: es }).toUpperCase(),
                     }}
                   />

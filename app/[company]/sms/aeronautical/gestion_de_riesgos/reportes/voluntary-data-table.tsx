@@ -11,16 +11,13 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import {
-    ColumnDef,
-    ColumnFiltersState,
-    flexRender,
-    getCoreRowModel,
-    getFilteredRowModel,
-    getPaginationRowModel,
-    getSortedRowModel,
-    SortingState,
-    useReactTable,
+  ColumnFiltersState,
+  flexRender,
+  type RowData,
+  SortingState,
+  useTable,
 } from "@tanstack/react-table";
+import { appTableFeatures, type AppColumnDef } from "@/lib/table";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -28,15 +25,15 @@ import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCompanyStore } from "@/stores/CompanyStore";
 
-interface DataTableProps<TData, TValue> {
-    columns: ColumnDef<TData, TValue>[];
+interface DataTableProps<TData extends RowData> {
+    columns: AppColumnDef<TData>[];
     data: TData[];
 }
 
-export function DataTable<TData, TValue>({
+export function DataTable<TData extends RowData>({
     columns,
     data,
-}: DataTableProps<TData, TValue>) {
+}: DataTableProps<TData>) {
     const [sorting, setSorting] = useState<SortingState>([
         {
             id: "report_number",
@@ -44,15 +41,12 @@ export function DataTable<TData, TValue>({
         },
     ]);
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-    const table = useReactTable({
+    const table = useTable({
+        features: appTableFeatures,
         data,
         columns,
-        getCoreRowModel: getCoreRowModel(),
-        getPaginationRowModel: getPaginationRowModel(),
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
-        getSortedRowModel: getSortedRowModel(),
-        getFilteredRowModel: getFilteredRowModel(),
         state: {
             sorting,
             columnFilters,

@@ -27,7 +27,7 @@ const TransitPermissionDenied = () => {
             border-slate-200/60
             dark:border-slate-700/60
             backdrop-blur-md
-            shadow-sm
+            shadow-xs
             dark:shadow-[0_10px_35px_rgba(0,0,0,0.35)]
           "
         >

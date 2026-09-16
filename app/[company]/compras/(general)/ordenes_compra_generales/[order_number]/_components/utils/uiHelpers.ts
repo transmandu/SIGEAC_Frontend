@@ -17,7 +17,7 @@ export const statusBadgeCls = (status?: string) => {
   const pending = status === 'PENDING';
 
   return cn(
-    'rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-sm transition-colors duration-150 cursor-default hover:scale-100 hover:translate-y-0 select-none',
+    'rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide shadow-xs transition-colors duration-150 cursor-default hover:scale-100 hover:translate-y-0 select-none',
 
     completed &&
       'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/15 dark:hover:text-emerald-200',

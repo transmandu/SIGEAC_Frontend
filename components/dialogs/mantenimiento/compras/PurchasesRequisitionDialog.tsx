@@ -64,7 +64,7 @@ export function PurchasesRequisitionDialog() {
           className="
             shrink-0
             relative
-            bg-gradient-to-br
+            bg-linear-to-br
             from-primary/5
             via-background
             to-background
@@ -89,7 +89,7 @@ export function PurchasesRequisitionDialog() {
                   rounded-3xl
                   border
                   bg-background
-                  shadow-sm
+                  shadow-xs
                 "
               >
                 <FilePlus2 className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />

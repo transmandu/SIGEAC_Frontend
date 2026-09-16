@@ -1,6 +1,6 @@
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
+import { type AppColumnDef } from "@/lib/table";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 
 export interface AuthorizedEmployee {
@@ -13,7 +13,7 @@ export interface AuthorizedEmployee {
   department?: string;     // Departamento del empleado
 }
 
-export const columns: ColumnDef<AuthorizedEmployee>[] = [
+export const columns: AppColumnDef<AuthorizedEmployee>[] = [
   {
     accessorKey: "dni_employee",
     size: 140,

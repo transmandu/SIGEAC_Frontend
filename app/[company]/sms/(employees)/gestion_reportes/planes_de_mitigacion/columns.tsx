@@ -1,6 +1,6 @@
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
+import { type AppColumnDef } from "@/lib/table";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import MitigationTableDropdownActions from "@/components/dropdowns/aerolinea/sms/MitigationTableDropdownActions";
 import { MitigationTable } from "@/types";
@@ -9,7 +9,7 @@ import { MeasuresCell } from "./_components/MeasuresCell";
 import { RiskAnalysisCell } from "./_components/RiskAnalysisCell";
 
 // Columnas de la tabla (responsive)
-export const columns: ColumnDef<MitigationTable>[] = [
+export const columns: AppColumnDef<MitigationTable>[] = [
   {
     accessorKey: "report_number",
     accessorFn: (row) => {

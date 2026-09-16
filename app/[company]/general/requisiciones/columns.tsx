@@ -1,6 +1,6 @@
 "use client"
 
-import { ColumnDef } from "@tanstack/react-table"
+import { type AppColumnDef } from "@/lib/table";
 
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
 
@@ -27,7 +27,7 @@ import RequisitionDateFilter, { type DateFilterValue } from "./_components/Requi
 export const getColumns = (
   selectedCompany?: { slug: string },
   timeZone: string = DEFAULT_TIMEZONE
-): ColumnDef<Requisition>[] => [
+): AppColumnDef<Requisition>[] => [
   {
     accessorKey: "order_number",
     size: 210,

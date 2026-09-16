@@ -44,3 +44,12 @@ next-env.d.ts
 CLAUDE.md
 AGENTS.md
 /.windsurf/
+/.codex
+
+# editor
+# .vscode se ignora salvo los archivos que el equipo comparte a proposito:
+# la config de formateo y las extensiones recomendadas deben llegar a todos.
+/.vscode/*
+!/.vscode/settings.json
+!/.vscode/extensions.json
+/.idea/

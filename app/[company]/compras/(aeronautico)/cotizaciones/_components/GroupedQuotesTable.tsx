@@ -130,7 +130,7 @@ const GroupedQuotesTable = <T extends Record<string, any>>({
               bg-white/90
               dark:bg-slate-900/60
               backdrop-blur-md
-              shadow-sm
+              shadow-xs
               dark:shadow-[0_4px_20px_rgba(0,0,0,0.25)]
             "
           >

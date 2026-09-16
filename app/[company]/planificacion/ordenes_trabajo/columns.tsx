@@ -1,6 +1,6 @@
 "use client"
 
-import { ColumnDef } from "@tanstack/react-table"
+import { type AppColumnDef } from "@/lib/table";
 
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
 
@@ -13,7 +13,7 @@ import { es } from "date-fns/locale"
 import Link from "next/link"
 import { workOrderStatusLabelEsUpper } from "@/lib/planificacion/statuses"
 
-export const columns: ColumnDef<WorkOrder>[] = [
+export const columns: AppColumnDef<WorkOrder>[] = [
   {
     id: "select",
     header: ({ table }) => (

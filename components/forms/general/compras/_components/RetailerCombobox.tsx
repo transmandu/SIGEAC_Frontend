@@ -127,7 +127,7 @@ export function RetailerCombobox({
                     <span
                       className={cn(
                         "min-w-0",
-                        wrapOptions ? "whitespace-normal break-words" : "truncate"
+                        wrapOptions ? "whitespace-normal wrap-break-word" : "truncate"
                       )}
                     >
                       {retailer.name}

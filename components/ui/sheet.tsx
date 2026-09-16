@@ -71,7 +71,7 @@ const SheetContent = React.forwardRef<
           "rounded-md text-muted-foreground",
           "hover:bg-muted/70 hover:text-foreground",
           "transition-colors duration-200",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+          "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
           "disabled:pointer-events-none"
         )}
       >

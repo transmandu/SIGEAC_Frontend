@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { z } from "zod";
 import { format, parseISO } from "date-fns";
 import { CalendarDays, Package, Ruler, Scale } from "lucide-react";
@@ -290,7 +290,7 @@ export default function ConsumableArticleForm({
                 shelf_life: apiDate(shelfLifeDate),
                 reception_date: apiDate(receptionDate),
                 primary_unit_id: baseUnit?.id,
-                conversions,
+                conversions: conversions.length > 0 ? conversions : undefined,
                 // Solo activa el modo dimensional; un consumible ya dimensionado
                 // conserva sus medidas y el backend ignora el reenvío.
                 dimension:

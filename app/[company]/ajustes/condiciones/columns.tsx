@@ -3,9 +3,9 @@
 import ClientDropdownActions from "@/components/dropdowns/general/ClientDropdownActions";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { Condition } from "@/types";
-import { ColumnDef } from "@tanstack/react-table";
+import { type AppColumnDef } from "@/lib/table";
 
-export const columns: ColumnDef<Condition>[] = [
+export const columns: AppColumnDef<Condition>[] = [
   {
     accessorKey: "name",
     header: ({ column }) => (

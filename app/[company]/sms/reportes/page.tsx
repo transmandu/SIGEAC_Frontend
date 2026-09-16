@@ -8,6 +8,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 
 export default function ReportsPage() {
     const title = "Gestión de Reportes";
+
     return (
         <ContentLayout title={title}>
           <PageHeader className="mb-6" />

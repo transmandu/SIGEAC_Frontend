@@ -35,8 +35,8 @@ export const CheckboxCard = ({
             "transition-colors duration-200",
             disabled
                 ? "cursor-not-allowed opacity-50"
-                : "cursor-pointer hover:border-blue-400/40 hover:bg-primary/[0.03]",
-            checked && !disabled && "border-primary/50 bg-primary/[0.06]",
+                : "cursor-pointer hover:border-blue-400/40 hover:bg-primary/3",
+            checked && !disabled && "border-primary/50 bg-primary/6",
             className,
         )}
     >

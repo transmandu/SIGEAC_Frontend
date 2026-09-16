@@ -1,9 +1,22 @@
 import { UseFormReturn, useFieldArray } from "react-hook-form";
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { DatePickerField } from "@/components/ui/DatePickerField";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ComboboxField } from "@/components/ui/ComboboxField";
 import { Loader2, Plus, Trash2 } from "lucide-react";
 import { Employee } from "@/types";
@@ -41,7 +54,11 @@ const TIME_UNIT_OPTIONS = [
 const preventWheel = (e: React.WheelEvent<HTMLInputElement>) =>
   (e.target as HTMLInputElement).blur();
 
-export function StepRisksAndDetails({ form, employees, isLoadingEmployees }: StepRisksAndDetailsProps) {
+export function StepRisksAndDetails({
+  form,
+  employees,
+  isLoadingEmployees,
+}: StepRisksAndDetailsProps) {
   const {
     fields: riskFields,
     append: appendRisk,
@@ -211,12 +228,15 @@ export function StepRisksAndDetails({ form, employees, isLoadingEmployees }: Ste
             name="estimated_change_date"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  Fecha Estimada del Cambio
-                </FormLabel>
-                <FormControl>
-                  <Input type="date" {...field} value={field.value ?? ""} />
-                </FormControl>
+                <DatePickerField
+                  label="Fecha Estimada del Cambio"
+                  value={
+                    field.value ? new Date(field.value + "T00:00:00") : null
+                  }
+                  setValue={(d) =>
+                    field.onChange(d ? d.toISOString().slice(0, 10) : null)
+                  }
+                />
                 <FormMessage />
               </FormItem>
             )}
@@ -227,12 +247,15 @@ export function StepRisksAndDetails({ form, employees, isLoadingEmployees }: Ste
             name="cutoff_date"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  Fecha de Corte
-                </FormLabel>
-                <FormControl>
-                  <Input type="date" {...field} value={field.value ?? ""} />
-                </FormControl>
+                <DatePickerField
+                  label="Fecha de Corte"
+                  value={
+                    field.value ? new Date(field.value + "T00:00:00") : null
+                  }
+                  setValue={(d) =>
+                    field.onChange(d ? d.toISOString().slice(0, 10) : null)
+                  }
+                />
                 <FormMessage />
               </FormItem>
             )}
@@ -300,7 +323,9 @@ export function StepRisksAndDetails({ form, employees, isLoadingEmployees }: Ste
               </FormLabel>
               <div className="flex items-center gap-2 h-9 px-3 border border-border/60 rounded-md">
                 <Loader2 className="size-4 animate-spin text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">Cargando...</span>
+                <span className="text-sm text-muted-foreground">
+                  Cargando...
+                </span>
               </div>
             </FormItem>
           ) : (

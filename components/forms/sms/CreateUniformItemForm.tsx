@@ -29,7 +29,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { useGetUniformOptions } from "@/hooks/sms/useGetUniforms";
 import { useCreateUniformItem } from "@/actions/sms/uniforms/actions";
 import { UniformBrandForm } from "@/components/forms/sms/UniformBrandForm";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { Loader2, Plus } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { uniformCompanyLabel, uniformGenderLabel } from "@/lib/sms/uniforms";

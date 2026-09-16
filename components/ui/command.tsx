@@ -2,7 +2,8 @@
 
 import * as React from "react"
 import { type DialogProps } from "@radix-ui/react-dialog"
-import { Command as CommandPrimitive } from "cmdk"
+import { Command as CommandPrimitive, useCommandState } from "cmdk"
+import { useComposedRefs } from "@radix-ui/react-compose-refs"
 import { Search } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -29,7 +30,7 @@ const CommandDialog = ({ children, ...props }: CommandDialogProps) => {
   return (
     <Dialog {...props}>
       <DialogContent className="overflow-hidden p-0 shadow-lg">
-        <Command className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-group]]:px-2 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5">
+        <Command className="**:[[cmdk-group-heading]]:px-2 **:[[cmdk-group-heading]]:font-medium **:[[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 **:[[cmdk-group]]:px-2 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 **:[[cmdk-input]]:h-12 **:[[cmdk-item]]:px-2 **:[[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5">
           {children}
         </Command>
       </DialogContent>
@@ -46,7 +47,7 @@ const CommandInput = React.forwardRef<
     <CommandPrimitive.Input
       ref={ref}
       className={cn(
-        "flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50",
+        "flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-hidden placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50",
         className
       )}
       {...props}
@@ -59,21 +60,36 @@ CommandInput.displayName = CommandPrimitive.Input.displayName
 const CommandList = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.List>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.List>
->(({ className, onWheel, ...props }, ref) => (
-  <CommandPrimitive.List
-    ref={ref}
-    className={cn("max-h-[300px] overflow-y-auto overflow-x-hidden", className)}
-    onWheel={(e) => {
-      // Popovers/comboboxes portal outside the Dialog's DOM subtree, so the
-      // Dialog's scroll-lock (react-remove-scroll) doesn't recognize this list
-      // as scrollable and cancels the wheel event. Stop it here so native
-      // scrolling reaches this list before the document-level lock sees it.
-      e.stopPropagation()
-      onWheel?.(e)
-    }}
-    {...props}
-  />
-))
+>(({ className, onWheel, ...props }, ref) => {
+  const listRef = React.useRef<HTMLDivElement>(null)
+  const composedRef = useComposedRefs(ref, listRef)
+  const search = useCommandState((state) => state.search)
+
+  // cmdk oculta los items que no casan pero no toca el scroll, y solo hace
+  // scrollIntoView cuando cambia el item seleccionado: si el primer resultado
+  // ya era el activo, la lista se queda a la altura en la que estabas y los
+  // resultados quedan arriba, fuera de la vista. En layout effect para correr
+  // antes de ese scrollIntoView y no pisarlo cuando sí ocurre.
+  React.useLayoutEffect(() => {
+    listRef.current?.scrollTo({ top: 0 })
+  }, [search])
+
+  return (
+    <CommandPrimitive.List
+      ref={composedRef}
+      className={cn("max-h-[300px] overflow-y-auto overflow-x-hidden", className)}
+      onWheel={(e) => {
+        // Popovers/comboboxes portal outside the Dialog's DOM subtree, so the
+        // Dialog's scroll-lock (react-remove-scroll) doesn't recognize this list
+        // as scrollable and cancels the wheel event. Stop it here so native
+        // scrolling reaches this list before the document-level lock sees it.
+        e.stopPropagation()
+        onWheel?.(e)
+      }}
+      {...props}
+    />
+  )
+})
 
 CommandList.displayName = CommandPrimitive.List.displayName
 
@@ -97,7 +113,7 @@ const CommandGroup = React.forwardRef<
   <CommandPrimitive.Group
     ref={ref}
     className={cn(
-      "overflow-hidden p-1 text-foreground [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground",
+      "overflow-hidden p-1 text-foreground **:[[cmdk-group-heading]]:px-2 **:[[cmdk-group-heading]]:py-1.5 **:[[cmdk-group-heading]]:text-xs **:[[cmdk-group-heading]]:font-medium **:[[cmdk-group-heading]]:text-muted-foreground",
       className
     )}
     {...props}
@@ -125,7 +141,7 @@ const CommandItem = React.forwardRef<
   <CommandPrimitive.Item
     ref={ref}
     className={cn(
-      "relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none aria-selected:bg-accent aria-selected:text-accent-foreground data-[disabled='true']:pointer-events-none data-[disabled='true']:opacity-50",
+      "relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-hidden aria-selected:bg-accent aria-selected:text-accent-foreground data-[disabled='true']:pointer-events-none data-[disabled='true']:opacity-50",
       className
     )}
     {...props}

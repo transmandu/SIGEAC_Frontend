@@ -70,7 +70,7 @@ const SimpleLineChart: React.FC<SimpleLineChartProps> = ({
 
             {showTooltip && (
               <Tooltip
-                formatter={(value: number) => [value, lineName]}
+                formatter={(value) => [Number(value), lineName]}
                 labelFormatter={(label) => `${label}`}
               />
             )}

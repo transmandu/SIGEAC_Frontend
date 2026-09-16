@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/form";
 
 import { Input } from "@/components/ui/input";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -263,20 +263,10 @@ export function CreateGeneralVoluntaryReportForm({
                                             mode="single"
                                             selected={field.value}
                                             onSelect={field.onChange}
-                                            initialFocus
-                                            fromYear={2000} // Año mínimo que se mostrará
-                                            toYear={new Date().getFullYear()} // Año máximo (actual)
-                                            captionLayout="dropdown-buttons" // Selectores de año/mes
-                                            components={{
-                                                Dropdown: (props) => (
-                                                    <select
-                                                        {...props}
-                                                        className="bg-popover text-popover-foreground"
-                                                    >
-                                                        {props.children}
-                                                    </select>
-                                                ),
-                                            }}
+                                            autoFocus
+                                            startMonth={new Date(2000, 0)} // Año mínimo que se mostrará
+                                            endMonth={new Date(new Date().getFullYear(), 11)} // Año máximo (actual)
+                                            captionLayout="dropdown" // Selectores de año/mes
                                         />
                                     </PopoverContent>
                                 </Popover>
@@ -316,20 +306,10 @@ export function CreateGeneralVoluntaryReportForm({
                                             mode="single"
                                             selected={field.value}
                                             onSelect={field.onChange}
-                                            initialFocus
-                                            fromYear={2000} // Año mínimo que se mostrará
-                                            toYear={new Date().getFullYear()} // Año máximo (actual)
-                                            captionLayout="dropdown-buttons" // Selectores de año/mes
-                                            components={{
-                                                Dropdown: (props) => (
-                                                    <select
-                                                        {...props}
-                                                        className="bg-popover text-popover-foreground"
-                                                    >
-                                                        {props.children}
-                                                    </select>
-                                                ),
-                                            }}
+                                            autoFocus
+                                            startMonth={new Date(2000, 0)} // Año mínimo que se mostrará
+                                            endMonth={new Date(new Date().getFullYear(), 11)} // Año máximo (actual)
+                                            captionLayout="dropdown" // Selectores de año/mes
                                         />
                                     </PopoverContent>
                                 </Popover>

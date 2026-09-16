@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AlertTriangle, Biohazard, Eye, EyeOff, Truck } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 
@@ -11,7 +11,6 @@ import {
   TooltipTrigger,
   TooltipProvider,
 } from "@/components/ui/tooltip";
-import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 import { useCriticalAlerts } from "@/hooks/alerts/useCriticalAlerts";
 import { useDismissedAlertsStore } from "@/hooks/alerts/useDismissedAlertsStore";
@@ -32,12 +31,14 @@ const TONE_COPY = {
     empty: "Todo lo bajo de mínimo ya está comprado",
   },
   hazard: {
-    summary: (n: number) => `${n} artículo${n === 1 ? "" : "s"} retenido${n === 1 ? "" : "s"} en cuarentena`,
+    summary: (n: number) =>
+      `${n} artículo${n === 1 ? "" : "s"} retenido${n === 1 ? "" : "s"} en cuarentena`,
     short: (n: number) => `${n} en cuarentena`,
     empty: "Sin artículos retenidos",
   },
   mixed: {
-    summary: (n: number) => `${n} alerta${n === 1 ? "" : "s"} pendiente${n === 1 ? "" : "s"}`,
+    summary: (n: number) =>
+      `${n} alerta${n === 1 ? "" : "s"} pendiente${n === 1 ? "" : "s"}`,
     short: (n: number) => `${n} pendiente${n === 1 ? "" : "s"}`,
     empty: "Nada pendiente",
   },
@@ -59,21 +60,26 @@ export default function CriticalAlertsButton() {
 
   // Con varias clases a la vista el resumen las separa; si no, basta el tono.
   // Se arma recorriendo lo que llegó, así un tono nuevo aparece sin tocar esto.
-  const summary = tone === "mixed"
-    ? Object.entries(toneCounts)
-        .filter(([, n]) => (n ?? 0) > 0)
-        .map(([key, n]) => TONE_COPY[key as keyof typeof TONE_COPY].short(n ?? 0))
-        .join(" · ")
-    : copy.summary(actionableCount);
+  const summary =
+    tone === "mixed"
+      ? Object.entries(toneCounts)
+          .filter(([, n]) => (n ?? 0) > 0)
+          .map(([key, n]) =>
+            TONE_COPY[key as keyof typeof TONE_COPY].short(n ?? 0),
+          )
+          .join(" · ")
+      : copy.summary(actionableCount);
   const dismiss = useDismissedAlertsStore((state) => state.dismiss);
   const hideInTransit = useAlertFiltersStore((state) => state.hideInTransit);
-  const toggleInTransit = useAlertFiltersStore((state) => state.toggleInTransit);
+  const toggleInTransit = useAlertFiltersStore(
+    (state) => state.toggleInTransit,
+  );
   const hasAlerts = count > 0;
   const [open, setOpen] = useState(false);
-  const [rollOffset, setRollOffset] = useState({ x: 0, y: 0 });
+  const [tooltipOpen, setTooltipOpen] = useState(false);
 
-  const anchorRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   // Rodadura real: la rotación se deriva de la distancia recorrida
   // (una vuelta por circunferencia, h-14 = 56px de diámetro), así el botón
@@ -81,45 +87,40 @@ export default function CriticalAlertsButton() {
   // Se redondea a vueltas completas para que el icono llegue derecho y no
   // quede inclinado a medio giro; el leve patinaje extra es imperceptible.
   const BUTTON_DIAMETER = 56;
-  const ROLL_DURATION_S = 0.65;
-  const rawRotation = (rollOffset.x / (Math.PI * BUTTON_DIAMETER)) * 360;
+  const PANEL_WIDTH = 384;
+  const ROLL_DURATION_S = 0.4;
+
+  // Botón y panel comparten el borde derecho, así que la distancia hasta el
+  // centro del panel sale de sus anchos. Antes se medía un ancla en el DOM,
+  // pero Radix la reportaba en 0x0 al abrir y el panel terminaba en la
+  // esquina superior izquierda.
+  const rollOffsetX = open ? -(PANEL_WIDTH - BUTTON_DIAMETER) / 2 : 0;
+  const rawRotation = (rollOffsetX / (Math.PI * BUTTON_DIAMETER)) * 360;
   const fullTurns = Math.round(rawRotation / 360) || Math.sign(rawRotation);
-  const rollRotation = rollOffset.x === 0 ? 0 : fullTurns * 360;
+  const rollRotation = rollOffsetX === 0 ? 0 : fullTurns * 360;
 
-  useLayoutEffect(() => {
-    if (!open) {
-      setRollOffset({ x: 0, y: 0 });
-      return;
-    }
+  useEffect(() => {
+    if (!open) return;
 
-    const measure = () => {
-      const anchor = anchorRef.current;
-      const panel = panelRef.current;
-      if (!anchor || !panel) return;
-
-      // Se mide contra el ancla fija (posición base del botón), no contra el
-      // botón: su rect ya incluye el translate de la animación y daría offset 0.
-      const anchorRect = anchor.getBoundingClientRect();
-      const panelRect = panel.getBoundingClientRect();
-
-      const anchorCenterX = anchorRect.left + anchorRect.width / 2;
-      const panelCenterX = panelRect.left + panelRect.width / 2;
-
-      setRollOffset({
-        x: panelCenterX - anchorCenterX,
-        y: 0,
-      });
+    const onPointerDown = (event: PointerEvent) => {
+      const target = event.target as Node;
+      if (panelRef.current?.contains(target)) return;
+      if (buttonRef.current?.contains(target)) return;
+      setOpen(false);
     };
 
-    // Deja que Radix posicione el panel antes de medir.
-    const raf = requestAnimationFrame(measure);
-    window.addEventListener("resize", measure);
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
 
     return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener("resize", measure);
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
     };
-  }, [open, alerts.length]);
+  }, [open]);
 
   const handleDismiss = (alert: CriticalAlert) => {
     dismiss(alert.id);
@@ -132,101 +133,110 @@ export default function CriticalAlertsButton() {
   if (!hasAlerts) return null;
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      {/* Ancla invisible y estática: Radix posiciona el popover contra esto,
-          no contra el botón, que se mueve libremente con su propia animación. */}
-      <PopoverAnchor asChild>
-        <div ref={anchorRef} className="fixed bottom-6 right-6 h-14 w-14" />
-      </PopoverAnchor>
-
+    <>
       <TooltipProvider disableHoverableContent>
-        <Tooltip delayDuration={100} open={open ? false : undefined}>
+        {/* Controlado de punta a punta: alternar entre un booleano y undefined
+            hacía que Radix lo tratara como controlado y no controlado a la vez. */}
+        <Tooltip
+          delayDuration={100}
+          open={open ? false : tooltipOpen}
+          onOpenChange={(next) => setTooltipOpen(open ? false : next)}
+        >
           <TooltipTrigger asChild>
-            <PopoverTrigger asChild>
-              <motion.button
-                animate={{
-                  scale: open ? 1.1 : 1,
-                  opacity: 1,
-                  x: rollOffset.x,
-                  y: rollOffset.y,
-                  rotate: rollRotation,
-                }}
-                transition={{
-                  // x y rotate comparten timing y ease: si se desincronizan,
-                  // la rodadura se ve como deslizamiento con giro.
-                  x: { duration: ROLL_DURATION_S, ease: "easeInOut" },
-                  y: { duration: ROLL_DURATION_S, ease: "easeInOut" },
-                  rotate: { duration: ROLL_DURATION_S, ease: "easeInOut" },
-                  scale: { duration: 0.35, ease: [0.22, 1, 0.36, 1] },
-                }}
-                whileHover={open ? undefined : { scale: 1.06, y: -2 }}
-                whileTap={open ? undefined : { scale: 0.94 }}
-                aria-label={
-                  isCountActionable
-                    ? `Alertas críticas: ${summary}`
-                    : `Alertas: ${inTransitCount} en camino, nada pendiente de pedir`
-                }
+            <motion.button
+              ref={buttonRef}
+              type="button"
+              onClick={() => setOpen((prev) => !prev)}
+              aria-haspopup="dialog"
+              aria-expanded={open}
+              animate={{
+                scale: open ? 1.1 : 1,
+                opacity: 1,
+                x: rollOffsetX,
+                y: 0,
+                rotate: rollRotation,
+              }}
+              transition={{
+                // x y rotate comparten timing y ease: si se desincronizan,
+                // la rodadura se ve como deslizamiento con giro.
+                x: { duration: ROLL_DURATION_S, ease: "easeInOut" },
+                y: { duration: ROLL_DURATION_S, ease: "easeInOut" },
+                rotate: { duration: ROLL_DURATION_S, ease: "easeInOut" },
+                scale: { duration: 0.35, ease: [0.22, 1, 0.36, 1] },
+              }}
+              whileHover={open ? undefined : { scale: 1.06, y: -2 }}
+              whileTap={open ? undefined : { scale: 0.94 }}
+              aria-label={
+                isCountActionable
+                  ? `Alertas críticas: ${summary}`
+                  : `Alertas: ${inTransitCount} en camino, nada pendiente de pedir`
+              }
+              className={cn(
+                "flex items-center justify-center",
+                "fixed bottom-6 right-6 z-1003",
+                "h-14 w-14 rounded-full",
+                "backdrop-blur-md",
+                "shadow-[0_8px_30px_rgba(0,0,0,0.18)]",
+                "ring-1 transition-colors duration-300",
+                // Sin nada accionable el botón deja de gritar: todo lo bajo
+                // de stock ya está comprado y solo falta que llegue.
+                !isCountActionable
+                  ? "bg-linear-to-br from-primary to-blue-600 text-white ring-primary/40 hover:from-primary hover:to-blue-500"
+                  : isHazardTone
+                    ? "bg-linear-to-br from-red-600 to-red-800 text-white ring-red-500/50 hover:from-red-600 hover:to-red-700"
+                    : "bg-linear-to-br from-red-500 to-rose-600 text-white ring-red-400/40 hover:from-red-500 hover:to-rose-500",
+              )}
+            >
+              {/* El latido solo acompaña a lo que exige acción. */}
+              {!open && isCountActionable && (
+                <motion.span
+                  className={cn(
+                    "absolute inset-0 rounded-full",
+                    isHazardTone ? "bg-red-700/50" : "bg-red-500/50",
+                  )}
+                  animate={{ scale: [1, 1.35, 1], opacity: [0.55, 0, 0.55] }}
+                  transition={{
+                    duration: 2.2,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                />
+              )}
+
+              {!isCountActionable ? (
+                <Truck className="relative h-6 w-6 drop-shadow-xs" />
+              ) : isHazardTone ? (
+                <Biohazard className="relative h-6 w-6 drop-shadow-xs" />
+              ) : (
+                <AlertTriangle className="relative h-6 w-6 drop-shadow-xs" />
+              )}
+
+              <motion.span
+                key={count}
+                initial={{ scale: 0.5, opacity: 0, y: 4 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
                 className={cn(
+                  "absolute -top-1 -right-1",
+                  "min-w-5 h-5 px-1",
                   "flex items-center justify-center",
-                  "fixed bottom-6 right-6 z-[1003]",
-                  "h-14 w-14 rounded-full",
-                  "backdrop-blur-md",
-                  "shadow-[0_8px_30px_rgba(0,0,0,0.18)]",
-                  "ring-1 transition-colors duration-300",
-                  // Sin nada accionable el botón deja de gritar: todo lo bajo
-                  // de stock ya está comprado y solo falta que llegue.
+                  "rounded-full",
+                  "bg-white",
                   !isCountActionable
-                    ? "bg-gradient-to-br from-primary to-blue-600 text-white ring-primary/40 hover:from-primary hover:to-blue-500"
+                    ? "text-primary ring-primary/30"
                     : isHazardTone
-                      ? "bg-gradient-to-br from-red-600 to-red-800 text-white ring-red-500/50 hover:from-red-600 hover:to-red-700"
-                      : "bg-gradient-to-br from-red-500 to-rose-600 text-white ring-red-400/40 hover:from-red-500 hover:to-rose-500"
+                      ? "text-red-700 ring-red-600/40"
+                      : "text-red-600 ring-red-500/30",
+                  "text-[11px] font-bold",
+                  "shadow-xs ring-2",
                 )}
               >
-                {/* El latido solo acompaña a lo que exige acción. */}
-                {!open && isCountActionable && (
-                  <motion.span
-                    className={cn(
-                      "absolute inset-0 rounded-full",
-                      isHazardTone ? "bg-red-700/50" : "bg-red-500/50"
-                    )}
-                    animate={{ scale: [1, 1.35, 1], opacity: [0.55, 0, 0.55] }}
-                    transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
-                  />
-                )}
-
-                {!isCountActionable
-                  ? <Truck className="relative h-6 w-6 drop-shadow-sm" />
-                  : isHazardTone
-                    ? <Biohazard className="relative h-6 w-6 drop-shadow-sm" />
-                    : <AlertTriangle className="relative h-6 w-6 drop-shadow-sm" />}
-
-                <motion.span
-                  key={count}
-                  initial={{ scale: 0.5, opacity: 0, y: 4 }}
-                  animate={{ scale: 1, opacity: 1, y: 0 }}
-                  transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-                  className={cn(
-                    "absolute -top-1 -right-1",
-                    "min-w-5 h-5 px-1",
-                    "flex items-center justify-center",
-                    "rounded-full",
-                    "bg-white",
-                    !isCountActionable
-                      ? "text-primary ring-primary/30"
-                      : isHazardTone
-                        ? "text-red-700 ring-red-600/40"
-                        : "text-red-600 ring-red-500/30",
-                    "text-[11px] font-bold",
-                    "shadow-sm ring-2"
-                  )}
-                >
-                  {count > 99 ? "99+" : count}
-                </motion.span>
-              </motion.button>
-            </PopoverTrigger>
+                {count > 99 ? "99+" : count}
+              </motion.span>
+            </motion.button>
           </TooltipTrigger>
 
-          <TooltipContent side="left" className="z-[1002]">
+          <TooltipContent side="left" className="z-1002">
             {isCountActionable
               ? `${summary}${inTransitCount > 0 ? ` · ${inTransitCount} en camino` : ""}`
               : `${inTransitCount} artículo${inTransitCount === 1 ? "" : "s"} bajo mínimo, ya en camino`}
@@ -234,29 +244,23 @@ export default function CriticalAlertsButton() {
         </Tooltip>
       </TooltipProvider>
 
-      <PopoverContent
+      {/* Posición fija propia en vez de Popover: el ancla que Radix medía para
+          colocarlo llegaba en 0x0 y el panel caía en la esquina superior izquierda. */}
+      <div
         ref={panelRef}
-        forceMount
-        side="top"
-        align="end"
-        sideOffset={16}
-        onFocusOutside={(event) => {
-          if (panelRef.current?.contains(event.target as Node)) {
-            event.preventDefault();
-          }
-        }}
-        onInteractOutside={(event) => {
-          if (panelRef.current?.contains(event.target as Node)) {
-            event.preventDefault();
-          }
-        }}
+        role="dialog"
+        aria-label="Alertas críticas"
+        aria-hidden={!open}
         className={cn(
-          "z-[1002] flex max-h-[70vh] w-96 max-w-[calc(100vw-3rem)] animate-none flex-col overflow-hidden rounded-2xl border-none p-0 shadow-2xl data-[state=closed]:animate-none data-[state=open]:animate-none",
-          !open && "pointer-events-none"
+          "fixed bottom-24 right-6 z-1002",
+          "flex max-h-[70vh] w-96 max-w-[calc(100vw-3rem)] flex-col overflow-hidden",
+          "rounded-2xl bg-popover text-popover-foreground shadow-2xl",
+          !open && "pointer-events-none",
         )}
         style={{
           opacity: open ? 1 : 0,
           transform: `scale(${open ? 1 : 0.92})`,
+          transformOrigin: "bottom right",
           // Al abrir, el panel espera a que el botón termine de rodar y
           // "se enciende" justo cuando llega; al cerrar se apaga de inmediato
           // mientras la bola rueda de vuelta.
@@ -267,10 +271,10 @@ export default function CriticalAlertsButton() {
           className={cn(
             "shrink-0 border-b px-4 py-3",
             !isCountActionable
-              ? "bg-gradient-to-r from-primary/10 to-blue-500/10"
+              ? "bg-linear-to-r from-primary/10 to-blue-500/10"
               : isHazardTone
-                ? "bg-gradient-to-r from-red-600/15 to-red-800/10"
-                : "bg-gradient-to-r from-red-500/10 to-rose-500/10"
+                ? "bg-linear-to-r from-red-600/15 to-red-800/10"
+                : "bg-linear-to-r from-red-500/10 to-rose-500/10",
           )}
         >
           <p className="text-sm font-semibold">Alertas críticas</p>
@@ -291,10 +295,14 @@ export default function CriticalAlertsButton() {
                 "text-[11px] font-medium transition-colors",
                 hideInTransit
                   ? "border-primary/40 bg-primary/10 text-primary hover:bg-primary/15"
-                  : "border-border bg-background/60 text-muted-foreground hover:bg-muted"
+                  : "border-border bg-background/60 text-muted-foreground hover:bg-muted",
               )}
             >
-              {hideInTransit ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+              {hideInTransit ? (
+                <EyeOff className="h-3 w-3" />
+              ) : (
+                <Eye className="h-3 w-3" />
+              )}
               {hideInTransit
                 ? `Mostrar ${inTransitCount} en camino`
                 : `Ocultar ${inTransitCount} en camino`}
@@ -313,7 +321,8 @@ export default function CriticalAlertsButton() {
                 <Truck className="h-6 w-6 text-primary" />
                 <p className="text-sm font-medium">Nada pendiente de pedir</p>
                 <p className="text-xs text-muted-foreground">
-                  {inTransitCount} artículo{inTransitCount === 1 ? "" : "s"} bajo mínimo
+                  {inTransitCount} artículo{inTransitCount === 1 ? "" : "s"}{" "}
+                  bajo mínimo
                   {inTransitCount === 1 ? " está" : " están"} en camino.
                 </p>
               </div>
@@ -332,7 +341,7 @@ export default function CriticalAlertsButton() {
             )}
           </div>
         </div>
-      </PopoverContent>
-    </Popover>
+      </div>
+    </>
   );
 }

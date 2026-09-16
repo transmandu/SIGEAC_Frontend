@@ -156,7 +156,7 @@ const RiskMatrix: FC<RiskMatrixProps> = ({
 
   return (
     <div className="flex flex-col items-center p-4 mt-4 border rounded-lg bg-gray-50 dark:bg-gray-800 dark:border-gray-700">
-      <table className="table-auto border-collapse border border-gray-400 dark:border-gray-600 shadow-sm text-sm">
+      <table className="table-auto border-collapse border border-gray-400 dark:border-gray-600 shadow-xs text-sm">
         <thead>
           <tr className="bg-gray-100 dark:bg-gray-700">
             <th className="border border-gray-400 dark:border-gray-600 p-1"></th>

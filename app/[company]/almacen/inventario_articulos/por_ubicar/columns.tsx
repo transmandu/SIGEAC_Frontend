@@ -2,7 +2,7 @@
 
 import WaitingToLocateArticleDropdownActions from "@/components/dropdowns/mantenimiento/almacen/WaitingToLocateArticleDropdownActions";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
-import { ColumnDef } from "@tanstack/react-table";
+import { type AppColumnDef } from "@/lib/table";
 import { Barcode, Hash, Package, Settings, Tags, Wrench } from "lucide-react";
 import { IncomingArticle } from "@/app/[company]/control_calidad/incoming/IncomingTypes";
 
@@ -23,7 +23,7 @@ const Header = ({
     </div>
 );
 
-export const columns: ColumnDef<IncomingArticle>[] = [
+export const columns: AppColumnDef<IncomingArticle>[] = [
     {
         accessorKey: "batch.name",
         header: ({ column }) => <Header column={column} title="Descripción" Icon={Package} />,

@@ -79,16 +79,24 @@ export default function ShareRequestsPanel({
     return () => unregisterTour("biblioteca-solicitudes");
   }, [registerTour, unregisterTour, steps]);
 
+  // Solo el Director DIP aprueba o rechaza; con cualquier DIRECTOR se pintaban
+  // botones que el backend rechazaba después con 403.
   const isDipDirector = useMemo(() => {
     if (!user) return false;
+
     const isSuperUser = user.roles?.some((role: any) =>
       ["SUPERUSER", "ADMIN", "ADMINISTRADOR"].includes(role.name.toUpperCase()),
     );
-    const isDirector = user.employee?.some((emp: any) => {
-      const jobName = emp.job_title?.name?.toUpperCase() || "";
-      return jobName.includes("DIRECTOR");
-    });
-    return !!(isSuperUser || isDirector);
+
+    if (isSuperUser) return true;
+
+    return (
+      user.employee?.some((emp: any) => {
+        const isDIP = emp.department?.acronym?.toUpperCase() === "DIP";
+        const isDir = emp.job_title?.name?.toUpperCase().includes("DIRECTOR");
+        return isDIP && isDir;
+      }) ?? false
+    );
   }, [user]);
 
   const fetchRequests = useCallback(async () => {
@@ -97,8 +105,10 @@ export default function ShareRequestsPanel({
     try {
       const res = await libraryService.getShareRequests(company);
       setRequests(Array.isArray(res) ? res : res.data || []);
-    } catch {
+    } catch (error) {
+      console.error("Error al cargar solicitudes:", error);
       setRequests([]);
+      toast.error("No se pudieron cargar las solicitudes");
     } finally {
       setLoading(false);
     }
@@ -157,30 +167,10 @@ export default function ShareRequestsPanel({
     const svg = document.querySelector(
       `[data-qr-value="${url}"]`,
     ) as SVGElement;
+    // Sin el SVG en pantalla no hay QR que exportar: antes se descargaba un
+    // PNG en blanco de 1x1 y el usuario se quedaba con un archivo inservible.
     if (!svg) {
-      const tempSvg = document.createElementNS(
-        "http://www.w3.org/2000/svg",
-        "svg",
-      );
-      tempSvg.innerHTML = `<rect width="1" height="1" fill="white"/>`;
-      const svgData = new XMLSerializer().serializeToString(tempSvg);
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
-      const img = new Image();
-      img.onload = () => {
-        canvas.width = 220;
-        canvas.height = 220;
-        if (ctx) {
-          ctx.fillStyle = "white";
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
-          ctx.drawImage(img, 110, 110);
-          const link = document.createElement("a");
-          link.download = `QR_${title.replace(/[^a-zA-Z0-9]/g, "_")}.png`;
-          link.href = canvas.toDataURL("image/png");
-          link.click();
-        }
-      };
-      img.src = "data:image/svg+xml;base64," + btoa(svgData);
+      toast.error("No se pudo generar la imagen del QR. Abre el detalle e inténtalo de nuevo.");
       return;
     }
     const svgData = new XMLSerializer().serializeToString(svg);
@@ -241,9 +231,6 @@ export default function ShareRequestsPanel({
             className="flex items-center gap-2"
             data-tour="biblioteca-requests-title"
           >
-            <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-              <Share2 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-            </div>
             <div>
               <h2 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-tight">
                 Solicitudes
@@ -264,7 +251,7 @@ export default function ShareRequestsPanel({
 
         {/* Tabs */}
         <div
-          className="flex gap-1 px-4 py-3 border-b border-slate-200 dark:border-gray-800 bg-slate-50 dark:bg-white/[0.02]"
+          className="flex gap-1 px-4 py-3 border-b border-slate-200 dark:border-gray-800 bg-slate-50 dark:bg-white/2"
           data-tour="biblioteca-requests-tab-pendientes"
         >
           {tabs.map((tab) => (
@@ -275,7 +262,7 @@ export default function ShareRequestsPanel({
               className={`relative flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all
               ${
                 activeTab === tab.key
-                  ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 shadow-sm"
+                  ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 shadow-xs"
                   : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/50"
               }`}
             >
@@ -314,7 +301,7 @@ export default function ShareRequestsPanel({
               {filteredRequests.map((req: any) => (
                 <div
                   key={req.id}
-                  className="bg-white dark:bg-[#111214] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all"
+                  className="bg-white dark:bg-[#111214] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-xs hover:shadow-md transition-all"
                   data-tour="biblioteca-requests-card"
                 >
                   {/* Status and Date row */}
@@ -348,7 +335,7 @@ export default function ShareRequestsPanel({
                         {req.requested_by_name || "N/A"}
                       </p>
                     </div>
-                    <div className="w-[1px] h-8 bg-slate-200 dark:bg-slate-700 mx-4"></div>
+                    <div className="w-px h-8 bg-slate-200 dark:bg-slate-700 mx-4"></div>
                     <div className="flex-1">
                       <p className="text-[9px] font-bold uppercase text-slate-400 mb-1 tracking-wider">
                         Destinatario
@@ -454,7 +441,7 @@ export default function ShareRequestsPanel({
                           <div className="space-y-2">
                             <textarea
                               placeholder="Motivo del rechazo..."
-                              className="w-full h-16 px-3 py-2 text-[11px] border border-red-300 dark:border-red-800 rounded-lg bg-white dark:bg-gray-800 text-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-red-500 resize-none"
+                              className="placeholder:text-gray-400 w-full h-16 px-3 py-2 text-[11px] border border-red-300 dark:border-red-800 rounded-lg bg-white dark:bg-gray-800 text-slate-700 dark:text-white outline-hidden focus:ring-2 focus:ring-red-500 resize-none"
                               value={rejectReason}
                               onChange={(e) => setRejectReason(e.target.value)}
                             />
@@ -485,7 +472,7 @@ export default function ShareRequestsPanel({
                               data-tour="biblioteca-requests-aprobar"
                               onClick={() => handleApprove(req.id)}
                               disabled={actionLoading === req.id}
-                              className="flex-1 py-2 text-[10px] font-bold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 disabled:opacity-50 uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-sm active:scale-[0.98] transition-all"
+                              className="flex-1 py-2 text-[10px] font-bold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 disabled:opacity-50 uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-xs active:scale-[0.98] transition-all"
                             >
                               {actionLoading === req.id ? (
                                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -497,7 +484,7 @@ export default function ShareRequestsPanel({
                             <button
                               data-tour="biblioteca-requests-rechazar"
                               onClick={() => setRejectingId(req.id)}
-                              className="flex-1 py-2 text-[10px] font-bold text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50 uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-sm active:scale-[0.98] transition-all"
+                              className="flex-1 py-2 text-[10px] font-bold text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50 uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-xs active:scale-[0.98] transition-all"
                             >
                               <XCircle className="h-3.5 w-3.5" />
                               RECHAZAR
@@ -519,12 +506,9 @@ export default function ShareRequestsPanel({
         open={!!selectedDetails}
         onOpenChange={() => setSelectedDetails(null)}
       >
-        <DialogContent className="bg-white dark:bg-[#1a1c1e] border-none text-slate-900 dark:text-white sm:max-w-[480px] rounded-2xl overflow-hidden p-0 outline-none shadow-2xl !z-[100]">
+        <DialogContent className="bg-white dark:bg-[#1a1c1e] border-none text-slate-900 dark:text-white sm:max-w-[480px] rounded-2xl overflow-hidden p-0 outline-hidden shadow-2xl z-100!">
           <div className="bg-slate-50 dark:bg-slate-800/50 px-6 py-5 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
             <div className="flex items-center gap-2">
-              <div className="p-1.5 bg-blue-100 dark:bg-blue-500/20 rounded-lg">
-                <Info className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-              </div>
               <DialogTitle className="text-lg font-bold text-slate-800 dark:text-white tracking-tight uppercase">
                 Detalles de la Solicitud
               </DialogTitle>

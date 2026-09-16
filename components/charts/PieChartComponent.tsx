@@ -92,12 +92,12 @@ export const PieChartComponent: React.FC<Props> = ({
             </Pie>
 
             <Tooltip
-              formatter={(value: number, _name, payload: any) => {
+              formatter={(value, _name, item) => {
                 const v = Number(value) || 0;
                 const pct = total ? (v / total) * 100 : 0;
                 return [
                   `${v.toLocaleString("es-ES")} (${pct.toFixed(1)}%)`,
-                  payload?.name,
+                  item?.name,
                 ];
               }}
             />

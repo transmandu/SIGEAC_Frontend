@@ -170,7 +170,7 @@ export function UserNav() {
                 </p>
 
                 <div className="flex items-center gap-1 text-muted-foreground min-w-0">
-                  <Mail className="w-3 h-3 flex-shrink-0" />
+                  <Mail className="w-3 h-3 shrink-0" />
 
                   <div className="min-w-0 flex-1">
                     <MarqueeText

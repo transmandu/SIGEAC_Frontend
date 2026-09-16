@@ -1,6 +1,6 @@
 'use client'
 
-import { ColumnDef } from "@tanstack/react-table"
+import { type AppColumnDef } from "@/lib/table";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
 import { Badge } from "@/components/ui/badge"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
@@ -153,7 +153,7 @@ export const getColumns = (
   selectedCompany?: { slug: string },
   onPreview?: (po: PurchaseOrder) => void,
   selectedPreviewId?: number | null
-): ColumnDef<PurchaseOrder>[] => [
+): AppColumnDef<PurchaseOrder>[] => [
 
   {
     accessorKey: "order_number",
@@ -280,7 +280,7 @@ export const getColumns = (
 
       return (
         <div className="flex justify-center w-full min-w-0">
-          <span className="block w-full max-w-[220px] whitespace-normal break-words text-center text-sm font-medium text-slate-700 dark:text-slate-200">
+          <span className="block w-full max-w-[220px] whitespace-normal wrap-break-word text-center text-sm font-medium text-slate-700 dark:text-slate-200">
             {name}
           </span>
         </div>
@@ -346,7 +346,7 @@ export const getColumns = (
                 text-[10px]
                 font-semibold
                 tracking-wide
-                shadow-sm
+                shadow-xs
                 transition-colors duration-150
                 cursor-default
               `,

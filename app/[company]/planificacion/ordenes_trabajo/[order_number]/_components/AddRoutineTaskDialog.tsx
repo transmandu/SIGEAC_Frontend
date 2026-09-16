@@ -22,7 +22,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { MinusCircle, Plus, PlusCircle } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";

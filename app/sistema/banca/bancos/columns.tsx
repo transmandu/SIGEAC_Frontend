@@ -3,10 +3,10 @@
 import { BankDropdownActions } from "@/components/dropdowns/ajustes/BancosPagosDropdownActions"
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
 import { Bank } from "@/types"
-import { ColumnDef } from "@tanstack/react-table"
+import { type AppColumnDef } from "@/lib/table";
 import Link from "next/link"
 
-export const columns: ColumnDef<Bank>[] = [
+export const columns: AppColumnDef<Bank>[] = [
   {
     accessorKey: "name",
     header: ({ column }) => (

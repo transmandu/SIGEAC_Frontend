@@ -43,7 +43,7 @@ const ProfileCompanies = ({
             key={company.id}
             className={cn(
               "flex items-start gap-3 rounded-xl border bg-card p-3.5 transition-colors",
-              isActive ? "border-primary/50 bg-primary/[0.04]" : "border-border"
+              isActive ? "border-primary/50 bg-primary/4" : "border-border"
             )}
           >
             <div className="relative flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-lg border bg-background">

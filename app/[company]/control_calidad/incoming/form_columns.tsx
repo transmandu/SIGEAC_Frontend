@@ -1,11 +1,11 @@
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
+import { type AppColumnDef } from "@/lib/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { IncomingArticle } from "./IncomingTypes";
 
-export const form_columns: ColumnDef<IncomingArticle>[] = [
+export const form_columns: AppColumnDef<IncomingArticle>[] = [
   {
     id: "select",
     header: ({ table }) => (

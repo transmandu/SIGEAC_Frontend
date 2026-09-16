@@ -1,16 +1,13 @@
 "use client";
 import * as React from "react";
 import {
-  ColumnDef,
   ColumnFiltersState,
-  SortingState,
   flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
+  type RowData,
+  SortingState,
+  useTable,
 } from "@tanstack/react-table";
+import { appTableFeatures, type AppColumnDef, type AppRow } from "@/lib/table";
 import {
   Table,
   TableBody,
@@ -22,33 +19,29 @@ import {
 import { Input } from "@/components/ui/input";
 import { DataTablePagination } from "@/components/tables/DataTablePagination";
 import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions";
-import { Row } from "@tanstack/react-table";
 
-interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[];
+interface DataTableProps<TData extends RowData> {
+  columns: AppColumnDef<TData>[];
   data: TData[];
-  renderSubComponent?: (props: { row: Row<TData> }) => React.ReactElement;
-  getRowCanExpand?: (row: Row<TData>) => boolean;
+  renderSubComponent?: (props: { row: AppRow<TData> }) => React.ReactElement;
+  getRowCanExpand?: (row: AppRow<TData>) => boolean;
 }
-export function DataTable<TData, TValue>({
+export function DataTable<TData extends RowData>({
   columns,
   data,
   renderSubComponent,
   getRowCanExpand,
-}: DataTableProps<TData, TValue>) {
+}: DataTableProps<TData>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     [],
   );
-  const table = useReactTable({
+  const table = useTable({
+    features: appTableFeatures,
     data,
     columns,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     onSortingChange: setSorting,
-    getSortedRowModel: getSortedRowModel(),
     onColumnFiltersChange: setColumnFilters,
-    getFilteredRowModel: getFilteredRowModel(),
     getRowCanExpand: getRowCanExpand,
     state: {
       sorting,

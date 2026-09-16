@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/form";
 
 import { Input } from "@/components/ui/input";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -68,11 +68,11 @@ export function CreateGenVolReport({
 
   const FormSchema = z.object({
     identification_date: z
-      .date({ required_error: "La fecha de identificación es obligatoria" })
+      .date({ error: "La fecha de identificación es obligatoria" })
       .default(() => new Date())
       .refine((val) => !isNaN(val.getTime()), { message: "Fecha inválida" }),
     report_date: z
-      .date({ required_error: "La fecha de reporte es obligatoria" })
+      .date({ error: "La fecha de reporte es obligatoria" })
       .default(() => new Date())
       .refine((val) => !isNaN(val.getTime()), { message: "Fecha inválida" }),
 
@@ -309,20 +309,10 @@ export function CreateGenVolReport({
                         mode="single"
                         selected={field.value}
                         onSelect={field.onChange}
-                        initialFocus
-                        fromYear={2000}
-                        toYear={new Date().getFullYear()}
-                        captionLayout="dropdown-buttons"
-                        components={{
-                          Dropdown: (props) => (
-                            <select
-                              {...props}
-                              className="bg-popover text-popover-foreground"
-                            >
-                              {props.children}
-                            </select>
-                          ),
-                        }}
+                        autoFocus
+                        startMonth={new Date(2000, 0)}
+                        endMonth={new Date(new Date().getFullYear(), 11)}
+                        captionLayout="dropdown"
                       />
                     </PopoverContent>
                   </Popover>
@@ -361,20 +351,10 @@ export function CreateGenVolReport({
                         mode="single"
                         selected={field.value}
                         onSelect={field.onChange}
-                        initialFocus
-                        fromYear={2000}
-                        toYear={new Date().getFullYear()}
-                        captionLayout="dropdown-buttons"
-                        components={{
-                          Dropdown: (props) => (
-                            <select
-                              {...props}
-                              className="bg-popover text-popover-foreground"
-                            >
-                              {props.children}
-                            </select>
-                          ),
-                        }}
+                        autoFocus
+                        startMonth={new Date(2000, 0)}
+                        endMonth={new Date(new Date().getFullYear(), 11)}
+                        captionLayout="dropdown"
                       />
                     </PopoverContent>
                   </Popover>
@@ -592,7 +572,7 @@ export function CreateGenVolReport({
                           <button
                             type="button"
                             onClick={() => handleRemoveConsequence(index)}
-                            className="hover:text-destructive focus:outline-none transition-colors"
+                            className="hover:text-destructive focus:outline-hidden transition-colors"
                           >
                             <X className="size-3.5" />
                           </button>

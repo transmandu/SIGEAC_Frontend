@@ -17,7 +17,7 @@ export default function Home() {
     <div
       className="
         w-full
-        min-h-[100dvh]
+        min-h-dvh
         flex
         flex-col
         lg:flex-row

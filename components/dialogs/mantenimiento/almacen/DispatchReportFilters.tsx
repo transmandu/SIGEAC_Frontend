@@ -306,7 +306,7 @@ export function DispatchReportFilters({
             <div className="flex justify-center w-full">
               <Button
                 variant="outline"
-                className="w-[320px] mx-auto justify-center text-center gap-2 h-11 px-4 border border-dashed border-slate-300/60 dark:border-slate-700/40 bg-background/60 backdrop-blur font-medium text-slate-700 dark:text-slate-200 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-900/40"
+                className="w-[320px] mx-auto justify-center text-center gap-2 h-11 px-4 border border-dashed border-slate-300/60 dark:border-slate-700/40 bg-background/60 backdrop-blur-sm font-medium text-slate-700 dark:text-slate-200 shadow-xs hover:bg-slate-50 dark:hover:bg-slate-900/40"
               >
                 <CalendarDays className="w-4 h-4 text-muted-foreground" />
 
@@ -334,7 +334,7 @@ export function DispatchReportFilters({
             align="center"
             side="bottom"
             sideOffset={10}
-            className="p-3 w-auto min-w-[320px] rounded-2xl border border-slate-200/60 dark:border-slate-800/60 shadow-xl backdrop-blur bg-white/90 dark:bg-slate-950/90"
+            className="p-3 w-auto min-w-[320px] rounded-2xl border border-slate-200/60 dark:border-slate-800/60 shadow-xl backdrop-blur-sm bg-white/90 dark:bg-slate-950/90"
           >
             {/* ================= PRESETS ================= */}
             <div className="flex items-center justify-center gap-2 mb-2 flex-wrap">
@@ -483,7 +483,7 @@ export function DispatchReportFilters({
                     : 1
                 }
                 showOutsideDays={false}
-                toMonth={new Date()}
+                endMonth={new Date()}
                 locale={es}
                 disabled={(d) => d > new Date()}
                 className={cn(
@@ -496,7 +496,7 @@ export function DispatchReportFilters({
                   "[&_.rdp-day_range_end]:bg-slate-300"
                 )}
                 formatters={{
-                  formatMonthCaption: (date) =>
+                  formatCaption: (date) =>
                     format(date, "MMMM yyyy", { locale: es }).toUpperCase(),
                 }}
               />
@@ -577,7 +577,7 @@ export function DispatchReportFilters({
               // En pantallas de poca altura el listado de filtros desbordaba el
               // viewport: lo acotamos al espacio real que Radix deja libre y
               // dejamos que scrollee internamente.
-              "max-h-[var(--radix-popover-content-available-height)] overflow-y-auto"
+              "max-h-(--radix-popover-content-available-height) overflow-y-auto"
             )}
           >
 
@@ -913,7 +913,7 @@ export function DispatchReportFilters({
               // En pantallas de poca altura el listado de filtros desbordaba el
               // viewport: lo acotamos al espacio real que Radix deja libre y
               // dejamos que scrollee internamente.
-              "max-h-[var(--radix-popover-content-available-height)] overflow-y-auto"
+              "max-h-(--radix-popover-content-available-height) overflow-y-auto"
             )}
           >
             {/* ================= PART NUMBER ================= */}

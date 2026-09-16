@@ -89,7 +89,7 @@ const DateFilter = ({
           size={"sm"}
           variant={"outline"}
           data-tour={buttonDataTour}
-          className="lg:w-auto w-full h-9 rounded-md px-3 font-normal bg-primary hover:bg-primary/90 hover:text-white border-none focus:ring-offset-0 focus:ring-transparent outline-none text-white focus:bg-blue-700/50 transition"
+          className="lg:w-auto w-full h-9 rounded-md px-3 font-normal bg-primary hover:bg-primary/90 hover:text-white border-none focus:ring-offset-0 focus:ring-transparent outline-hidden text-white focus:bg-blue-700/50 transition"
         >
           <span>
             {convertDateRangeToPeriod(date || initialDateRange)
@@ -104,23 +104,16 @@ const DateFilter = ({
       <PopoverContent className="lg:w-auto w-full p-0" align="start">
         <Calendar
           disabled={false}
-          initialFocus
+          autoFocus
           mode="range"
           defaultMonth={tempDate?.from}
           selected={tempDate}
           onSelect={handleDateChange}
           numberOfMonths={2}
           locale={es}
-          fromYear={2000}
-          toYear={new Date().getFullYear()}
-          captionLayout="dropdown-buttons"
-          components={{
-            Dropdown: (props) => (
-              <select {...props} className="bg-popover text-popover-foreground">
-                {props.children}
-              </select>
-            ),
-          }}
+          startMonth={new Date(2000, 0)}
+          endMonth={new Date(new Date().getFullYear(), 11)}
+          captionLayout="dropdown"
         />
         <div className="p-4 w-full flex items-center gap-x-2">
           <PopoverClose asChild>

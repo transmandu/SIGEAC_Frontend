@@ -137,7 +137,7 @@ export default function ManifestDetailPage() {
 
         {/* Info Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card className="shadow-sm" data-tour="cargo-manifiestos-detalle-card-generales">
+          <Card className="shadow-xs" data-tour="cargo-manifiestos-detalle-card-generales">
             <CardHeader className="pb-3 border-b bg-muted/10">
               <CardTitle className="text-base flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-blue-500" /> Datos Generales
@@ -165,7 +165,7 @@ export default function ManifestDetailPage() {
             </CardContent>
           </Card>
 
-          <Card className="shadow-sm" data-tour="cargo-manifiestos-detalle-card-info">
+          <Card className="shadow-xs" data-tour="cargo-manifiestos-detalle-card-info">
             <CardHeader className="pb-3 border-b bg-muted/10">
               <CardTitle className="text-base flex items-center gap-2">
                 <Clock className="h-4 w-4 text-blue-500" /> Información del
@@ -207,7 +207,7 @@ export default function ManifestDetailPage() {
         </div>
 
         {/* Items Table */}
-        <Card className="shadow-sm mt-4" data-tour="cargo-manifiestos-detalle-guias">
+        <Card className="shadow-xs mt-4" data-tour="cargo-manifiestos-detalle-guias">
           <CardHeader className="pb-3 border-b">
             <CardTitle className="text-lg">
               Guías incluidas en el manifiesto
@@ -329,7 +329,7 @@ function ShipmentGroupRow({ group }: { group: any }) {
           <TableRow className="bg-muted/5 border-b hover:bg-muted/5">
             <TableCell colSpan={6} className="p-0">
               <div className="px-14 py-4">
-                <div className="rounded-lg border bg-background shadow-sm overflow-hidden">
+                <div className="rounded-lg border bg-background shadow-xs overflow-hidden">
                   <div className="bg-muted/40 px-4 py-2 border-b flex items-center justify-between">
                     <span className="text-sm font-semibold text-primary">
                       Detalle de Productos

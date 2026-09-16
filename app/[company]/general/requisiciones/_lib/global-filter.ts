@@ -1,4 +1,4 @@
-import type { FilterFn } from '@tanstack/react-table'
+import { type AppFilterFn } from "@/lib/table";
 
 import type { Requisition } from '@/types/purchase'
 
@@ -43,7 +43,7 @@ const getSearchableText = (requisition: Requisition): string => {
  * Todos los términos deben aparecer (AND), así "thinner azul" acota en vez
  * de ampliar.
  */
-export const requisitionGlobalFilter: FilterFn<Requisition> = (row, _columnId, filterValue) => {
+export const requisitionGlobalFilter: AppFilterFn<Requisition> = (row, _columnId, filterValue) => {
   const terms = normalize(String(filterValue ?? '')).split(/\s+/).filter(Boolean)
   if (terms.length === 0) return true
 

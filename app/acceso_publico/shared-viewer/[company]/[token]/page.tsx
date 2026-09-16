@@ -3,16 +3,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import { Loader2, ShieldCheck, Lock, Frown, RotateCcw, Download } from 'lucide-react';
-import { Worker, Viewer } from '@react-pdf-viewer/core';
-import { defaultLayoutPlugin } from '@react-pdf-viewer/default-layout';
+import { SecurePdfViewer } from '@/components/library/SecurePdfViewer';
 import { Button } from "@/components/ui/button";
 import { useCallback } from 'react';
-// @ts-ignore - Ignorar error cosmético de TS en PC nueva
-import '@react-pdf-viewer/core/lib/styles/index.css';
-// @ts-ignore - Ignorar error cosmético de TS en PC nueva
-import '@react-pdf-viewer/default-layout/lib/styles/index.css';
 
 import libraryService from '@/lib/libraryService';
+import { toast } from 'sonner';
 
 export default function PublicNativeViewerPage() {
   const params = useParams();
@@ -25,30 +21,6 @@ export default function PublicNativeViewerPage() {
   const [readOnly, setReadOnly] = useState<boolean>(true);
   const [docTitle, setDocTitle] = useState<string>('');
   const activeUrlRef = useRef<string | null>(null);
-
-  const defaultLayoutPluginInstance = defaultLayoutPlugin({
-    sidebarTabs: () => [],
-    renderToolbar: (Toolbar) => (
-      <Toolbar>
-        {(slots) => {
-          const { Zoom, ZoomIn, ZoomOut, EnterFullScreen, NumberOfPages, CurrentPageInput } = slots;
-          return (
-            <div className="flex items-center justify-between w-full px-4">
-              <div className="flex items-center gap-2">
-                <ZoomOut /> <Zoom /> <ZoomIn />
-              </div>
-              <div className="flex items-center gap-2 text-gray-400 text-xs font-bold">
-                <CurrentPageInput /> / <NumberOfPages />
-              </div>
-              <div className="flex items-center">
-                <EnterFullScreen />
-              </div>
-            </div>
-          );
-        }}
-      </Toolbar>
-    ),
-  });
 
   // --- 🛡️ BLOQUEO DE SEGURIDAD AMPLIADO (PERMITE SUBRAYAR, NIEGA COPIAR/CORTAR) ---
   useEffect(() => {
@@ -118,14 +90,15 @@ export default function PublicNativeViewerPage() {
 
   const handleDownload = async () => {
     try {
-      const blobUrl = await libraryService.getFileBlob(company, token);
+      // Pasa por el endpoint de descarga: es el backend quien comprueba el flag.
+      const blobUrl = await libraryService.downloadSharedFile(company, token);
       const a = document.createElement('a');
       a.href = blobUrl;
       a.download = `${docTitle || 'documento'}.pdf`;
       a.click();
       URL.revokeObjectURL(blobUrl);
-    } catch {
-      // silent
+    } catch (err: any) {
+      toast.error(err?.message || 'No se pudo descargar el documento.');
     }
   };
 
@@ -209,14 +182,7 @@ export default function PublicNativeViewerPage() {
         ) : (
           fileUrl && (
             <div className="h-full w-full">
-              <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
-                <Viewer
-                  fileUrl={fileUrl}
-                  plugins={[defaultLayoutPluginInstance]}
-                  theme="dark"
-                  defaultScale={1.0}
-                />
-              </Worker>
+              <SecurePdfViewer fileUrl={fileUrl} theme="dark" />
             </div>
           )
         )}

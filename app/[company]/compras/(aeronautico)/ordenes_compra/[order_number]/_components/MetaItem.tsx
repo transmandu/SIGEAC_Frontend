@@ -17,7 +17,7 @@ const MetaItem = ({ label, value, icon: Icon, wrap }: MetaItemProps) => {
       <span
         className={cn(
           'text-sm font-medium flex gap-1.5',
-          wrap ? 'items-start text-wrap break-words' : 'items-center'
+          wrap ? 'items-start text-wrap wrap-break-word' : 'items-center'
         )}
       >
         {Icon && <Icon className="size-3.5 text-muted-foreground/50 shrink-0 mt-0.5" />}

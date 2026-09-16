@@ -14,13 +14,14 @@ import ActivitiesReportPdf from "@/components/pdf/desarrollo/ActivityReport";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import { Printer, FileText } from "lucide-react";
 
-import { useState } from "react";
+import { use, useState } from "react";
 import { DailyReportDialog } from "@/components/dialogs/aerolinea/desarollo/DailyReportDialog";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { toCalendarPayload } from "@/lib/date";
 
-const ActivityReportsByIdPage = ({ params }: { params: { id: string } }) => {
-  const { data: report, isLoading } = useGetUserActivity(params.id);
+const ActivityReportsByIdPage = ({ params }: { params: Promise<{ id: string }> }) => {
+  const { id } = use(params);
+  const { data: report, isLoading } = useGetUserActivity(id);
   const { user, loading } = useAuth();
   const userRoles = user?.roles?.map((role) => role.name) || [];
   const [dialogOpen, setDialogOpen] = useState(false);

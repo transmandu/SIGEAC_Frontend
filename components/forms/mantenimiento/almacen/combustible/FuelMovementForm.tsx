@@ -37,7 +37,7 @@ import {
   FuelVehicle,
   ThirdParty,
 } from "@/types";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { format } from "date-fns";
 import { Loader2 } from "lucide-react";
 import { useMemo, useState } from "react";

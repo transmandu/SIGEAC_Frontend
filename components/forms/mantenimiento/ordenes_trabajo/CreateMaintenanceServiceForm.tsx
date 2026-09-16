@@ -22,7 +22,7 @@ import {
 import { useGetManufacturers } from "@/hooks/general/fabricantes/useGetManufacturers";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { Check, ChevronsUpDown, Loader2, MinusCircle, PlusCircle } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";

@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/form";
 
 import { Input } from "@/components/ui/input";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -19,20 +19,13 @@ import {
   useCreateCourse,
   useUpdateCourse,
 } from "@/actions/general/cursos/actions";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { DatePickerField } from "@/components/ui/DatePickerField";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
-import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { Course } from "@/types";
-import { addDays, format } from "date-fns";
-import { es } from "date-fns/locale";
-import { CalendarIcon, Loader2 } from "lucide-react";
+import { addDays } from "date-fns";
+import { Loader2 } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -202,52 +195,13 @@ export function CreateCourseForm({
               name="start_date"
               render={({ field }) => (
                 <FormItem className="flex flex-col mt-2.5 w-full">
-                  <FormLabel>Fecha de Inicio</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant={"outline"}
-                          className={cn(
-                            "w-full pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground",
-                          )}
-                        >
-                          {field.value ? (
-                            format(field.value, "PPP", {
-                              locale: es,
-                            })
-                          ) : (
-                            <span>Seleccionar Fecha de Inicio</span>
-                          )}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={field.onChange}
-                        disabled={false} // Solo deshabilitar fechas futuras
-                        initialFocus
-                        fromYear={1988} // Año mínimo que se mostrará
-                        toYear={new Date().getFullYear() + 5} // Año máximo (actual)
-                        captionLayout="dropdown-buttons" // Selectores de año/mes
-                        components={{
-                          Dropdown: (props) => (
-                            <select
-                              {...props}
-                              className="bg-popover text-popover-foreground"
-                            >
-                              {props.children}
-                            </select>
-                          ),
-                        }}
-                      />
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
+                  <DatePickerField
+                    label="Fecha de Inicio"
+                    value={field.value}
+                    setValue={(d) => field.onChange(d)}
+                    required
+                  />
+                  <FormMessage className="text-xs" />
                 </FormItem>
               )}
             />
@@ -288,52 +242,13 @@ export function CreateCourseForm({
               name="end_date"
               render={({ field }) => (
                 <FormItem className="flex flex-col mt-2.5 w-full">
-                  <FormLabel>Fecha de Finalización</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant={"outline"}
-                          className={cn(
-                            "w-full pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground",
-                          )}
-                        >
-                          {field.value ? (
-                            format(field.value, "PPP", {
-                              locale: es,
-                            })
-                          ) : (
-                            <span>Seleccionar Fecha</span>
-                          )}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={field.onChange}
-                        disabled={false} // Solo deshabilitar fechas futuras
-                        initialFocus
-                        fromYear={1980} // Año mínimo que se mostrará
-                        toYear={new Date().getFullYear() + 5} // Año máximo (actual)
-                        captionLayout="dropdown-buttons" // Selectores de año/mes
-                        components={{
-                          Dropdown: (props) => (
-                            <select
-                              {...props}
-                              className="bg-popover text-popover-foreground"
-                            >
-                              {props.children}
-                            </select>
-                          ),
-                        }}
-                      />
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
+                  <DatePickerField
+                    label="Fecha de Finalización"
+                    value={field.value}
+                    setValue={(d) => field.onChange(d)}
+                    required
+                  />
+                  <FormMessage className="text-xs" />
                 </FormItem>
               )}
             />

@@ -44,6 +44,8 @@ interface UpdateObligatoryReportData {
         status: string;
         danger_identification_id: string | number | null;
         other_incidents?: string;
+        email?: string | null;
+        phone_number?: string | null;
         image?: string | File;
         document?: string | File;
     };

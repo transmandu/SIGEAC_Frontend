@@ -142,7 +142,7 @@ export default function PreviewCreateComponentDialog({
 
 function PreviewRow({ label, value }: { label: string; value: any }) {
   return (
-    <div className="flex flex-col p-2 rounded-md bg-white shadow-sm border border-gray-200">
+    <div className="flex flex-col p-2 rounded-md bg-white shadow-xs border border-gray-200">
       <span className="text-xs text-muted-foreground mb-1">{label}</span>
       <span className="font-medium text-gray-800">{value}</span>
     </div>

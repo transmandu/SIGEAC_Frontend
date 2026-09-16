@@ -28,7 +28,7 @@ const AirlinePresentationCard = ({ company }: PresentationCardProps) => {
                             priority
                         />
                         {/* Overlay gradiente para legibilidad */}
-                        <div className="absolute inset-0 bg-gradient-to-r from-blue-900/70 to-transparent" />
+                        <div className="absolute inset-0 bg-linear-to-r from-blue-900/70 to-transparent" />
 
                         <div className="absolute bottom-4 left-4 lg:bottom-8 lg:left-8 text-white">
                             <h1 className="text-2xl lg:text-3xl font-bold mb-2">

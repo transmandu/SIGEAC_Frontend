@@ -76,8 +76,8 @@ function StockAlertCard({
       transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
       className={cn(
         "rounded-xl border p-3.5",
-        "bg-gradient-to-br from-background to-muted/40",
-        "shadow-sm"
+        "bg-linear-to-br from-background to-muted/40",
+        "shadow-xs"
       )}
     >
       <div className="flex items-start gap-2.5">

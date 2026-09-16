@@ -12,7 +12,7 @@ import { PageTitleProvider } from "@/contexts/PageTitleContext";
 import CriticalAlertsButton from "./CriticalAlertsButton";
 
 export default function DashboardLayout({
-  children
+  children,
 }: {
   children: React.ReactNode;
 }) {
@@ -30,8 +30,8 @@ export default function DashboardLayout({
 
           <main
             className={cn(
-              "min-h-[calc(100vh_-_56px)] transition-[margin-left] ease-in-out duration-300",
-              isOpen === false ? "lg:ml-[90px]" : "lg:ml-72"
+              "min-h-[calc(100vh-56px)] transition-[margin-left] ease-in-out duration-300",
+              isOpen === false ? "lg:ml-22.5" : "lg:ml-72",
             )}
           >
             <Navbar />
@@ -41,7 +41,7 @@ export default function DashboardLayout({
           <footer
             className={cn(
               "transition-[margin-left] ease-in-out duration-300",
-              isOpen === false ? "lg:ml-[90px]" : "lg:ml-72"
+              isOpen === false ? "lg:ml-22.5" : "lg:ml-72",
             )}
           >
             <Footer />

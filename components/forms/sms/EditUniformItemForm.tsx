@@ -16,7 +16,7 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { useUpdateUniformItem } from "@/actions/sms/uniforms/actions";
 import { UniformItem } from "@/hooks/sms/useGetUniforms";
 import { getUniformTypeIcon } from "@/components/sms/uniform-meta";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/zod-resolver";
 import { Loader2, Save } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";

@@ -83,7 +83,7 @@ const PurchaseOrderDropdownDialogs = ({
                   flex items-center justify-center
                   size-12 rounded-2xl
                   border border-red-500/15
-                  bg-red-500/[0.08]
+                  bg-red-500/8
                 "
               >
                 <AlertOctagon className="size-5 text-red-600" />
@@ -102,7 +102,7 @@ const PurchaseOrderDropdownDialogs = ({
               </DialogDescription>
             </DialogHeader>
 
-            <div className="mx-6 mt-4 p-3 rounded-xl border border-red-500/20 bg-red-500/[0.05] text-sm text-red-600 flex gap-2 leading-relaxed">
+            <div className="mx-6 mt-4 p-3 rounded-xl border border-red-500/20 bg-red-500/5 text-sm text-red-600 flex gap-2 leading-relaxed">
               <AlertTriangle className="size-4 mt-[2px]" />
               <div>
                 Esta acción es <b>irreversible</b>.{" "}
@@ -178,7 +178,7 @@ const PurchaseOrderDropdownDialogs = ({
                     size-14 shrink-0
                     rounded-2xl
                     border border-primary/10
-                    bg-primary/[0.08]
+                    bg-primary/8
                   "
                 >
                   <Wallet className="size-6 text-primary" />
@@ -258,7 +258,7 @@ const PurchaseOrderDropdownDialogs = ({
                     size-14 shrink-0
                     rounded-2xl
                     border border-primary/10
-                    bg-primary/[0.08]
+                    bg-primary/8
                   "
                 >
                   <ClipboardCheck className="size-6 text-primary" />

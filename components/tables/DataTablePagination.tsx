@@ -5,7 +5,8 @@ import {
   ChevronRight,
 } from "lucide-react"
 
-import { Table } from "@tanstack/react-table"
+import { type RowData } from "@tanstack/react-table";
+import { type AppTable } from "@/lib/table";
 import { Button } from "@/components/ui/button"
 import {
   Select,
@@ -15,11 +16,11 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
-interface DataTablePaginationProps<TData> {
-  table: Table<TData>
+interface DataTablePaginationProps<TData extends RowData> {
+  table: AppTable<TData>
 }
 
-export function DataTablePagination<TData>({
+export function DataTablePagination<TData extends RowData>({
   table,
 }: DataTablePaginationProps<TData>) {
   return (
@@ -42,7 +43,7 @@ export function DataTablePagination<TData>({
           </p>
 
           <Select
-            value={`${table.getState().pagination.pageSize}`}
+            value={`${table.state.pagination.pageSize}`}
             onValueChange={(value) => table.setPageSize(Number(value))}
           >
             <SelectTrigger
@@ -73,7 +74,7 @@ export function DataTablePagination<TData>({
           <span className="text-muted-foreground">Página</span>
 
           <span className="mx-1 text-foreground font-semibold tabular-nums">
-            {table.getState().pagination.pageIndex + 1}
+            {table.state.pagination.pageIndex + 1}
           </span>
 
           <span className="text-muted-foreground">de</span>
@@ -121,7 +122,7 @@ export function DataTablePagination<TData>({
                 hover:text-foreground
                 hover:bg-white dark:hover:bg-slate-800/50
                 border border-transparent hover:border-slate-200/40 dark:hover:border-slate-700/40
-                shadow-none hover:shadow-sm
+                shadow-none hover:shadow-xs
                 transition-all
               "
               onClick={action}

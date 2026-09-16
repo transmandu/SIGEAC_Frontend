@@ -1,3 +1,136 @@
+## v4.7.0 — 2026-09-16
+
+- Merge pull request #269 from transmandu/fix/yml-action-workflow
+- feat: add Dependabot configuration and summary workflow for dependency updates
+
+## v4.6.6 — 2026-09-15
+
+- Merge pull request #267 from transmandu/fix/visual-menu-fallos
+- fix: standardize CSS syntax and improve formatting across sidebar components
+- fix: adjust sidebar and menu styles for improved layout and performance
+
+## v4.6.5 — 2026-09-15
+
+- fix: show inactive employee in sms activities (#266)
+
+## v4.6.4 — 2026-09-15
+
+- revert: rollback release to v4.6.2 (#265)
+
+## v4.6.2 — 2026-09-15
+
+- refactor: qr code hangar 74 with new icon (#263)
+
+## v4.6.1 — 2026-09-15
+
+- Merge pull request #262 from transmandu/fix/critical-article-popover
+- fix: add missing commas for consistency in CriticalAlertsButton and DashboardLayout
+- fix: replace Popover with Tooltip for critical alerts button interaction
+
+## v4.6.0 — 2026-09-15
+
+- feat: the input date in couse form with option to select year and month (#261)
+
+## v4.5.0 — 2026-09-15
+
+- feat: add qr code for sms hangar74 (#260)
+
+## v4.4.0 — 2026-09-15
+
+- feat: new calendar to select year and month (#259)
+
+## v4.3.0 — 2026-09-15
+
+- feat: add dialog to show certificates sms (#258)
+
+## v4.2.2 — 2026-09-15
+
+- refactor: sms activities table (#257)
+
+## v4.2.1 — 2026-09-14
+
+- fix: meeting minute form doesnt show employees (#256)
+
+## v4.2.0 — 2026-09-14
+
+- feat: select any employee from the company (#255)
+
+## v4.1.1 — 2026-09-14
+
+- fix: sms requeriments (#254)
+
+## v4.1.0 — 2026-09-12
+
+- feat: refactor consumable dispatch form and add ConsumableArticleRow component
+
+## v4.0.3 — 2026-09-12
+
+- docs: como abrir los dos repos a la vez sin romper el LSP de Laravel
+
+## v4.0.2 — 2026-09-12
+
+- chore: formato automatico compartido por todo el equipo
+
+## v4.0.1 — 2026-09-12
+
+- chore: sacar config local de editor y de IA del control de versiones
+
+## v4.0.0 — 2026-09-11
+
+- Merge pull request #253 from transmandu/fix7pr-yaml-versiones
+- fix(docs): update installation instructions to use pnpm instead of npm
+- Merge pull request #252 from transmandu/build/actualizacion-dependencias
+- fix(deps): reparar lo que las nuevas versiones cambiaron de comportamiento
+- fix(estilos): reparar lo que la migración a Tailwind 4 alteró del aspecto
+- build: migrar de npm a pnpm 12 con política de cadena de suministro
+- build: fijar el piso de Node y la versión de TypeScript del editor
+- feat(calendario)!: migrar los cuatro calendarios a la API Temporal de schedule-x 3
+- build(deps): TypeScript 6.0.3
+- build(deps): zod 4.6.2
+- fix(calendario)!: volver @schedule-x a la 2.36, que es la API que usa el código
+- build(deps)!: migrar a Tailwind 4
+- feat(biblioteca)!: reemplazar el visor de PDF por react-pdf sobre pdfjs 6
+- refactor(tablas)!: migrar a TanStack Table v9
+- build(deps)!: subir zod 4 y @hookform/resolvers 5
+- build(deps): subir date-fns 4, zustand 5, recharts 3 y laravel-echo 2
+- build(deps)!: migrar a React 19, Next 16 y ESLint flat config
+- build(deps): actualizar menores y parches dentro de cada major
+- build(deps): quitar dependencias sin uso
+
+## v3.17.0 — 2026-09-10
+
+- Merge pull request #250 from transmandu/feat/vista-consumibles-dimension
+- feat: add dimension property to article interfaces and update related logic
+
+## v3.16.0 — 2026-09-10
+
+- Merge pull request #249 from transmandu/fix/menu-almacen-creacion-consumible
+- feat: enhance article form data handling and menu role access control
+
+## v3.15.0 — 2026-09-09
+
+- feat: add obligatory report pdf format (#248)
+
+## v3.14.0 — 2026-09-09
+
+- feat: enhance dashboard modal with tooltips and error handling (#247)
+
+## v3.13.0 — 2026-09-08
+
+- feat: enhance tool dispatch form and backdated dispatch field (#246)
+
+## v3.12.0 — 2026-09-07
+
+- feat: excel report sms (#245)
+
+## v3.11.0 — 2026-09-07
+
+- feat: implement unit conversion functionality in article management (#244)
+
+## v3.10.1 — 2026-09-04
+
+- fix: alter validation from zod to accept number null or string (#243)
+
 ## v3.10.0 — 2026-09-03
 
 - feat: authorized employee sms act (#242)

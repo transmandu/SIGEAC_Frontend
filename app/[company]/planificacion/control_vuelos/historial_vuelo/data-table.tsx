@@ -1,19 +1,15 @@
 "use client"
 
 import {
-  ColumnDef,
   ColumnFiltersState,
   ExpandedState,
-  SortingState,
-  VisibilityState,
   flexRender,
-  getCoreRowModel,
-  getExpandedRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table"
+  type RowData,
+  SortingState,
+  useTable,
+  ColumnVisibilityState,
+} from "@tanstack/react-table";
+import { appTableFeatures, type AppColumnDef } from "@/lib/table";
 import {
   Table,
   TableBody,
@@ -25,43 +21,39 @@ import {
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
 
-interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[]
+interface DataTableProps<TData extends RowData> {
+  columns: AppColumnDef<TData>[]
   data: TData[]
   totalRecords?: number
   currentPage?: number
   onPageChange?: (page: number) => void
 }
 
-export function DataTable<TData, TValue>({
+export function DataTable<TData extends RowData>({
   columns,
   data,
   totalRecords = 0,
   currentPage = 1,
   onPageChange,
-}: DataTableProps<TData, TValue>) {
+}: DataTableProps<TData>) {
   // ============================================
   // STATE MANAGEMENT
   // ============================================
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
+  const [columnVisibility, setColumnVisibility] = useState<ColumnVisibilityState>({})
   const [expanded, setExpanded] = useState<ExpandedState>({}) // {} = todas colapsadas por defecto
 
   // ============================================
   // TABLE CONFIGURATION
   // ============================================
-  const table = useReactTable({
+  const table = useTable({
+    features: appTableFeatures,
     data,
     columns,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     onSortingChange: setSorting,
-    getSortedRowModel: getSortedRowModel(),
     onColumnFiltersChange: setColumnFilters,
-    getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
-    getExpandedRowModel: getExpandedRowModel(),
     onExpandedChange: setExpanded,
     getSubRows: (row: any) => row.subRows,
     state: {
@@ -72,6 +64,7 @@ export function DataTable<TData, TValue>({
     },
     initialState: {
       pagination: {
+        pageIndex: 0,
         pageSize: 50,
       },
     },
@@ -131,8 +124,8 @@ export function DataTable<TData, TValue>({
         <div className="flex-1 text-sm text-muted-foreground">
           {totalRecords > 0 ? (
             <>
-              Mostrando {((currentPage - 1) * table.getState().pagination.pageSize) + 1} -{" "}
-              {Math.min(currentPage * table.getState().pagination.pageSize, totalRecords)} de {totalRecords} registro(s)
+              Mostrando {((currentPage - 1) * table.state.pagination.pageSize) + 1} -{" "}
+              {Math.min(currentPage * table.state.pagination.pageSize, totalRecords)} de {totalRecords} registro(s)
             </>
           ) : (
             "No hay registros"
@@ -142,7 +135,7 @@ export function DataTable<TData, TValue>({
           <div className="flex items-center space-x-2">
             <p className="text-sm font-medium">Filas por página</p>
             <select
-              value={table.getState().pagination.pageSize}
+              value={table.state.pagination.pageSize}
               onChange={(e) => table.setPageSize(Number(e.target.value))}
               className="h-8 w-[70px] rounded-md border border-input bg-transparent px-2 py-1 text-sm"
             >
@@ -154,7 +147,7 @@ export function DataTable<TData, TValue>({
             </select>
           </div>
           <div className="flex w-[100px] items-center justify-center text-sm font-medium">
-            Página {currentPage} de {Math.ceil(totalRecords / table.getState().pagination.pageSize)}
+            Página {currentPage} de {Math.ceil(totalRecords / table.state.pagination.pageSize)}
           </div>
           <div className="flex items-center space-x-2">
             <Button
@@ -169,7 +162,7 @@ export function DataTable<TData, TValue>({
               variant="outline"
               size="sm"
               onClick={() => onPageChange?.(currentPage + 1)}
-              disabled={currentPage >= Math.ceil(totalRecords / table.getState().pagination.pageSize)}
+              disabled={currentPage >= Math.ceil(totalRecords / table.state.pagination.pageSize)}
             >
               Siguiente
             </Button>

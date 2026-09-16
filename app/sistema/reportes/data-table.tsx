@@ -1,11 +1,7 @@
 "use client";
 
-import {
-  ColumnDef,
-  flexRender,
-  getCoreRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
+import { flexRender, type RowData, useTable } from "@tanstack/react-table";
+import { appTableFeatures, type AppColumnDef } from "@/lib/table";
 
 import { DataTablePagination } from "@/components/tables/DataTablePagination";
 import {
@@ -18,8 +14,8 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 
-interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[];
+interface DataTableProps<TData extends RowData> {
+  columns: AppColumnDef<TData>[];
   data: TData[];
   loading?: boolean;
   pageIndex: number;
@@ -29,7 +25,7 @@ interface DataTableProps<TData, TValue> {
   onRowClick?: (row: TData) => void;
 }
 
-export function DataTable<TData, TValue>({
+export function DataTable<TData extends RowData>({
   columns,
   data,
   loading = false,
@@ -38,11 +34,11 @@ export function DataTable<TData, TValue>({
   pageCount,
   onPaginationChange,
   onRowClick,
-}: DataTableProps<TData, TValue>) {
-  const table = useReactTable({
+}: DataTableProps<TData>) {
+  const table = useTable({
+    features: appTableFeatures,
     data,
     columns,
-    getCoreRowModel: getCoreRowModel(),
     manualPagination: true,
     pageCount,
     state: {
@@ -59,7 +55,7 @@ export function DataTable<TData, TValue>({
 
   return (
     <div>
-      <div className="mb-4 overflow-hidden rounded-2xl border border-slate-200/80 bg-background/60 shadow-sm shadow-slate-200/40 backdrop-blur-sm dark:border-slate-800/80 dark:shadow-none">
+      <div className="mb-4 overflow-hidden rounded-2xl border border-slate-200/80 bg-background/60 shadow-xs shadow-slate-200/40 backdrop-blur-xs dark:border-slate-800/80 dark:shadow-none">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (

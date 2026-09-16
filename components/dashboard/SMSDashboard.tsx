@@ -18,7 +18,7 @@ export default function SMSDashboard(props: SMSDashboardProps) {
   return (
     <ContentLayout title={`Dashboard / ${companySlug || ""}`}>
       {/* Header */}
-      <header className="border-b bg-background/60 backdrop-blur-md shadow-sm">
+      <header className="border-b bg-background/60 backdrop-blur-md shadow-xs">
         <div className="container mx-auto px-4 py-6 flex items-center justify-between">
 
           {/* ================= ICON + TITLE ================= */}
@@ -26,7 +26,7 @@ export default function SMSDashboard(props: SMSDashboardProps) {
 
             <div className="relative">
               <div className="absolute inset-0 rounded-2xl bg-blue-500/10 blur-md" />
-              <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl border border-blue-500/30 bg-blue-500/10 text-blue-600 shadow-sm">
+              <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl border border-blue-500/30 bg-blue-500/10 text-blue-600 shadow-xs">
                 <ShieldAlert className="h-6 w-6" />
               </div>
             </div>
@@ -44,7 +44,7 @@ export default function SMSDashboard(props: SMSDashboardProps) {
           </div>
 
           {/* ================= STATUS BADGE ================= */}
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 shadow-sm backdrop-blur-md">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 shadow-xs backdrop-blur-md">
             <Shield className="h-4 w-4" />
             <span className="text-xs font-medium tracking-wide">
               Sistema seguro

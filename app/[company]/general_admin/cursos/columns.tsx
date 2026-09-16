@@ -5,10 +5,10 @@ import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { Badge } from "@/components/ui/badge";
 import { dateFormat } from "@/lib/utils";
 import { Course } from "@/types";
-import { ColumnDef } from "@tanstack/react-table";
+import { type AppColumnDef } from "@/lib/table";
 import { courseStatusLabelEsUpper } from "@/lib/cursos/statuses";
 
-export const columns: ColumnDef<Course>[] = [
+export const columns: AppColumnDef<Course>[] = [
   {
     accessorKey: "name",
     header: ({ column }) => (

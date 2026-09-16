@@ -10,7 +10,7 @@ interface InfoSectionProps {
 
 const InfoSection = ({ title, icon: Icon, content, emptyMessage }: InfoSectionProps) => {
   return (
-    <div className="relative min-w-0 rounded-xl border border-border/60 bg-gradient-to-b from-muted/30 to-muted/10 p-5 shadow-sm">
+    <div className="relative min-w-0 rounded-xl border border-border/60 bg-linear-to-b from-muted/30 to-muted/10 p-5 shadow-xs">
       <div className="flex items-center gap-3 mb-3 select-none">
         <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground whitespace-nowrap">
           {title}

@@ -47,7 +47,7 @@ const PurchaseOrderPage = () => {
 
               <div className="flex items-center gap-3 flex-wrap">
 
-                <h1 className="text-2xl md:text-3xl font-semibold tracking-tight min-w-0 break-words">
+                <h1 className="text-2xl md:text-3xl font-semibold tracking-tight min-w-0 wrap-break-word">
                   {order_number}
                 </h1>
 

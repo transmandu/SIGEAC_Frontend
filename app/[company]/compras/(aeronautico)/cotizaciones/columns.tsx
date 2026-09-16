@@ -1,6 +1,6 @@
 'use client'
 
-import { ColumnDef } from '@tanstack/react-table'
+import { type AppColumnDef } from "@/lib/table";
 
 import { DataTableColumnHeader } from '@/components/tables/DataTableHeader'
 import QuoteDropdownActions from '@/components/dropdowns/mantenimiento/compras/QuoteDropdownActions'
@@ -29,7 +29,7 @@ export const getColumns = (
   onPreview?: (quote: Quote) => void,
   selectedPreviewId?: number | null,
   timeZone: string = DEFAULT_TIMEZONE
-): ColumnDef<Quote>[] => [
+): AppColumnDef<Quote>[] => [
   {
     accessorKey: 'quote_number',
     size: 210,
@@ -204,7 +204,7 @@ export const getColumns = (
                   inline-flex items-center gap-1.5
                   rounded-md border px-2 py-0.5
                   text-[10px] font-semibold tracking-wide
-                  shadow-sm transition-colors duration-150
+                  shadow-xs transition-colors duration-150
                   border-slate-500/30 bg-slate-500/10
                   text-slate-700 dark:text-slate-300
                   hover:bg-slate-500/15 dark:hover:text-slate-200
@@ -233,7 +233,7 @@ export const getColumns = (
                     "
                   >
                     <Truck className="size-3.5 mt-0.5 text-muted-foreground/50 shrink-0" />
-                    <span className="break-words">{name}</span>
+                    <span className="wrap-break-word">{name}</span>
                   </div>
                 ))}
               </div>
@@ -278,7 +278,7 @@ export const getColumns = (
                 text-[10px]
                 font-semibold
                 tracking-wide
-                shadow-sm
+                shadow-xs
                 transition-colors duration-150
                 cursor-default
                 hover:scale-100

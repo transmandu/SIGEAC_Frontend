@@ -54,7 +54,7 @@ const Item = ({
             className={cn(
                 `
           flex items-start gap-3 rounded-lg border
-          bg-background/70 backdrop-blur-sm
+          bg-background/70 backdrop-blur-xs
           border-slate-200/70 dark:border-slate-700/60
           px-3 py-3
         `,
@@ -75,7 +75,7 @@ const Item = ({
                     {label}
                 </span>
 
-                <span className="text-sm font-medium text-slate-800 dark:text-slate-100 break-words">
+                <span className="text-sm font-medium text-slate-800 dark:text-slate-100 wrap-break-word">
                     {value ?? '—'}
                 </span>
             </div>
@@ -121,7 +121,7 @@ export default function CompaniesSubRow({
                             align="end"
                             className="
             w-64 rounded-xl border border-slate-200/70
-            bg-background/95 p-3 backdrop-blur-sm
+            bg-background/95 p-3 backdrop-blur-xs
             dark:border-slate-700/60
             "
                         >

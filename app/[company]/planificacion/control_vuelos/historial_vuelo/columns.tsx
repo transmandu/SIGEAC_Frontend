@@ -1,13 +1,13 @@
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
+import { type AppColumnDef } from "@/lib/table";
 
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { Badge } from "@/components/ui/badge";
 import { dateFormat } from "@/lib/utils";
 import { FlightControl } from "@/types";
 
-export const columns: ColumnDef<FlightControl>[] = [
+export const columns: AppColumnDef<FlightControl>[] = [
   {
     accessorKey: "flight_number",
     header: ({ column }) => (

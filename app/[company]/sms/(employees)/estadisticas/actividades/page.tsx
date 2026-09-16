@@ -136,7 +136,7 @@ const SMSActivityStatsPage = () => {
       {/* Layout de Gráficos: 2 arriba, 1 ancho completo abajo */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-10">
         {/* Gráfico 1: Estado General (Dona) */}
-        <div className="flex flex-col items-center p-6 rounded-xl shadow-sm border bg-card">
+        <div className="flex flex-col items-center p-6 rounded-xl shadow-xs border bg-card">
           {isLoading ? (
             <div className="flex justify-center items-center h-64">
               <Loader2 className="size-12 animate-spin text-muted-foreground" />
@@ -159,7 +159,7 @@ const SMSActivityStatsPage = () => {
         </div>
 
         {/* Gráfico 2: Carga por Responsable (Barras) */}
-        <div className="flex flex-col items-center p-6 rounded-xl shadow-sm border bg-card">
+        <div className="flex flex-col items-center p-6 rounded-xl shadow-xs border bg-card">
           {isLoading ? (
             <div className="flex justify-center items-center h-64">
               <Loader2 className="size-12 animate-spin text-muted-foreground" />
@@ -187,7 +187,7 @@ const SMSActivityStatsPage = () => {
         </div>
 
         {/* Gráfico 3: Tipos de Actividades (Barras - Ocupa ambas columnas) */}
-        <div className="flex flex-col items-center p-6 rounded-xl shadow-sm border bg-card lg:col-span-2">
+        <div className="flex flex-col items-center p-6 rounded-xl shadow-xs border bg-card lg:col-span-2">
           {isLoading ? (
             <div className="flex justify-center items-center h-64">
               <Loader2 className="size-12 animate-spin text-muted-foreground" />

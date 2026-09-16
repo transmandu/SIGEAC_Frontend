@@ -40,10 +40,10 @@ import { formatInstant } from "@/lib/date";
 // Mismo lenguaje visual que el formulario de artículo y el LoginForm.
 const glassCard = cn(
   "rounded-xl",
-  "bg-gradient-to-br from-background/70 to-background/40",
+  "bg-linear-to-br from-background/70 to-background/40",
   "backdrop-blur-md",
   "border border-slate-400/50 dark:border-slate-600/50",
-  "shadow-sm",
+  "shadow-xs",
 );
 
 /** Cifra grande con su rótulo, para la franja de resumen. */
@@ -257,10 +257,10 @@ const DimensionPiecesDialog = ({ article, open, onOpenChange }: Props) => {
                               // intermedia al 70% mantiene el cuerpo de la
                               // barra en azul y deja el celeste como remate.
                               isWhole || pct > 50
-                                ? "bg-gradient-to-r from-blue-600 via-blue-600 via-70% to-sky-500"
+                                ? "bg-linear-to-r from-blue-600 via-blue-600 via-70% to-sky-500"
                                 : pct > 20
-                                  ? "bg-gradient-to-r from-amber-500 to-amber-400"
-                                  : "bg-gradient-to-r from-red-600 to-red-500",
+                                  ? "bg-linear-to-r from-amber-500 to-amber-400"
+                                  : "bg-linear-to-r from-red-600 to-red-500",
                             )}
                             style={{ width: `${pct}%` }}
                           />

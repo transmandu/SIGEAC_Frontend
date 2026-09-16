@@ -217,7 +217,7 @@ const ArticleDocumentsSelector = ({
             <div
                 className={cn(
                     "space-y-4",
-                    value.length > 0 && "max-h-[17rem] overflow-y-auto pr-1",
+                    value.length > 0 && "max-h-68 overflow-y-auto pr-1",
                 )}
             >
             {value.map((doc) => {
@@ -329,7 +329,7 @@ const ArticleDocumentsSelector = ({
                                 accept=".pdf,.jpg,.jpeg,.png,.webp"
                                 disabled={disabled}
                                 onChange={(e) => setFile(doc.typeId, e.target.files?.[0])}
-                                className="pl-10 pr-3 py-2 w-full border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-[#6E23DD] focus:border-transparent cursor-pointer"
+                                className="pl-10 pr-3 py-2 w-full border border-gray-300 rounded shadow-xs focus:outline-hidden focus:ring-2 focus:ring-[#6E23DD] focus:border-transparent cursor-pointer"
                             />
                         </div>
                         <div className="flex items-center gap-2 pt-1">

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ColumnDef } from "@tanstack/react-table";
+import { type AppColumnDef } from "@/lib/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -99,7 +99,7 @@ const BrandRowActions = ({
 
 export const getBrandsColumns = (
   handlers: Handlers
-): ColumnDef<UniformBrand>[] => [
+): AppColumnDef<UniformBrand>[] => [
   {
     accessorKey: "name",
     header: "Marca",
