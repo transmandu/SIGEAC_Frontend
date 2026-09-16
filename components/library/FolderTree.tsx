@@ -72,6 +72,7 @@ interface FolderTreeProps {
   onDropDocument: (
     documentId: number,
     folderPath: string,
+    departmentId: number,
     departmentName: string,
   ) => void;
   onToggleDept?: (departmentId: number) => void;
@@ -103,6 +104,7 @@ function FolderNodeRow({
   onDropDocument: (
     documentId: number,
     folderPath: string,
+    deptId: number,
     deptName: string,
   ) => void;
   canManage: boolean;
@@ -123,9 +125,13 @@ function FolderNodeRow({
     e.stopPropagation();
     setDragOver(false);
     const docId = e.dataTransfer.getData("text/plain");
-    const deptName = e.dataTransfer.getData("text/dept-name");
     if (docId) {
-      onDropDocument(parseInt(docId, 10), node.path, deptName || "");
+      onDropDocument(
+        parseInt(docId, 10),
+        node.path,
+        departmentId,
+        departmentName,
+      );
     }
   };
 
