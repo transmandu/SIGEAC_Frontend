@@ -33,6 +33,12 @@ interface DataTableProps {
   isFetching?: boolean;
   /** Primera carga: el shell (cabecera, buscador, acciones) se mantiene y solo el cuerpo de la tabla muestra el estado de carga. */
   isLoading?: boolean;
+  /**
+   * Cambio de página en curso: las filas visibles son todavía las de la página
+   * anterior. Se atenúan para que se vea que están por reemplazarse, en vez de
+   * quedar idénticas durante ~1s y parecer que la navegación no respondió.
+   */
+  isTransitioning?: boolean;
   /** El fallo también se muestra dentro del cuerpo: el buscador sigue en pantalla para corregir la consulta. */
   isError?: boolean;
   onRetry?: () => void;
@@ -52,6 +58,7 @@ export function DataTable({
   onSearchChange,
   isFetching,
   isLoading = false,
+  isTransitioning = false,
   isError = false,
   onRetry,
   onNextPage,
@@ -127,7 +134,15 @@ export function DataTable({
           ) : null}
         </div>
       </div>
-      <div className="rounded-md border mb-4">
+      {/* aria-busy y la atenuación marcan que las filas visibles son las de la
+          página anterior; pointer-events-none evita abrir el detalle de una
+          fila que está a punto de ser sustituida por otra. */}
+      <div
+        aria-busy={isTransitioning}
+        className={`rounded-md border mb-4 transition-opacity duration-200 ${
+          isTransitioning ? "opacity-50 pointer-events-none" : "opacity-100"
+        }`}
+      >
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -220,6 +235,7 @@ export function DataTable({
         pageIndex={pageIndex}
         pageSize={pageSize}
         onPageSizeChange={onPageSizeChange}
+        isTransitioning={isTransitioning}
       />
     </>
   );

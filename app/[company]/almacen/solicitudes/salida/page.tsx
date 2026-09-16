@@ -85,6 +85,7 @@ const DispatchRequestPage = () => {
     data: dispatches,
     isLoading: isDispatchesLoading,
     isFetching: isDispatchesFetching,
+    isTransitioning,
     isError,
     refetch,
     search,
@@ -112,6 +113,7 @@ const DispatchRequestPage = () => {
           onSearchChange={setSearch}
           isFetching={isDispatchesFetching}
           isLoading={isDispatchesLoading}
+          isTransitioning={isTransitioning}
           isError={isError}
           onRetry={() => refetch()}
           onNextPage={nextPage}

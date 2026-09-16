@@ -111,11 +111,23 @@ export const useGetDispatchesByLocation = () => {
     placeholderData: keepPreviousData,
   });
 
+  // keepPreviousData deja las filas de la página anterior en pantalla mientras
+  // llega la nueva, en vez de vaciar la tabla. Sin señalar esa transición el
+  // clic en "Siguiente" no cambia nada visible durante ~1s y parece que el
+  // botón no funcionó: isPlaceholderData es lo que la tabla usa para atenuar
+  // el cuerpo y bloquear la navegación hasta que los datos correspondan a la
+  // página pedida.
+  const isTransitioning = query.isPlaceholderData;
+
   return {
     ...query,
     data: query.data?.data,
-    hasNextPage: !!query.data?.next_cursor && query.data.has_more,
-    hasPrevPage: cursorStack.length > 1,
+    isTransitioning,
+    // Un cursor solo es válido para la página que ya llegó: mientras se ve la
+    // anterior, el "Siguiente" apuntaría a la página equivocada.
+    hasNextPage:
+      !isTransitioning && !!query.data?.next_cursor && query.data.has_more,
+    hasPrevPage: !isTransitioning && cursorStack.length > 1,
     // No hay conteo total con cursor pagination; la posición dentro de la
     // navegación actual (cuántos "siguiente" se han pedido) es lo único que
     // se puede mostrar sin paginar todo el histórico solo para contarlo.

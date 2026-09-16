@@ -122,11 +122,18 @@ export const useGetWorkshopDispatches = () => {
     placeholderData: keepPreviousData,
   });
 
+  // Mismo criterio que useGetDispatchesByLocation: keepPreviousData mantiene
+  // las filas anteriores mientras llega la página nueva, e isPlaceholderData
+  // es la señal de que lo que se ve todavía no corresponde a la página pedida.
+  const isTransitioning = query.isPlaceholderData;
+
   return {
     ...query,
     data: query.data?.data,
-    hasNextPage: !!query.data?.next_cursor && query.data.has_more,
-    hasPrevPage: cursorStack.length > 1,
+    isTransitioning,
+    hasNextPage:
+      !isTransitioning && !!query.data?.next_cursor && query.data.has_more,
+    hasPrevPage: !isTransitioning && cursorStack.length > 1,
     pageIndex: cursorStack.length - 1,
     nextPage: () => {
       if (query.data?.next_cursor) {

@@ -13,6 +13,7 @@ const WorkshopDispatchPage = () => {
     data: dispatches,
     isLoading,
     isFetching,
+    isTransitioning,
     isError,
     refetch,
     search,
@@ -43,6 +44,7 @@ const WorkshopDispatchPage = () => {
           onSearchChange={setSearch}
           isFetching={isFetching}
           isLoading={isLoading}
+          isTransitioning={isTransitioning}
           isError={isError}
           onRetry={() => refetch()}
           onNextPage={nextPage}
