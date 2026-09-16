@@ -1,3 +1,12 @@
+## v4.9.0 — 2026-09-16
+
+- Merge pull request #271 from transmandu/feat/salidas-taller-cursor-pagination
+- style: formato automatico (prettier)
+- feat: add cut payload to workshop dispatch actions and update condition handling in timeline dialog
+- Merge branch 'main' into feat/salidas-taller-cursor-pagination
+- feat: enhance data table with loading and error states, update menu labels
+- feat: add cursor pagination component and integrate it into data table pagination
+
 ## v4.8.0 — 2026-09-16
 
 - feat: save reports in library (#268)
