@@ -1,3 +1,7 @@
+## v4.10.0 — 2026-09-16
+
+- feat: move multiple files to folders (#272)
+
 ## v4.9.0 — 2026-09-16
 
 - Merge pull request #271 from transmandu/feat/salidas-taller-cursor-pagination
