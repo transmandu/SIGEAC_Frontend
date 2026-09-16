@@ -1,3 +1,8 @@
+## v4.11.0 — 2026-09-16
+
+- Merge pull request #273 from transmandu/fix/pagination-transition
+- feat: add isTransitioning prop to handle pagination transitions in data tables
+
 ## v4.10.0 — 2026-09-16
 
 - feat: move multiple files to folders (#272)
