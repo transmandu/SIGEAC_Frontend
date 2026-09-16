@@ -28,6 +28,12 @@ type Article = {
     dispatch_quantity: string
     part_number?: string
     article_id?: string | number
+    /**
+     * Identifica la LÍNEA de la salida, no el artículo: un mismo artículo puede
+     * figurar en varias líneas de una misma salida, así que es lo único
+     * realmente único por fila.
+     */
+    article_dispatch_order_id?: number
     unit?: string
     returned_quantity?: number
     status?: "DISPATCHED" | "PARTIALLY_RETURNED" | "RETURNED"
@@ -151,11 +157,14 @@ const DispatchArticlesDialog = ({ articles = [], work_order, justification }: Di
                             <ScrollArea className="h-80 pr-3 max-w-full">
                                 <div className="space-y-2">
                                     {articles.map((a, idx) => {
+                                        // La línea de la salida es la identidad real de la fila:
+                                        // el mismo artículo puede repetirse en varias líneas, y
+                                        // part_number/serial llegan como el literal "N/A" en los
+                                        // generales —no como null—, así que el `??` no caía al
+                                        // índice y dos generales colisionaban con key="N/A".
                                         const key =
-                                            a.article_id ??
-                                            a.part_number ??
-                                            a.serial ??
-                                            `${a.description ?? "item"}-${idx}`;
+                                            a.article_dispatch_order_id ??
+                                            `${a.article_id ?? a.description ?? "item"}-${idx}`;
 
                                         const isGeneral = a.type === "general";
 

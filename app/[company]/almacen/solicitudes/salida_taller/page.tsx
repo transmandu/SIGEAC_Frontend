@@ -5,7 +5,6 @@ import { ContentLayout } from '@/components/layout/ContentLayout'
 import { PageHeader } from "@/components/layout/PageHeader"
 import { WorkshopDispatchTimelineDialog } from '@/components/dialogs/mantenimiento/almacen/WorkshopDispatchTimelineDialog'
 import { useGetWorkshopDispatches } from '@/hooks/mantenimiento/almacen/salida_taller/useGetWorkshopDispatches'
-import { Loader2 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { DataTable } from './data-table'
 
@@ -15,6 +14,7 @@ const WorkshopDispatchPage = () => {
     isLoading,
     isFetching,
     isError,
+    refetch,
     search,
     setSearch,
     nextPage,
@@ -33,30 +33,26 @@ const WorkshopDispatchPage = () => {
     <ContentLayout title='Salida a Taller'>
       <div className='flex flex-col gap-y-2'>
         <PageHeader className="mb-4" />
-        {isLoading && (
-          <div className='flex w-full h-full justify-center items-center'>
-            <Loader2 className='size-24 animate-spin mt-48' />
-          </div>
-        )}
-        {dispatches && (
-          <DataTable
-            columns={columns}
-            data={dispatches}
-            search={search}
-            onSearchChange={setSearch}
-            isFetching={isFetching}
-            onNextPage={nextPage}
-            onPrevPage={prevPage}
-            hasNextPage={hasNextPage}
-            hasPrevPage={hasPrevPage}
-            pageIndex={pageIndex}
-            pageSize={pageSize}
-            onPageSizeChange={setPageSize}
-          />
-        )}
-        {isError && (
-          <p className='text-sm text-muted-foreground'>Ha ocurrido un error al cargar las salidas a taller...</p>
-        )}
+        {/* La tabla se monta siempre: la carga de datos se muestra dentro del
+            cuerpo, para que el buscador y las acciones no se desmonten en cada
+            fetch. */}
+        <DataTable
+          columns={columns}
+          data={dispatches ?? []}
+          search={search}
+          onSearchChange={setSearch}
+          isFetching={isFetching}
+          isLoading={isLoading}
+          isError={isError}
+          onRetry={() => refetch()}
+          onNextPage={nextPage}
+          onPrevPage={prevPage}
+          hasNextPage={hasNextPage}
+          hasPrevPage={hasPrevPage}
+          pageIndex={pageIndex}
+          pageSize={pageSize}
+          onPageSizeChange={setPageSize}
+        />
       </div>
 
       {timelineId !== null && (

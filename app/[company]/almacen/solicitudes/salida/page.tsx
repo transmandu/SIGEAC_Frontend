@@ -11,7 +11,6 @@ import {
 import { useGetDispatchesByLocation } from '@/hooks/mantenimiento/almacen/solicitudes/useGetDispatchesRequests'
 import { useCompanyStore } from '@/stores/CompanyStore'
 import { Department, MaintenanceAircraft } from '@/types'
-import { Loader2 } from 'lucide-react'
 import { DataTable } from './data-table'
 import { PageHeader } from "@/components/layout/PageHeader";
 
@@ -88,6 +87,7 @@ const DispatchRequestPage = () => {
     isLoading: isDispatchesLoading,
     isFetching: isDispatchesFetching,
     isError,
+    refetch,
     search,
     setSearch,
     nextPage,
@@ -103,34 +103,26 @@ const DispatchRequestPage = () => {
     <ContentLayout title='Salida'>
       <div className='flex flex-col gap-y-2'>
         <PageHeader className="mb-4" />
-        {
-          isDispatchesLoading && (
-            <div className='flex w-full h-full justify-center items-center'>
-              <Loader2 className='size-24 animate-spin mt-48' />
-            </div>
-          )
-        }
-        {
-          dispatches && (
-            <DataTable
-              columns={columns}
-              data={dispatches}
-              search={search}
-              onSearchChange={setSearch}
-              isFetching={isDispatchesFetching}
-              onNextPage={nextPage}
-              onPrevPage={prevPage}
-              hasNextPage={hasNextPage}
-              hasPrevPage={hasPrevPage}
-              pageIndex={pageIndex}
-              pageSize={pageSize}
-              onPageSizeChange={setPageSize}
-            />
-          )
-        }
-        {
-          isError && <p className='text-sm text-muted-foreground'>Ha ocurrido un error al cargar las solicitudes...</p>
-        }
+        {/* La tabla se monta siempre: la carga de datos se muestra dentro del
+            cuerpo, para que el buscador y las acciones no se desmonten en cada
+            fetch. */}
+        <DataTable
+          columns={columns}
+          data={dispatches ?? []}
+          search={search}
+          onSearchChange={setSearch}
+          isFetching={isDispatchesFetching}
+          isLoading={isDispatchesLoading}
+          isError={isError}
+          onRetry={() => refetch()}
+          onNextPage={nextPage}
+          onPrevPage={prevPage}
+          hasNextPage={hasNextPage}
+          hasPrevPage={hasPrevPage}
+          pageIndex={pageIndex}
+          pageSize={pageSize}
+          onPageSizeChange={setPageSize}
+        />
       </div>
     </ContentLayout>
   )

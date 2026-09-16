@@ -31,6 +31,11 @@ interface DataTableProps {
   search: string
   onSearchChange: (value: string) => void
   isFetching?: boolean
+  /** Primera carga: el shell (cabecera, buscador, acciones) se mantiene y solo el cuerpo de la tabla muestra el estado de carga. */
+  isLoading?: boolean
+  /** El fallo también se muestra dentro del cuerpo: el buscador sigue en pantalla para corregir la consulta. */
+  isError?: boolean
+  onRetry?: () => void
   onNextPage: () => void
   onPrevPage: () => void
   hasNextPage: boolean
@@ -46,6 +51,9 @@ export function DataTable({
   search,
   onSearchChange,
   isFetching,
+  isLoading = false,
+  isError = false,
+  onRetry,
   onNextPage,
   onPrevPage,
   hasNextPage,
@@ -140,7 +148,31 @@ export function DataTable({
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows?.length ? (
+            {isLoading ? (
+              <TableRow className="hover:bg-transparent">
+                <TableCell colSpan={columns.length} className="h-24 text-center text-muted-foreground">
+                  <span className="inline-flex items-center gap-x-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Cargando salidas...
+                  </span>
+                </TableCell>
+              </TableRow>
+            ) : isError ? (
+              <TableRow className="hover:bg-transparent">
+                <TableCell colSpan={columns.length} className="h-24 text-center">
+                  <div className="flex flex-col items-center gap-y-2">
+                    <span className="text-sm text-muted-foreground">
+                      Ha ocurrido un error al cargar las salidas.
+                    </span>
+                    {onRetry && (
+                      <Button type="button" variant="outline" size="sm" onClick={onRetry}>
+                        Reintentar
+                      </Button>
+                    )}
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}

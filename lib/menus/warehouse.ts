@@ -81,14 +81,14 @@ export function buildWarehouseGroup({ pathname, currentCompany }: MenuContext): 
                 submenus: [
                     {
                         href: `/${currentCompany?.slug}/almacen/solicitudes/salida`,
-                        label: "Salida de Material",
+                        label: "Salidas",
                         active:
                             pathname ===
                             `/${currentCompany?.slug}/almacen/solicitudes/salida`,
                     },
                     {
                         href: `/${currentCompany?.slug}/almacen/solicitudes/salida_taller`,
-                        label: "Salida a Taller",
+                        label: "Salidas a Taller",
                         active: pathname.includes(
                             `/${currentCompany?.slug}/almacen/solicitudes/salida_taller`,
                         ),
