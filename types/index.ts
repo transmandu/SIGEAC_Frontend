@@ -114,7 +114,8 @@ export type Article = {
   needs_calibration?: boolean;
   calibration_date?: string | null;
   next_calibration?: string;
-  tool_status?: "CALIBRATED" | "IN_CALIBRATION" | "EXPIRED" | "NOT_APPLICABLE" | string;
+  tool_status?:
+    "CALIBRATED" | "IN_CALIBRATION" | "EXPIRED" | "NOT_APPLICABLE" | string;
 };
 
 export type Bank = {
@@ -292,8 +293,10 @@ export interface ConsumableArticle extends Article {
  * sobre un renglón que en total estaba sobrado. `stored_quantity` es la suma
  * de los lotes almacenados, que es lo que se contrasta contra el mínimo.
  */
-export interface LowStockConsumableBatch
-  extends Pick<Batch, "id" | "name" | "min_quantity" | "unit"> {
+export interface LowStockConsumableBatch extends Pick<
+  Batch,
+  "id" | "name" | "min_quantity" | "unit"
+> {
   maximum_quantity?: number | null;
   stored_quantity: number;
   /**
@@ -803,6 +806,16 @@ export type ThirdParty = {
   type: string;
 };
 
+export type Workshop = {
+  id: number;
+  name: string;
+  rif?: string | null;
+  address?: string | null;
+  phone?: string | null;
+  contact_name?: string | null;
+  status: "ACTIVE" | "INACTIVE";
+};
+
 export type Permission = {
   id: number;
   name: string;
@@ -1227,7 +1240,7 @@ export type DangerIdentificationWithAll = {
 export type ActivityCategory = {
   id: string;
   name: string;
-}
+};
 
 export type SMSActivity = {
   id: number;
@@ -1250,7 +1263,7 @@ export type SMSActivity = {
   imageUrl?: string;
   documentUrl?: string;
   status: string;
-  categories: ActivityCategory[]
+  categories: ActivityCategory[];
 };
 
 export type SMSActivityAttendance = {
@@ -1380,14 +1393,14 @@ export type MeetingMinutes = {
   approved_by?: Employee;
   agreements?: MeetingAgreement[];
   attendees?: Attendace[];
-}
+};
 
 export type AuthorizedEmployeeRef = {
   id: number;
   dni_employee: string;
   from_company_db: string;
   full_name?: string;
-}
+};
 
 export type MeetingAgreement = {
   id?: number;
@@ -1399,7 +1412,7 @@ export type MeetingAgreement = {
   responsible_job_title?: string;
   responsible_employee?: Employee;
   responsible_authorized_employee?: AuthorizedEmployeeRef;
-}
+};
 
 export type Attendace = {
   id?: number;
@@ -1412,7 +1425,7 @@ export type Attendace = {
   authorized_employee?: AuthorizedEmployeeRef;
   employee?: Employee;
   has_attended: boolean;
-}
+};
 
 export type FlightHistory = {
   id: number;
@@ -1494,7 +1507,7 @@ export interface WarehouseDashboard {
 // compra confirmada (source: PURCHASE, con quantity y purchase_order_number)
 // o de una edición manual desde Gestión de Costos (source: MANUAL).
 export type GeneralArticleCostHistoryEntry = {
-  source: 'PURCHASE' | 'MANUAL' | 'SEED';
+  source: "PURCHASE" | "MANUAL" | "SEED";
   cost: number | null;
   quantity: number | null;
   // Unidad en la que está expresado este costo. En compras viene del intake;
@@ -1524,11 +1537,11 @@ export type InTransitDetail = {
   /** Días desde la aprobación; null mientras la solicitud sigue abierta. */
   days_waiting?: number | null;
   stage:
-  | "REQUISITION_OPEN"
-  | "APPROVED_WITHOUT_PURCHASE_ORDER"
-  | "PURCHASE_ORDER_PLACED"
-  | "INTAKE_PENDING"
-  | "INTAKE_REJECTED";
+    | "REQUISITION_OPEN"
+    | "APPROVED_WITHOUT_PURCHASE_ORDER"
+    | "PURCHASE_ORDER_PLACED"
+    | "INTAKE_PENDING"
+    | "INTAKE_REJECTED";
 };
 
 export type GeneralArticle = {
@@ -1703,12 +1716,7 @@ export type CargoManifestItem = {
 export type FuelVehicleStatus = "active" | "inactive";
 
 export type FuelVehicleType =
-  | "car"
-  | "truck"
-  | "motorcycle"
-  | "crane"
-  | "mule"
-  | "other";
+  "car" | "truck" | "motorcycle" | "crane" | "mule" | "other";
 
 export type FuelType = "GASOLINE" | "DIESEL";
 
@@ -1906,7 +1914,8 @@ export type ErrorReport = {
   resolution_minutes: number | string | null;
 };
 
-export type ImportHistoryStatus = "queued" | "running" | "completed" | "paused_quota";
+export type ImportHistoryStatus =
+  "queued" | "running" | "completed" | "paused_quota";
 
 export type ErrorReportImport = {
   id: number;

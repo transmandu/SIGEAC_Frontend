@@ -12,7 +12,11 @@ import {
   FuelVehicleType,
 } from "@/types";
 
-export const FUEL_ALLOWED_ROLES = ["SUPERUSER", "JEFE_ALMACEN"];
+export const FUEL_ALLOWED_ROLES = [
+  "SUPERUSER",
+  "JEFE_ALMACEN",
+  "ANALISTA_ALMACEN",
+];
 
 // Formatos de placa venezolana vigentes (equivalente a la validacion del backend).
 export const FUEL_PLATE_REGEX =
@@ -25,8 +29,10 @@ export const isPendingFuelVehiclePlate = (plate?: string | null) =>
 
 export const FUEL_QUERY_KEYS = {
   all: ["fuel"] as const,
-  summary: (company?: string) => [...FUEL_QUERY_KEYS.all, "summary", company] as const,
-  vehicles: (company?: string) => [...FUEL_QUERY_KEYS.all, "vehicles", company] as const,
+  summary: (company?: string) =>
+    [...FUEL_QUERY_KEYS.all, "summary", company] as const,
+  vehicles: (company?: string) =>
+    [...FUEL_QUERY_KEYS.all, "vehicles", company] as const,
   movements: (company?: string, filters?: unknown) =>
     [...FUEL_QUERY_KEYS.all, "movements", company, filters] as const,
   movement: (company?: string, id?: number | null) =>
@@ -99,14 +105,17 @@ export const FUEL_MOVEMENT_LABELS: Record<FuelMovementType, string> = {
 };
 
 export const FUEL_MOVEMENT_DESCRIPTIONS: Record<FuelMovementType, string> = {
-  warehouse_initial_balance: "Carga inicial auditable del inventario almacenado.",
+  warehouse_initial_balance:
+    "Carga inicial auditable del inventario almacenado.",
   vehicle_initial_balance: "Carga inicial auditada al registrar un vehiculo.",
   external_refuel: "Aumenta el saldo de un vehiculo por surtido externo.",
   warehouse_unload: "Mueve combustible del vehiculo al almacen.",
   warehouse_dispatch_vehicle: "Despacha combustible del almacen a un vehiculo.",
-  warehouse_dispatch_third_party: "Despacha combustible del almacen a un tercero.",
+  warehouse_dispatch_third_party:
+    "Despacha combustible del almacen a un tercero.",
   vehicle_daily_consumption: "Registra consumo operativo diario del vehiculo.",
-  vehicle_trip: "Registra un recorrido individual del vehiculo con destino y consumo.",
+  vehicle_trip:
+    "Registra un recorrido individual del vehiculo con destino y consumo.",
   annulment: "Reverso auditable de un movimiento.",
 };
 
@@ -128,8 +137,7 @@ export const FUEL_ERROR_MESSAGES: Record<string, string> = {
   INVALID_TANK_CAPACITY: "La capacidad del tanque debe ser mayor a 0.",
   MISSING_KM_PER_LITER:
     "El vehiculo no tiene configurado el rendimiento (km/L).",
-  INVALID_ODOMETER:
-    "El kilometraje debe ser mayor al ultimo registrado.",
+  INVALID_ODOMETER: "El kilometraje debe ser mayor al ultimo registrado.",
   CONCURRENT_STOCK_CONFLICT:
     "El saldo cambio mientras registrabas la operacion. Actualiza e intenta de nuevo.",
   CAPACITY_BELOW_BALANCE:
@@ -214,10 +222,7 @@ export const getFuelErrorMessage = (error: unknown) => {
   // asi que se prioriza sobre el texto generico mapeado por codigo.
   if (backendMessage) return backendMessage;
   if (code && FUEL_ERROR_MESSAGES[code]) return FUEL_ERROR_MESSAGES[code];
-  return (
-    maybeAxiosError.message ||
-    "No se pudo completar la operacion."
-  );
+  return maybeAxiosError.message || "No se pudo completar la operacion.";
 };
 
 // Mapea errores de validacion 422 del backend ({ errors: { campo: [mensaje] } })
@@ -227,7 +232,10 @@ export const applyFuelValidationErrors = (
   setFieldError: (field: string, message: string) => void,
 ) => {
   const maybeAxiosError = error as {
-    response?: { status?: number; data?: { errors?: Record<string, string[]> } };
+    response?: {
+      status?: number;
+      data?: { errors?: Record<string, string[]> };
+    };
   };
   if (maybeAxiosError.response?.status !== 422) return false;
   const errors = maybeAxiosError.response?.data?.errors;
@@ -298,7 +306,8 @@ export const normalizeFuelMovementType = (
   const normalized = value?.toLowerCase();
   if (normalized === "warehouse_initial_balance")
     return "warehouse_initial_balance";
-  if (normalized === "vehicle_initial_balance") return "vehicle_initial_balance";
+  if (normalized === "vehicle_initial_balance")
+    return "vehicle_initial_balance";
   if (normalized === "external_refuel") return "external_refuel";
   if (normalized === "warehouse_unload") return "warehouse_unload";
   if (normalized === "warehouse_dispatch_vehicle")
