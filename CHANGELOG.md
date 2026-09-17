@@ -1,3 +1,7 @@
+## v4.11.1 — 2026-09-17
+
+- fix: ensure currentCompany.modules is an array before checking module activity
+
 ## v4.11.0 — 2026-09-16
 
 - Merge pull request #273 from transmandu/fix/pagination-transition
