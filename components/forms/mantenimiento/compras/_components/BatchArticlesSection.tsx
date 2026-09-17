@@ -241,7 +241,10 @@ export function BatchArticlesSection({
                                     <span>{article.part_number}</span>
                                     <span className="text-xs text-muted-foreground">
                                       {result.batch.name}
-                                      {article.alternative_part_number && article.alternative_part_number.length > 0
+                                      {/* alternative_part_number puede llegar como string suelto en
+                                          registros antiguos de la BD (ver backfill de datos); el tipo
+                                          declara string[] pero no está garantizado en runtime. */}
+                                      {Array.isArray(article.alternative_part_number) && article.alternative_part_number.length > 0
                                         ? ` · Alt: ${article.alternative_part_number.join(", ")}`
                                         : ""}
                                     </span>
