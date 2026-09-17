@@ -1,3 +1,9 @@
+## v4.11.2 — 2026-09-17
+
+- Merge pull request #274 from transmandu/fix/batch-articles-array-guard
+- style: formato automatico (prettier)
+- fix: handle alternative_part_number as array to support legacy data formats
+
 ## v4.11.1 — 2026-09-17
 
 - fix: ensure currentCompany.modules is an array before checking module activity
