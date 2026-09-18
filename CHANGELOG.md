@@ -1,3 +1,11 @@
+## v4.12.0 — 2026-09-18
+
+- Merge pull request #275 from transmandu/feat/añadir-complementos-salidas-taller
+- style: formato automatico (prettier)
+- feat: update layout dimensions and improve dialog content responsiveness
+- style: formato automatico (prettier)
+- feat: add workshop details update and change functionality in dispatch timeline
+
 ## v4.11.2 — 2026-09-17
 
 - Merge pull request #274 from transmandu/fix/batch-articles-array-guard
