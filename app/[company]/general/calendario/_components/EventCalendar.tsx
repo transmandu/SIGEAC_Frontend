@@ -1,21 +1,30 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import {
-  createViewMonthGrid,
-  type CalendarEvent as ScheduleXEvent,
-} from "@schedule-x/calendar";
-import { createDragAndDropPlugin } from "@schedule-x/drag-and-drop";
-import { createEventModalPlugin } from "@schedule-x/event-modal";
-import { createEventsServicePlugin } from "@schedule-x/events-service";
-import { ScheduleXCalendar, useNextCalendarApp } from "@schedule-x/react";
-import { createResizePlugin } from "@schedule-x/resize";
-import "@schedule-x/theme-shadcn/dist/index.css";
-import { endOfMonth, format, isSameDay, startOfMonth } from "date-fns";
+  DndContext,
+  DragOverlay,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+  type DragStartEvent,
+} from "@dnd-kit/core";
+import {
+  addDays,
+  differenceInCalendarDays,
+  endOfMonth,
+  format,
+  getHours,
+  getMinutes,
+  isSameMonth,
+  setHours,
+  setMinutes,
+  startOfMonth,
+} from "date-fns";
 import { es } from "date-fns/locale";
-import { ArrowUpRight, CalendarClock, CalendarX2, ListFilter, NotebookText, PencilLine } from "lucide-react";
+import { ArrowUpRight, CalendarX2, ChevronLeft, ChevronRight, ListFilter } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useTheme } from "next-themes";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -30,22 +39,14 @@ import { useGetCalendarEvents } from "@/hooks/general/calendario/useGetCalendarE
 import { useGetCalendarEventSources } from "@/hooks/general/calendario/useGetCalendarEventSources";
 import { useIsSuperuser } from "@/hooks/helpers/useIsSuperuser";
 import { useUpdateCalendarEvent, useDeleteCalendarEvent } from "@/actions/general/calendario/actions";
-import { dateToPlainDateLocal, dateToZonedDateTime, temporalToDate } from "@/lib/scheduleXTemporal";
 import { cn } from "@/lib/utils";
 import { CreateEventDialog } from "./CreateEventDialog";
+import { EventDetailDialog } from "./EventDetailDialog";
+import { EventPill } from "./EventPill";
+import { MonthGrid } from "./MonthGrid";
 import { LocalCalendarEvent } from "./types";
 
 const MANUAL_SOURCE_KEY = "manual";
-
-// Schedule-X exige que el id sea un identificador CSS válido (lo usa con
-// document.querySelector) — los ids del backend traen ":" como separador
-// (ej. "employee_birthday:39:2026"), que ahí no es válido. Se sanea UNA vez
-// acá y ese id saneado es el que se usa en todo el resto del componente.
-const toDomSafeId = (id: string) => id.replace(/:/g, "-");
-const MANUAL_ID_PREFIX = "manual-";
-
-const escapeHtml = (value: string) =>
-  value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
 /**
  * Un evento all_day es un DÍA de calendario, no un instante — leer su fecha
@@ -75,149 +76,13 @@ function toBackendDate(date: Date, allDay: boolean): string {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} 00:00:00`;
 }
 
-/** Marca los eventos "de fondo" (ej. vencimiento de consumible): sin bloque de color, mismo lenguaje que el resto del calendario. */
-const MARKER_CALENDAR_ID = "marker";
-
-/**
- * Cualquier evento "real" (no marker) pinta su propio color por completo vía
- * _customContent — sin esto, Schedule-X sigue de fondo pintando el color por
- * defecto de SU tema (azul) en el contenedor exterior, que se ve por detrás
- * o al lado del color propio y los mezcla. container:transparent en los dos
- * modos deja que el color real sea el único que se vea.
- */
-const CUSTOM_CALENDAR_ID = "custom";
-
-/** Para lo que no tiene un color propio asignado (nunca para "marker") — un morado neutro, no el azul de Schedule-X. */
-const DEFAULT_EVENT_COLOR = "#8b5cf6";
-
-/**
- * La grilla del mes es para ubicar de un vistazo QUÉ TIPO de cosa hay ese
- * día, no el detalle — el detalle real (de quién es, cuál consumible, etc.)
- * vive en el clic (eventModal, sigue usando el título completo) y en la
- * lista lateral. Por eso acá se pinta una etiqueta corta y genérica, nunca
- * el título completo que arma el backend.
- *
- * Esas etiquetas llegan en `short_label` de GET /calendar-event-sources: las
- * declara cada provider. Antes eran un mapa cableado acá, así que registrar
- * una fuente nueva en el backend (que es todo lo que el diseño pide) dejaba
- * sus eventos sin etiqueta y sin color propio, pintados con el azul de tema
- * de Schedule-X, hasta que alguien se acordara de tocar también el cliente.
- */
-type ShortLabels = Record<string, string>;
-
-/** Punto de color + etiqueta corta, para "marker" (siempre "Vencimiento", nunca el detalle puntual). */
-function monthGridDot(color: string, label: string): string {
-  const safeColor = color.replace(/"/g, "");
-  const dot = `<span style="width:8px;height:8px;border-radius:9999px;background:${safeColor};flex-shrink:0;"></span>`;
-
-  return (
-    `<div style="display:flex;align-items:center;gap:4px;padding:1px 2px;overflow:hidden;">`
-    + dot
-    + `<span style="font-size:11px;line-height:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(label)}</span>`
-    + `</div>`
-  );
-}
-
-/**
- * El usuario elige UN color (por tipo de evento); de ahí se derivan solos el
- * fondo (tinte translúcido del mismo color, no un color aparte) y el borde —
- * así la letra, el punto de la lista lateral y la tarjeta del calendario
- * siempre leen como "el mismo color", nunca uno pisando al otro.
- */
-function hexToRgba(hex: string, alpha: number): string | null {
-  const match = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
-  if (!match) return null;
-
-  const value = parseInt(match[1], 16);
-  const r = (value >> 16) & 255;
-  const g = (value >> 8) & 255;
-  const b = value & 255;
-
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-}
-
-/**
- * Tarjeta coloreada, para _customContent.monthGrid. width/height/box-sizing
- * explícitos: sin esto quedaba más chica que un evento normal de Schedule-X,
- * porque un <div> sin ancho propio solo ocupa lo que su texto necesita —
- * acá debe llenar TODO el espacio que Schedule-X ya le reservó al evento.
- */
-function coloredEventCard(color: string, label: string): string {
-  const safeColor = color.replace(/"/g, "");
-  const background = hexToRgba(safeColor, 0.16) ?? "hsl(var(--muted))";
-
-  return (
-    `<div style="width:100%;height:100%;box-sizing:border-box;background:${background};`
-    + `border-left:3px solid ${safeColor};color:${safeColor};font-weight:600;border-radius:4px;`
-    + `padding:2px 6px;font-size:12px;line-height:1.4;overflow:hidden;text-overflow:ellipsis;`
-    + `white-space:nowrap;">${escapeHtml(label)}</div>`
-  );
-}
-
-function toScheduleXEvents(events: LocalCalendarEvent[], shortLabels: ShortLabels): ScheduleXEvent[] {
-  return events.map((event) => {
-    // all_day usa los componentes LOCALES del Date (dateToPlainDateLocal), no
-    // un huso horario: event.start/end ya se armaron con esos mismos
-    // componentes en parseIsoDateLocal, así que es un viaje de ida y vuelta
-    // exacto. Los eventos con hora sí necesitan el huso real (Caracas).
-    const start = event.allDay ? dateToPlainDateLocal(event.start) : dateToZonedDateTime(event.start);
-    const end = event.allDay ? dateToPlainDateLocal(event.end) : dateToZonedDateTime(event.end);
-
-    const scheduleXEvent: ScheduleXEvent = {
-      id: event.id,
-      // El título completo se conserva siempre acá: lo usa el eventModal al
-      // hacer clic. Solo la grilla del mes (_customContent.monthGrid) recibe
-      // la versión corta/sin texto.
-      title: event.title,
-      description: event.description,
-      start,
-      end,
-    };
-
-    if (event.display === "marker") {
-      // Etiqueta corta de su fuente, no el consumible puntual — ese detalle
-      // vive en la lista lateral y al hacer clic. calendarId lo pinta sutil
-      // (ver `calendars` en useNextCalendarApp) para que no ocupe una barra
-      // completa como un evento real.
-      const label = (event.sourceKey && shortLabels[event.sourceKey]) || "Vencimiento";
-      scheduleXEvent._customContent = { monthGrid: monthGridDot(event.color ?? "currentColor", label) };
-      scheduleXEvent.calendarId = MARKER_CALENDAR_ID;
-    } else {
-      // Fuente de sistema: la etiqueta genérica de su provider ("🎂
-      // Cumpleaños"). Evento manual (sin sourceKey): su propio título, que
-      // ya es el que escribió una persona. El fallback al título cubre una
-      // fuente cuyo short_label todavía no llegó — antes ese caso se quedaba
-      // sin _customContent y sin calendarId, y Schedule-X lo pintaba con el
-      // azul de su tema.
-      const label = (event.sourceKey && shortLabels[event.sourceKey]) || event.title;
-      // calendarId con container transparente: si no, el azul de tema de
-      // Schedule-X se ve detrás del color propio y los mezcla.
-      scheduleXEvent._customContent = { monthGrid: coloredEventCard(event.color ?? DEFAULT_EVENT_COLOR, label) };
-      scheduleXEvent.calendarId = CUSTOM_CALENDAR_ID;
-    }
-
-    return scheduleXEvent;
-  });
-}
-
 function formatSidebarTime(event: LocalCalendarEvent): string {
   return event.allDay
     ? `${format(event.start, "d MMM", { locale: es })} · Todo el día`
     : format(event.start, "d MMM, H:mm", { locale: es });
 }
 
-function formatModalDateRange(start: Date, end: Date, allDay: boolean): string {
-  if (allDay) {
-    return isSameDay(start, end)
-      ? `${format(start, "d 'de' MMMM, yyyy", { locale: es })} — Todo el día`
-      : `${format(start, "d MMM", { locale: es })} – ${format(end, "d 'de' MMMM, yyyy", { locale: es })} — Todo el día`;
-  }
-
-  return `${format(start, "d 'de' MMMM, yyyy — H:mm", { locale: es })} – ${format(end, "H:mm", { locale: es })}`;
-}
-
 export function EventCalendar() {
-  const { resolvedTheme } = useTheme();
   const router = useRouter();
   const { selectedCompany } = useCompanyStore();
   const companySlug = selectedCompany?.slug;
@@ -226,13 +91,17 @@ export function EventCalendar() {
   // decide evento por evento (`editable`): esto solo habilita el gesto.
   const canEdit = useIsSuperuser();
 
-  const [visibleRange, setVisibleRange] = useState<{ start: Date; end: Date }>(() => ({
-    start: startOfMonth(new Date()),
-    end: endOfMonth(new Date()),
-  }));
+  const [currentMonth, setCurrentMonth] = useState(() => startOfMonth(new Date()));
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<LocalCalendarEvent | undefined>();
+  const [detailEvent, setDetailEvent] = useState<LocalCalendarEvent | undefined>();
   const [hiddenSourceKeys, setHiddenSourceKeys] = useState<Set<string>>(new Set());
+  const [activeDrag, setActiveDrag] = useState<{ kind: "move" | "resize"; event: LocalCalendarEvent } | undefined>();
+
+  const visibleRange = useMemo(
+    () => ({ start: startOfMonth(currentMonth), end: endOfMonth(currentMonth) }),
+    [currentMonth],
+  );
 
   // Días de calendario, no instantes: el backend recorta por día y así dos
   // visitas al mismo mes comparten la misma entrada de caché — ver
@@ -255,7 +124,11 @@ export function EventCalendar() {
   const events = useMemo<LocalCalendarEvent[]>(
     () =>
       eventDtos.map((dto) => ({
-        id: toDomSafeId(dto.id),
+        // Id crudo del backend: la grilla nativa no necesita que sea un
+        // selector CSS válido (eso era una exigencia de la librería
+        // anterior), así que ya no hace falta sanear ":" ni anteponer un
+        // prefijo para luego quitarlo al mutar.
+        id: dto.id,
         title: dto.title,
         description: dto.description ?? undefined,
         start: dto.all_day ? parseIsoDateLocal(dto.start) : new Date(dto.start),
@@ -279,8 +152,8 @@ export function EventCalendar() {
   }, [sources]);
 
   // La versión corta, para la celda del mes — la declara cada provider.
-  const shortLabels = useMemo<ShortLabels>(() => {
-    const labels: ShortLabels = {};
+  const shortLabels = useMemo<Record<string, string>>(() => {
+    const labels: Record<string, string> = {};
     for (const source of sources) labels[source.key] = source.short_label;
     return labels;
   }, [sources]);
@@ -290,13 +163,10 @@ export function EventCalendar() {
    * pero SIN el prefijo de empresa: el slug es del cliente (cada quien está
    * parado en la suya), el backend no tiene por qué saberlo.
    */
-  const openEventUrl = useCallback(
-    (url: string) => {
-      if (!companySlug) return;
-      router.push(`/${companySlug}${url}`);
-    },
-    [companySlug, router],
-  );
+  const openEventUrl = (url: string) => {
+    if (!companySlug) return;
+    router.push(`/${companySlug}${url}`);
+  };
 
   const availableFilterKeys = useMemo(() => {
     const keys = new Set<string>();
@@ -321,167 +191,25 @@ export function EventCalendar() {
     [events, hiddenSourceKeys, isLoadingSources],
   );
 
-  // useState con inicializador perezoso, no useRef: el plugin se crea una
-  // sola vez igual, pero así se lee como un valor normal en el render — no
-  // como `.current` de un ref, que la regla react-hooks/refs no permite leer
-  // durante el render (ver `plugins` en useNextCalendarApp más abajo).
-  const [eventsService] = useState(() => createEventsServicePlugin());
+  // Se SOLAPA con el mes, no "empieza dentro del mes": un evento del 28 de
+  // agosto al 3 de septiembre pertenece a los dos meses — filtrando por
+  // `start` desaparecía por completo de la lista de septiembre.
+  const eventsInView = useMemo(() => {
+    return visibleEvents
+      .filter((event) => event.start <= visibleRange.end && event.end >= visibleRange.start)
+      .sort((a, b) => a.start.getTime() - b.start.getTime());
+  }, [visibleEvents, visibleRange]);
 
-  // `useNextCalendarApp` construye el calendario UNA sola vez (su useEffect
-  // tiene deps []), así que todo lo que capturen sus `callbacks` queda
-  // congelado en el primer render — cuando `visibleEvents` todavía es [] y
-  // `companySlug` puede ser undefined. Sin este ref, onEventUpdate nunca
-  // encontraba el evento arrastrado y el cambio se perdía en silencio.
-  // La escritura de `.current` se hace en un efecto (no durante el render)
-  // para cumplir con react-hooks/refs — el valor sigue quedando tan
-  // actualizado como antes, solo que un tick después del render en vez de
-  // durante él.
-  const latest = useRef({ visibleEvents, companySlug, updateCalendarEvent, shortLabels });
-  useEffect(() => {
-    latest.current = { visibleEvents, companySlug, updateCalendarEvent, shortLabels };
-  });
-
-  // Mismo motivo, para los customComponents: el efecto que monta el
-  // calendario en @schedule-x/react depende de la IDENTIDAD del objeto
-  // `customComponents`, y su cleanup llama a calendarApp.destroy(). Si ese
-  // objeto se rehace cuando llegan los eventos, el calendario entero se
-  // destruye y se vuelve a montar: se pierde el mes al que el usuario había
-  // navegado y se re-dispara onRangeUpdate. Por eso los customComponents se
-  // memoizan con deps estables y leen lo vivo desde este ref (se rellena
-  // más abajo, cuando `currentMonth` ya existe).
-  const renderData = useRef<{
-    events: LocalCalendarEvent[];
-    sourceLabels: Record<string, string>;
-    currentMonth: { start: Date; end: Date };
-  }>({ events, sourceLabels, currentMonth: { start: visibleRange.start, end: visibleRange.end } });
-
-  const eventModal = useMemo(() => createEventModalPlugin(), []);
-  const scheduleXEvents = useMemo(
-    () => toScheduleXEvents(visibleEvents, shortLabels),
-    [visibleEvents, shortLabels],
-  );
-
-  /**
-   * Arrastrar y redimensionar SOLO para quien puede escribir. Antes los dos
-   * plugins se registraban siempre: cualquier usuario podía arrastrar un
-   * evento, y onEventUpdate lo devolvía a su sitio de un salto, sin decir por
-   * qué — un botón muerto con otra forma.
-   *
-   * Se decide por rol y no por "¿hay algún evento editable?" porque el
-   * calendario se construye UNA sola vez (useNextCalendarApp, deps []) y en
-   * ese momento todavía no llegaron los eventos; el rol sí está resuelto.
-   * onEventUpdate mantiene igual su verificación por evento: el rol habilita
-   * el gesto, `editable` (del backend, ya sea SUPERUSER o autor) decide sobre
-   * cuál se guarda.
-   */
-  const editingPlugins = useMemo(
-    () => (canEdit ? [createDragAndDropPlugin(), createResizePlugin(15)] : []),
-    [canEdit],
-  );
-
-  const calendar = useNextCalendarApp({
-    // Un solo view registrado: sin selector de vistas, siempre mes.
-    views: [createViewMonthGrid()],
-    events: scheduleXEvents,
-    locale: "es-ES",
-    defaultView: "month-grid",
-    isResponsive: true,
-    // "marker" (vencimientos de consumibles) va sin fondo de color: solo el
-    // punto que ya dibuja _customContent, para que no ocupe una barra
-    // completa como un evento real.
-    calendars: {
-      [MARKER_CALENDAR_ID]: {
-        colorName: MARKER_CALENDAR_ID,
-        // Sutil pero visible: un tinte leve, no transparente del todo —
-        // "fantasma" total se leía como si no hubiera nada ahí.
-        lightColors: { main: "#71717a", container: "rgba(113,113,122,0.14)", onContainer: "#52525b" },
-        darkColors: { main: "#a1a1aa", container: "rgba(161,161,170,0.2)", onContainer: "#d4d4d8" },
-      },
-      // Todo evento "real" pinta su color entero a mano vía _customContent —
-      // las TRES claves en transparent, no solo container: Schedule-X usa
-      // "main" para su propio acento/borde por fuera de _customContent
-      // (una barra del color del tema, fija, sin importar el color real de
-      // cada evento) — si queda cualquiera de las tres con color propio,
-      // ese resto del tema se sigue viendo al lado del color correcto.
-      [CUSTOM_CALENDAR_ID]: {
-        colorName: CUSTOM_CALENDAR_ID,
-        lightColors: { main: "transparent", container: "transparent", onContainer: "transparent" },
-        darkColors: { main: "transparent", container: "transparent", onContainer: "transparent" },
-      },
-    },
-    plugins: [eventsService, eventModal, ...editingPlugins],
-    callbacks: {
-      onRangeUpdate: (range) => {
-        const start = temporalToDate(range.start);
-        const end = temporalToDate(range.end);
-        // Schedule-X puede disparar esto más de una vez con el mismo rango
-        // (montaje + reflow); actualizar el estado igual dispara un fetch
-        // nuevo (query key cambia de referencia) aunque el rango sea idéntico.
-        setVisibleRange((prev) =>
-          prev.start.getTime() === start.getTime() && prev.end.getTime() === end.getTime() ? prev : { start, end },
-        );
-      },
-      onEventUpdate: (event) => {
-        const {
-          visibleEvents: currentEvents,
-          companySlug: currentCompany,
-          updateCalendarEvent: update,
-          shortLabels: labels,
-        } = latest.current;
-        const source = currentEvents.find((e) => e.id === event.id);
-        // El gesto ya está reservado a quien puede escribir (ver
-        // editingPlugins), pero dentro de eso los eventos automáticos siguen
-        // siendo de solo lectura: los calcula su propio módulo. Al soltar uno
-        // de esos, Schedule-X ya lo movió en su estado interno, así que se
-        // repinta la lista real para devolverlo a su sitio en el acto, en vez
-        // de dejarlo en una fecha falsa hasta el próximo refetch.
-        if (!source?.editable || !currentCompany) {
-          eventsService.set(toScheduleXEvents(currentEvents, labels));
-
-          return;
-        }
-
-        const numericId = Number(String(event.id).replace(MANUAL_ID_PREFIX, ""));
-        const isAllDay = source.allDay ?? false;
-        update.mutate({
-          id: numericId,
-          company: currentCompany,
-          data: {
-            title: source.title,
-            description: source.description,
-            start_at: toBackendDate(temporalToDate(event.start), isAllDay),
-            end_at: toBackendDate(temporalToDate(event.end), isAllDay),
-            all_day: isAllDay,
-          },
-        });
-      },
-    },
-  });
-
-  // El calendario solo lee `events` al montarse; los cambios posteriores
-  // (editar/eliminar/arrastrar/refetch) hay que empujarlos por el plugin.
-  useEffect(() => {
-    eventsService.set(scheduleXEvents);
-  }, [eventsService, scheduleXEvents]);
-
-  useEffect(() => {
-    calendar?.setTheme(resolvedTheme === "dark" ? "dark" : "light");
-  }, [resolvedTheme, calendar]);
-
-  // Estable a propósito (deps []): la usa el eventModal, que vive dentro del
-  // `customComponents` memoizado — lee los eventos del ref, no del closure.
-  const openEditDialog = useCallback((id: string) => {
-    const source = renderData.current.events.find((e) => e.id === id);
-    if (!source?.editable) return;
-    setEditingEvent(source);
+  const openEditDialog = (event: LocalCalendarEvent) => {
+    if (!event.editable) return;
+    setEditingEvent(event);
     setDialogOpen(true);
-  }, []);
+  };
 
   const handleSave = (event: LocalCalendarEvent) => {
     if (!companySlug) return;
-    const numericId = Number(event.id.replace(MANUAL_ID_PREFIX, ""));
     updateCalendarEvent.mutate({
-      id: numericId,
+      id: event.id,
       company: companySlug,
       data: {
         title: event.title,
@@ -495,149 +223,149 @@ export function EventCalendar() {
 
   const handleDelete = (id: string) => {
     if (!companySlug) return;
-    const numericId = Number(id.replace(MANUAL_ID_PREFIX, ""));
-    deleteCalendarEvent.mutate({ id: numericId, company: companySlug });
+    deleteCalendarEvent.mutate({ id, company: companySlug });
   };
 
-  // El month-grid de Schedule-X rellena la grilla con días del mes anterior
-  // y siguiente — `visibleRange` (de onRangeUpdate) es ESE rango completo,
-  // no el mes que el usuario está viendo (podía empezar en julio estando en
-  // agosto). El punto medio del rango sí cae siempre dentro del mes real.
-  const currentMonth = useMemo(() => {
-    const midpoint = new Date((visibleRange.start.getTime() + visibleRange.end.getTime()) / 2);
-    return { start: startOfMonth(midpoint), end: endOfMonth(midpoint) };
-  }, [visibleRange]);
-
-  // Igual que `latest` arriba: se escribe en un efecto (no durante el
-  // render) para cumplir react-hooks/refs, sin cambiar cuándo queda
-  // disponible el valor fresco para `customComponents` (después del render,
-  // como ya ocurría implícitamente).
-  useEffect(() => {
-    renderData.current = { events, sourceLabels, currentMonth };
-  });
-
-  const customComponents = useMemo(
-    () => ({
-      eventModal: ({ calendarEvent, close }: { calendarEvent: ScheduleXEvent; close: () => void }) => {
-        const { events: currentEvents, sourceLabels: labels } = renderData.current;
-        const source = currentEvents.find((e) => e.id === calendarEvent.id);
-        const startDate = temporalToDate(calendarEvent.start);
-        const endDate = temporalToDate(calendarEvent.end);
-
-        return (
-          <div className="w-full max-w-md rounded-xl border border-slate-400/50 bg-linear-to-br from-background/95 to-background/90 p-5 shadow-xl backdrop-blur-md dark:border-slate-600/50">
-            <h3 className="mb-1 text-base font-semibold leading-tight">{calendarEvent.title}</h3>
-            <p className="mb-3 text-xs text-muted-foreground">
-              {labels[source?.sourceKey ?? MANUAL_SOURCE_KEY] ?? "Evento"}
-            </p>
-
-            <div className="space-y-2.5 text-sm text-muted-foreground">
-              <div className="flex items-start gap-2">
-                <CalendarClock className="mt-0.5 size-4 shrink-0" />
-                <span>{formatModalDateRange(startDate, endDate, source?.allDay ?? false)}</span>
-              </div>
-              {calendarEvent.description && (
-                <div className="flex items-start gap-2">
-                  <NotebookText className="mt-0.5 size-4 shrink-0" />
-                  <span>{calendarEvent.description}</span>
-                </div>
-              )}
-            </div>
-
-            {/* Sin acción disponible no se dibuja el botón: los automáticos
-                se ven en su propio módulo, los manuales se editan acá. */}
-            {(source?.url || source?.editable) && (
-              <div className="mt-4 flex justify-end gap-2">
-                {source?.url && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      close();
-                      openEventUrl(source.url as string);
-                    }}
-                    className="inline-flex items-center gap-2 rounded-lg border border-slate-400/60 px-3 py-1.5 text-sm font-medium transition-colors hover:border-blue-400/40 hover:text-primary dark:border-slate-600/60"
-                  >
-                    <ArrowUpRight className="size-4" />
-                    Ver detalle
-                  </button>
-                )}
-                {source?.editable && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    close();
-                    openEditDialog(calendarEvent.id as string);
-                  }}
-                  className="inline-flex items-center gap-2 rounded-lg border border-slate-400/60 px-3 py-1.5 text-sm font-medium transition-colors hover:border-blue-400/40 hover:text-primary dark:border-slate-600/60"
-                >
-                  <PencilLine className="size-4" />
-                  Editar
-                </button>
-                )}
-              </div>
-            )}
-          </div>
-        );
+  const persistShift = (event: LocalCalendarEvent, start: Date, end: Date) => {
+    if (!companySlug) return;
+    updateCalendarEvent.mutate({
+      id: event.id,
+      company: companySlug,
+      data: {
+        title: event.title,
+        description: event.description,
+        start_at: toBackendDate(start, event.allDay ?? false),
+        end_at: toBackendDate(end, event.allDay ?? false),
+        all_day: event.allDay ?? false,
       },
-      // Sin esto, un día de julio o septiembre relleno en la grilla de
-      // agosto se ve idéntico a uno de agosto — no hay forma de distinguirlos.
-      monthGridDate: ({ date, jsDate }: { date: number; jsDate: Date }) => {
-        const month = renderData.current.currentMonth;
-        const isToday = isSameDay(jsDate, new Date());
-        const inCurrentMonth = jsDate.getMonth() === month.start.getMonth()
-          && jsDate.getFullYear() === month.start.getFullYear();
+    });
+  };
 
-        return (
-          <div className={cn("sx__month-grid-day__header-date", isToday && "sx__is-today", !inCurrentMonth && "opacity-40")}>
-            {date}
-          </div>
-        );
-      },
-    }),
-    // Deps mínimas a propósito: ver renderData arriba — cambiar la identidad
-    // de este objeto desmonta y vuelve a montar el calendario entero. Las dos
-    // callbacks son estables (useCallback), así que en la práctica esto se
-    // memoiza una sola vez.
-    [openEditDialog, openEventUrl],
-  );
+  // distance:8 deja que dnd-kit distinga un clic (abre el detalle) de un
+  // arrastre real — sin este umbral, cualquier mousedown+mouseup mínimo ya
+  // cuenta como "se soltó en la misma celda" y el clic nunca llega a onClick.
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
 
-  // Se SOLAPA con el mes, no "empieza dentro del mes": un evento del 28 de
-  // agosto al 3 de septiembre pertenece a los dos meses — filtrando por
-  // `start` desaparecía por completo de la lista de septiembre.
-  const eventsInView = useMemo(() => {
-    return visibleEvents
-      .filter((event) => event.start <= currentMonth.end && event.end >= currentMonth.start)
-      .sort((a, b) => a.start.getTime() - b.start.getTime());
-  }, [visibleEvents, currentMonth]);
+  const handleDragStart = (e: DragStartEvent) => {
+    const data = e.active.data.current as { kind: "move" | "resize"; event: LocalCalendarEvent } | undefined;
+    if (data) setActiveDrag(data);
+  };
+
+  const handleDragEnd = (e: DragEndEvent) => {
+    setActiveDrag(undefined);
+    const data = e.active.data.current as { kind: "move" | "resize"; event: LocalCalendarEvent } | undefined;
+    const targetDayKey = e.over?.id as string | undefined;
+    if (!data || !targetDayKey || !companySlug) return;
+
+    const { kind, event } = data;
+    const [year, month, day] = targetDayKey.split("-").map(Number);
+    const targetDay = new Date(year, month - 1, day);
+
+    if (kind === "move") {
+      const sourceDayKey = format(event.start, "yyyy-MM-dd");
+      if (sourceDayKey === targetDayKey) return;
+
+      const dayDelta = differenceInCalendarDays(targetDay, event.start);
+      persistShift(event, addDays(event.start, dayDelta), addDays(event.end, dayDelta));
+      return;
+    }
+
+    // Resize a nivel de día: la grilla de mes no muestra hora, así que
+    // "estirar" un evento solo tiene sentido como "cambiar el último día que
+    // ocupa", nunca la hora de fin. Para un evento con hora se preserva su
+    // H:m original y solo se reemplaza el Y-M-D.
+    let newEnd = setMinutes(setHours(targetDay, getHours(event.end)), getMinutes(event.end));
+    if (newEnd < event.start) newEnd = event.end;
+
+    persistShift(event, event.start, newEnd);
+  };
 
   return (
-    // overflow-hidden acá: sin esto, si el contenido interno del calendario
-    // de Schedule-X (grilla de mes con 6 semanas) es más alto que 720px, se
-    // desborda por fuera de esta caja en vez de recortarse — el div del
-    // calendario "se ve" más alto que el aside de al lado aunque la caja de
-    // ambos mida lo mismo.
-    <div className="flex h-200 gap-4 overflow-hidden">
-      <div
-        className={cn(
-          // h-full + min-h-0: sin min-h-0, un flex item solo TOMA a h-full
-          // como mínimo — si el contenido interno de Schedule-X es más alto
-          // (ej. un mes con 6 semanas), el div crece más allá de h-[720px] y
-          // el aside de al lado (que sí respeta el límite por su
-          // overflow-hidden) queda visiblemente más corto.
-          "h-full min-h-0 min-w-0 flex-1",
-          "[&_.sx-react-calendar-wrapper]:h-full [&_.sx-react-calendar-wrapper]:w-full",
-          // !important: el CSS propio de Schedule-X (.is-shadcn .sx__range-heading)
-          // tiene la misma especificidad y gana por orden de carga sin esto.
-          "[&_.sx__range-heading]:uppercase! [&_.sx__range-heading]:tracking-wide!",
-        )}
-      >
-        <ScheduleXCalendar calendarApp={calendar} customComponents={customComponents} />
-      </div>
+    // h-200 fijo (800px) no se adapta al alto real del viewport, y no había
+    // un piso mínimo: en laptop con DevTools abierto (o cualquier pantalla
+    // con menos alto disponible) el cálculo podía colapsar y el aside se
+    // veía superpuesto. 100dvh (no svh) sigue el viewport REALMENTE
+    // renderizado, incluyendo los cambios que provoca abrir/cerrar DevTools;
+    // 14rem es el alto ya ocupado arriba por PageHeader + título + padding
+    // de esta página en particular (contenido fijo, no dinámico — si algún
+    // día ese bloque cambia de alto, este número hay que ajustarlo junto).
+    // min-h-[32rem] es un piso real: evita que el cálculo se aplaste en
+    // ventanas muy bajas en vez de solo reducir el margen de error.
+    <div className="flex h-[calc(100dvh-14rem)] min-h-128 flex-col gap-4 md:flex-row">
+      <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+        <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-slate-400/40 bg-linear-to-br from-background/60 to-background/30 p-3 backdrop-blur-sm dark:border-slate-600/40">
+          <div className="mb-4 flex shrink-0 items-center justify-between border-b border-slate-400/30 pb-3 dark:border-slate-600/30">
+            <h2 className="text-sm font-semibold uppercase tracking-wide">
+              {format(currentMonth, "MMMM yyyy", { locale: es })}
+            </h2>
+            <div className="flex items-center gap-1">
+              <Button
+                type="button"
+                size="icon"
+                variant="ghost"
+                className="size-7"
+                onClick={() => setCurrentMonth((m) => startOfMonth(addDays(startOfMonth(m), -1)))}
+              >
+                <ChevronLeft className="size-4" />
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                className="h-7 px-2 text-xs"
+                disabled={isSameMonth(currentMonth, new Date())}
+                onClick={() => setCurrentMonth(startOfMonth(new Date()))}
+              >
+                Hoy
+              </Button>
+              <Button
+                type="button"
+                size="icon"
+                variant="ghost"
+                className="size-7"
+                onClick={() => setCurrentMonth((m) => startOfMonth(addDays(endOfMonth(m), 1)))}
+              >
+                <ChevronRight className="size-4" />
+              </Button>
+            </div>
+          </div>
 
-      <aside className="flex h-full w-72 shrink-0 flex-col gap-3 overflow-hidden rounded-xl border border-slate-400/40 bg-linear-to-br from-background/60 to-background/30 p-4 backdrop-blur-sm dark:border-slate-600/40">
+          {/* flex-1 + min-h-0 en vez de un alto calculado a mano (h-[calc(100%-Xrem)]):
+              ese cálculo adivinaba cuánto medía el bloque de arriba y, si no coincidía
+              exacto, dejaba un hueco vacío debajo de la grilla. Con flexbox el grid
+              siempre ocupa exactamente lo que sobra, sin mantener un número a mano. */}
+          <div className="min-h-0 flex-1">
+            <MonthGrid
+              month={currentMonth}
+              events={visibleEvents}
+              canEdit={canEdit}
+              shortLabels={shortLabels}
+              onSelectEvent={setDetailEvent}
+            />
+          </div>
+        </div>
+
+        <DragOverlay>
+          {activeDrag && (
+            <div className="w-40">
+              <EventPill
+                event={activeDrag.event}
+                canEdit={canEdit}
+                isOverlayPreview
+                label={
+                  (activeDrag.event.sourceKey && shortLabels[activeDrag.event.sourceKey])
+                  || (activeDrag.event.display === "marker" ? "Vencimiento" : activeDrag.event.title)
+                }
+                onClick={() => {}}
+              />
+            </div>
+          )}
+        </DragOverlay>
+      </DndContext>
+
+      <aside className="flex h-56 w-full shrink-0 flex-col gap-3 overflow-hidden rounded-xl border border-slate-400/40 bg-linear-to-br from-background/60 to-background/30 p-4 backdrop-blur-sm dark:border-slate-600/40 md:h-full md:w-72">
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-semibold uppercase tracking-wide">
-            {format(currentMonth.start, "MMMM yyyy", { locale: es })}
+            {format(currentMonth, "MMMM yyyy", { locale: es })}
           </h2>
 
           {/* Solo tiene sentido filtrar cuando hay más de una fuente a la vista. */}
@@ -699,7 +427,7 @@ export function EventCalendar() {
                       <TooltipTrigger asChild>
                         <button
                           type="button"
-                          onClick={() => openEditDialog(event.id)}
+                          onClick={() => openEditDialog(event)}
                           className="w-full rounded-lg border border-slate-400/40 bg-background/60 p-2.5 text-left text-sm transition-colors hover:border-blue-400/40 dark:border-slate-600/40"
                         >
                           <p className="truncate font-medium leading-tight">{event.title}</p>
@@ -774,6 +502,17 @@ export function EventCalendar() {
         event={editingEvent}
         onSave={handleSave}
         onDelete={handleDelete}
+      />
+
+      <EventDetailDialog
+        open={!!detailEvent}
+        onOpenChange={(open) => {
+          if (!open) setDetailEvent(undefined);
+        }}
+        event={detailEvent}
+        sourceLabel={sourceLabels[detailEvent?.sourceKey ?? MANUAL_SOURCE_KEY] ?? "Evento"}
+        onEdit={openEditDialog}
+        onNavigate={openEventUrl}
       />
     </div>
   );

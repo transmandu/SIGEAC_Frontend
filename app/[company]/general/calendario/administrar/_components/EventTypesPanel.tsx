@@ -63,7 +63,7 @@ export function EventTypesPanel({ company }: EventTypesPanelProps) {
           {eventTypes.map((type) => (
             <div
               key={type.id}
-              className="flex items-center justify-between gap-2 rounded-xl border border-slate-400/40 bg-gradient-to-br from-background/70 to-background/40 p-3.5 backdrop-blur-md shadow-sm dark:border-slate-600/40"
+              className="flex items-center justify-between gap-2 rounded-xl border border-slate-400/40 bg-linear-to-br from-background/70 to-background/40 p-3.5 backdrop-blur-md shadow-sm dark:border-slate-600/40"
             >
               <div className="flex min-w-0 items-center gap-2.5">
                 <span

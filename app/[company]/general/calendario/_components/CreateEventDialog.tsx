@@ -169,7 +169,7 @@ export function CreateEventDialog({ open, onOpenChange, event, onSave, onDelete 
                   <FormControl>
                     <Checkbox checked={field.value} onCheckedChange={handleAllDayChange} />
                   </FormControl>
-                  <FormLabel className="!mt-0 font-normal">Todo el día</FormLabel>
+                  <FormLabel className="mt-0! font-normal">Todo el día</FormLabel>
                 </FormItem>
               )}
             />

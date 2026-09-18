@@ -16,6 +16,8 @@
     "format:changed": "node scripts/format-changed.mjs"
   },
   "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/utilities": "^3.2.2",
     "@hookform/resolvers": "^5.9.1",
     "@lglab/react-qr-code": "^1.7.3",
     "@preact/signals": "^2.11.2",
