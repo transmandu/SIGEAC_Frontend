@@ -126,7 +126,7 @@ export function ConditionCombobox({
 
       {/* Crear condición modal — auto-selects the new condition on success */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent className="sm:max-w-[490px]">
+        <DialogContent className="sm:max-w-122.5">
           <DialogHeader>
             <DialogTitle>Creación de Condición</DialogTitle>
             <DialogDescription>

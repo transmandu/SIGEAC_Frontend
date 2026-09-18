@@ -53,7 +53,7 @@ const AccountPage = () => {
     return (
       <ContentLayout title="Mi perfil">
         <PageHeader className="mb-6" />
-        <div className="flex min-h-[300px] items-center justify-center text-sm text-muted-foreground">
+        <div className="flex min-h-75 items-center justify-center text-sm text-muted-foreground">
           Sesión finalizada
         </div>
       </ContentLayout>
