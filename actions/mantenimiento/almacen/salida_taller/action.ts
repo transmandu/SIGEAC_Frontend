@@ -127,6 +127,115 @@ export const useRegisterWorkshopDispatchEvent = () => {
   return { registerWorkshopDispatchEvent: eventMutation };
 };
 
+export interface IUpdateWorkshopDetailsAction {
+  name?: string;
+  rif?: string;
+  address?: string;
+  phone?: string;
+  contact_name?: string;
+}
+
+/**
+ * Edición parcial de los datos del taller (nombre, teléfono, dirección,
+ * contacto), disparada desde esta salida. El backend solo deja constancia
+ * en el storyline (WORKSHOP_UPDATED) de los campos que efectivamente
+ * cambiaron respecto al taller actual.
+ */
+export const useUpdateWorkshopDetails = () => {
+  const queryClient = useQueryClient();
+
+  const updateMutation = useMutation({
+    mutationFn: async ({
+      id,
+      company,
+      data,
+    }: {
+      id: number | string;
+      company: string;
+      data: IUpdateWorkshopDetailsAction;
+    }) => {
+      const { data: response } = await axiosInstance.patch(
+        `/${company}/workshop-dispatch-order/${id}/workshop-details`,
+        data,
+      );
+      return response;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["workshop-dispatches", variables.company],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["workshop-dispatch", variables.company, variables.id],
+      });
+      queryClient.invalidateQueries({ queryKey: ["workshops"] });
+
+      toast.success("¡Actualizado!", {
+        description: "Los datos del taller fueron actualizados.",
+      });
+    },
+    onError: (error: any) => {
+      toast.error("Oops!", {
+        description:
+          error?.response?.data?.message ||
+          "No se pudieron actualizar los datos del taller...",
+      });
+    },
+  });
+
+  return { updateWorkshopDetails: updateMutation };
+};
+
+/**
+ * Cambio del taller destino por decisión administrativa: no corrige datos
+ * del mismo taller (para eso useUpdateWorkshopDetails), sino que el material
+ * pasa a reparar en otro taller distinto. El anterior queda intacto en el
+ * catálogo y en el resto del storyline.
+ */
+export const useChangeWorkshop = () => {
+  const queryClient = useQueryClient();
+
+  const changeMutation = useMutation({
+    mutationFn: async ({
+      id,
+      company,
+      workshop_id,
+      description,
+    }: {
+      id: number | string;
+      company: string;
+      workshop_id: number;
+      description: string;
+    }) => {
+      const { data } = await axiosInstance.patch(
+        `/${company}/workshop-dispatch-order/${id}/workshop`,
+        { workshop_id, description },
+      );
+      return data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["workshop-dispatches", variables.company],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["workshop-dispatch", variables.company, variables.id],
+      });
+
+      toast.success("¡Taller cambiado!", {
+        description: "Se actualizó el taller destino de esta salida.",
+      });
+    },
+    onError: (error: any) => {
+      toast.error("Oops!", {
+        description:
+          error?.response?.data?.message ||
+          "No se pudo cambiar el taller de esta salida...",
+      });
+    },
+  });
+
+  return { changeWorkshop: changeMutation };
+};
+
 export interface ICloseWorkshopDispatchAction {
   description?: string;
   /**

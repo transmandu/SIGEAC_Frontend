@@ -164,7 +164,7 @@ export function BatchArticlesSection({
               <FormItem
                 className={cn(
                   "flex flex-col",
-                  enableCreateBatch ? "w-[236px]" : "w-[200px]",
+                  enableCreateBatch ? "w-59" : "w-50",
                 )}
               >
                 <FormLabel
@@ -262,7 +262,7 @@ export function BatchArticlesSection({
               </FormItem>
 
               {handleArticleSelect && (
-                <FormItem className="flex flex-col w-[220px]">
+                <FormItem className="flex flex-col w-55">
                   <FormLabel
                     className="flex items-center gap-1.5 select-none"
                     onClick={(e) => e.preventDefault()}
@@ -336,7 +336,7 @@ export function BatchArticlesSection({
 
           <div className="mt-4 space-y-4">
             <ScrollArea
-              className={cn(selectedBatches.length > 1 ? "h-[280px]" : "")}
+              className={cn(selectedBatches.length > 1 ? "h-70" : "")}
             >
               {selectedBatches.map((batch) => (
                 <div
@@ -379,7 +379,7 @@ export function BatchArticlesSection({
 
                   <ScrollArea
                     className={cn(
-                      batch.batch_articles.length > 1 ? "h-[260px]" : "",
+                      batch.batch_articles.length > 1 ? "h-65" : "",
                     )}
                   >
                     {batch.batch_articles.map((article, index) => {
