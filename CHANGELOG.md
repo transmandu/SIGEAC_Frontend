@@ -1,3 +1,12 @@
+## v4.14.0 — 2026-09-18
+
+- Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
+- feat: simplify order_number input rendering in EditWorkOrderForm
+
+## v4.13.0 — 2026-09-18
+
+- feat: add optional order_number field to work order update schema and form
+
 ## v4.12.0 — 2026-09-18
 
 - Merge pull request #275 from transmandu/feat/añadir-complementos-salidas-taller

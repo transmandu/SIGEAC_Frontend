@@ -33,6 +33,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { WorkOrder } from "@/types";
 import { zodResolver } from "@/lib/zod-resolver";
@@ -54,6 +55,7 @@ import { workOrderStatusLabelEsUpper } from "@/lib/planificacion/statuses";
 
 // ─── Schema de validación ────────────────────────────────────────────────────
 const editWorkOrderSchema = z.object({
+  order_number: z.string().min(1, "El número de orden es obligatorio").optional(),
   description: z.string().min(1, "La descripción es obligatoria"),
   elaborated_by: z.string().min(1, "Campo obligatorio"),
   reviewed_by: z.string().min(1, "Campo obligatorio"),
@@ -88,6 +90,7 @@ interface EditWorkOrderFormProps {
 // ─── Componente principal ─────────────────────────────────────────────────────
 const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
   const { selectedCompany } = useCompanyStore();
+  const { user } = useAuth();
 
   const { updateWorkOrder } = useUpdateWorkOrder();
   const { updateWorkOrderTask } = useUpdateWorkOrderTask();
@@ -95,6 +98,9 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
   const { deleteWorkOrderTask } = useDeleteWorkOrderTask();
 
   const isClosed = work_order.status === "CLOSED";
+  const isSuperuser = (user?.roles ?? []).some(
+    (role) => role.name.toUpperCase() === "SUPERUSER"
+  );
 
   // ─── Estado local de tareas ─────────────────────────────────────────────
   const [tasks, setTasks] = useState<EditableTask[]>(() =>
@@ -119,6 +125,7 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
   const form = useForm<EditWorkOrderFormValues>({
     resolver: zodResolver(editWorkOrderSchema),
     defaultValues: {
+      order_number: work_order.order_number ?? "",
       description: work_order.description ?? "",
       elaborated_by: work_order.elaborated_by ?? "",
       reviewed_by: work_order.reviewed_by ?? "",
@@ -231,6 +238,7 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
         id: orderId,
         company,
         data: {
+          ...(isSuperuser ? { order_number: data.order_number } : {}),
           description: data.description,
           elaborated_by: data.elaborated_by,
           reviewed_by: data.reviewed_by,
@@ -325,7 +333,15 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
         <div className="flex flex-wrap gap-3 items-center justify-between bg-muted/40 rounded-lg p-3 border">
           <div className="flex flex-col gap-1">
             <p className="text-xs text-muted-foreground">Número de Orden</p>
-            <p className="font-bold text-sm">{work_order.order_number}</p>
+            {isSuperuser ? (
+              <Input
+                {...form.register("order_number")}
+                disabled={isClosed}
+                className="h-7 text-sm font-bold w-40"
+              />
+            ) : (
+              <p className="font-bold text-sm">{work_order.order_number}</p>
+            )}
           </div>
           <div className="flex flex-col gap-1">
             <p className="text-xs text-muted-foreground">Aeronave</p>
@@ -533,7 +549,7 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
                 </p>
               )}
 
-              <ScrollArea className={cn("flex", tasks.length > 2 ? "h-[380px]" : "")}>
+              <ScrollArea className={cn("flex", tasks.length > 2 ? "h-95" : "")}>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 pr-2">
                   {tasks.map((task, index) => (
                     <div
