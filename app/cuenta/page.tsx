@@ -2,7 +2,13 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
-import { Building2, IdCard, KeyRound, ShieldCheck, UserRound } from "lucide-react";
+import {
+  Building2,
+  IdCard,
+  KeyRound,
+  ShieldCheck,
+  UserRound,
+} from "lucide-react";
 import { useTourContext } from "@/components/tour/TourProvider";
 
 import { ContentLayout } from "@/components/layout/ContentLayout";
@@ -23,7 +29,7 @@ import { ProfileField, ProfileSection } from "./_components/ProfileSection";
 // El diálogo sólo existe tras un clic: no entra en el bundle inicial del perfil.
 const RequestPasswordResetDialog = dynamic(
   () => import("@/components/dialogs/sistema/RequestPasswordResetDialog"),
-  { ssr: false }
+  { ssr: false },
 );
 
 const AccountPage = () => {
@@ -64,7 +70,10 @@ const AccountPage = () => {
     <ContentLayout title="Mi perfil">
       <PageHeader className="mb-2" />
 
-      <div className="mx-auto mt-4 max-w-5xl space-y-6" data-tour="cuenta-title">
+      <div
+        className="mx-auto mt-4 max-w-5xl space-y-6"
+        data-tour="cuenta-title"
+      >
         <div data-tour="cuenta-user-card">
           <ProfileCover
             user={user}
@@ -94,7 +103,11 @@ const AccountPage = () => {
             icon={<UserRound className="size-4" />}
           >
             <div className="divide-y rounded-xl border bg-card px-4">
-              <ProfileField label="Nombre de usuario" value={user.username} mono />
+              <ProfileField
+                label="Nombre de usuario"
+                value={user.username}
+                mono
+              />
               <ProfileField label="Correo electrónico" value={user.email} />
               <ProfileField
                 label="Empresa activa"
@@ -111,7 +124,10 @@ const AccountPage = () => {
               {employee ? (
                 <>
                   <ProfileField label="Empleado" value={employeeName} />
-                  <ProfileField label="Cargo" value={employee.job_title?.name} />
+                  <ProfileField
+                    label="Cargo"
+                    value={employee.job_title?.name}
+                  />
                   <ProfileField
                     label="Departamento"
                     value={employee.department?.name}
@@ -170,7 +186,7 @@ const AccountPage = () => {
                 "hover:from-background/70 hover:to-background/40",
                 "hover:shadow-md hover:shadow-blue-500/10",
                 "transition-all duration-200",
-                "active:scale-[0.99]"
+                "active:scale-[0.99]",
               )}
               onClick={() => setResetOpen(true)}
             >

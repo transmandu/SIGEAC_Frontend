@@ -37,8 +37,8 @@ const CompanyBootstrap = () => {
 
   const { mutateAsync: getLocations } = useGetUserLocationsByCompanyId();
 
-  const [hydrated, setHydrated] = useState(() =>
-    useCompanyStore.persist?.hasHydrated() ?? false,
+  const [hydrated, setHydrated] = useState(
+    () => useCompanyStore.persist?.hasHydrated() ?? false,
   );
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [redirectTarget, setRedirectTarget] = useState<string | null>(null);
