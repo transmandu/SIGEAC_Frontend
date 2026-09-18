@@ -105,6 +105,7 @@ export const useDeleteWorkOrder = () => {
 
 // Edita la cabecera de la orden. Las tareas se editan una a una más abajo.
 interface UpdateWOData {
+  order_number?: string;
   description?: string;
   elaborated_by?: string;
   reviewed_by?: string;
