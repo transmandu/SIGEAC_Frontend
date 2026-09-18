@@ -12,7 +12,11 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Dialog,
   DialogContent,
@@ -63,7 +67,7 @@ export function ConditionCombobox({
               "w-full min-w-0 justify-between bg-background/70 font-normal",
               !selected && "text-muted-foreground",
               invalid && "border-destructive/60 ring-1 ring-destructive/30",
-              triggerClassName
+              triggerClassName,
             )}
           >
             <span className="min-w-0 truncate">
@@ -112,7 +116,9 @@ export function ConditionCombobox({
                     <Check
                       className={cn(
                         "mr-2 size-4 shrink-0",
-                        condition.id.toString() === value ? "opacity-100" : "opacity-0"
+                        condition.id.toString() === value
+                          ? "opacity-100"
+                          : "opacity-0",
                       )}
                     />
                     <span className="min-w-0 truncate">{condition.name}</span>
@@ -126,11 +132,12 @@ export function ConditionCombobox({
 
       {/* Crear condición modal — auto-selects the new condition on success */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent className="sm:max-w-[490px]">
+        <DialogContent className="sm:max-w-122.5">
           <DialogHeader>
             <DialogTitle>Creación de Condición</DialogTitle>
             <DialogDescription>
-              Registre una condición de artículo rellenando la información necesaria.
+              Registre una condición de artículo rellenando la información
+              necesaria.
             </DialogDescription>
           </DialogHeader>
           <CreateConditionForm

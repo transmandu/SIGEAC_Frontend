@@ -65,7 +65,14 @@ export type WorkshopDispatch = {
     receiver: string | null;
     authorizer: string | null;
     status: "IN_WORKSHOP" | "RETURNED";
-    workshop?: { id: number; name: string };
+    workshop?: {
+      id: number;
+      name: string;
+      rif?: string | null;
+      address?: string | null;
+      phone?: string | null;
+      contact_name?: string | null;
+    };
     events: WorkshopDispatchEvent[];
   };
   articles_dispatch: WorkshopDispatchArticle[];

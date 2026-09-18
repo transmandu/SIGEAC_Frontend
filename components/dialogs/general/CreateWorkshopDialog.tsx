@@ -39,7 +39,7 @@ export function CreateWorkshopDialog({
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[420px]">
+      <DialogContent className="sm:max-w-105">
         <DialogHeader>
           <DialogTitle>Creación de Taller</DialogTitle>
           <DialogDescription>
