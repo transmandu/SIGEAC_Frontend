@@ -334,21 +334,10 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
           <div className="flex flex-col gap-1">
             <p className="text-xs text-muted-foreground">Número de Orden</p>
             {isSuperuser ? (
-              <FormField
-                control={form.control}
-                name="order_number"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        disabled={isClosed}
-                        className="h-7 text-sm font-bold w-40"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+              <Input
+                {...form.register("order_number")}
+                disabled={isClosed}
+                className="h-7 text-sm font-bold w-40"
               />
             ) : (
               <p className="font-bold text-sm">{work_order.order_number}</p>
