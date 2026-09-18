@@ -124,7 +124,8 @@ export function WorkshopDispatchTimelineDialog({
   });
 
   const [newWorkshopId, setNewWorkshopId] = useState("");
-  const [changeWorkshopDescription, setChangeWorkshopDescription] = useState("");
+  const [changeWorkshopDescription, setChangeWorkshopDescription] =
+    useState("");
 
   const workshopDispatch = dispatch?.workshop_dispatch;
   const events = workshopDispatch?.events ?? [];
@@ -375,8 +376,7 @@ export function WorkshopDispatchTimelineDialog({
                             Nuevo taller:{" "}
                             <span className="font-medium text-foreground">
                               {workshops?.find(
-                                (w) =>
-                                  w.id === entry.metadata?.to_workshop_id,
+                                (w) => w.id === entry.metadata?.to_workshop_id,
                               )?.name ?? `#${entry.metadata.to_workshop_id}`}
                             </span>
                           </p>
@@ -502,8 +502,8 @@ export function WorkshopDispatchTimelineDialog({
                       Editar datos del taller
                     </div>
                     <p className="mb-4 text-xs text-muted-foreground">
-                      Corrija lo que cambió (teléfono, dirección, etc.). Solo
-                      se anota en el storyline lo que efectivamente cambie.
+                      Corrija lo que cambió (teléfono, dirección, etc.). Solo se
+                      anota en el storyline lo que efectivamente cambie.
                     </p>
 
                     <div className="w-full space-y-3 text-left">
@@ -617,9 +617,9 @@ export function WorkshopDispatchTimelineDialog({
                       Cambiar taller
                     </div>
                     <p className="mb-4 text-xs text-muted-foreground">
-                      El taller actual queda en el historial; esto es un
-                      cambio de destino por decisión administrativa, no una
-                      corrección de sus datos.
+                      El taller actual queda en el historial; esto es un cambio
+                      de destino por decisión administrativa, no una corrección
+                      de sus datos.
                     </p>
 
                     <div className="w-full space-y-3 text-left">

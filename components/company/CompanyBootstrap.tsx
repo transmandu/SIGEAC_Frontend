@@ -37,8 +37,8 @@ const CompanyBootstrap = () => {
 
   const { mutateAsync: getLocations } = useGetUserLocationsByCompanyId();
 
-  const [hydrated, setHydrated] = useState(
-    () => useCompanyStore.persist.hasHydrated()
+  const [hydrated, setHydrated] = useState(() =>
+    useCompanyStore.persist.hasHydrated(),
   );
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [redirectTarget, setRedirectTarget] = useState<string | null>(null);
@@ -66,7 +66,7 @@ const CompanyBootstrap = () => {
 
   useEffect(() => {
     const unsub = useCompanyStore.persist.onFinishHydration(() =>
-      setHydrated(true)
+      setHydrated(true),
     );
 
     return () => unsub();
@@ -85,7 +85,7 @@ const CompanyBootstrap = () => {
 
       try {
         return JSON.parse(
-          localStorage.getItem("company-station-history") || "{}"
+          localStorage.getItem("company-station-history") || "{}",
         );
       } catch {
         return {};
@@ -99,10 +99,7 @@ const CompanyBootstrap = () => {
 
       history[String(companyId)] = stationId;
 
-      localStorage.setItem(
-        "company-station-history",
-        JSON.stringify(history)
-      );
+      localStorage.setItem("company-station-history", JSON.stringify(history));
     };
 
     const forgetHistory = (companyId: number | string) => {
@@ -112,10 +109,7 @@ const CompanyBootstrap = () => {
 
       delete history[String(companyId)];
 
-      localStorage.setItem(
-        "company-station-history",
-        JSON.stringify(history)
-      );
+      localStorage.setItem("company-station-history", JSON.stringify(history));
     };
 
     // Descartar la selección persistida reabre la pantalla de selección, así
@@ -136,7 +130,7 @@ const CompanyBootstrap = () => {
         setIsRedirecting(true);
 
         const companyExists = user.companies?.some(
-          (c) => c.id === selectedCompany.id
+          (c) => c.id === selectedCompany.id,
         );
 
         if (!companyExists) {
@@ -153,7 +147,7 @@ const CompanyBootstrap = () => {
           }
 
           const stationExists = locations.some(
-            (l) => l.id.toString() === selectedStation
+            (l) => l.id.toString() === selectedStation,
           );
 
           if (!stationExists) {
@@ -164,12 +158,20 @@ const CompanyBootstrap = () => {
           setIsRedirecting(true);
           saveHistory(selectedCompany.id, selectedStation);
 
-          if (typeof window !== "undefined" && "requestAnimationFrame" in window) {
-            requestAnimationFrame(() => requestAnimationFrame(() =>
-              setRedirectTarget(`/${selectedCompany.slug}/dashboard`)
-            ));
+          if (
+            typeof window !== "undefined" &&
+            "requestAnimationFrame" in window
+          ) {
+            requestAnimationFrame(() =>
+              requestAnimationFrame(() =>
+                setRedirectTarget(`/${selectedCompany.slug}/dashboard`),
+              ),
+            );
           } else {
-            setTimeout(() => setRedirectTarget(`/${selectedCompany.slug}/dashboard`), 0);
+            setTimeout(
+              () => setRedirectTarget(`/${selectedCompany.slug}/dashboard`),
+              0,
+            );
           }
           return;
         } catch {
@@ -201,12 +203,20 @@ const CompanyBootstrap = () => {
           saveHistory(company.id, station);
           setIsRedirecting(true);
 
-          if (typeof window !== "undefined" && "requestAnimationFrame" in window) {
-            requestAnimationFrame(() => requestAnimationFrame(() =>
-              setRedirectTarget(`/${company.slug}/dashboard`)
-            ));
+          if (
+            typeof window !== "undefined" &&
+            "requestAnimationFrame" in window
+          ) {
+            requestAnimationFrame(() =>
+              requestAnimationFrame(() =>
+                setRedirectTarget(`/${company.slug}/dashboard`),
+              ),
+            );
           } else {
-            setTimeout(() => setRedirectTarget(`/${company.slug}/dashboard`), 0);
+            setTimeout(
+              () => setRedirectTarget(`/${company.slug}/dashboard`),
+              0,
+            );
           }
           return;
         }
@@ -396,7 +406,7 @@ const CompanyBootstrap = () => {
                   "hover:from-background/70 hover:to-background/40",
                   "hover:shadow-md hover:shadow-blue-500/10",
                   "transition-all duration-200",
-                  "active:scale-[0.99]"
+                  "active:scale-[0.99]",
                 )}
               >
                 <Link href="/sistema/empresas">
