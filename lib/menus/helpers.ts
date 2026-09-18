@@ -32,6 +32,13 @@ export function filterMenuGroups(
 
   const isModuleActive = (moduleValue?: string | string[]): boolean => {
     if (!moduleValue || !currentCompany) return true;
+    // `currentCompany` sale del store persistido en localStorage, así que su
+    // forma no está garantizada: basta un payload sin `modules` (algún endpoint
+    // que no cargue la relación, o un objeto guardado por un build anterior)
+    // para que el `.some()` tumbe todo el render del menú. Degradamos a
+    // "visible" en vez de ocultar: un menú vacío deja al usuario sin
+    // navegación, que es peor que mostrar una opción de más.
+    if (!Array.isArray(currentCompany.modules)) return true;
     const values = Array.isArray(moduleValue) ? moduleValue : [moduleValue];
     return currentCompany.modules.some((module) =>
       values.includes(module.value),

@@ -1,12 +1,5 @@
-import {
-  ChevronFirst,
-  ChevronLast,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 
-import { type RowData } from "@tanstack/react-table";
-import { type AppTable } from "@/lib/table";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -16,13 +9,38 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-interface DataTablePaginationProps<TData extends RowData> {
-  table: AppTable<TData>;
+interface CursorPaginationProps {
+  pageIndex: number;
+  pageSize: number;
+  onPageSizeChange: (size: number) => void;
+  onPrevPage: () => void;
+  onNextPage: () => void;
+  hasPrevPage: boolean;
+  hasNextPage: boolean;
+  /**
+   * La página pedida todavía no ha llegado y en pantalla siguen las filas de
+   * la anterior. El clic ocurre aquí, así que aquí tiene que verse que algo
+   * pasó: sin esta señal el usuario ve los mismos datos durante ~1s y cree que
+   * el botón no hizo nada.
+   */
+  isTransitioning?: boolean;
 }
 
-export function DataTablePagination<TData extends RowData>({
-  table,
-}: DataTablePaginationProps<TData>) {
+/**
+ * Mismo lenguaje visual que DataTablePagination, adaptado a cursor: sin
+ * conteo total de páginas ni salto a primera/última, porque un cursor solo
+ * sabe moverse un paso adelante o atrás desde donde está.
+ */
+export function CursorPagination({
+  pageIndex,
+  pageSize,
+  onPageSizeChange,
+  onPrevPage,
+  onNextPage,
+  hasPrevPage,
+  hasNextPage,
+  isTransitioning = false,
+}: CursorPaginationProps) {
   return (
     <div
       className="
@@ -41,8 +59,8 @@ export function DataTablePagination<TData extends RowData>({
           </p>
 
           <Select
-            value={`${table.state.pagination.pageSize}`}
-            onValueChange={(value) => table.setPageSize(Number(value))}
+            value={`${pageSize}`}
+            onValueChange={(value) => onPageSizeChange(Number(value))}
           >
             <SelectTrigger
               className="
@@ -58,56 +76,46 @@ export function DataTablePagination<TData extends RowData>({
             </SelectTrigger>
 
             <SelectContent side="top">
-              {[5, 10, 15, 20, 30, 40, 50].map((pageSize) => (
-                <SelectItem key={pageSize} value={`${pageSize}`}>
-                  {pageSize}
+              {[15, 25, 50, 100].map((size) => (
+                <SelectItem key={size} value={`${size}`}>
+                  {size}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
 
-        {/* PAGE INFO */}
+        {/* PAGE INFO: sin total, cursor pagination no lo tiene sin paginar
+            todo el histórico solo para contarlo. */}
         <div className="flex w-25 items-center justify-center text-xs font-medium">
           <span className="text-muted-foreground">Página</span>
 
           <span className="mx-1 text-foreground font-semibold tabular-nums">
-            {table.state.pagination.pageIndex + 1}
+            {pageIndex + 1}
           </span>
 
-          <span className="text-muted-foreground">de</span>
-
-          <span className="ml-1 text-foreground font-semibold tabular-nums">
-            {table.getPageCount()}
-          </span>
+          {/* El número ya cambió (sale del cursor local, no de la respuesta),
+              así que el spinner es lo que distingue "página 2 cargando" de
+              "página 2 lista". */}
+          {isTransitioning && (
+            <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
+          )}
         </div>
 
         {/* NAV */}
         <div className="flex items-center space-x-2">
           {[
             {
-              icon: ChevronFirst,
-              action: () => table.setPageIndex(0),
-              disabled: !table.getCanPreviousPage(),
-              label: "Primera",
-            },
-            {
               icon: ChevronLeft,
-              action: () => table.previousPage(),
-              disabled: !table.getCanPreviousPage(),
+              action: onPrevPage,
+              disabled: !hasPrevPage,
               label: "Anterior",
             },
             {
               icon: ChevronRight,
-              action: () => table.nextPage(),
-              disabled: !table.getCanNextPage(),
+              action: onNextPage,
+              disabled: !hasNextPage,
               label: "Siguiente",
-            },
-            {
-              icon: ChevronLast,
-              action: () => table.setPageIndex(table.getPageCount() - 1),
-              disabled: !table.getCanNextPage(),
-              label: "Última",
             },
           ].map(({ icon: Icon, action, disabled, label }) => (
             <Button

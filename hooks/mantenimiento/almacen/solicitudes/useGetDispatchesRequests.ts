@@ -1,9 +1,11 @@
 import { AuthorizedEmployee } from "@/app/[company]/ajustes/autorizaciones/autorizados/columns";
 import type { DispatchArticle } from "@/app/[company]/almacen/solicitudes/salida/page";
+import { useDebounce } from "@/hooks/helpers/useDebounce";
 import axios from "@/lib/axios";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { MaintenanceAircraft } from "@/types";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 
 /**
  * `articles` reusa DispatchArticle en vez de redeclararlo: eran dos
@@ -36,26 +38,119 @@ interface IDispatch {
   articles: DispatchArticle[];
 }
 
+interface CursorPage {
+  data: IDispatch[];
+  next_cursor: string | null;
+  prev_cursor: string | null;
+  has_more: boolean;
+}
+
 const fetchDispatchesRequests = async ({
   location_id,
   company,
+  cursor,
+  search,
+  perPage,
 }: {
   location_id: string | null;
   company?: string;
-}): Promise<IDispatch[]> => {
-  const { data } = await axios.get(`/${company}/${location_id}/show-dispatch`);
+  cursor: string | null;
+  search: string;
+  perPage: number;
+}): Promise<CursorPage> => {
+  const { data } = await axios.get(`/${company}/${location_id}/show-dispatch`, {
+    params: {
+      cursor: cursor ?? undefined,
+      search: search || undefined,
+      per_page: perPage,
+    },
+  });
   return data;
 };
 
+/**
+ * Paginado por cursor: navega "Siguiente/Anterior" en vez de cargar todo el
+ * historial de salidas de una sede de una vez, que con miles de filas tardaba
+ * segundos. La búsqueda corre en el servidor (request_number, P/N, serial,
+ * descripción) porque con cursor pagination el cliente nunca tiene todas las
+ * filas para filtrar en memoria.
+ *
+ * La pila de cursores es lo que permite "Anterior": la API solo entrega el
+ * cursor hacia adelante y hacia atrás desde la página actual, así que hay que
+ * recordar por dónde se pasó para poder retroceder.
+ */
 export const useGetDispatchesByLocation = () => {
   const { selectedStation, selectedCompany } = useCompanyStore();
-  return useQuery<IDispatch[], Error>({
-    queryKey: ["dispatches-requests", selectedCompany?.slug, selectedStation],
+
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 350);
+  const [pageSize, setPageSizeState] = useState(15);
+  const [cursorStack, setCursorStack] = useState<(string | null)[]>([null]);
+  const cursor = cursorStack[cursorStack.length - 1];
+
+  const resetPaging = () => setCursorStack([null]);
+
+  const query = useQuery<CursorPage, Error>({
+    queryKey: [
+      "dispatches-requests",
+      selectedCompany?.slug,
+      selectedStation,
+      cursor,
+      debouncedSearch,
+      pageSize,
+    ],
     queryFn: () =>
       fetchDispatchesRequests({
         company: selectedCompany?.slug,
         location_id: selectedStation,
+        cursor,
+        search: debouncedSearch,
+        perPage: pageSize,
       }),
-    enabled : !!selectedCompany && !! selectedStation
+    enabled: !!selectedCompany && !!selectedStation,
+    placeholderData: keepPreviousData,
   });
+
+  // keepPreviousData deja las filas de la página anterior en pantalla mientras
+  // llega la nueva, en vez de vaciar la tabla. Sin señalar esa transición el
+  // clic en "Siguiente" no cambia nada visible durante ~1s y parece que el
+  // botón no funcionó: isPlaceholderData es lo que la tabla usa para atenuar
+  // el cuerpo y bloquear la navegación hasta que los datos correspondan a la
+  // página pedida.
+  const isTransitioning = query.isPlaceholderData;
+
+  return {
+    ...query,
+    data: query.data?.data,
+    isTransitioning,
+    // Un cursor solo es válido para la página que ya llegó: mientras se ve la
+    // anterior, el "Siguiente" apuntaría a la página equivocada.
+    hasNextPage:
+      !isTransitioning && !!query.data?.next_cursor && query.data.has_more,
+    hasPrevPage: !isTransitioning && cursorStack.length > 1,
+    // No hay conteo total con cursor pagination; la posición dentro de la
+    // navegación actual (cuántos "siguiente" se han pedido) es lo único que
+    // se puede mostrar sin paginar todo el histórico solo para contarlo.
+    pageIndex: cursorStack.length - 1,
+    nextPage: () => {
+      if (query.data?.next_cursor) {
+        setCursorStack((stack) => [...stack, query.data!.next_cursor]);
+      }
+    },
+    prevPage: () => {
+      setCursorStack((stack) =>
+        stack.length > 1 ? stack.slice(0, -1) : stack,
+      );
+    },
+    search,
+    setSearch: (value: string) => {
+      setSearch(value);
+      resetPaging();
+    },
+    pageSize,
+    setPageSize: (value: number) => {
+      setPageSizeState(value);
+      resetPaging();
+    },
+  };
 };

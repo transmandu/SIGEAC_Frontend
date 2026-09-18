@@ -1,9 +1,9 @@
-import DispatchArticlesDialog from '@/components/dialogs/mantenimiento/almacen/DispatchArticlesDialog';
-import DispatchRequestDropdownActions from '@/components/dropdowns/mantenimiento/almacen/DispatchRequestDropdownActions';
-import { DataTableColumnHeader } from '@/components/tables/DataTableHeader';
+import DispatchArticlesDialog from "@/components/dialogs/mantenimiento/almacen/DispatchArticlesDialog";
+import DispatchRequestDropdownActions from "@/components/dropdowns/mantenimiento/almacen/DispatchRequestDropdownActions";
+import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { type AppColumnDef } from "@/lib/table";
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 import {
   Calendar,
   FileText,
@@ -12,16 +12,16 @@ import {
   Plane,
   Truck,
   Users,
-  Wrench
-} from 'lucide-react';
-import { DispatchGroupRow } from './page';
+  Wrench,
+} from "lucide-react";
+import { DispatchGroupRow } from "./page";
 
 function safeDateLabel(raw?: string | null) {
   if (!raw) return null;
   const d = new Date(raw);
   if (Number.isNaN(d.getTime())) return null;
   // Más compacto para tabla; si quieres PPP, cambia la línea de abajo.
-  return format(d, 'dd MMM yyyy', { locale: es });
+  return format(d, "dd MMM yyyy", { locale: es });
 }
 
 export const columns: AppColumnDef<DispatchGroupRow>[] = [
@@ -52,8 +52,8 @@ export const columns: AppColumnDef<DispatchGroupRow>[] = [
   //   size: 40,
   // },
   {
-    accessorKey: 'request_number',
-    meta: { title: 'Solicitud' },
+    accessorKey: "request_number",
+    meta: { title: "Solicitud" },
     header: ({ column }) => (
       <DataTableColumnHeader
         column={column}
@@ -64,7 +64,7 @@ export const columns: AppColumnDef<DispatchGroupRow>[] = [
       />
     ),
     cell: ({ row }) => {
-      const destination = row.original.destination_location
+      const destination = row.original.destination_location;
 
       return (
         <div className="flex flex-col items-center gap-1">
@@ -82,14 +82,14 @@ export const columns: AppColumnDef<DispatchGroupRow>[] = [
             </span>
           )}
         </div>
-      )
+      );
     },
     size: 130,
   },
 
   {
-    accessorKey: 'created_by',
-    meta: { title: 'Creado por' },
+    accessorKey: "created_by",
+    meta: { title: "Creado por" },
     header: ({ column }) => (
       <DataTableColumnHeader
         column={column}
@@ -106,8 +106,8 @@ export const columns: AppColumnDef<DispatchGroupRow>[] = [
   },
 
   {
-    accessorKey: 'requested_by',
-    meta: { title: 'Solicitante' },
+    accessorKey: "requested_by",
+    meta: { title: "Solicitante" },
     header: ({ column }) => (
       <DataTableColumnHeader
         column={column}
@@ -127,7 +127,9 @@ export const columns: AppColumnDef<DispatchGroupRow>[] = [
       if (authorized_employee) {
         return (
           <div className="text-center leading-tight">
-            <p className="font-medium text-center">{authorized_employee.full_name}</p>
+            <p className="font-medium text-center">
+              {authorized_employee.full_name}
+            </p>
             <p className="text-xs text-muted-foreground uppercase">
               {authorized_employee.from_company_db}
             </p>
@@ -141,8 +143,8 @@ export const columns: AppColumnDef<DispatchGroupRow>[] = [
   },
 
   {
-    accessorKey: 'work_order',
-    meta: { title: 'OT' },
+    accessorKey: "work_order",
+    meta: { title: "OT" },
     header: ({ column }) => (
       <DataTableColumnHeader
         column={column}
@@ -154,16 +156,16 @@ export const columns: AppColumnDef<DispatchGroupRow>[] = [
     ),
     cell: ({ row }) => (
       <p className="text-center font-medium tabular-nums">
-        {row.original.work_order ?? '—'}
+        {row.original.work_order ?? "—"}
       </p>
     ),
     size: 90,
   },
 
   {
-    id: 'destination',
-    meta: { title: 'Destino' },
-    accessorFn: (row) => row.aircraft?.acronym ?? row.department?.name ?? '',
+    id: "destination",
+    meta: { title: "Destino" },
+    accessorFn: (row) => row.aircraft?.acronym ?? row.department?.name ?? "",
     header: ({ column }) => (
       <DataTableColumnHeader
         column={column}
@@ -184,15 +186,17 @@ export const columns: AppColumnDef<DispatchGroupRow>[] = [
               <Plane className="h-4 w-4 opacity-70" />
               {aircraft}
             </p>
-            <p className="text-xs text-muted-foreground text-center">Aeronave</p>
+            <p className="text-xs text-muted-foreground text-center">
+              Aeronave
+            </p>
           </div>
         );
       }
 
       if (dept) {
         return (
-          <div className="text-left leading-tight flex flex-col items-center justify-center">
-            <p className="font-medium">{dept}</p>
+          <div className="flex flex-col items-center justify-center leading-tight">
+            <p className="font-medium text-center">{dept}</p>
             <p className="text-xs text-muted-foreground">Departamento</p>
           </div>
         );
@@ -208,8 +212,8 @@ export const columns: AppColumnDef<DispatchGroupRow>[] = [
   },
 
   {
-    accessorKey: 'submission_date',
-    meta: { title: 'Fecha' },
+    accessorKey: "submission_date",
+    meta: { title: "Fecha" },
     header: ({ column }) => (
       <DataTableColumnHeader
         column={column}
@@ -232,8 +236,8 @@ export const columns: AppColumnDef<DispatchGroupRow>[] = [
   },
 
   {
-    id: 'articles',
-    meta: { title: 'Artículos' },
+    id: "articles",
+    meta: { title: "Artículos" },
     header: () => (
       <div className="flex items-center justify-center gap-2">
         <Package className="h-4 w-4 opacity-80" />
@@ -253,8 +257,8 @@ export const columns: AppColumnDef<DispatchGroupRow>[] = [
     size: 110,
   },
   {
-    id: 'actions',
-    meta: { title: 'Acciones' },
+    id: "actions",
+    meta: { title: "Acciones" },
     header: () => (
       <div className="flex items-center justify-center gap-2">
         <Package className="h-4 w-4 opacity-80" />

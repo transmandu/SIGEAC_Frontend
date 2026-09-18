@@ -38,9 +38,12 @@ const CompanyBootstrap = () => {
 
   const { mutateAsync: getLocations } = useGetUserLocationsByCompanyId();
 
-  const [hydrated, setHydrated] = useState(false);
+  const [hydrated, setHydrated] = useState(
+    () => useCompanyStore.persist?.hasHydrated() ?? false,
+  );
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [redirectTarget, setRedirectTarget] = useState<string | null>(null);
+  const [isNavigating, setIsNavigating] = useState(false);
 
   // Next mantiene /inicio montado entre sesiones, así que refs y estado
   // sobrevivían al logout: el usuario siguiente entraba con navigatingRef ya en
@@ -48,25 +51,29 @@ const CompanyBootstrap = () => {
   // cortocircuitado. Cambiar de usuario devuelve el componente a cero.
   const sessionUserRef = useRef<User["id"] | null>(null);
 
-  if (user && user.id !== sessionUserRef.current) {
+  useEffect(() => {
+    if (!user || user.id === sessionUserRef.current) return;
+
     sessionUserRef.current = user.id;
 
     navigatingRef.current = false;
     resolvedRef.current = false;
     companyAutoSelectedRef.current = false;
 
-    if (isRedirecting) setIsRedirecting(false);
-    if (redirectTarget) setRedirectTarget(null);
-  }
+    setIsNavigating(false);
+    setIsRedirecting(false);
+    setRedirectTarget(null);
+  }, [user]);
 
   useEffect(() => {
-    const unsub = useCompanyStore.persist.onFinishHydration(() =>
-      setHydrated(true)
-    );
-
-    if (useCompanyStore.persist.hasHydrated()) {
+    if (!useCompanyStore.persist) {
       setHydrated(true);
+      return;
     }
+
+    const unsub = useCompanyStore.persist.onFinishHydration(() =>
+      setHydrated(true),
+    );
 
     return () => unsub();
   }, []);
@@ -84,7 +91,7 @@ const CompanyBootstrap = () => {
 
       try {
         return JSON.parse(
-          localStorage.getItem("company-station-history") || "{}"
+          localStorage.getItem("company-station-history") || "{}",
         );
       } catch {
         return {};
@@ -98,10 +105,7 @@ const CompanyBootstrap = () => {
 
       history[String(companyId)] = stationId;
 
-      localStorage.setItem(
-        "company-station-history",
-        JSON.stringify(history)
-      );
+      localStorage.setItem("company-station-history", JSON.stringify(history));
     };
 
     const forgetHistory = (companyId: number | string) => {
@@ -111,10 +115,7 @@ const CompanyBootstrap = () => {
 
       delete history[String(companyId)];
 
-      localStorage.setItem(
-        "company-station-history",
-        JSON.stringify(history)
-      );
+      localStorage.setItem("company-station-history", JSON.stringify(history));
     };
 
     // Descartar la selección persistida reabre la pantalla de selección, así
@@ -135,7 +136,7 @@ const CompanyBootstrap = () => {
         setIsRedirecting(true);
 
         const companyExists = user.companies?.some(
-          (c) => c.id === selectedCompany.id
+          (c) => c.id === selectedCompany.id,
         );
 
         if (!companyExists) {
@@ -152,7 +153,7 @@ const CompanyBootstrap = () => {
           }
 
           const stationExists = locations.some(
-            (l) => l.id.toString() === selectedStation
+            (l) => l.id.toString() === selectedStation,
           );
 
           if (!stationExists) {
@@ -165,12 +166,20 @@ const CompanyBootstrap = () => {
 
           const target = `/${selectedCompany.slug}/dashboard`;
 
-          if (typeof window !== "undefined" && "requestAnimationFrame" in window) {
-            requestAnimationFrame(() => requestAnimationFrame(() =>
-              setRedirectTarget(target)
-            ));
+          if (
+            typeof window !== "undefined" &&
+            "requestAnimationFrame" in window
+          ) {
+            requestAnimationFrame(() =>
+              requestAnimationFrame(() =>
+                setRedirectTarget(`/${selectedCompany.slug}/dashboard`),
+              ),
+            );
           } else {
-            setTimeout(() => setRedirectTarget(target), 0);
+            setTimeout(
+              () => setRedirectTarget(`/${selectedCompany.slug}/dashboard`),
+              0,
+            );
           }
           return;
         } catch {
@@ -204,12 +213,20 @@ const CompanyBootstrap = () => {
 
           const target = `/${company.slug}/dashboard`;
 
-          if (typeof window !== "undefined" && "requestAnimationFrame" in window) {
-            requestAnimationFrame(() => requestAnimationFrame(() =>
-              setRedirectTarget(target)
-            ));
+          if (
+            typeof window !== "undefined" &&
+            "requestAnimationFrame" in window
+          ) {
+            requestAnimationFrame(() =>
+              requestAnimationFrame(() =>
+                setRedirectTarget(`/${company.slug}/dashboard`),
+              ),
+            );
           } else {
-            setTimeout(() => setRedirectTarget(target), 0);
+            setTimeout(
+              () => setRedirectTarget(`/${company.slug}/dashboard`),
+              0,
+            );
           }
           return;
         }
@@ -241,13 +258,8 @@ const CompanyBootstrap = () => {
     // 0.35s) cierran en ~0.65s, y el resto se ve como una pausa intencional.
     const timeout = window.setTimeout(() => {
       navigatingRef.current = true;
-
-      // El `from` se consume aquí y no al calcular el destino: solo en este
-      // punto la navegación es segura. Consumirlo antes lo perdía si el
-      // bootstrap descartaba la selección (estación caída) y volvía a empezar.
-      router.replace(
-        resolveLandingPath(redirectTarget.split("/")[1], redirectTarget)
-      );
+      setIsNavigating(true);
+      router.replace(redirectTarget);
     }, 1000);
 
     // Si la navegación no prospera —un 401 la interrumpe y la sesión vuelve a
@@ -270,7 +282,7 @@ const CompanyBootstrap = () => {
   }, [redirectTarget, router]);
 
   const shouldShowFullPageLoading =
-    !hydrated || userLoading || isRedirecting || navigatingRef.current;
+    !hydrated || userLoading || isRedirecting || isNavigating;
 
   /**
    * LOADING SCREEN
@@ -286,7 +298,7 @@ const CompanyBootstrap = () => {
       >
         {/* ambient glow */}
         <motion.div
-          className="absolute w-[500px] h-[500px] rounded-full bg-primary/10 blur-3xl"
+          className="absolute w-125 h-125 rounded-full bg-primary/10 blur-3xl"
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1.1, opacity: 1 }}
           transition={{ duration: 1.2, repeat: Infinity, repeatType: "mirror" }}
@@ -410,7 +422,7 @@ const CompanyBootstrap = () => {
                 asChild
                 variant="ghost"
                 className={cn(
-                  "h-9 w-[368px] rounded-lg text-sm font-normal",
+                  "h-9 w-92 rounded-lg text-sm font-normal",
                   "bg-linear-to-br from-background/70 to-background/40",
                   "backdrop-blur-md",
                   "border border-slate-400/60 dark:border-slate-600/60",
@@ -420,7 +432,7 @@ const CompanyBootstrap = () => {
                   "hover:from-background/70 hover:to-background/40",
                   "hover:shadow-md hover:shadow-blue-500/10",
                   "transition-all duration-200",
-                  "active:scale-[0.99]"
+                  "active:scale-[0.99]",
                 )}
               >
                 <Link href="/sistema/empresas">

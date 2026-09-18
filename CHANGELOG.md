@@ -1,3 +1,43 @@
+## v4.12.0 — 2026-09-18
+
+- Merge pull request #275 from transmandu/feat/añadir-complementos-salidas-taller
+- style: formato automatico (prettier)
+- feat: update layout dimensions and improve dialog content responsiveness
+- style: formato automatico (prettier)
+- feat: add workshop details update and change functionality in dispatch timeline
+
+## v4.11.2 — 2026-09-17
+
+- Merge pull request #274 from transmandu/fix/batch-articles-array-guard
+- style: formato automatico (prettier)
+- fix: handle alternative_part_number as array to support legacy data formats
+
+## v4.11.1 — 2026-09-17
+
+- fix: ensure currentCompany.modules is an array before checking module activity
+
+## v4.11.0 — 2026-09-16
+
+- Merge pull request #273 from transmandu/fix/pagination-transition
+- feat: add isTransitioning prop to handle pagination transitions in data tables
+
+## v4.10.0 — 2026-09-16
+
+- feat: move multiple files to folders (#272)
+
+## v4.9.0 — 2026-09-16
+
+- Merge pull request #271 from transmandu/feat/salidas-taller-cursor-pagination
+- style: formato automatico (prettier)
+- feat: add cut payload to workshop dispatch actions and update condition handling in timeline dialog
+- Merge branch 'main' into feat/salidas-taller-cursor-pagination
+- feat: enhance data table with loading and error states, update menu labels
+- feat: add cursor pagination component and integrate it into data table pagination
+
+## v4.8.0 — 2026-09-16
+
+- feat: save reports in library (#268)
+
 ## v4.7.1 — 2026-09-16
 
 - Merge pull request #270 from transmandu/dependabot/github_actions/actions-da512a7850
