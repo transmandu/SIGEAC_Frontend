@@ -27,10 +27,13 @@ export function MonthGrid({ month, events, canEdit, shortLabels, onSelectEvent }
   const gridStart = startOfWeek(monthStart, { weekStartsOn: 1 });
   const gridEnd = endOfWeek(monthEnd, { weekStartsOn: 1 });
 
-  // Siempre 42 celdas (6 semanas): mantiene la grilla del mismo alto sin
-  // importar cuántas semanas tenga el mes real, así las 6 filas se reparten
-  // el alto disponible de forma predecible (minmax(0,1fr) por fila).
   const days = useMemo(() => eachDayOfInterval({ start: gridStart, end: gridEnd }), [gridStart, gridEnd]);
+
+  // 5 semanas la mayoría de los meses, 6 quince veces por año: si la grilla
+  // siempre reservara 6 filas, un mes de 5 dejaba la última fila vacía y
+  // cada fila real se estiraba de más para "rellenar" ese hueco — visible
+  // como un colchón de espacio en blanco debajo de la última semana.
+  const weekCount = days.length / 7;
 
   // Un evento multi-día se repite como chip en CADA día que ocupa (decisión
   // de diseño: más simple que una barra continua tipo Google Calendar, sin
@@ -56,11 +59,18 @@ export function MonthGrid({ month, events, canEdit, shortLabels, onSelectEvent }
   }, [events, gridStart, gridEnd]);
 
   return (
-    // grid-rows-[auto_repeat(6,minmax(0,1fr))]: la fila de encabezado toma
-    // su alto natural y las 6 filas de semana se reparten TODO el resto en
-    // partes iguales — grid-auto-flow (por defecto "row") ya envuelve los 42
-    // DayCell de a 7 por fila sin necesitar un <div> contenedor por semana.
-    <div className="grid h-full min-h-0 grid-cols-7 grid-rows-[auto_repeat(6,minmax(0,1fr))]">
+    // grid-rows-[auto_repeat(weekCount,minmax(0,1fr))]: la fila de
+    // encabezado toma su alto natural y las N filas de semana REALES (5 o 6,
+    // según el mes) se reparten todo el resto en partes iguales —
+    // grid-auto-flow (por defecto "row") ya envuelve los días de a 7 por
+    // fila sin necesitar un <div> contenedor por semana. border-l/t acá (no
+    // en cada DayCell): cada celda solo dibuja su borde derecho/inferior —
+    // sin este borde envolvente, la primera columna y la fila de encabezado
+    // quedaban sin borde izquierdo/superior.
+    <div
+      className="grid h-full min-h-0 grid-cols-7 border-l border-t border-slate-400/20 dark:border-slate-600/20"
+      style={{ gridTemplateRows: `auto repeat(${weekCount}, minmax(0, 1fr))` }}
+    >
       {WEEKDAY_HEADERS.map((label) => (
         <div
           key={label}

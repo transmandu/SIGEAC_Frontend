@@ -17,7 +17,6 @@ import {
   format,
   getHours,
   getMinutes,
-  isSameMonth,
   setHours,
   setMinutes,
   startOfMonth,
@@ -294,38 +293,36 @@ export function EventCalendar() {
     <div className="flex h-[calc(100dvh-14rem)] min-h-128 flex-col gap-4 md:flex-row">
       <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-slate-400/40 bg-linear-to-br from-background/60 to-background/30 p-3 backdrop-blur-sm dark:border-slate-600/40">
-          <div className="mb-4 flex shrink-0 items-center justify-between border-b border-slate-400/30 pb-3 dark:border-slate-600/30">
-            <h2 className="text-sm font-semibold uppercase tracking-wide">
+          <div className="mb-6 flex shrink-0 items-center justify-between border-b border-slate-400/30 pb-4 dark:border-slate-600/30">
+            <h2 className="text-xl font-semibold capitalize tracking-tight">
               {format(currentMonth, "MMMM yyyy", { locale: es })}
             </h2>
-            <div className="flex items-center gap-1">
-              <Button
-                type="button"
-                size="icon"
-                variant="ghost"
-                className="size-7"
-                onClick={() => setCurrentMonth((m) => startOfMonth(addDays(startOfMonth(m), -1)))}
-              >
-                <ChevronLeft className="size-4" />
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                className="h-7 px-2 text-xs"
-                disabled={isSameMonth(currentMonth, new Date())}
-                onClick={() => setCurrentMonth(startOfMonth(new Date()))}
-              >
-                Hoy
-              </Button>
-              <Button
-                type="button"
-                size="icon"
-                variant="ghost"
-                className="size-7"
-                onClick={() => setCurrentMonth((m) => startOfMonth(addDays(endOfMonth(m), 1)))}
-              >
-                <ChevronRight className="size-4" />
-              </Button>
+            <div className="flex items-center gap-3">
+              {/* Reemplaza al botón "Hoy": ese botón no tenía nada que decir
+                  cuando ya se estaba viendo el mes actual (se veía muerto/sin
+                  función) — la fecha de hoy es información útil siempre,
+                  sin importar en qué mes esté parado el usuario. */}
+              <span className="text-xs text-muted-foreground">{format(new Date(), "dd/MM/yyyy")}</span>
+              <div className="flex items-center gap-1">
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  className="size-7"
+                  onClick={() => setCurrentMonth((m) => startOfMonth(addDays(startOfMonth(m), -1)))}
+                >
+                  <ChevronLeft className="size-4" />
+                </Button>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  className="size-7"
+                  onClick={() => setCurrentMonth((m) => startOfMonth(addDays(endOfMonth(m), 1)))}
+                >
+                  <ChevronRight className="size-4" />
+                </Button>
+              </div>
             </div>
           </div>
 

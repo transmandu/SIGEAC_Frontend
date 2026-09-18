@@ -39,11 +39,16 @@ export function DayCell({ day, dayKey, events, monthStart, canEdit, shortLabels,
     <div
       ref={setNodeRef}
       className={cn(
+        // h-full: sin esto la celda solo toma el alto de su propio contenido
+        // (número de día + un par de chips), más bajo que la fila 1fr que
+        // CSS Grid le reservó — el borde de cada celda quedaba más arriba
+        // que el límite real de la fila, dejando un colchón vacío visible
+        // entre la última semana y el borde del contenedor.
         // min-h-0 + overflow-hidden: sin esto, una celda con muchos eventos
         // crece más alto que las demás y CSS Grid deja de repartir las 6
         // filas de semana en partes iguales — el resto se maneja con el tope
         // de MAX_VISIBLE_PILLS + "+N más", no con scroll interno.
-        "flex min-h-0 flex-col gap-0.5 overflow-hidden border-b border-r border-slate-400/20 p-1 dark:border-slate-600/20",
+        "flex h-full min-h-0 flex-col gap-0.5 overflow-hidden border-b border-r border-slate-400/20 p-1 dark:border-slate-600/20",
         !inCurrentMonth && "opacity-40",
         isOver && "bg-primary/10 ring-1 ring-inset ring-primary/40",
       )}
