@@ -1,3 +1,7 @@
+## v4.14.1 — 2026-09-19
+
+- refactor: streamline sidebar and layout components, remove unused imp… (#276)
+
 ## v4.14.0 — 2026-09-18
 
 - Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend
