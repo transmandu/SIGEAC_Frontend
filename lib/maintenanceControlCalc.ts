@@ -1,6 +1,11 @@
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
-import { ComputedMaintenanceInterval, MaintenanceControlItem, MaintenanceItemStatus } from "@/types";
+import {
+  ComputedMaintenanceInterval,
+  MaintenanceControlItemComputed,
+  MaintenanceItemStatus,
+  MaintenanceProvider,
+} from "@/types";
 
 // Reexport: varios consumidores ya importan el tipo de estado desde acá.
 export type ItemStatus = MaintenanceItemStatus;
@@ -137,11 +142,15 @@ function formatInterval(interval: ComputedMaintenanceInterval): SingleLimitResul
  * se formatea para pantalla.
  */
 /**
- * Solo lo que hace falta para calcular: un MaintenanceControlItem completo
- * lo cumple, y también un MaintenanceControlSnapshotItem (estado a una
- * fecha pasada) que no trae los demás campos del ítem.
+ * Solo lo que hace falta para formatear: lo cumplen MaintenanceControlItem,
+ * MaintenanceControlSnapshotItem (estado a una fecha pasada) y
+ * ComponentControlItem — el `computed` es el mismo para los tres.
  */
-type ComputableItem = Pick<MaintenanceControlItem, "computed" | "latest_compliance" | "maintenance_provider">;
+type ComputableItem = {
+  computed?: MaintenanceControlItemComputed | null;
+  latest_compliance?: { maintenance_provider?: MaintenanceProvider | null } | null;
+  maintenance_provider?: MaintenanceProvider | null;
+};
 
 export function computeMaintenanceItem(item: ComputableItem): ComputedMaintenanceItem {
   const computed = item.computed;

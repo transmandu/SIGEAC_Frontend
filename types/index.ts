@@ -533,6 +533,10 @@ export type ComputedMaintenanceInterval = {
   limit_value: number;
   /** Lectura inicial (o del último cumplimiento) en la unidad de este intervalo; null en DAYS. */
   applied_value: number | null;
+  /** Lo que el componente ya traía gastado al evento (0 en servicios de aeronave/motor). */
+  consumed_at_event: number;
+  /** Acumulado hoy desde el último overhaul/reemplazo ("Componente desde OH" del 43-004). */
+  since_event_value: number | null;
   next_value: number | null;
   next_date: string | null;
   remaining_value: number | null;
@@ -596,6 +600,298 @@ export type MaintenanceControlSnapshot = {
   };
   parts: MaintenanceControlSnapshotPart[];
   items: MaintenanceControlSnapshotItem[];
+};
+
+// ─── Control de Componentes (Forma INAC-43-004) ─────────────────────────────
+// Hermano del Control de Mantenimiento: mismo `computed` (el calculador es el
+// mismo), pero cada ítem es un componente físico P/N + S/N.
+
+export type ComponentCategory =
+  | "LANDING_GEAR"
+  | "ENGINE_ACCESSORY"
+  | "ENGINE_LLP"
+  | "PROPELLER"
+  | "AVIONICS"
+  | "EMERGENCY_EQUIPMENT"
+  | "HYDRAULIC_PNEUMATIC"
+  | "FUEL_SYSTEM"
+  | "ELECTRICAL"
+  | "STRUCTURE"
+  | "OTHER";
+
+/** Qué exige el límite al cumplirse ("descripción del trabajo" del 43-004). */
+export type ComponentAction = "OVERHAUL" | "REPLACE" | "REPAIR" | "INSPECTION";
+
+/** HARD_TIME se overhaulea al límite; LIFE_LIMIT se descarta y se reemplaza. */
+export type ComponentLimitKind = "HARD_TIME" | "LIFE_LIMIT";
+
+export type ComponentControlItemInterval = {
+  id?: number;
+  counting_method: MaintenanceCountingMethod;
+  limit_kind: ComponentLimitKind;
+  limit_value: number | string;
+  /** Lectura del PADRE (aeronave/motor/hélice) en el evento; null en DAYS. */
+  initial_value?: number | string | null;
+  /** Lo que el componente ya traía gastado al instalarse ("HRS INT"/"CYC INST"). */
+  consumed_at_event?: number | string | null;
+};
+
+export type ComponentCompliance = {
+  id: number;
+  component_control_item_id: number;
+  component_control_item?: ComponentControlItem;
+  maintenance_provider_id: number | string;
+  maintenance_provider?: MaintenanceProvider;
+  work_order_id: number | string | null;
+  work_order?: WorkOrder;
+  compliance_date: string;
+  hours_reading: number | string;
+  cycles_reading: number | string;
+  action: ComponentAction;
+  consumed_hours: number | string;
+  consumed_cycles: number | string;
+  is_historical?: boolean;
+  maintenance_catalog_manual_id?: number | string | null;
+  manual_revision_label?: string | null;
+  catalog_manual?: CatalogManual | null;
+  notes?: string | null;
+  registered_by?: string;
+  created_at?: string;
+};
+
+export type ComponentControlItem = {
+  id?: number;
+  component_control_id?: number;
+  /** Motor/hélice del que cuelga; null = fuselaje. */
+  parent_aircraft_part_id?: number | string | null;
+  parent_aircraft_part?: MaintenanceAircraftPart | null;
+  /** La sub-parte física del árbol, si está registrada. */
+  aircraft_part_id?: number | string | null;
+  aircraft_part?: MaintenanceAircraftPart | null;
+  maintenance_provider_id?: number | string | null;
+  maintenance_provider?: MaintenanceProvider;
+  maintenance_catalog_service_id?: number | null;
+  pending_work_order_id?: number | string | null;
+  pending_work_order?: WorkOrder | null;
+  category: ComponentCategory;
+  is_hazardous: boolean;
+  description: string;
+  part_number: string;
+  serial: string;
+  position?: string | null;
+  action: ComponentAction;
+  reference_document?: string | null;
+  first_applied_date: string;
+  status: "ACTIVE" | "REMOVED";
+  removed_date?: string | null;
+  removal_notes?: string | null;
+  intervals: ComponentControlItemInterval[];
+  computed?: MaintenanceControlItemComputed;
+  latest_compliance?: ComponentCompliance | null;
+};
+
+export type ComponentControl = {
+  id: number;
+  aircraft_id: number | string;
+  aircraft: MaintenanceAircraft;
+  title: string;
+  description?: string | null;
+  has_reference_manual: boolean;
+  reference_manual?: string | null;
+  maintenance_catalog_manual_id?: number | string | null;
+  catalog_manual?: CatalogManual | null;
+  remaining_percentage: number | string;
+  active_items_count?: number;
+  items?: ComponentControlItem[];
+  registered_by?: string;
+  updated_by?: string;
+  created_at?: string;
+  updated_at?: string;
+};
+
+// ─── Control de Aviónica (Forma INAC-43-005) ────────────────────────────────
+// Inventario certificado de equipos de aviónica. El vencimiento vive en la
+// TAREA (un equipo puede tener varias, con reloj propio); "por condición" =
+// sin plazo, solo se lista y se verifica.
+
+export type AvionicsCategory =
+  | "FLIGHT_INSTRUMENTS"
+  | "NAVIGATION"
+  | "COMMUNICATION"
+  | "SURVEILLANCE"
+  | "RECORDERS"
+  | "EMERGENCY"
+  | "AUTOPILOT"
+  | "RADAR"
+  | "ELECTRICAL"
+  | "OTHER";
+
+export type AvionicsAction = "FUNCTIONAL_CHECK" | "CERTIFICATION" | "CALIBRATION" | "REPLACEMENT" | "DATA_DOWNLOAD";
+
+export type AvionicsControlTaskInterval = {
+  id?: number;
+  counting_method: MaintenanceCountingMethod;
+  limit_value: number | string;
+  initial_value?: number | string | null;
+};
+
+export type AvionicsCompliance = {
+  id: number;
+  avionics_control_task_id: number;
+  task?: AvionicsControlTask;
+  maintenance_provider_id: number | string;
+  maintenance_provider?: MaintenanceProvider;
+  work_order_id: number | string | null;
+  work_order?: WorkOrder;
+  compliance_date: string;
+  hours_reading: number | string;
+  cycles_reading: number | string;
+  is_historical?: boolean;
+  maintenance_catalog_manual_id?: number | string | null;
+  manual_revision_label?: string | null;
+  catalog_manual?: CatalogManual | null;
+  notes?: string | null;
+  registered_by?: string;
+  created_at?: string;
+};
+
+export type AvionicsControlTask = {
+  id?: number;
+  avionics_control_item_id?: number;
+  maintenance_provider_id?: number | string | null;
+  maintenance_provider?: MaintenanceProvider | null;
+  pending_work_order_id?: number | string | null;
+  pending_work_order?: WorkOrder | null;
+  action: AvionicsAction;
+  is_on_condition: boolean;
+  first_applied_date?: string | null;
+  intervals: AvionicsControlTaskInterval[];
+  /** null cuando la tarea es por condición. */
+  computed?: MaintenanceControlItemComputed | null;
+  latest_compliance?: AvionicsCompliance | null;
+};
+
+export type AvionicsControlItem = {
+  id?: number;
+  avionics_control_id?: number;
+  aircraft_part_id?: number | string | null;
+  maintenance_catalog_service_id?: number | null;
+  category: AvionicsCategory;
+  is_hazardous: boolean;
+  description: string;
+  part_number: string;
+  serial: string;
+  position?: string | null;
+  reference_document?: string | null;
+  status: "ACTIVE" | "REMOVED";
+  removed_date?: string | null;
+  removal_notes?: string | null;
+  tasks: AvionicsControlTask[];
+  /** Peor estado entre sus tareas programadas; null si todas son por condición. */
+  status_computed?: MaintenanceItemStatus | null;
+};
+
+export type AvionicsControl = {
+  id: number;
+  aircraft_id: number | string;
+  aircraft: MaintenanceAircraft;
+  title: string;
+  description?: string | null;
+  has_reference_manual: boolean;
+  reference_manual?: string | null;
+  maintenance_catalog_manual_id?: number | string | null;
+  catalog_manual?: CatalogManual | null;
+  remaining_percentage: number | string;
+  active_items_count?: number;
+  items?: AvionicsControlItem[];
+  registered_by?: string;
+  updated_by?: string;
+  created_at?: string;
+  updated_at?: string;
+};
+
+// ─── Control de Directivas de Aeronavegabilidad (Formulario INAC 39-001) ────
+// Una AD por conjunto (aeronave / motor / hélice). Solo las APPLICABLE llevan
+// reloj; única vez cumplida → cerrada (complied_at).
+
+export type DirectiveAuthority = "INAC" | "FAA" | "EASA" | "OTHER";
+export type DirectiveApplicability = "PENDING_ANALYSIS" | "APPLICABLE" | "NOT_APPLICABLE" | "SUPERSEDED";
+export type DirectiveComplianceType = "ONE_TIME" | "RECURRENT";
+
+export type DirectiveControlItemInterval = {
+  id?: number;
+  counting_method: MaintenanceCountingMethod;
+  limit_value: number | string;
+  initial_value?: number | string | null;
+};
+
+export type DirectiveCompliance = {
+  id: number;
+  directive_control_item_id: number;
+  directive_control_item?: DirectiveControlItem;
+  maintenance_provider_id: number | string;
+  maintenance_provider?: MaintenanceProvider;
+  work_order_id: number | string | null;
+  work_order?: WorkOrder;
+  compliance_date: string;
+  hours_reading: number | string;
+  cycles_reading: number | string;
+  compliance_method?: string | null;
+  is_historical?: boolean;
+  maintenance_catalog_manual_id?: number | string | null;
+  manual_revision_label?: string | null;
+  catalog_manual?: CatalogManual | null;
+  notes?: string | null;
+  registered_by?: string;
+  created_at?: string;
+};
+
+export type DirectiveControlItem = {
+  id?: number;
+  directive_control_id?: number;
+  parent_aircraft_part_id?: number | string | null;
+  parent_aircraft_part?: MaintenanceAircraftPart | null;
+  maintenance_provider_id?: number | string | null;
+  maintenance_provider?: MaintenanceProvider | null;
+  pending_work_order_id?: number | string | null;
+  pending_work_order?: WorkOrder | null;
+  ad_number: string;
+  authority: DirectiveAuthority;
+  revision?: string | null;
+  description: string;
+  reference_document?: string | null;
+  compliance_method?: string | null;
+  applicability: DirectiveApplicability;
+  applicability_notes?: string | null;
+  compliance_type: DirectiveComplianceType;
+  first_applied_date?: string | null;
+  observations?: string | null;
+  intervals: DirectiveControlItemInterval[];
+  /** null = sin reloj (no aplica, pendiente, ya cumplida o sin plazo). */
+  computed?: MaintenanceControlItemComputed | null;
+  /** Fecha de cumplimiento cuando es de única vez y ya se cumplió. */
+  complied_at?: string | null;
+  latest_compliance?: DirectiveCompliance | null;
+};
+
+export type DirectiveControl = {
+  id: number;
+  aircraft_id: number | string;
+  aircraft: MaintenanceAircraft;
+  title: string;
+  description?: string | null;
+  has_reference_manual: boolean;
+  reference_manual?: string | null;
+  maintenance_catalog_manual_id?: number | string | null;
+  catalog_manual?: CatalogManual | null;
+  remaining_percentage: number | string;
+  applicable_items_count?: number;
+  pending_analysis_count?: number;
+  items?: DirectiveControlItem[];
+  registered_by?: string;
+  updated_by?: string;
+  created_at?: string;
+  updated_at?: string;
 };
 
 export type MaintenanceControlItem = {

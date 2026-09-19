@@ -6,7 +6,6 @@ import { zodResolver } from "@/lib/zod-resolver";
 import { z } from "zod";
 import { format, parseISO } from "date-fns";
 import {
-  Calendar as CalendarIcon,
   Check,
   ClipboardList,
   FileCheck2,
@@ -22,9 +21,7 @@ import { useRouter } from "next/navigation";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Form,
   FormControl,
@@ -47,7 +44,6 @@ import { cn } from "@/lib/utils";
 
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useGetMaintenanceAircrafts } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts";
-import { useGetMaintenanceProviders } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceProviders";
 import { useGetMaintenanceControls } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceControls";
 import {
   useCreateMaintenanceControl,
@@ -55,17 +51,22 @@ import {
 } from "@/actions/mantenimiento/planificacion/control_mantenimiento/actions";
 import { CreateMaintenanceProviderDialog } from "@/components/dialogs/mantenimiento/planificacion/CreateMaintenanceProviderDialog";
 import { CatalogServicePicker } from "@/components/misc/CatalogServicePicker";
-import { useGetCatalogManuals } from "@/hooks/mantenimiento/catalogo/useGetCatalogManuals";
 import { MaintenanceAircraftPart, MaintenanceControl } from "@/types";
 import { partTypeLabel, partTypeRank } from "@/lib/maintenancePartTypes";
 import {
   FormSection,
-  SearchableSelect,
   fieldClass,
   hintClass,
   labelClass,
   selectTriggerClass,
 } from "./_theme";
+import {
+  AircraftSelect,
+  CatalogManualField,
+  CompactDateField,
+  NumericInput,
+  ProviderSelect,
+} from "./_shared";
 
 const countingMethodEnum = z.enum(["HOURS", "CYCLES", "DAYS"]);
 
@@ -213,92 +214,6 @@ const emptyServiceItem = () => ({
   maintenance_provider_id: "",
 });
 
-function AircraftSelect({
-  control,
-  name,
-  excludeIds = [],
-}: {
-  control: Control<any>;
-  name: string;
-  excludeIds?: string[];
-}) {
-  const { selectedCompany } = useCompanyStore();
-  const { data: aircrafts, isLoading, isError } = useGetMaintenanceAircrafts(selectedCompany?.slug);
-
-  // La aeronave actualmente seleccionada siempre puede mostrarse (por eso el
-  // lookup de abajo usa la lista completa); solo se excluyen del listado
-  // desplegable las que ya tienen otro control de mantenimiento.
-  const selectableAircrafts = useMemo(
-    () =>
-      (aircrafts ?? [])
-        .filter((a) => !excludeIds.includes(String(a.id)))
-        .map((a) => ({ ...a, name: a.acronym })),
-    [aircrafts, excludeIds],
-  );
-
-  return (
-    <FormField
-      control={control}
-      name={name}
-      render={({ field }) => (
-        <FormItem className="w-full">
-          <FormLabel className={labelClass}>Aeronave</FormLabel>
-          <SearchableSelect
-            options={selectableAircrafts}
-            value={field.value}
-            loading={isLoading}
-            disabled={isError}
-            placeholder="Elige la aeronave..."
-            searchPlaceholder="Busque una aeronave..."
-            emptyLabel="No se ha encontrado ninguna aeronave."
-            onSelect={(aircraft) => field.onChange(aircraft.id.toString())}
-          />
-          <FormDescription className={hintClass}>
-            Solo se listan las que aún no tienen un control de mantenimiento.
-          </FormDescription>
-          <FormMessage />
-        </FormItem>
-      )}
-    />
-  );
-}
-
-// Input de texto normal (sin flechitas ni scroll-cambia-el-valor de
-// type="number") que solo deja escribir dígitos y un punto decimal.
-function NumericInput({
-  value,
-  onChange,
-  onBlur,
-  name,
-  className,
-  placeholder,
-}: {
-  value: unknown;
-  onChange: (value: string) => void;
-  onBlur?: () => void;
-  name?: string;
-  className?: string;
-  placeholder?: string;
-}) {
-  return (
-    <Input
-      type="text"
-      inputMode="decimal"
-      placeholder={placeholder}
-      className={className}
-      name={name}
-      value={(value as string) ?? ""}
-      onChange={(e) => {
-        const raw = e.target.value;
-        if (raw === "" || /^\d*\.?\d*$/.test(raw)) {
-          onChange(raw);
-        }
-      }}
-      onBlur={onBlur}
-    />
-  );
-}
-
 // Fila única: el rótulo de cada campo lo pone el encabezado de la lista
 // (ItemRowsHeader), así que acá adentro no vuelve a repetirse.
 // La última columna pasó de un botón (quitar fila) a dos (límite secundario +
@@ -336,80 +251,6 @@ function CompactPlaceholder() {
     <div className={cn(fieldClass, "flex items-center justify-center text-sm text-muted-foreground/40 shadow-none")}>
       —
     </div>
-  );
-}
-
-function CompactDateField({ control, name }: { control: Control<any>; name: string }) {
-  return (
-    <FormField
-      control={control}
-      name={name}
-      render={({ field }) => (
-        <FormItem className="space-y-0">
-          <Popover>
-            <PopoverTrigger asChild>
-              <FormControl>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className={cn(
-                    fieldClass,
-                    "w-full justify-start px-2.5 font-normal hover:shadow-none",
-                    !field.value && "text-muted-foreground",
-                  )}
-                >
-                  <CalendarIcon className="mr-1.5 size-3.5 shrink-0 opacity-60" />
-                  <span className="truncate">{field.value ? format(field.value, "dd/MM/yy") : "Fecha"}</span>
-                </Button>
-              </FormControl>
-            </PopoverTrigger>
-            <PopoverContent
-              className="w-auto overflow-hidden rounded-xl border-slate-400/60 p-0 shadow-lg dark:border-slate-600/60"
-              align="start"
-            >
-              <Calendar
-                mode="single"
-                selected={field.value}
-                onSelect={field.onChange}
-                disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
-                captionLayout="dropdown"
-                startMonth={new Date(1900, 0)}
-                endMonth={new Date(new Date().getFullYear(), 11)}
-                autoFocus
-              />
-            </PopoverContent>
-          </Popover>
-          <FormMessage />
-        </FormItem>
-      )}
-    />
-  );
-}
-
-function ProviderSelect({ control, name }: { control: Control<any>; name: string }) {
-  const { selectedCompany } = useCompanyStore();
-  const { data: providers, isLoading } = useGetMaintenanceProviders(selectedCompany?.slug);
-  const options = useMemo(() => providers ?? [], [providers]);
-
-  return (
-    <FormField
-      control={control}
-      name={name}
-      render={({ field }) => (
-        <FormItem className="min-w-0 flex-1 space-y-0">
-          <SearchableSelect
-            options={options}
-            value={field.value}
-            loading={isLoading}
-            placeholder="Seleccione..."
-            searchPlaceholder="Buscar entidad..."
-            emptyLabel="No se encontró ninguna entidad."
-            onSelect={(provider) => field.onChange(String(provider.id))}
-          />
-          <FormMessage />
-        </FormItem>
-      )}
-    />
   );
 }
 
@@ -936,61 +777,6 @@ function PartsSection({ control }: { control: Control<any> }) {
  * editable a mano después) — el catálogo ayuda a llenar, nunca reemplaza el
  * texto libre, porque no todo manual real está cargado ahí todavía.
  */
-function CatalogManualField({ control, aircraftId }: { control: Control<any>; aircraftId?: string }) {
-  const { setValue } = useFormContext<FormValues>();
-  const { selectedCompany } = useCompanyStore();
-  const manualId = useWatch({ control, name: "maintenance_catalog_manual_id" });
-  const { data: manuals, isLoading } = useGetCatalogManuals(selectedCompany?.slug, {
-    status: "ACTIVE",
-    aircraftId,
-  });
-
-  return (
-    <FormItem className="w-full">
-      <FormLabel className={labelClass}>Manual del Catálogo</FormLabel>
-      <div className="flex items-center gap-1">
-        <SearchableSelect
-          options={manuals ?? []}
-          value={manualId ? String(manualId) : undefined}
-          loading={isLoading}
-          placeholder="Elegir del catálogo (opcional)..."
-          searchPlaceholder="Buscar manual..."
-          emptyLabel={
-            aircraftId
-              ? "Ningún manual del catálogo tiene servicios asignados a esta aeronave."
-              : "Seleccione primero una aeronave para filtrar."
-          }
-          onSelect={(manual) => {
-            setValue("maintenance_catalog_manual_id", manual.id as number, { shouldValidate: true });
-            setValue("reference_manual", manual.name, { shouldValidate: true });
-          }}
-        />
-        {manualId && (
-          <TooltipProvider disableHoverableContent>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="size-8 shrink-0 text-muted-foreground/70 hover:text-destructive"
-                  onClick={() => setValue("maintenance_catalog_manual_id", undefined, { shouldValidate: true })}
-                >
-                  <X className="size-3.5" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Desvincular del catálogo (conserva el texto)</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        )}
-      </div>
-      <FormDescription className={hintClass}>
-        Si el manual está cargado en el catálogo del Sistema, el nombre y los servicios/certificados del selector se acotan a él.
-      </FormDescription>
-    </FormItem>
-  );
-}
-
 function mapToFormCertificate(item: NonNullable<MaintenanceControl["items"]>[number]) {
   return {
     id: item.id,
@@ -1168,7 +954,12 @@ export default function CreateMaintenanceControlForm({ initialData }: { initialD
           action={<CreateMaintenanceProviderDialog />}
         >
           <div className="grid grid-cols-1 gap-4 md:grid-cols-[minmax(150px,190px)_2fr_minmax(96px,140px)]">
-            <AircraftSelect control={control} name="aircraft_id" excludeIds={excludeAircraftIds} />
+            <AircraftSelect
+              control={control}
+              name="aircraft_id"
+              excludeIds={excludeAircraftIds}
+              hint="Solo se listan las que aún no tienen un control de mantenimiento."
+            />
             <FormField
               control={form.control}
               name="title"

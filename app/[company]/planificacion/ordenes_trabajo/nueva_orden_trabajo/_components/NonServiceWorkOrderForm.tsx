@@ -1,6 +1,9 @@
 "use client";
 
 import { useLinkPendingWorkOrder } from "@/actions/mantenimiento/planificacion/control_mantenimiento/actions";
+import { useLinkComponentPendingWorkOrder } from "@/actions/mantenimiento/planificacion/control_componentes/actions";
+import { useLinkAvionicsPendingWorkOrder } from "@/actions/mantenimiento/planificacion/control_avionica/actions";
+import { useLinkDirectivePendingWorkOrder } from "@/actions/mantenimiento/planificacion/control_directivas/actions";
 import { useCreateWorkOrder } from "@/actions/mantenimiento/planificacion/ordenes_trabajo/actions";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -110,6 +113,14 @@ const NonServiceWorkOrderForm = () => {
   // ítem y se vuelve a su página de control en vez de al listado general.
   const maintenanceControlItemId = searchParams.get("maintenance_control_item_id") || undefined;
   const maintenanceControlId = searchParams.get("maintenance_control_id") || undefined;
+  // Mismo flujo desde un componente del Control de Componentes.
+  const componentControlItemId = searchParams.get("component_control_item_id") || undefined;
+  const componentControlId = searchParams.get("component_control_id") || undefined;
+  const avionicsControlTaskId = searchParams.get("avionics_control_task_id") || undefined;
+  const avionicsControlId = searchParams.get("avionics_control_id") || undefined;
+  const directiveControlItemId = searchParams.get("directive_control_item_id") || undefined;
+  const directiveControlId = searchParams.get("directive_control_id") || undefined;
+  const linkedControlItemId = maintenanceControlItemId ?? componentControlItemId ?? avionicsControlTaskId ?? directiveControlItemId;
   const prefillAircraftId = searchParams.get("aircraft_id") || undefined;
   const prefillTaskDescription = searchParams.get("task_description") || undefined;
 
@@ -120,6 +131,9 @@ const NonServiceWorkOrderForm = () => {
   const { selectedStation, selectedCompany } = useCompanyStore();
   const { createWorkOrder } = useCreateWorkOrder();
   const { linkPendingWorkOrder } = useLinkPendingWorkOrder();
+  const { linkComponentPendingWorkOrder } = useLinkComponentPendingWorkOrder();
+  const { linkAvionicsPendingWorkOrder } = useLinkAvionicsPendingWorkOrder();
+  const { linkDirectivePendingWorkOrder } = useLinkDirectivePendingWorkOrder();
   const {
     data: aircrafts,
     isLoading: isAircraftsLoading,
@@ -312,13 +326,43 @@ const NonServiceWorkOrderForm = () => {
       });
     }
 
+    if (componentControlItemId && response?.work_order?.id) {
+      await linkComponentPendingWorkOrder.mutateAsync({
+        company: selectedCompany!.slug,
+        itemId: componentControlItemId,
+        workOrderId: response.work_order.id,
+      });
+    }
+
+    if (avionicsControlTaskId && response?.work_order?.id) {
+      await linkAvionicsPendingWorkOrder.mutateAsync({
+        company: selectedCompany!.slug,
+        taskId: avionicsControlTaskId,
+        workOrderId: response.work_order.id,
+      });
+    }
+
+    if (directiveControlItemId && response?.work_order?.id) {
+      await linkDirectivePendingWorkOrder.mutateAsync({
+        company: selectedCompany!.slug,
+        itemId: directiveControlItemId,
+        workOrderId: response.work_order.id,
+      });
+    }
+
     form.reset();
     setTasks([]);
 
     router.push(
       maintenanceControlId
         ? `/${selectedCompany!.slug}/planificacion/control_mantenimiento/${maintenanceControlId}`
-        : `/${selectedCompany!.slug}/planificacion/ordenes_trabajo`
+        : componentControlId
+          ? `/${selectedCompany!.slug}/planificacion/control_componentes/${componentControlId}`
+          : avionicsControlId
+            ? `/${selectedCompany!.slug}/planificacion/control_avionica/${avionicsControlId}`
+            : directiveControlId
+              ? `/${selectedCompany!.slug}/planificacion/control_directivas/${directiveControlId}`
+              : `/${selectedCompany!.slug}/planificacion/ordenes_trabajo`
     );
   };
 
@@ -342,11 +386,11 @@ const NonServiceWorkOrderForm = () => {
                   <FormItem className="flex flex-col space-y-3 mt-1.5">
                     <FormLabel>Aeronave</FormLabel>
 
-                    {maintenanceControlItemId ? (
+                    {linkedControlItemId ? (
                       // Al guardar, la OT se ata a ese ítem de Control de
-                      // Mantenimiento: cambiar de aeronave acá dejaría el
-                      // vínculo apuntando a otra máquina, y el backend lo
-                      // rechaza cuando la orden ya está creada.
+                      // Mantenimiento o de Componentes: cambiar de aeronave
+                      // acá dejaría el vínculo apuntando a otra máquina, y el
+                      // backend lo rechaza cuando la orden ya está creada.
                       <div className="flex h-10 items-center rounded-md border border-input bg-muted/40 px-3 text-sm">
                         {aircrafts?.find((aircraft) => aircraft.id.toString() === field.value)?.acronym ?? (
                           <Loader2 className="size-4 animate-spin" />
@@ -417,8 +461,8 @@ const NonServiceWorkOrderForm = () => {
                     )}
 
                     <FormDescription className="text-xs">
-                      {maintenanceControlItemId
-                        ? "Fijada por el ítem de Control de Mantenimiento que origina esta orden."
+                      {linkedControlItemId
+                        ? "Fijada por el ítem de control que origina esta orden."
                         : "Aeronave que recibirá el servicio."}
                     </FormDescription>
                     <FormMessage />

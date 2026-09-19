@@ -1,5 +1,5 @@
 import type { Group, MenuContext } from "@/lib/menus/types";
-import { BookCheck, Plane, SquarePen, Wrench } from "lucide-react";
+import { BookCheck, Cog, Plane, Radio, ShieldAlert, SquarePen, Wrench } from "lucide-react";
 
 export function buildPlanificationGroup({
     pathname,
@@ -85,6 +85,63 @@ export function buildPlanificationGroup({
                         active: pathname.includes(
                             `/${currentCompany?.slug}/planificacion/control_mantenimiento/historial`,
                         ),
+                    },
+                ],
+            },
+            {
+                href: `/${currentCompany?.slug}/planificacion/control_componentes`,
+                label: "Control de Componentes",
+                active: pathname.includes(
+                    `/${currentCompany?.slug}/planificacion/control_componentes`,
+                ),
+                icon: Cog,
+                requiresOmac: true,
+                roles: ["ANALISTA_PLANIFICACION", "JEFE_PLANIFICACION", "SUPERUSER"],
+                submenus: [
+                    {
+                        href: `/${currentCompany?.slug}/planificacion/control_componentes`,
+                        label: "Gestionar",
+                        active:
+                            pathname ===
+                            `/${currentCompany?.slug}/planificacion/control_componentes`,
+                    },
+                ],
+            },
+            {
+                href: `/${currentCompany?.slug}/planificacion/control_avionica`,
+                label: "Control de Aviónica",
+                active: pathname.includes(
+                    `/${currentCompany?.slug}/planificacion/control_avionica`,
+                ),
+                icon: Radio,
+                requiresOmac: true,
+                roles: ["ANALISTA_PLANIFICACION", "JEFE_PLANIFICACION", "SUPERUSER"],
+                submenus: [
+                    {
+                        href: `/${currentCompany?.slug}/planificacion/control_avionica`,
+                        label: "Gestionar",
+                        active:
+                            pathname ===
+                            `/${currentCompany?.slug}/planificacion/control_avionica`,
+                    },
+                ],
+            },
+            {
+                href: `/${currentCompany?.slug}/planificacion/control_directivas`,
+                label: "Control de Directivas",
+                active: pathname.includes(
+                    `/${currentCompany?.slug}/planificacion/control_directivas`,
+                ),
+                icon: ShieldAlert,
+                requiresOmac: true,
+                roles: ["ANALISTA_PLANIFICACION", "JEFE_PLANIFICACION", "SUPERUSER"],
+                submenus: [
+                    {
+                        href: `/${currentCompany?.slug}/planificacion/control_directivas`,
+                        label: "Gestionar",
+                        active:
+                            pathname ===
+                            `/${currentCompany?.slug}/planificacion/control_directivas`,
                     },
                 ],
             },
