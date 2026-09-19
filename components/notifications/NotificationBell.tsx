@@ -1,42 +1,35 @@
-'use client';
+"use client";
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from "react";
 
-import {
-  Bell,
-  BellRing,
-} from 'lucide-react';
+import { Bell, BellRing } from "lucide-react";
 
-import {
-  AnimatePresence,
-  motion,
-} from 'motion/react';
+import { AnimatePresence, motion } from "motion/react";
 
-import { cn } from '@/lib/utils';
+import { cn } from "@/lib/utils";
 
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
   TooltipProvider,
-} from '@/components/ui/tooltip';
+} from "@/components/ui/tooltip";
 
-import { useNotifications } from '@/hooks/notifications/useNotifications';
-import { useCompanyStore } from '@/stores/CompanyStore';
-import { useNotificationEffects } from '@/hooks/sistema/useNotificationEffects';
-import { useAuth } from '@/contexts/AuthContext';
+import { useNotifications } from "@/hooks/notifications/useNotifications";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { useNotificationEffects } from "@/hooks/sistema/useNotificationEffects";
+import { useAuth } from "@/contexts/AuthContext";
 
-import NotificationPanel from './NotificationPanel';
+import NotificationPanel from "./NotificationPanel";
 
 export default function NotificationBell() {
   const { selectedCompany } = useCompanyStore();
   const { user } = useAuth();
 
-  const { notifications, unreadCount } =
-    useNotifications(
-      selectedCompany?.slug,
-      user?.id
-    );
+  const { notifications, unreadCount } = useNotifications(
+    selectedCompany?.slug,
+    user?.id,
+  );
 
   const [open, setOpen] = useState(false);
   const [shake, setShake] = useState(false);
@@ -75,14 +68,14 @@ export default function NotificationBell() {
               onClick={() => setOpen(true)}
               aria-label="Notifications"
               className={cn(
-                'glass-control',
-                'relative flex items-center justify-center',
-                'h-9 w-9 rounded-full',
-                'border',
-                'text-foreground/90',
-                'hover:text-foreground',
-                'active:scale-95',
-                open && 'bg-muted/60'
+                "glass-control",
+                "relative flex items-center justify-center",
+                "h-9 w-9 rounded-full",
+                "border",
+                "text-foreground/90",
+                "hover:text-foreground",
+                "active:scale-95",
+                open && "bg-muted/60",
               )}
             >
               <motion.div
@@ -97,7 +90,7 @@ export default function NotificationBell() {
                 }
                 transition={{
                   duration: 0.6,
-                  ease: 'easeInOut',
+                  ease: "easeInOut",
                 }}
               >
                 {unreadCount > 0 ? (
@@ -139,7 +132,7 @@ export default function NotificationBell() {
                       shadow-xs
                     "
                   >
-                    {unreadCount > 9 ? '+9' : unreadCount}
+                    {unreadCount > 9 ? "+9" : unreadCount}
                   </motion.span>
                 )}
               </AnimatePresence>
@@ -152,10 +145,7 @@ export default function NotificationBell() {
         </Tooltip>
       </TooltipProvider>
 
-      <NotificationPanel
-        open={open}
-        onClose={() => setOpen(false)}
-      />
+      <NotificationPanel open={open} onClose={() => setOpen(false)} />
     </>
   );
 }

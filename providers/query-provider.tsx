@@ -1,8 +1,11 @@
-'use client'
+"use client";
 
-import { ReactNode, useEffect, useState } from 'react';
-import { QueryClient, QueryClientProvider as RQQueryClientProvider } from '@tanstack/react-query';
-import { setupCrossTabSync } from '@/lib/cross-tab-sync';
+import { ReactNode, useEffect, useState } from "react";
+import {
+  QueryClient,
+  QueryClientProvider as RQQueryClientProvider,
+} from "@tanstack/react-query";
+import { setupCrossTabSync } from "@/lib/cross-tab-sync";
 
 const makeQueryClient = () =>
   new QueryClient({
@@ -39,7 +42,11 @@ const QueryClientProvider = ({ children }: Props) => {
   // que no queden mostrando datos que ya cambiaron en otra.
   useEffect(() => setupCrossTabSync(queryClient), [queryClient]);
 
-  return <RQQueryClientProvider client={queryClient}>{children}</RQQueryClientProvider>;
+  return (
+    <RQQueryClientProvider client={queryClient}>
+      {children}
+    </RQQueryClientProvider>
+  );
 };
 
 export default QueryClientProvider;

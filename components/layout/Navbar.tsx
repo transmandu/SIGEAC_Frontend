@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
 import { UserNav } from "@/components/layout/UserNav";
 import { SheetMenu } from "@/components/sidebar/SheetMenu";
 import CompanySelect from "@/components/selects/CompanySelect";
 import { ThemeToggler } from "./ThemeToggler";
-import NotificationBell from '@/components/notifications/NotificationBell';
-import ErrorReportTrigger from '@/components/misc/ErrorReportTrigger';
-import { PageTitle } from './PageTitle';
-import { useScrollGlass } from '@/hooks/helpers/use-scroll-glass';
+import NotificationBell from "@/components/notifications/NotificationBell";
+import ErrorReportTrigger from "@/components/misc/ErrorReportTrigger";
+import { PageTitle } from "./PageTitle";
+import { useScrollGlass } from "@/hooks/helpers/use-scroll-glass";
 
 export function Navbar() {
   const { scrolled, targetRef } = useScrollGlass();
@@ -19,7 +19,6 @@ export function Navbar() {
       className="glass-surface sticky top-0 z-10 w-full"
     >
       <div className="relative mx-4 sm:mx-8 flex h-14 items-center">
-
         {/* IZQUIERDA */}
         <div className="flex items-center gap-4 shrink-0 max-w-[40%] overflow-hidden z-0">
           <SheetMenu />
@@ -41,7 +40,6 @@ export function Navbar() {
           <NotificationBell />
           <UserNav />
         </div>
-
       </div>
     </header>
   );

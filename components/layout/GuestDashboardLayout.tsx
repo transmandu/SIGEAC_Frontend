@@ -21,7 +21,7 @@ export default function GuestDashboardLayout({
       <main
         className={cn(
           "min-h-[calc(100vh-56px)] transition-[margin-left] ease-in-out duration-300",
-          isOpen === false ? "lg:ml-22.5" : "lg:ml-72"
+          isOpen === false ? "lg:ml-22.5" : "lg:ml-72",
         )}
       >
         <GuestNavbar />
@@ -31,7 +31,7 @@ export default function GuestDashboardLayout({
       <footer
         className={cn(
           "transition-[margin-left] ease-in-out duration-300",
-          isOpen === false ? "lg:ml-22.5" : "lg:ml-72"
+          isOpen === false ? "lg:ml-22.5" : "lg:ml-72",
         )}
       >
         <Footer />

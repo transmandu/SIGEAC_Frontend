@@ -75,7 +75,7 @@ export function PageTitle({ className }: { className?: string }) {
       className={cn(
         "relative hidden md:grid isolate items-center",
         "h-5 max-w-55 lg:max-w-[320px]",
-        className
+        className,
       )}
     >
       <AnimatePresence mode="wait" initial={false}>
@@ -104,7 +104,7 @@ export function PageTitle({ className }: { className?: string }) {
             className={cn(
               "[grid-area:1/1]",
               "text-xs sm:text-sm font-bold truncate",
-              "origin-left will-change-transform"
+              "origin-left will-change-transform",
             )}
           >
             {shown}
@@ -123,7 +123,10 @@ export function PageTitle({ className }: { className?: string }) {
               <motion.span
                 key={i}
                 className="h-1 w-1 rounded-full bg-foreground/45"
-                animate={{ opacity: [0.25, 1, 0.25], scale: [0.85, 1.15, 0.85] }}
+                animate={{
+                  opacity: [0.25, 1, 0.25],
+                  scale: [0.85, 1.15, 0.85],
+                }}
                 transition={{
                   duration: 0.75,
                   ease: "easeInOut",

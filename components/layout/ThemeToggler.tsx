@@ -38,7 +38,7 @@ export function ThemeToggler() {
               "border",
               "text-foreground/90",
               "hover:text-foreground",
-              "active:scale-95"
+              "active:scale-95",
             )}
           >
             <motion.div
@@ -112,9 +112,7 @@ export function ThemeToggler() {
           </button>
         </TooltipTrigger>
 
-        <TooltipContent side="bottom">
-          Cambiar tema
-        </TooltipContent>
+        <TooltipContent side="bottom">Cambiar tema</TooltipContent>
       </Tooltip>
     </TooltipProvider>
   );

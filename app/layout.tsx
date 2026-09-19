@@ -8,7 +8,10 @@ import { Poppins } from "next/font/google";
 import { RedirectHandler } from "@/components/misc/RedirectHandler";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
-const inter = Poppins({ subsets: ["latin"], weight: ["100", "300", "400", "500", "700", "900"] });
+const inter = Poppins({
+  subsets: ["latin"],
+  weight: ["100", "300", "400", "500", "700", "900"],
+});
 
 export const metadata: Metadata = {
   // El "| Página" lo agrega document-title.ts en runtime; las páginas cliente
@@ -28,7 +31,6 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        
         <QueryClientProvider>
           <RedirectHandler />
           <AuthProvider>
@@ -38,7 +40,9 @@ export default function RootLayout({
               enableSystem
               disableTransitionOnChange
             >
-              <TooltipProvider delayDuration={200}> {/* Here */}
+              <TooltipProvider delayDuration={200}>
+                {" "}
+                {/* Here */}
                 {children}
               </TooltipProvider>
               <Toaster />
