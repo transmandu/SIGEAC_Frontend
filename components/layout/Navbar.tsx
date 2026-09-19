@@ -28,7 +28,7 @@ export function Navbar() {
         </div>
 
         {/* CENTRO */}
-        <div className="absolute left-1/2 -translate-x-1/2 hidden lg:flex w-full max-w-[420px] xl:max-w-[520px] justify-center z-20">
+        <div className="absolute left-1/2 -translate-x-1/2 hidden lg:flex w-full max-w-105 xl:max-w-130 justify-center z-20">
           <div className="w-full flex items-center justify-center flex-nowrap min-w-0">
             <CompanySelect />
           </div>

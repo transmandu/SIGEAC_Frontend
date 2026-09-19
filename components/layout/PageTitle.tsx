@@ -11,6 +11,8 @@ const EASE = [0.22, 1, 0.36, 1] as const;
 const RETRACT_MS = 220;
 /** Mínimo que el loader permanece visible: menos que esto parece un glitch. */
 const LOADER_MS = 280;
+/** Techo del hueco entre páginas antes de aceptar que no habrá título. */
+const GAP_MS = 1200;
 
 /**
  * El ContentLayout saliente desregistra su título antes de que el entrante
@@ -24,55 +26,47 @@ export function PageTitle({ className }: { className?: string }) {
   const [shown, setShown] = useState(title);
   const [loading, setLoading] = useState(false);
 
-  // El efecto solo reacciona al título; las fases se agendan de una vez.
+  // `shown` es salida de la secuencia, no entrada: el efecto depende solo del
+  // título para que cada cambio ejecute UNA secuencia completa. Si dependiera
+  // también de `shown`/`loading`, sus propios setState lo reentrarían a mitad
+  // de camino y tendría que cancelar y re-agendar los timers que acaba de
+  // poner, recalculando la ventana del loader sobre un instante ya vencido.
   const shownRef = useRef(shown);
-  shownRef.current = shown;
-
-  // Instante en que el loader se hizo visible, para respetar su mínimo.
-  const loaderAt = useRef(0);
-  const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   useEffect(() => {
-    const clear = () => {
-      timers.current.forEach(clearTimeout);
-      timers.current = [];
-    };
-    const after = (ms: number, fn: () => void) =>
-      timers.current.push(setTimeout(fn, ms));
+    if (title === shownRef.current) return;
 
-    if (title === shownRef.current && !loading) return;
-
-    clear();
-
-    // El "" de una navegación es transitorio y el título saliente sigue montado
-    // para recogerse; pero si la página de destino no publica ninguno, hay que
-    // vaciar igual o el loader se queda girando para siempre.
-    const settle = () => {
-      setShown(title);
+    const settle = (next: string) => {
+      shownRef.current = next;
+      setShown(next);
       setLoading(false);
     };
 
-    // Primera pintura o motion reducido: sin secuencia.
-    if ((!shownRef.current && title) || reduceMotion) {
-      settle();
-      return clear;
+    // Primera pintura o motion reducido: sin secuencia intermedia.
+    if (!shownRef.current || reduceMotion) {
+      settle(title);
+      return;
     }
 
-    // Si el loader ya está en pantalla solo falta cumplir su mínimo.
-    if (loading) {
-      after(Math.max(0, LOADER_MS - (Date.now() - loaderAt.current)), settle);
-      return clear;
-    }
+    // Recoger a la izquierda y mostrar el loader. Ambos timers son de la misma
+    // pasada, así que el loader vive LOADER_MS exactos sin medir nada.
+    const toLoader = setTimeout(() => setLoading(true), RETRACT_MS);
 
-    // Recoger a la izquierda, mostrar el loader, desplegar el nuevo.
-    after(RETRACT_MS, () => {
-      loaderAt.current = Date.now();
-      setLoading(true);
-    });
-    after(RETRACT_MS + LOADER_MS, settle);
+    // El "" entre dos páginas es el hueco de la navegación, no un destino: el
+    // loader se queda esperando al título entrante en vez de vaciar y volver a
+    // llenarse. Pero una página puede no publicar ninguno (no usa
+    // ContentLayout), así que el hueco tiene techo: pasado GAP_MS se acepta
+    // como vacío real y el loader cede.
+    const toSettle = setTimeout(
+      () => settle(title),
+      title ? RETRACT_MS + LOADER_MS : GAP_MS,
+    );
 
-    return clear;
-  }, [title, loading, reduceMotion]);
+    return () => {
+      clearTimeout(toLoader);
+      clearTimeout(toSettle);
+    };
+  }, [title, reduceMotion]);
 
   const showTitle = !!shown && !loading;
 
@@ -80,7 +74,7 @@ export function PageTitle({ className }: { className?: string }) {
     <div
       className={cn(
         "relative hidden md:grid isolate items-center",
-        "h-5 max-w-[220px] lg:max-w-[320px]",
+        "h-5 max-w-55 lg:max-w-[320px]",
         className
       )}
     >

@@ -41,67 +41,74 @@ export function ThemeToggler() {
               "active:scale-95"
             )}
           >
-            <AnimatePresence mode="wait" initial={false}>
-              {isDark ? (
-                <motion.div
-                  key="sun"
-                  initial={{
-                    opacity: 0,
-                    rotate: -90,
-                    scale: 0.75,
-                    filter: "blur(2px)",
-                  }}
-                  animate={{
-                    opacity: 1,
-                    rotate: 0,
-                    scale: 1,
-                    filter: "blur(0px)",
-                  }}
-                  exit={{
-                    opacity: 0,
-                    rotate: 90,
-                    scale: 0.75,
-                    filter: "blur(2px)",
-                  }}
-                  transition={{
-                    duration: 0.28,
-                    ease: [0.22, 1, 0.36, 1],
-                  }}
-                  className="absolute"
-                >
-                  <SunMedium className="h-4 w-4" />
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="moon"
-                  initial={{
-                    opacity: 0,
-                    rotate: 90,
-                    scale: 0.75,
-                    filter: "blur(2px)",
-                  }}
-                  animate={{
-                    opacity: 1,
-                    rotate: 0,
-                    scale: 1,
-                    filter: "blur(0px)",
-                  }}
-                  exit={{
-                    opacity: 0,
-                    rotate: -90,
-                    scale: 0.75,
-                    filter: "blur(2px)",
-                  }}
-                  transition={{
-                    duration: 0.28,
-                    ease: [0.22, 1, 0.36, 1],
-                  }}
-                  className="absolute"
-                >
-                  <MoonStar className="h-4 w-4" />
-                </motion.div>
-              )}
-            </AnimatePresence>
+            <motion.div
+              whileHover={{ scale: 1.12, rotate: -8 }}
+              whileTap={{ scale: 0.9 }}
+              transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+              className="absolute inset-0 flex items-center justify-center"
+            >
+              <AnimatePresence mode="wait" initial={false}>
+                {isDark ? (
+                  <motion.div
+                    key="sun"
+                    initial={{
+                      opacity: 0,
+                      rotate: -90,
+                      scale: 0.75,
+                      filter: "blur(2px)",
+                    }}
+                    animate={{
+                      opacity: 1,
+                      rotate: 0,
+                      scale: 1,
+                      filter: "blur(0px)",
+                    }}
+                    exit={{
+                      opacity: 0,
+                      rotate: 90,
+                      scale: 0.75,
+                      filter: "blur(2px)",
+                    }}
+                    transition={{
+                      duration: 0.28,
+                      ease: [0.22, 1, 0.36, 1],
+                    }}
+                    className="absolute"
+                  >
+                    <SunMedium className="h-4 w-4" />
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="moon"
+                    initial={{
+                      opacity: 0,
+                      rotate: 90,
+                      scale: 0.75,
+                      filter: "blur(2px)",
+                    }}
+                    animate={{
+                      opacity: 1,
+                      rotate: 0,
+                      scale: 1,
+                      filter: "blur(0px)",
+                    }}
+                    exit={{
+                      opacity: 0,
+                      rotate: -90,
+                      scale: 0.75,
+                      filter: "blur(2px)",
+                    }}
+                    transition={{
+                      duration: 0.28,
+                      ease: [0.22, 1, 0.36, 1],
+                    }}
+                    className="absolute"
+                  >
+                    <MoonStar className="h-4 w-4" />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
           </button>
         </TooltipTrigger>
 

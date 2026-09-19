@@ -86,6 +86,8 @@ export default function NotificationBell() {
               )}
             >
               <motion.div
+                whileHover={{ scale: 1.12, rotate: -8 }}
+                whileTap={{ scale: 0.9 }}
                 animate={
                   shake
                     ? {
