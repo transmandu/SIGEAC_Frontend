@@ -4,17 +4,13 @@ import { GuestMenu } from "@/components/sidebar/GuestMenu";
 import { SidebarToggle } from "@/components/sidebar/SidebarToggle";
 import { Button } from "@/components/ui/button";
 import { useGuestSidebarToggle } from "@/hooks/helpers/use-guest-sidebar-toggle";
-import { useStore } from "@/hooks/helpers/use-store";
 import { cn } from "@/lib/utils";
 import Logo from "@/components/misc/Logo";
 import Link from "next/link";
 
 export function GuestSidebar() {
-  const sidebar = useStore(useGuestSidebarToggle, (state) => state);
-
-  if (!sidebar) return null;
-
-  const { isOpen, setIsOpen } = sidebar;
+  const isOpen = useGuestSidebarToggle((state) => state.isOpen);
+  const setIsOpen = useGuestSidebarToggle((state) => state.setIsOpen);
 
   return (
     <aside

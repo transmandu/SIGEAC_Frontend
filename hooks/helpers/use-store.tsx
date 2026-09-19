@@ -1,17 +1,28 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react';
+import { useSyncExternalStore } from "react";
 
-export const useStore = <T, F>(
-  store: (callback: (state: T) => unknown) => unknown,
-  callback: (state: T) => F
-) => {
-  const result = store(callback) as F;
-  const [data, setData] = useState<F>();
+type PersistStore = {
+  persist?: {
+    hasHydrated: () => boolean;
+    onFinishHydration: (fn: () => void) => () => void;
+  };
+};
 
-  useEffect(() => {
-    setData(result);
-  }, [result]);
+const noopSubscribe = () => () => {};
 
-  return data;
-};
+/**
+ * true cuando zustand terminó de leer localStorage.
+ *
+ * El snapshot de servidor es siempre false para que el HTML y el primer render
+ * del cliente coincidan; recién después la suscripción reporta el valor real.
+ * Con useSyncExternalStore no hace falta un setState en efecto: React lee el
+ * estado de hidratación directamente del store.
+ */
+export const useStoreHydrated = (store: PersistStore): boolean => {
+  return useSyncExternalStore(
+    store.persist?.onFinishHydration ?? noopSubscribe,
+    () => store.persist?.hasHydrated() ?? true,
+    () => false,
+  );
+};

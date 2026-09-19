@@ -4,25 +4,25 @@ import { Menu } from "@/components/sidebar/Menu";
 import { SidebarToggle } from "@/components/sidebar/SidebarToggle";
 import { Button } from "@/components/ui/button";
 import { useSidebarToggle } from "@/hooks/helpers/use-sidebar-toggle";
-import { useStore } from "@/hooks/helpers/use-store";
+import { useStoreHydrated } from "@/hooks/helpers/use-store";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import Logo from "@/components/misc/Logo";
 import Link from "next/link";
 
 export function Sidebar() {
-  const sidebar = useStore(useSidebarToggle, (state) => state);
+  const isOpen = useSidebarToggle((state) => state.isOpen);
+  const setIsOpen = useSidebarToggle((state) => state.setIsOpen);
+  const hydrated = useStoreHydrated(useSidebarToggle);
   const { selectedCompany, selectedStation } = useCompanyStore();
-
-  if (!sidebar) return null;
-
-  const { isOpen, setIsOpen } = sidebar;
 
   return (
     <aside
       className={cn(
         "fixed top-0 left-0 z-20 h-screen -translate-x-full lg:translate-x-0",
-        "transition-[width] ease-in-out duration-300",
+        // Sin transición hasta hidratar: el ancho persistido se aplica de golpe
+        // en vez de animarse desde el default.
+        hydrated && "transition-[width] ease-in-out duration-300",
         isOpen === false ? "w-22.5" : "w-72",
       )}
     >

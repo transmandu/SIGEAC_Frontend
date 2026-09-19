@@ -1,7 +1,6 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { useStore } from "@/hooks/helpers/use-store";
 import { useGuestSidebarToggle } from "@/hooks/helpers/use-guest-sidebar-toggle";
 import { GuestSidebar } from "./GuestSidebar";
 import { GuestNavbar } from "./GuestNavbar";
@@ -13,11 +12,7 @@ export default function GuestDashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const sidebar = useStore(useGuestSidebarToggle, (state) => state);
-
-  if (!sidebar) return null;
-
-  const { isOpen } = sidebar;
+  const isOpen = useGuestSidebarToggle((state) => state.isOpen);
 
   return (
     <PageTitleProvider>
@@ -26,7 +21,7 @@ export default function GuestDashboardLayout({
       <main
         className={cn(
           "min-h-[calc(100vh-56px)] transition-[margin-left] ease-in-out duration-300",
-          isOpen === false ? "lg:ml-[90px]" : "lg:ml-72"
+          isOpen === false ? "lg:ml-22.5" : "lg:ml-72",
         )}
       >
         <GuestNavbar />
@@ -36,7 +31,7 @@ export default function GuestDashboardLayout({
       <footer
         className={cn(
           "transition-[margin-left] ease-in-out duration-300",
-          isOpen === false ? "lg:ml-[90px]" : "lg:ml-72"
+          isOpen === false ? "lg:ml-22.5" : "lg:ml-72",
         )}
       >
         <Footer />
