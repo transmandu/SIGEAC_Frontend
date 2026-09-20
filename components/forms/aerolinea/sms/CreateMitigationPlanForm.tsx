@@ -15,7 +15,8 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { es } from "date-fns/locale";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Check, ChevronsUpDown, X } from "lucide-react";
+import { useState } from "react";
 
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -25,22 +26,33 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import { Badge } from "@/components/ui/badge";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 
 import {
   useCreateMitigationPlan,
   useUpdateMitigationPlan,
 } from "@/actions/sms/planes_de_mitigation/actions";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { MitigationPlan } from "@/types";
+
+const RESPONSIBLE_OPTIONS = [
+  { value: "SMS", label: "DIRECCIÓN DE SMS" },
+  { value: "OPERACIONES", label: "OPERACIONES" },
+  { value: "MANTENIMIENTO", label: "MANTENIMIENTO" },
+  { value: "ADMINISTRACION_RRHH", label: "ADMINISTRACION Y RRHH" },
+  { value: "CONTROL_CALIDAD", label: "CONTROL DE CALIDAD" },
+  { value: "IT", label: "TECNOLOGIA E INFORMACION" },
+  { value: "AVSEC", label: "AVSEC" },
+];
 
 const FormSchema = z.object({
   description: z
@@ -51,9 +63,8 @@ const FormSchema = z.object({
     }),
 
   responsible: z
-    .string()
-    .min(1, { message: "El responsable debe tener al menos 1 caracter" })
-    .max(50, { message: "El responsable no puede exceder los 50 caracteres" }),
+    .array(z.string().min(1))
+    .min(1, { message: "Seleccione al menos un área responsable" }),
 
   start_date: z
     .date()
@@ -79,7 +90,7 @@ export default function CreateMitigationPlanForm({
     resolver: zodResolver(FormSchema),
     defaultValues: {
       description: initialData?.description,
-      responsible: initialData?.responsible,
+      responsible: initialData?.responsible ?? [],
       start_date: initialData?.start_date
         ? new Date(initialData?.start_date)
         : new Date(),
@@ -88,6 +99,7 @@ export default function CreateMitigationPlanForm({
   const { selectedCompany } = useCompanyStore();
   const { createMitigationPlan } = useCreateMitigationPlan();
   const { updateMitigationPlan } = useUpdateMitigationPlan();
+  const [responsibleOpen, setResponsibleOpen] = useState(false);
 
   const onSubmit = async (data: FormSchemaType) => {
     if (isEditing && initialData) {
@@ -142,30 +154,106 @@ export default function CreateMitigationPlanForm({
             name="responsible"
             render={({ field }) => (
               <FormItem className="w-full">
-                <FormLabel>Area de Responsable</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
+                <FormLabel>Áreas Responsables</FormLabel>
+                <Popover
+                  open={responsibleOpen}
+                  onOpenChange={setResponsibleOpen}
                 >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar área" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="SMS">DIRECCIÓN DE SMS</SelectItem>
-                    <SelectItem value="OPERACIONES">OPERACIONES</SelectItem>
-                    <SelectItem value="MANTENIMIENTO">MANTENIMIENTO</SelectItem>
-                    <SelectItem value="ADMINISTRACION_RRHH">
-                      ADMINISTRACION Y RRHH
-                    </SelectItem>
-                    <SelectItem value="CONTROL_CALIDAD">
-                      CONTROL DE CALIDAD
-                    </SelectItem>
-                    <SelectItem value="IT">TECNOLOGIA E INFORMACION</SelectItem>
-                    <SelectItem value="AVSEC">AVSEC</SelectItem>
-                  </SelectContent>
-                </Select>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        className={cn(
+                          "w-full justify-between font-normal",
+                          field.value.length === 0 && "text-muted-foreground"
+                        )}
+                      >
+                        {field.value.length > 0 ? (
+                          <span className="truncate">
+                            {field.value.length}{" "}
+                            {field.value.length === 1
+                              ? "área seleccionada"
+                              : "áreas seleccionadas"}
+                          </span>
+                        ) : (
+                          <span>Seleccionar áreas</span>
+                        )}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[300px] p-0" align="start">
+                    <Command>
+                      <CommandList>
+                        <CommandEmpty>No se encontraron resultados.</CommandEmpty>
+                        <CommandGroup>
+                          {RESPONSIBLE_OPTIONS.map((option) => {
+                            const isSelected = field.value.includes(
+                              option.value
+                            );
+                            return (
+                              <CommandItem
+                                key={option.value}
+                                value={option.label}
+                                onSelect={() =>
+                                  field.onChange(
+                                    isSelected
+                                      ? field.value.filter(
+                                          (v) => v !== option.value
+                                        )
+                                      : [...field.value, option.value]
+                                  )
+                                }
+                              >
+                                <Check
+                                  className={cn(
+                                    "h-4 w-4 shrink-0",
+                                    isSelected
+                                      ? "opacity-100"
+                                      : "opacity-0"
+                                  )}
+                                />
+                                <span className="flex-1 truncate">
+                                  {option.label}
+                                </span>
+                              </CommandItem>
+                            );
+                          })}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+                {field.value.length > 0 && (
+                  <div className="flex max-h-28 flex-wrap gap-1.5 overflow-y-auto rounded-md border border-dashed border-input p-2">
+                    {field.value.map((value) => {
+                      const option = RESPONSIBLE_OPTIONS.find(
+                        (o) => o.value === value
+                      );
+                      return (
+                        <Badge
+                          key={value}
+                          variant="secondary"
+                          className="gap-1 py-1 pl-2 pr-1 font-normal"
+                        >
+                          {option?.label ?? value}
+                          <button
+                            type="button"
+                            onClick={() =>
+                              field.onChange(
+                                field.value.filter((v) => v !== value)
+                              )
+                            }
+                            className="ml-1 rounded-full p-0.5 hover:bg-background/80"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </Badge>
+                      );
+                    })}
+                  </div>
+                )}
                 <FormMessage />
               </FormItem>
             )}

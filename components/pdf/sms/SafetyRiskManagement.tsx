@@ -28,6 +28,9 @@ interface MyDocumentProps {
     identification: MitigationTable;
 }
 
+const hasResponsible = (areas: string[] | undefined, value: string) =>
+    areas?.includes(value) ?? false;
+
 const styles = StyleSheet.create({
     logo: {
         width: 102,
@@ -1360,7 +1363,7 @@ export const FirstPage = ({
                 }}
             >
                 <Text style={[styles.cellText3, styles.boldTitle]}>
-                    {identification.mitigation_plan?.responsible === "SMS" ? "X" : ""}
+                    {hasResponsible(identification.mitigation_plan?.responsible, "SMS") ? "X" : ""}
                 </Text>
             </View>
 
@@ -1382,7 +1385,7 @@ export const FirstPage = ({
                 }}
             >
                 <Text style={[styles.cellText3, styles.boldTitle]}>
-                    {identification.mitigation_plan?.responsible === "OPERACIONES"
+                    {hasResponsible(identification.mitigation_plan?.responsible, "OPERACIONES")
                         ? "X"
                         : ""}
                 </Text>
@@ -1408,8 +1411,7 @@ export const FirstPage = ({
                 }}
             >
                 <Text style={[styles.cellText3, styles.boldTitle]}>
-                    {identification.mitigation_plan?.responsible ===
-                        "MANTENIMIENTO"
+                    {hasResponsible(identification.mitigation_plan?.responsible, "MANTENIMIENTO")
                         ? "X"
                         : ""}
                 </Text>
@@ -1434,7 +1436,7 @@ export const FirstPage = ({
                 }}
             >
                 <Text style={[styles.cellText3, styles.boldTitle]}>
-                    {identification.mitigation_plan?.responsible === "ADMINISTRACION_RRHH"
+                    {hasResponsible(identification.mitigation_plan?.responsible, "ADMINISTRACION_RRHH")
                         ? "X"
                         : ""}
                 </Text>
@@ -1464,7 +1466,7 @@ export const FirstPage = ({
                 }}
             >
                 <Text style={[styles.cellText3, styles.boldTitle]}>
-                    {identification.mitigation_plan?.responsible === "CONTROL_CALIDAD" ? "X" : ""}
+                    {hasResponsible(identification.mitigation_plan?.responsible, "CONTROL_CALIDAD") ? "X" : ""}
                 </Text>
             </View>
 
@@ -1487,7 +1489,7 @@ export const FirstPage = ({
                 }}
             >
                 <Text style={[styles.cellText3, styles.boldTitle]}>
-                    {identification.mitigation_plan?.responsible === "AVSEC" ? "X" : ""}
+                    {hasResponsible(identification.mitigation_plan?.responsible, "AVSEC") ? "X" : ""}
                 </Text>
             </View>
 
@@ -1511,7 +1513,7 @@ export const FirstPage = ({
                 }}
             >
                 <Text style={[styles.cellText3, styles.boldTitle]}>
-                    {identification.mitigation_plan?.responsible === "IT" ? "X" : ""}
+                    {hasResponsible(identification.mitigation_plan?.responsible, "IT") ? "X" : ""}
                 </Text>
             </View>
         </View>

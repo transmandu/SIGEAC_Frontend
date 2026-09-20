@@ -6,7 +6,7 @@ interface MitigationPlanData {
   company: string | null;
   data: {
     description: string;
-    responsible: string;
+    responsible: string[];
     start_date: Date;
     danger_identification_id: number;
   };
@@ -17,7 +17,7 @@ interface UpdateMitigationPlanData {
   id: string;
   data: {
     description: string;
-    responsible: string;
+    responsible: string[];
     start_date: Date;
   };
 }
