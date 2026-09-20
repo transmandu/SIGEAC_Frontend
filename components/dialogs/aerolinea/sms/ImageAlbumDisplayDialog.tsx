@@ -47,7 +47,8 @@ function ImageAlbumDisplayDialog({
   const results = useQueries({
     queries: (fileNames ?? []).map((fileName) => ({
       queryKey: ["image", company, "sms", fileName],
-      queryFn: () => fetchImage({ company: company ?? "", origin: "sms", fileName }),
+      queryFn: () =>
+        fetchImage({ company: company ?? "", origin: "sms", fileName }),
       enabled: isOpen && !!company && !!fileName,
       staleTime: 1000 * 60 * 5,
       gcTime: 1000 * 60 * 10,
@@ -156,7 +157,10 @@ function ImageAlbumDisplayDialog({
                 ) : hasError && !currentUrl ? (
                   <div className="flex flex-col justify-center items-center text-red-500 gap-3">
                     <p className="text-lg font-medium">Error</p>
-                    <p>{currentResult?.error?.message || "Error al cargar la imagen"}</p>
+                    <p>
+                      {currentResult?.error?.message ||
+                        "Error al cargar la imagen"}
+                    </p>
                     <Button
                       variant="outline"
                       onClick={() => currentResult?.refetch()}

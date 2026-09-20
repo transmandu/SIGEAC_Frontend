@@ -125,7 +125,7 @@ export const useCloseReport = () => {
     mutationFn: async ({ data, company }: updateStatus) => {
       await axiosInstance.patch(
         `/${company}/sms/close_report/${data.mitigation_id}`,
-        data
+        data,
       );
     },
 
@@ -157,7 +157,7 @@ export const useOpenReport = () => {
     mutationFn: async ({ data, company }: updateStatus) => {
       await axiosInstance.patch(
         `/${company}/sms/open_report/${data.mitigation_id}`,
-        data
+        data,
       );
     },
 

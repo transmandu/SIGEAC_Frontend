@@ -23,7 +23,7 @@ export const fetchImage = async ({
     `${company}/${origin}/image/${encodedImagePath}`,
     {
       responseType: "blob",
-    }
+    },
   );
 
   if (!response.data.type.startsWith("image/")) {

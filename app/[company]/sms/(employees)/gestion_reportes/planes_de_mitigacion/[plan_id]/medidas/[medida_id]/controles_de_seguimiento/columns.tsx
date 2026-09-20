@@ -25,7 +25,7 @@ export const columns: AppColumnDef<FollowUpControl>[] = [
       );
     },
   },
-    {
+  {
     accessorKey: "date",
     header: ({ column }) => (
       <DataTableColumnHeader filter column={column} title="Fecha del Control" />
@@ -93,7 +93,7 @@ export const columns: AppColumnDef<FollowUpControl>[] = [
       return (
         <div className="flex justify-center items-center">
           {row.original?.document &&
-          (typeof row.original?.document === "string") ? (
+          typeof row.original?.document === "string" ? (
             <DocumentDisplayDialog fileName={row.original.document} />
           ) : (
             <Button
