@@ -1,37 +1,45 @@
-'use client'
+"use client";
 
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Search, SlidersHorizontal } from 'lucide-react'
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Search, SlidersHorizontal } from "lucide-react";
 
 type Props = {
-  search: string
-  setSearch: (value: string) => void
-  status: string
-  setStatus: (value: string) => void
-  type: string
-  setType: (value: string) => void
-  priority: string
-  setPriority: (value: string) => void
-  groupBy: string
-  setGroupBy: (value: string) => void
-  placeholder?: string
-}
+  search: string;
+  setSearch: (value: string) => void;
+  status: string;
+  setStatus: (value: string) => void;
+  priority: string;
+  setPriority: (value: string) => void;
+  groupBy: string;
+  setGroupBy: (value: string) => void;
+  placeholder?: string;
+};
 
-const selectTriggerClass = `h-8 w-full pl-8 text-xs bg-white/80 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-700/60 transition-colors focus:ring-1 focus:ring-primary/40 data-placeholder:text-muted-foreground [&>span]:truncate`
-const selectContentClass = `border-slate-200/60 dark:border-slate-700/60`
+const selectTriggerClass = `h-8 w-full pl-8 text-xs bg-white/80 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-700/60 transition-colors focus:ring-1 focus:ring-primary/40 data-placeholder:text-muted-foreground [&>span]:truncate`;
+const selectContentClass = `border-slate-200/60 dark:border-slate-700/60`;
 
 const GroupFilter = ({
   groupBy,
   setGroupBy,
 }: {
-  groupBy: string
-  setGroupBy: (value: string) => void
+  groupBy: string;
+  setGroupBy: (value: string) => void;
 }) => (
   <div className="relative sm:w-44 sm:shrink-0">
-    <SlidersHorizontal className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 z-10 size-3.5 text-muted-foreground"/>
+    <SlidersHorizontal className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 z-10 size-3.5 text-muted-foreground" />
 
     <Select value={groupBy} onValueChange={setGroupBy}>
       <SelectTrigger className={selectTriggerClass}>
@@ -39,41 +47,33 @@ const GroupFilter = ({
       </SelectTrigger>
 
       <SelectContent className={selectContentClass}>
-        <SelectItem value="NONE">
-          Sin agrupación
-        </SelectItem>
+        <SelectItem value="NONE">Sin agrupación</SelectItem>
 
-        <SelectItem value="requested_by">
-          Solicitante
-        </SelectItem>
+        <SelectItem value="requested_by">Solicitante</SelectItem>
       </SelectContent>
     </Select>
   </div>
-)
+);
 
 const FilterSelects = ({
   status,
   setStatus,
-  type,
-  setType,
   priority,
   setPriority,
   groupBy,
   setGroupBy,
 }: {
-  status: string
-  setStatus: (value: string) => void
-  type: string
-  setType: (value: string) => void
-  priority: string
-  setPriority: (value: string) => void
-  groupBy: string
-  setGroupBy: (value: string) => void
+  status: string;
+  setStatus: (value: string) => void;
+  priority: string;
+  setPriority: (value: string) => void;
+  groupBy: string;
+  setGroupBy: (value: string) => void;
 }) => (
   <>
     {/* STATUS */}
     <div className="relative sm:w-44 sm:shrink-0">
-      <SlidersHorizontal className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 z-10 size-3.5 text-muted-foreground"/>
+      <SlidersHorizontal className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 z-10 size-3.5 text-muted-foreground" />
 
       <Select value={status} onValueChange={setStatus}>
         <SelectTrigger className={selectTriggerClass}>
@@ -92,25 +92,9 @@ const FilterSelects = ({
       </Select>
     </div>
 
-    {/* TYPE — oculto: las requisiciones generales siempre son tipo "GENERAL" */}
-    {/* <div className="relative sm:w-44 sm:shrink-0">
-      <SlidersHorizontal className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 z-10 size-3.5 text-muted-foreground"/>
-
-      <Select value={type} onValueChange={setType}>
-        <SelectTrigger className={selectTriggerClass}>
-          <SelectValue placeholder="Tipo" />
-        </SelectTrigger>
-
-        <SelectContent className={selectContentClass}>
-          <SelectItem value="ALL">Todos los tipos</SelectItem>
-          <SelectItem value="GENERAL">General</SelectItem>
-        </SelectContent>
-      </Select>
-    </div> */}
-
     {/* PRIORITY */}
     <div className="relative sm:w-44 sm:shrink-0">
-      <SlidersHorizontal className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 z-10 size-3.5 text-muted-foreground"/>
+      <SlidersHorizontal className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 z-10 size-3.5 text-muted-foreground" />
 
       <Select value={priority} onValueChange={setPriority}>
         <SelectTrigger className={selectTriggerClass}>
@@ -129,27 +113,24 @@ const FilterSelects = ({
     {/* GROUP BY */}
     <GroupFilter groupBy={groupBy} setGroupBy={setGroupBy} />
   </>
-)
+);
 
 const RequisitionToolBar = ({
   search,
   setSearch,
   status,
   setStatus,
-  type,
-  setType,
   priority,
   setPriority,
   groupBy,
   setGroupBy,
-  placeholder = 'Buscar requisiciones...',
+  placeholder = "Buscar requisiciones...",
 }: Props) => {
   return (
     <div className="flex items-center gap-2">
-
       {/* SEARCH */}
       <div className="relative flex-1 sm:flex-none sm:w-72">
-        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground"/>
+        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
 
         <Input
           value={search}
@@ -179,8 +160,6 @@ const RequisitionToolBar = ({
             <FilterSelects
               status={status}
               setStatus={setStatus}
-              type={type}
-              setType={setType}
               priority={priority}
               setPriority={setPriority}
               groupBy={groupBy}
@@ -195,17 +174,14 @@ const RequisitionToolBar = ({
         <FilterSelects
           status={status}
           setStatus={setStatus}
-          type={type}
-          setType={setType}
           priority={priority}
           setPriority={setPriority}
           groupBy={groupBy}
           setGroupBy={setGroupBy}
         />
       </div>
-
     </div>
-  )
-}
+  );
+};
 
-export default RequisitionToolBar
+export default RequisitionToolBar;

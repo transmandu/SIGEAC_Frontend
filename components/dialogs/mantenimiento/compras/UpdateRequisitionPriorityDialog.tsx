@@ -5,7 +5,7 @@ import { ArrowDown, ArrowUp, Loader2, Minus, Tag } from "lucide-react"
 
 import { useUpdateRequisitionPriority } from "@/actions/mantenimiento/compras/requisiciones/actions"
 import { useCompanyStore } from "@/stores/CompanyStore"
-import type { Requisition } from "@/types/purchase"
+import type { MyRequisition, Requisition } from "@/types/purchase"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -50,7 +50,7 @@ type Item = {
 }
 
 type Props = {
-  req: Requisition
+  req: Requisition | MyRequisition
   open: boolean
   setOpen: (open: boolean) => void
   onSuccess?: () => void

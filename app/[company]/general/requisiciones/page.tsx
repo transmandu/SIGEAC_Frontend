@@ -1,120 +1,71 @@
-'use client';
+"use client";
 
-import { useEffect, useState, useMemo } from 'react';
+import { useMemo } from "react";
 
-import { ContentLayout } from '@/components/layout/ContentLayout';
-
-import { useAuth } from '@/contexts/AuthContext';
-import { useCompanyStore } from '@/stores/CompanyStore';
-import { useGetRequisition } from '@/hooks/mantenimiento/compras/useGetRequisitions';
-import { useCompanyTimezone } from '@/hooks/general/useCompanyTimezone';
-import { cn } from '@/lib/utils';
-import type { RequisitionType } from '@/types/purchase';
-
-import { getColumns } from './columns';
-import { DataTable } from './data-table';
+import { ContentLayout } from "@/components/layout/ContentLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
 
-type TypeFilter = 'ALL' | RequisitionType;
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { useGetMyRequisitions } from "@/hooks/general/requisiciones/useGetMyRequisitions";
+import type { MyRequisitionTypeFilter } from "@/hooks/general/requisiciones/useGetMyRequisitions";
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
+import { cn } from "@/lib/utils";
+
+import { getColumns } from "./columns";
+import { DataTable } from "./data-table";
 
 const RequisitionsPage = () => {
-  const { user } = useAuth();
-  const { selectedCompany, selectedStation } = useCompanyStore();
+  const { selectedCompany } = useCompanyStore();
   const timeZone = useCompanyTimezone();
-  const [typeFilter, setTypeFilter] = useState<TypeFilter>('ALL');
 
-  const { data: requisitions, isLoading, isError } = useGetRequisition(
-    selectedCompany?.slug,
-    selectedStation ?? undefined
-  );
-
-  const fullAccessRoles = useMemo(
-    () => [
-      'SUPERUSER',
-      'ANALISTA_COMPRAS',
-      'JEFE_COMPRAS',
-      'JEFE_ADMINISTRACION',
-    ],
-    []
-  );
-
-  const warehouseRoles = useMemo(
-    () => ['JEFE_ALMACEN', 'ANALISTA_ALMACEN'],
-    []
-  );
-
-  const userRoleNames = useMemo(
-    () => user?.roles?.map(role => role.name) ?? [],
-    [user]
-  );
-
-  const hasFullAccess = useMemo(() => {
-    return userRoleNames.some(role => fullAccessRoles.includes(role));
-  }, [userRoleNames, fullAccessRoles]);
-
-  // JEFE_ALMACEN / ANALISTA_ALMACEN, cuando no tienen además un rol
-  // full-access (compras/administración), solo deben ver las solicitudes
-  // que se mueven dentro del módulo almacén (creadas por gente de almacén).
-  const isWarehouseOnly = useMemo(() => {
-    return (
-      !hasFullAccess &&
-      userRoleNames.some(role => warehouseRoles.includes(role))
-    );
-  }, [hasFullAccess, userRoleNames, warehouseRoles]);
-
-  const canSeeRequisition = useMemo(() => {
-    if (hasFullAccess) {
-      return () => true;
-    }
-
-    if (isWarehouseOnly) {
-      // Las solicitudes generadas automáticamente por stock mínimo no
-      // tienen un usuario creador (created_by = "SYSTEM" en el backend,
-      // por lo que llega como null), pero nacen del propio inventario de
-      // almacén, así que siempre deben ser visibles para estos roles.
-      return (req: NonNullable<typeof requisitions>[number]) =>
-        !req.created_by ||
-        (req.created_by.roles?.some(role => warehouseRoles.includes(role.name)) ?? false);
-    }
-
-    return (req: NonNullable<typeof requisitions>[number]) => req.created_by?.id === user?.id;
-  }, [hasFullAccess, isWarehouseOnly, warehouseRoles, user]);
-
-  const { accessFilteredRequisitions, totalAeronautical, totalGeneral } = useMemo(() => {
-    if (!requisitions) {
-      return { accessFilteredRequisitions: [], totalAeronautical: 0, totalGeneral: 0 };
-    }
-
-    const accessFilteredRequisitions = [];
-    let totalAeronautical = 0;
-    let totalGeneral = 0;
-
-    for (const req of requisitions) {
-      if (!canSeeRequisition(req)) continue;
-
-      accessFilteredRequisitions.push(req);
-      if (req.type === 'AERONAUTICAL') totalAeronautical++;
-      else if (req.type === 'GENERAL') totalGeneral++;
-    }
-
-    return { accessFilteredRequisitions, totalAeronautical, totalGeneral };
-  }, [requisitions, canSeeRequisition]);
-
-  const filteredRequisitions = useMemo(() => {
-    if (typeFilter === 'ALL') return accessFilteredRequisitions;
-
-    return accessFilteredRequisitions.filter(req => req.type === typeFilter);
-  }, [accessFilteredRequisitions, typeFilter]);
+  /**
+   * El alcance —todas las solicitudes, las de almacén o solo las propias— lo
+   * resuelve el servidor según el rol de quien consulta. Antes se decidía aquí,
+   * sobre una respuesta que ya traía las solicitudes de todos.
+   */
+  const {
+    data: requisitions,
+    counts,
+    isLoading,
+    isError,
+    isFetching,
+    isTransitioning,
+    refetch,
+    search,
+    setSearch,
+    typeFilter,
+    setTypeFilter,
+    hasNextPage,
+    hasPrevPage,
+    nextPage,
+    prevPage,
+    pageIndex,
+    pageSize,
+    setPageSize,
+  } = useGetMyRequisitions();
 
   const columns = useMemo(
     () => getColumns(selectedCompany ?? undefined, timeZone),
-    [selectedCompany, timeZone]
-  )
-  
+    [selectedCompany, timeZone],
+  );
+
+  const tabs = useMemo(
+    () =>
+      [
+        { value: "ALL", label: "Todas", count: counts.all },
+        {
+          value: "AERONAUTICAL",
+          label: "Aeronáutica",
+          count: counts.aeronautical,
+        },
+        { value: "GENERAL", label: "General", count: counts.general },
+      ] as { value: MyRequisitionTypeFilter; label: string; count: number }[],
+    [counts],
+  );
+
   return (
     <ContentLayout title="Solicitudes de Compra">
       <div className="flex flex-col gap-y-2">
-
         <PageHeader className="mb-4" />
 
         <h1 className="text-4xl font-bold text-center">
@@ -127,35 +78,24 @@ const RequisitionsPage = () => {
           Filtre y/o busque si desea una en específico.
         </p>
 
-        {isError && (
-          <p className="text-muted-foreground italic">
-            Ha ocurrido un error al cargar las solicitudes de compra...
-          </p>
-        )}
-
         <div className="flex rounded-md border border-border overflow-hidden w-fit">
-          {(
-            [
-              { value: 'ALL', label: 'Todas', count: totalAeronautical + totalGeneral },
-              { value: 'AERONAUTICAL', label: 'Aeronáutica', count: totalAeronautical },
-              { value: 'GENERAL', label: 'General', count: totalGeneral },
-            ] as { value: TypeFilter; label: string; count: number }[]
-          ).map(({ value, label, count }) => (
+          {tabs.map(({ value, label, count }) => (
             <button
               key={value}
+              type="button"
               onClick={() => setTypeFilter(value)}
               className={cn(
-                'px-3 py-1.5 text-xs font-medium transition-colors border-r last:border-r-0',
+                "px-3 py-1.5 text-xs font-medium transition-colors border-r last:border-r-0",
                 typeFilter === value
-                  ? 'bg-muted text-foreground'
-                  : 'bg-background text-muted-foreground hover:bg-muted/50'
+                  ? "bg-muted text-foreground"
+                  : "bg-background text-muted-foreground hover:bg-muted/50",
               )}
             >
               {label}
               <span
                 className={cn(
-                  'ml-1.5 px-1 py-0 rounded text-[10px] font-semibold',
-                  typeFilter === value ? 'bg-background/60' : 'bg-muted'
+                  "ml-1.5 px-1 py-0 rounded text-[10px] font-semibold tabular-nums",
+                  typeFilter === value ? "bg-background/60" : "bg-muted",
                 )}
               >
                 {count}
@@ -166,10 +106,22 @@ const RequisitionsPage = () => {
 
         <DataTable
           columns={columns}
-          data={filteredRequisitions}
+          data={requisitions ?? []}
+          search={search}
+          onSearchChange={setSearch}
+          isFetching={isFetching}
           loading={isLoading}
+          isTransitioning={isTransitioning}
+          isError={isError}
+          onRetry={() => refetch()}
+          onNextPage={nextPage}
+          onPrevPage={prevPage}
+          hasNextPage={hasNextPage}
+          hasPrevPage={hasPrevPage}
+          pageIndex={pageIndex}
+          pageSize={pageSize}
+          onPageSizeChange={setPageSize}
         />
-
       </div>
     </ContentLayout>
   );

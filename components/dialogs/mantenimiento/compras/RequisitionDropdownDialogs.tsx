@@ -7,7 +7,7 @@ import {
 } from "@/actions/mantenimiento/compras/requisiciones/actions"
 import { useAuth } from "@/contexts/AuthContext"
 import { useCompanyStore } from "@/stores/CompanyStore"
-import type { Requisition } from "@/types/purchase"
+import type { MyRequisition, Requisition } from "@/types/purchase"
 import {
     AlertOctagon,
     AlertTriangle,
@@ -60,7 +60,7 @@ function transformApiData(apiData: any) {
 }
 
 type Props = {
-  req: Requisition
+  req: Requisition | MyRequisition
   openDelete: boolean
   setOpenDelete: (open: boolean) => void
   openCascadeDelete?: boolean
@@ -167,9 +167,9 @@ const RequisitionDropdownDialogs = ({
       {/* DELETE */}
         <Dialog open={openDelete} onOpenChange={setOpenDelete}>
         <DialogContent className={dialogClass}>
-            
+
             <DialogHeader className="px-6 pt-8 pb-3 flex flex-col items-center text-center space-y-3">
-            
+
             <div
                 className="
                 flex items-center justify-center
@@ -195,7 +195,7 @@ const RequisitionDropdownDialogs = ({
 
             {/* WARNING BOX */}
             <div className="mx-6 mt-4 p-3 rounded-xl border border-red-500/20 bg-red-500/5 text-sm text-red-600 flex gap-2 leading-relaxed">
-            <AlertTriangle className="size-4 mt-[2px]" />
+            <AlertTriangle className="size-4 mt-0.5" />
             <div>
                 Esta acción es <b>irreversible</b> y eliminará permanentemente el registro del sistema.
             </div>
@@ -203,7 +203,7 @@ const RequisitionDropdownDialogs = ({
 
             {/* ACTIONS */}
             <div className="px-6 pb-6 pt-5 flex justify-end gap-2">
-            
+
             <Button
                 variant="outline"
                 onClick={() => setOpenDelete(false)}
@@ -272,7 +272,7 @@ const RequisitionDropdownDialogs = ({
 
             {/* WARNING BOX */}
             <div className="mx-6 mt-4 p-3 rounded-xl border border-red-500/20 bg-red-500/5 text-sm text-red-600 flex gap-2 leading-relaxed">
-            <AlertTriangle className="size-4 mt-[2px]" />
+            <AlertTriangle className="size-4 mt-0.5" />
             <div>
                 Esta acción es <b>irreversible</b>. Se eliminarán también todas sus cotizaciones (incluyendo
                 complementarias) y las órdenes de compra generadas por ellas, revirtiendo el inventario
@@ -322,9 +322,9 @@ const RequisitionDropdownDialogs = ({
       {/* REJECT */}
         <Dialog open={openReject} onOpenChange={setOpenReject}>
         <DialogContent className={dialogClass}>
-            
+
             <DialogHeader className="px-6 pt-8 pb-3 flex flex-col items-center text-center space-y-3">
-            
+
             <div
                 className="
                 flex items-center justify-center
@@ -351,7 +351,7 @@ const RequisitionDropdownDialogs = ({
 
             {/* WARNING BOX */}
             <div className="mx-6 mt-4 p-3 rounded-xl border border-orange-500/20 bg-orange-500/5 text-sm text-orange-600 flex gap-2 leading-relaxed">
-            <AlertTriangle className="size-4 mt-[2px]" />
+            <AlertTriangle className="size-4 mt-0.5" />
             <div>
                 Esta acción es <b>irreversible</b>. La requisición será marcada como rechazada permanentemente.
             </div>
@@ -365,8 +365,8 @@ const RequisitionDropdownDialogs = ({
                 value={Observation}
                 onChange={(e) => setObservation(e.target.value)}
                 placeholder="Ej: documentación incompleta, proveedor no cumple requisitos..."
-                className="placeholder:text-gray-400 
-                  w-full min-h-[90px] resize-none
+                className="placeholder:text-gray-400
+                  w-full min-h-22.5 resize-none
                   rounded-xl border border-border/60
                   bg-background/70
                   px-3 py-2 text-sm
@@ -381,7 +381,7 @@ const RequisitionDropdownDialogs = ({
 
             {/* ACTIONS */}
             <div className="px-6 pb-6 pt-5 flex justify-end gap-2">
-            
+
             <Button
                 variant="outline"
                 onClick={() => setOpenReject(false)}
@@ -494,10 +494,10 @@ const RequisitionDropdownDialogs = ({
                     text-muted-foreground
                   "
                 >
-                  Complete la información requerida para generar una nueva 
-                  cotización asociada a la requisición{" "} 
-                  <span className="font-medium text-foreground"> 
-                    {req.order_number} 
+                  Complete la información requerida para generar una nueva
+                  cotización asociada a la requisición{" "}
+                  <span className="font-medium text-foreground">
+                    {req.order_number}
                   </span>.
                 </DialogDescription>
               </div>
@@ -515,7 +515,11 @@ const RequisitionDropdownDialogs = ({
               />
             ) : (
               <CreateQuoteForm
-                req={req}
+                // Cotizar es una acción exclusiva del módulo de compras (ver
+                // `canQuote` en RequisitionDropdownActions), así que aquí la
+                // fila siempre es la del listado ancho, nunca la de "mis
+                // solicitudes".
+                req={req as Requisition}
                 initialData={initialData}
                 onClose={() => {
                   setOpenConfirm(false)

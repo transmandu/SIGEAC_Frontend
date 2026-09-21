@@ -1,29 +1,29 @@
-'use client'
+"use client";
 
-import { HelpCircle, Layers, Package, Plane } from 'lucide-react'
+import { HelpCircle, Layers, Package, Plane } from "lucide-react";
 
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@/components/ui/popover'
+} from "@/components/ui/popover";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@/components/ui/tooltip'
-import { cn, formatRequestedDate } from '@/lib/utils'
-import ArticleLifecycleIcon from '@/components/misc/ArticleLifecycleIcon'
-import type { ArticleLifecycleStage, Requisition } from '@/types/purchase'
+} from "@/components/ui/tooltip";
+import { cn, formatRequestedDate } from "@/lib/utils";
+import ArticleLifecycleIcon from "@/components/misc/ArticleLifecycleIcon";
+import type { ArticleLifecycleStage, MyRequisition } from "@/types/purchase";
 
 interface Props {
-  requisition: Requisition
+  requisition: MyRequisition;
 }
 
 interface FieldProps {
-  label: string
-  value: string | number
+  label: string;
+  value: string | number;
 }
 
 const Field = ({ label, value }: FieldProps) => (
@@ -33,17 +33,17 @@ const Field = ({ label, value }: FieldProps) => (
     </span>
     <span className="text-xs font-medium whitespace-nowrap">{value}</span>
   </div>
-)
+);
 
 interface ArticleRowProps {
-  icon: typeof Layers
-  iconClassName: string
-  title: string
-  subtitle?: string
-  fields: FieldProps[]
-  quantity: string | number
-  unit: string
-  lifecycleStage?: ArticleLifecycleStage | null
+  icon: typeof Layers;
+  iconClassName: string;
+  title: string;
+  subtitle?: string;
+  fields: FieldProps[];
+  quantity: string | number;
+  unit: string;
+  lifecycleStage?: ArticleLifecycleStage | null;
 }
 
 const ArticleRow = ({
@@ -59,8 +59,8 @@ const ArticleRow = ({
   <div className="flex w-fit items-center gap-3 rounded-md border bg-background/60 px-2.5 py-1.5 shadow-xs transition-colors hover:bg-muted/40">
     <div
       className={cn(
-        'flex h-7 w-7 shrink-0 items-center justify-center rounded-md',
-        iconClassName
+        "flex h-7 w-7 shrink-0 items-center justify-center rounded-md",
+        iconClassName,
       )}
     >
       <Icon className="h-3.5 w-3.5" />
@@ -98,15 +98,15 @@ const ArticleRow = ({
       <ArticleLifecycleIcon stage={lifecycleStage} />
     </div>
   </div>
-)
+);
 
 export default function RequisitionArticlesPopover({ requisition }: Props) {
-  const batches = requisition.batch ?? []
-  const generalArticles = requisition.general_articles ?? []
+  const batches = requisition.batch ?? [];
+  const generalArticles = requisition.general_articles ?? [];
 
   const hasArticles =
     batches.some((batch: any) => batch.batch_articles?.length) ||
-    generalArticles.length > 0
+    generalArticles.length > 0;
 
   return (
     <Popover>
@@ -118,10 +118,10 @@ export default function RequisitionArticlesPopover({ requisition }: Props) {
                 type="button"
                 disabled={!hasArticles}
                 className={cn(
-                  'flex items-center justify-center rounded-md p-1 transition-colors',
+                  "flex items-center justify-center rounded-md p-1 transition-colors",
                   hasArticles
-                    ? 'text-muted-foreground hover:text-blue-600 hover:bg-blue-500/10 dark:hover:text-blue-400'
-                    : 'text-muted-foreground/30 cursor-not-allowed'
+                    ? "text-muted-foreground hover:text-blue-600 hover:bg-blue-500/10 dark:hover:text-blue-400"
+                    : "text-muted-foreground/30 cursor-not-allowed",
                 )}
               >
                 <HelpCircle className="size-4" />
@@ -129,7 +129,7 @@ export default function RequisitionArticlesPopover({ requisition }: Props) {
             </PopoverTrigger>
           </TooltipTrigger>
           <TooltipContent>
-            {hasArticles ? 'Visualizar artículos' : 'Sin artículos asociados'}
+            {hasArticles ? "Visualizar artículos" : "Sin artículos asociados"}
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
@@ -144,47 +144,55 @@ export default function RequisitionArticlesPopover({ requisition }: Props) {
 
         <div className="flex flex-col items-center gap-2">
           {batches.flatMap((batch: any, batchIndex: number) =>
-            (batch.batch_articles ?? []).map((article: any, articleIndex: number) => {
-              const acronym =
-                typeof article.aircraft === 'string'
-                  ? article.aircraft
-                  : article.aircraft?.acronym
+            (batch.batch_articles ?? []).map(
+              (article: any, articleIndex: number) => {
+                const acronym =
+                  typeof article.aircraft === "string"
+                    ? article.aircraft
+                    : article.aircraft?.acronym;
 
-              const fields: FieldProps[] = [
-                { label: 'P/N', value: article.article_part_number ?? 'N/A' },
-                { label: 'Alt. P/N', value: article.article_alt_part_number ?? 'N/A' },
-              ]
+                const fields: FieldProps[] = [
+                  { label: "P/N", value: article.article_part_number ?? "N/A" },
+                  {
+                    label: "Alt. P/N",
+                    value: article.article_alt_part_number ?? "N/A",
+                  },
+                ];
 
-              if (acronym) {
-                fields.push({ label: 'Aeronave', value: acronym })
-              }
+                if (acronym) {
+                  fields.push({ label: "Aeronave", value: acronym });
+                }
 
-              return (
-                <ArticleRow
-                  key={`batch-${batchIndex}-${articleIndex}`}
-                  icon={acronym ? Plane : Layers}
-                  iconClassName="bg-sky-500/10 text-sky-600 dark:text-sky-400"
-                  title={batch.name}
-                  subtitle={batch.category}
-                  fields={fields}
-                  quantity={article.quantity ?? '-'}
-                  unit={article.unit?.label ?? 'N/A'}
-                  lifecycleStage={article.lifecycle_stage}
-                />
-              )
-            })
+                return (
+                  <ArticleRow
+                    key={`batch-${batchIndex}-${articleIndex}`}
+                    icon={acronym ? Plane : Layers}
+                    iconClassName="bg-sky-500/10 text-sky-600 dark:text-sky-400"
+                    title={batch.name}
+                    subtitle={batch.category}
+                    fields={fields}
+                    quantity={article.quantity ?? "-"}
+                    unit={article.unit?.label ?? "N/A"}
+                    lifecycleStage={article.lifecycle_stage}
+                  />
+                );
+              },
+            ),
           )}
 
           {generalArticles.map((article: any) => {
             const fields: FieldProps[] = [
-              { label: 'Present. / Especif.', value: article.variant_type ?? 'N/A' },
-            ]
+              {
+                label: "Present. / Especif.",
+                value: article.variant_type ?? "N/A",
+              },
+            ];
 
             if (article.requested_date) {
               fields.push({
-                label: 'Fecha Solicitud',
+                label: "Fecha Solicitud",
                 value: formatRequestedDate(article.requested_date),
-              })
+              });
             }
 
             const destinations = [
@@ -194,10 +202,13 @@ export default function RequisitionArticlesPopover({ requisition }: Props) {
                 `${article.employee.first_name} ${article.employee.last_name}`,
               article.authorized_employee?.full_name ||
                 article.authorized_employee?.dni_employee,
-            ].filter(Boolean)
+            ].filter(Boolean);
 
             if (destinations.length > 0) {
-              fields.push({ label: 'Destino', value: destinations.join(' / ') })
+              fields.push({
+                label: "Destino",
+                value: destinations.join(" / "),
+              });
             }
 
             return (
@@ -205,13 +216,13 @@ export default function RequisitionArticlesPopover({ requisition }: Props) {
                 key={`general-${article.id}`}
                 icon={Package}
                 iconClassName="bg-amber-500/10 text-amber-600 dark:text-amber-400"
-                title={article.description ?? 'N/A'}
+                title={article.description ?? "N/A"}
                 fields={fields}
-                quantity={article.quantity ?? '-'}
-                unit={article.unit?.label ?? 'N/A'}
+                quantity={article.quantity ?? "-"}
+                unit={article.unit?.label ?? "N/A"}
                 lifecycleStage={article.lifecycle_stage}
               />
-            )
+            );
           })}
 
           {!hasArticles && (
@@ -222,5 +233,5 @@ export default function RequisitionArticlesPopover({ requisition }: Props) {
         </div>
       </PopoverContent>
     </Popover>
-  )
+  );
 }

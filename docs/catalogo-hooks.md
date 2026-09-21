@@ -418,7 +418,8 @@ Los marcados `_(useMutation)_` son las lecturas a demanda de la [sección 5](#5-
 | `useGetQuotes` | `mantenimiento/compras/useGetQuotes.ts` | ["quotes", companyId, locationId] | `—` |
 | `useGetRequisitionByOrderNumber` | `mantenimiento/compras/useGetRequisitionByOrderNumber.ts` | ['requisition-order', company, order_number] | `—` |
 | `useGetRequisitionPdfReceivers` | `mantenimiento/compras/useGetRequisitionPdfReceivers.ts` | ['requisition-pdf-receivers', company] | `—` |
-| `useGetRequisition` | `mantenimiento/compras/useGetRequisitions.ts` | ["requisitions-orders", company, location_id, type] | `—` |
+| `useGetPurchaseRequisitions` | `mantenimiento/compras/useGetPurchaseRequisitions.ts` | ["requisitions-orders", "purchase", company, location_id, type, cursor, search, status, priority, pageSize] | `—` |
+| `useGetMyRequisitions` | `general/requisiciones/useGetMyRequisitions.ts` | ["requisitions-orders", "mine", company, location_id, type, cursor, search, pageSize]<br>["requisitions-orders", "mine-counts", company, location_id, search] | `—` |
 | `useGetTrackingInfo` | `mantenimiento/compras/useGetTrackingInfo.ts` | ["tracking"] | `—` |
 | `useGetIncomingArticles` | `mantenimiento/control_calidad/useGetIncomingArticles.ts` | ['incoming-articles', selectedCompany?.slug] | `—` |
 | `useGetIncomingChecks` | `mantenimiento/control_calidad/useGetIncomingInspectionChecks.ts` | ["incoming-checks", selectedCompany?.slug] | `—` |

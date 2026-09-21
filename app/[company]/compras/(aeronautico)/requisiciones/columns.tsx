@@ -254,7 +254,7 @@ export const getColumns = (
     cell: ({ row }) => (
       <div className="flex justify-center w-full">
         <span
-          className="block max-w-[400px]
+          className="block max-w-100
             text-sm text-slate-600 dark:text-slate-300 text-center whitespace-normal wrap-break-word leading-snug"
           title={row.original.justification ?? ''}
         >

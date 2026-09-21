@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useAuth } from "@/contexts/AuthContext"
-import type { Requisition } from "@/types/purchase"
+import type { MyRequisition, Requisition } from "@/types/purchase"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -48,10 +48,16 @@ const itemBase = `
   hover:shadow-xs
   active:scale-95
 `
+/**
+ * Sirve a las dos familias de listado: el de compras (`Requisition`) y el de
+ * "mis solicitudes" (`MyRequisition`), que es más estrecho. Solo usa los campos
+ * que ambos comparten —id, número, estado y creador—, así que la unión es el
+ * contrato honesto en vez de exigir el tipo ancho a quien no lo recibe.
+ */
 const RequisitionDropdownActions = ({
   req
 }: {
-  req: Requisition
+  req: Requisition | MyRequisition
 }) => {
   const { user } = useAuth()
 

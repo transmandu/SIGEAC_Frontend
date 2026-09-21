@@ -1,22 +1,28 @@
-"use client"
+"use client";
 
 import { type AppColumnDef } from "@/lib/table";
 
-import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
+import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 
-import RequisitionsDropdownActions from "@/components/dropdowns/mantenimiento/compras/RequisitionDropdownActions"
+import RequisitionsDropdownActions from "@/components/dropdowns/mantenimiento/compras/RequisitionDropdownActions";
 
-import { cn } from "@/lib/utils"
-import { DEFAULT_TIMEZONE, formatInstant, instantToCalendarDay } from "@/lib/date"
-import type { Requisition } from "@/types/purchase"
-import { format } from "date-fns"
-import { es } from "date-fns/locale"
-import Link from "next/link"
-import { Plane, ClipboardList, Building2, Handshake } from "lucide-react"
+import { cn } from "@/lib/utils";
+import {
+  DEFAULT_TIMEZONE,
+  formatInstant,
+  instantToCalendarDay,
+} from "@/lib/date";
+import type { MyRequisition } from "@/types/purchase";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import Link from "next/link";
+import { Plane, ClipboardList, Building2, Handshake } from "lucide-react";
 
-import RequisitionArticlesPopover from "./_components/RequisitionArticlesPopover"
-import RequisitionStatusCell from "./_components/RequisitionStatusCell"
-import RequisitionDateFilter, { type DateFilterValue } from "./_components/RequisitionDateFilter"
+import RequisitionArticlesPopover from "./_components/RequisitionArticlesPopover";
+import RequisitionStatusCell from "./_components/RequisitionStatusCell";
+import RequisitionDateFilter, {
+  type DateFilterValue,
+} from "./_components/RequisitionDateFilter";
 
 // This type is used to define the shape of our data.
 // You can use a Zod schema here if you want.
@@ -26,8 +32,8 @@ import RequisitionDateFilter, { type DateFilterValue } from "./_components/Requi
 
 export const getColumns = (
   selectedCompany?: { slug: string },
-  timeZone: string = DEFAULT_TIMEZONE
-): AppColumnDef<Requisition>[] => [
+  timeZone: string = DEFAULT_TIMEZONE,
+): AppColumnDef<MyRequisition>[] => [
   {
     accessorKey: "order_number",
     size: 210,
@@ -46,8 +52,8 @@ export const getColumns = (
             {row.original.order_number}
           </Link>
         </div>
-      )
-    }
+      );
+    },
   },
   {
     accessorKey: "requested_by",
@@ -57,8 +63,10 @@ export const getColumns = (
     ),
     meta: { title: "Solicitado por" },
     cell: ({ row }) => (
-      <p className="flex text-center justify-center items-center font-bold">{row.original.requested_by ?? "-"}</p>
-    )
+      <p className="flex text-center justify-center items-center font-bold">
+        {row.original.requested_by ?? "-"}
+      </p>
+    ),
   },
   {
     accessorKey: "status",
@@ -68,9 +76,7 @@ export const getColumns = (
       <DataTableColumnHeader column={column} title="Estado" />
     ),
     meta: { title: "Estado" },
-    cell: ({ row }) => (
-      <RequisitionStatusCell requisition={row.original} />
-    ),
+    cell: ({ row }) => <RequisitionStatusCell requisition={row.original} />,
   },
   {
     accessorKey: "justification",
@@ -80,15 +86,20 @@ export const getColumns = (
     ),
     meta: { title: "Justificación" },
     cell: ({ row }) => (
-      <p className="text-center flex justify-center text-muted-foreground italic">{row.original.justification?? 'N/A'}</p>
-    )
+      <p className="text-center flex justify-center text-muted-foreground italic">
+        {row.original.justification ?? "N/A"}
+      </p>
+    ),
   },
   {
     id: "articles",
     size: 20,
     header: () => null,
     cell: ({ row }) => (
-      <div className="flex justify-center px-0" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="flex justify-center px-0"
+        onClick={(e) => e.stopPropagation()}
+      >
         <RequisitionArticlesPopover requisition={row.original} />
       </div>
     ),
@@ -102,9 +113,7 @@ export const getColumns = (
       <DataTableColumnHeader column={column} title="Tipo de Req." />
     ),
     meta: { title: "Tipo de Req." },
-    cell: ({ row }) => (
-      <p className="text-center">{row.original.type}</p>
-    )
+    cell: ({ row }) => <p className="text-center">{row.original.type}</p>,
   },
   {
     accessorKey: "priority",
@@ -154,10 +163,13 @@ export const getColumns = (
           value: aircraft.acronym,
           icon: Plane,
         },
-        work_order?.order_number && {
+        // El backend ya resuelve la orden de trabajo a texto (el número de la
+        // orden enlazada, o el que se escribió a mano). Antes se leía como si
+        // fuese un objeto, así que esta entrada nunca llegaba a mostrarse.
+        work_order && {
           key: "work_order",
           label: "O.T.",
-          value: work_order.order_number,
+          value: work_order,
           icon: ClipboardList,
         },
         department?.name && {
@@ -190,7 +202,10 @@ export const getColumns = (
       return (
         <div className="flex flex-col items-center justify-center gap-1.5">
           {entries.map(({ key, label, value, icon: Icon }) => (
-            <div key={key} className="flex flex-col items-center justify-center gap-0.5">
+            <div
+              key={key}
+              className="flex flex-col items-center justify-center gap-0.5"
+            >
               <span className="text-[10px] uppercase tracking-wide text-muted-foreground/70 border border-border/60 rounded px-1 leading-4">
                 {label}
               </span>
@@ -232,10 +247,10 @@ export const getColumns = (
       <p className="text-center text-sm text-slate-600 dark:text-slate-300 font-medium tracking-wide uppercase">
         {formatInstant(row.original.submission_date, timeZone, "short")}
       </p>
-    )
+    ),
   },
   {
-    id: 'actions',
+    id: "actions",
     // El minWidth inline pisa el de .table-sticky-right (100px), asi que el
     // ancho de la columna anclada se fija aqui.
     size: 100,
@@ -249,6 +264,6 @@ export const getColumns = (
       <div className="flex justify-center" onClick={(e) => e.stopPropagation()}>
         <RequisitionsDropdownActions req={row.original} />
       </div>
-    )
+    ),
   },
-]
+];
