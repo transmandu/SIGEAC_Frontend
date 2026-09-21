@@ -1,34 +1,34 @@
-"use client"
+"use client";
 
 import {
   useCascadeDeleteRequisition,
   useDeleteRequisition,
-  useUpdateRequisitionStatus
-} from "@/actions/mantenimiento/compras/requisiciones/actions"
-import { useAuth } from "@/contexts/AuthContext"
-import { useCompanyStore } from "@/stores/CompanyStore"
-import type { MyRequisition, Requisition } from "@/types/purchase"
+  useUpdateRequisitionStatus,
+} from "@/actions/mantenimiento/compras/requisiciones/actions";
+import { useAuth } from "@/contexts/AuthContext";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import type { MyRequisition, Requisition } from "@/types/purchase";
 import {
-    AlertOctagon,
-    AlertTriangle,
+  AlertOctagon,
+  AlertTriangle,
   ClipboardX,
   Loader2,
   Receipt,
-  Trash2
-} from "lucide-react"
-import LoadingPage from "@/components/misc/LoadingPage"
-import { CreateQuoteForm } from "@/components/forms/mantenimiento/compras/CreateQuoteForm"
-import { CreateGeneralQuoteForm } from "@/components/forms/general/compras/CreateGeneralQuoteForm"
-import { Button } from "@/components/ui/button"
+  Trash2,
+} from "lucide-react";
+import LoadingPage from "@/components/misc/LoadingPage";
+import { CreateQuoteForm } from "@/components/forms/mantenimiento/compras/CreateQuoteForm";
+import { CreateGeneralQuoteForm } from "@/components/forms/general/compras/CreateGeneralQuoteForm";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle
-} from "@/components/ui/dialog"
-import { useState } from "react"
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { useState } from "react";
 
 function transformApiData(apiData: any) {
   return {
@@ -43,35 +43,33 @@ function transformApiData(apiData: any) {
       batch: batch.id.toString(),
       batch_name: batch.name,
 
-      batch_articles: batch.batch_articles.map(
-        (article: any) => ({
-          part_number:
-            article.article_part_number ||
-            article.article_alt_part_number ||
-            article.pma,
+      batch_articles: batch.batch_articles.map((article: any) => ({
+        part_number:
+          article.article_part_number ||
+          article.article_alt_part_number ||
+          article.pma,
 
-          unit: article.unit,
-          quantity: parseFloat(article.quantity),
-          image: article.image || null
-        })
-      )
-    }))
-  }
+        unit: article.unit,
+        quantity: parseFloat(article.quantity),
+        image: article.image || null,
+      })),
+    })),
+  };
 }
 
 type Props = {
-  req: Requisition | MyRequisition
-  openDelete: boolean
-  setOpenDelete: (open: boolean) => void
-  openCascadeDelete?: boolean
-  setOpenCascadeDelete?: (open: boolean) => void
-  openConfirm: boolean
-  setOpenConfirm: (open: boolean) => void
-  openReject: boolean
-  setOpenReject: (open: boolean) => void
-  onSuccessUpdate?: () => void
-  onSuccessDelete?: () => void
-}
+  req: Requisition | MyRequisition;
+  openDelete: boolean;
+  setOpenDelete: (open: boolean) => void;
+  openCascadeDelete?: boolean;
+  setOpenCascadeDelete?: (open: boolean) => void;
+  openConfirm: boolean;
+  setOpenConfirm: (open: boolean) => void;
+  openReject: boolean;
+  setOpenReject: (open: boolean) => void;
+  onSuccessUpdate?: () => void;
+  onSuccessDelete?: () => void;
+};
 
 const dialogClass = `
   sm:max-w-[390px]
@@ -82,7 +80,7 @@ const dialogClass = `
   shadow-2xl
   overflow-hidden
   p-0
-`
+`;
 
 const RequisitionDropdownDialogs = ({
   req,
@@ -95,119 +93,114 @@ const RequisitionDropdownDialogs = ({
   openReject,
   setOpenReject,
   onSuccessUpdate,
-  onSuccessDelete
+  onSuccessDelete,
 }: Props) => {
-  const { user } = useAuth()
+  const { user } = useAuth();
 
-  const { selectedCompany } = useCompanyStore()
+  const { selectedCompany } = useCompanyStore();
 
-  const { deleteRequisition } =
-    useDeleteRequisition()
+  const { deleteRequisition } = useDeleteRequisition();
 
-  const { cascadeDeleteRequisition } =
-    useCascadeDeleteRequisition()
+  const { cascadeDeleteRequisition } = useCascadeDeleteRequisition();
 
-  const { updateStatusRequisition } =
-    useUpdateRequisitionStatus()
+  const { updateStatusRequisition } = useUpdateRequisitionStatus();
 
-  const [Observation, setObservation] = useState("")
+  const [Observation, setObservation] = useState("");
 
-  const initialData = transformApiData(req)
+  const initialData = transformApiData(req);
 
   // Las requisiciones GENERAL cotizan sin proveedor mediante el formulario general.
-  const isGeneralRequisition = req.type === "GENERAL"
+  const isGeneralRequisition = req.type === "GENERAL";
 
-  if (!selectedCompany) return <LoadingPage />
+  if (!selectedCompany) return <LoadingPage />;
 
   const handleDelete = async (id: number) => {
     await deleteRequisition.mutateAsync({
       id,
-      company: selectedCompany.slug
-    })
+      company: selectedCompany.slug,
+    });
 
-    setOpenDelete(false)
+    setOpenDelete(false);
 
-    onSuccessDelete?.()
-  }
+    onSuccessDelete?.();
+  };
 
   const handleCascadeDelete = async (id: number) => {
     await cascadeDeleteRequisition.mutateAsync({
       id,
-      company: selectedCompany.slug
-    })
+      company: selectedCompany.slug,
+    });
 
-    setOpenCascadeDelete?.(false)
+    setOpenCascadeDelete?.(false);
 
-    onSuccessDelete?.()
-  }
+    onSuccessDelete?.();
+  };
 
   const handleReject = async (
     id: number,
     updated_by: string,
-    status: string
+    status: string,
   ) => {
     await updateStatusRequisition.mutateAsync({
       id,
       data: {
         status,
         updated_by,
-        observation: Observation.trim() || null
+        observation: Observation.trim() || null,
       },
-      company: selectedCompany.slug
-    })
+      company: selectedCompany.slug,
+    });
 
-    setObservation("")
-    setOpenReject(false)
+    setObservation("");
+    setOpenReject(false);
 
-    onSuccessUpdate?.()
-  }
+    onSuccessUpdate?.();
+  };
 
   return (
     <>
       {/* DELETE */}
-        <Dialog open={openDelete} onOpenChange={setOpenDelete}>
+      <Dialog open={openDelete} onOpenChange={setOpenDelete}>
         <DialogContent className={dialogClass}>
-
-            <DialogHeader className="px-6 pt-8 pb-3 flex flex-col items-center text-center space-y-3">
-
+          <DialogHeader className="px-6 pt-8 pb-3 flex flex-col items-center text-center space-y-3">
             <div
-                className="
+              className="
                 flex items-center justify-center
                 size-12 rounded-2xl
                 border border-red-500/15
                 bg-red-500/8
                 "
             >
-                <Trash2 className="size-5 text-red-600" />
+              <Trash2 className="size-5 text-red-600" />
             </div>
 
             <DialogTitle className="text-[16px] font-semibold tracking-tight">
-                Eliminar solicitud
+              Eliminar solicitud
             </DialogTitle>
 
             <DialogDescription className="text-sm text-muted-foreground text-center leading-relaxed max-w-sm">
-                Vas a eliminar la solicitud{" "}
-                <span className="font-medium text-foreground">
+              Vas a eliminar la solicitud{" "}
+              <span className="font-medium text-foreground">
                 {req.order_number}
-                </span>
+              </span>
             </DialogDescription>
-            </DialogHeader>
+          </DialogHeader>
 
-            {/* WARNING BOX */}
-            <div className="mx-6 mt-4 p-3 rounded-xl border border-red-500/20 bg-red-500/5 text-sm text-red-600 flex gap-2 leading-relaxed">
+          {/* WARNING BOX */}
+          <div className="mx-6 mt-4 p-3 rounded-xl border border-red-500/20 bg-red-500/5 text-sm text-red-600 flex gap-2 leading-relaxed">
             <AlertTriangle className="size-4 mt-0.5" />
             <div>
-                Esta acción es <b>irreversible</b> y eliminará permanentemente el registro del sistema.
+              Esta acción es <b>irreversible</b> y eliminará permanentemente el
+              registro del sistema.
             </div>
-            </div>
+          </div>
 
-            {/* ACTIONS */}
-            <div className="px-6 pb-6 pt-5 flex justify-end gap-2">
-
+          {/* ACTIONS */}
+          <div className="px-6 pb-6 pt-5 flex justify-end gap-2">
             <Button
-                variant="outline"
-                onClick={() => setOpenDelete(false)}
-                className="
+              variant="outline"
+              onClick={() => setOpenDelete(false)}
+              className="
                 rounded-xl
                 border border-border/60
                 bg-background
@@ -216,74 +209,72 @@ const RequisitionDropdownDialogs = ({
                 hover:text-foreground
                 "
             >
-                Cancelar
+              Cancelar
             </Button>
 
             <Button
-                variant="destructive"
-                onClick={() => handleDelete(req.id)}
-                disabled={deleteRequisition.isPending}
-                className="
+              variant="destructive"
+              onClick={() => handleDelete(req.id)}
+              disabled={deleteRequisition.isPending}
+              className="
                 rounded-xl
                 bg-red-600/90
                 hover:bg-red-600
                 "
             >
-                {deleteRequisition.isPending && (
+              {deleteRequisition.isPending && (
                 <Loader2 className="mr-2 size-4 animate-spin" />
-                )}
-                Eliminar
+              )}
+              Eliminar
             </Button>
-
-            </div>
+          </div>
         </DialogContent>
-        </Dialog>
+      </Dialog>
 
       {/* CASCADE DELETE (SUPERUSER) */}
       {openCascadeDelete !== undefined && setOpenCascadeDelete && (
         <Dialog open={openCascadeDelete} onOpenChange={setOpenCascadeDelete}>
-        <DialogContent className={dialogClass}>
-
+          <DialogContent className={dialogClass}>
             <DialogHeader className="px-6 pt-8 pb-3 flex flex-col items-center text-center space-y-3">
-
-            <div
+              <div
                 className="
                 flex items-center justify-center
                 size-12 rounded-2xl
                 border border-red-500/15
                 bg-red-500/8
                 "
-            >
+              >
                 <AlertOctagon className="size-5 text-red-600" />
-            </div>
+              </div>
 
-            <DialogTitle className="text-[16px] font-semibold tracking-tight">
+              <DialogTitle className="text-[16px] font-semibold tracking-tight">
                 Eliminar solicitud en cascada
-            </DialogTitle>
+              </DialogTitle>
 
-            <DialogDescription className="text-sm text-muted-foreground text-center leading-relaxed max-w-sm">
+              <DialogDescription className="text-sm text-muted-foreground text-center leading-relaxed max-w-sm">
                 La solicitud{" "}
                 <span className="font-medium text-foreground">
-                {req.order_number}
+                  {req.order_number}
                 </span>{" "}
                 y toda su cadena serán eliminadas permanentemente.
-            </DialogDescription>
+              </DialogDescription>
             </DialogHeader>
 
             {/* WARNING BOX */}
             <div className="mx-6 mt-4 p-3 rounded-xl border border-red-500/20 bg-red-500/5 text-sm text-red-600 flex gap-2 leading-relaxed">
-            <AlertTriangle className="size-4 mt-0.5" />
-            <div>
-                Esta acción es <b>irreversible</b>. Se eliminarán también todas sus cotizaciones (incluyendo
-                complementarias) y las órdenes de compra generadas por ellas, revirtiendo el inventario
-                (artículos y stock) que ya se haya afectado, sin importar el estado en que se encuentren.
-            </div>
+              <AlertTriangle className="size-4 mt-0.5" />
+              <div>
+                Esta acción es <b>irreversible</b>. Se eliminarán también todas
+                sus cotizaciones (incluyendo complementarias) y las órdenes de
+                compra generadas por ellas, revirtiendo el inventario (artículos
+                y stock) que ya se haya afectado, sin importar el estado en que
+                se encuentren.
+              </div>
             </div>
 
             {/* ACTIONS */}
             <div className="px-6 pb-6 pt-5 flex justify-end gap-2">
-
-            <Button
+              <Button
                 variant="outline"
                 onClick={() => setOpenCascadeDelete(false)}
                 className="
@@ -294,11 +285,11 @@ const RequisitionDropdownDialogs = ({
                 text-muted-foreground
                 hover:text-foreground
                 "
-            >
+              >
                 Cancelar
-            </Button>
+              </Button>
 
-            <Button
+              <Button
                 variant="destructive"
                 onClick={() => handleCascadeDelete(req.id)}
                 disabled={cascadeDeleteRequisition.isPending}
@@ -307,65 +298,63 @@ const RequisitionDropdownDialogs = ({
                 bg-red-600/90
                 hover:bg-red-600
                 "
-            >
+              >
                 {cascadeDeleteRequisition.isPending && (
-                <Loader2 className="mr-2 size-4 animate-spin" />
+                  <Loader2 className="mr-2 size-4 animate-spin" />
                 )}
                 Eliminar en cascada
-            </Button>
-
+              </Button>
             </div>
-        </DialogContent>
+          </DialogContent>
         </Dialog>
       )}
 
       {/* REJECT */}
-        <Dialog open={openReject} onOpenChange={setOpenReject}>
+      <Dialog open={openReject} onOpenChange={setOpenReject}>
         <DialogContent className={dialogClass}>
-
-            <DialogHeader className="px-6 pt-8 pb-3 flex flex-col items-center text-center space-y-3">
-
+          <DialogHeader className="px-6 pt-8 pb-3 flex flex-col items-center text-center space-y-3">
             <div
-                className="
+              className="
                 flex items-center justify-center
                 size-12 rounded-2xl
                 border border-orange-500/15
                 bg-orange-500/8
                 "
             >
-                <ClipboardX className="size-5 text-orange-600" />
+              <ClipboardX className="size-5 text-orange-600" />
             </div>
 
             <DialogTitle className="text-[16px] font-semibold tracking-tight">
-                Rechazar solicitud
+              Rechazar solicitud
             </DialogTitle>
 
             <DialogDescription className="text-sm text-muted-foreground text-center leading-relaxed max-w-sm">
-                La solicitud{" "}
-                <span className="font-medium text-foreground">
+              La solicitud{" "}
+              <span className="font-medium text-foreground">
                 {req.order_number}
-                </span>{" "}
-                será rechazada y cambiará su estado.
+              </span>{" "}
+              será rechazada y cambiará su estado.
             </DialogDescription>
-            </DialogHeader>
+          </DialogHeader>
 
-            {/* WARNING BOX */}
-            <div className="mx-6 mt-4 p-3 rounded-xl border border-orange-500/20 bg-orange-500/5 text-sm text-orange-600 flex gap-2 leading-relaxed">
+          {/* WARNING BOX */}
+          <div className="mx-6 mt-4 p-3 rounded-xl border border-orange-500/20 bg-orange-500/5 text-sm text-orange-600 flex gap-2 leading-relaxed">
             <AlertTriangle className="size-4 mt-0.5" />
             <div>
-                Esta acción es <b>irreversible</b>. La requisición será marcada como rechazada permanentemente.
+              Esta acción es <b>irreversible</b>. La requisición será marcada
+              como rechazada permanentemente.
             </div>
-            </div>
-            <div className="mx-6 mt-4">
-              <label className="text-xs font-medium text-muted-foreground mb-2 block">
-                Observación de rechazo (opcional)
-              </label>
+          </div>
+          <div className="mx-6 mt-4">
+            <label className="text-xs font-medium text-muted-foreground mb-2 block">
+              Observación de rechazo (opcional)
+            </label>
 
-              <textarea
-                value={Observation}
-                onChange={(e) => setObservation(e.target.value)}
-                placeholder="Ej: documentación incompleta, proveedor no cumple requisitos..."
-                className="placeholder:text-gray-400
+            <textarea
+              value={Observation}
+              onChange={(e) => setObservation(e.target.value)}
+              placeholder="Ej: documentación incompleta, proveedor no cumple requisitos..."
+              className="placeholder:text-gray-400
                   w-full min-h-22.5 resize-none
                   rounded-xl border border-border/60
                   bg-background/70
@@ -376,16 +365,15 @@ const RequisitionDropdownDialogs = ({
                   focus:ring-2 focus:ring-orange-500/10
                   transition
                 "
-              />
-            </div>
+            />
+          </div>
 
-            {/* ACTIONS */}
-            <div className="px-6 pb-6 pt-5 flex justify-end gap-2">
-
+          {/* ACTIONS */}
+          <div className="px-6 pb-6 pt-5 flex justify-end gap-2">
             <Button
-                variant="outline"
-                onClick={() => setOpenReject(false)}
-                className="
+              variant="outline"
+              onClick={() => setOpenReject(false)}
+              className="
                 rounded-xl
                 border border-border/60
                 bg-background
@@ -394,39 +382,35 @@ const RequisitionDropdownDialogs = ({
                 hover:text-foreground
                 "
             >
-                Cancelar
+              Cancelar
             </Button>
 
             <Button
-                onClick={() =>
+              onClick={() =>
                 handleReject(
-                    req.id,
-                    `${user?.first_name} ${user?.last_name}`,
-                    "REJECTED"
+                  req.id,
+                  `${user?.first_name} ${user?.last_name}`,
+                  "REJECTED",
                 )
-                }
-                disabled={updateStatusRequisition.isPending}
-                className="
+              }
+              disabled={updateStatusRequisition.isPending}
+              className="
                 rounded-xl
                 bg-orange-500/90
                 hover:bg-orange-500
                 "
             >
-                {updateStatusRequisition.isPending && (
+              {updateStatusRequisition.isPending && (
                 <Loader2 className="mr-2 size-4 animate-spin" />
-                )}
-                Rechazar
+              )}
+              Rechazar
             </Button>
-
-            </div>
+          </div>
         </DialogContent>
-        </Dialog>
+      </Dialog>
 
       {/* CREATE QUOTE */}
-      <Dialog
-        open={openConfirm}
-        onOpenChange={setOpenConfirm}
-      >
+      <Dialog open={openConfirm} onOpenChange={setOpenConfirm}>
         <DialogContent
           className="
             max-w-5xl
@@ -454,7 +438,6 @@ const RequisitionDropdownDialogs = ({
             "
           >
             <div className="flex items-center gap-3">
-
               {/* Icono más compacto */}
               <div
                 className="
@@ -470,7 +453,6 @@ const RequisitionDropdownDialogs = ({
 
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-3">
-
                   {/* Título */}
                   <DialogTitle
                     className="
@@ -482,7 +464,6 @@ const RequisitionDropdownDialogs = ({
                   >
                     Generar cotización
                   </DialogTitle>
-
                 </div>
 
                 {/* Descripción compacta */}
@@ -498,7 +479,8 @@ const RequisitionDropdownDialogs = ({
                   cotización asociada a la requisición{" "}
                   <span className="font-medium text-foreground">
                     {req.order_number}
-                  </span>.
+                  </span>
+                  .
                 </DialogDescription>
               </div>
             </div>
@@ -509,8 +491,8 @@ const RequisitionDropdownDialogs = ({
               <CreateGeneralQuoteForm
                 req={req as any}
                 onClose={() => {
-                  setOpenConfirm(false)
-                  onSuccessUpdate?.()
+                  setOpenConfirm(false);
+                  onSuccessUpdate?.();
                 }}
               />
             ) : (
@@ -522,8 +504,8 @@ const RequisitionDropdownDialogs = ({
                 req={req as Requisition}
                 initialData={initialData}
                 onClose={() => {
-                  setOpenConfirm(false)
-                  onSuccessUpdate?.()
+                  setOpenConfirm(false);
+                  onSuccessUpdate?.();
                 }}
               />
             )}
@@ -531,7 +513,7 @@ const RequisitionDropdownDialogs = ({
         </DialogContent>
       </Dialog>
     </>
-  )
-}
+  );
+};
 
-export default RequisitionDropdownDialogs
+export default RequisitionDropdownDialogs;
