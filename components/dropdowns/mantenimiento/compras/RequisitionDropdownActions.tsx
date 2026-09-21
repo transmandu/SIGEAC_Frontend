@@ -1,21 +1,21 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useAuth } from "@/contexts/AuthContext"
-import type { Requisition } from "@/types/purchase"
+import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import type { MyRequisition, Requisition } from "@/types/purchase";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu"
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
-  TooltipTrigger
-} from "@/components/ui/tooltip"
-import { Button } from "@/components/ui/button"
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Button } from "@/components/ui/button";
 import {
   AlertOctagon,
   ClipboardX,
@@ -23,16 +23,16 @@ import {
   MoreHorizontal,
   Receipt,
   Tag,
-  Trash2
-} from "lucide-react"
-import DownloadRequisitionPdfDialog from "@/components/dialogs/mantenimiento/compras/DownloadRequisitionPdfDialog"
-import RequisitionDropdownDialogs from "@/components/dialogs/mantenimiento/compras/RequisitionDropdownDialogs"
-import UpdateRequisitionPriorityDialog from "@/components/dialogs/mantenimiento/compras/UpdateRequisitionPriorityDialog"
+  Trash2,
+} from "lucide-react";
+import DownloadRequisitionPdfDialog from "@/components/dialogs/mantenimiento/compras/DownloadRequisitionPdfDialog";
+import RequisitionDropdownDialogs from "@/components/dialogs/mantenimiento/compras/RequisitionDropdownDialogs";
+import UpdateRequisitionPriorityDialog from "@/components/dialogs/mantenimiento/compras/UpdateRequisitionPriorityDialog";
 
 const iconBase =
-  "size-[18px] transition-all duration-200 ease-out group-hover:scale-110"
+  "size-[18px] transition-all duration-200 ease-out group-hover:scale-110";
 const iconReject =
-  "size-[18px] transition-all duration-200 ease-out group-hover:scale-110"
+  "size-[18px] transition-all duration-200 ease-out group-hover:scale-110";
 const itemBase = `
   group
   relative
@@ -47,73 +47,82 @@ const itemBase = `
   hover:bg-muted
   hover:shadow-xs
   active:scale-95
-`
+`;
+/**
+ * Sirve a las dos familias de listado: el de compras (`Requisition`) y el de
+ * "mis solicitudes" (`MyRequisition`), que es más estrecho. Solo usa los campos
+ * que ambos comparten —id, número, estado y creador—, así que la unión es el
+ * contrato honesto en vez de exigir el tipo ancho a quien no lo recibe.
+ */
 const RequisitionDropdownActions = ({
-  req
+  req,
 }: {
-  req: Requisition
+  req: Requisition | MyRequisition;
 }) => {
-  const { user } = useAuth()
+  const { user } = useAuth();
 
-  const [openDropdown, setOpenDropdown] = useState(false)
-  const [openDelete, setOpenDelete] = useState(false)
-  const [openCascadeDelete, setOpenCascadeDelete] = useState(false)
-  const [openConfirm, setOpenConfirm] = useState(false)
-  const [openReject, setOpenReject] = useState(false)
-  const [openPriority, setOpenPriority] = useState(false)
-  const [openPdf, setOpenPdf] = useState(false)
+  const [openDropdown, setOpenDropdown] = useState(false);
+  const [openDelete, setOpenDelete] = useState(false);
+  const [openCascadeDelete, setOpenCascadeDelete] = useState(false);
+  const [openConfirm, setOpenConfirm] = useState(false);
+  const [openReject, setOpenReject] = useState(false);
+  const [openPriority, setOpenPriority] = useState(false);
+  const [openPdf, setOpenPdf] = useState(false);
 
-  const userRoles = user?.roles?.map(role => role.name) || []
-  const isOwnRequisition = req.created_by?.id === user?.id
-  const canChangePriority = ["JEFE_ALMACEN", "SUPERUSER"].some(role =>
-    userRoles.includes(role)
+  const userRoles = user?.roles?.map((role) => role.name) || [];
+  const isOwnRequisition = req.created_by?.id === user?.id;
+  const canChangePriority = ["JEFE_ALMACEN", "SUPERUSER"].some((role) =>
+    userRoles.includes(role),
   );
-  const canSeeAllOptions = ["JEFE_COMPRAS", "ANALISTA_COMPRAS","ASISTENTE_COMPRAS", "SUPERUSER"].some(role =>
-    userRoles.includes(role)
-  );
+  const canSeeAllOptions = [
+    "JEFE_COMPRAS",
+    "ANALISTA_COMPRAS",
+    "ASISTENTE_COMPRAS",
+    "SUPERUSER",
+  ].some((role) => userRoles.includes(role));
   // JEFE_ALMACEN puede eliminar cualquier solicitud de almacén, pero no
   // cotizar ni rechazar (eso queda reservado a compras).
-  const canDeleteAny = ["JEFE_ALMACEN", "SUPERUSER"].some(role =>
-    userRoles.includes(role)
+  const canDeleteAny = ["JEFE_ALMACEN", "SUPERUSER"].some((role) =>
+    userRoles.includes(role),
   );
   // ANALISTA_ALMACEN es de solo lectura: únicamente puede eliminar sus
   // propias solicitudes, nada más.
   const isReadOnlyWarehouseAnalyst =
-    userRoles.includes("ANALISTA_ALMACEN") && !canDeleteAny && !canSeeAllOptions
-  const isSuperUser = userRoles.includes("SUPERUSER")
+    userRoles.includes("ANALISTA_ALMACEN") &&
+    !canDeleteAny &&
+    !canSeeAllOptions;
+  const isSuperUser = userRoles.includes("SUPERUSER");
 
   // Una solicitud no aprobada esta cerrada: el motivo del rechazo vive en su
   // observacion y debe perdurar. Solo queda el PDF; cambiarle la prioridad no
   // hace nada y borrarla se llevaria la constancia de por que se rechazo.
-  const isRejected = req.status === "REJECTED"
+  const isRejected = req.status === "REJECTED";
 
   // Solo se borra mientras la solicitud es asunto de quien la creo. Desde
   // EN PROCESO ya hay compras trabajando sobre ella (y posibles cotizaciones
   // colgando), asi que sacarla de circulacion deja de ser decision del usuario
   // ordinario. REJECTED tampoco entra: queda como constancia.
   const isDeletableStatus =
-    req.status === "CREATED" || req.status === "RECEIVED"
+    req.status === "CREATED" || req.status === "RECEIVED";
 
   const canDelete =
     isDeletableStatus &&
-    (canDeleteAny || (isReadOnlyWarehouseAnalyst && isOwnRequisition))
+    (canDeleteAny || (isReadOnlyWarehouseAnalyst && isOwnRequisition));
 
   const canQuote =
-    canSeeAllOptions &&
-    !(req.status === "APPROVED" || isRejected)
+    canSeeAllOptions && !(req.status === "APPROVED" || isRejected);
   const canReject =
-    canSeeAllOptions &&
-    !(isRejected || req.status === "APPROVED")
-  const canChangePriorityStatus =
-    !(req.status === "APPROVED" || req.status === "QUOTED" || isRejected)
+    canSeeAllOptions && !(isRejected || req.status === "APPROVED");
+  const canChangePriorityStatus = !(
+    req.status === "APPROVED" ||
+    req.status === "QUOTED" ||
+    isRejected
+  );
 
   return (
     <TooltipProvider delayDuration={120}>
       <>
-        <DropdownMenu
-          open={openDropdown}
-          onOpenChange={setOpenDropdown}
-        >
+        <DropdownMenu open={openDropdown} onOpenChange={setOpenDropdown}>
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
@@ -158,8 +167,8 @@ const RequisitionDropdownActions = ({
                   >
                     <button
                       onClick={() => {
-                        setOpenDropdown(false)
-                        setOpenConfirm(true)
+                        setOpenDropdown(false);
+                        setOpenConfirm(true);
                       }}
                       className={`
                         ${itemBase}
@@ -171,9 +180,7 @@ const RequisitionDropdownActions = ({
                   </DropdownMenuItem>
                 </TooltipTrigger>
 
-                <TooltipContent>
-                  Generar cotización
-                </TooltipContent>
+                <TooltipContent>Generar cotización</TooltipContent>
               </Tooltip>
             )}
 
@@ -187,8 +194,8 @@ const RequisitionDropdownActions = ({
                   >
                     <button
                       onClick={() => {
-                        setOpenDropdown(false)
-                        setOpenReject(true)
+                        setOpenDropdown(false);
+                        setOpenReject(true);
                       }}
                       className={`
                         ${itemBase}
@@ -200,23 +207,18 @@ const RequisitionDropdownActions = ({
                   </DropdownMenuItem>
                 </TooltipTrigger>
 
-                <TooltipContent>
-                  Rechazar solicitud
-                </TooltipContent>
+                <TooltipContent>Rechazar solicitud</TooltipContent>
               </Tooltip>
             )}
 
             {/* PDF */}
             <Tooltip>
               <TooltipTrigger asChild>
-                <DropdownMenuItem
-                  asChild
-                  className="p-0 focus:bg-transparent"
-                >
+                <DropdownMenuItem asChild className="p-0 focus:bg-transparent">
                   <button
                     onClick={() => {
-                      setOpenDropdown(false)
-                      setOpenPdf(true)
+                      setOpenDropdown(false);
+                      setOpenPdf(true);
                     }}
                     className={`
                       ${itemBase}
@@ -228,9 +230,7 @@ const RequisitionDropdownActions = ({
                 </DropdownMenuItem>
               </TooltipTrigger>
 
-              <TooltipContent>
-                Descargar PDF
-              </TooltipContent>
+              <TooltipContent>Descargar PDF</TooltipContent>
             </Tooltip>
 
             {/* CAMBIAR PRIORIDAD */}
@@ -243,8 +243,8 @@ const RequisitionDropdownActions = ({
                   >
                     <button
                       onClick={() => {
-                        setOpenDropdown(false)
-                        setOpenPriority(true)
+                        setOpenDropdown(false);
+                        setOpenPriority(true);
                       }}
                       className={`
                         ${itemBase}
@@ -256,68 +256,62 @@ const RequisitionDropdownActions = ({
                   </DropdownMenuItem>
                 </TooltipTrigger>
 
-                <TooltipContent>
-                  Cambiar prioridad
-                </TooltipContent>
+                <TooltipContent>Cambiar prioridad</TooltipContent>
               </Tooltip>
             )}
 
             {/* ELIMINAR */}
             {canDelete && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <DropdownMenuItem
-                  asChild
-                  className="p-0 focus:bg-transparent"
-                >
-                  <button
-                    onClick={() => {
-                      setOpenDropdown(false)
-                      setOpenDelete(true)
-                    }}
-                    className={`
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuItem
+                    asChild
+                    className="p-0 focus:bg-transparent"
+                  >
+                    <button
+                      onClick={() => {
+                        setOpenDropdown(false);
+                        setOpenDelete(true);
+                      }}
+                      className={`
                       ${itemBase}
                       text-red-600
                     `}
-                  >
-                    <Trash2 className={iconBase} />
-                  </button>
-                </DropdownMenuItem>
-              </TooltipTrigger>
+                    >
+                      <Trash2 className={iconBase} />
+                    </button>
+                  </DropdownMenuItem>
+                </TooltipTrigger>
 
-              <TooltipContent>
-                Eliminar solicitud
-              </TooltipContent>
-            </Tooltip>
+                <TooltipContent>Eliminar solicitud</TooltipContent>
+              </Tooltip>
             )}
 
             {/* ELIMINAR EN CASCADA (SUPERUSER) */}
             {isSuperUser && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <DropdownMenuItem
-                  asChild
-                  className="p-0 focus:bg-transparent"
-                >
-                  <button
-                    onClick={() => {
-                      setOpenDropdown(false)
-                      setOpenCascadeDelete(true)
-                    }}
-                    className={`
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuItem
+                    asChild
+                    className="p-0 focus:bg-transparent"
+                  >
+                    <button
+                      onClick={() => {
+                        setOpenDropdown(false);
+                        setOpenCascadeDelete(true);
+                      }}
+                      className={`
                       ${itemBase}
                       text-red-700
                     `}
-                  >
-                    <AlertOctagon className={iconBase} />
-                  </button>
-                </DropdownMenuItem>
-              </TooltipTrigger>
+                    >
+                      <AlertOctagon className={iconBase} />
+                    </button>
+                  </DropdownMenuItem>
+                </TooltipTrigger>
 
-              <TooltipContent>
-                Eliminar en cascada (SuperUser)
-              </TooltipContent>
-            </Tooltip>
+                <TooltipContent>Eliminar en cascada (SuperUser)</TooltipContent>
+              </Tooltip>
             )}
           </DropdownMenuContent>
         </DropdownMenu>
@@ -349,7 +343,7 @@ const RequisitionDropdownActions = ({
         )}
       </>
     </TooltipProvider>
-  )
-}
+  );
+};
 
-export default RequisitionDropdownActions
+export default RequisitionDropdownActions;
