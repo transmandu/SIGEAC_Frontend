@@ -1,0 +1,110 @@
+"use client";
+
+import { DataTablePagination } from "@/components/tables/DataTablePagination";
+import { DataTableViewOptions } from "@/components/tables/DataTableViewOptions";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  ColumnFiltersState,
+  flexRender,
+  type RowData,
+  SortingState,
+  useTable,
+} from "@tanstack/react-table";
+import { appTableFeatures, type AppColumnDef } from "@/lib/table";
+import { useState } from "react";
+
+interface DataTableProps<TData extends RowData> {
+  columns: AppColumnDef<TData>[];
+  data: TData[];
+}
+
+export function PorExpirarDataTable<TData extends RowData>({
+  columns,
+  data,
+}: DataTableProps<TData>) {
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const table = useTable({
+    features: appTableFeatures,
+    data,
+    columns,
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    state: {
+      sorting,
+      columnFilters,
+    },
+  });
+
+  return (
+    <>
+      <div className="flex justify-between items-center py-4">
+        <p className="text-sm text-muted-foreground">
+          {data.length}{" "}
+          {data.length === 1
+            ? "empleado con curso por expirar"
+            : "empleados con cursos por expirar"}
+        </p>
+        <DataTableViewOptions table={table} />
+      </div>
+
+      <div className="rounded-md border mb-4">
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
+                  </TableHead>
+                ))}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && "selected"}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center text-muted-foreground"
+                >
+                  No hay empleados con cursos por expirar...
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      <DataTablePagination table={table} />
+    </>
+  );
+}
