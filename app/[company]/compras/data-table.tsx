@@ -1,6 +1,6 @@
-'use client'
+"use client";
 
-import React, { useMemo, useState, useCallback } from 'react'
+import React, { useMemo, useState, useCallback } from "react";
 import {
   ColumnFiltersState,
   ExpandedState,
@@ -19,43 +19,64 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
+} from "@/components/ui/table";
 
-import { DataTablePagination } from '@/components/tables/DataTablePagination'
-import { useComprasPageSize } from './use-compras-page-size'
+import { CursorPagination } from "@/components/tables/CursorPagination";
+import { DataTablePagination } from "@/components/tables/DataTablePagination";
+import { useComprasPageSize } from "./use-compras-page-size";
 
 export interface DataTableProps<TData extends RowData> {
-  columns: AppColumnDef<TData, any>[]
-  data: TData[]
-  loading?: boolean
-  disablePagination?: boolean
-  renderSubRow?: (row: AppRow<TData>) => React.ReactNode
-  canExpandRow?: (row: AppRow<TData>) => boolean
+  columns: AppColumnDef<TData, any>[];
+  data: TData[];
+  loading?: boolean;
+  disablePagination?: boolean;
+  renderSubRow?: (row: AppRow<TData>) => React.ReactNode;
+  canExpandRow?: (row: AppRow<TData>) => boolean;
   /** Pass arbitrary meta to the table instance (e.g. { costDrafts }) */
-  meta?: Record<string, unknown>
+  meta?: Record<string, unknown>;
   /** Custom slot rendered above the table (e.g. toolbar buttons) */
-  toolbar?: React.ReactNode
+  toolbar?: React.ReactNode;
   /** Text shown while loading */
-  loadingText?: string
+  loadingText?: string;
   /** Text shown when data is empty */
-  emptyText?: string
+  emptyText?: string;
   /** Whether the table container uses overflow-visible instead of overflow-hidden */
-  overflowVisible?: boolean
+  overflowVisible?: boolean;
   /** Default page size */
-  pageSize?: number
+  pageSize?: number;
   /** When set, the selected page size is persisted per-user (localStorage) under this key and restored on future visits, overriding `pageSize` */
-  persistKey?: string
+  persistKey?: string;
   // ── Manual (server‑side) pagination ──────────────────────────
   /** Enable manual pagination – page / row count are controlled externally */
-  manualPagination?: boolean
+  manualPagination?: boolean;
   /** Total number of rows across all pages (required when manualPagination) */
-  totalRows?: number
+  totalRows?: number;
   /** Total number of pages (required when manualPagination) */
-  pageCount?: number
+  pageCount?: number;
   /** Current page index (0‑based), required when manualPagination */
-  pageIndex?: number
+  pageIndex?: number;
   /** Called when the user changes page or page size */
-  onPaginationChange?: (pageIndex: number, pageSize: number) => void
+  onPaginationChange?: (pageIndex: number, pageSize: number) => void;
+  // ── Cursor (server‑side) pagination ──────────────────────────
+  /**
+   * Navegación por cursor en vez de por número de página. Un cursor solo sabe
+   * moverse un paso adelante o atrás y no conoce el total, así que sustituye a
+   * DataTablePagination por CursorPagination en lugar de convivir con ella.
+   */
+  cursorPagination?: {
+    onNextPage: () => void;
+    onPrevPage: () => void;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+    pageIndex: number;
+    pageSize: number;
+    onPageSizeChange: (size: number) => void;
+    /**
+     * La página pedida aún no llega y se ven las filas de la anterior: se
+     * atenúan para que la navegación no parezca no haber respondido.
+     */
+    isTransitioning?: boolean;
+  };
 }
 
 function DataTableInner<TData extends RowData>({
@@ -67,8 +88,8 @@ function DataTableInner<TData extends RowData>({
   canExpandRow,
   meta,
   toolbar,
-  loadingText = 'Cargando datos...',
-  emptyText = 'No se encontraron resultados...',
+  loadingText = "Cargando datos...",
+  emptyText = "No se encontraron resultados...",
   overflowVisible = false,
   pageSize = 10,
   persistKey,
@@ -77,58 +98,80 @@ function DataTableInner<TData extends RowData>({
   pageCount,
   pageIndex,
   onPaginationChange,
+  cursorPagination,
 }: DataTableProps<TData>) {
-  const [sorting, setSorting] = useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-  const [columnVisibility, setColumnVisibility] = useState<ColumnVisibilityState>({})
-  const [expanded, setExpanded] = useState<ExpandedState>({})
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] =
+    useState<ColumnVisibilityState>({});
+  const [expanded, setExpanded] = useState<ExpandedState>({});
 
   const persistedPageSize = useComprasPageSize((s) =>
     persistKey ? s.pageSizes[persistKey] : undefined,
-  )
-  const setPersistedPageSize = useComprasPageSize((s) => s.setPageSize)
+  );
+  const setPersistedPageSize = useComprasPageSize((s) => s.setPageSize);
 
   const [localPagination, setLocalPagination] = useState({
     pageIndex: 0,
     pageSize: persistedPageSize ?? pageSize,
-  })
+  });
 
-  const isManual = manualPagination === true
+  // El cursor también es paginación de servidor: sin declararlo, el row model
+  // recortaría la página recibida a su propio pageSize por defecto y se verían
+  // 10 de las 15 filas que ya llegaron.
+  const isCursor = !!cursorPagination;
+  const isManual = manualPagination === true || isCursor;
 
   // Stable reference to prevent useCallback dependency changes on every render
-  const paginationState = useMemo(
-    () =>
-      isManual
-        ? { pageIndex: pageIndex ?? 0, pageSize: persistedPageSize ?? pageSize }
-        : localPagination,
-    [isManual, pageIndex, pageSize, persistedPageSize, localPagination],
-  )
+  const paginationState = useMemo(() => {
+    // Con cursor el tamaño lo manda el hook, no el valor persistido: es el que
+    // se usó para pedir la página que ya está en pantalla.
+    if (isCursor) {
+      return { pageIndex: 0, pageSize: cursorPagination.pageSize };
+    }
+
+    return isManual
+      ? { pageIndex: pageIndex ?? 0, pageSize: persistedPageSize ?? pageSize }
+      : localPagination;
+  }, [
+    isCursor,
+    cursorPagination,
+    isManual,
+    pageIndex,
+    pageSize,
+    persistedPageSize,
+    localPagination,
+  ]);
 
   const handlePaginationChange = useCallback(
     (updater: any) => {
       if (isManual) {
         const next =
-          typeof updater === 'function'
-            ? updater(paginationState)
-            : updater
+          typeof updater === "function" ? updater(paginationState) : updater;
         if (persistKey && next.pageSize !== paginationState.pageSize) {
-          setPersistedPageSize(persistKey, next.pageSize)
+          setPersistedPageSize(persistKey, next.pageSize);
         }
-        onPaginationChange?.(next.pageIndex, next.pageSize)
+        onPaginationChange?.(next.pageIndex, next.pageSize);
       } else {
         setLocalPagination((prev: typeof localPagination) => {
-          const next = typeof updater === 'function' ? updater(prev) : updater
+          const next = typeof updater === "function" ? updater(prev) : updater;
           if (persistKey && next.pageSize !== prev.pageSize) {
-            setPersistedPageSize(persistKey, next.pageSize)
+            setPersistedPageSize(persistKey, next.pageSize);
           }
-          return next
-        })
+          return next;
+        });
       }
     },
-    [isManual, paginationState, onPaginationChange, persistKey, setPersistedPageSize],
-  )
+    [
+      isManual,
+      paginationState,
+      onPaginationChange,
+      persistKey,
+      setPersistedPageSize,
+    ],
+  );
 
-  const stableData = useMemo(() => data, [data])
+  const stableData = useMemo(() => data, [data]);
 
   const table = useTable({
     features: appTableFeatures,
@@ -153,33 +196,35 @@ function DataTableInner<TData extends RowData>({
     rowCount: isManual ? (totalRows ?? 0) : undefined,
     pageCount: isManual ? (pageCount ?? 0) : undefined,
     getRowCanExpand: (row) => {
-      if (!renderSubRow) return false
-      return canExpandRow?.(row) ?? true
+      if (!renderSubRow) return false;
+      return canExpandRow?.(row) ?? true;
     },
-  })
+  });
 
-  const rows = table.getRowModel().rows
-  const isEmpty = rows.length === 0
+  const rows = table.getRowModel().rows;
+  const isEmpty = rows.length === 0;
 
   return (
     <div className="flex flex-col gap-4">
-
       {toolbar && (
-        <div className="flex items-center justify-between gap-2">
-          {toolbar}
-        </div>
+        <div className="flex items-center justify-between gap-2">{toolbar}</div>
       )}
 
+      {/* aria-busy y la atenuación marcan que las filas visibles son las de la
+          página anterior; pointer-events-none evita desplegar una fila que está
+          a punto de ser sustituida por otra. */}
       <div
+        aria-busy={cursorPagination?.isTransitioning ?? false}
         className={`
           rounded-xl border
-          ${overflowVisible ? 'overflow-visible' : 'overflow-hidden'}
+          ${overflowVisible ? "overflow-visible" : "overflow-hidden"}
           bg-white dark:bg-slate-900/60
           border-slate-200 dark:border-slate-700/60
+          transition-opacity duration-200
+          ${cursorPagination?.isTransitioning ? "opacity-50 pointer-events-none" : "opacity-100"}
         `}
       >
         <Table className="table-fixed">
-
           <TableHeader className="sticky top-0">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow
@@ -206,7 +251,7 @@ function DataTableInner<TData extends RowData>({
                       ? null
                       : flexRender(
                           header.column.columnDef.header,
-                          header.getContext()
+                          header.getContext(),
                         )}
                   </TableHead>
                 ))}
@@ -235,23 +280,22 @@ function DataTableInner<TData extends RowData>({
               </TableRow>
             ) : (
               rows.map((row) => {
-                const canExpand = row.getCanExpand()
+                const canExpand = row.getCanExpand();
 
                 return (
                   <React.Fragment key={row.id}>
-
                     <TableRow
-                      data-state={row.getIsSelected() && 'selected'}
+                      data-state={row.getIsSelected() && "selected"}
                       onClick={() => {
                         if (canExpand) {
-                          row.toggleExpanded()
+                          row.toggleExpanded();
                         }
                       }}
                       className={`
                         border-b border-slate-200/70 dark:border-slate-700/50
                         hover:bg-slate-50 dark:hover:bg-slate-800/60
                         transition-colors
-                        ${canExpand ? 'cursor-pointer select-none' : ''}
+                        ${canExpand ? "cursor-pointer select-none" : ""}
                       `}
                     >
                       {row.getVisibleCells().map((cell) => (
@@ -262,7 +306,7 @@ function DataTableInner<TData extends RowData>({
                         >
                           {flexRender(
                             cell.column.columnDef.cell,
-                            cell.getContext()
+                            cell.getContext(),
                           )}
                         </TableCell>
                       ))}
@@ -287,24 +331,33 @@ function DataTableInner<TData extends RowData>({
                         </TableCell>
                       </TableRow>
                     )}
-
                   </React.Fragment>
-                )
+                );
               })
             )}
           </TableBody>
-
         </Table>
       </div>
 
-      {!disablePagination && (
-        <DataTablePagination table={table} />
-      )}
-
+      {!disablePagination &&
+        (cursorPagination ? (
+          <CursorPagination
+            onPrevPage={cursorPagination.onPrevPage}
+            onNextPage={cursorPagination.onNextPage}
+            hasPrevPage={cursorPagination.hasPrevPage}
+            hasNextPage={cursorPagination.hasNextPage}
+            pageIndex={cursorPagination.pageIndex}
+            pageSize={cursorPagination.pageSize}
+            onPageSizeChange={cursorPagination.onPageSizeChange}
+            isTransitioning={cursorPagination.isTransitioning}
+          />
+        ) : (
+          <DataTablePagination table={table} />
+        ))}
     </div>
-  )
+  );
 }
 
 export const DataTable = React.memo(DataTableInner) as <TData extends RowData>(
   props: DataTableProps<TData>,
-) => React.ReactElement
+) => React.ReactElement;

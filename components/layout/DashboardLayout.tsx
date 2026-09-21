@@ -1,8 +1,8 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { useStore } from "@/hooks/helpers/use-store";
 import { useSidebarToggle } from "@/hooks/helpers/use-sidebar-toggle";
+import { useStoreHydrated } from "@/hooks/helpers/use-store";
 import { Sidebar } from "./Sidebar";
 import { Navbar } from "./Navbar";
 import Footer from "./Footer";
@@ -17,11 +17,8 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const sidebar = useStore(useSidebarToggle, (state) => state);
-
-  if (!sidebar) return null;
-
-  const { isOpen } = sidebar;
+  const isOpen = useSidebarToggle((state) => state.isOpen);
+  const hydrated = useStoreHydrated(useSidebarToggle);
 
   return (
     <OnlineUsersProvider>
@@ -31,7 +28,8 @@ export default function DashboardLayout({
 
           <main
             className={cn(
-              "min-h-[calc(100vh-56px)] transition-[margin-left] ease-in-out duration-300",
+              "min-h-[calc(100vh-56px)]",
+              hydrated && "transition-[margin-left] ease-in-out duration-300",
               isOpen === false ? "lg:ml-22.5" : "lg:ml-72",
             )}
           >
@@ -41,7 +39,7 @@ export default function DashboardLayout({
 
           <footer
             className={cn(
-              "transition-[margin-left] ease-in-out duration-300",
+              hydrated && "transition-[margin-left] ease-in-out duration-300",
               isOpen === false ? "lg:ml-22.5" : "lg:ml-72",
             )}
           >

@@ -1,89 +1,95 @@
-'use client'
+"use client";
 
 import { type AppColumn } from "@/lib/table";
-import { format } from 'date-fns'
-import { es } from 'date-fns/locale'
-import { ArrowDownIcon, ArrowUpIcon, CalendarDays, CalendarX } from 'lucide-react'
-import { useState } from 'react'
-import type { DateRange } from 'react-day-picker'
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import {
+  ArrowDownIcon,
+  ArrowUpIcon,
+  CalendarDays,
+  CalendarX,
+} from "lucide-react";
+import { useState } from "react";
+import type { DateRange } from "react-day-picker";
+import type { MyRequisition } from "@/types/purchase";
 
-import { Button } from '@/components/ui/button'
-import { Calendar } from '@/components/ui/calendar'
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@/components/ui/popover'
+} from "@/components/ui/popover";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@/components/ui/tooltip'
-import { cn } from '@/lib/utils'
-import type { Requisition } from '@/types/purchase'
+} from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 
 /** yyyy-MM-dd en hora local: toISOString() correría la fecha un día. */
 export const toISODate = (date: Date) =>
-  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(
+  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
     date.getDate(),
-  ).padStart(2, '0')}`
+  ).padStart(2, "0")}`;
 
 const fromISODate = (value?: string) => {
-  if (!value) return undefined
-  const [year, month, day] = value.split('-').map(Number)
-  return new Date(year, month - 1, day)
-}
+  if (!value) return undefined;
+  const [year, month, day] = value.split("-").map(Number);
+  return new Date(year, month - 1, day);
+};
 
 /** Ambos extremos opcionales; una fecha única se guarda como from === to. */
 export interface DateFilterValue {
-  from?: string
-  to?: string
+  from?: string;
+  to?: string;
 }
 
 interface Props {
-  column: AppColumn<Requisition, unknown>
-  title: string
+  /** Solo lee y escribe el filtro de la columna, así que sirve a cualquier fila. */
+  column: AppColumn<MyRequisition, unknown>;
+  title: string;
 }
 
 export default function RequisitionDateFilter({ column, title }: Props) {
-  const value = (column.getFilterValue() as DateFilterValue) ?? {}
-  const from = fromISODate(value.from)
-  const to = fromISODate(value.to)
+  const value = (column.getFilterValue() as DateFilterValue) ?? {};
+  const from = fromISODate(value.from);
+  const to = fromISODate(value.to);
 
-  const [calendarMonth, setCalendarMonth] = useState<Date>(from ?? new Date())
+  const [calendarMonth, setCalendarMonth] = useState<Date>(from ?? new Date());
 
-  const sorted = column.getIsSorted()
-  const hasFilter = !!from || !!to
+  const sorted = column.getIsSorted();
+  const hasFilter = !!from || !!to;
 
   const applyRange = (range: DateRange | undefined) => {
     if (!range?.from) {
-      column.setFilterValue(undefined)
-      return
+      column.setFilterValue(undefined);
+      return;
     }
 
     // Sin `to` el usuario aún está a medio rango: se toma como fecha única.
-    const end = range.to ?? range.from
+    const end = range.to ?? range.from;
 
     column.setFilterValue({
       from: toISODate(range.from),
       to: toISODate(end),
-    })
-    setCalendarMonth(range.from)
-  }
+    });
+    setCalendarMonth(range.from);
+  };
 
   const applyPreset = (start: Date, end: Date) => {
-    column.setFilterValue({ from: toISODate(start), to: toISODate(end) })
-    setCalendarMonth(start)
-  }
+    column.setFilterValue({ from: toISODate(start), to: toISODate(end) });
+    setCalendarMonth(start);
+  };
 
   const label = () => {
-    if (!from) return 'Filtrar por fecha'
+    if (!from) return "Filtrar por fecha";
     if (!to || from.getTime() === to.getTime()) {
-      return format(from, 'dd MMM yyyy', { locale: es })
+      return format(from, "dd MMM yyyy", { locale: es });
     }
-    return `${format(from, 'dd MMM', { locale: es })} — ${format(to, 'dd MMM yyyy', { locale: es })}`
-  }
+    return `${format(from, "dd MMM", { locale: es })} — ${format(to, "dd MMM yyyy", { locale: es })}`;
+  };
 
   return (
     <div className="flex items-center justify-center">
@@ -94,15 +100,15 @@ export default function RequisitionDateFilter({ column, title }: Props) {
             variant="ghost"
             size="sm"
             className={cn(
-              'h-8 gap-1.5 px-2 data-[state=open]:bg-accent',
-              hasFilter && 'text-foreground',
+              "h-8 gap-1.5 px-2 data-[state=open]:bg-accent",
+              hasFilter && "text-foreground",
             )}
           >
             <span className="truncate">{title}</span>
             <CalendarDays
               className={cn(
-                'h-3.5 w-3.5',
-                hasFilter ? 'text-foreground' : 'opacity-70',
+                "h-3.5 w-3.5",
+                hasFilter ? "text-foreground" : "opacity-70",
               )}
             />
           </Button>
@@ -117,34 +123,34 @@ export default function RequisitionDateFilter({ column, title }: Props) {
           <div className="mb-2 flex items-center justify-center gap-1">
             {[
               {
-                label: '7D',
-                tooltip: 'Últimos 7 días',
+                label: "7D",
+                tooltip: "Últimos 7 días",
                 fn: () => {
-                  const end = new Date()
-                  const start = new Date()
-                  start.setDate(end.getDate() - 6)
-                  applyPreset(start, end)
+                  const end = new Date();
+                  const start = new Date();
+                  start.setDate(end.getDate() - 6);
+                  applyPreset(start, end);
                 },
               },
               {
-                label: '30D',
-                tooltip: 'Últimos 30 días',
+                label: "30D",
+                tooltip: "Últimos 30 días",
                 fn: () => {
-                  const end = new Date()
-                  const start = new Date()
-                  start.setDate(end.getDate() - 29)
-                  applyPreset(start, end)
+                  const end = new Date();
+                  const start = new Date();
+                  start.setDate(end.getDate() - 29);
+                  applyPreset(start, end);
                 },
               },
               {
-                label: 'MES',
-                tooltip: 'Mes actual',
+                label: "MES",
+                tooltip: "Mes actual",
                 fn: () => {
-                  const today = new Date()
+                  const today = new Date();
                   applyPreset(
                     new Date(today.getFullYear(), today.getMonth(), 1),
                     today,
-                  )
+                  );
                 },
               },
             ].map((preset) => (
@@ -198,7 +204,7 @@ export default function RequisitionDateFilter({ column, title }: Props) {
           />
 
           <p className="mt-1 text-center text-[11px] text-muted-foreground">
-            {hasFilter ? label() : 'Elige un día o arrastra para un rango.'}
+            {hasFilter ? label() : "Elige un día o arrastra para un rango."}
           </p>
 
           {column.getCanSort() ? (
@@ -209,7 +215,10 @@ export default function RequisitionDateFilter({ column, title }: Props) {
                   type="button"
                   size="sm"
                   variant="ghost"
-                  className={cn('h-7 px-2 text-xs', sorted === 'asc' && 'font-bold')}
+                  className={cn(
+                    "h-7 px-2 text-xs",
+                    sorted === "asc" && "font-bold",
+                  )}
                   onClick={() => column.toggleSorting(false)}
                 >
                   <ArrowUpIcon className="mr-1 h-3.5 w-3.5 text-muted-foreground/70" />
@@ -219,7 +228,10 @@ export default function RequisitionDateFilter({ column, title }: Props) {
                   type="button"
                   size="sm"
                   variant="ghost"
-                  className={cn('h-7 px-2 text-xs', sorted === 'desc' && 'font-bold')}
+                  className={cn(
+                    "h-7 px-2 text-xs",
+                    sorted === "desc" && "font-bold",
+                  )}
                   onClick={() => column.toggleSorting(true)}
                 >
                   <ArrowDownIcon className="mr-1 h-3.5 w-3.5 text-muted-foreground/70" />
@@ -231,5 +243,5 @@ export default function RequisitionDateFilter({ column, title }: Props) {
         </PopoverContent>
       </Popover>
     </div>
-  )
+  );
 }

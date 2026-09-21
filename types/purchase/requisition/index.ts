@@ -1,14 +1,26 @@
-import type { Unit, User, Aircraft, WorkOrder, Convertion, Department, ThirdParty, Employee } from '@/types';
-import type { PurchaseOrder } from '@/types/purchase/purchase-order';
-import type { Quote } from '@/types/purchase/quote';
+import type {
+  Unit,
+  User,
+  Aircraft,
+  WorkOrder,
+  Convertion,
+  Department,
+  ThirdParty,
+  Employee,
+} from "@/types";
+import type { PurchaseOrder } from "@/types/purchase/purchase-order";
+import type { Quote } from "@/types/purchase/quote";
 
 // ── General Article relation summaries (response) ──────────────────────────
 // Narrowed projections returned by the backend for general article requisitions.
-export type GeneralArticleDepartment = Pick<Department, 'id' | 'name' | 'acronym'>;
-export type GeneralArticleThirdParty = Pick<ThirdParty, 'id' | 'name'>;
+export type GeneralArticleDepartment = Pick<
+  Department,
+  "id" | "name" | "acronym"
+>;
+export type GeneralArticleThirdParty = Pick<ThirdParty, "id" | "name">;
 export type GeneralArticleEmployee = Pick<
   Employee,
-  'id' | 'first_name' | 'last_name' | 'middle_name' | 'second_last_name' | 'dni'
+  "id" | "first_name" | "last_name" | "middle_name" | "second_last_name" | "dni"
 >;
 export interface GeneralArticleAuthorizedEmployee {
   id: number;
@@ -17,19 +29,19 @@ export interface GeneralArticleAuthorizedEmployee {
 }
 
 // ── Purchase-specific enums ────────────────────────────────────────────────
-export type PurchasePriority = 'LOW' | 'MEDIUM' | 'HIGH';
+export type PurchasePriority = "LOW" | "MEDIUM" | "HIGH";
 
 export type PurchaseStatus =
-  | 'PENDING'
-  | 'APPROVED'
-  | 'PARTIAL'
-  | 'REJECTED'
-  | 'CREATED'
-  | 'RECEIVED'
-  | 'IN_PROGRESS'
-  | 'QUOTED';
+  | "PENDING"
+  | "APPROVED"
+  | "PARTIAL"
+  | "REJECTED"
+  | "CREATED"
+  | "RECEIVED"
+  | "IN_PROGRESS"
+  | "QUOTED";
 
-export type RequisitionType = 'AERONAUTICAL' | 'GENERAL';
+export type RequisitionType = "AERONAUTICAL" | "GENERAL";
 
 // ── Batch Article (response / detail) ──────────────────────────────────────
 export interface BatchArticleDocumentType {
@@ -112,11 +124,7 @@ export interface RequisitionQuote {
  * - RECEIVED  recepcion cerrada: ya es stock disponible
  */
 export type ArticleLifecycleStage =
-  | "APPROVED"
-  | "PAID"
-  | "TRANSIT"
-  | "RECEPTION"
-  | "RECEIVED";
+  "APPROVED" | "PAID" | "TRANSIT" | "RECEPTION" | "RECEIVED";
 
 // ── Purchase Order Summary (list view) ─────────────────────────────────────
 /**
@@ -186,6 +194,43 @@ export interface Requisition {
   observation?: string | null;
 }
 
+// ── My Requisitions (list view) ────────────────────────────────────────────
+/**
+ * Fila del listado de "mis solicitudes".
+ *
+ * Contrato deliberadamente más estrecho que `Requisition`: esta pantalla no
+ * muestra cotizaciones ni observación, y su `created_by` no lleva los roles del
+ * creador porque el alcance de quién ve qué ya lo resuelve el servidor. Lo que
+ * la vista no pinta, el endpoint no lo manda.
+ */
+export interface MyRequisitionCreator {
+  id: number;
+  first_name: string;
+  last_name: string;
+  username: string;
+}
+
+export interface MyRequisition {
+  id: number;
+  order_number: string;
+  status: PurchaseStatus | string;
+  type: RequisitionType;
+  priority?: PurchasePriority | string;
+  /** Null cuando la originó la alerta de stock mínimo y no un usuario. */
+  created_by: MyRequisitionCreator | null;
+  requested_by: string | null;
+  updated_by?: string | null;
+  justification: string | null;
+  submission_date: string;
+  work_order?: string | null;
+  aircraft?: Aircraft | null;
+  department?: Department | null;
+  third_party?: ThirdParty | null;
+  batch?: RequisitionBatch[];
+  general_articles?: RequisitionGeneralArticle[];
+  purchase_order_summary?: RequisitionPurchaseOrderSummary | null;
+}
+
 // ── General Sales Report ─────────────────────────────────────────────────
 export type GeneralSalesReport = {
   requisition_order: Requisition;
@@ -228,7 +273,7 @@ export interface BatchArticlePayload {
   quantity: number;
   unit?: string | number;
   aircraft_id?: string | number;
-  priority?: 'HIGH' | 'MEDIUM' | 'LOW';
+  priority?: "HIGH" | "MEDIUM" | "LOW";
   justification?: string;
   image?: File;
 }
@@ -249,7 +294,7 @@ export interface GeneralArticlePayload {
   brand_model?: string | null;
   quantity: number;
   unit_id?: string | number;
-  priority?: 'HIGH' | 'MEDIUM' | 'LOW';
+  priority?: "HIGH" | "MEDIUM" | "LOW";
   justification?: string;
   image?: File;
   /** Storage path of the catalog article's existing image, sent instead of `image` to reuse it without re-uploading. */
@@ -273,7 +318,7 @@ export interface RequisitionBatchArticleForm {
   quantity: number;
   unit?: string;
   aircraft_id?: string;
-  priority?: 'HIGH' | 'MEDIUM' | 'LOW';
+  priority?: "HIGH" | "MEDIUM" | "LOW";
   image?: File;
   /** Tipos de documento (ArticleDocumentType) que deben solicitarse al vendedor para este ítem. Requiere al menos uno. */
   document_type_ids: number[];
@@ -295,7 +340,7 @@ export interface RequisitionGeneralArticleForm {
   brand_model?: string | null;
   quantity: number;
   unit_id?: string;
-  priority?: 'HIGH' | 'MEDIUM' | 'LOW';
+  priority?: "HIGH" | "MEDIUM" | "LOW";
   image?: File | string;
   /** Storage path of the catalog article's existing image, sent instead of `image` to reuse it without re-uploading. */
   existing_image_path?: string;
@@ -329,8 +374,8 @@ export interface CreateRequisitionData {
   requested_by_authorized_employee_id?: number;
   created_by: string | number;
   location_id: string | number;
-  type: 'AERONAUTICAL' | 'GENERAL';
-  priority?: 'HIGH' | 'MEDIUM' | 'LOW';
+  type: "AERONAUTICAL" | "GENERAL";
+  priority?: "HIGH" | "MEDIUM" | "LOW";
   work_order_id?: string | number;
   /** Free-text OT when the typed work order doesn't match an existing one. Mutually exclusive with work_order_id. */
   work_order?: string;

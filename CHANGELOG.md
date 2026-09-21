@@ -1,3 +1,23 @@
+## v4.17.0 — 2026-09-21
+
+- feat: responsive library (#280)
+
+## v4.16.0 — 2026-09-21
+
+- feat: show next expired courses (#279)
+
+## v4.15.0 — 2026-09-21
+
+- feat: multiple responsible mitigation in mitigation plan form (#278)
+
+## v4.14.2 — 2026-09-21
+
+- refactor: replace useGetRequisition with useGetMyRequisitions for req… (#277)
+
+## v4.14.1 — 2026-09-19
+
+- refactor: streamline sidebar and layout components, remove unused imp… (#276)
+
 ## v4.14.0 — 2026-09-18
 
 - Merge branch 'main' of https://github.com/transmandu/SIGEAC_Frontend

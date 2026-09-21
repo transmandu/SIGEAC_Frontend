@@ -1,29 +1,38 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Image from 'next/image';
-import { useParams, useRouter } from 'next/navigation';
-import { Loader2, Trash2, User, FileText, Image as ImageIcon, Plane, FileBadge, AlertTriangle } from 'lucide-react';
+import { useState } from "react";
+import Image from "next/image";
+import { useParams, useRouter } from "next/navigation";
+import {
+  Loader2,
+  Trash2,
+  User,
+  FileText,
+  Image as ImageIcon,
+  Plane,
+  FileBadge,
+  AlertTriangle,
+} from "lucide-react";
 
-import { useDeleteRequisition } from '@/actions/mantenimiento/compras/requisiciones/actions';
-import { useGetRequisitionByOrderNumber } from '@/hooks/mantenimiento/compras/useGetRequisitionByOrderNumber';
-import { useCompanyStore } from '@/stores/CompanyStore';
-import { cn, formatRequestedDate } from '@/lib/utils';
-import { formatInstant } from '@/lib/date';
-import { useCompanyTimezone } from '@/hooks/general/useCompanyTimezone';
+import { useDeleteRequisition } from "@/actions/mantenimiento/compras/requisiciones/actions";
+import { useGetRequisitionByOrderNumber } from "@/hooks/mantenimiento/compras/useGetRequisitionByOrderNumber";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { cn, formatRequestedDate } from "@/lib/utils";
+import { formatInstant } from "@/lib/date";
+import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
 
-import { ContentLayout } from '@/components/layout/ContentLayout';
-import LoadingPage from '@/components/misc/LoadingPage';
-import ArticleLifecycleIcon from '@/components/misc/ArticleLifecycleIcon';
+import { ContentLayout } from "@/components/layout/ContentLayout";
+import LoadingPage from "@/components/misc/LoadingPage";
+import ArticleLifecycleIcon from "@/components/misc/ArticleLifecycleIcon";
 
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardFooter,
   CardHeader,
-  CardTitle
+  CardTitle,
 } from "@/components/ui/card";
 import {
   AlertDialog,
@@ -34,72 +43,87 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Separator } from '@/components/ui/separator';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Separator } from "@/components/ui/separator";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { PageHeader } from "@/components/layout/PageHeader";
 
 /* -------------------- TRADUCCIONES -------------------- */
 const STATUS_LABELS: Record<string, string> = {
-  PENDING: 'PENDIENTE',
-  CREATED: 'CREADA',
-  RECEIVED: 'RECIBIDA',
-  IN_PROGRESS: 'EN PROCESO',
-  QUOTED: 'COTIZADA',
-  APPROVED: 'APROBADA',
-  PARTIAL: 'PARCIAL',
-  REJECTED: 'NO APROBADA',
+  PENDING: "PENDIENTE",
+  CREATED: "CREADA",
+  RECEIVED: "RECIBIDA",
+  IN_PROGRESS: "EN PROCESO",
+  QUOTED: "COTIZADA",
+  APPROVED: "APROBADA",
+  PARTIAL: "PARCIAL",
+  REJECTED: "NO APROBADA",
 };
 
 const PRIORITY_LABELS: Record<string, string> = {
-  HIGH: 'ALTA',
-  MEDIUM: 'MEDIA',
-  LOW: 'BAJA',
+  HIGH: "ALTA",
+  MEDIUM: "MEDIA",
+  LOW: "BAJA",
 };
 
 const TYPE_LABELS: Record<string, string> = {
-  AERONAUTICAL: 'AERONÁUTICO',
-  GENERAL: 'GENERAL',
+  AERONAUTICAL: "AERONÁUTICO",
+  GENERAL: "GENERAL",
 };
 
 const translateStatus = (value?: string | null) =>
-  value ? STATUS_LABELS[value.toUpperCase()] ?? value : value;
+  value ? (STATUS_LABELS[value.toUpperCase()] ?? value) : value;
 
 // El estado de la cabecera es el de la SOLICITUD; los articulos usan el mapa de
 // arriba. Sin el sujeto delante los usuarios lo leian como estado de la compra.
 const REQUISITION_STATUS_LABELS: Record<string, string> = {
-  CREATED: 'SOLICITUD CREADA',
-  RECEIVED: 'SOLICITUD RECIBIDA',
-  IN_PROGRESS: 'SOLICITUD EN PROCESO',
-  QUOTED: 'SOLICITUD COTIZADA',
-  APPROVED: 'SOLICITUD APROBADA',
-  REJECTED: 'SOLICITUD NO APROBADA',
+  CREATED: "SOLICITUD CREADA",
+  RECEIVED: "SOLICITUD RECIBIDA",
+  IN_PROGRESS: "SOLICITUD EN PROCESO",
+  QUOTED: "SOLICITUD COTIZADA",
+  APPROVED: "SOLICITUD APROBADA",
+  REJECTED: "SOLICITUD NO APROBADA",
 };
 
 const translateRequisitionStatus = (value?: string | null) =>
   value
-    ? REQUISITION_STATUS_LABELS[value.toUpperCase()] ?? translateStatus(value)
+    ? (REQUISITION_STATUS_LABELS[value.toUpperCase()] ?? translateStatus(value))
     : value;
 
 const translatePriority = (value?: string | null) =>
-  value ? PRIORITY_LABELS[value.toUpperCase()] ?? value : value;
+  value ? (PRIORITY_LABELS[value.toUpperCase()] ?? value) : value;
 
 const translateType = (value?: string | null) =>
-  value ? TYPE_LABELS[value.toUpperCase()] ?? value : value;
+  value ? (TYPE_LABELS[value.toUpperCase()] ?? value) : value;
 
 /* -------------------- DOCUMENTOS REQUERIDOS (POPOVER) -------------------- */
 interface RequiredDocumentsPopoverProps {
   batches: {
     batch_articles: {
       article_part_number: string;
-      document_types?: { id: number; name: string; regulation?: string | null }[];
+      document_types?: {
+        id: number;
+        name: string;
+        regulation?: string | null;
+      }[];
     }[];
   }[];
 }
 
-const RequiredDocumentsPopover = ({ batches }: RequiredDocumentsPopoverProps) => {
+const RequiredDocumentsPopover = ({
+  batches,
+}: RequiredDocumentsPopoverProps) => {
   const items = batches
     .flatMap((batch) => batch.batch_articles ?? [])
     .filter((article) => (article.document_types?.length ?? 0) > 0)
@@ -117,10 +141,10 @@ const RequiredDocumentsPopover = ({ batches }: RequiredDocumentsPopoverProps) =>
                 type="button"
                 disabled={!hasItems}
                 className={cn(
-                  'flex items-center justify-center rounded-md p-2.5 border transition-colors',
+                  "flex items-center justify-center rounded-md p-2.5 border transition-colors",
                   hasItems
-                    ? 'text-muted-foreground hover:text-blue-600 hover:bg-blue-500/10 dark:hover:text-blue-400'
-                    : 'text-muted-foreground/30 cursor-not-allowed'
+                    ? "text-muted-foreground hover:text-blue-600 hover:bg-blue-500/10 dark:hover:text-blue-400"
+                    : "text-muted-foreground/30 cursor-not-allowed",
                 )}
               >
                 <FileBadge className="size-5" />
@@ -128,12 +152,15 @@ const RequiredDocumentsPopover = ({ batches }: RequiredDocumentsPopoverProps) =>
             </PopoverTrigger>
           </TooltipTrigger>
           <TooltipContent>
-            {hasItems ? 'Documentos requeridos' : 'Sin documentos requeridos'}
+            {hasItems ? "Documentos requeridos" : "Sin documentos requeridos"}
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
 
-      <PopoverContent align="center" className="w-72 max-h-72 overflow-y-auto p-3">
+      <PopoverContent
+        align="center"
+        className="w-72 max-h-72 overflow-y-auto p-3"
+      >
         <span className="block px-1 pb-2 text-[10px] uppercase tracking-wide text-muted-foreground">
           Documentos requeridos
         </span>
@@ -181,28 +208,41 @@ const QuantityField = ({
   approvedQuantity: string | number | null | undefined;
   showApproved: boolean;
 }) => {
-  const hasApproved = showApproved && approvedQuantity !== undefined && approvedQuantity !== null && approvedQuantity !== '';
-  const sameValue = hasApproved && String(approvedQuantity) === String(quantity ?? '');
+  const hasApproved =
+    showApproved &&
+    approvedQuantity !== undefined &&
+    approvedQuantity !== null &&
+    approvedQuantity !== "";
+  const sameValue =
+    hasApproved && String(approvedQuantity) === String(quantity ?? "");
 
   if (!hasApproved || sameValue) {
     return (
       <div>
         <p className="text-muted-foreground text-xs">Cantidad</p>
-        <p className="font-medium">{quantity ?? '-'}</p>
+        <p className="font-medium">{quantity ?? "-"}</p>
       </div>
     );
   }
 
   return (
     <div>
-      <p className="text-muted-foreground text-xs">Cantidad (solicitada / aprobada)</p>
-      <p className="font-medium">{quantity ?? '-'} / {approvedQuantity ?? '-'}</p>
+      <p className="text-muted-foreground text-xs">
+        Cantidad (solicitada / aprobada)
+      </p>
+      <p className="font-medium">
+        {quantity ?? "-"} / {approvedQuantity ?? "-"}
+      </p>
     </div>
   );
 };
 
 /* -------------------- JUSTIFICACIÓN (EXTENSIÓN) -------------------- */
-const ArticleJustificationStrip = ({ justification }: { justification?: string | null }) => {
+const ArticleJustificationStrip = ({
+  justification,
+}: {
+  justification?: string | null;
+}) => {
   if (!justification) return null;
 
   return (
@@ -215,49 +255,45 @@ const ArticleJustificationStrip = ({ justification }: { justification?: string |
 
 /* -------------------- ARTICLE CARD -------------------- */
 const BatchArticleCard = ({ article }: { article: any }) => {
-  const isPending = article.status === 'PENDING';
+  const isPending = article.status === "PENDING";
   const showExtra = !isPending;
 
   const priorityColor =
-    article.priority === 'HIGH'
-      ? 'bg-red-100 text-red-700'
-      : article.priority === 'MEDIUM'
-        ? 'bg-yellow-100 text-yellow-700'
-        : article.priority === 'LOW'
-          ? 'bg-green-100 text-green-700'
-          : 'bg-muted';
+    article.priority === "HIGH"
+      ? "bg-red-100 text-red-700"
+      : article.priority === "MEDIUM"
+        ? "bg-yellow-100 text-yellow-700"
+        : article.priority === "LOW"
+          ? "bg-green-100 text-green-700"
+          : "bg-muted";
 
   return (
     <div className="flex gap-3 items-center">
-
       {/* ---------------- INFO + JUSTIFICACIÓN ---------------- */}
       <div className="flex-1 min-w-0">
-
         <div className="space-y-2">
-
           {/* BADGE P/N + TITLE (BADGE ANTES) */}
           <div className="flex items-center gap-2 flex-wrap">
-
             <span className="text-[10px] px-2 py-0.5 rounded-md bg-muted text-muted-foreground border">
               P/N
             </span>
 
             <h3 className="font-semibold text-base leading-tight">
-              {article.article_part_number || 'N/A'}
+              {article.article_part_number || "N/A"}
             </h3>
-
           </div>
 
           {/* PRIORIDAD + ESTADO */}
           <div className="flex gap-3 flex-wrap items-center text-xs">
-
             {article.priority && (
               <div className="flex items-center gap-1">
                 <span className="text-muted-foreground">Prioridad:</span>
-                <span className={cn(
-                  "px-2 py-0.5 rounded-md font-semibold",
-                  priorityColor
-                )}>
+                <span
+                  className={cn(
+                    "px-2 py-0.5 rounded-md font-semibold",
+                    priorityColor,
+                  )}
+                >
                   {translatePriority(article.priority)}
                 </span>
               </div>
@@ -272,28 +308,22 @@ const BatchArticleCard = ({ article }: { article: any }) => {
                 <ArticleLifecycleIcon stage={article.lifecycle_stage} />
               </div>
             )}
-
           </div>
 
           {/* ---------------- CAMPOS (ORDEN EXACTO) ---------------- */}
           <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm pt-1">
-
             {/* ALT / AIRCRAFT */}
             <div>
-              <p className="text-muted-foreground text-xs">
-                Alt Part Number
-              </p>
+              <p className="text-muted-foreground text-xs">Alt Part Number</p>
               <p className="font-medium">
-                {article.article_alt_part_number ?? 'N/A'}
+                {article.article_alt_part_number ?? "N/A"}
               </p>
             </div>
 
             <div>
-              <p className="text-muted-foreground text-xs">
-                Aeronave
-              </p>
+              <p className="text-muted-foreground text-xs">Aeronave</p>
               <p className="font-medium">
-                {article.aircraft?.acronym ?? 'N/A'}
+                {article.aircraft?.acronym ?? "N/A"}
               </p>
             </div>
 
@@ -306,24 +336,22 @@ const BatchArticleCard = ({ article }: { article: any }) => {
 
             <div>
               <p className="text-muted-foreground text-xs">Unidad</p>
-              <p className="font-medium">{article.unit?.label ?? '-'}</p>
+              <p className="font-medium">{article.unit?.label ?? "-"}</p>
             </div>
-
           </div>
-
         </div>
 
-        {showExtra && <ArticleJustificationStrip justification={article.justification} />}
-
+        {showExtra && (
+          <ArticleJustificationStrip justification={article.justification} />
+        )}
       </div>
 
       {/* ---------------- IMAGEN CENTRADA EN LA TARJETA ---------------- */}
       <div className="shrink-0 flex justify-center items-center self-stretch">
-
         {article.image ? (
           <Image
             src={
-              article.image.startsWith('data:image')
+              article.image.startsWith("data:image")
                 ? article.image
                 : `data:image/jpeg;base64,${article.image}`
             }
@@ -338,34 +366,30 @@ const BatchArticleCard = ({ article }: { article: any }) => {
             <span>Sin imagen</span>
           </div>
         )}
-
       </div>
     </div>
   );
 };
 
 const GeneralArticleCard = ({ article }: { article: any }) => {
-  const isPending = article.status === 'PENDING';
+  const isPending = article.status === "PENDING";
   const showExtra = !isPending;
 
   const priorityColor =
-    article.priority === 'HIGH'
-      ? 'bg-red-100 text-red-700'
-      : article.priority === 'MEDIUM'
-        ? 'bg-yellow-100 text-yellow-700'
-        : article.priority === 'LOW'
-          ? 'bg-green-100 text-green-700'
-          : 'bg-muted';
+    article.priority === "HIGH"
+      ? "bg-red-100 text-red-700"
+      : article.priority === "MEDIUM"
+        ? "bg-yellow-100 text-yellow-700"
+        : article.priority === "LOW"
+          ? "bg-green-100 text-green-700"
+          : "bg-muted";
 
   return (
     <div className="flex h-full">
-
       {/* FIELDS (3/4) */}
       <div className="w-3/4 min-w-0 pr-3 flex flex-col">
-
         {/* TÍTULO + PRIORIDAD/ESTADO (SIEMPRE ARRIBA) */}
         <div className="space-y-1">
-
           {/* TÍTULO = DESCRIPCIÓN */}
           <h3 className="font-semibold text-base leading-snug">
             {article.description}
@@ -373,14 +397,15 @@ const GeneralArticleCard = ({ article }: { article: any }) => {
 
           {/* PRIORIDAD + ESTADO EN FILA CON LABELS */}
           <div className="flex items-center gap-3 flex-wrap text-xs">
-
             {article.priority && (
               <div className="flex items-center gap-1">
                 <span className="text-muted-foreground">Prioridad:</span>
-                <span className={cn(
-                  "px-2 py-0.5 rounded-md font-semibold",
-                  priorityColor
-                )}>
+                <span
+                  className={cn(
+                    "px-2 py-0.5 rounded-md font-semibold",
+                    priorityColor,
+                  )}
+                >
                   {translatePriority(article.priority)}
                 </span>
               </div>
@@ -395,18 +420,17 @@ const GeneralArticleCard = ({ article }: { article: any }) => {
                 <ArticleLifecycleIcon stage={article.lifecycle_stage} />
               </div>
             )}
-
           </div>
         </div>
 
         {/* DETALLES + JUSTIFICACIÓN (CENTRADOS EN EL ESPACIO RESTANTE) */}
         <div className="flex-1 flex flex-col justify-center pt-1">
-
           <div className="grid grid-cols-3 gap-x-4 gap-y-2 text-sm">
-
             {article.variant_type && (
               <div>
-                <p className="text-muted-foreground text-xs">Present. / Especif.</p>
+                <p className="text-muted-foreground text-xs">
+                  Present. / Especif.
+                </p>
                 <p className="font-medium">{article.variant_type}</p>
               </div>
             )}
@@ -415,7 +439,7 @@ const GeneralArticleCard = ({ article }: { article: any }) => {
               <div>
                 <p className="text-muted-foreground text-xs">Fecha Solicitud</p>
                 <p className="font-medium">
-                  {formatRequestedDate(article.requested_date, 'dd/MM/yyyy')}
+                  {formatRequestedDate(article.requested_date, "dd/MM/yyyy")}
                 </p>
               </div>
             )}
@@ -461,28 +485,29 @@ const GeneralArticleCard = ({ article }: { article: any }) => {
 
             {article.authorized_employee && (
               <div>
-                <p className="text-muted-foreground text-xs">Solicitante externo</p>
+                <p className="text-muted-foreground text-xs">
+                  Solicitante externo
+                </p>
                 <p className="font-medium">
-                  {article.authorized_employee.full_name ?? article.authorized_employee.dni_employee}
+                  {article.authorized_employee.full_name ??
+                    article.authorized_employee.dni_employee}
                 </p>
               </div>
             )}
-
           </div>
 
-          {showExtra && <ArticleJustificationStrip justification={article.justification} />}
-
+          {showExtra && (
+            <ArticleJustificationStrip justification={article.justification} />
+          )}
         </div>
-
       </div>
 
       {/* IMAGEN (1/4, CENTRADA EN TODO EL ALTO DE LA TARJETA) */}
       <div className="w-1/4 shrink-0 flex justify-center items-center">
-
         {article.image ? (
           <Image
             src={
-              article.image.startsWith('data:image')
+              article.image.startsWith("data:image")
                 ? article.image
                 : `data:image/jpeg;base64,${article.image}`
             }
@@ -497,7 +522,6 @@ const GeneralArticleCard = ({ article }: { article: any }) => {
             <span>Sin imagen</span>
           </div>
         )}
-
       </div>
     </div>
   );
@@ -506,7 +530,7 @@ const GeneralArticleCard = ({ article }: { article: any }) => {
 /* -------------------- PAGE -------------------- */
 const RequisitionPage = () => {
   const [openDelete, setOpenDelete] = useState(false);
-  const [confirmOrderNumber, setConfirmOrderNumber] = useState('');
+  const [confirmOrderNumber, setConfirmOrderNumber] = useState("");
 
   const { selectedCompany } = useCompanyStore();
   const timeZone = useCompanyTimezone();
@@ -515,28 +539,30 @@ const RequisitionPage = () => {
 
   const { data, isLoading } = useGetRequisitionByOrderNumber({
     company: selectedCompany?.slug,
-    order_number
+    order_number,
   });
 
   const { deleteRequisition } = useDeleteRequisition();
 
   if (isLoading) return <LoadingPage />;
 
-  const batchArticleCount = data?.batch?.reduce(
-    (acc, batch) => acc + (batch.batch_articles?.length ?? 0),
-    0
-  ) ?? 0;
+  const batchArticleCount =
+    data?.batch?.reduce(
+      (acc, batch) => acc + (batch.batch_articles?.length ?? 0),
+      0,
+    ) ?? 0;
   const generalArticleCount = data?.general_articles?.length ?? 0;
   const totalArticleCount = batchArticleCount + generalArticleCount;
 
-  const canConfirmDelete = confirmOrderNumber.trim().toUpperCase() === order_number.toUpperCase();
+  const canConfirmDelete =
+    confirmOrderNumber.trim().toUpperCase() === order_number.toUpperCase();
 
   const handleDelete = async () => {
     if (!canConfirmDelete) return;
 
     await deleteRequisition.mutateAsync({
       id: data!.id,
-      company: selectedCompany!.slug
+      company: selectedCompany!.slug,
     });
 
     router.push(`/${selectedCompany!.slug}/general/requisiciones`);
@@ -546,11 +572,11 @@ const RequisitionPage = () => {
     <ContentLayout title="Detalle de Requisición">
       <PageHeader className="mb-6" />
 
-
       {/* HEADER */}
       <div className="flex flex-col gap-y-2 mb-10">
         <h1 className="text-4xl font-bold text-center">
-          Nro. Requisición: <span className="text-blue-600">#{order_number}</span>
+          Nro. Requisición:{" "}
+          <span className="text-blue-600">#{order_number}</span>
         </h1>
         <p className="text-sm text-muted-foreground text-center italic">
           Información detallada de la requisición
@@ -558,13 +584,10 @@ const RequisitionPage = () => {
       </div>
 
       <Card className="max-w-7xl mx-auto">
-
         {/* HEADER CARD */}
         <CardHeader className="flex flex-col items-center gap-4">
-
           {/* BADGES EN FORMATO LABEL ARRIBA */}
           <div className="flex gap-6 flex-wrap justify-center text-center">
-
             <div className="flex flex-col items-center">
               <p className="text-xs text-muted-foreground">Estado</p>
               <Badge className="text-xs">
@@ -578,11 +601,11 @@ const RequisitionPage = () => {
                 <Badge
                   className={cn(
                     "text-xs",
-                    data.priority === 'HIGH'
+                    data.priority === "HIGH"
                       ? "bg-red-100 text-red-700"
-                      : data.priority === 'MEDIUM'
+                      : data.priority === "MEDIUM"
                         ? "bg-yellow-100 text-yellow-700"
-                        : "bg-green-100 text-green-700"
+                        : "bg-green-100 text-green-700",
                   )}
                 >
                   {translatePriority(data.priority)}
@@ -602,13 +625,12 @@ const RequisitionPage = () => {
         </CardHeader>
 
         <CardContent className="flex flex-col gap-6">
-
           {/* IMAGEN */}
           {data?.image && (
             <div className="flex flex-col items-center gap-2">
               <Image
                 src={
-                  data.image.startsWith('data:image')
+                  data.image.startsWith("data:image")
                     ? data.image
                     : `data:image/jpeg;base64,${data.image}`
                 }
@@ -625,12 +647,15 @@ const RequisitionPage = () => {
 
           {/* USUARIOS + FECHA + AIRCRAFT */}
           <div className="grid gap-6 text-sm grid-cols-[repeat(auto-fit,minmax(180px,1fr))]">
-
             <div className="text-center space-y-1">
               <p className="text-xs text-muted-foreground">Creado por</p>
               <p className="font-medium flex items-center gap-2 justify-center">
                 <User className="w-4 h-4" />
-                {data?.created_by ? `${data.created_by.first_name} ${data.created_by.last_name}`.trim().toUpperCase() : "SISTEMA"}
+                {data?.created_by
+                  ? `${data.created_by.first_name} ${data.created_by.last_name}`
+                      .trim()
+                      .toUpperCase()
+                  : "SISTEMA"}
               </p>
             </div>
 
@@ -646,7 +671,7 @@ const RequisitionPage = () => {
               <div className="text-center space-y-1">
                 <p className="text-xs text-muted-foreground">Fecha solicitud</p>
                 <p className="font-medium">
-                  {formatInstant(data.submission_date, timeZone, 'date')}
+                  {formatInstant(data.submission_date, timeZone, "date")}
                 </p>
               </div>
             )}
@@ -663,45 +688,52 @@ const RequisitionPage = () => {
 
             {data?.work_order && (
               <div className="text-center space-y-1">
-                <p className="text-xs text-muted-foreground">Orden de Trabajo</p>
+                <p className="text-xs text-muted-foreground">
+                  Orden de Trabajo
+                </p>
                 <p className="font-medium flex items-center gap-2 justify-center">
                   <FileText className="w-4 h-4" />
                   {data.work_order}
                 </p>
               </div>
             )}
-
           </div>
 
           {/* JUSTIFICACIÓN + OBSERVACIÓN */}
-          <div className={cn(
-            "grid grid-cols-1 gap-4",
-            data?.type === 'AERONAUTICAL' ? "md:grid-cols-[1fr_1fr_auto] md:items-stretch" : "md:grid-cols-2"
-          )}>
-
+          <div
+            className={cn(
+              "grid grid-cols-1 gap-4",
+              data?.type === "AERONAUTICAL"
+                ? "md:grid-cols-[1fr_1fr_auto] md:items-stretch"
+                : "md:grid-cols-2",
+            )}
+          >
             <div className="text-center flex flex-col">
               <h2 className="font-semibold text-base mb-1">Justificación</h2>
               <p className="text-sm italic bg-secondary p-3 rounded-md flex-1">
-                {data?.justification || 'No se proporcionó justificación'}
+                {data?.justification || "No se proporcionó justificación"}
               </p>
             </div>
 
             <div className="text-center flex flex-col">
-              <h2 className="font-semibold text-base mb-1">Observación (indicada por Compras)</h2>
+              <h2 className="font-semibold text-base mb-1">
+                Observación (indicada por Compras)
+              </h2>
               <p className="text-sm italic bg-secondary p-3 rounded-md flex-1">
-                {data?.observation || 'Sin observaciones'}
+                {data?.observation || "Sin observaciones"}
               </p>
             </div>
 
-            {data?.type === 'AERONAUTICAL' && (
+            {data?.type === "AERONAUTICAL" && (
               <div className="flex flex-col">
-                <span className="invisible mb-1 font-semibold text-base leading-tight">.</span>
+                <span className="invisible mb-1 font-semibold text-base leading-tight">
+                  .
+                </span>
                 <div className="flex-1 flex items-center justify-center">
                   <RequiredDocumentsPopover batches={data?.batch ?? []} />
                 </div>
               </div>
             )}
-
           </div>
 
           {/* ---------------- BATCH ---------------- */}
@@ -734,12 +766,9 @@ const RequisitionPage = () => {
           {/* ---------------- GENERAL ---------------- */}
           {data?.general_articles?.length ? (
             <div className="w-full max-w-6xl mx-auto space-y-4">
-
               {/* TÍTULO */}
               <div className="text-center">
-                <h2 className="text-lg font-semibold">
-                  Artículos Generales
-                </h2>
+                <h2 className="text-lg font-semibold">Artículos Generales</h2>
                 <p className="text-xs text-muted-foreground">
                   Lista de artículos generales asociados a la requisición
                 </p>
@@ -761,10 +790,8 @@ const RequisitionPage = () => {
                   </Card>
                 ))}
               </div>
-
             </div>
           ) : null}
-
         </CardContent>
 
         <CardFooter className="flex justify-end">
@@ -780,13 +807,12 @@ const RequisitionPage = () => {
         onOpenChange={(next) => {
           if (!deleteRequisition.isPending) {
             setOpenDelete(next);
-            if (!next) setConfirmOrderNumber('');
+            if (!next) setConfirmOrderNumber("");
           }
         }}
       >
         <AlertDialogContent>
           <AlertDialogHeader className="flex flex-col items-center text-center space-y-3">
-
             <div className="flex items-center justify-center size-12 rounded-2xl border border-red-500/15 bg-red-500/8">
               <Trash2 className="size-5 text-red-600" />
             </div>
@@ -798,17 +824,25 @@ const RequisitionPage = () => {
             <AlertDialogDescription asChild>
               <div className="space-y-3 text-sm text-center">
                 <p>
-                  Esta acción elimina <strong>permanentemente</strong> la requisición y no se puede deshacer.
+                  Esta acción elimina <strong>permanentemente</strong> la
+                  requisición y no se puede deshacer.
                 </p>
 
                 {totalArticleCount > 0 && (
                   <p>
-                    Se perderán <strong>{totalArticleCount}</strong>{' '}
-                    {totalArticleCount === 1 ? 'artículo asociado' : 'artículos asociados'}
+                    Se perderán <strong>{totalArticleCount}</strong>{" "}
+                    {totalArticleCount === 1
+                      ? "artículo asociado"
+                      : "artículos asociados"}
                     {batchArticleCount > 0 && generalArticleCount > 0 && (
-                      <> ({batchArticleCount} por lote, {generalArticleCount} generales)</>
+                      <>
+                        {" "}
+                        ({batchArticleCount} por lote, {generalArticleCount}{" "}
+                        generales)
+                      </>
                     )}
-                    , junto con su justificación, observaciones e imágenes adjuntas.
+                    , junto con su justificación, observaciones e imágenes
+                    adjuntas.
                   </p>
                 )}
               </div>
@@ -818,7 +852,8 @@ const RequisitionPage = () => {
           <div className="mx-1 p-3 rounded-xl border border-red-500/20 bg-red-500/5 text-sm text-red-600 flex gap-2 leading-relaxed">
             <AlertTriangle className="size-4 mt-[2px] shrink-0" />
             <div>
-              Esta operación es <b>irreversible</b>. Verifica que realmente deseas eliminar este registro antes de continuar.
+              Esta operación es <b>irreversible</b>. Verifica que realmente
+              deseas eliminar este registro antes de continuar.
             </div>
           </div>
 
@@ -829,7 +864,9 @@ const RequisitionPage = () => {
             <Input
               id="confirm-order-number"
               value={confirmOrderNumber}
-              onChange={(event) => setConfirmOrderNumber(event.target.value.toUpperCase())}
+              onChange={(event) =>
+                setConfirmOrderNumber(event.target.value.toUpperCase())
+              }
               placeholder={order_number}
               className="uppercase"
               autoComplete="off"

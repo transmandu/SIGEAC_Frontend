@@ -1,103 +1,125 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { ArrowDown, ArrowUp, Loader2, Minus, Tag } from "lucide-react"
+import { useEffect, useState } from "react";
+import { ArrowDown, ArrowUp, Loader2, Minus, Tag } from "lucide-react";
 
-import { useUpdateRequisitionPriority } from "@/actions/mantenimiento/compras/requisiciones/actions"
-import { useCompanyStore } from "@/stores/CompanyStore"
-import type { Requisition } from "@/types/purchase"
-import { Button } from "@/components/ui/button"
+import { useUpdateRequisitionPriority } from "@/actions/mantenimiento/compras/requisiciones/actions";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import type { MyRequisition, Requisition } from "@/types/purchase";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle
-} from "@/components/ui/dialog"
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
-} from "@/components/ui/select"
-import LoadingPage from "@/components/misc/LoadingPage"
+  SelectValue,
+} from "@/components/ui/select";
+import LoadingPage from "@/components/misc/LoadingPage";
 
 const priorityOptions = [
   { value: "HIGH", label: "ALTA", icon: ArrowUp, className: "text-red-500" },
   { value: "MEDIUM", label: "MEDIA", icon: Minus, className: "text-amber-500" },
   { value: "LOW", label: "BAJA", icon: ArrowDown, className: "text-green-500" },
-]
+];
 
 const PriorityOptionLabel = ({ value }: { value: string }) => {
-  const option = priorityOptions.find((p) => p.value === value)
-  if (!option) return null
-  const Icon = option.icon
+  const option = priorityOptions.find((p) => p.value === value);
+  if (!option) return null;
+  const Icon = option.icon;
 
   return (
     <span className="flex items-center gap-2">
       <Icon className={`size-3.5 ${option.className}`} />
       {option.label}
     </span>
-  )
-}
+  );
+};
 
 type Item = {
-  id: number
-  label: string
-  priority?: string
-}
+  id: number;
+  label: string;
+  priority?: string;
+};
 
 type Props = {
-  req: Requisition
-  open: boolean
-  setOpen: (open: boolean) => void
-  onSuccess?: () => void
-}
+  req: Requisition | MyRequisition;
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  onSuccess?: () => void;
+};
 
-const UpdateRequisitionPriorityDialog = ({ req, open, setOpen, onSuccess }: Props) => {
-  const { selectedCompany } = useCompanyStore()
-  const { updatePriorityRequisition } = useUpdateRequisitionPriority()
+const UpdateRequisitionPriorityDialog = ({
+  req,
+  open,
+  setOpen,
+  onSuccess,
+}: Props) => {
+  const { selectedCompany } = useCompanyStore();
+  const { updatePriorityRequisition } = useUpdateRequisitionPriority();
 
-  const [headerPriority, setHeaderPriority] = useState<string | undefined>(req.priority)
-  const [articlePriorities, setArticlePriorities] = useState<Record<number, string>>({})
+  const [headerPriority, setHeaderPriority] = useState<string | undefined>(
+    req.priority,
+  );
+  const [articlePriorities, setArticlePriorities] = useState<
+    Record<number, string>
+  >({});
 
   const articleItems: Item[] = (req.batch ?? []).flatMap((batch) =>
     (batch.batch_articles ?? [])
-      .filter((article): article is typeof article & { id: number } => article.id != null)
+      .filter(
+        (article): article is typeof article & { id: number } =>
+          article.id != null,
+      )
       .map((article) => ({
         id: article.id,
         label: `${batch.name} · ${article.article_part_number}`,
         priority: article.priority,
-      }))
-  )
+      })),
+  );
 
-  const generalArticleItems: Item[] = (req.general_articles ?? []).map((article) => ({
-    id: article.id,
-    label: article.description,
-    priority: article.priority,
-  }))
+  const generalArticleItems: Item[] = (req.general_articles ?? []).map(
+    (article) => ({
+      id: article.id,
+      label: article.description,
+      priority: article.priority,
+    }),
+  );
 
-  const items = [...articleItems, ...generalArticleItems]
+  const items = [...articleItems, ...generalArticleItems];
 
   useEffect(() => {
     if (open) {
-      setHeaderPriority(req.priority)
-      setArticlePriorities({})
+      setHeaderPriority(req.priority);
+      setArticlePriorities({});
     }
-  }, [open, req.priority])
+  }, [open, req.priority]);
 
-  if (!selectedCompany) return <LoadingPage />
+  if (!selectedCompany) return <LoadingPage />;
 
   const handleSubmit = async () => {
     const articles = articleItems
-      .filter((item) => articlePriorities[item.id] && articlePriorities[item.id] !== item.priority)
-      .map((item) => ({ id: item.id, priority: articlePriorities[item.id] }))
+      .filter(
+        (item) =>
+          articlePriorities[item.id] &&
+          articlePriorities[item.id] !== item.priority,
+      )
+      .map((item) => ({ id: item.id, priority: articlePriorities[item.id] }));
 
     const general_articles = generalArticleItems
-      .filter((item) => articlePriorities[item.id] && articlePriorities[item.id] !== item.priority)
-      .map((item) => ({ id: item.id, priority: articlePriorities[item.id] }))
+      .filter(
+        (item) =>
+          articlePriorities[item.id] &&
+          articlePriorities[item.id] !== item.priority,
+      )
+      .map((item) => ({ id: item.id, priority: articlePriorities[item.id] }));
 
     await updatePriorityRequisition.mutateAsync({
       id: req.id,
@@ -106,12 +128,12 @@ const UpdateRequisitionPriorityDialog = ({ req, open, setOpen, onSuccess }: Prop
         articles,
         general_articles,
       },
-      company: selectedCompany.slug
-    })
+      company: selectedCompany.slug,
+    });
 
-    setOpen(false)
-    onSuccess?.()
-  }
+    setOpen(false);
+    onSuccess?.();
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -144,7 +166,9 @@ const UpdateRequisitionPriorityDialog = ({ req, open, setOpen, onSuccess }: Prop
 
           <DialogDescription className="text-sm text-muted-foreground text-center leading-relaxed max-w-sm">
             Actualiza la prioridad de la solicitud{" "}
-            <span className="font-medium text-foreground">{req.order_number}</span>
+            <span className="font-medium text-foreground">
+              {req.order_number}
+            </span>
             {items.length > 0 && " y, opcionalmente, la de sus artículos"}.
           </DialogDescription>
         </DialogHeader>
@@ -182,7 +206,10 @@ const UpdateRequisitionPriorityDialog = ({ req, open, setOpen, onSuccess }: Prop
                   <Select
                     value={articlePriorities[item.id] ?? item.priority}
                     onValueChange={(value) =>
-                      setArticlePriorities((prev) => ({ ...prev, [item.id]: value }))
+                      setArticlePriorities((prev) => ({
+                        ...prev,
+                        [item.id]: value,
+                      }))
                     }
                   >
                     <SelectTrigger className="w-[130px]">
@@ -224,7 +251,7 @@ const UpdateRequisitionPriorityDialog = ({ req, open, setOpen, onSuccess }: Prop
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
-}
+  );
+};
 
-export default UpdateRequisitionPriorityDialog
+export default UpdateRequisitionPriorityDialog;

@@ -5,7 +5,7 @@ import { type AppColumnDef } from "@/lib/table";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 
 import DocumentDisplayDialog from "@/components/dialogs/aerolinea/sms/DocumentDisplayDialog";
-import ImageDisplayDialog from "@/components/dialogs/aerolinea/sms/ImageDisplayDialog";
+import ImageAlbumDisplayDialog from "@/components/dialogs/aerolinea/sms/ImageAlbumDisplayDialog";
 import FollowUpControlDropdownActions from "@/components/dropdowns/aerolinea/sms/FollowUpControlDropdownActions";
 import { Button } from "@/components/ui/button";
 import { FollowUpControl } from "@/types";
@@ -25,7 +25,7 @@ export const columns: AppColumnDef<FollowUpControl>[] = [
       );
     },
   },
-    {
+  {
     accessorKey: "date",
     header: ({ column }) => (
       <DataTableColumnHeader filter column={column} title="Fecha del Control" />
@@ -93,7 +93,7 @@ export const columns: AppColumnDef<FollowUpControl>[] = [
       return (
         <div className="flex justify-center items-center">
           {row.original?.document &&
-          (typeof row.original?.document === "string") ? (
+          typeof row.original?.document === "string" ? (
             <DocumentDisplayDialog fileName={row.original.document} />
           ) : (
             <Button
@@ -128,13 +128,7 @@ export const columns: AppColumnDef<FollowUpControl>[] = [
       return (
         <div className="flex justify-center items-center flex-wrap gap-1">
           {images.length > 0 ? (
-            images.map((fileName, index) => (
-              <ImageDisplayDialog
-                key={`${fileName}-${index}`}
-                fileName={fileName}
-                triggerText={images.length > 1 ? `Imagen ${index + 1}` : "Imagen"}
-              />
-            ))
+            <ImageAlbumDisplayDialog fileNames={images} />
           ) : (
             <Button
               variant="outline"

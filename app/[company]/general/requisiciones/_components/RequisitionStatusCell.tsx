@@ -8,7 +8,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import type { Requisition } from "@/types/purchase";
+import type { MyRequisition } from "@/types/purchase";
 
 // Los estados son de la SOLICITUD, no de la compra. Nombrarlos con el sujeto
 // delante evita que se lean como el estado de la orden o de los articulos.
@@ -45,7 +45,7 @@ const STATUS_CONFIG: Record<string, { label: string; cls: string }> = {
 const RequisitionStatusCell = ({
   requisition,
 }: {
-  requisition: Requisition;
+  requisition: MyRequisition;
 }) => {
   const status = requisition.status?.toUpperCase();
 
@@ -65,21 +65,22 @@ const RequisitionStatusCell = ({
 
   // Se prioriza lo que falta: con varias ordenes, una sin pagar sigue siendo
   // trabajo pendiente aunque otra ya se haya pagado.
-  const purchaseHint = !summary || !hasPurchaseOrder
-    ? null
-    : summary.has_pending
-      ? {
-          Icon: AlertTriangle,
-          cls: "text-amber-600 dark:text-amber-400",
-          text: "Esta solicitud ha sido aprobada pero su compra aún no ha sido realizada.",
-        }
-      : summary.has_paid
+  const purchaseHint =
+    !summary || !hasPurchaseOrder
+      ? null
+      : summary.has_pending
         ? {
-            Icon: CheckCircle2,
-            cls: "text-emerald-600 dark:text-emerald-400",
-            text: "Esta solicitud ha sido aprobada y la correspondiente compra realizada, verifique en la Recepción de Artículo el estatus.",
+            Icon: AlertTriangle,
+            cls: "text-amber-600 dark:text-amber-400",
+            text: "Esta solicitud ha sido aprobada pero su compra aún no ha sido realizada.",
           }
-        : null;
+        : summary.has_paid
+          ? {
+              Icon: CheckCircle2,
+              cls: "text-emerald-600 dark:text-emerald-400",
+              text: "Esta solicitud ha sido aprobada y la correspondiente compra realizada, verifique en la Recepción de Artículo el estatus.",
+            }
+          : null;
 
   return (
     <div className="flex items-center justify-center gap-1.5 text-center">
@@ -111,7 +112,7 @@ const RequisitionStatusCell = ({
               </span>
             </TooltipTrigger>
 
-            <TooltipContent side="top" className="max-w-[260px] text-xs">
+            <TooltipContent side="top" className="max-w-65 text-xs">
               {purchaseHint.text}
             </TooltipContent>
           </Tooltip>

@@ -21,6 +21,7 @@ import {
   X,
   Filter,
   ArrowRightLeft,
+  ChevronRight,
 } from "lucide-react";
 import { useGetDepartments } from "@/hooks/ajustes/departamento/useGetDepartment";
 import DocumentTable from "./DocumentTable";
@@ -46,6 +47,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 
 // El árbol puede venir anidado, así que un find() plano no encuentra a los hijos.
 
@@ -62,6 +64,7 @@ const BibliotecaPage = () => {
     { id: number; name: string }[]
   >([]);
   const [showFilters, setShowFilters] = useState(false);
+  const [mobileFolderOpen, setMobileFolderOpen] = useState(false);
 
   const popoverRef = useRef<HTMLDivElement>(null);
 
@@ -494,6 +497,7 @@ const BibliotecaPage = () => {
   const handleSelectFolder = (folderPath: string, departmentName: string) => {
     setSelectedDeptName(departmentName);
     setSelectedFolderPath(folderPath);
+    setMobileFolderOpen(false);
   };
 
   const handleFolderRefresh = useCallback(
@@ -586,6 +590,17 @@ const BibliotecaPage = () => {
     setSelectedDocumentIds([]);
   }, [selectedDeptName, selectedFolderPath]);
 
+  // Scroll lock del drawer de carpetas en móvil: mientras esté abierto la
+  // página de fondo no debe moverse.
+  useEffect(() => {
+    if (!mobileFolderOpen) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [mobileFolderOpen]);
+
   const { registerTour, unregisterTour } = useTourContext();
 
   useEffect(() => {
@@ -605,7 +620,7 @@ const BibliotecaPage = () => {
         {loading ? (
           <div className="w-full rounded-4xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#1a1c1e] shadow-xl animate-pulse overflow-hidden">
             <div className="flex min-h-[400px]">
-              <div className="w-[380px] shrink-0 border-r border-slate-200 dark:border-slate-800 p-5">
+              <div className="hidden lg:block w-[380px] shrink-0 border-r border-slate-200 dark:border-slate-800 p-5">
                 <div className="h-3 w-16 bg-slate-200 dark:bg-slate-700 rounded mb-4" />
                 {[1, 2, 3, 4].map((i) => (
                   <div
@@ -615,7 +630,7 @@ const BibliotecaPage = () => {
                   />
                 ))}
               </div>
-              <div className="flex-1 p-8">
+              <div className="flex-1 p-4 sm:p-8">
                 <div className="h-5 w-40 bg-slate-200 dark:bg-slate-700 rounded mb-6" />
                 {[1, 2, 3].map((i) => (
                   <div
@@ -750,7 +765,7 @@ const BibliotecaPage = () => {
 
                 {/* POPOVER DE FILTROS */}
                 {showFilters && (
-                  <div className="absolute right-0 top-12 z-50 w-72 p-5 bg-white dark:bg-[#1a1c1e] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="absolute left-0 right-auto sm:left-auto sm:right-0 top-12 z-50 w-[calc(100vw-2rem)] max-w-72 p-5 bg-white dark:bg-[#1a1c1e] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl animate-in fade-in slide-in-from-top-2 duration-200">
                     <div
                       className="flex items-center justify-between mb-4 pb-2 border-b border-slate-100 dark:border-slate-800"
                       data-tour="biblioteca-filter-limpiar"
@@ -831,17 +846,44 @@ const BibliotecaPage = () => {
                 </div>
               )}
               <div className="flex min-h-[400px]">
-                <div className="w-[380px] shrink-0 border-r border-slate-200 dark:border-slate-800 p-5 pt-8 flex flex-col">
+                {/* Backdrop del drawer de carpetas en móvil */}
+                {mobileFolderOpen && (
+                  <button
+                    type="button"
+                    aria-label="Cerrar carpetas"
+                    onClick={() => setMobileFolderOpen(false)}
+                    className="lg:hidden fixed inset-0 z-40 bg-black/40 backdrop-blur-[1px] animate-in fade-in duration-200"
+                  />
+                )}
+
+                {/* PANEL DE CARPETAS — sidebar en desktop, drawer en móvil */}
+                <div
+                  className={cn(
+                    "flex flex-col border-r border-slate-200 dark:border-slate-800",
+                    mobileFolderOpen
+                      ? "fixed inset-y-0 left-0 z-50 w-[85vw] max-w-xs bg-white dark:bg-[#1a1c1e] p-5 shadow-2xl animate-in slide-in-from-left-2 duration-200"
+                      : "hidden lg:flex lg:w-[350px] shrink-0 lg:p-5 lg:pt-8",
+                  )}
+                >
                   <div
-                    className="flex flex-col gap-1 mb-6 border-b pb-6 border-slate-200 dark:border-slate-800 shrink-0"
+                    className="flex items-start justify-between gap-2 mb-6 border-b pb-6 border-slate-200 dark:border-slate-800 shrink-0"
                     data-tour="biblioteca-carpetas-header"
                   >
-                    <h2 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-widest">
-                      Carpetas
-                    </h2>
-                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 tracking-wide">
-                      Organización departamental
-                    </p>
+                    <div className="flex flex-col gap-1">
+                      <h2 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-widest">
+                        Carpetas
+                      </h2>
+                      <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 tracking-wide">
+                        Organización departamental
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setMobileFolderOpen(false)}
+                      aria-label="Cerrar carpetas"
+                      className="lg:hidden flex items-center justify-center h-8 w-8 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
                   </div>
                   <div
                     className="flex-1 overflow-y-auto max-h-[500px] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-200 dark:[&::-webkit-scrollbar-thumb]:bg-slate-700 [&::-webkit-scrollbar-thumb]:rounded-full pr-2"
@@ -887,9 +929,29 @@ const BibliotecaPage = () => {
                 </div>
 
                 <div
-                  className="flex-1 p-8"
+                  className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8"
                   data-tour="biblioteca-documentos-header"
                 >
+                  {/* Selector de carpetas en móvil */}
+                  <button
+                    onClick={() => setMobileFolderOpen(true)}
+                    className="lg:hidden mb-5 w-full flex items-center gap-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/40 px-4 py-2.5 text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                    data-tour="biblioteca-carpetas-movil-btn"
+                  >
+                    <FolderOpen className="h-4 w-4 text-slate-500 dark:text-slate-400 shrink-0" />
+                    <span className="flex-1 min-w-0">
+                      <span className="block text-[9px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">
+                        Carpetas
+                      </span>
+                      <span className="block text-[11px] font-semibold text-slate-700 dark:text-slate-200 truncate">
+                        {selectedDeptName
+                          ? `${selectedDeptName} — ${breadcrumbText}`
+                          : "Selecciona una carpeta"}
+                      </span>
+                    </span>
+                    <ChevronRight className="h-4 w-4 text-slate-400 shrink-0" />
+                  </button>
+
                   <div className="flex flex-col gap-1 mb-6 border-b pb-6 border-slate-200 dark:border-slate-800">
                     <h2 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-widest">
                       Documentos
