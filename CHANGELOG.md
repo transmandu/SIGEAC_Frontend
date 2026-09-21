@@ -1,3 +1,7 @@
+## v4.17.0 — 2026-09-21
+
+- feat: responsive library (#280)
+
 ## v4.16.0 — 2026-09-21
 
 - feat: show next expired courses (#279)
