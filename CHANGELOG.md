@@ -1,3 +1,7 @@
+## v4.16.0 — 2026-09-21
+
+- feat: show next expired courses (#279)
+
 ## v4.15.0 — 2026-09-21
 
 - feat: multiple responsible mitigation in mitigation plan form (#278)
