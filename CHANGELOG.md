@@ -1,3 +1,7 @@
+## v4.15.0 — 2026-09-21
+
+- feat: multiple responsible mitigation in mitigation plan form (#278)
+
 ## v4.14.2 — 2026-09-21
 
 - refactor: replace useGetRequisition with useGetMyRequisitions for req… (#277)
