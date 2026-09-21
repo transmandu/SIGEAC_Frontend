@@ -1,3 +1,7 @@
+## v4.14.2 — 2026-09-21
+
+- refactor: replace useGetRequisition with useGetMyRequisitions for req… (#277)
+
 ## v4.14.1 — 2026-09-19
 
 - refactor: streamline sidebar and layout components, remove unused imp… (#276)
