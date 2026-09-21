@@ -5,9 +5,10 @@ interface UseGetImageProps {
   company?: string;
   origin: string;
   fileName?: string;
+  enabled?: boolean;
 }
 
-const fetchImage = async ({
+export const fetchImage = async ({
   company,
   fileName,
   origin,
@@ -22,7 +23,7 @@ const fetchImage = async ({
     `${company}/${origin}/image/${encodedImagePath}`,
     {
       responseType: "blob",
-    }
+    },
   );
 
   if (!response.data.type.startsWith("image/")) {
@@ -34,13 +35,13 @@ const fetchImage = async ({
 };
 
 export const useGetImage = (props: UseGetImageProps) => {
-  const { company, fileName, origin } = props;
+  const { company, fileName, origin, enabled = true } = props;
 
   return useQuery<string, Error>({
     queryKey: ["image", company, origin, fileName],
     queryFn: () => fetchImage(props),
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 10,
-    enabled: !!company && !!fileName,
+    enabled: enabled && !!company && !!fileName,
   });
 };

@@ -6,7 +6,7 @@ interface MitigationPlanData {
   company: string | null;
   data: {
     description: string;
-    responsible: string;
+    responsible: string[];
     start_date: Date;
     danger_identification_id: number;
   };
@@ -17,7 +17,7 @@ interface UpdateMitigationPlanData {
   id: string;
   data: {
     description: string;
-    responsible: string;
+    responsible: string[];
     start_date: Date;
   };
 }
@@ -125,7 +125,7 @@ export const useCloseReport = () => {
     mutationFn: async ({ data, company }: updateStatus) => {
       await axiosInstance.patch(
         `/${company}/sms/close_report/${data.mitigation_id}`,
-        data
+        data,
       );
     },
 
@@ -157,7 +157,7 @@ export const useOpenReport = () => {
     mutationFn: async ({ data, company }: updateStatus) => {
       await axiosInstance.patch(
         `/${company}/sms/open_report/${data.mitigation_id}`,
-        data
+        data,
       );
     },
 

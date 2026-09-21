@@ -1160,7 +1160,7 @@ export type MitigationMeasure = {
 export type MitigationPlan = {
   id: number;
   description: string;
-  responsible: string;
+  responsible: string[];
   start_date: Date;
   measures: MitigationMeasure[];
   analysis: Analysis;
