@@ -140,7 +140,7 @@ export function DownloadRequisitionsByStatusDialog() {
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="sm:max-w-[460px]">
+      <DialogContent className="sm:max-w-115">
         <DialogHeader>
           <DialogTitle>Descargar Solicitudes por Estado</DialogTitle>
           <DialogDescription>

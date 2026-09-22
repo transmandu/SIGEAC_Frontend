@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ArrowDown, ArrowUp, Loader2, Minus, Tag } from "lucide-react";
 
 import { useUpdateRequisitionPriority } from "@/actions/mantenimiento/compras/requisiciones/actions";
@@ -56,12 +56,18 @@ type Props = {
   onSuccess?: () => void;
 };
 
-const UpdateRequisitionPriorityDialog = ({
-  req,
-  open,
-  setOpen,
-  onSuccess,
-}: Props) => {
+/**
+ * El contenido vive aparte y se remonta en cada apertura (ver el `key` del
+ * padre), de modo que su estado nace ya con la prioridad de la solicitud
+ * actual: lo elegido para otra no queda preseleccionado.
+ *
+ * Antes se reiniciaba desde un efecto, que obliga a pintar el formulario con
+ * los valores viejos y volver a renderizar con los nuevos
+ * (react-hooks/set-state-in-effect). Remontar da el mismo resultado en un solo
+ * render, y además cubre el caso de abrir cambiando `open` desde el padre, que
+ * no pasa por `onOpenChange`.
+ */
+const PriorityForm = ({ req, setOpen, onSuccess }: Omit<Props, "open">) => {
   const { selectedCompany } = useCompanyStore();
   const { updatePriorityRequisition } = useUpdateRequisitionPriority();
 
@@ -94,13 +100,6 @@ const UpdateRequisitionPriorityDialog = ({
   );
 
   const items = [...articleItems, ...generalArticleItems];
-
-  useEffect(() => {
-    if (open) {
-      setHeaderPriority(req.priority);
-      setArticlePriorities({});
-    }
-  }, [open, req.priority]);
 
   if (!selectedCompany) return <LoadingPage />;
 
@@ -136,10 +135,9 @@ const UpdateRequisitionPriorityDialog = ({
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent
-        className="
-          sm:max-w-[460px]
+    <DialogContent
+      className="
+          sm:max-w-115
           rounded-3xl
           border border-border/50
           bg-background/95
@@ -147,111 +145,130 @@ const UpdateRequisitionPriorityDialog = ({
           shadow-2xl
           overflow-hidden
         "
-      >
-        <DialogHeader className="flex flex-col items-center text-center space-y-3">
-          <div
-            className="
+    >
+      <DialogHeader className="flex flex-col items-center text-center space-y-3">
+        <div
+          className="
               flex items-center justify-center
               size-12 rounded-2xl
               border border-amber-500/15
               bg-amber-500/8
             "
-          >
-            <Tag className="size-5 text-amber-600" />
-          </div>
-
-          <DialogTitle className="text-[16px] font-semibold tracking-tight">
-            Cambiar prioridad
-          </DialogTitle>
-
-          <DialogDescription className="text-sm text-muted-foreground text-center leading-relaxed max-w-sm">
-            Actualiza la prioridad de la solicitud{" "}
-            <span className="font-medium text-foreground">
-              {req.order_number}
-            </span>
-            {items.length > 0 && " y, opcionalmente, la de sus artículos"}.
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="flex flex-col gap-4 max-h-[50vh] overflow-y-auto px-1">
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-medium text-muted-foreground">
-              Prioridad de la solicitud (opcional)
-            </label>
-            <Select value={headerPriority} onValueChange={setHeaderPriority}>
-              <SelectTrigger>
-                <SelectValue placeholder="Seleccione prioridad..." />
-              </SelectTrigger>
-              <SelectContent>
-                {priorityOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    <PriorityOptionLabel value={option.value} />
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {items.length > 0 && (
-            <div className="flex flex-col gap-2">
-              <label className="text-xs font-medium text-muted-foreground">
-                Prioridad de los artículos (opcional)
-              </label>
-
-              {items.map((item) => (
-                <div key={item.id} className="flex items-center gap-2">
-                  <span className="flex-1 text-sm truncate" title={item.label}>
-                    {item.label}
-                  </span>
-                  <Select
-                    value={articlePriorities[item.id] ?? item.priority}
-                    onValueChange={(value) =>
-                      setArticlePriorities((prev) => ({
-                        ...prev,
-                        [item.id]: value,
-                      }))
-                    }
-                  >
-                    <SelectTrigger className="w-[130px]">
-                      <SelectValue placeholder="Sin cambio" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {priorityOptions.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          <PriorityOptionLabel value={option.value} />
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              ))}
-            </div>
-          )}
+        >
+          <Tag className="size-5 text-amber-600" />
         </div>
 
-        <DialogFooter className="pt-2">
-          <Button
-            variant="outline"
-            onClick={() => setOpen(false)}
-            className="rounded-xl"
-          >
-            Cancelar
-          </Button>
+        <DialogTitle className="text-[16px] font-semibold tracking-tight">
+          Cambiar prioridad
+        </DialogTitle>
 
-          <Button
-            onClick={handleSubmit}
-            disabled={updatePriorityRequisition.isPending}
-            className="rounded-xl bg-amber-500/90 hover:bg-amber-500"
-          >
-            {updatePriorityRequisition.isPending && (
-              <Loader2 className="mr-2 size-4 animate-spin" />
-            )}
-            Guardar
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        <DialogDescription className="text-sm text-muted-foreground text-center leading-relaxed max-w-sm">
+          Actualiza la prioridad de la solicitud{" "}
+          <span className="font-medium text-foreground">
+            {req.order_number}
+          </span>
+          {items.length > 0 && " y, opcionalmente, la de sus artículos"}.
+        </DialogDescription>
+      </DialogHeader>
+
+      <div className="flex flex-col gap-4 max-h-[50vh] overflow-y-auto px-1">
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-medium text-muted-foreground">
+            Prioridad de la solicitud (opcional)
+          </label>
+          <Select value={headerPriority} onValueChange={setHeaderPriority}>
+            <SelectTrigger>
+              <SelectValue placeholder="Seleccione prioridad..." />
+            </SelectTrigger>
+            <SelectContent>
+              {priorityOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  <PriorityOptionLabel value={option.value} />
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {items.length > 0 && (
+          <div className="flex flex-col gap-2">
+            <label className="text-xs font-medium text-muted-foreground">
+              Prioridad de los artículos (opcional)
+            </label>
+
+            {items.map((item) => (
+              <div key={item.id} className="flex items-center gap-2">
+                <span className="flex-1 text-sm truncate" title={item.label}>
+                  {item.label}
+                </span>
+                <Select
+                  value={articlePriorities[item.id] ?? item.priority}
+                  onValueChange={(value) =>
+                    setArticlePriorities((prev) => ({
+                      ...prev,
+                      [item.id]: value,
+                    }))
+                  }
+                >
+                  <SelectTrigger className="w-32.5">
+                    <SelectValue placeholder="Sin cambio" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {priorityOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        <PriorityOptionLabel value={option.value} />
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <DialogFooter className="pt-2">
+        <Button
+          variant="outline"
+          onClick={() => setOpen(false)}
+          className="rounded-xl"
+        >
+          Cancelar
+        </Button>
+
+        <Button
+          onClick={handleSubmit}
+          disabled={updatePriorityRequisition.isPending}
+          className="rounded-xl bg-amber-500/90 hover:bg-amber-500"
+        >
+          {updatePriorityRequisition.isPending && (
+            <Loader2 className="mr-2 size-4 animate-spin" />
+          )}
+          Guardar
+        </Button>
+      </DialogFooter>
+    </DialogContent>
   );
 };
+
+const UpdateRequisitionPriorityDialog = ({
+  req,
+  open,
+  setOpen,
+  onSuccess,
+}: Props) => (
+  <Dialog open={open} onOpenChange={setOpen}>
+    {/* Montado solo mientras está abierto y con `key` por solicitud: así el
+        formulario arranca limpio en cada apertura, sin reiniciarlo a mano. */}
+    {open && (
+      <PriorityForm
+        key={req.id}
+        req={req}
+        setOpen={setOpen}
+        onSuccess={onSuccess}
+      />
+    )}
+  </Dialog>
+);
 
 export default UpdateRequisitionPriorityDialog;

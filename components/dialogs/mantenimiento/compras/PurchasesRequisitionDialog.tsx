@@ -51,7 +51,7 @@ export function PurchasesRequisitionDialog() {
         className="
           w-[95vw]
           max-w-[95vw]
-          sm:max-w-[860px]
+          sm:max-w-215
           p-0
           overflow-hidden
           max-h-[85vh]
@@ -104,7 +104,7 @@ export function PurchasesRequisitionDialog() {
                   Compras y abastecimiento
                 </p>
 
-                <DialogDescription className="max-w-[430px] text-sm leading-relaxed">
+                <DialogDescription className="max-w-107.5 text-sm leading-relaxed">
                   Cree solicitudes de compra según el tipo de operación.
                 </DialogDescription>
               </div>
