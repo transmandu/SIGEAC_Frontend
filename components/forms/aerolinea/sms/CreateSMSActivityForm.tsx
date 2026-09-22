@@ -38,6 +38,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { useGetActivityCategories } from "@/hooks/sms/useGetActivityCategories";
 import { useGetEmployeesByDepartment } from "@/hooks/sistema/useGetEmployeesByDepartament";
 import { cn, parseServerDate } from "@/lib/utils";
@@ -46,13 +47,21 @@ import { SMSActivity } from "@/types";
 import { zodResolver } from "@/lib/zod-resolver";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { CalendarIcon, Check, ChevronsUpDown, Loader2, Plus, X } from "lucide-react";
+import {
+  CalendarIcon,
+  Check,
+  ChevronsUpDown,
+  Loader2,
+  Plus,
+  X,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import Image from "next/image";
 import { z } from "zod";
 import { ActivityCategoriesForm } from "./ActivityCategoriesForm";
+import FolderSelect from "@/components/library/FolderSelect";
 
 const FormSchema = z
   .object({
@@ -77,6 +86,8 @@ const FormSchema = z
     title: z.string(),
     image: z.any().optional(),
     document: z.any().optional(),
+    is_pre: z.boolean().default(false),
+    library_folder_paths: z.array(z.string()).optional().default([]),
   })
   .refine(
     (data) => {
@@ -92,7 +103,6 @@ const FormSchema = z
     },
   );
 type FormSchemaType = z.infer<typeof FormSchema>;
-
 
 interface FormProps {
   onClose: (open: boolean) => void;
@@ -147,14 +157,19 @@ export default function CreateSMSActivityForm({
       place: initialData?.place || "",
       topics: initialData?.topics || "",
       categories:
-        initialData?.categories?.map((category) => category.id.toString()) || [],
+        initialData?.categories?.map((category) => category.id.toString()) ||
+        [],
       objetive: initialData?.objetive || "",
       description: initialData?.description || "",
       authorized_by: initialData?.authorized_by?.dni?.toString(),
       planned_by: initialData?.planned_by?.dni?.toString(),
       executed_by: initialData?.executed_by || "",
+      is_pre: Boolean(initialData?.is_pre),
+      library_folder_paths: [],
     },
   });
+
+  const isPre = form.watch("is_pre");
 
   useEffect(() => {
     if (isEditing && initialData && employees) {
@@ -173,12 +188,15 @@ export default function CreateSMSActivityForm({
         place: initialData.place || "",
         topics: initialData.topics || "",
         categories:
-          initialData.categories?.map((category) => category.id.toString()) || [],
+          initialData.categories?.map((category) => category.id.toString()) ||
+          [],
         objetive: initialData.objetive || "",
         description: initialData.description || "",
         authorized_by: initialData.authorized_by?.dni?.toString(),
         planned_by: initialData.planned_by?.dni?.toString(),
         executed_by: initialData.executed_by || "",
+        is_pre: Boolean(initialData.is_pre),
+        library_folder_paths: [],
       });
     } else if (!isEditing && nextNumberData?.next_number) {
       form.setValue("activity_number", nextNumberData.next_number);
@@ -230,7 +248,9 @@ export default function CreateSMSActivityForm({
       onClose(true);
     } else if (onContinue) {
       const selectedCategoryNames = data.categories
-        .map((id) => categories?.find((c) => c.id.toString() === id)?.name || "")
+        .map(
+          (id) => categories?.find((c) => c.id.toString() === id)?.name || "",
+        )
         .filter(Boolean);
       onContinue(data, selectedCategoryNames);
       return;
@@ -244,7 +264,10 @@ export default function CreateSMSActivityForm({
 
         if (onSuccess && createdId) {
           const selectedCategoryNames = data.categories
-            .map((id) => categories?.find((c) => c.id.toString() === id)?.name || "")
+            .map(
+              (id) =>
+                categories?.find((c) => c.id.toString() === id)?.name || "",
+            )
             .filter(Boolean);
           onSuccess(createdId.toString(), selectedCategoryNames);
           return;
@@ -566,7 +589,9 @@ export default function CreateSMSActivityForm({
                     <Command>
                       <CommandInput placeholder="Buscar categoría..." />
                       <CommandList>
-                        <CommandEmpty>No se encontraron categorías</CommandEmpty>
+                        <CommandEmpty>
+                          No se encontraron categorías
+                        </CommandEmpty>
                         <CommandGroup>
                           {categories?.map((category) => {
                             const categoryId = category.id.toString();
@@ -580,23 +605,17 @@ export default function CreateSMSActivityForm({
                                 onSelect={() => {
                                   const nextValue = isSelected
                                     ? field.value.filter(
-                                      (selectedId) =>
-                                        selectedId !==
-                                        categoryId,
-                                    )
-                                    : [
-                                      ...(field.value || []),
-                                      categoryId,
-                                    ];
+                                        (selectedId) =>
+                                          selectedId !== categoryId,
+                                      )
+                                    : [...(field.value || []), categoryId];
                                   field.onChange(nextValue);
                                 }}
                               >
                                 <Check
                                   className={cn(
                                     "mr-2 h-4 w-4",
-                                    isSelected
-                                      ? "opacity-100"
-                                      : "opacity-0",
+                                    isSelected ? "opacity-100" : "opacity-0",
                                   )}
                                 />
                                 <span className="truncate">
@@ -819,6 +838,67 @@ export default function CreateSMSActivityForm({
               </FormItem>
             )}
           />
+        </div>
+
+        {/* Actividad "pre" */}
+        <FormField
+          control={form.control}
+          name="is_pre"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border border-border/60 p-3">
+              <div className="space-y-0.5">
+                <FormLabel className="text-sm font-medium">
+                  Actividad &quot;pre&quot; (SMS)
+                </FormLabel>
+                <p className="text-xs text-muted-foreground">
+                  Permite que el mismo documento aparezca en varias carpetas de
+                  la Librería.
+                </p>
+              </div>
+              <FormControl>
+                <Switch
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+
+        {/* Carpeta en la Librería */}
+        <div className="space-y-3 rounded-lg border border-border/60 p-3">
+          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            {isPre
+              ? "Carpetas en la Librería (réplica)"
+              : "Carpeta en la Librería"}
+          </p>
+
+          <FormField
+            control={form.control}
+            name="library_folder_paths"
+            render={({ field }) => (
+              <FormItem className="flex flex-col">
+                <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">
+                  Carpeta destino
+                </FormLabel>
+                <FormControl>
+                  <FolderSelect
+                    company={selectedCompany?.slug}
+                    value={field.value ?? []}
+                    onChange={field.onChange}
+                    single={!isPre}
+                  />
+                </FormControl>
+                <FormMessage className="text-xs" />
+              </FormItem>
+            )}
+          />
+
+          <p className="text-xs text-muted-foreground">
+            {isPre
+              ? "El documento adjunto se subirá una sola vez a la Librería. Usa la estrella para fijar la carpeta principal; las demás son réplicas en otras carpetas."
+              : "El documento adjunto se guardará en la Librería en la carpeta seleccionada."}
+          </p>
         </div>
 
         <Button type="submit" className="w-full h-10">

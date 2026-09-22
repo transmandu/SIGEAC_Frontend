@@ -168,7 +168,7 @@ export function CreateVoluntaryReportForm({
       )
       .optional(),
 
-    library_folder_path: z.string().optional(),
+    library_folder_paths: z.array(z.string()).optional().default([]),
   });
 
   type FormSchemaType = z.infer<typeof FormSchema>;
@@ -764,18 +764,18 @@ export function CreateVoluntaryReportForm({
         {selectedDocument && (
           <FormField
             control={form.control}
-            name="library_folder_path"
+            name="library_folder_paths"
             render={({ field }) => (
               <FormItem data-tour="voluntario-carpeta">
-                <FormLabel>Carpeta en Librería</FormLabel>
+                <FormLabel>Carpetas en Librería</FormLabel>
                 <FolderSelect
                   company={selectedCompany?.slug}
-                  value={field.value}
-                  onChange={field.onChange}
+                  value={field.value ?? []}
+                  onChange={(paths) => field.onChange(paths)}
                 />
                 <p className="text-xs text-muted-foreground">
                   El documento guardado también estará disponible en la
-                  biblioteca dentro de esta carpeta.
+                  biblioteca dentro de estas carpetas.
                 </p>
                 <FormMessage />
               </FormItem>

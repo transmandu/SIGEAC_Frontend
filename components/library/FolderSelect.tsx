@@ -9,6 +9,8 @@ import {
   Folder,
   FolderOpen,
   Loader2,
+  Layers,
+  Star,
 } from "lucide-react";
 import { LibraryFolderNode } from "@/types";
 import { useGetDepartments } from "@/hooks/ajustes/departamento/useGetDepartment";
@@ -25,32 +27,39 @@ import { cn } from "@/lib/utils";
 interface FolderSelectProps {
   company: string | null | undefined;
   departmentAcronym?: string;
-  onChange: (folderPath: string) => void;
-  value?: string;
+  /** Recibe SIEMPRE un array de paths: permite seleccionar varias carpetas. */
+  onChange: (folderPaths: string[]) => void;
+  value?: string[];
   includeRoot?: boolean;
+  /** Muestra/permite marcar la carpeta principal (estrella). */
+  withPrimary?: boolean;
+  /** Un solo folder: cada selección reemplaza la anterior y no hay estrella. */
+  single?: boolean;
 }
 
 type ExpandedSet = Set<string>;
 
 /**
- * Devuelve las rutas de todas las carpetas ancestro de la selección,
- * incluyendo la propia. Se usa para auto-expandir el árbol hasta la
- * carpeta ya seleccionada cuando el popover se abre.
+ * Devuelve las rutas de todas las carpetas ancestro de las selecciones,
+ * incluyendo las propias. Se usa para auto-expandir el árbol hasta las
+ * carpetas ya seleccionadas cuando el popover se abre.
  */
-function ancestorPaths(value?: string): string[] {
-  if (!value || value === "/") return ["/"];
-  const segments = value.replace(/^\/+/, "").split("/").filter(Boolean);
+function ancestorPaths(values: string[] = []): string[] {
   const paths: string[] = ["/"];
-  let current = "";
-  for (const segment of segments) {
-    current += "/" + segment;
-    paths.push(current);
+  for (const value of values) {
+    if (!value || value === "/") continue;
+    const segments = value.replace(/^\/+/, "").split("/").filter(Boolean);
+    segments.reduce((current, segment) => {
+      const next = `${current}/${segment}`;
+      paths.push(next);
+      return next;
+    }, "");
   }
   return paths;
 }
 
 /** Convierte una ruta técnica en una etiqueta legible ("/A/B" -> "A / B"). */
-function formatPathLabel(value?: string): string {
+function formatPathLabel(value: string): string {
   if (!value || value === "/") return "Raíz";
   return value
     .replace(/^\/+|\/+$/g, "")
@@ -61,10 +70,12 @@ function formatPathLabel(value?: string): string {
 interface FolderRowProps {
   node: LibraryFolderNode;
   level: number;
-  selected: string;
+  selected: Set<string>;
   expanded: ExpandedSet;
-  onSelect: (path: string) => void;
   onToggle: (path: string) => void;
+  onSetPrimary: (path: string) => void;
+  primary: string | null;
+  showPrimary: boolean;
 }
 
 function FolderRow({
@@ -72,24 +83,26 @@ function FolderRow({
   level,
   selected,
   expanded,
-  onSelect,
   onToggle,
+  onSetPrimary,
+  primary,
+  showPrimary,
 }: FolderRowProps) {
   const hasChildren = node.children.length > 0;
   const isExpanded = expanded.has(node.path);
-  const isSelected = selected === node.path;
-  const isRoot = node.id === "root";
+  const isSelected = selected.has(node.path);
+  const isPrimary = primary === node.path;
 
   return (
     <div>
       <div
         role="button"
         tabIndex={0}
-        onClick={() => onSelect(node.path)}
+        onClick={() => onToggle(node.path)}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
-            onSelect(node.path);
+            onToggle(node.path);
           }
         }}
         className={cn(
@@ -129,6 +142,33 @@ function FolderRow({
           {node.name}
         </span>
 
+        {isSelected && showPrimary && (
+          <>
+            <button
+              type="button"
+              title={
+                isPrimary
+                  ? "Carpeta principal"
+                  : "Marcar como carpeta principal"
+              }
+              aria-label={
+                isPrimary ? "Carpeta principal" : "Marcar como principal"
+              }
+              onClick={(e) => {
+                e.stopPropagation();
+                onSetPrimary(node.path);
+              }}
+              className={cn(
+                "p-0.5 shrink-0 rounded hover:bg-muted/50 transition-colors",
+                isPrimary ? "text-amber-400" : "text-muted-foreground/50",
+              )}
+            >
+              <Star
+                className={cn("h-3.5 w-3.5", isPrimary ? "fill-amber-400" : "")}
+              />
+            </button>
+          </>
+        )}
         {isSelected && <Check className="h-3.5 w-3.5 shrink-0 text-primary" />}
       </div>
 
@@ -141,8 +181,10 @@ function FolderRow({
               level={level + 1}
               selected={selected}
               expanded={expanded}
-              onSelect={onSelect}
               onToggle={onToggle}
+              onSetPrimary={onSetPrimary}
+              primary={primary}
+              showPrimary={showPrimary}
             />
           ))}
         </div>
@@ -155,8 +197,10 @@ export default function FolderSelect({
   company,
   departmentAcronym = "SMS",
   onChange,
-  value,
+  value = [],
   includeRoot = true,
+  withPrimary = true,
+  single = false,
 }: FolderSelectProps) {
   const [open, setOpen] = useState(false);
   const [departmentId, setDepartmentId] = useState<number | null>(null);
@@ -166,6 +210,8 @@ export default function FolderSelect({
     // Por defecto la raíz viene expandida.
     return includeRoot ? new Set(["/"]) : new Set<string>();
   });
+  const [draft, setDraft] = useState<Set<string>>(new Set(value));
+  const [primary, setPrimary] = useState<string | null>(value[0] ?? null);
 
   const { data: departments, isLoading: loadingDept } = useGetDepartments(
     company ?? undefined,
@@ -198,10 +244,14 @@ export default function FolderSelect({
       .finally(() => setLoadingFolders(false));
   }, [smsDepartment, company]);
 
-  // Al abrir el popover, expandir el árbol hasta la carpeta seleccionada.
+  // Al abrir el popover, expandir el árbol hasta las carpetas seleccionadas y
+  // tomar como borrador la selección vigente. La carpeta principal es la que
+  // ocupa el índice [0] del array (convención: principal primero).
   useEffect(() => {
     if (open) {
       setExpanded(new Set([...ancestorPaths(value)]));
+      setDraft(new Set(value));
+      setPrimary(value[0] ?? null);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
@@ -218,9 +268,51 @@ export default function FolderSelect({
     });
   };
 
-  const handleSelect = (path: string) => {
-    onChange(path);
+  const toggleSelection = (path: string) => {
+    if (single) {
+      // En modo single la selección reemplaza la anterior.
+      setDraft(new Set([path]));
+      return;
+    }
+    setDraft((prev) => {
+      const next = new Set(prev);
+      if (next.has(path)) {
+        next.delete(path);
+      } else {
+        next.add(path);
+      }
+      return next;
+    });
+  };
+
+  const setPrimarySelection = (path: string) => {
+    setDraft((prev) => {
+      const next = new Set(prev);
+      next.add(path);
+      return next;
+    });
+    setPrimary(path);
+  };
+
+  const apply = () => {
+    if (single) {
+      onChange([...draft]);
+      setOpen(false);
+      return;
+    }
+    // La carpeta principal va SIEMPRE primero en el array; el backend la usa
+    // como carpeta física/primaria (folderPath === folderPaths[0]).
+    const next =
+      withPrimary && primary
+        ? [primary, ...[...draft].filter((p) => p !== primary).sort()]
+        : [...draft].sort();
+    onChange(next);
     setOpen(false);
+  };
+
+  const clearSelection = () => {
+    setDraft(new Set());
+    setPrimary(null);
   };
 
   const rootNode: LibraryFolderNode = {
@@ -232,6 +324,17 @@ export default function FolderSelect({
 
   const isLoading = !company || loadingDept || loadingFolders;
   const hasFolders = folders.length > 0;
+  const selectedCount = value.length;
+
+  const triggerLabel = useMemo(() => {
+    if (value.length === 0) return "Sin carpetas seleccionadas";
+    if (value.length === 1) return formatPathLabel(value[0]);
+    if (withPrimary) {
+      const rest = value.length - 1;
+      return `${formatPathLabel(value[0])} +${rest} más`;
+    }
+    return `${value.length} carpetas seleccionadas`;
+  }, [value, withPrimary]);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -245,16 +348,17 @@ export default function FolderSelect({
             aria-expanded={open}
             className={cn(
               "w-full justify-between font-normal h-9",
-              !value && "text-muted-foreground",
+              !value.length && "text-muted-foreground",
             )}
           >
             <span className="flex items-center gap-2 overflow-hidden flex-1 min-w-0">
-              <Folder className="h-3.5 w-3.5 shrink-0 text-muted-foreground/70" />
-              <span
-                className="truncate min-w-0"
-                title={value ? formatPathLabel(value) : undefined}
-              >
-                {value ? formatPathLabel(value) : "Seleccione una carpeta"}
+              {value.length > 1 ? (
+                <Layers className="h-3.5 w-3.5 shrink-0 text-muted-foreground/70" />
+              ) : (
+                <Folder className="h-3.5 w-3.5 shrink-0 text-muted-foreground/70" />
+              )}
+              <span className="truncate min-w-0" title={triggerLabel}>
+                {triggerLabel}
               </span>
             </span>
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -271,11 +375,12 @@ export default function FolderSelect({
           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
             {smsDepartment?.name ?? departmentAcronym}
           </p>
-          <p
-            className="mt-0.5 text-[13px] leading-snug text-foreground/90"
-            title={formatPathLabel(value)}
-          >
-            {value ? formatPathLabel(value) : "Raíz"}
+          <p className="mt-0.5 text-[13px] leading-snug text-foreground/90">
+            {value.length === 0
+              ? "Sin carpetas seleccionadas"
+              : value.length === 1
+                ? formatPathLabel(value[0])
+                : `${value.length} carpetas seleccionadas`}
           </p>
         </div>
 
@@ -299,18 +404,66 @@ export default function FolderSelect({
         )}
 
         {!isLoading && smsDepartment && hasFolders && (
-          <div className="max-h-72 overflow-y-auto">
-            <div className="p-1">
-              <FolderRow
-                node={rootNode}
-                level={0}
-                selected={includeRoot ? (value ?? "") : ""}
-                expanded={expanded}
-                onSelect={includeRoot ? handleSelect : () => {}}
-                onToggle={toggle}
-              />
+          <>
+            <div className="max-h-72 overflow-y-auto">
+              <p className="px-3 pt-2 pb-1 text-[11px] leading-snug text-muted-foreground">
+                {single
+                  ? "Selecciona la carpeta donde se guardará el documento."
+                  : withPrimary
+                    ? "Marca las carpetas donde aparecerá el documento y usa la estrella para fijar la principal."
+                    : "Marca las carpetas donde aparecerá el documento. Puedes seleccionar varias."}
+              </p>
+              <div className="p-1">
+                {includeRoot && (
+                  <FolderRow
+                    node={rootNode}
+                    level={0}
+                    selected={draft}
+                    expanded={expanded}
+                    onToggle={toggleSelection}
+                    onSetPrimary={setPrimarySelection}
+                    primary={withPrimary && !single ? primary : null}
+                    showPrimary={withPrimary && !single}
+                  />
+                )}
+                {!includeRoot &&
+                  folders.map((node) => (
+                    <FolderRow
+                      key={node.id}
+                      node={node}
+                      level={0}
+                      selected={draft}
+                      expanded={expanded}
+                      onToggle={toggleSelection}
+                      onSetPrimary={setPrimarySelection}
+                      primary={withPrimary && !single ? primary : null}
+                      showPrimary={withPrimary && !single}
+                    />
+                  ))}
+              </div>
             </div>
-          </div>
+
+            <div className="flex items-center justify-between gap-2 border-t border-border/50 p-2">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-8 text-xs"
+                onClick={clearSelection}
+              >
+                Limpiar
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                className="h-8 text-xs"
+                onClick={apply}
+                disabled={draft.size === 0}
+              >
+                Aplicar ({draft.size})
+              </Button>
+            </div>
+          </>
         )}
       </PopoverContent>
     </Popover>
