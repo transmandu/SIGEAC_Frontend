@@ -347,7 +347,7 @@ export const AeronauticalSMSTabs = ({ company, surveyNumbers }: SMSTabsProps) =>
                                 />
                                 <div className="absolute inset-0 bg-linear-to-t from-slate-950/80 via-transparent to-transparent" />
 
-                                <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-4 p-5 text-white">
+                                <div className="absolute inset-x-0 bottom-0 flex flex-col items-start gap-4 p-5 text-white sm:flex-row sm:items-end sm:justify-between">
                                     <div className="max-w-2xl space-y-2">
                                         <p className="text-xs uppercase tracking-[0.2em] text-slate-200">
                                             {galleryIndex + 1} / {companyGallery.length}
@@ -423,7 +423,7 @@ export const AeronauticalSMSTabs = ({ company, surveyNumbers }: SMSTabsProps) =>
                         </CardTitle>
 
                     </CardHeader>
-                    <CardContent className="grid gap-5 sm:grid-cols-1 xl:grid-cols-2 2xl:grid-cols-2">
+                    <CardContent className="grid gap-5 lg:grid-cols-2">
                         {keyPersonnel.map((person) => (
                             <PersonCard
                                 key={person.role}
@@ -441,22 +441,20 @@ export const AeronauticalSMSTabs = ({ company, surveyNumbers }: SMSTabsProps) =>
                             <Users className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
                             Grupos
                         </CardTitle>
-                        <CardContent className="grid gap-5 sm:grid-cols-1 xl:grid-cols-2 2xl:grid-cols-2">
-                            <PillarCard
-                                key={OmacGroupSMS[0].title}
-                                title={OmacGroupSMS[0].title}
-                                image={OmacGroupSMS[0].image}
-                            />
-
-                            <PillarCard
-                                key={OmacGroupSMS[1].title}
-                                title={OmacGroupSMS[1].title}
-                                image={OmacGroupSMS[1].image}
-                            />
-
-                        </CardContent>
                     </CardHeader>
+                    <CardContent className="grid gap-5 lg:grid-cols-2">
+                        <PillarCard
+                            key={OmacGroupSMS[0].title}
+                            title={OmacGroupSMS[0].title}
+                            image={OmacGroupSMS[0].image}
+                        />
 
+                        <PillarCard
+                            key={OmacGroupSMS[1].title}
+                            title={OmacGroupSMS[1].title}
+                            image={OmacGroupSMS[1].image}
+                        />
+                    </CardContent>
                 </Card>
             </TabsContent>
 

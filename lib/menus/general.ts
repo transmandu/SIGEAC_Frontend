@@ -97,6 +97,14 @@ export function buildGeneralGroup({ pathname, currentCompany, userRoles }: MenuC
                             pathname ===
                             `/${currentCompany?.slug}/general/reporte/codigos_qr`,
                     },
+                    {
+                        href: `/acceso_publico/${currentCompany?.slug}/sms`,
+                        label: "Pagina Principal SMS",
+                        roles: [],
+                        active:
+                            pathname ===
+                            `/acceso_publico/${currentCompany?.slug}/sms`,
+                    },
                 ],
             },
             {

@@ -58,10 +58,10 @@ export const AirlineSMSTabs = ({ company, surveyNumbers }: SMSTabsProps) => {
 
     return (
         <Tabs defaultValue="politicas" className="w-full">
-            <TabsList className="pb-40 sm:pb-2 grid w-full grid-cols-2 gap-2 lg:grid-cols-4 items-center justify-center">
+            <TabsList className="grid h-auto w-full grid-cols-2 gap-2 p-2 lg:grid-cols-4">
                 <TabsTrigger
                     value="politicas"
-                    className="flex-col sm:flex-row items-center justify-center gap-2 px-2 sm:px-4 mt-5 sm:mt-0"
+                    className="flex-col sm:flex-row items-center justify-center gap-2 px-2 sm:px-4"
                 >
                     <div>
                         <BookOpen className="h-4 w-4 shrink-0" />
@@ -72,7 +72,7 @@ export const AirlineSMSTabs = ({ company, surveyNumbers }: SMSTabsProps) => {
                 </TabsTrigger>
                 <TabsTrigger
                     value="empresa"
-                    className="flex-col sm:flex-row items-center justify-center gap-2 px-2 sm:px-4 mt-5 sm:mt-0"
+                    className="flex-col sm:flex-row items-center justify-center gap-2 px-2 sm:px-4"
                 >
                     <div>
                         <Building className="h-4 w-4 shrink-0" />
@@ -83,7 +83,7 @@ export const AirlineSMSTabs = ({ company, surveyNumbers }: SMSTabsProps) => {
                 </TabsTrigger>
                 <TabsTrigger
                     value="estrategias"
-                    className="flex-col sm:flex-row items-center justify-center gap-2 px-2 sm:px-4 mb-4 sm:mb-0"
+                    className="flex-col sm:flex-row items-center justify-center gap-2 px-2 sm:px-4"
                 >
                     <div>
                         <Target className="h-4 w-4 shrink-0" />
@@ -94,7 +94,7 @@ export const AirlineSMSTabs = ({ company, surveyNumbers }: SMSTabsProps) => {
                 </TabsTrigger>
                 <TabsTrigger
                     value="plan-respuesta"
-                    className="flex-col sm:flex-row items-center justify-center gap-2 px-2 sm:px-4 mb-4 sm:mb-0"
+                    className="flex-col sm:flex-row items-center justify-center gap-2 px-2 sm:px-4"
                 >
                     <div>
                         <AlertTriangle className="h-4 w-4 shrink-0" />

@@ -30,7 +30,7 @@ const AirlinePresentationCard = ({ company }: PresentationCardProps) => {
                         {/* Overlay gradiente para legibilidad */}
                         <div className="absolute inset-0 bg-linear-to-r from-blue-900/70 to-transparent" />
 
-                        <div className="absolute bottom-4 left-4 lg:bottom-8 lg:left-8 text-white">
+                        <div className="absolute bottom-4 left-4 right-4 text-white lg:bottom-8 lg:left-8 lg:right-auto lg:max-w-md">
                             <h1 className="text-2xl lg:text-3xl font-bold mb-2">
                                 Sistema de Gestión de Seguridad Operacional
                             </h1>
