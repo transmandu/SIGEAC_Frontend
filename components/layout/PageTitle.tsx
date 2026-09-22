@@ -34,13 +34,20 @@ export function PageTitle({ className }: { className?: string }) {
   const shownRef = useRef(shown);
 
   useEffect(() => {
-    if (title === shownRef.current) return;
-
     const settle = (next: string) => {
       shownRef.current = next;
       setShown(next);
       setLoading(false);
     };
+
+    // El título vuelve a ser el que ya mostrábamos: un remount del mismo
+    // ContentLayout (F5, refetch) que pasó por "" y regresó. No hay secuencia
+    // que correr, pero si el hueco alcanzó a encender el loader hay que
+    // apagarlo: si no, nadie más lo hará y se queda girando para siempre.
+    if (title === shownRef.current) {
+      setLoading(false);
+      return;
+    }
 
     // Primera pintura o motion reducido: sin secuencia intermedia.
     if (!shownRef.current || reduceMotion) {
