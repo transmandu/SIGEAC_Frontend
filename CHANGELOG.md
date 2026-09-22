@@ -1,3 +1,7 @@
+## v4.18.1 — 2026-09-22
+
+- fix: improve loading state handling in PageTitle component and simplify title registration logic
+
 ## v4.18.0 — 2026-09-22
 
 - feat: add download dialog for purchase requisitions by status and upd… (#281)
