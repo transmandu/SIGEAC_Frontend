@@ -34,10 +34,9 @@ export const PageTitleProvider = ({ children }: { children: ReactNode }) => {
     (nextTitle: string) => {
       const id = ++idRef.current;
 
-      stackRef.current = [
-        ...stackRef.current.filter((entry) => entry.id !== id),
-        { id, title: nextTitle },
-      ];
+      // El id es nuevo en cada llamada, así que no hay nada que filtrar: cada
+      // registro es una entrada propia y su cleanup se lleva exactamente esa.
+      stackRef.current = [...stackRef.current, { id, title: nextTitle }];
 
       sync();
 
