@@ -73,6 +73,7 @@ interface FolderRowProps {
   selected: Set<string>;
   expanded: ExpandedSet;
   onToggle: (path: string) => void;
+  onToggleExpand: (path: string) => void;
   onSetPrimary: (path: string) => void;
   primary: string | null;
   showPrimary: boolean;
@@ -84,6 +85,7 @@ function FolderRow({
   selected,
   expanded,
   onToggle,
+  onToggleExpand,
   onSetPrimary,
   primary,
   showPrimary,
@@ -117,7 +119,7 @@ function FolderRow({
             type="button"
             onClick={(e) => {
               e.stopPropagation();
-              onToggle(node.path);
+              onToggleExpand(node.path);
             }}
             className="p-0.5 shrink-0 text-muted-foreground/70 hover:bg-muted/40 rounded"
             aria-label={isExpanded ? "Contraer" : "Expandir"}
@@ -182,6 +184,7 @@ function FolderRow({
               selected={selected}
               expanded={expanded}
               onToggle={onToggle}
+              onToggleExpand={onToggleExpand}
               onSetPrimary={onSetPrimary}
               primary={primary}
               showPrimary={showPrimary}
@@ -421,6 +424,7 @@ export default function FolderSelect({
                     selected={draft}
                     expanded={expanded}
                     onToggle={toggleSelection}
+                    onToggleExpand={toggle}
                     onSetPrimary={setPrimarySelection}
                     primary={withPrimary && !single ? primary : null}
                     showPrimary={withPrimary && !single}
@@ -435,6 +439,7 @@ export default function FolderSelect({
                       selected={draft}
                       expanded={expanded}
                       onToggle={toggleSelection}
+                      onToggleExpand={toggle}
                       onSetPrimary={setPrimarySelection}
                       primary={withPrimary && !single ? primary : null}
                       showPrimary={withPrimary && !single}
