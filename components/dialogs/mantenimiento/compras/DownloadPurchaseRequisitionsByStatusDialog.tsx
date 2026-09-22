@@ -1,11 +1,11 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { toast } from 'sonner'
-import { Check, FileDown, Loader2 } from 'lucide-react'
+import { useState } from "react";
+import { toast } from "sonner";
+import { Check, FileDown, Loader2 } from "lucide-react";
 
-import { ActionTriggerButton } from '@/components/misc/ActionTriggerButton'
-import { Button } from '@/components/ui/button'
+import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -14,11 +14,11 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog'
-import { cn } from '@/lib/utils'
-import { useCompanyStore } from '@/stores/CompanyStore'
-import { useDownloadPurchaseRequisitionsByStatusPdf } from '@/hooks/mantenimiento/compras/useDownloadPurchaseRequisitionsByStatusPdf'
-import { toCalendarPayload } from '@/lib/date'
+} from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { useDownloadPurchaseRequisitionsByStatusPdf } from "@/hooks/mantenimiento/compras/useDownloadPurchaseRequisitionsByStatusPdf";
+import { toCalendarPayload } from "@/lib/date";
 
 /**
  * Los seis estados del ciclo. A diferencia del reporte de almacén, compras sí
@@ -31,57 +31,57 @@ import { toCalendarPayload } from '@/lib/date'
  */
 const STATUS_OPTIONS = [
   {
-    value: 'CREATED',
-    label: 'CREADA',
-    description: 'Registrada, aún no revisada por compras.',
-    pill: 'bg-slate-500/15 text-slate-700 dark:text-slate-300',
+    value: "CREATED",
+    label: "CREADA",
+    description: "Registrada, aún no revisada por compras.",
+    pill: "bg-slate-500/15 text-slate-700 dark:text-slate-300",
   },
   {
-    value: 'RECEIVED',
-    label: 'RECIBIDA',
-    description: 'Ya un usuario de compras visualizó la solicitud.',
-    pill: 'bg-sky-500/15 text-sky-700 dark:text-sky-300',
+    value: "RECEIVED",
+    label: "RECIBIDA",
+    description: "Ya un usuario de compras visualizó la solicitud.",
+    pill: "bg-sky-500/15 text-sky-700 dark:text-sky-300",
   },
   {
-    value: 'IN_PROGRESS',
-    label: 'EN PROCESO',
-    description: 'Se está procesando; no significa que ya esté cotizada.',
-    pill: 'bg-yellow-500/15 text-yellow-700 dark:text-yellow-300',
+    value: "IN_PROGRESS",
+    label: "EN PROCESO",
+    description: "Se está procesando; no significa que ya esté cotizada.",
+    pill: "bg-yellow-500/15 text-yellow-700 dark:text-yellow-300",
   },
   {
-    value: 'QUOTED',
-    label: 'COTIZADA',
-    description: 'Con cotización cargada, a la espera de aprobación.',
-    pill: 'bg-amber-600/15 text-amber-800 dark:text-amber-300',
+    value: "QUOTED",
+    label: "COTIZADA",
+    description: "Con cotización cargada, a la espera de aprobación.",
+    pill: "bg-amber-600/15 text-amber-800 dark:text-amber-300",
   },
   {
-    value: 'APPROVED',
-    label: 'APROBADA',
-    description: 'La compra ya fue autorizada.',
-    pill: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300',
+    value: "APPROVED",
+    label: "APROBADA",
+    description: "La compra ya fue autorizada.",
+    pill: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
   },
   {
-    value: 'REJECTED',
-    label: 'NO APROBADA',
-    description: 'Rechazada; no continuó en el ciclo de compra.',
-    pill: 'bg-rose-500/15 text-rose-700 dark:text-rose-300',
+    value: "REJECTED",
+    label: "NO APROBADA",
+    description: "Rechazada; no continuó en el ciclo de compra.",
+    pill: "bg-rose-500/15 text-rose-700 dark:text-rose-300",
   },
-] as const
+] as const;
 
 /**
  * El estado con el que abre el diálogo. Es el que cubría el botón anterior
  * ("Generar Reporte PDF" del listado en proceso), así que el caso de siempre
  * sigue estando a un clic y el resto queda disponible.
  */
-const DEFAULT_STATUSES = ['IN_PROGRESS']
+const DEFAULT_STATUSES = ["IN_PROGRESS"];
 
 type Props = {
   /**
    * Tipo de requisición a incluir. Lo decide la página: cada pantalla de
    * compras lista un tipo. Omitido, el reporte sale con ambos.
    */
-  type?: 'GENERAL' | 'AERONAUTICAL'
-}
+  type?: "GENERAL" | "AERONAUTICAL";
+};
 
 /**
  * Descarga el reporte "Requisiciones por Estado" del módulo de compras: se
@@ -89,32 +89,32 @@ type Props = {
  * con sus artículos, cada uno con su etapa en el ciclo de compra.
  */
 export function DownloadPurchaseRequisitionsByStatusDialog({ type }: Props) {
-  const { selectedCompany, selectedStation } = useCompanyStore()
-  const [open, setOpen] = useState(false)
-  const [selected, setSelected] = useState<string[]>(DEFAULT_STATUSES)
+  const { selectedCompany, selectedStation } = useCompanyStore();
+  const [open, setOpen] = useState(false);
+  const [selected, setSelected] = useState<string[]>(DEFAULT_STATUSES);
 
   const { mutateAsync: downloadPdf, isPending } =
-    useDownloadPurchaseRequisitionsByStatusPdf()
+    useDownloadPurchaseRequisitionsByStatusPdf();
 
   const toggleStatus = (value: string) => {
     setSelected((current) =>
       current.includes(value)
         ? current.filter((status) => status !== value)
-        : [...current, value]
-    )
-  }
+        : [...current, value],
+    );
+  };
 
-  const allSelected = selected.length === STATUS_OPTIONS.length
+  const allSelected = selected.length === STATUS_OPTIONS.length;
 
   const handleDownload = async () => {
-    if (!selectedCompany?.slug || selected.length === 0) return
+    if (!selectedCompany?.slug || selected.length === 0) return;
 
     // El endpoint lleva la estación en la ruta. Se resetea al cambiar de
     // compañía, así que puede faltar sin que el usuario lo note: sin avisar,
     // el botón simplemente no haría nada.
     if (!selectedStation) {
-      toast.error('Seleccione una estación para generar el reporte.')
-      return
+      toast.error("Seleccione una estación para generar el reporte.");
+      return;
     }
 
     try {
@@ -123,33 +123,33 @@ export function DownloadPurchaseRequisitionsByStatusDialog({ type }: Props) {
         locationId: selectedStation,
         statuses: selected,
         type,
-      })
+      });
 
-      if (!blob) return
+      if (!blob) return;
 
-      const url = URL.createObjectURL(blob)
-      const anchor = document.createElement('a')
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
 
-      anchor.href = url
-      anchor.download = `requisiciones-por-estado-${(toCalendarPayload(new Date()) ?? '').replace(/-/g, '')}.pdf`
+      anchor.href = url;
+      anchor.download = `requisiciones-por-estado-${(toCalendarPayload(new Date()) ?? "").replace(/-/g, "")}.pdf`;
 
       // El ancla debe estar en el documento: Firefox ignora el click sobre un
       // elemento suelto y la descarga no ocurre.
-      document.body.appendChild(anchor)
-      anchor.click()
-      anchor.remove()
-      setTimeout(() => URL.revokeObjectURL(url), 100)
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 100);
 
-      toast.success('Reporte de requisiciones generado')
-      setOpen(false)
+      toast.success("Reporte de requisiciones generado");
+      setOpen(false);
     } catch (error) {
       toast.error(
         error instanceof Error
           ? error.message
-          : 'No se pudo generar el reporte de requisiciones por estado.'
-      )
+          : "No se pudo generar el reporte de requisiciones por estado.",
+      );
     }
-  }
+  };
 
   return (
     <Dialog
@@ -157,8 +157,8 @@ export function DownloadPurchaseRequisitionsByStatusDialog({ type }: Props) {
       onOpenChange={(next) => {
         // Al abrir se vuelve al estado por defecto: así una descarga acotada
         // anterior no condiciona la siguiente en silencio.
-        if (next) setSelected(DEFAULT_STATUSES)
-        setOpen(next)
+        if (next) setSelected(DEFAULT_STATUSES);
+        setOpen(next);
       }}
     >
       <DialogTrigger asChild>
@@ -203,7 +203,7 @@ export function DownloadPurchaseRequisitionsByStatusDialog({ type }: Props) {
         <div className="flex items-center justify-between px-1">
           <span className="text-xs text-muted-foreground tabular-nums">
             {selected.length === 0
-              ? 'Ningún estado seleccionado'
+              ? "Ningún estado seleccionado"
               : `${selected.length} de ${STATUS_OPTIONS.length} seleccionados`}
           </span>
 
@@ -211,12 +211,12 @@ export function DownloadPurchaseRequisitionsByStatusDialog({ type }: Props) {
             type="button"
             onClick={() =>
               setSelected(
-                allSelected ? [] : STATUS_OPTIONS.map((option) => option.value)
+                allSelected ? [] : STATUS_OPTIONS.map((option) => option.value),
               )
             }
             className="text-xs font-medium text-primary hover:underline"
           >
-            {allSelected ? 'Limpiar' : 'Seleccionar todos'}
+            {allSelected ? "Limpiar" : "Seleccionar todos"}
           </button>
         </div>
 
@@ -224,7 +224,7 @@ export function DownloadPurchaseRequisitionsByStatusDialog({ type }: Props) {
             el diálogo, y la retícula deja ver el ciclo completo de una vez. */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[50vh] overflow-y-auto px-1">
           {STATUS_OPTIONS.map((option) => {
-            const isSelected = selected.includes(option.value)
+            const isSelected = selected.includes(option.value);
 
             return (
               <button
@@ -241,11 +241,11 @@ export function DownloadPurchaseRequisitionsByStatusDialog({ type }: Props) {
                    diálogo la tarjeta sin contorno desaparecía y su contenido
                    quedaba flotando. */
                 className={cn(
-                  'group relative flex flex-col gap-1.5 rounded-2xl p-3 text-left',
-                  'ring-1 ring-inset transition-colors duration-200',
+                  "group relative flex flex-col gap-1.5 rounded-2xl p-3 text-left",
+                  "ring-1 ring-inset transition-colors duration-200",
                   isSelected
-                    ? 'bg-primary/8 ring-primary/30'
-                    : 'bg-muted/30 ring-border/70 hover:bg-muted/60 hover:ring-border'
+                    ? "bg-primary/8 ring-primary/30"
+                    : "bg-muted/30 ring-border/70 hover:bg-muted/60 hover:ring-border",
                 )}
               >
                 <span className="flex items-center justify-between gap-2">
@@ -254,8 +254,8 @@ export function DownloadPurchaseRequisitionsByStatusDialog({ type }: Props) {
                       color de fondo basta para identificar el estado. */}
                   <span
                     className={cn(
-                      'select-none whitespace-nowrap rounded-md px-2 py-0.5 text-[10px] font-semibold tracking-wide',
-                      option.pill
+                      "select-none whitespace-nowrap rounded-md px-2 py-0.5 text-[10px] font-semibold tracking-wide",
+                      option.pill,
                     )}
                   >
                     {option.label}
@@ -265,10 +265,10 @@ export function DownloadPurchaseRequisitionsByStatusDialog({ type }: Props) {
                       marcar, la píldora se correría en cada clic. */}
                   <span
                     className={cn(
-                      'flex size-4 shrink-0 items-center justify-center rounded-full transition-colors',
+                      "flex size-4 shrink-0 items-center justify-center rounded-full transition-colors",
                       isSelected
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-background ring-1 ring-inset ring-muted-foreground/35'
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-background ring-1 ring-inset ring-muted-foreground/35",
                     )}
                   >
                     {isSelected && <Check className="size-2.5" />}
@@ -279,7 +279,7 @@ export function DownloadPurchaseRequisitionsByStatusDialog({ type }: Props) {
                   {option.description}
                 </span>
               </button>
-            )
+            );
           })}
         </div>
 
@@ -314,5 +314,5 @@ export function DownloadPurchaseRequisitionsByStatusDialog({ type }: Props) {
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

@@ -1,6 +1,6 @@
-import axios from '@/lib/axios';
-import { isAxiosError } from 'axios';
-import { useMutation } from '@tanstack/react-query';
+import axios from "@/lib/axios";
+import { isAxiosError } from "axios";
+import { useMutation } from "@tanstack/react-query";
 
 /**
  * El backend responde 400/422 con JSON { error }; al pedir la respuesta como
@@ -10,19 +10,19 @@ const extractErrorMessage = async (error: unknown): Promise<string> => {
   if (isAxiosError(error) && error.response?.data instanceof Blob) {
     try {
       const parsed = JSON.parse(await error.response.data.text());
-      if (typeof parsed?.error === 'string') return parsed.error;
+      if (typeof parsed?.error === "string") return parsed.error;
     } catch {
       // el cuerpo no era JSON; se usa el mensaje genérico
     }
   }
-  return 'No se pudo generar el reporte de requisiciones por estado.';
+  return "No se pudo generar el reporte de requisiciones por estado.";
 };
 
 const fetchPurchaseRequisitionsByStatusPdf = async (
   company: string,
   locationId: string,
   statuses: string[],
-  type?: string
+  type?: string,
 ): Promise<Blob> => {
   try {
     const { data } = await axios.get(
@@ -34,8 +34,8 @@ const fetchPurchaseRequisitionsByStatusPdf = async (
         paramsSerializer: {
           indexes: false,
         },
-        responseType: 'blob',
-      }
+        responseType: "blob",
+      },
     );
     return data;
   } catch (error) {

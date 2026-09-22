@@ -1,6 +1,6 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
+import { useState } from "react";
 
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 import {
@@ -10,31 +10,18 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog'
+} from "@/components/ui/dialog";
 
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@/components/ui/tabs'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-import {
-  Boxes,
-  Package,
-  Plane,
-  FilePlus2,
-  Plus,
-} from 'lucide-react'
+import { Boxes, Package, Plane, FilePlus2, Plus } from "lucide-react";
 
-import { CreateAeronauticalRequisitionForm } from '@/components/forms/mantenimiento/compras/CreateAeronauticalRequisitionForm'
-import { CreateWarehouseRequisitionForm } from '@/components/forms/mantenimiento/compras/CreateWarehouseRequisitionForm'
-import { CreateGeneralRequisitionForm } from '@/components/forms/mantenimiento/compras/CreateGeneralRequisitionForm'
+import { CreateAeronauticalRequisitionForm } from "@/components/forms/mantenimiento/compras/CreateAeronauticalRequisitionForm";
+import { CreateWarehouseRequisitionForm } from "@/components/forms/mantenimiento/compras/CreateWarehouseRequisitionForm";
+import { CreateGeneralRequisitionForm } from "@/components/forms/mantenimiento/compras/CreateGeneralRequisitionForm";
 
 export function PurchasesRequisitionDialog() {
-  const [open, setOpen] = useState(false)
-
-
+  const [open, setOpen] = useState(false);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -42,7 +29,7 @@ export function PurchasesRequisitionDialog() {
       <DialogTrigger asChild>
         <ActionTriggerButton>
           <Plus className="size-4" />
-           Nueva solicitud
+          Nueva solicitud
         </ActionTriggerButton>
       </DialogTrigger>
 
@@ -200,9 +187,7 @@ export function PurchasesRequisitionDialog() {
             </TabsContent>
 
             <TabsContent value="WAREHOUSE" className="mt-4">
-              <CreateWarehouseRequisitionForm
-                onClose={() => setOpen(false)}
-              />
+              <CreateWarehouseRequisitionForm onClose={() => setOpen(false)} />
             </TabsContent>
 
             <TabsContent value="GENERAL" className="mt-4">
@@ -215,5 +200,5 @@ export function PurchasesRequisitionDialog() {
         </div>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
