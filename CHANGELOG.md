@@ -1,3 +1,7 @@
+## v4.19.1 — 2026-09-22
+
+- fix: sms bulletins responsive (#283)
+
 ## v4.19.0 — 2026-09-22
 
 - feat: add sms page to general menu (#282)
