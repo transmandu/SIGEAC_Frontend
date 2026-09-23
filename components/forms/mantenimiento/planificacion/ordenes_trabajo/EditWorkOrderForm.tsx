@@ -52,6 +52,11 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import { workOrderStatusLabelEsUpper } from "@/lib/planificacion/statuses";
+import {
+  EditReasonFields,
+  EditReasonValue,
+  editReasonErrorFrom,
+} from "@/components/forms/mantenimiento/planificacion/EditReasonFields";
 
 // ─── Schema de validación ────────────────────────────────────────────────────
 const editWorkOrderSchema = z.object({
@@ -121,6 +126,10 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
   // ─── Estado para auto-upload de documento ───────────────────────────────
   const [isUploading, setIsUploading] = useState(false);
 
+  // Un único motivo por guardado: viaja a la orden y a cada tarea editada.
+  const [reason, setReason] = useState<EditReasonValue>({});
+  const [reasonError, setReasonError] = useState<string>();
+
   // ─── Form con valores pre-llenados ──────────────────────────────────────
   const form = useForm<EditWorkOrderFormValues>({
     resolver: zodResolver(editWorkOrderSchema),
@@ -133,6 +142,9 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
       date: work_order.date ? parseISO(work_order.date) : new Date(),
     },
   });
+
+  // Leído en render: react-hook-form solo rastrea lo que se suscribe aquí.
+  const { dirtyFields } = form.formState;
 
   // ─── Agregar tarea vacía ─────────────────────────────────────────────────
   const addEmptyTask = () => {
@@ -201,14 +213,12 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
 
     setIsUploading(true);
     try {
+      // Solo el documento: es flujo, no corrección. Los demás cambios del
+      // formulario se guardan (con su motivo) al pulsar "Guardar Cambios".
       await updateWorkOrder.mutateAsync({
         id: work_order.id,
         company: selectedCompany.slug,
-        data: {
-          ...form.getValues(),
-          date: format(form.getValues().date, "yyyy-MM-dd"),
-          document: file,
-        },
+        data: { document: file },
       });
       // El toast de éxito ya lo maneja el hook useUpdateWorkOrder
     } catch (error) {
@@ -232,6 +242,15 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
     const company = selectedCompany.slug;
     const orderId = work_order.id;
 
+    const hasCorrections =
+      !!(dirtyFields.description || dirtyFields.date || dirtyFields.order_number) ||
+      tasks.some((task) => !task.isNew && task.isDirty);
+
+    if (hasCorrections && !reason.edit_reason) {
+      setReasonError("Indique el motivo de la corrección.");
+      return;
+    }
+
     try {
       // 1. Actualizar campos principales de la orden
       await updateWorkOrder.mutateAsync({
@@ -244,7 +263,9 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
           reviewed_by: data.reviewed_by,
           approved_by: data.approved_by,
           date: format(data.date, "yyyy-MM-dd"),
-          document: data.document,
+          // Sin document: ya lo subió handleAutoUpload al elegirlo. Reenviarlo
+          // lo volvía a subir, borraba el recién cargado y duplicaba el log.
+          ...reason,
         },
       });
 
@@ -275,6 +296,7 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
                 description_task: task.description_task,
                 ata: task.ata,
                 material: task.material || null,
+                ...reason,
               },
             })
           );
@@ -284,6 +306,7 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
       await Promise.all(taskPromises);
       onClose();
     } catch (error) {
+      setReasonError(editReasonErrorFrom(error));
       console.error("[EditWorkOrderForm] Error al guardar:", error);
     }
   };
@@ -638,6 +661,18 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
                 </div>
               </ScrollArea>
             </div>
+
+            {!isClosed && (
+              <EditReasonFields
+                value={reason}
+                onChange={(value) => {
+                  setReason(value);
+                  setReasonError(undefined);
+                }}
+                error={reasonError}
+                disabled={isPending}
+              />
+            )}
 
             {/* ── Botones de acción ── */}
             {!isClosed && (

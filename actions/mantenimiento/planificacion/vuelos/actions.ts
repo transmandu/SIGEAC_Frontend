@@ -1,6 +1,9 @@
 import axiosInstance from "@/lib/axios"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner";
+import type { EditReasonValue } from "@/components/forms/mantenimiento/planificacion/EditReasonFields";
+import { editReasonErrorFrom } from "@/components/forms/mantenimiento/planificacion/EditReasonFields";
+import { invalidatePlanificationAudit } from "@/hooks/mantenimiento/planificacion/useGetPlanificationAuditStats";
 
 interface CreateFlightControlData {
   aircraft_id: string,
@@ -45,18 +48,19 @@ export const useUpdateFlightControl = () => {
   const queryClient = useQueryClient()
 
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data, company }: { id: string, data: Partial<CreateFlightControlData>, company: string }) => {
+    mutationFn: async ({ id, data, company }: { id: string, data: Partial<CreateFlightControlData> & EditReasonValue, company: string }) => {
       await axiosInstance.put(`/${company}/flight-control/${id}`, data)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['flight-control'] })
+      invalidatePlanificationAudit(queryClient)
       toast.success("¡Actualizado!", {
         description: `El vuelo ha sido actualizado correctamente.`
       })
     },
     onError: (error) => {
       toast.error('Oops!', {
-        description: 'No se pudo actualizar el vuelo...'
+        description: editReasonErrorFrom(error) ?? 'No se pudo actualizar el vuelo...'
       })
       console.log(error)
     },

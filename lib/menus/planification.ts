@@ -1,5 +1,5 @@
 import type { Group, MenuContext } from "@/lib/menus/types";
-import { BookCheck, CalendarFold, Plane, SquarePen } from "lucide-react";
+import { BookCheck, CalendarFold, ClipboardCheck, Plane, SquarePen } from "lucide-react";
 
 export function buildPlanificationGroup({
     pathname,
@@ -70,6 +70,15 @@ export function buildPlanificationGroup({
                             `/${currentCompany?.slug}/planificacion/control_vuelos/vuelos`,
                     },
                 ],
+            },
+            {
+                href: `/${currentCompany?.slug}/planificacion/auditoria`,
+                label: "Auditoría de Ediciones",
+                active: pathname.includes(`/${currentCompany?.slug}/planificacion/auditoria`),
+                icon: ClipboardCheck,
+                requiresOmac: true,
+                roles: ["JEFE_CONTROL_CALIDAD", "JEFE_MANTENIMIENTO", "JEFE_PLANIFICACION", "SUPERUSER"],
+                submenus: [],
             },
         ],
     };

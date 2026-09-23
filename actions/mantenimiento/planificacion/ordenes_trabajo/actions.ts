@@ -2,6 +2,9 @@ import axiosInstance from "@/lib/axios";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import type { EditReasonValue } from "@/components/forms/mantenimiento/planificacion/EditReasonFields";
+import { editReasonErrorFrom } from "@/components/forms/mantenimiento/planificacion/EditReasonFields";
+import { invalidatePlanificationAudit } from "@/hooks/mantenimiento/planificacion/useGetPlanificationAuditStats";
 
 interface event {
   title: string;
@@ -104,7 +107,7 @@ export const useDeleteWorkOrder = () => {
 };
 
 // Edita la cabecera de la orden. Las tareas se editan una a una más abajo.
-interface UpdateWOData {
+interface UpdateWOData extends EditReasonValue {
   order_number?: string;
   description?: string;
   elaborated_by?: string;
@@ -141,13 +144,14 @@ export const useUpdateWorkOrder = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["work-orders"], exact: false });
       queryClient.invalidateQueries({ queryKey: ["work-order"], exact: false });
+      invalidatePlanificationAudit(queryClient);
       toast.success("¡Actualizado!", {
         description: `La orden de trabajo ha sido actualizada correctamente.`,
       });
     },
     onError: (error) => {
       toast.error("Oops!", {
-        description: "No se pudo actualizar la orden de trabajo...",
+        description: editReasonErrorFrom(error) ?? "No se pudo actualizar la orden de trabajo...",
       });
       console.log(error);
     },
@@ -156,7 +160,7 @@ export const useUpdateWorkOrder = () => {
   return { updateWorkOrder: updateMutation };
 };
 
-interface UpdateWOTaskData {
+interface UpdateWOTaskData extends EditReasonValue {
   description_task?: string;
   ata?: string;
   material?: string | null;
@@ -179,9 +183,10 @@ export const useUpdateWorkOrderTask = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["work-orders"], exact: false });
+      invalidatePlanificationAudit(queryClient);
     },
     onError: (error) => {
-      toast.error("Oops!", { description: "No se pudo actualizar la tarea..." });
+      toast.error("Oops!", { description: editReasonErrorFrom(error) ?? "No se pudo actualizar la tarea..." });
       console.log(error);
     },
   });

@@ -33,6 +33,12 @@ import {
   useUpdateFlightControl,
 } from "@/actions/mantenimiento/planificacion/vuelos/actions";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import {
+  EditReasonFields,
+  EditReasonValue,
+  editReasonErrorFrom,
+} from "@/components/forms/mantenimiento/planificacion/EditReasonFields";
+import { useState } from "react";
 
 const airportCodeSchema = z
   .string()
@@ -250,13 +256,27 @@ function EditForm({
     },
   });
 
+  const [reason, setReason] = useState<EditReasonValue>({});
+  const [reasonError, setReasonError] = useState<string>();
+  // Leído en render: react-hook-form solo rastrea lo que se suscribe aquí.
+  const { isDirty } = form.formState;
+
   const onSubmit = async (values: z.infer<typeof editFormSchema>) => {
-    await updateFlightControl.mutateAsync({
-      id: flightData.id,
-      data: values,
-      company: selectedCompany!.slug,
-    });
-    onClose();
+    if (isDirty && !reason.edit_reason) {
+      setReasonError("Indique el motivo de la corrección.");
+      return;
+    }
+
+    try {
+      await updateFlightControl.mutateAsync({
+        id: flightData.id,
+        data: { ...values, ...reason },
+        company: selectedCompany!.slug,
+      });
+      onClose();
+    } catch (error) {
+      setReasonError(editReasonErrorFrom(error));
+    }
   };
 
   return (
@@ -395,6 +415,15 @@ function EditForm({
             )}
           />
         </div>
+        <EditReasonFields
+          className="mt-4"
+          value={reason}
+          onChange={(value) => {
+            setReason(value);
+            setReasonError(undefined);
+          }}
+          error={reasonError}
+        />
         <Button
           className="bg-primary mt-2 text-white hover:bg-blue-900 disabled:bg-primary/70"
           disabled={updateFlightControl?.isPending}
