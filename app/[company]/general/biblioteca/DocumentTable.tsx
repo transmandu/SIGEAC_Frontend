@@ -17,6 +17,7 @@ interface DocumentTableProps {
   user: any;
   selectedIds?: number[];
   onSelectionChange?: (ids: number[]) => void;
+  folderPath?: string;
 }
 
 export default function DocumentTable({
@@ -30,6 +31,7 @@ export default function DocumentTable({
   user,
   selectedIds = [],
   onSelectionChange,
+  folderPath,
 }: DocumentTableProps) {
   const selectionEnabled = !!(onSelectionChange && canManage);
 
@@ -107,6 +109,7 @@ export default function DocumentTable({
           onToggleSelect={
             selectionEnabled ? () => handleToggleOne(doc.id) : undefined
           }
+          folderPath={folderPath}
         />
       ))}
     </div>

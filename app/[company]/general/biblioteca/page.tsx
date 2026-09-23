@@ -456,8 +456,14 @@ const BibliotecaPage = () => {
 
   const handleDeleteDocument = async (id: number | string) => {
     try {
-      await libraryService.deleteDocument(companySlug, id);
-      toast.success("Documento eliminado correctamente");
+      const data = await libraryService.deleteDocument(
+        companySlug,
+        id,
+        selectedFolderPath && selectedFolderPath !== "/"
+          ? selectedFolderPath
+          : "/",
+      );
+      toast.success(data?.message || "Documento eliminado correctamente");
       await fetchDocs();
     } catch (error) {
       console.error("Error al eliminar:", error);
@@ -479,6 +485,9 @@ const BibliotecaPage = () => {
         documentId,
         folderPath,
         departmentId,
+        selectedFolderPath && selectedFolderPath !== "/"
+          ? selectedFolderPath
+          : "/",
       );
       toast.success("Documento movido exitosamente");
 
@@ -1041,6 +1050,11 @@ const BibliotecaPage = () => {
                         user={user}
                         selectedIds={selectedDocumentIds}
                         onSelectionChange={setSelectedDocumentIds}
+                        folderPath={
+                          selectedFolderPath && selectedFolderPath !== "/"
+                            ? selectedFolderPath
+                            : "/"
+                        }
                       />
                     )}
                   </div>
@@ -1157,6 +1171,11 @@ const BibliotecaPage = () => {
         }))}
         onLoadFolders={handleToggleDept}
         onSuccess={handleBatchMoveSuccess}
+        sourceFolderPath={
+          selectedFolderPath && selectedFolderPath !== "/"
+            ? selectedFolderPath
+            : "/"
+        }
       />
     </ContentLayout>
   );

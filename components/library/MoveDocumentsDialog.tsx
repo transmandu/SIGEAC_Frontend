@@ -26,6 +26,8 @@ interface MoveDocumentsDialogProps {
   departments: { id: number; name: string }[];
   onLoadFolders: (departmentId: number) => void;
   onSuccess: (departmentId: number, folderPath: string) => void;
+  /** Carpeta desde la que se mueven los documentos (para distinguir una réplica). */
+  sourceFolderPath?: string;
 }
 
 function findGroup(
@@ -129,6 +131,7 @@ export default function MoveDocumentsDialog({
   departments,
   onLoadFolders,
   onSuccess,
+  sourceFolderPath,
 }: MoveDocumentsDialogProps) {
   const [selectedDeptId, setSelectedDeptId] = useState<number | null>(null);
   const [selectedPath, setSelectedPath] = useState("/");
@@ -175,6 +178,9 @@ export default function MoveDocumentsDialog({
         document_ids: documentIds,
         department_id: selectedDeptId,
         folder_path: selectedPath,
+        ...(sourceFolderPath != null
+          ? { source_folder_path: sourceFolderPath }
+          : {}),
       });
       toast.success(
         `${documentIds.length} documento${documentIds.length === 1 ? "" : "s"} movido${documentIds.length === 1 ? "" : "s"} exitosamente`,
