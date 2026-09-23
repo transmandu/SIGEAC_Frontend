@@ -1,3 +1,19 @@
+## v4.20.0 — 2026-09-23
+
+- feat: to replicate files (#284)
+
+## v4.19.1 — 2026-09-22
+
+- fix: sms bulletins responsive (#283)
+
+## v4.19.0 — 2026-09-22
+
+- feat: add sms page to general menu (#282)
+
+## v4.18.1 — 2026-09-22
+
+- fix: improve loading state handling in PageTitle component and simplify title registration logic
+
 ## v4.18.0 — 2026-09-22
 
 - feat: add download dialog for purchase requisitions by status and upd… (#281)
