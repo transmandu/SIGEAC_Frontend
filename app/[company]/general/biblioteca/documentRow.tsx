@@ -70,6 +70,11 @@ const getStatusDetails = (status: string, expirationDate: string) => {
   };
 };
 
+const normalizePath = (path?: string | null): string => {
+  const p = (path || "").replace(/[\\/]+$/, "");
+  return p === "" ? "/" : p;
+};
+
 interface DocumentRowProps {
   doc: Document & {
     latest_version?: any;
@@ -156,6 +161,14 @@ export default function DocumentRow({
   const fileDetails = getFileDetails(activeFileType, doc?.title);
   const statusInfo = getStatusDetails(activeExpiryStatus, activeExpirationDate);
 
+  // Marca si el documento aparece en varias carpetas (réplicas) y si la carpeta
+  // actual es donde vive el original (primaria) o solo un vínculo (réplica).
+  const hasReplicas = (doc.folder_paths?.length ?? 0) > 1;
+  const isPrimaryHere = useMemo(() => {
+    if (!hasReplicas || !folderPath || !doc.folder_path) return false;
+    return normalizePath(folderPath) === normalizePath(doc.folder_path);
+  }, [hasReplicas, folderPath, doc.folder_path]);
+
   // Fecha de calendario: se muestra tal cual la manda el backend, sin convertir.
   const displayExpirationDate = activeExpirationDate
     ? formatCalendarDate(activeExpirationDate, "date", "Permanente")
@@ -220,11 +233,29 @@ export default function DocumentRow({
             <AlertCircle className="h-3.5 w-3.5 text-amber-600 animate-bounce" />
           )}
         </div>
-        <span
-          className={`w-fit text-[8px] font-bold px-1.5 py-0.5 rounded border border-current/30 ${fileDetails.bgColor} ${fileDetails.color}`}
-        >
-          {fileDetails.label}
-        </span>
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span
+            className={`w-fit text-[8px] font-bold px-1.5 py-0.5 rounded border border-current/30 ${fileDetails.bgColor} ${fileDetails.color}`}
+          >
+            {fileDetails.label}
+          </span>
+          {hasReplicas &&
+            (isPrimaryHere ? (
+              <span
+                title="Carpeta principal: aquí vive el archivo original"
+                className="w-fit text-[8px] font-bold px-1.5 py-0.5 rounded border bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-500/10 dark:text-amber-500 dark:border-amber-500/30"
+              >
+                ● Original
+              </span>
+            ) : (
+              <span
+                title="Réplica: es un vínculo al original, que vive en otra carpeta"
+                className="w-fit text-[8px] font-bold px-1.5 py-0.5 rounded border bg-slate-50 text-slate-500 border-slate-300 dark:bg-slate-500/10 dark:text-slate-400 dark:border-slate-600"
+              >
+                Réplica
+              </span>
+            ))}
+        </div>
       </div>
 
       <div className="hidden sm:flex items-center gap-2 shrink-0">

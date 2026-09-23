@@ -277,15 +277,22 @@ export default function FolderSelect({
       setDraft(new Set([path]));
       return;
     }
-    setDraft((prev) => {
-      const next = new Set(prev);
-      if (next.has(path)) {
-        next.delete(path);
-      } else {
-        next.add(path);
-      }
-      return next;
-    });
+    const isSelected = draft.has(path);
+    if (isSelected) {
+      const next = new Set(draft);
+      next.delete(path);
+      setDraft(next);
+      // Si se deselecciona la carpeta marcada como principal, no puede
+      // seguir reapareciendo en el siguiente aplicar (stale primary).
+      if (path === primary) setPrimary(null);
+    } else {
+      const next = new Set(draft);
+      next.add(path);
+      setDraft(next);
+      // La primera carpeta elegida queda como principal (estrella) por
+      // defecto, sin tener que recordar marcarla.
+      if (primary === null) setPrimary(path);
+    }
   };
 
   const setPrimarySelection = (path: string) => {
@@ -305,10 +312,20 @@ export default function FolderSelect({
     }
     // La carpeta principal va SIEMPRE primero en el array; el backend la usa
     // como carpeta física/primaria (folderPath === folderPaths[0]).
-    const next =
-      withPrimary && primary
-        ? [primary, ...[...draft].filter((p) => p !== primary).sort()]
-        : [...draft].sort();
+    // Con una sola carpeta elegida no se necesita "estrella": esa carpeta es
+    // la principal y se manda sola. Solo con 2+ se respeta [primary, ...réplicas]
+    // y nunca se re-inyecta una primary que ya no está en el borrador.
+    const values = [...draft];
+    const effectivePrimary =
+      values.length >= 2 && withPrimary && primary && values.includes(primary)
+        ? primary
+        : null;
+    const next = effectivePrimary
+      ? [
+          effectivePrimary,
+          ...values.filter((p) => p !== effectivePrimary).sort(),
+        ]
+      : values.sort();
     onChange(next);
     setOpen(false);
   };
