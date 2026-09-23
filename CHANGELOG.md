@@ -1,3 +1,7 @@
+## v4.20.0 — 2026-09-23
+
+- feat: to replicate files (#284)
+
 ## v4.19.1 — 2026-09-22
 
 - fix: sms bulletins responsive (#283)
