@@ -210,7 +210,10 @@ export const LibraryDropdownActions = ({
             <Tooltip>
               <TooltipTrigger asChild>
                 <span data-tour="biblioteca-share-btn">
-                  <DropdownMenuItem asChild className="p-0 focus:bg-transparent">
+                  <DropdownMenuItem
+                    asChild
+                    className="p-0 focus:bg-transparent"
+                  >
                     <button
                       onClick={() => {
                         setOpenDropdown(false);
@@ -231,7 +234,10 @@ export const LibraryDropdownActions = ({
             <Tooltip>
               <TooltipTrigger asChild>
                 <span data-tour="biblioteca-upload-version-btn">
-                  <DropdownMenuItem asChild className="p-0 focus:bg-transparent">
+                  <DropdownMenuItem
+                    asChild
+                    className="p-0 focus:bg-transparent"
+                  >
                     <button
                       onClick={() => {
                         setOpenDropdown(false);
@@ -252,7 +258,10 @@ export const LibraryDropdownActions = ({
             <Tooltip>
               <TooltipTrigger asChild>
                 <span data-tour="biblioteca-download-btn">
-                  <DropdownMenuItem asChild className="p-0 focus:bg-transparent">
+                  <DropdownMenuItem
+                    asChild
+                    className="p-0 focus:bg-transparent"
+                  >
                     <button
                       onClick={() => {
                         setOpenDropdown(false);
@@ -293,7 +302,10 @@ export const LibraryDropdownActions = ({
             <Tooltip>
               <TooltipTrigger asChild>
                 <span data-tour="biblioteca-delete-doc-btn">
-                  <DropdownMenuItem asChild className="p-0 focus:bg-transparent">
+                  <DropdownMenuItem
+                    asChild
+                    className="p-0 focus:bg-transparent"
+                  >
                     <button
                       onClick={() => {
                         setOpenDropdown(false);
