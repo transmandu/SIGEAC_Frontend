@@ -682,6 +682,8 @@ export type ComponentControlItem = {
   action: ComponentAction;
   reference_document?: string | null;
   first_applied_date: string;
+  /** Null = hereda el `remaining_percentage` del control. */
+  remaining_percentage?: number | string | null;
   status: "ACTIVE" | "REMOVED";
   removed_date?: string | null;
   removal_notes?: string | null;
@@ -765,6 +767,8 @@ export type AvionicsControlTask = {
   action: AvionicsAction;
   is_on_condition: boolean;
   first_applied_date?: string | null;
+  /** Null = hereda el `remaining_percentage` del control. */
+  remaining_percentage?: number | string | null;
   intervals: AvionicsControlTaskInterval[];
   /** null cuando la tarea es por condición. */
   computed?: MaintenanceControlItemComputed | null;
@@ -865,6 +869,8 @@ export type DirectiveControlItem = {
   applicability_notes?: string | null;
   compliance_type: DirectiveComplianceType;
   first_applied_date?: string | null;
+  /** Null = hereda el `remaining_percentage` del control. */
+  remaining_percentage?: number | string | null;
   observations?: string | null;
   intervals: DirectiveControlItemInterval[];
   /** null = sin reloj (no aplica, pendiente, ya cumplida o sin plazo). */
@@ -907,6 +913,8 @@ export type MaintenanceControlItem = {
   category: "CERTIFICATE" | "SERVICE";
   name: string;
   first_applied_date: string;
+  /** Null = hereda el `remaining_percentage` del control. */
+  remaining_percentage?: number | string | null;
   intervals: MaintenanceControlItemInterval[];
   computed?: MaintenanceControlItemComputed;
   latest_compliance?: MaintenanceCompliance | null;

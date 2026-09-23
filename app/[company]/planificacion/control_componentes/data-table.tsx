@@ -2,7 +2,9 @@
 
 import { DataTablePagination } from "@/components/tables/DataTablePagination";
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 import {
   Table,
   TableBody,
@@ -20,7 +22,7 @@ import {
   useTable,
 } from "@tanstack/react-table";
 import { appTableFeatures, type AppColumnDef } from "@/lib/table";
-import { Cog, PlusCircle, Search } from "lucide-react";
+import { Cog, PlusCircle, Search, X } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { ComponentControl } from "@/types";
@@ -70,14 +72,33 @@ export function DataTable<TData extends RowData>({ columns, data }: DataTablePro
           </Link>
         </ActionTriggerButton>
 
-        <div className="relative w-full sm:w-72">
-          <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+        <div className="relative w-full sm:w-80">
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={globalFilter}
             onChange={(e) => setGlobalFilter(e.target.value)}
             placeholder="Buscar por aeronave, título o descripción..."
-            className="h-9 pl-8 text-sm"
+            className={cn(
+              "h-10 rounded-md pl-9 text-sm",
+              "border-border bg-background shadow-sm",
+              "transition-all duration-200",
+              "hover:border-primary/40 hover:shadow-md",
+              "focus-visible:border-primary/40 focus-visible:ring-2 focus-visible:ring-primary/20",
+              globalFilter ? "pr-9" : undefined,
+            )}
           />
+          {globalFilter ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => setGlobalFilter("")}
+              aria-label="Limpiar búsqueda"
+              className="absolute right-1 top-1/2 h-8 w-8 -translate-y-1/2"
+            >
+              <X className="h-4 w-4 text-muted-foreground" />
+            </Button>
+          ) : null}
         </div>
       </div>
       <div className="mb-4 overflow-hidden rounded-xl border border-slate-400/50 shadow-sm dark:border-slate-600/50">
@@ -96,7 +117,7 @@ export function DataTable<TData extends RowData>({ columns, data }: DataTablePro
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} className="transition-colors hover:bg-primary/[0.03]">
+                <TableRow key={row.id} className="transition-colors hover:bg-primary/3">
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
                   ))}

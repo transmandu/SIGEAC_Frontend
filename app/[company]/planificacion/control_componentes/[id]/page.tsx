@@ -47,11 +47,17 @@ function InfoSection({ title, bordered = false, children }: { title: string; bor
   );
 }
 
-function StatusLegend({ remainingPercentage }: { remainingPercentage: number }) {
+function StatusLegend({
+  remainingPercentage,
+  hasOverrides,
+}: {
+  remainingPercentage: number;
+  hasOverrides: boolean;
+}) {
   const descriptions: Record<ItemStatus, string> = {
-    OK: `Remanente por encima del doble del margen configurado (${remainingPercentage}%).`,
-    WARNING: `Remanente dentro del doble del margen configurado (entre ${remainingPercentage}% y ${remainingPercentage * 2}%).`,
-    CRITICAL: `Remanente dentro del margen configurado (${remainingPercentage}% o menos).`,
+    OK: "Remanente por encima del doble del margen configurado.",
+    WARNING: "Remanente dentro del doble del margen configurado.",
+    CRITICAL: "Remanente dentro del margen configurado.",
     OVERDUE: "Ya superó la fecha, horas o ciclos límite.",
   };
 
@@ -66,6 +72,11 @@ function StatusLegend({ remainingPercentage }: { remainingPercentage: number }) 
       <PopoverContent className="w-80" align="end">
         <div className="space-y-3">
           <p className="text-sm font-medium">Estado según el remanente</p>
+          <p className="text-xs text-muted-foreground">
+            {hasOverrides
+              ? `El margen es ${remainingPercentage}% salvo en los ítems que definen el suyo, indicado junto a su remanente.`
+              : `Margen configurado: ${remainingPercentage}%.`}
+          </p>
           {(Object.keys(STATUS_META) as ItemStatus[]).map((status) => (
             <div key={status} className="flex items-start gap-2">
               <span className={cn("mt-1 size-2 shrink-0 rounded-full", STATUS_META[status].dot)} />
@@ -87,7 +98,7 @@ function TruncatedText({ children }: { children: string }) {
       <TooltipTrigger asChild>
         <span className="block truncate">{children}</span>
       </TooltipTrigger>
-      <TooltipContent side="top" className="max-w-xs break-words">
+      <TooltipContent side="top" className="max-w-xs wrap-break-word">
         {children}
       </TooltipContent>
     </Tooltip>
@@ -201,6 +212,7 @@ function ComponentsTable({
   controlId,
   aircraftId,
   aircraftAcronym,
+  controlRemainingPercentage,
 }: {
   items: ComponentControlItem[];
   parentHours: number;
@@ -210,6 +222,7 @@ function ComponentsTable({
   controlId: string | number;
   aircraftId: number | string;
   aircraftAcronym?: string;
+  controlRemainingPercentage: number;
 }) {
   if (!items.length) {
     return <p className="text-sm italic text-muted-foreground">{emptyLabel}</p>;
@@ -239,7 +252,7 @@ function ComponentsTable({
             const pending = item.pending_work_order;
             const lastWorkOrder = item.latest_compliance?.work_order?.order_number;
             return (
-              <TableRow key={item.id} className={cn(meta.row, "transition-colors hover:bg-primary/[0.03]")}>
+              <TableRow key={item.id} className={cn(meta.row, "transition-colors hover:bg-primary/3")}>
                 <TableCell className="font-medium">
                   <TruncatedText>{item.description}</TruncatedText>
                   <span className="block truncate text-xs text-muted-foreground">
@@ -300,6 +313,18 @@ function ComponentsTable({
                   <span className={cn("inline-flex items-center gap-1.5 font-semibold", meta.text)}>
                     <span className={cn("size-1.5 shrink-0 rounded-full", meta.dot)} />
                     {computed.remaining}
+                    {item.remaining_percentage !== null && item.remaining_percentage !== undefined && (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className="rounded bg-muted px-1 text-[10px] font-medium text-muted-foreground">
+                            {Number(item.remaining_percentage)}%
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          Margen propio de este ítem, distinto del {controlRemainingPercentage}% del control
+                        </TooltipContent>
+                      </Tooltip>
+                    )}
                   </span>
                   {computed.extras.map((extra, i) => (
                     <span key={i} className={cn("block truncate text-xs", extra.status ? STATUS_META[extra.status].text : "text-muted-foreground")}>
@@ -389,6 +414,9 @@ const ComponentControlDetailPage = () => {
   }
 
   const remainingPercentage = Number(control.remaining_percentage);
+  const hasPercentageOverrides = activeItems.some(
+    (item) => item.remaining_percentage !== null && item.remaining_percentage !== undefined,
+  );
 
   // Padres presentes entre los componentes, ordenados motor → hélice → resto y
   // numerados por tipo ("Motor 1 - serial"), igual que el Control de Mantenimiento.
@@ -422,7 +450,10 @@ const ComponentControlDetailPage = () => {
             {control.description && <p className="text-sm text-muted-foreground">{control.description}</p>}
           </div>
           <div className="flex items-center gap-2">
-            <StatusLegend remainingPercentage={remainingPercentage} />
+            <StatusLegend
+              remainingPercentage={remainingPercentage}
+              hasOverrides={hasPercentageOverrides}
+            />
             <ActionTriggerButton asChild>
               <Link href={`/${company}/planificacion/control_componentes/editar/${control.id}`}>
                 <SquarePen className="mr-2 size-4" />
@@ -435,7 +466,10 @@ const ComponentControlDetailPage = () => {
         <FormSection icon={Info} title="Información General">
           <div className="space-y-3">
             <InfoSection title="Control">
-              <InfoItem label="% Remanente para Alerta" value={`${remainingPercentage}%`} />
+              <InfoItem
+                label="% Remanente para Alerta"
+                value={`${remainingPercentage}%${hasPercentageOverrides ? " (general)" : ""}`}
+              />
               <InfoItem label="Manual de Referencia" value={control.has_reference_manual ? control.reference_manual ?? undefined : undefined} />
               <InfoItem label="Componentes activos" value={activeItems.length} />
             </InfoSection>
@@ -523,6 +557,7 @@ const ComponentControlDetailPage = () => {
             controlId={control.id}
             aircraftId={control.aircraft.id}
             aircraftAcronym={control.aircraft?.acronym}
+            controlRemainingPercentage={remainingPercentage}
           />
         </FormSection>
 
@@ -537,6 +572,7 @@ const ComponentControlDetailPage = () => {
               controlId={control.id}
               aircraftId={control.aircraft.id}
               aircraftAcronym={control.aircraft?.acronym}
+              controlRemainingPercentage={remainingPercentage}
             />
           </FormSection>
         ))}

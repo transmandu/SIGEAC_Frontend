@@ -61,7 +61,8 @@ const MaintenanceControlPage = () => {
             <div className="flex flex-col">
               <h1 className="text-3xl font-semibold tracking-tight">Control de Mantenimiento</h1>
               <p className="text-sm text-muted-foreground">
-                Certificados, servicios y partes bajo control por aeronave.
+                Consulte y administre el control de mantenimiento de cada aeronave, con
+                el estado de vencimiento de sus certificados y servicios.
               </p>
             </div>
           </div>

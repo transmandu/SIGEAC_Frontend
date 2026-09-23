@@ -31,7 +31,8 @@ const DirectiveControlPage = () => {
             <div className="flex flex-col">
               <h1 className="text-3xl font-semibold tracking-tight">Control de Directivas</h1>
               <p className="text-sm text-muted-foreground">
-                Estado de cumplimiento de las Directivas de Aeronavegabilidad por aeronave y conjunto (Formulario INAC 39-001).
+                Consulte y administre el control de directivas de cada aeronave, con el
+                estado de cumplimiento de sus directivas de aeronavegabilidad.
               </p>
             </div>
           </div>

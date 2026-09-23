@@ -31,7 +31,8 @@ const ComponentControlPage = () => {
             <div className="flex flex-col">
               <h1 className="text-3xl font-semibold tracking-tight">Control de Componentes</h1>
               <p className="text-sm text-muted-foreground">
-                Componentes con vida limitada u overhaul bajo control por aeronave (Forma INAC-43-004).
+                Consulte y administre el control de componentes de cada aeronave, con el
+                estado de vencimiento de cada componente.
               </p>
             </div>
           </div>

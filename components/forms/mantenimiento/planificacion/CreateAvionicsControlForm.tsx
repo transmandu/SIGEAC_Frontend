@@ -23,7 +23,7 @@ import { CreateMaintenanceProviderDialog } from "@/components/dialogs/mantenimie
 import { AvionicsAction, AvionicsCategory, AvionicsControl } from "@/types";
 import { AVIONICS_ACTION_LABELS, AVIONICS_CATEGORY_LABELS } from "@/lib/avionicsControlLabels";
 import { FormSection, fieldClass, hintClass, labelClass, selectTriggerClass } from "./_theme";
-import { AircraftSelect, CatalogManualField, CompactDateField, NumericInput, ProviderSelect } from "./_shared";
+import { AircraftSelect, CatalogManualField, CompactDateField, NumericInput, ProviderSelect, RemainingPercentageField } from "./_shared";
 
 const ALL_COUNTING_METHODS = ["HOURS", "CYCLES", "DAYS"] as const;
 const COUNTING_METHOD_LABEL: Record<string, string> = { HOURS: "Horas", CYCLES: "Ciclos", DAYS: "Días" };
@@ -35,6 +35,12 @@ const actionEnum = z.enum(Object.keys(AVIONICS_ACTION_LABELS) as [string, ...str
 const optionalNumeric = z.preprocess(
   (val) => (val === "" || val === undefined || val === null ? undefined : val),
   z.coerce.number().min(0).optional(),
+);
+
+// Vacío = hereda el porcentaje general del control, no 0%.
+const optionalPercentage = z.preprocess(
+  (val) => (val === "" || val === undefined || val === null ? undefined : val),
+  z.coerce.number().min(0, "Debe ser ≥ 0").max(100, "Debe ser ≤ 100").optional(),
 );
 
 const intervalSchema = z.object({
@@ -52,6 +58,7 @@ const taskSchema = z.object({
   is_on_condition: z.boolean().default(false),
   maintenance_provider_id: z.string().optional(),
   first_applied_date: z.date().optional(),
+  remaining_percentage: optionalPercentage,
   intervals: z.array(intervalSchema).default([]),
 });
 
@@ -129,6 +136,7 @@ const emptyTask = () => ({
   is_on_condition: true,
   maintenance_provider_id: "",
   first_applied_date: undefined as unknown as Date,
+  remaining_percentage: undefined as number | undefined,
   intervals: [] as ReturnType<typeof emptyInterval>[],
 });
 
@@ -346,7 +354,7 @@ function TaskCard({
 
       {!isOnCondition && (
         <>
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_140px]">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_140px_110px]">
             <div className="space-y-1">
               <p className={labelClass}>Realizado por</p>
               <ProviderSelect control={control} name={`${namePrefix}.maintenance_provider_id`} />
@@ -354,6 +362,12 @@ function TaskCard({
             <div className="space-y-1">
               <p className={labelClass}>Último evento</p>
               <CompactDateField control={control} name={`${namePrefix}.first_applied_date`} />
+            </div>
+            <div className="space-y-1">
+              <p className={labelClass}>
+                % Alerta <span className="text-xs font-normal text-muted-foreground">(Opcional)</span>
+              </p>
+              <RemainingPercentageField control={control} name={`${namePrefix}.remaining_percentage`} />
             </div>
           </div>
 
@@ -386,7 +400,7 @@ function DeviceCard({ control, index, onRemove }: { control: Control<any>; index
   const description = useWatch({ control, name: `${namePrefix}.description` }) as string;
 
   return (
-    <div className="space-y-3 rounded-xl border border-slate-400/40 bg-gradient-to-br from-background/70 to-background/40 p-4 backdrop-blur-md dark:border-slate-600/40">
+    <div className="space-y-3 rounded-xl border border-slate-400/40 bg-linear-to-br from-background/70 to-background/40 p-4 backdrop-blur-md dark:border-slate-600/40">
       <div className="flex items-center justify-between gap-2">
         <p className="text-sm font-semibold">
           <span className="text-muted-foreground">#{index + 1}</span> {description || "Nuevo equipo"}
@@ -472,6 +486,10 @@ function mapToFormItem(item: NonNullable<AvionicsControl["items"]>[number]) {
       is_on_condition: task.is_on_condition,
       maintenance_provider_id: task.maintenance_provider_id ? String(task.maintenance_provider_id) : "",
       first_applied_date: task.first_applied_date ? parseISO(task.first_applied_date) : undefined,
+      remaining_percentage:
+        task.remaining_percentage !== null && task.remaining_percentage !== undefined
+          ? Number(task.remaining_percentage)
+          : undefined,
       intervals: task.intervals.map((interval) => ({
         id: interval.id,
         counting_method: interval.counting_method,
@@ -529,8 +547,8 @@ export default function CreateAvionicsControlForm({ initialData }: { initialData
   // Mismo cast que los otros formularios de control (react-hook-form 7.87).
   const control = form.control as unknown as Control<any>;
 
-  const hasReferenceManual = form.watch("has_reference_manual");
-  const aircraftId = form.watch("aircraft_id");
+  const hasReferenceManual = useWatch({ control, name: "has_reference_manual" });
+  const aircraftId = useWatch({ control, name: "aircraft_id" });
   const { fields, append, remove } = useFieldArray({ control, name: "items" });
 
   const onSubmit = async (values: FormValues) => {
@@ -557,6 +575,7 @@ export default function CreateAvionicsControlForm({ initialData }: { initialData
           is_on_condition: task.is_on_condition ?? false,
           maintenance_provider_id: task.is_on_condition ? undefined : task.maintenance_provider_id || undefined,
           first_applied_date: task.is_on_condition || !task.first_applied_date ? undefined : format(task.first_applied_date, "yyyy-MM-dd"),
+          remaining_percentage: task.is_on_condition ? null : task.remaining_percentage ?? null,
           intervals: task.is_on_condition
             ? []
             : task.intervals.map((interval) => ({
@@ -695,7 +714,7 @@ export default function CreateAvionicsControlForm({ initialData }: { initialData
         )}
 
         <Button
-          className="h-11 gap-2 self-end rounded-lg bg-gradient-to-br from-primary to-primary/85 px-6 text-primary-foreground shadow-sm transition-all duration-200 hover:shadow-md hover:shadow-blue-500/25 disabled:opacity-70"
+          className="h-11 gap-2 self-end rounded-lg bg-linear-to-br from-primary to-primary/85 px-6 text-primary-foreground shadow-sm transition-all duration-200 hover:shadow-md hover:shadow-blue-500/25 disabled:opacity-70"
           disabled={isPending}
           type="submit"
         >

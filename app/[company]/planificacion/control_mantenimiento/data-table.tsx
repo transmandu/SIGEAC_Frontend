@@ -144,7 +144,7 @@ export function DataTable<TData extends RowData>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                  className="transition-colors hover:bg-primary/[0.03]"
+                  className="transition-colors hover:bg-primary/3"
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>

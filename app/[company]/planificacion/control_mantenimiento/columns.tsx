@@ -2,14 +2,12 @@
 
 import Link from "next/link"
 import { type AppColumnDef } from "@/lib/table"
-import { DataTableColumnHeader, dateRangeFilterFn } from "@/components/tables/DataTableHeader"
+import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { MaintenanceControl } from "@/types"
 import MaintenanceControlDropdownActions from "@/components/dropdowns/mantenimiento/MaintenanceControlDropdownActions"
-import { Plane, FileCheck2, Wrench, Puzzle, Calendar, Eye, LucideIcon } from "lucide-react"
-import { formatDate } from "@/lib/utils"
+import { MaintenanceStatusSummary, emptyStatusCounts } from "@/components/tables/MaintenanceStatusSummary"
+import { Plane, FileCheck2, Wrench, LucideIcon } from "lucide-react"
 
 function CountChip({ icon: Icon, value }: { icon: LucideIcon; value?: number }) {
   const count = value ?? 0
@@ -47,7 +45,7 @@ export const getColumns = (
       />
     ),
     cell: ({ row }) => (
-      <div className="flex items-center justify-center gap-2">
+      <div className="flex items-center justify-center gap-2 pr-9">
         <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
           <Plane className="h-3.5 w-3.5" />
         </span>
@@ -58,13 +56,22 @@ export const getColumns = (
   {
     accessorKey: "title",
     header: ({ column }) => <DataTableColumnHeader filter column={column} title="Título" />,
-    cell: ({ row }) => <span className="font-medium">{row.original.title}</span>,
+    cell: ({ row }) => (
+      <div className="flex justify-center">
+        <Link
+          href={`/${companySlug}/planificacion/control_mantenimiento/${row.original.id}`}
+          className="text-center font-medium transition-colors hover:text-primary hover:underline underline-offset-4"
+        >
+          {row.original.title}
+        </Link>
+      </div>
+    ),
   },
   {
     accessorKey: "description",
     header: ({ column }) => <DataTableColumnHeader filter column={column} title="Descripción" />,
     cell: ({ row }) => (
-      <span className="text-sm text-muted-foreground line-clamp-1">
+      <span className="block text-center text-sm text-muted-foreground line-clamp-1">
         {row.original.description || "Sin descripción"}
       </span>
     ),
@@ -103,39 +110,15 @@ export const getColumns = (
     cell: ({ row }) => <CountChip icon={Wrench} value={row.original.services_count} />,
   },
   {
-    id: "parts_count",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Partes" />,
-    cell: ({ row }) => <CountChip icon={Puzzle} value={row.original.parts_count} />,
-  },
-  {
-    accessorKey: "created_at",
-    filterFn: dateRangeFilterFn,
-    header: ({ column }) => <DataTableColumnHeader dateRangeFilter column={column} title="Creación" />,
-    cell: ({ row }) => (
-      <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-        <Calendar className="h-4 w-4" />
-        <span>{row.original.created_at ? formatDate(row.original.created_at) : "-"}</span>
-      </div>
-    ),
-  },
-  {
-    id: "view",
-    cell: ({ row }) => (
-      <div className="flex justify-center">
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button asChild variant="ghost" size="icon" className="h-8 w-8">
-              <Link href={`/${companySlug}/planificacion/control_mantenimiento/${row.original.id}`}>
-                <Eye className="h-4 w-4" />
-                <span className="sr-only">Ver control de mantenimiento</span>
-              </Link>
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Ver</TooltipContent>
-        </Tooltip>
-      </div>
-    ),
-    size: 40,
+    id: "status_summary",
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Vencimientos" />,
+    cell: ({ row }) => {
+      const counts = emptyStatusCounts()
+      for (const item of row.original.items ?? []) {
+        if (item.computed?.status) counts[item.computed.status] += 1
+      }
+      return <MaintenanceStatusSummary counts={counts} />
+    },
   },
   {
     id: "actions",

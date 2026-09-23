@@ -78,6 +78,12 @@ const optionalNumeric = z.preprocess(
   z.coerce.number().min(0).optional(),
 );
 
+// Vacío = hereda el porcentaje general del control, no 0%.
+const optionalPercentage = z.preprocess(
+  (val) => (val === "" || val === undefined || val === null ? undefined : val),
+  z.coerce.number().min(0, "Debe ser ≥ 0").max(100, "Debe ser ≤ 100").optional(),
+);
+
 // Un intervalo de vencimiento (unidad + límite + lectura inicial). N por
 // ítem, máximo uno por unidad ("lo que ocurra primero", ej. 6000 Hrs Ó 1825
 // Días — hasta 3, ver MaintenanceControlItemInterval en el backend).
@@ -101,6 +107,7 @@ const baseItemSchema = z.object({
   name: z.string().min(1, "Requerido"),
   first_applied_date: z.date({ error: "Seleccione una fecha" }),
   intervals: z.array(intervalSchema).min(1, "Agregue al menos un intervalo"),
+  remaining_percentage: optionalPercentage,
 });
 
 // Los certificados son documentos a bordo: algunos sí llevan una entidad
@@ -219,7 +226,7 @@ const emptyServiceItem = () => ({
 // La última columna pasó de un botón (quitar fila) a dos (límite secundario +
 // quitar fila): 32px alcanzaba para uno solo.
 const ITEM_ROW_GRID =
-  "grid grid-cols-[minmax(200px,1fr)_92px_84px_96px_120px_190px_64px] items-start gap-2";
+  "grid grid-cols-[minmax(200px,1fr)_92px_84px_96px_120px_88px_190px_64px] items-start gap-2";
 
 const ITEM_ROW_LABELS = [
   "Nombre",
@@ -227,6 +234,7 @@ const ITEM_ROW_LABELS = [
   "Límite",
   "Lectura Inicial",
   "1ra Fecha",
+  "% Alerta",
   "Realizado Por",
 ];
 
@@ -367,6 +375,7 @@ function ItemRow({
   const manualId = useWatch({ control, name: "maintenance_catalog_manual_id" });
   const manualName = useWatch({ control, name: "reference_manual" });
   const name = useWatch({ control, name: `${namePrefix}.name` });
+  const controlPercentage = useWatch({ control, name: "remaining_percentage" });
 
   const {
     fields: intervalFields,
@@ -446,6 +455,31 @@ function ItemRow({
         <IntervalFields control={control} namePrefix={`${namePrefix}.intervals.0`} usedMethods={usedMethods} />
 
         <CompactDateField control={control} name={`${namePrefix}.first_applied_date`} />
+
+        <FormField
+          control={control}
+          name={`${namePrefix}.remaining_percentage`}
+          render={({ field }) => (
+            <FormItem className="w-full space-y-0">
+              <FormControl>
+                <div className="relative">
+                  <NumericInput
+                    className={cn(fieldClass, "pr-6")}
+                    placeholder={controlPercentage != null ? String(controlPercentage) : ""}
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    name={field.name}
+                  />
+                  <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+                    %
+                  </span>
+                </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <ProviderSelect control={control} name={`${namePrefix}.maintenance_provider_id`} />
 
@@ -557,7 +591,7 @@ function MaintenanceItemRows({
   return (
     <div className="space-y-3 overflow-x-auto p-1">
       {fields.length > 0 && <ItemRowsHeader />}
-      <div className="space-y-2 [&>div]:min-w-[900px]">
+      <div className="space-y-2 [&>div]:min-w-225">
         {fields.map((field, index) => (
           <ItemRow
             key={field.id}
@@ -601,7 +635,7 @@ function PartServiceRows({
   return (
     <div className="space-y-3 overflow-x-auto p-1">
       {rows.length > 0 && <ItemRowsHeader />}
-      <div className="space-y-2 [&>div]:min-w-[900px]">
+      <div className="space-y-2 [&>div]:min-w-225">
         {rows.map(({ id, index }) => (
           <ItemRow
             key={id}
@@ -725,7 +759,7 @@ function PartsSection({ control }: { control: Control<any> }) {
                 "flex cursor-pointer select-none items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-all duration-200",
                 checked
                   ? "border-blue-400/40 bg-primary/10 shadow-sm shadow-blue-500/10"
-                  : "border-slate-400/50 bg-gradient-to-br from-background/70 to-background/40 backdrop-blur-md hover:border-blue-400/30 hover:shadow-sm hover:shadow-blue-500/10 dark:border-slate-600/50",
+                  : "border-slate-400/50 bg-linear-to-br from-background/70 to-background/40 backdrop-blur-md hover:border-blue-400/30 hover:shadow-sm hover:shadow-blue-500/10 dark:border-slate-600/50",
               )}
             >
               <span
@@ -794,6 +828,10 @@ function mapToFormCertificate(item: NonNullable<MaintenanceControl["items"]>[num
           ? Number(interval.initial_value)
           : undefined,
     })),
+    remaining_percentage:
+      item.remaining_percentage !== null && item.remaining_percentage !== undefined
+        ? Number(item.remaining_percentage)
+        : undefined,
     maintenance_provider_id: item.maintenance_provider_id ? String(item.maintenance_provider_id) : "",
   };
 }
@@ -880,8 +918,8 @@ export default function CreateMaintenanceControlForm({ initialData }: { initialD
   // invariante y el Control concreto ya no entra sin ensancharlo aquí.
   const control = form.control as unknown as Control<any>;
 
-  const hasReferenceManual = form.watch("has_reference_manual");
-  const aircraftId = form.watch("aircraft_id");
+  const hasReferenceManual = useWatch({ control, name: "has_reference_manual" });
+  const aircraftId = useWatch({ control, name: "aircraft_id" });
 
   const onSubmit = async (values: FormValues) => {
     const toBaseItem = (item: z.infer<typeof certificateSchema>) => ({
@@ -889,6 +927,7 @@ export default function CreateMaintenanceControlForm({ initialData }: { initialD
       maintenance_catalog_service_id: item.maintenance_catalog_service_id,
       name: item.name,
       first_applied_date: format(item.first_applied_date, "yyyy-MM-dd"),
+      remaining_percentage: item.remaining_percentage ?? null,
       intervals: item.intervals.map((interval) => ({
         counting_method: interval.counting_method,
         limit_value: interval.limit_value,
@@ -1080,7 +1119,7 @@ export default function CreateMaintenanceControlForm({ initialData }: { initialD
 
             <FormSection
               icon={Wrench}
-              title="Servicios de la Aeronave"
+              title="Aeronave"
               hint="Inspecciones periódicas de la aeronave como conjunto."
             >
               <MaintenanceItemRows
@@ -1113,7 +1152,7 @@ export default function CreateMaintenanceControlForm({ initialData }: { initialD
         )}
 
         <Button
-          className="h-11 gap-2 self-end rounded-lg bg-gradient-to-br from-primary to-primary/85 px-6 text-primary-foreground shadow-sm transition-all duration-200 hover:shadow-md hover:shadow-blue-500/25 disabled:opacity-70"
+          className="h-11 gap-2 self-end rounded-lg bg-linear-to-br from-primary to-primary/85 px-6 text-primary-foreground shadow-sm transition-all duration-200 hover:shadow-md hover:shadow-blue-500/25 disabled:opacity-70"
           disabled={isPending}
           type="submit"
         >

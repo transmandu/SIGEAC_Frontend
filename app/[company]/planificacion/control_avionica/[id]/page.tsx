@@ -41,7 +41,7 @@ function TruncatedText({ children }: { children: string }) {
       <TooltipTrigger asChild>
         <span className="block truncate">{children}</span>
       </TooltipTrigger>
-      <TooltipContent side="top" className="max-w-xs break-words">
+      <TooltipContent side="top" className="max-w-xs wrap-break-word">
         {children}
       </TooltipContent>
     </Tooltip>
@@ -181,6 +181,11 @@ const AvionicsControlDetailPage = () => {
   }
 
   const remainingPercentage = Number(control.remaining_percentage);
+  const hasPercentageOverrides = activeItems.some((item) =>
+    (item.tasks ?? []).some(
+      (task) => task.remaining_percentage !== null && task.remaining_percentage !== undefined,
+    ),
+  );
   const aircraftHours = Number(control.aircraft?.flight_hours ?? 0);
   const aircraftCycles = Number(control.aircraft?.flight_cycles ?? 0);
   const scheduledCount = activeItems.filter((i) => i.status_computed).length;
@@ -211,7 +216,10 @@ const AvionicsControlDetailPage = () => {
             <InfoItem label="Serial" value={control.aircraft?.serial} />
             <InfoItem label="Horas Totales" value={`${fmtNumber(aircraftHours)} hrs`} />
             <InfoItem label="Ciclos Totales" value={fmtNumber(aircraftCycles)} />
-            <InfoItem label="% Remanente para Alerta" value={`${remainingPercentage}%`} />
+            <InfoItem
+              label="% Remanente para Alerta"
+              value={`${remainingPercentage}%${hasPercentageOverrides ? " (general)" : ""}`}
+            />
             <InfoItem label="Manual de Referencia" value={control.has_reference_manual ? control.reference_manual ?? undefined : undefined} />
             <InfoItem label="Equipos instalados" value={activeItems.length} />
             <InfoItem label="Con plazo" value={scheduledCount} />
@@ -281,7 +289,7 @@ const AvionicsControlDetailPage = () => {
                         const pending = task.pending_work_order;
                         const lastWorkOrder = task.latest_compliance?.work_order?.order_number;
                         return (
-                          <TableRow key={task.id ?? t} className={cn(meta?.row, "transition-colors hover:bg-primary/[0.03]")}>
+                          <TableRow key={task.id ?? t} className={cn(meta?.row, "transition-colors hover:bg-primary/3")}>
                             {t === 0 && (
                               <TableCell rowSpan={item.tasks.length} className="align-top font-medium">
                                 <TruncatedText>{`${item.description}${item.position ? ` ${item.position}` : ""}`}</TruncatedText>
@@ -333,6 +341,18 @@ const AvionicsControlDetailPage = () => {
                                   <span className={cn("inline-flex items-center gap-1.5 font-semibold", meta!.text)}>
                                     <span className={cn("size-1.5 shrink-0 rounded-full", meta!.dot)} />
                                     {computed.remaining}
+                                    {task.remaining_percentage !== null && task.remaining_percentage !== undefined && (
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <span className="rounded bg-muted px-1 text-[10px] font-medium text-muted-foreground">
+                                            {Number(task.remaining_percentage)}%
+                                          </span>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                          Margen propio de esta tarea, distinto del {remainingPercentage}% del control
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    )}
                                   </span>
                                   {computed.extras.map((extra, i) => (
                                     <span key={i} className={cn("block truncate text-xs", extra.status ? STATUS_META[extra.status].text : "text-muted-foreground")}>

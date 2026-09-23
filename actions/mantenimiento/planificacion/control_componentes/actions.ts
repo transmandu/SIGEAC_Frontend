@@ -34,6 +34,7 @@ export interface ComponentItemData {
   action: ComponentAction;
   reference_document?: string;
   first_applied_date: string;
+  remaining_percentage?: number | null;
   intervals: ComponentIntervalData[];
 }
 

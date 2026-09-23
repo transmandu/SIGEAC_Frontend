@@ -21,9 +21,9 @@ import { computeMaintenanceItem, fmtNumber, ItemStatus, STATUS_META } from "@/li
 import { DIRECTIVE_APPLICABILITY_LABELS, DIRECTIVE_AUTHORITY_LABELS, DIRECTIVE_COMPLIANCE_TYPE_LABELS } from "@/lib/directiveControlLabels";
 import { partTypeLabel, partTypeRank } from "@/lib/maintenancePartTypes";
 import { FormSection, selectTriggerClass } from "@/components/forms/mantenimiento/planificacion/_theme";
-import { DirectiveApplicability, DirectiveControlItem, MaintenanceAircraftPart } from "@/types";
+import { DirectiveApplicability, DirectiveControl, DirectiveControlItem, MaintenanceAircraftPart } from "@/types";
 import { cn, formatDate } from "@/lib/utils";
-import { AlertTriangle, CheckCircle2, Clock, Info, Search, ShieldAlert, SquarePen, Wrench } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Clock, Cog, Info, Plane, Search, ShieldAlert, SquarePen, Wrench } from "lucide-react";
 
 function InfoItem({ label, value }: { label: string; value?: string | number }) {
   return (
@@ -42,7 +42,7 @@ function TruncatedText({ children }: { children: string }) {
       <TooltipTrigger asChild>
         <span className="block truncate">{children}</span>
       </TooltipTrigger>
-      <TooltipContent side="top" className="max-w-xs break-words">
+      <TooltipContent side="top" className="max-w-xs wrap-break-word">
         {children}
       </TooltipContent>
     </Tooltip>
@@ -194,6 +194,9 @@ const DirectiveControlDetailPage = () => {
   }
 
   const remainingPercentage = Number(control.remaining_percentage);
+  const hasPercentageOverrides = items.some(
+    (item) => item.remaining_percentage !== null && item.remaining_percentage !== undefined,
+  );
   const aircraftHours = Number(control.aircraft?.flight_hours ?? 0);
   const aircraftCycles = Number(control.aircraft?.flight_cycles ?? 0);
 
@@ -206,14 +209,15 @@ const DirectiveControlDetailPage = () => {
     }
   });
   const counters: Record<string, number> = {};
-  const parentLabels = new Map<string, string>();
-  Array.from(parentsById.entries())
+  const parents = Array.from(parentsById.entries())
     .sort(([, a], [, b]) => partTypeRank(a.type) - partTypeRank(b.type))
-    .forEach(([partId, part]) => {
+    .map(([partId, part]) => {
       const type = (part.type ?? "").toUpperCase();
       counters[type] = (counters[type] ?? 0) + 1;
-      parentLabels.set(partId, `${partTypeLabel(part.type)} ${counters[type]}${part.serial ? ` - ${part.serial}` : ""}`);
+      return { id: partId, part, label: `${partTypeLabel(part.type)} ${counters[type]}${part.serial ? ` - ${part.serial}` : ""}` };
     });
+
+  const fuselageItems = filtered.filter((i) => !i.parent_aircraft_part_id);
 
   const applicableCount = items.filter((i) => i.applicability === "APPLICABLE").length;
   const pendingAnalysisCount = items.filter((i) => i.applicability === "PENDING_ANALYSIS").length;
@@ -245,7 +249,10 @@ const DirectiveControlDetailPage = () => {
             <InfoItem label="Serial" value={control.aircraft?.serial} />
             <InfoItem label="Horas Totales" value={`${fmtNumber(aircraftHours)} hrs`} />
             <InfoItem label="Ciclos Totales" value={fmtNumber(aircraftCycles)} />
-            <InfoItem label="% Remanente para Alerta" value={`${remainingPercentage}%`} />
+            <InfoItem
+              label="% Remanente para Alerta"
+              value={`${remainingPercentage}%${hasPercentageOverrides ? " (general)" : ""}`}
+            />
             <InfoItem label="Manual de Referencia" value={control.has_reference_manual ? control.reference_manual ?? undefined : undefined} />
             <InfoItem label="AD evaluadas" value={items.length} />
             <InfoItem label="Aplicables" value={applicableCount} />
@@ -295,16 +302,63 @@ const DirectiveControlDetailPage = () => {
           </Select>
         </div>
 
-        <FormSection icon={ShieldAlert} title="Directivas de Aeronavegabilidad" hint="Una fila por AD y conjunto; las no aplicables y supersedidas quedan registradas con su motivo (Formulario INAC 39-001).">
-          {!filtered.length ? (
-            <p className="text-sm italic text-muted-foreground">Ninguna directiva coincide con el filtro.</p>
-          ) : (
+        <FormSection icon={Plane} title="Aeronave" hint="Directivas que afectan a la aeronave en su conjunto.">
+          <DirectivesTable
+            items={fuselageItems}
+            emptyLabel="Ninguna directiva de la aeronave coincide con el filtro."
+            company={company}
+            control={control}
+            currentHours={aircraftHours}
+            currentCycles={aircraftCycles}
+            remainingPercentage={remainingPercentage}
+          />
+        </FormSection>
+
+        {parents.map(({ id: partId, part, label }) => (
+          <FormSection key={partId} icon={Cog} title={label} hint={`Directivas medidas contra el TSN/CSN de ${label}.`}>
+            <DirectivesTable
+              items={filtered.filter((i) => String(i.parent_aircraft_part_id) === partId)}
+              emptyLabel="Ninguna directiva de este conjunto coincide con el filtro."
+              company={company}
+              control={control}
+              currentHours={Number(part.time_since_new ?? 0)}
+              currentCycles={Number(part.cycles_since_new ?? 0)}
+              remainingPercentage={remainingPercentage}
+            />
+          </FormSection>
+        ))}
+      </div>
+    </ContentLayout>
+  );
+};
+
+function DirectivesTable({
+  items,
+  emptyLabel,
+  company,
+  control,
+  currentHours,
+  currentCycles,
+  remainingPercentage,
+}: {
+  items: DirectiveControlItem[];
+  emptyLabel: string;
+  company: string;
+  control: DirectiveControl;
+  currentHours: number;
+  currentCycles: number;
+  remainingPercentage: number;
+}) {
+  if (!items.length) {
+    return <p className="text-sm italic text-muted-foreground">{emptyLabel}</p>;
+  }
+
+  return (
             <div className="overflow-x-auto rounded-lg border border-slate-400/40 dark:border-slate-600/40">
               <Table className="table-fixed">
                 <TableHeader>
                   <TableRow className="hover:bg-transparent">
                     <TableHead className="bg-muted/40 font-semibold">Directiva</TableHead>
-                    <TableHead className={cn(COL.parent, "bg-muted/40 font-semibold")}>Conjunto</TableHead>
                     <TableHead className={cn(COL.applicability, "bg-muted/40 font-semibold")}>Aplicabilidad</TableHead>
                     <TableHead className={cn(COL.type, "bg-muted/40 font-semibold")}>Tipo</TableHead>
                     <TableHead className={cn(COL.limit, "bg-muted/40 font-semibold")}>Plazo</TableHead>
@@ -317,21 +371,16 @@ const DirectiveControlDetailPage = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filtered.map((item) => {
+                  {items.map((item) => {
                     const computed = item.computed ? computeMaintenanceItem(item) : null;
                     const meta = computed ? STATUS_META[computed.status] : null;
                     const pending = item.pending_work_order;
                     const lastCompliance = item.latest_compliance;
                     const lastWorkOrder = lastCompliance?.work_order?.order_number;
-                    const parentLabel = item.parent_aircraft_part_id ? parentLabels.get(String(item.parent_aircraft_part_id)) ?? "Parte" : "Fuselaje";
                     const isApplicable = item.applicability === "APPLICABLE";
 
-                    // Los contadores del reloj son los del conjunto afectado, no siempre los de la aeronave.
-                    const currentHours = item.parent_aircraft_part ? Number(item.parent_aircraft_part.time_since_new ?? 0) : aircraftHours;
-                    const currentCycles = item.parent_aircraft_part ? Number(item.parent_aircraft_part.cycles_since_new ?? 0) : aircraftCycles;
-
                     return (
-                      <TableRow key={item.id} className={cn(meta?.row, "transition-colors hover:bg-primary/[0.03]")}>
+                      <TableRow key={item.id} className={cn(meta?.row, "transition-colors hover:bg-primary/3")}>
                         <TableCell className="align-top font-medium">
                           <span className="flex items-center gap-1.5">
                             <span className="truncate">AD {item.ad_number}{item.revision ? ` ${item.revision}` : ""}</span>
@@ -340,9 +389,6 @@ const DirectiveControlDetailPage = () => {
                           <TruncatedText>{item.description}</TruncatedText>
                           {item.reference_document && <span className="block truncate text-xs text-muted-foreground">{item.reference_document}</span>}
                           {item.compliance_method && <span className="block truncate text-xs text-muted-foreground">Método: {item.compliance_method}</span>}
-                        </TableCell>
-                        <TableCell className={cn(COL.parent, "align-top")}>
-                          <TruncatedText>{parentLabel}</TruncatedText>
                         </TableCell>
                         <TableCell className={cn(COL.applicability, "align-top")}>
                           <Badge variant="outline" className={cn("rounded-md text-[10px] shadow-none", APPLICABILITY_BADGE[item.applicability])}>
@@ -383,6 +429,18 @@ const DirectiveControlDetailPage = () => {
                               <span className={cn("inline-flex items-center gap-1.5 font-semibold", meta!.text)}>
                                 <span className={cn("size-1.5 shrink-0 rounded-full", meta!.dot)} />
                                 {computed.remaining}
+                                {item.remaining_percentage !== null && item.remaining_percentage !== undefined && (
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <span className="rounded bg-muted px-1 text-[10px] font-medium text-muted-foreground">
+                                        {Number(item.remaining_percentage)}%
+                                      </span>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      Margen propio de esta AD, distinto del {remainingPercentage}% del control
+                                    </TooltipContent>
+                                  </Tooltip>
+                                )}
                               </span>
                               {computed.extras.map((extra, i) => (
                                 <span key={i} className={cn("block truncate text-xs", extra.status ? STATUS_META[extra.status].text : "text-muted-foreground")}>
@@ -453,11 +511,7 @@ const DirectiveControlDetailPage = () => {
                 </TableBody>
               </Table>
             </div>
-          )}
-        </FormSection>
-      </div>
-    </ContentLayout>
   );
-};
+}
 
 export default DirectiveControlDetailPage;

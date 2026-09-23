@@ -30,6 +30,7 @@ export interface DirectiveItemData {
   applicability_notes?: string;
   compliance_type: DirectiveComplianceType;
   first_applied_date?: string;
+  remaining_percentage?: number | null;
   observations?: string;
   intervals: DirectiveIntervalData[];
 }

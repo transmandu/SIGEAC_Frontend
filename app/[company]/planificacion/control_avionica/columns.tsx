@@ -4,40 +4,19 @@ import Link from "next/link"
 import { type AppColumnDef } from "@/lib/table"
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { AvionicsControl } from "@/types"
 import AvionicsControlDropdownActions from "@/components/dropdowns/mantenimiento/AvionicsControlDropdownActions"
-import { STATUS_META } from "@/lib/maintenanceControlCalc"
-import { Plane, Radio, Calendar, Eye } from "lucide-react"
-import { formatDate } from "@/lib/utils"
-import { cn } from "@/lib/utils"
+import { MaintenanceStatusSummary, emptyStatusCounts } from "@/components/tables/MaintenanceStatusSummary"
+import { Plane, Radio } from "lucide-react"
 
 /** Cuántos equipos activos hay en cada franja — los "por condición" no cuentan, no tienen plazo. */
-function StatusSummary({ control }: { control: AvionicsControl }) {
-  const counts = { OK: 0, WARNING: 0, CRITICAL: 0, OVERDUE: 0 }
+function statusCounts(control: AvionicsControl) {
+  const counts = emptyStatusCounts()
   for (const item of control.items ?? []) {
     if (item.status !== "ACTIVE" || !item.status_computed) continue
     counts[item.status_computed] += 1
   }
-
-  return (
-    <div className="flex items-center justify-center gap-1.5">
-      {(Object.keys(counts) as (keyof typeof counts)[]).map((status) =>
-        counts[status] > 0 ? (
-          <Tooltip key={status}>
-            <TooltipTrigger asChild>
-              <span className={cn("inline-flex items-center gap-1 rounded-md bg-muted/60 px-1.5 py-0.5 text-xs font-medium tabular-nums", STATUS_META[status].text)}>
-                <span className={cn("size-1.5 rounded-full", STATUS_META[status].dot)} />
-                {counts[status]}
-              </span>
-            </TooltipTrigger>
-            <TooltipContent>{STATUS_META[status].label}</TooltipContent>
-          </Tooltip>
-        ) : null,
-      )}
-    </div>
-  )
+  return counts
 }
 
 export const getColumns = (companySlug: string): AppColumnDef<AvionicsControl>[] => [
@@ -46,7 +25,7 @@ export const getColumns = (companySlug: string): AppColumnDef<AvionicsControl>[]
     accessorFn: (row) => row.aircraft?.acronym ?? "",
     header: ({ column }) => <DataTableColumnHeader filter column={column} title="Aeronave" />,
     cell: ({ row }) => (
-      <div className="flex items-center justify-center gap-2">
+      <div className="flex items-center justify-center gap-2 pr-9">
         <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
           <Plane className="h-3.5 w-3.5" />
         </span>
@@ -57,7 +36,25 @@ export const getColumns = (companySlug: string): AppColumnDef<AvionicsControl>[]
   {
     accessorKey: "title",
     header: ({ column }) => <DataTableColumnHeader filter column={column} title="Título" />,
-    cell: ({ row }) => <span className="font-medium">{row.original.title}</span>,
+    cell: ({ row }) => (
+      <div className="flex justify-center">
+        <Link
+          href={`/${companySlug}/planificacion/control_avionica/${row.original.id}`}
+          className="text-center font-medium transition-colors hover:text-primary hover:underline underline-offset-4"
+        >
+          {row.original.title}
+        </Link>
+      </div>
+    ),
+  },
+  {
+    accessorKey: "description",
+    header: ({ column }) => <DataTableColumnHeader filter column={column} title="Descripción" />,
+    cell: ({ row }) => (
+      <span className="block text-center text-sm text-muted-foreground line-clamp-1">
+        {row.original.description || "Sin descripción"}
+      </span>
+    ),
   },
   {
     accessorKey: "has_reference_manual",
@@ -88,37 +85,8 @@ export const getColumns = (companySlug: string): AppColumnDef<AvionicsControl>[]
   },
   {
     id: "status_summary",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Estado" />,
-    cell: ({ row }) => <StatusSummary control={row.original} />,
-  },
-  {
-    accessorKey: "created_at",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Fecha" />,
-    cell: ({ row }) => (
-      <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-        <Calendar className="h-4 w-4" />
-        <span>{row.original.created_at ? formatDate(row.original.created_at) : "-"}</span>
-      </div>
-    ),
-  },
-  {
-    id: "view",
-    cell: ({ row }) => (
-      <div className="flex justify-center">
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button asChild variant="ghost" size="icon" className="h-8 w-8">
-              <Link href={`/${companySlug}/planificacion/control_avionica/${row.original.id}`}>
-                <Eye className="h-4 w-4" />
-                <span className="sr-only">Ver control de aviónica</span>
-              </Link>
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Ver</TooltipContent>
-        </Tooltip>
-      </div>
-    ),
-    size: 40,
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Vencimientos" />,
+    cell: ({ row }) => <MaintenanceStatusSummary counts={statusCounts(row.original)} />,
   },
   {
     id: "actions",

@@ -1,12 +1,12 @@
 "use client";
 
-import { useMemo } from "react";
-import { Control, useFieldArray, useForm, useWatch } from "react-hook-form";
+import { useEffect, useMemo, useRef } from "react";
+import { Control, useFieldArray, useForm, useFormContext, useWatch } from "react-hook-form";
 import { zodResolver } from "@/lib/zod-resolver";
 import { z } from "zod";
 import { format, parseISO } from "date-fns";
 import { useRouter } from "next/navigation";
-import { ClipboardList, Loader2, Plane, Plus, ShieldAlert, X } from "lucide-react";
+import { Check, ClipboardList, Cog, Loader2, Plane, Plus, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -29,8 +29,8 @@ import {
   CompactDateField,
   FUSELAGE,
   NumericInput,
-  ParentOption,
   ProviderSelect,
+  RemainingPercentageField,
   useParentOptions,
 } from "./_shared";
 
@@ -47,6 +47,12 @@ const optionalNumeric = z.preprocess(
   z.coerce.number().min(0).optional(),
 );
 
+// Vacío = hereda el porcentaje general del control, no 0%.
+const optionalPercentage = z.preprocess(
+  (val) => (val === "" || val === undefined || val === null ? undefined : val),
+  z.coerce.number().min(0, "Debe ser ≥ 0").max(100, "Debe ser ≤ 100").optional(),
+);
+
 const intervalSchema = z.object({
   id: z.number().optional(),
   counting_method: countingMethodEnum,
@@ -56,7 +62,6 @@ const intervalSchema = z.object({
 
 const itemSchema = z.object({
   id: z.number().optional(),
-  parent_aircraft_part_id: z.string().default(FUSELAGE),
   ad_number: z.string().min(1, "Requerido"),
   authority: authorityEnum,
   revision: z.string().optional(),
@@ -68,9 +73,12 @@ const itemSchema = z.object({
   compliance_type: complianceTypeEnum,
   maintenance_provider_id: z.string().optional(),
   first_applied_date: z.date().optional(),
+  remaining_percentage: optionalPercentage,
   observations: z.string().optional(),
   intervals: z.array(intervalSchema).default([]),
 });
+
+const partItemSchema = itemSchema.extend({ aircraft_part_id: z.string() });
 
 // Mismas reglas cruzadas que StoreDirectiveControlRequest: el motivo es
 // obligatorio al descartar una AD; la fecha e intervalos solo si aplica.
@@ -84,14 +92,27 @@ const formSchema = z
     maintenance_catalog_manual_id: z.number().optional(),
     remaining_percentage: z.coerce.number().min(0, "Debe ser ≥ 0").max(100, "Debe ser ≤ 100"),
     items: z.array(itemSchema).default([]),
+    selected_part_ids: z.array(z.string()).default([]),
+    part_items: z.array(partItemSchema).default([]),
   })
   .superRefine((vals, ctx) => {
     if (vals.has_reference_manual && !vals.reference_manual?.trim()) {
       ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Indique el manual de referencia", path: ["reference_manual"] });
     }
 
-    vals.items.forEach((item, index) => {
-      const path = ["items", index];
+    vals.selected_part_ids.forEach((partId) => {
+      if (!vals.part_items.some((item) => item.aircraft_part_id === partId)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Agregue al menos una directiva para cada conjunto seleccionado",
+          path: ["part_items"],
+        });
+      }
+    });
+
+    const checkItems = (items: z.infer<typeof itemSchema>[], basePath: string) => {
+    items.forEach((item, index) => {
+      const path = [basePath, index];
 
       if ((item.applicability === "NOT_APPLICABLE" || item.applicability === "SUPERSEDED") && !item.applicability_notes?.trim()) {
         ctx.addIssue({
@@ -129,6 +150,10 @@ const formSchema = z
         seen.add(interval.counting_method);
       });
     });
+    };
+
+    checkItems(vals.items, "items");
+    checkItems(vals.part_items, "part_items");
   });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -139,7 +164,6 @@ const emptyInterval = (usedMethods: string[] = []) => ({
 });
 
 const emptyItem = () => ({
-  parent_aircraft_part_id: FUSELAGE,
   ad_number: "",
   authority: "FAA",
   revision: "",
@@ -151,6 +175,7 @@ const emptyItem = () => ({
   compliance_type: "ONE_TIME",
   maintenance_provider_id: "",
   first_applied_date: undefined as unknown as Date,
+  remaining_percentage: undefined as number | undefined,
   observations: "",
   intervals: [] as ReturnType<typeof emptyInterval>[],
 });
@@ -312,16 +337,18 @@ function IntervalRow({
 
 function DirectiveCard({
   control,
+  arrayName,
   index,
-  parentOptions,
+  position,
   onRemove,
 }: {
   control: Control<any>;
+  arrayName: "items" | "part_items";
   index: number;
-  parentOptions: ParentOption[];
+  position: number;
   onRemove: () => void;
 }) {
-  const namePrefix = `items.${index}`;
+  const namePrefix = `${arrayName}.${index}`;
   const adNumber = useWatch({ control, name: `${namePrefix}.ad_number` }) as string;
   const applicability = useWatch({ control, name: `${namePrefix}.applicability` }) as DirectiveApplicability;
   const complianceType = useWatch({ control, name: `${namePrefix}.compliance_type` }) as DirectiveComplianceType;
@@ -334,10 +361,10 @@ function DirectiveCard({
   const isRecurrent = complianceType === "RECURRENT";
 
   return (
-    <div className="space-y-3 rounded-xl border border-slate-400/40 bg-gradient-to-br from-background/70 to-background/40 p-4 backdrop-blur-md dark:border-slate-600/40">
+    <div className="space-y-3 rounded-xl border border-slate-400/40 bg-linear-to-br from-background/70 to-background/40 p-4 backdrop-blur-md dark:border-slate-600/40">
       <div className="flex items-center justify-between gap-2">
         <p className="text-sm font-semibold">
-          <span className="text-muted-foreground">#{index + 1}</span> {adNumber || "Nueva directiva"}
+          <span className="text-muted-foreground">#{position + 1}</span> {adNumber || "Nueva directiva"}
         </p>
         <TooltipProvider disableHoverableContent>
           <Tooltip>
@@ -360,12 +387,6 @@ function DirectiveCard({
           options={Object.entries(DIRECTIVE_AUTHORITY_LABELS).map(([value, label]) => ({ value, label }))}
         />
         <TextField control={control} name={`${namePrefix}.revision`} label="Revisión" placeholder="R1" optional />
-        <SelectField
-          control={control}
-          name={`${namePrefix}.parent_aircraft_part_id`}
-          label="Conjunto afectado"
-          options={parentOptions.map((o) => ({ value: o.id, label: o.label }))}
-        />
       </div>
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-[2fr_1fr]">
@@ -400,7 +421,7 @@ function DirectiveCard({
 
       {isApplicable && (
         <>
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_180px]">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_180px_110px]">
             <div className="space-y-1">
               <p className={labelClass}>
                 Realizado por{!isRecurrent && <span className="ml-1 text-xs font-normal text-muted-foreground">(Opcional)</span>}
@@ -410,6 +431,12 @@ function DirectiveCard({
             <div className="space-y-1">
               <p className={labelClass}>{isRecurrent ? "Último cumplimiento" : "Fecha de referencia"}</p>
               <CompactDateField control={control} name={`${namePrefix}.first_applied_date`} />
+            </div>
+            <div className="space-y-1">
+              <p className={labelClass}>
+                % Alerta <span className="text-xs font-normal text-muted-foreground">(Opcional)</span>
+              </p>
+              <RemainingPercentageField control={control} name={`${namePrefix}.remaining_percentage`} />
             </div>
           </div>
 
@@ -455,10 +482,126 @@ function DirectiveCard({
   );
 }
 
+function DirectivePartsSection({ control }: { control: Control<any> }) {
+  const { setValue } = useFormContext<FormValues>();
+  const { fields, append, remove, replace } = useFieldArray({ control, name: "part_items" });
+
+  const aircraftId = useWatch({ control, name: "aircraft_id" }) as string;
+  const selectedPartIds = (useWatch({ control, name: "selected_part_ids" }) as string[]) ?? [];
+  const parentOptions = useParentOptions(aircraftId);
+  const availableParts = parentOptions.filter((option) => option.id !== FUSELAGE);
+
+  // Al cambiar de aeronave la selección ya no aplica. replace() del propio
+  // useFieldArray, no setValue, para no desincronizar su estado interno.
+  const previousAircraftId = useRef(aircraftId);
+  useEffect(() => {
+    if (previousAircraftId.current !== aircraftId) {
+      previousAircraftId.current = aircraftId;
+      setValue("selected_part_ids", []);
+      replace([]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [aircraftId]);
+
+  // La key sale del id estable de RHF, no del índice: remove() reindexa y una
+  // key posicional remonta los Select/Popover de Radix.
+  const rowsForPart = (partId: string) =>
+    fields
+      .map((field: any, index) => ({ id: field.id as string, partId: field.aircraft_part_id, index }))
+      .filter((row) => row.partId === partId);
+
+  const togglePart = (partId: string) => {
+    if (selectedPartIds.includes(partId)) {
+      setValue("selected_part_ids", selectedPartIds.filter((id) => id !== partId));
+      const indices = rowsForPart(partId).map((row) => row.index);
+      if (indices.length) remove(indices);
+    } else {
+      setValue("selected_part_ids", [...selectedPartIds, partId]);
+    }
+  };
+
+  if (!availableParts.length) {
+    return <p className={cn(hintClass, "italic")}>Esta aeronave no tiene partes asignadas.</p>;
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap gap-2">
+        {availableParts.map((part) => {
+          const checked = selectedPartIds.includes(part.id);
+          return (
+            <div
+              key={part.id}
+              role="checkbox"
+              aria-checked={checked}
+              tabIndex={0}
+              onClick={() => togglePart(part.id)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  togglePart(part.id);
+                }
+              }}
+              className={cn(
+                "flex cursor-pointer select-none items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-all duration-200",
+                checked
+                  ? "border-blue-400/40 bg-primary/10 shadow-sm shadow-blue-500/10"
+                  : "border-slate-400/50 bg-linear-to-br from-background/70 to-background/40 backdrop-blur-md hover:border-blue-400/30 hover:shadow-sm hover:shadow-blue-500/10 dark:border-slate-600/50",
+              )}
+            >
+              <span
+                className={cn(
+                  "flex h-4 w-4 shrink-0 items-center justify-center rounded-sm border transition-colors",
+                  checked ? "border-primary bg-primary text-white" : "border-muted-foreground/40",
+                )}
+              >
+                {checked && <Check className="h-3 w-3" />}
+              </span>
+              <span className="font-medium">{part.label}</span>
+            </div>
+          );
+        })}
+      </div>
+
+      {availableParts
+        .filter((part) => selectedPartIds.includes(part.id))
+        .map((part) => {
+          const rows = rowsForPart(part.id);
+          return (
+            <FormSection key={part.id} icon={Cog} title={part.label}>
+              <div className="space-y-4">
+                {rows.map((row, position) => (
+                  <DirectiveCard
+                    key={row.id}
+                    control={control}
+                    arrayName="part_items"
+                    index={row.index}
+                    position={position}
+                    onRemove={() => remove(row.index)}
+                  />
+                ))}
+                {!rows.length && <p className={cn(hintClass, "italic")}>Agregue al menos una AD para este conjunto.</p>}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => append({ ...emptyItem(), aircraft_part_id: part.id })}
+                  className="gap-1.5 border-dashed text-muted-foreground hover:border-blue-400/40 hover:text-primary"
+                >
+                  <Plus className="size-3.5" />
+                  Agregar directiva
+                </Button>
+              </div>
+            </FormSection>
+          );
+        })}
+    </div>
+  );
+}
+
 function mapToFormItem(item: NonNullable<DirectiveControl["items"]>[number]) {
   return {
     id: item.id,
-    parent_aircraft_part_id: item.parent_aircraft_part_id ? String(item.parent_aircraft_part_id) : FUSELAGE,
     ad_number: item.ad_number,
     authority: item.authority,
     revision: item.revision ?? "",
@@ -470,6 +613,10 @@ function mapToFormItem(item: NonNullable<DirectiveControl["items"]>[number]) {
     compliance_type: item.compliance_type,
     maintenance_provider_id: item.maintenance_provider_id ? String(item.maintenance_provider_id) : "",
     first_applied_date: item.first_applied_date ? parseISO(item.first_applied_date) : undefined,
+    remaining_percentage:
+      item.remaining_percentage !== null && item.remaining_percentage !== undefined
+        ? Number(item.remaining_percentage)
+        : undefined,
     observations: item.observations ?? "",
     intervals: item.intervals.map((interval) => ({
       id: interval.id,
@@ -489,10 +636,15 @@ const emptyFormValues: FormValues = {
   maintenance_catalog_manual_id: undefined,
   remaining_percentage: 15,
   items: [],
+  selected_part_ids: [],
+  part_items: [],
 };
 
 function buildDefaultValues(initialData?: DirectiveControl): FormValues {
   if (!initialData) return emptyFormValues;
+
+  const all = initialData.items ?? [];
+  const partItems = all.filter((i) => i.parent_aircraft_part_id);
 
   return {
     aircraft_id: String(initialData.aircraft_id),
@@ -502,7 +654,12 @@ function buildDefaultValues(initialData?: DirectiveControl): FormValues {
     reference_manual: initialData.reference_manual ?? "",
     maintenance_catalog_manual_id: initialData.maintenance_catalog_manual_id ? Number(initialData.maintenance_catalog_manual_id) : undefined,
     remaining_percentage: Number(initialData.remaining_percentage),
-    items: (initialData.items ?? []).map(mapToFormItem),
+    items: all.filter((i) => !i.parent_aircraft_part_id).map(mapToFormItem),
+    selected_part_ids: Array.from(new Set(partItems.map((i) => String(i.parent_aircraft_part_id)))),
+    part_items: partItems.map((item) => ({
+      ...mapToFormItem(item),
+      aircraft_part_id: String(item.parent_aircraft_part_id),
+    })),
   };
 }
 
@@ -527,12 +684,18 @@ export default function CreateDirectiveControlForm({ initialData }: { initialDat
   // Mismo cast que los otros formularios de control (react-hook-form 7.87).
   const control = form.control as unknown as Control<any>;
 
-  const hasReferenceManual = form.watch("has_reference_manual");
-  const aircraftId = form.watch("aircraft_id");
-  const parentOptions = useParentOptions(aircraftId);
+  const hasReferenceManual = useWatch({ control, name: "has_reference_manual" });
+  const aircraftId = useWatch({ control, name: "aircraft_id" });
   const { fields, append, remove } = useFieldArray({ control, name: "items" });
 
   const onSubmit = async (values: FormValues) => {
+    // El backend recibe una sola lista; el conjunto afectado sale de en qué
+    // sección se cargó la AD.
+    const allItems = [
+      ...values.items.map((item) => ({ ...item, aircraft_part_id: null as string | null })),
+      ...values.part_items,
+    ];
+
     const payload = {
       aircraft_id: values.aircraft_id,
       title: values.title,
@@ -541,11 +704,11 @@ export default function CreateDirectiveControlForm({ initialData }: { initialDat
       reference_manual: values.reference_manual,
       maintenance_catalog_manual_id: values.maintenance_catalog_manual_id,
       remaining_percentage: values.remaining_percentage,
-      items: values.items.map((item) => {
+      items: allItems.map((item) => {
         const applicable = item.applicability === "APPLICABLE";
         return {
           id: item.id,
-          parent_aircraft_part_id: item.parent_aircraft_part_id === FUSELAGE ? null : Number(item.parent_aircraft_part_id),
+          parent_aircraft_part_id: item.aircraft_part_id ? Number(item.aircraft_part_id) : null,
           ad_number: item.ad_number,
           authority: item.authority as DirectiveAuthority,
           revision: item.revision || undefined,
@@ -557,6 +720,7 @@ export default function CreateDirectiveControlForm({ initialData }: { initialDat
           compliance_type: item.compliance_type as DirectiveComplianceType,
           maintenance_provider_id: applicable ? item.maintenance_provider_id || undefined : undefined,
           first_applied_date: applicable && item.first_applied_date ? format(item.first_applied_date, "yyyy-MM-dd") : undefined,
+          remaining_percentage: applicable ? item.remaining_percentage ?? null : null,
           observations: item.observations || undefined,
           intervals: applicable
             ? item.intervals.map((interval) => ({
@@ -674,18 +838,24 @@ export default function CreateDirectiveControlForm({ initialData }: { initialDat
         </FormSection>
 
         {aircraftId ? (
-          <FormSection icon={ShieldAlert} title="Directivas de Aeronavegabilidad" hint="Cada AD evaluada, aplique o no: las descartadas quedan con su motivo; las aplicables llevan fecha, método y plazo.">
+          <>
+          <FormSection icon={Plane} title="Aeronave" hint="AD que afectan a la aeronave en su conjunto; las descartadas quedan con su motivo.">
             <div className="space-y-4">
               {fields.map((field, index) => (
-                <DirectiveCard key={field.id} control={control} index={index} parentOptions={parentOptions} onRemove={() => remove(index)} />
+                <DirectiveCard key={field.id} control={control} arrayName="items" index={index} position={index} onRemove={() => remove(index)} />
               ))}
-              {fields.length === 0 && <p className={cn(hintClass, "italic")}>Agregue las AD evaluadas para esta aeronave y sus conjuntos.</p>}
+              {fields.length === 0 && <p className={cn(hintClass, "italic")}>Agregue las AD evaluadas para esta aeronave.</p>}
               <Button type="button" variant="outline" size="sm" onClick={() => append(emptyItem())} className="gap-1.5 border-dashed text-muted-foreground hover:border-blue-400/40 hover:text-primary">
                 <Plus className="size-3.5" />
                 Agregar directiva
               </Button>
             </div>
           </FormSection>
+
+          <FormSection icon={Cog} title="Partes de la Aeronave" hint="Motores, turbinas y hélices con AD propias; se miden contra el contador de esa parte.">
+            <DirectivePartsSection control={control} />
+          </FormSection>
+          </>
         ) : (
           <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-slate-400/50 bg-muted/20 p-8 text-center dark:border-slate-600/50">
             <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted/60 text-muted-foreground">
@@ -696,7 +866,7 @@ export default function CreateDirectiveControlForm({ initialData }: { initialDat
         )}
 
         <Button
-          className="h-11 gap-2 self-end rounded-lg bg-gradient-to-br from-primary to-primary/85 px-6 text-primary-foreground shadow-sm transition-all duration-200 hover:shadow-md hover:shadow-blue-500/25 disabled:opacity-70"
+          className="h-11 gap-2 self-end rounded-lg bg-linear-to-br from-primary to-primary/85 px-6 text-primary-foreground shadow-sm transition-all duration-200 hover:shadow-md hover:shadow-blue-500/25 disabled:opacity-70"
           disabled={isPending}
           type="submit"
         >

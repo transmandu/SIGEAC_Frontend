@@ -31,7 +31,8 @@ const AvionicsControlPage = () => {
             <div className="flex flex-col">
               <h1 className="text-3xl font-semibold tracking-tight">Control de Aviónica</h1>
               <p className="text-sm text-muted-foreground">
-                Inventario certificado de los equipos de aviónica instalados y sus tareas recurrentes (Forma INAC-43-005).
+                Consulte y administre el control de aviónica de cada aeronave, con el
+                estado de vencimiento de los equipos instalados.
               </p>
             </div>
           </div>

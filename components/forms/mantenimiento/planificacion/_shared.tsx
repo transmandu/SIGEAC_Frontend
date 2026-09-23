@@ -166,6 +166,41 @@ export function CompactDateField({ control, name }: { control: Control<any>; nam
   );
 }
 
+/**
+ * Umbral de alerta propio de una fila. Vacío hereda el porcentaje general del
+ * control, que se muestra como placeholder.
+ */
+export function RemainingPercentageField({ control, name }: { control: Control<any>; name: string }) {
+  const controlPercentage = useWatch({ control, name: "remaining_percentage" });
+
+  return (
+    <FormField
+      control={control}
+      name={name}
+      render={({ field }) => (
+        <FormItem className="space-y-0">
+          <FormControl>
+            <div className="relative">
+              <NumericInput
+                className={cn(fieldClass, "pr-6")}
+                placeholder={controlPercentage != null ? String(controlPercentage) : ""}
+                value={field.value}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+                name={field.name}
+              />
+              <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+                %
+              </span>
+            </div>
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
+
 export function ProviderSelect({ control, name }: { control: Control<any>; name: string }) {
   const { selectedCompany } = useCompanyStore();
   const { data: providers, isLoading } = useGetMaintenanceProviders(selectedCompany?.slug);

@@ -22,6 +22,7 @@ interface MaintenanceItemData {
   maintenance_catalog_service_id?: number,
   name: string,
   first_applied_date: string,
+  remaining_percentage?: number | null,
   intervals: MaintenanceControlItemInterval[],
   maintenance_provider_id?: string,
 }

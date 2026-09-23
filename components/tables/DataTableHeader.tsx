@@ -190,7 +190,7 @@ export function DataTableColumnHeader<TData extends RowData, TValue>({
 
         <DropdownMenuContent
           align="start"
-          className="max-h-[420px] w-72 overflow-y-auto"
+          className="max-h-105 w-72 overflow-y-auto"
           // El typeahead de Radix roba las letras: escribir "A" saltaba a
           // "Ascendente" en vez de llegar al input de filtro.
           onKeyDown={(event) => event.stopPropagation()}
@@ -256,7 +256,7 @@ export function DataTableColumnHeader<TData extends RowData, TValue>({
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent
-                    className="z-[100] w-auto rounded-xl border-slate-400/60 p-0 shadow-lg dark:border-slate-600/60"
+                    className="z-100 w-auto rounded-xl border-slate-400/60 p-0 shadow-lg dark:border-slate-600/60"
                     align="start"
                     sideOffset={8}
                     // Los selectores de mes/año se montan en su propio portal:
