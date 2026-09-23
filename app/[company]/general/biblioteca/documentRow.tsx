@@ -85,6 +85,7 @@ interface DocumentRowProps {
   user: any;
   selected?: boolean;
   onToggleSelect?: () => void;
+  folderPath?: string;
 }
 
 export default function DocumentRow({
@@ -97,6 +98,7 @@ export default function DocumentRow({
   user,
   selected = false,
   onToggleSelect,
+  folderPath,
 }: DocumentRowProps) {
   const latestVersion = useMemo(() => {
     if (doc?.latest_version) return doc.latest_version;
@@ -255,6 +257,7 @@ export default function DocumentRow({
           onView={onView}
           onDelete={onDelete}
           onRefresh={onRefresh}
+          folderPath={folderPath}
         />
       </div>
     </div>

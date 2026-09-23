@@ -78,6 +78,8 @@ interface Props {
   onView: (id: number) => void;
   onDelete: (id: number | string) => Promise<void>;
   onRefresh: () => Promise<void>;
+  /** Carpeta actual: permite borrar solo la réplica en lugar del documento completo. */
+  folderPath?: string;
 }
 
 export const LibraryDropdownActions = ({
@@ -88,6 +90,7 @@ export const LibraryDropdownActions = ({
   onView,
   onDelete,
   onRefresh,
+  folderPath,
 }: Props) => {
   const params = useParams();
   const company = params.company as string;
@@ -338,6 +341,7 @@ export const LibraryDropdownActions = ({
         doc={doc}
         company={company}
         onSuccess={onRefresh}
+        folderPath={folderPath}
       />
 
       <UploadVersionDialog
