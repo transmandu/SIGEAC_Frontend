@@ -69,12 +69,7 @@ const ShowObligatoryReport = () => {
           obligatoryReport &&
           obligatoryReport.status === "ABIERTO" &&
           obligatoryReport.danger_identification?.id && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-9 w-full"
-              asChild
-            >
+            <Button variant="outline" size="sm" className="h-9 w-full" asChild>
               <Link
                 href={`/transmandu/sms/gestion_reportes/peligros_identificados/${obligatoryReport.danger_identification.id}`}
               >
@@ -245,7 +240,9 @@ const ShowObligatoryReport = () => {
                       );
                     } catch (error) {
                       console.error("Error parsing incidents:", error);
-                      return <p className="text-sm">Error al mostrar incidentes</p>;
+                      return (
+                        <p className="text-sm">Error al mostrar incidentes</p>
+                      );
                     }
                   })()}
                 </div>
@@ -277,7 +274,9 @@ const ShowObligatoryReport = () => {
                 </div>
                 <p className="text-sm font-mono">
                   {obligatoryReport.email || (
-                    <span className="text-muted-foreground/60">No registrado</span>
+                    <span className="text-muted-foreground/60">
+                      No registrado
+                    </span>
                   )}
                 </p>
               </div>
@@ -291,7 +290,9 @@ const ShowObligatoryReport = () => {
                 </div>
                 <p className="text-sm font-mono">
                   {obligatoryReport.phone_number || (
-                    <span className="text-muted-foreground/60">No registrado</span>
+                    <span className="text-muted-foreground/60">
+                      No registrado
+                    </span>
                   )}
                 </p>
               </div>
@@ -350,7 +351,9 @@ const ShowObligatoryReport = () => {
                     <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                       Hora de Vuelo
                     </span>
-                    <p className="text-sm">{obligatoryReport.flight_time?.substring(0, 5)}</p>
+                    <p className="text-sm">
+                      {obligatoryReport.flight_time?.substring(0, 5)}
+                    </p>
                   </div>
                   <div>
                     <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
