@@ -1,3 +1,7 @@
+## v4.20.2 — 2026-09-23
+
+- fix: show correctly date in ros show (#287)
+
 ## v4.20.1 — 2026-09-23
 
 - fix: library with replicated files  (#286)
