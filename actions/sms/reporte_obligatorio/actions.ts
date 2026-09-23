@@ -24,7 +24,7 @@ interface ObligatoryReportData {
   phone_number?: string | null;
   image?: File | string;
   document?: File | string;
-  library_folder_path?: string;
+  library_folder_paths?: string[];
 }
 
 interface UpdateObligatoryReportData {
@@ -53,7 +53,7 @@ interface UpdateObligatoryReportData {
     phone_number?: string | null;
     image?: string | File;
     document?: string | File;
-    library_folder_path?: string;
+    library_folder_paths?: string[];
   };
 }
 

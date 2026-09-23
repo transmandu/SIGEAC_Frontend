@@ -1264,6 +1264,8 @@ export type SMSActivity = {
   documentUrl?: string;
   status: string;
   categories: ActivityCategory[];
+  is_pre?: boolean;
+  library_document_id?: number | null;
 };
 
 export type SMSActivityAttendance = {
@@ -1393,6 +1395,8 @@ export type MeetingMinutes = {
   approved_by?: Employee;
   agreements?: MeetingAgreement[];
   attendees?: Attendace[];
+  is_comite?: boolean;
+  library_document_id?: number | null;
 };
 
 export type AuthorizedEmployeeRef = {

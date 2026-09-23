@@ -7,6 +7,7 @@ export interface Document {
   category_name: string;
   department_name: string;
   folder_path: string | null;
+  folder_paths: string[];
   emission_date: string | null;
   expiration_date: string | null;
   status: "vigente" | "vencido" | "no_aplica";

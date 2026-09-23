@@ -300,10 +300,14 @@ const BibliotecaPage = () => {
 
     // Sin carpeta elegida la vista es la raíz: filtrarla igual que "/" evita que
     // se cuelen los documentos de las subcarpetas bajo el breadcrumb "Raíz".
+    // `folder_paths` incluye todas las carpetas en las que aparece el documento
+    // (incluida la primaria por retrocompatibilidad).
     if (!selectedFolderPath || selectedFolderPath === "/") {
-      docs = docs.filter((d) => !d.folder_path || d.folder_path === "/");
+      docs = docs.filter(
+        (d) => !d.folder_paths?.length || d.folder_paths.includes("/"),
+      );
     } else {
-      docs = docs.filter((d) => d.folder_path === selectedFolderPath);
+      docs = docs.filter((d) => d.folder_paths?.includes(selectedFolderPath));
     }
 
     if (searchTerm) {
