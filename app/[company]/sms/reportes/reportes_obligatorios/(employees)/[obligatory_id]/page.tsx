@@ -15,8 +15,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useGetObligatoryReportById } from "@/hooks/sms/useGetObligatoryReportById";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
+import { formatCalendarDate } from "@/lib/date";
 import {
   AlertCircle,
   Calendar,
@@ -155,9 +154,7 @@ const ShowObligatoryReport = () => {
                     Fecha del Reporte:
                   </span>
                   <span className="text-sm">
-                    {format(obligatoryReport.report_date, "PPP", {
-                      locale: es,
-                    })}
+                    {formatCalendarDate(obligatoryReport.report_date, "long")}
                   </span>
                 </div>
               </div>
@@ -186,9 +183,7 @@ const ShowObligatoryReport = () => {
                     Fecha:
                   </span>
                   <span className="text-sm">
-                    {format(obligatoryReport.incident_date, "PPP", {
-                      locale: es,
-                    })}
+                    {formatCalendarDate(obligatoryReport.incident_date, "long")}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
