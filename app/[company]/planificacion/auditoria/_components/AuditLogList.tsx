@@ -12,20 +12,36 @@ import {
 import { useCompanyTimezone } from "@/hooks/general/useCompanyTimezone";
 import { useGetPlanificationAuditLogs } from "@/hooks/mantenimiento/planificacion/useGetPlanificationAuditLogs";
 import { formatInstant } from "@/lib/date";
-import { EDIT_REASONS, EDIT_REASON_LABELS, EditReason } from "@/lib/planificacion/editReasons";
+import {
+  EDIT_REASONS,
+  EDIT_REASON_LABELS,
+  EditReason,
+} from "@/lib/planificacion/editReasons";
 import { cn } from "@/lib/utils";
 import type {
   AuditEventKind,
   AuditTypeFilter,
   PlanificationAuditLog,
 } from "@/types/planification/audit";
-import { AlertTriangle, ChevronLeft, ChevronRight, FileSearch, Loader2, Search } from "lucide-react";
+import {
+  AlertTriangle,
+  ChevronLeft,
+  ChevronRight,
+  FileSearch,
+  Loader2,
+  Search,
+} from "lucide-react";
 import { useDebounce } from "@/hooks/helpers/useDebounce";
 import { useState } from "react";
 import { AuditLogDetailDialog } from "./AuditLogDetailDialog";
 import { TYPE_ICONS, TYPE_LABELS, fieldLabel } from "./labels";
 import { Segmented } from "./Segmented";
-import { microLabelCls, panelCls, reasonBadgeCls, workflowBadgeCls } from "./ui";
+import {
+  microLabelCls,
+  panelCls,
+  reasonBadgeCls,
+  workflowBadgeCls,
+} from "./ui";
 
 type KindFilter = AuditEventKind | "ALL";
 type ReasonFilter = EditReason | "SIN_CLASIFICAR" | "ALL";
@@ -68,10 +84,12 @@ export function AuditLogList({ from, to, type }: AuditLogListProps) {
   });
 
   // Todo filtro nuevo vuelve a la primera página.
-  const withReset = <T,>(setter: (value: T) => void) => (value: T) => {
-    setter(value);
-    setPage(1);
-  };
+  const withReset =
+    <T,>(setter: (value: T) => void) =>
+    (value: T) => {
+      setter(value);
+      setPage(1);
+    };
 
   const logs = data?.data ?? [];
   const meta = data?.meta;
@@ -89,9 +107,17 @@ export function AuditLogList({ from, to, type }: AuditLogListProps) {
           />
         </div>
 
-        <Segmented ariaLabel="Tipo de edición" value={kind} options={KIND_OPTIONS} onChange={withReset(setKind)} />
+        <Segmented
+          ariaLabel="Tipo de edición"
+          value={kind}
+          options={KIND_OPTIONS}
+          onChange={withReset(setKind)}
+        />
 
-        <Select value={reason} onValueChange={(value) => withReset(setReason)(value as ReasonFilter)}>
+        <Select
+          value={reason}
+          onValueChange={(value) => withReset(setReason)(value as ReasonFilter)}
+        >
           <SelectTrigger className="h-9 w-52 border-border/60 bg-background/70 text-xs">
             <SelectValue />
           </SelectTrigger>
@@ -120,15 +146,24 @@ export function AuditLogList({ from, to, type }: AuditLogListProps) {
           Campos críticos
         </button>
 
-        {isFetching && !isLoading && <Loader2 className="size-4 animate-spin text-muted-foreground" />}
+        {isFetching && !isLoading && (
+          <Loader2 className="size-4 animate-spin text-muted-foreground" />
+        )}
       </div>
 
       {isLoading ? (
-        <div className={cn(panelCls, "flex min-h-60 items-center justify-center")}>
+        <div
+          className={cn(panelCls, "flex min-h-60 items-center justify-center")}
+        >
           <Loader2 className="size-5 animate-spin text-muted-foreground" />
         </div>
       ) : logs.length === 0 ? (
-        <div className={cn(panelCls, "flex min-h-60 flex-col items-center justify-center gap-1.5 select-none")}>
+        <div
+          className={cn(
+            panelCls,
+            "flex min-h-60 flex-col items-center justify-center gap-1.5 select-none",
+          )}
+        >
           <FileSearch className="size-4 text-muted-foreground/60" />
           <span className="text-[11px] tracking-widest text-muted-foreground/60 uppercase">
             Sin ediciones para estos filtros
@@ -137,7 +172,12 @@ export function AuditLogList({ from, to, type }: AuditLogListProps) {
       ) : (
         <ul className="flex flex-col gap-1.5">
           {logs.map((log) => (
-            <AuditLogRow key={log.id} log={log} timeZone={timeZone} onOpen={() => setSelected(log)} />
+            <AuditLogRow
+              key={log.id}
+              log={log}
+              timeZone={timeZone}
+              onOpen={() => setSelected(log)}
+            />
           ))}
         </ul>
       )}
@@ -177,7 +217,10 @@ export function AuditLogList({ from, to, type }: AuditLogListProps) {
         </div>
       )}
 
-      <AuditLogDetailDialog log={selected} onOpenChange={(open) => !open && setSelected(null)} />
+      <AuditLogDetailDialog
+        log={selected}
+        onOpenChange={(open) => !open && setSelected(null)}
+      />
     </div>
   );
 }
@@ -208,22 +251,36 @@ function AuditLogRow({
 
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-            <span className="truncate text-sm font-medium">{log.reference ?? `#${log.auditable_id}`}</span>
-            <span className="text-[11px] text-muted-foreground/70">{TYPE_LABELS[log.auditable_type]}</span>
+            <span className="truncate text-sm font-medium">
+              {log.reference ?? `#${log.auditable_id}`}
+            </span>
+            <span className="text-[11px] text-muted-foreground/70">
+              {TYPE_LABELS[log.auditable_type]}
+            </span>
             {log.has_critical && (
-              <AlertTriangle className="size-3 text-muted-foreground" aria-label="Incluye campos críticos" />
+              <AlertTriangle
+                className="size-3 text-muted-foreground"
+                aria-label="Incluye campos críticos"
+              />
             )}
           </div>
 
           <div className="mt-1 flex flex-col gap-0.5">
             {preview.map((field) => (
-              <div key={field.field} className="flex min-w-0 items-center gap-1.5 text-xs">
-                <span className="w-28 shrink-0 truncate text-muted-foreground/70">{fieldLabel(field.field)}</span>
+              <div
+                key={field.field}
+                className="flex min-w-0 items-center gap-1.5 text-xs"
+              >
+                <span className="w-28 shrink-0 truncate text-muted-foreground/70">
+                  {fieldLabel(field.field)}
+                </span>
                 <span className="max-w-[30%] truncate text-muted-foreground/60 line-through">
                   {field.old_value ?? "—"}
                 </span>
                 <span className="shrink-0 text-muted-foreground/40">→</span>
-                <span className="truncate font-medium">{field.new_value ?? "—"}</span>
+                <span className="truncate font-medium">
+                  {field.new_value ?? "—"}
+                </span>
               </div>
             ))}
             {hidden > 0 && (
@@ -243,7 +300,9 @@ function AuditLogRow({
             </span>
           )}
           <span className="text-[11px] text-muted-foreground">
-            <span className="font-medium text-foreground/80">{log.changed_by}</span>
+            <span className="font-medium text-foreground/80">
+              {log.changed_by}
+            </span>
             {" · "}
             {formatInstant(log.changed_at, timeZone, "dd MMM yyyy · HH:mm")}
           </span>

@@ -1,5 +1,11 @@
 import type { AuditableType } from "@/types/planification/audit";
-import { CalendarDays, ListChecks, LucideIcon, Plane, Wrench } from "lucide-react";
+import {
+  CalendarDays,
+  ListChecks,
+  LucideIcon,
+  Plane,
+  Wrench,
+} from "lucide-react";
 
 export const TYPE_ICONS: Record<AuditableType, LucideIcon> = {
   flight: Plane,

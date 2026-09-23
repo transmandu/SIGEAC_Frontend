@@ -10,17 +10,22 @@ const fetchPlanificationAuditLogs = async (
   company: string | undefined,
   filters: PlanificationAuditFilters,
 ): Promise<PaginatedAuditLogs> => {
-  const { data } = await axiosInstance.get(`/${company}/planification-audit-logs`, {
-    params: {
-      ...filters,
-      critical_only: filters.critical_only ? 1 : undefined,
+  const { data } = await axiosInstance.get(
+    `/${company}/planification-audit-logs`,
+    {
+      params: {
+        ...filters,
+        critical_only: filters.critical_only ? 1 : undefined,
+      },
     },
-  });
+  );
 
   return data;
 };
 
-export const useGetPlanificationAuditLogs = (filters: PlanificationAuditFilters) => {
+export const useGetPlanificationAuditLogs = (
+  filters: PlanificationAuditFilters,
+) => {
   const { selectedCompany } = useCompanyStore();
 
   return useQuery<PaginatedAuditLogs, Error>({

@@ -47,10 +47,14 @@ export function EditReasonFields({
       )}
     >
       <div className="space-y-1.5">
-        <Label className={cn(error && "text-destructive")}>Motivo de la edición</Label>
+        <Label className={cn(error && "text-destructive")}>
+          Motivo de la edición
+        </Label>
         <Select
           value={value.edit_reason}
-          onValueChange={(reason) => onChange({ ...value, edit_reason: reason as EditReason })}
+          onValueChange={(reason) =>
+            onChange({ ...value, edit_reason: reason as EditReason })
+          }
           disabled={disabled}
         >
           <SelectTrigger>
@@ -64,8 +68,16 @@ export function EditReasonFields({
             ))}
           </SelectContent>
         </Select>
-        <p className={cn("text-xs", error ? "text-destructive" : "text-muted-foreground")}>
-          {error ?? (value.edit_reason ? EDIT_REASON_HINTS[value.edit_reason] : "Queda en la auditoría de ediciones de Planificación.")}
+        <p
+          className={cn(
+            "text-xs",
+            error ? "text-destructive" : "text-muted-foreground",
+          )}
+        >
+          {error ??
+            (value.edit_reason
+              ? EDIT_REASON_HINTS[value.edit_reason]
+              : "Queda en la auditoría de ediciones de Planificación.")}
         </p>
       </div>
       <div className="space-y-1.5">
@@ -87,8 +99,14 @@ export function EditReasonFields({
 
 // El backend responde 422 con errors.edit_reason si la corrección llegó sin motivo.
 export function editReasonErrorFrom(error: unknown): string | undefined {
-  const errors = (error as { response?: { status?: number; data?: { errors?: Record<string, string[]> } } })
-    ?.response?.data?.errors;
+  const errors = (
+    error as {
+      response?: {
+        status?: number;
+        data?: { errors?: Record<string, string[]> };
+      };
+    }
+  )?.response?.data?.errors;
 
   return errors?.edit_reason?.[0];
 }

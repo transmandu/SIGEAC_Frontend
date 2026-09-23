@@ -23,9 +23,12 @@ const fetchPlanificationAuditStats = async (
   company: string | undefined,
   filters: StatsFilters,
 ): Promise<PlanificationAuditStats> => {
-  const { data } = await axiosInstance.get(`/${company}/planification-audit-logs/stats`, {
-    params: filters,
-  });
+  const { data } = await axiosInstance.get(
+    `/${company}/planification-audit-logs/stats`,
+    {
+      params: filters,
+    },
+  );
 
   return data;
 };

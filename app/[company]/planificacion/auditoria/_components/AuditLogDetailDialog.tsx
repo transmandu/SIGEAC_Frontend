@@ -14,7 +14,12 @@ import { cn } from "@/lib/utils";
 import type { PlanificationAuditLog } from "@/types/planification/audit";
 import { AlertTriangle } from "lucide-react";
 import { TYPE_ICONS, TYPE_LABELS, fieldLabel } from "./labels";
-import { microLabelCls, neutralBadgeCls, reasonBadgeCls, workflowBadgeCls } from "./ui";
+import {
+  microLabelCls,
+  neutralBadgeCls,
+  reasonBadgeCls,
+  workflowBadgeCls,
+} from "./ui";
 
 interface AuditLogDetailDialogProps {
   log: PlanificationAuditLog | null;
@@ -23,7 +28,10 @@ interface AuditLogDetailDialogProps {
 
 const DATE_TIME = "dd MMM yyyy · HH:mm";
 
-export function AuditLogDetailDialog({ log, onOpenChange }: AuditLogDetailDialogProps) {
+export function AuditLogDetailDialog({
+  log,
+  onOpenChange,
+}: AuditLogDetailDialogProps) {
   const timeZone = useCompanyTimezone();
   const Icon = log ? TYPE_ICONS[log.auditable_type] : null;
 
@@ -43,18 +51,30 @@ export function AuditLogDetailDialog({ log, onOpenChange }: AuditLogDetailDialog
                   <span className={workflowBadgeCls}>Flujo de trabajo</span>
                 ) : (
                   <span className={reasonBadgeCls(log.reason_category)}>
-                    {EDIT_REASON_LABELS[log.reason_category ?? "SIN_CLASIFICAR"]}
+                    {
+                      EDIT_REASON_LABELS[
+                        log.reason_category ?? "SIN_CLASIFICAR"
+                      ]
+                    }
                   </span>
                 )}
               </DialogDescription>
             </DialogHeader>
 
             <dl className="grid grid-cols-2 gap-4 py-1">
-              <Meta label="Editó" who={log.changed_by} when={formatInstant(log.changed_at, timeZone, DATE_TIME)} />
+              <Meta
+                label="Editó"
+                who={log.changed_by}
+                when={formatInstant(log.changed_at, timeZone, DATE_TIME)}
+              />
               <Meta
                 label="Cargó el registro"
                 who={log.record_author ?? "—"}
-                when={log.record_created_at ? formatInstant(log.record_created_at, timeZone, DATE_TIME) : undefined}
+                when={
+                  log.record_created_at
+                    ? formatInstant(log.record_created_at, timeZone, DATE_TIME)
+                    : undefined
+                }
               />
             </dl>
 
@@ -67,29 +87,40 @@ export function AuditLogDetailDialog({ log, onOpenChange }: AuditLogDetailDialog
 
             <div className="flex flex-col gap-2">
               <span className={microLabelCls}>
-                {log.fields.length} {log.fields.length === 1 ? "campo modificado" : "campos modificados"}
+                {log.fields.length}{" "}
+                {log.fields.length === 1
+                  ? "campo modificado"
+                  : "campos modificados"}
               </span>
               <div className="flex flex-col divide-y divide-border/50 rounded-lg border border-border/50 bg-background/70">
                 {log.fields.map((field) => (
-                  <div key={field.field} className="flex flex-col gap-1.5 px-3 py-2.5">
+                  <div
+                    key={field.field}
+                    className="flex flex-col gap-1.5 px-3 py-2.5"
+                  >
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium">{fieldLabel(field.field)}</span>
+                      <span className="text-sm font-medium">
+                        {fieldLabel(field.field)}
+                      </span>
                       {field.is_critical && (
                         <span className={cn(neutralBadgeCls, "gap-1")}>
                           <AlertTriangle className="size-3" />
                           Crítico
                         </span>
                       )}
-                      {field.field_kind === "WORKFLOW" && log.event_kind === "CORRECTION" && (
-                        <span className={workflowBadgeCls}>Flujo</span>
-                      )}
+                      {field.field_kind === "WORKFLOW" &&
+                        log.event_kind === "CORRECTION" && (
+                          <span className={workflowBadgeCls}>Flujo</span>
+                        )}
                     </div>
                     <div className="grid grid-cols-[1fr_auto_1fr] items-start gap-2 text-sm">
                       <span className="wrap-break-word text-muted-foreground/70 line-through decoration-muted-foreground/40">
                         {field.old_value ?? "—"}
                       </span>
                       <span className="text-muted-foreground/40">→</span>
-                      <span className="wrap-break-word font-medium">{field.new_value ?? "—"}</span>
+                      <span className="wrap-break-word font-medium">
+                        {field.new_value ?? "—"}
+                      </span>
                     </div>
                   </div>
                 ))}
@@ -102,7 +133,15 @@ export function AuditLogDetailDialog({ log, onOpenChange }: AuditLogDetailDialog
   );
 }
 
-function Meta({ label, who, when }: { label: string; who: string; when?: string }) {
+function Meta({
+  label,
+  who,
+  when,
+}: {
+  label: string;
+  who: string;
+  when?: string;
+}) {
   return (
     <div className="flex flex-col gap-0.5">
       <dt className={microLabelCls}>{label}</dt>

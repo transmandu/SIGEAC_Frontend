@@ -9,7 +9,12 @@ interface SegmentedProps<T extends string> {
   ariaLabel: string;
 }
 
-export function Segmented<T extends string>({ value, options, onChange, ariaLabel }: SegmentedProps<T>) {
+export function Segmented<T extends string>({
+  value,
+  options,
+  onChange,
+  ariaLabel,
+}: SegmentedProps<T>) {
   return (
     <div
       role="radiogroup"

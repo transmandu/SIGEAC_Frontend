@@ -11,7 +11,11 @@ import { AuditStats } from "./_components/AuditStats";
 import { Segmented } from "./_components/Segmented";
 import { PERIODS, PeriodKey, periodRange } from "./_components/ui";
 
-const ALLOWED_ROLES = ["SUPERUSER", "JEFE_CONTROL_CALIDAD", "JEFE_MANTENIMIENTO"];
+const ALLOWED_ROLES = [
+  "SUPERUSER",
+  "JEFE_CONTROL_CALIDAD",
+  "JEFE_MANTENIMIENTO",
+];
 
 type TypeKey = AuditTypeFilter | "ALL";
 
@@ -45,16 +49,28 @@ const PlanificationAuditPage = () => {
 
           <div className="flex flex-col gap-4 border-b border-border/60 pb-4 lg:flex-row lg:items-end lg:justify-between">
             <div className="flex min-w-0 flex-col gap-1">
-              <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">Auditoría de Planificación</h1>
+              <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">
+                Auditoría de Planificación
+              </h1>
               <p className="max-w-2xl text-sm text-muted-foreground">
-                Ediciones de vuelos y órdenes de trabajo · la tasa de error cuenta solo las correcciones
-                marcadas como error de captura.
+                Ediciones de vuelos y órdenes de trabajo · la tasa de error
+                cuenta solo las correcciones marcadas como error de captura.
               </p>
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
-              <Segmented ariaLabel="Registro" value={type} options={TYPE_OPTIONS} onChange={setType} />
-              <Segmented ariaLabel="Período" value={period} options={PERIODS} onChange={setPeriod} />
+              <Segmented
+                ariaLabel="Registro"
+                value={type}
+                options={TYPE_OPTIONS}
+                onChange={setType}
+              />
+              <Segmented
+                ariaLabel="Período"
+                value={period}
+                options={PERIODS}
+                onChange={setPeriod}
+              />
             </div>
           </div>
 

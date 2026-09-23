@@ -1,6 +1,7 @@
 import type { EditReason } from "@/lib/planificacion/editReasons";
 
-export type AuditableType = "flight" | "work_order" | "work_order_task" | "planification_event";
+export type AuditableType =
+  "flight" | "work_order" | "work_order_task" | "planification_event";
 
 export type AuditEventKind = "CORRECTION" | "WORKFLOW";
 
@@ -73,9 +74,24 @@ export interface PlanificationAuditStats {
   };
   error_rate: { flights?: ErrorRate; work_orders?: ErrorRate };
   by_reason: { reason: EditReason | "SIN_CLASIFICAR"; count: number }[];
-  by_field: { type: AuditableType; field: string; critical: boolean; count: number; errors: number }[];
+  by_field: {
+    type: AuditableType;
+    field: string;
+    critical: boolean;
+    count: number;
+    errors: number;
+  }[];
   by_author: { author: string; corrections: number; errors: number }[];
   by_editor: { editor: string; corrections: number; workflow: number }[];
-  time_to_correction: { samples: number; avg_days: number | null; median_days: number | null };
-  monthly: { month: string; corrections: number; errors: number; workflow: number }[];
+  time_to_correction: {
+    samples: number;
+    avg_days: number | null;
+    median_days: number | null;
+  };
+  monthly: {
+    month: string;
+    corrections: number;
+    errors: number;
+    workflow: number;
+  }[];
 }
