@@ -1,3 +1,7 @@
+## v4.20.1 — 2026-09-23
+
+- fix: library with replicated files  (#286)
+
 ## v4.20.0 — 2026-09-23
 
 - feat: to replicate files (#284)
