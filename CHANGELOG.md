@@ -1,3 +1,7 @@
+## v4.21.0 — 2026-09-24
+
+- feat(auditoria): implement audit statistics and logs components (#285)
+
 ## v4.20.2 — 2026-09-23
 
 - fix: show correctly date in ros show (#287)
