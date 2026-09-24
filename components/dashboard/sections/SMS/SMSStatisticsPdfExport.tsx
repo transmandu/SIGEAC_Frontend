@@ -31,7 +31,7 @@ import { useGetTotalRiskCountByDateRange } from "@/hooks/sms/useGetTotalRiskByDa
 import { captureElementAsPng } from "@/lib/captureElement";
 import { GeneralStats, pieChartData } from "@/types";
 import { pdf } from "@react-pdf/renderer";
-import { format, parseISO, startOfMonth } from "date-fns";
+import { format, parseISO, startOfYear } from "date-fns";
 import { FileBarChart2, FileDown, Loader2 } from "lucide-react";
 import { type ReactNode, useRef, useState } from "react";
 
@@ -72,7 +72,7 @@ interface ChartCardConfig {
 }
 
 const defaultRange = () => ({
-  from: format(startOfMonth(new Date()), "yyyy-MM-dd"),
+  from: format(startOfYear(new Date()), "yyyy-MM-dd"),
   to: format(new Date(), "yyyy-MM-dd"),
 });
 

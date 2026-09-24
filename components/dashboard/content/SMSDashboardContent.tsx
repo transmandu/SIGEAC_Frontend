@@ -2,7 +2,7 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { User } from "@/types";
-import { useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   LayoutDashboard,
   NotebookText,
@@ -24,15 +24,64 @@ interface SMSDashboardContentProps {
   roleNames: string[];
 }
 
+const TAB_VALUES = [
+  "DASHBOARD",
+  "REPORTS",
+  "STATISTICS",
+  "STATISTICS_EXPORT",
+] as const;
+
+type TabValue = (typeof TAB_VALUES)[number];
+
+// Slugs de la URL: minúsculas y en español
+const TAB_SLUGS: Record<TabValue, string> = {
+  DASHBOARD: "principal",
+  REPORTS: "reportes",
+  STATISTICS: "estadisticas",
+  STATISTICS_EXPORT: "reporte-pdf",
+};
+
+const SLUG_TO_TAB: Record<string, TabValue> = Object.fromEntries(
+  (TAB_VALUES as readonly string[]).map((value) => [
+    TAB_SLUGS[value as TabValue],
+    value as TabValue,
+  ]),
+);
+
+const isValidTab = (value: string | null): value is TabValue =>
+  !!value && (TAB_VALUES as readonly string[]).includes(value);
+
 export default function SMSDashboardContent({
   companySlug,
   location_id,
 }: SMSDashboardContentProps) {
-  const [activeTab, setActiveTab] = useState("DASHBOARD");
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // El tab activo se deriva de la URL (mantiene la posición al refrescar/navegar)
+  const tabSlug = searchParams.get("tab");
+  const activeTab: TabValue = tabSlug && tabSlug in SLUG_TO_TAB
+    ? SLUG_TO_TAB[tabSlug]
+    : "DASHBOARD";
+
+  const handleTabChange = (value: string) => {
+    const tab: TabValue = isValidTab(value) ? value : "DASHBOARD";
+
+    const params = new URLSearchParams(searchParams.toString());
+    if (tab === "DASHBOARD") {
+      params.delete("tab");
+    } else {
+      params.set("tab", TAB_SLUGS[tab]);
+    }
+
+    const qs = params.toString();
+    router.replace(`${pathname}${qs ? `?${qs}` : ""}`, { scroll: false });
+  };
 
   return (
     <main className="max-w-7xl mt-6 mx-auto px-4">
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <Tabs value={activeTab} onValueChange={handleTabChange}>
         {/* ===================== TABS (BASE UNIFICADA) ===================== */}
         <TabsList className="w-full flex justify-center mb-6 p-2 rounded-2xl bg-slate-200/50 dark:bg-slate-800/60 backdrop-blur-md border border-slate-200/40 dark:border-slate-800/60">
           <div className="flex w-full max-w-xl gap-2">
