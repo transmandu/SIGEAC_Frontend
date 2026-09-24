@@ -8,6 +8,7 @@ import { columns } from "./columns";
 import { DataTable } from "./data-table";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { TrainingReportModal } from "./TrainingReportModal";
 
 const SMSTrainingPage = () => {
   const { selectedCompany } = useCompanyStore();
@@ -22,6 +23,9 @@ const SMSTrainingPage = () => {
       <PageHeader className="mb-6" />
 
       <div className="flex flex-col gap-y-2">
+        <div className="flex items-center justify-end py-4">
+          <TrainingReportModal company={selectedCompany?.slug} />
+        </div>
         {isLoading && (
           <div className="flex w-full h-full justify-center items-center">
             <Loader2 className="size-24 animate-spin mt-48" />
