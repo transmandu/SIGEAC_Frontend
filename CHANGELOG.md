@@ -1,3 +1,7 @@
+## v4.21.1 — 2026-09-24
+
+- fix: update row selection handling and improve article confirmation flow (#288)
+
 ## v4.21.0 — 2026-09-24
 
 - feat(auditoria): implement audit statistics and logs components (#285)
