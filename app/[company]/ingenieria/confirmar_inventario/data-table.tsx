@@ -6,6 +6,7 @@ import {
   type RowData,
   RowSelectionState,
   SortingState,
+  type Updater,
   useTable,
   ColumnVisibilityState,
 } from "@tanstack/react-table";
@@ -19,7 +20,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 interface DataTableProps<TData extends RowData> {
   columns: AppColumnDef<TData>[];
@@ -39,8 +40,28 @@ export function DataTable<TData extends RowData>({
   // ============================================
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = useState<ColumnVisibilityState>({});
+  const [columnVisibility, setColumnVisibility] =
+    useState<ColumnVisibilityState>({});
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+
+  // `getRowId` usa el id del artículo, así que las claves de la selección ya son
+  // los ids; se filtran contra `data` para no arrastrar filas de otra categoría.
+  const handleRowSelectionChange = (updater: Updater<RowSelectionState>) => {
+    const next =
+      typeof updater === "function" ? updater(rowSelection) : updater;
+    setRowSelection(next);
+
+    if (!onSelectionChange) return;
+    const visibleIds = new Set(
+      data.map((row) => String((row as { id?: number | string }).id)),
+    );
+    onSelectionChange(
+      Object.keys(next)
+        .filter((key) => next[key] && visibleIds.has(key))
+        .map(Number)
+        .filter((id) => Number.isFinite(id)),
+    );
+  };
 
   // ============================================
   // TABLE CONFIGURATION
@@ -49,12 +70,13 @@ export function DataTable<TData extends RowData>({
     features: appTableFeatures,
     data,
     columns,
-    getRowId: (row, index) => String((row as { id?: number | string }).id ?? index),
+    getRowId: (row, index) =>
+      String((row as { id?: number | string }).id ?? index),
     enableRowSelection: true,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
-    onRowSelectionChange: setRowSelection,
+    onRowSelectionChange: handleRowSelectionChange,
     state: {
       sorting,
       columnFilters,
@@ -63,22 +85,13 @@ export function DataTable<TData extends RowData>({
     },
   });
 
-  useEffect(() => {
-    if (!onSelectionChange) return;
-
-    const ids = table
-      .getSelectedRowModel()
-      .rows.map((row) => Number((row.original as { id?: number }).id))
-      .filter((id) => Number.isFinite(id));
-
-    onSelectionChange(ids);
-  }, [onSelectionChange, rowSelection, table]);
-
-  useEffect(() => {
-    if (selectionResetKey === undefined) return;
-
+  // Se ajusta durante el render y no en un efecto: así la selección vacía sale
+  // en el mismo render, sin pintar antes las filas aún marcadas.
+  const [prevResetKey, setPrevResetKey] = useState(selectionResetKey);
+  if (selectionResetKey !== prevResetKey) {
+    setPrevResetKey(selectionResetKey);
     setRowSelection({});
-  }, [selectionResetKey]);
+  }
 
   // ============================================
   // RENDER
@@ -96,7 +109,7 @@ export function DataTable<TData extends RowData>({
                       ? null
                       : flexRender(
                           header.column.columnDef.header,
-                          header.getContext()
+                          header.getContext(),
                         )}
                   </TableHead>
                 ))}
@@ -114,7 +127,7 @@ export function DataTable<TData extends RowData>({
                     <TableCell key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}
@@ -145,7 +158,7 @@ export function DataTable<TData extends RowData>({
             <select
               value={table.state.pagination.pageSize}
               onChange={(e) => table.setPageSize(Number(e.target.value))}
-              className="h-8 w-[70px] rounded-md border border-input bg-transparent px-2 py-1 text-sm"
+              className="h-8 w-17.5 rounded-md border border-input bg-transparent px-2 py-1 text-sm"
             >
               {[10, 20, 30, 40, 50].map((pageSize) => (
                 <option key={pageSize} value={pageSize}>
@@ -154,7 +167,7 @@ export function DataTable<TData extends RowData>({
               ))}
             </select>
           </div>
-          <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+          <div className="flex w-25 items-center justify-center text-sm font-medium">
             Página {table.state.pagination.pageIndex + 1} de{" "}
             {table.getPageCount()}
           </div>
