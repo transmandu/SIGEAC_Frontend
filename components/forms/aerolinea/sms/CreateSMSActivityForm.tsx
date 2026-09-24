@@ -165,11 +165,9 @@ export default function CreateSMSActivityForm({
       planned_by: initialData?.planned_by?.dni?.toString(),
       executed_by: initialData?.executed_by || "",
       is_pre: Boolean(initialData?.is_pre),
-      library_folder_paths: [],
+      library_folder_paths: initialData?.library_folder_paths ?? [],
     },
   });
-
-  const isPre = form.watch("is_pre");
 
   useEffect(() => {
     if (isEditing && initialData && employees) {
@@ -196,7 +194,7 @@ export default function CreateSMSActivityForm({
         planned_by: initialData.planned_by?.dni?.toString(),
         executed_by: initialData.executed_by || "",
         is_pre: Boolean(initialData.is_pre),
-        library_folder_paths: [],
+        library_folder_paths: initialData.library_folder_paths ?? [],
       });
     } else if (!isEditing && nextNumberData?.next_number) {
       form.setValue("activity_number", nextNumberData.next_number);
