@@ -46,7 +46,7 @@ export const useCreateCourse = () => {
           headers: {
             "Content-Type": "multipart/form-data",
           },
-        }
+        },
       );
     },
     onSuccess: () => {
@@ -153,7 +153,7 @@ export const useUpdateCourse = () => {
       console.log(data);
       const response = await axiosInstance.patch(
         `/general/${company}/update-course/${id}`,
-        data
+        data,
       );
       return response.data;
     },
@@ -183,12 +183,12 @@ export const useUpdateCourseCalendar = () => {
     mutationFn: async ({ id, data }: { id: string; data: any }) => {
       if (data.status === "CLOSED") {
         throw new Error(
-          "No se puede actualizar el calendario de un curso cerrado."
+          "No se puede actualizar el calendario de un curso cerrado.",
         );
       }
       const response = await axiosInstance.patch(
         `/general/${selectedCompany?.slug}/update-course-calendar/${id}`,
-        data
+        data,
       );
       return response.data;
     },
@@ -226,7 +226,10 @@ export const useCreateCourseExam = () => {
       course_id: string;
       data: { name: string; description: string; exam_date: Date };
     }) => {
-      await axiosInstance.post(`/general/${company}/course/${course_id}/create-exam`, data);
+      await axiosInstance.post(
+        `/general/${company}/course/${course_id}/create-exam`,
+        data,
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["course-exams"] });
@@ -275,16 +278,16 @@ export const useUpdateCourseExamResult = () => {
             headers: {
               "Content-Type": "multipart/form-data",
             },
-          }
+          },
         );
 
         const { data: attendanceList } = await axiosInstance.get(
-          `/general/${company}/course-exam/${exam_id}/attendance`
+          `/general/${company}/course-exam/${exam_id}/attendance`,
         );
 
         const createdAttendance = attendanceList.find(
           (attendance: { employee_dni: string }) =>
-            attendance.employee_dni === employee_dni
+            attendance.employee_dni === employee_dni,
         );
 
         if (!createdAttendance?.id) {
@@ -301,12 +304,14 @@ export const useUpdateCourseExamResult = () => {
           headers: {
             "Content-Type": "multipart/form-data",
           },
-        }
+        },
       );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["course-exam-attendance"] });
-      queryClient.invalidateQueries({ queryKey: ["sms-course-attendance-list"] });
+      queryClient.invalidateQueries({
+        queryKey: ["sms-course-attendance-list"],
+      });
       toast.success("¡Guardado!", {
         description: `El resultado se ha guardado correctamente.`,
       });

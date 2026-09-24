@@ -10,10 +10,10 @@ import { toast } from "sonner";
  */
 export function useEmployeeTrainingReport(
   onSuccess?: () => void,
-  company?: string
+  company?: string,
 ) {
   const [reportFrom, setReportFrom] = useState<Date | undefined>(
-    startOfYear(new Date())
+    startOfYear(new Date()),
   );
   const [reportTo, setReportTo] = useState<Date | undefined>(new Date());
   const [isGenerating, setIsGenerating] = useState(false);
@@ -26,7 +26,8 @@ export function useEmployeeTrainingReport(
 
     if (reportTo! < reportFrom!) {
       toast.warning("Rango inválido", {
-        description: "La fecha 'Hasta' no puede ser anterior a la fecha 'Desde'.",
+        description:
+          "La fecha 'Hasta' no puede ser anterior a la fecha 'Desde'.",
         id: "date-validation",
       });
       return;
@@ -49,7 +50,7 @@ export function useEmployeeTrainingReport(
             Accept: "application/pdf",
           },
           responseType: "blob",
-        }
+        },
       );
 
       const blob = new Blob([response.data], { type: "application/pdf" });
@@ -78,17 +79,20 @@ export function useEmployeeTrainingReport(
         const status = error.response.status;
         if (status === 404) {
           toast.error("Sin resultados", {
-            description: "No hay datos dentro de esas fechas. Intenta con otro rango.",
+            description:
+              "No hay datos dentro de esas fechas. Intenta con otro rango.",
             id: "report-error",
           });
         } else if (status === 401) {
           toast.error("Sesión expirada", {
-            description: "Tu sesión ha terminado. Por favor, inicia sesión de nuevo.",
+            description:
+              "Tu sesión ha terminado. Por favor, inicia sesión de nuevo.",
             id: "report-error",
           });
         } else {
           toast.error("Error del servidor", {
-            description: "Hubo un problema al procesar el PDF. Intenta más tarde.",
+            description:
+              "Hubo un problema al procesar el PDF. Intenta más tarde.",
             id: "report-error",
           });
         }

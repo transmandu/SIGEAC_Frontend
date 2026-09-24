@@ -10,7 +10,11 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { FileDown, Loader2, CalendarDays } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -79,7 +83,7 @@ export function TrainingReportModal({ company }: { company?: string }) {
                       variant="outline"
                       className={cn(
                         "w-full justify-start text-left font-normal",
-                        !reportFrom && "text-muted-foreground"
+                        !reportFrom && "text-muted-foreground",
                       )}
                     >
                       <CalendarDays className="mr-2 h-4 w-4" />
@@ -110,7 +114,7 @@ export function TrainingReportModal({ company }: { company?: string }) {
                       variant="outline"
                       className={cn(
                         "w-full justify-start text-left font-normal",
-                        !reportTo && "text-muted-foreground"
+                        !reportTo && "text-muted-foreground",
                       )}
                     >
                       <CalendarDays className="mr-2 h-4 w-4" />
@@ -124,7 +128,9 @@ export function TrainingReportModal({ company }: { company?: string }) {
                       mode="single"
                       selected={reportTo}
                       onSelect={setReportTo}
-                      disabled={(date) => (reportFrom ? date < reportFrom : false)}
+                      disabled={(date) =>
+                        reportFrom ? date < reportFrom : false
+                      }
                       autoFocus
                       locale={es}
                     />

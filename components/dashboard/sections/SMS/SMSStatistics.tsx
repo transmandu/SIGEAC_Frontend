@@ -57,9 +57,7 @@ function CardHeaderBlock({
 }) {
   return (
     <div className="text-center mb-3 space-y-1 flex flex-col items-center min-h-[110px]">
-      <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600">
-        {icon}
-      </div>
+      <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600">{icon}</div>
 
       <h3 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">
         {title}
@@ -83,7 +81,7 @@ export default function SMSStatistics({
   } = useGetTotalReportsStatsByYear(
     format(startOfYear(new Date()), "yyyy-MM-dd"),
     format(new Date(), "yyyy-MM-dd"),
-    companySlug
+    companySlug,
   );
 
   const {
@@ -94,7 +92,7 @@ export default function SMSStatistics({
     format(startOfYear(new Date()), "yyyy-MM-dd"),
     format(new Date(), "yyyy-MM-dd"),
     location!,
-    companySlug
+    companySlug,
   );
 
   const coursePieChartData =
@@ -107,13 +105,10 @@ export default function SMSStatistics({
 
   return (
     <div className="space-y-5">
-
       {/* GRID */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-
         {/* PIE */}
         <TintedCard className="p-4 flex flex-col">
-
           <CardHeaderBlock
             icon={<GraduationCap className="h-5 w-5" />}
             title="Planificación de Cursos"
@@ -135,7 +130,6 @@ export default function SMSStatistics({
 
         {/* BAR COURSES */}
         <TintedCard className="p-4 flex flex-col">
-
           <CardHeaderBlock
             icon={<BarChart3 className="h-5 w-5" />}
             title="Ejecución de Cursos"
@@ -168,7 +162,6 @@ export default function SMSStatistics({
 
       {/* REPORTES */}
       <TintedCard className="p-4 flex flex-col">
-
         <CardHeaderBlock
           icon={<ShieldCheck className="h-5 w-5" />}
           title="Reportes de Seguridad Operacional"

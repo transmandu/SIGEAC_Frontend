@@ -67,7 +67,8 @@ const GeneralReportStats = () => {
   // Datos para el gráfico circular de Identificados vs Gestionados (%)
   // Los porcentajes se calculan en el backend (open_percentage/closed_percentage)
   const identificationPieData = useMemo(() => {
-    if (!barChartData || (!barChartData.open && !barChartData.closed)) return [];
+    if (!barChartData || (!barChartData.open && !barChartData.closed))
+      return [];
 
     const openPercentage =
       barChartData.open_percentage ??

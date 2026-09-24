@@ -56,7 +56,12 @@ export function CreateCourseForm({
       description: z.string(),
       course_type: z.string(),
       instructor: z.string().optional(),
-      hours: z.coerce.number().int().min(0, { message: "Las horas deben ser 0 o un número entero positivo" }),
+      hours: z.coerce
+        .number()
+        .int()
+        .min(0, {
+          message: "Las horas deben ser 0 o un número entero positivo",
+        }),
       end_date: z
         .date()
         .refine((val) => !isNaN(val.getTime()), { message: "Fecha no válida" }),
@@ -308,12 +313,7 @@ export function CreateCourseForm({
                 <FormItem className="w-full" data-tour="cursos-create-horas">
                   <FormLabel>Horas del Curso</FormLabel>
                   <FormControl>
-                    <Input
-                      type="number"
-                      min={0}
-                      placeholder="0"
-                      {...field}
-                    />
+                    <Input type="number" min={0} placeholder="0" {...field} />
                   </FormControl>
                   <FormMessage className="text-xs" />
                 </FormItem>
@@ -324,7 +324,10 @@ export function CreateCourseForm({
               control={form.control}
               name="instructor"
               render={({ field }) => (
-                <FormItem className="w-full" data-tour="cursos-create-instructor">
+                <FormItem
+                  className="w-full"
+                  data-tour="cursos-create-instructor"
+                >
                   <FormLabel>Instructor</FormLabel>
                   <FormControl>
                     <Input placeholder="" {...field} />
