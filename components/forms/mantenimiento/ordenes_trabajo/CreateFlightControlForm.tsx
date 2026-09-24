@@ -8,14 +8,28 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { AIRPORT_CODE_REGEX, AirportCombobox } from "@/components/selects/AirportCombobox";
+import {
+  AIRPORT_CODE_REGEX,
+  AirportCombobox,
+} from "@/components/selects/AirportCombobox";
 import { useGetMaintenanceAircrafts } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts";
 import { zodResolver } from "@/lib/zod-resolver";
-import { CalendarIcon, Check, ChevronsUpDown, Loader2, Plus, X } from "lucide-react";
+import {
+  CalendarIcon,
+  Check,
+  ChevronsUpDown,
+  Loader2,
+  Plus,
+  X,
+} from "lucide-react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Command,
   CommandEmpty,
@@ -33,6 +47,12 @@ import {
   useUpdateFlightControl,
 } from "@/actions/mantenimiento/planificacion/vuelos/actions";
 import { useCompanyStore } from "@/stores/CompanyStore";
+import {
+  EditReasonFields,
+  EditReasonValue,
+  editReasonErrorFrom,
+} from "@/components/forms/mantenimiento/planificacion/EditReasonFields";
+import { useState } from "react";
 
 const airportCodeSchema = z
   .string()
@@ -250,13 +270,27 @@ function EditForm({
     },
   });
 
+  const [reason, setReason] = useState<EditReasonValue>({});
+  const [reasonError, setReasonError] = useState<string>();
+  // Leído en render: react-hook-form solo rastrea lo que se suscribe aquí.
+  const { isDirty } = form.formState;
+
   const onSubmit = async (values: z.infer<typeof editFormSchema>) => {
-    await updateFlightControl.mutateAsync({
-      id: flightData.id,
-      data: values,
-      company: selectedCompany!.slug,
-    });
-    onClose();
+    if (isDirty && !reason.edit_reason) {
+      setReasonError("Indique el motivo de la corrección.");
+      return;
+    }
+
+    try {
+      await updateFlightControl.mutateAsync({
+        id: flightData.id,
+        data: { ...values, ...reason },
+        company: selectedCompany!.slug,
+      });
+      onClose();
+    } catch (error) {
+      setReasonError(editReasonErrorFrom(error));
+    }
   };
 
   return (
@@ -271,7 +305,9 @@ function EditForm({
               <FormItem>
                 <FormLabel>
                   Nro. de Vuelo{" "}
-                  <span className="text-muted-foreground text-xs">(Opcional)</span>
+                  <span className="text-muted-foreground text-xs">
+                    (Opcional)
+                  </span>
                 </FormLabel>
                 <FormControl>
                   <Input placeholder="EJ: PZOCS199" {...field} />
@@ -375,7 +411,12 @@ function EditForm({
               <FormItem>
                 <FormLabel>Horas de Vuelo</FormLabel>
                 <FormControl>
-                  <Input type="number" step="0.001" placeholder="EJ: 5" {...field} />
+                  <Input
+                    type="number"
+                    step="0.001"
+                    placeholder="EJ: 5"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -388,13 +429,27 @@ function EditForm({
               <FormItem>
                 <FormLabel>Ciclos de Vuelo</FormLabel>
                 <FormControl>
-                  <Input type="number" step="0.001" placeholder="EJ: 5" {...field} />
+                  <Input
+                    type="number"
+                    step="0.001"
+                    placeholder="EJ: 5"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
         </div>
+        <EditReasonFields
+          className="mt-4"
+          value={reason}
+          onChange={(value) => {
+            setReason(value);
+            setReasonError(undefined);
+          }}
+          error={reasonError}
+        />
         <Button
           className="bg-primary mt-2 text-white hover:bg-blue-900 disabled:bg-primary/70"
           disabled={updateFlightControl?.isPending}
@@ -459,7 +514,10 @@ function CreateForm({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-5">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="flex flex-col gap-5"
+      >
         <AircraftSelect control={form.control} name="aircraft_id" />
 
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border/60 bg-background pb-2 pt-1">
@@ -489,13 +547,27 @@ function CreateForm({
         </div>
 
         <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr_80px_80px_28px] gap-3 px-1">
-          <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">Nro. Vuelo</span>
-          <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">Fecha</span>
-          <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">Salida</span>
-          <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">Destino</span>
-          <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">Piloto</span>
-          <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">Horas</span>
-          <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">Ciclos</span>
+          <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
+            Nro. Vuelo
+          </span>
+          <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
+            Fecha
+          </span>
+          <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
+            Salida
+          </span>
+          <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
+            Destino
+          </span>
+          <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
+            Piloto
+          </span>
+          <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
+            Horas
+          </span>
+          <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
+            Ciclos
+          </span>
           <span />
         </div>
 
@@ -510,13 +582,20 @@ function CreateForm({
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <Input placeholder="Opcional" className="h-8 text-sm" {...field} />
+                    <Input
+                      placeholder="Opcional"
+                      className="h-8 text-sm"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <DateField control={form.control} name={`flights.${index}.flight_date`} />
+            <DateField
+              control={form.control}
+              name={`flights.${index}.flight_date`}
+            />
             <FormField
               control={form.control}
               name={`flights.${index}.origin`}
@@ -555,7 +634,11 @@ function CreateForm({
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <Input placeholder="..." className="h-8 text-sm" {...field} />
+                    <Input
+                      placeholder="..."
+                      className="h-8 text-sm"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -567,7 +650,14 @@ function CreateForm({
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <Input type="number" min="0" step="0.001" placeholder="0" className="h-8 text-sm" {...field} />
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.001"
+                      placeholder="0"
+                      className="h-8 text-sm"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -579,7 +669,14 @@ function CreateForm({
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <Input type="number" min="0" step="1" placeholder="0" className="h-8 text-sm" {...field} />
+                    <Input
+                      type="number"
+                      min="0"
+                      step="1"
+                      placeholder="0"
+                      className="h-8 text-sm"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

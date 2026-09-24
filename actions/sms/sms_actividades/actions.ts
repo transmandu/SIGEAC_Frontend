@@ -48,6 +48,8 @@ interface SMSActivityData {
   document?: File;
   bulletin?: BulletinPayload;
   survey?: SurveyPayload;
+  is_pre?: boolean;
+  library_folder_paths?: string[];
 }
 interface updateSMSActivityData {
   company: string | null;
@@ -71,6 +73,8 @@ interface updateSMSActivityData {
     status: string;
     image?: File | string;
     document?: File | string;
+    is_pre?: boolean;
+    library_folder_paths?: string[];
   };
 }
 interface NextActivityNumber {
@@ -115,11 +119,22 @@ export const useCreateSMSActivity = () => {
       if (data.document instanceof File)
         formData.append("document", data.document);
 
+      formData.append("is_pre", data.is_pre ? "1" : "0");
+      (data.library_folder_paths ?? []).forEach((path) =>
+        formData.append("library_folder_paths[]", path),
+      );
+
       if (data.bulletin) {
-        const { image: bulletinImage, document: bulletinDocument, ...bulletinRest } = data.bulletin;
+        const {
+          image: bulletinImage,
+          document: bulletinDocument,
+          ...bulletinRest
+        } = data.bulletin;
         formData.append("bulletin", JSON.stringify(bulletinRest));
-        if (bulletinImage instanceof File) formData.append("bulletin_image", bulletinImage);
-        if (bulletinDocument instanceof File) formData.append("bulletin_document", bulletinDocument);
+        if (bulletinImage instanceof File)
+          formData.append("bulletin_image", bulletinImage);
+        if (bulletinDocument instanceof File)
+          formData.append("bulletin_document", bulletinDocument);
       }
 
       if (data.survey) {
@@ -222,6 +237,11 @@ export const useUpdateSMSActivity = () => {
       if (data.document instanceof File)
         formData.append("document", data.document);
 
+      formData.append("is_pre", data.is_pre ? "1" : "0");
+      (data.library_folder_paths ?? []).forEach((path) =>
+        formData.append("library_folder_paths[]", path),
+      );
+
       const response = await axiosInstance.post(
         `/${company}/sms/activities/${id}`,
         formData,
@@ -233,7 +253,9 @@ export const useUpdateSMSActivity = () => {
     },
     onSuccess: (_, data) => {
       queryClient.invalidateQueries({ queryKey: ["sms-activities"] });
-      queryClient.invalidateQueries({ queryKey: ["sms-activity", data.data.activity_number] });
+      queryClient.invalidateQueries({
+        queryKey: ["sms-activity", data.data.activity_number],
+      });
       toast.success("¡Actualizado!", {
         description: `La actividad ha sido actualizada correctamente.`,
       });
@@ -390,7 +412,8 @@ export const useLinkBulletinToActivity = () => {
         queryKey: ["bulletins-without-activity"],
       });
       toast.success("¡Vinculado!", {
-        description: "El boletín ha sido vinculado a la actividad correctamente.",
+        description:
+          "El boletín ha sido vinculado a la actividad correctamente.",
       });
     },
     onError: (error) => {

@@ -22,6 +22,8 @@ interface DeleteProps {
   doc: any;
   company: string;
   onSuccess: () => Promise<void>;
+  /** Carpeta desde la que se borra: si es una réplica, solo se desvincula esa. */
+  folderPath?: string;
 }
 
 export const DeleteDocumentDialog = ({
@@ -30,6 +32,7 @@ export const DeleteDocumentDialog = ({
   doc,
   company,
   onSuccess,
+  folderPath,
 }: DeleteProps) => {
   const [deleteMode, setDeleteMode] = useState<"document" | "version">(
     "document",
@@ -78,7 +81,11 @@ export const DeleteDocumentDialog = ({
 
     try {
       if (deleteMode === "document") {
-        await axiosInstance.delete(`/${company}/library/documents/${doc.id}`);
+        await axiosInstance.delete(`/${company}/library/documents/${doc.id}`, {
+          ...(folderPath != null
+            ? { data: { source_folder_path: folderPath } }
+            : {}),
+        });
         toast.success("Documento eliminado correctamente");
       } else {
         if (!selectedVersionToDelete) {

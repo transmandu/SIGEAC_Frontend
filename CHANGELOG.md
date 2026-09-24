@@ -1,3 +1,31 @@
+## v4.21.1 — 2026-09-24
+
+- fix: update row selection handling and improve article confirmation flow (#288)
+
+## v4.21.0 — 2026-09-24
+
+- feat(auditoria): implement audit statistics and logs components (#285)
+
+## v4.20.2 — 2026-09-23
+
+- fix: show correctly date in ros show (#287)
+
+## v4.20.1 — 2026-09-23
+
+- fix: library with replicated files  (#286)
+
+## v4.20.0 — 2026-09-23
+
+- feat: to replicate files (#284)
+
+## v4.19.1 — 2026-09-22
+
+- fix: sms bulletins responsive (#283)
+
+## v4.19.0 — 2026-09-22
+
+- feat: add sms page to general menu (#282)
+
 ## v4.18.1 — 2026-09-22
 
 - fix: improve loading state handling in PageTitle component and simplify title registration logic

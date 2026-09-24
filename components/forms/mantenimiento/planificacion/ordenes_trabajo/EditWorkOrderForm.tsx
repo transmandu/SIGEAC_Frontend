@@ -17,7 +17,11 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
@@ -52,33 +56,44 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import { workOrderStatusLabelEsUpper } from "@/lib/planificacion/statuses";
+import {
+  EditReasonFields,
+  EditReasonValue,
+  editReasonErrorFrom,
+} from "@/components/forms/mantenimiento/planificacion/EditReasonFields";
 
 // ─── Schema de validación ────────────────────────────────────────────────────
 const editWorkOrderSchema = z.object({
-  order_number: z.string().min(1, "El número de orden es obligatorio").optional(),
+  order_number: z
+    .string()
+    .min(1, "El número de orden es obligatorio")
+    .optional(),
   description: z.string().min(1, "La descripción es obligatoria"),
   elaborated_by: z.string().min(1, "Campo obligatorio"),
   reviewed_by: z.string().min(1, "Campo obligatorio"),
   approved_by: z.string().min(1, "Campo obligatorio"),
   date: z.date({ error: "La fecha es obligatoria" }),
   document: z
-      .instanceof(File)
-      .refine((f) => f.size <= 10 * 1024 * 1024, "Máximo 10MB")
-      .refine((f) => f.type === "application/pdf", "Solo se permiten archivos PDF")
-      .optional(),
+    .instanceof(File)
+    .refine((f) => f.size <= 10 * 1024 * 1024, "Máximo 10MB")
+    .refine(
+      (f) => f.type === "application/pdf",
+      "Solo se permiten archivos PDF",
+    )
+    .optional(),
 });
 
 type EditWorkOrderFormValues = z.infer<typeof editWorkOrderSchema>;
 
 // ─── Tipo interno para las tareas editables ──────────────────────────────────
 interface EditableTask {
-  id?: number;       // id real si ya existe en BD
-  tempId: string;    // id temporal para UI
+  id?: number; // id real si ya existe en BD
+  tempId: string; // id temporal para UI
   description_task: string;
   ata: string;
   material: string;
-  isNew: boolean;    // true = tarea nueva (a insertar); false = tarea existente (a actualizar)
-  isDirty: boolean;  // true = fue modificada
+  isNew: boolean; // true = tarea nueva (a insertar); false = tarea existente (a actualizar)
+  isDirty: boolean; // true = fue modificada
 }
 
 // ─── Props ───────────────────────────────────────────────────────────────────
@@ -99,7 +114,7 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
 
   const isClosed = work_order.status === "CLOSED";
   const isSuperuser = (user?.roles ?? []).some(
-    (role) => role.name.toUpperCase() === "SUPERUSER"
+    (role) => role.name.toUpperCase() === "SUPERUSER",
   );
 
   // ─── Estado local de tareas ─────────────────────────────────────────────
@@ -112,7 +127,7 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
       material: (t as any).material ?? "",
       isNew: false,
       isDirty: false,
-    }))
+    })),
   );
 
   // ─── Estado para el AlertDialog de confirmación de borrado ───────────────
@@ -120,6 +135,10 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
 
   // ─── Estado para auto-upload de documento ───────────────────────────────
   const [isUploading, setIsUploading] = useState(false);
+
+  // Un único motivo por guardado: viaja a la orden y a cada tarea editada.
+  const [reason, setReason] = useState<EditReasonValue>({});
+  const [reasonError, setReasonError] = useState<string>();
 
   // ─── Form con valores pre-llenados ──────────────────────────────────────
   const form = useForm<EditWorkOrderFormValues>({
@@ -133,6 +152,9 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
       date: work_order.date ? parseISO(work_order.date) : new Date(),
     },
   });
+
+  // Leído en render: react-hook-form solo rastrea lo que se suscribe aquí.
+  const { dirtyFields } = form.formState;
 
   // ─── Agregar tarea vacía ─────────────────────────────────────────────────
   const addEmptyTask = () => {
@@ -150,11 +172,15 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
   };
 
   // ─── Actualizar campo de una tarea ───────────────────────────────────────
-  const updateTaskField = (tempId: string, field: keyof EditableTask, value: string) => {
+  const updateTaskField = (
+    tempId: string,
+    field: keyof EditableTask,
+    value: string,
+  ) => {
     setTasks((prev) =>
       prev.map((t) =>
-        t.tempId === tempId ? { ...t, [field]: value, isDirty: true } : t
-      )
+        t.tempId === tempId ? { ...t, [field]: value, isDirty: true } : t,
+      ),
     );
   };
 
@@ -201,14 +227,12 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
 
     setIsUploading(true);
     try {
+      // Solo el documento: es flujo, no corrección. Los demás cambios del
+      // formulario se guardan (con su motivo) al pulsar "Guardar Cambios".
       await updateWorkOrder.mutateAsync({
         id: work_order.id,
         company: selectedCompany.slug,
-        data: {
-          ...form.getValues(),
-          date: format(form.getValues().date, "yyyy-MM-dd"),
-          document: file,
-        },
+        data: { document: file },
       });
       // El toast de éxito ya lo maneja el hook useUpdateWorkOrder
     } catch (error) {
@@ -232,6 +256,18 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
     const company = selectedCompany.slug;
     const orderId = work_order.id;
 
+    const hasCorrections =
+      !!(
+        dirtyFields.description ||
+        dirtyFields.date ||
+        dirtyFields.order_number
+      ) || tasks.some((task) => !task.isNew && task.isDirty);
+
+    if (hasCorrections && !reason.edit_reason) {
+      setReasonError("Indique el motivo de la corrección.");
+      return;
+    }
+
     try {
       // 1. Actualizar campos principales de la orden
       await updateWorkOrder.mutateAsync({
@@ -244,7 +280,9 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
           reviewed_by: data.reviewed_by,
           approved_by: data.approved_by,
           date: format(data.date, "yyyy-MM-dd"),
-          document: data.document,
+          // Sin document: ya lo subió handleAutoUpload al elegirlo. Reenviarlo
+          // lo volvía a subir, borraba el recién cargado y duplicaba el log.
+          ...reason,
         },
       });
 
@@ -264,7 +302,7 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
                 material: task.material || null,
                 task_items: [],
               },
-            })
+            }),
           );
         } else if (!task.isNew && task.isDirty && task.id) {
           taskPromises.push(
@@ -275,8 +313,9 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
                 description_task: task.description_task,
                 ata: task.ata,
                 material: task.material || null,
+                ...reason,
               },
-            })
+            }),
           );
         }
       });
@@ -284,6 +323,7 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
       await Promise.all(taskPromises);
       onClose();
     } catch (error) {
+      setReasonError(editReasonErrorFrom(error));
       console.error("[EditWorkOrderForm] Error al guardar:", error);
     }
   };
@@ -300,14 +340,16 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
       {/* AlertDialog de confirmación para eliminar tarea existente */}
       <AlertDialog
         open={!!taskToDelete}
-        onOpenChange={(open) => { if (!open) setTaskToDelete(null); }}
+        onOpenChange={(open) => {
+          if (!open) setTaskToDelete(null);
+        }}
       >
         <AlertDialogContent aria-describedby="delete-task-description">
           <AlertDialogHeader>
             <AlertDialogTitle>¿Eliminar esta tarea?</AlertDialogTitle>
             <AlertDialogDescription id="delete-task-description">
-              Esta acción es <strong>irreversible</strong>. Se eliminarán la tarea y todos sus
-              ítems asociados de la orden de trabajo.
+              Esta acción es <strong>irreversible</strong>. Se eliminarán la
+              tarea y todos sus ítems asociados de la orden de trabajo.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -345,7 +387,9 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
           </div>
           <div className="flex flex-col gap-1">
             <p className="text-xs text-muted-foreground">Aeronave</p>
-            <p className="font-bold text-sm">{work_order.aircraft?.acronym ?? "N/A"}</p>
+            <p className="font-bold text-sm">
+              {work_order.aircraft?.acronym ?? "N/A"}
+            </p>
           </div>
           <div className="flex flex-col gap-1">
             <p className="text-xs text-muted-foreground">Estado</p>
@@ -354,8 +398,8 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
                 work_order.status === "OPEN"
                   ? "bg-green-500 text-white pointer-events-none"
                   : work_order.status === "CLOSED"
-                  ? "bg-red-500 text-white pointer-events-none"
-                  : "bg-gray-400 text-white pointer-events-none"
+                    ? "bg-red-500 text-white pointer-events-none"
+                    : "bg-gray-400 text-white pointer-events-none"
               }
             >
               {workOrderStatusLabelEsUpper(work_order.status)}
@@ -365,13 +409,13 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
 
         {isClosed && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-600 dark:bg-red-950 dark:border-red-800 dark:text-red-400">
-            Esta orden de trabajo está <strong>CERRADA</strong> y no puede ser modificada.
+            Esta orden de trabajo está <strong>CERRADA</strong> y no puede ser
+            modificada.
           </div>
         )}
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-
             {/* ── Campos principales ── */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
@@ -407,12 +451,14 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
                             disabled={isClosed}
                             className={cn(
                               "pl-3 text-left font-normal",
-                              !field.value && "text-muted-foreground"
+                              !field.value && "text-muted-foreground",
                             )}
                           >
-                            {field.value
-                              ? format(field.value, "PPP", { locale: es })
-                              : <span>Seleccione una fecha...</span>}
+                            {field.value ? (
+                              format(field.value, "PPP", { locale: es })
+                            ) : (
+                              <span>Seleccione una fecha...</span>
+                            )}
                             <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                           </Button>
                         </FormControl>
@@ -439,7 +485,11 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
                   <FormItem>
                     <FormLabel>Elaborado Por</FormLabel>
                     <FormControl>
-                      <Input {...field} disabled className="disabled:opacity-65" />
+                      <Input
+                        {...field}
+                        disabled
+                        className="disabled:opacity-65"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -453,7 +503,11 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
                   <FormItem>
                     <FormLabel>Revisado Por</FormLabel>
                     <FormControl>
-                      <Input {...field} disabled className="disabled:opacity-65" />
+                      <Input
+                        {...field}
+                        disabled
+                        className="disabled:opacity-65"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -467,7 +521,11 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
                   <FormItem>
                     <FormLabel>Aprobado Por</FormLabel>
                     <FormControl>
-                      <Input {...field} disabled className="disabled:opacity-65" />
+                      <Input
+                        {...field}
+                        disabled
+                        className="disabled:opacity-65"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -549,22 +607,27 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
                 </p>
               )}
 
-              <ScrollArea className={cn("flex", tasks.length > 2 ? "h-95" : "")}>
+              <ScrollArea
+                className={cn("flex", tasks.length > 2 ? "h-95" : "")}
+              >
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 pr-2">
                   {tasks.map((task, index) => (
                     <div
                       key={task.tempId}
                       className={cn(
                         "p-4 border rounded-lg",
-                        task.isNew && "border-dashed border-blue-400 bg-blue-50/30 dark:bg-blue-950/20",
-                        task.isDirty && !task.isNew && "border-amber-400/60"
+                        task.isNew &&
+                          "border-dashed border-blue-400 bg-blue-50/30 dark:bg-blue-950/20",
+                        task.isDirty && !task.isNew && "border-amber-400/60",
                       )}
                     >
                       {/* Encabezado de la tarea */}
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-2">
                           <span className="text-xs font-semibold text-muted-foreground">
-                            {task.isNew ? "✦ Nueva tarea" : `Tarea ${index + 1}`}
+                            {task.isNew
+                              ? "✦ Nueva tarea"
+                              : `Tarea ${index + 1}`}
                           </span>
                           {task.isDirty && !task.isNew && (
                             <span className="text-xs text-amber-600 dark:text-amber-400">
@@ -582,12 +645,17 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
                             onClick={() => requestDeleteTask(task)}
                             disabled={deleteWorkOrderTask.isPending}
                             className="h-7 w-7 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30"
-                            title={task.isNew ? "Quitar tarea" : "Eliminar tarea de la orden"}
-                          >
-                            {task.isNew
-                              ? <MinusCircle className="h-4 w-4" />
-                              : <Trash2 className="h-4 w-4" />
+                            title={
+                              task.isNew
+                                ? "Quitar tarea"
+                                : "Eliminar tarea de la orden"
                             }
+                          >
+                            {task.isNew ? (
+                              <MinusCircle className="h-4 w-4" />
+                            ) : (
+                              <Trash2 className="h-4 w-4" />
+                            )}
                           </Button>
                         )}
                       </div>
@@ -598,7 +666,13 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
                           <FormLabel className="text-xs">Código ATA</FormLabel>
                           <Input
                             value={task.ata}
-                            onChange={(e) => updateTaskField(task.tempId, "ata", e.target.value)}
+                            onChange={(e) =>
+                              updateTaskField(
+                                task.tempId,
+                                "ata",
+                                e.target.value,
+                              )
+                            }
                             placeholder="Ej: 25"
                             disabled={isClosed}
                             className="h-8 text-sm"
@@ -606,11 +680,17 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
                         </FormItem>
 
                         <FormItem>
-                          <FormLabel className="text-xs">Descripción de la Tarea</FormLabel>
+                          <FormLabel className="text-xs">
+                            Descripción de la Tarea
+                          </FormLabel>
                           <Textarea
                             value={task.description_task}
                             onChange={(e) =>
-                              updateTaskField(task.tempId, "description_task", e.target.value)
+                              updateTaskField(
+                                task.tempId,
+                                "description_task",
+                                e.target.value,
+                              )
                             }
                             placeholder="Describa la tarea..."
                             disabled={isClosed}
@@ -624,7 +704,11 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
                           <Textarea
                             value={task.material}
                             onChange={(e) =>
-                              updateTaskField(task.tempId, "material", e.target.value)
+                              updateTaskField(
+                                task.tempId,
+                                "material",
+                                e.target.value,
+                              )
                             }
                             placeholder="Materiales requeridos..."
                             disabled={isClosed}
@@ -639,10 +723,27 @@ const EditWorkOrderForm = ({ work_order, onClose }: EditWorkOrderFormProps) => {
               </ScrollArea>
             </div>
 
+            {!isClosed && (
+              <EditReasonFields
+                value={reason}
+                onChange={(value) => {
+                  setReason(value);
+                  setReasonError(undefined);
+                }}
+                error={reasonError}
+                disabled={isPending}
+              />
+            )}
+
             {/* ── Botones de acción ── */}
             {!isClosed && (
               <div className="flex justify-end gap-2 pt-2 border-t">
-                <Button type="button" variant="outline" onClick={onClose} disabled={isPending}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={onClose}
+                  disabled={isPending}
+                >
                   Cancelar
                 </Button>
                 <Button type="submit" disabled={isPending} className="gap-2">

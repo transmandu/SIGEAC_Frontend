@@ -15,8 +15,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { DatePickerField } from "@/components/ui/DatePickerField";
 import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import { ComboboxField } from "@/components/ui/ComboboxField";
 import { AgreementItem } from "@/components/forms/general/AgreementItem";
+import FolderSelect from "@/components/library/FolderSelect";
 
 import { zodResolver } from "@/lib/zod-resolver";
 import { useForm, useFieldArray } from "react-hook-form";
@@ -90,6 +92,8 @@ const FormSchema = z.object({
       }),
     )
     .optional(),
+  is_comite: z.boolean().default(false),
+  library_folder_paths: z.array(z.string()).optional().default([]),
 });
 
 type FormSchemaType = z.infer<typeof FormSchema>;
@@ -118,6 +122,11 @@ function buildFormData(
   fd.append("filled_out_by", String(data.filled_out_by));
   if (data.reviewed_by) fd.append("reviewed_by", String(data.reviewed_by));
   if (data.approved_by) fd.append("approved_by", String(data.approved_by));
+
+  fd.append("is_comite", data.is_comite ? "1" : "0");
+  (data.library_folder_paths ?? []).forEach((p) =>
+    fd.append("library_folder_paths[]", p),
+  );
 
   data.attendees
     ?.filter(
@@ -273,6 +282,8 @@ export function CreateMeetingMinuteForm({
             !!a.responsible_name,
           is_authorized: !!a.responsible_authorized_employee_id,
         })) ?? [],
+      is_comite: Boolean(initialData?.is_comite),
+      library_folder_paths: [],
     },
   });
 
@@ -296,6 +307,8 @@ export function CreateMeetingMinuteForm({
 
   const isPending =
     createMeetingMinute.isPending || updateMeetingMinute.isPending;
+
+  const isComite = form.watch("is_comite");
 
   const onSubmit = async (data: FormSchemaType) => {
     if (!companySlug || !selectedStation) return;
@@ -865,6 +878,67 @@ export function CreateMeetingMinuteForm({
                   </FormItem>
                 )}
               />
+            </div>
+
+            {/* Reunión de comité */}
+            <FormField
+              control={form.control}
+              name="is_comite"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border border-border/60 p-3">
+                  <div className="space-y-0.5">
+                    <FormLabel className="text-sm font-medium">
+                      Reunión de comité
+                    </FormLabel>
+                    <p className="text-xs text-muted-foreground">
+                      Permite que el mismo documento aparezca en varias carpetas
+                      de la Librería.
+                    </p>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
+            {/* Carpeta en la Librería */}
+            <div className="space-y-3 rounded-lg border border-border/60 p-3">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                {isComite
+                  ? "Carpetas en la Librería (réplica)"
+                  : "Carpeta en la Librería"}
+              </p>
+
+              <FormField
+                control={form.control}
+                name="library_folder_paths"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">
+                      Carpeta destino
+                    </FormLabel>
+                    <FormControl>
+                      <FolderSelect
+                        company={companySlug}
+                        value={field.value ?? []}
+                        onChange={field.onChange}
+                        single={!isComite}
+                      />
+                    </FormControl>
+                    <FormMessage className="text-xs" />
+                  </FormItem>
+                )}
+              />
+
+              <p className="text-xs text-muted-foreground">
+                {isComite
+                  ? "El documento adjunto se subirá una sola vez a la Librería. Usa la estrella para fijar la carpeta principal; las demás son réplicas en otras carpetas."
+                  : "El documento adjunto se guardará en la Librería en la carpeta seleccionada."}
+              </p>
             </div>
 
             <Separator className="border-border/60" />

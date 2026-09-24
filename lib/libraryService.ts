@@ -7,6 +7,7 @@ export interface Document {
   category_name: string;
   department_name: string;
   folder_path: string | null;
+  folder_paths: string[];
   emission_date: string | null;
   expiration_date: string | null;
   status: "vigente" | "vencido" | "no_aplica";
@@ -56,11 +57,21 @@ const libraryService = {
   },
 
   /**
-   * Elimina un documento por ID
+   * Elimina un documento por ID. Si se indica `sourceFolderPath` y NO es la
+   * carpeta primaria, el backend solo desvincula esa réplica (el original queda).
    */
-  deleteDocument: async (company: string, id: number | string) => {
+  deleteDocument: async (
+    company: string,
+    id: number | string,
+    sourceFolderPath?: string,
+  ) => {
     const response = await axiosInstance.delete(
       `/${company}/library/documents/${id}`,
+      {
+        ...(sourceFolderPath != null
+          ? { data: { source_folder_path: sourceFolderPath } }
+          : {}),
+      },
     );
     return response.data;
   },
@@ -221,11 +232,15 @@ const libraryService = {
     documentId: number,
     folderPath: string,
     departmentId?: number,
+    sourceFolderPath?: string,
   ) => {
     const response = await axiosInstance.patch(
       `/${company}/library/documents/${documentId}/move`,
       {
         folder_path: folderPath,
+        ...(sourceFolderPath != null
+          ? { source_folder_path: sourceFolderPath }
+          : {}),
         ...(departmentId != null ? { department_id: departmentId } : {}),
       },
     );
@@ -238,6 +253,7 @@ const libraryService = {
       document_ids: number[];
       department_id: number;
       folder_path: string;
+      source_folder_path?: string;
     },
   ) => {
     const response = await axiosInstance.post(
