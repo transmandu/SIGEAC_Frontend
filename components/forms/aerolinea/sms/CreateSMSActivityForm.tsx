@@ -868,9 +868,7 @@ export default function CreateSMSActivityForm({
         {/* Carpeta en la Librería */}
         <div className="space-y-3 rounded-lg border border-border/60 p-3">
           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            {isPre
-              ? "Carpetas en la Librería (réplica)"
-              : "Carpeta en la Librería"}
+            Carpetas en la Librería
           </p>
 
           <FormField
@@ -886,7 +884,6 @@ export default function CreateSMSActivityForm({
                     company={selectedCompany?.slug}
                     value={field.value ?? []}
                     onChange={field.onChange}
-                    single={!isPre}
                   />
                 </FormControl>
                 <FormMessage className="text-xs" />
@@ -895,9 +892,9 @@ export default function CreateSMSActivityForm({
           />
 
           <p className="text-xs text-muted-foreground">
-            {isPre
-              ? "El documento adjunto se subirá una sola vez a la Librería. Usa la estrella para fijar la carpeta principal; las demás son réplicas en otras carpetas."
-              : "El documento adjunto se guardará en la Librería en la carpeta seleccionada."}
+            El documento adjunto se subirá una sola vez a la Librería. Puedes
+            elegir una o varias carpetas; usa la estrella para fijar la carpeta
+            principal, las demás son réplicas en otras carpetas.
           </p>
         </div>
 
