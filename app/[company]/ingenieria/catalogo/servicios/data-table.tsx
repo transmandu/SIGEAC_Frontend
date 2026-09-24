@@ -11,7 +11,10 @@ import { appTableFeatures, type AppColumnDef } from "@/lib/table";
 import { PlusCircle, Wrench } from "lucide-react";
 
 import { DataTablePagination } from "@/components/tables/DataTablePagination";
-import { DataTableFilterPopover, FilterOption } from "@/components/tables/DataTableFilterPopover";
+import {
+  DataTableFilterPopover,
+  FilterOption,
+} from "@/components/tables/DataTableFilterPopover";
 import { DataTableSearchInput } from "@/components/tables/DataTableSearchInput";
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 import { ServiceDialog } from "@/components/dialogs/mantenimiento/catalogo/ServiceDialog";
@@ -55,17 +58,26 @@ export function DataTable({ columns, data }: DataTableProps) {
   );
 
   const aircraftOptions: FilterOption[] = useMemo(
-    () => aircrafts.map((aircraft) => ({ label: aircraft.acronym, value: String(aircraft.id) })),
+    () =>
+      aircrafts.map((aircraft) => ({
+        label: aircraft.acronym,
+        value: String(aircraft.id),
+      })),
     [aircrafts],
   );
 
   const categoryOptions: FilterOption[] = useMemo(
-    () => Object.entries(CATEGORY_LABELS).map(([value, label]) => ({ label, value })),
+    () =>
+      Object.entries(CATEGORY_LABELS).map(([value, label]) => ({
+        label,
+        value,
+      })),
     [],
   );
 
   const statusOptions: FilterOption[] = useMemo(
-    () => Object.entries(STATUS_LABELS).map(([value, label]) => ({ label, value })),
+    () =>
+      Object.entries(STATUS_LABELS).map(([value, label]) => ({ label, value })),
     [],
   );
 
@@ -81,7 +93,6 @@ export function DataTable({ columns, data }: DataTableProps) {
     state: { sorting, columnFilters, globalFilter },
   });
 
-
   return (
     <div>
       <div className="flex flex-col gap-3 py-4 lg:flex-row lg:items-center lg:justify-between">
@@ -93,10 +104,26 @@ export function DataTable({ columns, data }: DataTableProps) {
         <div className="flex items-center gap-2">
           <DataTableFilterPopover
             groups={[
-              { title: "Manual", column: table.getColumn("manual"), options: manualOptions },
-              { title: "Aeronave", column: table.getColumn("aircrafts"), options: aircraftOptions },
-              { title: "Categoría", column: table.getColumn("category"), options: categoryOptions },
-              { title: "Estado", column: table.getColumn("status"), options: statusOptions },
+              {
+                title: "Manual",
+                column: table.getColumn("manual"),
+                options: manualOptions,
+              },
+              {
+                title: "Aeronave",
+                column: table.getColumn("aircrafts"),
+                options: aircraftOptions,
+              },
+              {
+                title: "Categoría",
+                column: table.getColumn("category"),
+                options: categoryOptions,
+              },
+              {
+                title: "Estado",
+                column: table.getColumn("status"),
+                options: statusOptions,
+              },
             ]}
           />
 
@@ -114,8 +141,16 @@ export function DataTable({ columns, data }: DataTableProps) {
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id} className="hover:bg-transparent">
                 {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id} className="bg-muted/40 font-semibold">
-                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                  <TableHead
+                    key={header.id}
+                    className="bg-muted/40 font-semibold"
+                  >
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
                   </TableHead>
                 ))}
               </TableRow>
@@ -124,9 +159,17 @@ export function DataTable({ columns, data }: DataTableProps) {
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} className="transition-colors hover:bg-primary/[0.03]">
+                <TableRow
+                  key={row.id}
+                  className="transition-colors hover:bg-primary/[0.03]"
+                >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+                    <TableCell key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
+                    </TableCell>
                   ))}
                 </TableRow>
               ))
@@ -134,13 +177,20 @@ export function DataTable({ columns, data }: DataTableProps) {
               <TableRow className="hover:bg-transparent">
                 {/* Las columnas ocultas (aircrafts es solo-filtro) no se
                     renderizan: el colSpan sale de las visibles, no de todas. */}
-                <TableCell colSpan={table.getVisibleFlatColumns().length} className="h-40">
+                <TableCell
+                  colSpan={table.getVisibleFlatColumns().length}
+                  className="h-40"
+                >
                   <div className="flex flex-col items-center justify-center gap-2 text-center">
                     <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-muted/60 text-muted-foreground">
                       <Wrench className="h-5 w-5" />
                     </span>
-                    <p className="text-sm font-medium text-muted-foreground">Sin servicios/certificados registrados</p>
-                    <p className="text-xs text-muted-foreground/70">Cree uno con el botón de arriba.</p>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      Sin servicios/certificados registrados
+                    </p>
+                    <p className="text-xs text-muted-foreground/70">
+                      Cree uno con el botón de arriba.
+                    </p>
                   </div>
                 </TableCell>
               </TableRow>

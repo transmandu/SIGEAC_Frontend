@@ -7,19 +7,24 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useGetMaintenanceControls } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceControls";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { AlertTriangle } from "lucide-react";
-import { useMemo } from "react";
+import {
+  ControlListView,
+  ControlListViewToggle,
+} from "@/components/planificacion/controles/ControlListView";
+import { useMemo, useState } from "react";
 import { getColumns } from "./columns";
 import { DataTable } from "./data-table";
 
 const MaintenanceControlPage = () => {
   const { selectedCompany } = useCompanyStore();
   const companySlug = selectedCompany?.slug ?? "";
+  const [view, setView] = useState<ControlListView>("active");
 
   const {
     data: maintenanceControls,
     isLoading,
     isError,
-  } = useGetMaintenanceControls(companySlug);
+  } = useGetMaintenanceControls(companySlug, view === "retired");
 
   // Opciones de los filtros de Aeronave y Manual de Referencia: solo las que
   // de verdad aparecen en la tabla, no el catálogo completo de la compañía.
@@ -49,6 +54,14 @@ const MaintenanceControlPage = () => {
     [companySlug, aircraftOptions, manualOptions],
   );
 
+  const rows = useMemo(
+    () =>
+      (maintenanceControls ?? []).filter(
+        (control) => (view === "retired") === !!control.retired_at,
+      ),
+    [maintenanceControls, view],
+  );
+
   if (isLoading) return <LoadingPage />;
 
   return (
@@ -59,12 +72,16 @@ const MaintenanceControlPage = () => {
         <div className="flex flex-col gap-2 border-b pb-4">
           <div className="flex items-end justify-between">
             <div className="flex flex-col">
-              <h1 className="text-3xl font-semibold tracking-tight">Control de Mantenimiento</h1>
+              <h1 className="text-3xl font-semibold tracking-tight">
+                Control de Mantenimiento
+              </h1>
               <p className="text-sm text-muted-foreground">
-                Consulte y administre el control de mantenimiento de cada aeronave, con
-                el estado de vencimiento de sus certificados y servicios.
+                Consulte y administre el control de mantenimiento de cada
+                aeronave, con el estado de vencimiento de sus certificados y
+                servicios.
               </p>
             </div>
+            <ControlListViewToggle value={view} onChange={setView} />
           </div>
         </div>
 
@@ -78,7 +95,7 @@ const MaintenanceControlPage = () => {
           </Alert>
         )}
 
-        <DataTable columns={columns} data={maintenanceControls ?? []} />
+        <DataTable columns={columns} data={rows} />
       </div>
     </ContentLayout>
   );

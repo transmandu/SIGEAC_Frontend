@@ -1,12 +1,40 @@
 import type { EditReason } from "@/lib/planificacion/editReasons";
 
-export type AuditableType =
-  "flight" | "work_order" | "work_order_task" | "planification_event";
+export type AuditAction =
+  | "CREATE"
+  | "UPDATE"
+  | "DELETE"
+  | "RETIRE"
+  | "RESTORE"
+  | "EMIT"
+  | "IMPORT"
+  | "PURGE";
 
 export type AuditEventKind = "CORRECTION" | "WORKFLOW";
 
-// Filtro de la vista: "work_order" incluye sus tareas (lo resuelve el backend).
-export type AuditTypeFilter = "flight" | "work_order";
+/** Espejo de AuditRegistry::MODULES del backend. */
+export type AuditModule =
+  | "flights"
+  | "work_orders"
+  | "maintenance_controls"
+  | "component_controls"
+  | "avionics_controls"
+  | "directive_controls"
+  | "fleet"
+  | "audit";
+
+/** Raíces cuyo historial se puede pedir; `aircraft` trae todo lo de esa aeronave. */
+export type AuditSubjectType =
+  | "flight"
+  | "work_order"
+  | "maintenance_control"
+  | "component_control"
+  | "avionics_control"
+  | "directive_control"
+  | "aircraft"
+  | "aircraft_part"
+  | "maintenance_provider"
+  | "planification_audit";
 
 export interface PlanificationAuditField {
   field: string;
@@ -16,10 +44,17 @@ export interface PlanificationAuditField {
   is_critical: boolean;
 }
 
-export interface PlanificationAuditLog {
+/** Un registro tocado dentro de una operación. */
+export interface PlanificationAuditEntry {
   id: number;
-  auditable_type: AuditableType;
+  sequence: number | null;
+  hash: string | null;
+  operation_id: string;
+  action: AuditAction;
+  auditable_type: string;
   auditable_id: number;
+  subject_type: AuditSubjectType | null;
+  subject_id: number | null;
   work_order_id: number | null;
   aircraft_id: number | null;
   reference: string | null;
@@ -31,13 +66,33 @@ export interface PlanificationAuditLog {
   has_critical: boolean;
   changed_by: string;
   changed_at: string;
+  ip_address: string | null;
+  user_agent: string | null;
   fields: PlanificationAuditField[];
+}
+
+/** Un guardado: todo lo que cambió en una misma petición. */
+export interface PlanificationAuditOperation {
+  operation_id: string;
+  changed_at: string;
+  changed_by: string;
+  ip_address: string | null;
+  user_agent: string | null;
+  event_kind: AuditEventKind;
+  reason_category: EditReason | null;
+  reason_note: string | null;
+  has_critical: boolean;
+  actions: AuditAction[];
+  entries: PlanificationAuditEntry[];
 }
 
 export interface PlanificationAuditFilters {
   from?: string;
   to?: string;
-  type?: AuditTypeFilter;
+  module?: AuditModule;
+  subject_type?: AuditSubjectType;
+  subject_id?: number;
+  action?: AuditAction[];
   event_kind?: AuditEventKind;
   reason_category?: EditReason | "SIN_CLASIFICAR";
   critical_only?: boolean;
@@ -46,8 +101,8 @@ export interface PlanificationAuditFilters {
   per_page?: number;
 }
 
-export interface PaginatedAuditLogs {
-  data: PlanificationAuditLog[];
+export interface PaginatedAuditOperations {
+  data: PlanificationAuditOperation[];
   meta: {
     current_page: number;
     last_page: number;
@@ -63,19 +118,22 @@ export interface ErrorRate {
 }
 
 export interface PlanificationAuditStats {
-  period: { from: string; to: string };
+  period: { from: string | null; to: string };
   totals: {
-    edits: number;
+    entries: number;
+    operations: number;
     corrections: number;
     workflow: number;
     errors: number;
     critical_corrections: number;
     unclassified: number;
   };
-  error_rate: { flights?: ErrorRate; work_orders?: ErrorRate };
+  by_action: Partial<Record<AuditAction, number>>;
+  by_module: { module: AuditModule; operations: number; corrections: number }[];
+  error_rate: Partial<Record<AuditModule, ErrorRate>>;
   by_reason: { reason: EditReason | "SIN_CLASIFICAR"; count: number }[];
   by_field: {
-    type: AuditableType;
+    type: string;
     field: string;
     critical: boolean;
     count: number;
@@ -94,4 +152,14 @@ export interface PlanificationAuditStats {
     errors: number;
     workflow: number;
   }[];
+}
+
+export interface AuditIntegrity {
+  ok: boolean;
+  checked: number;
+  unsealed: number;
+  head_sequence: number;
+  broken_at: number | null;
+  reason: string | null;
+  verified_at: string;
 }

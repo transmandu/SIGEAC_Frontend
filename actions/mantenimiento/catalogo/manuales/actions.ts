@@ -1,6 +1,10 @@
-import axiosInstance from "@/lib/axios"
-import { CatalogCategory, CatalogInterval, CatalogStatus } from "@/types/maintenanceCatalog"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
+import axiosInstance from "@/lib/axios";
+import {
+  CatalogCategory,
+  CatalogInterval,
+  CatalogStatus,
+} from "@/types/maintenanceCatalog";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { apiErrorMessage } from "@/lib/apiErrorMessage";
 import { TaskFormData } from "@/actions/mantenimiento/catalogo/tareas/actions";
@@ -56,18 +60,24 @@ function appendNested(formData: FormData, key: string, value: unknown): void {
   if (value === null || value === undefined || value === "") return;
 
   if (Array.isArray(value)) {
-    value.forEach((item, index) => appendNested(formData, `${key}[${index}]`, item));
-    return;
-  }
-
-  if (typeof value === "object") {
-    Object.entries(value as Record<string, unknown>).forEach(([childKey, childValue]) =>
-      appendNested(formData, `${key}[${childKey}]`, childValue),
+    value.forEach((item, index) =>
+      appendNested(formData, `${key}[${index}]`, item),
     );
     return;
   }
 
-  formData.append(key, typeof value === "boolean" ? (value ? "1" : "0") : String(value));
+  if (typeof value === "object") {
+    Object.entries(value as Record<string, unknown>).forEach(
+      ([childKey, childValue]) =>
+        appendNested(formData, `${key}[${childKey}]`, childValue),
+    );
+    return;
+  }
+
+  formData.append(
+    key,
+    typeof value === "boolean" ? (value ? "1" : "0") : String(value),
+  );
 }
 
 function toManualFormData(data: ManualFormData): FormData {
@@ -76,7 +86,8 @@ function toManualFormData(data: ManualFormData): FormData {
   formData.append("is_physical", data.is_physical ? "1" : "0");
   if (data.manual_code) formData.append("manual_code", data.manual_code);
   if (data.revision) formData.append("revision", data.revision);
-  if (data.effective_date) formData.append("effective_date", data.effective_date);
+  if (data.effective_date)
+    formData.append("effective_date", data.effective_date);
   if (data.description) formData.append("description", data.description);
   if (data.status) formData.append("status", data.status);
   if (data.file) formData.append("file", data.file);
@@ -89,7 +100,9 @@ function toManualFormData(data: ManualFormData): FormData {
  * vistas de servicios. El detalle se invalida por prefijo: una revisión nueva
  * afecta al manual anterior Y al recién creado.
  */
-const invalidateManualScopes = (queryClient: ReturnType<typeof useQueryClient>) => {
+const invalidateManualScopes = (
+  queryClient: ReturnType<typeof useQueryClient>,
+) => {
   queryClient.invalidateQueries({ queryKey: ["maintenance-catalog-manuals"] });
   queryClient.invalidateQueries({ queryKey: ["maintenance-catalog-manual"] });
   queryClient.invalidateQueries({ queryKey: ["maintenance-catalog-services"] });
@@ -100,17 +113,34 @@ export const useCreateCatalogManual = () => {
   const queryClient = useQueryClient();
 
   const createMutation = useMutation({
-    mutationFn: async ({ data, company }: { data: ManualFormData; company: string }) => {
-      await axiosInstance.post(`/${company}/maintenance-catalog-manuals`, toManualFormData(data), {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+    mutationFn: async ({
+      data,
+      company,
+    }: {
+      data: ManualFormData;
+      company: string;
+    }) => {
+      await axiosInstance.post(
+        `/${company}/maintenance-catalog-manuals`,
+        toManualFormData(data),
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        },
+      );
     },
     onSuccess: () => {
       invalidateManualScopes(queryClient);
-      toast.success("¡Creado!", { description: "El manual ha sido registrado correctamente." });
+      toast.success("¡Creado!", {
+        description: "El manual ha sido registrado correctamente.",
+      });
     },
     onError: (error) => {
-      toast.error("Oops!", { description: apiErrorMessage(error, "No se pudo registrar el manual...") });
+      toast.error("Oops!", {
+        description: apiErrorMessage(
+          error,
+          "No se pudo registrar el manual...",
+        ),
+      });
     },
   });
 
@@ -121,19 +151,38 @@ export const useUpdateCatalogManual = () => {
   const queryClient = useQueryClient();
 
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data, company }: { id: number | string; data: ManualFormData; company: string }) => {
+    mutationFn: async ({
+      id,
+      data,
+      company,
+    }: {
+      id: number | string;
+      data: ManualFormData;
+      company: string;
+    }) => {
       const formData = toManualFormData(data);
       formData.append("_method", "PUT");
-      await axiosInstance.post(`/${company}/maintenance-catalog-manuals/${id}`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      await axiosInstance.post(
+        `/${company}/maintenance-catalog-manuals/${id}`,
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        },
+      );
     },
     onSuccess: () => {
       invalidateManualScopes(queryClient);
-      toast.success("¡Actualizado!", { description: "El manual ha sido actualizado correctamente." });
+      toast.success("¡Actualizado!", {
+        description: "El manual ha sido actualizado correctamente.",
+      });
     },
     onError: (error) => {
-      toast.error("Oops!", { description: apiErrorMessage(error, "No se pudo actualizar el manual...") });
+      toast.error("Oops!", {
+        description: apiErrorMessage(
+          error,
+          "No se pudo actualizar el manual...",
+        ),
+      });
     },
   });
 
@@ -156,7 +205,8 @@ export const useCreateManualRevision = () => {
       const formData = new FormData();
       formData.append("is_physical", data.is_physical ? "1" : "0");
       if (data.revision) formData.append("revision", data.revision);
-      if (data.effective_date) formData.append("effective_date", data.effective_date);
+      if (data.effective_date)
+        formData.append("effective_date", data.effective_date);
       if (data.description) formData.append("description", data.description);
       if (data.file) formData.append("file", data.file);
 
@@ -179,7 +229,12 @@ export const useCreateManualRevision = () => {
       });
     },
     onError: (error) => {
-      toast.error("Oops!", { description: apiErrorMessage(error, "No se pudo registrar la nueva revisión...") });
+      toast.error("Oops!", {
+        description: apiErrorMessage(
+          error,
+          "No se pudo registrar la nueva revisión...",
+        ),
+      });
     },
   });
 
@@ -190,15 +245,27 @@ export const useDeleteCatalogManual = () => {
   const queryClient = useQueryClient();
 
   const deleteMutation = useMutation({
-    mutationFn: async ({ id, company }: { id: number | string; company: string }) => {
-      await axiosInstance.delete(`/${company}/maintenance-catalog-manuals/${id}`);
+    mutationFn: async ({
+      id,
+      company,
+    }: {
+      id: number | string;
+      company: string;
+    }) => {
+      await axiosInstance.delete(
+        `/${company}/maintenance-catalog-manuals/${id}`,
+      );
     },
     onSuccess: () => {
       invalidateManualScopes(queryClient);
-      toast.success("¡Eliminado!", { description: "El manual ha sido eliminado correctamente." });
+      toast.success("¡Eliminado!", {
+        description: "El manual ha sido eliminado correctamente.",
+      });
     },
     onError: (error) => {
-      toast.error("Oops!", { description: apiErrorMessage(error, "No se pudo eliminar el manual...") });
+      toast.error("Oops!", {
+        description: apiErrorMessage(error, "No se pudo eliminar el manual..."),
+      });
     },
   });
 

@@ -3,7 +3,15 @@
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { useState } from "react";
-import { BookOpen, ClipboardList, ExternalLink, History, Pencil, Plus, Wrench } from "lucide-react";
+import {
+  BookOpen,
+  ClipboardList,
+  ExternalLink,
+  History,
+  Pencil,
+  Plus,
+  Wrench,
+} from "lucide-react";
 
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -24,9 +32,17 @@ import {
   STATUS_LABELS,
 } from "@/lib/maintenanceCatalogLabels";
 
-const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
+const Field = ({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) => (
   <div className="space-y-1">
-    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
+    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+      {label}
+    </p>
     <div className="text-sm">{children}</div>
   </div>
 );
@@ -36,7 +52,10 @@ const Empty = () => <span className="text-muted-foreground">—</span>;
 const ManualDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const { selectedCompany } = useCompanyStore();
-  const { data: manual, isLoading } = useGetCatalogManual(selectedCompany?.slug, id);
+  const { data: manual, isLoading } = useGetCatalogManual(
+    selectedCompany?.slug,
+    id,
+  );
   const [openEdit, setOpenEdit] = useState(false);
   const [openRevision, setOpenRevision] = useState(false);
   const [openService, setOpenService] = useState(false);
@@ -54,10 +73,14 @@ const ManualDetailPage = () => {
         <div className="flex flex-col gap-3 border-b pb-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2">
-              <Badge variant={manual.status === "ACTIVE" ? "default" : "secondary"}>
+              <Badge
+                variant={manual.status === "ACTIVE" ? "default" : "secondary"}
+              >
                 {STATUS_LABELS[manual.status]}
               </Badge>
-              <h1 className="text-3xl font-semibold tracking-tight">{manual.name}</h1>
+              <h1 className="text-3xl font-semibold tracking-tight">
+                {manual.name}
+              </h1>
             </div>
             <p className="text-sm text-muted-foreground">
               {manual.description || "Sin descripción."}
@@ -78,19 +101,29 @@ const ManualDetailPage = () => {
           <div className="flex shrink-0 items-center gap-2">
             {manual.file_url && (
               <ActionTriggerButton asChild>
-                <a href={manual.file_url} target="_blank" rel="noopener noreferrer">
+                <a
+                  href={manual.file_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   <ExternalLink className="mr-2 size-4" />
                   Ver Archivo
                 </a>
               </ActionTriggerButton>
             )}
             {manual.status === "ACTIVE" && (
-              <ActionTriggerButton type="button" onClick={() => setOpenRevision(true)}>
+              <ActionTriggerButton
+                type="button"
+                onClick={() => setOpenRevision(true)}
+              >
                 <History className="mr-2 size-4" />
                 Nueva Revisión
               </ActionTriggerButton>
             )}
-            <ActionTriggerButton type="button" onClick={() => setOpenEdit(true)}>
+            <ActionTriggerButton
+              type="button"
+              onClick={() => setOpenEdit(true)}
+            >
               <Pencil className="mr-2 size-4" />
               Editar
             </ActionTriggerButton>
@@ -103,14 +136,26 @@ const ManualDetailPage = () => {
             <Field label="Código">{manual.manual_code || <Empty />}</Field>
             <Field label="Revisión">{manual.revision || <Empty />}</Field>
             <Field label="Vigente desde">
-              {manual.effective_date ? formatCalendarDate(manual.effective_date) : <Empty />}
+              {manual.effective_date ? (
+                formatCalendarDate(manual.effective_date)
+              ) : (
+                <Empty />
+              )}
             </Field>
             <Field label="Soporte">
-              {manual.is_physical ? "Solo físico" : manual.file_url ? "Digital" : "Sin archivo"}
+              {manual.is_physical
+                ? "Solo físico"
+                : manual.file_url
+                  ? "Digital"
+                  : "Sin archivo"}
             </Field>
             <Field label="Servicios declarados">{services.length}</Field>
-            <Field label="Registrado por">{manual.registered_by || <Empty />}</Field>
-            <Field label="Actualizado por">{manual.updated_by || <Empty />}</Field>
+            <Field label="Registrado por">
+              {manual.registered_by || <Empty />}
+            </Field>
+            <Field label="Actualizado por">
+              {manual.updated_by || <Empty />}
+            </Field>
           </div>
         </FormSection>
 
@@ -127,7 +172,9 @@ const ManualDetailPage = () => {
                   href={`/${selectedCompany?.slug}/ingenieria/catalogo/manuales/${prev.id}`}
                   className="flex items-center justify-between gap-2 rounded-lg border border-slate-400/40 bg-gradient-to-br from-background/70 to-background/40 p-3 text-sm transition-colors hover:border-primary/40 dark:border-slate-600/40"
                 >
-                  <span className="font-medium">{prev.revision || prev.name}</span>
+                  <span className="font-medium">
+                    {prev.revision || prev.name}
+                  </span>
                   <span className="text-xs text-muted-foreground">
                     {prev.effective_date
                       ? `Vigente desde ${formatCalendarDate(prev.effective_date)}`
@@ -145,7 +192,10 @@ const ManualDetailPage = () => {
           hint="Lo que este manual declara, con las tareas de cada uno."
           action={
             manual.status === "ACTIVE" ? (
-              <ActionTriggerButton type="button" onClick={() => setOpenService(true)}>
+              <ActionTriggerButton
+                type="button"
+                onClick={() => setOpenService(true)}
+              >
                 <Plus className="mr-2 size-4" />
                 Agregar Servicio
               </ActionTriggerButton>
@@ -168,10 +218,20 @@ const ManualDetailPage = () => {
                 >
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="flex flex-wrap items-center gap-2">
-                      <Badge variant={service.category === "CERTIFICATE" ? "secondary" : "default"}>
+                      <Badge
+                        variant={
+                          service.category === "CERTIFICATE"
+                            ? "secondary"
+                            : "default"
+                        }
+                      >
                         {CATEGORY_LABELS[service.category]}
                       </Badge>
-                      <Badge variant={service.status === "ACTIVE" ? "default" : "secondary"}>
+                      <Badge
+                        variant={
+                          service.status === "ACTIVE" ? "default" : "secondary"
+                        }
+                      >
                         {STATUS_LABELS[service.status]}
                       </Badge>
                       <Link
@@ -184,7 +244,10 @@ const ManualDetailPage = () => {
                         <span className="text-xs text-muted-foreground">
                           cada{" "}
                           {service.intervals
-                            .map((i) => `${i.interval_value} ${COUNTING_METHOD_LABELS[i.counting_method]}`)
+                            .map(
+                              (i) =>
+                                `${i.interval_value} ${COUNTING_METHOD_LABELS[i.counting_method]}`,
+                            )
                             .join(" Ó ")}
                         </span>
                       )}
@@ -193,7 +256,11 @@ const ManualDetailPage = () => {
                     {service.aircrafts && service.aircrafts.length > 0 && (
                       <div className="flex flex-wrap gap-1">
                         {service.aircrafts.map((aircraft) => (
-                          <Badge key={aircraft.id} variant="outline" className="text-[11px]">
+                          <Badge
+                            key={aircraft.id}
+                            variant="outline"
+                            className="text-[11px]"
+                          >
                             {aircraft.acronym}
                           </Badge>
                         ))}
@@ -204,7 +271,10 @@ const ManualDetailPage = () => {
                   {service.tasks && service.tasks.length > 0 ? (
                     <ul className="mt-3 space-y-1.5 border-t border-slate-400/30 pt-3 dark:border-slate-600/30">
                       {service.tasks.map((task) => (
-                        <li key={task.id} className="flex items-start gap-2 text-sm">
+                        <li
+                          key={task.id}
+                          className="flex items-start gap-2 text-sm"
+                        >
                           <ClipboardList className="mt-0.5 size-3.5 shrink-0 text-muted-foreground/70" />
                           <span className="min-w-0 flex-1">
                             {task.description}
@@ -228,9 +298,21 @@ const ManualDetailPage = () => {
         </FormSection>
       </div>
 
-      <ManualDialog open={openEdit} onOpenChange={setOpenEdit} manual={manual} />
-      <ManualRevisionDialog open={openRevision} onOpenChange={setOpenRevision} manual={manual} />
-      <ServiceDialog open={openService} onOpenChange={setOpenService} lockedManual={manual} />
+      <ManualDialog
+        open={openEdit}
+        onOpenChange={setOpenEdit}
+        manual={manual}
+      />
+      <ManualRevisionDialog
+        open={openRevision}
+        onOpenChange={setOpenRevision}
+        manual={manual}
+      />
+      <ServiceDialog
+        open={openService}
+        onOpenChange={setOpenService}
+        lockedManual={manual}
+      />
     </ContentLayout>
   );
 };

@@ -1,6 +1,6 @@
-import axios from '@/lib/axios';
-import { MaintenanceCompliance } from '@/types';
-import { useQuery } from '@tanstack/react-query';
+import axios from "@/lib/axios";
+import { MaintenanceCompliance } from "@/types";
+import { useQuery } from "@tanstack/react-query";
 
 const fetchMaintenanceCompliances = async (
   company: string | undefined,
@@ -12,7 +12,10 @@ const fetchMaintenanceCompliances = async (
   return data;
 };
 
-export const useGetMaintenanceCompliances = (company: string | undefined, acronym?: string) => {
+export const useGetMaintenanceCompliances = (
+  company: string | undefined,
+  acronym?: string,
+) => {
   return useQuery<MaintenanceCompliance[], Error>({
     queryKey: ["maintenance-compliances", company, acronym],
     queryFn: () => fetchMaintenanceCompliances(company, acronym),

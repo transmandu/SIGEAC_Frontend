@@ -9,11 +9,15 @@ import CreateMaintenanceControlForm from "@/components/forms/mantenimiento/plani
 import { useGetMaintenanceControl } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceControl";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { AlertTriangle } from "lucide-react";
+import { RetiredControlBanner } from "@/components/planificacion/controles/RetiredControlBanner";
 
 const EditMaintenanceControlPage = () => {
   const { id } = useParams<{ id: string }>();
   const { selectedCompany } = useCompanyStore();
-  const { data, isLoading, isError } = useGetMaintenanceControl(selectedCompany?.slug, id);
+  const { data, isLoading, isError } = useGetMaintenanceControl(
+    selectedCompany?.slug,
+    id,
+  );
 
   return (
     <ContentLayout title="Editar Control de Mantenimiento">
@@ -23,9 +27,12 @@ const EditMaintenanceControlPage = () => {
         <div className="flex flex-col gap-2 border-b pb-4">
           <div className="flex items-end justify-between">
             <div className="flex flex-col">
-              <h1 className="text-3xl font-semibold tracking-tight">Editar Control de Mantenimiento</h1>
+              <h1 className="text-3xl font-semibold tracking-tight">
+                Editar Control de Mantenimiento
+              </h1>
               <p className="text-sm text-muted-foreground">
-                Modifique los datos, certificados, servicios y partes de este control.
+                Modifique los datos, certificados, servicios y partes de este
+                control.
               </p>
             </div>
           </div>
@@ -37,11 +44,23 @@ const EditMaintenanceControlPage = () => {
           <Alert variant="destructive">
             <AlertTriangle className="h-4 w-4" />
             <AlertTitle>Error</AlertTitle>
-            <AlertDescription>No se pudo cargar el control de mantenimiento.</AlertDescription>
+            <AlertDescription>
+              No se pudo cargar el control de mantenimiento.
+            </AlertDescription>
           </Alert>
         )}
 
-        {data && <CreateMaintenanceControlForm initialData={data} />}
+        {data?.retired_at && (
+          <RetiredControlBanner
+            control={data}
+            recordType="maintenance_control"
+            noun="control de mantenimiento"
+          />
+        )}
+
+        {data && !data.retired_at && (
+          <CreateMaintenanceControlForm initialData={data} />
+        )}
       </div>
     </ContentLayout>
   );

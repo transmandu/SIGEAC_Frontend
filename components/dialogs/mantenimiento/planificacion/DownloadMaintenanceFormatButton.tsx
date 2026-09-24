@@ -3,7 +3,11 @@
 import { useState } from "react";
 import { Download, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import axiosInstance from "@/lib/axios";
 import { toast } from "sonner";
 
@@ -18,7 +22,11 @@ interface DownloadMaintenanceFormatButtonProps {
  * lleno con los datos reales de ese bloque — el backend arma el PDF al
  * vuelo, así que solo hay que pedirlo como blob y bajarlo.
  */
-export function DownloadMaintenanceFormatButton({ url, filename, label = "Descargar formato INAC" }: DownloadMaintenanceFormatButtonProps) {
+export function DownloadMaintenanceFormatButton({
+  url,
+  filename,
+  label = "Descargar formato INAC",
+}: DownloadMaintenanceFormatButtonProps) {
   const [isDownloading, setIsDownloading] = useState(false);
 
   const handleDownload = async () => {
@@ -55,7 +63,11 @@ export function DownloadMaintenanceFormatButton({ url, filename, label = "Descar
           onClick={handleDownload}
           disabled={isDownloading}
         >
-          {isDownloading ? <Loader2 className="size-3.5 animate-spin" /> : <Download className="size-3.5" />}
+          {isDownloading ? (
+            <Loader2 className="size-3.5 animate-spin" />
+          ) : (
+            <Download className="size-3.5" />
+          )}
           Formato INAC
         </Button>
       </TooltipTrigger>

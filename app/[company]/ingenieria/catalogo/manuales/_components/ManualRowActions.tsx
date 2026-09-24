@@ -21,7 +21,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { CatalogManual } from "@/types/maintenanceCatalog";
 import { useDeleteCatalogManual } from "@/actions/mantenimiento/catalogo/manuales/actions";
 import { useCompanyStore } from "@/stores/CompanyStore";
@@ -29,7 +34,8 @@ import { ManualDialog } from "@/components/dialogs/mantenimiento/catalogo/Manual
 
 const itemBase =
   "group relative flex items-center justify-center size-9 rounded-xl transition-all duration-200 ease-out hover:bg-muted hover:shadow-sm active:scale-95";
-const iconBase = "size-[18px] transition-all duration-200 ease-out group-hover:scale-110";
+const iconBase =
+  "size-[18px] transition-all duration-200 ease-out group-hover:scale-110";
 
 export function ManualRowActions({ manual }: { manual: CatalogManual }) {
   const { selectedCompany } = useCompanyStore();
@@ -94,7 +100,10 @@ export function ManualRowActions({ manual }: { manual: CatalogManual }) {
             <Tooltip>
               <TooltipTrigger asChild>
                 <span>
-                  <DropdownMenuItem asChild className="p-0 focus:bg-transparent">
+                  <DropdownMenuItem
+                    asChild
+                    className="p-0 focus:bg-transparent"
+                  >
                     <button
                       onClick={() => {
                         setOpenDropdown(false);
@@ -113,21 +122,31 @@ export function ManualRowActions({ manual }: { manual: CatalogManual }) {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <ManualDialog open={openEdit} onOpenChange={setOpenEdit} manual={manual} />
+      <ManualDialog
+        open={openEdit}
+        onOpenChange={setOpenEdit}
+        manual={manual}
+      />
 
       <AlertDialog open={openDelete} onOpenChange={setOpenDelete}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>¿Eliminar este manual?</AlertDialogTitle>
             <AlertDialogDescription>
-              Se eliminará &quot;{manual.name}&quot; y su archivo adjunto, si tiene. Esta acción no se puede deshacer.
+              Se eliminará &quot;{manual.name}&quot; y su archivo adjunto, si
+              tiene. Esta acción no se puede deshacer.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={() => deleteCatalogManual.mutate({ id: manual.id, company: selectedCompany!.slug })}
+              onClick={() =>
+                deleteCatalogManual.mutate({
+                  id: manual.id,
+                  company: selectedCompany!.slug,
+                })
+              }
             >
               Eliminar
             </AlertDialogAction>

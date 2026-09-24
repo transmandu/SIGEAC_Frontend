@@ -23,10 +23,12 @@ const ServicesPage = () => {
         <PageHeader />
 
         <div className="flex flex-col gap-2 border-b pb-4">
-          <h1 className="text-3xl font-semibold tracking-tight">Servicios y Certificados</h1>
+          <h1 className="text-3xl font-semibold tracking-tight">
+            Servicios y Certificados
+          </h1>
           <p className="text-sm text-muted-foreground">
-            El programa de mantenimiento: qué servicio/certificado aplica a cada aeronave, sus tareas y los
-            materiales que exige el manual.
+            El programa de mantenimiento: qué servicio/certificado aplica a cada
+            aeronave, sus tareas y los materiales que exige el manual.
           </p>
         </div>
 

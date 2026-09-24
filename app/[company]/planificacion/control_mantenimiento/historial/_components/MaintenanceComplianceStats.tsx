@@ -7,7 +7,20 @@ import { cn } from "@/lib/utils";
 import { MaintenanceCompliance } from "@/types";
 import { CalendarRange, Plane, Timer, Wrench } from "lucide-react";
 
-const MONTH_LABELS = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+const MONTH_LABELS = [
+  "Ene",
+  "Feb",
+  "Mar",
+  "Abr",
+  "May",
+  "Jun",
+  "Jul",
+  "Ago",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dic",
+];
 
 const formatMonth = (key: string) => {
   const [year, month] = key.split("-");
@@ -16,7 +29,15 @@ const formatMonth = (key: string) => {
 
 const CARD_HEIGHT = "h-48";
 
-function StatCard({ label, icon, children }: { label: string; icon: React.ReactNode; children: React.ReactNode }) {
+function StatCard({
+  label,
+  icon,
+  children,
+}: {
+  label: string;
+  icon: React.ReactNode;
+  children: React.ReactNode;
+}) {
   return (
     <div
       className={cn(
@@ -29,14 +50,22 @@ function StatCard({ label, icon, children }: { label: string; icon: React.ReactN
     >
       <div className="flex items-center gap-1.5 text-muted-foreground">
         {icon}
-        <span className="text-[11px] font-medium uppercase tracking-wide">{label}</span>
+        <span className="text-[11px] font-medium uppercase tracking-wide">
+          {label}
+        </span>
       </div>
       {children}
     </div>
   );
 }
 
-function TopList({ data, emptyLabel }: { data: Record<string, number>; emptyLabel: string }) {
+function TopList({
+  data,
+  emptyLabel,
+}: {
+  data: Record<string, number>;
+  emptyLabel: string;
+}) {
   const entries = Object.entries(data).slice(0, 4);
 
   if (entries.length === 0) {
@@ -50,8 +79,12 @@ function TopList({ data, emptyLabel }: { data: Record<string, number>; emptyLabe
       {entries.map(([label, count]) => (
         <div key={label} className="flex flex-col gap-1">
           <div className="flex items-baseline justify-between gap-2">
-            <span className="truncate text-xs" title={label}>{label}</span>
-            <span className="shrink-0 text-xs font-semibold tabular-nums">{count}</span>
+            <span className="truncate text-xs" title={label}>
+              {label}
+            </span>
+            <span className="shrink-0 text-xs font-semibold tabular-nums">
+              {count}
+            </span>
           </div>
           <div className="h-1 overflow-hidden rounded-full bg-muted">
             <div
@@ -76,9 +109,14 @@ const MonthTooltip = ({
 
   return (
     <div className="rounded-md border bg-popover px-2.5 py-1.5 shadow-md">
-      <p className="text-[11px] text-muted-foreground">{payload[0].payload.label}</p>
+      <p className="text-[11px] text-muted-foreground">
+        {payload[0].payload.label}
+      </p>
       <p className="text-sm font-semibold">
-        {payload[0].value} <span className="text-[11px] font-normal text-muted-foreground">cumplimientos</span>
+        {payload[0].value}{" "}
+        <span className="text-[11px] font-normal text-muted-foreground">
+          cumplimientos
+        </span>
       </p>
     </div>
   );
@@ -102,7 +140,9 @@ function useComplianceStats(compliances: MaintenanceCompliance[]) {
       const monthKey = format(date, "yyyy-MM");
       byMonth[monthKey] = (byMonth[monthKey] ?? 0) + 1;
 
-      const aircraftLabel = c.maintenance_control_item?.maintenance_control?.aircraft?.acronym ?? "—";
+      const aircraftLabel =
+        c.maintenance_control_item?.maintenance_control?.aircraft?.acronym ??
+        "—";
       byAircraft[aircraftLabel] = (byAircraft[aircraftLabel] ?? 0) + 1;
 
       const itemName = c.maintenance_control_item?.name ?? "—";
@@ -135,28 +175,45 @@ function useComplianceStats(compliances: MaintenanceCompliance[]) {
       months,
       byAircraft: sortByCountDesc(byAircraft),
       byItem: sortByCountDesc(byItem),
-      avgIntervalDays: intervalCount > 0 ? Math.round(totalIntervalDays / intervalCount) : null,
+      avgIntervalDays:
+        intervalCount > 0
+          ? Math.round(totalIntervalDays / intervalCount)
+          : null,
       intervalSampleSize: intervalCount,
     };
   }, [compliances]);
 }
 
-export function MaintenanceComplianceStats({ compliances }: { compliances: MaintenanceCompliance[] }) {
+export function MaintenanceComplianceStats({
+  compliances,
+}: {
+  compliances: MaintenanceCompliance[];
+}) {
   const stats = useComplianceStats(compliances);
-  const peakMonth = stats.months.length ? Math.max(...stats.months.map((m) => m.value)) : 0;
+  const peakMonth = stats.months.length
+    ? Math.max(...stats.months.map((m) => m.value))
+    : 0;
 
   return (
     <div className="flex flex-wrap gap-3">
-      <StatCard label="Cumplimientos por mes" icon={<CalendarRange className="size-3.5" />}>
+      <StatCard
+        label="Cumplimientos por mes"
+        icon={<CalendarRange className="size-3.5" />}
+      >
         {stats.months.length === 0 ? (
-          <p className="text-xs italic text-muted-foreground">Sin cumplimientos registrados.</p>
+          <p className="text-xs italic text-muted-foreground">
+            Sin cumplimientos registrados.
+          </p>
         ) : (
           <>
             <div className="relative min-h-12 w-full flex-1">
               <div className="absolute inset-0">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={stats.months} margin={{ top: 2, bottom: 0 }}>
-                    <Tooltip content={<MonthTooltip />} cursor={{ className: "fill-muted/40" }} />
+                    <Tooltip
+                      content={<MonthTooltip />}
+                      cursor={{ className: "fill-muted/40" }}
+                    />
                     <Bar dataKey="value" radius={[2, 2, 0, 0]} maxBarSize={14}>
                       {stats.months.map((month) => (
                         <Cell
@@ -175,43 +232,62 @@ export function MaintenanceComplianceStats({ compliances }: { compliances: Maint
             </div>
             <div className="flex items-baseline justify-between gap-2 pt-1">
               <span className="text-[11px] text-muted-foreground">
-                {stats.months.length === 1 ? stats.months[0].label : `${stats.months[0].label} — ${stats.months.at(-1)!.label}`}
+                {stats.months.length === 1
+                  ? stats.months[0].label
+                  : `${stats.months[0].label} — ${stats.months.at(-1)!.label}`}
               </span>
               <span className="text-xs font-semibold tabular-nums">
-                {stats.total} <span className="font-normal text-muted-foreground">total</span>
+                {stats.total}{" "}
+                <span className="font-normal text-muted-foreground">total</span>
               </span>
             </div>
           </>
         )}
       </StatCard>
 
-      <StatCard label="Intervalo promedio" icon={<Timer className="size-3.5" />}>
+      <StatCard
+        label="Intervalo promedio"
+        icon={<Timer className="size-3.5" />}
+      >
         {stats.avgIntervalDays === null ? (
           <p className="text-xs italic text-muted-foreground">
-            Hace falta al menos 2 cumplimientos de un mismo ítem para calcularlo.
+            Hace falta al menos 2 cumplimientos de un mismo ítem para
+            calcularlo.
           </p>
         ) : (
           <>
             <div className="flex items-baseline gap-1.5">
-              <span className="text-3xl font-bold leading-none">{stats.avgIntervalDays}</span>
+              <span className="text-3xl font-bold leading-none">
+                {stats.avgIntervalDays}
+              </span>
               <span className="text-xs text-muted-foreground">días</span>
             </div>
             <p className="text-[11px] text-muted-foreground">
               Entre cumplimientos consecutivos de un mismo certificado/servicio.
             </p>
             <p className="mt-auto text-[11px] text-muted-foreground">
-              Calculado sobre {stats.intervalSampleSize} {stats.intervalSampleSize === 1 ? "intervalo" : "intervalos"}.
+              Calculado sobre {stats.intervalSampleSize}{" "}
+              {stats.intervalSampleSize === 1 ? "intervalo" : "intervalos"}.
             </p>
           </>
         )}
       </StatCard>
 
       <StatCard label="Por aeronave" icon={<Plane className="size-3.5" />}>
-        <TopList data={stats.byAircraft} emptyLabel="Sin cumplimientos registrados." />
+        <TopList
+          data={stats.byAircraft}
+          emptyLabel="Sin cumplimientos registrados."
+        />
       </StatCard>
 
-      <StatCard label="Por certificado / servicio" icon={<Wrench className="size-3.5" />}>
-        <TopList data={stats.byItem} emptyLabel="Sin cumplimientos registrados." />
+      <StatCard
+        label="Por certificado / servicio"
+        icon={<Wrench className="size-3.5" />}
+      >
+        <TopList
+          data={stats.byItem}
+          emptyLabel="Sin cumplimientos registrados."
+        />
       </StatCard>
     </div>
   );

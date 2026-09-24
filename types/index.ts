@@ -659,7 +659,13 @@ export type ComponentCompliance = {
   created_at?: string;
 };
 
-export type ComponentControlItem = {
+/** Lo que tiene cumplimientos no se elimina: se da de baja y queda fuera del cálculo. */
+export type Retirable = {
+  retired_at?: string | null;
+  retired_by?: string | null;
+};
+
+export type ComponentControlItem = Retirable & {
   id?: number;
   component_control_id?: number;
   /** Motor/hélice del que cuelga; null = fuselaje. */
@@ -692,7 +698,7 @@ export type ComponentControlItem = {
   latest_compliance?: ComponentCompliance | null;
 };
 
-export type ComponentControl = {
+export type ComponentControl = Retirable & {
   id: number;
   aircraft_id: number | string;
   aircraft: MaintenanceAircraft;
@@ -728,7 +734,12 @@ export type AvionicsCategory =
   | "ELECTRICAL"
   | "OTHER";
 
-export type AvionicsAction = "FUNCTIONAL_CHECK" | "CERTIFICATION" | "CALIBRATION" | "REPLACEMENT" | "DATA_DOWNLOAD";
+export type AvionicsAction =
+  | "FUNCTIONAL_CHECK"
+  | "CERTIFICATION"
+  | "CALIBRATION"
+  | "REPLACEMENT"
+  | "DATA_DOWNLOAD";
 
 export type AvionicsControlTaskInterval = {
   id?: number;
@@ -757,7 +768,7 @@ export type AvionicsCompliance = {
   created_at?: string;
 };
 
-export type AvionicsControlTask = {
+export type AvionicsControlTask = Retirable & {
   id?: number;
   avionics_control_item_id?: number;
   maintenance_provider_id?: number | string | null;
@@ -775,7 +786,7 @@ export type AvionicsControlTask = {
   latest_compliance?: AvionicsCompliance | null;
 };
 
-export type AvionicsControlItem = {
+export type AvionicsControlItem = Retirable & {
   id?: number;
   avionics_control_id?: number;
   aircraft_part_id?: number | string | null;
@@ -795,7 +806,7 @@ export type AvionicsControlItem = {
   status_computed?: MaintenanceItemStatus | null;
 };
 
-export type AvionicsControl = {
+export type AvionicsControl = Retirable & {
   id: number;
   aircraft_id: number | string;
   aircraft: MaintenanceAircraft;
@@ -819,7 +830,8 @@ export type AvionicsControl = {
 // reloj; única vez cumplida → cerrada (complied_at).
 
 export type DirectiveAuthority = "INAC" | "FAA" | "EASA" | "OTHER";
-export type DirectiveApplicability = "PENDING_ANALYSIS" | "APPLICABLE" | "NOT_APPLICABLE" | "SUPERSEDED";
+export type DirectiveApplicability =
+  "PENDING_ANALYSIS" | "APPLICABLE" | "NOT_APPLICABLE" | "SUPERSEDED";
 export type DirectiveComplianceType = "ONE_TIME" | "RECURRENT";
 
 export type DirectiveControlItemInterval = {
@@ -850,7 +862,7 @@ export type DirectiveCompliance = {
   created_at?: string;
 };
 
-export type DirectiveControlItem = {
+export type DirectiveControlItem = Retirable & {
   id?: number;
   directive_control_id?: number;
   parent_aircraft_part_id?: number | string | null;
@@ -880,7 +892,7 @@ export type DirectiveControlItem = {
   latest_compliance?: DirectiveCompliance | null;
 };
 
-export type DirectiveControl = {
+export type DirectiveControl = Retirable & {
   id: number;
   aircraft_id: number | string;
   aircraft: MaintenanceAircraft;
@@ -900,7 +912,7 @@ export type DirectiveControl = {
   updated_at?: string;
 };
 
-export type MaintenanceControlItem = {
+export type MaintenanceControlItem = Retirable & {
   id?: number;
   maintenance_control_id?: number;
   maintenance_control_part_id?: number | null;
@@ -930,7 +942,7 @@ export type MaintenanceControlPart = {
   items?: MaintenanceControlItem[];
 };
 
-export type MaintenanceControl = {
+export type MaintenanceControl = Retirable & {
   id: number;
   aircraft_id: number | string;
   aircraft: MaintenanceAircraft;
@@ -992,7 +1004,8 @@ export type CalendarEventSourceInfo = {
 };
 
 export type CalendarVisibilityScopeType = "SOURCE" | "EVENT";
-export type CalendarVisibilityGrantType = "DEPARTMENT" | "DEPARTMENT_TREE" | "USER" | "EXCLUDE_USER" | "ALL";
+export type CalendarVisibilityGrantType =
+  "DEPARTMENT" | "DEPARTMENT_TREE" | "USER" | "EXCLUDE_USER" | "ALL";
 
 export type CalendarVisibilityRule = {
   id: number;

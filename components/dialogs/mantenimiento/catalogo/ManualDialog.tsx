@@ -14,7 +14,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 import { CalendarDateField } from "@/components/misc/CalendarDateField";
 import {
@@ -50,7 +56,11 @@ const emptyState = {
   status: "ACTIVE" as CatalogStatus,
 };
 
-export function ManualDialog({ open, onOpenChange, manual }: ManualDialogProps) {
+export function ManualDialog({
+  open,
+  onOpenChange,
+  manual,
+}: ManualDialogProps) {
   const { selectedCompany } = useCompanyStore();
   const { createCatalogManual } = useCreateCatalogManual();
   const { updateCatalogManual } = useUpdateCatalogManual();
@@ -75,21 +85,33 @@ export function ManualDialog({ open, onOpenChange, manual }: ManualDialogProps) 
     setFile(null);
   }, [open, manual]);
 
-  const isPending = createCatalogManual.isPending || updateCatalogManual.isPending;
+  const isPending =
+    createCatalogManual.isPending || updateCatalogManual.isPending;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedCompany?.slug) return;
 
-    const data = { ...form, effective_date: toCalendarPayload(form.effective_date), file };
+    const data = {
+      ...form,
+      effective_date: toCalendarPayload(form.effective_date),
+      file,
+    };
 
     // Solo se cierra si guardó: ante un error el toast ya avisa y lo escrito
     // debe seguir en pantalla para corregirlo.
     try {
       if (manual) {
-        await updateCatalogManual.mutateAsync({ id: manual.id, data, company: selectedCompany.slug });
+        await updateCatalogManual.mutateAsync({
+          id: manual.id,
+          data,
+          company: selectedCompany.slug,
+        });
       } else {
-        await createCatalogManual.mutateAsync({ data, company: selectedCompany.slug });
+        await createCatalogManual.mutateAsync({
+          data,
+          company: selectedCompany.slug,
+        });
       }
       onOpenChange(false);
     } catch {
@@ -110,7 +132,10 @@ export function ManualDialog({ open, onOpenChange, manual }: ManualDialogProps) 
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="flex max-h-[70vh] flex-col gap-4 overflow-y-auto px-1 py-1">
+        <form
+          onSubmit={handleSubmit}
+          className="flex max-h-[70vh] flex-col gap-4 overflow-y-auto px-1 py-1"
+        >
           <div className="space-y-1.5">
             <Label className={labelClass}>Nombre</Label>
             <Input
@@ -128,7 +153,9 @@ export function ManualDialog({ open, onOpenChange, manual }: ManualDialogProps) 
               <Input
                 className={fieldClass}
                 value={form.manual_code}
-                onChange={(e) => setForm((f) => ({ ...f, manual_code: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, manual_code: e.target.value }))
+                }
                 placeholder="Ej: MPD"
               />
             </div>
@@ -137,7 +164,9 @@ export function ManualDialog({ open, onOpenChange, manual }: ManualDialogProps) 
               <Input
                 className={fieldClass}
                 value={form.revision}
-                onChange={(e) => setForm((f) => ({ ...f, revision: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, revision: e.target.value }))
+                }
                 placeholder="Ej: Rev. 12"
               />
             </div>
@@ -145,7 +174,9 @@ export function ManualDialog({ open, onOpenChange, manual }: ManualDialogProps) 
               <Label className={labelClass}>Vigente desde</Label>
               <CalendarDateField
                 value={form.effective_date}
-                onChange={(date) => setForm((f) => ({ ...f, effective_date: date }))}
+                onChange={(date) =>
+                  setForm((f) => ({ ...f, effective_date: date }))
+                }
               />
             </div>
           </div>
@@ -156,7 +187,9 @@ export function ManualDialog({ open, onOpenChange, manual }: ManualDialogProps) 
               rows={2}
               className={textareaClass}
               value={form.description}
-              onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, description: e.target.value }))
+              }
             />
           </div>
 
@@ -164,7 +197,9 @@ export function ManualDialog({ open, onOpenChange, manual }: ManualDialogProps) 
             <Checkbox
               id="is_physical"
               checked={form.is_physical}
-              onCheckedChange={(checked) => setForm((f) => ({ ...f, is_physical: !!checked }))}
+              onCheckedChange={(checked) =>
+                setForm((f) => ({ ...f, is_physical: !!checked }))
+              }
             />
             <Label htmlFor="is_physical" className={labelClass}>
               Solo se tiene el documento físico (sin archivo digital)
@@ -178,7 +213,9 @@ export function ManualDialog({ open, onOpenChange, manual }: ManualDialogProps) 
               <Label className={labelClass}>Estado</Label>
               <Select
                 value={form.status}
-                onValueChange={(v) => setForm((f) => ({ ...f, status: v as CatalogStatus }))}
+                onValueChange={(v) =>
+                  setForm((f) => ({ ...f, status: v as CatalogStatus }))
+                }
               >
                 <SelectTrigger className={selectTriggerClass}>
                   <SelectValue />
@@ -205,7 +242,8 @@ export function ManualDialog({ open, onOpenChange, manual }: ManualDialogProps) 
               />
               {manual?.file_url && !file && (
                 <p className="text-xs text-muted-foreground">
-                  Ya tiene un archivo adjunto; suba uno nuevo solo para reemplazarlo.
+                  Ya tiene un archivo adjunto; suba uno nuevo solo para
+                  reemplazarlo.
                 </p>
               )}
             </div>
@@ -213,7 +251,9 @@ export function ManualDialog({ open, onOpenChange, manual }: ManualDialogProps) 
 
           <DialogFooter className="mt-2">
             <ActionTriggerButton type="submit" disabled={isPending}>
-              {isPending ? <Loader2 className="mr-2 size-4 animate-spin" /> : null}
+              {isPending ? (
+                <Loader2 className="mr-2 size-4 animate-spin" />
+              ) : null}
               {manual ? "Guardar Cambios" : "Crear Manual"}
             </ActionTriggerButton>
           </DialogFooter>

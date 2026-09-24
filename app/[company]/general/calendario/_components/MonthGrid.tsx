@@ -1,7 +1,16 @@
 "use client";
 
 import { useMemo } from "react";
-import { eachDayOfInterval, endOfMonth, endOfWeek, format, max, min, startOfMonth, startOfWeek } from "date-fns";
+import {
+  eachDayOfInterval,
+  endOfMonth,
+  endOfWeek,
+  format,
+  max,
+  min,
+  startOfMonth,
+  startOfWeek,
+} from "date-fns";
 
 import { DayCell } from "./DayCell";
 import { LocalCalendarEvent } from "./types";
@@ -21,13 +30,22 @@ export function dayKeyOf(date: Date): string {
   return format(date, "yyyy-MM-dd");
 }
 
-export function MonthGrid({ month, events, canEdit, shortLabels, onSelectEvent }: MonthGridProps) {
+export function MonthGrid({
+  month,
+  events,
+  canEdit,
+  shortLabels,
+  onSelectEvent,
+}: MonthGridProps) {
   const monthStart = startOfMonth(month);
   const monthEnd = endOfMonth(month);
   const gridStart = startOfWeek(monthStart, { weekStartsOn: 1 });
   const gridEnd = endOfWeek(monthEnd, { weekStartsOn: 1 });
 
-  const days = useMemo(() => eachDayOfInterval({ start: gridStart, end: gridEnd }), [gridStart, gridEnd]);
+  const days = useMemo(
+    () => eachDayOfInterval({ start: gridStart, end: gridEnd }),
+    [gridStart, gridEnd],
+  );
 
   // 5 semanas la mayoría de los meses, 6 quince veces por año: si la grilla
   // siempre reservara 6 filas, un mes de 5 dejaba la última fila vacía y
@@ -47,7 +65,10 @@ export function MonthGrid({ month, events, canEdit, shortLabels, onSelectEvent }
       const clampedEnd = min([event.end, gridEnd]);
       if (clampedStart > clampedEnd) continue;
 
-      for (const day of eachDayOfInterval({ start: clampedStart, end: clampedEnd })) {
+      for (const day of eachDayOfInterval({
+        start: clampedStart,
+        end: clampedEnd,
+      })) {
         const key = dayKeyOf(day);
         const list = map.get(key);
         if (list) list.push(event);

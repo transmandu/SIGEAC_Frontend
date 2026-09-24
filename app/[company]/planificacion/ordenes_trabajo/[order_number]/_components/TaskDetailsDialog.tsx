@@ -75,7 +75,7 @@ const assignmentFormSchema = z.object({
           start: z.string(),
           end: z.string(),
           description: z.string(),
-        })
+        }),
       )
       .optional(),
   }),
@@ -97,7 +97,7 @@ export const TaskDetailsDialog = ({
   mainTask,
 }: TaskDetailsDialogProps) => {
   const [currentStep, setCurrentStep] = useState<"assign" | "schedule">(
-    "assign"
+    "assign",
   );
   const [isEditing, setIsEditing] = useState(false);
 
@@ -312,7 +312,10 @@ export const TaskDetailsDialog = ({
                               : ""
                           }
                         >
-                          No Rutinaria - {workOrderStatusLabelEsUpper(selectedTask.non_routine.status)}
+                          No Rutinaria -{" "}
+                          {workOrderStatusLabelEsUpper(
+                            selectedTask.non_routine.status,
+                          )}
                         </Badge>
                       )}
                     </div>
@@ -438,7 +441,7 @@ export const TaskDetailsDialog = ({
                                   <li key={index} className="text-sm">
                                     {tech}
                                   </li>
-                                )
+                                ),
                               )}
                             </ul>
                           ) : (
@@ -556,7 +559,7 @@ export const TaskDetailsDialog = ({
                             onChange={(e) =>
                               setValue(
                                 "scheduling.totalHours",
-                                parseInt(e.target.value) || 0
+                                parseInt(e.target.value) || 0,
                               )
                             }
                           />
@@ -570,7 +573,7 @@ export const TaskDetailsDialog = ({
                             onChange={(e) =>
                               setValue(
                                 "scheduling.hoursPerDay",
-                                parseInt(e.target.value) || 0
+                                parseInt(e.target.value) || 0,
                               )
                             }
                           />
@@ -613,7 +616,11 @@ export const TaskDetailsDialog = ({
             <DialogFooter className="sm:justify-between mt-5">
               {currentStep === "assign" ? (
                 <>
-                  <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => onOpenChange(false)}
+                  >
                     Cerrar
                   </Button>
                   {selectedTask.status === "OPEN" &&

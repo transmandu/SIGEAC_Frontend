@@ -1,16 +1,26 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { type AppColumnDef } from "@/lib/table"
-import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
-import { Badge } from "@/components/ui/badge"
-import { MaintenanceControl } from "@/types"
-import MaintenanceControlDropdownActions from "@/components/dropdowns/mantenimiento/MaintenanceControlDropdownActions"
-import { MaintenanceStatusSummary, emptyStatusCounts } from "@/components/tables/MaintenanceStatusSummary"
-import { Plane, FileCheck2, Wrench, LucideIcon } from "lucide-react"
+import { RetiredBadge } from "@/components/planificacion/controles/RetiredBadge";
+import Link from "next/link";
+import { type AppColumnDef } from "@/lib/table";
+import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
+import { Badge } from "@/components/ui/badge";
+import { MaintenanceControl } from "@/types";
+import MaintenanceControlDropdownActions from "@/components/dropdowns/mantenimiento/MaintenanceControlDropdownActions";
+import {
+  MaintenanceStatusSummary,
+  emptyStatusCounts,
+} from "@/components/tables/MaintenanceStatusSummary";
+import { Plane, FileCheck2, Wrench, LucideIcon } from "lucide-react";
 
-function CountChip({ icon: Icon, value }: { icon: LucideIcon; value?: number }) {
-  const count = value ?? 0
+function CountChip({
+  icon: Icon,
+  value,
+}: {
+  icon: LucideIcon;
+  value?: number;
+}) {
+  const count = value ?? 0;
   return (
     <div className="flex justify-center">
       <span
@@ -24,7 +34,7 @@ function CountChip({ icon: Icon, value }: { icon: LucideIcon; value?: number }) 
         {count}
       </span>
     </div>
-  )
+  );
 }
 
 export const getColumns = (
@@ -49,27 +59,34 @@ export const getColumns = (
         <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
           <Plane className="h-3.5 w-3.5" />
         </span>
-        <span className="font-medium">{row.original.aircraft?.acronym ?? "N/D"}</span>
+        <span className="font-medium">
+          {row.original.aircraft?.acronym ?? "N/D"}
+        </span>
       </div>
     ),
   },
   {
     accessorKey: "title",
-    header: ({ column }) => <DataTableColumnHeader filter column={column} title="Título" />,
+    header: ({ column }) => (
+      <DataTableColumnHeader filter column={column} title="Título" />
+    ),
     cell: ({ row }) => (
-      <div className="flex justify-center">
+      <div className="flex flex-col items-center gap-1">
         <Link
           href={`/${companySlug}/planificacion/control_mantenimiento/${row.original.id}`}
           className="text-center font-medium transition-colors hover:text-primary hover:underline underline-offset-4"
         >
           {row.original.title}
         </Link>
+        <RetiredBadge record={row.original} />
       </div>
     ),
   },
   {
     accessorKey: "description",
-    header: ({ column }) => <DataTableColumnHeader filter column={column} title="Descripción" />,
+    header: ({ column }) => (
+      <DataTableColumnHeader filter column={column} title="Descripción" />
+    ),
     cell: ({ row }) => (
       <span className="block text-center text-sm text-muted-foreground line-clamp-1">
         {row.original.description || "Sin descripción"}
@@ -101,23 +118,37 @@ export const getColumns = (
   },
   {
     id: "certificates_count",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Certificados" />,
-    cell: ({ row }) => <CountChip icon={FileCheck2} value={row.original.certificates_count} />,
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Certificados" />
+    ),
+    cell: ({ row }) => (
+      <CountChip icon={FileCheck2} value={row.original.certificates_count} />
+    ),
   },
   {
     id: "services_count",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Servicios" />,
-    cell: ({ row }) => <CountChip icon={Wrench} value={row.original.services_count} />,
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Servicios" />
+    ),
+    cell: ({ row }) => (
+      <CountChip icon={Wrench} value={row.original.services_count} />
+    ),
   },
   {
     id: "status_summary",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Vencimientos" />,
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Vencimientos" />
+    ),
     cell: ({ row }) => {
-      const counts = emptyStatusCounts()
+      if (row.original.retired_at)
+        return (
+          <span className="block text-center text-muted-foreground/60">—</span>
+        );
+      const counts = emptyStatusCounts();
       for (const item of row.original.items ?? []) {
-        if (item.computed?.status) counts[item.computed.status] += 1
+        if (item.computed?.status) counts[item.computed.status] += 1;
       }
-      return <MaintenanceStatusSummary counts={counts} />
+      return <MaintenanceStatusSummary counts={counts} />;
     },
   },
   {
@@ -129,4 +160,4 @@ export const getColumns = (
     ),
     size: 60,
   },
-]
+];

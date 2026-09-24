@@ -1,12 +1,32 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
-import { Control, useFieldArray, useForm, useFormContext, useWatch } from "react-hook-form";
+import {
+  EditReasonFields,
+  EditReasonValue,
+  editReasonErrorFrom,
+} from "@/components/forms/mantenimiento/planificacion/EditReasonFields";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  Control,
+  useFieldArray,
+  useForm,
+  useFormContext,
+  useWatch,
+} from "react-hook-form";
 import { zodResolver } from "@/lib/zod-resolver";
 import { z } from "zod";
 import { format, parseISO } from "date-fns";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, Check, ClipboardList, Cog, Loader2, Plane, Plus, X } from "lucide-react";
+import {
+  AlertTriangle,
+  Check,
+  ClipboardList,
+  Cog,
+  Loader2,
+  Plane,
+  Plus,
+  X,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -21,8 +41,19 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useGetComponentControls } from "@/hooks/mantenimiento/planificacion/useGetComponentControls";
@@ -37,16 +68,41 @@ import {
   COMPONENT_CATEGORY_LABELS,
   COMPONENT_LIMIT_KIND_LABELS,
 } from "@/lib/componentControlLabels";
-import { FormSection, fieldClass, hintClass, labelClass, selectTriggerClass } from "./_theme";
-import { AircraftSelect, CatalogManualField, CompactDateField, FUSELAGE, NumericInput, ProviderSelect, RemainingPercentageField, useParentOptions } from "./_shared";
+import {
+  FormSection,
+  fieldClass,
+  hintClass,
+  labelClass,
+  selectTriggerClass,
+} from "./_theme";
+import {
+  AircraftSelect,
+  CatalogManualField,
+  CompactDateField,
+  FUSELAGE,
+  NumericInput,
+  ProviderSelect,
+  RemainingPercentageField,
+  useParentOptions,
+} from "./_shared";
 
 const ALL_COUNTING_METHODS = ["HOURS", "CYCLES", "DAYS"] as const;
-const COUNTING_METHOD_LABEL: Record<string, string> = { HOURS: "Horas", CYCLES: "Ciclos", DAYS: "Días" };
+const COUNTING_METHOD_LABEL: Record<string, string> = {
+  HOURS: "Horas",
+  CYCLES: "Ciclos",
+  DAYS: "Días",
+};
 
 const countingMethodEnum = z.enum(ALL_COUNTING_METHODS);
-const categoryEnum = z.enum(Object.keys(COMPONENT_CATEGORY_LABELS) as [string, ...string[]]);
-const actionEnum = z.enum(Object.keys(COMPONENT_ACTION_LABELS) as [string, ...string[]]);
-const limitKindEnum = z.enum(Object.keys(COMPONENT_LIMIT_KIND_LABELS) as [string, ...string[]]);
+const categoryEnum = z.enum(
+  Object.keys(COMPONENT_CATEGORY_LABELS) as [string, ...string[]],
+);
+const actionEnum = z.enum(
+  Object.keys(COMPONENT_ACTION_LABELS) as [string, ...string[]],
+);
+const limitKindEnum = z.enum(
+  Object.keys(COMPONENT_LIMIT_KIND_LABELS) as [string, ...string[]],
+);
 
 // "" (input vacío) es "no puesto todavía", no 0: si no, el chequeo de
 // "obligatorio en horas/ciclos" nunca dispara.
@@ -58,7 +114,11 @@ const optionalNumeric = z.preprocess(
 // Vacío = hereda el porcentaje general del control, no 0%.
 const optionalPercentage = z.preprocess(
   (val) => (val === "" || val === undefined || val === null ? undefined : val),
-  z.coerce.number().min(0, "Debe ser ≥ 0").max(100, "Debe ser ≤ 100").optional(),
+  z.coerce
+    .number()
+    .min(0, "Debe ser ≥ 0")
+    .max(100, "Debe ser ≤ 100")
+    .optional(),
 );
 
 const intervalSchema = z.object({
@@ -98,34 +158,49 @@ const formSchema = z
     has_reference_manual: z.boolean().default(false),
     reference_manual: z.string().optional(),
     maintenance_catalog_manual_id: z.number().optional(),
-    remaining_percentage: z.coerce.number().min(0, "Debe ser ≥ 0").max(100, "Debe ser ≤ 100"),
+    remaining_percentage: z.coerce
+      .number()
+      .min(0, "Debe ser ≥ 0")
+      .max(100, "Debe ser ≤ 100"),
     items: z.array(itemSchema).default([]),
     selected_part_ids: z.array(z.string()).default([]),
     part_items: z.array(partItemSchema).default([]),
   })
   .superRefine((vals, ctx) => {
     if (vals.has_reference_manual && !vals.reference_manual?.trim()) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Indique el manual de referencia", path: ["reference_manual"] });
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Indique el manual de referencia",
+        path: ["reference_manual"],
+      });
     }
 
     vals.selected_part_ids.forEach((partId) => {
       if (!vals.part_items.some((item) => item.aircraft_part_id === partId)) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: "Agregue al menos un componente para cada parte seleccionada",
+          message:
+            "Agregue al menos un componente para cada parte seleccionada",
           path: ["part_items"],
         });
       }
     });
 
-    const checkIntervals = (items: z.infer<typeof itemSchema>[], basePath: string) => {
+    const checkIntervals = (
+      items: z.infer<typeof itemSchema>[],
+      basePath: string,
+    ) => {
       items.forEach((item, index) => {
         const seen = new Set<string>();
         item.intervals.forEach((interval, i) => {
-          if (interval.counting_method !== "DAYS" && interval.initial_value === undefined) {
+          if (
+            interval.counting_method !== "DAYS" &&
+            interval.initial_value === undefined
+          ) {
             ctx.addIssue({
               code: z.ZodIssueCode.custom,
-              message: "Indique la lectura del padre (aeronave o motor/hélice) en ese evento",
+              message:
+                "Indique la lectura del padre (aeronave o motor/hélice) en ese evento",
               path: [basePath, index, "intervals", i, "initial_value"],
             });
           }
@@ -155,7 +230,9 @@ const formSchema = z
 type FormValues = z.infer<typeof formSchema>;
 
 const emptyInterval = (usedMethods: string[] = []) => ({
-  counting_method: (ALL_COUNTING_METHODS.find((m) => !usedMethods.includes(m)) ?? "HOURS") as "HOURS" | "CYCLES" | "DAYS",
+  counting_method: (ALL_COUNTING_METHODS.find(
+    (m) => !usedMethods.includes(m),
+  ) ?? "HOURS") as "HOURS" | "CYCLES" | "DAYS",
   limit_kind: "HARD_TIME",
   limit_value: undefined as unknown as number,
   consumed_at_event: 0,
@@ -195,7 +272,10 @@ function SelectField({
       render={({ field }) => (
         <FormItem className="space-y-1">
           <FormLabel className={labelClass}>{label}</FormLabel>
-          <Select onValueChange={field.onChange} value={field.value || undefined}>
+          <Select
+            onValueChange={field.onChange}
+            value={field.value || undefined}
+          >
             <FormControl>
               <SelectTrigger className={selectTriggerClass}>
                 <SelectValue placeholder={placeholder ?? "Seleccione..."} />
@@ -237,10 +317,19 @@ function TextField({
         <FormItem className="space-y-1">
           <FormLabel className={labelClass}>
             {label}
-            {optional && <span className="ml-1 text-xs text-muted-foreground">(Opcional)</span>}
+            {optional && (
+              <span className="ml-1 text-xs text-muted-foreground">
+                (Opcional)
+              </span>
+            )}
           </FormLabel>
           <FormControl>
-            <Input placeholder={placeholder} className={fieldClass} {...field} value={field.value ?? ""} />
+            <Input
+              placeholder={placeholder}
+              className={fieldClass}
+              {...field}
+              value={field.value ?? ""}
+            />
           </FormControl>
           <FormMessage />
         </FormItem>
@@ -297,9 +386,17 @@ function IntervalRow({
   onRemove: () => void;
   canRemove: boolean;
 }) {
-  const countingMethod = useWatch({ control, name: `${namePrefix}.counting_method` });
+  const countingMethod = useWatch({
+    control,
+    name: `${namePrefix}.counting_method`,
+  });
   const isDays = countingMethod === "DAYS";
-  const unitShort = countingMethod === "HOURS" ? "hrs" : countingMethod === "CYCLES" ? "cic" : "días";
+  const unitShort =
+    countingMethod === "HOURS"
+      ? "hrs"
+      : countingMethod === "CYCLES"
+        ? "cic"
+        : "días";
 
   return (
     <div className="grid grid-cols-1 items-end gap-2 rounded-lg border border-slate-400/30 bg-muted/20 p-2 dark:border-slate-600/30 sm:grid-cols-[110px_130px_1fr_1fr_1fr_32px]">
@@ -309,14 +406,19 @@ function IntervalRow({
         render={({ field }) => (
           <FormItem className="space-y-1">
             <FormLabel className={labelClass}>Unidad</FormLabel>
-            <Select onValueChange={field.onChange} value={field.value || undefined}>
+            <Select
+              onValueChange={field.onChange}
+              value={field.value || undefined}
+            >
               <FormControl>
                 <SelectTrigger className={selectTriggerClass}>
                   <SelectValue placeholder="Unidad" />
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
-                {ALL_COUNTING_METHODS.filter((unit) => unit === field.value || !usedMethods.includes(unit)).map((unit) => (
+                {ALL_COUNTING_METHODS.filter(
+                  (unit) => unit === field.value || !usedMethods.includes(unit),
+                ).map((unit) => (
                   <SelectItem key={unit} value={unit}>
                     {COUNTING_METHOD_LABEL[unit]}
                   </SelectItem>
@@ -332,21 +434,42 @@ function IntervalRow({
         control={control}
         name={`${namePrefix}.limit_kind`}
         label="Tipo de límite"
-        options={Object.entries(COMPONENT_LIMIT_KIND_LABELS).map(([value, label]) => ({ value, label }))}
+        options={Object.entries(COMPONENT_LIMIT_KIND_LABELS).map(
+          ([value, label]) => ({ value, label }),
+        )}
       />
 
-      <NumericField control={control} name={`${namePrefix}.limit_value`} label={`Límite (${unitShort})`} />
+      <NumericField
+        control={control}
+        name={`${namePrefix}.limit_value`}
+        label={`Límite (${unitShort})`}
+      />
 
       {isDays ? (
         <div className="space-y-1">
           <p className={labelClass}>Lectura del padre</p>
-          <div className={cn(fieldClass, "flex items-center justify-center text-sm text-muted-foreground/40 shadow-none")}>—</div>
+          <div
+            className={cn(
+              fieldClass,
+              "flex items-center justify-center text-sm text-muted-foreground/40 shadow-none",
+            )}
+          >
+            —
+          </div>
         </div>
       ) : (
-        <NumericField control={control} name={`${namePrefix}.initial_value`} label={`Padre al evento (${unitShort})`} />
+        <NumericField
+          control={control}
+          name={`${namePrefix}.initial_value`}
+          label={`Padre al evento (${unitShort})`}
+        />
       )}
 
-      <NumericField control={control} name={`${namePrefix}.consumed_at_event`} label={`Consumido al instalar (${unitShort})`} />
+      <NumericField
+        control={control}
+        name={`${namePrefix}.consumed_at_event`}
+        label={`Consumido al instalar (${unitShort})`}
+      />
 
       {canRemove ? (
         <Button
@@ -380,16 +503,26 @@ function ComponentCard({
   onRemove: () => void;
 }) {
   const namePrefix = `${arrayName}.${index}`;
-  const { fields, append, remove } = useFieldArray({ control, name: `${namePrefix}.intervals` });
-  const intervals = (useWatch({ control, name: `${namePrefix}.intervals` }) as { counting_method: string }[]) ?? [];
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: `${namePrefix}.intervals`,
+  });
+  const intervals =
+    (useWatch({ control, name: `${namePrefix}.intervals` }) as {
+      counting_method: string;
+    }[]) ?? [];
   const usedMethods = intervals.map((i) => i.counting_method).filter(Boolean);
-  const description = useWatch({ control, name: `${namePrefix}.description` }) as string;
+  const description = useWatch({
+    control,
+    name: `${namePrefix}.description`,
+  }) as string;
 
   return (
     <div className="space-y-3 rounded-xl border border-slate-400/40 bg-linear-to-br from-background/70 to-background/40 p-4 backdrop-blur-md dark:border-slate-600/40">
       <div className="flex items-center justify-between gap-2">
         <p className="text-sm font-semibold">
-          <span className="text-muted-foreground">#{position + 1}</span> {description || "Nuevo componente"}
+          <span className="text-muted-foreground">#{position + 1}</span>{" "}
+          {description || "Nuevo componente"}
         </p>
         <TooltipProvider disableHoverableContent>
           <Tooltip>
@@ -414,13 +547,17 @@ function ComponentCard({
           control={control}
           name={`${namePrefix}.category`}
           label="Tipo"
-          options={Object.entries(COMPONENT_CATEGORY_LABELS).map(([value, label]) => ({ value, label }))}
+          options={Object.entries(COMPONENT_CATEGORY_LABELS).map(
+            ([value, label]) => ({ value, label }),
+          )}
         />
         <SelectField
           control={control}
           name={`${namePrefix}.action`}
           label="Acción al vencer"
-          options={Object.entries(COMPONENT_ACTION_LABELS).map(([value, label]) => ({ value, label }))}
+          options={Object.entries(COMPONENT_ACTION_LABELS).map(
+            ([value, label]) => ({ value, label }),
+          )}
         />
         <FormField
           control={control}
@@ -429,7 +566,10 @@ function ComponentCard({
             <FormItem className="flex items-end space-y-0 pb-2">
               <label className="flex cursor-pointer select-none items-center gap-2 text-sm">
                 <FormControl>
-                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
                 </FormControl>
                 <span className="flex items-center gap-1">
                   <AlertTriangle className="size-3.5 text-amber-500" />
@@ -442,10 +582,31 @@ function ComponentCard({
       </div>
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-[2fr_1fr_1fr_100px]">
-        <TextField control={control} name={`${namePrefix}.description`} label="Descripción" placeholder="EJ: Bomba de combustible" />
-        <TextField control={control} name={`${namePrefix}.part_number`} label="N° de Parte" placeholder="P/N" />
-        <TextField control={control} name={`${namePrefix}.serial`} label="Serial" placeholder="S/N" />
-        <TextField control={control} name={`${namePrefix}.position`} label="Posición" placeholder="LH" optional />
+        <TextField
+          control={control}
+          name={`${namePrefix}.description`}
+          label="Descripción"
+          placeholder="EJ: Bomba de combustible"
+        />
+        <TextField
+          control={control}
+          name={`${namePrefix}.part_number`}
+          label="N° de Parte"
+          placeholder="P/N"
+        />
+        <TextField
+          control={control}
+          name={`${namePrefix}.serial`}
+          label="Serial"
+          placeholder="S/N"
+        />
+        <TextField
+          control={control}
+          name={`${namePrefix}.position`}
+          label="Posición"
+          placeholder="LH"
+          optional
+        />
       </div>
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_1fr_140px_110px]">
@@ -458,24 +619,39 @@ function ComponentCard({
         />
         <div className="space-y-1">
           <p className={labelClass}>Realizado por</p>
-          <ProviderSelect control={control} name={`${namePrefix}.maintenance_provider_id`} />
+          <ProviderSelect
+            control={control}
+            name={`${namePrefix}.maintenance_provider_id`}
+          />
         </div>
         <div className="space-y-1">
           <p className={labelClass}>Fecha del evento</p>
-          <CompactDateField control={control} name={`${namePrefix}.first_applied_date`} />
+          <CompactDateField
+            control={control}
+            name={`${namePrefix}.first_applied_date`}
+          />
         </div>
         <div className="space-y-1">
           <p className={labelClass}>
-            % Alerta <span className="text-xs font-normal text-muted-foreground">(Opcional)</span>
+            % Alerta{" "}
+            <span className="text-xs font-normal text-muted-foreground">
+              (Opcional)
+            </span>
           </p>
-          <RemainingPercentageField control={control} name={`${namePrefix}.remaining_percentage`} />
+          <RemainingPercentageField
+            control={control}
+            name={`${namePrefix}.remaining_percentage`}
+          />
         </div>
       </div>
 
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <p className={labelClass}>
-            Límites <span className="text-xs font-normal text-muted-foreground">(varios = lo que ocurra primero)</span>
+            Límites{" "}
+            <span className="text-xs font-normal text-muted-foreground">
+              (varios = lo que ocurra primero)
+            </span>
           </p>
           {fields.length < ALL_COUNTING_METHODS.length && (
             <Button
@@ -500,7 +676,11 @@ function ComponentCard({
             canRemove={fields.length > 1}
           />
         ))}
-        <FormField control={control} name={`${namePrefix}.intervals`} render={() => <FormMessage />} />
+        <FormField
+          control={control}
+          name={`${namePrefix}.intervals`}
+          render={() => <FormMessage />}
+        />
       </div>
     </div>
   );
@@ -508,12 +688,18 @@ function ComponentCard({
 
 function ComponentPartsSection({ control }: { control: Control<any> }) {
   const { setValue } = useFormContext<FormValues>();
-  const { fields, append, remove, replace } = useFieldArray({ control, name: "part_items" });
+  const { fields, append, remove, replace } = useFieldArray({
+    control,
+    name: "part_items",
+  });
 
   const aircraftId = useWatch({ control, name: "aircraft_id" }) as string;
-  const selectedPartIds = (useWatch({ control, name: "selected_part_ids" }) as string[]) ?? [];
+  const selectedPartIds =
+    (useWatch({ control, name: "selected_part_ids" }) as string[]) ?? [];
   const parentOptions = useParentOptions(aircraftId);
-  const availableParts = parentOptions.filter((option) => option.id !== FUSELAGE);
+  const availableParts = parentOptions.filter(
+    (option) => option.id !== FUSELAGE,
+  );
 
   // Al cambiar de aeronave la selección ya no aplica. replace() del propio
   // useFieldArray, no setValue, para no desincronizar su estado interno.
@@ -531,12 +717,19 @@ function ComponentPartsSection({ control }: { control: Control<any> }) {
   // key posicional remonta los Select/Popover de Radix.
   const rowsForPart = (partId: string) =>
     fields
-      .map((field: any, index) => ({ id: field.id as string, partId: field.aircraft_part_id, index }))
+      .map((field: any, index) => ({
+        id: field.id as string,
+        partId: field.aircraft_part_id,
+        index,
+      }))
       .filter((row) => row.partId === partId);
 
   const togglePart = (partId: string) => {
     if (selectedPartIds.includes(partId)) {
-      setValue("selected_part_ids", selectedPartIds.filter((id) => id !== partId));
+      setValue(
+        "selected_part_ids",
+        selectedPartIds.filter((id) => id !== partId),
+      );
       const indices = rowsForPart(partId).map((row) => row.index);
       if (indices.length) remove(indices);
     } else {
@@ -545,7 +738,11 @@ function ComponentPartsSection({ control }: { control: Control<any> }) {
   };
 
   if (!availableParts.length) {
-    return <p className={cn(hintClass, "italic")}>Esta aeronave no tiene partes asignadas.</p>;
+    return (
+      <p className={cn(hintClass, "italic")}>
+        Esta aeronave no tiene partes asignadas.
+      </p>
+    );
   }
 
   return (
@@ -576,7 +773,9 @@ function ComponentPartsSection({ control }: { control: Control<any> }) {
               <span
                 className={cn(
                   "flex h-4 w-4 shrink-0 items-center justify-center rounded-sm border transition-colors",
-                  checked ? "border-primary bg-primary text-white" : "border-muted-foreground/40",
+                  checked
+                    ? "border-primary bg-primary text-white"
+                    : "border-muted-foreground/40",
                 )}
               >
                 {checked && <Check className="h-3 w-3" />}
@@ -605,13 +804,17 @@ function ComponentPartsSection({ control }: { control: Control<any> }) {
                   />
                 ))}
                 {!rows.length && (
-                  <p className={cn(hintClass, "italic")}>Agregue al menos un componente para esta parte.</p>
+                  <p className={cn(hintClass, "italic")}>
+                    Agregue al menos un componente para esta parte.
+                  </p>
                 )}
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => append({ ...emptyItem(), aircraft_part_id: part.id })}
+                  onClick={() =>
+                    append({ ...emptyItem(), aircraft_part_id: part.id })
+                  }
                   className="gap-1.5 border-dashed text-muted-foreground hover:border-blue-400/40 hover:text-primary"
                 >
                   <Plus className="size-3.5" />
@@ -636,11 +839,14 @@ function mapToFormItem(item: NonNullable<ComponentControl["items"]>[number]) {
     position: item.position ?? "",
     action: item.action,
     reference_document: item.reference_document ?? "",
-    maintenance_provider_id: item.maintenance_provider_id ? String(item.maintenance_provider_id) : "",
+    maintenance_provider_id: item.maintenance_provider_id
+      ? String(item.maintenance_provider_id)
+      : "",
     // parseISO, no `new Date`: "yyyy-MM-dd" con new Date cae al día anterior en UTC-4.
     first_applied_date: parseISO(item.first_applied_date),
     remaining_percentage:
-      item.remaining_percentage !== null && item.remaining_percentage !== undefined
+      item.remaining_percentage !== null &&
+      item.remaining_percentage !== undefined
         ? Number(item.remaining_percentage)
         : undefined,
     intervals: item.intervals.map((interval) => ({
@@ -648,8 +854,14 @@ function mapToFormItem(item: NonNullable<ComponentControl["items"]>[number]) {
       counting_method: interval.counting_method,
       limit_kind: interval.limit_kind,
       limit_value: Number(interval.limit_value),
-      initial_value: interval.initial_value != null ? Number(interval.initial_value) : undefined,
-      consumed_at_event: interval.consumed_at_event != null ? Number(interval.consumed_at_event) : 0,
+      initial_value:
+        interval.initial_value != null
+          ? Number(interval.initial_value)
+          : undefined,
+      consumed_at_event:
+        interval.consumed_at_event != null
+          ? Number(interval.consumed_at_event)
+          : 0,
     })),
   };
 }
@@ -672,7 +884,9 @@ function buildDefaultValues(initialData?: ComponentControl): FormValues {
 
   // Los removidos se conservan en el backend por historial; el formulario
   // edita solo lo instalado.
-  const active = (initialData.items ?? []).filter((i) => i.status === "ACTIVE");
+  const active = (initialData.items ?? []).filter(
+    (i) => i.status === "ACTIVE" && !i.retired_at,
+  );
   const partItems = active.filter((i) => i.parent_aircraft_part_id);
 
   return {
@@ -686,7 +900,9 @@ function buildDefaultValues(initialData?: ComponentControl): FormValues {
       : undefined,
     remaining_percentage: Number(initialData.remaining_percentage),
     items: active.filter((i) => !i.parent_aircraft_part_id).map(mapToFormItem),
-    selected_part_ids: Array.from(new Set(partItems.map((i) => String(i.parent_aircraft_part_id)))),
+    selected_part_ids: Array.from(
+      new Set(partItems.map((i) => String(i.parent_aircraft_part_id))),
+    ),
     part_items: partItems.map((item) => ({
       ...mapToFormItem(item),
       aircraft_part_id: String(item.parent_aircraft_part_id),
@@ -694,13 +910,22 @@ function buildDefaultValues(initialData?: ComponentControl): FormValues {
   };
 }
 
-export default function CreateComponentControlForm({ initialData }: { initialData?: ComponentControl }) {
+export default function CreateComponentControlForm({
+  initialData,
+}: {
+  initialData?: ComponentControl;
+}) {
   const router = useRouter();
   const { selectedCompany } = useCompanyStore();
   const isEditing = !!initialData;
+  const [reason, setReason] = useState<EditReasonValue>({});
+  const [reasonError, setReasonError] = useState<string>();
   const { createComponentControl } = useCreateComponentControl();
   const { updateComponentControl } = useUpdateComponentControl();
-  const { data: componentControls } = useGetComponentControls(selectedCompany?.slug);
+  const { data: componentControls } = useGetComponentControls(
+    selectedCompany?.slug,
+    true,
+  );
 
   const excludeAircraftIds = useMemo(
     () =>
@@ -714,12 +939,17 @@ export default function CreateComponentControlForm({ initialData }: { initialDat
     resolver: zodResolver(formSchema),
     defaultValues: buildDefaultValues(initialData),
   });
+  // Leído en render: react-hook-form solo rastrea lo que se suscribe aquí.
+  const { isDirty } = form.formState;
 
   // Mismo cast que CreateMaintenanceControlForm: desde react-hook-form 7.87
   // el genérico no es asignable a Control<any> con arrays anidados.
   const control = form.control as unknown as Control<any>;
 
-  const hasReferenceManual = useWatch({ control, name: "has_reference_manual" });
+  const hasReferenceManual = useWatch({
+    control,
+    name: "has_reference_manual",
+  });
   const aircraftId = useWatch({ control, name: "aircraft_id" });
   const { fields, append, remove } = useFieldArray({ control, name: "items" });
 
@@ -727,7 +957,10 @@ export default function CreateComponentControlForm({ initialData }: { initialDat
     // El backend recibe una sola lista; el conjunto al que pertenece cada
     // componente sale de en qué sección se cargó.
     const allItems = [
-      ...values.items.map((item) => ({ ...item, aircraft_part_id: null as string | null })),
+      ...values.items.map((item) => ({
+        ...item,
+        aircraft_part_id: null as string | null,
+      })),
       ...values.part_items,
     ];
 
@@ -741,7 +974,9 @@ export default function CreateComponentControlForm({ initialData }: { initialDat
       remaining_percentage: values.remaining_percentage,
       items: allItems.map((item) => ({
         id: item.id,
-        parent_aircraft_part_id: item.aircraft_part_id ? Number(item.aircraft_part_id) : null,
+        parent_aircraft_part_id: item.aircraft_part_id
+          ? Number(item.aircraft_part_id)
+          : null,
         maintenance_provider_id: item.maintenance_provider_id,
         category: item.category as ComponentCategory,
         is_hazardous: item.is_hazardous ?? false,
@@ -764,15 +999,33 @@ export default function CreateComponentControlForm({ initialData }: { initialDat
     };
 
     if (isEditing) {
-      await updateComponentControl.mutateAsync({ id: initialData.id, company: selectedCompany!.slug, data: payload });
+      if (isDirty && !reason.edit_reason) {
+        setReasonError("Indique el motivo de la corrección.");
+        return;
+      }
+
+      try {
+        await updateComponentControl.mutateAsync({
+          id: initialData.id,
+          company: selectedCompany!.slug,
+          data: { ...payload, ...reason },
+        });
+      } catch (error) {
+        setReasonError(editReasonErrorFrom(error));
+        return;
+      }
     } else {
-      await createComponentControl.mutateAsync({ company: selectedCompany!.slug, data: payload });
+      await createComponentControl.mutateAsync({
+        company: selectedCompany!.slug,
+        data: payload,
+      });
     }
 
     router.push(`/${selectedCompany!.slug}/planificacion/control_componentes`);
   };
 
-  const isPending = createComponentControl.isPending || updateComponentControl.isPending;
+  const isPending =
+    createComponentControl.isPending || updateComponentControl.isPending;
 
   return (
     <Form {...form}>
@@ -780,7 +1033,10 @@ export default function CreateComponentControlForm({ initialData }: { initialDat
         onSubmit={form.handleSubmit(onSubmit)}
         onKeyDown={(e) => {
           // Enter en un <input> enviaría el formulario entero.
-          if (e.key === "Enter" && (e.target as HTMLElement).tagName !== "TEXTAREA") {
+          if (
+            e.key === "Enter" &&
+            (e.target as HTMLElement).tagName !== "TEXTAREA"
+          ) {
             e.preventDefault();
           }
         }}
@@ -806,7 +1062,11 @@ export default function CreateComponentControlForm({ initialData }: { initialDat
                 <FormItem className="w-full">
                   <FormLabel className={labelClass}>Título</FormLabel>
                   <FormControl>
-                    <Input placeholder="EJ: Control de Componentes YV2272" className={fieldClass} {...field} />
+                    <Input
+                      placeholder="EJ: Control de Componentes YV2272"
+                      className={fieldClass}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -817,7 +1077,9 @@ export default function CreateComponentControlForm({ initialData }: { initialDat
               name="remaining_percentage"
               render={({ field }) => (
                 <FormItem className="w-full">
-                  <FormLabel className={labelClass}>% de Remanente para Alerta</FormLabel>
+                  <FormLabel className={labelClass}>
+                    % de Remanente para Alerta
+                  </FormLabel>
                   <FormControl>
                     <div className="relative">
                       <NumericInput
@@ -827,11 +1089,15 @@ export default function CreateComponentControlForm({ initialData }: { initialDat
                         onBlur={field.onBlur}
                         name={field.name}
                       />
-                      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">%</span>
+                      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                        %
+                      </span>
                     </div>
                   </FormControl>
                   <FormDescription className={hintClass}>
-                    Con cuánto remanente sobre el límite se avisa que un componente está próximo a vencer (15% es lo habitual en el 43-004).
+                    Con cuánto remanente sobre el límite se avisa que un
+                    componente está próximo a vencer (15% es lo habitual en el
+                    43-004).
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -843,10 +1109,17 @@ export default function CreateComponentControlForm({ initialData }: { initialDat
               render={({ field }) => (
                 <FormItem className="w-full md:col-span-2">
                   <FormLabel className={labelClass}>
-                    Descripción <span className="text-muted-foreground text-xs">(Opcional)</span>
+                    Descripción{" "}
+                    <span className="text-muted-foreground text-xs">
+                      (Opcional)
+                    </span>
                   </FormLabel>
                   <FormControl>
-                    <Textarea placeholder="..." className={cn(fieldClass, "h-auto resize-none py-2")} {...field} />
+                    <Textarea
+                      placeholder="..."
+                      className={cn(fieldClass, "h-auto resize-none py-2")}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -863,11 +1136,18 @@ export default function CreateComponentControlForm({ initialData }: { initialDat
                   )}
                 >
                   <FormControl>
-                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
                   </FormControl>
                   <div className="space-y-1 leading-none">
-                    <FormLabel className={labelClass}>¿Tiene manual de referencia?</FormLabel>
-                    <FormDescription className={hintClass}>Indique si este control se basa en un manual específico.</FormDescription>
+                    <FormLabel className={labelClass}>
+                      ¿Tiene manual de referencia?
+                    </FormLabel>
+                    <FormDescription className={hintClass}>
+                      Indique si este control se basa en un manual específico.
+                    </FormDescription>
                   </div>
                 </FormItem>
               )}
@@ -880,9 +1160,15 @@ export default function CreateComponentControlForm({ initialData }: { initialDat
                   name="reference_manual"
                   render={({ field }) => (
                     <FormItem className="w-full">
-                      <FormLabel className={labelClass}>Manual de Referencia</FormLabel>
+                      <FormLabel className={labelClass}>
+                        Manual de Referencia
+                      </FormLabel>
                       <FormControl>
-                        <Input placeholder="EJ: MPM JS32 REV.01 06/04/2024" className={fieldClass} {...field} />
+                        <Input
+                          placeholder="EJ: MPM JS32 REV.01 06/04/2024"
+                          className={fieldClass}
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -895,52 +1181,71 @@ export default function CreateComponentControlForm({ initialData }: { initialDat
 
         {aircraftId ? (
           <>
-          <FormSection
-            icon={Plane}
-            title="Aeronave"
-            hint="Componentes medidos contra las horas/ciclos de la aeronave."
-          >
-            <div className="space-y-4">
-              {fields.map((field, index) => (
-                <ComponentCard
-                  key={field.id}
-                  control={control}
-                  arrayName="items"
-                  index={index}
-                  position={index}
-                  onRemove={() => remove(index)}
-                />
-              ))}
-              {fields.length === 0 && <p className={cn(hintClass, "italic")}>Agregue los componentes de la aeronave.</p>}
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => append(emptyItem())}
-                className="gap-1.5 border-dashed text-muted-foreground hover:border-blue-400/40 hover:text-primary"
-              >
-                <Plus className="size-3.5" />
-                Agregar componente
-              </Button>
-            </div>
-          </FormSection>
+            <FormSection
+              icon={Plane}
+              title="Aeronave"
+              hint="Componentes medidos contra las horas/ciclos de la aeronave."
+            >
+              <div className="space-y-4">
+                {fields.map((field, index) => (
+                  <ComponentCard
+                    key={field.id}
+                    control={control}
+                    arrayName="items"
+                    index={index}
+                    position={index}
+                    onRemove={() => remove(index)}
+                  />
+                ))}
+                {fields.length === 0 && (
+                  <p className={cn(hintClass, "italic")}>
+                    Agregue los componentes de la aeronave.
+                  </p>
+                )}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => append(emptyItem())}
+                  className="gap-1.5 border-dashed text-muted-foreground hover:border-blue-400/40 hover:text-primary"
+                >
+                  <Plus className="size-3.5" />
+                  Agregar componente
+                </Button>
+              </div>
+            </FormSection>
 
-          <FormSection
-            icon={Cog}
-            title="Partes de la Aeronave"
-            hint="Motores, turbinas y hélices con componentes propios; se miden contra el contador de esa parte."
-          >
-            <ComponentPartsSection control={control} />
-          </FormSection>
+            <FormSection
+              icon={Cog}
+              title="Partes de la Aeronave"
+              hint="Motores, turbinas y hélices con componentes propios; se miden contra el contador de esa parte."
+            >
+              <ComponentPartsSection control={control} />
+            </FormSection>
           </>
         ) : (
           <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-slate-400/50 bg-muted/20 p-8 text-center dark:border-slate-600/50">
             <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted/60 text-muted-foreground">
               <Plane className="h-5 w-5" />
             </span>
-            <p className="text-sm font-medium text-muted-foreground">Seleccione una aeronave para continuar</p>
-            <p className={hintClass}>Ahí se cargan sus motores y hélices para colgar los componentes.</p>
+            <p className="text-sm font-medium text-muted-foreground">
+              Seleccione una aeronave para continuar
+            </p>
+            <p className={hintClass}>
+              Ahí se cargan sus motores y hélices para colgar los componentes.
+            </p>
           </div>
+        )}
+
+        {isEditing && (
+          <EditReasonFields
+            value={reason}
+            onChange={(value) => {
+              setReason(value);
+              setReasonError(undefined);
+            }}
+            error={reasonError}
+          />
         )}
 
         <Button
@@ -948,7 +1253,13 @@ export default function CreateComponentControlForm({ initialData }: { initialDat
           disabled={isPending}
           type="submit"
         >
-          {isPending ? <Loader2 className="size-4 animate-spin" /> : <p>{isEditing ? "Guardar Cambios" : "Crear Control de Componentes"}</p>}
+          {isPending ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <p>
+              {isEditing ? "Guardar Cambios" : "Crear Control de Componentes"}
+            </p>
+          )}
         </Button>
       </form>
     </Form>

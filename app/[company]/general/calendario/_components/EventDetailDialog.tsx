@@ -2,10 +2,20 @@
 
 import { format, isSameDay } from "date-fns";
 import { es } from "date-fns/locale";
-import { ArrowUpRight, CalendarClock, NotebookText, PencilLine } from "lucide-react";
+import {
+  ArrowUpRight,
+  CalendarClock,
+  NotebookText,
+  PencilLine,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { LocalCalendarEvent } from "./types";
 
 function formatModalDateRange(start: Date, end: Date, allDay: boolean): string {
@@ -32,14 +42,23 @@ interface EventDetailDialogProps {
  * que CreateEventDialog, sin el gradiente/blur del modal viejo) para que los
  * dos diálogos de esta página lean como parte del mismo sistema.
  */
-export function EventDetailDialog({ open, onOpenChange, event, sourceLabel, onEdit, onNavigate }: EventDetailDialogProps) {
+export function EventDetailDialog({
+  open,
+  onOpenChange,
+  event,
+  sourceLabel,
+  onEdit,
+  onNavigate,
+}: EventDetailDialogProps) {
   if (!event) return null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-base leading-tight">{event.title}</DialogTitle>
+          <DialogTitle className="text-base leading-tight">
+            {event.title}
+          </DialogTitle>
         </DialogHeader>
 
         <p className="-mt-2 text-xs text-muted-foreground">{sourceLabel}</p>
@@ -47,7 +66,13 @@ export function EventDetailDialog({ open, onOpenChange, event, sourceLabel, onEd
         <div className="space-y-2.5 text-sm text-muted-foreground">
           <div className="flex items-start gap-2">
             <CalendarClock className="mt-0.5 size-4 shrink-0" />
-            <span>{formatModalDateRange(event.start, event.end, event.allDay ?? false)}</span>
+            <span>
+              {formatModalDateRange(
+                event.start,
+                event.end,
+                event.allDay ?? false,
+              )}
+            </span>
           </div>
           {event.description && (
             <div className="flex items-start gap-2">

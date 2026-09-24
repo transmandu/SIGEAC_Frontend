@@ -7,8 +7,19 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { IntervalListEditor } from "@/components/misc/IntervalListEditor";
 import {
   fieldClass,
@@ -16,9 +27,18 @@ import {
   textareaClass,
   selectTriggerClass,
 } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
-import { MSG3_TYPE_LABELS, REQUIREMENT_TYPE_LABELS } from "@/lib/maintenanceCatalogLabels";
-import { CatalogRequirementType, Msg3TaskType } from "@/types/maintenanceCatalog";
-import { TaskFormData, TaskRequirementFormData } from "@/actions/mantenimiento/catalogo/tareas/actions";
+import {
+  MSG3_TYPE_LABELS,
+  REQUIREMENT_TYPE_LABELS,
+} from "@/lib/maintenanceCatalogLabels";
+import {
+  CatalogRequirementType,
+  Msg3TaskType,
+} from "@/types/maintenanceCatalog";
+import {
+  TaskFormData,
+  TaskRequirementFormData,
+} from "@/actions/mantenimiento/catalogo/tareas/actions";
 import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits";
 import { useCompanyStore } from "@/stores/CompanyStore";
 
@@ -59,10 +79,18 @@ export function TaskFieldsEditor({ value, onChange }: TaskFieldsEditorProps) {
   const { selectedCompany } = useCompanyStore();
   const { data: units = [] } = useGetUnits(selectedCompany?.slug);
 
-  const patch = (changes: Partial<TaskFormData>) => onChange({ ...value, ...changes });
+  const patch = (changes: Partial<TaskFormData>) =>
+    onChange({ ...value, ...changes });
 
-  const updateRequirement = (index: number, changes: Partial<TaskRequirementFormData>) => {
-    patch({ requirements: value.requirements.map((r, i) => (i === index ? { ...r, ...changes } : r)) });
+  const updateRequirement = (
+    index: number,
+    changes: Partial<TaskRequirementFormData>,
+  ) => {
+    patch({
+      requirements: value.requirements.map((r, i) =>
+        i === index ? { ...r, ...changes } : r,
+      ),
+    });
   };
 
   return (
@@ -72,7 +100,10 @@ export function TaskFieldsEditor({ value, onChange }: TaskFieldsEditorProps) {
       <div className="grid grid-cols-1 items-end gap-4 md:grid-cols-2 [&>div]:flex [&>div]:flex-col [&>div]:gap-1.5 [&>div>label]:flex-1">
         <div>
           <Label className={labelClass}>Tipo MSG-3</Label>
-          <Select value={value.msg3_type} onValueChange={(v) => patch({ msg3_type: v as Msg3TaskType })}>
+          <Select
+            value={value.msg3_type}
+            onValueChange={(v) => patch({ msg3_type: v as Msg3TaskType })}
+          >
             <SelectTrigger className={selectTriggerClass}>
               <SelectValue />
             </SelectTrigger>
@@ -106,7 +137,9 @@ export function TaskFieldsEditor({ value, onChange }: TaskFieldsEditorProps) {
         </div>
 
         <div>
-          <Label className={labelClass}>Referencia (sección/página del manual)</Label>
+          <Label className={labelClass}>
+            Referencia (sección/página del manual)
+          </Label>
           <Input
             className={fieldClass}
             value={value.reference}
@@ -122,7 +155,13 @@ export function TaskFieldsEditor({ value, onChange }: TaskFieldsEditorProps) {
             step={0.5}
             className={fieldClass}
             value={value.estimated_man_hours ?? ""}
-            onChange={(e) => patch({ estimated_man_hours: e.target.value ? Number(e.target.value) : null })}
+            onChange={(e) =>
+              patch({
+                estimated_man_hours: e.target.value
+                  ? Number(e.target.value)
+                  : null,
+              })
+            }
             placeholder="Ej: 2.5"
           />
         </div>
@@ -167,7 +206,8 @@ export function TaskFieldsEditor({ value, onChange }: TaskFieldsEditorProps) {
           <div>
             <Label className={labelClass}>Requisitos</Label>
             <p className="text-xs text-muted-foreground">
-              Partes, herramientas, consumibles o mínimo general que exige el manual para esta tarea.
+              Partes, herramientas, consumibles o mínimo general que exige el
+              manual para esta tarea.
             </p>
           </div>
           <Button
@@ -175,7 +215,11 @@ export function TaskFieldsEditor({ value, onChange }: TaskFieldsEditorProps) {
             variant="outline"
             size="sm"
             className="shrink-0 gap-1.5"
-            onClick={() => patch({ requirements: [...value.requirements, { ...emptyRequirement }] })}
+            onClick={() =>
+              patch({
+                requirements: [...value.requirements, { ...emptyRequirement }],
+              })
+            }
           >
             <Plus className="size-3.5" />
             Agregar
@@ -185,9 +229,12 @@ export function TaskFieldsEditor({ value, onChange }: TaskFieldsEditorProps) {
         {value.requirements.length === 0 ? (
           <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-slate-400/40 py-8 text-center dark:border-slate-600/40">
             <ClipboardList className="size-5 text-muted-foreground/60" />
-            <p className="text-sm text-muted-foreground">Sin requisitos agregados.</p>
+            <p className="text-sm text-muted-foreground">
+              Sin requisitos agregados.
+            </p>
             <p className="text-xs text-muted-foreground/70">
-              Use &quot;Agregar&quot; para registrar partes, herramientas o consumibles.
+              Use &quot;Agregar&quot; para registrar partes, herramientas o
+              consumibles.
             </p>
           </div>
         ) : (
@@ -210,7 +257,11 @@ export function TaskFieldsEditor({ value, onChange }: TaskFieldsEditorProps) {
                           size="icon"
                           className="size-8 text-muted-foreground hover:text-destructive"
                           onClick={() =>
-                            patch({ requirements: value.requirements.filter((_, i) => i !== index) })
+                            patch({
+                              requirements: value.requirements.filter(
+                                (_, i) => i !== index,
+                              ),
+                            })
                           }
                         >
                           <Trash2 className="size-4" />
@@ -227,18 +278,22 @@ export function TaskFieldsEditor({ value, onChange }: TaskFieldsEditorProps) {
                     <Select
                       value={req.requirement_type}
                       onValueChange={(v) =>
-                        updateRequirement(index, { requirement_type: v as CatalogRequirementType })
+                        updateRequirement(index, {
+                          requirement_type: v as CatalogRequirementType,
+                        })
                       }
                     >
                       <SelectTrigger className={selectTriggerClass}>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {Object.entries(REQUIREMENT_TYPE_LABELS).map(([key, label]) => (
-                          <SelectItem key={key} value={key}>
-                            {label}
-                          </SelectItem>
-                        ))}
+                        {Object.entries(REQUIREMENT_TYPE_LABELS).map(
+                          ([key, label]) => (
+                            <SelectItem key={key} value={key}>
+                              {label}
+                            </SelectItem>
+                          ),
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
@@ -250,17 +305,27 @@ export function TaskFieldsEditor({ value, onChange }: TaskFieldsEditorProps) {
                       className={fieldClass}
                       placeholder="Ej: Filtro de aceite"
                       value={req.description}
-                      onChange={(e) => updateRequirement(index, { description: e.target.value })}
+                      onChange={(e) =>
+                        updateRequirement(index, {
+                          description: e.target.value,
+                        })
+                      }
                     />
                   </div>
 
                   <div className="sm:col-span-3">
-                    <Label className={labelClass}>N° de parte (referencial)</Label>
+                    <Label className={labelClass}>
+                      N° de parte (referencial)
+                    </Label>
                     <Input
                       className={fieldClass}
                       placeholder="Ej: P/N 1234-56"
                       value={req.part_number}
-                      onChange={(e) => updateRequirement(index, { part_number: e.target.value })}
+                      onChange={(e) =>
+                        updateRequirement(index, {
+                          part_number: e.target.value,
+                        })
+                      }
                     />
                   </div>
 
@@ -273,7 +338,11 @@ export function TaskFieldsEditor({ value, onChange }: TaskFieldsEditorProps) {
                       placeholder="Ej: 2"
                       value={req.quantity ?? ""}
                       onChange={(e) =>
-                        updateRequirement(index, { quantity: e.target.value ? Number(e.target.value) : null })
+                        updateRequirement(index, {
+                          quantity: e.target.value
+                            ? Number(e.target.value)
+                            : null,
+                        })
                       }
                     />
                   </div>
@@ -282,7 +351,11 @@ export function TaskFieldsEditor({ value, onChange }: TaskFieldsEditorProps) {
                     <Label className={labelClass}>Unidad</Label>
                     <Select
                       value={req.unit_id ? String(req.unit_id) : "none"}
-                      onValueChange={(v) => updateRequirement(index, { unit_id: v === "none" ? null : Number(v) })}
+                      onValueChange={(v) =>
+                        updateRequirement(index, {
+                          unit_id: v === "none" ? null : Number(v),
+                        })
+                      }
                     >
                       <SelectTrigger className={selectTriggerClass}>
                         <SelectValue placeholder="Sin unidad" />
@@ -304,7 +377,9 @@ export function TaskFieldsEditor({ value, onChange }: TaskFieldsEditorProps) {
                       className={fieldClass}
                       placeholder="Ej: Sustituir solo con sello nuevo"
                       value={req.notes}
-                      onChange={(e) => updateRequirement(index, { notes: e.target.value })}
+                      onChange={(e) =>
+                        updateRequirement(index, { notes: e.target.value })
+                      }
                     />
                   </div>
                 </div>
@@ -312,7 +387,9 @@ export function TaskFieldsEditor({ value, onChange }: TaskFieldsEditorProps) {
                 <label className="mt-4 flex w-fit items-center gap-2 text-sm text-muted-foreground">
                   <Checkbox
                     checked={req.is_mandatory}
-                    onCheckedChange={(checked) => updateRequirement(index, { is_mandatory: !!checked })}
+                    onCheckedChange={(checked) =>
+                      updateRequirement(index, { is_mandatory: !!checked })
+                    }
                   />
                   Obligatorio para cerrar la tarea
                 </label>

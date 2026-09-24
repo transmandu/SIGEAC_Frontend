@@ -10,7 +10,9 @@ import { DataTable } from "./data-table";
 
 const ManualsPage = () => {
   const { selectedCompany } = useCompanyStore();
-  const { data: manuals, isLoading } = useGetCatalogManuals(selectedCompany?.slug);
+  const { data: manuals, isLoading } = useGetCatalogManuals(
+    selectedCompany?.slug,
+  );
 
   if (isLoading) return <LoadingPage />;
 
@@ -22,8 +24,8 @@ const ManualsPage = () => {
         <div className="flex flex-col gap-2 border-b pb-4">
           <h1 className="text-3xl font-semibold tracking-tight">Manuales</h1>
           <p className="text-sm text-muted-foreground">
-            AMM, MPD, CMM y Directivas de Aeronavegabilidad/Boletines de Servicio de donde salen los servicios y
-            certificados del catálogo.
+            AMM, MPD, CMM y Directivas de Aeronavegabilidad/Boletines de
+            Servicio de donde salen los servicios y certificados del catálogo.
           </p>
         </div>
 

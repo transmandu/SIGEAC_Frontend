@@ -5,8 +5,16 @@ import { ChevronDown, ClipboardList, Plus, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { TaskFieldsEditor, emptyTask } from "@/components/forms/mantenimiento/catalogo/TaskFieldsEditor";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  TaskFieldsEditor,
+  emptyTask,
+} from "@/components/forms/mantenimiento/catalogo/TaskFieldsEditor";
 import { labelClass } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
 import { MSG3_TYPE_LABELS } from "@/lib/maintenanceCatalogLabels";
 import { TaskFormData } from "@/actions/mantenimiento/catalogo/tareas/actions";
@@ -22,7 +30,10 @@ interface ServiceTasksEditorProps {
  * abierta: son siete campos más intervalos y N requisitos cada una, y con dos
  * o tres desplegadas a la vez el diálogo deja de ser legible.
  */
-export function ServiceTasksEditor({ tasks, onChange }: ServiceTasksEditorProps) {
+export function ServiceTasksEditor({
+  tasks,
+  onChange,
+}: ServiceTasksEditorProps) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   const addTask = () => {
@@ -45,10 +56,17 @@ export function ServiceTasksEditor({ tasks, onChange }: ServiceTasksEditorProps)
         <div>
           <Label className={labelClass}>Tareas</Label>
           <p className="text-xs text-muted-foreground">
-            Las tareas que se ejecutan cuando este servicio genera una orden de trabajo.
+            Las tareas que se ejecutan cuando este servicio genera una orden de
+            trabajo.
           </p>
         </div>
-        <Button type="button" variant="outline" size="sm" className="shrink-0 gap-1.5" onClick={addTask}>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="shrink-0 gap-1.5"
+          onClick={addTask}
+        >
           <Plus className="size-3.5" />
           Agregar tarea
         </Button>
@@ -59,7 +77,8 @@ export function ServiceTasksEditor({ tasks, onChange }: ServiceTasksEditorProps)
           <ClipboardList className="size-5 text-muted-foreground/60" />
           <p className="text-sm text-muted-foreground">Sin tareas todavía.</p>
           <p className="text-xs text-muted-foreground/70">
-            Un certificado puede no tener ninguna; un servicio de inspección normalmente sí.
+            Un certificado puede no tener ninguna; un servicio de inspección
+            normalmente sí.
           </p>
         </div>
       ) : (
@@ -83,13 +102,21 @@ export function ServiceTasksEditor({ tasks, onChange }: ServiceTasksEditorProps)
                     />
                     <div className="min-w-0">
                       <p className="truncate text-sm font-medium">
-                        {task.description || <span className="text-muted-foreground">Tarea sin descripción</span>}
+                        {task.description || (
+                          <span className="text-muted-foreground">
+                            Tarea sin descripción
+                          </span>
+                        )}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {MSG3_TYPE_LABELS[task.msg3_type]}
                         {task.ata ? ` · ATA ${task.ata}` : ""}
-                        {task.estimated_man_hours != null ? ` · ${task.estimated_man_hours} H-H` : ""}
-                        {task.requirements.length > 0 ? ` · ${task.requirements.length} requisito(s)` : ""}
+                        {task.estimated_man_hours != null
+                          ? ` · ${task.estimated_man_hours} H-H`
+                          : ""}
+                        {task.requirements.length > 0
+                          ? ` · ${task.requirements.length} requisito(s)`
+                          : ""}
                       </p>
                     </div>
                   </button>
@@ -116,7 +143,9 @@ export function ServiceTasksEditor({ tasks, onChange }: ServiceTasksEditorProps)
                   <div className="border-t border-slate-400/30 p-3 dark:border-slate-600/30">
                     <TaskFieldsEditor
                       value={task}
-                      onChange={(next) => onChange(tasks.map((t, i) => (i === index ? next : t)))}
+                      onChange={(next) =>
+                        onChange(tasks.map((t, i) => (i === index ? next : t)))
+                      }
                     />
                   </div>
                 )}

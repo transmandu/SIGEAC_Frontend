@@ -1,5 +1,13 @@
+import type { ConfirmedReason } from "@/components/dialogs/mantenimiento/planificacion/ReasonConfirmDialog";
+import type { EditReasonValue } from "@/components/forms/mantenimiento/planificacion/EditReasonFields";
+import { invalidatePlanificationAudit } from "@/hooks/mantenimiento/planificacion/useGetPlanificationAuditStats";
 import axiosInstance from "@/lib/axios";
-import { ComponentAction, ComponentCategory, ComponentLimitKind, MaintenanceCountingMethod } from "@/types";
+import {
+  ComponentAction,
+  ComponentCategory,
+  ComponentLimitKind,
+  MaintenanceCountingMethod,
+} from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -53,18 +61,28 @@ export const useCreateComponentControl = () => {
   const queryClient = useQueryClient();
 
   const createMutation = useMutation({
-    mutationFn: async ({ data, company }: { data: CreateComponentControlData; company: string }) => {
+    mutationFn: async ({
+      data,
+      company,
+    }: {
+      data: CreateComponentControlData;
+      company: string;
+    }) => {
       await axiosInstance.post(`/${company}/component-controls`, data);
     },
     onSuccess: () => {
+      invalidatePlanificationAudit(queryClient);
       queryClient.invalidateQueries({ queryKey: ["component-controls"] });
       toast.success("¡Creado!", {
-        description: "El control de componentes ha sido registrado correctamente.",
+        description:
+          "El control de componentes ha sido registrado correctamente.",
       });
     },
     onError: (error: any) => {
       toast.error("Oops!", {
-        description: firstBackendError(error) || "No se pudo registrar el control de componentes...",
+        description:
+          firstBackendError(error) ||
+          "No se pudo registrar el control de componentes...",
       });
       console.log(error);
     },
@@ -77,19 +95,34 @@ export const useUpdateComponentControl = () => {
   const queryClient = useQueryClient();
 
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data, company }: { id: string | number; data: CreateComponentControlData; company: string }) => {
+    mutationFn: async ({
+      id,
+      data,
+      company,
+    }: {
+      id: string | number;
+      data: CreateComponentControlData & EditReasonValue;
+      company: string;
+    }) => {
       await axiosInstance.put(`/${company}/component-controls/${id}`, data);
     },
     onSuccess: () => {
+      invalidatePlanificationAudit(queryClient);
       queryClient.invalidateQueries({ queryKey: ["component-controls"] });
-      queryClient.invalidateQueries({ queryKey: ["component-control"], exact: false });
+      queryClient.invalidateQueries({
+        queryKey: ["component-control"],
+        exact: false,
+      });
       toast.success("¡Actualizado!", {
-        description: "El control de componentes ha sido actualizado correctamente.",
+        description:
+          "El control de componentes ha sido actualizado correctamente.",
       });
     },
     onError: (error: any) => {
       toast.error("Oops!", {
-        description: firstBackendError(error) || "No se pudo actualizar el control de componentes...",
+        description:
+          firstBackendError(error) ||
+          "No se pudo actualizar el control de componentes...",
       });
       console.log(error);
     },
@@ -102,18 +135,25 @@ export const useDeleteComponentControl = () => {
   const queryClient = useQueryClient();
 
   const deleteMutation = useMutation({
-    mutationFn: async ({ company, id }: { company: string | null; id: string | number }) => {
-      await axiosInstance.delete(`/${company}/component-controls/${id}`);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["component-controls"] });
-      toast.success("¡Eliminado!", {
-        description: "El control de componentes ha sido eliminado correctamente.",
+    mutationFn: async ({
+      company,
+      id,
+      reason,
+    }: {
+      company: string;
+      id: string | number;
+      reason: ConfirmedReason;
+    }) => {
+      await axiosInstance.delete(`/${company}/component-controls/${id}`, {
+        data: reason,
       });
     },
-    onError: () => {
-      toast.error("Oops!", {
-        description: "¡Hubo un error al eliminar el control de componentes!",
+    onSuccess: () => {
+      invalidatePlanificationAudit(queryClient);
+      queryClient.invalidateQueries({ queryKey: ["component-controls"] });
+      toast.success("¡Eliminado!", {
+        description:
+          "El control de componentes ha sido eliminado correctamente.",
       });
     },
   });
@@ -134,18 +174,30 @@ export const useLinkComponentPendingWorkOrder = () => {
       itemId: string | number;
       workOrderId: string | number;
     }) => {
-      await axiosInstance.patch(`/${company}/component-control-items/${itemId}/pending-work-order`, {
-        work_order_id: workOrderId,
-      });
+      await axiosInstance.patch(
+        `/${company}/component-control-items/${itemId}/pending-work-order`,
+        {
+          work_order_id: workOrderId,
+        },
+      );
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["component-controls"], exact: false });
-      queryClient.invalidateQueries({ queryKey: ["component-control"], exact: false });
+      invalidatePlanificationAudit(queryClient);
+      queryClient.invalidateQueries({
+        queryKey: ["component-controls"],
+        exact: false,
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["component-control"],
+        exact: false,
+      });
     },
     // El backend valida coherencia y devuelve el motivo exacto.
     onError: (error: any) => {
       toast.error("Oops!", {
-        description: error?.response?.data?.message ?? "No se pudo asociar la Orden de Trabajo al componente...",
+        description:
+          error?.response?.data?.message ??
+          "No se pudo asociar la Orden de Trabajo al componente...",
       });
       console.log(error);
     },
@@ -171,20 +223,37 @@ export const useCreateComponentCompliance = () => {
   const queryClient = useQueryClient();
 
   const createMutation = useMutation({
-    mutationFn: async ({ data, company }: { data: CreateComponentComplianceData; company: string }) => {
+    mutationFn: async ({
+      data,
+      company,
+    }: {
+      data: CreateComponentComplianceData;
+      company: string;
+    }) => {
       await axiosInstance.post(`/${company}/component-compliances`, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["component-control"], exact: false });
-      queryClient.invalidateQueries({ queryKey: ["component-controls"], exact: false });
-      queryClient.invalidateQueries({ queryKey: ["component-compliances"], exact: false });
+      invalidatePlanificationAudit(queryClient);
+      queryClient.invalidateQueries({
+        queryKey: ["component-control"],
+        exact: false,
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["component-controls"],
+        exact: false,
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["component-compliances"],
+        exact: false,
+      });
       toast.success("¡Registrado!", {
         description: "El cumplimiento del componente quedó registrado.",
       });
     },
     onError: (error: any) => {
       toast.error("Oops!", {
-        description: firstBackendError(error) || "No se pudo registrar el cumplimiento...",
+        description:
+          firstBackendError(error) || "No se pudo registrar el cumplimiento...",
       });
       console.log(error);
     },

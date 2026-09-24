@@ -10,7 +10,11 @@ import { ManualRowActions } from "./_components/ManualRowActions";
 
 // Los filtros facetados entregan un arreglo de valores seleccionados; sin esto
 // TanStack compara el arreglo contra el valor de la celda y nunca coincide.
-const includesSome: AppFilterFn<CatalogManual> = (row, columnId, filterValue: string[]) => {
+const includesSome: AppFilterFn<CatalogManual> = (
+  row,
+  columnId,
+  filterValue: string[],
+) => {
   if (!filterValue?.length) return true;
   return filterValue.includes(String(row.getValue(columnId)));
 };
@@ -20,7 +24,11 @@ const includesSome: AppFilterFn<CatalogManual> = (row, columnId, filterValue: st
  * sobre los valores de celda no encuentra "vigente". El buscador se arma sobre
  * el texto que el usuario ve, igual que en servicios.
  */
-export const manualGlobalFilter: AppFilterFn<CatalogManual> = (row, _columnId, filterValue: string) => {
+export const manualGlobalFilter: AppFilterFn<CatalogManual> = (
+  row,
+  _columnId,
+  filterValue: string,
+) => {
   const term = filterValue.trim().toLowerCase();
   if (!term) return true;
 
@@ -39,16 +47,24 @@ export const manualGlobalFilter: AppFilterFn<CatalogManual> = (row, _columnId, f
 export const columns: AppColumnDef<CatalogManual>[] = [
   {
     accessorKey: "name",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Nombre" />,
-    cell: ({ row }) => <p className="text-center font-medium">{row.original.name}</p>,
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Nombre" />
+    ),
+    cell: ({ row }) => (
+      <p className="text-center font-medium">{row.original.name}</p>
+    ),
   },
   {
     accessorKey: "status",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Estado" />,
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Estado" />
+    ),
     filterFn: includesSome,
     cell: ({ row }) => (
       <div className="flex justify-center">
-        <Badge variant={row.original.status === "ACTIVE" ? "default" : "secondary"}>
+        <Badge
+          variant={row.original.status === "ACTIVE" ? "default" : "secondary"}
+        >
           {STATUS_LABELS[row.original.status]}
         </Badge>
       </div>
@@ -56,25 +72,35 @@ export const columns: AppColumnDef<CatalogManual>[] = [
   },
   {
     accessorKey: "manual_code",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Código" />,
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Código" />
+    ),
     cell: ({ row }) => (
       <div className="text-center">
-        {row.original.manual_code || <span className="text-muted-foreground">—</span>}
+        {row.original.manual_code || (
+          <span className="text-muted-foreground">—</span>
+        )}
       </div>
     ),
   },
   {
     accessorKey: "revision",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Revisión" />,
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Revisión" />
+    ),
     cell: ({ row }) => (
       <div className="text-center">
-        {row.original.revision || <span className="text-muted-foreground">—</span>}
+        {row.original.revision || (
+          <span className="text-muted-foreground">—</span>
+        )}
       </div>
     ),
   },
   {
     accessorKey: "effective_date",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Vigente desde" />,
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Vigente desde" />
+    ),
     // Columna `date`: fecha de calendario, nunca se convierte de zona.
     cell: ({ row }) => (
       <div className="text-center">
@@ -84,8 +110,12 @@ export const columns: AppColumnDef<CatalogManual>[] = [
   },
   {
     accessorKey: "services_count",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Servicios" />,
-    cell: ({ row }) => <div className="text-center">{row.original.services_count ?? 0}</div>,
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Servicios" />
+    ),
+    cell: ({ row }) => (
+      <div className="text-center">{row.original.services_count ?? 0}</div>
+    ),
   },
   // Columna solo-filtro: se oculta desde el estado de la tabla (ver data-table).
   {

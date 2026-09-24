@@ -2,7 +2,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ClipboardList, Eye, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import {
+  ClipboardList,
+  Eye,
+  MoreHorizontal,
+  Pencil,
+  Trash2,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -21,7 +27,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { ServiceDialog } from "@/components/dialogs/mantenimiento/catalogo/ServiceDialog";
 import { useDeleteCatalogService } from "@/actions/mantenimiento/catalogo/servicios/actions";
 import { useAuth } from "@/contexts/AuthContext";
@@ -29,9 +40,16 @@ import { CatalogService } from "@/types/maintenanceCatalog";
 
 const itemBase =
   "group relative flex items-center justify-center size-9 rounded-xl transition-all duration-200 ease-out hover:bg-muted hover:shadow-sm active:scale-95";
-const iconBase = "size-[18px] transition-all duration-200 ease-out group-hover:scale-110";
+const iconBase =
+  "size-[18px] transition-all duration-200 ease-out group-hover:scale-110";
 
-export function ServiceRowActions({ service, company }: { service: CatalogService; company: string }) {
+export function ServiceRowActions({
+  service,
+  company,
+}: {
+  service: CatalogService;
+  company: string;
+}) {
   const { user } = useAuth();
   const { deleteCatalogService } = useDeleteCatalogService();
   const [openDropdown, setOpenDropdown] = useState(false);
@@ -105,7 +123,10 @@ export function ServiceRowActions({ service, company }: { service: CatalogServic
             <Tooltip>
               <TooltipTrigger asChild>
                 <span>
-                  <DropdownMenuItem asChild className="p-0 focus:bg-transparent">
+                  <DropdownMenuItem
+                    asChild
+                    className="p-0 focus:bg-transparent"
+                  >
                     <button
                       onClick={() => {
                         setOpenDropdown(false);
@@ -124,23 +145,32 @@ export function ServiceRowActions({ service, company }: { service: CatalogServic
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <ServiceDialog open={openEdit} onOpenChange={setOpenEdit} service={service} />
+      <ServiceDialog
+        open={openEdit}
+        onOpenChange={setOpenEdit}
+        service={service}
+      />
 
       <AlertDialog open={openDelete} onOpenChange={setOpenDelete}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>¿Eliminar este servicio/certificado?</AlertDialogTitle>
+            <AlertDialogTitle>
+              ¿Eliminar este servicio/certificado?
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              Se eliminará &quot;{service.name}&quot; con sus tareas y requisitos. Si ya se usó en un Control de
-              Mantenimiento o una Orden de Trabajo, el sistema lo rechazará: en ese caso márquelo como superado.
-              Esta acción no se puede deshacer.
+              Se eliminará &quot;{service.name}&quot; con sus tareas y
+              requisitos. Si ya se usó en un Control de Mantenimiento o una
+              Orden de Trabajo, el sistema lo rechazará: en ese caso márquelo
+              como superado. Esta acción no se puede deshacer.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={() => deleteCatalogService.mutate({ id: service.id, company })}
+              onClick={() =>
+                deleteCatalogService.mutate({ id: service.id, company })
+              }
             >
               Eliminar
             </AlertDialogAction>

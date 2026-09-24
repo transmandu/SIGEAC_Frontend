@@ -1,7 +1,18 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Check, ChevronsUpDown, Eye, EyeOff, Loader2, Plus, ShieldCheck, Trash2, UserX, Users } from "lucide-react";
+import {
+  Check,
+  ChevronsUpDown,
+  Eye,
+  EyeOff,
+  Loader2,
+  Plus,
+  ShieldCheck,
+  Trash2,
+  UserX,
+  Users,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
@@ -20,8 +31,17 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   selectTriggerClass,
@@ -34,7 +54,11 @@ import {
   useCreateCalendarVisibilityRule,
   useDeleteCalendarVisibilityRule,
 } from "@/actions/general/calendario/actions";
-import { CalendarVisibilityDefault, CalendarVisibilityGrantType, CalendarVisibilityRule } from "@/types";
+import {
+  CalendarVisibilityDefault,
+  CalendarVisibilityGrantType,
+  CalendarVisibilityRule,
+} from "@/types";
 
 const GRANT_LABELS: Record<CalendarVisibilityGrantType, string> = {
   DEPARTMENT: "Departamento",
@@ -51,25 +75,36 @@ const GRANT_LABELS: Record<CalendarVisibilityGrantType, string> = {
  * valor lo declara cada provider en el backend (visibilityDefault), no se
  * adivina acá por la clave de la fuente.
  */
-const DEFAULT_META: Record<CalendarVisibilityDefault, { icon: typeof Eye; label: string; className: string }> = {
+const DEFAULT_META: Record<
+  CalendarVisibilityDefault,
+  { icon: typeof Eye; label: string; className: string }
+> = {
   deny: {
     icon: EyeOff,
-    label: "Sin reglas, solo el SUPERUSER lo ve. Cada regla que agregues ABRE el acceso.",
-    className: "border-amber-500/40 bg-amber-500/5 text-amber-700 dark:text-amber-400",
+    label:
+      "Sin reglas, solo el SUPERUSER lo ve. Cada regla que agregues ABRE el acceso.",
+    className:
+      "border-amber-500/40 bg-amber-500/5 text-amber-700 dark:text-amber-400",
   },
   allow: {
     icon: Eye,
-    label: "Sin reglas, lo ve TODO EL MUNDO. La primera regla que agregues lo restringe a quien nombres.",
-    className: "border-blue-500/40 bg-blue-500/5 text-blue-700 dark:text-blue-400",
+    label:
+      "Sin reglas, lo ve TODO EL MUNDO. La primera regla que agregues lo restringe a quien nombres.",
+    className:
+      "border-blue-500/40 bg-blue-500/5 text-blue-700 dark:text-blue-400",
   },
   own: {
     icon: ShieldCheck,
     label: "Esta fuente decide sola quién la ve.",
-    className: "border-slate-400/40 bg-background/40 text-muted-foreground dark:border-slate-600/40",
+    className:
+      "border-slate-400/40 bg-background/40 text-muted-foreground dark:border-slate-600/40",
   },
 };
 
-const NEEDS_DEPARTMENT: CalendarVisibilityGrantType[] = ["DEPARTMENT", "DEPARTMENT_TREE"];
+const NEEDS_DEPARTMENT: CalendarVisibilityGrantType[] = [
+  "DEPARTMENT",
+  "DEPARTMENT_TREE",
+];
 const NEEDS_USER: CalendarVisibilityGrantType[] = ["USER", "EXCLUDE_USER"];
 
 interface VisibilityRulesEditorProps {
@@ -91,7 +126,8 @@ export function VisibilityRulesEditor({
   visibilityDefault,
   hint,
 }: VisibilityRulesEditorProps) {
-  const [grantType, setGrantType] = useState<CalendarVisibilityGrantType>("DEPARTMENT");
+  const [grantType, setGrantType] =
+    useState<CalendarVisibilityGrantType>("DEPARTMENT");
   const [departmentId, setDepartmentId] = useState<string>("");
   const [userSearchOpen, setUserSearchOpen] = useState(false);
   const [userId, setUserId] = useState<number | undefined>();
@@ -101,7 +137,10 @@ export function VisibilityRulesEditor({
   const { createCalendarVisibilityRule } = useCreateCalendarVisibilityRule();
   const { deleteCalendarVisibilityRule } = useDeleteCalendarVisibilityRule();
 
-  const selectedUser = useMemo(() => users.find((u) => u.id === userId), [users, userId]);
+  const selectedUser = useMemo(
+    () => users.find((u) => u.id === userId),
+    [users, userId],
+  );
 
   const canSubmit =
     grantType === "ALL" ||
@@ -119,7 +158,9 @@ export function VisibilityRulesEditor({
           source_key: subject.sourceKey,
           calendar_event_id: subject.calendarEventId,
           grant_type: grantType,
-          department_id: NEEDS_DEPARTMENT.includes(grantType) ? Number(departmentId) : undefined,
+          department_id: NEEDS_DEPARTMENT.includes(grantType)
+            ? Number(departmentId)
+            : undefined,
           user_id: NEEDS_USER.includes(grantType) ? userId : undefined,
         },
       },
@@ -134,12 +175,15 @@ export function VisibilityRulesEditor({
 
   const describeRule = (rule: CalendarVisibilityRule) => {
     if (rule.grant_type === "ALL") return "Todos los usuarios";
-    if (rule.grant_type === "DEPARTMENT") return rule.department?.name ?? `Departamento #${rule.department_id}`;
+    if (rule.grant_type === "DEPARTMENT")
+      return rule.department?.name ?? `Departamento #${rule.department_id}`;
     if (rule.grant_type === "DEPARTMENT_TREE") {
       return `${rule.department?.name ?? `Departamento #${rule.department_id}`} y su árbol`;
     }
     const user = users.find((u) => u.id === rule.user_id);
-    return user ? `${user.first_name} ${user.last_name} (${user.username})` : `Usuario #${rule.user_id}`;
+    return user
+      ? `${user.first_name} ${user.last_name} (${user.username})`
+      : `Usuario #${rule.user_id}`;
   };
 
   const defaultMeta = DEFAULT_META[visibilityDefault];
@@ -161,22 +205,33 @@ export function VisibilityRulesEditor({
       </div>
 
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
-        <Select value={grantType} onValueChange={(value) => setGrantType(value as CalendarVisibilityGrantType)}>
-          <SelectTrigger className={cn(selectTriggerClass, "h-9 min-w-0 text-sm")}>
+        <Select
+          value={grantType}
+          onValueChange={(value) =>
+            setGrantType(value as CalendarVisibilityGrantType)
+          }
+        >
+          <SelectTrigger
+            className={cn(selectTriggerClass, "h-9 min-w-0 text-sm")}
+          >
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {(Object.keys(GRANT_LABELS) as CalendarVisibilityGrantType[]).map((key) => (
-              <SelectItem key={key} value={key}>
-                {GRANT_LABELS[key]}
-              </SelectItem>
-            ))}
+            {(Object.keys(GRANT_LABELS) as CalendarVisibilityGrantType[]).map(
+              (key) => (
+                <SelectItem key={key} value={key}>
+                  {GRANT_LABELS[key]}
+                </SelectItem>
+              ),
+            )}
           </SelectContent>
         </Select>
 
         {NEEDS_DEPARTMENT.includes(grantType) && (
           <Select value={departmentId} onValueChange={setDepartmentId}>
-            <SelectTrigger className={cn(selectTriggerClass, "h-9 min-w-0 text-sm")}>
+            <SelectTrigger
+              className={cn(selectTriggerClass, "h-9 min-w-0 text-sm")}
+            >
               <SelectValue placeholder="Selecciona un departamento" />
             </SelectTrigger>
             <SelectContent>
@@ -192,9 +247,15 @@ export function VisibilityRulesEditor({
         {NEEDS_USER.includes(grantType) && (
           <Popover open={userSearchOpen} onOpenChange={setUserSearchOpen}>
             <PopoverTrigger asChild>
-              <Button type="button" variant="outline" className={cn(triggerButtonClass, "h-9 min-w-0 text-sm")}>
+              <Button
+                type="button"
+                variant="outline"
+                className={cn(triggerButtonClass, "h-9 min-w-0 text-sm")}
+              >
                 <span className="truncate">
-                  {selectedUser ? `${selectedUser.first_name} ${selectedUser.last_name}` : "Buscar usuario..."}
+                  {selectedUser
+                    ? `${selectedUser.first_name} ${selectedUser.last_name}`
+                    : "Buscar usuario..."}
                 </span>
                 <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
               </Button>
@@ -214,7 +275,12 @@ export function VisibilityRulesEditor({
                           setUserSearchOpen(false);
                         }}
                       >
-                        <Check className={cn("mr-2 size-4", userId === user.id ? "opacity-100" : "opacity-0")} />
+                        <Check
+                          className={cn(
+                            "mr-2 size-4",
+                            userId === user.id ? "opacity-100" : "opacity-0",
+                          )}
+                        />
                         {user.first_name} {user.last_name} ({user.username})
                       </CommandItem>
                     ))}
@@ -249,7 +315,9 @@ export function VisibilityRulesEditor({
         ) : rules.length === 0 ? (
           <div className="flex flex-col items-center gap-1.5 rounded-lg border border-dashed border-slate-400/40 py-6 text-center dark:border-slate-600/40">
             <Users className="size-5 text-muted-foreground/60" />
-            <p className="text-xs text-muted-foreground">Sin reglas configuradas todavía.</p>
+            <p className="text-xs text-muted-foreground">
+              Sin reglas configuradas todavía.
+            </p>
           </div>
         ) : (
           rules.map((rule) => (
@@ -264,7 +332,9 @@ export function VisibilityRulesEditor({
               )}
             >
               <div className="flex min-w-0 items-center gap-2">
-                {rule.grant_type === "EXCLUDE_USER" && <UserX className="size-3.5 shrink-0 text-destructive" />}
+                {rule.grant_type === "EXCLUDE_USER" && (
+                  <UserX className="size-3.5 shrink-0 text-destructive" />
+                )}
                 <span className="shrink-0 text-xs font-medium text-muted-foreground">
                   {GRANT_LABELS[rule.grant_type]}:
                 </span>
@@ -279,7 +349,12 @@ export function VisibilityRulesEditor({
                       size="icon"
                       variant="ghost"
                       className="size-7 shrink-0 text-muted-foreground hover:text-destructive"
-                      onClick={() => deleteCalendarVisibilityRule.mutate({ id: rule.id, company })}
+                      onClick={() =>
+                        deleteCalendarVisibilityRule.mutate({
+                          id: rule.id,
+                          company,
+                        })
+                      }
                     >
                       <Trash2 className="size-3.5" />
                     </Button>

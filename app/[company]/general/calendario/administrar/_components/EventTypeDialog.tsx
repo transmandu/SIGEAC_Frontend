@@ -7,11 +7,7 @@ import { z } from "zod";
 import { Loader2, Palette } from "lucide-react";
 
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogFooter } from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -21,10 +17,18 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { fieldClass, labelClass, SectionTitle } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
+import {
+  fieldClass,
+  labelClass,
+  SectionTitle,
+} from "@/components/forms/mantenimiento/almacen/_components/form-theme";
 import { cn } from "@/lib/utils";
 import { CalendarEventType } from "@/types";
-import { CalendarEventTypeData, useCreateCalendarEventType, useUpdateCalendarEventType } from "@/actions/general/calendario/actions";
+import {
+  CalendarEventTypeData,
+  useCreateCalendarEventType,
+  useUpdateCalendarEventType,
+} from "@/actions/general/calendario/actions";
 
 const formSchema = z.object({
   label: z.string().min(1, "Ingrese un nombre"),
@@ -39,7 +43,12 @@ interface EventTypeDialogProps {
   eventType?: CalendarEventType;
 }
 
-export function EventTypeDialog({ open, onOpenChange, company, eventType }: EventTypeDialogProps) {
+export function EventTypeDialog({
+  open,
+  onOpenChange,
+  company,
+  eventType,
+}: EventTypeDialogProps) {
   const { createCalendarEventType } = useCreateCalendarEventType();
   const { updateCalendarEventType } = useUpdateCalendarEventType();
 
@@ -57,15 +66,26 @@ export function EventTypeDialog({ open, onOpenChange, company, eventType }: Even
     });
   }, [open, eventType, form]);
 
-  const isPending = createCalendarEventType.isPending || updateCalendarEventType.isPending;
+  const isPending =
+    createCalendarEventType.isPending || updateCalendarEventType.isPending;
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    const data: CalendarEventTypeData = { label: values.label, color: values.color, icon: values.icon || undefined };
+    const data: CalendarEventTypeData = {
+      label: values.label,
+      color: values.color,
+      icon: values.icon || undefined,
+    };
 
     if (eventType) {
-      updateCalendarEventType.mutate({ id: eventType.id, company, data }, { onSuccess: () => onOpenChange(false) });
+      updateCalendarEventType.mutate(
+        { id: eventType.id, company, data },
+        { onSuccess: () => onOpenChange(false) },
+      );
     } else {
-      createCalendarEventType.mutate({ company, data }, { onSuccess: () => onOpenChange(false) });
+      createCalendarEventType.mutate(
+        { company, data },
+        { onSuccess: () => onOpenChange(false) },
+      );
     }
   };
 
@@ -77,10 +97,16 @@ export function EventTypeDialog({ open, onOpenChange, company, eventType }: Even
           "backdrop-blur-xl dark:border-slate-600/50",
         )}
       >
-        <SectionTitle icon={Palette} title={eventType ? "Editar Tipo de Evento" : "Nuevo Tipo de Evento"} />
+        <SectionTitle
+          icon={Palette}
+          title={eventType ? "Editar Tipo de Evento" : "Nuevo Tipo de Evento"}
+        />
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="flex flex-col gap-4"
+          >
             <FormField
               control={form.control}
               name="label"
@@ -88,7 +114,11 @@ export function EventTypeDialog({ open, onOpenChange, company, eventType }: Even
                 <FormItem>
                   <FormLabel className={labelClass}>Nombre</FormLabel>
                   <FormControl>
-                    <Input placeholder="Ej: Vencimientos" className={fieldClass} {...field} />
+                    <Input
+                      placeholder="Ej: Vencimientos"
+                      className={fieldClass}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -103,8 +133,16 @@ export function EventTypeDialog({ open, onOpenChange, company, eventType }: Even
                   <FormLabel className={labelClass}>Color</FormLabel>
                   <FormControl>
                     <div className="flex items-center gap-2">
-                      <Input type="color" className={cn(fieldClass, "h-11 w-14 p-1")} {...field} />
-                      <Input placeholder="#6b7280" className={fieldClass} {...field} />
+                      <Input
+                        type="color"
+                        className={cn(fieldClass, "h-11 w-14 p-1")}
+                        {...field}
+                      />
+                      <Input
+                        placeholder="#6b7280"
+                        className={fieldClass}
+                        {...field}
+                      />
                     </div>
                   </FormControl>
                   <FormMessage />

@@ -1,6 +1,6 @@
-import axios from '@/lib/axios';
-import { CatalogManual, CatalogStatus } from '@/types/maintenanceCatalog';
-import { useQuery } from '@tanstack/react-query';
+import axios from "@/lib/axios";
+import { CatalogManual, CatalogStatus } from "@/types/maintenanceCatalog";
+import { useQuery } from "@tanstack/react-query";
 
 type Filters = {
   status?: CatalogStatus;
@@ -18,9 +18,17 @@ const fetchCatalogManuals = async (
   return data;
 };
 
-export const useGetCatalogManuals = (company: string | undefined, filters: Filters = {}) => {
+export const useGetCatalogManuals = (
+  company: string | undefined,
+  filters: Filters = {},
+) => {
   return useQuery<CatalogManual[], Error>({
-    queryKey: ["maintenance-catalog-manuals", company, filters.status ?? null, filters.aircraftId ?? null],
+    queryKey: [
+      "maintenance-catalog-manuals",
+      company,
+      filters.status ?? null,
+      filters.aircraftId ?? null,
+    ],
     queryFn: () => fetchCatalogManuals(company, filters),
     enabled: !!company,
   });

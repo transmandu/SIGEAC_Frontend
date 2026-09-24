@@ -37,7 +37,8 @@ const TONE_COPY = {
     empty: "Sin artículos retenidos",
   },
   maintenance: {
-    summary: (n: number) => `${n} vencimiento${n === 1 ? "" : "s"} de mantenimiento`,
+    summary: (n: number) =>
+      `${n} vencimiento${n === 1 ? "" : "s"} de mantenimiento`,
     short: (n: number) => `${n} de mantenimiento`,
     empty: "Sin vencimientos de mantenimiento",
   },

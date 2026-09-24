@@ -1,7 +1,18 @@
 "use client";
 
+import {
+  EditReasonFields,
+  EditReasonValue,
+  editReasonErrorFrom,
+} from "@/components/forms/mantenimiento/planificacion/EditReasonFields";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
-import { useForm, useFieldArray, useWatch, useFormContext, Control } from "react-hook-form";
+import {
+  useForm,
+  useFieldArray,
+  useWatch,
+  useFormContext,
+  Control,
+} from "react-hook-form";
 import { zodResolver } from "@/lib/zod-resolver";
 import { z } from "zod";
 import { format, parseISO } from "date-fns";
@@ -16,7 +27,12 @@ import {
   Wrench,
   X,
 } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useRouter } from "next/navigation";
 
 import { Badge } from "@/components/ui/badge";
@@ -81,7 +97,11 @@ const optionalNumeric = z.preprocess(
 // Vacío = hereda el porcentaje general del control, no 0%.
 const optionalPercentage = z.preprocess(
   (val) => (val === "" || val === undefined || val === null ? undefined : val),
-  z.coerce.number().min(0, "Debe ser ≥ 0").max(100, "Debe ser ≤ 100").optional(),
+  z.coerce
+    .number()
+    .min(0, "Debe ser ≥ 0")
+    .max(100, "Debe ser ≤ 100")
+    .optional(),
 );
 
 // Un intervalo de vencimiento (unidad + límite + lectura inicial). N por
@@ -136,7 +156,10 @@ const formSchema = z
     // Manual del catálogo que llenó reference_manual, si se eligió uno en vez
     // de tipearlo a mano; el catálogo ayuda a llenar, nunca obliga.
     maintenance_catalog_manual_id: z.number().optional(),
-    remaining_percentage: z.coerce.number().min(0, "Debe ser ≥ 0").max(100, "Debe ser ≤ 100"),
+    remaining_percentage: z.coerce
+      .number()
+      .min(0, "Debe ser ≥ 0")
+      .max(100, "Debe ser ≤ 100"),
     certificates: z.array(certificateSchema).default([]),
     services: z.array(itemSchema).default([]),
     selected_part_ids: z.array(z.string()).default([]),
@@ -152,7 +175,9 @@ const formSchema = z
     }
 
     vals.selected_part_ids.forEach((partId) => {
-      const hasService = vals.part_services.some((s) => s.aircraft_part_id === partId);
+      const hasService = vals.part_services.some(
+        (s) => s.aircraft_part_id === partId,
+      );
       if (!hasService) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
@@ -172,11 +197,21 @@ const formSchema = z
         const seenMethods = new Set<string>();
 
         item.intervals.forEach((interval, intervalIndex) => {
-          if (interval.counting_method !== "DAYS" && interval.initial_value === undefined) {
+          if (
+            interval.counting_method !== "DAYS" &&
+            interval.initial_value === undefined
+          ) {
             ctx.addIssue({
               code: z.ZodIssueCode.custom,
-              message: "Indique las horas/ciclos que tenía la aeronave en la primera aplicación",
-              path: [...basePath, index, "intervals", intervalIndex, "initial_value"],
+              message:
+                "Indique las horas/ciclos que tenía la aeronave en la primera aplicación",
+              path: [
+                ...basePath,
+                index,
+                "intervals",
+                intervalIndex,
+                "initial_value",
+              ],
             });
           }
 
@@ -184,7 +219,13 @@ const formSchema = z
             ctx.addIssue({
               code: z.ZodIssueCode.custom,
               message: "No puede repetir la misma unidad en dos intervalos",
-              path: [...basePath, index, "intervals", intervalIndex, "counting_method"],
+              path: [
+                ...basePath,
+                index,
+                "intervals",
+                intervalIndex,
+                "counting_method",
+              ],
             });
           }
           seenMethods.add(interval.counting_method);
@@ -202,10 +243,9 @@ type FormValues = z.infer<typeof formSchema>;
 // Nace con la primera unidad que no esté ya usada en el ítem — nunca "HOURS"
 // a ciegas, que ya estaría tomado si el intervalo anterior también la usa.
 const emptyInterval = (usedMethods: string[] = []) => ({
-  counting_method: (ALL_COUNTING_METHODS.find((m) => !usedMethods.includes(m)) ?? "HOURS") as
-    | "HOURS"
-    | "CYCLES"
-    | "DAYS",
+  counting_method: (ALL_COUNTING_METHODS.find(
+    (m) => !usedMethods.includes(m),
+  ) ?? "HOURS") as "HOURS" | "CYCLES" | "DAYS",
   limit_value: undefined as unknown as number,
 });
 
@@ -242,7 +282,10 @@ function ItemRowsHeader() {
   return (
     <div className={cn(ITEM_ROW_GRID, "px-1")}>
       {ITEM_ROW_LABELS.map((label) => (
-        <span key={label} className="truncate text-[11px] font-medium uppercase tracking-wide text-muted-foreground/70">
+        <span
+          key={label}
+          className="truncate text-[11px] font-medium uppercase tracking-wide text-muted-foreground/70"
+        >
           {label}
         </span>
       ))}
@@ -256,14 +299,23 @@ function ItemRowsHeader() {
  * el encabezado de la lista. */
 function CompactPlaceholder() {
   return (
-    <div className={cn(fieldClass, "flex items-center justify-center text-sm text-muted-foreground/40 shadow-none")}>
+    <div
+      className={cn(
+        fieldClass,
+        "flex items-center justify-center text-sm text-muted-foreground/40 shadow-none",
+      )}
+    >
       —
     </div>
   );
 }
 
 const ALL_COUNTING_METHODS = ["HOURS", "CYCLES", "DAYS"] as const;
-const COUNTING_METHOD_LABEL: Record<string, string> = { HOURS: "Horas", CYCLES: "Ciclos", DAYS: "Días" };
+const COUNTING_METHOD_LABEL: Record<string, string> = {
+  HOURS: "Horas",
+  CYCLES: "Ciclos",
+  DAYS: "Días",
+};
 
 /**
  * Una fila de intervalo dentro de un ítem. La primera (index 0) comparte fila
@@ -280,7 +332,10 @@ function IntervalFields({
   namePrefix: string;
   usedMethods: string[];
 }) {
-  const countingMethod = useWatch({ control, name: `${namePrefix}.counting_method` });
+  const countingMethod = useWatch({
+    control,
+    name: `${namePrefix}.counting_method`,
+  });
   const needsInitialReading = countingMethod && countingMethod !== "DAYS";
   const availableMethods = ALL_COUNTING_METHODS.filter(
     (unit) => unit === countingMethod || !usedMethods.includes(unit),
@@ -293,7 +348,10 @@ function IntervalFields({
         name={`${namePrefix}.counting_method`}
         render={({ field }) => (
           <FormItem className="space-y-0">
-            <Select onValueChange={field.onChange} value={field.value || undefined}>
+            <Select
+              onValueChange={field.onChange}
+              value={field.value || undefined}
+            >
               <FormControl>
                 <SelectTrigger className={selectTriggerClass}>
                   <SelectValue placeholder="Unidad" />
@@ -390,7 +448,9 @@ function ItemRow({
     counting_method: string;
     initial_value?: number;
   }[];
-  const usedMethods = (intervals ?? []).map((i) => i.counting_method).filter(Boolean);
+  const usedMethods = (intervals ?? [])
+    .map((i) => i.counting_method)
+    .filter(Boolean);
   const canAddInterval = intervalFields.length < ALL_COUNTING_METHODS.length;
 
   // La X de cada fila siempre quita SOLO ese intervalo — salvo que sea el
@@ -414,7 +474,11 @@ function ItemRow({
             render={({ field }) => (
               <FormItem className="w-full space-y-0">
                 <FormControl>
-                  <Input placeholder="EJ: Certificado de Aeronavegabilidad" className={fieldClass} {...field} />
+                  <Input
+                    placeholder="EJ: Certificado de Aeronavegabilidad"
+                    className={fieldClass}
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -426,15 +490,23 @@ function ItemRow({
             manualId={manualId}
             manualName={manualName}
             onSelectService={(service) => {
-              setValue(`${namePrefix}.name` as any, service.name, { shouldValidate: true });
-              setValue(`${namePrefix}.maintenance_catalog_service_id` as any, service.id);
+              setValue(`${namePrefix}.name` as any, service.name, {
+                shouldValidate: true,
+              });
+              setValue(
+                `${namePrefix}.maintenance_catalog_service_id` as any,
+                service.id,
+              );
               if (service.intervals?.length) {
                 // El catálogo aporta la periodicidad (unidad + límite), nunca
                 // la lectura inicial: esa es de ESTE ítem en ESTA aeronave. Se
                 // conserva la que el usuario ya hubiera cargado para la misma
                 // unidad, en vez de borrarla y dejar el formulario inválido.
                 const previousByMethod = new Map(
-                  (intervals ?? []).map((interval) => [interval.counting_method, interval.initial_value]),
+                  (intervals ?? []).map((interval) => [
+                    interval.counting_method,
+                    interval.initial_value,
+                  ]),
                 );
 
                 // replaceIntervals (no setValue): el array lo gobierna
@@ -444,7 +516,9 @@ function ItemRow({
                   service.intervals.map((interval) => ({
                     counting_method: interval.counting_method,
                     limit_value: interval.interval_value,
-                    initial_value: previousByMethod.get(interval.counting_method),
+                    initial_value: previousByMethod.get(
+                      interval.counting_method,
+                    ),
                   })),
                 );
               }
@@ -452,9 +526,16 @@ function ItemRow({
           />
         </div>
 
-        <IntervalFields control={control} namePrefix={`${namePrefix}.intervals.0`} usedMethods={usedMethods} />
+        <IntervalFields
+          control={control}
+          namePrefix={`${namePrefix}.intervals.0`}
+          usedMethods={usedMethods}
+        />
 
-        <CompactDateField control={control} name={`${namePrefix}.first_applied_date`} />
+        <CompactDateField
+          control={control}
+          name={`${namePrefix}.first_applied_date`}
+        />
 
         <FormField
           control={control}
@@ -465,7 +546,9 @@ function ItemRow({
                 <div className="relative">
                   <NumericInput
                     className={cn(fieldClass, "pr-6")}
-                    placeholder={controlPercentage != null ? String(controlPercentage) : ""}
+                    placeholder={
+                      controlPercentage != null ? String(controlPercentage) : ""
+                    }
                     value={field.value}
                     onChange={field.onChange}
                     onBlur={field.onBlur}
@@ -481,7 +564,10 @@ function ItemRow({
           )}
         />
 
-        <ProviderSelect control={control} name={`${namePrefix}.maintenance_provider_id`} />
+        <ProviderSelect
+          control={control}
+          name={`${namePrefix}.maintenance_provider_id`}
+        />
 
         <div className="flex items-center">
           <TooltipProvider disableHoverableContent>
@@ -513,7 +599,11 @@ function ItemRow({
             size="icon"
             onClick={() => removeIntervalRow(0)}
             aria-label={
-              intervalFields.length === 1 ? (name ? `Quitar ${name}` : "Quitar fila") : "Quitar este intervalo"
+              intervalFields.length === 1
+                ? name
+                  ? `Quitar ${name}`
+                  : "Quitar fila"
+                : "Quitar este intervalo"
             }
             className="h-11 w-8 shrink-0 text-muted-foreground/70 hover:text-destructive"
           >
@@ -646,7 +736,9 @@ function PartServiceRows({
           />
         ))}
       </div>
-      {rows.length === 0 && <p className={cn(hintClass, "italic")}>{emptyLabel}</p>}
+      {rows.length === 0 && (
+        <p className={cn(hintClass, "italic")}>{emptyLabel}</p>
+      )}
       <Button
         type="button"
         variant="outline"
@@ -664,24 +756,34 @@ function PartServiceRows({
 function PartsSection({ control }: { control: Control<any> }) {
   const { setValue } = useFormContext<FormValues>();
   const { selectedCompany } = useCompanyStore();
-  const { data: aircrafts, isLoading } = useGetMaintenanceAircrafts(selectedCompany?.slug);
-  const { fields, append, remove, replace } = useFieldArray({ control, name: "part_services" });
+  const { data: aircrafts, isLoading } = useGetMaintenanceAircrafts(
+    selectedCompany?.slug,
+  );
+  const { fields, append, remove, replace } = useFieldArray({
+    control,
+    name: "part_services",
+  });
 
   const aircraftId = useWatch({ control, name: "aircraft_id" }) as string;
-  const selectedPartIds = (useWatch({ control, name: "selected_part_ids" }) as string[]) ?? [];
+  const selectedPartIds =
+    (useWatch({ control, name: "selected_part_ids" }) as string[]) ?? [];
 
   // Las partes de una aeronave se obtienen de sus asignaciones activas
   // (aircraft_assignments), no de un campo aircraft_id en aircraft_parts.
   // Se ordenan siempre: motor, turbina, hélice, apu, otros.
   const availableParts = useMemo(() => {
-    const selectedAircraft = aircrafts?.find((a) => String(a.id) === aircraftId);
+    const selectedAircraft = aircrafts?.find(
+      (a) => String(a.id) === aircraftId,
+    );
     return (selectedAircraft?.aircraft_assignments ?? [])
       .map((assignment) => assignment.aircraft_part)
       .filter((part): part is MaintenanceAircraftPart => !!part?.id)
       .sort((a, b) => {
         const rankDiff = partTypeRank(a.type) - partTypeRank(b.type);
         if (rankDiff !== 0) return rankDiff;
-        return (a.part_name || a.part_number || "").localeCompare(b.part_name || b.part_number || "");
+        return (a.part_name || a.part_number || "").localeCompare(
+          b.part_name || b.part_number || "",
+        );
       });
   }, [aircrafts, aircraftId]);
 
@@ -704,7 +806,11 @@ function PartsSection({ control }: { control: Control<any> }) {
   // reindexa fields y una key posicional remonta los Popover/Select de Radix.
   const rowsForPart = (partId: string) =>
     fields
-      .map((field: any, index) => ({ id: field.id as string, partId: field.aircraft_part_id, index }))
+      .map((field: any, index) => ({
+        id: field.id as string,
+        partId: field.aircraft_part_id,
+        index,
+      }))
       .filter((row) => row.partId === partId);
 
   const togglePart = (part: MaintenanceAircraftPart) => {
@@ -726,7 +832,11 @@ function PartsSection({ control }: { control: Control<any> }) {
   };
 
   if (!aircraftId) {
-    return <p className={cn(hintClass, "italic")}>Seleccione primero una aeronave.</p>;
+    return (
+      <p className={cn(hintClass, "italic")}>
+        Seleccione primero una aeronave.
+      </p>
+    );
   }
 
   if (isLoading) {
@@ -734,7 +844,11 @@ function PartsSection({ control }: { control: Control<any> }) {
   }
 
   if (!availableParts.length) {
-    return <p className={cn(hintClass, "italic")}>Esta aeronave no tiene partes asignadas.</p>;
+    return (
+      <p className={cn(hintClass, "italic")}>
+        Esta aeronave no tiene partes asignadas.
+      </p>
+    );
   }
 
   return (
@@ -765,7 +879,9 @@ function PartsSection({ control }: { control: Control<any> }) {
               <span
                 className={cn(
                   "flex h-4 w-4 shrink-0 items-center justify-center rounded-sm border transition-colors",
-                  checked ? "border-primary bg-primary text-white" : "border-muted-foreground/40",
+                  checked
+                    ? "border-primary bg-primary text-white"
+                    : "border-muted-foreground/40",
                 )}
               >
                 {checked && <Check className="h-3 w-3" />}
@@ -774,7 +890,9 @@ function PartsSection({ control }: { control: Control<any> }) {
                 <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
                   {partTypeLabel(part.type)}
                 </span>
-                <span className="font-medium">{part.part_name || part.part_number}</span>
+                <span className="font-medium">
+                  {part.part_name || part.part_number}
+                </span>
               </span>
             </div>
           );
@@ -790,12 +908,16 @@ function PartsSection({ control }: { control: Control<any> }) {
               key={part.id}
               icon={Wrench}
               title={part.part_name || part.part_number}
-              action={<Badge variant="outline">{partTypeLabel(part.type)}</Badge>}
+              action={
+                <Badge variant="outline">{partTypeLabel(part.type)}</Badge>
+              }
             >
               <PartServiceRows
                 control={control}
                 rows={rowsForPart(partId)}
-                onAdd={() => append({ ...emptyServiceItem(), aircraft_part_id: partId })}
+                onAdd={() =>
+                  append({ ...emptyServiceItem(), aircraft_part_id: partId })
+                }
                 onRemove={(index) => remove(index)}
                 emptyLabel="Agregue al menos un servicio para esta parte."
               />
@@ -811,7 +933,9 @@ function PartsSection({ control }: { control: Control<any> }) {
  * editable a mano después) — el catálogo ayuda a llenar, nunca reemplaza el
  * texto libre, porque no todo manual real está cargado ahí todavía.
  */
-function mapToFormCertificate(item: NonNullable<MaintenanceControl["items"]>[number]) {
+function mapToFormCertificate(
+  item: NonNullable<MaintenanceControl["items"]>[number],
+) {
   return {
     id: item.id,
     name: item.name,
@@ -829,17 +953,24 @@ function mapToFormCertificate(item: NonNullable<MaintenanceControl["items"]>[num
           : undefined,
     })),
     remaining_percentage:
-      item.remaining_percentage !== null && item.remaining_percentage !== undefined
+      item.remaining_percentage !== null &&
+      item.remaining_percentage !== undefined
         ? Number(item.remaining_percentage)
         : undefined,
-    maintenance_provider_id: item.maintenance_provider_id ? String(item.maintenance_provider_id) : "",
+    maintenance_provider_id: item.maintenance_provider_id
+      ? String(item.maintenance_provider_id)
+      : "",
   };
 }
 
-function mapToFormService(item: NonNullable<MaintenanceControl["items"]>[number]) {
+function mapToFormService(
+  item: NonNullable<MaintenanceControl["items"]>[number],
+) {
   return {
     ...mapToFormCertificate(item),
-    maintenance_provider_id: item.maintenance_provider_id ? String(item.maintenance_provider_id) : "",
+    maintenance_provider_id: item.maintenance_provider_id
+      ? String(item.maintenance_provider_id)
+      : "",
   };
 }
 
@@ -860,7 +991,7 @@ const emptyFormValues: FormValues = {
 function buildDefaultValues(initialData?: MaintenanceControl): FormValues {
   if (!initialData) return emptyFormValues;
 
-  const items = initialData.items ?? [];
+  const items = (initialData.items ?? []).filter((i) => !i.retired_at);
   const parts = initialData.parts ?? [];
 
   return {
@@ -873,7 +1004,9 @@ function buildDefaultValues(initialData?: MaintenanceControl): FormValues {
       ? Number(initialData.maintenance_catalog_manual_id)
       : undefined,
     remaining_percentage: Number(initialData.remaining_percentage),
-    certificates: items.filter((i) => i.category === "CERTIFICATE").map(mapToFormCertificate),
+    certificates: items
+      .filter((i) => i.category === "CERTIFICATE")
+      .map(mapToFormCertificate),
     services: items
       .filter((i) => i.category === "SERVICE" && !i.maintenance_control_part_id)
       .map(mapToFormService),
@@ -884,19 +1017,33 @@ function buildDefaultValues(initialData?: MaintenanceControl): FormValues {
         // String(...) en ambos lados: el id puede llegar como number o
         // string según el campo, y === estricto entre tipos distintos
         // nunca matchea (por eso las partes se veían sin servicios).
-        const part = parts.find((p) => String(p.id) === String(i.maintenance_control_part_id));
-        return { ...mapToFormService(i), aircraft_part_id: part ? String(part.aircraft_part_id) : "" };
+        const part = parts.find(
+          (p) => String(p.id) === String(i.maintenance_control_part_id),
+        );
+        return {
+          ...mapToFormService(i),
+          aircraft_part_id: part ? String(part.aircraft_part_id) : "",
+        };
       }),
   };
 }
 
-export default function CreateMaintenanceControlForm({ initialData }: { initialData?: MaintenanceControl }) {
+export default function CreateMaintenanceControlForm({
+  initialData,
+}: {
+  initialData?: MaintenanceControl;
+}) {
   const router = useRouter();
   const { selectedCompany } = useCompanyStore();
   const isEditing = !!initialData;
+  const [reason, setReason] = useState<EditReasonValue>({});
+  const [reasonError, setReasonError] = useState<string>();
   const { createMaintenanceControl } = useCreateMaintenanceControl();
   const { updateMaintenanceControl } = useUpdateMaintenanceControl();
-  const { data: maintenanceControls } = useGetMaintenanceControls(selectedCompany?.slug);
+  const { data: maintenanceControls } = useGetMaintenanceControls(
+    selectedCompany?.slug,
+    true,
+  );
 
   // Una aeronave solo puede tener un control; se excluyen del selector las
   // que ya tienen uno, salvo la del control que se está editando.
@@ -912,13 +1059,18 @@ export default function CreateMaintenanceControlForm({ initialData }: { initialD
     resolver: zodResolver(formSchema),
     defaultValues: buildDefaultValues(initialData),
   });
+  // Leído en render: react-hook-form solo rastrea lo que se suscribe aquí.
+  const { isDirty } = form.formState;
 
   // Los subcomponentes de este archivo reciben `Control<any>` porque atienden
   // campos de varias formas; desde react-hook-form 7.87 el genérico es
   // invariante y el Control concreto ya no entra sin ensancharlo aquí.
   const control = form.control as unknown as Control<any>;
 
-  const hasReferenceManual = useWatch({ control, name: "has_reference_manual" });
+  const hasReferenceManual = useWatch({
+    control,
+    name: "has_reference_manual",
+  });
   const aircraftId = useWatch({ control, name: "aircraft_id" });
 
   const onSubmit = async (values: FormValues) => {
@@ -962,15 +1114,35 @@ export default function CreateMaintenanceControlForm({ initialData }: { initialD
     };
 
     if (isEditing) {
-      await updateMaintenanceControl.mutateAsync({ id: initialData.id, company: selectedCompany!.slug, data: payload });
+      if (isDirty && !reason.edit_reason) {
+        setReasonError("Indique el motivo de la corrección.");
+        return;
+      }
+
+      try {
+        await updateMaintenanceControl.mutateAsync({
+          id: initialData.id,
+          company: selectedCompany!.slug,
+          data: { ...payload, ...reason },
+        });
+      } catch (error) {
+        setReasonError(editReasonErrorFrom(error));
+        return;
+      }
     } else {
-      await createMaintenanceControl.mutateAsync({ company: selectedCompany!.slug, data: payload });
+      await createMaintenanceControl.mutateAsync({
+        company: selectedCompany!.slug,
+        data: payload,
+      });
     }
 
-    router.push(`/${selectedCompany!.slug}/planificacion/control_mantenimiento`);
+    router.push(
+      `/${selectedCompany!.slug}/planificacion/control_mantenimiento`,
+    );
   };
 
-  const isPending = createMaintenanceControl.isPending || updateMaintenanceControl.isPending;
+  const isPending =
+    createMaintenanceControl.isPending || updateMaintenanceControl.isPending;
 
   return (
     <Form {...form}>
@@ -980,7 +1152,10 @@ export default function CreateMaintenanceControlForm({ initialData }: { initialD
           // Enter dentro de un <input> envía el formulario nativamente
           // (equivalente a click en el botón submit); con tantos campos de
           // texto en el flujo, eso generaba un envío prematuro accidental.
-          if (e.key === "Enter" && (e.target as HTMLElement).tagName !== "TEXTAREA") {
+          if (
+            e.key === "Enter" &&
+            (e.target as HTMLElement).tagName !== "TEXTAREA"
+          ) {
             e.preventDefault();
           }
         }}
@@ -1006,7 +1181,11 @@ export default function CreateMaintenanceControlForm({ initialData }: { initialD
                 <FormItem className="w-full">
                   <FormLabel className={labelClass}>Título</FormLabel>
                   <FormControl>
-                    <Input placeholder="EJ: Control de Mantenimiento YV2272" className={fieldClass} {...field} />
+                    <Input
+                      placeholder="EJ: Control de Mantenimiento YV2272"
+                      className={fieldClass}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -1045,10 +1224,17 @@ export default function CreateMaintenanceControlForm({ initialData }: { initialD
               render={({ field }) => (
                 <FormItem className="w-full md:col-span-3">
                   <FormLabel className={labelClass}>
-                    Descripción <span className="text-muted-foreground text-xs">(Opcional)</span>
+                    Descripción{" "}
+                    <span className="text-muted-foreground text-xs">
+                      (Opcional)
+                    </span>
                   </FormLabel>
                   <FormControl>
-                    <Textarea placeholder="..." className={cn(fieldClass, "h-auto resize-none py-2")} {...field} />
+                    <Textarea
+                      placeholder="..."
+                      className={cn(fieldClass, "h-auto resize-none py-2")}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -1065,10 +1251,15 @@ export default function CreateMaintenanceControlForm({ initialData }: { initialD
                   )}
                 >
                   <FormControl>
-                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
                   </FormControl>
                   <div className="space-y-1 leading-none">
-                    <FormLabel className={labelClass}>¿Tiene manual de referencia?</FormLabel>
+                    <FormLabel className={labelClass}>
+                      ¿Tiene manual de referencia?
+                    </FormLabel>
                     <FormDescription className={hintClass}>
                       Indique si este control se basa en un manual específico.
                     </FormDescription>
@@ -1084,7 +1275,9 @@ export default function CreateMaintenanceControlForm({ initialData }: { initialD
                   name="reference_manual"
                   render={({ field }) => (
                     <FormItem className="w-full">
-                      <FormLabel className={labelClass}>Manual de Referencia</FormLabel>
+                      <FormLabel className={labelClass}>
+                        Manual de Referencia
+                      </FormLabel>
                       <FormControl>
                         <Input
                           placeholder="EJ: MAINTENANCE SCHEDULE REV. 5 DEL 15/MAY/2016"
@@ -1147,8 +1340,21 @@ export default function CreateMaintenanceControlForm({ initialData }: { initialD
             <p className="text-sm font-medium text-muted-foreground">
               Seleccione una aeronave para continuar
             </p>
-            <p className={hintClass}>Ahí se cargan sus certificados, servicios y partes.</p>
+            <p className={hintClass}>
+              Ahí se cargan sus certificados, servicios y partes.
+            </p>
           </div>
+        )}
+
+        {isEditing && (
+          <EditReasonFields
+            value={reason}
+            onChange={(value) => {
+              setReason(value);
+              setReasonError(undefined);
+            }}
+            error={reasonError}
+          />
         )}
 
         <Button
@@ -1159,7 +1365,9 @@ export default function CreateMaintenanceControlForm({ initialData }: { initialD
           {isPending ? (
             <Loader2 className="size-4 animate-spin" />
           ) : (
-            <p>{isEditing ? "Guardar Cambios" : "Crear Control de Mantenimiento"}</p>
+            <p>
+              {isEditing ? "Guardar Cambios" : "Crear Control de Mantenimiento"}
+            </p>
           )}
         </Button>
       </form>

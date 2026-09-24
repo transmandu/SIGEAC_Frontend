@@ -16,7 +16,11 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 
 export interface FilterOption {
@@ -46,14 +50,18 @@ export function DataTableFilterPopover<TData extends RowData>({
   className,
 }: DataTableFilterPopoverProps<TData>) {
   const active = groups.reduce(
-    (total, group) => total + ((group.column?.getFilterValue() as string[])?.length ?? 0),
+    (total, group) =>
+      total + ((group.column?.getFilterValue() as string[])?.length ?? 0),
     0,
   );
 
-  const clearAll = () => groups.forEach((group) => group.column?.setFilterValue(undefined));
+  const clearAll = () =>
+    groups.forEach((group) => group.column?.setFilterValue(undefined));
 
   const toggle = (group: FilterGroup<TData>, value: string) => {
-    const selected = new Set((group.column?.getFilterValue() as string[]) ?? []);
+    const selected = new Set(
+      (group.column?.getFilterValue() as string[]) ?? [],
+    );
     if (selected.has(value)) {
       selected.delete(value);
     } else {
@@ -84,7 +92,10 @@ export function DataTableFilterPopover<TData extends RowData>({
           {active > 0 && (
             <>
               <Separator orientation="vertical" className="mx-2 h-4" />
-              <Badge variant="secondary" className="rounded-sm px-1.5 font-normal">
+              <Badge
+                variant="secondary"
+                className="rounded-sm px-1.5 font-normal"
+              >
                 {active}
               </Badge>
             </>
@@ -99,7 +110,9 @@ export function DataTableFilterPopover<TData extends RowData>({
             <CommandEmpty>Sin coincidencias.</CommandEmpty>
 
             {groups.map((group, index) => {
-              const selected = new Set((group.column?.getFilterValue() as string[]) ?? []);
+              const selected = new Set(
+                (group.column?.getFilterValue() as string[]) ?? [],
+              );
 
               return (
                 <div key={group.title}>
@@ -125,7 +138,9 @@ export function DataTableFilterPopover<TData extends RowData>({
                             <CheckIcon className="size-4" aria-hidden="true" />
                           </div>
                           <div className="flex flex-1 flex-col">
-                            <span className="whitespace-normal break-words">{option.label}</span>
+                            <span className="whitespace-normal break-words">
+                              {option.label}
+                            </span>
                             {option.description && (
                               <span className="whitespace-normal break-words text-xs text-muted-foreground">
                                 {option.description}
@@ -144,7 +159,10 @@ export function DataTableFilterPopover<TData extends RowData>({
               <>
                 <CommandSeparator />
                 <CommandGroup>
-                  <CommandItem onSelect={clearAll} className="justify-center text-center">
+                  <CommandItem
+                    onSelect={clearAll}
+                    className="justify-center text-center"
+                  >
                     <ListRestart className="mr-2 size-4" />
                     Reiniciar filtros
                   </CommandItem>

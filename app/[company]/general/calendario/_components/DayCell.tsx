@@ -26,11 +26,21 @@ interface DayCellProps {
   onSelectEvent: (event: LocalCalendarEvent) => void;
 }
 
-export function DayCell({ day, dayKey, events, monthStart, canEdit, shortLabels, onSelectEvent }: DayCellProps) {
+export function DayCell({
+  day,
+  dayKey,
+  events,
+  monthStart,
+  canEdit,
+  shortLabels,
+  onSelectEvent,
+}: DayCellProps) {
   const { setNodeRef, isOver } = useDroppable({ id: dayKey });
 
   const isToday = isSameDay(day, new Date());
-  const inCurrentMonth = day.getMonth() === monthStart.getMonth() && day.getFullYear() === monthStart.getFullYear();
+  const inCurrentMonth =
+    day.getMonth() === monthStart.getMonth() &&
+    day.getFullYear() === monthStart.getFullYear();
 
   const visible = events.slice(0, MAX_VISIBLE_PILLS);
   const overflow = events.slice(MAX_VISIBLE_PILLS);
@@ -68,7 +78,10 @@ export function DayCell({ day, dayKey, events, monthStart, canEdit, shortLabels,
             key={event.id}
             event={event}
             canEdit={canEdit}
-            label={(event.sourceKey && shortLabels[event.sourceKey]) || (event.display === "marker" ? "Vencimiento" : event.title)}
+            label={
+              (event.sourceKey && shortLabels[event.sourceKey]) ||
+              (event.display === "marker" ? "Vencimiento" : event.title)
+            }
             onClick={() => onSelectEvent(event)}
           />
         ))}
@@ -93,7 +106,10 @@ export function DayCell({ day, dayKey, events, monthStart, canEdit, shortLabels,
                   key={event.id}
                   event={event}
                   canEdit={canEdit}
-                  label={(event.sourceKey && shortLabels[event.sourceKey]) || (event.display === "marker" ? "Vencimiento" : event.title)}
+                  label={
+                    (event.sourceKey && shortLabels[event.sourceKey]) ||
+                    (event.display === "marker" ? "Vencimiento" : event.title)
+                  }
                   onClick={() => onSelectEvent(event)}
                 />
               ))}

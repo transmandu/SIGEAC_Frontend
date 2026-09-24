@@ -7,9 +7,12 @@ const fetchMaintenanceControlSnapshot = async (
   controlId: number | string | undefined,
   date: string,
 ): Promise<MaintenanceControlSnapshot> => {
-  const { data } = await axios.get(`/${company}/maintenance-controls/${controlId}/snapshot`, {
-    params: { date },
-  });
+  const { data } = await axios.get(
+    `/${company}/maintenance-controls/${controlId}/snapshot`,
+    {
+      params: { date },
+    },
+  );
   return data;
 };
 
@@ -24,7 +27,8 @@ export const useGetMaintenanceControlSnapshot = (
 ) => {
   return useQuery<MaintenanceControlSnapshot, Error>({
     queryKey: ["maintenance-control-snapshot", company, controlId, date],
-    queryFn: () => fetchMaintenanceControlSnapshot(company, controlId, date as string),
+    queryFn: () =>
+      fetchMaintenanceControlSnapshot(company, controlId, date as string),
     enabled: enabled && !!company && !!controlId && !!date,
   });
 };

@@ -46,7 +46,13 @@ interface EventPillProps {
  * (`resize:${event.id}`) para que EventCalendar distinga en onDragEnd si el
  * gesto fue "mover" o "cambiar el día de fin" sin dos DndContext distintos.
  */
-export function EventPill({ event, label, canEdit, isOverlayPreview, onClick }: EventPillProps) {
+export function EventPill({
+  event,
+  label,
+  canEdit,
+  isOverlayPreview,
+  onClick,
+}: EventPillProps) {
   const isMarker = event.display === "marker";
   const canDrag = canEdit && !!event.editable;
 
@@ -81,7 +87,10 @@ export function EventPill({ event, label, canEdit, isOverlayPreview, onClick }: 
           move.isDragging && "opacity-40",
         )}
       >
-        <span className="size-2 shrink-0 rounded-full" style={{ background: color }} />
+        <span
+          className="size-2 shrink-0 rounded-full"
+          style={{ background: color }}
+        />
         <span className="truncate text-[11px] leading-none">{label}</span>
       </div>
     );

@@ -146,7 +146,8 @@ export function DatePickerField({
     } else if (digits.length <= 4) {
       formatted = digits.slice(0, 2) + "/" + digits.slice(2);
     } else {
-      formatted = digits.slice(0, 2) + "/" + digits.slice(2, 4) + "/" + digits.slice(4);
+      formatted =
+        digits.slice(0, 2) + "/" + digits.slice(2, 4) + "/" + digits.slice(4);
     }
     setInputValue(formatted);
 
@@ -254,7 +255,6 @@ export function DatePickerField({
             notApplicable && "text-muted-foreground",
           )}
         />
-
 
         <div className="absolute inset-y-0 right-1.5 flex items-center gap-0.5">
           {inputValue && !disabled && (

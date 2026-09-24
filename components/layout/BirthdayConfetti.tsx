@@ -32,11 +32,14 @@ export default function BirthdayConfetti() {
     setDimensions({ width: window.innerWidth, height: window.innerHeight });
     setShow(true);
 
-    toast.success(`¡Feliz cumpleaños${data.first_name ? `, ${data.first_name}` : ""}! 🎉`, {
-      description: "Que tengas un excelente día.",
-      duration: DURATION_MS,
-      position: "bottom-center",
-    });
+    toast.success(
+      `¡Feliz cumpleaños${data.first_name ? `, ${data.first_name}` : ""}! 🎉`,
+      {
+        description: "Que tengas un excelente día.",
+        duration: DURATION_MS,
+        position: "bottom-center",
+      },
+    );
   }, [data]);
 
   // Mientras se muestra: si la ventana cambia de tamaño, los cañones se
@@ -44,7 +47,8 @@ export default function BirthdayConfetti() {
   useEffect(() => {
     if (!show) return;
 
-    const handleResize = () => setDimensions({ width: window.innerWidth, height: window.innerHeight });
+    const handleResize = () =>
+      setDimensions({ width: window.innerWidth, height: window.innerHeight });
     window.addEventListener("resize", handleResize);
 
     const hideTimer = setTimeout(() => setShow(false), DURATION_MS);
@@ -86,7 +90,15 @@ export default function BirthdayConfetti() {
         confettiSource={{ x: 0, y: height - 10, w: 10, h: 10 }}
         initialVelocityX={{ min: 10, max: 26 }}
         initialVelocityY={{ min: -48, max: -28 }}
-        style={{ position: "fixed", top: 0, left: 0, right: "auto", width: cannonWidth, zIndex: 9999, pointerEvents: "none" }}
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: "auto",
+          width: cannonWidth,
+          zIndex: 9999,
+          pointerEvents: "none",
+        }}
       />
       <Confetti
         key="right"
@@ -95,7 +107,15 @@ export default function BirthdayConfetti() {
         confettiSource={{ x: cannonWidth - 10, y: height - 10, w: 10, h: 10 }}
         initialVelocityX={{ min: -26, max: -10 }}
         initialVelocityY={{ min: -48, max: -28 }}
-        style={{ position: "fixed", top: 0, right: 0, left: "auto", width: cannonWidth, zIndex: 9999, pointerEvents: "none" }}
+        style={{
+          position: "fixed",
+          top: 0,
+          right: 0,
+          left: "auto",
+          width: cannonWidth,
+          zIndex: 9999,
+          pointerEvents: "none",
+        }}
       />
     </>,
     document.body,

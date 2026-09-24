@@ -1,5 +1,12 @@
+import type { ConfirmedReason } from "@/components/dialogs/mantenimiento/planificacion/ReasonConfirmDialog";
+import type { EditReasonValue } from "@/components/forms/mantenimiento/planificacion/EditReasonFields";
+import { invalidatePlanificationAudit } from "@/hooks/mantenimiento/planificacion/useGetPlanificationAuditStats";
 import axiosInstance from "@/lib/axios";
-import { AvionicsAction, AvionicsCategory, MaintenanceCountingMethod } from "@/types";
+import {
+  AvionicsAction,
+  AvionicsCategory,
+  MaintenanceCountingMethod,
+} from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -55,15 +62,28 @@ export const useCreateAvionicsControl = () => {
   const queryClient = useQueryClient();
 
   const createMutation = useMutation({
-    mutationFn: async ({ data, company }: { data: CreateAvionicsControlData; company: string }) => {
+    mutationFn: async ({
+      data,
+      company,
+    }: {
+      data: CreateAvionicsControlData;
+      company: string;
+    }) => {
       await axiosInstance.post(`/${company}/avionics-controls`, data);
     },
     onSuccess: () => {
+      invalidatePlanificationAudit(queryClient);
       queryClient.invalidateQueries({ queryKey: ["avionics-controls"] });
-      toast.success("¡Creado!", { description: "El control de aviónica ha sido registrado correctamente." });
+      toast.success("¡Creado!", {
+        description: "El control de aviónica ha sido registrado correctamente.",
+      });
     },
     onError: (error: any) => {
-      toast.error("Oops!", { description: firstBackendError(error) || "No se pudo registrar el control de aviónica..." });
+      toast.error("Oops!", {
+        description:
+          firstBackendError(error) ||
+          "No se pudo registrar el control de aviónica...",
+      });
       console.log(error);
     },
   });
@@ -75,16 +95,35 @@ export const useUpdateAvionicsControl = () => {
   const queryClient = useQueryClient();
 
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data, company }: { id: string | number; data: CreateAvionicsControlData; company: string }) => {
+    mutationFn: async ({
+      id,
+      data,
+      company,
+    }: {
+      id: string | number;
+      data: CreateAvionicsControlData & EditReasonValue;
+      company: string;
+    }) => {
       await axiosInstance.put(`/${company}/avionics-controls/${id}`, data);
     },
     onSuccess: () => {
+      invalidatePlanificationAudit(queryClient);
       queryClient.invalidateQueries({ queryKey: ["avionics-controls"] });
-      queryClient.invalidateQueries({ queryKey: ["avionics-control"], exact: false });
-      toast.success("¡Actualizado!", { description: "El control de aviónica ha sido actualizado correctamente." });
+      queryClient.invalidateQueries({
+        queryKey: ["avionics-control"],
+        exact: false,
+      });
+      toast.success("¡Actualizado!", {
+        description:
+          "El control de aviónica ha sido actualizado correctamente.",
+      });
     },
     onError: (error: any) => {
-      toast.error("Oops!", { description: firstBackendError(error) || "No se pudo actualizar el control de aviónica..." });
+      toast.error("Oops!", {
+        description:
+          firstBackendError(error) ||
+          "No se pudo actualizar el control de aviónica...",
+      });
       console.log(error);
     },
   });
@@ -96,15 +135,25 @@ export const useDeleteAvionicsControl = () => {
   const queryClient = useQueryClient();
 
   const deleteMutation = useMutation({
-    mutationFn: async ({ company, id }: { company: string | null; id: string | number }) => {
-      await axiosInstance.delete(`/${company}/avionics-controls/${id}`);
+    mutationFn: async ({
+      company,
+      id,
+      reason,
+    }: {
+      company: string;
+      id: string | number;
+      reason: ConfirmedReason;
+    }) => {
+      await axiosInstance.delete(`/${company}/avionics-controls/${id}`, {
+        data: reason,
+      });
     },
     onSuccess: () => {
+      invalidatePlanificationAudit(queryClient);
       queryClient.invalidateQueries({ queryKey: ["avionics-controls"] });
-      toast.success("¡Eliminado!", { description: "El control de aviónica ha sido eliminado correctamente." });
-    },
-    onError: () => {
-      toast.error("Oops!", { description: "¡Hubo un error al eliminar el control de aviónica!" });
+      toast.success("¡Eliminado!", {
+        description: "El control de aviónica ha sido eliminado correctamente.",
+      });
     },
   });
 
@@ -115,18 +164,38 @@ export const useLinkAvionicsPendingWorkOrder = () => {
   const queryClient = useQueryClient();
 
   const linkMutation = useMutation({
-    mutationFn: async ({ company, taskId, workOrderId }: { company: string; taskId: string | number; workOrderId: string | number }) => {
-      await axiosInstance.patch(`/${company}/avionics-control-tasks/${taskId}/pending-work-order`, {
-        work_order_id: workOrderId,
-      });
+    mutationFn: async ({
+      company,
+      taskId,
+      workOrderId,
+    }: {
+      company: string;
+      taskId: string | number;
+      workOrderId: string | number;
+    }) => {
+      await axiosInstance.patch(
+        `/${company}/avionics-control-tasks/${taskId}/pending-work-order`,
+        {
+          work_order_id: workOrderId,
+        },
+      );
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["avionics-controls"], exact: false });
-      queryClient.invalidateQueries({ queryKey: ["avionics-control"], exact: false });
+      invalidatePlanificationAudit(queryClient);
+      queryClient.invalidateQueries({
+        queryKey: ["avionics-controls"],
+        exact: false,
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["avionics-control"],
+        exact: false,
+      });
     },
     onError: (error: any) => {
       toast.error("Oops!", {
-        description: error?.response?.data?.message ?? "No se pudo asociar la Orden de Trabajo a la tarea...",
+        description:
+          error?.response?.data?.message ??
+          "No se pudo asociar la Orden de Trabajo a la tarea...",
       });
       console.log(error);
     },
@@ -149,17 +218,38 @@ export const useCreateAvionicsCompliance = () => {
   const queryClient = useQueryClient();
 
   const createMutation = useMutation({
-    mutationFn: async ({ data, company }: { data: CreateAvionicsComplianceData; company: string }) => {
+    mutationFn: async ({
+      data,
+      company,
+    }: {
+      data: CreateAvionicsComplianceData;
+      company: string;
+    }) => {
       await axiosInstance.post(`/${company}/avionics-compliances`, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["avionics-control"], exact: false });
-      queryClient.invalidateQueries({ queryKey: ["avionics-controls"], exact: false });
-      queryClient.invalidateQueries({ queryKey: ["avionics-compliances"], exact: false });
-      toast.success("¡Registrado!", { description: "El cumplimiento de la tarea quedó registrado." });
+      invalidatePlanificationAudit(queryClient);
+      queryClient.invalidateQueries({
+        queryKey: ["avionics-control"],
+        exact: false,
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["avionics-controls"],
+        exact: false,
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["avionics-compliances"],
+        exact: false,
+      });
+      toast.success("¡Registrado!", {
+        description: "El cumplimiento de la tarea quedó registrado.",
+      });
     },
     onError: (error: any) => {
-      toast.error("Oops!", { description: firstBackendError(error) || "No se pudo registrar el cumplimiento..." });
+      toast.error("Oops!", {
+        description:
+          firstBackendError(error) || "No se pudo registrar el cumplimiento...",
+      });
       console.log(error);
     },
   });

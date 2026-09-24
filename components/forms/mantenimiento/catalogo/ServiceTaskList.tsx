@@ -14,12 +14,20 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 import { FormSection } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
 import { TaskDialog } from "@/components/dialogs/mantenimiento/catalogo/TaskDialog";
 import { useDeleteCatalogTask } from "@/actions/mantenimiento/catalogo/tareas/actions";
-import { MSG3_TYPE_LABELS, REQUIREMENT_TYPE_LABELS } from "@/lib/maintenanceCatalogLabels";
+import {
+  MSG3_TYPE_LABELS,
+  REQUIREMENT_TYPE_LABELS,
+} from "@/lib/maintenanceCatalogLabels";
 import { CatalogService, CatalogTask } from "@/types/maintenanceCatalog";
 import { useCompanyStore } from "@/stores/CompanyStore";
 
@@ -61,7 +69,9 @@ export function ServiceTaskList({ service }: { service: CatalogService }) {
         {tasks.length === 0 ? (
           <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-slate-400/40 py-10 text-center dark:border-slate-600/40">
             <ClipboardList className="size-6 text-muted-foreground/60" />
-            <p className="text-sm text-muted-foreground">Sin tareas registradas todavía.</p>
+            <p className="text-sm text-muted-foreground">
+              Sin tareas registradas todavía.
+            </p>
           </div>
         ) : (
           <div className="flex flex-col gap-2.5">
@@ -75,12 +85,20 @@ export function ServiceTaskList({ service }: { service: CatalogService }) {
                     <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
                       {MSG3_TYPE_LABELS[task.msg3_type]}
                     </span>
-                    {task.ata && <span className="text-xs text-muted-foreground">ATA {task.ata}</span>}
+                    {task.ata && (
+                      <span className="text-xs text-muted-foreground">
+                        ATA {task.ata}
+                      </span>
+                    )}
                     {task.estimated_man_hours != null && (
-                      <span className="text-xs text-muted-foreground">{task.estimated_man_hours} H-H</span>
+                      <span className="text-xs text-muted-foreground">
+                        {task.estimated_man_hours} H-H
+                      </span>
                     )}
                     {task.required_skill && (
-                      <span className="text-xs text-muted-foreground">· {task.required_skill}</span>
+                      <span className="text-xs text-muted-foreground">
+                        · {task.required_skill}
+                      </span>
                     )}
                   </div>
                   <p className="text-sm font-medium">{task.description}</p>
@@ -89,7 +107,10 @@ export function ServiceTaskList({ service }: { service: CatalogService }) {
                       Requisitos:{" "}
                       {task.requirements
                         .map((r) => {
-                          const qty = r.quantity != null ? `${r.quantity}${r.unit ? ` ${r.unit.label}` : ""} ` : "";
+                          const qty =
+                            r.quantity != null
+                              ? `${r.quantity}${r.unit ? ` ${r.unit.label}` : ""} `
+                              : "";
                           return `${qty}${r.description} (${REQUIREMENT_TYPE_LABELS[r.requirement_type]})`;
                         })
                         .join(", ")}
@@ -145,13 +166,16 @@ export function ServiceTaskList({ service }: { service: CatalogService }) {
         task={editingTask}
       />
 
-      <AlertDialog open={!!deletingTask} onOpenChange={(open) => !open && setDeletingTask(undefined)}>
+      <AlertDialog
+        open={!!deletingTask}
+        onOpenChange={(open) => !open && setDeletingTask(undefined)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>¿Eliminar esta tarea?</AlertDialogTitle>
             <AlertDialogDescription>
-              Se eliminará &quot;{deletingTask?.description}&quot; y sus requisitos. Esta acción no se puede
-              deshacer.
+              Se eliminará &quot;{deletingTask?.description}&quot; y sus
+              requisitos. Esta acción no se puede deshacer.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

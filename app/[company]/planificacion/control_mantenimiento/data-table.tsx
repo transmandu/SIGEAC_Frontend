@@ -35,11 +35,18 @@ interface DataTableProps<TData extends RowData> {
 
 // Busca a la vez en aeronave, título y descripción: más rápido que abrir el
 // filtro de cada columna por separado para encontrar un control.
-function globalMaintenanceControlFilter(row: { original: MaintenanceControl }, term: string) {
+function globalMaintenanceControlFilter(
+  row: { original: MaintenanceControl },
+  term: string,
+) {
   const needle = term.trim().toLowerCase();
   if (!needle) return true;
 
-  const haystack = [row.original.aircraft?.acronym, row.original.title, row.original.description]
+  const haystack = [
+    row.original.aircraft?.acronym,
+    row.original.title,
+    row.original.description,
+  ]
     .filter(Boolean)
     .join(" ")
     .toLowerCase();
@@ -77,7 +84,9 @@ export function DataTable<TData extends RowData>({
       <div className="flex items-center justify-between gap-3 py-4">
         <div className="flex items-center gap-2">
           <ActionTriggerButton asChild>
-            <Link href={`/${selectedCompany?.slug}/planificacion/control_mantenimiento/crear`}>
+            <Link
+              href={`/${selectedCompany?.slug}/planificacion/control_mantenimiento/crear`}
+            >
               <PlusCircle className="mr-2 h-4 w-4" />
               Crear Control de Mantenimiento
             </Link>
@@ -125,7 +134,10 @@ export function DataTable<TData extends RowData>({
               <TableRow key={headerGroup.id} className="hover:bg-transparent">
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id} className="bg-muted/40 font-semibold">
+                    <TableHead
+                      key={header.id}
+                      className="bg-muted/40 font-semibold"
+                    >
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -167,7 +179,8 @@ export function DataTable<TData extends RowData>({
                       No se encontró ningún control de mantenimiento
                     </p>
                     <p className="text-xs text-muted-foreground/70">
-                      Ajuste la búsqueda o cree uno nuevo con el botón de arriba.
+                      Ajuste la búsqueda o cree uno nuevo con el botón de
+                      arriba.
                     </p>
                   </div>
                 </TableCell>

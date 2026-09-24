@@ -1,9 +1,9 @@
 "use client";
 
 import AuthRedirect from "@/components/auth/AuthRedirect";
-import { LoginForm } from '@/components/forms/ajustes/LoginForm'
-import { ThemeToggler } from '@/components/layout/ThemeToggler'
-import Logo from '@/components/misc/Logo'
+import { LoginForm } from "@/components/forms/ajustes/LoginForm";
+import { ThemeToggler } from "@/components/layout/ThemeToggler";
+import Logo from "@/components/misc/Logo";
 import { useAuth } from "@/contexts/AuthContext";
 import { useDocumentTitle } from "@/hooks/helpers/use-document-title";
 import { motion, useReducedMotion } from "motion/react";
@@ -38,11 +38,19 @@ const Login = () => {
    */
   const fadeIn = (delay: number) =>
     reduceMotion
-      ? { initial: { opacity: 0 }, animate: { opacity: 1 }, transition: { duration: 0.2 } }
+      ? {
+          initial: { opacity: 0 },
+          animate: { opacity: 1 },
+          transition: { duration: 0.2 },
+        }
       : {
           initial: { opacity: 0, scale: 0.985 },
           animate: { opacity: 1, scale: 1 },
-          transition: { duration: 0.45, delay, ease: [0.22, 1, 0.36, 1] as const },
+          transition: {
+            duration: 0.45,
+            delay,
+            ease: [0.22, 1, 0.36, 1] as const,
+          },
         };
 
   return (
@@ -55,7 +63,6 @@ const Login = () => {
       {/* min-h en vez de h fija: en móviles bajos el contenido puede crecer. */}
       <div className="relative min-h-dvh w-full">
         <div className="flex min-h-dvh flex-col lg:flex-row">
-
           {/* Toggler de móvil: en desktop vive dentro de la tarjeta. Va en
               position absolute para no robarle ancho a la fila en lg. */}
           <div className="absolute top-4 right-4 z-20 lg:hidden">
@@ -104,7 +111,7 @@ const Login = () => {
         </div>
       </div>
     </>
-  )
-}
+  );
+};
 
-export default Login
+export default Login;

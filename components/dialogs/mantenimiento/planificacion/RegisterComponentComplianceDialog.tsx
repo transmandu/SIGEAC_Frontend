@@ -16,12 +16,30 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { DatePickerField } from "@/components/ui/DatePickerField";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useGetMaintenanceProviders } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceProviders";
@@ -60,7 +78,13 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-function NumericField({ field, placeholder }: { field: any; placeholder?: string }) {
+function NumericField({
+  field,
+  placeholder,
+}: {
+  field: any;
+  placeholder?: string;
+}) {
   return (
     <input
       type="text"
@@ -106,8 +130,10 @@ export function RegisterComponentComplianceDialog({
 }: RegisterComponentComplianceDialogProps) {
   const [open, setOpen] = useState(false);
   const { selectedCompany } = useCompanyStore();
-  const { data: providers, isLoading: isLoadingProviders } = useGetMaintenanceProviders(selectedCompany?.slug);
-  const { data: workOrders, isLoading: isLoadingWorkOrders } = useGetWorkOrdersByAircraft(selectedCompany?.slug, aircraftId);
+  const { data: providers, isLoading: isLoadingProviders } =
+    useGetMaintenanceProviders(selectedCompany?.slug);
+  const { data: workOrders, isLoading: isLoadingWorkOrders } =
+    useGetWorkOrdersByAircraft(selectedCompany?.slug, aircraftId);
   const { createComponentCompliance } = useCreateComponentCompliance();
 
   const form = useForm<FormValues>({
@@ -169,7 +195,10 @@ export function RegisterComponentComplianceDialog({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="flex flex-col gap-4"
+          >
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -192,7 +221,9 @@ export function RegisterComponentComplianceDialog({
                 name="action"
                 render={({ field }) => (
                   <FormItem className="w-full">
-                    <FormLabel className={labelClass}>Trabajo realizado</FormLabel>
+                    <FormLabel className={labelClass}>
+                      Trabajo realizado
+                    </FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger className={selectTriggerClass}>
@@ -200,11 +231,13 @@ export function RegisterComponentComplianceDialog({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {Object.entries(COMPONENT_ACTION_LABELS).map(([value, label]) => (
-                          <SelectItem key={value} value={value}>
-                            {label}
-                          </SelectItem>
-                        ))}
+                        {Object.entries(COMPONENT_ACTION_LABELS).map(
+                          ([value, label]) => (
+                            <SelectItem key={value} value={value}>
+                              {label}
+                            </SelectItem>
+                          ),
+                        )}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -219,7 +252,9 @@ export function RegisterComponentComplianceDialog({
                 name="hours_reading"
                 render={({ field }) => (
                   <FormItem className="w-full">
-                    <FormLabel className={labelClass}>Horas del padre</FormLabel>
+                    <FormLabel className={labelClass}>
+                      Horas del padre
+                    </FormLabel>
                     <FormControl>
                       <NumericField field={field} placeholder="0" />
                     </FormControl>
@@ -232,7 +267,9 @@ export function RegisterComponentComplianceDialog({
                 name="cycles_reading"
                 render={({ field }) => (
                   <FormItem className="w-full">
-                    <FormLabel className={labelClass}>Ciclos del padre</FormLabel>
+                    <FormLabel className={labelClass}>
+                      Ciclos del padre
+                    </FormLabel>
                     <FormControl>
                       <NumericField field={field} placeholder="0" />
                     </FormControl>
@@ -242,7 +279,8 @@ export function RegisterComponentComplianceDialog({
               />
             </div>
             <FormDescription className={cn(hintClass, "-mt-2")}>
-              Lectura de la aeronave o del motor/hélice del que cuelga en el momento del trabajo — contra ese contador se mide el componente.
+              Lectura de la aeronave o del motor/hélice del que cuelga en el
+              momento del trabajo — contra ese contador se mide el componente.
             </FormDescription>
 
             {keepsConsumed && (
@@ -252,11 +290,16 @@ export function RegisterComponentComplianceDialog({
                   name="consumed_hours"
                   render={({ field }) => (
                     <FormItem className="w-full">
-                      <FormLabel className={labelClass}>Horas que conserva</FormLabel>
+                      <FormLabel className={labelClass}>
+                        Horas que conserva
+                      </FormLabel>
                       <FormControl>
                         <NumericField field={field} placeholder="0" />
                       </FormControl>
-                      <FormDescription className={hintClass}>Desde su último overhaul; una reparación no lo pone en cero.</FormDescription>
+                      <FormDescription className={hintClass}>
+                        Desde su último overhaul; una reparación no lo pone en
+                        cero.
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -266,7 +309,9 @@ export function RegisterComponentComplianceDialog({
                   name="consumed_cycles"
                   render={({ field }) => (
                     <FormItem className="w-full">
-                      <FormLabel className={labelClass}>Ciclos que conserva</FormLabel>
+                      <FormLabel className={labelClass}>
+                        Ciclos que conserva
+                      </FormLabel>
                       <FormControl>
                         <NumericField field={field} placeholder="0" />
                       </FormControl>
@@ -303,25 +348,38 @@ export function RegisterComponentComplianceDialog({
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel className={labelClass}>
-                    Orden de Trabajo <span className="text-xs text-muted-foreground">(Opcional)</span>
+                    Orden de Trabajo{" "}
+                    <span className="text-xs text-muted-foreground">
+                      (Opcional)
+                    </span>
                   </FormLabel>
                   <SearchableSelect
-                    options={(workOrders ?? []).map((wo) => ({ ...wo, name: wo.order_number }))}
+                    options={(workOrders ?? []).map((wo) => ({
+                      ...wo,
+                      name: wo.order_number,
+                    }))}
                     value={field.value}
                     loading={isLoadingWorkOrders}
-                    placeholder={workOrders?.length ? "Seleccione..." : "Esta aeronave no tiene Órdenes de Trabajo"}
+                    placeholder={
+                      workOrders?.length
+                        ? "Seleccione..."
+                        : "Esta aeronave no tiene Órdenes de Trabajo"
+                    }
                     searchPlaceholder="Buscar orden de trabajo..."
                     emptyLabel="No se encontró ninguna orden de trabajo."
                     onSelect={(wo) => field.onChange(String(wo.id))}
                     renderLabel={(wo) => (
                       <span className="flex items-center gap-2">
                         {wo.order_number}
-                        <Badge variant="outline" className="text-[10px]">{wo.status}</Badge>
+                        <Badge variant="outline" className="text-[10px]">
+                          {wo.status}
+                        </Badge>
                       </span>
                     )}
                   />
                   <FormDescription className={hintClass}>
-                    Vacío si el trabajo lo hizo un taller externo sin orden propia.
+                    Vacío si el trabajo lo hizo un taller externo sin orden
+                    propia.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -334,10 +392,17 @@ export function RegisterComponentComplianceDialog({
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel className={labelClass}>
-                    Observaciones <span className="text-muted-foreground text-xs">(Opcional)</span>
+                    Observaciones{" "}
+                    <span className="text-muted-foreground text-xs">
+                      (Opcional)
+                    </span>
                   </FormLabel>
                   <FormControl>
-                    <Textarea placeholder="..." className={cn(fieldClass, "h-auto resize-none py-2")} {...field} />
+                    <Textarea
+                      placeholder="..."
+                      className={cn(fieldClass, "h-auto resize-none py-2")}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -349,7 +414,11 @@ export function RegisterComponentComplianceDialog({
               disabled={createComponentCompliance.isPending}
               type="submit"
             >
-              {createComponentCompliance.isPending ? <Loader2 className="size-4 animate-spin" /> : <p>Registrar Cumplimiento</p>}
+              {createComponentCompliance.isPending ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <p>Registrar Cumplimiento</p>
+              )}
             </Button>
           </form>
         </Form>

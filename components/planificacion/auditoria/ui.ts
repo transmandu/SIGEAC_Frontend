@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import type { EditReason } from "@/lib/planificacion/editReasons";
+import type { AuditAction } from "@/types/planification/audit";
 import { format, startOfYear, subDays, subMonths } from "date-fns";
 
 /**
@@ -71,3 +72,13 @@ export const periodRange = (key: PeriodKey): { from: string; to: string } => {
 
   return { from: format(from, "yyyy-MM-dd"), to: format(today, "yyyy-MM-dd") };
 };
+
+export const actionBadgeCls = (action: AuditAction) =>
+  cn(
+    badgeBase,
+    action === "DELETE" || action === "PURGE"
+      ? "border-rose-500/35 bg-rose-500/10 text-rose-700 dark:text-rose-300"
+      : action === "RETIRE" || action === "RESTORE"
+        ? "border-amber-500/40 bg-amber-500/10 text-amber-800 dark:text-amber-300"
+        : "border-border/50 bg-background/70 font-medium text-muted-foreground",
+  );

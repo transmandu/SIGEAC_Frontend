@@ -1,6 +1,10 @@
-import axiosInstance from "@/lib/axios"
-import { CatalogCategory, CatalogInterval, CatalogStatus } from "@/types/maintenanceCatalog"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
+import axiosInstance from "@/lib/axios";
+import {
+  CatalogCategory,
+  CatalogInterval,
+  CatalogStatus,
+} from "@/types/maintenanceCatalog";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { apiErrorMessage } from "@/lib/apiErrorMessage";
 import { TaskFormData } from "@/actions/mantenimiento/catalogo/tareas/actions";
@@ -36,7 +40,9 @@ const invalidateServiceScopes = (
   queryClient.invalidateQueries({ queryKey: ["maintenance-catalog-manual"] });
 
   if (company && id !== undefined) {
-    queryClient.invalidateQueries({ queryKey: ["maintenance-catalog-service", company, id] });
+    queryClient.invalidateQueries({
+      queryKey: ["maintenance-catalog-service", company, id],
+    });
   }
 };
 
@@ -44,15 +50,32 @@ export const useCreateCatalogService = () => {
   const queryClient = useQueryClient();
 
   const createMutation = useMutation({
-    mutationFn: async ({ data, company }: { data: ServiceFormData; company: string }) => {
-      await axiosInstance.post(`/${company}/maintenance-catalog-services`, data);
+    mutationFn: async ({
+      data,
+      company,
+    }: {
+      data: ServiceFormData;
+      company: string;
+    }) => {
+      await axiosInstance.post(
+        `/${company}/maintenance-catalog-services`,
+        data,
+      );
     },
     onSuccess: () => {
       invalidateServiceScopes(queryClient);
-      toast.success("¡Creado!", { description: "El servicio/certificado ha sido registrado correctamente." });
+      toast.success("¡Creado!", {
+        description:
+          "El servicio/certificado ha sido registrado correctamente.",
+      });
     },
     onError: (error) => {
-      toast.error("Oops!", { description: apiErrorMessage(error, "No se pudo registrar el servicio/certificado...") });
+      toast.error("Oops!", {
+        description: apiErrorMessage(
+          error,
+          "No se pudo registrar el servicio/certificado...",
+        ),
+      });
     },
   });
 
@@ -63,15 +86,34 @@ export const useUpdateCatalogService = () => {
   const queryClient = useQueryClient();
 
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data, company }: { id: number | string; data: ServiceFormData; company: string }) => {
-      await axiosInstance.put(`/${company}/maintenance-catalog-services/${id}`, data);
+    mutationFn: async ({
+      id,
+      data,
+      company,
+    }: {
+      id: number | string;
+      data: ServiceFormData;
+      company: string;
+    }) => {
+      await axiosInstance.put(
+        `/${company}/maintenance-catalog-services/${id}`,
+        data,
+      );
     },
     onSuccess: (_, variables) => {
       invalidateServiceScopes(queryClient, variables.company, variables.id);
-      toast.success("¡Actualizado!", { description: "El servicio/certificado ha sido actualizado correctamente." });
+      toast.success("¡Actualizado!", {
+        description:
+          "El servicio/certificado ha sido actualizado correctamente.",
+      });
     },
     onError: (error) => {
-      toast.error("Oops!", { description: apiErrorMessage(error, "No se pudo actualizar el servicio/certificado...") });
+      toast.error("Oops!", {
+        description: apiErrorMessage(
+          error,
+          "No se pudo actualizar el servicio/certificado...",
+        ),
+      });
     },
   });
 
@@ -82,15 +124,30 @@ export const useDeleteCatalogService = () => {
   const queryClient = useQueryClient();
 
   const deleteMutation = useMutation({
-    mutationFn: async ({ id, company }: { id: number | string; company: string }) => {
-      await axiosInstance.delete(`/${company}/maintenance-catalog-services/${id}`);
+    mutationFn: async ({
+      id,
+      company,
+    }: {
+      id: number | string;
+      company: string;
+    }) => {
+      await axiosInstance.delete(
+        `/${company}/maintenance-catalog-services/${id}`,
+      );
     },
     onSuccess: () => {
       invalidateServiceScopes(queryClient);
-      toast.success("¡Eliminado!", { description: "El servicio/certificado ha sido eliminado correctamente." });
+      toast.success("¡Eliminado!", {
+        description: "El servicio/certificado ha sido eliminado correctamente.",
+      });
     },
     onError: (error) => {
-      toast.error("Oops!", { description: apiErrorMessage(error, "No se pudo eliminar el servicio/certificado...") });
+      toast.error("Oops!", {
+        description: apiErrorMessage(
+          error,
+          "No se pudo eliminar el servicio/certificado...",
+        ),
+      });
     },
   });
 

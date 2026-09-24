@@ -12,7 +12,10 @@ import {
 } from "@/components/ui/dialog";
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 import { SectionTitle } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
-import { TaskFieldsEditor, emptyTask } from "@/components/forms/mantenimiento/catalogo/TaskFieldsEditor";
+import {
+  TaskFieldsEditor,
+  emptyTask,
+} from "@/components/forms/mantenimiento/catalogo/TaskFieldsEditor";
 import { toTaskFormData } from "@/lib/maintenanceCatalogForm";
 import { CatalogTask } from "@/types/maintenanceCatalog";
 import {
@@ -29,7 +32,12 @@ interface TaskDialogProps {
   task?: CatalogTask;
 }
 
-export function TaskDialog({ open, onOpenChange, serviceId, task }: TaskDialogProps) {
+export function TaskDialog({
+  open,
+  onOpenChange,
+  serviceId,
+  task,
+}: TaskDialogProps) {
   const { selectedCompany } = useCompanyStore();
   const { createCatalogTask } = useCreateCatalogTask();
   const { updateCatalogTask } = useUpdateCatalogTask();
@@ -57,7 +65,11 @@ export function TaskDialog({ open, onOpenChange, serviceId, task }: TaskDialogPr
           company: selectedCompany.slug,
         });
       } else {
-        await createCatalogTask.mutateAsync({ serviceId, data: form, company: selectedCompany.slug });
+        await createCatalogTask.mutateAsync({
+          serviceId,
+          data: form,
+          company: selectedCompany.slug,
+        });
       }
       onOpenChange(false);
     } catch {
@@ -78,12 +90,17 @@ export function TaskDialog({ open, onOpenChange, serviceId, task }: TaskDialogPr
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="flex flex-1 flex-col gap-5 overflow-y-auto px-1 py-1">
+        <form
+          onSubmit={handleSubmit}
+          className="flex flex-1 flex-col gap-5 overflow-y-auto px-1 py-1"
+        >
           <TaskFieldsEditor value={form} onChange={setForm} />
 
           <DialogFooter>
             <ActionTriggerButton type="submit" disabled={isPending}>
-              {isPending ? <Loader2 className="mr-2 size-4 animate-spin" /> : null}
+              {isPending ? (
+                <Loader2 className="mr-2 size-4 animate-spin" />
+              ) : null}
               {task ? "Guardar Cambios" : "Crear Tarea"}
             </ActionTriggerButton>
           </DialogFooter>

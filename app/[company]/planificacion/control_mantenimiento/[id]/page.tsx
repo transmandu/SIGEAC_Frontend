@@ -9,7 +9,11 @@ import LoadingPage from "@/components/misc/LoadingPage";
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Table,
   TableBody,
@@ -18,26 +22,57 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { RegisterComplianceDialog } from "@/components/dialogs/mantenimiento/planificacion/RegisterComplianceDialog";
 import { ImportComplianceHistoryDialog } from "@/components/dialogs/mantenimiento/planificacion/ImportComplianceHistoryDialog";
 import { DownloadMaintenanceFormatButton } from "@/components/dialogs/mantenimiento/planificacion/DownloadMaintenanceFormatButton";
 import { useGetMaintenanceControl } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceControl";
 import { useGetAircraftDailyAverage } from "@/hooks/mantenimiento/planificacion/useGetAircraftDailyAverage";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { computeMaintenanceItem, fmtNumber, ItemStatus, STATUS_META } from "@/lib/maintenanceControlCalc";
+import {
+  computeMaintenanceItem,
+  fmtNumber,
+  ItemStatus,
+  STATUS_META,
+} from "@/lib/maintenanceControlCalc";
 import { partTypeLabel } from "@/lib/maintenancePartTypes";
 import { FormSection } from "@/components/forms/mantenimiento/planificacion/_theme";
 import { MaintenanceControlItem } from "@/types";
 import { cn } from "@/lib/utils";
-import { AlertTriangle, ClipboardList, ClipboardCheck, Clock, Info, SquarePen, Wrench } from "lucide-react";
+import { RecordAuditHistory } from "@/components/planificacion/auditoria/RecordAuditHistory";
+import { RetiredControlBanner } from "@/components/planificacion/controles/RetiredControlBanner";
+import { RetiredItemsSection } from "@/components/planificacion/controles/RetiredItemsSection";
+import { RetireRecordButton } from "@/components/planificacion/controles/RetireRecordButton";
+import {
+  AlertTriangle,
+  ClipboardList,
+  ClipboardCheck,
+  Clock,
+  Info,
+  SquarePen,
+  Wrench,
+} from "lucide-react";
 
-function InfoItem({ label, value }: { label: string; value?: string | number }) {
+function InfoItem({
+  label,
+  value,
+}: {
+  label: string;
+  value?: string | number;
+}) {
   return (
     <div className="space-y-0.5">
       <p className="text-xs text-muted-foreground">{label}</p>
       <p className="text-sm font-semibold leading-tight">
-        {value || <span className="font-normal text-muted-foreground italic">No especificado</span>}
+        {value || (
+          <span className="font-normal text-muted-foreground italic">
+            No especificado
+          </span>
+        )}
       </p>
     </div>
   );
@@ -56,13 +91,21 @@ function InfoSection({
   children: ReactNode;
 }) {
   return (
-    <div className={cn(bordered && "border-t border-slate-400/30 pt-3 dark:border-slate-600/30")}>
-      <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground/70">{title}</p>
-      <div className="grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-3 md:grid-cols-6">{children}</div>
+    <div
+      className={cn(
+        bordered &&
+          "border-t border-slate-400/30 pt-3 dark:border-slate-600/30",
+      )}
+    >
+      <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground/70">
+        {title}
+      </p>
+      <div className="grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-3 md:grid-cols-6">
+        {children}
+      </div>
     </div>
   );
 }
-
 
 function StatusLegend({
   remainingPercentage,
@@ -81,7 +124,11 @@ function StatusLegend({
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="gap-1.5 text-muted-foreground"
+        >
           <Info className="size-4" />
           ¿Qué significan los colores?
         </Button>
@@ -96,10 +143,19 @@ function StatusLegend({
           </p>
           {(Object.keys(STATUS_META) as ItemStatus[]).map((status) => (
             <div key={status} className="flex items-start gap-2">
-              <span className={cn("mt-1 size-2 shrink-0 rounded-full", STATUS_META[status].dot)} />
+              <span
+                className={cn(
+                  "mt-1 size-2 shrink-0 rounded-full",
+                  STATUS_META[status].dot,
+                )}
+              />
               <div>
-                <p className="text-sm font-medium leading-none">{STATUS_META[status].label}</p>
-                <p className="mt-1 text-xs text-muted-foreground">{descriptions[status]}</p>
+                <p className="text-sm font-medium leading-none">
+                  {STATUS_META[status].label}
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {descriptions[status]}
+                </p>
               </div>
             </div>
           ))}
@@ -117,7 +173,7 @@ const COL = {
   estimate: "w-[120px]",
   provider: "w-[150px]",
   workOrder: "w-[130px]",
-  actions: "w-[72px]",
+  actions: "w-[100px]",
 };
 
 // Columnas como "Estimación" pueden llevar texto largo ("Sin vuelos en los
@@ -148,6 +204,7 @@ function ItemActionCell({
   aircraftAcronym,
   defaultHours,
   defaultCycles,
+  controlRetired,
 }: {
   item: MaintenanceControlItem;
   status: ItemStatus;
@@ -157,11 +214,13 @@ function ItemActionCell({
   aircraftAcronym?: string;
   defaultHours: number;
   defaultCycles: number;
+  controlRetired: boolean;
 }) {
-  if (!item.id) return null;
+  if (!item.id || controlRetired) return null;
 
   const pendingWorkOrder = item.pending_work_order;
-  const hasOpenWorkOrder = !!pendingWorkOrder && pendingWorkOrder.status !== "CLOSED";
+  const hasOpenWorkOrder =
+    !!pendingWorkOrder && pendingWorkOrder.status !== "CLOSED";
   const isCritical = status === "CRITICAL" || status === "OVERDUE";
 
   const newWorkOrderParams = new URLSearchParams({
@@ -181,19 +240,28 @@ function ItemActionCell({
               className="flex items-center text-muted-foreground hover:text-foreground"
             >
               <Clock className="size-3.5 shrink-0" />
-              <span className="sr-only">Ver Orden de Trabajo {pendingWorkOrder!.order_number}</span>
+              <span className="sr-only">
+                Ver Orden de Trabajo {pendingWorkOrder!.order_number}
+              </span>
             </Link>
           </TooltipTrigger>
           <TooltipContent>
-            Orden de Trabajo {pendingWorkOrder!.order_number} abierta para este ítem.
+            Orden de Trabajo {pendingWorkOrder!.order_number} abierta para este
+            ítem.
           </TooltipContent>
         </Tooltip>
       ) : (
         isCritical && (
           <Tooltip>
             <TooltipTrigger asChild>
-              <Link href={`/${company}/planificacion/ordenes_trabajo/nueva_orden_trabajo?${newWorkOrderParams.toString()}`}>
-                <Button variant="ghost" size="icon" className="h-7 w-7 text-orange-600 hover:text-orange-700">
+              <Link
+                href={`/${company}/planificacion/ordenes_trabajo/nueva_orden_trabajo?${newWorkOrderParams.toString()}`}
+              >
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 text-orange-600 hover:text-orange-700"
+                >
                   <Wrench className="size-4" />
                   <span className="sr-only">Crear Orden de Trabajo</span>
                 </Button>
@@ -212,6 +280,11 @@ function ItemActionCell({
         defaultCycles={defaultCycles}
         pendingWorkOrder={hasOpenWorkOrder ? pendingWorkOrder : null}
       />
+      <RetireRecordButton
+        recordType="maintenance_control_item"
+        recordId={item.id}
+        subject={`ítem «${item.name}»`}
+      />
     </div>
   );
 }
@@ -225,6 +298,7 @@ function MaintenanceItemsTable({
   realAircraftId,
   realAircraftAcronym,
   controlRemainingPercentage,
+  controlRetired,
 }: {
   items: MaintenanceControlItem[];
   aircraft: { flight_hours: number | string; flight_cycles: number | string };
@@ -234,6 +308,7 @@ function MaintenanceItemsTable({
   realAircraftId: number | string;
   realAircraftAcronym?: string;
   controlRemainingPercentage: number;
+  controlRetired: boolean;
 }) {
   if (!items.length) {
     return <p className="text-sm italic text-muted-foreground">{emptyLabel}</p>;
@@ -245,13 +320,37 @@ function MaintenanceItemsTable({
         <TableHeader>
           <TableRow className="hover:bg-transparent">
             <TableHead className="bg-muted/40 font-semibold">Nombre</TableHead>
-            <TableHead className={cn(COL.frequency, "bg-muted/40 font-semibold")}>Frecuencia</TableHead>
-            <TableHead className={cn(COL.applied, "bg-muted/40 font-semibold")}>Aplicada</TableHead>
-            <TableHead className={cn(COL.next, "bg-muted/40 font-semibold")}>Próximo</TableHead>
-            <TableHead className={cn(COL.remaining, "bg-muted/40 font-semibold")}>Remanente</TableHead>
-            <TableHead className={cn(COL.estimate, "bg-muted/40 font-semibold")}>Estimación</TableHead>
-            <TableHead className={cn(COL.provider, "bg-muted/40 font-semibold")}>Realizado Por</TableHead>
-            <TableHead className={cn(COL.workOrder, "bg-muted/40 font-semibold")}>N° OT</TableHead>
+            <TableHead
+              className={cn(COL.frequency, "bg-muted/40 font-semibold")}
+            >
+              Frecuencia
+            </TableHead>
+            <TableHead className={cn(COL.applied, "bg-muted/40 font-semibold")}>
+              Aplicada
+            </TableHead>
+            <TableHead className={cn(COL.next, "bg-muted/40 font-semibold")}>
+              Próximo
+            </TableHead>
+            <TableHead
+              className={cn(COL.remaining, "bg-muted/40 font-semibold")}
+            >
+              Remanente
+            </TableHead>
+            <TableHead
+              className={cn(COL.estimate, "bg-muted/40 font-semibold")}
+            >
+              Estimación
+            </TableHead>
+            <TableHead
+              className={cn(COL.provider, "bg-muted/40 font-semibold")}
+            >
+              Realizado Por
+            </TableHead>
+            <TableHead
+              className={cn(COL.workOrder, "bg-muted/40 font-semibold")}
+            >
+              N° OT
+            </TableHead>
             <TableHead className={cn(COL.actions, "bg-muted/40")} />
           </TableRow>
         </TableHeader>
@@ -260,7 +359,10 @@ function MaintenanceItemsTable({
             const computed = computeMaintenanceItem(item);
             const meta = STATUS_META[computed.status];
             return (
-              <TableRow key={item.id} className={cn(meta.row, "transition-colors hover:bg-primary/3")}>
+              <TableRow
+                key={item.id}
+                className={cn(meta.row, "transition-colors hover:bg-primary/3")}
+              >
                 <TableCell className="font-medium">
                   <TruncatedText>{item.name}</TruncatedText>
                 </TableCell>
@@ -268,7 +370,10 @@ function MaintenanceItemsTable({
                   <span className="block truncate">{computed.frequency}</span>
                   {/* N intervalos ("lo que ocurra primero"): mismo cumplimiento, un reloj cada uno. */}
                   {computed.extras.map((extra, i) => (
-                    <span key={i} className="block truncate text-xs text-muted-foreground">
+                    <span
+                      key={i}
+                      className="block truncate text-xs text-muted-foreground"
+                    >
                       Ó {extra.frequency}
                     </span>
                   ))}
@@ -276,36 +381,56 @@ function MaintenanceItemsTable({
                 <TableCell className={COL.applied}>
                   <span className="block truncate">{computed.applied}</span>
                   {computed.appliedSub && (
-                    <span className="block truncate text-xs text-muted-foreground">{computed.appliedSub}</span>
+                    <span className="block truncate text-xs text-muted-foreground">
+                      {computed.appliedSub}
+                    </span>
                   )}
                 </TableCell>
                 <TableCell className={cn(COL.next, "truncate")}>
                   <span className="block truncate">{computed.next}</span>
                   {computed.extras.map((extra, i) => (
-                    <span key={i} className="block truncate text-xs text-muted-foreground">
+                    <span
+                      key={i}
+                      className="block truncate text-xs text-muted-foreground"
+                    >
                       {extra.next}
                     </span>
                   ))}
                 </TableCell>
                 <TableCell className={cn(COL.remaining, "truncate")}>
-                  <span className={cn("inline-flex items-center gap-1.5 font-semibold", meta.text)}>
-                    <span className={cn("size-1.5 shrink-0 rounded-full", meta.dot)} />
-                    {computed.remaining}
-                    {item.remaining_percentage !== null && item.remaining_percentage !== undefined && (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <span className="rounded bg-muted px-1 text-[10px] font-medium text-muted-foreground">
-                            {Number(item.remaining_percentage)}%
-                          </span>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          Margen propio de este ítem, distinto del {controlRemainingPercentage}% del control
-                        </TooltipContent>
-                      </Tooltip>
+                  <span
+                    className={cn(
+                      "inline-flex items-center gap-1.5 font-semibold",
+                      meta.text,
                     )}
+                  >
+                    <span
+                      className={cn("size-1.5 shrink-0 rounded-full", meta.dot)}
+                    />
+                    {computed.remaining}
+                    {item.remaining_percentage !== null &&
+                      item.remaining_percentage !== undefined && (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="rounded bg-muted px-1 text-[10px] font-medium text-muted-foreground">
+                              {Number(item.remaining_percentage)}%
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            Margen propio de este ítem, distinto del{" "}
+                            {controlRemainingPercentage}% del control
+                          </TooltipContent>
+                        </Tooltip>
+                      )}
                   </span>
                   {computed.extras.map((extra, i) => (
-                    <span key={i} className={cn("block truncate text-xs", STATUS_META[extra.status].text)}>
+                    <span
+                      key={i}
+                      className={cn(
+                        "block truncate text-xs",
+                        STATUS_META[extra.status].text,
+                      )}
+                    >
                       {extra.remaining}
                     </span>
                   ))}
@@ -313,7 +438,10 @@ function MaintenanceItemsTable({
                 <TableCell className={COL.estimate}>
                   <TruncatedText>{computed.estimate}</TruncatedText>
                   {computed.extras.map((extra, i) => (
-                    <span key={i} className="block truncate text-xs text-muted-foreground">
+                    <span
+                      key={i}
+                      className="block truncate text-xs text-muted-foreground"
+                    >
                       {extra.estimate}
                     </span>
                   ))}
@@ -343,6 +471,7 @@ function MaintenanceItemsTable({
                     aircraftAcronym={realAircraftAcronym}
                     defaultHours={Number(aircraft.flight_hours ?? 0)}
                     defaultCycles={Number(aircraft.flight_cycles ?? 0)}
+                    controlRetired={controlRetired}
                   />
                 </TableCell>
               </TableRow>
@@ -357,8 +486,15 @@ function MaintenanceItemsTable({
 const MaintenanceControlDetailPage = () => {
   const { id, company } = useParams<{ id: string; company: string }>();
   const { selectedCompany } = useCompanyStore();
-  const { data: control, isLoading, isError } = useGetMaintenanceControl(selectedCompany?.slug, id);
-  const { data: dailyAverage } = useGetAircraftDailyAverage(selectedCompany?.slug, control?.aircraft?.acronym);
+  const {
+    data: control,
+    isLoading,
+    isError,
+  } = useGetMaintenanceControl(selectedCompany?.slug, id);
+  const { data: dailyAverage } = useGetAircraftDailyAverage(
+    selectedCompany?.slug,
+    control?.aircraft?.acronym,
+  );
 
   if (isLoading) return <LoadingPage />;
 
@@ -369,19 +505,27 @@ const MaintenanceControlDetailPage = () => {
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Error</AlertTitle>
-          <AlertDescription>No se pudo cargar el control de mantenimiento.</AlertDescription>
+          <AlertDescription>
+            No se pudo cargar el control de mantenimiento.
+          </AlertDescription>
         </Alert>
       </ContentLayout>
     );
   }
 
   const remainingPercentage = Number(control.remaining_percentage);
-  const items = control.items ?? [];
+  const allItems = control.items ?? [];
+  const items = allItems.filter((item) => !item.retired_at);
+  const controlRetired = !!control.retired_at;
   const hasPercentageOverrides = items.some(
-    (item) => item.remaining_percentage !== null && item.remaining_percentage !== undefined,
+    (item) =>
+      item.remaining_percentage !== null &&
+      item.remaining_percentage !== undefined,
   );
   const certificates = items.filter((i) => i.category === "CERTIFICATE");
-  const aircraftServices = items.filter((i) => i.category === "SERVICE" && !i.maintenance_control_part_id);
+  const aircraftServices = items.filter(
+    (i) => i.category === "SERVICE" && !i.maintenance_control_part_id,
+  );
 
   // "Motor 1 - <serial>", "Motor 2 - <serial>"...: numerado por orden de
   // aparición dentro de su propio tipo, no por el número de parte (que no
@@ -404,23 +548,44 @@ const MaintenanceControlDetailPage = () => {
 
         <div className="flex flex-col gap-2 border-b pb-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="flex flex-col">
-            <h1 className="text-3xl font-semibold tracking-tight">{control.title}</h1>
-            {control.description && <p className="text-sm text-muted-foreground">{control.description}</p>}
+            <h1 className="text-3xl font-semibold tracking-tight">
+              {control.title}
+            </h1>
+            {control.description && (
+              <p className="text-sm text-muted-foreground">
+                {control.description}
+              </p>
+            )}
           </div>
           <div className="flex items-center gap-2">
             <StatusLegend
               remainingPercentage={remainingPercentage}
               hasOverrides={hasPercentageOverrides}
             />
-            <ImportComplianceHistoryDialog controlId={control.id} items={items} />
-            <ActionTriggerButton asChild>
-              <Link href={`/${company}/planificacion/control_mantenimiento/editar/${control.id}`}>
-                <SquarePen className="mr-2 size-4" />
-                Editar
-              </Link>
-            </ActionTriggerButton>
+            {!controlRetired && (
+              <>
+                <ImportComplianceHistoryDialog
+                  controlId={control.id}
+                  items={items}
+                />
+                <ActionTriggerButton asChild>
+                  <Link
+                    href={`/${company}/planificacion/control_mantenimiento/editar/${control.id}`}
+                  >
+                    <SquarePen className="mr-2 size-4" />
+                    Editar
+                  </Link>
+                </ActionTriggerButton>
+              </>
+            )}
           </div>
         </div>
+
+        <RetiredControlBanner
+          control={control}
+          recordType="maintenance_control"
+          noun="control de mantenimiento"
+        />
 
         <FormSection icon={Info} title="Información General">
           <div className="space-y-3">
@@ -429,23 +594,47 @@ const MaintenanceControlDetailPage = () => {
                 label="% Remanente para Alerta"
                 value={`${remainingPercentage}%${hasPercentageOverrides ? " (general)" : ""}`}
               />
-              <InfoItem label="Manual de Referencia" value={control.has_reference_manual ? control.reference_manual ?? undefined : undefined} />
+              <InfoItem
+                label="Manual de Referencia"
+                value={
+                  control.has_reference_manual
+                    ? (control.reference_manual ?? undefined)
+                    : undefined
+                }
+              />
             </InfoSection>
 
             <InfoSection title="Aeronave" bordered>
               <InfoItem label="Matrícula" value={control.aircraft?.acronym} />
-              <InfoItem label="Marca" value={control.aircraft?.manufacturer?.name} />
+              <InfoItem
+                label="Marca"
+                value={control.aircraft?.manufacturer?.name}
+              />
               <InfoItem label="Modelo" value={control.aircraft?.model} />
               <InfoItem label="Serial" value={control.aircraft?.serial} />
-              <InfoItem label="Horas Totales" value={`${fmtNumber(Number(control.aircraft?.flight_hours ?? 0))} hrs`} />
-              <InfoItem label="Ciclos Totales" value={fmtNumber(Number(control.aircraft?.flight_cycles ?? 0))} />
+              <InfoItem
+                label="Horas Totales"
+                value={`${fmtNumber(Number(control.aircraft?.flight_hours ?? 0))} hrs`}
+              />
+              <InfoItem
+                label="Ciclos Totales"
+                value={fmtNumber(Number(control.aircraft?.flight_cycles ?? 0))}
+              />
               <InfoItem
                 label={`Promedio Horas/Día (${dailyAverage?.days_considered ?? 30}d)`}
-                value={dailyAverage ? `${fmtNumber(dailyAverage.daily_average_hours)} hrs` : undefined}
+                value={
+                  dailyAverage
+                    ? `${fmtNumber(dailyAverage.daily_average_hours)} hrs`
+                    : undefined
+                }
               />
               <InfoItem
                 label={`Promedio Ciclos/Día (${dailyAverage?.days_considered ?? 30}d)`}
-                value={dailyAverage ? fmtNumber(dailyAverage.daily_average_cycles) : undefined}
+                value={
+                  dailyAverage
+                    ? fmtNumber(dailyAverage.daily_average_cycles)
+                    : undefined
+                }
               />
             </InfoSection>
 
@@ -458,11 +647,21 @@ const MaintenanceControlDetailPage = () => {
                   <InfoItem label="Serial" value={p?.serial} />
                   <InfoItem
                     label="TSN"
-                    value={p?.time_since_new !== undefined && p?.time_since_new !== null ? `${fmtNumber(Number(p.time_since_new))} hrs` : undefined}
+                    value={
+                      p?.time_since_new !== undefined &&
+                      p?.time_since_new !== null
+                        ? `${fmtNumber(Number(p.time_since_new))} hrs`
+                        : undefined
+                    }
                   />
                   <InfoItem
                     label="CSN"
-                    value={p?.cycles_since_new !== undefined && p?.cycles_since_new !== null ? fmtNumber(Number(p.cycles_since_new)) : undefined}
+                    value={
+                      p?.cycles_since_new !== undefined &&
+                      p?.cycles_since_new !== null
+                        ? fmtNumber(Number(p.cycles_since_new))
+                        : undefined
+                    }
                   />
                 </InfoSection>
               );
@@ -480,6 +679,7 @@ const MaintenanceControlDetailPage = () => {
             realAircraftId={control.aircraft.id}
             realAircraftAcronym={control.aircraft?.acronym}
             controlRemainingPercentage={remainingPercentage}
+            controlRetired={controlRetired}
           />
         </FormSection>
 
@@ -503,6 +703,7 @@ const MaintenanceControlDetailPage = () => {
             realAircraftId={control.aircraft.id}
             realAircraftAcronym={control.aircraft?.acronym}
             controlRemainingPercentage={remainingPercentage}
+            controlRetired={controlRetired}
           />
         </FormSection>
 
@@ -542,10 +743,33 @@ const MaintenanceControlDetailPage = () => {
                 realAircraftId={control.aircraft.id}
                 realAircraftAcronym={control.aircraft?.acronym}
                 controlRemainingPercentage={remainingPercentage}
+                controlRetired={controlRetired}
               />
             </FormSection>
           );
         })}
+
+        <RetiredItemsSection
+          canRestore={!controlRetired}
+          rows={allItems
+            .filter((item) => item.retired_at && item.id)
+            .map((item) => ({
+              id: item.id!,
+              recordType: "maintenance_control_item" as const,
+              label: item.name,
+              detail:
+                item.category === "CERTIFICATE" ? "Certificado" : "Servicio",
+              subject: `ítem «${item.name}»`,
+              retired_at: item.retired_at!,
+              retired_by: item.retired_by,
+            }))}
+        />
+
+        <RecordAuditHistory
+          subjectType="maintenance_control"
+          subjectId={control.id}
+          filename={`historial_control_mantenimiento_${control.aircraft?.acronym ?? control.id}`}
+        />
       </div>
     </ContentLayout>
   );

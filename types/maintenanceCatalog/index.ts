@@ -11,53 +11,54 @@ export type CatalogCategory = "CERTIFICATE" | "SERVICE";
 export type CatalogStatus = "ACTIVE" | "SUPERSEDED";
 export type CatalogCountingMethod = "HOURS" | "CYCLES" | "DAYS";
 export type Msg3TaskType =
-    | "LUBRICATION_SERVICING"
-    | "OPERATIONAL_CHECK"
-    | "VISUAL_CHECK"
-    | "GENERAL_VISUAL_INSPECTION"
-    | "DETAILED_INSPECTION"
-    | "SPECIAL_DETAILED_INSPECTION"
-    | "RESTORATION"
-    | "DISCARD"
-    | "FUNCTIONAL_CHECK";
-export type CatalogRequirementType = "PART" | "TOOL" | "CONSUMABLE" | "COMPONENT" | "GENERAL";
+  | "LUBRICATION_SERVICING"
+  | "OPERATIONAL_CHECK"
+  | "VISUAL_CHECK"
+  | "GENERAL_VISUAL_INSPECTION"
+  | "DETAILED_INSPECTION"
+  | "SPECIAL_DETAILED_INSPECTION"
+  | "RESTORATION"
+  | "DISCARD"
+  | "FUNCTIONAL_CHECK";
+export type CatalogRequirementType =
+  "PART" | "TOOL" | "CONSUMABLE" | "COMPONENT" | "GENERAL";
 
 export type CatalogManual = {
-    id: number;
-    name: string;
-    manual_code: string | null;
-    revision: string | null;
-    effective_date: string | null;
-    file_path: string | null;
-    file_url: string | null;
-    is_physical: boolean;
-    status: CatalogStatus;
-    superseded_by_manual_id: number | null;
-    /** Solo en el detalle: la revisión que reemplazó a esta, si aplica. */
-    superseded_by?: CatalogManual | null;
-    /** Solo en el detalle: revisiones anteriores, de la más a la menos reciente. */
-    previous_revisions?: CatalogManual[];
-    description: string | null;
-    services_count?: number;
-    /** Solo en el detalle del manual. */
-    services?: CatalogService[];
-    registered_by: string;
-    updated_by: string | null;
-    created_at: string;
-    updated_at: string;
+  id: number;
+  name: string;
+  manual_code: string | null;
+  revision: string | null;
+  effective_date: string | null;
+  file_path: string | null;
+  file_url: string | null;
+  is_physical: boolean;
+  status: CatalogStatus;
+  superseded_by_manual_id: number | null;
+  /** Solo en el detalle: la revisión que reemplazó a esta, si aplica. */
+  superseded_by?: CatalogManual | null;
+  /** Solo en el detalle: revisiones anteriores, de la más a la menos reciente. */
+  previous_revisions?: CatalogManual[];
+  description: string | null;
+  services_count?: number;
+  /** Solo en el detalle del manual. */
+  services?: CatalogService[];
+  registered_by: string;
+  updated_by: string | null;
+  created_at: string;
+  updated_at: string;
 };
 
 export type CatalogTaskRequirement = {
-    id: number;
-    maintenance_catalog_task_id: number;
-    requirement_type: CatalogRequirementType;
-    part_number: string | null;
-    description: string;
-    quantity: number | null;
-    unit_id: number | null;
-    unit: Unit | null;
-    is_mandatory: boolean;
-    notes: string | null;
+  id: number;
+  maintenance_catalog_task_id: number;
+  requirement_type: CatalogRequirementType;
+  part_number: string | null;
+  description: string;
+  quantity: number | null;
+  unit_id: number | null;
+  unit: Unit | null;
+  is_mandatory: boolean;
+  notes: string | null;
 };
 
 /**
@@ -67,40 +68,40 @@ export type CatalogTaskRequirement = {
  * counting_method/interval_value de una sola unidad.
  */
 export type CatalogInterval = {
-    id?: number;
-    counting_method: CatalogCountingMethod;
-    interval_value: number;
+  id?: number;
+  counting_method: CatalogCountingMethod;
+  interval_value: number;
 };
 
 export type CatalogTask = {
-    id: number;
-    maintenance_catalog_service_id: number;
-    task_number: string | null;
-    ata: string | null;
-    msg3_type: Msg3TaskType;
-    description: string;
-    reference: string | null;
-    estimated_man_hours: number | null;
-    required_skill: string | null;
-    /** Vacío = la tarea no tiene periodicidad propia y hereda la del servicio. */
-    intervals: CatalogInterval[];
-    requirements: CatalogTaskRequirement[];
+  id: number;
+  maintenance_catalog_service_id: number;
+  task_number: string | null;
+  ata: string | null;
+  msg3_type: Msg3TaskType;
+  description: string;
+  reference: string | null;
+  estimated_man_hours: number | null;
+  required_skill: string | null;
+  /** Vacío = la tarea no tiene periodicidad propia y hereda la del servicio. */
+  intervals: CatalogInterval[];
+  requirements: CatalogTaskRequirement[];
 };
 
 export type CatalogService = {
-    id: number;
-    maintenance_catalog_manual_id: number | null;
-    category: CatalogCategory;
-    name: string;
-    code: string | null;
-    description: string | null;
-    /** Vacío = certificado estático sin periodicidad recurrente (ej. seguro). */
-    intervals: CatalogInterval[];
-    status: CatalogStatus;
-    manual: CatalogManual | null;
-    tasks?: CatalogTask[];
-    tasks_count?: number;
-    aircrafts?: MaintenanceAircraft[];
-    registered_by: string;
-    updated_by: string | null;
+  id: number;
+  maintenance_catalog_manual_id: number | null;
+  category: CatalogCategory;
+  name: string;
+  code: string | null;
+  description: string | null;
+  /** Vacío = certificado estático sin periodicidad recurrente (ej. seguro). */
+  intervals: CatalogInterval[];
+  status: CatalogStatus;
+  manual: CatalogManual | null;
+  tasks?: CatalogTask[];
+  tasks_count?: number;
+  aircrafts?: MaintenanceAircraft[];
+  registered_by: string;
+  updated_by: string | null;
 };

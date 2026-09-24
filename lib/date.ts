@@ -23,11 +23,11 @@ export const DEFAULT_TIMEZONE = "UTC";
 
 /** Los formatos que realmente se usan en la app. */
 export const DATE_PRESETS = {
-    date: "dd/MM/yyyy",
-    dateTime: "dd/MM/yyyy HH:mm",
-    long: "PPP",
-    short: "dd MMM yyyy",
-    time: "HH:mm",
+  date: "dd/MM/yyyy",
+  dateTime: "dd/MM/yyyy HH:mm",
+  long: "PPP",
+  short: "dd MMM yyyy",
+  time: "HH:mm",
 } as const;
 
 export type DatePreset = keyof typeof DATE_PRESETS;
@@ -36,7 +36,7 @@ export type DatePreset = keyof typeof DATE_PRESETS;
 type FormatSpec = DatePreset | (string & {});
 
 const resolveFormat = (spec: FormatSpec): string =>
-    spec in DATE_PRESETS ? DATE_PRESETS[spec as DatePreset] : spec;
+  spec in DATE_PRESETS ? DATE_PRESETS[spec as DatePreset] : spec;
 
 /**
  * Fechas viejas guardadas como medianoche UTC: no llevaban hora real, así que
@@ -56,7 +56,8 @@ const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
  * lo serializa una columna sin cast. El backend guarda en UTC, pero `new Date()`
  * lo interpretaría como hora del navegador; se le pega la Z para leerlo bien.
  */
-const NAIVE_DATETIME = /^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2}(?::\d{2})?(?:\.\d+)?)$/;
+const NAIVE_DATETIME =
+  /^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2}(?::\d{2})?(?:\.\d+)?)$/;
 
 /**
  * Interpreta el string del backend como el instante que realmente es. Se aísla
@@ -64,12 +65,13 @@ const NAIVE_DATETIME = /^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2}(?::\d{2})?(?:\.\d+)
  * que todavía les falte el cast.
  */
 const parseInstant = (value: string | Date): Date | null => {
-    if (value instanceof Date) return Number.isNaN(value.getTime()) ? null : value;
+  if (value instanceof Date)
+    return Number.isNaN(value.getTime()) ? null : value;
 
-    const naive = value.match(NAIVE_DATETIME);
-    const date = new Date(naive ? `${naive[1]}T${naive[2]}Z` : value);
+  const naive = value.match(NAIVE_DATETIME);
+  const date = new Date(naive ? `${naive[1]}T${naive[2]}Z` : value);
 
-    return Number.isNaN(date.getTime()) ? null : date;
+  return Number.isNaN(date.getTime()) ? null : date;
 };
 
 /**
@@ -84,45 +86,49 @@ const formatterCache = new Map<string, Intl.DateTimeFormat>();
  * tumbaría el render entero, así que cae a UTC en vez de romper la pantalla.
  */
 const formatterFor = (timeZone: string): Intl.DateTimeFormat => {
-    const cached = formatterCache.get(timeZone);
-    if (cached) return cached;
+  const cached = formatterCache.get(timeZone);
+  if (cached) return cached;
 
-    const options: Intl.DateTimeFormatOptions = {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-        hour12: false,
-    };
+  const options: Intl.DateTimeFormatOptions = {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  };
 
-    let formatter: Intl.DateTimeFormat;
-    try {
-        formatter = new Intl.DateTimeFormat("en-US", { ...options, timeZone });
-    } catch {
-        formatter = new Intl.DateTimeFormat("en-US", { ...options, timeZone: DEFAULT_TIMEZONE });
-    }
+  let formatter: Intl.DateTimeFormat;
+  try {
+    formatter = new Intl.DateTimeFormat("en-US", { ...options, timeZone });
+  } catch {
+    formatter = new Intl.DateTimeFormat("en-US", {
+      ...options,
+      timeZone: DEFAULT_TIMEZONE,
+    });
+  }
 
-    formatterCache.set(timeZone, formatter);
+  formatterCache.set(timeZone, formatter);
 
-    return formatter;
+  return formatter;
 };
 
 const shiftToTimeZone = (date: Date, timeZone: string): Date => {
-    const parts = formatterFor(timeZone).formatToParts(date);
+  const parts = formatterFor(timeZone).formatToParts(date);
 
-    const get = (type: string) => Number(parts.find((p) => p.type === type)?.value);
+  const get = (type: string) =>
+    Number(parts.find((p) => p.type === type)?.value);
 
-    return new Date(
-        get("year"),
-        get("month") - 1,
-        get("day"),
-        // A medianoche Intl devuelve la hora como 24 en vez de 0.
-        get("hour") % 24,
-        get("minute"),
-        get("second"),
-    );
+  return new Date(
+    get("year"),
+    get("month") - 1,
+    get("day"),
+    // A medianoche Intl devuelve la hora como 24 en vez de 0.
+    get("hour") % 24,
+    get("minute"),
+    get("second"),
+  );
 };
 
 /**
@@ -130,26 +136,29 @@ const shiftToTimeZone = (date: Date, timeZone: string): Date => {
  * submission_date, movements.date, changed_at...
  */
 export const formatInstant = (
-    value: string | Date | null | undefined,
-    timeZone: string = DEFAULT_TIMEZONE,
-    spec: FormatSpec = "dateTime",
-    fallback = "N/A",
+  value: string | Date | null | undefined,
+  timeZone: string = DEFAULT_TIMEZONE,
+  spec: FormatSpec = "dateTime",
+  fallback = "N/A",
 ): string => {
-    if (!value) return fallback;
+  if (!value) return fallback;
 
-    const pattern = resolveFormat(spec);
+  const pattern = resolveFormat(spec);
 
-    // Un string sin hora del día no es un instante por más que lo pidan aquí:
-    // convertirlo lo correría un día. Se atiende como fecha de calendario en vez
-    // de confiar en que cada punto de la app haya clasificado bien la columna.
-    if (typeof value === "string" && (DATE_ONLY.test(value) || MIDNIGHT_UTC.test(value))) {
-        return formatCalendarDate(value, spec, fallback);
-    }
+  // Un string sin hora del día no es un instante por más que lo pidan aquí:
+  // convertirlo lo correría un día. Se atiende como fecha de calendario en vez
+  // de confiar en que cada punto de la app haya clasificado bien la columna.
+  if (
+    typeof value === "string" &&
+    (DATE_ONLY.test(value) || MIDNIGHT_UTC.test(value))
+  ) {
+    return formatCalendarDate(value, spec, fallback);
+  }
 
-    const date = parseInstant(value);
-    if (!date) return fallback;
+  const date = parseInstant(value);
+  if (!date) return fallback;
 
-    return format(shiftToTimeZone(date, timeZone), pattern, { locale: es });
+  return format(shiftToTimeZone(date, timeZone), pattern, { locale: es });
 };
 
 /**
@@ -157,31 +166,33 @@ export const formatInstant = (
  * zona. Para columnas date: start_date, end_date, report_date, expiration...
  */
 export const formatCalendarDate = (
-    value: string | Date | null | undefined,
-    spec: FormatSpec = "date",
-    fallback = "N/A",
+  value: string | Date | null | undefined,
+  spec: FormatSpec = "date",
+  fallback = "N/A",
 ): string => {
-    if (!value) return fallback;
+  if (!value) return fallback;
 
-    const pattern = resolveFormat(spec);
+  const pattern = resolveFormat(spec);
 
-    if (value instanceof Date) {
-        return format(value, pattern, { locale: es });
-    }
+  if (value instanceof Date) {
+    return format(value, pattern, { locale: es });
+  }
 
-    // Se leen los componentes del string en vez de dejar que el motor los
-    // interprete: `new Date("2026-09-02")` es medianoche UTC y en UTC−4 cae el
-    // día anterior.
-    const match = String(value).match(CALENDAR_DATE);
-    if (match) {
-        const [, y, m, d] = match;
-        return format(new Date(Number(y), Number(m) - 1, Number(d)), pattern, { locale: es });
-    }
+  // Se leen los componentes del string en vez de dejar que el motor los
+  // interprete: `new Date("2026-09-02")` es medianoche UTC y en UTC−4 cae el
+  // día anterior.
+  const match = String(value).match(CALENDAR_DATE);
+  if (match) {
+    const [, y, m, d] = match;
+    return format(new Date(Number(y), Number(m) - 1, Number(d)), pattern, {
+      locale: es,
+    });
+  }
 
-    const parsed = new Date(value);
-    if (Number.isNaN(parsed.getTime())) return fallback;
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return fallback;
 
-    return format(parsed, pattern, { locale: es });
+  return format(parsed, pattern, { locale: es });
 };
 
 /**
@@ -189,19 +200,19 @@ export const formatCalendarDate = (
  * supervisor, que antes estaba copiado en siete uiHelpers.ts distintos.
  */
 export const formatLongUpperDate = (
-    value: string | Date | null | undefined,
-    fallback?: string,
+  value: string | Date | null | undefined,
+  fallback?: string,
 ): string | undefined => {
-    if (!value) return fallback;
+  if (!value) return fallback;
 
-    // Un solo pase: date-fns respeta el texto entre comillas simples, así que el
-    // mes se saca en mayúsculas sin volver a parsear la fecha tres veces.
-    const formatted = formatCalendarDate(value, "dd|MMMM|yyyy", "");
-    if (!formatted) return fallback;
+  // Un solo pase: date-fns respeta el texto entre comillas simples, así que el
+  // mes se saca en mayúsculas sin volver a parsear la fecha tres veces.
+  const formatted = formatCalendarDate(value, "dd|MMMM|yyyy", "");
+  if (!formatted) return fallback;
 
-    const [day, month, year] = formatted.split("|");
+  const [day, month, year] = formatted.split("|");
 
-    return `${day} ${month.toUpperCase()} ${year}`;
+  return `${day} ${month.toUpperCase()} ${year}`;
 };
 
 /**
@@ -209,20 +220,23 @@ export const formatLongUpperDate = (
  * o comparar por día sin arrastrar la hora. Devuelve "yyyy-MM-dd".
  */
 export const instantToCalendarDay = (
-    value: string | Date | null | undefined,
-    timeZone: string = DEFAULT_TIMEZONE,
+  value: string | Date | null | undefined,
+  timeZone: string = DEFAULT_TIMEZONE,
 ): string | null => {
-    if (!value) return null;
+  if (!value) return null;
 
-    // Una fecha sin hora ya ES el día: convertirla lo correría.
-    if (typeof value === "string" && (DATE_ONLY.test(value) || MIDNIGHT_UTC.test(value))) {
-        return value.slice(0, 10);
-    }
+  // Una fecha sin hora ya ES el día: convertirla lo correría.
+  if (
+    typeof value === "string" &&
+    (DATE_ONLY.test(value) || MIDNIGHT_UTC.test(value))
+  ) {
+    return value.slice(0, 10);
+  }
 
-    const date = parseInstant(value);
-    if (!date) return null;
+  const date = parseInstant(value);
+  if (!date) return null;
 
-    return format(shiftToTimeZone(date, timeZone), "yyyy-MM-dd");
+  return format(shiftToTimeZone(date, timeZone), "yyyy-MM-dd");
 };
 
 /**
@@ -230,21 +244,24 @@ export const instantToCalendarDay = (
  * `.toISOString()` de un Date tomado del calendario corre el día hacia atrás
  * para cualquier usuario al oeste de Greenwich.
  */
-export const toCalendarPayload = (value: Date | null | undefined): string | undefined =>
-    value ? format(value, "yyyy-MM-dd") : undefined;
+export const toCalendarPayload = (
+  value: Date | null | undefined,
+): string | undefined => (value ? format(value, "yyyy-MM-dd") : undefined);
 
 /**
  * El inverso de `toCalendarPayload`: la fecha de calendario del backend como
  * Date local, para poblar un selector. `new Date("2026-09-02")` sería medianoche
  * UTC y en UTC−4 mostraría el día anterior.
  */
-export const parseCalendarDate = (value: string | null | undefined): Date | undefined => {
-    if (!value) return undefined;
+export const parseCalendarDate = (
+  value: string | null | undefined,
+): Date | undefined => {
+  if (!value) return undefined;
 
-    const match = String(value).match(CALENDAR_DATE);
-    if (!match) return undefined;
+  const match = String(value).match(CALENDAR_DATE);
+  if (!match) return undefined;
 
-    const [, y, m, d] = match;
+  const [, y, m, d] = match;
 
-    return new Date(Number(y), Number(m) - 1, Number(d));
+  return new Date(Number(y), Number(m) - 1, Number(d));
 };

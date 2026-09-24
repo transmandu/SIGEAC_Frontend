@@ -11,7 +11,11 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { triggerButtonClass } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
 import { cn } from "@/lib/utils";
 
@@ -22,7 +26,9 @@ import { cn } from "@/lib/utils";
  * as it is null") apenas se usa fuera de un <Form> de react-hook-form. Este
  * es para selects sueltos (diálogos con estado propio, filtros de listado).
  */
-export function SearchableCombobox<T extends { id: number | string; name: string }>({
+export function SearchableCombobox<
+  T extends { id: number | string; name: string },
+>({
   options,
   value,
   onSelect,
@@ -56,7 +62,9 @@ export function SearchableCombobox<T extends { id: number | string; name: string
           className={cn(triggerButtonClass, !value && "text-muted-foreground")}
         >
           {loading && <Loader2 className="mr-2 size-4 animate-spin" />}
-          <span className="truncate">{selected ? selected.name : placeholder}</span>
+          <span className="truncate">
+            {selected ? selected.name : placeholder}
+          </span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -69,10 +77,16 @@ export function SearchableCombobox<T extends { id: number | string; name: string
         <Command>
           <CommandInput placeholder={searchPlaceholder} />
           <CommandList>
-            <CommandEmpty className="p-2 text-center text-xs">{emptyLabel}</CommandEmpty>
+            <CommandEmpty className="p-2 text-center text-xs">
+              {emptyLabel}
+            </CommandEmpty>
             <CommandGroup>
               {options?.map((option) => (
-                <CommandItem key={option.id} value={option.name} onSelect={() => onSelect(option)}>
+                <CommandItem
+                  key={option.id}
+                  value={option.name}
+                  onSelect={() => onSelect(option)}
+                >
                   <Check
                     className={cn(
                       "mr-2 h-4 w-4 shrink-0",

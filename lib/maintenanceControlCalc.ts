@@ -15,7 +15,10 @@ export type ItemStatus = MaintenanceItemStatus;
  * de gestión, snapshot histórico): color y qué significan en texto llano.
  * Vivía duplicado como const local de la página de detalle.
  */
-export const STATUS_META: Record<ItemStatus, { label: string; dot: string; text: string; row: string }> = {
+export const STATUS_META: Record<
+  ItemStatus,
+  { label: string; dot: string; text: string; row: string }
+> = {
   OK: {
     label: "Vigente",
     dot: "bg-emerald-500",
@@ -67,8 +70,16 @@ export interface ComputedMaintenanceItem {
   extras: SingleLimitResult[];
 }
 
-const UNIT_LABEL: Record<string, string> = { HOURS: "Horas", CYCLES: "Ciclos", DAYS: "Días" };
-const UNIT_SHORT: Record<string, string> = { HOURS: "hrs", CYCLES: "cic", DAYS: "días" };
+const UNIT_LABEL: Record<string, string> = {
+  HOURS: "Horas",
+  CYCLES: "Ciclos",
+  DAYS: "Días",
+};
+const UNIT_SHORT: Record<string, string> = {
+  HOURS: "hrs",
+  CYCLES: "cic",
+  DAYS: "días",
+};
 
 // Enteros sin separador de miles (26739, no 26.739 ni 26,739); si hay
 // decimales, van con coma (100,24). `toLocaleString` con "es-VE" agrupa de
@@ -88,7 +99,9 @@ const fmtDate = (date: Date) => format(date, "dd/MM/yyyy", { locale: es });
  * MaintenanceControlFormPdfService::buildRow(), con riesgo real de que
  * divergieran.
  */
-function formatInterval(interval: ComputedMaintenanceInterval): SingleLimitResult {
+function formatInterval(
+  interval: ComputedMaintenanceInterval,
+): SingleLimitResult {
   const unit = interval.counting_method;
   const frequency = `${fmtNumber(Number(interval.limit_value))} ${UNIT_LABEL[unit]}`;
 
@@ -112,7 +125,13 @@ function formatInterval(interval: ComputedMaintenanceInterval): SingleLimitResul
     // No debería pasar (el formulario exige lectura inicial en horas/ciclos),
     // pero sin el dato no hay con qué mostrar próximo/remanente. El backend
     // manda status null en ese caso: no cuenta para el estado del ítem.
-    return { frequency, next: "—", remaining: "Falta lectura inicial", estimate: "—", status: interval.status ?? "OK" };
+    return {
+      frequency,
+      next: "—",
+      remaining: "Falta lectura inicial",
+      estimate: "—",
+      status: interval.status ?? "OK",
+    };
   }
 
   return {
@@ -148,11 +167,15 @@ function formatInterval(interval: ComputedMaintenanceInterval): SingleLimitResul
  */
 type ComputableItem = {
   computed?: MaintenanceControlItemComputed | null;
-  latest_compliance?: { maintenance_provider?: MaintenanceProvider | null } | null;
+  latest_compliance?: {
+    maintenance_provider?: MaintenanceProvider | null;
+  } | null;
   maintenance_provider?: MaintenanceProvider | null;
 };
 
-export function computeMaintenanceItem(item: ComputableItem): ComputedMaintenanceItem {
+export function computeMaintenanceItem(
+  item: ComputableItem,
+): ComputedMaintenanceItem {
   const computed = item.computed;
   const latest = item.latest_compliance;
 
@@ -166,7 +189,10 @@ export function computeMaintenanceItem(item: ComputableItem): ComputedMaintenanc
       remaining: "—",
       estimate: "—",
       status: "OK",
-      providerName: latest?.maintenance_provider?.name ?? item.maintenance_provider?.name ?? "—",
+      providerName:
+        latest?.maintenance_provider?.name ??
+        item.maintenance_provider?.name ??
+        "—",
       extras: [],
     };
   }

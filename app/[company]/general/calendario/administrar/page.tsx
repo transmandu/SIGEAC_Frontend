@@ -46,7 +46,8 @@ const CalendarAdminPage = () => {
 
   if (!company) return null;
 
-  const active = SECTIONS.find((section) => section.id === activeSection) ?? SECTIONS[0];
+  const active =
+    SECTIONS.find((section) => section.id === activeSection) ?? SECTIONS[0];
   const ActiveIcon = active.icon;
 
   return (
@@ -55,7 +56,9 @@ const CalendarAdminPage = () => {
         <PageHeader />
 
         <div className="flex flex-col gap-2 border-b pb-4">
-          <h1 className="text-3xl font-semibold tracking-tight">Administrar Calendario de Eventos</h1>
+          <h1 className="text-3xl font-semibold tracking-tight">
+            Administrar Calendario de Eventos
+          </h1>
           <p className="text-sm text-muted-foreground">
             Quién ve qué, tipos de evento y eventos manuales — sin tocar código.
           </p>
@@ -80,12 +83,24 @@ const CalendarAdminPage = () => {
                       : "border-slate-400/30 bg-background/40 hover:border-slate-400/50 hover:bg-background/60 dark:border-slate-600/30 dark:hover:border-slate-600/50",
                   )}
                 >
-                  <Icon className={cn("mt-0.5 size-4 shrink-0", isActive ? "text-primary" : "text-muted-foreground")} />
+                  <Icon
+                    className={cn(
+                      "mt-0.5 size-4 shrink-0",
+                      isActive ? "text-primary" : "text-muted-foreground",
+                    )}
+                  />
                   <span className="flex min-w-0 flex-col">
-                    <span className={cn("whitespace-nowrap text-sm font-medium md:whitespace-normal", isActive && "text-primary")}>
+                    <span
+                      className={cn(
+                        "whitespace-nowrap text-sm font-medium md:whitespace-normal",
+                        isActive && "text-primary",
+                      )}
+                    >
                       {section.label}
                     </span>
-                    <span className="hidden text-xs text-muted-foreground md:block">{section.description}</span>
+                    <span className="hidden text-xs text-muted-foreground md:block">
+                      {section.description}
+                    </span>
                   </span>
                 </button>
               );
@@ -98,14 +113,22 @@ const CalendarAdminPage = () => {
                 <ActiveIcon className="size-4" />
               </span>
               <div className="min-w-0">
-                <h2 className="text-base font-semibold leading-none">{active.label}</h2>
-                <p className="mt-1 text-xs text-muted-foreground">{active.description}</p>
+                <h2 className="text-base font-semibold leading-none">
+                  {active.label}
+                </h2>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {active.description}
+                </p>
               </div>
             </div>
 
-            {activeSection === "accesos" && <SourceAccessPanel company={company} />}
+            {activeSection === "accesos" && (
+              <SourceAccessPanel company={company} />
+            )}
             {activeSection === "tipos" && <EventTypesPanel company={company} />}
-            {activeSection === "manuales" && <ManualEventsPanel company={company} />}
+            {activeSection === "manuales" && (
+              <ManualEventsPanel company={company} />
+            )}
           </div>
         </div>
       </div>

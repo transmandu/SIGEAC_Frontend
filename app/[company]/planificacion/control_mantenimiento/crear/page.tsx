@@ -13,9 +13,12 @@ const CreateMaintenanceControlPage = () => {
         <div className="flex flex-col gap-2 border-b pb-4">
           <div className="flex items-end justify-between">
             <div className="flex flex-col">
-              <h1 className="text-3xl font-semibold tracking-tight">Crear Control de Mantenimiento</h1>
+              <h1 className="text-3xl font-semibold tracking-tight">
+                Crear Control de Mantenimiento
+              </h1>
               <p className="text-sm text-muted-foreground">
-                Registre los certificados, servicios y partes bajo control de una aeronave.
+                Registre los certificados, servicios y partes bajo control de
+                una aeronave.
               </p>
             </div>
           </div>

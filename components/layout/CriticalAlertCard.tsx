@@ -2,13 +2,24 @@
 
 import { useRef } from "react";
 import Link from "next/link";
-import { AlertTriangle, ArrowUpRight, Check, Loader2, Truck, X } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowUpRight,
+  Check,
+  Loader2,
+  Truck,
+  X,
+} from "lucide-react";
 import { motion } from "motion/react";
 
 import { cn } from "@/lib/utils";
 import { disintegrate } from "@/lib/disintegrate";
 import { Button } from "@/components/ui/button";
-import { CriticalAlert, alertVariant, isAlertDismissable } from "@/hooks/alerts/types";
+import {
+  CriticalAlert,
+  alertVariant,
+  isAlertDismissable,
+} from "@/hooks/alerts/types";
 import { QuarantineHazardCard } from "./QuarantineHazardCard";
 import { MaintenanceWarningCard } from "./MaintenanceWarningCard";
 
@@ -36,7 +47,14 @@ export function CriticalAlertCard({
     return <MaintenanceWarningCard alert={alert} />;
   }
 
-  return <StockAlertCard alert={alert} onConfirm={onConfirm} onDismiss={onDismiss} isConfirming={isConfirming} />;
+  return (
+    <StockAlertCard
+      alert={alert}
+      onConfirm={onConfirm}
+      onDismiss={onDismiss}
+      isConfirming={isConfirming}
+    />
+  );
 }
 
 function StockAlertCard({
@@ -82,7 +100,7 @@ function StockAlertCard({
       className={cn(
         "rounded-xl border p-3.5",
         "bg-linear-to-br from-background to-muted/40",
-        "shadow-xs"
+        "shadow-xs",
       )}
     >
       <div className="flex items-start gap-2.5">
@@ -93,12 +111,16 @@ function StockAlertCard({
               ? "bg-primary/15 text-primary"
               : alert.severity === "critical"
                 ? "bg-red-500/15 text-red-600"
-                : "bg-amber-500/15 text-amber-600"
+                : "bg-amber-500/15 text-amber-600",
           )}
         >
           {/* En tránsito la reposición ya está pedida: el camión comunica
               "viene en camino", no el peligro del triángulo. */}
-          {isInTransit ? <Truck className="h-4 w-4" /> : <AlertTriangle className="h-4 w-4" />}
+          {isInTransit ? (
+            <Truck className="h-4 w-4" />
+          ) : (
+            <AlertTriangle className="h-4 w-4" />
+          )}
         </span>
 
         <div className="min-w-0 flex-1 space-y-1.5">
@@ -149,7 +171,11 @@ function StockAlertCard({
               onClick={() => onConfirm(alert)}
               className="h-7 gap-1 bg-green-600 px-2.5 text-xs text-white hover:bg-green-700"
             >
-              {isConfirming ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+              {isConfirming ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Check className="h-3.5 w-3.5" />
+              )}
               {/* En tránsito no se confirma una compra evidente: se insiste sobre
                   algo ya pedido, y la etiqueta debe decirlo. */}
               {isInTransit ? "Pedir igual" : "Sí"}

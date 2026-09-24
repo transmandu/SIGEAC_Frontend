@@ -1,4 +1,8 @@
-import { ComponentAction, ComponentCategory, ComponentLimitKind } from "@/types";
+import {
+  ComponentAction,
+  ComponentCategory,
+  ComponentLimitKind,
+} from "@/types";
 
 // Los valores viven en inglés en el backend (ComponentControlItem::CATEGORIES,
 // ::ACTIONS, ComponentControlItemInterval::LIMIT_KINDS); acá solo se traducen.

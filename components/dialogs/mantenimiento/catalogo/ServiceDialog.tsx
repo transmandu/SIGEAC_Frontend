@@ -2,7 +2,12 @@
 
 import { Wrench } from "lucide-react";
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { SectionTitle } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
 import { ServiceForm } from "@/components/forms/mantenimiento/catalogo/ServiceForm";
 import {
@@ -21,12 +26,18 @@ interface ServiceDialogProps {
   lockedManual?: CatalogManual;
 }
 
-export function ServiceDialog({ open, onOpenChange, service, lockedManual }: ServiceDialogProps) {
+export function ServiceDialog({
+  open,
+  onOpenChange,
+  service,
+  lockedManual,
+}: ServiceDialogProps) {
   const { selectedCompany } = useCompanyStore();
   const { createCatalogService } = useCreateCatalogService();
   const { updateCatalogService } = useUpdateCatalogService();
 
-  const isPending = createCatalogService.isPending || updateCatalogService.isPending;
+  const isPending =
+    createCatalogService.isPending || updateCatalogService.isPending;
 
   const handleSubmit = async (data: ServiceFormData) => {
     if (!selectedCompany?.slug) return;
@@ -35,9 +46,16 @@ export function ServiceDialog({ open, onOpenChange, service, lockedManual }: Ser
     // de error ya avisa y lo escrito debe seguir en pantalla para corregirlo.
     try {
       if (service) {
-        await updateCatalogService.mutateAsync({ id: service.id, data, company: selectedCompany.slug });
+        await updateCatalogService.mutateAsync({
+          id: service.id,
+          data,
+          company: selectedCompany.slug,
+        });
       } else {
-        await createCatalogService.mutateAsync({ data, company: selectedCompany.slug });
+        await createCatalogService.mutateAsync({
+          data,
+          company: selectedCompany.slug,
+        });
       }
       onOpenChange(false);
     } catch {
@@ -52,7 +70,11 @@ export function ServiceDialog({ open, onOpenChange, service, lockedManual }: Ser
           <DialogTitle asChild>
             <SectionTitle
               icon={Wrench}
-              title={service ? "Editar Servicio/Certificado" : "Nuevo Servicio/Certificado"}
+              title={
+                service
+                  ? "Editar Servicio/Certificado"
+                  : "Nuevo Servicio/Certificado"
+              }
               hint={
                 lockedManual && !service
                   ? `Lo que ${lockedManual.name} declara: el servicio y sus tareas se registran juntos.`
@@ -72,7 +94,9 @@ export function ServiceDialog({ open, onOpenChange, service, lockedManual }: Ser
             lockedManual={lockedManual}
             isPending={isPending}
             onSubmit={handleSubmit}
-            submitLabel={service ? "Guardar Cambios" : "Crear Servicio/Certificado"}
+            submitLabel={
+              service ? "Guardar Cambios" : "Crear Servicio/Certificado"
+            }
           />
         </div>
       </DialogContent>

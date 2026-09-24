@@ -20,7 +20,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useGetMaintenanceCompliances } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceCompliances";
 import { MaintenanceComplianceStats } from "./_components/MaintenanceComplianceStats";
 import { useGetMaintenanceAircrafts } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts";
@@ -55,7 +59,9 @@ const HistorialCumplimientosPage = () => {
   const [acronym, setAcronym] = useState<string>("all");
 
   const { data: aircrafts } = useGetMaintenanceAircrafts(selectedCompany?.slug);
-  const { data: maintenanceControls } = useGetMaintenanceControls(selectedCompany?.slug);
+  const { data: maintenanceControls } = useGetMaintenanceControls(
+    selectedCompany?.slug,
+  );
   const { data: compliances, isLoading } = useGetMaintenanceCompliances(
     selectedCompany?.slug,
     acronym === "all" ? undefined : acronym,
@@ -80,15 +86,22 @@ const HistorialCumplimientosPage = () => {
         <div className="flex flex-col gap-2 border-b pb-4">
           <div className="flex items-end justify-between">
             <div className="flex flex-col">
-              <h1 className="text-3xl font-semibold tracking-tight">Historial de Cumplimientos</h1>
+              <h1 className="text-3xl font-semibold tracking-tight">
+                Historial de Cumplimientos
+              </h1>
               <p className="text-sm text-muted-foreground">
-                Todos los cumplimientos registrados de certificados y servicios, por aeronave.
+                Todos los cumplimientos registrados de certificados y servicios,
+                por aeronave.
               </p>
             </div>
           </div>
         </div>
 
-        <FormSection icon={Filter} title="Filtrar por aeronave" className="pb-5">
+        <FormSection
+          icon={Filter}
+          title="Filtrar por aeronave"
+          className="pb-5"
+        >
           <Select value={acronym} onValueChange={setAcronym}>
             <SelectTrigger className={cn(selectTriggerClass, "w-full sm:w-64")}>
               <SelectValue placeholder="Todas las aeronaves" />
@@ -104,28 +117,52 @@ const HistorialCumplimientosPage = () => {
           </Select>
         </FormSection>
 
-        {!isLoading && compliances && <MaintenanceComplianceStats compliances={compliances} />}
+        {!isLoading && compliances && (
+          <MaintenanceComplianceStats compliances={compliances} />
+        )}
 
         <FormSection icon={History} title="Cumplimientos">
           {isLoading ? (
             <LoadingPage />
           ) : !compliances?.length ? (
-            <p className="text-sm italic text-muted-foreground">No hay cumplimientos registrados.</p>
+            <p className="text-sm italic text-muted-foreground">
+              No hay cumplimientos registrados.
+            </p>
           ) : (
             <div className="overflow-x-auto rounded-lg border border-slate-400/40 dark:border-slate-600/40">
               <Table>
                 <TableHeader>
                   <TableRow className="hover:bg-transparent">
-                    <TableHead className="bg-muted/40 font-semibold">Aeronave</TableHead>
-                    <TableHead className="bg-muted/40 font-semibold">Certificado / Servicio</TableHead>
-                    <TableHead className="bg-muted/40 font-semibold">Parte</TableHead>
-                    <TableHead className="bg-muted/40 font-semibold">Fecha</TableHead>
-                    <TableHead className="bg-muted/40 font-semibold">Manual / Rev.</TableHead>
-                    <TableHead className="bg-muted/40 font-semibold">Horas</TableHead>
-                    <TableHead className="bg-muted/40 font-semibold">Ciclos</TableHead>
-                    <TableHead className="bg-muted/40 font-semibold">Realizado Por</TableHead>
-                    <TableHead className="bg-muted/40 font-semibold">N° OT</TableHead>
-                    <TableHead className="bg-muted/40 font-semibold">Observaciones</TableHead>
+                    <TableHead className="bg-muted/40 font-semibold">
+                      Aeronave
+                    </TableHead>
+                    <TableHead className="bg-muted/40 font-semibold">
+                      Certificado / Servicio
+                    </TableHead>
+                    <TableHead className="bg-muted/40 font-semibold">
+                      Parte
+                    </TableHead>
+                    <TableHead className="bg-muted/40 font-semibold">
+                      Fecha
+                    </TableHead>
+                    <TableHead className="bg-muted/40 font-semibold">
+                      Manual / Rev.
+                    </TableHead>
+                    <TableHead className="bg-muted/40 font-semibold">
+                      Horas
+                    </TableHead>
+                    <TableHead className="bg-muted/40 font-semibold">
+                      Ciclos
+                    </TableHead>
+                    <TableHead className="bg-muted/40 font-semibold">
+                      Realizado Por
+                    </TableHead>
+                    <TableHead className="bg-muted/40 font-semibold">
+                      N° OT
+                    </TableHead>
+                    <TableHead className="bg-muted/40 font-semibold">
+                      Observaciones
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -133,7 +170,10 @@ const HistorialCumplimientosPage = () => {
                     const item = compliance.maintenance_control_item;
                     const part = item?.maintenance_control_part?.aircraft_part;
                     return (
-                      <TableRow key={compliance.id} className="transition-colors hover:bg-primary/[0.03]">
+                      <TableRow
+                        key={compliance.id}
+                        className="transition-colors hover:bg-primary/[0.03]"
+                      >
                         <TableCell className="font-medium">
                           {item?.maintenance_control?.aircraft?.acronym ?? "—"}
                         </TableCell>
@@ -143,12 +183,16 @@ const HistorialCumplimientosPage = () => {
                             {compliance.is_historical && (
                               <Tooltip>
                                 <TooltipTrigger asChild>
-                                  <Badge variant="outline" className="shrink-0 text-[10px] text-muted-foreground">
+                                  <Badge
+                                    variant="outline"
+                                    className="shrink-0 text-[10px] text-muted-foreground"
+                                  >
                                     Histórico
                                   </Badge>
                                 </TooltipTrigger>
                                 <TooltipContent>
-                                  Cargado desde antes de usar el sistema — solo cuenta para las estadísticas.
+                                  Cargado desde antes de usar el sistema — solo
+                                  cuenta para las estadísticas.
                                 </TooltipContent>
                               </Tooltip>
                             )}
@@ -156,27 +200,49 @@ const HistorialCumplimientosPage = () => {
                         </TableCell>
                         <TableCell>
                           {part ? (
-                            <Badge variant="outline">{part.part_name || part.part_number}</Badge>
+                            <Badge variant="outline">
+                              {part.part_name || part.part_number}
+                            </Badge>
                           ) : (
-                            <span className="text-muted-foreground">Aeronave</span>
+                            <span className="text-muted-foreground">
+                              Aeronave
+                            </span>
                           )}
                         </TableCell>
-                        <TableCell>{format(parseISO(compliance.compliance_date), "dd/MM/yyyy", { locale: es })}</TableCell>
+                        <TableCell>
+                          {format(
+                            parseISO(compliance.compliance_date),
+                            "dd/MM/yyyy",
+                            { locale: es },
+                          )}
+                        </TableCell>
                         <TableCell>
                           {compliance.manual_revision_label ? (
-                            <TruncatedText>{compliance.manual_revision_label}</TruncatedText>
+                            <TruncatedText>
+                              {compliance.manual_revision_label}
+                            </TruncatedText>
                           ) : (
                             <span className="text-muted-foreground">—</span>
                           )}
                         </TableCell>
-                        <TableCell>{fmtNumber(Number(compliance.hours_reading))}</TableCell>
-                        <TableCell>{fmtNumber(Number(compliance.cycles_reading))}</TableCell>
                         <TableCell>
-                          <TruncatedText>{compliance.maintenance_provider?.name ?? "—"}</TruncatedText>
+                          {fmtNumber(Number(compliance.hours_reading))}
                         </TableCell>
-                        <TableCell>{compliance.work_order?.order_number || "—"}</TableCell>
                         <TableCell>
-                          <TruncatedText>{compliance.notes || "—"}</TruncatedText>
+                          {fmtNumber(Number(compliance.cycles_reading))}
+                        </TableCell>
+                        <TableCell>
+                          <TruncatedText>
+                            {compliance.maintenance_provider?.name ?? "—"}
+                          </TruncatedText>
+                        </TableCell>
+                        <TableCell>
+                          {compliance.work_order?.order_number || "—"}
+                        </TableCell>
+                        <TableCell>
+                          <TruncatedText>
+                            {compliance.notes || "—"}
+                          </TruncatedText>
                         </TableCell>
                       </TableRow>
                     );

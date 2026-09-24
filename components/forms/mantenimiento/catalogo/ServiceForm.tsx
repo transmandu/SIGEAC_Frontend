@@ -7,7 +7,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 import {
   fieldClass,
@@ -22,7 +28,12 @@ import { useGetAircrafts } from "@/hooks/general/aeronaves/useGetAircrafts";
 import { IntervalListEditor } from "@/components/misc/IntervalListEditor";
 import { ServiceTasksEditor } from "@/components/forms/mantenimiento/catalogo/ServiceTasksEditor";
 import { CATEGORY_LABELS, STATUS_LABELS } from "@/lib/maintenanceCatalogLabels";
-import { CatalogCategory, CatalogManual, CatalogService, CatalogStatus } from "@/types/maintenanceCatalog";
+import {
+  CatalogCategory,
+  CatalogManual,
+  CatalogService,
+  CatalogStatus,
+} from "@/types/maintenanceCatalog";
 import { ServiceFormData } from "@/actions/mantenimiento/catalogo/servicios/actions";
 import { useCompanyStore } from "@/stores/CompanyStore";
 
@@ -52,9 +63,19 @@ const emptyState: ServiceFormData = {
   tasks: [],
 };
 
-export function ServiceForm({ service, isPending, onSubmit, submitLabel, flat, lockedManual }: ServiceFormProps) {
+export function ServiceForm({
+  service,
+  isPending,
+  onSubmit,
+  submitLabel,
+  flat,
+  lockedManual,
+}: ServiceFormProps) {
   const { selectedCompany } = useCompanyStore();
-  const { data: activeManuals = [] } = useGetCatalogManuals(selectedCompany?.slug, { status: "ACTIVE" });
+  const { data: activeManuals = [] } = useGetCatalogManuals(
+    selectedCompany?.slug,
+    { status: "ACTIVE" },
+  );
   const { data: aircrafts = [] } = useGetAircrafts(selectedCompany?.slug);
   const [form, setForm] = useState<ServiceFormData>(emptyState);
 
@@ -70,7 +91,10 @@ export function ServiceForm({ service, isPending, onSubmit, submitLabel, flat, l
     // Sin servicio el formulario es "nuevo": se limpia en vez de conservar lo
     // que quedó de una edición anterior.
     if (!service) {
-      setForm({ ...emptyState, maintenance_catalog_manual_id: lockedManual?.id ?? null });
+      setForm({
+        ...emptyState,
+        maintenance_catalog_manual_id: lockedManual?.id ?? null,
+      });
       return;
     }
     setForm({
@@ -79,7 +103,10 @@ export function ServiceForm({ service, isPending, onSubmit, submitLabel, flat, l
       name: service.name,
       code: service.code ?? "",
       description: service.description ?? "",
-      intervals: service.intervals.map((i) => ({ counting_method: i.counting_method, interval_value: i.interval_value })),
+      intervals: service.intervals.map((i) => ({
+        counting_method: i.counting_method,
+        interval_value: i.interval_value,
+      })),
       status: service.status,
       aircraft_ids: service.aircrafts?.map((a) => a.id) ?? [],
     });
@@ -88,7 +115,9 @@ export function ServiceForm({ service, isPending, onSubmit, submitLabel, flat, l
   const toggleAircraft = (id: number, checked: boolean) => {
     setForm((f) => ({
       ...f,
-      aircraft_ids: checked ? [...f.aircraft_ids, id] : f.aircraft_ids.filter((x) => x !== id),
+      aircraft_ids: checked
+        ? [...f.aircraft_ids, id]
+        : f.aircraft_ids.filter((x) => x !== id),
     }));
   };
 
@@ -101,14 +130,18 @@ export function ServiceForm({ service, isPending, onSubmit, submitLabel, flat, l
       className="flex flex-col gap-5"
     >
       <section className={flat ? undefined : sectionClass}>
-        {!flat && <SectionTitle icon={Wrench} title="Datos del Servicio/Certificado" />}
+        {!flat && (
+          <SectionTitle icon={Wrench} title="Datos del Servicio/Certificado" />
+        )}
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div className="space-y-1.5">
             <Label className={labelClass}>Categoría</Label>
             <Select
               value={form.category}
-              onValueChange={(v) => setForm((f) => ({ ...f, category: v as CatalogCategory }))}
+              onValueChange={(v) =>
+                setForm((f) => ({ ...f, category: v as CatalogCategory }))
+              }
             >
               <SelectTrigger className={selectTriggerClass}>
                 <SelectValue />
@@ -137,9 +170,17 @@ export function ServiceForm({ service, isPending, onSubmit, submitLabel, flat, l
               </div>
             ) : (
               <Select
-                value={form.maintenance_catalog_manual_id ? String(form.maintenance_catalog_manual_id) : "none"}
+                value={
+                  form.maintenance_catalog_manual_id
+                    ? String(form.maintenance_catalog_manual_id)
+                    : "none"
+                }
                 onValueChange={(v) =>
-                  setForm((f) => ({ ...f, maintenance_catalog_manual_id: v === "none" ? null : Number(v) }))
+                  setForm((f) => ({
+                    ...f,
+                    maintenance_catalog_manual_id:
+                      v === "none" ? null : Number(v),
+                  }))
                 }
               >
                 <SelectTrigger className={selectTriggerClass}>
@@ -196,7 +237,9 @@ export function ServiceForm({ service, isPending, onSubmit, submitLabel, flat, l
               <Label className={labelClass}>Estado</Label>
               <Select
                 value={form.status}
-                onValueChange={(v) => setForm((f) => ({ ...f, status: v as CatalogStatus }))}
+                onValueChange={(v) =>
+                  setForm((f) => ({ ...f, status: v as CatalogStatus }))
+                }
               >
                 <SelectTrigger className={selectTriggerClass}>
                   <SelectValue />
@@ -218,7 +261,9 @@ export function ServiceForm({ service, isPending, onSubmit, submitLabel, flat, l
               rows={2}
               className={textareaClass}
               value={form.description}
-              onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, description: e.target.value }))
+              }
             />
           </div>
         </div>
@@ -229,7 +274,8 @@ export function ServiceForm({ service, isPending, onSubmit, submitLabel, flat, l
           <div className="mb-2 space-y-1">
             <Label className={labelClass}>Aeronaves aplicables</Label>
             <p className="text-[13px] text-muted-foreground">
-              Solo las aeronaves marcadas verán este servicio/certificado en su Control de Mantenimiento.
+              Solo las aeronaves marcadas verán este servicio/certificado en su
+              Control de Mantenimiento.
             </p>
           </div>
         ) : (
@@ -241,10 +287,15 @@ export function ServiceForm({ service, isPending, onSubmit, submitLabel, flat, l
         )}
         <div className="grid max-h-64 grid-cols-2 gap-x-4 gap-y-2 overflow-y-auto pr-1 sm:grid-cols-3 md:grid-cols-4">
           {aircrafts.map((aircraft) => (
-            <label key={aircraft.id} className="flex items-center gap-2 text-sm">
+            <label
+              key={aircraft.id}
+              className="flex items-center gap-2 text-sm"
+            >
               <Checkbox
                 checked={form.aircraft_ids.includes(aircraft.id)}
-                onCheckedChange={(checked) => toggleAircraft(aircraft.id, !!checked)}
+                onCheckedChange={(checked) =>
+                  toggleAircraft(aircraft.id, !!checked)
+                }
               />
               {aircraft.acronym}
             </label>

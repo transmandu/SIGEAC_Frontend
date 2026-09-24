@@ -4,7 +4,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { IntervalListEditor } from "@/components/misc/IntervalListEditor";
 import { ServiceTasksEditor } from "@/components/forms/mantenimiento/catalogo/ServiceTasksEditor";
 import {
@@ -29,7 +35,10 @@ interface RevisionServiceEditorProps {
  * de copiarlo. No lleva estado propio: lo que cambia el manual entre una
  * revisión y otra son estos campos, no la vigencia (la copia nace ACTIVE).
  */
-export function RevisionServiceEditor({ value, onChange }: RevisionServiceEditorProps) {
+export function RevisionServiceEditor({
+  value,
+  onChange,
+}: RevisionServiceEditorProps) {
   const { selectedCompany } = useCompanyStore();
   const { data: aircrafts = [] } = useGetAircrafts(selectedCompany?.slug);
 
@@ -108,10 +117,15 @@ export function RevisionServiceEditor({ value, onChange }: RevisionServiceEditor
         <Label className={labelClass}>Aeronaves aplicables</Label>
         <div className="grid max-h-40 grid-cols-2 gap-x-4 gap-y-2 overflow-y-auto pr-1 sm:grid-cols-3 md:grid-cols-4">
           {aircrafts.map((aircraft) => (
-            <label key={aircraft.id} className="flex items-center gap-2 text-sm">
+            <label
+              key={aircraft.id}
+              className="flex items-center gap-2 text-sm"
+            >
               <Checkbox
                 checked={value.aircraft_ids.includes(aircraft.id)}
-                onCheckedChange={(checked) => toggleAircraft(aircraft.id, !!checked)}
+                onCheckedChange={(checked) =>
+                  toggleAircraft(aircraft.id, !!checked)
+                }
               />
               {aircraft.acronym}
             </label>
@@ -119,7 +133,10 @@ export function RevisionServiceEditor({ value, onChange }: RevisionServiceEditor
         </div>
       </div>
 
-      <ServiceTasksEditor tasks={value.tasks} onChange={(tasks) => onChange({ tasks })} />
+      <ServiceTasksEditor
+        tasks={value.tasks}
+        onChange={(tasks) => onChange({ tasks })}
+      />
     </div>
   );
 }

@@ -27,7 +27,11 @@ import {
 import { DatePickerField } from "@/components/ui/DatePickerField";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useGetMaintenanceProviders } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceProviders";
@@ -56,7 +60,13 @@ type FormValues = z.infer<typeof formSchema>;
 
 // Texto normal restringido a dígitos y un punto decimal, sin las flechitas
 // nativas de type="number".
-function NumericField({ field, placeholder }: { field: any; placeholder?: string }) {
+function NumericField({
+  field,
+  placeholder,
+}: {
+  field: any;
+  placeholder?: string;
+}) {
   return (
     <input
       type="text"
@@ -94,8 +104,10 @@ export function RegisterComplianceDialog({
 }: RegisterComplianceDialogProps) {
   const [open, setOpen] = useState(false);
   const { selectedCompany } = useCompanyStore();
-  const { data: providers, isLoading: isLoadingProviders } = useGetMaintenanceProviders(selectedCompany?.slug);
-  const { data: workOrders, isLoading: isLoadingWorkOrders } = useGetWorkOrdersByAircraft(selectedCompany?.slug, aircraftId);
+  const { data: providers, isLoading: isLoadingProviders } =
+    useGetMaintenanceProviders(selectedCompany?.slug);
+  const { data: workOrders, isLoading: isLoadingWorkOrders } =
+    useGetWorkOrdersByAircraft(selectedCompany?.slug, aircraftId);
   const { createMaintenanceCompliance } = useCreateMaintenanceCompliance();
 
   const form = useForm<FormValues>({
@@ -150,7 +162,10 @@ export function RegisterComplianceDialog({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="flex flex-col gap-4"
+          >
             <FormField
               control={form.control}
               name="compliance_date"
@@ -177,7 +192,9 @@ export function RegisterComplianceDialog({
                 name="hours_reading"
                 render={({ field }) => (
                   <FormItem className="w-full">
-                    <FormLabel className={labelClass}>Horas de la Aeronave/Parte</FormLabel>
+                    <FormLabel className={labelClass}>
+                      Horas de la Aeronave/Parte
+                    </FormLabel>
                     <FormControl>
                       <NumericField field={field} placeholder="0" />
                     </FormControl>
@@ -190,7 +207,9 @@ export function RegisterComplianceDialog({
                 name="cycles_reading"
                 render={({ field }) => (
                   <FormItem className="w-full">
-                    <FormLabel className={labelClass}>Ciclos de la Aeronave/Parte</FormLabel>
+                    <FormLabel className={labelClass}>
+                      Ciclos de la Aeronave/Parte
+                    </FormLabel>
                     <FormControl>
                       <NumericField field={field} placeholder="0" />
                     </FormControl>
@@ -226,19 +245,28 @@ export function RegisterComplianceDialog({
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel className={labelClass}>
-                    Orden de Trabajo <span className="text-muted-foreground text-xs">(Opcional)</span>
+                    Orden de Trabajo{" "}
+                    <span className="text-muted-foreground text-xs">
+                      (Opcional)
+                    </span>
                   </FormLabel>
                   {pendingWorkOrder && (
                     <p className="text-xs text-muted-foreground">
-                      Precargada la OT {pendingWorkOrder.order_number}, abierta para resolver este ítem.
+                      Precargada la OT {pendingWorkOrder.order_number}, abierta
+                      para resolver este ítem.
                     </p>
                   )}
                   <SearchableSelect
-                    options={(workOrders ?? []).map((wo) => ({ ...wo, name: wo.order_number }))}
+                    options={(workOrders ?? []).map((wo) => ({
+                      ...wo,
+                      name: wo.order_number,
+                    }))}
                     value={field.value}
                     loading={isLoadingWorkOrders}
                     placeholder={
-                      workOrders?.length ? "Seleccione..." : "Esta aeronave no tiene Órdenes de Trabajo"
+                      workOrders?.length
+                        ? "Seleccione..."
+                        : "Esta aeronave no tiene Órdenes de Trabajo"
                     }
                     searchPlaceholder="Buscar orden de trabajo..."
                     emptyLabel="No se encontró ninguna orden de trabajo."
@@ -246,7 +274,9 @@ export function RegisterComplianceDialog({
                     renderLabel={(wo) => (
                       <span className="flex items-center gap-2">
                         {wo.order_number}
-                        <Badge variant="outline" className="text-[10px]">{wo.status}</Badge>
+                        <Badge variant="outline" className="text-[10px]">
+                          {wo.status}
+                        </Badge>
                       </span>
                     )}
                   />
@@ -261,10 +291,17 @@ export function RegisterComplianceDialog({
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel className={labelClass}>
-                    Observaciones <span className="text-muted-foreground text-xs">(Opcional)</span>
+                    Observaciones{" "}
+                    <span className="text-muted-foreground text-xs">
+                      (Opcional)
+                    </span>
                   </FormLabel>
                   <FormControl>
-                    <Textarea placeholder="..." className={cn(fieldClass, "h-auto resize-none py-2")} {...field} />
+                    <Textarea
+                      placeholder="..."
+                      className={cn(fieldClass, "h-auto resize-none py-2")}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

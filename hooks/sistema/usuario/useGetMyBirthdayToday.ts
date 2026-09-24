@@ -1,12 +1,14 @@
-import axios from '@/lib/axios';
-import { useQuery } from '@tanstack/react-query';
+import axios from "@/lib/axios";
+import { useQuery } from "@tanstack/react-query";
 
 export type MyBirthdayToday = {
   is_birthday: boolean;
   first_name?: string;
 };
 
-const fetchMyBirthdayToday = async (company: string | undefined): Promise<MyBirthdayToday> => {
+const fetchMyBirthdayToday = async (
+  company: string | undefined,
+): Promise<MyBirthdayToday> => {
   const { data } = await axios.get(`/${company}/my-birthday-today`);
   return data;
 };

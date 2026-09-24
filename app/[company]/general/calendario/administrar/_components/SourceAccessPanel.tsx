@@ -38,8 +38,10 @@ interface SourceAccessPanelProps {
 }
 
 export function SourceAccessPanel({ company }: SourceAccessPanelProps) {
-  const { data: sources = [], isLoading: isLoadingSources } = useGetCalendarEventSources(company);
-  const { data: allRules = [], isLoading: isLoadingRules } = useGetAllCalendarVisibilityRules(company);
+  const { data: sources = [], isLoading: isLoadingSources } =
+    useGetCalendarEventSources(company);
+  const { data: allRules = [], isLoading: isLoadingRules } =
+    useGetAllCalendarVisibilityRules(company);
 
   const rulesBySource = useMemo(() => {
     const map: Record<string, typeof allRules> = {};
@@ -64,7 +66,9 @@ export function SourceAccessPanel({ company }: SourceAccessPanelProps) {
     return (
       <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-slate-400/40 py-10 text-center dark:border-slate-600/40">
         <Radio className="size-6 text-muted-foreground/60" />
-        <p className="text-sm text-muted-foreground">No hay fuentes de sistema disponibles en esta empresa.</p>
+        <p className="text-sm text-muted-foreground">
+          No hay fuentes de sistema disponibles en esta empresa.
+        </p>
       </div>
     );
   }

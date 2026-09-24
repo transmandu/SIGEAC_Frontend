@@ -1,16 +1,26 @@
-import axios from '@/lib/axios';
-import { AvionicsControl } from '@/types';
-import { useQuery } from '@tanstack/react-query';
+import axios from "@/lib/axios";
+import { AvionicsControl } from "@/types";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
-const fetchAvionicsControls = async (company: string | undefined): Promise<AvionicsControl[]> => {
-  const { data } = await axios.get(`/${company}/avionics-controls`);
+const fetchAvionicsControls = async (
+  company: string | undefined,
+  includeRetired: boolean,
+): Promise<AvionicsControl[]> => {
+  const { data } = await axios.get(`/${company}/avionics-controls`, {
+    params: { include_retired: includeRetired ? 1 : undefined },
+  });
   return data;
 };
 
-export const useGetAvionicsControls = (company: string | undefined) => {
+/** Por defecto solo los vigentes: son los que alimentan alertas y calendario. */
+export const useGetAvionicsControls = (
+  company: string | undefined,
+  includeRetired = false,
+) => {
   return useQuery<AvionicsControl[], Error>({
-    queryKey: ["avionics-controls", company],
-    queryFn: () => fetchAvionicsControls(company),
+    queryKey: ["avionics-controls", company, { includeRetired }],
+    queryFn: () => fetchAvionicsControls(company, includeRetired),
+    placeholderData: keepPreviousData,
     enabled: !!company,
   });
 };

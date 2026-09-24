@@ -1,8 +1,10 @@
-import axios from '@/lib/axios';
-import { CalendarVisibilityRule } from '@/types';
-import { useQuery } from '@tanstack/react-query';
+import axios from "@/lib/axios";
+import { CalendarVisibilityRule } from "@/types";
+import { useQuery } from "@tanstack/react-query";
 
-const fetchAllCalendarVisibilityRules = async (company: string | undefined): Promise<CalendarVisibilityRule[]> => {
+const fetchAllCalendarVisibilityRules = async (
+  company: string | undefined,
+): Promise<CalendarVisibilityRule[]> => {
   const { data } = await axios.get(`/${company}/calendar-visibility-rules`);
   return data;
 };
@@ -13,7 +15,9 @@ const fetchAllCalendarVisibilityRules = async (company: string | undefined): Pro
  * useGetCalendarVisibilityRules solo si algún día conviene, por ahora es su
  * propia entrada porque el shape (todas vs. filtradas) es distinto.
  */
-export const useGetAllCalendarVisibilityRules = (company: string | undefined) => {
+export const useGetAllCalendarVisibilityRules = (
+  company: string | undefined,
+) => {
   return useQuery<CalendarVisibilityRule[], Error>({
     queryKey: ["calendar-visibility-rules", "all", company],
     queryFn: () => fetchAllCalendarVisibilityRules(company),

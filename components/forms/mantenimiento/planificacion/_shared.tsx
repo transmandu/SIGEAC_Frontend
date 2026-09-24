@@ -7,7 +7,11 @@ import { Calendar as CalendarIcon, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   FormControl,
   FormDescription,
@@ -17,7 +21,12 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useGetMaintenanceAircrafts } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceAircrafts";
@@ -45,7 +54,11 @@ export function AircraftSelect({
   hint?: string;
 }) {
   const { selectedCompany } = useCompanyStore();
-  const { data: aircrafts, isLoading, isError } = useGetMaintenanceAircrafts(selectedCompany?.slug);
+  const {
+    data: aircrafts,
+    isLoading,
+    isError,
+  } = useGetMaintenanceAircrafts(selectedCompany?.slug);
 
   // La aeronave actualmente seleccionada siempre puede mostrarse (por eso el
   // lookup usa la lista completa); solo se excluyen del desplegable las que
@@ -119,7 +132,13 @@ export function NumericInput({
   );
 }
 
-export function CompactDateField({ control, name }: { control: Control<any>; name: string }) {
+export function CompactDateField({
+  control,
+  name,
+}: {
+  control: Control<any>;
+  name: string;
+}) {
   return (
     <FormField
       control={control}
@@ -139,7 +158,9 @@ export function CompactDateField({ control, name }: { control: Control<any>; nam
                   )}
                 >
                   <CalendarIcon className="mr-1.5 size-3.5 shrink-0 opacity-60" />
-                  <span className="truncate">{field.value ? format(field.value, "dd/MM/yy") : "Fecha"}</span>
+                  <span className="truncate">
+                    {field.value ? format(field.value, "dd/MM/yy") : "Fecha"}
+                  </span>
                 </Button>
               </FormControl>
             </PopoverTrigger>
@@ -151,7 +172,9 @@ export function CompactDateField({ control, name }: { control: Control<any>; nam
                 mode="single"
                 selected={field.value}
                 onSelect={field.onChange}
-                disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
+                disabled={(date) =>
+                  date > new Date() || date < new Date("1900-01-01")
+                }
                 captionLayout="dropdown"
                 startMonth={new Date(1900, 0)}
                 endMonth={new Date(new Date().getFullYear(), 11)}
@@ -170,7 +193,13 @@ export function CompactDateField({ control, name }: { control: Control<any>; nam
  * Umbral de alerta propio de una fila. Vacío hereda el porcentaje general del
  * control, que se muestra como placeholder.
  */
-export function RemainingPercentageField({ control, name }: { control: Control<any>; name: string }) {
+export function RemainingPercentageField({
+  control,
+  name,
+}: {
+  control: Control<any>;
+  name: string;
+}) {
   const controlPercentage = useWatch({ control, name: "remaining_percentage" });
 
   return (
@@ -183,7 +212,9 @@ export function RemainingPercentageField({ control, name }: { control: Control<a
             <div className="relative">
               <NumericInput
                 className={cn(fieldClass, "pr-6")}
-                placeholder={controlPercentage != null ? String(controlPercentage) : ""}
+                placeholder={
+                  controlPercentage != null ? String(controlPercentage) : ""
+                }
                 value={field.value}
                 onChange={field.onChange}
                 onBlur={field.onBlur}
@@ -201,9 +232,17 @@ export function RemainingPercentageField({ control, name }: { control: Control<a
   );
 }
 
-export function ProviderSelect({ control, name }: { control: Control<any>; name: string }) {
+export function ProviderSelect({
+  control,
+  name,
+}: {
+  control: Control<any>;
+  name: string;
+}) {
   const { selectedCompany } = useCompanyStore();
-  const { data: providers, isLoading } = useGetMaintenanceProviders(selectedCompany?.slug);
+  const { data: providers, isLoading } = useGetMaintenanceProviders(
+    selectedCompany?.slug,
+  );
   const options = useMemo(() => providers ?? [], [providers]);
 
   return (
@@ -234,14 +273,23 @@ export function ProviderSelect({ control, name }: { control: Control<any>; name:
  * texto libre. Espera los campos `maintenance_catalog_manual_id` y
  * `reference_manual` en el formulario que lo monta.
  */
-export function CatalogManualField({ control, aircraftId }: { control: Control<any>; aircraftId?: string }) {
+export function CatalogManualField({
+  control,
+  aircraftId,
+}: {
+  control: Control<any>;
+  aircraftId?: string;
+}) {
   const { setValue } = useFormContext<any>();
   const { selectedCompany } = useCompanyStore();
   const manualId = useWatch({ control, name: "maintenance_catalog_manual_id" });
-  const { data: manuals, isLoading } = useGetCatalogManuals(selectedCompany?.slug, {
-    status: "ACTIVE",
-    aircraftId,
-  });
+  const { data: manuals, isLoading } = useGetCatalogManuals(
+    selectedCompany?.slug,
+    {
+      status: "ACTIVE",
+      aircraftId,
+    },
+  );
 
   return (
     <FormItem className="w-full">
@@ -259,7 +307,9 @@ export function CatalogManualField({ control, aircraftId }: { control: Control<a
               : "Seleccione primero una aeronave para filtrar."
           }
           onSelect={(manual) => {
-            setValue("maintenance_catalog_manual_id", manual.id as number, { shouldValidate: true });
+            setValue("maintenance_catalog_manual_id", manual.id as number, {
+              shouldValidate: true,
+            });
             setValue("reference_manual", manual.name, { shouldValidate: true });
           }}
         />
@@ -272,18 +322,25 @@ export function CatalogManualField({ control, aircraftId }: { control: Control<a
                   variant="ghost"
                   size="icon"
                   className="size-8 shrink-0 text-muted-foreground/70 hover:text-destructive"
-                  onClick={() => setValue("maintenance_catalog_manual_id", undefined, { shouldValidate: true })}
+                  onClick={() =>
+                    setValue("maintenance_catalog_manual_id", undefined, {
+                      shouldValidate: true,
+                    })
+                  }
                 >
                   <X className="size-3.5" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>Desvincular del catálogo (conserva el texto)</TooltipContent>
+              <TooltipContent>
+                Desvincular del catálogo (conserva el texto)
+              </TooltipContent>
             </Tooltip>
           </TooltipProvider>
         )}
       </div>
       <FormDescription className={hintClass}>
-        Si el manual está cargado en el catálogo del Sistema, el nombre y los servicios/certificados del selector se acotan a él.
+        Si el manual está cargado en el catálogo del Sistema, el nombre y los
+        servicios/certificados del selector se acotan a él.
       </FormDescription>
     </FormItem>
   );

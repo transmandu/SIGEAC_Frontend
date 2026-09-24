@@ -159,7 +159,7 @@ export function buildPlanificationGroup({
       },
       {
         href: `/${currentCompany?.slug}/planificacion/auditoria`,
-        label: "Auditoría de Ediciones",
+        label: "Auditoría",
         active: pathname.includes(
           `/${currentCompany?.slug}/planificacion/auditoria`,
         ),

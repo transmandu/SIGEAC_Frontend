@@ -26,9 +26,16 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import axiosInstance from "@/lib/axios";
 import { useGetMaintenanceControls } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceControls";
 import { useGetMaintenanceControlSnapshot } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceControlSnapshot";
-import { computeMaintenanceItem, fmtNumber, STATUS_META } from "@/lib/maintenanceControlCalc";
+import {
+  computeMaintenanceItem,
+  fmtNumber,
+  STATUS_META,
+} from "@/lib/maintenanceControlCalc";
 import { SearchableCombobox } from "@/components/misc/SearchableCombobox";
-import { fieldClass, labelClass } from "@/components/forms/mantenimiento/planificacion/_theme";
+import {
+  fieldClass,
+  labelClass,
+} from "@/components/forms/mantenimiento/planificacion/_theme";
 import { MaintenanceControlSnapshotItem } from "@/types";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -48,10 +55,23 @@ function groupSnapshotItems(items: MaintenanceControlSnapshotItem[]) {
     (i) => i.category === "SERVICE" && !i.maintenance_control_part_id,
   );
 
-  const groups: { key: string; title: string; items: MaintenanceControlSnapshotItem[] }[] = [];
-  if (certificates.length) groups.push({ key: "certificates", title: "Certificados", items: certificates });
+  const groups: {
+    key: string;
+    title: string;
+    items: MaintenanceControlSnapshotItem[];
+  }[] = [];
+  if (certificates.length)
+    groups.push({
+      key: "certificates",
+      title: "Certificados",
+      items: certificates,
+    });
   if (aircraftServices.length) {
-    groups.push({ key: "aircraft-services", title: "Servicios de Aeronave", items: aircraftServices });
+    groups.push({
+      key: "aircraft-services",
+      title: "Servicios de Aeronave",
+      items: aircraftServices,
+    });
   }
 
   // Se agrupa por id de parte, no por su rótulo: dos partes del mismo tipo
@@ -65,7 +85,9 @@ function groupSnapshotItems(items: MaintenanceControlSnapshotItem[]) {
     ),
   );
   partIds.forEach((partId) => {
-    const partItems = items.filter((i) => i.maintenance_control_part_id === partId);
+    const partItems = items.filter(
+      (i) => i.maintenance_control_part_id === partId,
+    );
     groups.push({
       key: `part-${partId}`,
       title: partItems[0]?.part_label || "Parte",
@@ -89,7 +111,8 @@ export function MaintenanceControlSnapshotDialog() {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [isDownloading, setIsDownloading] = useState(false);
 
-  const { data: controls, isLoading: isLoadingControls } = useGetMaintenanceControls(selectedCompany?.slug);
+  const { data: controls, isLoading: isLoadingControls } =
+    useGetMaintenanceControls(selectedCompany?.slug);
   const controlOptions = (controls ?? []).map((control) => ({
     id: control.id,
     name: `${control.aircraft?.acronym ?? "?"} — ${control.title}`,
@@ -101,7 +124,9 @@ export function MaintenanceControlSnapshotDialog() {
   // (before_or_equal:today), así que comparar con la hora exacta recortaba la
   // selección de hoy por unos milisegundos.
   const selectedControl = controls?.find((c) => String(c.id) === controlId);
-  const minDate = selectedControl?.created_at ? startOfDay(new Date(selectedControl.created_at)) : undefined;
+  const minDate = selectedControl?.created_at
+    ? startOfDay(new Date(selectedControl.created_at))
+    : undefined;
   const maxDate = startOfDay(new Date());
 
   // Si el usuario ya tenía una fecha elegida y cambia de control (o el
@@ -120,7 +145,11 @@ export function MaintenanceControlSnapshotDialog() {
   }, [controlId, minDate?.getTime()]);
 
   const dateParam = date ? format(date, "yyyy-MM-dd") : undefined;
-  const { data: snapshot, isLoading, isError } = useGetMaintenanceControlSnapshot(
+  const {
+    data: snapshot,
+    isLoading,
+    isError,
+  } = useGetMaintenanceControlSnapshot(
     selectedCompany?.slug,
     controlId,
     dateParam,
@@ -151,7 +180,9 @@ export function MaintenanceControlSnapshotDialog() {
       link.remove();
       window.URL.revokeObjectURL(objectUrl);
     } catch {
-      toast.error("Oops!", { description: "No se pudo generar el PDF del estado a esa fecha." });
+      toast.error("Oops!", {
+        description: "No se pudo generar el PDF del estado a esa fecha.",
+      });
     } finally {
       setIsDownloading(false);
     }
@@ -164,7 +195,10 @@ export function MaintenanceControlSnapshotDialog() {
         Consultar Estado
       </ActionTriggerButton>
 
-      <Dialog open={open} onOpenChange={(next) => (next ? setOpen(true) : resetAndClose())}>
+      <Dialog
+        open={open}
+        onOpenChange={(next) => (next ? setOpen(true) : resetAndClose())}
+      >
         <DialogContent className="flex max-h-[85vh] flex-col sm:max-w-4xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -172,7 +206,8 @@ export function MaintenanceControlSnapshotDialog() {
               Consultar Estado a una Fecha
             </DialogTitle>
             <DialogDescription>
-              Reconstruye cómo estaba un control de mantenimiento en una fecha pasada, a partir de su historial de cumplimientos y vuelos.
+              Reconstruye cómo estaba un control de mantenimiento en una fecha
+              pasada, a partir de su historial de cumplimientos y vuelos.
             </DialogDescription>
           </DialogHeader>
 
@@ -186,7 +221,9 @@ export function MaintenanceControlSnapshotDialog() {
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_200px_auto]">
             <div className="min-w-0 space-y-2">
               <div className="flex h-4 items-center gap-3">
-                <label className={cn(labelClass, "leading-none")}>Control de Mantenimiento</label>
+                <label className={cn(labelClass, "leading-none")}>
+                  Control de Mantenimiento
+                </label>
               </div>
               <SearchableCombobox
                 options={controlOptions}
@@ -212,7 +249,9 @@ export function MaintenanceControlSnapshotDialog() {
 
             <div className="space-y-2">
               <div className="flex h-4 items-center gap-3" aria-hidden>
-                <label className={cn(labelClass, "invisible leading-none")}>PDF</label>
+                <label className={cn(labelClass, "invisible leading-none")}>
+                  PDF
+                </label>
               </div>
               <Button
                 type="button"
@@ -221,7 +260,11 @@ export function MaintenanceControlSnapshotDialog() {
                 onClick={handleDownload}
                 disabled={!snapshot || isDownloading}
               >
-                {isDownloading ? <Loader2 className="size-4 animate-spin" /> : <Download className="size-4" />}
+                {isDownloading ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <Download className="size-4" />
+                )}
                 PDF
               </Button>
             </div>
@@ -233,9 +276,13 @@ export function MaintenanceControlSnapshotDialog() {
                 Elija un control de mantenimiento para ver su estado.
               </p>
             ) : isLoading ? (
-              <p className="p-6 text-center text-sm text-muted-foreground">Calculando estado a esa fecha...</p>
+              <p className="p-6 text-center text-sm text-muted-foreground">
+                Calculando estado a esa fecha...
+              </p>
             ) : isError ? (
-              <p className="p-6 text-center text-sm text-destructive">No se pudo calcular el estado a esa fecha.</p>
+              <p className="p-6 text-center text-sm text-destructive">
+                No se pudo calcular el estado a esa fecha.
+              </p>
             ) : !snapshot?.items.length ? (
               <p className="p-6 text-center text-sm italic text-muted-foreground">
                 Este control no tiene certificados ni servicios registrados.
@@ -244,13 +291,27 @@ export function MaintenanceControlSnapshotDialog() {
               <Table>
                 <TableHeader>
                   <TableRow className="hover:bg-transparent">
-                    <TableHead className="bg-muted/40 font-semibold">Nombre</TableHead>
-                    <TableHead className="bg-muted/40 font-semibold">Frecuencia</TableHead>
-                    <TableHead className="bg-muted/40 font-semibold">Aplicada</TableHead>
-                    <TableHead className="bg-muted/40 font-semibold">Próximo</TableHead>
-                    <TableHead className="bg-muted/40 font-semibold">Remanente</TableHead>
-                    <TableHead className="bg-muted/40 font-semibold">Estimación</TableHead>
-                    <TableHead className="bg-muted/40 font-semibold">Realizado Por</TableHead>
+                    <TableHead className="bg-muted/40 font-semibold">
+                      Nombre
+                    </TableHead>
+                    <TableHead className="bg-muted/40 font-semibold">
+                      Frecuencia
+                    </TableHead>
+                    <TableHead className="bg-muted/40 font-semibold">
+                      Aplicada
+                    </TableHead>
+                    <TableHead className="bg-muted/40 font-semibold">
+                      Próximo
+                    </TableHead>
+                    <TableHead className="bg-muted/40 font-semibold">
+                      Remanente
+                    </TableHead>
+                    <TableHead className="bg-muted/40 font-semibold">
+                      Estimación
+                    </TableHead>
+                    <TableHead className="bg-muted/40 font-semibold">
+                      Realizado Por
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 {groupSnapshotItems(snapshot.items).map((group) => (
@@ -268,30 +329,57 @@ export function MaintenanceControlSnapshotDialog() {
                       const meta = STATUS_META[computed.status];
                       return (
                         <TableRow key={item.id} className={meta.row}>
-                          <TableCell className="font-medium">{item.name}</TableCell>
+                          <TableCell className="font-medium">
+                            {item.name}
+                          </TableCell>
                           <TableCell>
                             {computed.frequency}
                             {computed.extras.map((extra, i) => (
-                              <span key={i} className="block text-xs text-muted-foreground">Ó {extra.frequency}</span>
+                              <span
+                                key={i}
+                                className="block text-xs text-muted-foreground"
+                              >
+                                Ó {extra.frequency}
+                              </span>
                             ))}
                           </TableCell>
                           <TableCell>{computed.applied}</TableCell>
                           <TableCell>
                             {computed.next}
                             {computed.extras.map((extra, i) => (
-                              <span key={i} className="block text-xs text-muted-foreground">{extra.next}</span>
+                              <span
+                                key={i}
+                                className="block text-xs text-muted-foreground"
+                              >
+                                {extra.next}
+                              </span>
                             ))}
                           </TableCell>
                           <TableCell>
-                            <span className={cn("inline-flex items-center gap-1.5 font-semibold", meta.text)}>
-                              <span className={cn("size-1.5 shrink-0 rounded-full", meta.dot)} />
+                            <span
+                              className={cn(
+                                "inline-flex items-center gap-1.5 font-semibold",
+                                meta.text,
+                              )}
+                            >
+                              <span
+                                className={cn(
+                                  "size-1.5 shrink-0 rounded-full",
+                                  meta.dot,
+                                )}
+                              />
                               {computed.remaining}
                             </span>
                           </TableCell>
                           <TableCell>
                             {computed.estimate}
                             {computed.extras.map((extra, i) => (
-                              <span key={i} className="block text-xs text-muted-foreground">{extra.estimate}</span>
+                              <span
+                                key={i}
+                                className="block text-xs text-muted-foreground"
+                              >
+                                {extra.estimate}
+                              </span>
                             ))}
                           </TableCell>
                           <TableCell>{computed.providerName}</TableCell>
@@ -306,7 +394,9 @@ export function MaintenanceControlSnapshotDialog() {
 
           {snapshot && (
             <p className="text-xs text-muted-foreground">
-              Aeronave {snapshot.aircraft.acronym}: {fmtNumber(snapshot.aircraft.flight_hours)} hrs · {fmtNumber(snapshot.aircraft.flight_cycles)} ciclos a esa fecha.
+              Aeronave {snapshot.aircraft.acronym}:{" "}
+              {fmtNumber(snapshot.aircraft.flight_hours)} hrs ·{" "}
+              {fmtNumber(snapshot.aircraft.flight_cycles)} ciclos a esa fecha.
             </p>
           )}
         </DialogContent>

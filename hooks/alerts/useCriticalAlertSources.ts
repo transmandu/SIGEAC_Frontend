@@ -8,14 +8,16 @@ import { useCompanyStore } from "@/stores/CompanyStore";
  * las keys que publica config/critical_alert_sources.php en el backend.
  */
 export type CriticalAlertSourceKey =
-    | "low_stock_general"
-    | "low_stock_consumable"
-    | "quarantine_article"
-    | "maintenance_control";
+  | "low_stock_general"
+  | "low_stock_consumable"
+  | "quarantine_article"
+  | "maintenance_control";
 
-const fetchCriticalAlertSources = async (company: string): Promise<CriticalAlertSourceKey[]> => {
-    const { data } = await axios.get(`/${company}/critical-alert-sources`);
-    return data.sources ?? [];
+const fetchCriticalAlertSources = async (
+  company: string,
+): Promise<CriticalAlertSourceKey[]> => {
+  const { data } = await axios.get(`/${company}/critical-alert-sources`);
+  return data.sources ?? [];
 };
 
 /**
@@ -33,29 +35,29 @@ const fetchCriticalAlertSources = async (company: string): Promise<CriticalAlert
  * que ahorra las de todas las alertas que no aplican.
  */
 export const useCriticalAlertSources = () => {
-    const { selectedCompany } = useCompanyStore();
-    const companySlug = selectedCompany?.slug;
+  const { selectedCompany } = useCompanyStore();
+  const companySlug = selectedCompany?.slug;
 
-    const { data, isLoading } = useQuery<CriticalAlertSourceKey[]>({
-        queryKey: ["critical-alert-sources", companySlug],
-        queryFn: () => fetchCriticalAlertSources(companySlug!),
-        enabled: !!companySlug,
-        staleTime: 1000 * 60 * 30,
-    });
+  const { data, isLoading } = useQuery<CriticalAlertSourceKey[]>({
+    queryKey: ["critical-alert-sources", companySlug],
+    queryFn: () => fetchCriticalAlertSources(companySlug!),
+    enabled: !!companySlug,
+    staleTime: 1000 * 60 * 30,
+  });
 
-    /**
-     * Mientras no se sepa qué hay, responde `false`: es preferible que una
-     * alerta aparezca un instante tarde a disparar la petición que este
-     * endpoint existe para evitar.
-     *
-     * Estable entre renders a propósito: los hooks de alerta la usan dentro de
-     * un `useMemo`, y una función nueva en cada render recalcularía sus listas
-     * de alertas sin parar.
-     */
-    const hasSource = useCallback(
-        (key: CriticalAlertSourceKey) => (data ?? []).includes(key),
-        [data],
-    );
+  /**
+   * Mientras no se sepa qué hay, responde `false`: es preferible que una
+   * alerta aparezca un instante tarde a disparar la petición que este
+   * endpoint existe para evitar.
+   *
+   * Estable entre renders a propósito: los hooks de alerta la usan dentro de
+   * un `useMemo`, y una función nueva en cada render recalcularía sus listas
+   * de alertas sin parar.
+   */
+  const hasSource = useCallback(
+    (key: CriticalAlertSourceKey) => (data ?? []).includes(key),
+    [data],
+  );
 
-    return { hasSource, isLoading };
+  return { hasSource, isLoading };
 };

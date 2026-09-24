@@ -16,12 +16,24 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { DatePickerField } from "@/components/ui/DatePickerField";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useGetMaintenanceProviders } from "@/hooks/mantenimiento/planificacion/useGetMaintenanceProviders";
@@ -50,7 +62,13 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-function NumericField({ field, placeholder }: { field: any; placeholder?: string }) {
+function NumericField({
+  field,
+  placeholder,
+}: {
+  field: any;
+  placeholder?: string;
+}) {
   return (
     <input
       type="text"
@@ -90,8 +108,10 @@ export function RegisterDirectiveComplianceDialog({
 }: RegisterDirectiveComplianceDialogProps) {
   const [open, setOpen] = useState(false);
   const { selectedCompany } = useCompanyStore();
-  const { data: providers, isLoading: isLoadingProviders } = useGetMaintenanceProviders(selectedCompany?.slug);
-  const { data: workOrders, isLoading: isLoadingWorkOrders } = useGetWorkOrdersByAircraft(selectedCompany?.slug, aircraftId);
+  const { data: providers, isLoading: isLoadingProviders } =
+    useGetMaintenanceProviders(selectedCompany?.slug);
+  const { data: workOrders, isLoading: isLoadingWorkOrders } =
+    useGetWorkOrdersByAircraft(selectedCompany?.slug, aircraftId);
   const { createDirectiveCompliance } = useCreateDirectiveCompliance();
 
   const form = useForm<FormValues>({
@@ -146,7 +166,10 @@ export function RegisterDirectiveComplianceDialog({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="flex flex-col gap-4"
+          >
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -172,7 +195,9 @@ export function RegisterDirectiveComplianceDialog({
                 name="hours_reading"
                 render={({ field }) => (
                   <FormItem className="w-full">
-                    <FormLabel className={labelClass}>Horas del conjunto</FormLabel>
+                    <FormLabel className={labelClass}>
+                      Horas del conjunto
+                    </FormLabel>
                     <FormControl>
                       <NumericField field={field} placeholder="0" />
                     </FormControl>
@@ -185,7 +210,9 @@ export function RegisterDirectiveComplianceDialog({
                 name="cycles_reading"
                 render={({ field }) => (
                   <FormItem className="w-full">
-                    <FormLabel className={labelClass}>Ciclos del conjunto</FormLabel>
+                    <FormLabel className={labelClass}>
+                      Ciclos del conjunto
+                    </FormLabel>
                     <FormControl>
                       <NumericField field={field} placeholder="0" />
                     </FormControl>
@@ -195,9 +222,9 @@ export function RegisterDirectiveComplianceDialog({
               />
             </div>
             <FormDescription className={cn(hintClass, "-mt-2")}>
-              Lectura del conjunto afectado (aeronave, motor o hélice) en el momento del trabajo.
+              Lectura del conjunto afectado (aeronave, motor o hélice) en el
+              momento del trabajo.
             </FormDescription>
-
 
             <FormField
               control={form.control}
@@ -225,25 +252,38 @@ export function RegisterDirectiveComplianceDialog({
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel className={labelClass}>
-                    Orden de Trabajo <span className="text-xs text-muted-foreground">(Opcional)</span>
+                    Orden de Trabajo{" "}
+                    <span className="text-xs text-muted-foreground">
+                      (Opcional)
+                    </span>
                   </FormLabel>
                   <SearchableSelect
-                    options={(workOrders ?? []).map((wo) => ({ ...wo, name: wo.order_number }))}
+                    options={(workOrders ?? []).map((wo) => ({
+                      ...wo,
+                      name: wo.order_number,
+                    }))}
                     value={field.value}
                     loading={isLoadingWorkOrders}
-                    placeholder={workOrders?.length ? "Seleccione..." : "Esta aeronave no tiene Órdenes de Trabajo"}
+                    placeholder={
+                      workOrders?.length
+                        ? "Seleccione..."
+                        : "Esta aeronave no tiene Órdenes de Trabajo"
+                    }
                     searchPlaceholder="Buscar orden de trabajo..."
                     emptyLabel="No se encontró ninguna orden de trabajo."
                     onSelect={(wo) => field.onChange(String(wo.id))}
                     renderLabel={(wo) => (
                       <span className="flex items-center gap-2">
                         {wo.order_number}
-                        <Badge variant="outline" className="text-[10px]">{wo.status}</Badge>
+                        <Badge variant="outline" className="text-[10px]">
+                          {wo.status}
+                        </Badge>
                       </span>
                     )}
                   />
                   <FormDescription className={hintClass}>
-                    Vacío si el trabajo lo hizo un taller externo sin orden propia.
+                    Vacío si el trabajo lo hizo un taller externo sin orden
+                    propia.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -255,12 +295,19 @@ export function RegisterDirectiveComplianceDialog({
               name="compliance_method"
               render={({ field }) => (
                 <FormItem className="w-full">
-                  <FormLabel className={labelClass}>Método de cumplimiento</FormLabel>
+                  <FormLabel className={labelClass}>
+                    Método de cumplimiento
+                  </FormLabel>
                   <FormControl>
-                    <Input placeholder="Ej: Inspección visual según párrafo (e)" className={fieldClass} {...field} />
+                    <Input
+                      placeholder="Ej: Inspección visual según párrafo (e)"
+                      className={fieldClass}
+                      {...field}
+                    />
                   </FormControl>
                   <FormDescription className={hintClass}>
-                    Cómo se cumplió realmente; por defecto el método previsto en la AD.
+                    Cómo se cumplió realmente; por defecto el método previsto en
+                    la AD.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -273,10 +320,17 @@ export function RegisterDirectiveComplianceDialog({
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel className={labelClass}>
-                    Observaciones <span className="text-muted-foreground text-xs">(Opcional)</span>
+                    Observaciones{" "}
+                    <span className="text-muted-foreground text-xs">
+                      (Opcional)
+                    </span>
                   </FormLabel>
                   <FormControl>
-                    <Textarea placeholder="..." className={cn(fieldClass, "h-auto resize-none py-2")} {...field} />
+                    <Textarea
+                      placeholder="..."
+                      className={cn(fieldClass, "h-auto resize-none py-2")}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -288,7 +342,11 @@ export function RegisterDirectiveComplianceDialog({
               disabled={createDirectiveCompliance.isPending}
               type="submit"
             >
-              {createDirectiveCompliance.isPending ? <Loader2 className="size-4 animate-spin" /> : <p>Registrar Cumplimiento</p>}
+              {createDirectiveCompliance.isPending ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <p>Registrar Cumplimiento</p>
+              )}
             </Button>
           </form>
         </Form>

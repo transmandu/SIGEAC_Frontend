@@ -1,3 +1,4 @@
+import type { ConfirmedReason } from "@/components/dialogs/mantenimiento/planificacion/ReasonConfirmDialog";
 import axiosInstance from "@/lib/axios";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -31,6 +32,7 @@ export const useCreateFlightControl = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["flight-control"] });
+      invalidatePlanificationAudit(queryClient);
       toast.success("¡Creado!", {
         description: `El/los vuelo(s) ha(n) sido registrado(s) correctamente.`,
       });
@@ -90,24 +92,24 @@ export const useDeleteFlightControl = () => {
     mutationFn: async ({
       company,
       id,
+      reason,
     }: {
-      company: string | null;
+      company: string;
       id: string | number;
+      reason: ConfirmedReason;
     }) => {
-      await axiosInstance.delete(`/${company}/flight-control/${id}`);
+      await axiosInstance.delete(`/${company}/flight-control/${id}`, {
+        data: reason,
+      });
     },
-    onSuccess: (_, data) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["flight-control"],
       });
       queryClient.invalidateQueries({ queryKey: ["flight-controls"] });
+      invalidatePlanificationAudit(queryClient);
       toast.success("¡Eliminado!", {
-        description: `¡El vuelo ha sido eliminada correctamente!`,
-      });
-    },
-    onError: (e) => {
-      toast.error("Oops!", {
-        description: "¡Hubo un error al eliminar el vuelo!",
+        description: `¡El vuelo ha sido eliminado correctamente!`,
       });
     },
   });

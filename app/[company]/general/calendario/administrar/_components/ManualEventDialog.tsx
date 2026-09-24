@@ -9,11 +9,7 @@ import { CalendarPlus, Loader2 } from "lucide-react";
 
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogFooter } from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -40,7 +36,11 @@ import {
 } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
 import { cn } from "@/lib/utils";
 import { useGetCalendarEventTypes } from "@/hooks/general/calendario/useGetCalendarEventTypes";
-import { useCreateCalendarEvent, useUpdateCalendarEvent, ManualCalendarEventData } from "@/actions/general/calendario/actions";
+import {
+  useCreateCalendarEvent,
+  useUpdateCalendarEvent,
+  ManualCalendarEventData,
+} from "@/actions/general/calendario/actions";
 import { ManualCalendarEvent } from "@/types";
 
 const formSchema = z
@@ -55,14 +55,19 @@ const formSchema = z
   .refine(
     // Todo el día permite un evento de un solo día (mismo start y end); con
     // hora, en cambio, tiene que haber un intervalo real.
-    (vals) => (vals.all_day ? new Date(vals.end_at) >= new Date(vals.start_at) : new Date(vals.end_at) > new Date(vals.start_at)),
+    (vals) =>
+      vals.all_day
+        ? new Date(vals.end_at) >= new Date(vals.start_at)
+        : new Date(vals.end_at) > new Date(vals.start_at),
     { message: "Debe terminar después de que empieza", path: ["end_at"] },
   );
 
 type FormValues = z.infer<typeof formSchema>;
 
-const toDateTimeInputValue = (isoDate: string) => format(new Date(isoDate), "yyyy-MM-dd'T'HH:mm");
-const toDateInputValue = (isoDate: string) => format(new Date(isoDate), "yyyy-MM-dd");
+const toDateTimeInputValue = (isoDate: string) =>
+  format(new Date(isoDate), "yyyy-MM-dd'T'HH:mm");
+const toDateInputValue = (isoDate: string) =>
+  format(new Date(isoDate), "yyyy-MM-dd");
 
 interface ManualEventDialogProps {
   open: boolean;
@@ -71,14 +76,26 @@ interface ManualEventDialogProps {
   event?: ManualCalendarEvent;
 }
 
-export function ManualEventDialog({ open, onOpenChange, company, event }: ManualEventDialogProps) {
+export function ManualEventDialog({
+  open,
+  onOpenChange,
+  company,
+  event,
+}: ManualEventDialogProps) {
   const { data: eventTypes = [] } = useGetCalendarEventTypes(company);
   const { createCalendarEvent } = useCreateCalendarEvent();
   const { updateCalendarEvent } = useUpdateCalendarEvent();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: { calendar_event_type_id: "", title: "", description: "", all_day: false, start_at: "", end_at: "" },
+    defaultValues: {
+      calendar_event_type_id: "",
+      title: "",
+      description: "",
+      all_day: false,
+      start_at: "",
+      end_at: "",
+    },
   });
 
   const allDay = form.watch("all_day");
@@ -88,7 +105,9 @@ export function ManualEventDialog({ open, onOpenChange, company, event }: Manual
     const isAllDay = event?.all_day ?? false;
     const formatValue = isAllDay ? toDateInputValue : toDateTimeInputValue;
     form.reset({
-      calendar_event_type_id: event?.calendar_event_type_id ? String(event.calendar_event_type_id) : "",
+      calendar_event_type_id: event?.calendar_event_type_id
+        ? String(event.calendar_event_type_id)
+        : "",
       title: event?.title ?? "",
       description: event?.description ?? "",
       all_day: isAllDay,
@@ -115,11 +134,14 @@ export function ManualEventDialog({ open, onOpenChange, company, event }: Manual
     }
   };
 
-  const isPending = createCalendarEvent.isPending || updateCalendarEvent.isPending;
+  const isPending =
+    createCalendarEvent.isPending || updateCalendarEvent.isPending;
 
   const onSubmit = (values: FormValues) => {
     const data: ManualCalendarEventData = {
-      calendar_event_type_id: values.calendar_event_type_id ? Number(values.calendar_event_type_id) : null,
+      calendar_event_type_id: values.calendar_event_type_id
+        ? Number(values.calendar_event_type_id)
+        : null,
       title: values.title,
       description: values.description || undefined,
       start_at: values.start_at,
@@ -128,9 +150,15 @@ export function ManualEventDialog({ open, onOpenChange, company, event }: Manual
     };
 
     if (event) {
-      updateCalendarEvent.mutate({ id: event.id, company, data }, { onSuccess: () => onOpenChange(false) });
+      updateCalendarEvent.mutate(
+        { id: event.id, company, data },
+        { onSuccess: () => onOpenChange(false) },
+      );
     } else {
-      createCalendarEvent.mutate({ company, data }, { onSuccess: () => onOpenChange(false) });
+      createCalendarEvent.mutate(
+        { company, data },
+        { onSuccess: () => onOpenChange(false) },
+      );
     }
   };
 
@@ -142,10 +170,16 @@ export function ManualEventDialog({ open, onOpenChange, company, event }: Manual
           "backdrop-blur-xl dark:border-slate-600/50",
         )}
       >
-        <SectionTitle icon={CalendarPlus} title={event ? "Editar Evento Manual" : "Nuevo Evento Manual"} />
+        <SectionTitle
+          icon={CalendarPlus}
+          title={event ? "Editar Evento Manual" : "Nuevo Evento Manual"}
+        />
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="flex flex-col gap-4"
+          >
             <FormField
               control={form.control}
               name="title"
@@ -153,7 +187,11 @@ export function ManualEventDialog({ open, onOpenChange, company, event }: Manual
                 <FormItem>
                   <FormLabel className={labelClass}>Título</FormLabel>
                   <FormControl>
-                    <Input placeholder="Ej: Auditoría externa" className={fieldClass} {...field} />
+                    <Input
+                      placeholder="Ej: Auditoría externa"
+                      className={fieldClass}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -190,9 +228,14 @@ export function ManualEventDialog({ open, onOpenChange, company, event }: Manual
               render={({ field }) => (
                 <FormItem className="flex flex-row items-center gap-2.5 space-y-0 rounded-lg border border-slate-400/40 bg-background/40 px-3.5 py-2.5 dark:border-slate-600/40">
                   <FormControl>
-                    <Checkbox checked={field.value} onCheckedChange={handleAllDayChange} />
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={handleAllDayChange}
+                    />
                   </FormControl>
-                  <FormLabel className="!mt-0 font-normal">Todo el día</FormLabel>
+                  <FormLabel className="!mt-0 font-normal">
+                    Todo el día
+                  </FormLabel>
                 </FormItem>
               )}
             />
@@ -205,7 +248,11 @@ export function ManualEventDialog({ open, onOpenChange, company, event }: Manual
                   <FormItem>
                     <FormLabel className={labelClass}>Empieza</FormLabel>
                     <FormControl>
-                      <Input type={allDay ? "date" : "datetime-local"} className={fieldClass} {...field} />
+                      <Input
+                        type={allDay ? "date" : "datetime-local"}
+                        className={fieldClass}
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -218,7 +265,11 @@ export function ManualEventDialog({ open, onOpenChange, company, event }: Manual
                   <FormItem>
                     <FormLabel className={labelClass}>Termina</FormLabel>
                     <FormControl>
-                      <Input type={allDay ? "date" : "datetime-local"} className={fieldClass} {...field} />
+                      <Input
+                        type={allDay ? "date" : "datetime-local"}
+                        className={fieldClass}
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -232,10 +283,17 @@ export function ManualEventDialog({ open, onOpenChange, company, event }: Manual
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className={labelClass}>
-                    Descripción <span className="text-muted-foreground text-xs">(Opcional)</span>
+                    Descripción{" "}
+                    <span className="text-muted-foreground text-xs">
+                      (Opcional)
+                    </span>
                   </FormLabel>
                   <FormControl>
-                    <Textarea placeholder="..." className={textareaClass} {...field} />
+                    <Textarea
+                      placeholder="..."
+                      className={textareaClass}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

@@ -1,8 +1,10 @@
-import axios from '@/lib/axios';
-import { CalendarEventSourceInfo } from '@/types';
-import { useQuery } from '@tanstack/react-query';
+import axios from "@/lib/axios";
+import { CalendarEventSourceInfo } from "@/types";
+import { useQuery } from "@tanstack/react-query";
 
-const fetchCalendarEventSources = async (company: string | undefined): Promise<CalendarEventSourceInfo[]> => {
+const fetchCalendarEventSources = async (
+  company: string | undefined,
+): Promise<CalendarEventSourceInfo[]> => {
   const { data } = await axios.get(`/${company}/calendar-event-sources`);
   return data;
 };

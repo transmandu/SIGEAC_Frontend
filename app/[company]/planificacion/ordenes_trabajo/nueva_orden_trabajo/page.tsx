@@ -1,5 +1,5 @@
-import { ContentLayout } from '@/components/layout/ContentLayout';
-import NonServiceWorkOrderForm from './_components/NonServiceWorkOrderForm';
+import { ContentLayout } from "@/components/layout/ContentLayout";
+import NonServiceWorkOrderForm from "./_components/NonServiceWorkOrderForm";
 import { PageHeader } from "@/components/layout/PageHeader";
 export default function WorkOrderPage() {
   return (

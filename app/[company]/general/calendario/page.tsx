@@ -35,15 +35,20 @@ const EventCalendarPage = () => {
         <div className="flex flex-col gap-2 border-b pb-4">
           <div className="flex items-end justify-between">
             <div className="flex flex-col">
-              <h1 className="text-3xl font-semibold tracking-tight">Calendario de Eventos</h1>
+              <h1 className="text-3xl font-semibold tracking-tight">
+                Calendario de Eventos
+              </h1>
               <p className="text-sm text-muted-foreground">
-                Vista compartida de eventos de todo el sistema, según lo que corresponde ver a tu usuario.
+                Vista compartida de eventos de todo el sistema, según lo que
+                corresponde ver a tu usuario.
               </p>
             </div>
 
             {isSuperuser && (
               <Button asChild variant="outline" className={glassButtonClass}>
-                <Link href={`/${selectedCompany?.slug}/general/calendario/administrar`}>
+                <Link
+                  href={`/${selectedCompany?.slug}/general/calendario/administrar`}
+                >
                   <Settings className="mr-2 size-4" />
                   Administrar
                 </Link>

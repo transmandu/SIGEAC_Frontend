@@ -57,7 +57,10 @@ const formSchema = z
   // ManualEventDialog — sin el caso all_day, un evento de un día quedaba
   // imposible de guardar porque su start y su end son la misma fecha.
   .refine(
-    (vals) => (vals.all_day ? new Date(vals.end) >= new Date(vals.start) : new Date(vals.end) > new Date(vals.start)),
+    (vals) =>
+      vals.all_day
+        ? new Date(vals.end) >= new Date(vals.start)
+        : new Date(vals.end) > new Date(vals.start),
     { message: "Debe terminar después de que empieza", path: ["end"] },
   );
 
@@ -75,10 +78,22 @@ interface CreateEventDialogProps {
   onDelete: (id: string) => void;
 }
 
-export function CreateEventDialog({ open, onOpenChange, event, onSave, onDelete }: CreateEventDialogProps) {
+export function CreateEventDialog({
+  open,
+  onOpenChange,
+  event,
+  onSave,
+  onDelete,
+}: CreateEventDialogProps) {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: { title: "", description: "", all_day: false, start: "", end: "" },
+    defaultValues: {
+      title: "",
+      description: "",
+      all_day: false,
+      start: "",
+      end: "",
+    },
   });
 
   const allDay = form.watch("all_day");
@@ -105,7 +120,8 @@ export function CreateEventDialog({ open, onOpenChange, event, onSave, onDelete 
     // Un input type="date" da "YYYY-MM-DD" a secas: `new Date()` lo lee como
     // MEDIANOCHE UTC, que en Caracas (UTC-4) es el día ANTERIOR. Se le agrega
     // la hora local explícita para que el día quede donde el usuario lo eligió.
-    const toDate = (value: string) => new Date(values.all_day ? `${value}T00:00` : value);
+    const toDate = (value: string) =>
+      new Date(values.all_day ? `${value}T00:00` : value);
 
     onSave({
       id: event.id,
@@ -146,7 +162,10 @@ export function CreateEventDialog({ open, onOpenChange, event, onSave, onDelete 
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="flex flex-col gap-4"
+          >
             <FormField
               control={form.control}
               name="title"
@@ -154,7 +173,11 @@ export function CreateEventDialog({ open, onOpenChange, event, onSave, onDelete 
                 <FormItem>
                   <FormLabel className={labelClass}>Título</FormLabel>
                   <FormControl>
-                    <Input placeholder="Ej: Inspección de rutina" className={fieldClass} {...field} />
+                    <Input
+                      placeholder="Ej: Inspección de rutina"
+                      className={fieldClass}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -167,9 +190,14 @@ export function CreateEventDialog({ open, onOpenChange, event, onSave, onDelete 
               render={({ field }) => (
                 <FormItem className="flex flex-row items-center gap-2.5 space-y-0 rounded-lg border border-slate-400/40 bg-background/40 px-3.5 py-2.5 dark:border-slate-600/40">
                   <FormControl>
-                    <Checkbox checked={field.value} onCheckedChange={handleAllDayChange} />
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={handleAllDayChange}
+                    />
                   </FormControl>
-                  <FormLabel className="mt-0! font-normal">Todo el día</FormLabel>
+                  <FormLabel className="mt-0! font-normal">
+                    Todo el día
+                  </FormLabel>
                 </FormItem>
               )}
             />
@@ -182,7 +210,11 @@ export function CreateEventDialog({ open, onOpenChange, event, onSave, onDelete 
                   <FormItem>
                     <FormLabel className={labelClass}>Empieza</FormLabel>
                     <FormControl>
-                      <Input type={allDay ? "date" : "datetime-local"} className={fieldClass} {...field} />
+                      <Input
+                        type={allDay ? "date" : "datetime-local"}
+                        className={fieldClass}
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -195,7 +227,11 @@ export function CreateEventDialog({ open, onOpenChange, event, onSave, onDelete 
                   <FormItem>
                     <FormLabel className={labelClass}>Termina</FormLabel>
                     <FormControl>
-                      <Input type={allDay ? "date" : "datetime-local"} className={fieldClass} {...field} />
+                      <Input
+                        type={allDay ? "date" : "datetime-local"}
+                        className={fieldClass}
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -209,10 +245,17 @@ export function CreateEventDialog({ open, onOpenChange, event, onSave, onDelete 
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className={labelClass}>
-                    Descripción <span className="text-muted-foreground text-xs">(Opcional)</span>
+                    Descripción{" "}
+                    <span className="text-muted-foreground text-xs">
+                      (Opcional)
+                    </span>
                   </FormLabel>
                   <FormControl>
-                    <Textarea placeholder="..." className={textareaClass} {...field} />
+                    <Textarea
+                      placeholder="..."
+                      className={textareaClass}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -237,7 +280,8 @@ export function CreateEventDialog({ open, onOpenChange, event, onSave, onDelete 
                   <AlertDialogHeader>
                     <AlertDialogTitle>¿Eliminar este evento?</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Se eliminará &quot;{event?.title}&quot; de forma permanente. Esta acción no se puede deshacer.
+                      Se eliminará &quot;{event?.title}&quot; de forma
+                      permanente. Esta acción no se puede deshacer.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>

@@ -6,10 +6,13 @@ import type { Group, MenuContext } from "@/lib/menus/types";
  * contenido que tuvo (Servicios, el prototipo de catálogo) se eliminó; el
  * catálogo real vive en el menú de Ingeniería, que es quien lo administra.
  */
-export function buildMaintenanceGroup({ pathname, currentCompany }: MenuContext): Group {
-    return {
-        groupLabel: "Mantenimiento",
-        moduleValue: "maintenance",
-        menus: [],
-    };
+export function buildMaintenanceGroup({
+  pathname,
+  currentCompany,
+}: MenuContext): Group {
+  return {
+    groupLabel: "Mantenimiento",
+    moduleValue: "maintenance",
+    menus: [],
+  };
 }

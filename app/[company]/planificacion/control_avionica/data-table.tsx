@@ -32,11 +32,18 @@ interface DataTableProps<TData extends RowData> {
   data: TData[];
 }
 
-function globalAvionicsControlFilter(row: { original: AvionicsControl }, term: string) {
+function globalAvionicsControlFilter(
+  row: { original: AvionicsControl },
+  term: string,
+) {
   const needle = term.trim().toLowerCase();
   if (!needle) return true;
 
-  const haystack = [row.original.aircraft?.acronym, row.original.title, row.original.description]
+  const haystack = [
+    row.original.aircraft?.acronym,
+    row.original.title,
+    row.original.description,
+  ]
     .filter(Boolean)
     .join(" ")
     .toLowerCase();
@@ -44,7 +51,10 @@ function globalAvionicsControlFilter(row: { original: AvionicsControl }, term: s
   return haystack.includes(needle);
 }
 
-export function DataTable<TData extends RowData>({ columns, data }: DataTableProps<TData>) {
+export function DataTable<TData extends RowData>({
+  columns,
+  data,
+}: DataTableProps<TData>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
@@ -66,7 +76,9 @@ export function DataTable<TData extends RowData>({ columns, data }: DataTablePro
     <div>
       <div className="flex items-center justify-between gap-3 py-4">
         <ActionTriggerButton asChild>
-          <Link href={`/${selectedCompany?.slug}/planificacion/control_avionica/crear`}>
+          <Link
+            href={`/${selectedCompany?.slug}/planificacion/control_avionica/crear`}
+          >
             <PlusCircle className="mr-2 h-4 w-4" />
             Crear Control de Aviónica
           </Link>
@@ -107,8 +119,16 @@ export function DataTable<TData extends RowData>({ columns, data }: DataTablePro
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id} className="hover:bg-transparent">
                 {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id} className="bg-muted/40 font-semibold">
-                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                  <TableHead
+                    key={header.id}
+                    className="bg-muted/40 font-semibold"
+                  >
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
                   </TableHead>
                 ))}
               </TableRow>
@@ -117,9 +137,17 @@ export function DataTable<TData extends RowData>({ columns, data }: DataTablePro
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} className="transition-colors hover:bg-primary/3">
+                <TableRow
+                  key={row.id}
+                  className="transition-colors hover:bg-primary/3"
+                >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+                    <TableCell key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
+                    </TableCell>
                   ))}
                 </TableRow>
               ))
@@ -130,8 +158,13 @@ export function DataTable<TData extends RowData>({ columns, data }: DataTablePro
                     <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-muted/60 text-muted-foreground">
                       <Radio className="h-5 w-5" />
                     </span>
-                    <p className="text-sm font-medium text-muted-foreground">No se encontró ningún control de aviónica</p>
-                    <p className="text-xs text-muted-foreground/70">Ajuste la búsqueda o cree uno nuevo con el botón de arriba.</p>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      No se encontró ningún control de aviónica
+                    </p>
+                    <p className="text-xs text-muted-foreground/70">
+                      Ajuste la búsqueda o cree uno nuevo con el botón de
+                      arriba.
+                    </p>
                   </div>
                 </TableCell>
               </TableRow>

@@ -1,7 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { AlertTriangle, ChevronDown, History, Loader2, Wrench } from "lucide-react";
+import {
+  AlertTriangle,
+  ChevronDown,
+  History,
+  Loader2,
+  Wrench,
+} from "lucide-react";
 
 import {
   Dialog,
@@ -49,7 +55,11 @@ const emptyState: Omit<ManualRevisionFormData, "services"> = {
   is_physical: false,
 };
 
-export function ManualRevisionDialog({ open, onOpenChange, manual }: ManualRevisionDialogProps) {
+export function ManualRevisionDialog({
+  open,
+  onOpenChange,
+  manual,
+}: ManualRevisionDialogProps) {
   const { selectedCompany } = useCompanyStore();
   const { createManualRevision } = useCreateManualRevision();
   const [form, setForm] = useState(emptyState);
@@ -66,7 +76,8 @@ export function ManualRevisionDialog({ open, onOpenChange, manual }: ManualRevis
   // Un servicio ya superado en la revisión vigente no se arrastra: se retiró a
   // propósito y reponerlo en la revisión nueva lo revive sin quererlo.
   const sourceServices = useMemo(
-    () => (manual.services ?? []).filter((service) => service.status === "ACTIVE"),
+    () =>
+      (manual.services ?? []).filter((service) => service.status === "ACTIVE"),
     [manual.services],
   );
 
@@ -76,14 +87,25 @@ export function ManualRevisionDialog({ open, onOpenChange, manual }: ManualRevis
     setEffectiveDate(undefined);
     setFile(null);
     setServices(sourceServices.map(toRevisionServiceFormData));
-    setSelected(Object.fromEntries(sourceServices.map((service) => [service.id, true])));
+    setSelected(
+      Object.fromEntries(sourceServices.map((service) => [service.id, true])),
+    );
     setExpanded(null);
   }, [open, manual, sourceServices]);
 
-  const selectedCount = services.filter((s) => selected[s.source_service_id!]).length;
+  const selectedCount = services.filter(
+    (s) => selected[s.source_service_id!],
+  ).length;
 
-  const updateService = (index: number, patch: Partial<RevisionServiceFormData>) => {
-    setServices((current) => current.map((service, i) => (i === index ? { ...service, ...patch } : service)));
+  const updateService = (
+    index: number,
+    patch: Partial<RevisionServiceFormData>,
+  ) => {
+    setServices((current) =>
+      current.map((service, i) =>
+        i === index ? { ...service, ...patch } : service,
+      ),
+    );
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -117,25 +139,34 @@ export function ManualRevisionDialog({ open, onOpenChange, manual }: ManualRevis
             <SectionTitle icon={History} title="Registrar Nueva Revisión" />
           </DialogTitle>
           <DialogDescription>
-            Crea un nuevo manual ({manual.name}) con la revisión indicada y marca &quot;
+            Crea un nuevo manual ({manual.name}) con la revisión indicada y
+            marca &quot;
             {manual.revision || "esta"}&quot; como superada.
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="flex flex-1 flex-col gap-5 overflow-y-auto px-1 py-1">
+        <form
+          onSubmit={handleSubmit}
+          className="flex flex-1 flex-col gap-5 overflow-y-auto px-1 py-1"
+        >
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label className={labelClass}>Nueva revisión</Label>
               <Input
                 className={fieldClass}
                 value={form.revision}
-                onChange={(e) => setForm((f) => ({ ...f, revision: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, revision: e.target.value }))
+                }
                 placeholder="Ej: Rev. 13"
               />
             </div>
             <div className="space-y-1.5">
               <Label className={labelClass}>Vigente desde</Label>
-              <CalendarDateField value={effectiveDate} onChange={setEffectiveDate} />
+              <CalendarDateField
+                value={effectiveDate}
+                onChange={setEffectiveDate}
+              />
             </div>
           </div>
 
@@ -145,7 +176,9 @@ export function ManualRevisionDialog({ open, onOpenChange, manual }: ManualRevis
               rows={2}
               className={textareaClass}
               value={form.description}
-              onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, description: e.target.value }))
+              }
             />
           </div>
 
@@ -153,7 +186,9 @@ export function ManualRevisionDialog({ open, onOpenChange, manual }: ManualRevis
             <Checkbox
               id="revision_is_physical"
               checked={form.is_physical}
-              onCheckedChange={(checked) => setForm((f) => ({ ...f, is_physical: !!checked }))}
+              onCheckedChange={(checked) =>
+                setForm((f) => ({ ...f, is_physical: !!checked }))
+              }
             />
             <Label htmlFor="revision_is_physical" className={labelClass}>
               Solo se tiene el documento físico (sin archivo digital)
@@ -176,10 +211,13 @@ export function ManualRevisionDialog({ open, onOpenChange, manual }: ManualRevis
             <div className="space-y-3 border-t pt-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div>
-                  <Label className={labelClass}>Contenido que pasa a la revisión nueva</Label>
+                  <Label className={labelClass}>
+                    Contenido que pasa a la revisión nueva
+                  </Label>
                   <p className="text-xs text-muted-foreground">
-                    Ajuste aquí lo que cambió en esta revisión. Lo que destilde no pasa: queda superado y
-                    deja de ofrecerse para nuevos controles y órdenes de trabajo.
+                    Ajuste aquí lo que cambió en esta revisión. Lo que destilde
+                    no pasa: queda superado y deja de ofrecerse para nuevos
+                    controles y órdenes de trabajo.
                   </p>
                 </div>
                 <Badge variant="secondary" className="shrink-0">
@@ -191,9 +229,10 @@ export function ManualRevisionDialog({ open, onOpenChange, manual }: ManualRevis
                 <div className="flex items-start gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-xs">
                   <AlertTriangle className="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-500" />
                   <p>
-                    {services.length - selectedCount} servicio(s) no pasan a {form.revision || "la revisión nueva"}
-                    : quedarán superados y no podrán usarse en nuevos controles ni órdenes de trabajo. Los que ya
-                    se ejecutaron conservan su historial.
+                    {services.length - selectedCount} servicio(s) no pasan a{" "}
+                    {form.revision || "la revisión nueva"}: quedarán superados y
+                    no podrán usarse en nuevos controles ni órdenes de trabajo.
+                    Los que ya se ejecutaron conservan su historial.
                   </p>
                 </div>
               )}
@@ -213,11 +252,16 @@ export function ManualRevisionDialog({ open, onOpenChange, manual }: ManualRevis
                         <Checkbox
                           checked={isSelected}
                           onCheckedChange={(checked) =>
-                            setSelected((current) => ({ ...current, [sourceId]: !!checked }))
+                            setSelected((current) => ({
+                              ...current,
+                              [sourceId]: !!checked,
+                            }))
                           }
                         />
                         <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-medium">{service.name}</p>
+                          <p className="truncate text-sm font-medium">
+                            {service.name}
+                          </p>
                           <p className="text-xs text-muted-foreground">
                             {CATEGORY_LABELS[service.category]}
                             {` · ${service.tasks.length} tarea(s)`}
@@ -233,7 +277,9 @@ export function ManualRevisionDialog({ open, onOpenChange, manual }: ManualRevis
                             variant="ghost"
                             size="sm"
                             className="shrink-0 gap-1 text-xs"
-                            onClick={() => setExpanded(isExpanded ? null : sourceId)}
+                            onClick={() =>
+                              setExpanded(isExpanded ? null : sourceId)
+                            }
                           >
                             {isExpanded ? "Cerrar" : "Revisar"}
                             <ChevronDown
@@ -268,8 +314,13 @@ export function ManualRevisionDialog({ open, onOpenChange, manual }: ManualRevis
           )}
 
           <DialogFooter className="mt-2">
-            <ActionTriggerButton type="submit" disabled={createManualRevision.isPending}>
-              {createManualRevision.isPending ? <Loader2 className="mr-2 size-4 animate-spin" /> : null}
+            <ActionTriggerButton
+              type="submit"
+              disabled={createManualRevision.isPending}
+            >
+              {createManualRevision.isPending ? (
+                <Loader2 className="mr-2 size-4 animate-spin" />
+              ) : null}
               Registrar Revisión
             </ActionTriggerButton>
           </DialogFooter>

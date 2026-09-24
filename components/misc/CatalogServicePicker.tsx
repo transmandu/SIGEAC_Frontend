@@ -10,11 +10,24 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { DataTableSearchInput } from "@/components/tables/DataTableSearchInput";
 import { useGetCatalogServices } from "@/hooks/mantenimiento/catalogo/useGetCatalogServices";
-import { CATEGORY_LABELS, COUNTING_METHOD_LABELS, MSG3_TYPE_LABELS } from "@/lib/maintenanceCatalogLabels";
-import { CatalogCategory, CatalogService, CatalogTask } from "@/types/maintenanceCatalog";
+import {
+  CATEGORY_LABELS,
+  COUNTING_METHOD_LABELS,
+  MSG3_TYPE_LABELS,
+} from "@/lib/maintenanceCatalogLabels";
+import {
+  CatalogCategory,
+  CatalogService,
+  CatalogTask,
+} from "@/types/maintenanceCatalog";
 import { useCompanyStore } from "@/stores/CompanyStore";
 
 interface CatalogServicePickerProps {
@@ -51,7 +64,12 @@ function taskMatchesSearch(task: CatalogTask, term: string): boolean {
 }
 
 function serviceMatchesSearch(service: CatalogService, term: string): boolean {
-  const haystack = [service.name, service.code, service.manual?.name, CATEGORY_LABELS[service.category]];
+  const haystack = [
+    service.name,
+    service.code,
+    service.manual?.name,
+    CATEGORY_LABELS[service.category],
+  ];
   return haystack.some((value) => norm(value).includes(term));
 }
 
@@ -85,23 +103,27 @@ export function CatalogServicePicker({
   const [showAllManuals, setShowAllManuals] = useState(false);
   const effectiveManualId = showAllManuals ? undefined : manualId;
 
-  const { data: services = [], isLoading } = useGetCatalogServices(selectedCompany?.slug, {
-    aircraftId,
-    category,
-    manualId: effectiveManualId,
-    // El picker es de consumo: un servicio/certificado superado no debe
-    // volver a seleccionarse para un nuevo control u orden de trabajo.
-    status: "ACTIVE",
-    withTasks: !!onSelectTask,
-    // Se monta uno por fila del formulario: sin diferirlo hasta abrirlo, cada
-    // fila pediría el catálogo (con sus tareas) al cargar la pantalla.
-    enabled: open && !!aircraftId,
-  });
+  const { data: services = [], isLoading } = useGetCatalogServices(
+    selectedCompany?.slug,
+    {
+      aircraftId,
+      category,
+      manualId: effectiveManualId,
+      // El picker es de consumo: un servicio/certificado superado no debe
+      // volver a seleccionarse para un nuevo control u orden de trabajo.
+      status: "ACTIVE",
+      withTasks: !!onSelectTask,
+      // Se monta uno por fila del formulario: sin diferirlo hasta abrirlo, cada
+      // fila pediría el catálogo (con sus tareas) al cargar la pantalla.
+      enabled: open && !!aircraftId,
+    },
+  );
 
   const term = search.trim().toLowerCase();
 
   const filteredServices = useMemo(
-    () => (term ? services.filter((s) => serviceMatchesSearch(s, term)) : services),
+    () =>
+      term ? services.filter((s) => serviceMatchesSearch(s, term)) : services,
     [services, term],
   );
 
@@ -114,7 +136,9 @@ export function CatalogServicePicker({
     );
   }, [services, term, onSelectTask]);
 
-  const drillService = drillServiceId ? services.find((s) => s.id === drillServiceId) : undefined;
+  const drillService = drillServiceId
+    ? services.find((s) => s.id === drillServiceId)
+    : undefined;
 
   if (!aircraftId) return null;
 
@@ -146,7 +170,12 @@ export function CatalogServicePicker({
           <TooltipTrigger asChild>
             <span className="inline-flex" onClick={() => setOpen(true)}>
               {trigger ?? (
-                <Button type="button" variant="ghost" size="icon" className="size-8">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="size-8"
+                >
                   <BookOpen className="size-4" />
                 </Button>
               )}
@@ -171,11 +200,19 @@ export function CatalogServicePicker({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               {showingDrill && (
-                <Button type="button" variant="ghost" size="icon" className="size-7" onClick={() => setDrillServiceId(null)}>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="size-7"
+                  onClick={() => setDrillServiceId(null)}
+                >
                   <ChevronLeft className="size-4" />
                 </Button>
               )}
-              {showingDrill ? drillService?.name ?? "Tareas" : "Catálogo de Mantenimiento"}
+              {showingDrill
+                ? (drillService?.name ?? "Tareas")
+                : "Catálogo de Mantenimiento"}
             </DialogTitle>
           </DialogHeader>
 
@@ -183,7 +220,9 @@ export function CatalogServicePicker({
             value={search}
             onChange={setSearch}
             placeholder={
-              onSelectTask ? "Buscar por ATA, N° de parte, descripción..." : "Buscar servicio o certificado..."
+              onSelectTask
+                ? "Buscar por ATA, N° de parte, descripción..."
+                : "Buscar servicio o certificado..."
             }
           />
 
@@ -200,11 +239,14 @@ export function CatalogServicePicker({
 
           <div className="flex-1 space-y-2 overflow-y-auto px-1 py-1">
             {isLoading ? (
-              <p className="p-4 text-center text-sm text-muted-foreground">Cargando...</p>
+              <p className="p-4 text-center text-sm text-muted-foreground">
+                Cargando...
+              </p>
             ) : showingTaskSearch ? (
               taskMatches.length === 0 ? (
                 <p className="p-4 text-center text-sm text-muted-foreground">
-                  Ninguna tarea de esta aeronave coincide con &quot;{search}&quot;.
+                  Ninguna tarea de esta aeronave coincide con &quot;{search}
+                  &quot;.
                 </p>
               ) : (
                 taskMatches.map(({ task, service }) => (
@@ -221,13 +263,18 @@ export function CatalogServicePicker({
                         {" · "}
                         {MSG3_TYPE_LABELS[task.msg3_type]}
                         {task.ata ? ` · ATA ${task.ata}` : ""}
-                        {task.estimated_man_hours != null ? ` · ${task.estimated_man_hours} H-H` : ""}
+                        {task.estimated_man_hours != null
+                          ? ` · ${task.estimated_man_hours} H-H`
+                          : ""}
                       </p>
                       <p className="text-sm font-medium">{task.description}</p>
                       {task.requirements.length > 0 && (
                         <p className="text-xs text-muted-foreground">
                           {task.requirements
-                            .map((r) => `${r.part_number ? `${r.part_number} — ` : ""}${r.description}`)
+                            .map(
+                              (r) =>
+                                `${r.part_number ? `${r.part_number} — ` : ""}${r.description}`,
+                            )
                             .join(", ")}
                         </p>
                       )}
@@ -241,7 +288,7 @@ export function CatalogServicePicker({
                   {term
                     ? `Ningún servicio/certificado coincide con "${search}".`
                     : effectiveManualId
-                      ? "Ningún servicio/certificado de este manual está asignado a la aeronave — pruebe \"ver todos\"."
+                      ? 'Ningún servicio/certificado de este manual está asignado a la aeronave — pruebe "ver todos".'
                       : "Esta aeronave no tiene servicios/certificados asignados en el catálogo."}
                 </p>
               ) : (
@@ -253,27 +300,37 @@ export function CatalogServicePicker({
                     className="flex w-full items-center justify-between gap-2 rounded-lg border border-slate-400/40 bg-gradient-to-br from-background/70 to-background/40 p-3 text-left backdrop-blur-md transition-colors hover:border-primary/40 dark:border-slate-600/40"
                   >
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-medium">{service.name}</p>
+                      <p className="truncate text-sm font-medium">
+                        {service.name}
+                      </p>
                       <p className="text-xs text-muted-foreground">
                         {CATEGORY_LABELS[service.category]}
                         {service.manual ? ` · ${service.manual.name}` : ""}
                         {service.intervals.length > 0
                           ? ` · ${service.intervals
-                              .map((i) => `${i.interval_value} ${COUNTING_METHOD_LABELS[i.counting_method]}`)
+                              .map(
+                                (i) =>
+                                  `${i.interval_value} ${COUNTING_METHOD_LABELS[i.counting_method]}`,
+                              )
                               .join(" Ó ")}`
                           : ""}
                       </p>
                     </div>
                     {onSelectTask && (
                       <span className="shrink-0 text-xs text-muted-foreground">
-                        {(service.tasks ?? []).length || service.tasks_count || 0} tarea(s)
+                        {(service.tasks ?? []).length ||
+                          service.tasks_count ||
+                          0}{" "}
+                        tarea(s)
                       </span>
                     )}
                   </button>
                 ))
               )
             ) : !drillService || drillService.tasks?.length === 0 ? (
-              <p className="p-4 text-center text-sm text-muted-foreground">Este servicio no tiene tareas registradas.</p>
+              <p className="p-4 text-center text-sm text-muted-foreground">
+                Este servicio no tiene tareas registradas.
+              </p>
             ) : (
               drillService.tasks?.map((task) => (
                 <button
@@ -287,7 +344,9 @@ export function CatalogServicePicker({
                     <p className="text-xs text-muted-foreground">
                       {MSG3_TYPE_LABELS[task.msg3_type]}
                       {task.ata ? ` · ATA ${task.ata}` : ""}
-                      {task.estimated_man_hours != null ? ` · ${task.estimated_man_hours} H-H` : ""}
+                      {task.estimated_man_hours != null
+                        ? ` · ${task.estimated_man_hours} H-H`
+                        : ""}
                       {task.required_skill ? ` · ${task.required_skill}` : ""}
                     </p>
                     <p className="text-sm font-medium">{task.description}</p>

@@ -28,7 +28,10 @@ interface FormProps {
   onSuccess?: (provider: MaintenanceProvider) => void;
 }
 
-export default function CreateMaintenanceProviderForm({ onClose, onSuccess }: FormProps) {
+export default function CreateMaintenanceProviderForm({
+  onClose,
+  onSuccess,
+}: FormProps) {
   const { selectedCompany } = useCompanyStore();
   const { createMaintenanceProvider } = useCreateMaintenanceProvider();
 
@@ -62,7 +65,11 @@ export default function CreateMaintenanceProviderForm({ onClose, onSuccess }: Fo
             <FormItem className="w-full">
               <FormLabel className={labelClass}>Nombre de la Entidad</FormLabel>
               <FormControl>
-                <Input placeholder="EJ: Corporate Flight Management, Inc" className={fieldClass} {...field} />
+                <Input
+                  placeholder="EJ: Corporate Flight Management, Inc"
+                  className={fieldClass}
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

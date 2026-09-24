@@ -16,7 +16,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { AlertTriangle, CheckCircle2, History, Loader2, Upload } from "lucide-react";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  History,
+  Loader2,
+  Upload,
+} from "lucide-react";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import {
   ImportComplianceHistoryResult,
@@ -25,8 +31,14 @@ import {
 import { MaintenanceControlItem } from "@/types";
 
 const FORMAT_COLUMNS = [
-  { header: "Certificado o Servicio", hint: "Debe coincidir EXACTO con uno de los nombres de abajo." },
-  { header: "Fecha", hint: "dd/mm/aaaa. Debe ser anterior a la primera aplicación del ítem." },
+  {
+    header: "Certificado o Servicio",
+    hint: "Debe coincidir EXACTO con uno de los nombres de abajo.",
+  },
+  {
+    header: "Fecha",
+    hint: "dd/mm/aaaa. Debe ser anterior a la primera aplicación del ítem.",
+  },
   { header: "Horas", hint: "Opcional si el ítem no se cuenta en horas." },
   { header: "Ciclos", hint: "Opcional si el ítem no se cuenta en ciclos." },
   { header: "Realizado Por", hint: "Opcional, texto libre." },
@@ -38,10 +50,15 @@ interface ImportComplianceHistoryDialogProps {
   items: MaintenanceControlItem[];
 }
 
-export function ImportComplianceHistoryDialog({ controlId, items }: ImportComplianceHistoryDialogProps) {
+export function ImportComplianceHistoryDialog({
+  controlId,
+  items,
+}: ImportComplianceHistoryDialogProps) {
   const [open, setOpen] = useState(false);
   const [file, setFile] = useState<File | null>(null);
-  const [result, setResult] = useState<ImportComplianceHistoryResult | null>(null);
+  const [result, setResult] = useState<ImportComplianceHistoryResult | null>(
+    null,
+  );
   const { selectedCompany } = useCompanyStore();
   const { importComplianceHistory } = useImportMaintenanceComplianceHistory();
 
@@ -82,8 +99,9 @@ export function ImportComplianceHistoryDialog({ controlId, items }: ImportCompli
             Importar Histórico de Cumplimientos
           </DialogTitle>
           <DialogDescription>
-            Carga cumplimientos de <strong>antes</strong> de usar este sistema, solo para tener con qué comparar en
-            las estadísticas. No reemplazan ni afectan el cálculo de Aplicada/Próximo/Remanente vigente.
+            Carga cumplimientos de <strong>antes</strong> de usar este sistema,
+            solo para tener con qué comparar en las estadísticas. No reemplazan
+            ni afectan el cálculo de Aplicada/Próximo/Remanente vigente.
           </DialogDescription>
         </DialogHeader>
 
@@ -94,9 +112,14 @@ export function ImportComplianceHistoryDialog({ controlId, items }: ImportCompli
             </p>
             <ul className="space-y-1">
               {FORMAT_COLUMNS.map((col) => (
-                <li key={col.header} className="flex flex-col text-sm sm:flex-row sm:items-baseline sm:gap-2">
+                <li
+                  key={col.header}
+                  className="flex flex-col text-sm sm:flex-row sm:items-baseline sm:gap-2"
+                >
                   <span className="font-medium">{col.header}</span>
-                  <span className="text-xs text-muted-foreground">{col.hint}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {col.hint}
+                  </span>
                 </li>
               ))}
             </ul>
@@ -109,7 +132,11 @@ export function ImportComplianceHistoryDialog({ controlId, items }: ImportCompli
             <ScrollArea className="h-28 rounded-lg border p-2">
               <div className="flex flex-wrap gap-1.5">
                 {items.map((item) => (
-                  <Badge key={item.id} variant="outline" className="font-normal">
+                  <Badge
+                    key={item.id}
+                    variant="outline"
+                    className="font-normal"
+                  >
                     {item.name}
                   </Badge>
                 ))}
@@ -118,7 +145,9 @@ export function ImportComplianceHistoryDialog({ controlId, items }: ImportCompli
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="compliance-history-file">Archivo (.xlsx, .xls o .csv)</Label>
+            <Label htmlFor="compliance-history-file">
+              Archivo (.xlsx, .xls o .csv)
+            </Label>
             <Input
               id="compliance-history-file"
               type="file"
@@ -162,7 +191,10 @@ export function ImportComplianceHistoryDialog({ controlId, items }: ImportCompli
           >
             Cerrar
           </Button>
-          <Button onClick={handleSubmit} disabled={!file || importComplianceHistory.isPending}>
+          <Button
+            onClick={handleSubmit}
+            disabled={!file || importComplianceHistory.isPending}
+          >
             {importComplianceHistory.isPending ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (

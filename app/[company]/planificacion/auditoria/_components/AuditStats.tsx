@@ -1,6 +1,19 @@
 "use client";
 
 import {
+  ACTION_META,
+  MODULE_META,
+  fieldLabel,
+  typeLabel,
+} from "@/components/planificacion/auditoria/labels";
+import {
+  SERIES,
+  correctionFillCls,
+  errorFillCls,
+  microLabelCls,
+  panelCls,
+} from "@/components/planificacion/auditoria/ui";
+import {
   ChartConfig,
   ChartContainer,
   ChartTooltip,
@@ -10,41 +23,30 @@ import { useGetPlanificationAuditStats } from "@/hooks/mantenimiento/planificaci
 import { EDIT_REASON_LABELS } from "@/lib/planificacion/editReasons";
 import { cn } from "@/lib/utils";
 import type {
-  AuditTypeFilter,
-  ErrorRate,
+  AuditAction,
+  AuditModule,
+  PlanificationAuditFilters,
   PlanificationAuditStats,
 } from "@/types/planification/audit";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import { AlertTriangle, BarChart3, Loader2 } from "lucide-react";
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
-import { TYPE_LABELS, fieldLabel } from "./labels";
-import {
-  SERIES,
-  correctionFillCls,
-  errorFillCls,
-  microLabelCls,
-  panelCls,
-} from "./ui";
 
 const chartConfig = {
   corrections: { label: "Correcciones", theme: SERIES.corrections },
   errors: { label: "Errores de captura", theme: SERIES.errors },
 } satisfies ChartConfig;
 
-interface AuditStatsProps {
-  from?: string;
-  to?: string;
-  type?: AuditTypeFilter;
-}
+type StatsFilters = Pick<PlanificationAuditFilters, "from" | "to" | "module">;
 
-export function AuditStats({ from, to, type }: AuditStatsProps) {
+export function AuditStats(filters: StatsFilters) {
   const {
     data: stats,
     isLoading,
     isError,
     isFetching,
-  } = useGetPlanificationAuditStats({ from, to, type });
+  } = useGetPlanificationAuditStats(filters);
 
   if (isLoading) {
     return (
@@ -83,13 +85,18 @@ export function AuditStats({ from, to, type }: AuditStatsProps) {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
+        <ErrorRatePanel stats={stats} />
+        <ActivityPanel stats={stats} />
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-2">
         <MeterPanel
           title="Campos más corregidos"
           hint="Top 10 del período"
           rows={stats.by_field.slice(0, 10).map((row) => ({
             key: `${row.type}.${row.field}`,
             label: fieldLabel(row.field),
-            sublabel: TYPE_LABELS[row.type],
+            sublabel: typeLabel(row.type),
             critical: row.critical,
             total: row.count,
             errors: row.errors,
@@ -111,8 +118,8 @@ export function AuditStats({ from, to, type }: AuditStatsProps) {
         <p className="text-xs text-muted-foreground/70">
           {stats.totals.unclassified}{" "}
           {stats.totals.unclassified === 1 ? "corrección" : "correcciones"} sin
-          motivo: se hicieron fuera de los formularios de edición y no entran en
-          la tasa de error.
+          motivo: se hicieron fuera de los formularios y no entran en la tasa de
+          error.
         </p>
       )}
     </div>
@@ -122,7 +129,7 @@ export function AuditStats({ from, to, type }: AuditStatsProps) {
 // ─── KPIs ────────────────────────────────────────────────────────────────────
 
 function KpiStrip({ stats }: { stats: PlanificationAuditStats }) {
-  const { totals, error_rate, time_to_correction: ttc } = stats;
+  const { totals, time_to_correction: ttc } = stats;
 
   return (
     <div
@@ -131,26 +138,20 @@ function KpiStrip({ stats }: { stats: PlanificationAuditStats }) {
         "grid gap-6 p-0 sm:grid-cols-2 xl:grid-cols-4 xl:gap-0",
       )}
     >
-      {error_rate.flights && (
-        <RateKpi
-          title="Tasa de error · Vuelos"
-          noun="vuelos"
-          rate={error_rate.flights}
-        />
-      )}
-      {error_rate.work_orders && (
-        <RateKpi
-          title="Tasa de error · Órdenes"
-          noun="órdenes"
-          rate={error_rate.work_orders}
-        />
-      )}
+      <Kpi title="Operaciones">
+        <KpiValue>{totals.operations}</KpiValue>
+        <p className="text-xs text-muted-foreground">
+          <span className="font-medium text-foreground">{totals.entries}</span>{" "}
+          registros tocados ·{" "}
+          <span className="font-medium text-foreground">{totals.workflow}</span>{" "}
+          de flujo
+        </p>
+      </Kpi>
 
       <Kpi title="Correcciones">
         <KpiValue>{totals.corrections}</KpiValue>
         <p className="text-xs text-muted-foreground">
-          <span className="font-medium text-foreground">{totals.errors}</span>{" "}
-          por error de captura
+          Incluye bajas, reactivaciones y eliminaciones
           {totals.critical_corrections > 0 && (
             <>
               {" · "}
@@ -160,6 +161,26 @@ function KpiStrip({ stats }: { stats: PlanificationAuditStats }) {
               en campos críticos
             </>
           )}
+        </p>
+      </Kpi>
+
+      <Kpi title="Errores de captura">
+        <KpiValue>{totals.errors}</KpiValue>
+        <div
+          className="h-1.5 overflow-hidden rounded-full bg-muted"
+          aria-hidden
+        >
+          <div
+            className={cn("h-full rounded-full", errorFillCls)}
+            style={{
+              width: `${totals.corrections > 0 ? Math.min((totals.errors / totals.corrections) * 100, 100) : 0}%`,
+            }}
+          />
+        </div>
+        <p className="text-xs text-muted-foreground">
+          {totals.corrections > 0
+            ? `${Math.round((totals.errors / totals.corrections) * 100)}% de las correcciones`
+            : "Sin correcciones en el período"}
         </p>
       </Kpi>
 
@@ -211,41 +232,135 @@ function KpiValue({
   );
 }
 
-function RateKpi({
-  title,
-  noun,
-  rate,
-}: {
-  title: string;
-  noun: string;
-  rate: ErrorRate;
-}) {
-  const share = rate.created > 0 ? (rate.with_errors / rate.created) * 100 : 0;
+// ─── Tasa de error por módulo ────────────────────────────────────────────────
+
+function ErrorRatePanel({ stats }: { stats: PlanificationAuditStats }) {
+  const rows = (
+    Object.entries(stats.error_rate) as [
+      AuditModule,
+      NonNullable<PlanificationAuditStats["error_rate"][AuditModule]>,
+    ][]
+  ).filter(([, rate]) => rate.created > 0);
 
   return (
-    <Kpi title={title}>
-      <KpiValue suffix={rate.rate == null ? undefined : "%"}>
-        {rate.rate == null ? "—" : rate.rate.toLocaleString("es")}
-      </KpiValue>
-      <div className="h-1.5 overflow-hidden rounded-full bg-muted" aria-hidden>
-        <div
-          className={cn("h-full rounded-full", errorFillCls)}
-          style={{ width: `${Math.min(share, 100)}%` }}
-        />
-      </div>
-      <p className="text-xs text-muted-foreground">
-        {rate.created === 0 ? (
-          `Sin ${noun} cargados en el período`
-        ) : (
-          <>
-            <span className="font-medium text-foreground">
-              {rate.with_errors}
-            </span>{" "}
-            de {rate.created} {noun} cargados tuvieron un error
-          </>
-        )}
-      </p>
-    </Kpi>
+    <section className={cn(panelCls, "flex flex-col gap-4")}>
+      <PanelHeader
+        title="Tasa de error por módulo"
+        hint="Registros creados en el período que luego se corrigieron por error de captura"
+      />
+
+      {rows.length === 0 ? (
+        <EmptyState />
+      ) : (
+        <ul className="flex flex-col gap-3.5">
+          {rows.map(([module, rate]) => (
+            <li key={module} className="flex flex-col gap-1.5">
+              <div className="flex items-baseline justify-between gap-3 text-sm">
+                <span className="truncate">{MODULE_META[module].label}</span>
+                <span className="shrink-0 tabular-nums">
+                  <span className="font-medium">
+                    {rate.rate == null
+                      ? "—"
+                      : `${rate.rate.toLocaleString("es")}%`}
+                  </span>
+                  <span className="ml-1.5 text-xs text-muted-foreground">
+                    {rate.with_errors} de {rate.created}
+                  </span>
+                </span>
+              </div>
+              <div
+                className="h-1.5 overflow-hidden rounded-full bg-muted"
+                aria-hidden
+              >
+                <div
+                  className={cn("h-full rounded-full", errorFillCls)}
+                  style={{ width: `${Math.min(rate.rate ?? 0, 100)}%` }}
+                />
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
+// ─── Actividad: módulos y acciones ───────────────────────────────────────────
+
+function ActivityPanel({ stats }: { stats: PlanificationAuditStats }) {
+  const max = Math.max(1, ...stats.by_module.map((row) => row.operations));
+  const actions = (
+    Object.entries(stats.by_action) as [AuditAction, number][]
+  ).sort((a, b) => b[1] - a[1]);
+
+  return (
+    <section className={cn(panelCls, "flex flex-col gap-4")}>
+      <PanelHeader
+        title="Actividad por módulo"
+        hint="Operaciones y, de ellas, correcciones"
+      />
+
+      {stats.by_module.length === 0 ? (
+        <EmptyState />
+      ) : (
+        <ul className="flex flex-col gap-3.5">
+          {stats.by_module.map((row) => (
+            <li key={row.module} className="flex flex-col gap-1.5">
+              <div className="flex items-baseline justify-between gap-3 text-sm">
+                <span className="truncate">
+                  {MODULE_META[row.module].label}
+                </span>
+                <span className="shrink-0 tabular-nums">
+                  <span className="font-medium">{row.operations}</span>
+                  {row.corrections > 0 && (
+                    <span className="ml-1.5 text-xs text-muted-foreground">
+                      {row.corrections} correcciones
+                    </span>
+                  )}
+                </span>
+              </div>
+              <div
+                className="flex h-1.5 gap-0.5"
+                style={{ width: `${(row.operations / max) * 100}%` }}
+                aria-hidden
+              >
+                {row.corrections > 0 && (
+                  <div
+                    className={cn("h-full rounded-full", correctionFillCls)}
+                    style={{ flexGrow: row.corrections }}
+                  />
+                )}
+                {row.operations - row.corrections > 0 && (
+                  <div
+                    className="h-full rounded-full bg-muted-foreground/30"
+                    style={{ flexGrow: row.operations - row.corrections }}
+                  />
+                )}
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {actions.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 border-t border-border/50 pt-3">
+          {actions.map(([action, count]) => {
+            const Icon = ACTION_META[action].icon;
+
+            return (
+              <span
+                key={action}
+                className="inline-flex items-center gap-1.5 rounded-md border border-border/50 bg-background/70 px-2 py-1 text-xs"
+              >
+                <Icon className="size-3.5 text-muted-foreground" />
+                {ACTION_META[action].label}
+                <span className="font-semibold tabular-nums">{count}</span>
+              </span>
+            );
+          })}
+        </div>
+      )}
+    </section>
   );
 }
 

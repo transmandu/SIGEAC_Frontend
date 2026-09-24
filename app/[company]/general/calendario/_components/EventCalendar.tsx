@@ -22,7 +22,13 @@ import {
   startOfMonth,
 } from "date-fns";
 import { es } from "date-fns/locale";
-import { ArrowUpRight, CalendarX2, ChevronLeft, ChevronRight, ListFilter } from "lucide-react";
+import {
+  ArrowUpRight,
+  CalendarX2,
+  ChevronLeft,
+  ChevronRight,
+  ListFilter,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
@@ -32,12 +38,20 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useGetCalendarEvents } from "@/hooks/general/calendario/useGetCalendarEvents";
 import { useGetCalendarEventSources } from "@/hooks/general/calendario/useGetCalendarEventSources";
 import { useIsSuperuser } from "@/hooks/helpers/useIsSuperuser";
-import { useUpdateCalendarEvent, useDeleteCalendarEvent } from "@/actions/general/calendario/actions";
+import {
+  useUpdateCalendarEvent,
+  useDeleteCalendarEvent,
+} from "@/actions/general/calendario/actions";
 import { cn } from "@/lib/utils";
 import { CreateEventDialog } from "./CreateEventDialog";
 import { EventDetailDialog } from "./EventDetailDialog";
@@ -90,15 +104,28 @@ export function EventCalendar() {
   // decide evento por evento (`editable`): esto solo habilita el gesto.
   const canEdit = useIsSuperuser();
 
-  const [currentMonth, setCurrentMonth] = useState(() => startOfMonth(new Date()));
+  const [currentMonth, setCurrentMonth] = useState(() =>
+    startOfMonth(new Date()),
+  );
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingEvent, setEditingEvent] = useState<LocalCalendarEvent | undefined>();
-  const [detailEvent, setDetailEvent] = useState<LocalCalendarEvent | undefined>();
-  const [hiddenSourceKeys, setHiddenSourceKeys] = useState<Set<string>>(new Set());
-  const [activeDrag, setActiveDrag] = useState<{ kind: "move" | "resize"; event: LocalCalendarEvent } | undefined>();
+  const [editingEvent, setEditingEvent] = useState<
+    LocalCalendarEvent | undefined
+  >();
+  const [detailEvent, setDetailEvent] = useState<
+    LocalCalendarEvent | undefined
+  >();
+  const [hiddenSourceKeys, setHiddenSourceKeys] = useState<Set<string>>(
+    new Set(),
+  );
+  const [activeDrag, setActiveDrag] = useState<
+    { kind: "move" | "resize"; event: LocalCalendarEvent } | undefined
+  >();
 
   const visibleRange = useMemo(
-    () => ({ start: startOfMonth(currentMonth), end: endOfMonth(currentMonth) }),
+    () => ({
+      start: startOfMonth(currentMonth),
+      end: endOfMonth(currentMonth),
+    }),
     [currentMonth],
   );
 
@@ -115,7 +142,8 @@ export function EventCalendar() {
   // y cambiarlo a la etiqueta corta un instante después. `&& !!companySlug`
   // porque en react-query v5 una query deshabilitada queda en isPending para
   // siempre — sin eso, un slug ausente dejaría el calendario vacío sin fin.
-  const { data: sources = [], isPending } = useGetCalendarEventSources(companySlug);
+  const { data: sources = [], isPending } =
+    useGetCalendarEventSources(companySlug);
   const isLoadingSources = isPending && !!companySlug;
   const { updateCalendarEvent } = useUpdateCalendarEvent();
   const { deleteCalendarEvent } = useDeleteCalendarEvent();
@@ -145,7 +173,9 @@ export function EventCalendar() {
   // Etiqueta legible por filtro: las fuentes de sistema traen la suya propia;
   // los eventos manuales (source_key null) no tienen fuente que preguntar.
   const sourceLabels = useMemo(() => {
-    const labels: Record<string, string> = { [MANUAL_SOURCE_KEY]: "Eventos manuales" };
+    const labels: Record<string, string> = {
+      [MANUAL_SOURCE_KEY]: "Eventos manuales",
+    };
     for (const source of sources) labels[source.key] = source.label;
     return labels;
   }, [sources]);
@@ -186,7 +216,10 @@ export function EventCalendar() {
     () =>
       isLoadingSources
         ? []
-        : events.filter((event) => !hiddenSourceKeys.has(event.sourceKey ?? MANUAL_SOURCE_KEY)),
+        : events.filter(
+            (event) =>
+              !hiddenSourceKeys.has(event.sourceKey ?? MANUAL_SOURCE_KEY),
+          ),
     [events, hiddenSourceKeys, isLoadingSources],
   );
 
@@ -195,7 +228,10 @@ export function EventCalendar() {
   // `start` desaparecía por completo de la lista de septiembre.
   const eventsInView = useMemo(() => {
     return visibleEvents
-      .filter((event) => event.start <= visibleRange.end && event.end >= visibleRange.start)
+      .filter(
+        (event) =>
+          event.start <= visibleRange.end && event.end >= visibleRange.start,
+      )
       .sort((a, b) => a.start.getTime() - b.start.getTime());
   }, [visibleEvents, visibleRange]);
 
@@ -243,16 +279,20 @@ export function EventCalendar() {
   // distance:8 deja que dnd-kit distinga un clic (abre el detalle) de un
   // arrastre real — sin este umbral, cualquier mousedown+mouseup mínimo ya
   // cuenta como "se soltó en la misma celda" y el clic nunca llega a onClick.
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+  );
 
   const handleDragStart = (e: DragStartEvent) => {
-    const data = e.active.data.current as { kind: "move" | "resize"; event: LocalCalendarEvent } | undefined;
+    const data = e.active.data.current as
+      { kind: "move" | "resize"; event: LocalCalendarEvent } | undefined;
     if (data) setActiveDrag(data);
   };
 
   const handleDragEnd = (e: DragEndEvent) => {
     setActiveDrag(undefined);
-    const data = e.active.data.current as { kind: "move" | "resize"; event: LocalCalendarEvent } | undefined;
+    const data = e.active.data.current as
+      { kind: "move" | "resize"; event: LocalCalendarEvent } | undefined;
     const targetDayKey = e.over?.id as string | undefined;
     if (!data || !targetDayKey || !companySlug) return;
 
@@ -265,7 +305,11 @@ export function EventCalendar() {
       if (sourceDayKey === targetDayKey) return;
 
       const dayDelta = differenceInCalendarDays(targetDay, event.start);
-      persistShift(event, addDays(event.start, dayDelta), addDays(event.end, dayDelta));
+      persistShift(
+        event,
+        addDays(event.start, dayDelta),
+        addDays(event.end, dayDelta),
+      );
       return;
     }
 
@@ -273,7 +317,10 @@ export function EventCalendar() {
     // "estirar" un evento solo tiene sentido como "cambiar el último día que
     // ocupa", nunca la hora de fin. Para un evento con hora se preserva su
     // H:m original y solo se reemplaza el Y-M-D.
-    let newEnd = setMinutes(setHours(targetDay, getHours(event.end)), getMinutes(event.end));
+    let newEnd = setMinutes(
+      setHours(targetDay, getHours(event.end)),
+      getMinutes(event.end),
+    );
     if (newEnd < event.start) newEnd = event.end;
 
     persistShift(event, event.start, newEnd);
@@ -291,7 +338,11 @@ export function EventCalendar() {
     // min-h-[32rem] es un piso real: evita que el cálculo se aplaste en
     // ventanas muy bajas en vez de solo reducir el margen de error.
     <div className="flex h-[calc(100dvh-14rem)] min-h-128 flex-col gap-4 md:flex-row">
-      <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+      <DndContext
+        sensors={sensors}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+      >
         <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-slate-400/40 bg-linear-to-br from-background/60 to-background/30 p-3 backdrop-blur-sm dark:border-slate-600/40">
           <div className="mb-6 flex shrink-0 items-center justify-between border-b border-slate-400/30 pb-4 dark:border-slate-600/30">
             <h2 className="text-xl font-semibold capitalize tracking-tight">
@@ -302,14 +353,20 @@ export function EventCalendar() {
                   cuando ya se estaba viendo el mes actual (se veía muerto/sin
                   función) — la fecha de hoy es información útil siempre,
                   sin importar en qué mes esté parado el usuario. */}
-              <span className="text-xs text-muted-foreground">{format(new Date(), "dd/MM/yyyy")}</span>
+              <span className="text-xs text-muted-foreground">
+                {format(new Date(), "dd/MM/yyyy")}
+              </span>
               <div className="flex items-center gap-1">
                 <Button
                   type="button"
                   size="icon"
                   variant="ghost"
                   className="size-7"
-                  onClick={() => setCurrentMonth((m) => startOfMonth(addDays(startOfMonth(m), -1)))}
+                  onClick={() =>
+                    setCurrentMonth((m) =>
+                      startOfMonth(addDays(startOfMonth(m), -1)),
+                    )
+                  }
                 >
                   <ChevronLeft className="size-4" />
                 </Button>
@@ -318,7 +375,11 @@ export function EventCalendar() {
                   size="icon"
                   variant="ghost"
                   className="size-7"
-                  onClick={() => setCurrentMonth((m) => startOfMonth(addDays(endOfMonth(m), 1)))}
+                  onClick={() =>
+                    setCurrentMonth((m) =>
+                      startOfMonth(addDays(endOfMonth(m), 1)),
+                    )
+                  }
                 >
                   <ChevronRight className="size-4" />
                 </Button>
@@ -349,8 +410,11 @@ export function EventCalendar() {
                 canEdit={canEdit}
                 isOverlayPreview
                 label={
-                  (activeDrag.event.sourceKey && shortLabels[activeDrag.event.sourceKey])
-                  || (activeDrag.event.display === "marker" ? "Vencimiento" : activeDrag.event.title)
+                  (activeDrag.event.sourceKey &&
+                    shortLabels[activeDrag.event.sourceKey]) ||
+                  (activeDrag.event.display === "marker"
+                    ? "Vencimiento"
+                    : activeDrag.event.title)
                 }
                 onClick={() => {}}
               />
@@ -372,7 +436,12 @@ export function EventCalendar() {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <DropdownMenuTrigger asChild>
-                      <Button type="button" size="icon" variant="ghost" className="size-7">
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        className="size-7"
+                      >
                         <ListFilter className="size-4" />
                       </Button>
                     </DropdownMenuTrigger>
@@ -427,8 +496,12 @@ export function EventCalendar() {
                           onClick={() => openEditDialog(event)}
                           className="w-full rounded-lg border border-slate-400/40 bg-background/60 p-2.5 text-left text-sm transition-colors hover:border-blue-400/40 dark:border-slate-600/40"
                         >
-                          <p className="truncate font-medium leading-tight">{event.title}</p>
-                          <p className="mt-0.5 text-xs text-muted-foreground">{formatSidebarTime(event)}</p>
+                          <p className="truncate font-medium leading-tight">
+                            {event.title}
+                          </p>
+                          <p className="mt-0.5 text-xs text-muted-foreground">
+                            {formatSidebarTime(event)}
+                          </p>
                         </button>
                       </TooltipTrigger>
                       <TooltipContent>{event.title}</TooltipContent>
@@ -446,21 +519,32 @@ export function EventCalendar() {
                           className={cn(
                             "group w-full rounded-lg border border-transparent p-2.5 text-left text-sm transition-colors",
                             "hover:border-blue-400/40 hover:bg-background/60",
-                            event.display === "marker" ? "opacity-70" : "bg-background/40",
+                            event.display === "marker"
+                              ? "opacity-70"
+                              : "bg-background/40",
                           )}
                         >
                           <div className="flex items-center gap-1.5">
                             <span
                               className="size-1.5 shrink-0 rounded-full"
-                              style={{ backgroundColor: event.color ?? "hsl(var(--muted-foreground))" }}
+                              style={{
+                                backgroundColor:
+                                  event.color ?? "hsl(var(--muted-foreground))",
+                              }}
                             />
-                            <p className="truncate leading-tight">{event.title}</p>
+                            <p className="truncate leading-tight">
+                              {event.title}
+                            </p>
                             <ArrowUpRight className="ml-auto size-3.5 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
                           </div>
-                          <p className="mt-0.5 pl-3 text-xs text-muted-foreground">{formatSidebarTime(event)}</p>
+                          <p className="mt-0.5 pl-3 text-xs text-muted-foreground">
+                            {formatSidebarTime(event)}
+                          </p>
                         </button>
                       </TooltipTrigger>
-                      <TooltipContent>Ver detalle: {event.title}</TooltipContent>
+                      <TooltipContent>
+                        Ver detalle: {event.title}
+                      </TooltipContent>
                     </Tooltip>
                   );
                 }
@@ -471,17 +555,26 @@ export function EventCalendar() {
                       <div
                         className={cn(
                           "w-full rounded-lg border border-transparent p-2.5 text-sm",
-                          event.display === "marker" ? "opacity-70" : "bg-background/40",
+                          event.display === "marker"
+                            ? "opacity-70"
+                            : "bg-background/40",
                         )}
                       >
                         <div className="flex items-center gap-1.5">
                           <span
                             className="size-1.5 shrink-0 rounded-full"
-                            style={{ backgroundColor: event.color ?? "hsl(var(--muted-foreground))" }}
+                            style={{
+                              backgroundColor:
+                                event.color ?? "hsl(var(--muted-foreground))",
+                            }}
                           />
-                          <p className="truncate leading-tight">{event.title}</p>
+                          <p className="truncate leading-tight">
+                            {event.title}
+                          </p>
                         </div>
-                        <p className="mt-0.5 pl-3 text-xs text-muted-foreground">{formatSidebarTime(event)}</p>
+                        <p className="mt-0.5 pl-3 text-xs text-muted-foreground">
+                          {formatSidebarTime(event)}
+                        </p>
                       </div>
                     </TooltipTrigger>
                     <TooltipContent>{event.title}</TooltipContent>
@@ -507,7 +600,9 @@ export function EventCalendar() {
           if (!open) setDetailEvent(undefined);
         }}
         event={detailEvent}
-        sourceLabel={sourceLabels[detailEvent?.sourceKey ?? MANUAL_SOURCE_KEY] ?? "Evento"}
+        sourceLabel={
+          sourceLabels[detailEvent?.sourceKey ?? MANUAL_SOURCE_KEY] ?? "Evento"
+        }
         onEdit={openEditDialog}
         onNavigate={openEventUrl}
       />

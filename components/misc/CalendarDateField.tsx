@@ -6,7 +6,11 @@ import { es } from "date-fns/locale";
 
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { triggerButtonClass } from "@/components/forms/mantenimiento/almacen/_components/form-theme";
 import { formatCalendarDate } from "@/lib/date";
 import { cn } from "@/lib/utils";
@@ -37,7 +41,11 @@ export function CalendarDateField({
         <Button
           type="button"
           variant="outline"
-          className={cn(triggerButtonClass, !value && "text-muted-foreground", className)}
+          className={cn(
+            triggerButtonClass,
+            !value && "text-muted-foreground",
+            className,
+          )}
         >
           {value ? formatCalendarDate(value, "long") : placeholder}
           <CalendarIcon className="ml-2 size-4 shrink-0 opacity-50" />

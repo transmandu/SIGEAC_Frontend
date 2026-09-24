@@ -1,5 +1,5 @@
 // Espejo de PlanificationAuditLog::REASONS del backend. Solo ERROR_CAPTURA
-// cuenta como error en la auditoría de ediciones de Planificación.
+// cuenta como error en la auditoría de Planificación.
 export const EDIT_REASONS = [
   "ERROR_CAPTURA",
   "DATO_FALTANTE",

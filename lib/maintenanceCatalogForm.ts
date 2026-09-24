@@ -38,7 +38,9 @@ export function toTaskFormData(task: CatalogTask): TaskFormData {
  * nueva. El `id` de cada requisito se descarta: la copia crea filas propias y
  * mandar el id del original haría que el backend intentara reutilizarlo.
  */
-export function toRevisionServiceFormData(service: CatalogService): RevisionServiceFormData {
+export function toRevisionServiceFormData(
+  service: CatalogService,
+): RevisionServiceFormData {
   return {
     source_service_id: service.id,
     category: service.category,
@@ -54,7 +56,10 @@ export function toRevisionServiceFormData(service: CatalogService): RevisionServ
     // del original haría que el backend intentara reutilizarlo.
     tasks: (service.tasks ?? []).map((task) => {
       const form = toTaskFormData(task);
-      return { ...form, requirements: form.requirements.map(({ id, ...req }) => req) };
+      return {
+        ...form,
+        requirements: form.requirements.map(({ id, ...req }) => req),
+      };
     }),
   };
 }

@@ -26,7 +26,11 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Select,
@@ -80,10 +84,10 @@ const manualWorkOrderSchema = z.object({
             z.object({
               part_number: z.string().min(1, "Número de parte requerido"),
               alternate_part_number: z.string().optional(),
-            })
+            }),
           )
           .optional(),
-      })
+      }),
     )
     .min(1, "Debe agregar al menos una tarea"),
 });
@@ -111,18 +115,31 @@ const NonServiceWorkOrderForm = () => {
   // Presentes cuando la orden se crea desde un ítem de Control de Mantenimiento
   // en estado crítico (ver [id]/page.tsx): al terminar, la OT se ata a ese
   // ítem y se vuelve a su página de control en vez de al listado general.
-  const maintenanceControlItemId = searchParams.get("maintenance_control_item_id") || undefined;
-  const maintenanceControlId = searchParams.get("maintenance_control_id") || undefined;
+  const maintenanceControlItemId =
+    searchParams.get("maintenance_control_item_id") || undefined;
+  const maintenanceControlId =
+    searchParams.get("maintenance_control_id") || undefined;
   // Mismo flujo desde un componente del Control de Componentes.
-  const componentControlItemId = searchParams.get("component_control_item_id") || undefined;
-  const componentControlId = searchParams.get("component_control_id") || undefined;
-  const avionicsControlTaskId = searchParams.get("avionics_control_task_id") || undefined;
-  const avionicsControlId = searchParams.get("avionics_control_id") || undefined;
-  const directiveControlItemId = searchParams.get("directive_control_item_id") || undefined;
-  const directiveControlId = searchParams.get("directive_control_id") || undefined;
-  const linkedControlItemId = maintenanceControlItemId ?? componentControlItemId ?? avionicsControlTaskId ?? directiveControlItemId;
+  const componentControlItemId =
+    searchParams.get("component_control_item_id") || undefined;
+  const componentControlId =
+    searchParams.get("component_control_id") || undefined;
+  const avionicsControlTaskId =
+    searchParams.get("avionics_control_task_id") || undefined;
+  const avionicsControlId =
+    searchParams.get("avionics_control_id") || undefined;
+  const directiveControlItemId =
+    searchParams.get("directive_control_item_id") || undefined;
+  const directiveControlId =
+    searchParams.get("directive_control_id") || undefined;
+  const linkedControlItemId =
+    maintenanceControlItemId ??
+    componentControlItemId ??
+    avionicsControlTaskId ??
+    directiveControlItemId;
   const prefillAircraftId = searchParams.get("aircraft_id") || undefined;
-  const prefillTaskDescription = searchParams.get("task_description") || undefined;
+  const prefillTaskDescription =
+    searchParams.get("task_description") || undefined;
 
   const [selectedAircraft, setSelectedAircraft] = useState<string>("");
   const [tasks, setTasks] = useState<TaskInProgress[]>([]);
@@ -163,7 +180,9 @@ const NonServiceWorkOrderForm = () => {
     if (prefillApplied.current || !aircrafts) return;
 
     if (prefillAircraftId) {
-      const aircraft = aircrafts.find((a) => a.id.toString() === prefillAircraftId);
+      const aircraft = aircrafts.find(
+        (a) => a.id.toString() === prefillAircraftId,
+      );
       if (aircraft) {
         form.setValue("aircraft_id", aircraft.id.toString());
         form.setValue("authorizing", aircraft.client.authorizing);
@@ -206,8 +225,14 @@ const NonServiceWorkOrderForm = () => {
   };
 
   // ✅ Actualiza por id (no por index)
-  const updateTask = (id: string, field: keyof TaskInProgress, value: string) => {
-    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, [field]: value } : t)));
+  const updateTask = (
+    id: string,
+    field: keyof TaskInProgress,
+    value: string,
+  ) => {
+    setTasks((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, [field]: value } : t)),
+    );
   };
 
   // El picker rellena varios campos a la vez (descripción/ata/manual de
@@ -215,7 +240,13 @@ const NonServiceWorkOrderForm = () => {
   // 4 renders/set encadenados por selección.
   const applyTaskFromCatalog = (
     id: string,
-    fields: { description_task: string; ata: string; origin_manual: string; maintenance_catalog_task_id: string; materialAppend?: string },
+    fields: {
+      description_task: string;
+      ata: string;
+      origin_manual: string;
+      maintenance_catalog_task_id: string;
+      materialAppend?: string;
+    },
   ) => {
     setTasks((prev) =>
       prev.map((t) =>
@@ -247,10 +278,13 @@ const NonServiceWorkOrderForm = () => {
         task.id === taskId
           ? {
               ...task,
-              task_items: [...task.task_items, { part_number: "", alternate_part_number: "" }],
+              task_items: [
+                ...task.task_items,
+                { part_number: "", alternate_part_number: "" },
+              ],
             }
-          : task
-      )
+          : task,
+      ),
     );
   };
 
@@ -258,7 +292,7 @@ const NonServiceWorkOrderForm = () => {
     taskId: string,
     itemIndex: number,
     field: keyof TaskItem,
-    value: string
+    value: string,
   ) => {
     setTasks((prev) =>
       prev.map((task) =>
@@ -266,11 +300,11 @@ const NonServiceWorkOrderForm = () => {
           ? {
               ...task,
               task_items: task.task_items.map((item, i) =>
-                i === itemIndex ? { ...item, [field]: value } : item
+                i === itemIndex ? { ...item, [field]: value } : item,
               ),
             }
-          : task
-      )
+          : task,
+      ),
     );
   };
 
@@ -278,9 +312,12 @@ const NonServiceWorkOrderForm = () => {
     setTasks((prev) =>
       prev.map((task) =>
         task.id === taskId
-          ? { ...task, task_items: task.task_items.filter((_, i) => i !== itemIndex) }
-          : task
-      )
+          ? {
+              ...task,
+              task_items: task.task_items.filter((_, i) => i !== itemIndex),
+            }
+          : task,
+      ),
     );
   };
 
@@ -291,7 +328,7 @@ const NonServiceWorkOrderForm = () => {
 
   const onSubmit = async (data: ManualWorkOrderFormValues) => {
     const selectedAircraftData = aircrafts?.find(
-      (aircraft) => aircraft.id.toString() === data.aircraft_id
+      (aircraft) => aircraft.id.toString() === data.aircraft_id,
     );
 
     const formattedData = {
@@ -311,7 +348,10 @@ const NonServiceWorkOrderForm = () => {
       })),
     };
 
-    console.log("🚀 [NonServiceWorkOrderForm] Datos enviados al backend:", formattedData);
+    console.log(
+      "🚀 [NonServiceWorkOrderForm] Datos enviados al backend:",
+      formattedData,
+    );
 
     const response = await createWorkOrder.mutateAsync({
       data: formattedData,
@@ -362,7 +402,7 @@ const NonServiceWorkOrderForm = () => {
             ? `/${selectedCompany!.slug}/planificacion/control_avionica/${avionicsControlId}`
             : directiveControlId
               ? `/${selectedCompany!.slug}/planificacion/control_directivas/${directiveControlId}`
-              : `/${selectedCompany!.slug}/planificacion/ordenes_trabajo`
+              : `/${selectedCompany!.slug}/planificacion/ordenes_trabajo`,
     );
   };
 
@@ -392,72 +432,85 @@ const NonServiceWorkOrderForm = () => {
                       // acá dejaría el vínculo apuntando a otra máquina, y el
                       // backend lo rechaza cuando la orden ya está creada.
                       <div className="flex h-10 items-center rounded-md border border-input bg-muted/40 px-3 text-sm">
-                        {aircrafts?.find((aircraft) => aircraft.id.toString() === field.value)?.acronym ?? (
+                        {aircrafts?.find(
+                          (aircraft) => aircraft.id.toString() === field.value,
+                        )?.acronym ?? (
                           <Loader2 className="size-4 animate-spin" />
                         )}
                       </div>
                     ) : (
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            disabled={isAircraftsLoading || isAircraftsError}
-                            variant="outline"
-                            role="combobox"
-                            className={cn(
-                              "justify-between",
-                              !field.value && "text-muted-foreground"
-                            )}
-                          >
-                            {isAircraftsLoading && (
-                              <Loader2 className="size-4 animate-spin mr-2" />
-                            )}
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              disabled={isAircraftsLoading || isAircraftsError}
+                              variant="outline"
+                              role="combobox"
+                              className={cn(
+                                "justify-between",
+                                !field.value && "text-muted-foreground",
+                              )}
+                            >
+                              {isAircraftsLoading && (
+                                <Loader2 className="size-4 animate-spin mr-2" />
+                              )}
 
-                            {field.value
-                              ? aircrafts?.find(
-                                  (aircraft) => `${aircraft.id.toString()}` === field.value
-                                )?.acronym
-                              : "Elige la aeronave..."}
+                              {field.value
+                                ? aircrafts?.find(
+                                    (aircraft) =>
+                                      `${aircraft.id.toString()}` ===
+                                      field.value,
+                                  )?.acronym
+                                : "Elige la aeronave..."}
 
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
+                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
 
-                      <PopoverContent className="p-0">
-                        <Command>
-                          <CommandInput placeholder="Busque una aeronave..." />
-                          <CommandList>
-                            <CommandEmpty className="text-xs p-2 text-center">
-                              No se ha encontrado ninguna aeronave.
-                            </CommandEmpty>
-                            <CommandGroup>
-                              {aircrafts?.map((aircraft) => (
-                                <CommandItem
-                                  value={`${aircraft.id}`}
-                                  key={aircraft.id}
-                                  onSelect={() => {
-                                    form.setValue("aircraft_id", aircraft.id.toString());
-                                    form.setValue("authorizing", aircraft.client.authorizing);
-                                    setSelectedAircraft(aircraft.manufacturer.id.toString());
-                                  }}
-                                >
-                                  <Check
-                                    className={cn(
-                                      "mr-2 h-4 w-4",
-                                      `${aircraft.id.toString()}` === field.value
-                                        ? "opacity-100"
-                                        : "opacity-0"
-                                    )}
-                                  />
-                                  <p>{aircraft.acronym}</p>
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                          </CommandList>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
+                        <PopoverContent className="p-0">
+                          <Command>
+                            <CommandInput placeholder="Busque una aeronave..." />
+                            <CommandList>
+                              <CommandEmpty className="text-xs p-2 text-center">
+                                No se ha encontrado ninguna aeronave.
+                              </CommandEmpty>
+                              <CommandGroup>
+                                {aircrafts?.map((aircraft) => (
+                                  <CommandItem
+                                    value={`${aircraft.id}`}
+                                    key={aircraft.id}
+                                    onSelect={() => {
+                                      form.setValue(
+                                        "aircraft_id",
+                                        aircraft.id.toString(),
+                                      );
+                                      form.setValue(
+                                        "authorizing",
+                                        aircraft.client.authorizing,
+                                      );
+                                      setSelectedAircraft(
+                                        aircraft.manufacturer.id.toString(),
+                                      );
+                                    }}
+                                  >
+                                    <Check
+                                      className={cn(
+                                        "mr-2 h-4 w-4",
+                                        `${aircraft.id.toString()}` ===
+                                          field.value
+                                          ? "opacity-100"
+                                          : "opacity-0",
+                                      )}
+                                    />
+                                    <p>{aircraft.acronym}</p>
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
                     )}
 
                     <FormDescription className="text-xs">
@@ -475,7 +528,8 @@ const NonServiceWorkOrderForm = () => {
                 name="authorizing"
                 render={({ field }) => {
                   const selected = aircrafts?.find(
-                    (aircraft) => aircraft.id.toString() === form.watch("aircraft_id")
+                    (aircraft) =>
+                      aircraft.id.toString() === form.watch("aircraft_id"),
                   );
 
                   return (
@@ -488,15 +542,22 @@ const NonServiceWorkOrderForm = () => {
                           value={`${selected.client.name} (${selected.client.authorizing})`}
                         />
                       ) : (
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Quién autoriza..." />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="PROPIETARIO">Propietario</SelectItem>
-                            <SelectItem value="EXPLOTADOR">Explotador</SelectItem>
+                            <SelectItem value="PROPIETARIO">
+                              Propietario
+                            </SelectItem>
+                            <SelectItem value="EXPLOTADOR">
+                              Explotador
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                       )}
@@ -526,7 +587,7 @@ const NonServiceWorkOrderForm = () => {
                             variant="outline"
                             className={cn(
                               "pl-3 text-left font-normal",
-                              !field.value && "text-muted-foreground"
+                              !field.value && "text-muted-foreground",
                             )}
                           >
                             {field.value ? (
@@ -550,7 +611,9 @@ const NonServiceWorkOrderForm = () => {
                       </PopoverContent>
                     </Popover>
 
-                    <FormDescription>Fecha de la orden de trabajo.</FormDescription>
+                    <FormDescription>
+                      Fecha de la orden de trabajo.
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -563,7 +626,11 @@ const NonServiceWorkOrderForm = () => {
                   <FormItem className="w-full col-span-2">
                     <FormLabel>Descripción</FormLabel>
                     <FormControl>
-                      <Textarea rows={3} {...field} placeholder="Describa la orden de trabajo..." />
+                      <Textarea
+                        rows={3}
+                        {...field}
+                        placeholder="Describa la orden de trabajo..."
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -586,7 +653,9 @@ const NonServiceWorkOrderForm = () => {
                         className="disabled:opacity-65"
                       />
                     </FormControl>
-                    <FormDescription>Quien elabora la orden de trabajo.</FormDescription>
+                    <FormDescription>
+                      Quien elabora la orden de trabajo.
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -606,7 +675,9 @@ const NonServiceWorkOrderForm = () => {
                         className="disabled:opacity-65"
                       />
                     </FormControl>
-                    <FormDescription>Quien revisa la orden de trabajo.</FormDescription>
+                    <FormDescription>
+                      Quien revisa la orden de trabajo.
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -619,22 +690,33 @@ const NonServiceWorkOrderForm = () => {
                   defaultValue={"Dir. de Mantenimiento y Planificación"}
                   className="disabled:opacity-65"
                 />
-                <p className="text-xs text-muted-foreground">Quien revisa la orden de trabajo.</p>
+                <p className="text-xs text-muted-foreground">
+                  Quien revisa la orden de trabajo.
+                </p>
               </div>
             </div>
           </div>
 
           {/* Selección de tareas */}
           <div className="space-y-4">
-            <h2 className="text-3xl font-semibold text-center">Registro de Items</h2>
+            <h2 className="text-3xl font-semibold text-center">
+              Registro de Items
+            </h2>
 
             <div className="flex flex-col gap-4">
-              <Button type="button" onClick={addEmptyTask} variant="outline" className="gap-2">
+              <Button
+                type="button"
+                onClick={addEmptyTask}
+                variant="outline"
+                className="gap-2"
+              >
                 <PlusCircle className="h-4 w-4" />
                 Agregar Item
               </Button>
 
-              <ScrollArea className={cn("flex", tasks.length > 1 ? "h-[550px]" : "")}>
+              <ScrollArea
+                className={cn("flex", tasks.length > 1 ? "h-[550px]" : "")}
+              >
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   {tasks.map((task) => (
                     <div key={task.id} className="p-4 border rounded-lg mb-2">
@@ -642,19 +724,28 @@ const NonServiceWorkOrderForm = () => {
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-2 w-full">
                           <div className="flex items-center justify-between md:col-span-3">
                             <span className="text-xs text-muted-foreground">
-                              {task.origin_manual ? `Origen: ${task.origin_manual}` : "Tarea manual"}
+                              {task.origin_manual
+                                ? `Origen: ${task.origin_manual}`
+                                : "Tarea manual"}
                             </span>
                             <CatalogServicePicker
                               aircraftId={form.watch("aircraft_id")}
                               onSelectTask={(catalogTask, service) => {
-                                const requirementsText = catalogTask.requirements
-                                  .map((r) => `${r.description}${r.part_number ? ` (${r.part_number})` : ""}`)
-                                  .join("\n");
+                                const requirementsText =
+                                  catalogTask.requirements
+                                    .map(
+                                      (r) =>
+                                        `${r.description}${r.part_number ? ` (${r.part_number})` : ""}`,
+                                    )
+                                    .join("\n");
                                 applyTaskFromCatalog(task.id, {
                                   description_task: catalogTask.description,
                                   ata: catalogTask.ata ?? "",
-                                  origin_manual: service.manual?.name ?? service.name,
-                                  maintenance_catalog_task_id: String(catalogTask.id),
+                                  origin_manual:
+                                    service.manual?.name ?? service.name,
+                                  maintenance_catalog_task_id: String(
+                                    catalogTask.id,
+                                  ),
                                   materialAppend: requirementsText || undefined,
                                 });
                               }}
@@ -666,7 +757,9 @@ const NonServiceWorkOrderForm = () => {
                             <FormLabel>Código ATA</FormLabel>
                             <Input
                               value={task.ata}
-                              onChange={(e) => updateTask(task.id, "ata", e.target.value)}
+                              onChange={(e) =>
+                                updateTask(task.id, "ata", e.target.value)
+                              }
                               placeholder="Ej: 25"
                             />
                             <FormMessage />
@@ -678,7 +771,11 @@ const NonServiceWorkOrderForm = () => {
                             <Textarea
                               value={task.description_task}
                               onChange={(e) =>
-                                updateTask(task.id, "description_task", e.target.value)
+                                updateTask(
+                                  task.id,
+                                  "description_task",
+                                  e.target.value,
+                                )
                               }
                               placeholder="Describa la tarea..."
                             />
@@ -690,7 +787,9 @@ const NonServiceWorkOrderForm = () => {
                             <FormLabel>Material</FormLabel>
                             <Textarea
                               value={task.material}
-                              onChange={(e) => updateTask(task.id, "material", e.target.value)}
+                              onChange={(e) =>
+                                updateTask(task.id, "material", e.target.value)
+                              }
                               placeholder="Materiales requeridos.."
                             />
                             <FormMessage />

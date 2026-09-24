@@ -9,11 +9,15 @@ import CreateAvionicsControlForm from "@/components/forms/mantenimiento/planific
 import { useGetAvionicsControl } from "@/hooks/mantenimiento/planificacion/useGetAvionicsControl";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { AlertTriangle } from "lucide-react";
+import { RetiredControlBanner } from "@/components/planificacion/controles/RetiredControlBanner";
 
 const EditAvionicsControlPage = () => {
   const { id } = useParams<{ id: string }>();
   const { selectedCompany } = useCompanyStore();
-  const { data, isLoading, isError } = useGetAvionicsControl(selectedCompany?.slug, id);
+  const { data, isLoading, isError } = useGetAvionicsControl(
+    selectedCompany?.slug,
+    id,
+  );
 
   return (
     <ContentLayout title="Editar Control de Aviónica">
@@ -23,8 +27,12 @@ const EditAvionicsControlPage = () => {
         <div className="flex flex-col gap-2 border-b pb-4">
           <div className="flex items-end justify-between">
             <div className="flex flex-col">
-              <h1 className="text-3xl font-semibold tracking-tight">Editar Control de Aviónica</h1>
-              <p className="text-sm text-muted-foreground">Modifique los datos y los equipos de este control.</p>
+              <h1 className="text-3xl font-semibold tracking-tight">
+                Editar Control de Aviónica
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                Modifique los datos y los equipos de este control.
+              </p>
             </div>
           </div>
         </div>
@@ -35,11 +43,23 @@ const EditAvionicsControlPage = () => {
           <Alert variant="destructive">
             <AlertTriangle className="h-4 w-4" />
             <AlertTitle>Error</AlertTitle>
-            <AlertDescription>No se pudo cargar el control de aviónica.</AlertDescription>
+            <AlertDescription>
+              No se pudo cargar el control de aviónica.
+            </AlertDescription>
           </Alert>
         )}
 
-        {data && <CreateAvionicsControlForm initialData={data} />}
+        {data?.retired_at && (
+          <RetiredControlBanner
+            control={data}
+            recordType="avionics_control"
+            noun="control de aviónica"
+          />
+        )}
+
+        {data && !data.retired_at && (
+          <CreateAvionicsControlForm initialData={data} />
+        )}
       </div>
     </ContentLayout>
   );

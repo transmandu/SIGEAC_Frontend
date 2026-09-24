@@ -1,3 +1,4 @@
+import type { ConfirmedReason } from "@/components/dialogs/mantenimiento/planificacion/ReasonConfirmDialog";
 import axiosInstance from "@/lib/axios";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -40,7 +41,10 @@ export const useCreateWorkOrder = () => {
       data: CreateWOData;
       company: string;
     }) => {
-      const { data: response } = await axiosInstance.post(`/${company}/work-orders`, data);
+      const { data: response } = await axiosInstance.post(
+        `/${company}/work-orders`,
+        data,
+      );
       return response;
     },
     onSuccess: () => {
@@ -71,11 +75,15 @@ export const useDeleteWorkOrder = () => {
     mutationFn: async ({
       id,
       company,
+      reason,
     }: {
       id: number | string;
       company: string;
+      reason: ConfirmedReason;
     }) => {
-      await axiosInstance.delete(`/${company}/work-orders/${id}`);
+      await axiosInstance.delete(`/${company}/work-orders/${id}`, {
+        data: reason,
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -83,13 +91,9 @@ export const useDeleteWorkOrder = () => {
         exact: false,
       });
       queryClient.invalidateQueries({ queryKey: ["work-order"], exact: false });
+      invalidatePlanificationAudit(queryClient);
       toast.success("¡Eliminado!", {
-        description: `¡La orden de trabajo ha sido eliminado correctamente!`,
-      });
-    },
-    onError: (e) => {
-      toast.error("Oops!", {
-        description: "¡Hubo un error al eliminar la orden de trabajo!",
+        description: `¡La orden de trabajo ha sido eliminada correctamente!`,
       });
     },
   });
@@ -205,24 +209,25 @@ export const useDeleteWorkOrderTask = () => {
     mutationFn: async ({
       id,
       company,
+      reason,
     }: {
       id: number | string;
       company: string;
+      reason: ConfirmedReason;
     }) => {
-      await axiosInstance.delete(`/${company}/work-order-tasks/${id}`);
+      await axiosInstance.delete(`/${company}/work-order-tasks/${id}`, {
+        data: reason,
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["work-orders"],
         exact: false,
       });
+      invalidatePlanificationAudit(queryClient);
       toast.success("¡Eliminada!", {
         description: "La tarea ha sido eliminada correctamente.",
       });
-    },
-    onError: (error) => {
-      toast.error("Oops!", { description: "No se pudo eliminar la tarea..." });
-      console.log(error);
     },
   });
 

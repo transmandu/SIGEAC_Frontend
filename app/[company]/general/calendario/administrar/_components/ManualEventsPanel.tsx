@@ -18,7 +18,12 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Accordion,
@@ -44,7 +49,8 @@ interface ManualEventsPanelProps {
 
 export function ManualEventsPanel({ company }: ManualEventsPanelProps) {
   const { data: events = [], isLoading } = useGetManualCalendarEvents(company);
-  const { data: allRules = [], isLoading: isLoadingRules } = useGetAllCalendarVisibilityRules(company);
+  const { data: allRules = [], isLoading: isLoadingRules } =
+    useGetAllCalendarVisibilityRules(company);
   const { deleteCalendarEvent } = useDeleteCalendarEvent();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<ManualCalendarEvent | undefined>();
@@ -81,24 +87,38 @@ export function ManualEventsPanel({ company }: ManualEventsPanelProps) {
       ) : events.length === 0 ? (
         <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-slate-400/40 py-10 text-center dark:border-slate-600/40">
           <CalendarX2 className="size-6 text-muted-foreground/60" />
-          <p className="text-sm text-muted-foreground">Sin eventos manuales todavía.</p>
+          <p className="text-sm text-muted-foreground">
+            Sin eventos manuales todavía.
+          </p>
         </div>
       ) : (
         <Accordion type="multiple" className="flex flex-col gap-2.5">
           {events.map((event) => (
-            <AccordionItem key={event.id} value={String(event.id)} className={ACCORDION_ITEM_CLASS}>
+            <AccordionItem
+              key={event.id}
+              value={String(event.id)}
+              className={ACCORDION_ITEM_CLASS}
+            >
               <div className="flex items-center gap-2 px-4">
                 <AccordionTrigger className="flex-1 py-3.5 text-sm font-semibold hover:no-underline [&[data-state=open]]:pb-2">
                   <div className="flex flex-col items-start gap-0.5 text-left">
                     <span className="flex items-center gap-2">
                       <span
                         className="size-2.5 shrink-0 rounded-full"
-                        style={{ backgroundColor: event.calendar_event_type?.color ?? "hsl(var(--muted-foreground))" }}
+                        style={{
+                          backgroundColor:
+                            event.calendar_event_type?.color ??
+                            "hsl(var(--muted-foreground))",
+                        }}
                       />
                       {event.title}
                     </span>
                     <span className="text-xs font-normal text-muted-foreground">
-                      {format(new Date(event.start_at), "d 'de' MMMM, yyyy — H:mm", { locale: es })}
+                      {format(
+                        new Date(event.start_at),
+                        "d 'de' MMMM, yyyy — H:mm",
+                        { locale: es },
+                      )}
                     </span>
                   </div>
                 </AccordionTrigger>
@@ -142,17 +162,25 @@ export function ManualEventsPanel({ company }: ManualEventsPanelProps) {
                       </Tooltip>
                       <AlertDialogContent>
                         <AlertDialogHeader>
-                          <AlertDialogTitle>¿Eliminar este evento?</AlertDialogTitle>
+                          <AlertDialogTitle>
+                            ¿Eliminar este evento?
+                          </AlertDialogTitle>
                           <AlertDialogDescription>
-                            Se eliminará &quot;{event.title}&quot; junto con sus reglas de visibilidad. Esta acción no
-                            se puede deshacer.
+                            Se eliminará &quot;{event.title}&quot; junto con sus
+                            reglas de visibilidad. Esta acción no se puede
+                            deshacer.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                           <AlertDialogCancel>Cancelar</AlertDialogCancel>
                           <AlertDialogAction
                             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                            onClick={() => deleteCalendarEvent.mutate({ id: event.id, company })}
+                            onClick={() =>
+                              deleteCalendarEvent.mutate({
+                                id: event.id,
+                                company,
+                              })
+                            }
                           >
                             Eliminar
                           </AlertDialogAction>
@@ -166,7 +194,9 @@ export function ManualEventsPanel({ company }: ManualEventsPanelProps) {
               {/* !pt-2: sin esto el halo de foco del primer Select queda
                   pegado al overflow-hidden del wrapper de Radix y se corta. */}
               <AccordionContent className="px-4 pb-4 !pt-2">
-                <p className="mb-2 text-xs font-medium text-muted-foreground">Quién lo ve</p>
+                <p className="mb-2 text-xs font-medium text-muted-foreground">
+                  Quién lo ve
+                </p>
                 {/* A diferencia de las fuentes de sistema, un evento manual
                     sin reglas lo ve todo el mundo — el editor lo dice solo. */}
                 <VisibilityRulesEditor
@@ -182,7 +212,12 @@ export function ManualEventsPanel({ company }: ManualEventsPanelProps) {
         </Accordion>
       )}
 
-      <ManualEventDialog open={dialogOpen} onOpenChange={setDialogOpen} company={company} event={editing} />
+      <ManualEventDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        company={company}
+        event={editing}
+      />
     </div>
   );
 }

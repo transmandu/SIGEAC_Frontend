@@ -1,6 +1,10 @@
-import axios from '@/lib/axios';
-import { CatalogCategory, CatalogService, CatalogStatus } from '@/types/maintenanceCatalog';
-import { useQuery } from '@tanstack/react-query';
+import axios from "@/lib/axios";
+import {
+  CatalogCategory,
+  CatalogService,
+  CatalogStatus,
+} from "@/types/maintenanceCatalog";
+import { useQuery } from "@tanstack/react-query";
 
 type Filters = {
   aircraftId?: number | string;
@@ -36,7 +40,10 @@ const fetchCatalogServices = async (
 
 // aircraftId es el filtro real del selector: sin aeronave, no tiene sentido
 // mostrar el catálogo completo de otras aeronaves.
-export const useGetCatalogServices = (company: string | undefined, filters: Filters = {}) => {
+export const useGetCatalogServices = (
+  company: string | undefined,
+  filters: Filters = {},
+) => {
   return useQuery<CatalogService[], Error>({
     queryKey: [
       "maintenance-catalog-services",

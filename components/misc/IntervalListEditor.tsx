@@ -5,12 +5,23 @@ import { Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { COUNTING_METHOD_LABELS } from "@/lib/maintenanceCatalogLabels";
-import { CatalogCountingMethod, CatalogInterval } from "@/types/maintenanceCatalog";
+import {
+  CatalogCountingMethod,
+  CatalogInterval,
+} from "@/types/maintenanceCatalog";
 import { cn } from "@/lib/utils";
 
-const ALL_COUNTING_METHODS = Object.keys(COUNTING_METHOD_LABELS) as CatalogCountingMethod[];
+const ALL_COUNTING_METHODS = Object.keys(
+  COUNTING_METHOD_LABELS,
+) as CatalogCountingMethod[];
 
 interface IntervalListEditorProps {
   intervals: CatalogInterval[];
@@ -37,7 +48,11 @@ export function IntervalListEditor({
   const canAdd = intervals.length < ALL_COUNTING_METHODS.length;
 
   const updateInterval = (index: number, patch: Partial<CatalogInterval>) => {
-    onChange(intervals.map((interval, i) => (i === index ? { ...interval, ...patch } : interval)));
+    onChange(
+      intervals.map((interval, i) =>
+        i === index ? { ...interval, ...patch } : interval,
+      ),
+    );
   };
 
   const removeInterval = (index: number) => {
@@ -45,16 +60,28 @@ export function IntervalListEditor({
   };
 
   const addInterval = () => {
-    const nextMethod = ALL_COUNTING_METHODS.find((m) => !usedMethods.includes(m));
+    const nextMethod = ALL_COUNTING_METHODS.find(
+      (m) => !usedMethods.includes(m),
+    );
     if (!nextMethod) return;
-    onChange([...intervals, { counting_method: nextMethod, interval_value: 0 }]);
+    onChange([
+      ...intervals,
+      { counting_method: nextMethod, interval_value: 0 },
+    ]);
   };
 
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
         <Label className={labelClass}>Intervalos de vencimiento</Label>
-        <Button type="button" variant="outline" size="sm" disabled={!canAdd} onClick={addInterval} className="gap-1.5">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          disabled={!canAdd}
+          onClick={addInterval}
+          className="gap-1.5"
+        >
           <Plus className="size-3.5" />
           Agregar intervalo
         </Button>
@@ -68,18 +95,28 @@ export function IntervalListEditor({
 
       {intervals.map((interval, index) => (
         <div key={index} className="flex items-center gap-2">
-          {index > 0 && <span className="shrink-0 text-xs italic text-muted-foreground">Ó</span>}
+          {index > 0 && (
+            <span className="shrink-0 text-xs italic text-muted-foreground">
+              Ó
+            </span>
+          )}
 
           <Select
             value={interval.counting_method}
-            onValueChange={(v) => updateInterval(index, { counting_method: v as CatalogCountingMethod })}
+            onValueChange={(v) =>
+              updateInterval(index, {
+                counting_method: v as CatalogCountingMethod,
+              })
+            }
           >
             <SelectTrigger className={cn(selectTriggerClass, "w-32 shrink-0")}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               {ALL_COUNTING_METHODS.filter(
-                (unit) => unit === interval.counting_method || !usedMethods.includes(unit),
+                (unit) =>
+                  unit === interval.counting_method ||
+                  !usedMethods.includes(unit),
               ).map((unit) => (
                 <SelectItem key={unit} value={unit}>
                   {COUNTING_METHOD_LABELS[unit]}
@@ -95,7 +132,9 @@ export function IntervalListEditor({
             required
             className={fieldClass}
             value={interval.interval_value}
-            onChange={(e) => updateInterval(index, { interval_value: Number(e.target.value) })}
+            onChange={(e) =>
+              updateInterval(index, { interval_value: Number(e.target.value) })
+            }
             placeholder="Ej: 100"
           />
 

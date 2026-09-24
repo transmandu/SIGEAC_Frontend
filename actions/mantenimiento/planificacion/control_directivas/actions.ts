@@ -1,5 +1,13 @@
+import type { ConfirmedReason } from "@/components/dialogs/mantenimiento/planificacion/ReasonConfirmDialog";
+import type { EditReasonValue } from "@/components/forms/mantenimiento/planificacion/EditReasonFields";
+import { invalidatePlanificationAudit } from "@/hooks/mantenimiento/planificacion/useGetPlanificationAuditStats";
 import axiosInstance from "@/lib/axios";
-import { DirectiveApplicability, DirectiveAuthority, DirectiveComplianceType, MaintenanceCountingMethod } from "@/types";
+import {
+  DirectiveApplicability,
+  DirectiveAuthority,
+  DirectiveComplianceType,
+  MaintenanceCountingMethod,
+} from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -50,15 +58,29 @@ export const useCreateDirectiveControl = () => {
   const queryClient = useQueryClient();
 
   const createMutation = useMutation({
-    mutationFn: async ({ data, company }: { data: CreateDirectiveControlData; company: string }) => {
+    mutationFn: async ({
+      data,
+      company,
+    }: {
+      data: CreateDirectiveControlData;
+      company: string;
+    }) => {
       await axiosInstance.post(`/${company}/directive-controls`, data);
     },
     onSuccess: () => {
+      invalidatePlanificationAudit(queryClient);
       queryClient.invalidateQueries({ queryKey: ["directive-controls"] });
-      toast.success("¡Creado!", { description: "El control de directivas ha sido registrado correctamente." });
+      toast.success("¡Creado!", {
+        description:
+          "El control de directivas ha sido registrado correctamente.",
+      });
     },
     onError: (error: any) => {
-      toast.error("Oops!", { description: firstBackendError(error) || "No se pudo registrar el control de directivas..." });
+      toast.error("Oops!", {
+        description:
+          firstBackendError(error) ||
+          "No se pudo registrar el control de directivas...",
+      });
       console.log(error);
     },
   });
@@ -70,16 +92,35 @@ export const useUpdateDirectiveControl = () => {
   const queryClient = useQueryClient();
 
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data, company }: { id: string | number; data: CreateDirectiveControlData; company: string }) => {
+    mutationFn: async ({
+      id,
+      data,
+      company,
+    }: {
+      id: string | number;
+      data: CreateDirectiveControlData & EditReasonValue;
+      company: string;
+    }) => {
       await axiosInstance.put(`/${company}/directive-controls/${id}`, data);
     },
     onSuccess: () => {
+      invalidatePlanificationAudit(queryClient);
       queryClient.invalidateQueries({ queryKey: ["directive-controls"] });
-      queryClient.invalidateQueries({ queryKey: ["directive-control"], exact: false });
-      toast.success("¡Actualizado!", { description: "El control de directivas ha sido actualizado correctamente." });
+      queryClient.invalidateQueries({
+        queryKey: ["directive-control"],
+        exact: false,
+      });
+      toast.success("¡Actualizado!", {
+        description:
+          "El control de directivas ha sido actualizado correctamente.",
+      });
     },
     onError: (error: any) => {
-      toast.error("Oops!", { description: firstBackendError(error) || "No se pudo actualizar el control de directivas..." });
+      toast.error("Oops!", {
+        description:
+          firstBackendError(error) ||
+          "No se pudo actualizar el control de directivas...",
+      });
       console.log(error);
     },
   });
@@ -91,15 +132,26 @@ export const useDeleteDirectiveControl = () => {
   const queryClient = useQueryClient();
 
   const deleteMutation = useMutation({
-    mutationFn: async ({ company, id }: { company: string | null; id: string | number }) => {
-      await axiosInstance.delete(`/${company}/directive-controls/${id}`);
+    mutationFn: async ({
+      company,
+      id,
+      reason,
+    }: {
+      company: string;
+      id: string | number;
+      reason: ConfirmedReason;
+    }) => {
+      await axiosInstance.delete(`/${company}/directive-controls/${id}`, {
+        data: reason,
+      });
     },
     onSuccess: () => {
+      invalidatePlanificationAudit(queryClient);
       queryClient.invalidateQueries({ queryKey: ["directive-controls"] });
-      toast.success("¡Eliminado!", { description: "El control de directivas ha sido eliminado correctamente." });
-    },
-    onError: () => {
-      toast.error("Oops!", { description: "¡Hubo un error al eliminar el control de directivas!" });
+      toast.success("¡Eliminado!", {
+        description:
+          "El control de directivas ha sido eliminado correctamente.",
+      });
     },
   });
 
@@ -110,18 +162,38 @@ export const useLinkDirectivePendingWorkOrder = () => {
   const queryClient = useQueryClient();
 
   const linkMutation = useMutation({
-    mutationFn: async ({ company, itemId, workOrderId }: { company: string; itemId: string | number; workOrderId: string | number }) => {
-      await axiosInstance.patch(`/${company}/directive-control-tasks/${itemId}/pending-work-order`, {
-        work_order_id: workOrderId,
-      });
+    mutationFn: async ({
+      company,
+      itemId,
+      workOrderId,
+    }: {
+      company: string;
+      itemId: string | number;
+      workOrderId: string | number;
+    }) => {
+      await axiosInstance.patch(
+        `/${company}/directive-control-items/${itemId}/pending-work-order`,
+        {
+          work_order_id: workOrderId,
+        },
+      );
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["directive-controls"], exact: false });
-      queryClient.invalidateQueries({ queryKey: ["directive-control"], exact: false });
+      invalidatePlanificationAudit(queryClient);
+      queryClient.invalidateQueries({
+        queryKey: ["directive-controls"],
+        exact: false,
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["directive-control"],
+        exact: false,
+      });
     },
     onError: (error: any) => {
       toast.error("Oops!", {
-        description: error?.response?.data?.message ?? "No se pudo asociar la Orden de Trabajo a la AD...",
+        description:
+          error?.response?.data?.message ??
+          "No se pudo asociar la Orden de Trabajo a la AD...",
       });
       console.log(error);
     },
@@ -145,17 +217,38 @@ export const useCreateDirectiveCompliance = () => {
   const queryClient = useQueryClient();
 
   const createMutation = useMutation({
-    mutationFn: async ({ data, company }: { data: CreateDirectiveComplianceData; company: string }) => {
+    mutationFn: async ({
+      data,
+      company,
+    }: {
+      data: CreateDirectiveComplianceData;
+      company: string;
+    }) => {
       await axiosInstance.post(`/${company}/directive-compliances`, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["directive-control"], exact: false });
-      queryClient.invalidateQueries({ queryKey: ["directive-controls"], exact: false });
-      queryClient.invalidateQueries({ queryKey: ["directive-compliances"], exact: false });
-      toast.success("¡Registrado!", { description: "El cumplimiento de la AD quedó registrado." });
+      invalidatePlanificationAudit(queryClient);
+      queryClient.invalidateQueries({
+        queryKey: ["directive-control"],
+        exact: false,
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["directive-controls"],
+        exact: false,
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["directive-compliances"],
+        exact: false,
+      });
+      toast.success("¡Registrado!", {
+        description: "El cumplimiento de la AD quedó registrado.",
+      });
     },
     onError: (error: any) => {
-      toast.error("Oops!", { description: firstBackendError(error) || "No se pudo registrar el cumplimiento..." });
+      toast.error("Oops!", {
+        description:
+          firstBackendError(error) || "No se pudo registrar el cumplimiento...",
+      });
       console.log(error);
     },
   });

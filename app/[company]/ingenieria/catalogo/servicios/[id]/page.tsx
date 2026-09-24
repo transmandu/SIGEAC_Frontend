@@ -32,9 +32,17 @@ import {
   STATUS_LABELS,
 } from "@/lib/maintenanceCatalogLabels";
 
-const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
+const Field = ({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) => (
   <div className="space-y-1">
-    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
+    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+      {label}
+    </p>
     <div className="text-sm">{children}</div>
   </div>
 );
@@ -46,7 +54,10 @@ const ServiceDetailPage = () => {
   const router = useRouter();
   const { user } = useAuth();
   const { selectedCompany } = useCompanyStore();
-  const { data: service, isLoading } = useGetCatalogService(selectedCompany?.slug, id);
+  const { data: service, isLoading } = useGetCatalogService(
+    selectedCompany?.slug,
+    id,
+  );
   const { deleteCatalogService } = useDeleteCatalogService();
   const [openEdit, setOpenEdit] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
@@ -65,26 +76,42 @@ const ServiceDetailPage = () => {
         <div className="flex flex-col gap-3 border-b pb-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2">
-              <Badge variant={service.category === "CERTIFICATE" ? "secondary" : "default"}>
+              <Badge
+                variant={
+                  service.category === "CERTIFICATE" ? "secondary" : "default"
+                }
+              >
                 {CATEGORY_LABELS[service.category]}
               </Badge>
-              <Badge variant={service.status === "ACTIVE" ? "default" : "secondary"}>
+              <Badge
+                variant={service.status === "ACTIVE" ? "default" : "secondary"}
+              >
                 {STATUS_LABELS[service.status]}
               </Badge>
-              <h1 className="text-3xl font-semibold tracking-tight">{service.name}</h1>
+              <h1 className="text-3xl font-semibold tracking-tight">
+                {service.name}
+              </h1>
             </div>
             <p className="text-sm text-muted-foreground">
-              {service.manual ? `Declarado en ${service.manual.name}` : "Sin manual de referencia declarado."}
+              {service.manual
+                ? `Declarado en ${service.manual.name}`
+                : "Sin manual de referencia declarado."}
             </p>
           </div>
 
           <div className="flex shrink-0 items-center gap-2">
-            <ActionTriggerButton type="button" onClick={() => setOpenEdit(true)}>
+            <ActionTriggerButton
+              type="button"
+              onClick={() => setOpenEdit(true)}
+            >
               <Pencil className="mr-2 size-4" />
               Editar
             </ActionTriggerButton>
             {isSuperUser && (
-              <ActionTriggerButton type="button" onClick={() => setOpenDelete(true)}>
+              <ActionTriggerButton
+                type="button"
+                onClick={() => setOpenDelete(true)}
+              >
                 <Trash2 className="mr-2 size-4" />
                 Eliminar
               </ActionTriggerButton>
@@ -107,17 +134,28 @@ const ServiceDetailPage = () => {
             <Field label="Intervalo">
               {service.intervals.length > 0 ? (
                 service.intervals
-                  .map((i) => `${i.interval_value} ${COUNTING_METHOD_LABELS[i.counting_method]}`)
+                  .map(
+                    (i) =>
+                      `${i.interval_value} ${COUNTING_METHOD_LABELS[i.counting_method]}`,
+                  )
                   .join(" Ó ")
               ) : (
                 <Empty />
               )}
             </Field>
-            <Field label="Tareas registradas">{service.tasks?.length ?? 0}</Field>
-            <Field label="Registrado por">{service.registered_by || <Empty />}</Field>
-            <Field label="Actualizado por">{service.updated_by || <Empty />}</Field>
+            <Field label="Tareas registradas">
+              {service.tasks?.length ?? 0}
+            </Field>
+            <Field label="Registrado por">
+              {service.registered_by || <Empty />}
+            </Field>
+            <Field label="Actualizado por">
+              {service.updated_by || <Empty />}
+            </Field>
             <div className="sm:col-span-2 lg:col-span-3">
-              <Field label="Descripción">{service.description || <Empty />}</Field>
+              <Field label="Descripción">
+                {service.description || <Empty />}
+              </Field>
             </div>
           </div>
         </FormSection>
@@ -136,23 +174,32 @@ const ServiceDetailPage = () => {
               ))}
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">No aplica a ninguna aeronave todavía.</p>
+            <p className="text-sm text-muted-foreground">
+              No aplica a ninguna aeronave todavía.
+            </p>
           )}
         </FormSection>
 
         <ServiceTaskList service={service} />
       </div>
 
-      <ServiceDialog open={openEdit} onOpenChange={setOpenEdit} service={service} />
+      <ServiceDialog
+        open={openEdit}
+        onOpenChange={setOpenEdit}
+        service={service}
+      />
 
       <AlertDialog open={openDelete} onOpenChange={setOpenDelete}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>¿Eliminar este servicio/certificado?</AlertDialogTitle>
+            <AlertDialogTitle>
+              ¿Eliminar este servicio/certificado?
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              Se eliminará &quot;{service.name}&quot; con sus tareas y requisitos. Si ya se usó en un Control de
-              Mantenimiento o una Orden de Trabajo, el sistema lo rechazará: en ese caso márquelo como superado.
-              Esta acción no se puede deshacer.
+              Se eliminará &quot;{service.name}&quot; con sus tareas y
+              requisitos. Si ya se usó en un Control de Mantenimiento o una
+              Orden de Trabajo, el sistema lo rechazará: en ese caso márquelo
+              como superado. Esta acción no se puede deshacer.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -164,8 +211,13 @@ const ServiceDetailPage = () => {
                 // La página que se está viendo deja de existir: se vuelve al
                 // listado, pero solo si el borrado pasó (puede dar 409).
                 try {
-                  await deleteCatalogService.mutateAsync({ id: service.id, company: selectedCompany.slug });
-                  router.push(`/${selectedCompany.slug}/ingenieria/catalogo/servicios`);
+                  await deleteCatalogService.mutateAsync({
+                    id: service.id,
+                    company: selectedCompany.slug,
+                  });
+                  router.push(
+                    `/${selectedCompany.slug}/ingenieria/catalogo/servicios`,
+                  );
                 } catch {
                   // El hook de la mutación ya notificó el fallo.
                 }

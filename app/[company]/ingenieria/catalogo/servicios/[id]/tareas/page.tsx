@@ -19,7 +19,10 @@ import { CATEGORY_LABELS } from "@/lib/maintenanceCatalogLabels";
 const ServiceTasksPage = () => {
   const { id } = useParams<{ id: string }>();
   const { selectedCompany } = useCompanyStore();
-  const { data: service, isLoading } = useGetCatalogService(selectedCompany?.slug, id);
+  const { data: service, isLoading } = useGetCatalogService(
+    selectedCompany?.slug,
+    id,
+  );
 
   if (isLoading || !service) return <LoadingPage />;
 
@@ -35,13 +38,20 @@ const ServiceTasksPage = () => {
 
         <div className="flex flex-col gap-2 border-b pb-4">
           <div className="flex items-center gap-2">
-            <Badge variant={service.category === "CERTIFICATE" ? "secondary" : "default"}>
+            <Badge
+              variant={
+                service.category === "CERTIFICATE" ? "secondary" : "default"
+              }
+            >
               {CATEGORY_LABELS[service.category]}
             </Badge>
-            <h1 className="text-3xl font-semibold tracking-tight">Tareas de {service.name}</h1>
+            <h1 className="text-3xl font-semibold tracking-tight">
+              Tareas de {service.name}
+            </h1>
           </div>
           <p className="text-sm text-muted-foreground">
-            Las tareas que se ejecutan cuando este servicio genera una orden de trabajo.
+            Las tareas que se ejecutan cuando este servicio genera una orden de
+            trabajo.
           </p>
         </div>
 

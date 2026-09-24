@@ -1,10 +1,10 @@
-import * as React from 'react';
-import { type RowData } from '@tanstack/react-table';
-import { type AppColumn } from '@/lib/table';
-import type { DateRange } from 'react-day-picker';
-import { format, parseISO } from 'date-fns';
-import { es } from 'date-fns/locale';
-import type { LucideIcon } from 'lucide-react';
+import * as React from "react";
+import { type RowData } from "@tanstack/react-table";
+import { type AppColumn } from "@/lib/table";
+import type { DateRange } from "react-day-picker";
+import { format, parseISO } from "date-fns";
+import { es } from "date-fns/locale";
+import type { LucideIcon } from "lucide-react";
 import {
   ArrowDownIcon,
   ArrowDownNarrowWide,
@@ -15,20 +15,24 @@ import {
   RotateCcw,
   Search,
   X,
-} from 'lucide-react';
+} from "lucide-react";
 
-import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
-import { Input } from '@/components/ui/input';
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { cn } from '@/lib/utils';
+} from "@/components/ui/dropdown-menu";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 
 /** Valor del filtro cuando `dateRangeFilter` está activo — ambos límites opcionales, inclusive. */
 export interface DateRangeFilterValue {
@@ -54,15 +58,17 @@ export function dateRangeFilterFn<TData>(
   return true;
 }
 
-type Align = 'left' | 'center' | 'right';
+type Align = "left" | "center" | "right";
 
 export interface FilterOption {
   value: string;
   label: string;
 }
 
-interface DataTableColumnHeaderProps<TData extends RowData, TValue>
-  extends React.HTMLAttributes<HTMLDivElement> {
+interface DataTableColumnHeaderProps<
+  TData extends RowData,
+  TValue,
+> extends React.HTMLAttributes<HTMLDivElement> {
   column: AppColumn<TData, TValue>;
   title: string;
   filter?: boolean;
@@ -89,11 +95,7 @@ interface DataTableColumnHeaderProps<TData extends RowData, TValue>
 }
 
 const normalize = (value: string) =>
-  value
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase()
-    .trim();
+  value.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
 
 export function DataTableColumnHeader<TData extends RowData, TValue>({
   column,
@@ -104,11 +106,12 @@ export function DataTableColumnHeader<TData extends RowData, TValue>({
   dateRangeFilter = false,
   title,
   icon: Icon,
-  align = 'center',
+  align = "center",
   className,
 }: DataTableColumnHeaderProps<TData, TValue>) {
-  const filterValue = (column.getFilterValue() as string) ?? '';
-  const dateRangeValue = (column.getFilterValue() as DateRangeFilterValue | undefined) ?? {};
+  const filterValue = (column.getFilterValue() as string) ?? "";
+  const dateRangeValue =
+    (column.getFilterValue() as DateRangeFilterValue | undefined) ?? {};
   const hasOptions = !!filterOptions?.length;
   // Con filter + filterOptions juntos, el mismo texto sirve para acotar la
   // tabla en vivo (filterFn de la columna) y para acotar la lista de
@@ -116,9 +119,12 @@ export function DataTableColumnHeader<TData extends RowData, TValue>({
   const isHybrid = filter && hasOptions;
   const sorted = column.getIsSorted();
   const hasActiveState =
-    !!sorted || filterValue.length > 0 || !!dateRangeValue.from || !!dateRangeValue.to;
+    !!sorted ||
+    filterValue.length > 0 ||
+    !!dateRangeValue.from ||
+    !!dateRangeValue.to;
 
-  const [optionSearchState, setOptionSearchState] = React.useState('');
+  const [optionSearchState, setOptionSearchState] = React.useState("");
   const optionSearch = isHybrid ? filterValue : optionSearchState;
   const setOptionSearch = isHybrid
     ? (value: string) => column.setFilterValue(value)
@@ -128,7 +134,9 @@ export function DataTableColumnHeader<TData extends RowData, TValue>({
     if (!filterOptions) return [];
     const term = normalize(optionSearch);
     if (!term) return filterOptions;
-    return filterOptions.filter((option) => normalize(option.label).includes(term));
+    return filterOptions.filter((option) =>
+      normalize(option.label).includes(term),
+    );
   }, [filterOptions, optionSearch]);
 
   const handleReset = () => {
@@ -137,11 +145,11 @@ export function DataTableColumnHeader<TData extends RowData, TValue>({
   };
 
   const justify =
-    align === 'left'
-      ? 'justify-start'
-      : align === 'right'
-        ? 'justify-end'
-        : 'justify-center';
+    align === "left"
+      ? "justify-start"
+      : align === "right"
+        ? "justify-end"
+        : "justify-center";
 
   const canSort = column.getCanSort();
 
@@ -151,7 +159,7 @@ export function DataTableColumnHeader<TData extends RowData, TValue>({
   // que sus vecinas y la fila de encabezados queda despareja.
   if (!canSort && !filter && !hasOptions && !dateRangeFilter) {
     return (
-      <div className={cn('flex items-center', justify, className)}>
+      <div className={cn("flex items-center", justify, className)}>
         <span className="flex h-8 items-center gap-2 px-2 text-sm font-medium">
           {Icon ? <Icon className="h-4 w-4 opacity-70" /> : null}
           <span className="truncate">{title}</span>
@@ -161,9 +169,9 @@ export function DataTableColumnHeader<TData extends RowData, TValue>({
   }
 
   const SortIcon =
-    sorted === 'desc'
+    sorted === "desc"
       ? ArrowDownIcon
-      : sorted === 'asc'
+      : sorted === "asc"
         ? ArrowUpIcon
         : ArrowDownNarrowWide;
 
@@ -173,8 +181,10 @@ export function DataTableColumnHeader<TData extends RowData, TValue>({
   const showTextInput = filter || (hasOptions && searchableOptions);
 
   return (
-    <div className={cn('flex items-center', justify, className)}>
-      <DropdownMenu onOpenChange={(open) => !open && !isHybrid && setOptionSearch('')}>
+    <div className={cn("flex items-center", justify, className)}>
+      <DropdownMenu
+        onOpenChange={(open) => !open && !isHybrid && setOptionSearch("")}
+      >
         <DropdownMenuTrigger asChild>
           <Button
             type="button"
@@ -204,7 +214,9 @@ export function DataTableColumnHeader<TData extends RowData, TValue>({
                   <Input
                     value={isHybrid ? optionSearch : filterValue}
                     onChange={(e) =>
-                      isHybrid ? setOptionSearch(e.target.value) : column.setFilterValue(e.target.value)
+                      isHybrid
+                        ? setOptionSearch(e.target.value)
+                        : column.setFilterValue(e.target.value)
                     }
                     placeholder={`Filtrar ${title.toLowerCase()}...`}
                     className="h-9 pl-8 pr-8"
@@ -218,7 +230,7 @@ export function DataTableColumnHeader<TData extends RowData, TValue>({
                       variant="ghost"
                       size="icon"
                       className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2"
-                      onClick={() => column.setFilterValue('')}
+                      onClick={() => column.setFilterValue("")}
                       aria-label="Limpiar filtro"
                     >
                       <X className="h-4 w-4 text-muted-foreground" />
@@ -227,7 +239,7 @@ export function DataTableColumnHeader<TData extends RowData, TValue>({
                 </div>
                 {!hasOptions ? (
                   <p className="mt-2 text-xs text-muted-foreground">
-                    {filterHint ?? 'Escribe para filtrar esta columna.'}
+                    {filterHint ?? "Escribe para filtrar esta columna."}
                   </p>
                 ) : null}
               </div>
@@ -250,8 +262,8 @@ export function DataTableColumnHeader<TData extends RowData, TValue>({
                       <CalendarIcon className="h-4 w-4 shrink-0 opacity-60" />
                       <span className="truncate">
                         {dateRangeValue.from || dateRangeValue.to
-                          ? `${dateRangeValue.from ? format(parseISO(dateRangeValue.from), 'dd/MM/yy') : '…'} — ${dateRangeValue.to ? format(parseISO(dateRangeValue.to), 'dd/MM/yy') : '…'}`
-                          : 'Elegir rango...'}
+                          ? `${dateRangeValue.from ? format(parseISO(dateRangeValue.from), "dd/MM/yy") : "…"} — ${dateRangeValue.to ? format(parseISO(dateRangeValue.to), "dd/MM/yy") : "…"}`
+                          : "Elegir rango..."}
                       </span>
                     </Button>
                   </PopoverTrigger>
@@ -263,7 +275,7 @@ export function DataTableColumnHeader<TData extends RowData, TValue>({
                     // elegir uno cuenta como clic fuera y cerraría el popover.
                     onInteractOutside={(event) => {
                       const target = event.target as HTMLElement | null;
-                      if (target?.closest('[data-radix-select-viewport]')) {
+                      if (target?.closest("[data-radix-select-viewport]")) {
                         event.preventDefault();
                       }
                     }}
@@ -272,15 +284,23 @@ export function DataTableColumnHeader<TData extends RowData, TValue>({
                       mode="range"
                       locale={es}
                       selected={{
-                        from: dateRangeValue.from ? parseISO(dateRangeValue.from) : undefined,
-                        to: dateRangeValue.to ? parseISO(dateRangeValue.to) : undefined,
+                        from: dateRangeValue.from
+                          ? parseISO(dateRangeValue.from)
+                          : undefined,
+                        to: dateRangeValue.to
+                          ? parseISO(dateRangeValue.to)
+                          : undefined,
                       }}
                       onSelect={(range: DateRange | undefined) =>
                         column.setFilterValue(
                           range
                             ? {
-                                from: range.from ? format(range.from, 'yyyy-MM-dd') : undefined,
-                                to: range.to ? format(range.to, 'yyyy-MM-dd') : undefined,
+                                from: range.from
+                                  ? format(range.from, "yyyy-MM-dd")
+                                  : undefined,
+                                to: range.to
+                                  ? format(range.to, "yyyy-MM-dd")
+                                  : undefined,
                               }
                             : undefined,
                         )
@@ -293,7 +313,7 @@ export function DataTableColumnHeader<TData extends RowData, TValue>({
                   </PopoverContent>
                 </Popover>
                 <p className="mt-2 text-xs text-muted-foreground">
-                  {filterHint ?? 'Deja un extremo sin elegir para no acotarlo.'}
+                  {filterHint ?? "Deja un extremo sin elegir para no acotarlo."}
                 </p>
               </div>
               <DropdownMenuSeparator />
@@ -305,14 +325,14 @@ export function DataTableColumnHeader<TData extends RowData, TValue>({
             <>
               <DropdownMenuItem onClick={() => column.toggleSorting(false)}>
                 <ArrowUpIcon className="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />
-                <span className={sorted === 'asc' ? 'font-bold' : undefined}>
+                <span className={sorted === "asc" ? "font-bold" : undefined}>
                   Ascendente
                 </span>
               </DropdownMenuItem>
 
               <DropdownMenuItem onClick={() => column.toggleSorting(true)}>
                 <ArrowDownIcon className="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />
-                <span className={sorted === 'desc' ? 'font-bold' : undefined}>
+                <span className={sorted === "desc" ? "font-bold" : undefined}>
                   Descendente
                 </span>
               </DropdownMenuItem>
@@ -330,7 +350,12 @@ export function DataTableColumnHeader<TData extends RowData, TValue>({
                   column.setFilterValue(undefined);
                 }}
               >
-                <span className={cn('flex-1', filterValue ? 'font-medium' : 'font-bold')}>
+                <span
+                  className={cn(
+                    "flex-1",
+                    filterValue ? "font-medium" : "font-bold",
+                  )}
+                >
                   Todas
                 </span>
                 {!filterValue ? <Check className="ml-2 h-3.5 w-3.5" /> : null}
@@ -347,8 +372,8 @@ export function DataTableColumnHeader<TData extends RowData, TValue>({
                   >
                     <span
                       className={cn(
-                        'flex-1',
-                        filterValue === option.value ? 'font-bold' : undefined,
+                        "flex-1",
+                        filterValue === option.value ? "font-bold" : undefined,
                       )}
                     >
                       {option.label}
