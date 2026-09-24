@@ -2,6 +2,9 @@ import axiosInstance from "@/lib/axios";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import type { EditReasonValue } from "@/components/forms/mantenimiento/planificacion/EditReasonFields";
+import { editReasonErrorFrom } from "@/components/forms/mantenimiento/planificacion/EditReasonFields";
+import { invalidatePlanificationAudit } from "@/hooks/mantenimiento/planificacion/useGetPlanificationAuditStats";
 
 interface event {
   title: string;
@@ -44,7 +47,10 @@ export const useCreateWorkOrder = () => {
         eventId: eventId,
       };
 
-      const { data: response } = await axiosInstance.post(`/${company}/work-orders`, payload);
+      const { data: response } = await axiosInstance.post(
+        `/${company}/work-orders`,
+        payload,
+      );
       return response;
     },
     onSuccess: () => {
@@ -104,7 +110,7 @@ export const useDeleteWorkOrder = () => {
 };
 
 // Edita la cabecera de la orden. Las tareas se editan una a una más abajo.
-interface UpdateWOData {
+interface UpdateWOData extends EditReasonValue {
   order_number?: string;
   description?: string;
   elaborated_by?: string;
@@ -129,25 +135,31 @@ export const useUpdateWorkOrder = () => {
       company: string;
     }) => {
       await axiosInstance.post(
-          `/${company}/work-orders/${id}`,
-          { ...data, _method: 'PUT' }, 
-          {
-              headers: {
-                  'Content-Type': 'multipart/form-data', 
-              },
-          }
+        `/${company}/work-orders/${id}`,
+        { ...data, _method: "PUT" },
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        },
       );
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["work-orders"], exact: false });
+      queryClient.invalidateQueries({
+        queryKey: ["work-orders"],
+        exact: false,
+      });
       queryClient.invalidateQueries({ queryKey: ["work-order"], exact: false });
+      invalidatePlanificationAudit(queryClient);
       toast.success("¡Actualizado!", {
         description: `La orden de trabajo ha sido actualizada correctamente.`,
       });
     },
     onError: (error) => {
       toast.error("Oops!", {
-        description: "No se pudo actualizar la orden de trabajo...",
+        description:
+          editReasonErrorFrom(error) ??
+          "No se pudo actualizar la orden de trabajo...",
       });
       console.log(error);
     },
@@ -156,7 +168,7 @@ export const useUpdateWorkOrder = () => {
   return { updateWorkOrder: updateMutation };
 };
 
-interface UpdateWOTaskData {
+interface UpdateWOTaskData extends EditReasonValue {
   description_task?: string;
   ata?: string;
   material?: string | null;
@@ -178,10 +190,17 @@ export const useUpdateWorkOrderTask = () => {
       await axiosInstance.put(`/${company}/update-work-order-task/${id}`, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["work-orders"], exact: false });
+      queryClient.invalidateQueries({
+        queryKey: ["work-orders"],
+        exact: false,
+      });
+      invalidatePlanificationAudit(queryClient);
     },
     onError: (error) => {
-      toast.error("Oops!", { description: "No se pudo actualizar la tarea..." });
+      toast.error("Oops!", {
+        description:
+          editReasonErrorFrom(error) ?? "No se pudo actualizar la tarea...",
+      });
       console.log(error);
     },
   });
@@ -203,7 +222,10 @@ export const useDeleteWorkOrderTask = () => {
       await axiosInstance.delete(`/${company}/work-order-tasks/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["work-orders"], exact: false });
+      queryClient.invalidateQueries({
+        queryKey: ["work-orders"],
+        exact: false,
+      });
       toast.success("¡Eliminada!", {
         description: "La tarea ha sido eliminada correctamente.",
       });
@@ -244,11 +266,14 @@ export const useAddWorkOrderTask = () => {
           task_items: data.task_items ?? [],
           task_number: "N/A",
           origin_manual: null,
-        }
+        },
       );
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["work-orders"], exact: false });
+      queryClient.invalidateQueries({
+        queryKey: ["work-orders"],
+        exact: false,
+      });
     },
     onError: (error) => {
       toast.error("Oops!", { description: "No se pudo agregar la tarea..." });
@@ -258,7 +283,6 @@ export const useAddWorkOrderTask = () => {
 
   return { addWorkOrderTask: addTaskMutation };
 };
-
 
 export const useCloseWorkOrder = () => {
   const queryClient = useQueryClient();
@@ -277,7 +301,10 @@ export const useCloseWorkOrder = () => {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["work-orders"], exact: false });
+      queryClient.invalidateQueries({
+        queryKey: ["work-orders"],
+        exact: false,
+      });
       queryClient.invalidateQueries({ queryKey: ["work-order"], exact: false });
       toast.success("¡Orden cerrada!", {
         description: "La orden de trabajo ha sido cerrada correctamente.",
