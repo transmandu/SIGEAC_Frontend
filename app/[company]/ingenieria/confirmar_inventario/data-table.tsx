@@ -40,13 +40,15 @@ export function DataTable<TData extends RowData>({
   // ============================================
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = useState<ColumnVisibilityState>({});
+  const [columnVisibility, setColumnVisibility] =
+    useState<ColumnVisibilityState>({});
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
 
   // `getRowId` usa el id del artículo, así que las claves de la selección ya son
   // los ids; se filtran contra `data` para no arrastrar filas de otra categoría.
   const handleRowSelectionChange = (updater: Updater<RowSelectionState>) => {
-    const next = typeof updater === "function" ? updater(rowSelection) : updater;
+    const next =
+      typeof updater === "function" ? updater(rowSelection) : updater;
     setRowSelection(next);
 
     if (!onSelectionChange) return;
@@ -68,7 +70,8 @@ export function DataTable<TData extends RowData>({
     features: appTableFeatures,
     data,
     columns,
-    getRowId: (row, index) => String((row as { id?: number | string }).id ?? index),
+    getRowId: (row, index) =>
+      String((row as { id?: number | string }).id ?? index),
     enableRowSelection: true,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -106,7 +109,7 @@ export function DataTable<TData extends RowData>({
                       ? null
                       : flexRender(
                           header.column.columnDef.header,
-                          header.getContext()
+                          header.getContext(),
                         )}
                   </TableHead>
                 ))}
@@ -124,7 +127,7 @@ export function DataTable<TData extends RowData>({
                     <TableCell key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}

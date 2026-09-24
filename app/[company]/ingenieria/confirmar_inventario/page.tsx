@@ -13,7 +13,15 @@ import {
 } from "@/components/ui/tooltip";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { TooltipArrow } from "@radix-ui/react-tooltip";
-import { Drill, Loader2, Package2, PaintBucket, Puzzle, Wrench, X } from "lucide-react";
+import {
+  Drill,
+  Loader2,
+  Package2,
+  PaintBucket,
+  Puzzle,
+  Wrench,
+  X,
+} from "lucide-react";
 import { useMemo, useState } from "react";
 import { FaFilePdf } from "react-icons/fa";
 import { RiFileExcel2Fill } from "react-icons/ri";
@@ -104,7 +112,10 @@ const InventarioArticulosPage = () => {
         )
       : list;
 
-    if ((activeCategory === "COMPONENT" || activeCategory === "PART") && componentCondition !== "all") {
+    if (
+      (activeCategory === "COMPONENT" || activeCategory === "PART") &&
+      componentCondition !== "all"
+    ) {
       return bySearch.filter((a) => a.condition === componentCondition);
     }
 
@@ -179,7 +190,8 @@ const InventarioArticulosPage = () => {
 
             {/* Sub-tabs por categoría */}
             <TabsContent value={activeCategory} className="mt-6">
-              {(activeCategory === "COMPONENT" || activeCategory === "PART") && (
+              {(activeCategory === "COMPONENT" ||
+                activeCategory === "PART") && (
                 <Tabs
                   value={componentCondition}
                   onValueChange={(v) =>
