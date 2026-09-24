@@ -15,12 +15,18 @@ export interface PieLegendRow {
   color: string;
 }
 
+export interface StatsRow {
+  label: string;
+  value: number;
+}
+
 export interface PdfStatisticsChart {
   id: string;
   label: string;
   image: string;
   imageSize: { width: number; height: number };
   stats?: GeneralStats;
+  statsRows?: StatsRow[];
   legend?: PieLegendRow[];
 }
 
@@ -139,14 +145,23 @@ const styles = StyleSheet.create({
 });
 
 const percent = (value: number, total: number) =>
-  total > 0 ? ((value / total) * 100).toFixed(1) : "0.0";
+  total > 0 ? ((value / total) * 100).toFixed(2) : "0.00";
 
-const StatsTable = ({ stats }: { stats: GeneralStats }) => {
-  const rows = [
-    { label: "Identificados", value: stats.open },
-    { label: "Gestionados", value: stats.closed },
-    { label: "Total", value: stats.total },
-  ];
+const StatsTable = ({
+  stats,
+  rows,
+}: {
+  stats: GeneralStats;
+  rows?: StatsRow[];
+}) => {
+  const data =
+    rows && rows.length > 0
+      ? rows
+      : [
+          { label: "Identificados", value: stats.open },
+          { label: "Gestionados", value: stats.closed },
+          { label: "Total", value: stats.total },
+        ];
   return (
     <View style={styles.table}>
       <View
@@ -159,7 +174,7 @@ const StatsTable = ({ stats }: { stats: GeneralStats }) => {
         <Text style={[styles.colNum, styles.th, styles.num]}>Total</Text>
         <Text style={[styles.colPct, styles.th, styles.num]}>%</Text>
       </View>
-      {rows.map((row) => (
+      {data.map((row) => (
         <View key={row.label} style={styles.tr}>
           <Text style={[styles.colConcept, styles.td]}>{row.label}</Text>
           <Text style={[styles.colNum, styles.td, styles.num]}>
@@ -258,7 +273,9 @@ const StatisticsReportPdf = ({
               src={chart.image}
               style={[styles.chartImage, { height: imageHeight }]}
             />
-            {chart.stats && <StatsTable stats={chart.stats} />}
+            {chart.stats && (
+              <StatsTable stats={chart.stats} rows={chart.statsRows} />
+            )}
             {chart.legend && <LegendTable rows={chart.legend} />}
 
             <View style={styles.footer} fixed>

@@ -21,6 +21,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { useGetCourseStats } from "@/hooks/curso/useGetCourseStats";
 import { useGetTotalDangerIdentificationsCountedByType } from "@/hooks/sms/useGetTotalDangerIdentificationsCountedByType";
 import { useGetTotalIdentificationStatsBySourceName } from "@/hooks/sms/useGetTotalIdentificationStatsBySoruceName";
 import { useGetTotalIdentificationStatsBySourceType } from "@/hooks/sms/useGetTotalIdentificationStatsBySoruceType";
@@ -58,6 +59,13 @@ const FIXED_STATISTICS: { id: string; label: string }[] = [
   },
   { id: "source-type", label: "Reportes vs Tipo de Fuente" },
   { id: "source-name", label: "Reportes vs Nombre de Fuente" },
+];
+
+const OPTIONAL_STATISTICS: { id: string; label: string }[] = [
+  {
+    id: "cursos",
+    label: "Estadísticas de Cursos (Planificados vs Ejecutados)",
+  },
 ];
 
 const CAPTURE_WIDTH = 640;
@@ -108,14 +116,17 @@ const downloadBlob = (blob: Blob, fileName: string) => {
 
 interface SMSStatisticsPdfExportProps {
   companySlug: string;
+  locationId: string;
 }
 
 export default function SMSStatisticsPdfExport({
   companySlug,
+  locationId,
 }: SMSStatisticsPdfExportProps) {
   const [range, setRange] = useState(defaultRange);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [selectedOptionals, setSelectedOptionals] = useState<string[]>([]);
   const previewRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const {
@@ -172,6 +183,12 @@ export default function SMSStatisticsPdfExport({
     companySlug,
   );
 
+  const {
+    data: courseStatsData,
+    isLoading: isLoadingCourseStats,
+    isError: isErrorCourseStats,
+  } = useGetCourseStats(range.from, range.to, locationId, companySlug);
+
   const generalStatsEmpty = (data?: GeneralStats) =>
     !!data && !data.open && !data.closed;
   const arrayEmpty = (data?: pieChartData[]) => !data || data.length === 0;
@@ -197,6 +214,31 @@ export default function SMSStatisticsPdfExport({
           },
         ]
       : [];
+
+  // Conteos reales (enteros) para la tabla del PDF
+  const identificationCountsData =
+    barChartData && (barChartData.open || barChartData.closed)
+      ? [
+          { name: "Identificados", value: barChartData.open },
+          { name: "Gestionados", value: barChartData.closed },
+        ]
+      : [];
+
+  const coursesSelected = selectedOptionals.includes("cursos");
+
+  const coursePieData =
+    courseStatsData && (courseStatsData.open || courseStatsData.closed)
+      ? [
+          { name: "Planificados", value: courseStatsData.open },
+          { name: "Ejecutados", value: courseStatsData.closed },
+        ]
+      : [];
+
+  const toggleOptional = (id: string) => {
+    setSelectedOptionals((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
+    );
+  };
 
   const cards: ChartCardConfig[] = [
     {
@@ -355,8 +397,12 @@ export default function SMSStatisticsPdfExport({
     cards.map((card) => [card.id, card]),
   ) as Record<string, ChartCardConfig>;
 
-  const anyLoading = cards.some((card) => card.isLoading);
-  const anyError = cards.some((card) => card.isError);
+  const anyLoading =
+    cards.some((card) => card.isLoading) ||
+    (coursesSelected && isLoadingCourseStats);
+  const anyError =
+    cards.some((card) => card.isError) ||
+    (coursesSelected && isErrorCourseStats);
   const canOpen = !anyLoading && !anyError && !isGenerating;
   const canDownload = !anyLoading && !anyError && !isGenerating;
 
@@ -383,7 +429,7 @@ export default function SMSStatisticsPdfExport({
         let legend: PieLegendRow[] | undefined;
         if (PIE_STAT_IDS.has(stat.id)) {
           if (stat.id === "bar-chart-pie") {
-            legend = toPieLegend(identificationPieData);
+            legend = toPieLegend(identificationCountsData);
           } else if (stat.id === "pre-risk-pie") {
             legend = toPieLegend(totalRiskData);
           } else if (stat.id === "post-risk-pie") {
@@ -399,6 +445,41 @@ export default function SMSStatisticsPdfExport({
           legend,
         });
       }
+      if (coursesSelected) {
+        const courseBarElement = previewRefs.current["cursos-bar"];
+        if (courseBarElement && courseStatsData) {
+          const captured = await captureElementAsPng(courseBarElement);
+          charts.push({
+            id: "cursos-bar",
+            label: "Planificados vs Ejecutados (Cursos)",
+            image: captured.dataUrl,
+            imageSize: { width: captured.width, height: captured.height },
+            stats: courseStatsData,
+            statsRows: [
+              { label: "Planificados", value: courseStatsData.open },
+              { label: "Ejecutados", value: courseStatsData.closed },
+              { label: "Total", value: courseStatsData.total },
+            ],
+          });
+        }
+        if (coursePieData.length > 0) {
+          const coursePieElement = previewRefs.current["cursos-pie"];
+          if (coursePieElement) {
+            const captured = await captureElementAsPng(coursePieElement);
+            charts.push({
+              id: "cursos-pie",
+              label: "Porcentaje cursos planificados y ejecutados",
+              image: captured.dataUrl,
+              imageSize: {
+                width: captured.width,
+                height: captured.height,
+              },
+              legend: toPieLegend(coursePieData),
+            });
+          }
+        }
+      }
+
       if (charts.length === 0) return;
 
       const blob = await pdf(
@@ -450,7 +531,8 @@ export default function SMSStatisticsPdfExport({
             </h2>
             <p className="text-xs text-muted-foreground mt-0.5">
               Incluye las {FIXED_STATISTICS.length} estadísticas del módulo en
-              un único PDF para el periodo {periodText}.
+              un único PDF para el periodo {periodText}. Podés agregar
+              estadísticas opcionales al final desde el diálogo.
             </p>
           </div>
         </div>
@@ -514,12 +596,26 @@ export default function SMSStatisticsPdfExport({
               <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 Otras estadísticas (opcional)
               </span>
-              <div className="border border-dashed border-border/40 rounded-lg px-3 py-4 text-center">
-                <p className="text-xs text-muted-foreground">
-                  Aún no hay estadísticas opcionales para agregar. Se incluirá
-                  automáticamente todo el reporte.
-                </p>
+              <div className="border border-border/40 rounded-lg divide-y divide-border/30">
+                {OPTIONAL_STATISTICS.map((stat) => (
+                  <div
+                    key={stat.id}
+                    className="flex items-center gap-3 px-3 py-2.5"
+                  >
+                    <Checkbox
+                      checked={selectedOptionals.includes(stat.id)}
+                      onCheckedChange={() => toggleOptional(stat.id)}
+                      disabled={isGenerating}
+                      aria-label={stat.label}
+                    />
+                    <span className="text-sm">{stat.label}</span>
+                  </div>
+                ))}
               </div>
+              <p className="text-xs text-muted-foreground px-1">
+                Al seleccionar una estadística opcional, las páginas respectivas
+                se agregan al final del PDF.
+              </p>
             </section>
           </div>
 
@@ -579,6 +675,57 @@ export default function SMSStatisticsPdfExport({
               </div>
             );
           })}
+
+          {coursesSelected && (
+            <>
+              <div
+                ref={(element) => {
+                  previewRefs.current["cursos-bar"] = element;
+                }}
+                className="bg-white"
+              >
+                {!isLoadingCourseStats &&
+                !isErrorCourseStats &&
+                courseStatsData ? (
+                  <BarChartComponent
+                    data={courseStatsData}
+                    title="Planificados vs Ejecutados"
+                    bar_first_name="Planificados"
+                    bar_second_name="Ejecutados"
+                    showValueLabels
+                    forceLight
+                  />
+                ) : (
+                  <div className="h-[280px] flex items-center justify-center">
+                    <p className="text-sm text-slate-500">
+                      {isErrorCourseStats
+                        ? "No se pudieron cargar los datos."
+                        : "No hay datos para mostrar."}
+                    </p>
+                  </div>
+                )}
+              </div>
+              <div
+                ref={(element) => {
+                  previewRefs.current["cursos-pie"] = element;
+                }}
+                className="bg-white"
+              >
+                {coursePieData.length > 0 ? (
+                  <PieChartComponent
+                    data={coursePieData}
+                    title="Porcentaje cursos planificados y ejecutados"
+                  />
+                ) : (
+                  <div className="h-[280px] flex items-center justify-center">
+                    <p className="text-sm text-slate-500">
+                      No hay datos para mostrar.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>

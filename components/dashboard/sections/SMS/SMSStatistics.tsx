@@ -1,6 +1,7 @@
 "use client";
 
 import BarChartComponent from "@/components/charts/BarChartComponent";
+import OverlappingBarChartComponent from "@/components/charts/OverlappingBarChartComponent";
 import { PieChartComponent } from "@/components/charts/PieChartComponent";
 import { Message } from "@/components/misc/Message";
 import { useGetCourseStats } from "@/hooks/curso/useGetCourseStats";
@@ -100,7 +101,7 @@ export default function SMSStatistics({
     !courseBarChartData?.open && !courseBarChartData?.closed
       ? []
       : [
-          { name: "Pendientes", value: courseBarChartData?.open ?? 0 },
+          { name: "Planificados", value: courseBarChartData?.open ?? 0 },
           { name: "Ejecutados", value: courseBarChartData?.closed ?? 0 },
         ];
 
@@ -153,7 +154,7 @@ export default function SMSStatistics({
               />
             ) : (
               courseBarChartData && (
-                <BarChartComponent
+                <OverlappingBarChartComponent
                   data={courseBarChartData}
                   bar_first_name="Planificados"
                   bar_second_name="Ejecutados"

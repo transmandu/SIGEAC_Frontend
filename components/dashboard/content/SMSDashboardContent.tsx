@@ -61,9 +61,8 @@ export default function SMSDashboardContent({
 
   // El tab activo se deriva de la URL (mantiene la posición al refrescar/navegar)
   const tabSlug = searchParams.get("tab");
-  const activeTab: TabValue = tabSlug && tabSlug in SLUG_TO_TAB
-    ? SLUG_TO_TAB[tabSlug]
-    : "DASHBOARD";
+  const activeTab: TabValue =
+    tabSlug && tabSlug in SLUG_TO_TAB ? SLUG_TO_TAB[tabSlug] : "DASHBOARD";
 
   const handleTabChange = (value: string) => {
     const tab: TabValue = isValidTab(value) ? value : "DASHBOARD";
@@ -162,7 +161,10 @@ export default function SMSDashboardContent({
           </TabsContent>
 
           <TabsContent value="STATISTICS_EXPORT">
-            <SMSStatisticsPdfExport companySlug={companySlug} />
+            <SMSStatisticsPdfExport
+              companySlug={companySlug}
+              locationId={location_id}
+            />
           </TabsContent>
         </div>
       </Tabs>
