@@ -1209,6 +1209,8 @@ export type GeneralStats = {
   total: number;
   open: number;
   closed: number;
+  open_percentage?: number;
+  closed_percentage?: number;
 };
 
 export type pieChartData = {

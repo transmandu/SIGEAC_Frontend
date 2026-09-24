@@ -9,10 +9,12 @@ import {
   TrendingUp,
   ShieldCheck,
   FileText,
+  FileDown,
 } from "lucide-react";
 
 import SMSDashboardSummary from "@/components/dashboard/sections/SMS/SMSDashboardSummary";
 import SMSStatistics from "@/components/dashboard/sections/SMS/SMSStatistics";
+import SMSStatisticsPdfExport from "@/components/dashboard/sections/SMS/SMSStatisticsPdfExport";
 import SMSReportIndicator from "@/components/dashboard/sections/SMS/SMSReportIndicator";
 
 interface SMSDashboardContentProps {
@@ -31,12 +33,9 @@ export default function SMSDashboardContent({
   return (
     <main className="max-w-7xl mt-6 mx-auto px-4">
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-
         {/* ===================== TABS (BASE UNIFICADA) ===================== */}
         <TabsList className="w-full flex justify-center mb-6 p-2 rounded-2xl bg-slate-200/50 dark:bg-slate-800/60 backdrop-blur-md border border-slate-200/40 dark:border-slate-800/60">
-
-          <div className="flex w-full max-w-md gap-2">
-
+          <div className="flex w-full max-w-xl gap-2">
             {/* DASHBOARD */}
             <TabsTrigger
               value="DASHBOARD"
@@ -82,13 +81,25 @@ export default function SMSDashboardContent({
               Estadísticas
             </TabsTrigger>
 
+            {/* STATISTICS PDF EXPORT */}
+            <TabsTrigger
+              value="STATISTICS_EXPORT"
+              className="flex-1 flex items-center justify-center gap-2 text-xs h-7 px-3 rounded-xl transition-all duration-200 whitespace-nowrap
+              text-slate-500 dark:text-slate-400
+              hover:text-indigo-600 dark:hover:text-indigo-400
+              data-[state=active]:bg-white/80 dark:data-[state=active]:bg-slate-900/50
+              data-[state=active]:text-indigo-600 dark:data-[state=active]:text-indigo-400
+              data-[state=active]:shadow-[0_0_18px_rgba(79,70,229,0.25)]
+              data-[state=active]:ring-1 data-[state=active]:ring-indigo-300/50"
+            >
+              <FileDown className="w-3.5 h-3.5 shrink-0" />
+              Reporte PDF
+            </TabsTrigger>
           </div>
-
         </TabsList>
 
         {/* ===================== CONTENT ===================== */}
         <div className="mt-8">
-
           <TabsContent value="DASHBOARD">
             <SMSDashboardSummary companySlug={companySlug} />
           </TabsContent>
@@ -98,14 +109,13 @@ export default function SMSDashboardContent({
           </TabsContent>
 
           <TabsContent value="STATISTICS">
-            <SMSStatistics
-              companySlug={companySlug}
-              location={location_id}
-            />
+            <SMSStatistics companySlug={companySlug} location={location_id} />
           </TabsContent>
 
+          <TabsContent value="STATISTICS_EXPORT">
+            <SMSStatisticsPdfExport companySlug={companySlug} />
+          </TabsContent>
         </div>
-
       </Tabs>
     </main>
   );
