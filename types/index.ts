@@ -1265,6 +1265,7 @@ export type SMSActivity = {
   status: string;
   categories: ActivityCategory[];
   is_pre?: boolean;
+  library_folder_paths?: string[];
   library_document_id?: number | null;
 };
 
@@ -1396,6 +1397,7 @@ export type MeetingMinutes = {
   agreements?: MeetingAgreement[];
   attendees?: Attendace[];
   is_comite?: boolean;
+  library_folder_paths?: string[];
   library_document_id?: number | null;
 };
 

@@ -283,7 +283,7 @@ export function CreateMeetingMinuteForm({
           is_authorized: !!a.responsible_authorized_employee_id,
         })) ?? [],
       is_comite: Boolean(initialData?.is_comite),
-      library_folder_paths: [],
+      library_folder_paths: initialData?.library_folder_paths ?? [],
     },
   });
 
@@ -307,8 +307,6 @@ export function CreateMeetingMinuteForm({
 
   const isPending =
     createMeetingMinute.isPending || updateMeetingMinute.isPending;
-
-  const isComite = form.watch("is_comite");
 
   const onSubmit = async (data: FormSchemaType) => {
     if (!companySlug || !selectedStation) return;
@@ -908,9 +906,7 @@ export function CreateMeetingMinuteForm({
             {/* Carpeta en la Librería */}
             <div className="space-y-3 rounded-lg border border-border/60 p-3">
               <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                {isComite
-                  ? "Carpetas en la Librería (réplica)"
-                  : "Carpeta en la Librería"}
+                Carpetas en la Librería
               </p>
 
               <FormField
@@ -926,7 +922,6 @@ export function CreateMeetingMinuteForm({
                         company={companySlug}
                         value={field.value ?? []}
                         onChange={field.onChange}
-                        single={!isComite}
                       />
                     </FormControl>
                     <FormMessage className="text-xs" />
@@ -935,9 +930,9 @@ export function CreateMeetingMinuteForm({
               />
 
               <p className="text-xs text-muted-foreground">
-                {isComite
-                  ? "El documento adjunto se subirá una sola vez a la Librería. Usa la estrella para fijar la carpeta principal; las demás son réplicas en otras carpetas."
-                  : "El documento adjunto se guardará en la Librería en la carpeta seleccionada."}
+                El documento adjunto se subirá una sola vez a la Librería.
+                Puedes elegir una o varias carpetas; usa la estrella para fijar
+                la carpeta principal, las demás son réplicas en otras carpetas.
               </p>
             </div>
 
