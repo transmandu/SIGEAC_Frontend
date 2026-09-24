@@ -56,6 +56,7 @@ export function CreateCourseForm({
       description: z.string(),
       course_type: z.string(),
       instructor: z.string().optional(),
+      hours: z.coerce.number().int().min(0, { message: "Las horas deben ser 0 o un número entero positivo" }),
       end_date: z
         .date()
         .refine((val) => !isNaN(val.getTime()), { message: "Fecha no válida" }),
@@ -80,6 +81,7 @@ export function CreateCourseForm({
       course_type: initialData?.course_type || "",
       description: initialData?.description,
       instructor: initialData?.instructor,
+      hours: initialData?.hours ?? 0,
 
       start_date: initialData?.start_date
         ? addDays(new Date(initialData.start_date), 1)
@@ -114,6 +116,7 @@ export function CreateCourseForm({
           name: data.name,
           description: data.description,
           instructor: data.instructor,
+          hours: data.hours,
           start_date: data.start_date,
           end_date: data.end_date,
           start_time: data.start_time,
@@ -297,19 +300,40 @@ export function CreateCourseForm({
             )}
           />
 
-          <FormField
-            control={form.control}
-            name="instructor"
-            render={({ field }) => (
-              <FormItem className="w-full" data-tour="cursos-create-instructor">
-                <FormLabel>Instructor</FormLabel>
-                <FormControl>
-                  <Input placeholder="" {...field} />
-                </FormControl>
-                <FormMessage className="text-xs" />
-              </FormItem>
-            )}
-          />
+          <div className="flex justify-center items-center w-full gap-10">
+            <FormField
+              control={form.control}
+              name="hours"
+              render={({ field }) => (
+                <FormItem className="w-full" data-tour="cursos-create-horas">
+                  <FormLabel>Horas del Curso</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      min={0}
+                      placeholder="0"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage className="text-xs" />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="instructor"
+              render={({ field }) => (
+                <FormItem className="w-full" data-tour="cursos-create-instructor">
+                  <FormLabel>Instructor</FormLabel>
+                  <FormControl>
+                    <Input placeholder="" {...field} />
+                  </FormControl>
+                  <FormMessage className="text-xs" />
+                </FormItem>
+              )}
+            />
+          </div>
         </div>
 
         <div className="flex justify-between items-center gap-x-4">

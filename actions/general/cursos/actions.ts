@@ -14,6 +14,7 @@ interface CourseData {
     start_time: string;
     end_time: string;
     course_type: string;
+    hours?: number;
     instructor?: string;
   };
 }
@@ -30,6 +31,7 @@ interface updateCourseData {
     end_date: Date;
     start_time: string;
     end_time: string;
+    hours: number;
   };
 }
 

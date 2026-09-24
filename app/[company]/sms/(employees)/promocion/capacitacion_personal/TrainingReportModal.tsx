@@ -4,7 +4,6 @@ import { useState } from "react";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -12,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarDays, FileDown, Loader2, CalendarIcon } from "lucide-react";
+import { FileDown, Loader2, CalendarDays } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -34,43 +33,56 @@ export function TrainingReportModal({ company }: { company?: string }) {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="h-8 flex gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          type="button"
+          className="h-8 flex gap-2"
+        >
           <FileDown className="size-4" />
           Generar Reporte
         </Button>
       </DialogTrigger>
 
       <DialogContent className="sm:max-w-[480px]">
-        <DialogHeader className="flex flex-col items-center">
-          <DialogTitle className="text-3xl font-bold text-center">
-            Reporte de Capacitación
-          </DialogTitle>
-          <DialogDescription className="text-sm italic text-center">
-            Selecciona el rango de fechas para consultar la capacitación de los
-            empleados en el servidor.
-          </DialogDescription>
+        <DialogHeader className="pb-2 border-b border-border/60">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center h-9 w-9 rounded-lg bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-500 shrink-0">
+              <FileDown className="h-4 w-4" />
+            </div>
+            <div>
+              <DialogTitle className="text-base font-semibold leading-tight">
+                Reporte de Capacitación SMS
+              </DialogTitle>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {company ? `Empresa: ${company}` : "Empresa: —"} · Rango de
+                fechas para generar el PDF de capacitación de empleados.
+              </p>
+            </div>
+          </div>
         </DialogHeader>
 
-        <div className="flex flex-col gap-8 py-6">
-          <div className="flex flex-col gap-4">
-            <div className="flex items-center justify-center gap-2 font-bold text-xl">
-              <span>Rango por fechas</span>
-              <CalendarDays className="size-5 text-primary" />
-            </div>
+        <div className="flex flex-col gap-5 py-4">
+          <section className="flex flex-col gap-3">
+            <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              Rango por fechas
+            </span>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex flex-col gap-2">
-                <label className="text-xs font-bold ml-1">Desde</label>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Desde
+                </label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
                       className={cn(
-                        "w-full justify-start text-left font-normal border-input bg-background text-foreground",
+                        "w-full justify-start text-left font-normal",
                         !reportFrom && "text-muted-foreground"
                       )}
                     >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      <CalendarDays className="mr-2 h-4 w-4" />
                       {reportFrom
                         ? format(reportFrom, "dd/MM/yyyy", { locale: es })
                         : "DD/MM/YYYY"}
@@ -88,18 +100,20 @@ export function TrainingReportModal({ company }: { company?: string }) {
                 </Popover>
               </div>
 
-              <div className="flex flex-col gap-2">
-                <label className="text-xs font-bold ml-1">Hasta</label>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Hasta
+                </label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
                       className={cn(
-                        "w-full justify-start text-left font-normal border-input bg-background text-foreground",
+                        "w-full justify-start text-left font-normal",
                         !reportTo && "text-muted-foreground"
                       )}
                     >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      <CalendarDays className="mr-2 h-4 w-4" />
                       {reportTo
                         ? format(reportTo, "dd/MM/yyyy", { locale: es })
                         : "DD/MM/YYYY"}
@@ -118,25 +132,24 @@ export function TrainingReportModal({ company }: { company?: string }) {
                 </Popover>
               </div>
             </div>
-          </div>
+          </section>
 
-          <div className="flex flex-col gap-3">
+          <div className="border-t border-border/60 pt-4">
             <Button
               onClick={handleGenerate}
               disabled={!canGenerate}
-              className={cn(
-                "w-full font-bold text-lg h-12 transition-all duration-200",
-                !canGenerate &&
-                  "bg-muted text-muted-foreground cursor-not-allowed opacity-50 shadow-none border-none hover:bg-muted"
-              )}
+              className="w-full h-10"
             >
               {isGenerating ? (
                 <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  <Loader2 className="size-4 mr-2 animate-spin" />
                   Procesando...
                 </>
               ) : (
-                "Generar PDF"
+                <>
+                  <FileDown className="size-4 mr-2" />
+                  Generar PDF
+                </>
               )}
             </Button>
           </div>

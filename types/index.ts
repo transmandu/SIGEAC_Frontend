@@ -1286,6 +1286,7 @@ export type Course = {
   description: string;
   duration: string;
   time: string;
+  hours?: number;
   start_date: Date;
   end_date: Date;
   start_time: string;

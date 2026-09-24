@@ -21,15 +21,18 @@ import {
 import { appTableFeatures, type AppColumnDef } from "@/lib/table";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { TrainingReportModal } from "./TrainingReportModal";
 
 interface DataTableProps<TData extends RowData> {
   columns: AppColumnDef<TData>[];
   data: TData[];
+  company?: string;
 }
 
 export function DataTable<TData extends RowData>({
   columns,
   data,
+  company,
 }: DataTableProps<TData>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -59,7 +62,8 @@ export function DataTable<TData extends RowData>({
         </p>
       </div>
 
-      <div className="flex items-center py-4">
+      <div className="flex items-center justify-end gap-2 py-4">
+        <TrainingReportModal company={company} />
         <DataTableViewOptions table={table} />
       </div>
 
