@@ -1,3 +1,7 @@
+## v4.22.0 — 2026-09-24
+
+- feat: replicated file with no rule (#289)
+
 ## v4.21.1 — 2026-09-24
 
 - fix: update row selection handling and improve article confirmation flow (#288)
