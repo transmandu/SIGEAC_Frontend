@@ -14,7 +14,7 @@ import {
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { TooltipArrow } from "@radix-ui/react-tooltip";
 import { Drill, Loader2, Package2, PaintBucket, Puzzle, Wrench, X } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { FaFilePdf } from "react-icons/fa";
 import { RiFileExcel2Fill } from "react-icons/ri";
 import { toast } from "sonner";
@@ -73,11 +73,14 @@ const InventarioArticulosPage = () => {
     filenamePrefix: "inventario",
   };
 
-  // Reset subfiltros al cambiar categoría
-  useEffect(() => {
-    if (activeCategory !== "COMPONENT") setComponentCondition("all");
-    if (activeCategory !== "CONSUMABLE") setConsumableFilter("all");
-  }, [activeCategory]);
+  const handleCategoryChange = (next: Category) => {
+    setActiveCategory(next);
+    if (next !== "COMPONENT") setComponentCondition("all");
+    if (next !== "CONSUMABLE") setConsumableFilter("all");
+    // La selección es por categoría: no debe sobrevivir al cambio de pestaña.
+    setSelectedArticleIds([]);
+    setSelectionResetKey((prev) => prev + 1);
+  };
 
   // Columns memo
   const cols = useMemo(
@@ -151,7 +154,7 @@ const InventarioArticulosPage = () => {
           {/* Tabs principales */}
           <Tabs
             value={activeCategory}
-            onValueChange={(v) => setActiveCategory(v as Category)}
+            onValueChange={(v) => handleCategoryChange(v as Category)}
           >
             <TabsList
               className="flex justify-center mb-4 space-x-3"
@@ -222,7 +225,7 @@ const InventarioArticulosPage = () => {
               )}
 
               {isLoadingArticles ? (
-                <div className="flex w-full h-full justify-center items-center min-h-[300px]">
+                <div className="flex w-full h-full justify-center items-center min-h-75">
                   <Loader2 className="size-24 animate-spin" />
                 </div>
               ) : (
@@ -234,7 +237,7 @@ const InventarioArticulosPage = () => {
                         selectedArticleIds.length === 0 ||
                         updateArticleStatus.isPending
                       }
-                      className="min-w-[220px]"
+                      className="min-w-55"
                     >
                       {updateArticleStatus.isPending ? (
                         <span className="flex items-center gap-2">

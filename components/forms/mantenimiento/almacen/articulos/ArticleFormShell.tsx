@@ -45,7 +45,7 @@ export const ArticleFormShell = ({
                         Cancelar
                     </Button>
                 )}
-                <Button type="submit" disabled={busy || !canSave} className="min-w-[170px]">
+                <Button type="submit" disabled={busy || !canSave} className="min-w-42.5">
                     {busy ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
