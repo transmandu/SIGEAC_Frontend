@@ -15,11 +15,10 @@ import { useGetTotalReportsCountedByArea } from "@/hooks/sms/useGetTotalReportsC
 import { useGetTotalReportsStatsByYear } from "@/hooks/sms/useGetTotalReportsStatsByYear";
 import { useGetTotalRiskCountByDateRange } from "@/hooks/sms/useGetTotalRiskByDateRange";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { format, startOfMonth } from "date-fns";
+import { format, startOfYear } from "date-fns";
 import { Loader2 } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState, useEffect } from "react";
-
 
 const GeneralReportStats = () => {
   const { selectedCompany } = useCompanyStore();
@@ -31,6 +30,7 @@ const GeneralReportStats = () => {
   const graphicsOptions = [
     { id: "Todos", label: "Todos los gráficos" },
     { id: "bar-chart", label: "Identificados vs Gestionados" },
+    { id: "bar-chart-pie", label: "Identificados vs Gestionados (%)" },
     { id: "type-chart", label: "Según su Tipo" },
     { id: "area-chart", label: "Identificados por Área" },
     { id: "pre-risk-pie", label: "Por Índice de Riesgo Pre-Mitigación" },
@@ -43,7 +43,7 @@ const GeneralReportStats = () => {
 
   // Obtener parámetros ACTUALES de la URL - SIN estado local
   const currentParams = useMemo(() => {
-    const defaultFrom = format(startOfMonth(new Date()), "yyyy-MM-dd");
+    const defaultFrom = format(startOfYear(new Date()), "yyyy-MM-dd");
     const defaultTo = format(new Date(), "yyyy-MM-dd");
 
     const urlParams = new URLSearchParams(urlSearchParams.toString());
@@ -63,6 +63,28 @@ const GeneralReportStats = () => {
     currentParams.to,
     selectedCompany?.slug,
   );
+
+  // Datos para el gráfico circular de Identificados vs Gestionados (%)
+  // Los porcentajes se calculan en el backend (open_percentage/closed_percentage)
+  const identificationPieData = useMemo(() => {
+    if (!barChartData || (!barChartData.open && !barChartData.closed)) return [];
+
+    const openPercentage =
+      barChartData.open_percentage ??
+      (barChartData.total > 0
+        ? (barChartData.open * 100) / barChartData.total
+        : 0);
+    const closedPercentage =
+      barChartData.closed_percentage ??
+      (barChartData.total > 0
+        ? (barChartData.closed * 100) / barChartData.total
+        : 0);
+
+    return [
+      { name: "Identificados", value: Number(openPercentage.toFixed(2)) },
+      { name: "Gestionados", value: Number(closedPercentage.toFixed(2)) },
+    ];
+  }, [barChartData]);
 
   const {
     data: totalIdentificationData,
@@ -139,7 +161,7 @@ const GeneralReportStats = () => {
 
   // Manejar reset
   const handleReset = () => {
-    const defaultFrom = format(startOfMonth(new Date()), "yyyy-MM-dd");
+    const defaultFrom = format(startOfYear(new Date()), "yyyy-MM-dd");
     const defaultTo = format(new Date(), "yyyy-MM-dd");
 
     const newParams = new URLSearchParams();
@@ -151,8 +173,6 @@ const GeneralReportStats = () => {
 
   const shouldShow = (id: string) =>
     selectedGraphics.includes("Todos") || selectedGraphics.includes(id);
-
-
 
   return (
     <ContentLayout title="Gráficos Estadísticos de Reportes">
@@ -220,6 +240,30 @@ const GeneralReportStats = () => {
                   description="Ha ocurrido un error al cargar los datos de Peligros Identificados vs Gestionados..."
                 />
               </>
+            )}
+          </div>
+        )}
+
+        {/* Peligros Identificados vs Gestionados (%) */}
+        {shouldShow("bar-chart-pie") && (
+          <div
+            className="flex flex-col justify-center items-center p-4 rounded-lg shadow-sm border"
+            data-tour="stats-general-chart-bar-pie"
+          >
+            {isLoadingBarChart ? (
+              <div className="flex justify-center items-center h-48">
+                <Loader2 className="size-24 animate-spin" />
+              </div>
+            ) : identificationPieData.length > 0 ? (
+              <PieChartComponent
+                title="Peligros Identificados vs Gestionados (%)"
+                data={identificationPieData}
+              />
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Ha ocurrido un error al cargar los datos de Peligros
+                Identificados vs Gestionados (%).
+              </p>
             )}
           </div>
         )}

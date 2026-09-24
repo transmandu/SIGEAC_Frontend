@@ -18,7 +18,7 @@ type Props = {
   colors?: string[];
 };
 
-const DEFAULT_COLORS = [
+export const DEFAULT_COLORS = [
   "#64bda5ff",
   "#0369a1",
   "#7c3aed",
@@ -36,12 +36,12 @@ export const PieChartComponent: React.FC<Props> = ({
 }) => {
   const palette = useMemo(
     () => (colors && colors.length > 0 ? colors : DEFAULT_COLORS),
-    [colors]
+    [colors],
   );
 
   const total = useMemo(
     () => data.reduce((acc, item) => acc + (Number(item.value) || 0), 0),
-    [data]
+    [data],
   );
 
   if (!data || data.length === 0) {
@@ -76,7 +76,7 @@ export const PieChartComponent: React.FC<Props> = ({
               label={({ value }) => {
                 const v = Number(value);
                 if (!total) return "";
-                const pct = ((v / total) * 100).toFixed(0);
+                const pct = ((v / total) * 100).toFixed(2);
                 return `${pct}%`;
               }}
               fontSize={11}
@@ -96,7 +96,7 @@ export const PieChartComponent: React.FC<Props> = ({
                 const v = Number(value) || 0;
                 const pct = total ? (v / total) * 100 : 0;
                 return [
-                  `${v.toLocaleString("es-ES")} (${pct.toFixed(1)}%)`,
+                  `${v.toLocaleString("es-ES")} (${pct.toFixed(2)}%)`,
                   item?.name,
                 ];
               }}
