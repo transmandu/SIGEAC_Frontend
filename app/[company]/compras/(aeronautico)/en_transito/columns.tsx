@@ -1,7 +1,7 @@
-'use client'
+"use client";
 
 import { type AppColumnDef } from "@/lib/table";
-import { useState } from 'react'
+import { useState } from "react";
 import {
   CheckCircle2,
   ChevronRight,
@@ -10,60 +10,62 @@ import {
   Loader2,
   MapPin,
   PackageCheck,
-} from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@/components/ui/tooltip'
-import { DataTableColumnHeader } from '@/components/tables/DataTableHeader'
-import { cn } from '@/lib/utils'
-import { useUpdateArticleStatus } from '@/actions/mantenimiento/almacen/inventario/articulos/actions'
-import type { TransitArticle } from '@/types/purchase'
-import { EditTransitArticleDialog } from './_components/EditTransitArticleDialog'
-import { PendingDocumentsDialog } from './_components/PendingDocumentsDialog'
-import { DEFAULT_TIMEZONE, formatCalendarDate, formatInstant } from "@/lib/date"
+} from "@/components/ui/tooltip";
+import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
+import { cn } from "@/lib/utils";
+import { useUpdateArticleStatus } from "@/actions/mantenimiento/almacen/inventario/articulos/actions";
+import type { TransitArticle } from "@/types/purchase";
+import { EditTransitArticleDialog } from "./_components/EditTransitArticleDialog";
+import { PendingDocumentsDialog } from "./_components/PendingDocumentsDialog";
+import {
+  DEFAULT_TIMEZONE,
+  formatCalendarDate,
+  formatInstant,
+} from "@/lib/date";
 
 const getPendingRequirements = (article: TransitArticle) =>
   (article.document_requirements ?? []).filter(
-    (req) => req.documents.length === 0
-  )
+    (req) => req.documents.length === 0,
+  );
 
-function TransitActionButton({
-  article,
-}: {
-  article: TransitArticle
-}) {
-  const { updateArticleStatus } = useUpdateArticleStatus()
-  const [docsDialogOpen, setDocsDialogOpen] = useState(false)
+function TransitActionButton({ article }: { article: TransitArticle }) {
+  const { updateArticleStatus } = useUpdateArticleStatus();
+  const [docsDialogOpen, setDocsDialogOpen] = useState(false);
 
-  const pending = updateArticleStatus.isPending
-  const status = article.status?.toUpperCase()
-  const isTransit = status === 'TRANSIT'
+  const pending = updateArticleStatus.isPending;
+  const status = article.status?.toUpperCase();
+  const isTransit = status === "TRANSIT";
 
-  const pendingDocs = getPendingRequirements(article)
+  const pendingDocs = getPendingRequirements(article);
 
   const moveToReception = async () => {
     try {
       await updateArticleStatus.mutateAsync({
         id: article.id,
-        status: 'RECEPTION',
-      })
+        status: "RECEPTION",
+      });
     } catch (error) {
       // Respaldo del servidor: si el backend reporta documentación pendiente
       // (datos locales desactualizados), abrimos el bloque de consignación.
-      const pendingFromServer = (error as {
-        response?: { data?: { pending_documents?: unknown[] } }
-      })?.response?.data?.pending_documents
+      const pendingFromServer = (
+        error as {
+          response?: { data?: { pending_documents?: unknown[] } };
+        }
+      )?.response?.data?.pending_documents;
 
       if (pendingFromServer && pendingFromServer.length > 0) {
-        setDocsDialogOpen(true)
+        setDocsDialogOpen(true);
       }
     }
-  }
+  };
 
   // Una vez el artículo pasa a RECEPTION, la transición es unidireccional:
   // no queda ninguna acción disponible, solo un estado vacío deshabilitado.
@@ -96,21 +98,21 @@ function TransitActionButton({
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
-    )
+    );
   }
 
   const handleAction = async (e: React.MouseEvent) => {
-    e.stopPropagation()
-    if (pending) return
+    e.stopPropagation();
+    if (pending) return;
 
     // La documentación requerida debe estar consignada antes de recepcionar.
     if (pendingDocs.length > 0) {
-      setDocsDialogOpen(true)
-      return
+      setDocsDialogOpen(true);
+      return;
     }
 
-    await moveToReception()
-  }
+    await moveToReception();
+  };
 
   return (
     <>
@@ -149,20 +151,16 @@ function TransitActionButton({
         onCompleted={moveToReception}
       />
     </>
-  )
+  );
 }
 
-function EditTransitArticleAction({
-  article,
-}: {
-  article: TransitArticle
-}) {
-  const [editDialogOpen, setEditDialogOpen] = useState(false)
-  const pendingCount = getPendingRequirements(article).length
+function EditTransitArticleAction({ article }: { article: TransitArticle }) {
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const pendingCount = getPendingRequirements(article).length;
 
   // Un artículo ya recepcionado no debe poder editarse: el ícono
   // permanece visible pero deshabilitado como estado vacío.
-  const isEditable = article.status?.toUpperCase() === 'TRANSIT'
+  const isEditable = article.status?.toUpperCase() === "TRANSIT";
 
   return (
     <>
@@ -175,16 +173,16 @@ function EditTransitArticleAction({
                 size="icon"
                 disabled={!isEditable}
                 onClick={(e) => {
-                  e.stopPropagation()
-                  setEditDialogOpen(true)
+                  e.stopPropagation();
+                  setEditDialogOpen(true);
                 }}
                 className={cn(
-                  'relative h-7 w-7 disabled:opacity-40',
+                  "relative h-7 w-7 disabled:opacity-40",
                   isEditable
                     ? pendingCount > 0
-                      ? 'text-amber-500'
-                      : 'text-muted-foreground'
-                    : 'text-muted-foreground'
+                      ? "text-amber-500"
+                      : "text-muted-foreground"
+                    : "text-muted-foreground",
                 )}
               >
                 <FilePen className="size-3.5" />
@@ -198,10 +196,10 @@ function EditTransitArticleAction({
           </TooltipTrigger>
           <TooltipContent side="top" className="text-xs px-2 py-1">
             {!isEditable
-              ? 'Ya marcaste este artículo como entregado a recepción'
+              ? "Ya marcaste este artículo como entregado a recepción"
               : pendingCount > 0
-                ? `Editar artículo (${pendingCount} documento${pendingCount === 1 ? '' : 's'} pendiente${pendingCount === 1 ? '' : 's'})`
-                : 'Editar información del artículo'}
+                ? `Editar artículo (${pendingCount} documento${pendingCount === 1 ? "" : "s"} pendiente${pendingCount === 1 ? "" : "s"})`
+                : "Editar información del artículo"}
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
@@ -214,16 +212,15 @@ function EditTransitArticleAction({
         />
       )}
     </>
-  )
+  );
 }
 
 export const getColumns = (
   selectedCompany?: { slug: string },
-  timeZone: string = DEFAULT_TIMEZONE
+  timeZone: string = DEFAULT_TIMEZONE,
 ): AppColumnDef<TransitArticle>[] => [
-
   {
-    id: 'expander',
+    id: "expander",
     size: 50,
     header: () => null,
     cell: ({ row }) => (
@@ -231,8 +228,8 @@ export const getColumns = (
         {row.getCanExpand() && (
           <ChevronRight
             className={cn(
-              'size-3.5 text-muted-foreground/50 transition-transform',
-              row.getIsExpanded() && 'rotate-90 text-emerald-500'
+              "size-3.5 text-muted-foreground/50 transition-transform",
+              row.getIsExpanded() && "rotate-90 text-emerald-500",
             )}
           />
         )}
@@ -243,7 +240,7 @@ export const getColumns = (
   },
 
   {
-    accessorKey: 'part_number',
+    accessorKey: "part_number",
     size: 210,
 
     header: ({ column }) => (
@@ -253,78 +250,78 @@ export const getColumns = (
     ),
 
     cell: ({ row }) => {
-      const hasAlt = !!row.original.alternative_part_number
+      const hasAlt = row.original.alternative_part_number.length > 0;
 
       return (
         <div className="flex w-full justify-start">
           <div className="space-y-1 min-w-0">
-
             <div className="flex items-center gap-2">
-
-              <span className="
+              <span
+                className="
                 text-[9px] font-semibold uppercase tracking-widest
                 px-1.5 py-0.5 rounded-md
                 bg-emerald-100/60 dark:bg-emerald-900/30
                 text-emerald-700 dark:text-emerald-300
                 border border-emerald-200/50 dark:border-emerald-800/40
-              ">
+              "
+              >
                 P/N
               </span>
 
-              <span className="
+              <span
+                className="
                 text-[13px] font-semibold tracking-tight
                 text-slate-900 dark:text-slate-100
                 px-1 py-0.5 rounded
-              ">
+              "
+              >
                 {row.original.part_number}
               </span>
-
             </div>
             {hasAlt ? (
               <div className="flex items-center gap-2">
-
-                <span className="
+                <span
+                  className="
                   text-[9px] font-semibold uppercase tracking-widest
                   px-1.5 py-0.5 rounded-md
                   bg-slate-200/60 dark:bg-slate-700/40
                   text-slate-600 dark:text-slate-300
                   border border-slate-300/40 dark:border-slate-600/40
-                ">
+                "
+                >
                   ALT
                 </span>
 
                 <span className="font-mono text-[11px] text-muted-foreground">
-                  {row.original.alternative_part_number}
+                  {row.original.alternative_part_number.join(" / ")}
                 </span>
-
               </div>
             ) : (
               <div className="flex items-center gap-2">
-
-                <span className="
+                <span
+                  className="
                   text-[9px] font-semibold uppercase tracking-widest
                   px-1.5 py-0.5 rounded-md
                   bg-slate-100 dark:bg-slate-800
                   text-slate-400
-                ">
+                "
+                >
                   ALT
                 </span>
 
                 <span className="text-[11px] text-muted-foreground/40 italic">
                   Sin alternativo
                 </span>
-
               </div>
             )}
-
           </div>
         </div>
-      )
+      );
     },
   },
 
   {
-    accessorKey: 'batch',
+    accessorKey: "batch",
     size: 210,
 
     header: ({ column }) => (
@@ -336,14 +333,14 @@ export const getColumns = (
     cell: ({ row }) => (
       <div className="flex items-center justify-center w-full text-center px-2">
         <span className="block w-full text-sm font-medium text-slate-800 dark:text-slate-200 wrap-break-word">
-          {row.original.batch?.name ?? 'Sin descripción'}
+          {row.original.batch?.name ?? "Sin descripción"}
         </span>
       </div>
     ),
   },
 
   {
-    accessorKey: 'status_date',
+    accessorKey: "status_date",
     size: 180,
 
     header: ({ column }) => (
@@ -353,67 +350,61 @@ export const getColumns = (
     ),
 
     cell: ({ row }) => {
-      const status = row.original.status?.toUpperCase()
-      const isTransit = status === 'TRANSIT'
-      const isReception = status === 'RECEPTION'
+      const status = row.original.status?.toUpperCase();
+      const isTransit = status === "TRANSIT";
+      const isReception = status === "RECEPTION";
 
+      // En tránsito se fecha por la entrada al estado: `created_at` no viaja
+      // (el modelo lo oculta) y la columna quedaba siempre vacía.
       const date = isTransit
-        ? row.original.created_at
+        ? row.original.status_since
         : isReception
           ? row.original.reception_date
-          : null
+          : null;
 
       const label = isTransit
-        ? 'ESTÁ EN TRÁNSITO'
+        ? "ESTÁ EN TRÁNSITO"
         : isReception
-          ? 'ESTÁ EN RECEPCIÓN'
-          : null
+          ? "ESTÁ EN RECEPCIÓN"
+          : null;
 
-      // created_at es un instante (se convierte a la zona de la compañía) y
+      // status_since es un instante (se convierte a la zona de la compañía) y
       // reception_date una fecha de calendario (se muestra tal cual). Antes se
       // partía el string por "-", lo que reventaba con un ISO completo.
       const formatDate = (value?: string | null) =>
         value
           ? (isTransit
-              ? formatInstant(value, timeZone, 'dd MMMM yyyy', '')
-              : formatCalendarDate(value, 'dd MMMM yyyy', '')
+              ? formatInstant(value, timeZone, "dd MMMM yyyy", "")
+              : formatCalendarDate(value, "dd MMMM yyyy", "")
             ).toUpperCase()
-          : null
+          : null;
 
       if (!date) {
         return (
           <div className="flex justify-center w-full">
-            <span className="text-xs text-muted-foreground/40">
-              -
-            </span>
+            <span className="text-xs text-muted-foreground/40">-</span>
           </div>
-        )
+        );
       }
 
       return (
         <div className="flex flex-col items-center justify-center w-full leading-tight">
+          <span className="text-[10px] text-muted-foreground/60">DESDE EL</span>
 
-          <span className="text-[10px] text-muted-foreground/60">
-            DESDE EL
-          </span>
-
-          <span className="text-sm font-medium">
-            {formatDate(date)}
-          </span>
+          <span className="text-sm font-medium">{formatDate(date)}</span>
 
           {label && (
             <span className="text-[10px] text-muted-foreground/60">
               {label}
             </span>
           )}
-
         </div>
-      )
+      );
     },
   },
 
   {
-    accessorKey: 'location',
+    accessorKey: "location",
     size: 150,
 
     header: ({ column }) => (
@@ -423,7 +414,7 @@ export const getColumns = (
     ),
 
     cell: ({ row }) => {
-      const location = row.original.batch?.warehouse?.location
+      const location = row.original.batch?.warehouse?.location;
 
       return (
         <div className="flex justify-center w-full">
@@ -436,12 +427,12 @@ export const getColumns = (
             <span className="text-muted-foreground/40">—</span>
           )}
         </div>
-      )
+      );
     },
   },
 
   {
-    accessorKey: 'status',
+    accessorKey: "status",
     size: 150,
 
     header: ({ column }) => (
@@ -451,16 +442,15 @@ export const getColumns = (
     ),
 
     cell: ({ row }) => {
-      const status = row.original.status?.toUpperCase()
-      const isTransit = status === 'TRANSIT'
-      const isReception = status === 'RECEPTION'
+      const status = row.original.status?.toUpperCase();
+      const isTransit = status === "TRANSIT";
+      const isReception = status === "RECEPTION";
 
       return (
         <div className="flex justify-center w-full">
-
           <Badge
-                className={cn(
-                  `
+            className={cn(
+              `
                     rounded-md
                     border
                     px-2 py-0.5
@@ -472,25 +462,26 @@ export const getColumns = (
                     cursor-default
                   `,
 
-                  isTransit && `border-yellow-500/30 bg-yellow-500/10 text-yellow-700 dark:text-yellow-300`,
+              isTransit &&
+                `border-yellow-500/30 bg-yellow-500/10 text-yellow-700 dark:text-yellow-300`,
 
-                  isReception && `border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300`,
+              isReception &&
+                `border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300`,
 
-                  !isTransit &&
-                    !isReception &&
-                    `border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300`
-                )}
+              !isTransit &&
+                !isReception &&
+                `border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300`,
+            )}
           >
-            {isTransit ? 'EN TRÁNSITO' : 'EN RECEPCIÓN'}
+            {isTransit ? "EN TRÁNSITO" : "EN RECEPCIÓN"}
           </Badge>
-
         </div>
-      )
+      );
     },
   },
 
   {
-    id: 'edit_info',
+    id: "edit_info",
     size: 70,
 
     header: () => (
@@ -500,7 +491,10 @@ export const getColumns = (
     ),
 
     cell: ({ row }) => (
-      <div className="flex justify-center w-full" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="flex justify-center w-full"
+        onClick={(e) => e.stopPropagation()}
+      >
         <EditTransitArticleAction article={row.original} />
       </div>
     ),
@@ -509,7 +503,7 @@ export const getColumns = (
   },
 
   {
-    id: 'actions',
+    id: "actions",
     size: 160,
 
     header: ({ column }) => (
@@ -519,9 +513,12 @@ export const getColumns = (
     ),
 
     cell: ({ row }) => (
-      <div className="flex justify-center w-full" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="flex justify-center w-full"
+        onClick={(e) => e.stopPropagation()}
+      >
         <TransitActionButton article={row.original} />
       </div>
     ),
   },
-]
+];

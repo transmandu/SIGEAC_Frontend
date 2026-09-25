@@ -44,19 +44,19 @@ export function useGenerateIncomingFormat() {
       const company = selectedCompany?.slug;
       if (!company) throw new Error("Empresa no seleccionada.");
 
-      const res = await axiosInstance.post(
-        `/${company}/incoming-format`,
-        payload,
-        { responseType: payload.download ? "blob" : "json" }
-      ).catch(async (e) => {
-        throw new Error(await messageFromError(e));
-      });
+      const res = await axiosInstance
+        .post(`/${company}/incoming-format`, payload, {
+          responseType: payload.download ? "blob" : "json",
+        })
+        .catch(async (e) => {
+          throw new Error(await messageFromError(e));
+        });
 
       if (payload.download) {
         const disposition = res.headers?.["content-disposition"];
         const filename =
           filenameFromDisposition(disposition) ??
-          `H74-036_${(payload.purchase_order_code ?? 'N_A').replace(/[/\\\s]+/g, '_')}_${payload.inspection_date}.pdf`;
+          `H74-036_${(payload.purchase_order_code ?? "N_A").replace(/[/\\\s]+/g, "_")}_${payload.inspection_date}.pdf`;
 
         downloadBlob(res.data, filename);
       }
@@ -70,27 +70,31 @@ export function useGenerateIncomingFormat() {
       queryClient.invalidateQueries({ queryKey: ["articles"] });
       queryClient.invalidateQueries({ queryKey: ["incoming-formats"] });
       if (company) {
-        queryClient.invalidateQueries({ queryKey: ["articles", company, "WAITING_FOR_FORMAT"] });
-        queryClient.invalidateQueries({ queryKey: ["articles", company, "WAITING_TO_LOCATE"] });
+        queryClient.invalidateQueries({
+          queryKey: ["articles", company, "WAITING_FOR_FORMAT"],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["articles", company, "WAITING_TO_LOCATE"],
+        });
       }
     },
   });
 }
 
 export function useGetIssuedIncomingFormats(search?: string) {
-  const { selectedCompany } = useCompanyStore();
+  const { selectedCompany, selectedStation } = useCompanyStore();
   const company = selectedCompany?.slug;
 
   return useQuery({
-    queryKey: ["incoming-formats", company, search ?? ""],
+    queryKey: ["incoming-formats", company, selectedStation, search ?? ""],
     queryFn: async () => {
       const res = await axiosInstance.get<IssuedIncomingFormat[]>(
-        `/${company}/incoming-formats`,
-        { params: search ? { search } : undefined }
+        `/${company}/${selectedStation}/incoming-formats`,
+        { params: search ? { search } : undefined },
       );
       return res.data;
     },
-    enabled: !!company,
+    enabled: !!company && !!selectedStation,
   });
 }
 
@@ -103,12 +107,13 @@ export function useReprintIncomingFormat() {
       const company = selectedCompany?.slug;
       if (!company) throw new Error("Empresa no seleccionada.");
 
-      const res = await axiosInstance.get(
-        `/${company}/incoming-formats/${format.id}/reprint`,
-        { responseType: "blob" }
-      ).catch(async (e) => {
-        throw new Error(await messageFromError(e));
-      });
+      const res = await axiosInstance
+        .get(`/${company}/incoming-formats/${format.id}/reprint`, {
+          responseType: "blob",
+        })
+        .catch(async (e) => {
+          throw new Error(await messageFromError(e));
+        });
 
       const filename =
         filenameFromDisposition(res.headers?.["content-disposition"]) ??
@@ -129,7 +134,10 @@ async function messageFromError(e: any): Promise<string> {
 
   if (data instanceof Blob) {
     try {
-      return JSON.parse(await data.text())?.message ?? "No se pudo generar el formato.";
+      return (
+        JSON.parse(await data.text())?.message ??
+        "No se pudo generar el formato."
+      );
     } catch {
       return "No se pudo generar el formato.";
     }

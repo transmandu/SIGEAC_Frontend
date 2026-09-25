@@ -9,12 +9,20 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle
+  DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-import { FileText, History, Loader2, Pencil, Search, Trash2, X } from "lucide-react";
+import {
+  FileText,
+  History,
+  Loader2,
+  Pencil,
+  Search,
+  Trash2,
+  X,
+} from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import * as React from "react";
 
@@ -33,7 +41,10 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useState } from "react";
-import { getStatusBadge, type IArticleSimple } from "@/app/[company]/almacen/inventario_articulos/_tables/warehouse-columns";
+import {
+  getStatusBadge,
+  type IArticleSimple,
+} from "@/app/[company]/almacen/inventario_articulos/_tables/warehouse-columns";
 import { toCalendarPayload } from "@/lib/date";
 
 type Props = {
@@ -60,7 +71,7 @@ function formatQuantity(r: IArticleSimple) {
 
 function toSearchable(r: IArticleSimple) {
   const serialOrLot = r.serial || r.lot_number || "";
-  const desc = r.batch_name || r.description || "";
+  const desc = r.batch_name || "";
   const status = (r.status || "").toUpperCase();
   const zone = r.zone || "";
 
@@ -78,8 +89,7 @@ function toSearchable(r: IArticleSimple) {
   const shownQuantity = isConsumable(r) ? `${quantity} ${unit}` : "";
 
   return {
-    blob:
-      `${serialOrLot} ${desc} ${status} ${zone} ${shelf} ${shownQuantity}`.toLowerCase(),
+    blob: `${serialOrLot} ${desc} ${status} ${zone} ${shelf} ${shownQuantity}`.toLowerCase(),
   };
 }
 
@@ -117,13 +127,18 @@ export function PartNumberGroupDialog({
   const count = rows?.length ?? 0;
   const shown = filtered?.length ?? 0;
 
-  React.useEffect(() => {
+  // Al cerrarse, el diálogo olvida búsqueda y subdiálogos. Se hace durante el
+  // render al detectar el cambio de `open`, no en un efecto: así no hay un
+  // render intermedio con el estado viejo.
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
     if (!open) {
       setQuery("");
       setHistoryArticleId(null);
       setDocumentsArticle(null);
     }
-  }, [open]);
+  }
 
   const router = useRouter();
   const params = useParams();
@@ -251,7 +266,7 @@ export function PartNumberGroupDialog({
                   <div
                     className={cn(
                       "rounded-md border overflow-hidden",
-                      showQuantity ? "min-w-[1100px]" : "min-w-[980px]",
+                      showQuantity ? "min-w-275" : "min-w-245",
                     )}
                   >
                     {/* Header tabla */}
@@ -277,8 +292,7 @@ export function PartNumberGroupDialog({
                     <div className="divide-y">
                       {filtered.map((r) => {
                         const serialOrLot = r.serial || r.lot_number || "N/A";
-                        const desc =
-                          r.batch_name || r.description || "Sin descripción";
+                        const desc = r.batch_name || "Sin descripción";
                         const shelf = formatShelf(r);
 
                         return (
@@ -324,7 +338,9 @@ export function PartNumberGroupDialog({
                             <div className="px-3 py-2 flex justify-center">
                               {tracksStatusSince(r.status) ? (
                                 <ArticleStatusSincePopover
-                                  statusLabel={statusOptionLabel(r.status ?? "")}
+                                  statusLabel={statusOptionLabel(
+                                    r.status ?? "",
+                                  )}
                                   statusSince={r.status_since}
                                 >
                                   {getStatusBadge(r.status?.toUpperCase())}
@@ -338,7 +354,8 @@ export function PartNumberGroupDialog({
                               <div className="px-3 py-2 flex justify-center">
                                 {isConsumable(r) ? (
                                   (() => {
-                                    const { quantity, unit } = formatQuantity(r);
+                                    const { quantity, unit } =
+                                      formatQuantity(r);
 
                                     return (
                                       <Badge
@@ -385,8 +402,7 @@ export function PartNumberGroupDialog({
 
                             {/* Acciones (solo icono) */}
                             <div className="px-3 py-2 flex justify-center">
-                              {(r.has_documentation ||
-                                (r.certificates?.length ?? 0) > 0) && (
+                              {r.has_documentation && (
                                 <Tooltip>
                                   <TooltipTrigger asChild>
                                     <Button
@@ -506,7 +522,8 @@ export function PartNumberGroupDialog({
                 ¿Seguro que desea eliminar el artículo?
               </DialogTitle>
               <DialogDescription className="text-center p-2 mb-0 pb-0">
-                Esta acción es irreversible y eliminará por completo el artículo.
+                Esta acción es irreversible y eliminará por completo el
+                artículo.
               </DialogDescription>
             </DialogHeader>
             <DialogFooter className="flex flex-col-reverse gap-2 md:gap-0">

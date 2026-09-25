@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import * as React from "react"
+import * as React from "react";
 import {
   ColumnFiltersState,
   flexRender,
@@ -17,49 +17,46 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
-import { useState } from "react"
-import { cn } from "@/lib/utils"
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { CursorPagination } from "@/components/tables/CursorPagination";
+import type { CursorPaginationState } from "@/hooks/helpers/useCursorListing";
+import { useState } from "react";
+import { cn } from "@/lib/utils";
 
-interface ServerPagination {
-  currentPage: number
-  lastPage: number
-  total: number
-  from: number
-  to: number
-  onPageChange: (page: number) => void
-  /** Con orden agrupado el total cuenta grupos, no artículos. */
-  unitLabel?: string
-}
+/**
+ * Paginación por cursor que resuelve el servidor. `summary` es el total bajo
+ * los filtros vigentes; con orden agrupado cuenta grupos, no artículos.
+ */
+type ServerPagination = CursorPaginationState & { summary?: string };
 
 interface DataTableProps<TData extends RowData> {
-  columns: AppColumnDef<TData>[]
-  data: TData[]
-  onRowClick?: (row: TData) => void
-  rowClassName?: (row: TData) => string
-  serverPagination?: ServerPagination
+  columns: AppColumnDef<TData>[];
+  data: TData[];
+  onRowClick?: (row: TData) => void;
+  rowClassName?: (row: TData) => string;
+  serverPagination?: ServerPagination;
   /** Delega el orden al servidor: sin esto solo se ordena la página cargada. */
   serverSorting?: {
-    sorting: SortingState
-    onSortingChange: (sorting: SortingState) => void
-  }
+    sorting: SortingState;
+    onSortingChange: (sorting: SortingState) => void;
+  };
   /** Refetch en curso con datos previos en pantalla. */
-  isFetching?: boolean
+  isFetching?: boolean;
   /**
    * Delega ciertos filtros de columna al servidor. Sin esto solo se filtra la
    * página cargada, que con paginado por servidor son unas pocas filas.
    */
   serverColumnFilters?: {
-    columnIds: string[]
-    onFiltersChange: (filters: Record<string, string>) => void
-  }
+    columnIds: string[];
+    onFiltersChange: (filters: Record<string, string>) => void;
+  };
 }
 
 type ColMeta = {
-  sticky?: "right" | "left"
-  className?: string
-}
+  sticky?: "right" | "left";
+  className?: string;
+};
 
 export function DataTable<TData extends RowData>({
   columns,
@@ -71,37 +68,39 @@ export function DataTable<TData extends RowData>({
   isFetching = false,
   serverColumnFilters,
 }: DataTableProps<TData>) {
-  const [localSorting, setLocalSorting] = useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-  const [columnVisibility, setColumnVisibility] = useState<ColumnVisibilityState>({})
+  const [localSorting, setLocalSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] =
+    useState<ColumnVisibilityState>({});
 
-  const sorting = serverSorting ? serverSorting.sorting : localSorting
+  const sorting = serverSorting ? serverSorting.sorting : localSorting;
 
   const handleColumnFiltersChange: React.Dispatch<
     React.SetStateAction<ColumnFiltersState>
   > = (updater) => {
-    const next = typeof updater === "function" ? updater(columnFilters) : updater
-    setColumnFilters(next)
+    const next =
+      typeof updater === "function" ? updater(columnFilters) : updater;
+    setColumnFilters(next);
 
-    if (!serverColumnFilters) return
+    if (!serverColumnFilters) return;
 
-    const delegated: Record<string, string> = {}
+    const delegated: Record<string, string> = {};
     for (const id of serverColumnFilters.columnIds) {
-      const value = next.find((f) => f.id === id)?.value
-      const raw = String(value ?? "").trim()
-      if (raw) delegated[id] = raw
+      const value = next.find((f) => f.id === id)?.value;
+      const raw = String(value ?? "").trim();
+      if (raw) delegated[id] = raw;
     }
-    serverColumnFilters.onFiltersChange(delegated)
-  }
+    serverColumnFilters.onFiltersChange(delegated);
+  };
 
   const table = useTable({
     features: appTableFeatures,
     data,
     columns,
     onSortingChange: (updater) => {
-      const next = typeof updater === "function" ? updater(sorting) : updater
-      if (serverSorting) serverSorting.onSortingChange(next)
-      else setLocalSorting(next)
+      const next = typeof updater === "function" ? updater(sorting) : updater;
+      if (serverSorting) serverSorting.onSortingChange(next);
+      else setLocalSorting(next);
     },
     manualSorting: !!serverSorting,
     onColumnFiltersChange: handleColumnFiltersChange,
@@ -114,21 +113,21 @@ export function DataTable<TData extends RowData>({
       columnFilters,
       columnVisibility,
     },
-  })
+  });
 
   // z bajo a propósito: la columna fija solo debe cubrir las celdas que pasan
   // por debajo al hacer scroll horizontal, no montarse sobre dropdowns ni
   // diálogos.
   const stickyHeadClass =
-    "sticky right-0 z-2 bg-background transition-colors group-hover:[background:var(--sticky-hover-bg)]"
+    "sticky right-0 z-2 bg-background transition-colors group-hover:[background:var(--sticky-hover-bg)]";
   // La celda necesita fondo opaco (tapa lo que pasa por debajo al hacer
   // scroll), pero la fila tiñe con muted/50 translúcido. color-mix reproduce
   // esa mezcla ya compuesta sobre el fondo, así el tono coincide exactamente;
   // transition-colors la sincroniza con el transition-colors de la fila.
   const stickyHoverBg =
-    "color-mix(in srgb, hsl(var(--muted)) 50%, hsl(var(--background)))"
+    "color-mix(in srgb, hsl(var(--muted)) 50%, hsl(var(--background)))";
   const stickyCellClass =
-    "sticky right-0 z-1 bg-background transition-colors group-hover:[background:var(--sticky-hover-bg)] group-data-[state=selected]:bg-muted"
+    "sticky right-0 z-1 bg-background transition-colors group-hover:[background:var(--sticky-hover-bg)] group-data-[state=selected]:bg-muted";
 
   return (
     <div className="space-y-4">
@@ -148,24 +147,33 @@ export function DataTable<TData extends RowData>({
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id} className="group">
                 {headerGroup.headers.map((header) => {
-                  const meta = header.column.columnDef.meta as ColMeta | undefined
-                  const isStickyRight = meta?.sticky === "right"
+                  const meta = header.column.columnDef.meta as
+                    ColMeta | undefined;
+                  const isStickyRight = meta?.sticky === "right";
 
                   return (
                     <TableHead
                       key={header.id}
-                      className={cn(isStickyRight && stickyHeadClass, meta?.className)}
+                      className={cn(
+                        isStickyRight && stickyHeadClass,
+                        meta?.className,
+                      )}
                       style={
                         isStickyRight
-                          ? ({ "--sticky-hover-bg": stickyHoverBg } as React.CSSProperties)
+                          ? ({
+                              "--sticky-hover-bg": stickyHoverBg,
+                            } as React.CSSProperties)
                           : undefined
                       }
                     >
                       {header.isPlaceholder
                         ? null
-                        : flexRender(header.column.columnDef.header, header.getContext())}
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
                     </TableHead>
-                  )
+                  );
                 })}
               </TableRow>
             ))}
@@ -181,28 +189,40 @@ export function DataTable<TData extends RowData>({
                   onClick={() => onRowClick?.(row.original)}
                 >
                   {row.getVisibleCells().map((cell) => {
-                    const meta = cell.column.columnDef.meta as ColMeta | undefined
-                    const isStickyRight = meta?.sticky === "right"
+                    const meta = cell.column.columnDef.meta as
+                      ColMeta | undefined;
+                    const isStickyRight = meta?.sticky === "right";
 
                     return (
                       <TableCell
                         key={cell.id}
-                        className={cn(isStickyRight && stickyCellClass, meta?.className)}
+                        className={cn(
+                          isStickyRight && stickyCellClass,
+                          meta?.className,
+                        )}
                         style={
                           isStickyRight
-                            ? ({ "--sticky-hover-bg": stickyHoverBg } as React.CSSProperties)
+                            ? ({
+                                "--sticky-hover-bg": stickyHoverBg,
+                              } as React.CSSProperties)
                             : undefined
                         }
                       >
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )}
                       </TableCell>
-                    )
+                    );
                   })}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
                   No hay resultados.
                 </TableCell>
               </TableRow>
@@ -211,21 +231,21 @@ export function DataTable<TData extends RowData>({
         </Table>
       </div>
 
-      <div className="flex items-center justify-between px-2">
-        <div className="flex-1 text-sm text-muted-foreground">
-          {serverPagination
-            ? `${serverPagination.from}–${serverPagination.to} de ${serverPagination.total} ${serverPagination.unitLabel ?? "artículo(s)"}`
-            : `${table.getFilteredRowModel().rows.length} artículo(s) total(es)`}
-        </div>
+      {serverPagination ? (
+        <CursorPagination {...serverPagination} />
+      ) : (
+        <div className="flex items-center justify-between px-2">
+          <div className="flex-1 text-sm text-muted-foreground">
+            {`${table.getFilteredRowModel().rows.length} artículo(s) total(es)`}
+          </div>
 
-        <div className="flex items-center space-x-6 lg:space-x-8">
-          {!serverPagination && (
+          <div className="flex items-center space-x-6 lg:space-x-8">
             <div className="flex items-center space-x-2">
               <p className="text-sm font-medium">Filas por página</p>
               <select
                 value={table.state.pagination.pageSize}
                 onChange={(e) => table.setPageSize(Number(e.target.value))}
-                className="h-8 w-[70px] rounded-md border border-input bg-transparent px-2 py-1 text-sm"
+                className="h-8 w-17.5 rounded-md border border-input bg-transparent px-2 py-1 text-sm"
               >
                 {[10, 20, 50, 100, 200, 500].map((pageSize) => (
                   <option key={pageSize} value={pageSize}>
@@ -234,59 +254,32 @@ export function DataTable<TData extends RowData>({
                 ))}
               </select>
             </div>
-          )}
 
-          {serverPagination ? (
-            <>
-              <div className="flex w-[120px] items-center justify-center text-sm font-medium">
-                Página {serverPagination.currentPage} de {serverPagination.lastPage}
-              </div>
-              <div className="flex items-center space-x-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => serverPagination.onPageChange(serverPagination.currentPage - 1)}
-                  disabled={serverPagination.currentPage <= 1}
-                >
-                  Anterior
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => serverPagination.onPageChange(serverPagination.currentPage + 1)}
-                  disabled={serverPagination.currentPage >= serverPagination.lastPage}
-                >
-                  Siguiente
-                </Button>
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="flex w-[120px] items-center justify-center text-sm font-medium">
-                Página {table.state.pagination.pageIndex + 1} de {table.getPageCount()}
-              </div>
-              <div className="flex items-center space-x-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => table.previousPage()}
-                  disabled={!table.getCanPreviousPage()}
-                >
-                  Anterior
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => table.nextPage()}
-                  disabled={!table.getCanNextPage()}
-                >
-                  Siguiente
-                </Button>
-              </div>
-            </>
-          )}
+            <div className="flex w-30 items-center justify-center text-sm font-medium">
+              Página {table.state.pagination.pageIndex + 1} de{" "}
+              {table.getPageCount()}
+            </div>
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => table.previousPage()}
+                disabled={!table.getCanPreviousPage()}
+              >
+                Anterior
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => table.nextPage()}
+                disabled={!table.getCanNextPage()}
+              >
+                Siguiente
+              </Button>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
     </div>
-  )
+  );
 }

@@ -19,14 +19,23 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
+import { CursorPagination } from "@/components/tables/CursorPagination";
+import type { CursorPaginationState } from "@/hooks/helpers/useCursorListing";
+import { cn } from "@/lib/utils";
 import { useState } from "react";
 
 interface DataTableProps<TData extends RowData> {
   columns: AppColumnDef<TData>[];
   data: TData[];
   onSelectionChange?: (ids: number[]) => void;
-  selectionResetKey?: number;
+  /**
+   * Cambiarla vacía la selección. Incluye la página: la aceptación masiva solo
+   * actúa sobre lo que está a la vista.
+   */
+  selectionResetKey?: string | number;
+  /** Paginación por cursor del servidor; `summary` lleva el total. */
+  pagination: CursorPaginationState & { summary?: string };
+  isFetching?: boolean;
 }
 
 export function DataTable<TData extends RowData>({
@@ -34,6 +43,8 @@ export function DataTable<TData extends RowData>({
   data,
   onSelectionChange,
   selectionResetKey,
+  pagination,
+  isFetching = false,
 }: DataTableProps<TData>) {
   // ============================================
   // STATE MANAGEMENT
@@ -77,6 +88,9 @@ export function DataTable<TData extends RowData>({
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: handleRowSelectionChange,
+    initialState: {
+      pagination: { pageIndex: 0, pageSize: 100 },
+    },
     state: {
       sorting,
       columnFilters,
@@ -98,8 +112,18 @@ export function DataTable<TData extends RowData>({
   // ============================================
   return (
     <div className="space-y-4">
-      <div className="rounded-md border">
-        <Table>
+      <div className="relative rounded-md border">
+        {isFetching && (
+          <div className="absolute inset-x-0 top-0 z-50 h-0.5 overflow-hidden bg-muted">
+            <div className="h-full w-1/4 animate-indeterminate bg-primary" />
+          </div>
+        )}
+        <Table
+          className={cn(
+            "transition-opacity",
+            isFetching && "opacity-60 pointer-events-none",
+          )}
+        >
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
@@ -147,50 +171,7 @@ export function DataTable<TData extends RowData>({
         </Table>
       </div>
 
-      {/* Paginación */}
-      <div className="flex items-center justify-between px-2">
-        <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredRowModel().rows.length} artículo(s) total(es)
-        </div>
-        <div className="flex items-center space-x-6 lg:space-x-8">
-          <div className="flex items-center space-x-2">
-            <p className="text-sm font-medium">Filas por página</p>
-            <select
-              value={table.state.pagination.pageSize}
-              onChange={(e) => table.setPageSize(Number(e.target.value))}
-              className="h-8 w-17.5 rounded-md border border-input bg-transparent px-2 py-1 text-sm"
-            >
-              {[10, 20, 30, 40, 50].map((pageSize) => (
-                <option key={pageSize} value={pageSize}>
-                  {pageSize}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="flex w-25 items-center justify-center text-sm font-medium">
-            Página {table.state.pagination.pageIndex + 1} de{" "}
-            {table.getPageCount()}
-          </div>
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
-            >
-              Anterior
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
-            >
-              Siguiente
-            </Button>
-          </div>
-        </div>
-      </div>
+      <CursorPagination {...pagination} />
     </div>
   );
 }

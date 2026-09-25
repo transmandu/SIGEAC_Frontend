@@ -1553,6 +1553,9 @@ export type InTransitDetail = {
     | "INTAKE_REJECTED";
 };
 
+/** Lo que los listados mandan de la unidad base de un artículo general. */
+export type GeneralArticleUnit = Pick<Unit, "id" | "label" | "value">;
+
 export type GeneralArticle = {
   id: number;
   description: string;
@@ -1561,10 +1564,17 @@ export type GeneralArticle = {
   minimum_quantity?: number | null;
   /** Nivel al que repone la requisición automática, no un tope de existencia. */
   maximum_quantity?: number | null;
-  brand_model?: string;
-  warehouse: Warehouse;
-  general_primary_unit: Unit;
-  cost?: number;
+  brand_model?: string | null;
+  /**
+   * Solo lo traen alertas y supervisión; los listados de inventario y el
+   * catálogo mandan `warehouse_id`.
+   */
+  warehouse?: Warehouse;
+  warehouse_id?: number;
+  primary_unit_id?: number | null;
+  general_primary_unit: GeneralArticleUnit;
+  /** Solo lo traen los listados de compras y supervisión. */
+  cost?: number | null;
   image?: string | null;
   cost_history?: GeneralArticleCostHistoryEntry[];
   /** Solo lo carga el endpoint de low-stock. */

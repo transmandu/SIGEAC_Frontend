@@ -5,7 +5,7 @@ import { Form } from "@/components/ui/form";
 import { useGetVendors } from "@/hooks/general/proveedores/useGetVendors";
 import { useGetLocationsByCompanyId } from "@/hooks/sistema/useGetLocationsByCompanyId";
 import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits";
-import { useGetConditions } from "@/hooks/administracion/useGetConditions";
+import { useGetConditions } from "@/hooks/general/condiciones/useGetConditions";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { zodResolver } from "@/lib/zod-resolver";
 import { Loader2, PackageSearch } from "lucide-react";
@@ -25,142 +25,150 @@ export const LEAD_TIME_UNITS = [
   { value: "año", label: "Año(s)" },
 ] as const;
 
-const FormSchema = z.object({
-  justification: z.string(),
-  articles: z.array(
-    z.object({
-      article_requisition_order_id: z.number().optional(),
-      part_number: z.string(),
-      alt_part_number: z.string().optional(),
-      original_alt_part_number: z.string().optional(),
-      quantity: z.string().regex(/^\d+(\.\d{0,2})?$/),
-      original_quantity: z.string().optional(),
-      unit: z.string().optional(),
-      original_unit: z.string().optional(),
-      unit_price: z
-        .string()
-        .regex(/^\d+(\.\d{0,2})?$/, "Precio inválido"),
-      vendor_id: z.string().optional(),
-      location_id: z.string().optional(),
-      condition_id: z.string().optional(),
-      reference: z.string().optional(),
-      lead_time_value: z.string().optional(),
-      lead_time_unit: z.string().optional(),
-      not_quoted: z.boolean().optional(),
-      quote_justification: z.string().optional(),
-      batch: z.object({
-        name: z.string(),
-        category: z.string(),
+const FormSchema = z
+  .object({
+    justification: z.string(),
+    articles: z.array(
+      z.object({
+        article_requisition_order_id: z.number().optional(),
+        part_number: z.string(),
+        alt_part_number: z.string().optional(),
+        original_alt_part_number: z.string().optional(),
+        quantity: z.string().regex(/^\d+(\.\d{0,2})?$/),
+        original_quantity: z.string().optional(),
+        unit: z.string().optional(),
+        original_unit: z.string().optional(),
+        unit_price: z.string().regex(/^\d+(\.\d{0,2})?$/, "Precio inválido"),
+        vendor_id: z.string().optional(),
+        location_id: z.string().optional(),
+        condition_id: z.string().optional(),
+        reference: z.string().optional(),
+        lead_time_value: z.string().optional(),
+        lead_time_unit: z.string().optional(),
+        not_quoted: z.boolean().optional(),
+        quote_justification: z.string().optional(),
+        batch: z.object({
+          name: z.string(),
+          category: z.string(),
+        }),
       }),
-    })
-  ),
-  general_articles: z.array(
-    z.object({
-      general_article_requisition_order_id: z.number().optional(),
-      description: z.string(),
-      variant_type: z.string().nullable().optional(),
-      brand_model: z.string().optional(),
-      original_brand_model: z.string().optional(),
-      quantity: z.string().regex(/^\d+(\.\d{0,2})?$/),
-      original_quantity: z.string().optional(),
-      unit: z.string().optional(),
-      original_unit: z.string().optional(),
-      unit_price: z
-        .string()
-        .regex(/^\d+(\.\d{0,2})?$/, "Precio inválido"),
-      location_id: z.string().optional(),
-      reference: z.string().optional(),
-      lead_time_value: z.string().optional(),
-      lead_time_unit: z.string().optional(),
-      not_quoted: z.boolean().optional(),
-      quote_justification: z.string().optional(),
-    })
-  ),
-  vendor_id: z.string().optional(),
-  location_id: z.string({ message: "Debe ingresar una ubicacion destino." }),
-  quote_date: z.date({ message: "Debe ingresar una fecha de cotizacion." }),
-  observation: z.string().optional(),
-}).superRefine((data, ctx) => {
-  if (!data.vendor_id) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "Debe seleccionar un proveedor.",
-      path: ["vendor_id"],
-    });
-  }
+    ),
+    general_articles: z.array(
+      z.object({
+        general_article_requisition_order_id: z.number().optional(),
+        description: z.string(),
+        variant_type: z.string().nullable().optional(),
+        brand_model: z.string().optional(),
+        original_brand_model: z.string().optional(),
+        quantity: z.string().regex(/^\d+(\.\d{0,2})?$/),
+        original_quantity: z.string().optional(),
+        unit: z.string().optional(),
+        original_unit: z.string().optional(),
+        unit_price: z.string().regex(/^\d+(\.\d{0,2})?$/, "Precio inválido"),
+        location_id: z.string().optional(),
+        reference: z.string().optional(),
+        lead_time_value: z.string().optional(),
+        lead_time_unit: z.string().optional(),
+        not_quoted: z.boolean().optional(),
+        quote_justification: z.string().optional(),
+      }),
+    ),
+    vendor_id: z.string().optional(),
+    location_id: z.string({ message: "Debe ingresar una ubicacion destino." }),
+    quote_date: z.date({ message: "Debe ingresar una fecha de cotizacion." }),
+    observation: z.string().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (!data.vendor_id) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Debe seleccionar un proveedor.",
+        path: ["vendor_id"],
+      });
+    }
 
-  data.articles.forEach((article, index) => {
-    if (article.not_quoted) return;
+    data.articles.forEach((article, index) => {
+      if (article.not_quoted) return;
 
-    const requiredFields: { key: keyof typeof article; message: string }[] = [
-      { key: "quantity", message: "La cantidad es obligatoria." },
-      { key: "unit", message: "La unidad es obligatoria." },
-      { key: "part_number", message: "El número de parte es obligatorio." },
-      { key: "vendor_id", message: "El proveedor es obligatorio." },
-      { key: "condition_id", message: "La condición es obligatoria." },
-      { key: "location_id", message: "El destino es obligatorio." },
-    ];
+      const requiredFields: { key: keyof typeof article; message: string }[] = [
+        { key: "quantity", message: "La cantidad es obligatoria." },
+        { key: "unit", message: "La unidad es obligatoria." },
+        { key: "part_number", message: "El número de parte es obligatorio." },
+        { key: "vendor_id", message: "El proveedor es obligatorio." },
+        { key: "condition_id", message: "La condición es obligatoria." },
+        { key: "location_id", message: "El destino es obligatorio." },
+      ];
 
-    requiredFields.forEach(({ key, message }) => {
-      if (!article[key]) {
+      requiredFields.forEach(({ key, message }) => {
+        if (!article[key]) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message,
+            path: ["articles", index, key],
+          });
+        }
+      });
+
+      if (!(Number(article.unit_price) > 0)) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message,
-          path: ["articles", index, key],
+          message:
+            "El precio unitario debe ser mayor a 0 para artículos cotizados.",
+          path: ["articles", index, "unit_price"],
         });
       }
     });
 
-    if (!(Number(article.unit_price) > 0)) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "El precio unitario debe ser mayor a 0 para artículos cotizados.",
-        path: ["articles", index, "unit_price"],
+    data.general_articles.forEach((article, index) => {
+      if (article.not_quoted) return;
+
+      const requiredFields: { key: keyof typeof article; message: string }[] = [
+        { key: "brand_model", message: "La marca/modelo es obligatoria." },
+        { key: "quantity", message: "La cantidad es obligatoria." },
+        { key: "unit", message: "La unidad es obligatoria." },
+        { key: "location_id", message: "El destino es obligatorio." },
+      ];
+
+      requiredFields.forEach(({ key, message }) => {
+        if (!article[key]) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message,
+            path: ["general_articles", index, key],
+          });
+        }
       });
-    }
-  });
 
-  data.general_articles.forEach((article, index) => {
-    if (article.not_quoted) return;
-
-    const requiredFields: { key: keyof typeof article; message: string }[] = [
-      { key: "brand_model", message: "La marca/modelo es obligatoria." },
-      { key: "quantity", message: "La cantidad es obligatoria." },
-      { key: "unit", message: "La unidad es obligatoria." },
-      { key: "location_id", message: "El destino es obligatorio." },
-    ];
-
-    requiredFields.forEach(({ key, message }) => {
-      if (!article[key]) {
+      if (!(Number(article.unit_price) > 0)) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message,
-          path: ["general_articles", index, key],
+          message: "El precio debe ser mayor a 0 para artículos cotizados.",
+          path: ["general_articles", index, "unit_price"],
         });
       }
     });
-
-    if (!(Number(article.unit_price) > 0)) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "El precio debe ser mayor a 0 para artículos cotizados.",
-        path: ["general_articles", index, "unit_price"],
-      });
-    }
   });
-});
 
 type FormSchemaType = z.infer<typeof FormSchema>;
 export type QuoteArticleFormValues = FormSchemaType["articles"][number];
-export type QuoteGeneralArticleFormValues = FormSchemaType["general_articles"][number];
+export type QuoteGeneralArticleFormValues =
+  FormSchemaType["general_articles"][number];
 
 /** An article needs a justification when it's excluded, or its quantity/unit was changed from the requisition's original. */
 export function articleNeedsJustification(
-  article: QuoteArticleFormValues | QuoteGeneralArticleFormValues
+  article: QuoteArticleFormValues | QuoteGeneralArticleFormValues,
 ): boolean {
   if (article.not_quoted) return true;
-  if (article.original_quantity !== undefined && article.quantity !== article.original_quantity) return true;
-  if (article.original_unit !== undefined && (article.unit ?? "") !== (article.original_unit ?? "")) return true;
+  if (
+    article.original_quantity !== undefined &&
+    article.quantity !== article.original_quantity
+  )
+    return true;
+  if (
+    article.original_unit !== undefined &&
+    (article.unit ?? "") !== (article.original_unit ?? "")
+  )
+    return true;
   return false;
 }
 
@@ -178,15 +186,11 @@ export function CreateQuoteForm({
   const { data: conditions } = useGetConditions();
   const { createQuote } = useCreateQuote();
 
-  const {
-    data: vendors,
-    isLoading: isVendorsLoading,
-  } = useGetVendors(selectedCompany?.slug);
+  const { data: vendors, isLoading: isVendorsLoading } = useGetVendors(
+    selectedCompany?.slug,
+  );
 
-  const {
-    mutate,
-    data: locations,
-  } = useGetLocationsByCompanyId();
+  const { mutate, data: locations } = useGetLocationsByCompanyId();
 
   useEffect(() => {
     if (selectedCompany) mutate(Number(2));
@@ -215,27 +219,29 @@ export function CreateQuoteForm({
         name: batch.name,
         category: batch.category ?? "",
       },
-    }))
+    })),
   );
 
-  const transformedGeneralArticles = (req.general_articles ?? []).map((article: any) => ({
-    general_article_requisition_order_id: article.id as number | undefined,
-    description: article.description,
-    variant_type: article.variant_type ?? "",
-    brand_model: "",
-    original_brand_model: "",
-    quantity: article.quantity,
-    original_quantity: article.quantity,
-    unit: article.unit ? article.unit.id.toString() : undefined,
-    original_unit: article.unit ? article.unit.id.toString() : undefined,
-    unit_price: "0",
-    location_id: undefined,
-    reference: "",
-    lead_time_value: "",
-    lead_time_unit: "día",
-    not_quoted: false,
-    quote_justification: "",
-  }));
+  const transformedGeneralArticles = (req.general_articles ?? []).map(
+    (article: any) => ({
+      general_article_requisition_order_id: article.id as number | undefined,
+      description: article.description,
+      variant_type: article.variant_type ?? "",
+      brand_model: "",
+      original_brand_model: "",
+      quantity: article.quantity,
+      original_quantity: article.quantity,
+      unit: article.unit ? article.unit.id.toString() : undefined,
+      original_unit: article.unit ? article.unit.id.toString() : undefined,
+      unit_price: "0",
+      location_id: undefined,
+      reference: "",
+      lead_time_value: "",
+      lead_time_unit: "día",
+      not_quoted: false,
+      quote_justification: "",
+    }),
+  );
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
@@ -248,9 +254,15 @@ export function CreateQuoteForm({
   });
 
   const articles = useWatch({ control: form.control, name: "articles" });
-  const generalArticles = useWatch({ control: form.control, name: "general_articles" });
+  const generalArticles = useWatch({
+    control: form.control,
+    name: "general_articles",
+  });
   const headerVendorId = useWatch({ control: form.control, name: "vendor_id" });
-  const headerLocationId = useWatch({ control: form.control, name: "location_id" });
+  const headerLocationId = useWatch({
+    control: form.control,
+    name: "location_id",
+  });
 
   // El proveedor y la ubicación de la cabecera bajan a todos los artículos
   // como valor por defecto; cada uno sigue siendo editable después.
@@ -289,12 +301,14 @@ export function CreateQuoteForm({
         if (Number.isNaN(qty) || Number.isNaN(price)) return sum;
         return sum + qty * price;
       }, 0),
-    [articles, generalArticles]
+    [articles, generalArticles],
   );
 
   const onSubmit = async (data: FormSchemaType) => {
     const quotedArticles = data.articles.filter((a) => !a.not_quoted);
-    const quotedGeneralArticles = data.general_articles.filter((a) => !a.not_quoted);
+    const quotedGeneralArticles = data.general_articles.filter(
+      (a) => !a.not_quoted,
+    );
 
     if (quotedArticles.length === 0 && quotedGeneralArticles.length === 0) {
       toast.error("Debe cotizar al menos un artículo.");
@@ -303,28 +317,30 @@ export function CreateQuoteForm({
 
     const missingJustification =
       data.articles.some(
-        (a) => articleNeedsJustification(a) && !a.quote_justification?.trim()
+        (a) => articleNeedsJustification(a) && !a.quote_justification?.trim(),
       ) ||
       data.general_articles.some(
-        (a) => articleNeedsJustification(a) && !a.quote_justification?.trim()
+        (a) => articleNeedsJustification(a) && !a.quote_justification?.trim(),
       );
     if (missingJustification) {
       toast.error(
-        "Debe justificar los artículos no cotizados o con cambios en cantidad/unidad."
+        "Debe justificar los artículos no cotizados o con cambios en cantidad/unidad.",
       );
       return;
     }
 
     if (data.articles.some((a) => !a.article_requisition_order_id)) {
       toast.error(
-        "Uno o más artículos no tienen un identificador válido de la requisición. Recargue la página e intente de nuevo."
+        "Uno o más artículos no tienen un identificador válido de la requisición. Recargue la página e intente de nuevo.",
       );
       return;
     }
 
-    if (data.general_articles.some((a) => !a.general_article_requisition_order_id)) {
+    if (
+      data.general_articles.some((a) => !a.general_article_requisition_order_id)
+    ) {
       toast.error(
-        "Uno o más artículos generales no tienen un identificador válido de la requisición. Recargue la página e intente de nuevo."
+        "Uno o más artículos generales no tienen un identificador válido de la requisición. Recargue la página e intente de nuevo.",
       );
       return;
     }
@@ -341,7 +357,9 @@ export function CreateQuoteForm({
         is_not_quoted: !!a.not_quoted,
         quantity: a.not_quoted ? 0 : Number(a.quantity),
         unit_price: a.not_quoted ? 0 : Number(a.unit_price),
-        total: a.not_quoted ? 0 : (Number(a.quantity) || 0) * (Number(a.unit_price) || 0),
+        total: a.not_quoted
+          ? 0
+          : (Number(a.quantity) || 0) * (Number(a.unit_price) || 0),
         unit_id: a.unit ? Number(a.unit) : undefined,
         vendor_id: a.vendor_id ? Number(a.vendor_id) : undefined,
         location_id: a.location_id ? Number(a.location_id) : undefined,
@@ -357,11 +375,14 @@ export function CreateQuoteForm({
         quote_justification: a.quote_justification || undefined,
       })),
       general_articles: data.general_articles.map((a) => ({
-        general_article_requisition_order_id: a.general_article_requisition_order_id ?? 0,
+        general_article_requisition_order_id:
+          a.general_article_requisition_order_id ?? 0,
         is_not_quoted: !!a.not_quoted,
         quantity: a.not_quoted ? 0 : Number(a.quantity),
         unit_price: a.not_quoted ? 0 : Number(a.unit_price),
-        total: a.not_quoted ? 0 : (Number(a.quantity) || 0) * (Number(a.unit_price) || 0),
+        total: a.not_quoted
+          ? 0
+          : (Number(a.quantity) || 0) * (Number(a.unit_price) || 0),
         unit_id: a.unit ? Number(a.unit) : undefined,
         location_id: a.location_id ? Number(a.location_id) : undefined,
         brand_model:
@@ -375,18 +396,25 @@ export function CreateQuoteForm({
         quote_justification: a.quote_justification || undefined,
       })),
     };
-    await createQuote.mutateAsync({ data: formattedData, company: selectedCompany!.slug });
+    await createQuote.mutateAsync({
+      data: formattedData,
+      company: selectedCompany!.slug,
+    });
     onClose();
   };
 
   const onInvalid = () => {
-    toast.error("Hay campos obligatorios sin completar. Revise los artículos marcados con *.");
+    toast.error(
+      "Hay campos obligatorios sin completar. Revise los artículos marcados con *.",
+    );
   };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit, onInvalid)} className="flex flex-col gap-5">
-
+      <form
+        onSubmit={form.handleSubmit(onSubmit, onInvalid)}
+        className="flex flex-col gap-5"
+      >
         <QuoteMetaSection
           form={form}
           req={req}

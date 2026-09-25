@@ -1,37 +1,8 @@
-import type { Condition, Manufacturer } from '@/types';
+import type { ToDeterminateQueueArticle } from "@/types/inventory/queues";
 
-// ── Destination Article ──────────────────────────────────────────────────
-export type DestinationArticle = {
-  id: number;
-  part_number?: string | null;
-  alternative_part_number?: string | null;
-  serial?: string | null;
-  article_type?: string | null;
-  description?: string | null;
-  status?: string | null;
-  quantity?: number | null;
-  unit?: string | null;
-  batch?: {
-    id: number;
-    name?: string | null;
-    /** Consumible, herramienta, componente o parte: el tipo real del artículo. */
-    category?: string | null;
-    warehouse?: {
-      id: number;
-      name?: string | null;
-      location?: {
-        id: number;
-        address?: string | null;
-        cod_iata?: string | null;
-      } | null;
-    } | null;
-  } | null;
-  condition?: {
-    id: number;
-    name?: string | null;
-  } | null;
-  manufacturer?: {
-    id: number;
-    name?: string | null;
-  } | null;
-};
+/**
+ * Fila de la cola de destino indeterminado
+ * (`articles/queues/to-determinate`). La descripción es el nombre del renglón
+ * (`batch.name`) y el tipo, su categoría (`batch.category`).
+ */
+export type DestinationArticle = ToDeterminateQueueArticle;

@@ -20,19 +20,19 @@ import { DetermineDestinationDialog } from "./_components/DetermineDestinationDi
 
 import type { DestinationArticle } from "@/types/purchase";
 
-const ARTICLE_TYPES: Record<
-  string,
-  { label: string; icon: typeof Droplets }
-> = {
-  CONSUMABLE: { label: "Consumible", icon: Droplets },
-  COMPONENT: { label: "Componente", icon: Cpu },
-  TOOL: { label: "Herramienta", icon: Wrench },
-  PART: { label: "Parte", icon: Puzzle },
-};
+const ARTICLE_TYPES: Record<string, { label: string; icon: typeof Droplets }> =
+  {
+    CONSUMABLE: { label: "Consumible", icon: Droplets },
+    COMPONENT: { label: "Componente", icon: Cpu },
+    TOOL: { label: "Herramienta", icon: Wrench },
+    PART: { label: "Parte", icon: Puzzle },
+  };
 
 function getArticleType(type?: string | null) {
   const normalized = type?.toUpperCase() ?? "";
-  return ARTICLE_TYPES[normalized] ?? { label: type || "Sin tipo", icon: HelpCircle };
+  return (
+    ARTICLE_TYPES[normalized] ?? { label: type || "Sin tipo", icon: HelpCircle }
+  );
 }
 
 /**
@@ -43,7 +43,11 @@ function getArticleType(type?: string | null) {
  * precisamente eso: de quién es el material. Si es de esta sede entra a
  * recepción; si es de otra hay que trasladarlo.
  */
-function DetermineDestinationButton({ article }: { article: DestinationArticle }) {
+function DetermineDestinationButton({
+  article,
+}: {
+  article: DestinationArticle;
+}) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -84,13 +88,13 @@ export const columns: AppColumnDef<DestinationArticle>[] = [
         <p className="font-mono text-sm font-semibold tracking-wide">
           {row.original.part_number || "Sin P/N"}
         </p>
-        {row.original.alternative_part_number && (
+        {row.original.alternative_part_number.length > 0 && (
           <div className="flex items-center gap-1.5">
             <span className="shrink-0 select-none rounded border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-[10px] font-mono font-semibold tracking-widest text-amber-600 dark:border-amber-800/60 dark:bg-amber-950/60 dark:text-amber-500">
               ALT
             </span>
             <span className="font-mono text-xs text-muted-foreground">
-              {row.original.alternative_part_number}
+              {row.original.alternative_part_number.join(" / ")}
             </span>
           </div>
         )}
@@ -106,7 +110,9 @@ export const columns: AppColumnDef<DestinationArticle>[] = [
       // El tipo vive en la categoría del lote, no en un campo del artículo:
       // `article_type` no viaja en este listado y dejaba todas las filas en
       // "Sin tipo".
-      const { label, icon: Icon } = getArticleType(row.original.batch?.category);
+      const { label, icon: Icon } = getArticleType(
+        row.original.batch?.category,
+      );
 
       return (
         <div className="flex items-center gap-2">
@@ -124,7 +130,7 @@ export const columns: AppColumnDef<DestinationArticle>[] = [
       <DataTableColumnHeader column={column} title="Descripción" />
     ),
     cell: ({ row }) => (
-      <p className="max-w-[260px] truncate text-sm font-medium">
+      <p className="max-w-65 truncate text-sm font-medium">
         {row.original.batch?.name || "Sin descripción"}
       </p>
     ),
@@ -180,9 +186,7 @@ export const columns: AppColumnDef<DestinationArticle>[] = [
   },
   {
     id: "actions",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="" />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="" />,
     cell: ({ row }) => (
       <div className="flex justify-end" onClick={(e) => e.stopPropagation()}>
         <DetermineDestinationButton article={row.original} />
