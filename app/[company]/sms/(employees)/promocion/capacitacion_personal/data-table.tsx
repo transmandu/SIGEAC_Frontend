@@ -22,6 +22,7 @@ import { appTableFeatures, type AppColumnDef } from "@/lib/table";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { TrainingReportModal } from "./TrainingReportModal";
+import { TrainingProgramReportModal } from "./TrainingProgramReportModal";
 
 interface DataTableProps<TData extends RowData> {
   columns: AppColumnDef<TData>[];
@@ -64,6 +65,7 @@ export function DataTable<TData extends RowData>({
 
       <div className="flex items-center justify-end gap-2 py-4">
         <TrainingReportModal company={company} />
+        <TrainingProgramReportModal company={company} />
         <DataTableViewOptions table={table} />
       </div>
 
