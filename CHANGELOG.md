@@ -1,3 +1,7 @@
+## v4.26.0 — 2026-09-25
+
+- feat: add program trainning pdf (#293)
+
 ## v4.25.0 — 2026-09-25
 
 - feat: add stock adjustment and warehouse inventory hooks (#292)
