@@ -19,7 +19,7 @@ import {
   PhotographicImage,
 } from "./StepPhotographicRecords";
 import { useGetDepartments } from "@/hooks/ajustes/departamento/useGetDepartment";
-import { useGetEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetEmployees";
+import { useGetAllEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetAllEmployees";
 import { toCalendarPayload } from "@/lib/date";
 
 const STEPS = [
@@ -141,7 +141,7 @@ export function CreateChangeRequestForm() {
   const {
     data: employees,
     isLoading: isLoadingEmployees,
-  } = useGetEmployeesByCompany(selectedCompany?.slug);
+  } = useGetAllEmployeesByCompany(selectedCompany?.slug);
 
   const form = useForm<ChangeRequestFormValues>({
     resolver: zodResolver(formSchema),

@@ -38,7 +38,6 @@ import {
   useUpdateMeetingMinute,
 } from "@/actions/general/minutas_reunion/actions";
 import { MeetingMinutes } from "@/types";
-import { useGetEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetEmployees";
 import { useGetAllEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetAllEmployees";
 import { useGetAuthorizedEmployees } from "@/hooks/ajustes/autorizados/useGetAuthorizedEmployees";
 import { toCalendarPayload } from "@/lib/date";
@@ -187,8 +186,6 @@ export function CreateMeetingMinuteForm({
 }: FormProps) {
   const { selectedCompany, selectedStation } = useCompanyStore();
   const companySlug = selectedCompany?.slug ?? "";
-  const { data: employees, isLoading: employeesLoading } =
-    useGetEmployeesByCompany(companySlug);
   const { data: allEmployees, isLoading: allEmployeesLoading } =
     useGetAllEmployeesByCompany(companySlug);
   const { data: authorizedEmployees, isLoading: authorizedEmployeesLoading } =
@@ -197,11 +194,6 @@ export function CreateMeetingMinuteForm({
   const { updateMeetingMinute } = useUpdateMeetingMinute();
 
   const [step, setStep] = useState(1);
-
-  const employeeOptions = (employees ?? []).map((e) => ({
-    value: String(e.id),
-    label: `${e.first_name} ${e.last_name}`.trim(),
-  }));
 
   const allEmployeeOptions = (allEmployees ?? []).map((e) => ({
     value: String(e.id),
@@ -789,7 +781,7 @@ export function CreateMeetingMinuteForm({
                   key={field.id}
                   form={form}
                   index={index}
-                  employees={employees ?? []}
+                  employees={allEmployees ?? []}
                   authorizedEmployees={authorizedEmployees ?? []}
                   isAuthorizedEmployeesLoading={authorizedEmployeesLoading}
                   onRemove={() => removeAgreement(index)}
@@ -811,24 +803,24 @@ export function CreateMeetingMinuteForm({
                   name="filled_out_by"
                   label="Realizado por"
                   placeholder="Opcional"
-                  options={employeeOptions}
-                  disabled={employeesLoading}
+                  options={allEmployeeOptions}
+                  disabled={allEmployeesLoading}
                 />
                 <ComboboxField
                   form={form}
                   name="reviewed_by"
                   label="Revisado por"
                   placeholder="Opcional"
-                  options={employeeOptions}
-                  disabled={employeesLoading}
+                  options={allEmployeeOptions}
+                  disabled={allEmployeesLoading}
                 />
                 <ComboboxField
                   form={form}
                   name="approved_by"
                   label="Aprobado por"
                   placeholder="Opcional"
-                  options={employeeOptions}
-                  disabled={employeesLoading}
+                  options={allEmployeeOptions}
+                  disabled={allEmployeesLoading}
                 />
               </div>
             </div>
