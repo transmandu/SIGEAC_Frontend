@@ -1,3 +1,7 @@
+## v4.23.0 — 2026-09-25
+
+- feat: sms report statistics pdf (#290)
+
 ## v4.22.0 — 2026-09-24
 
 - feat: replicated file with no rule (#289)
