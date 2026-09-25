@@ -1,3 +1,7 @@
+## v4.25.0 — 2026-09-25
+
+- feat: add stock adjustment and warehouse inventory hooks (#292)
+
 ## v4.24.0 — 2026-09-25
 
 - feat: change input to get all employees sms forms (#291)
