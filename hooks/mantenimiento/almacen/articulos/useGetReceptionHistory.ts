@@ -34,27 +34,30 @@ type DateRange = {
 
 const fetchReceptionHistory = async (
   company: string,
+  locationId: string,
   range: DateRange,
 ): Promise<ReceptionHistoryResponse> => {
   const { data } = await axiosInstance.get(
-    `/${company}/articles-reception-history`,
+    `/${company}/${locationId}/articles-reception-history`,
     { params: { date_from: range.from, date_to: range.to } },
   );
   return data;
 };
 
 export const useGetReceptionHistory = (range: DateRange = {}) => {
-  const { selectedCompany } = useCompanyStore();
+  const { selectedCompany, selectedStation } = useCompanyStore();
 
   return useQuery<ReceptionHistoryResponse>({
     queryKey: [
       "reception-history",
       selectedCompany?.slug,
+      selectedStation,
       range.from,
       range.to,
     ],
-    queryFn: () => fetchReceptionHistory(selectedCompany!.slug, range),
-    enabled: !!selectedCompany?.slug,
+    queryFn: () =>
+      fetchReceptionHistory(selectedCompany!.slug, selectedStation!, range),
+    enabled: !!selectedCompany?.slug && !!selectedStation,
     // Filtrar cambia la queryKey; sin esto la vista vuelve al loader.
     placeholderData: keepPreviousData,
   });

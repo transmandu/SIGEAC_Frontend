@@ -1,6 +1,6 @@
 // ── Cost Management Types ────────────────────────────────────────────────
 
-export type CostType = 'ARTICLE' | 'GENERAL';
+export type CostType = "ARTICLE" | "GENERAL";
 
 /** Payload for updating a single cost. */
 export interface UpdateCostPayload {
@@ -22,11 +22,7 @@ export interface BulkUpdatePayload {
 }
 
 export type Category =
-  | 'all'
-  | 'aeronautical'
-  | 'general'
-  | 'AERONAUTICAL'
-  | 'GENERAL';
+  "all" | "aeronautical" | "general" | "AERONAUTICAL" | "GENERAL";
 
 export interface BaseRow {
   id: number;
@@ -41,14 +37,19 @@ export interface BaseRow {
   variant_type?: string;
 }
 
+/** Fila de `GET purchase/costs/articles`. */
 export interface ArticleCostRow {
   id: number;
-  batch_name?: string;
-  part_number?: string;
-  serial?: string;
-  unit_label?: string;
-  cost?: number;
-  condition_name?: string;
+  part_number: string | null;
+  /** Serial, o el lote en un consumible: lo que muestra la celda. */
+  serial: string | null;
+  batch_name: string | null;
+  category: string;
+  condition: string | null;
+  unit_label: string | null;
+  cost: number;
+  /** Clave del grupo cuando la vista agrupa. */
+  group_key?: string;
 }
 
 /** Conversión unidad-a-unidad de un artículo general (ej: 1 CAJA = 20 UNID). */
@@ -58,18 +59,26 @@ export interface GeneralArticleConversion {
   base_per_unit: number;
 }
 
+/** Fila de `GET purchase/costs/general-articles`. */
 export interface GeneralCostRow {
   id: number;
-  description?: string;
-  brand_model?: string;
-  variant_type?: string;
-  unit_label?: string;
-  cost?: number;
-  cost_history?: import('@/types').GeneralArticleCostHistoryEntry[];
+  description: string;
+  brand_model: string | null;
+  variant_type: string | null;
+  general_primary_unit: {
+    id?: number;
+    label: string | null;
+    value: string | null;
+  } | null;
   /** Unidad base del artículo: referencia para el equivalente por unidad. */
-  primary_unit_id?: number;
+  primary_unit_id: number | null;
+  /** Costo vigente, crudo: en la unidad en que se registró. */
+  cost: number;
+  cost_unit_id: number | null;
+  cost_unit_label: string | null;
   /** Conversiones registradas: reexpresan el costo crudo a la unidad base. */
-  conversions?: GeneralArticleConversion[];
+  conversions: GeneralArticleConversion[];
+  group_key?: string;
 }
 
 export type DraftValue = string | number | undefined;

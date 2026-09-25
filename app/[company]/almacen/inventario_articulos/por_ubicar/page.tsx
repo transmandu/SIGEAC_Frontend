@@ -9,19 +9,15 @@ import { useCompanyStore } from "@/stores/CompanyStore";
 import { DataTable } from "./data-table";
 
 import LoadingPage from "@/components/misc/LoadingPage";
-import { useGetArticlesByStatus } from "@/hooks/mantenimiento/almacen/articulos/useGetArticlesByStatus";
+import { useWaitingToLocateQueue } from "@/hooks/mantenimiento/almacen/inventario/useArticleQueues";
 import { columns } from "./columns";
 import { PageHeader } from "@/components/layout/PageHeader";
-
-
 
 const ArticlesToPlacePage = () => {
   const { selectedCompany } = useCompanyStore();
 
-  const {
-    data: waitingToLocateArticles,
-    isLoading: isWaitingLoading,
-  } = useGetArticlesByStatus("WAITING_TO_LOCATE");
+  const { data: waitingToLocateArticles, isLoading: isWaitingLoading } =
+    useWaitingToLocateQueue();
 
   if (isWaitingLoading) return <LoadingPage />;
 
@@ -33,16 +29,17 @@ const ArticlesToPlacePage = () => {
         <div className="text-center space-y-1">
           <h1 className="text-4xl font-bold">Control de Ubicación</h1>
           <p className="text-sm text-muted-foreground italic">
-            Aquí puede observar los artículos que están en espera por ubicar dentro del almacén.
+            Aquí puede observar los artículos que están en espera por ubicar
+            dentro del almacén.
             <br />
             Filtre y/o busque si desea uno en específico.
           </p>
         </div>
 
         {isWaitingLoading ? (
-              <LoadingPage />
-            ) : (
-              <DataTable columns={columns} data={waitingToLocateArticles ?? []} />
+          <LoadingPage />
+        ) : (
+          <DataTable columns={columns} data={waitingToLocateArticles ?? []} />
         )}
       </div>
     </ContentLayout>

@@ -9,7 +9,7 @@ import { columns } from "./columns";
 import { DataTable } from "./data-table";
 
 import LoadingPage from "@/components/misc/LoadingPage";
-import { useGetArticlesByStatus } from "@/hooks/mantenimiento/almacen/articulos/useGetArticlesByStatus";
+import { useInspectionQueue } from "@/hooks/mantenimiento/almacen/inventario/useArticleQueues";
 import { useState } from "react";
 import { IncomingArticle } from "./IncomingTypes";
 import { GenerateReceptionFormButton } from "./_components/GenerateReceptionFormButton";
@@ -17,20 +17,14 @@ import { IssuedFormatsDialog } from "./_components/IssuedFormatsDialog";
 import { form_columns } from "./form_columns";
 import { PageHeader } from "@/components/layout/PageHeader";
 
-
 const IncomingControlPage = () => {
-
   const [selectedForForm, setSelectedForForm] = useState<IncomingArticle[]>([]);
 
-  const {
-    data: incomingArticles,
-    isLoading: isIncomingLoading,
-  } = useGetArticlesByStatus("INCOMING");
+  const { data: incomingArticles, isLoading: isIncomingLoading } =
+    useInspectionQueue("INCOMING");
 
-  const {
-    data: waitingForFormArticles,
-    isLoading: isWaitingForFormLoading,
-  } = useGetArticlesByStatus("WAITING_FOR_FORMAT");
+  const { data: waitingForFormArticles, isLoading: isWaitingForFormLoading } =
+    useInspectionQueue("WAITING_FOR_FORMAT");
 
   // Corregidos por compras y a la espera de que el inspector los re-inspeccione:
   // es trabajo pendiente de calidad, así que vive en su propio tablero y no solo
@@ -38,7 +32,7 @@ const IncomingControlPage = () => {
   const {
     data: pendingReinspectionArticles,
     isLoading: isReinspectionLoading,
-  } = useGetArticlesByStatus("PENDING_REINSPECTION");
+  } = useInspectionQueue("PENDING_REINSPECTION");
 
   const waitingForFormCount = waitingForFormArticles?.length ?? 0;
   const incomingCount = incomingArticles?.length ?? 0;
@@ -84,7 +78,11 @@ const IncomingControlPage = () => {
             {isIncomingLoading ? (
               <LoadingPage />
             ) : (
-              <DataTable groupBy="order_number" columns={columns} data={incomingArticles ?? []} />
+              <DataTable
+                groupBy="order_number"
+                columns={columns}
+                data={incomingArticles ?? []}
+              />
             )}
           </TabsContent>
 

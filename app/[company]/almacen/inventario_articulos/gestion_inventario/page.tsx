@@ -1,42 +1,62 @@
-"use client"
+"use client";
 
-import { CreateBatchDialog } from "@/components/dialogs/mantenimiento/almacen/CreateBatchDialog"
-import { SearchAcrossLocationsDialog } from "@/components/dialogs/mantenimiento/almacen/SearchAcrossLocationsDialog"
-import { ContentLayout } from "@/components/layout/ContentLayout"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { useGetGeneralArticles } from "@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticles"
-import { useGetWarehouseArticlesByCategory } from "@/hooks/mantenimiento/almacen/articulos/useGetWarehouseArticlesByCategory"
-import { useInventoryExport } from "@/hooks/mantenimiento/almacen/reportes/useGetWarehouseReports"
-import { useCompanyStore } from "@/stores/CompanyStore"
-import { useAuth } from "@/contexts/AuthContext"
-import { TooltipArrow } from "@radix-ui/react-tooltip"
+import { CreateBatchDialog } from "@/components/dialogs/mantenimiento/almacen/CreateBatchDialog";
+import { SearchAcrossLocationsDialog } from "@/components/dialogs/mantenimiento/almacen/SearchAcrossLocationsDialog";
+import { ContentLayout } from "@/components/layout/ContentLayout";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { useDebounce } from "@/hooks/helpers/useDebounce";
+import { useGetUnits } from "@/hooks/general/unidades/useGetPrimaryUnits";
+import {
+  useWarehouseInventoryArticles,
+  type InventoryCategory,
+} from "@/hooks/mantenimiento/almacen/inventario/useWarehouseInventoryArticles";
+import { useWarehouseInventoryGeneralArticles } from "@/hooks/mantenimiento/almacen/inventario/useWarehouseInventoryGeneralArticles";
+import { useInventoryExport } from "@/hooks/mantenimiento/almacen/reportes/useGetWarehouseReports";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { useGetConditions } from "@/hooks/general/condiciones/useGetConditions";
+import { ALL_CONDITIONS, ConditionTabs } from "@/components/misc/ConditionTabs";
+import { conditionOptions } from "@/lib/warehouse/conditions";
+import { TooltipArrow } from "@radix-ui/react-tooltip";
 import { SortingState } from "@tanstack/react-table";
-import { parseISO } from "date-fns"
-import { Loader2, MapPin, Package2, PaintBucket, Puzzle, Wrench, X } from "lucide-react"
-import { useEffect, useMemo, useState } from "react"
-import { FaFilePdf } from "react-icons/fa"
-import { RiFileExcel2Fill } from "react-icons/ri"
+import {
+  Loader2,
+  MapPin,
+  Package2,
+  PaintBucket,
+  Puzzle,
+  Wrench,
+  X,
+} from "lucide-react";
+import { useMemo, useState } from "react";
+import { FaFilePdf } from "react-icons/fa";
+import { RiFileExcel2Fill } from "react-icons/ri";
 
 import {
   flattenArticles,
   getColumnsByCategory,
-  groupByPartNumber,
   groupSequentially,
   IArticleSimple,
-} from "@/app/[company]/almacen/inventario_articulos/_tables/warehouse-columns"
-import { DataTable } from "@/app/[company]/almacen/inventario_articulos/_tables/warehouse-data-table"
-import { buildGeneralColumns, getUnitOptions } from "@/app/[company]/almacen/inventario_articulos/_tables/general-columns"
-import { PartNumberGroupDialog } from "@/app/[company]/almacen/inventario_articulos/_components/PartNumberGroupDialog"
-import { parseToolStatusFilter } from "@/lib/warehouse/statuses"
+} from "@/app/[company]/almacen/inventario_articulos/_tables/warehouse-columns";
+import { DataTable } from "@/app/[company]/almacen/inventario_articulos/_tables/warehouse-data-table";
+import {
+  buildGeneralColumns,
+  getUnitOptions,
+} from "@/app/[company]/almacen/inventario_articulos/_tables/general-columns";
+import { PartNumberGroupDialog } from "@/app/[company]/almacen/inventario_articulos/_components/PartNumberGroupDialog";
+import { parseToolStatusFilter } from "@/lib/warehouse/statuses";
 import { PageHeader } from "@/components/layout/PageHeader";
 
-type Category = "all" | "COMPONENT" | "PART" | "CONSUMABLE" | "TOOL"
-type InventoryTab = "aeronautic" | "general"
+type InventoryTab = "aeronautic" | "general";
 
-/** Debe coincidir con ARTICLE_SORT_COLUMNS del backend. */
+/** Debe coincidir con los órdenes que acepta ArticleListingController. */
 const SERVER_SORTABLE = new Set([
   "part_number",
   "serial",
@@ -44,274 +64,213 @@ const SERVER_SORTABLE = new Set([
   "status",
   "zone",
   "condition",
-])
+  "expiration_date",
+]);
 
-/** Estas columnas hacen que el backend pagine por grupo, no por artículo. */
-const GROUPING_SORT = new Set(["part_number", "batch_name"])
+/** Debe coincidir con GeneralArticleListingRepository::WAREHOUSE_SORTS. */
+const GENERAL_SERVER_SORTABLE = new Set([
+  "description",
+  "brand_model",
+  "variant_type",
+  "quantity",
+]);
 
-const normalize = (value: string) =>
-  value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .trim()
+const formatCount = (value: number) => value.toLocaleString("es-VE");
+
+const toServerSort = (sorting: SortingState, sortable: Set<string>) => {
+  const first = sorting[0];
+  if (!first || !sortable.has(first.id)) return {};
+  return {
+    sort_by: first.id,
+    sort_dir: first.desc ? ("desc" as const) : ("asc" as const),
+  };
+};
 
 const InventarioArticulosPage = () => {
-  const { selectedCompany } = useCompanyStore()
-  const { user } = useAuth()
-  const isEngineering = (user?.roles?.map((role) => role.name) ?? []).some((role) =>
-    ["ENGINEERING", "SUPERUSER"].includes(role),
-  )
-  const [activeTab, setActiveTab] = useState<InventoryTab>("aeronautic")
-  const [searchAcrossOpen, setSearchAcrossOpen] = useState(false)
-  const [activeCategory, setActiveCategory] = useState<Category>("all")
-  const { exporting, exportPdf, exportExcel } = useInventoryExport()
+  const { selectedCompany } = useCompanyStore();
+  const [activeTab, setActiveTab] = useState<InventoryTab>("aeronautic");
+  const [searchAcrossOpen, setSearchAcrossOpen] = useState(false);
+  const [activeCategory, setActiveCategory] =
+    useState<InventoryCategory>("all");
+  const { exporting, exportPdf, exportExcel } = useInventoryExport();
 
-  const [componentCondition, setComponentCondition] = useState<
-    | "all"
-    | "SERVICIABLE"
-    | "REMOVIDO - NO SERVICIABLE"
-    | "REMOVIDO - CUSTODIA"
-    | "REMOVIDO - DESCARGADA"
-    | "REPARADO"
-    | "USADO"
-    | "NUEVO"
-  >("all")
+  const [consumableFilter, setConsumableFilter] = useState<"all" | "QUIMICOS">(
+    "all",
+  );
+  const [conditionTab, setConditionTab] = useState<string>(ALL_CONDITIONS);
+  const [statusFilter, setStatusFilter] = useState<string | undefined>(
+    undefined,
+  );
 
-  const [consumableFilter, setConsumableFilter] = useState<"all" | "QUIMICOS">("all")
-  const [statusFilter, setStatusFilter] = useState<string | undefined>(undefined)
+  // Filtros de columna: los resuelve el servidor sobre el inventario completo.
+  const [columnFilters, setColumnFilters] = useState<Record<string, string>>(
+    {},
+  );
+  const [generalColumnFilters, setGeneralColumnFilters] = useState<
+    Record<string, string>
+  >({});
 
-  // Filtros de columna que resuelve el backend sobre el inventario completo.
-  const [columnFilters, setColumnFilters] = useState<Record<string, string>>({})
+  const [partNumberSearch, setPartNumberSearch] = useState("");
+  const debouncedSearch = useDebounce(partNumberSearch, 400);
+  const [generalSearch, setGeneralSearch] = useState("");
+  const debouncedGeneralSearch = useDebounce(generalSearch, 400);
 
-  const [partNumberSearch, setPartNumberSearch] = useState("")
-  const [debouncedSearch, setDebouncedSearch] = useState("")
-  const [generalSearch, setGeneralSearch] = useState("")
-  const [debouncedGeneralSearch, setDebouncedGeneralSearch] = useState("")
-
-  const [sorting, setSorting] = useState<SortingState>([])
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [generalSorting, setGeneralSorting] = useState<SortingState>([]);
 
   // Dialog (grupo PN)
-  const [groupOpen, setGroupOpen] = useState(false)
-  const [groupPn, setGroupPn] = useState("")
-  const [groupRows, setGroupRows] = useState<IArticleSimple[]>([])
-  const [apiPage, setApiPage] = useState(1)
-
-  // Debounce search input and reset to page 1
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(partNumberSearch)
-      setApiPage(1)
-    }, 400)
-    return () => clearTimeout(timer)
-  }, [partNumberSearch])
-
-  useEffect(() => {
-    const timer = setTimeout(() => setDebouncedGeneralSearch(generalSearch), 400)
-    return () => clearTimeout(timer)
-  }, [generalSearch])
-
-  const handleStatusFilterChange = (value: string | undefined) => {
-    setStatusFilter(value)
-    setApiPage(1)
-  }
-
-  const handleColumnFiltersChange = (filters: Record<string, string>) => {
-    setColumnFilters(filters)
-    setApiPage(1)
-  }
+  const [groupOpen, setGroupOpen] = useState(false);
+  const [groupPn, setGroupPn] = useState("");
+  const [groupRows, setGroupRows] = useState<IArticleSimple[]>([]);
 
   // El selector de Estado mezcla `articles.status` con los subestados de
   // calibración; el backend los recibe por parámetros distintos.
-  const toolStatusFilter = parseToolStatusFilter(statusFilter) ?? undefined
-  const articleStatusFilter = toolStatusFilter ? undefined : statusFilter
+  const toolStatusFilter = parseToolStatusFilter(statusFilter) ?? undefined;
+  const articleStatusFilter = toolStatusFilter ? undefined : statusFilter;
 
-  const serverColumnFilters = useMemo(
-    () => ({
-      condition: columnFilters.condition,
-      zone: columnFilters.zone,
-      tool_status: toolStatusFilter,
-      part_number_col: columnFilters.part_number,
-      serial_col: columnFilters.serial,
-      description_col: columnFilters.batch_name,
-    }),
-    [
-      columnFilters.condition,
-      columnFilters.zone,
-      columnFilters.part_number,
-      columnFilters.serial,
-      columnFilters.batch_name,
-      toolStatusFilter,
-    ],
-  )
+  // La pestaña de condición (componentes y partes) manda sobre el filtro de la
+  // columna: ambos filtran lo mismo.
+  const conditionFilter =
+    (activeCategory === "COMPONENT" || activeCategory === "PART") &&
+    conditionTab !== ALL_CONDITIONS
+      ? conditionTab
+      : columnFilters.condition;
 
-  const handleSortingChange = (next: SortingState) => {
-    setSorting(next)
-    setApiPage(1)
-  }
+  // Búsqueda, filtros y orden viajan al servidor: con cursor el cliente solo
+  // tiene la página actual y no puede filtrar ni ordenar el inventario. La
+  // exportación usa estos mismos filtros, para que baje lo que se ve.
+  const inventoryFilters = {
+    search: debouncedSearch.trim() || undefined,
+    status: articleStatusFilter,
+    tool_status: toolStatusFilter,
+    condition: conditionFilter,
+    zone: columnFilters.zone,
+    part_number_col: columnFilters.part_number,
+    serial_col: columnFilters.serial,
+    description_col: columnFilters.batch_name,
+    is_hazardous:
+      activeCategory === "CONSUMABLE" && consumableFilter === "QUIMICOS",
+  };
 
-  // Columnas que el backend sabe ordenar sobre el inventario completo.
-  const activeSort = useMemo(() => {
-    const first = sorting[0]
-    if (!first || !SERVER_SORTABLE.has(first.id)) return undefined
-    return { id: first.id, desc: first.desc }
-  }, [sorting])
+  const aeronautical = useWarehouseInventoryArticles({
+    category: activeCategory,
+    ...inventoryFilters,
+    ...toServerSort(sorting, SERVER_SORTABLE),
+  });
 
-  // Al agrupar, per_page cuenta grupos y cada uno puede traer varios artículos.
-  const perPage = !activeSort ? 15 : GROUPING_SORT.has(activeSort.id) ? 25 : 50
+  const general = useWarehouseInventoryGeneralArticles(
+    {
+      search: debouncedGeneralSearch.trim() || undefined,
+      description_col: generalColumnFilters.description,
+      brand_model_col: generalColumnFilters.brand_model,
+      variant_type_col: generalColumnFilters.variant_type,
+      unit: generalColumnFilters.unit,
+      quantity: generalColumnFilters.quantity,
+      ...toServerSort(generalSorting, GENERAL_SERVER_SORTABLE),
+    },
+    activeTab === "general",
+  );
 
-  // Paginated fetch — always used; sends part_number to backend when searching
-  const {
-    data: pagedArticles,
-    isLoading: isLoadingArticles,
-    isFetching: isFetchingArticles,
-  } = useGetWarehouseArticlesByCategory(
-    apiPage,
-    perPage,
-    activeCategory,
-    true,
-    articleStatusFilter,
-    debouncedSearch.trim() || undefined,
-    activeCategory === "CONSUMABLE" && consumableFilter === "QUIMICOS",
-    activeSort,
-    serverColumnFilters,
-  )
+  // Las opciones del filtro de unidad salen del catálogo de unidades: con
+  // cursor, las de la página cargada serían solo una parte.
+  const { data: units } = useGetUnits(selectedCompany?.slug);
 
-  const articles = pagedArticles
+  // Las condiciones salen de la tabla de la compañía, no de una lista fija.
+  const { data: conditions } = useGetConditions();
+  const conditionFilterOptions = useMemo(
+    () => conditionOptions(conditions),
+    [conditions],
+  );
 
-  const { data: articlesGeneral, isLoading: isLoadingArticlesGeneral } = useGetGeneralArticles()
+  // La exportación exige una categoría concreta: "Todos" mezcla columnas.
+  const common =
+    activeCategory === "all"
+      ? null
+      : {
+          category: activeCategory,
+          filters: inventoryFilters,
+          filenamePrefix: "inventario",
+        };
 
-  // Preparar parámetros de exportación (solo válido cuando no es 'all')
-  const common = useMemo(() => {
-    if (activeCategory === "all") return null
-    return {
-      category: activeCategory as "COMPONENT" | "PART" | "CONSUMABLE" | "TOOL",
-      search: debouncedSearch.trim(),
-      filters: {
-        ...(activeCategory === "COMPONENT" ? { condition: componentCondition } : {}),
-        ...(activeCategory === "CONSUMABLE" ? { group: consumableFilter } : {}),
-        ...(statusFilter ? { status: statusFilter } : {}),
-      },
-      filenamePrefix: "inventario",
-    }
-  }, [activeCategory, debouncedSearch, componentCondition, consumableFilter, statusFilter])
+  // Al cambiar de categoría se limpian sus subfiltros; el cursor vuelve solo
+  // a la primera página porque cambian los filtros.
+  const handleCategoryChange = (next: InventoryCategory) => {
+    setActiveCategory(next);
+    if (next !== "CONSUMABLE") setConsumableFilter("all");
+    setConditionTab(ALL_CONDITIONS);
+    setStatusFilter(undefined);
+    setColumnFilters({});
+  };
 
-  // Reset subfiltros y página al cambiar categoría
-  useEffect(() => {
-    if (activeCategory !== "COMPONENT") setComponentCondition("all")
-    if (activeCategory !== "CONSUMABLE") setConsumableFilter("all")
-    setStatusFilter(undefined)
-    setColumnFilters({})
-    setApiPage(1)
-  }, [activeCategory])
-
-  // Columns memo
   const cols = useMemo(
-    () => getColumnsByCategory(activeCategory, statusFilter, handleStatusFilterChange, isEngineering),
-    [activeCategory, statusFilter, isEngineering],
-  )
+    () =>
+      getColumnsByCategory(activeCategory, {
+        statusFilter,
+        onStatusFilterChange: setStatusFilter,
+        conditionOptions: conditionFilterOptions,
+      }),
+    [activeCategory, statusFilter, conditionFilterOptions],
+  );
 
-  // Datos + filtros memo
+  // Cuando el servidor agrupa, los artículos de un grupo llegan contiguos y
+  // completos: basta reunirlos en la fila desplegable.
   const currentData = useMemo<IArticleSimple[]>(() => {
-    const getExpiryDate = (article: IArticleSimple): Date | null => {
-      const caducateDate = article.component?.expiration_date || article.consumable?.expiration_date
-      if (!caducateDate) return null
-
-      const date =
-        caducateDate instanceof Date
-          ? caducateDate
-          : typeof caducateDate === "string"
-            ? parseISO(caducateDate)
-            : null
-
-      return date && !isNaN(date.getTime()) ? date : null
-    }
-
-    const list = flattenArticles(articles) ?? []
-
-    let filtered = list
-
-    if (activeCategory !== "all") {
-      if ((activeCategory === "COMPONENT" || activeCategory === "PART") && componentCondition !== "all") {
-        filtered = filtered.filter((a) => a.condition === componentCondition)
-      }
-    }
-
-    // Con orden del servidor se respeta tal cual: reordenar aquí lo desharía.
-    // Ordenando por PN o descripción el backend ya vino agrupado, así que solo
-    // se reconstruyen los grupos sobre las filas consecutivas.
-    if (activeSort) {
-      if (activeSort.id === "part_number") {
-        return groupSequentially(filtered, (a) => a.part_number)
-      }
-      if (activeSort.id === "batch_name") {
-        return groupSequentially(filtered, (a) => a.batch_id)
-      }
-      return filtered
-    }
-
-    // Orden por vencimiento cuando aplica
-    if (
-      activeCategory === "COMPONENT" ||
-      activeCategory === "PART" ||
-      activeCategory === "CONSUMABLE" ||
-      activeCategory === "all"
-    ) {
-      filtered = filtered.sort((a, b) => {
-        const dateA = getExpiryDate(a)
-        const dateB = getExpiryDate(b)
-        if (!dateA && !dateB) return 0
-        if (!dateA) return 1
-        if (!dateB) return -1
-        return dateA.getTime() - dateB.getTime()
-      })
-    }
-
-    // ✅ Agrupar por PN en: all / component / part
-    const shouldGroup = activeCategory === "all" || activeCategory === "COMPONENT" || activeCategory === "PART"
-    return shouldGroup ? groupByPartNumber(filtered) : filtered
-  }, [articles, activeCategory, componentCondition, activeSort])
-
-  const currentGeneralData = useMemo(() => {
-    const list = articlesGeneral ?? []
-    const term = normalize(debouncedGeneralSearch)
-    if (!term) return list
-
-    return list.filter((article) =>
-      [article.description, article.variant_type, article.brand_model].some(
-        (field) => field && normalize(field).includes(term),
-      ),
-    )
-  }, [articlesGeneral, debouncedGeneralSearch])
+    const list = flattenArticles(aeronautical.rows);
+    // La base agrupa sin distinguir mayúsculas: la clave se compara igual.
+    return aeronautical.groupedBy
+      ? groupSequentially(list, (a) =>
+          (a.group_key ?? String(a.id)).toUpperCase(),
+        )
+      : list;
+  }, [aeronautical.rows, aeronautical.groupedBy]);
 
   const generalCols = useMemo(
-    () => buildGeneralColumns(getUnitOptions(articlesGeneral)),
-    [articlesGeneral],
-  )
+    () => buildGeneralColumns(getUnitOptions(units)),
+    [units],
+  );
 
-  const serverPagination = pagedArticles?.pagination
-    ? {
-        currentPage: pagedArticles.pagination.current_page,
-        lastPage: pagedArticles.pagination.last_page,
-        total: pagedArticles.pagination.total,
-        from: pagedArticles.pagination.from ?? 0,
-        to: pagedArticles.pagination.to ?? 0,
-        onPageChange: setApiPage,
-        unitLabel:
-          activeSort && GROUPING_SORT.has(activeSort.id)
-            ? activeSort.id === "part_number"
-              ? "nro. de parte"
-              : "descripcion(es)"
-            : undefined,
-      }
-    : undefined
+  const groupedUnit =
+    aeronautical.groupedBy === "batch"
+      ? "descripción(es)"
+      : aeronautical.groupedBy === "part_number"
+        ? "nro. de parte"
+        : "artículo(s)";
 
-  // Condición y ubicación se resuelven en el servidor; el estado ya viaja por
-  // su propio parámetro desde StatusColumnHeader.
+  const serverPagination = {
+    ...aeronautical.pagination,
+    summary:
+      aeronautical.total !== undefined
+        ? `${formatCount(aeronautical.total)} ${groupedUnit}`
+        : undefined,
+  };
+
+  const generalPagination = {
+    ...general.pagination,
+    summary:
+      general.total !== undefined
+        ? `${formatCount(general.total)} artículo(s)`
+        : undefined,
+  };
+
+  // El estado viaja por su propio parámetro desde StatusColumnHeader.
   const tableServerFilters = {
     columnIds: ["condition", "zone", "part_number", "serial", "batch_name"],
-    onFiltersChange: handleColumnFiltersChange,
-  }
+    onFiltersChange: setColumnFilters,
+  };
+
+  const generalServerFilters = {
+    columnIds: [
+      "description",
+      "brand_model",
+      "variant_type",
+      "unit",
+      "quantity",
+    ],
+    onFiltersChange: setGeneralColumnFilters,
+  };
+
+  const isLoadingArticles = aeronautical.isLoading;
+  const isFetchingArticles = aeronautical.isFetching;
 
   // Un input en pantalla, un estado por pestaña: cambiar de tab no arrastra el texto.
   const search =
@@ -321,17 +280,48 @@ const InventarioArticulosPage = () => {
           onChange: setPartNumberSearch,
           debounced: debouncedSearch,
           isLoading: isLoadingArticles,
-          resultCount: pagedArticles?.pagination?.total ?? currentData.length,
+          resultCount: aeronautical.total ?? currentData.length,
           placeholder: "Buscar por Nro. de Parte (Ej: 65-50587-4, ALT-123...)",
         }
       : {
           value: generalSearch,
           onChange: setGeneralSearch,
           debounced: debouncedGeneralSearch,
-          isLoading: isLoadingArticlesGeneral,
-          resultCount: currentGeneralData.length,
-          placeholder: "Buscar por descripción, presentación o marca/modelo (Ej: TORNILLO, 3/4, TRUPER...)",
+          isLoading: general.isLoading,
+          resultCount: general.total ?? general.rows.length,
+          placeholder:
+            "Buscar por descripción, presentación o marca/modelo (Ej: TORNILLO, 3/4, TRUPER...)",
+        };
+
+  const openGroup = (row: any) => {
+    if (!row?.__isGroup || !row?.subRows?.length) return;
+    setGroupPn(row.part_number);
+    setGroupRows(row.subRows);
+    setGroupOpen(true);
+  };
+
+  const aeronauticalTable = (withGroups: boolean) =>
+    isLoadingArticles ? (
+      <div className="flex w-full h-full justify-center items-center min-h-75">
+        <Loader2 className="size-24 animate-spin" />
+      </div>
+    ) : (
+      <DataTable
+        columns={cols}
+        data={currentData}
+        serverPagination={serverPagination}
+        serverSorting={{ sorting, onSortingChange: setSorting }}
+        serverColumnFilters={tableServerFilters}
+        isFetching={isFetchingArticles}
+        onRowClick={withGroups ? openGroup : undefined}
+        rowClassName={
+          withGroups
+            ? (row: any) =>
+                row?.__isGroup ? "cursor-pointer hover:bg-muted/30" : ""
+            : undefined
         }
+      />
+    );
 
   return (
     <ContentLayout title="Gestión de Inventario">
@@ -388,8 +378,14 @@ const InventarioArticulosPage = () => {
             </div>
             {search.debounced && (
               <p className="text-xs text-muted-foreground text-center">
-                Filtrando por: <span className="font-medium text-foreground">{search.debounced}</span> •{" "}
-                {search.isLoading ? "buscando..." : `${search.resultCount} resultado(s)`}
+                Filtrando por:{" "}
+                <span className="font-medium text-foreground">
+                  {search.debounced}
+                </span>{" "}
+                •{" "}
+                {search.isLoading
+                  ? "buscando..."
+                  : `${search.resultCount} resultado(s)`}
               </p>
             )}
           </div>
@@ -406,8 +402,16 @@ const InventarioArticulosPage = () => {
             </TabsList>
 
             <TabsContent value="aeronautic">
-              <Tabs value={activeCategory} onValueChange={(v) => setActiveCategory(v as Category)}>
-                <TabsList className="flex justify-center space-x-3" aria-label="Categorías">
+              <Tabs
+                value={activeCategory}
+                onValueChange={(v) =>
+                  handleCategoryChange(v as InventoryCategory)
+                }
+              >
+                <TabsList
+                  className="flex justify-center space-x-3"
+                  aria-label="Categorías"
+                >
                   <TabsTrigger className="flex gap-2" value="all">
                     <Package2 className="size-5" /> Todos
                   </TabsTrigger>
@@ -446,7 +450,10 @@ const InventarioArticulosPage = () => {
                         </button>
                       </TooltipTrigger>
                       <TooltipContent>
-                        {!common ? "Selecciona una categoría específica" : "Descargar PDF"} <TooltipArrow />
+                        {!common
+                          ? "Selecciona una categoría específica"
+                          : "Descargar PDF"}{" "}
+                        <TooltipArrow />
                       </TooltipContent>
                     </Tooltip>
 
@@ -468,149 +475,80 @@ const InventarioArticulosPage = () => {
                         </button>
                       </TooltipTrigger>
                       <TooltipContent>
-                        {!common ? "Selecciona una categoría específica" : "Descargar Excel"} <TooltipArrow />
+                        {!common
+                          ? "Selecciona una categoría específica"
+                          : "Descargar Excel"}{" "}
+                        <TooltipArrow />
                       </TooltipContent>
                     </Tooltip>
                   </div>
                 </TabsList>
 
-                {/* ALL */}
-                <TabsContent value="all">
-                  {isLoadingArticles && !pagedArticles ? (
-                    <div className="flex w-full h-full justify-center items-center min-h-[300px]">
-                      <Loader2 className="size-24 animate-spin" />
-                    </div>
-                  ) : (
-                    <DataTable
-                      columns={cols}
-                      data={currentData}
-                      serverPagination={serverPagination}
-                      serverSorting={{ sorting, onSortingChange: handleSortingChange }}
-                      serverColumnFilters={tableServerFilters}
-                      isFetching={isFetchingArticles}
-                      onRowClick={(row: any) => {
-                        if (!row?.__isGroup || !row?.subRows?.length) return
-                        setGroupPn(row.part_number)
-                        setGroupRows(row.subRows)
-                        setGroupOpen(true)
-                      }}
-                      rowClassName={(row: any) => (row?.__isGroup ? "cursor-pointer hover:bg-muted/30" : "")}
-                    />
-                  )}
-                </TabsContent>
+                <TabsContent value="all">{aeronauticalTable(true)}</TabsContent>
 
-                {/* COMPONENT */}
                 <TabsContent value="COMPONENT">
-                  <Tabs
-                    value={componentCondition}
-                    onValueChange={(v) => setComponentCondition(v as typeof componentCondition)}
+                  <ConditionTabs
+                    value={conditionTab}
+                    onValueChange={setConditionTab}
                     className="mb-4"
-                  >
-                    <TabsList className="flex justify-center mb-4 space-x-3" aria-label="Condición de componente">
-                      <TabsTrigger value="all">Todos</TabsTrigger>
-                      <TabsTrigger value="SERVICIABLE">Serviciables</TabsTrigger>
-                      <TabsTrigger value="REPARADO">Reparados</TabsTrigger>
-                      <TabsTrigger value="REMOVIDO - NO SERVICIABLE">Removidos - No Serviciables</TabsTrigger>
-                      <TabsTrigger value="REMOVIDO - CUSTODIA">Removidos - En custodia</TabsTrigger>
-                    </TabsList>
-                  </Tabs>
-
-                  {isLoadingArticles && !pagedArticles ? (
-                    <div className="flex w-full h-full justify-center items-center min-h-[300px]">
-                      <Loader2 className="size-24 animate-spin" />
-                    </div>
-                  ) : (
-                    <DataTable
-                      columns={cols}
-                      data={currentData}
-                      serverPagination={serverPagination}
-                      serverSorting={{ sorting, onSortingChange: handleSortingChange }}
-                      serverColumnFilters={tableServerFilters}
-                      isFetching={isFetchingArticles}
-                      onRowClick={(row: any) => {
-                        if (!row?.__isGroup || !row?.subRows?.length) return
-                        setGroupPn(row.part_number)
-                        setGroupRows(row.subRows)
-                        setGroupOpen(true)
-                      }}
-                      rowClassName={(row: any) => (row?.__isGroup ? "cursor-pointer hover:bg-muted/30" : "")}
-                    />
-                  )}
+                  />
+                  {aeronauticalTable(true)}
                 </TabsContent>
 
-                {/* CONSUMABLE */}
                 <TabsContent value="CONSUMABLE">
                   <Tabs
                     value={consumableFilter}
-                    onValueChange={(v) => setConsumableFilter(v as typeof consumableFilter)}
+                    onValueChange={(v) =>
+                      setConsumableFilter(v as typeof consumableFilter)
+                    }
                     className="mb-4"
                   >
-                    <TabsList className="flex justify-center mb-4 space-x-3" aria-label="Filtro de consumibles">
+                    <TabsList
+                      className="flex justify-center mb-4 space-x-3"
+                      aria-label="Filtro de consumibles"
+                    >
                       <TabsTrigger value="all">Todos</TabsTrigger>
-                      <TabsTrigger value="QUIMICOS">Mercancia Peligrosa</TabsTrigger>
+                      <TabsTrigger value="QUIMICOS">
+                        Mercancia Peligrosa
+                      </TabsTrigger>
                     </TabsList>
                   </Tabs>
 
-                  {isLoadingArticles && !pagedArticles ? (
-                    <div className="flex w-full h-full justify-center items-center min-h-[300px]">
-                      <Loader2 className="size-24 animate-spin" />
-                    </div>
-                  ) : (
-                    <DataTable columns={cols} data={currentData} serverPagination={serverPagination}
-                      serverSorting={{ sorting, onSortingChange: handleSortingChange }}
-                      serverColumnFilters={tableServerFilters}
-                      isFetching={isFetchingArticles} />
-                  )}
+                  {aeronauticalTable(false)}
                 </TabsContent>
 
-                {/* TOOL */}
                 <TabsContent value="TOOL">
-                  {isLoadingArticles && !pagedArticles ? (
-                    <div className="flex w-full h-full justify-center items-center min-h-[300px]">
-                      <Loader2 className="size-24 animate-spin" />
-                    </div>
-                  ) : (
-                    <DataTable columns={cols} data={currentData} serverPagination={serverPagination}
-                      serverSorting={{ sorting, onSortingChange: handleSortingChange }}
-                      serverColumnFilters={tableServerFilters}
-                      isFetching={isFetchingArticles} />
-                  )}
+                  {aeronauticalTable(false)}
                 </TabsContent>
 
-                {/* PART */}
                 <TabsContent value="PART">
-                  {isLoadingArticles && !pagedArticles ? (
-                    <div className="flex w-full h-full justify-center items-center min-h-[300px]">
-                      <Loader2 className="size-24 animate-spin" />
-                    </div>
-                  ) : (
-                    <DataTable
-                      columns={cols}
-                      data={currentData}
-                      serverPagination={serverPagination}
-                      serverSorting={{ sorting, onSortingChange: handleSortingChange }}
-                      serverColumnFilters={tableServerFilters}
-                      isFetching={isFetchingArticles}
-                      onRowClick={(row: any) => {
-                        if (!row?.__isGroup || !row?.subRows?.length) return
-                        setGroupPn(row.part_number)
-                        setGroupRows(row.subRows)
-                        setGroupOpen(true)
-                      }}
-                      rowClassName={(row: any) => (row?.__isGroup ? "cursor-pointer hover:bg-muted/30" : "")}
-                    />
-                  )}
+                  <ConditionTabs
+                    value={conditionTab}
+                    onValueChange={setConditionTab}
+                    className="mb-4"
+                  />
+                  {aeronauticalTable(true)}
                 </TabsContent>
               </Tabs>
             </TabsContent>
 
             <TabsContent value="general">
-              {isLoadingArticlesGeneral ? (
-                <div className="flex w-full h-full justify-center items-center min-h-[300px]">
+              {general.isLoading ? (
+                <div className="flex w-full h-full justify-center items-center min-h-75">
                   <Loader2 className="size-24 animate-spin" />
                 </div>
               ) : (
-                <DataTable columns={generalCols} data={currentGeneralData} />
+                <DataTable
+                  columns={generalCols}
+                  data={general.rows}
+                  serverPagination={generalPagination}
+                  serverSorting={{
+                    sorting: generalSorting,
+                    onSortingChange: setGeneralSorting,
+                  }}
+                  serverColumnFilters={generalServerFilters}
+                  isFetching={general.isFetching}
+                />
               )}
             </TabsContent>
           </Tabs>
@@ -630,7 +568,7 @@ const InventarioArticulosPage = () => {
         />
       </TooltipProvider>
     </ContentLayout>
-  )
-}
+  );
+};
 
-export default InventarioArticulosPage
+export default InventarioArticulosPage;

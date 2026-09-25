@@ -1,193 +1,140 @@
-'use client'
+"use client";
 
-import { useMemo, useState, useEffect} from 'react'
-import GroupRow from './GroupRow'
-import GroupPagination from '@/components/misc/GroupPagination' 
+import { useMemo, useState } from "react";
+import GroupRow from "./GroupRow";
+import { CursorPagination } from "@/components/tables/CursorPagination";
+import type { CursorPaginationState } from "@/hooks/helpers/useCursorListing";
 
-type BaseRow = {
-  id: number
-  cost?: number
-  batch_name?: string
-  part_number?: string
-  serial?: string
-  quantity?: number
-  name?: string
-  description?: string
-  brand_model?: string
-  variant_type?: string
-  unit_label?: string
+type GroupableRow = {
+  id: number;
+  group_key?: string;
+  _groupIndex?: number;
+  _groupRows?: GroupableRow[];
+};
 
-  _groupIndex?: number
-  _groupRows?: BaseRow[]
-}
+type Props<T extends GroupableRow> = {
+  data: T[];
+  renderTable: (rows: T[]) => React.ReactNode;
+  pagination: CursorPaginationState & { summary?: string };
+  isTransitioning?: boolean;
+};
 
-type GroupableKey =
-  | 'description'
-  | 'brand_model'
-  | 'variant_type'
-  | 'part_number'
-  | 'batch_name'
-  | 'serial'
-
-type Props = {
-  data: BaseRow[]
-  groupBy: GroupableKey
-  renderTable: (rows: BaseRow[]) => React.ReactNode
-  setDrafts?: React.Dispatch<React.SetStateAction<Record<number, any>>>
-}
-
-type Group = {
-  key: string
-  rows: BaseRow[]
-}
-
-const PAGE_SIZE = 15
+type Group<T> = {
+  key: string;
+  rows: T[];
+};
 
 const formatGroupLabel = (value?: string | null) => {
-  if (!value || value.trim() === '') return 'Sin valor'
-  return value
-}
+  if (!value || value.trim() === "") return "Sin valor";
+  return value;
+};
 
-const GroupedCostTable = ({
+/**
+ * Tabla agrupada de la gestión de costos.
+ *
+ * El servidor agrupa y pagina por grupos completos: las filas de un grupo
+ * llegan contiguas y todas en la misma página, así que aquí solo se reúnen.
+ * Que el grupo esté completo es lo que permite "replicar costo" a todas sus
+ * filas sin perder las que estarían en otra página.
+ */
+const GroupedCostTable = <T extends GroupableRow>({
   data,
-  groupBy,
   renderTable,
-}: Props) => {
-
-  const groups = useMemo<Group[]>(() => {
-    const groupedMap = new Map<string, BaseRow[]>()
+  pagination,
+  isTransitioning = false,
+}: Props<T>) => {
+  const groups = useMemo<Group<T>[]>(() => {
+    const result: Group<T>[] = [];
 
     for (const item of data) {
-      const rawValue = item[groupBy as keyof BaseRow]
+      const key = item.group_key ?? "";
+      const last = result[result.length - 1];
 
-      const key =
-        typeof rawValue === 'string'
-          ? rawValue
-          : rawValue?.toString?.() ?? 'Sin valor'
-
-      if (!groupedMap.has(key)) {
-        groupedMap.set(key, [])
+      // La base agrupa sin distinguir mayúsculas: la clave se compara igual.
+      if (last && last.key.toUpperCase() === key.toUpperCase()) {
+        last.rows.push(item);
+      } else {
+        result.push({ key, rows: [item] });
       }
-
-      groupedMap.get(key)!.push(item)
     }
 
-    return Array.from(groupedMap.entries()).map(([key, rows]) => ({
-      key,
-      rows,
-    }))
-  }, [data, groupBy])
+    return result;
+  }, [data]);
 
-  const [pagination, setPagination] = useState({
-    pageIndex: 0,
-    pageSize: PAGE_SIZE,
-  })
-
-  const totalPages = useMemo(() => {
-    return Math.max(1, Math.ceil(groups.length / PAGE_SIZE))
-  }, [groups.length])
-
-  const paginatedGroups = useMemo(() => {
-    const start = pagination.pageIndex * pagination.pageSize
-    return groups.slice(start, start + pagination.pageSize)
-  }, [groups, pagination])
-
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({})
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
   const toggleGroup = (key: string) => {
     setExpanded((prev) => ({
       ...prev,
       [key]: !(prev[key] ?? false),
-    }))
-  }
-
-  useEffect(() => {
-    setPagination({
-      pageIndex: 0,
-      pageSize: PAGE_SIZE,
-    })
-    setExpanded({})
-  }, [groupBy, data])
+    }));
+  };
 
   if (!groups.length) {
     return (
-      <div className="
+      <div
+        className="
         rounded-xl border
         bg-white dark:bg-slate-900/60
         border-slate-200 dark:border-slate-700/60
         px-6 py-10
         text-center
-      ">
+      "
+      >
         <p className="text-sm text-muted-foreground">
           No hay datos agrupados disponibles.
         </p>
       </div>
-    )
+    );
   }
 
   return (
     <div className="flex flex-col gap-4">
+      <div
+        className={`flex flex-col gap-4 transition-opacity ${isTransitioning ? "opacity-50 pointer-events-none" : ""}`}
+      >
+        {groups.map((group) => {
+          const isOpen = expanded[group.key] ?? false;
 
-      {paginatedGroups.map((group) => {
-        const isOpen = expanded[group.key] ?? false
+          const enrichedRows = group.rows.map((r, idx) => ({
+            ...r,
+            _groupIndex: idx,
+            _groupRows: group.rows,
+          }));
 
-        const enrichedRows = group.rows.map((r, idx) => ({
-          ...r,
-          _groupIndex: idx,
-          _groupRows: group.rows,
-        }))
+          return (
+            <div
+              key={group.key}
+              className="
+                overflow-visible
+                rounded-2xl border
+                border-slate-200/80
+                dark:border-slate-700/60
+                bg-white/90
+                dark:bg-slate-900/60
+                backdrop-blur-md
+                shadow-xs
+                dark:shadow-[0_4px_20px_rgba(0,0,0,0.25)]
+              "
+            >
+              <GroupRow
+                title={formatGroupLabel(group.key)}
+                count={group.rows.length}
+                expanded={isOpen}
+                onToggle={() => toggleGroup(group.key)}
+              />
 
-        return (
-          <div
-            key={group.key}
-            className="
-              overflow-visible
-              rounded-2xl border
-              border-slate-200/80
-              dark:border-slate-700/60
-              bg-white/90
-              dark:bg-slate-900/60
-              backdrop-blur-md
-              shadow-xs
-              dark:shadow-[0_4px_20px_rgba(0,0,0,0.25)]
-            "
-          >
-            <GroupRow
-              title={formatGroupLabel(group.key)}
-              count={group.rows.length}
-              expanded={isOpen}
-              onToggle={() => toggleGroup(group.key)}
-            />
+              {isOpen && (
+                <div className="p-2 md:p-3">{renderTable(enrichedRows)}</div>
+              )}
+            </div>
+          );
+        })}
+      </div>
 
-            {isOpen && (
-              <div className="p-2 md:p-3">
-                {renderTable(enrichedRows)}
-              </div>
-            )}
-          </div>
-        )
-      })}
-
-      <GroupPagination
-        pageIndex={pagination.pageIndex}
-        pageSize={pagination.pageSize}
-        pageCount={totalPages}
-        onPageChange={(page: number) =>
-          setPagination((prev) => ({
-            ...prev,
-            pageIndex: page,
-          }))
-        }
-        onPageSizeChange={(size: number) =>
-          setPagination({
-            pageIndex: 0,
-            pageSize: size,
-          })
-        }
-        totalGroups={groups.length}
-      />
+      <CursorPagination {...pagination} />
     </div>
-  )
-}
+  );
+};
 
-export default GroupedCostTable
+export default GroupedCostTable;

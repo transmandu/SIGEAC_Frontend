@@ -1,217 +1,154 @@
-'use client'
+"use client";
 
+import { useMemo, useState, useCallback } from "react";
+
+import { ContentLayout } from "@/components/layout/ContentLayout";
+
+import { useAuth } from "@/contexts/AuthContext";
+import { useCompanyStore } from "@/stores/CompanyStore";
+
+import { DataTable } from "@/app/[company]/compras/data-table";
+import { getColumns } from "./columns";
+
+import GroupedCostTable from "./_components/GroupedCostTable";
+
+import CostToolbar from "./_components/CostToolbar";
+import CostTypeToggle from "./_components/CostTypeToggle";
+import CostSaveBar from "./_components/CostSaveBar";
+import GeneralCostHistorySheet from "./_components/GeneralCostHistorySheet";
+
+import { useCostDrafts } from "./hooks/useCostDrafts";
+
+import { useDebounce } from "@/hooks/helpers/useDebounce";
 import {
-  useMemo,
-  useState,
-  useCallback,
-  useDeferredValue,
-  useEffect,
-} from 'react'
-
-import { ContentLayout } from '@/components/layout/ContentLayout'
-
-
-import { useAuth } from '@/contexts/AuthContext'
-import { useCompanyStore } from '@/stores/CompanyStore'
-
-import { DataTable } from '@/app/[company]/compras/data-table'
-import { getColumns } from './columns'
-
-import GroupedCostTable from './_components/GroupedCostTable'
-
-import CostToolbar from './_components/CostToolbar'
-import CostTypeToggle from './_components/CostTypeToggle'
-import CostSaveBar from './_components/CostSaveBar'
-import GeneralCostHistorySheet from './_components/GeneralCostHistorySheet'
-
-import { useCostDrafts } from './hooks/useCostDrafts'
-
-import { useGetAllWarehouseArticlesByCategory } from '@/hooks/mantenimiento/almacen/articulos/useGetWarehouseArticlesByCategory'
-import { useGetGeneralArticles } from '@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticles'
+  useArticleCosts,
+  useGeneralArticleCostHistory,
+  useGeneralArticleCosts,
+} from "@/hooks/mantenimiento/compras/gestion_costos/useCostListings";
 
 import {
   useBulkUpdateArticleCost,
   useBulkUpdateGeneralCost,
-} from '@/actions/mantenimiento/compras/gestion_costos/actions'
+} from "@/actions/mantenimiento/compras/gestion_costos/actions";
+import type { GeneralCostRow } from "@/types/purchase";
 import { PageHeader } from "@/components/layout/PageHeader";
 
-type CostType = 'ARTICLE' | 'GENERAL'
+type CostType = "ARTICLE" | "GENERAL";
 
-type Category =
-  | 'all'
-  | 'COMPONENT'
-  | 'PART'
-  | 'CONSUMABLE'
-  | 'TOOL'
+type Category = "all" | "COMPONENT" | "PART" | "CONSUMABLE" | "TOOL";
 
-type BaseRow = {
-  id: number
-  cost?: number
-  batch_name?: string
-  condition_name?: string
-  part_number?: string
-  serial?: string
-  quantity?: number
-  name?: string
-  description?: string
-  brand_model?: string
-  variant_type?: string
-  unit_label?: string
-  cost_history?: import('@/types').GeneralArticleCostHistoryEntry[]
-  primary_unit_id?: number
-  conversions?: import('@/types/purchase').GeneralArticleConversion[]
-}
-
-const ARTICLE_COST_ROLES = ['ANALISTA_COMPRAS', 'JEFE_COMPRAS', 'SUPERUSER', 'JEFE_ADMINISTRACION', 'ANALISTA_ADMINISTRACION']
-const GENERAL_COST_ROLES = ['ASISTENTE_COMPRAS', 'SUPERUSER', 'JEFE_ADMINISTRACION', 'ANALISTA_ADMINISTRACION']
+// Deben coincidir con los roles que la ruta exige en el servidor.
+const ARTICLE_COST_ROLES = [
+  "ANALISTA_COMPRAS",
+  "JEFE_COMPRAS",
+  "SUPERUSER",
+  "JEFE_ADMINISTRACION",
+  "ANALISTA_ADMINISTRACION",
+];
+const GENERAL_COST_ROLES = [
+  "ASISTENTE_COMPRAS",
+  "SUPERUSER",
+  "JEFE_ADMINISTRACION",
+  "ANALISTA_ADMINISTRACION",
+];
 
 const CostManagementPage = () => {
-  const { user } = useAuth()
-  const { selectedCompany } = useCompanyStore()
+  const { user } = useAuth();
+  const { selectedCompany } = useCompanyStore();
 
   const userRoles = useMemo(
     () => user?.roles?.map((role) => role.name) ?? [],
-    [user]
-  )
+    [user],
+  );
 
   const canViewArticleCosts =
     !!selectedCompany?.isOMAC &&
-    ARTICLE_COST_ROLES.some((role) => userRoles.includes(role))
+    ARTICLE_COST_ROLES.some((role) => userRoles.includes(role));
 
-  const canViewGeneralCosts =
-    GENERAL_COST_ROLES.some((role) => userRoles.includes(role))
+  const canViewGeneralCosts = GENERAL_COST_ROLES.some((role) =>
+    userRoles.includes(role),
+  );
 
-  const showTypeToggle = canViewArticleCosts && canViewGeneralCosts
+  const showTypeToggle = canViewArticleCosts && canViewGeneralCosts;
 
-  const [type, setType] = useState<CostType>('ARTICLE')
-  const [category, setCategory] = useState<Category>('all')
-  const [search, setSearch] = useState('')
+  const [selectedType, setSelectedType] = useState<CostType>("ARTICLE");
+  const [category, setCategory] = useState<Category>("all");
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search.trim(), 350);
 
-  const [groupBy, setGroupBy] = useState<string>('NONE')
+  const [groupBy, setGroupBy] = useState<string>("NONE");
 
-  const deferredSearch = useDeferredValue(search)
+  // Con acceso a un solo tipo, ese es el que se ve: no hay nada que elegir.
+  const type: CostType =
+    !canViewArticleCosts && canViewGeneralCosts
+      ? "GENERAL"
+      : !canViewGeneralCosts && canViewArticleCosts
+        ? "ARTICLE"
+        : selectedType;
 
-  // Si el usuario solo tiene acceso a un tipo, fijarlo y no permitir el otro
-  useEffect(() => {
-    if (!canViewArticleCosts && type === 'ARTICLE' && canViewGeneralCosts) {
-      setType('GENERAL')
-    } else if (!canViewGeneralCosts && type === 'GENERAL' && canViewArticleCosts) {
-      setType('ARTICLE')
-    }
-  }, [canViewArticleCosts, canViewGeneralCosts, type])
+  // La agrupación y la búsqueda de un tipo no aplican al otro.
+  const handleTypeChange = (next: CostType) => {
+    setSelectedType(next);
+    setGroupBy("NONE");
+    setSearch("");
+  };
 
-  /**
-   * 🔥 FIX: reset de filtros incompatibles al cambiar tipo
-   */
-  useEffect(() => {
-    setGroupBy('NONE')
-    setSearch('')
-  }, [type])
+  // Búsqueda y agrupación las resuelve el servidor: con cursor el cliente
+  // solo tiene la página actual. Al agrupar, cada página trae grupos
+  // completos, así que "replicar costo" alcanza a todas las filas del grupo.
+  const filters = {
+    search: debouncedSearch || undefined,
+    group_by: groupBy === "NONE" ? undefined : groupBy,
+  };
 
-  const { data: warehouseData, isLoading: loadingArticles } =
-    useGetAllWarehouseArticlesByCategory(
-      category === 'all' ? 'all' : category,
-      type === 'ARTICLE' && canViewArticleCosts
-    )
+  const articles = useArticleCosts(
+    { ...filters, category },
+    type === "ARTICLE" && canViewArticleCosts,
+  );
 
-  const { data: generalArticles, isLoading: loadingGeneral } =
-    useGetGeneralArticles(canViewGeneralCosts)
+  const generals = useGeneralArticleCosts(
+    filters,
+    type === "GENERAL" && canViewGeneralCosts,
+  );
 
-  const isLoading =
-    type === 'ARTICLE' ? loadingArticles : loadingGeneral
-
-  const articleData = useMemo<BaseRow[]>(() => {
-    if (!warehouseData?.batches) return []
-
-    return warehouseData.batches.flatMap((batch) =>
-      batch.articles.map((article) => ({
-        id: article.id,
-        batch_name: batch.name,
-        condition_name: article.condition?.name,
-        part_number: article.part_number,
-        serial: article.serial,
-        unit_label: article.unit?.label,
-        cost: Number(article.cost ?? 0),
-      }))
-    )
-  }, [warehouseData])
-
-  const baseData = useMemo<BaseRow[]>(() => {
-    if (type === 'GENERAL') {
-      return (generalArticles ?? []).map((a: any) => ({
-        id: a.id,
-        name: a.name,
-        description: a.description,
-        brand_model: a.brand_model,
-        variant_type: a.variant_type,
-        cost: Number(a.cost ?? 0),
-        unit_label: a.general_primary_unit?.label,
-        cost_history: a.cost_history,
-        primary_unit_id: a.primary_unit_id ?? a.general_primary_unit?.id,
-        conversions: a.conversions,
-      }))
-    }
-
-    return articleData
-  }, [type, generalArticles, articleData])
-
-  const filteredData = useMemo<BaseRow[]>(() => {
-    if (!deferredSearch.trim()) return baseData
-
-    const q = deferredSearch.toLowerCase()
-
-    return baseData.filter((item: any) => {
-      if (type === 'ARTICLE') {
-        return (
-          item.part_number?.toLowerCase?.().includes(q) ||
-          item.serial?.toLowerCase?.().includes(q) ||
-          item.batch_name?.toLowerCase?.().includes(q)
-        )
-      }
-
-      return (
-        item.name?.toLowerCase?.().includes(q) ||
-        item.description?.toLowerCase?.().includes(q) ||
-        item.brand_model?.toLowerCase?.().includes(q) ||
-        item.variant_type?.toLowerCase?.().includes(q)
-      )
-    })
-  }, [baseData, deferredSearch, type])
+  const listing = type === "ARTICLE" ? articles : generals;
+  const rows = listing.rows as Array<{
+    id: number;
+    cost?: number;
+    group_key?: string;
+  }>;
 
   const {
     drafts: costDrafts,
     hasChanges,
     onCostChange,
     setDrafts,
-    getChangedRows,
-  } = useCostDrafts<BaseRow>({
-    data: filteredData,
-  })
+  } = useCostDrafts();
 
-  const bulkArticleMutation = useBulkUpdateArticleCost()
-  const bulkGeneralMutation = useBulkUpdateGeneralCost()
+  const bulkArticleMutation = useBulkUpdateArticleCost();
+  const bulkGeneralMutation = useBulkUpdateGeneralCost();
 
   const handleSave = useCallback(() => {
     const updates = Object.entries(costDrafts).map(([id, value]) => ({
       id: Number(id),
       cost: Number(value),
-    }))
+    }));
 
-    if (!updates.length) return
+    if (!updates.length) return;
 
     const payload = {
       company: selectedCompany?.slug!,
       updates,
-    }
+    };
 
-    if (type === 'ARTICLE') {
+    if (type === "ARTICLE") {
       bulkArticleMutation.mutate(payload, {
         onSuccess: () => setDrafts({}),
-      })
+      });
     } else {
       bulkGeneralMutation.mutate(payload, {
         onSuccess: () => setDrafts({}),
-      })
+      });
     }
   }, [
     costDrafts,
@@ -220,13 +157,14 @@ const CostManagementPage = () => {
     bulkArticleMutation,
     bulkGeneralMutation,
     setDrafts,
-  ])
+  ]);
 
   const handleReset = useCallback(() => {
-    setDrafts({})
-  }, [setDrafts])
+    setDrafts({});
+  }, [setDrafts]);
 
-  const [historyRow, setHistoryRow] = useState<BaseRow | null>(null)
+  const [historyRow, setHistoryRow] = useState<GeneralCostRow | null>(null);
+  const history = useGeneralArticleCostHistory(historyRow?.id ?? null);
 
   const columns = useMemo(
     () =>
@@ -236,13 +174,20 @@ const CostManagementPage = () => {
         onViewHistory: (row) => setHistoryRow(row),
         category,
       }),
-    [type, onCostChange, category]
-  )
+    [type, onCostChange, category],
+  );
+
+  const groupedUnit = groupBy === "NONE" ? "artículo(s)" : "grupo(s)";
+  const summary =
+    listing.total !== undefined
+      ? `${listing.total.toLocaleString("es-VE")} ${groupedUnit}`
+      : undefined;
+
+  const cursorPagination = { ...listing.pagination, summary };
 
   return (
     <ContentLayout title="Gestión de Costos">
       <div className="flex flex-col gap-6">
-
         <PageHeader />
 
         <div className="flex flex-col gap-2 border-b pb-4">
@@ -253,7 +198,8 @@ const CostManagementPage = () => {
               </h1>
 
               <p className="text-sm text-muted-foreground">
-                Administra y actualiza los costos unitarios de artículos y otros elementos del inventario aeronáutico y general.
+                Administra y actualiza los costos unitarios de artículos y otros
+                elementos del inventario aeronáutico y general.
               </p>
             </div>
           </div>
@@ -262,14 +208,15 @@ const CostManagementPage = () => {
         <div className="flex justify-center">
           <CostTypeToggle
             type={type}
-            setType={setType}
+            setType={handleTypeChange}
             category={category}
             setCategory={setCategory}
             showTabs={showTypeToggle}
           />
         </div>
 
-        <div className="
+        <div
+          className="
           flex items-center justify-between gap-4
           px-3 py-2
           rounded-xl border
@@ -277,7 +224,8 @@ const CostManagementPage = () => {
           dark:bg-slate-800/70 dark:border-slate-700/60
           backdrop-blur-md
           dark:shadow-[0_4px_20px_rgba(0,0,0,0.35)]
-        ">
+        "
+        >
           <CostToolbar
             search={search}
             setSearch={setSearch}
@@ -287,57 +235,57 @@ const CostManagementPage = () => {
           />
 
           <span className="text-xs text-muted-foreground tabular-nums">
-            {filteredData.length}{' '}
-            {filteredData.length === 1 ? 'artículo' : 'artículos'}
+            {summary}
           </span>
         </div>
 
+        {/* Los borradores se conservan al cambiar de página: se guardan todos
+            juntos. */}
         <CostSaveBar
           hasChanges={hasChanges}
-          modifiedCount={getChangedRows().length}
+          modifiedCount={Object.keys(costDrafts).length}
           onSave={handleSave}
           onReset={handleReset}
         />
 
-        {groupBy !== 'NONE' ? (
+        {groupBy !== "NONE" ? (
           <GroupedCostTable
-            data={filteredData}
-            groupBy={groupBy as any}
-          renderTable={(rows) => (
+            data={rows}
+            pagination={cursorPagination}
+            isTransitioning={listing.isTransitioning}
+            renderTable={(groupRows) => (
               <DataTable
                 columns={columns}
-                data={rows}
-                loading={isLoading}
+                data={groupRows}
                 meta={{ costDrafts }}
                 overflowVisible
                 persistKey="gestion_costos"
               />
             )}
-            setDrafts={setDrafts}
           />
         ) : (
           <DataTable
             columns={columns}
-            data={filteredData}
-            loading={isLoading}
+            data={rows}
+            loading={listing.isLoading}
             meta={{ costDrafts }}
             overflowVisible
-            persistKey="gestion_costos"
+            cursorPagination={cursorPagination}
           />
         )}
-
       </div>
 
       <GeneralCostHistorySheet
         open={!!historyRow}
         onOpenChange={(open) => !open && setHistoryRow(null)}
         description={historyRow?.description}
-        brandModel={historyRow?.brand_model}
-        variantType={historyRow?.variant_type}
-        history={historyRow?.cost_history}
+        brandModel={historyRow?.brand_model ?? undefined}
+        variantType={historyRow?.variant_type ?? undefined}
+        history={history.data?.history}
+        isLoading={history.isLoading}
       />
     </ContentLayout>
-  )
-}
+  );
+};
 
-export default CostManagementPage
+export default CostManagementPage;

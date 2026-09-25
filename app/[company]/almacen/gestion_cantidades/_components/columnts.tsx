@@ -1,145 +1,168 @@
-"use client"
+"use client";
 
-import React from "react"
+import React from "react";
 import { type AppColumnDef } from "@/lib/table";
-import { Badge } from "@/components/ui/badge"
-import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
-import { GeneralArticle } from "@/types"
-import { QuantityEditCell } from "./QuantityCell"
-import GeneralArticleDropDownActions from "@/components/dropdowns/mantenimiento/almacen/GeneralArticleDropDownActions"
+import { Badge } from "@/components/ui/badge";
+import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
+import type { WarehouseInventoryGeneralArticle } from "@/types/inventory";
+import { QuantityEditCell } from "./QuantityCell";
+import GeneralArticleDropDownActions from "@/components/dropdowns/mantenimiento/almacen/GeneralArticleDropDownActions";
 
 type BuildColumnsArgs = {
-    baseQuantities: Record<number, number>
-    editedQuantities: Record<number, number | undefined>
-    onQuantityChange: (id: number, value: string) => void
-}
+  baseQuantities: Record<number, number>;
+  editedQuantities: Record<number, number | undefined>;
+  onQuantityChange: (id: number, value: string) => void;
+};
 
+// Sin filtros ni orden por columna: la página es solo una parte del
+// inventario, y filtrarla o reordenarla en el navegador engañaría. La búsqueda
+// de la barra la resuelve el servidor.
 export function buildGeneralInventoryColumns({
-    baseQuantities,
-    editedQuantities,
-    onQuantityChange,
-}: BuildColumnsArgs): AppColumnDef<GeneralArticle>[] {
-    return [
-        {
-            accessorKey: "description",
-            header: ({ column }) => (
-                <div className="flex justify-center">
-                    <DataTableColumnHeader filter column={column} title="Descripción" />
-                </div>
-            ),
-            cell: ({ row }) => {
-                const value = row.original.description?.trim() || "N/A"
-                return (
-                    <div className="flex justify-center">
-                        <p className="max-w-[520px] truncate text-center text-sm font-medium" title={value}>
-                            {value}
-                        </p>
-                    </div>
-                )
-            },
-        },
-        {
-            accessorKey: "brand_model",
-            header: ({ column }) => (
-                <div className="flex justify-center">
-                    <DataTableColumnHeader filter column={column} title="Marca / Modelo" />
-                </div>
-            ),
-            cell: ({ row }) => {
-                const value = row.original.brand_model?.trim() || "N/A"
-                return (
-                    <div className="flex justify-center">
-                        <Badge variant="secondary" className="max-w-[260px] truncate" title={value}>
-                            {value}
-                        </Badge>
-                    </div>
-                )
-            },
-        },
-        {
-            accessorKey: "variant_type",
-            header: ({ column }) => (
-                <div className="flex justify-center">
-                    <DataTableColumnHeader filter column={column} title="Tipo / N° Parte" />
-                </div>
-            ),
-            cell: ({ row }) => {
-                const value = row.original.variant_type?.trim() || "N/A"
-                return (
-                    <div className="flex justify-center">
-                        <Badge variant="outline" className="max-w-[240px] truncate" title={value}>
-                            {value}
-                        </Badge>
-                    </div>
-                )
-            },
-        },
-        {
-            accessorKey: "minimum_quantity",
-            header: ({ column }) => (
-                <div className="flex justify-center">
-                    <DataTableColumnHeader filter column={column} title="Cant. Mínima" />
-                </div>
-            ),
-            cell: ({ row }) => {
-                const minQty = row.original.minimum_quantity
-                return (
-                    <div className="flex justify-center">
-                        <Badge variant="outline" className="max-w-[240px] truncate">
-                            {minQty ?? "N/A"}
-                        </Badge>
-                    </div>
-                )
-            },
-        },
-        {
-            id: "actual_quantity",
-            header: ({ column }) => (
-                <div className="flex justify-center">
-                    <DataTableColumnHeader filter column={column} title="Cantidad Actual" />
-                </div>
-            ),
-            cell: ({ row }) => {
-                const qty = row.original.quantity ?? 0
-                const unit = row.original.general_primary_unit?.value ?? "N/A"
-                return (
-                    <div className="flex justify-center">
-                        <Badge variant="outline" className="max-w-[240px] truncate" >
-                            {qty} {unit}
-                        </Badge>
-                    </div>
-                )
-            },
-        },
-        {
-            id: "quantity_edit",
-            header: () => <div className="text-center text-sm font-medium">Nueva Cant.</div>,
-            cell: ({ row }) => {
-                const id = row.original.id
-                const base = baseQuantities[id] ?? 0
-                const edited = editedQuantities[id]
+  baseQuantities,
+  editedQuantities,
+  onQuantityChange,
+}: BuildColumnsArgs): AppColumnDef<WarehouseInventoryGeneralArticle>[] {
+  return [
+    {
+      accessorKey: "description",
+      enableSorting: false,
+      header: ({ column }) => (
+        <div className="flex justify-center">
+          <DataTableColumnHeader column={column} title="Descripción" />
+        </div>
+      ),
+      cell: ({ row }) => {
+        const value = row.original.description?.trim() || "N/A";
+        return (
+          <div className="flex justify-center">
+            <p
+              className="max-w-130 truncate text-center text-sm font-medium"
+              title={value}
+            >
+              {value}
+            </p>
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "brand_model",
+      enableSorting: false,
+      header: ({ column }) => (
+        <div className="flex justify-center">
+          <DataTableColumnHeader column={column} title="Marca / Modelo" />
+        </div>
+      ),
+      cell: ({ row }) => {
+        const value = row.original.brand_model?.trim() || "N/A";
+        return (
+          <div className="flex justify-center">
+            <Badge
+              variant="secondary"
+              className="max-w-65 truncate"
+              title={value}
+            >
+              {value}
+            </Badge>
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "variant_type",
+      enableSorting: false,
+      header: ({ column }) => (
+        <div className="flex justify-center">
+          <DataTableColumnHeader column={column} title="Tipo / N° Parte" />
+        </div>
+      ),
+      cell: ({ row }) => {
+        const value = row.original.variant_type?.trim() || "N/A";
+        return (
+          <div className="flex justify-center">
+            <Badge
+              variant="outline"
+              className="max-w-60 truncate"
+              title={value}
+            >
+              {value}
+            </Badge>
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "minimum_quantity",
+      enableSorting: false,
+      header: ({ column }) => (
+        <div className="flex justify-center">
+          <DataTableColumnHeader column={column} title="Cant. Mínima" />
+        </div>
+      ),
+      cell: ({ row }) => {
+        const minQty = row.original.minimum_quantity;
+        return (
+          <div className="flex justify-center">
+            <Badge variant="outline" className="max-w-60 truncate">
+              {minQty ?? "N/A"}
+            </Badge>
+          </div>
+        );
+      },
+    },
+    {
+      id: "actual_quantity",
+      enableSorting: false,
+      header: ({ column }) => (
+        <div className="flex justify-center">
+          <DataTableColumnHeader column={column} title="Cantidad Actual" />
+        </div>
+      ),
+      cell: ({ row }) => {
+        const qty = row.original.quantity ?? 0;
+        const unit = row.original.general_primary_unit?.value ?? "N/A";
+        return (
+          <div className="flex justify-center">
+            <Badge variant="outline" className="max-w-60 truncate">
+              {qty} {unit}
+            </Badge>
+          </div>
+        );
+      },
+    },
+    {
+      id: "quantity_edit",
+      header: () => (
+        <div className="text-center text-sm font-medium">Nueva Cant.</div>
+      ),
+      cell: ({ row }) => {
+        const id = row.original.id;
+        const base = baseQuantities[id] ?? Number(row.original.quantity ?? 0);
+        const edited = editedQuantities[id];
 
-                return (
-                    <QuantityEditCell
-                        id={id}
-                        base={base}
-                        edited={edited}
-                        onCommit={onQuantityChange}
-                    />
-                )
-            },
-            enableSorting: false,
-        },
-        {
-            id: "actions",
-            header: () => <div className="text-center text-sm font-medium">Acciones</div>,
-            cell: ({ row }) => (
-                <div className="flex justify-center">
-                    <GeneralArticleDropDownActions article={(row.original)} />
-                </div>
-            ),
-            enableSorting: false,
-            enableHiding: false,
-        },
-    ]
+        return (
+          <QuantityEditCell
+            id={id}
+            base={base}
+            edited={edited}
+            onCommit={onQuantityChange}
+          />
+        );
+      },
+      enableSorting: false,
+    },
+    {
+      id: "actions",
+      header: () => (
+        <div className="text-center text-sm font-medium">Acciones</div>
+      ),
+      cell: ({ row }) => (
+        <div className="flex justify-center">
+          <GeneralArticleDropDownActions article={row.original} />
+        </div>
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    },
+  ];
 }

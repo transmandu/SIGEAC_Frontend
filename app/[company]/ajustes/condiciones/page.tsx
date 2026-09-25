@@ -2,7 +2,7 @@
 
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import LoadingPage from "@/components/misc/LoadingPage";
-import { useGetConditions } from "@/hooks/administracion/useGetConditions";
+import { useGetConditions } from "@/hooks/general/condiciones/useGetConditions";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
@@ -30,9 +30,7 @@ const ConditionsPage = () => {
 
   return (
     <ContentLayout title="Condiciones">
-      <PageHeader className="mb-6" />
-
-      {" "}
+      <PageHeader className="mb-6" />{" "}
       <h1
         className="text-5xl font-bold text-center mt-2"
         data-tour="condiciones-title"

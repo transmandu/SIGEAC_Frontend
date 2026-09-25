@@ -1,9 +1,9 @@
-"use client"
+"use client";
 
-import IncomingArticleDropdownActions from "@/components/dropdowns/mantenimiento/control_calidad/IncomingArticleDropdownActions"
-import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
+import IncomingArticleDropdownActions from "@/components/dropdowns/mantenimiento/control_calidad/IncomingArticleDropdownActions";
+import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { type AppColumnDef } from "@/lib/table";
-import { IncomingArticle } from "./IncomingTypes"
+import { IncomingArticle } from "./IncomingTypes";
 
 export const columns: AppColumnDef<IncomingArticle>[] = [
   {
@@ -14,17 +14,19 @@ export const columns: AppColumnDef<IncomingArticle>[] = [
     meta: { title: "Nro. Orden" },
     cell: ({ row }) => (
       <p className="text-center">{row.original.order_number ?? "-"}</p>
-    )
+    ),
   },
-    {
+  {
     accessorKey: "batch.name",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Descripción" />
     ),
     meta: { title: "Descripción" },
     cell: ({ row }) => (
-      <p className="text-center flex justify-center font-bold">{row.original.batch ? row.original.batch.name : "-"}</p>
-    )
+      <p className="text-center flex justify-center font-bold">
+        {row.original.batch ? row.original.batch.name : "-"}
+      </p>
+    ),
   },
   {
     accessorKey: "part_number",
@@ -33,8 +35,10 @@ export const columns: AppColumnDef<IncomingArticle>[] = [
     ),
     meta: { title: "Nro. Parte" },
     cell: ({ row }) => (
-      <p className="text-center flex justify-center font-bold">{row.original.part_number}</p>
-    )
+      <p className="text-center flex justify-center font-bold">
+        {row.original.part_number}
+      </p>
+    ),
   },
   {
     accessorKey: "alternative_part_number",
@@ -43,8 +47,12 @@ export const columns: AppColumnDef<IncomingArticle>[] = [
     ),
     meta: { title: "Nro. Parte Alternativo" },
     cell: ({ row }) => (
-      <p className="text-center italic text-muted-foreground">{row.original.alt_part_number?.join('/ ') ?? "-"}</p>
-    )
+      <p className="text-center italic text-muted-foreground">
+        {row.original.alternative_part_number.length
+          ? row.original.alternative_part_number.join("/ ")
+          : "-"}
+      </p>
+    ),
   },
   {
     accessorKey: "serial",
@@ -54,19 +62,29 @@ export const columns: AppColumnDef<IncomingArticle>[] = [
     meta: { title: "Nro. Serie" },
     cell: ({ row }) => (
       <p className="text-center font-medium">{row.original.serial}</p>
-    )
+    ),
   },
-    {
+  {
+    accessorKey: "quantity",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Cantidad" />
+    ),
+    meta: { title: "Cantidad" },
+    cell: ({ row }) => (
+      <p className="text-center font-medium">
+        {row.original.quantity} {row.original.unit}
+      </p>
+    ),
+  },
+  {
     accessorKey: "ata_code",
     header: ({ column }) => (
       <DataTableColumnHeader filter column={column} title="Cod. ATA" />
     ),
     meta: { title: "Cod. ATA" }, // 👈 Agrega el título aquí
     cell: ({ row }) => {
-      return (
-        <p className="text-center">{row.original.ata_code ?? "-"}</p>
-      )
-    }
+      return <p className="text-center">{row.original.ata_code ?? "-"}</p>;
+    },
   },
   {
     accessorKey: "actions",
@@ -78,6 +96,6 @@ export const columns: AppColumnDef<IncomingArticle>[] = [
       <div className="flex justify-center">
         <IncomingArticleDropdownActions article={row.original} />
       </div>
-    )
+    ),
   },
-]
+];

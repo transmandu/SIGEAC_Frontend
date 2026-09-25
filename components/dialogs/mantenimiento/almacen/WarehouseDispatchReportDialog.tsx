@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { format } from "date-fns";
 
 import {
@@ -9,19 +9,14 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger
+  DialogTrigger,
 } from "@/components/ui/dialog";
 
 import { Button } from "@/components/ui/button";
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 import { Loader2, Download, FileText, Scale } from "lucide-react";
 
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger
-} from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { RiFileExcel2Fill } from "react-icons/ri";
 
@@ -35,12 +30,16 @@ import { useGetAuthorizedEmployees } from "@/hooks/ajustes/autorizados/useGetAut
 import { useGetThirdParties } from "@/hooks/general/terceros/useGetThirdParties";
 import { useGetDepartments } from "@/hooks/ajustes/departamento/useGetDepartment";
 
-import { useGetArticlesByStatus } from "@/hooks/mantenimiento/almacen/articulos/useGetArticlesByStatus";
-import { useGetGeneralArticles } from "@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticles";
+import { useGetDispatchReportArticleOptions } from "@/hooks/mantenimiento/almacen/reportes/useGetDispatchReportArticleOptions";
 import { useGetDispatchWorkOrders } from "@/hooks/mantenimiento/almacen/reportes/useGetDispatchWorkOrders";
 
 import { DispatchReportFilters } from "@/components/dialogs/mantenimiento/almacen/DispatchReportFilters";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Department } from "@/types";
 
 type DispatchType = "aeronautical" | "general";
@@ -52,9 +51,8 @@ export function WarehouseDispatchReportDialog() {
 
   const isPlanificacionOnlyFilters =
     user?.roles?.some((r) =>
-      ["JEFE_PLANIFICACION", "ANALISTA_PLANIFICACION"].includes(r.name)
+      ["JEFE_PLANIFICACION", "ANALISTA_PLANIFICACION"].includes(r.name),
     ) ?? false;
-
 
   const [activeTab, setActiveTab] = useState("dispatch");
   const [open, setOpen] = useState(false);
@@ -66,11 +64,14 @@ export function WarehouseDispatchReportDialog() {
   const [aircraft, setAircraft] = useState<string | null>(null);
   const [workOrder, setWorkOrder] = useState<string | null>(null);
   const [departmentId, setDepartmentId] = useState<string | null>(null);
-  const [authorizedEmployeeId, setAuthorizedEmployeeId] = useState<string | null>(null);
+  const [authorizedEmployeeId, setAuthorizedEmployeeId] = useState<
+    string | null
+  >(null);
   const [thirdPartyId, setThirdPartyId] = useState<string | null>(null);
 
   const [dispatchType, setDispatchType] = useState<DispatchType | null>(null);
-  const [articleCategory, setArticleCategory] = useState<ArticleCategory | null>(null);
+  const [articleCategory, setArticleCategory] =
+    useState<ArticleCategory | null>(null);
 
   const [articleFilters, setArticleFilters] = useState({
     part_number: "",
@@ -78,7 +79,7 @@ export function WarehouseDispatchReportDialog() {
     description: "",
     batch_id: "",
     variant_type: "",
-    brand_model: ""
+    brand_model: "",
   });
 
   const today = new Date();
@@ -86,8 +87,9 @@ export function WarehouseDispatchReportDialog() {
   const { mutateAsync: getDispatch } = useGetDispatchReport();
   const { mutateAsync: getBalance } = useGetBalanceAndTotalReport();
 
-  const { data: aircrafts, isLoading: isLoadingAircrafts } =
-    useGetAircrafts(selectedCompany?.slug);
+  const { data: aircrafts, isLoading: isLoadingAircrafts } = useGetAircrafts(
+    selectedCompany?.slug,
+  );
 
   const { data: departments, isLoading: isLoadingDepartments } =
     useGetDepartments(selectedCompany?.slug);
@@ -98,10 +100,7 @@ export function WarehouseDispatchReportDialog() {
       ...flattenDepartments(department.descendants ?? []),
     ]);
 
-  const allDepartments = departments
-    ? flattenDepartments(departments)
-    : [];
-
+  const allDepartments = departments ? flattenDepartments(departments) : [];
 
   const { data: authorizedEmployees, isLoading: isLoadingEmployees } =
     useGetAuthorizedEmployees(selectedCompany?.slug);
@@ -109,23 +108,12 @@ export function WarehouseDispatchReportDialog() {
   const { data: thirdParties, isLoading: isLoadingThirdParties } =
     useGetThirdParties();
 
-  const { data: articlesByStatus = [], isLoading: isLoadingArticles } =
-    useGetArticlesByStatus("STORED");
-
-  const { data: generalArticles = [], isLoading: isLoadingGeneralArticles } =
-    useGetGeneralArticles();
-
-  // Aeronáuticos y generales son dos tablas distintas en el backend; el reporte
-  // los trata como una sola lista.
-  const allArticles = [...articlesByStatus, ...generalArticles];
+  const { data: articleOptions } = useGetDispatchReportArticleOptions(open);
 
   const { data: workOrders = [], isLoading: isLoadingWorkOrders } =
     useGetDispatchWorkOrders(selectedCompany?.slug);
 
-  const isDateRangeInvalid =
-    !!startDate &&
-    !!endDate &&
-    endDate < startDate;
+  const isDateRangeInvalid = !!startDate && !!endDate && endDate < startDate;
 
   const canDownload =
     !!selectedStation &&
@@ -134,7 +122,11 @@ export function WarehouseDispatchReportDialog() {
     !!endDate &&
     !isDateRangeInvalid;
 
-  useEffect(() => {
+  // Al cerrarse, el diálogo vuelve a su estado inicial. Se hace durante el
+  // render al detectar el cambio de `open`, no en un efecto.
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
     if (!open) {
       setStartDate(undefined);
       setEndDate(undefined);
@@ -152,12 +144,12 @@ export function WarehouseDispatchReportDialog() {
         description: "",
         batch_id: "",
         variant_type: "",
-        brand_model: ""
+        brand_model: "",
       });
 
       setActiveTab("dispatch");
     }
-  }, [open]);
+  }
 
   const buildParams = () => ({
     location_id: selectedStation!,
@@ -175,12 +167,12 @@ export function WarehouseDispatchReportDialog() {
     to: format(endDate!, "yyyy-MM-dd"),
 
     part_number: articleFilters.part_number || undefined,
-    alternative_part_number: articleFilters.alternative_part_number || undefined,
+    alternative_part_number:
+      articleFilters.alternative_part_number || undefined,
     description: articleFilters.description || undefined,
     batch_id: articleFilters.batch_id || undefined,
     variant_type: articleFilters.variant_type || undefined,
-    brand_model: articleFilters.brand_model || undefined
-    
+    brand_model: articleFilters.brand_model || undefined,
   });
 
   const handleDownload = async (type: "dispatch" | "balance") => {
@@ -241,16 +233,13 @@ export function WarehouseDispatchReportDialog() {
     }
   };
 
-
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <ActionTriggerButton>
-          Generar Reporte
-        </ActionTriggerButton>
+        <ActionTriggerButton>Generar Reporte</ActionTriggerButton>
       </DialogTrigger>
 
-      <DialogContent className="sm:max-w-[580px] p-0 overflow-visible">
+      <DialogContent className="sm:max-w-145 p-0 overflow-visible">
         <div className="relative bg-linear-to-br from-primary/5 via-background to-background px-6 pt-8 pb-1">
           <div className="absolute inset-0 bg-grid-white/[0.02]" />
 
@@ -269,7 +258,7 @@ export function WarehouseDispatchReportDialog() {
                   Almacén e Inventario
                 </p>
 
-                <DialogDescription className="max-w-[430px] text-sm leading-relaxed">
+                <DialogDescription className="max-w-107.5 text-sm leading-relaxed">
                   Genera reportes operativos, balances e históricos de
                   solicitudes de salidas.
                 </DialogDescription>
@@ -280,12 +269,18 @@ export function WarehouseDispatchReportDialog() {
         <div className="px-6 py-5">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="grid mb-4 grid-cols-2">
-              <TabsTrigger value="dispatch" className=" flex gap-2 text-xs rounded-lg transition-all duration-200 data-[state=active]:bg-background data-[state=active]:shadow-md data-[state=active]:shadow-blue-500/10 data-[state=active]:ring-1 data-[state=active]:ring-blue-500/ data-[state=active]:text-blue-600">
+              <TabsTrigger
+                value="dispatch"
+                className=" flex gap-2 text-xs rounded-lg transition-all duration-200 data-[state=active]:bg-background data-[state=active]:shadow-md data-[state=active]:shadow-blue-500/10 data-[state=active]:ring-1 data-[state=active]:ring-blue-500/ data-[state=active]:text-blue-600"
+              >
                 <FileText className="w-3.5 h-3.5" />
                 Salidas
               </TabsTrigger>
 
-              <TabsTrigger value="balance" className=" flex gap-2 text-xs rounded-lg transition-all duration-200 data-[state=active]:bg-background data-[state=active]:shadow-md data-[state=active]:shadow-blue-500/10 data-[state=active]:ring-1 data-[state=active]:ring-blue-500/ data-[state=active]:text-blue-600">
+              <TabsTrigger
+                value="balance"
+                className=" flex gap-2 text-xs rounded-lg transition-all duration-200 data-[state=active]:bg-background data-[state=active]:shadow-md data-[state=active]:shadow-blue-500/10 data-[state=active]:ring-1 data-[state=active]:ring-blue-500/ data-[state=active]:text-blue-600"
+              >
                 <Scale className="w-3.5 h-3.5" />
                 Balance
               </TabsTrigger>
@@ -327,8 +322,7 @@ export function WarehouseDispatchReportDialog() {
               articleCategory={articleCategory}
               setArticleCategory={setArticleCategory}
 
-              articles={allArticles}
-              isLoadingArticles={isLoadingArticles || isLoadingGeneralArticles}
+              articleOptions={articleOptions}
               articleFilters={articleFilters}
               setArticleFilters={setArticleFilters}
 
@@ -349,7 +343,6 @@ export function WarehouseDispatchReportDialog() {
                   ) : (
                     <Download className="mr-2 h-5 w-5" />
                   )}
-
                   Descargar Reporte
                   <span className="ml-2 text-xs font-normal opacity-80">
                     PDF
@@ -370,7 +363,13 @@ export function WarehouseDispatchReportDialog() {
                       </Button>
                     </TooltipTrigger>
 
-                    <TooltipContent side="top" align="center" sideOffset={10} avoidCollisions={false} className="z-9999 whitespace-nowrap rounded-xl px-3 py-1.5">
+                    <TooltipContent
+                      side="top"
+                      align="center"
+                      sideOffset={10}
+                      avoidCollisions={false}
+                      className="z-9999 whitespace-nowrap rounded-xl px-3 py-1.5"
+                    >
                       Descargar en Excel
                     </TooltipContent>
                   </Tooltip>
@@ -391,7 +390,6 @@ export function WarehouseDispatchReportDialog() {
                   ) : (
                     <Download className="mr-2 h-5 w-5" />
                   )}
-
                   Descargar Balance
                   <span className="ml-2 text-xs font-normal opacity-80">
                     PDF
@@ -412,14 +410,19 @@ export function WarehouseDispatchReportDialog() {
                       </Button>
                     </TooltipTrigger>
 
-                    <TooltipContent  side="top" align="center" sideOffset={10} avoidCollisions={false} className="z-9999 whitespace-nowrap rounded-xl px-3 py-1.5">
+                    <TooltipContent
+                      side="top"
+                      align="center"
+                      sideOffset={10}
+                      avoidCollisions={false}
+                      className="z-9999 whitespace-nowrap rounded-xl px-3 py-1.5"
+                    >
                       Descargar en Excel
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               </div>
             </TabsContent>
-
           </Tabs>
         </div>
       </DialogContent>

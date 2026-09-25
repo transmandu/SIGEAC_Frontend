@@ -18,6 +18,7 @@ interface BarChartProps {
   title: string;
   height?: number;
   barSize?: number;
+  forceLight?: boolean;
 }
 
 const MultipleBarChartComponent: React.FC<BarChartProps> = ({
@@ -25,9 +26,10 @@ const MultipleBarChartComponent: React.FC<BarChartProps> = ({
   title,
   height = 260,
   barSize = 48,
+  forceLight = false,
 }) => {
   const { theme } = useTheme();
-  const isDark = theme === "dark";
+  const isDark = forceLight ? false : theme === "dark";
 
   const axisColor = useMemo(() => (isDark ? "#e5e7eb" : "#111827"), [isDark]);
   const gridColor = useMemo(() => (isDark ? "#4b5563" : "#d1d5db"), [isDark]);

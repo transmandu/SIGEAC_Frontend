@@ -7,6 +7,7 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
+  LabelList,
   Legend,
   ResponsiveContainer,
   Tooltip,
@@ -21,6 +22,8 @@ interface BarChartProps {
   barSize?: number;
   bar_first_name: string;
   bar_second_name: string;
+  showValueLabels?: boolean;
+  forceLight?: boolean;
 }
 
 const BarChartComponent = ({
@@ -30,9 +33,11 @@ const BarChartComponent = ({
   barSize = 48,
   bar_first_name,
   bar_second_name,
+  showValueLabels = false,
+  forceLight = false,
 }: BarChartProps) => {
   const { theme } = useTheme();
-  const isDark = theme === "dark";
+  const isDark = forceLight ? false : theme === "dark";
 
   const axisColor = useMemo(() => (isDark ? "#e5e7eb" : "#111827"), [isDark]);
   const gridColor = useMemo(() => (isDark ? "#4b5563" : "#d1d5db"), [isDark]);
@@ -43,8 +48,30 @@ const BarChartComponent = ({
       open: isDark ? "#64bda5ff" : "#64bda5ff",
       closed: isDark ? "#0369a1" : "#0369a1",
     }),
-    [isDark]
+    [isDark],
   );
+
+  /* eslint-disable react/display-name */
+  const renderValueLabel = (total: number, color: string) => (props: any) => {
+    const { x, y, width, height, value } = props ?? {};
+    if (!value || Number(value) <= 0) return null;
+    if (height < 16 || x == null || y == null || width == null) return null;
+    const pct = total > 0 ? (Number(value) / total) * 100 : 0;
+    return (
+      <text
+        x={x + width / 2}
+        y={y + height / 2}
+        dominantBaseline="central"
+        textAnchor="middle"
+        fontSize={11}
+        fontWeight={700}
+        fill={color}
+      >
+        {`${Number(value).toLocaleString("es-ES")} (${pct.toFixed(1)}%)`}
+      </text>
+    );
+  };
+  /* eslint-enable react/display-name */
 
   if (!data.closed && !data.open) {
     return (
@@ -65,9 +92,10 @@ const BarChartComponent = ({
 
   return (
     <div className="w-full">
-
       {title && (
-        <h2 className="text-base md:text-lg font-semibold mb-4 pt-6 text-center">{title}</h2>
+        <h2 className="text-base md:text-lg font-semibold mb-4 pt-6 text-center">
+          {title}
+        </h2>
       )}
 
       <div style={{ width: "100%", height }}>
@@ -125,14 +153,28 @@ const BarChartComponent = ({
               name={bar_first_name}
               stackId="a"
               fill={barColors.open}
-            />
+            >
+              {showValueLabels && (
+                <LabelList
+                  dataKey="open"
+                  content={renderValueLabel(data.total, "#0d3a30")}
+                />
+              )}
+            </Bar>
 
             <Bar
               dataKey="closed"
               name={bar_second_name}
               stackId="a"
               fill={barColors.closed}
-            />
+            >
+              {showValueLabels && (
+                <LabelList
+                  dataKey="closed"
+                  content={renderValueLabel(data.total, "#ffffff")}
+                />
+              )}
+            </Bar>
           </BarChart>
         </ResponsiveContainer>
       </div>

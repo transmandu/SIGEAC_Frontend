@@ -28,7 +28,11 @@ const SMSTrainingPage = () => {
           </div>
         )}
         {employeeTraining && (
-          <DataTable columns={columns} data={employeeTraining} />
+          <DataTable
+            columns={columns}
+            data={employeeTraining}
+            company={selectedCompany?.slug}
+          />
         )}
         {isError && (
           <p className="text-sm text-muted-foreground">

@@ -24,6 +24,11 @@ interface CursorPaginationProps {
    * el botón no hizo nada.
    */
   isTransitioning?: boolean;
+  /**
+   * Texto a la izquierda, normalmente el total que cuenta el servidor bajo
+   * los filtros vigentes (el cursor por sí solo no lo sabe).
+   */
+  summary?: string;
 }
 
 /**
@@ -40,6 +45,7 @@ export function CursorPagination({
   hasPrevPage,
   hasNextPage,
   isTransitioning = false,
+  summary,
 }: CursorPaginationProps) {
   return (
     <div
@@ -49,7 +55,9 @@ export function CursorPagination({
         bg-transparent
       "
     >
-      <div className="flex-1 text-sm text-muted-foreground" />
+      <div className="flex-1 text-sm text-muted-foreground tabular-nums">
+        {summary}
+      </div>
 
       <div className="flex items-center space-x-6 lg:space-x-8">
         {/* PAGE SIZE */}

@@ -1,3 +1,15 @@
+## v4.25.0 — 2026-09-25
+
+- feat: add stock adjustment and warehouse inventory hooks (#292)
+
+## v4.24.0 — 2026-09-25
+
+- feat: change input to get all employees sms forms (#291)
+
+## v4.23.0 — 2026-09-25
+
+- feat: sms report statistics pdf (#290)
+
 ## v4.22.0 — 2026-09-24
 
 - feat: replicated file with no rule (#289)

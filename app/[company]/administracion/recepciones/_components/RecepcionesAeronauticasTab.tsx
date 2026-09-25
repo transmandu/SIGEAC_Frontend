@@ -16,7 +16,7 @@ import { useGetReceptionHistory } from "@/hooks/mantenimiento/almacen/articulos/
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { ListRestart, Loader2, PackageSearch, Search } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { ColumnFilter, type SortDirection } from "./ColumnFilter";
 import { formatPeriodRange, PeriodFilter, type Period } from "./PeriodFilter";
 import { ReceptionStats } from "./ReceptionStats";
@@ -68,9 +68,12 @@ export const RecepcionesAeronauticasTab = () => {
 
       const matchesDescription =
         descriptionFilter.length === 0 ||
-        (article.description && descriptionFilter.includes(article.description));
+        (article.description &&
+          descriptionFilter.includes(article.description));
 
-      return matchesSearch && matchesVendor && matchesPart && matchesDescription;
+      return (
+        matchesSearch && matchesVendor && matchesPart && matchesDescription
+      );
     });
   }, [articles, search, vendorFilter, partFilter, descriptionFilter]);
 
@@ -82,18 +85,26 @@ export const RecepcionesAeronauticasTab = () => {
     return [...filtered].sort(
       (a, b) =>
         factor *
-        (a[sortColumn.key] ?? "").localeCompare(
-          b[sortColumn.key] ?? "",
-          "es",
-          { numeric: true },
-        ),
+        (a[sortColumn.key] ?? "").localeCompare(b[sortColumn.key] ?? "", "es", {
+          numeric: true,
+        }),
     );
   }, [filtered, sortColumn]);
 
   // Filtrar u ordenar cambia qué fila cae en cada página: volver al inicio.
-  useEffect(() => {
+  const pageResetKey = [
+    search,
+    vendorFilter,
+    partFilter,
+    descriptionFilter,
+    sortColumn,
+    period,
+  ];
+  const [prevPageResetKey, setPrevPageResetKey] = useState(pageResetKey);
+  if (pageResetKey.some((value, i) => value !== prevPageResetKey[i])) {
+    setPrevPageResetKey(pageResetKey);
     setPage(0);
-  }, [search, vendorFilter, partFilter, descriptionFilter, sortColumn, period]);
+  }
 
   const paginated = useMemo(
     () => sorted.slice(page * pageSize, page * pageSize + pageSize),
@@ -207,7 +218,8 @@ export const RecepcionesAeronauticasTab = () => {
             {sorted.length} de {articles.length}
           </span>
           <DownloadReportDialog
-            endpoint="articles-reception-pdf"
+            endpoint="{location_id}/articles-reception-pdf"
+            requiresLocation
             title="Descargar historial de recepciones"
             description="Genere el reporte de artículos aeronáuticos recibidos en el rango de fechas."
             dateRangeLabel="Fecha de recepción"

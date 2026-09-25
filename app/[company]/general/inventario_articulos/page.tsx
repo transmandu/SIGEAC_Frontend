@@ -3,10 +3,12 @@
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ALL_CONDITIONS, ConditionTabs } from "@/components/misc/ConditionTabs";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useCompanyStore } from "@/stores/CompanyStore";
-import { useAuth } from "@/contexts/AuthContext";
-import { useGetGeneralArticles } from "@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticles";
+import { useDebounce } from "@/hooks/helpers/useDebounce";
+import { useCompanyInventoryArticles } from "@/hooks/mantenimiento/almacen/inventario/useCompanyInventoryArticles";
+import { useCompanyInventoryGeneralArticles } from "@/hooks/mantenimiento/almacen/inventario/useCompanyInventoryGeneralArticles";
+import type { InventoryCategory } from "@/hooks/mantenimiento/almacen/inventario/useWarehouseInventoryArticles";
 import {
   Drill,
   Loader2,
@@ -14,69 +16,53 @@ import {
   Package2,
   PaintBucket,
   Puzzle,
-  Wrench,
   X,
 } from "lucide-react";
 import { SearchAcrossLocationsDialog } from "@/components/dialogs/mantenimiento/almacen/SearchAcrossLocationsDialog";
-import { useEffect, useState, useMemo } from "react";
-import {
-  flattenArticles,
-  aggregateByPartNumber,
-  getColumnsByCategory,
-  IArticleSimple,
-} from "./columns";
+import { useMemo, useState } from "react";
+import { getColumnsByCategory } from "./columns";
 import { DataTable } from "./data-table";
-import { useGetWarehouseArticlesByCategory } from "@/hooks/mantenimiento/almacen/articulos/useGetWarehouseArticlesByCategory";
 import { generalConsultaColumns } from "@/components/tables/GeneralArticleConsultaColumns";
 import { PageHeader } from "@/components/layout/PageHeader";
 
-const ROLES_WITH_QUANTITY_VISIBLE = ["ENGINEERING", "SUPERUSER"];
+const ALL = ALL_CONDITIONS;
+
+const formatCount = (value: number) => value.toLocaleString("es-VE");
 
 const InventarioArticulosPage = () => {
-  const { selectedCompany } = useCompanyStore();
-  const { user } = useAuth();
-
   const [activeMainTab, setActiveMainTab] = useState("aeronautic");
   const [searchAcrossOpen, setSearchAcrossOpen] = useState(false);
 
-  const [activeCategory, setActiveCategory] = useState<
-    "COMPONENT" | "CONSUMABLE" | "TOOL" | "PART" | "all"
-  >("all");
-
-  const [componentCondition, setComponentCondition] = useState<
-    "all" | "SERVICIABLE" | "REMOVIDO - NO SERVICIABLE" | "REMOVIDO - CUSTODIA"
-  >("all");
-
+  const [activeCategory, setActiveCategory] =
+    useState<InventoryCategory>("all");
+  const [condition, setCondition] = useState<string>(ALL);
   const [consumableFilter, setConsumableFilter] = useState<"all" | "QUIMICOS">(
     "all",
   );
-  const [partNumberSearch, setPartNumberSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [apiPage, setApiPage] = useState(1);
 
-  // Debounce search and reset page
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(partNumberSearch);
-      setApiPage(1);
-    }, 400);
-    return () => clearTimeout(timer);
-  }, [partNumberSearch]);
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search.trim(), 400);
 
-  const { data: articles, isLoading: isLoadingArticles } =
-    useGetWarehouseArticlesByCategory(
-      apiPage,
-      15,
-      activeCategory as any,
-      true,
-      undefined,
-      debouncedSearch.trim() || undefined,
-    );
+  // Componentes y partes llegan resumidos por número de parte desde el
+  // servidor; la condición y la mercancía peligrosa también se filtran allí,
+  // porque en el navegador solo está la página actual.
+  const aeronautical = useCompanyInventoryArticles({
+    category: activeCategory,
+    search: debouncedSearch || undefined,
+    condition:
+      (activeCategory === "COMPONENT" || activeCategory === "PART") &&
+      condition !== ALL
+        ? condition
+        : undefined,
+    is_hazardous:
+      activeCategory === "CONSUMABLE" && consumableFilter === "QUIMICOS",
+  });
 
-  const { data: articlesGeneral, isLoading: isLoadingArticlesGeneral } =
-    useGetGeneralArticles();
+  const general = useCompanyInventoryGeneralArticles(
+    debouncedSearch || undefined,
+    activeMainTab === "general",
+  );
 
-  // Logica del placeholder dinámico
   const dynamicPlaceholder = useMemo(() => {
     if (activeMainTab === "aeronautic") {
       return "Búsqueda Aeronáutica - Nro. de Parte (Ej: 65-50587-4, TORNILLO, ALT-123...)";
@@ -84,76 +70,21 @@ const InventarioArticulosPage = () => {
     return "Búsqueda General - Buscar por Descripcion";
   }, [activeMainTab]);
 
-  const canSeeQuantity =
-    user?.roles?.some((r) => ROLES_WITH_QUANTITY_VISIBLE.includes(r.name)) ??
-    false;
-
-  // 1. Columnas Aeronáuticas filtradas
-  const aeroColsWithoutActions = useMemo(() => {
-    const rawCols = getColumnsByCategory(activeCategory as any);
-    return rawCols.filter(
-      (col) =>
-        col.id !== "actions" &&
-        col.id !== "acciones" &&
-        (canSeeQuantity ? true : col.id !== "quantity_value") &&
-        (typeof col.header === "string"
-          ? col.header.toLowerCase() !== "acciones"
-          : true),
-    );
-  }, [activeCategory, canSeeQuantity]);
-
-  useEffect(() => {
-    if (activeCategory !== "COMPONENT") setComponentCondition("all");
-    if (activeCategory !== "CONSUMABLE") setConsumableFilter("all");
-    setApiPage(1);
-  }, [activeCategory]);
-
-  const getCurrentAeronauticData = (): IArticleSimple[] => {
-    let filtered = flattenArticles(articles) ?? [];
-
-    if (
-      (activeCategory === "COMPONENT" || activeCategory === "PART") &&
-      componentCondition !== "all"
-    ) {
-      filtered = filtered.filter((a) => a.condition === componentCondition);
-    }
-
-    if (activeCategory === "CONSUMABLE" && consumableFilter === "QUIMICOS") {
-      filtered = filtered.filter((a: any) => a.is_hazardous === true);
-    }
-
-    // Agrupar por PN y sumar cantidades para componentes y partes
-    if (activeCategory === "COMPONENT" || activeCategory === "PART") {
-      return aggregateByPartNumber(filtered);
-    }
-
-    return filtered;
+  const handleCategoryChange = (value: InventoryCategory) => {
+    setActiveCategory(value);
+    setCondition(ALL);
+    setConsumableFilter("all");
   };
 
-  const getCurrentGeneralData = () => {
-    if (!articlesGeneral) return [];
-    const q = partNumberSearch.trim().toLowerCase();
-    return q
-      ? articlesGeneral.filter(
-          (a: any) =>
-            a.part_number?.toLowerCase().includes(q) ||
-            a.description?.toLowerCase().includes(q),
-        )
-      : articlesGeneral;
-  };
+  const aeronauticalColumns = useMemo(
+    () => getColumnsByCategory(activeCategory),
+    [activeCategory],
+  );
 
-  const serverPagination = articles?.pagination
-    ? {
-        currentPage: articles.pagination.current_page,
-        lastPage: articles.pagination.last_page,
-        total: articles.pagination.total,
-        from: articles.pagination.from ?? 0,
-        to: articles.pagination.to ?? 0,
-        onPageChange: setApiPage,
-      }
-    : undefined;
-
-  const handleClearSearch = () => setPartNumberSearch("");
+  const aeronauticalUnit =
+    activeCategory === "COMPONENT" || activeCategory === "PART"
+      ? "nro. de parte"
+      : "artículo(s)";
 
   return (
     <ContentLayout title="Inventario General">
@@ -174,16 +105,16 @@ const InventarioArticulosPage = () => {
           <div className="relative flex-1">
             <Input
               placeholder={dynamicPlaceholder}
-              value={partNumberSearch}
-              onChange={(e) => setPartNumberSearch(e.target.value)}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
               className="pr-8 h-11"
             />
-            {partNumberSearch && (
+            {search && (
               <Button
                 variant="ghost"
                 size="sm"
                 className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
-                onClick={handleClearSearch}
+                onClick={() => setSearch("")}
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -209,7 +140,6 @@ const InventarioArticulosPage = () => {
         </div>
 
         {/* Tabs principales */}
-
         <Tabs
           value={activeMainTab}
           onValueChange={setActiveMainTab}
@@ -223,7 +153,9 @@ const InventarioArticulosPage = () => {
           <TabsContent value="aeronautic" className="space-y-6">
             <Tabs
               value={activeCategory}
-              onValueChange={(v) => setActiveCategory(v as any)}
+              onValueChange={(v) =>
+                handleCategoryChange(v as InventoryCategory)
+              }
             >
               <TabsList className="flex justify-center mb-4 space-x-3">
                 <TabsTrigger className="flex gap-2" value="all">
@@ -246,49 +178,69 @@ const InventarioArticulosPage = () => {
               {(activeCategory === "COMPONENT" ||
                 activeCategory === "PART") && (
                 <div className="flex justify-center mb-4">
+                  <ConditionTabs
+                    value={condition}
+                    onValueChange={setCondition}
+                  />
+                </div>
+              )}
+
+              {activeCategory === "CONSUMABLE" && (
+                <div className="flex justify-center mb-4">
                   <Tabs
-                    value={componentCondition}
-                    onValueChange={(v) => setComponentCondition(v as any)}
+                    value={consumableFilter}
+                    onValueChange={(v) =>
+                      setConsumableFilter(v as typeof consumableFilter)
+                    }
                   >
                     <TabsList>
                       <TabsTrigger value="all">Todos</TabsTrigger>
-                      <TabsTrigger value="SERVICIABLE">
-                        Serviciables
-                      </TabsTrigger>
-                      <TabsTrigger value="REMOVIDO - NO SERVICIABLE">
-                        No Serviciables
-                      </TabsTrigger>
-                      <TabsTrigger value="REMOVIDO - CUSTODIA">
-                        En custodia
+                      <TabsTrigger value="QUIMICOS">
+                        Mercancia Peligrosa
                       </TabsTrigger>
                     </TabsList>
                   </Tabs>
                 </div>
               )}
 
-              {isLoadingArticles ? (
+              {aeronautical.isLoading ? (
                 <div className="flex justify-center py-20">
                   <Loader2 className="size-12 animate-spin text-primary" />
                 </div>
               ) : (
                 <DataTable
-                  columns={aeroColsWithoutActions}
-                  data={getCurrentAeronauticData()}
-                  serverPagination={serverPagination}
+                  columns={aeronauticalColumns}
+                  data={aeronautical.rows}
+                  isFetching={aeronautical.isFetching}
+                  pagination={{
+                    ...aeronautical.pagination,
+                    summary:
+                      aeronautical.total !== undefined
+                        ? `${formatCount(aeronautical.total)} ${aeronauticalUnit}`
+                        : undefined,
+                  }}
                 />
               )}
             </Tabs>
           </TabsContent>
-          {/* Sub-tabs por categoría */}
+
           <TabsContent value="general">
-            {isLoadingArticlesGeneral ? (
+            {general.isLoading ? (
               <div className="flex justify-center py-20">
                 <Loader2 className="size-12 animate-spin text-primary" />
               </div>
             ) : (
               <DataTable
                 columns={generalConsultaColumns}
-                data={getCurrentGeneralData()}
+                data={general.rows}
+                isFetching={general.isFetching}
+                pagination={{
+                  ...general.pagination,
+                  summary:
+                    general.total !== undefined
+                      ? `${formatCount(general.total)} artículo(s)`
+                      : undefined,
+                }}
               />
             )}
           </TabsContent>

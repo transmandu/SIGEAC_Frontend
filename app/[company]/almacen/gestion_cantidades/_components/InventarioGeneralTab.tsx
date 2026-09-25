@@ -1,28 +1,45 @@
-"use client"
+"use client";
 
-import { useUpdateGeneralArticleQuantity } from "@/actions/mantenimiento/almacen/inventario/articulos_generales/actions"
-import LoadingPage from "@/components/misc/LoadingPage"
-import { useGetGeneralArticles } from "@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticles"
-import { Package } from "lucide-react"
-import { GeneralInventoryTable } from "./GeneralInventoryTable"
-import { useGeneralInventoryEdits } from "./hooks/useGeneralInventoryEdits"
+import { useUpdateGeneralArticleQuantity } from "@/actions/mantenimiento/almacen/inventario/articulos_generales/actions";
+import LoadingPage from "@/components/misc/LoadingPage";
+import { useDebounce } from "@/hooks/helpers/useDebounce";
+import { useWarehouseInventoryGeneralArticles } from "@/hooks/mantenimiento/almacen/inventario/useWarehouseInventoryGeneralArticles";
+import { Package } from "lucide-react";
+import { useState } from "react";
+import { GeneralInventoryTable } from "./GeneralInventoryTable";
+import { useGeneralInventoryEdits } from "./hooks/useGeneralInventoryEdits";
 
 export const InventarioGeneralTab = () => {
-  const { data, isLoading, isError } = useGetGeneralArticles()
-  const articles = data ?? []
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search.trim(), 400);
+
+  // Mismo listado que el inventario de generales del almacén: esta pantalla
+  // necesita exactamente esa información.
+  const {
+    rows: articles,
+    total,
+    isLoading,
+    isError,
+    isFetching,
+    pagination,
+  } = useWarehouseInventoryGeneralArticles({
+    search: debouncedSearch || undefined,
+  });
+
   const {
     state: { editedQuantities, baseQuantities, hasChanges },
-    actions: { setQuantity },
+    actions: { setQuantity, commit },
     utils: { modified, modifiedCount },
-  } = useGeneralInventoryEdits(articles)
+  } = useGeneralInventoryEdits(articles);
 
-  const { updateGeneralArticleQuantity } = useUpdateGeneralArticleQuantity()
+  const { updateGeneralArticleQuantity } = useUpdateGeneralArticleQuantity();
 
   const handleSave = async () => {
-    await updateGeneralArticleQuantity.mutateAsync({ updates: modified })
-  }
+    await updateGeneralArticleQuantity.mutateAsync({ updates: modified });
+    commit();
+  };
 
-  if (isLoading) return <LoadingPage />
+  if (isLoading) return <LoadingPage />;
 
   if (isError) {
     return (
@@ -31,7 +48,7 @@ export const InventarioGeneralTab = () => {
           No se pudieron cargar los artículos.
         </p>
       </div>
-    )
+    );
   }
 
   return (
@@ -42,12 +59,18 @@ export const InventarioGeneralTab = () => {
           Cantidades de artículos generales
         </h2>
         <p className="text-sm text-muted-foreground">
-          Inventario general sin batches. Edita y guarda cambios en lote.
+          Inventario general sin batches. Edita y guarda cambios en lote; lo
+          editado se conserva al cambiar de página.
         </p>
       </div>
 
       <GeneralInventoryTable
         articles={articles}
+        search={search}
+        onSearchChange={setSearch}
+        total={total}
+        isFetching={isFetching}
+        pagination={pagination}
         baseQuantities={baseQuantities}
         editedQuantities={editedQuantities}
         onQuantityChange={setQuantity}
@@ -57,5 +80,5 @@ export const InventarioGeneralTab = () => {
         modifiedCount={modifiedCount}
       />
     </div>
-  )
-}
+  );
+};

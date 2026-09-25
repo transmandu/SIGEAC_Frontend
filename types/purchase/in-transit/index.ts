@@ -1,56 +1,14 @@
-import type { ArticleDocumentRequirementSummary, Condition, Manufacturer } from '@/types';
+import type { TransitQueueArticle } from "@/types/inventory/queues";
 
-export type TransitStatus = 'ALL' | 'TRANSIT' | 'RECEPTION';
+export type TransitStatus = "ALL" | "TRANSIT" | "RECEPTION";
 
-export interface WarehouseLocation {
-  id: number;
-  address?: string | null;
-  cod_iata?: string | null;
-}
+/**
+ * Fila de la cola de tránsito (`articles/queues/transit`). La comparten la
+ * recepción del almacén y compras · en tránsito, que pintan lo mismo.
+ */
+export type TransitArticle = TransitQueueArticle;
 
-export interface TransitArticle {
-  id: number;
-  part_number: string;
-  alternative_part_number?: string | null;
-  serial?: string | null;
-  ata_code?: string | null;
-  status: TransitStatus;
-  batch_id: string;
-  batch?: {
-    id: number;
-    name: string;
-    warehouse?: {
-      id: number;
-      name: string;
-      location?: WarehouseLocation | null;
-    } | null;
-  } | null;
-  reception_date?: string | null;
-  condition?: Condition | null;
-  manufacturer?: Manufacturer | null;
-  quantity?: number | null;
-  unit?: string | null;
-  has_documentation?: boolean;
-  certificates?: string[];
-  /** Checklist documental heredado desde la requisición (vía orden de compra). */
-  document_requirements?: ArticleDocumentRequirementSummary[];
-  purchase_order_id?: number | null;
-  order_number?: string | null;
-  /** Número de la requisición de origen: purchase_order -> quote_order -> requisition_order. */
-  requisition_order_number?: string | null;
-  created_at?: string;
-  updated_at?: string;
-}
-
-export type TransitStatusFilter = 'ALL' | 'INCOMING' | TransitStatus;
-
-export type TransitSearchableFields =
-  | keyof Pick<
-      TransitArticle,
-      'part_number' | 'alternative_part_number' | 'serial' | 'ata_code'
-    >
-  | 'batch_name'
-  | 'location';
+export type TransitStatusFilter = "ALL" | "INCOMING" | TransitStatus;
 
 export interface TransitFilterState {
   status: TransitStatusFilter;

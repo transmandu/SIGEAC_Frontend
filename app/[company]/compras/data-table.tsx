@@ -76,6 +76,8 @@ export interface DataTableProps<TData extends RowData> {
      * atenúan para que la navegación no parezca no haber respondido.
      */
     isTransitioning?: boolean;
+    /** Total bajo los filtros vigentes, contado por el servidor. */
+    summary?: string;
   };
 }
 
@@ -350,6 +352,7 @@ function DataTableInner<TData extends RowData>({
             pageSize={cursorPagination.pageSize}
             onPageSizeChange={cursorPagination.onPageSizeChange}
             isTransitioning={cursorPagination.isTransitioning}
+            summary={cursorPagination.summary}
           />
         ) : (
           <DataTablePagination table={table} />
