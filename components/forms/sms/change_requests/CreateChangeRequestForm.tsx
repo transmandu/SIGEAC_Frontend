@@ -19,7 +19,7 @@ import {
   PhotographicImage,
 } from "./StepPhotographicRecords";
 import { useGetDepartments } from "@/hooks/ajustes/departamento/useGetDepartment";
-import { useGetEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetEmployees";
+import { useGetAllEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetAllEmployees";
 import { toCalendarPayload } from "@/lib/date";
 
 const STEPS = [
@@ -42,7 +42,9 @@ const formSchema = z.object({
   requested_by: z.number().min(1, "El solicitante es requerido"),
   is_temporary: z.boolean(),
   temporary_duration_value: z.number().optional(),
-  temporary_duration_unit: z.enum(["days", "weeks", "months", "years"]).optional(),
+  temporary_duration_unit: z
+    .enum(["days", "weeks", "months", "years"])
+    .optional(),
   change_type: z.string().min(1, "El tipo de cambio es requerido"),
   other_type_description: z
     .string()
@@ -66,7 +68,9 @@ const formSchema = z.object({
   planned_changes: z.string().nullable().optional(),
   cutoff_date: z.string().nullable().optional(),
   stabilization_period_value: z.number().optional(),
-  stabilization_period_unit: z.enum(["days", "weeks", "months", "years"]).optional(),
+  stabilization_period_unit: z
+    .enum(["days", "weeks", "months", "years"])
+    .optional(),
   project_lead_by: z.number().nullable().optional(),
   reviewed_by: z.number().nullable().optional(),
   approved_by: z.number().nullable().optional(),
@@ -77,7 +81,7 @@ const formSchema = z.object({
           .string()
           .min(1, "La descripción del item es requerida")
           .max(255, "Máximo 255 caracteres"),
-      })
+      }),
     )
     .optional(),
   financial_resources: z
@@ -86,7 +90,7 @@ const formSchema = z.object({
         description: z.string().min(1, "La descripción es requerida"),
         estimated_value: z.number().min(0, "El monto debe ser positivo"),
         currency_unit: z.string().min(1, "La moneda es requerida"),
-      })
+      }),
     )
     .optional(),
   risk_assessments: z
@@ -95,14 +99,9 @@ const formSchema = z.object({
         hazard_description: z
           .string()
           .min(1, "La descripción del peligro es requerida"),
-        probability_value: z
-          .number()
-          .min(1, "Mínimo 1")
-          .max(5, "Máximo 5"),
-        severity_value: z
-          .string()
-          .min(1, "La severidad es requerida"),
-      })
+        probability_value: z.number().min(1, "Mínimo 1").max(5, "Máximo 5"),
+        severity_value: z.string().min(1, "La severidad es requerida"),
+      }),
     )
     .optional(),
   activities: z
@@ -111,17 +110,18 @@ const formSchema = z.object({
         activity_description: z
           .string()
           .min(1, "La descripción de la actividad es requerida"),
-        assigned_employee_id: z
-          .number()
-          .min(1, "El responsable es requerido"),
-      })
+        assigned_employee_id: z.number().min(1, "El responsable es requerido"),
+      }),
     )
     .optional(),
 });
 
 export type ChangeRequestFormValues = z.infer<typeof formSchema>;
 
-function convertToDays(value: number | undefined, unit: string | undefined): string {
+function convertToDays(
+  value: number | undefined,
+  unit: string | undefined,
+): string {
   if (!value || !unit) return "";
   const days = value * (TIME_UNIT_MULTIPLIER[unit] ?? 1);
   return `${days} días`;
@@ -134,14 +134,10 @@ export function CreateChangeRequestForm() {
   const router = useRouter();
   const { selectedCompany } = useCompanyStore();
   const { createChangeRequest } = useCreateChangeRequest();
-  const {
-    data: departments,
-    isLoading: isLoadingDepartments,
-  } = useGetDepartments(selectedCompany?.slug);
-  const {
-    data: employees,
-    isLoading: isLoadingEmployees,
-  } = useGetEmployeesByCompany(selectedCompany?.slug);
+  const { data: departments, isLoading: isLoadingDepartments } =
+    useGetDepartments(selectedCompany?.slug);
+  const { data: employees, isLoading: isLoadingEmployees } =
+    useGetAllEmployeesByCompany(selectedCompany?.slug);
 
   const form = useForm<ChangeRequestFormValues>({
     resolver: zodResolver(formSchema),
@@ -186,8 +182,14 @@ export function CreateChangeRequestForm() {
 
     const payload = {
       ...rest,
-      temporary_duration: convertToDays(temporary_duration_value, temporary_duration_unit),
-      stabilization_period: convertToDays(stabilization_period_value, stabilization_period_unit),
+      temporary_duration: convertToDays(
+        temporary_duration_value,
+        temporary_duration_unit,
+      ),
+      stabilization_period: convertToDays(
+        stabilization_period_value,
+        stabilization_period_unit,
+      ),
     } as StoreChangeRequestPayload;
 
     createChangeRequest.mutate(
@@ -200,10 +202,10 @@ export function CreateChangeRequestForm() {
       {
         onSuccess: () => {
           router.push(
-            `/${selectedCompany.slug}/sms/aseguramiento_calidad/gestion_de_cambio`
+            `/${selectedCompany.slug}/sms/aseguramiento_calidad/gestion_de_cambio`,
           );
         },
-      }
+      },
     );
   };
 
@@ -243,28 +245,29 @@ export function CreateChangeRequestForm() {
             <div key={s.step} className="flex items-center">
               <div className="flex flex-col items-center gap-1">
                 <div
-                  className={`flex items-center justify-center w-8 h-8 rounded-full text-xs font-medium border ${step > s.step
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : step === s.step
+                  className={`flex items-center justify-center w-8 h-8 rounded-full text-xs font-medium border ${
+                    step > s.step
                       ? "bg-primary text-primary-foreground border-primary"
-                      : "bg-muted text-muted-foreground border-border"
-                    }`}
+                      : step === s.step
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-muted text-muted-foreground border-border"
+                  }`}
                 >
                   {step > s.step ? "✓" : s.step}
                 </div>
                 <span
-                  className={`text-[10px] font-medium uppercase tracking-wide whitespace-nowrap ${step >= s.step
-                    ? "text-foreground"
-                    : "text-muted-foreground"
-                    }`}
+                  className={`text-[10px] font-medium uppercase tracking-wide whitespace-nowrap ${
+                    step >= s.step ? "text-foreground" : "text-muted-foreground"
+                  }`}
                 >
                   {s.label}
                 </span>
               </div>
               {i < STEPS.length - 1 && (
                 <div
-                  className={`w-12 h-px mx-2 mb-4 ${step > s.step ? "bg-primary" : "bg-border"
-                    }`}
+                  className={`w-12 h-px mx-2 mb-4 ${
+                    step > s.step ? "bg-primary" : "bg-border"
+                  }`}
                 />
               )}
             </div>

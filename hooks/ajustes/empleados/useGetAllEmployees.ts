@@ -2,8 +2,9 @@ import axiosInstance from "@/lib/axios";
 import { Employee } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 
-// Provisorio: trae todos los empleados (activos o inactivos). Se usa
-// únicamente en el formulario de minutas de reunión.
+// Provisorio: trae todos los empleados (activos o inactivos). Se usa en los
+// formularios que necesitan listar empleados en general (minutas de reunión,
+// solicitudes de cambio y asistencia a cursos).
 const fetchAllEmployeesByCompany = async (
   company: string,
 ): Promise<Employee[]> => {
