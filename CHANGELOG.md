@@ -1,3 +1,7 @@
+## v4.24.0 — 2026-09-25
+
+- feat: change input to get all employees sms forms (#291)
+
 ## v4.23.0 — 2026-09-25
 
 - feat: sms report statistics pdf (#290)
