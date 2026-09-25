@@ -1,40 +1,39 @@
-'use client'
+"use client";
 
 import { type AppColumnDef } from "@/lib/table";
-import { DataTableColumnHeader } from '@/components/tables/DataTableHeader'
-import { Input } from '@/components/ui/input'
-import { cn } from '@/lib/utils'
-import React from 'react'
-import { CopyPlus } from 'lucide-react'
+import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
+import React from "react";
+import { CopyPlus } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
-  TooltipTrigger
-} from "@/components/ui/tooltip"
-import type { ArticleCostRow, ArticleCostColumnsArgs } from '@/types/purchase'
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import type { ArticleCostRow, ArticleCostColumnsArgs } from "@/types/purchase";
 
-export type { ArticleCostRow, ArticleCostColumnsArgs }
+export type { ArticleCostRow, ArticleCostColumnsArgs };
 
-const usdFormatter = new Intl.NumberFormat('en-US', {
+const usdFormatter = new Intl.NumberFormat("en-US", {
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
-})
+});
 
 const normalizeCostInput = (value: string) => {
   return value
-    .replace(',', '.')        // coma → punto
-    .replace(/[^0-9.]/g, '')  // elimina basura
-    .replace(/(\..*)\./g, '$1') // solo un punto decimal
-}
+    .replace(",", ".") // coma → punto
+    .replace(/[^0-9.]/g, "") // elimina basura
+    .replace(/(\..*)\./g, "$1"); // solo un punto decimal
+};
 
 export function getArticleCostColumns({
   onCostChange,
   showUnit = false,
 }: ArticleCostColumnsArgs): AppColumnDef<ArticleCostRow>[] {
-
   const unitColumn: AppColumnDef<ArticleCostRow> = {
-    accessorKey: 'unit_label',
+    accessorKey: "unit_label",
     size: 120,
     header: ({ column }) => (
       <div className="flex justify-center w-full">
@@ -44,16 +43,15 @@ export function getArticleCostColumns({
     cell: ({ row }) => (
       <div className="flex justify-center w-full">
         <span className="select-none inline-flex items-center rounded-md border border-slate-200 dark:border-slate-700/60 bg-slate-100/70 dark:bg-slate-800/40 px-2 py-0.5 text-xs font-medium text-slate-600 dark:text-slate-300">
-          {row.original.unit_label ?? '—'}
+          {row.original.unit_label ?? "—"}
         </span>
       </div>
     ),
-  }
+  };
 
   return [
-
     {
-      accessorKey: 'part_number',
+      accessorKey: "part_number",
       size: 220,
       header: ({ column }) => (
         <div className="flex justify-center w-full">
@@ -62,15 +60,15 @@ export function getArticleCostColumns({
       ),
       cell: ({ row }) => (
         <div className="flex justify-center w-full">
-          <span className="block max-w-[200px] wrap-break-word text-sm font-semibold text-foreground text-center">
-            {row.original.part_number ?? '—'}
+          <span className="block max-w-50 wrap-break-word text-sm font-semibold text-foreground text-center">
+            {row.original.part_number ?? "—"}
           </span>
         </div>
       ),
     },
 
     {
-      accessorKey: 'batch_name',
+      accessorKey: "batch_name",
       size: 320,
       header: ({ column }) => (
         <div className="flex justify-center w-full">
@@ -79,15 +77,15 @@ export function getArticleCostColumns({
       ),
       cell: ({ row }) => (
         <div className="flex justify-center w-full">
-          <span className="block max-w-[300px] wrap-break-word text-sm text-slate-600 dark:text-slate-300 text-center">
-            {row.original.batch_name ?? '—'}
+          <span className="block max-w-75 wrap-break-word text-sm text-slate-600 dark:text-slate-300 text-center">
+            {row.original.batch_name ?? "—"}
           </span>
         </div>
       ),
     },
 
     {
-      accessorKey: 'serial',
+      accessorKey: "serial",
       size: 220,
       header: ({ column }) => (
         <div className="flex justify-center w-full">
@@ -96,15 +94,15 @@ export function getArticleCostColumns({
       ),
       cell: ({ row }) => (
         <div className="flex justify-center w-full">
-          <span className="block max-w-[200px] wrap-break-word text-sm text-slate-500 dark:text-slate-400 text-center">
-            {row.original.serial ?? '—'}
+          <span className="block max-w-50 wrap-break-word text-sm text-slate-500 dark:text-slate-400 text-center">
+            {row.original.serial ?? "—"}
           </span>
         </div>
       ),
     },
 
     {
-      accessorKey: 'condition_name',
+      accessorKey: "condition",
       size: 120,
       header: ({ column }) => (
         <div className="flex justify-center w-full">
@@ -114,7 +112,7 @@ export function getArticleCostColumns({
       cell: ({ row }) => (
         <div className="flex justify-center w-full">
           <span className="block text-sm text-slate-500 dark:text-slate-400 text-center">
-            {row.original.condition_name ?? '—'}
+            {row.original.condition ?? "—"}
           </span>
         </div>
       ),
@@ -123,63 +121,67 @@ export function getArticleCostColumns({
     ...(showUnit ? [unitColumn] : []),
 
     {
-      accessorKey: 'cost',
+      accessorKey: "cost",
       size: 140,
       header: ({ column }) => (
         <div className="flex justify-center w-full">
-          <DataTableColumnHeader filter column={column} title="Costo Unitario" />
+          <DataTableColumnHeader
+            filter
+            column={column}
+            title="Costo Unitario"
+          />
         </div>
       ),
 
       cell: ({ row, table }) => {
-        const id = row.original.id
-        const current = row.original.cost
+        const id = row.original.id;
+        const current = row.original.cost;
 
-        const meta = table.options.meta as any
-        const costDrafts = meta?.costDrafts ?? {}
-        const draft = costDrafts[id]
+        const meta = table.options.meta as any;
+        const costDrafts = meta?.costDrafts ?? {};
+        const draft = costDrafts[id];
 
         const modified =
           draft !== undefined &&
           draft !== null &&
-          String(draft) !== String(current ?? 0)
+          String(draft) !== String(current ?? 0);
 
-        const groupRows = (row.original as any)._groupRows
-        const groupIndex = (row.original as any)._groupIndex
+        const groupRows = (row.original as any)._groupRows;
+        const groupIndex = (row.original as any)._groupIndex;
 
         const currentValue =
           current !== undefined && current !== null
             ? usdFormatter.format(current)
-            : usdFormatter.format(0)
+            : usdFormatter.format(0);
 
         const handlePropagateFromRow = () => {
-          if (!groupRows || groupIndex === undefined) return
+          if (!groupRows || groupIndex === undefined) return;
 
-          const value = draft ?? current ?? 0
+          const value = draft ?? current ?? 0;
 
           groupRows.forEach((r: any, idx: number) => {
             if (idx > groupIndex) {
-              onCostChange(r.id, String(value))
+              onCostChange(r.id, String(value));
             }
-          })
-        }
+          });
+        };
 
         return (
           <div className="flex justify-center w-full">
             <div
               className={cn(
-                'group flex items-center gap-1.5 rounded-md border px-2 py-1 transition-all',
-                'bg-white/70 dark:bg-slate-900/40 backdrop-blur-xs',
+                "group flex items-center gap-1.5 rounded-md border px-2 py-1 transition-all",
+                "bg-white/70 dark:bg-slate-900/40 backdrop-blur-xs",
                 modified
-                  ? 'border-emerald-500/60 bg-emerald-50/70 dark:bg-emerald-900/20'
-                  : 'border-slate-200 dark:border-slate-700/60'
+                  ? "border-emerald-500/60 bg-emerald-50/70 dark:bg-emerald-900/20"
+                  : "border-slate-200 dark:border-slate-700/60",
               )}
             >
               <span className="text-xs text-muted-foreground">$</span>
 
               <Input
                 inputMode="decimal"
-                value={draft ?? ''}
+                value={draft ?? ""}
                 placeholder={currentValue}
                 onChange={(e) =>
                   onCostChange(id, normalizeCostInput(e.target.value))
@@ -199,8 +201,8 @@ export function getArticleCostColumns({
                       <button
                         type="button"
                         onClick={(e) => {
-                          e.stopPropagation()
-                          handlePropagateFromRow()
+                          e.stopPropagation();
+                          handlePropagateFromRow();
                         }}
                         className="
                           ml-1 p-1 rounded-md
@@ -213,16 +215,14 @@ export function getArticleCostColumns({
                       </button>
                     </TooltipTrigger>
 
-                    <TooltipContent>
-                      + Replicar costo
-                    </TooltipContent>
+                    <TooltipContent>+ Replicar costo</TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               )}
             </div>
           </div>
-        )
+        );
       },
-    }
-  ]
+    },
+  ];
 }

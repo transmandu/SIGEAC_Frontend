@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  ColumnFiltersState,
-  flexRender,
-  type RowData,
-  SortingState,
-  useTable,
-  ColumnVisibilityState,
-} from "@tanstack/react-table";
+import { flexRender, type RowData, useTable } from "@tanstack/react-table";
 import { appTableFeatures, type AppColumnDef } from "@/lib/table";
 import {
   Table,
@@ -17,60 +10,47 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { useState } from "react";
-
-interface ServerPagination {
-  currentPage: number;
-  lastPage: number;
-  total: number;
-  from: number;
-  to: number;
-  onPageChange: (page: number) => void;
-}
+import { CursorPagination } from "@/components/tables/CursorPagination";
+import type { CursorPaginationState } from "@/hooks/helpers/useCursorListing";
+import { cn } from "@/lib/utils";
 
 interface DataTableProps<TData extends RowData> {
   columns: AppColumnDef<TData>[];
   data: TData[];
-  serverPagination?: ServerPagination;
+  /** Paginación por cursor del servidor; `summary` lleva el total. */
+  pagination: CursorPaginationState & { summary?: string };
+  isFetching?: boolean;
 }
 
+/**
+ * Tabla de consulta de la compañía. Búsqueda, filtros y paginación los
+ * resuelve el servidor, así que aquí no se ordena ni se filtra la página.
+ */
 export function DataTable<TData extends RowData>({
   columns,
   data,
-  serverPagination,
+  pagination,
+  isFetching = false,
 }: DataTableProps<TData>) {
-  // ============================================
-  // STATE MANAGEMENT
-  // ============================================
-  const [sorting, setSorting] = useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = useState<ColumnVisibilityState>({});
-
-  // ============================================
-  // TABLE CONFIGURATION
-  // ============================================
   const table = useTable({
     features: appTableFeatures,
     data,
     columns,
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
-    onColumnVisibilityChange: setColumnVisibility,
-    state: {
-      sorting,
-      columnFilters,
-      columnVisibility,
+    manualSorting: true,
+    initialState: {
+      pagination: { pageIndex: 0, pageSize: 100 },
     },
   });
 
-  // ============================================
-  // RENDER
-  // ============================================
   return (
     <div className="space-y-4">
-      <div className="rounded-md border">
-        <Table>
+      <div className="relative rounded-md border">
+        {isFetching && (
+          <div className="absolute inset-x-0 top-0 z-50 h-0.5 overflow-hidden bg-muted">
+            <div className="h-full w-1/4 animate-indeterminate bg-primary" />
+          </div>
+        )}
+        <Table className={cn("transition-opacity", isFetching && "opacity-60")}>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
@@ -80,7 +60,7 @@ export function DataTable<TData extends RowData>({
                       ? null
                       : flexRender(
                           header.column.columnDef.header,
-                          header.getContext()
+                          header.getContext(),
                         )}
                   </TableHead>
                 ))}
@@ -90,15 +70,12 @@ export function DataTable<TData extends RowData>({
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
+                <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}
@@ -118,82 +95,7 @@ export function DataTable<TData extends RowData>({
         </Table>
       </div>
 
-      {/* Paginación */}
-      <div className="flex items-center justify-between px-2">
-        <div className="flex-1 text-sm text-muted-foreground">
-          {serverPagination
-            ? `${serverPagination.from}–${serverPagination.to} de ${serverPagination.total} artículo(s)`
-            : `${table.getFilteredRowModel().rows.length} artículo(s) total(es)`}
-        </div>
-        <div className="flex items-center space-x-6 lg:space-x-8">
-          {!serverPagination && (
-            <div className="flex items-center space-x-2">
-              <p className="text-sm font-medium">Filas por página</p>
-              <select
-                value={table.state.pagination.pageSize}
-                onChange={(e) => table.setPageSize(Number(e.target.value))}
-                className="h-8 w-[70px] rounded-md border border-input bg-transparent px-2 py-1 text-sm"
-              >
-                {[10, 20, 30, 40, 50].map((pageSize) => (
-                  <option key={pageSize} value={pageSize}>
-                    {pageSize}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-          {serverPagination ? (
-            <>
-              <div className="flex w-[120px] items-center justify-center text-sm font-medium">
-                Página {serverPagination.currentPage} de {serverPagination.lastPage}
-              </div>
-              <div className="flex items-center space-x-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => serverPagination.onPageChange(serverPagination.currentPage - 1)}
-                  disabled={serverPagination.currentPage <= 1}
-                >
-                  Anterior
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => serverPagination.onPageChange(serverPagination.currentPage + 1)}
-                  disabled={serverPagination.currentPage >= serverPagination.lastPage}
-                >
-                  Siguiente
-                </Button>
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="flex w-[100px] items-center justify-center text-sm font-medium">
-                Página {table.state.pagination.pageIndex + 1} de{" "}
-                {table.getPageCount()}
-              </div>
-              <div className="flex items-center space-x-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => table.previousPage()}
-                  disabled={!table.getCanPreviousPage()}
-                >
-                  Anterior
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => table.nextPage()}
-                  disabled={!table.getCanNextPage()}
-                >
-                  Siguiente
-                </Button>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
+      <CursorPagination {...pagination} />
     </div>
   );
 }

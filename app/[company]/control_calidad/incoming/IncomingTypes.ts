@@ -1,4 +1,4 @@
-import { Batch } from "@/types";
+import type { InspectionQueueArticle } from "@/types/inventory/queues";
 import { LucideIcon } from "lucide-react";
 
 export type ChecklistValue = boolean | "NA";
@@ -26,17 +26,9 @@ export type IncomingConfirmPayload = {
   final_zone?: string;
 };
 
-
-export interface IncomingArticle {
-  id: number
-  batch: Batch,
-  part_number: string
-  alt_part_number?: string[]
-  serial: string,
-  ata_code: string,
-  order_number?: string | null
-  /** Zona propuesta desde recepción; almacén la confirma al ubicar. */
-  zone?: string | null
-  /** INCOMING o PENDING_REINSPECTION: la misma vista sirve a los dos. */
-  status?: string
-}
+/**
+ * Fila de la cola de calidad (`articles/queues/inspection`): INCOMING,
+ * WAITING_FOR_FORMAT o PENDING_REINSPECTION, la misma vista sirve a las tres.
+ * `zone` es la propuesta desde recepción; almacén la confirma al ubicar.
+ */
+export type IncomingArticle = InspectionQueueArticle;

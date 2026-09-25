@@ -2,117 +2,31 @@
 
 import { type AppColumnDef } from "@/lib/table";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
+import { AvailabilityBadge } from "@/components/tables/GeneralArticleConsultaColumns";
 import { Badge } from "@/components/ui/badge";
 import { addDays, format, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toolStatusLabelEsUpper } from "@/lib/warehouse/statuses";
 import { formatCondition } from "@/lib/warehouse/conditions";
-import ArticleDropdownActions from "@/components/dropdowns/mantenimiento/almacen/ArticleDropdownActions";
-import { WarehouseResponse } from "@/hooks/mantenimiento/almacen/articulos/useGetWarehouseArticlesByCategory";
-import { Unit } from "@/types";
+import type { CompanyInventoryArticle } from "@/types/inventory";
+import type { InventoryCategory } from "@/hooks/mantenimiento/almacen/inventario/useWarehouseInventoryArticles";
 
-export interface IArticleSimple {
-  id: number;
-  part_number: string;
-  alternative_part_number?: string[];
-  description?: string;
-  unit?: Unit;
-  quantity: number;
-  zone: string;
-  article_type: string;
-  serial?: string;
-  lot_number?: string;
-  status: string;
-  condition: string;
-  is_hazardous?: boolean;
-  batch_name: string;
-  batch_id: number;
-  min_quantity?: number | string; // Directamente en el artículo
-  tool?: {
-    status?: string | null;
-    calibration_date?: string | null; // ISO string o "dd/MM/yyyy"
-    next_calibration_date?: string | null; // si guardas fecha
-    next_calibration?: number | string | null; // o días
-  };
-}
-
-export const flattenArticles = (
-  data: WarehouseResponse | undefined,
-): IArticleSimple[] => {
-  if (!data?.batches) return [];
-  console.log(data.batches);
-  return data.batches.flatMap((batch) =>
-    batch.articles.map((article) => ({
-      id: article.id,
-      part_number: article.part_number,
-      alternative_part_number: article.alternative_part_number,
-      serial: article.serial,
-      lot_number: article.lot_number,
-      description: article.description,
-      zone: article.zone,
-      unit: article.unit ?? undefined,
-      // ✅ No normalizar 0 -> 1
-      quantity: Number(article.quantity ?? 0),
-      status: article.status,
-      condition: article.condition ? article.condition.name : "N/A",
-      article_type: article.article_type ?? "N/A",
-      batch_name: batch.name,
-      is_hazardous: batch.is_hazardous ?? undefined,
-      batch_id: batch.batch_id,
-      min_quantity: article.min_quantity, // Directamente desde el artículo
-      tool: article.tool
-        ? {
-            status: article.tool.status,
-            calibration_date: article.tool.calibration_date,
-            next_calibration_date: article.tool.next_calibration_date,
-            next_calibration: article.tool.next_calibration,
-          }
-        : undefined,
-    })),
-  );
-};
-
-/**
- * Agrupa artículos por part_number y suma sus cantidades.
- * Solo cuenta artículos en estado `stored` para la cantidad,
- * evitando mostrar unidades de artículos despachados o en mantenimiento.
- */
-export const aggregateByPartNumber = (list: IArticleSimple[]): IArticleSimple[] => {
-  const byPn: Record<string, IArticleSimple[]> = {};
-
-  for (const item of list) {
-    const pn = (item.part_number || "__NO_PN__").trim();
-    if (!byPn[pn]) byPn[pn] = [];
-    byPn[pn].push(item);
+// "YYYY-MM-DD" sin hora se lee como fecha local: parseISO la tomaría en UTC y
+// podría mostrar el día anterior.
+const parseDateLocal = (dateString: string): Date => {
+  if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+    const [year, month, day] = dateString.split("-").map(Number);
+    return new Date(year, month - 1, day);
   }
-
-  return Object.values(byPn).map((items) => {
-    const storedItems = items.filter(
-      (a) => (a.status ?? "").toLowerCase() === "stored",
-    );
-    const storedQty = storedItems.reduce(
-      (sum, a) => sum + Number(a.quantity ?? 0),
-      0,
-    );
-
-    // Usar un artículo stored como fila representativa (para que el badge de
-    // disponibilidad sea coherente), si no hay ninguno usar el primero.
-    const representative = storedItems[0] ?? items[0];
-
-    return {
-      ...representative,
-      quantity: storedQty,
-      serial:
-        items.length > 1 ? `${items.length} seriales` : items[0].serial,
-    };
-  });
+  return parseISO(dateString);
 };
 
-const baseCols: AppColumnDef<IArticleSimple>[] = [
+const baseCols: AppColumnDef<CompanyInventoryArticle>[] = [
   {
     accessorKey: "part_number",
+    enableSorting: false,
     header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Part Number" />
+      <DataTableColumnHeader column={column} title="Part Number" />
     ),
     cell: ({ row }) => (
       <div className="font-bold text-center text-base">
@@ -122,13 +36,13 @@ const baseCols: AppColumnDef<IArticleSimple>[] = [
   },
   {
     accessorKey: "alternative_part_number",
+    enableSorting: false,
     header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Alt. Part Number" />
+      <DataTableColumnHeader column={column} title="Alt. Part Number" />
     ),
     cell: ({ row }) => (
       <div className="font-bold text-center text-base">
-        {row.original.alternative_part_number &&
-        row.original.alternative_part_number.length > 0
+        {row.original.alternative_part_number.length > 0
           ? row.original.alternative_part_number.join("/ ")
           : "N/A"}
       </div>
@@ -136,64 +50,48 @@ const baseCols: AppColumnDef<IArticleSimple>[] = [
   },
   {
     accessorKey: "serial",
+    enableSorting: false,
     header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Serial / Lote" />
-    ),
-    cell: ({ row }) => (
-      <div className="text-center text-sm font-medium">
-        {row.original.serial ? (
-          row.original.serial
-        ) : row.original.lot_number ? (
-          row.original.lot_number
-        ) : (
-          <span className="text-muted-foreground italic">N/A</span>
-        )}
-      </div>
-    ),
-  },
-  {
-    accessorKey: "batch_name",
-    header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Descripción" />
-    ),
-    cell: ({ row }) => (
-      <div className="text-muted-foreground font-bold text-center max-w-xs line-clamp-2">
-        {row.original.batch_name || "Sin descripción"}
-      </div>
-    ),
-  },
-  {
-    accessorKey: "quantity",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Disponiblidad" />
+      <DataTableColumnHeader column={column} title="Serial / Lote" />
     ),
     cell: ({ row }) => {
-      const q = row.original.quantity ?? 0;
-      const isStored = row.original.status?.toLowerCase() === "stored";
-      const isAvailable = q > 0 && isStored;
+      const { serial, lot_number, serial_count } = row.original;
+
       return (
-        <div className="flex justify-center">
-          <Badge
-            variant={isAvailable ? "default" : "destructive"}
-            className="text-sm font-bold px-3 py-1 whitespace-nowrap"
-          >
-            {isAvailable ? "Disponible" : "No Disponible"}
-          </Badge>
+        <div className="text-center text-sm font-medium">
+          {serial_count > 1 ? (
+            `${serial_count} seriales`
+          ) : serial || lot_number ? (
+            serial || lot_number
+          ) : (
+            <span className="text-muted-foreground italic">N/A</span>
+          )}
         </div>
       );
     },
   },
-
+  {
+    accessorKey: "description",
+    enableSorting: false,
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Descripción" />
+    ),
+    cell: ({ row }) => (
+      <div className="text-muted-foreground font-bold text-center max-w-xs mx-auto line-clamp-2">
+        {row.original.description || "Sin descripción"}
+      </div>
+    ),
+  },
   {
     accessorKey: "condition",
+    enableSorting: false,
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Condición" />
     ),
     cell: ({ row }) => {
-      const calibrated = row.original.tool?.status === "CALIBRATED";
-      const calibrating = row.original.tool?.status === "IN_CALIBRATION";
-      const descalibrated = row.original.tool?.status === "EXPIRED";
+      const toolStatus = row.original.tool?.status;
       const c = formatCondition(row.original.condition);
+
       return (
         <div className="flex flex-col justify-center items-center space-y-2">
           <div className="text-center leading-tight">
@@ -214,18 +112,16 @@ const baseCols: AppColumnDef<IArticleSimple>[] = [
             <Badge
               className={cn(
                 "text-xs text-center",
-                calibrated
+                toolStatus === "CALIBRATED"
                   ? "bg-green-500"
-                  : calibrating
+                  : toolStatus === "IN_CALIBRATION"
                     ? "bg-yellow-500"
-                    : descalibrated
+                    : toolStatus === "EXPIRED"
                       ? "bg-red-500"
                       : "",
               )}
             >
-              {row.original.tool.status
-                ? toolStatusLabelEsUpper(row.original.tool.status)
-                : "SIN ESTADO"}
+              {toolStatus ? toolStatusLabelEsUpper(toolStatus) : "SIN ESTADO"}
             </Badge>
           )}
         </div>
@@ -233,65 +129,25 @@ const baseCols: AppColumnDef<IArticleSimple>[] = [
     },
   },
   {
-    id: "quantity_value",
-    accessorFn: (row) => row.quantity,
+    id: "availability",
+    enableSorting: false,
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Cantidad" />
+      <DataTableColumnHeader column={column} title="Disponibilidad" />
     ),
-    cell: ({ row }) => {
-      const q = Number(row.original.quantity ?? 0);
-      return (
-        <div className="flex justify-center">
-          <Badge
-            variant={q > 5 ? "default" : q > 0 ? "secondary" : "destructive"}
-            className="text-base font-bold px-3 py-1 tabular-nums"
-          >
-            {q} u
-          </Badge>
-        </div>
-      );
-    },
+    cell: ({ row }) => (
+      <AvailabilityBadge
+        quantity={row.original.available_quantity}
+        unit={row.original.unit?.value ?? row.original.unit?.label}
+      />
+    ),
   },
 ];
 
-// Columnas para COMPONENTE
-export const componenteCols: AppColumnDef<IArticleSimple>[] = [
-  ...baseCols,
-  // {
-  //   id: "actions",
-  //   header: "Acciones",
-  //   cell: ({ row }) => {
-  //     const item = row.original;
-  //     if (item.status === "stored") {
-  //       return <ArticleDropdownActions id={item.id} />;
-  //     }
-  //     return null;
-  //   },
-  // },
-];
-
-// Columnas extra para CONSUMIBLE
-export const consumibleCols: AppColumnDef<IArticleSimple>[] = [
-  ...baseCols,
-];
-
-
-// Agregar esta función helper después de los imports o antes de las columnas
-const parseDateLocal = (dateString: string): Date => {
-  // Si la fecha viene como "YYYY-MM-DD" sin hora, parsearla como fecha local
-  if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
-    const [year, month, day] = dateString.split("-").map(Number);
-    return new Date(year, month - 1, day);
-  }
-  // Si tiene hora, usar parseISO
-  return parseISO(dateString);
-};
-
-// Columnas extra para HERRAMIENTA
-export const herramientaCols: AppColumnDef<IArticleSimple>[] = [
+const toolCols: AppColumnDef<CompanyInventoryArticle>[] = [
   ...baseCols,
   {
-    accessorKey: "calibration_date",
+    id: "calibration_date",
+    enableSorting: false,
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Fech. Calibración" />
     ),
@@ -308,18 +164,20 @@ export const herramientaCols: AppColumnDef<IArticleSimple>[] = [
   },
   {
     id: "next_calibration",
+    enableSorting: false,
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Prox. Cal." />
     ),
     cell: ({ row }) => {
+      const tool = row.original.tool;
+
       return (
         <div className="text-center text-sm font-bold text-muted-foreground">
-          {row.original.tool?.next_calibration &&
-          row.original.tool.calibration_date
+          {tool?.next_calibration && tool.calibration_date
             ? format(
                 addDays(
-                  parseDateLocal(row.original.tool.calibration_date),
-                  Number(row.original.tool.next_calibration),
+                  parseDateLocal(tool.calibration_date),
+                  Number(tool.next_calibration),
                 ),
                 "dd/MM/yyyy",
               )
@@ -328,26 +186,9 @@ export const herramientaCols: AppColumnDef<IArticleSimple>[] = [
       );
     },
   },
-  // {
-  //   id: "actions",
-  //   header: "Acciones",
-  //   cell: ({ row }) => {
-  //     const item = row.original;
-  //     if (item.status === "stored") {
-  //       return <ArticleDropdownActions id={item.id} />;
-  //     }
-  //     return null;
-  //   },
-  // },
 ];
 
-// Columnas por categoría
 export const getColumnsByCategory = (
-  cat: "COMPONENT" | "CONSUMABLE" | "TOOL" | "PART",
-): AppColumnDef<IArticleSimple>[] => {
-  if (cat === "TOOL") return herramientaCols;
-  if (cat === "CONSUMABLE") return consumibleCols;
-  if (cat === "COMPONENT") return componenteCols;
-  if (cat === "PART") return componenteCols;
-  return baseCols; // fallback
-};
+  category: InventoryCategory,
+): AppColumnDef<CompanyInventoryArticle>[] =>
+  category === "TOOL" ? toolCols : baseCols;

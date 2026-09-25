@@ -6,13 +6,15 @@ import { useEffect, useRef, useState } from "react";
 
 type Category = "COMPONENT" | "PART" | "CONSUMABLE" | "TOOL";
 
+/**
+ * La exportación recibe los mismos filtros que el listado del almacén, con
+ * los mismos nombres (`search`, `status`, `tool_status`, `condition`, `zone`,
+ * `is_hazardous`, filtros de columna): lo que se exporta es lo que la tabla
+ * muestra.
+ */
 type ExportParams = {
   category: Category;
-  search?: string | null;
-  // Ejemplos: { condition: 'SERVICIABLE' } ó { group: 'QUIMICOS' }
   filters?: Record<string, string | number | boolean | null | undefined>;
-  dateFrom?: string | null; // 'YYYY-MM-DD'
-  dateTo?: string | null; // 'YYYY-MM-DD'
   filenamePrefix?: string;
 };
 
@@ -48,14 +50,13 @@ export function useInventoryExport(): UseInventoryExportReturn {
   const buildParams = (p: ExportParams): Record<string, any> => {
     const params: Record<string, any> = {
       category: p.category,
-      part_number: p.search?.trim() || undefined,
-      date_from: p.dateFrom || undefined,
-      date_to: p.dateTo || undefined,
       ...p.filters,
     };
-    Object.keys(params).forEach(
-      (k) => (params[k] == null || params[k] === "") && delete params[k]
-    );
+    Object.keys(params).forEach((k) => {
+      if (params[k] === true) params[k] = 1;
+      if (params[k] == null || params[k] === "" || params[k] === false)
+        delete params[k];
+    });
     return params;
   };
 

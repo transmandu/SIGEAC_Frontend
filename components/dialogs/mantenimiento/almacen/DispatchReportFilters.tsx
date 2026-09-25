@@ -7,9 +7,9 @@ import {
   AlertCircle,
   Filter,
   PackageSearch,
-  X, 
+  X,
   CalendarDays,
-  CalendarX
+  CalendarX,
 } from "lucide-react";
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
@@ -20,12 +20,12 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
+  SelectValue,
 } from "@/components/ui/select";
 import {
   Popover,
   PopoverContent,
-  PopoverTrigger
+  PopoverTrigger,
 } from "@/components/ui/popover";
 import {
   Tooltip,
@@ -34,6 +34,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import type { DispatchReportArticleOptions } from "@/types/inventory/queues";
 
 /* ---------------- TYPES ---------------- */
 
@@ -59,7 +60,12 @@ interface Props {
   isLoadingAircrafts?: boolean;
   workOrder: string | null;
   setWorkOrder: (v: string | null) => void;
-  workOrders?: { id: number; work_order: string; work_order_id: number | null; aircraft_id: number | null }[];
+  workOrders?: {
+    id: number;
+    work_order: string;
+    work_order_id: number | null;
+    aircraft_id: number | null;
+  }[];
   isLoadingWorkOrders?: boolean;
   departmentId: string | null;
   setDepartmentId: (v: string | null) => void;
@@ -79,8 +85,8 @@ interface Props {
   setArticleCategory: (v: ArticleCategory | null) => void;
   isDateRangeInvalid: boolean;
   isPlanificacionOnlyFilters: boolean;
-  articles?: any[];
-  isLoadingArticles?: boolean;
+  /** Valores distintos de lo despachado en la sede, calculados por el servidor. */
+  articleOptions?: DispatchReportArticleOptions;
   articleFilters: {
     part_number: string;
     alternative_part_number: string;
@@ -125,10 +131,9 @@ export function DispatchReportFilters({
   setArticleCategory,
   isDateRangeInvalid,
   isPlanificacionOnlyFilters,
-  articles = [],
-  isLoadingArticles,
+  articleOptions,
   articleFilters,
-  setArticleFilters
+  setArticleFilters,
 }: Props) {
   const today = new Date();
   const [openGeneral, setOpenGeneral] = useState(false);
@@ -147,74 +152,29 @@ export function DispatchReportFilters({
   const [thirdPartySearch, setThirdPartySearch] = useState("");
 
   const [calendarMonth, setCalendarMonth] = useState<Date>(
-    new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+    new Date(new Date().getFullYear(), new Date().getMonth(), 1),
   );
-  const filteredByField = (field: string, value: string) => {
-    if (!value) return articles;
-
-    return articles.filter((a) =>
-      String(a?.[field] ?? "")
-        .toLowerCase()
-        .includes(value.toLowerCase())
-    );
-  };
-  const uniquePartNumbers = useMemo(() => {
-    const map = new Map();
-    (articles ?? []).forEach((a: any) => {
-      if (a?.part_number) map.set(a.part_number, a);
-    });
-    return Array.from(map.values());
-  }, [articles]);
-
-  const uniqueAltPartNumbers = useMemo(() => {
-    const map = new Map();
-    (articles ?? []).forEach((a: any) => {
-      if (a?.alternative_part_number) map.set(a.alternative_part_number, a);
-    });
-    return Array.from(map.values());
-  }, [articles]);
-
-  const uniqueDescriptions = useMemo(() => {
-    const map = new Map();
-    (articles ?? []).forEach((a: any) => {
-      if (a?.description) map.set(a.description, a);
-    });
-    return Array.from(map.values());
-  }, [articles]);
-
-  const uniqueModels = useMemo(() => {
-    const map = new Map();
-    (articles ?? []).forEach((a: any) => {
-      if (a?.variant_type) map.set(a.variant_type, a);
-    });
-    return Array.from(map.values());
-  }, [articles]);
-
-  const uniqueBrands = useMemo(() => {
-    const map = new Map();
-    (articles ?? []).forEach((a: any) => {
-      if (a?.brand_model) map.set(a.brand_model, a);
-    });
-    return Array.from(map.values());
-  }, [articles]);
-
-  const uniqueOTs = useMemo(() => {
-    const set = new Set<string>();
-    (articles ?? []).forEach((a: any) => {
-      if (a?.work_order) set.add(String(a.work_order));
-    });
-    return Array.from(set);
-  }, [articles]);
+  // Los valores ya llegan distintos y ordenados: aquí solo se filtran por lo
+  // escrito en el buscador del selector.
+  const renderOptions = (
+    values: string[] | undefined,
+    search: string,
+    keyPrefix: string,
+  ) =>
+    (values ?? [])
+      .filter((value) => value.toLowerCase().includes(search.toLowerCase()))
+      .map((value) => (
+        <SelectItem key={`${keyPrefix}-${value}`} value={value}>
+          {value}
+        </SelectItem>
+      ));
 
   const filteredWorkOrders = useMemo(() => {
     if (!aircraft) return workOrders;
-    return workOrders.filter((ot) => String(ot.aircraft_id) === String(aircraft));
+    return workOrders.filter(
+      (ot) => String(ot.aircraft_id) === String(aircraft),
+    );
   }, [workOrders, aircraft]);
-
-  const safeValue = (value: any) => {
-    const stringValue = String(value ?? "").trim();
-    return stringValue.length > 0 ? stringValue : null;
-  };
 
   const generalSelectedFilters = [
     aircraft && {
@@ -229,39 +189,44 @@ export function DispatchReportFilters({
       value: workOrder,
     },
 
-    !isPlanificacionOnlyFilters && departmentId && {
-      label: "Departamento",
-      value:
-        departments?.find((d) => String(d.id) === String(departmentId))?.name ??
-        departmentId,
-    },
+    !isPlanificacionOnlyFilters &&
+      departmentId && {
+        label: "Departamento",
+        value:
+          departments?.find((d) => String(d.id) === String(departmentId))
+            ?.name ?? departmentId,
+      },
 
-    !isPlanificacionOnlyFilters && authorizedEmployeeId && {
-      label: "Empresa",
-      value:
-        authorizedEmployees?.find(
-          (e) => String(e.id) === String(authorizedEmployeeId)
-        )?.employee_name ?? authorizedEmployeeId,
-    },
+    !isPlanificacionOnlyFilters &&
+      authorizedEmployeeId && {
+        label: "Empresa",
+        value:
+          authorizedEmployees?.find(
+            (e) => String(e.id) === String(authorizedEmployeeId),
+          )?.employee_name ?? authorizedEmployeeId,
+      },
 
-    !isPlanificacionOnlyFilters && thirdPartyId && {
-      label: "Tercero",
-      value:
-        thirdParties?.find((t) => String(t.id) === String(thirdPartyId))?.name ??
-        thirdPartyId,
-    },
+    !isPlanificacionOnlyFilters &&
+      thirdPartyId && {
+        label: "Tercero",
+        value:
+          thirdParties?.find((t) => String(t.id) === String(thirdPartyId))
+            ?.name ?? thirdPartyId,
+      },
 
-    !isPlanificacionOnlyFilters && dispatchType && {
-      label: "Tipo",
-      value: dispatchType === "aeronautical" ? "Aeronáutico" : "General",
-    },
+    !isPlanificacionOnlyFilters &&
+      dispatchType && {
+        label: "Tipo",
+        value: dispatchType === "aeronautical" ? "Aeronáutico" : "General",
+      },
 
-    !isPlanificacionOnlyFilters && articleCategory && {
-      label: "Categoría",
-      value:
-        ARTICLE_CATEGORIES.find((c) => c.value === articleCategory)?.label ??
-        articleCategory,
-    },
+    !isPlanificacionOnlyFilters &&
+      articleCategory && {
+        label: "Categoría",
+        value:
+          ARTICLE_CATEGORIES.find((c) => c.value === articleCategory)?.label ??
+          articleCategory,
+      },
   ].filter(Boolean) as { label: string; value: string }[];
 
   const generalSelectedCount = generalSelectedFilters.length;
@@ -293,7 +258,6 @@ export function DispatchReportFilters({
 
   return (
     <div className="space-y-4 py-2 flex flex-col items-center">
-
       {/* ===================== FECHAS ===================== */}
       <div className="p-4 border rounded-2xl bg-muted/20 dark:bg-muted/10 space-y-3 w-full mb-4">
         <div className="flex items-center gap-2 text-foreground/80">
@@ -338,7 +302,6 @@ export function DispatchReportFilters({
           >
             {/* ================= PRESETS ================= */}
             <div className="flex items-center justify-center gap-2 mb-2 flex-wrap">
-
               {[
                 {
                   label: "7D",
@@ -371,7 +334,9 @@ export function DispatchReportFilters({
                     calendarMonth.getMonth() === new Date().getMonth() &&
                     calendarMonth.getFullYear() === new Date().getFullYear()
                       ? "MES"
-                      : format(calendarMonth, "MMM yyyy", { locale: es }).toUpperCase(),
+                      : format(calendarMonth, "MMM yyyy", {
+                          locale: es,
+                        }).toUpperCase(),
 
                   tooltip: "Mes visible en el calendario",
 
@@ -381,7 +346,7 @@ export function DispatchReportFilters({
                     const start = new Date(
                       calendarMonth.getFullYear(),
                       calendarMonth.getMonth(),
-                      1
+                      1,
                     );
 
                     const isCurrentMonth =
@@ -393,14 +358,14 @@ export function DispatchReportFilters({
                       : new Date(
                           calendarMonth.getFullYear(),
                           calendarMonth.getMonth() + 1,
-                          0
+                          0,
                         );
 
                     setStartDate(start);
                     setEndDate(end);
                     setCalendarMonth(start);
                   },
-                }
+                },
               ].map((p) => (
                 <TooltipProvider key={p.label} delayDuration={100}>
                   <Tooltip>
@@ -474,10 +439,8 @@ export function DispatchReportFilters({
                 }}
                 numberOfMonths={
                   startDate && endDate
-                    ? (
-                        startDate.getMonth() !== endDate.getMonth() ||
-                        startDate.getFullYear() !== endDate.getFullYear()
-                      )
+                    ? startDate.getMonth() !== endDate.getMonth() ||
+                      startDate.getFullYear() !== endDate.getFullYear()
                       ? 2
                       : 1
                     : 1
@@ -493,7 +456,7 @@ export function DispatchReportFilters({
                   "[&_.rdp-day_range_middle]:bg-slate-100",
                   "[&_.rdp-day_range_middle]:text-slate-900",
                   "[&_.rdp-day_range_start]:bg-slate-300",
-                  "[&_.rdp-day_range_end]:bg-slate-300"
+                  "[&_.rdp-day_range_end]:bg-slate-300",
                 )}
                 formatters={{
                   formatCaption: (date) =>
@@ -522,7 +485,7 @@ export function DispatchReportFilters({
                 "bg-slate-50 hover:bg-slate-100 dark:bg-slate-900/40 dark:hover:bg-slate-900/60",
                 "border-slate-200 dark:border-slate-800",
                 openGeneral &&
-                  "ring-2 ring-slate-300/40 dark:ring-slate-700/40"
+                  "ring-2 ring-slate-300/40 dark:ring-slate-700/40",
               )}
             >
               <span className="flex items-center gap-2 text-foreground/80">
@@ -531,9 +494,7 @@ export function DispatchReportFilters({
                 {generalSelectedCount === 0 ? (
                   "Filtro General"
                 ) : (
-                  <span className="text-sm font-medium">
-                    Filtros Generales
-                  </span>
+                  <span className="text-sm font-medium">Filtros Generales</span>
                 )}
               </span>
 
@@ -573,107 +534,105 @@ export function DispatchReportFilters({
             align="center"
             collisionPadding={16}
             className={cn(
-              "w-[92vw] max-w-[340px] space-y-4 p-4",
+              "w-[92vw] max-w-85 space-y-4 p-4",
               // En pantallas de poca altura el listado de filtros desbordaba el
               // viewport: lo acotamos al espacio real que Radix deja libre y
               // dejamos que scrollee internamente.
-              "max-h-(--radix-popover-content-available-height) overflow-y-auto"
+              "max-h-(--radix-popover-content-available-height) overflow-y-auto",
             )}
           >
-
-              <div className="space-y-1">
-                <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
-                  Aeronave
-                </div>
-
-                <Select
-                  value={aircraft || "all"}
-                  onValueChange={(v) => {
-                    const next = v === "all" ? null : v;
-                    setAircraft(next);
-
-                    if (
-                      workOrder &&
-                      !workOrders.some(
-                        (ot) =>
-                          ot.work_order === workOrder &&
-                          (!next || String(ot.aircraft_id) === String(next))
-                      )
-                    ) {
-                      setWorkOrder(null);
-                    }
-                  }}
-                >
-                  <SelectTrigger disabled={isLoadingAircrafts}>
-                    <SelectValue placeholder="Seleccionar aeronave" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <div className="p-2">
-                      <Input
-                        value={aircraftSearch}
-                        onChange={(e) => setAircraftSearch(e.target.value)}
-                        onKeyDown={(e) => e.stopPropagation()}
-                        placeholder="Buscar aeronave..."
-                        className="h-9"
-                      />
-                    </div>
-
-                    <SelectItem value="all">Todas</SelectItem>
-                    {(aircrafts ?? [])
-                      .filter((a) =>
-                        (a.acronym ?? `#${a.id}`)
-                          .toString()
-                          .toLowerCase()
-                          .includes(aircraftSearch.toLowerCase())
-                      )
-                      .map(a => (
-                        <SelectItem key={a.id} value={a.id.toString()}>
-                          {a.acronym ?? `#${a.id}`}
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
+            <div className="space-y-1">
+              <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+                Aeronave
               </div>
 
-              <div className="space-y-1">
-                <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
-                  Orden de Trabajo
-                </div>
+              <Select
+                value={aircraft || "all"}
+                onValueChange={(v) => {
+                  const next = v === "all" ? null : v;
+                  setAircraft(next);
 
-                <Select
-                  value={workOrder || "all"}
-                  onValueChange={(v) => setWorkOrder(v === "all" ? null : v)}
-                >
-                  <SelectTrigger disabled={isLoadingWorkOrders}>
-                    <SelectValue placeholder="Seleccionar OT" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <div className="p-2">
-                      <Input
-                        value={workOrderSearch}
-                        onChange={(e) => setWorkOrderSearch(e.target.value)}
-                        onKeyDown={(e) => e.stopPropagation()}
-                        placeholder="Buscar OT..."
-                        className="h-9"
-                      />
-                    </div>
+                  if (
+                    workOrder &&
+                    !workOrders.some(
+                      (ot) =>
+                        ot.work_order === workOrder &&
+                        (!next || String(ot.aircraft_id) === String(next)),
+                    )
+                  ) {
+                    setWorkOrder(null);
+                  }
+                }}
+              >
+                <SelectTrigger disabled={isLoadingAircrafts}>
+                  <SelectValue placeholder="Seleccionar aeronave" />
+                </SelectTrigger>
+                <SelectContent>
+                  <div className="p-2">
+                    <Input
+                      value={aircraftSearch}
+                      onChange={(e) => setAircraftSearch(e.target.value)}
+                      onKeyDown={(e) => e.stopPropagation()}
+                      placeholder="Buscar aeronave..."
+                      className="h-9"
+                    />
+                  </div>
 
-                    <SelectItem value="all">Todas</SelectItem>
-                    {filteredWorkOrders
-                      .filter((ot) =>
-                        ot.work_order
-                          .toLowerCase()
-                          .includes(workOrderSearch.toLowerCase())
-                      )
-                      .map((ot) => (
-                        <SelectItem key={`ot-${ot.id}`} value={ot.work_order}>
-                          {ot.work_order}
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
+                  <SelectItem value="all">Todas</SelectItem>
+                  {(aircrafts ?? [])
+                    .filter((a) =>
+                      (a.acronym ?? `#${a.id}`)
+                        .toString()
+                        .toLowerCase()
+                        .includes(aircraftSearch.toLowerCase()),
+                    )
+                    .map((a) => (
+                      <SelectItem key={a.id} value={a.id.toString()}>
+                        {a.acronym ?? `#${a.id}`}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1">
+              <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+                Orden de Trabajo
               </div>
 
+              <Select
+                value={workOrder || "all"}
+                onValueChange={(v) => setWorkOrder(v === "all" ? null : v)}
+              >
+                <SelectTrigger disabled={isLoadingWorkOrders}>
+                  <SelectValue placeholder="Seleccionar OT" />
+                </SelectTrigger>
+                <SelectContent>
+                  <div className="p-2">
+                    <Input
+                      value={workOrderSearch}
+                      onChange={(e) => setWorkOrderSearch(e.target.value)}
+                      onKeyDown={(e) => e.stopPropagation()}
+                      placeholder="Buscar OT..."
+                      className="h-9"
+                    />
+                  </div>
+
+                  <SelectItem value="all">Todas</SelectItem>
+                  {filteredWorkOrders
+                    .filter((ot) =>
+                      ot.work_order
+                        .toLowerCase()
+                        .includes(workOrderSearch.toLowerCase()),
+                    )
+                    .map((ot) => (
+                      <SelectItem key={`ot-${ot.id}`} value={ot.work_order}>
+                        {ot.work_order}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
 
             {!isPlanificacionOnlyFilters && (
               <>
@@ -682,7 +641,12 @@ export function DispatchReportFilters({
                     Departamento
                   </div>
 
-                  <Select value={departmentId || "all"} onValueChange={v => setDepartmentId(v === "all" ? null : v)}>
+                  <Select
+                    value={departmentId || "all"}
+                    onValueChange={(v) =>
+                      setDepartmentId(v === "all" ? null : v)
+                    }
+                  >
                     <SelectTrigger disabled={isLoadingDepartments}>
                       <SelectValue placeholder="Seleccionar departamento" />
                     </SelectTrigger>
@@ -700,9 +664,11 @@ export function DispatchReportFilters({
                       <SelectItem value="all">Todos</SelectItem>
                       {(departments ?? [])
                         .filter((d) =>
-                          d.name.toLowerCase().includes(departmentSearch.toLowerCase())
+                          d.name
+                            .toLowerCase()
+                            .includes(departmentSearch.toLowerCase()),
                         )
-                        .map(d => (
+                        .map((d) => (
                           <SelectItem key={d.id} value={d.id.toString()}>
                             {d.name}
                           </SelectItem>
@@ -716,7 +682,12 @@ export function DispatchReportFilters({
                     Empresa
                   </div>
 
-                  <Select value={authorizedEmployeeId || "all"} onValueChange={v => setAuthorizedEmployeeId(v === "all" ? null : v)}>
+                  <Select
+                    value={authorizedEmployeeId || "all"}
+                    onValueChange={(v) =>
+                      setAuthorizedEmployeeId(v === "all" ? null : v)
+                    }
+                  >
                     <SelectTrigger disabled={isLoadingEmployees}>
                       <SelectValue placeholder="Seleccionar empresa" />
                     </SelectTrigger>
@@ -736,11 +707,12 @@ export function DispatchReportFilters({
                         .filter((emp) =>
                           `${emp.employee_name} ${(emp.from_company_db ?? "").toUpperCase()}`
                             .toLowerCase()
-                            .includes(employeeSearch.toLowerCase())
+                            .includes(employeeSearch.toLowerCase()),
                         )
-                        .map(emp => (
+                        .map((emp) => (
                           <SelectItem key={emp.id} value={emp.id.toString()}>
-                            {emp.employee_name} - {(emp.from_company_db ?? "").toUpperCase()}
+                            {emp.employee_name} -{" "}
+                            {(emp.from_company_db ?? "").toUpperCase()}
                           </SelectItem>
                         ))}
                     </SelectContent>
@@ -752,7 +724,12 @@ export function DispatchReportFilters({
                     Terceros
                   </div>
 
-                  <Select value={thirdPartyId || "all"} onValueChange={v => setThirdPartyId(v === "all" ? null : v)}>
+                  <Select
+                    value={thirdPartyId || "all"}
+                    onValueChange={(v) =>
+                      setThirdPartyId(v === "all" ? null : v)
+                    }
+                  >
                     <SelectTrigger disabled={isLoadingThirdParties}>
                       <SelectValue placeholder="Seleccionar terceros" />
                     </SelectTrigger>
@@ -770,9 +747,11 @@ export function DispatchReportFilters({
                       <SelectItem value="all">Todos</SelectItem>
                       {(thirdParties ?? [])
                         .filter((tp) =>
-                          tp.name.toLowerCase().includes(thirdPartySearch.toLowerCase())
+                          tp.name
+                            .toLowerCase()
+                            .includes(thirdPartySearch.toLowerCase()),
                         )
-                        .map(tp => (
+                        .map((tp) => (
                           <SelectItem key={tp.id} value={tp.id.toString()}>
                             {tp.name}
                           </SelectItem>
@@ -844,344 +823,290 @@ export function DispatchReportFilters({
                 )}
               </>
             )}
-
           </PopoverContent>
         </Popover>
       </div>
 
-      {!isPlanificacionOnlyFilters && <div className="w-full flex justify-center">
-        <Popover open={openItems} onOpenChange={setOpenItems}>
-          <PopoverTrigger asChild>
-            <Button
+      {!isPlanificacionOnlyFilters && (
+        <div className="w-full flex justify-center">
+          <Popover open={openItems} onOpenChange={setOpenItems}>
+            <PopoverTrigger asChild>
+              <Button
+                className={cn(
+                  "w-[70%] justify-between h-12 text-sm font-medium transition-all border",
+                  "bg-primary/5 hover:bg-primary/10",
+                  "border-primary/20",
+                  openItems && "ring-2 ring-primary/40",
+                )}
+              >
+                <span className="flex items-center gap-2 text-foreground/80">
+                  <PackageSearch className="w-4 h-4 text-muted-foreground" />
+
+                  {articleSelectedCount === 0 ? (
+                    "Filtro de Artículos"
+                  ) : (
+                    <span className="text-sm font-medium">
+                      Filtro de Artículos
+                    </span>
+                  )}
+                </span>
+
+                <div className="flex items-center gap-2">
+                  {articleSelectedCount > 0 && (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="w-6 h-6 rounded-full bg-primary text-white text-[11px] flex items-center justify-center font-medium">
+                            {articleSelectedCount}
+                          </div>
+                        </TooltipTrigger>
+
+                        <TooltipContent className="text-xs space-y-1">
+                          {articleSelectedFilters.map((f, i) => (
+                            <div key={i}>
+                              {f.label}:{" "}
+                              <span className="font-medium">{f.value}</span>
+                            </div>
+                          ))}
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  )}
+
+                  {articleSelectedCount === 0 && (
+                    <span className="text-xs text-muted-foreground hidden sm:block">
+                      Part / Desc / Marca...
+                    </span>
+                  )}
+                </div>
+              </Button>
+            </PopoverTrigger>
+
+            <PopoverContent
+              side="bottom"
+              align="center"
+              collisionPadding={16}
               className={cn(
-                "w-[70%] justify-between h-12 text-sm font-medium transition-all border",
-                "bg-primary/5 hover:bg-primary/10",
-                "border-primary/20",
-                openItems &&
-                  "ring-2 ring-primary/40"
+                "w-[92vw] max-w-85 space-y-4 p-4",
+                // En pantallas de poca altura el listado de filtros desbordaba el
+                // viewport: lo acotamos al espacio real que Radix deja libre y
+                // dejamos que scrollee internamente.
+                "max-h-(--radix-popover-content-available-height) overflow-y-auto",
               )}
             >
-              <span className="flex items-center gap-2 text-foreground/80">
-                <PackageSearch className="w-4 h-4 text-muted-foreground" />
-
-                {articleSelectedCount === 0 ? (
-                  "Filtro de Artículos"
-                ) : (
-                  <span className="text-sm font-medium">
-                    Filtro de Artículos
-                  </span>
-                )}
-              </span>
-
-              <div className="flex items-center gap-2">
-                {articleSelectedCount > 0 && (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <div className="w-6 h-6 rounded-full bg-primary text-white text-[11px] flex items-center justify-center font-medium">
-                          {articleSelectedCount}
-                        </div>
-                      </TooltipTrigger>
-
-                      <TooltipContent className="text-xs space-y-1">
-                        {articleSelectedFilters.map((f, i) => (
-                          <div key={i}>
-                            {f.label}:{" "}
-                            <span className="font-medium">{f.value}</span>
-                          </div>
-                        ))}
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                )}
-
-                {articleSelectedCount === 0 && (
-                  <span className="text-xs text-muted-foreground hidden sm:block">
-                    Part / Desc / Marca...
-                  </span>
-                )}
-              </div>
-            </Button>
-          </PopoverTrigger>
-
-          <PopoverContent
-            side="bottom"
-            align="center"
-            collisionPadding={16}
-            className={cn(
-              "w-[92vw] max-w-[340px] space-y-4 p-4",
-              // En pantallas de poca altura el listado de filtros desbordaba el
-              // viewport: lo acotamos al espacio real que Radix deja libre y
-              // dejamos que scrollee internamente.
-              "max-h-(--radix-popover-content-available-height) overflow-y-auto"
-            )}
-          >
-            {/* ================= PART NUMBER ================= */}
-            <div className="space-y-1">
-              <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
-                Part Number
-              </div>
-
-              <Select
-                value={articleFilters.part_number || "all"}
-                onValueChange={(v) =>
-                  setArticleFilters((prev: any) => ({
-                    ...prev,
-                    part_number: v === "all" ? "" : v,
-                  }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar Part Number" />
-                </SelectTrigger>
-
-                <SelectContent>
-                  <div className="p-2">
-                    <Input
-                      autoFocus
-                      value={partNumberSearch}
-                      onChange={(e) => setPartNumberSearch(e.target.value)}
-                      onKeyDown={(e) => e.stopPropagation()}
-                      placeholder="Buscar Part Number..."
-                      className="h-9"
-                    />
-                  </div>
-
-                  <SelectItem value="all">Todos</SelectItem>
-
               {/* ================= PART NUMBER ================= */}
-              {uniquePartNumbers
-                .filter(
-                  (a: any) =>
-                    safeValue(a.part_number) &&
-                    a.part_number.toLowerCase().includes(partNumberSearch.toLowerCase())
-                )
-                .map((a: any) => (
-                  <SelectItem
-                    key={`pn-${a.part_number}`}
-                    value={safeValue(a.part_number)!}
-                  >
-                    {a.part_number}
-                  </SelectItem>
-                ))}
-                </SelectContent>
-              </Select>
-            </div>
+              <div className="space-y-1">
+                <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+                  Part Number
+                </div>
 
-            {/* ================= ALT PART ================= */}
-            <div className="space-y-1">
-              <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
-                Alt Part Number
+                <Select
+                  value={articleFilters.part_number || "all"}
+                  onValueChange={(v) =>
+                    setArticleFilters((prev: any) => ({
+                      ...prev,
+                      part_number: v === "all" ? "" : v,
+                    }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar Part Number" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    <div className="p-2">
+                      <Input
+                        autoFocus
+                        value={partNumberSearch}
+                        onChange={(e) => setPartNumberSearch(e.target.value)}
+                        onKeyDown={(e) => e.stopPropagation()}
+                        placeholder="Buscar Part Number..."
+                        className="h-9"
+                      />
+                    </div>
+
+                    <SelectItem value="all">Todos</SelectItem>
+
+                    {/* ================= PART NUMBER ================= */}
+                    {renderOptions(
+                      articleOptions?.part_numbers,
+                      partNumberSearch,
+                      "pn",
+                    )}
+                  </SelectContent>
+                </Select>
               </div>
 
-              <Select
-                value={articleFilters.alternative_part_number || "all"}
-                onValueChange={(v) =>
-                  setArticleFilters((prev: any) => ({
-                    ...prev,
-                    alternative_part_number: v === "all" ? "" : v,
-                  }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar Alt Part" />
-                </SelectTrigger>
+              {/* ================= ALT PART ================= */}
+              <div className="space-y-1">
+                <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+                  Alt Part Number
+                </div>
 
-                <SelectContent>
-                  <div className="p-2">
-                    <Input
-                      value={altPartSearch}
-                      onChange={(e) => setAltPartSearch(e.target.value)}
-                      onKeyDown={(e) => e.stopPropagation()}
-                      placeholder="Buscar Alt Part..."
-                      className="h-9"
-                    />
-                  </div>
+                <Select
+                  value={articleFilters.alternative_part_number || "all"}
+                  onValueChange={(v) =>
+                    setArticleFilters((prev: any) => ({
+                      ...prev,
+                      alternative_part_number: v === "all" ? "" : v,
+                    }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar Alt Part" />
+                  </SelectTrigger>
 
-                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectContent>
+                    <div className="p-2">
+                      <Input
+                        value={altPartSearch}
+                        onChange={(e) => setAltPartSearch(e.target.value)}
+                        onKeyDown={(e) => e.stopPropagation()}
+                        placeholder="Buscar Alt Part..."
+                        className="h-9"
+                      />
+                    </div>
 
-                  {/* ================= ALT PART NUMBER ================= */}
-                  {uniqueAltPartNumbers
-                    .filter(
-                      (a: any) =>
-                        safeValue(a.alternative_part_number) &&
-                        String(a.alternative_part_number)
-                          .toLowerCase()
-                          .includes(altPartSearch.toLowerCase())
-                    )
-                    .map((a: any) => (
-                      <SelectItem
-                        key={`apn-${a.alternative_part_number}`}
-                        value={safeValue(a.alternative_part_number)!}
-                      >
-                        {a.alternative_part_number}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
-            </div>
+                    <SelectItem value="all">Todos</SelectItem>
 
-            {/* ================= DESCRIPCIÓN ================= */}
-            <div className="space-y-1">
-              <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
-                Descripción
+                    {/* ================= ALT PART NUMBER ================= */}
+                    {renderOptions(
+                      articleOptions?.alternative_part_numbers,
+                      altPartSearch,
+                      "apn",
+                    )}
+                  </SelectContent>
+                </Select>
               </div>
 
-              <Select
-                value={articleFilters.description || "all"}
-                onValueChange={(v) =>
-                  setArticleFilters((prev: any) => ({
-                    ...prev,
-                    description: v === "all" ? "" : v,
-                  }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar descripción" />
-                </SelectTrigger>
+              {/* ================= DESCRIPCIÓN ================= */}
+              <div className="space-y-1">
+                <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+                  Descripción
+                </div>
 
-                <SelectContent>
-                  <div className="p-2">
-                    <Input
-                      value={descriptionSearch}
-                      onChange={(e) => setDescriptionSearch(e.target.value)}
-                      onKeyDown={(e) => e.stopPropagation()}
-                      placeholder="Buscar descripción..."
-                      className="h-9"
-                    />
-                  </div>
+                <Select
+                  value={articleFilters.description || "all"}
+                  onValueChange={(v) =>
+                    setArticleFilters((prev: any) => ({
+                      ...prev,
+                      description: v === "all" ? "" : v,
+                    }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar descripción" />
+                  </SelectTrigger>
 
-                  <SelectItem value="all">Todos</SelectItem>
-                  {/* ================= DESCRIPCIÓN ================= */}
-                  {uniqueDescriptions
-                    .filter(
-                      (a: any) =>
-                        safeValue(a.description) &&
-                        a.description
-                          .toLowerCase()
-                          .includes(descriptionSearch.toLowerCase())
-                    )
-                    .map((a: any) => (
-                      <SelectItem
-                        key={`desc-${a.description}`}
-                        value={safeValue(a.description)!}
-                      >
-                        {a.description}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
-            </div>
+                  <SelectContent>
+                    <div className="p-2">
+                      <Input
+                        value={descriptionSearch}
+                        onChange={(e) => setDescriptionSearch(e.target.value)}
+                        onKeyDown={(e) => e.stopPropagation()}
+                        placeholder="Buscar descripción..."
+                        className="h-9"
+                      />
+                    </div>
 
-            {/* ================= ESPECIFICACION ================= */}
-            <div className="space-y-1">
-              <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
-                Present. / Especif.
+                    <SelectItem value="all">Todos</SelectItem>
+                    {/* ================= DESCRIPCIÓN ================= */}
+                    {renderOptions(
+                      articleOptions?.descriptions,
+                      descriptionSearch,
+                      "desc",
+                    )}
+                  </SelectContent>
+                </Select>
               </div>
 
-              <Select
-                value={articleFilters.variant_type || "all"}
-                onValueChange={(v) =>
-                  setArticleFilters((prev: any) => ({
-                    ...prev,
-                    variant_type: v === "all" ? "" : v,
-                  }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar Present. / Especif." />
-                </SelectTrigger>
+              {/* ================= ESPECIFICACION ================= */}
+              <div className="space-y-1">
+                <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+                  Present. / Especif.
+                </div>
 
-                <SelectContent>
-                  <div className="p-2">
-                    <Input
-                      value={modelSearch}
-                      onChange={(e) => setModelSearch(e.target.value)}
-                      onKeyDown={(e) => e.stopPropagation()}
-                      placeholder="Buscar Present. / Especif...."
-                      className="h-9"
-                    />
-                  </div>
+                <Select
+                  value={articleFilters.variant_type || "all"}
+                  onValueChange={(v) =>
+                    setArticleFilters((prev: any) => ({
+                      ...prev,
+                      variant_type: v === "all" ? "" : v,
+                    }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar Present. / Especif." />
+                  </SelectTrigger>
 
-                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectContent>
+                    <div className="p-2">
+                      <Input
+                        value={modelSearch}
+                        onChange={(e) => setModelSearch(e.target.value)}
+                        onKeyDown={(e) => e.stopPropagation()}
+                        placeholder="Buscar Present. / Especif...."
+                        className="h-9"
+                      />
+                    </div>
 
-              {/* ================= PRESENTACIÓN / ESPECIF ================= */}
-              {uniqueModels
-                .filter(
-                  (a: any) =>
-                    safeValue(a.variant_type) &&
-                    a.variant_type
-                      .toLowerCase()
-                      .includes(modelSearch.toLowerCase())
-                )
-                .map((a: any) => (
-                  <SelectItem
-                    key={`variant-${a.variant_type}`}
-                    value={safeValue(a.variant_type)!}
-                  >
-                    {a.variant_type}
-                  </SelectItem>
-                ))}
-                </SelectContent>
-              </Select>
-            </div>
+                    <SelectItem value="all">Todos</SelectItem>
 
-            {/* ================= MARCA ================= */}
-            <div className="space-y-1">
-              <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
-                Marca / Modelo
+                    {/* ================= PRESENTACIÓN / ESPECIF ================= */}
+                    {renderOptions(
+                      articleOptions?.variant_types,
+                      modelSearch,
+                      "variant",
+                    )}
+                  </SelectContent>
+                </Select>
               </div>
 
-              <Select
-                value={articleFilters.brand_model || "all"}
-                onValueChange={(v) =>
-                  setArticleFilters((prev: any) => ({
-                    ...prev,
-                    brand_model: v === "all" ? "" : v,
-                  }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar marca / modelo" />
-                </SelectTrigger>
+              {/* ================= MARCA ================= */}
+              <div className="space-y-1">
+                <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+                  Marca / Modelo
+                </div>
 
-                <SelectContent>
-                  <div className="p-2">
-                    <Input
-                      value={brandSearch}
-                      onChange={(e) => setBrandSearch(e.target.value)}
-                      onKeyDown={(e) => e.stopPropagation()}
-                      placeholder="Buscar marca / modelo..."
-                      className="h-9"
-                    />
-                  </div>
+                <Select
+                  value={articleFilters.brand_model || "all"}
+                  onValueChange={(v) =>
+                    setArticleFilters((prev: any) => ({
+                      ...prev,
+                      brand_model: v === "all" ? "" : v,
+                    }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar marca / modelo" />
+                  </SelectTrigger>
 
-                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectContent>
+                    <div className="p-2">
+                      <Input
+                        value={brandSearch}
+                        onChange={(e) => setBrandSearch(e.target.value)}
+                        onKeyDown={(e) => e.stopPropagation()}
+                        placeholder="Buscar marca / modelo..."
+                        className="h-9"
+                      />
+                    </div>
 
-                  {/* ================= MARCA / MODELO ================= */}
-                  {uniqueBrands
-                    .filter(
-                      (a: any) =>
-                        safeValue(a.brand_model) &&
-                        a.brand_model
-                          .toLowerCase()
-                          .includes(brandSearch.toLowerCase())
-                    )
-                    .map((a: any) => (
-                      <SelectItem
-                        key={`brand-${a.brand_model}`}
-                        value={safeValue(a.brand_model)!}
-                      >
-                        {a.brand_model}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </PopoverContent>
-        </Popover>
-      </div>}
+                    <SelectItem value="all">Todos</SelectItem>
 
+                    {/* ================= MARCA / MODELO ================= */}
+                    {renderOptions(
+                      articleOptions?.brand_models,
+                      brandSearch,
+                      "brand",
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+            </PopoverContent>
+          </Popover>
+        </div>
+      )}
     </div>
   );
 }

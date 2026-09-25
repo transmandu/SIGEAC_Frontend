@@ -3,34 +3,20 @@
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useCompanyStore } from "@/stores/CompanyStore";
-import { useGetGeneralArticles } from "@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticles";
+import { useDebounce } from "@/hooks/helpers/useDebounce";
+import { useCompanyInventoryGeneralArticles } from "@/hooks/mantenimiento/almacen/inventario/useCompanyInventoryGeneralArticles";
 import { Loader2, X } from "lucide-react";
-import { useState, useMemo } from "react";
-import { DataTable } from "./data-table";
+import { useState } from "react";
+import { DataTable } from "@/app/[company]/general/inventario_articulos/data-table";
 import { generalConsultaColumns } from "@/components/tables/GeneralArticleConsultaColumns";
 import { PageHeader } from "@/components/layout/PageHeader";
 
 const InventarioGeneralPage = () => {
-  const { selectedCompany } = useCompanyStore();
-
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search.trim(), 400);
 
-  const { data: articlesGeneral, isLoading } = useGetGeneralArticles();
-
-  const data = useMemo(() => {
-    if (!articlesGeneral) return [];
-    const q = search.trim().toLowerCase();
-    return q
-      ? articlesGeneral.filter(
-          (a: any) =>
-            a.part_number?.toLowerCase().includes(q) ||
-            a.description?.toLowerCase().includes(q),
-        )
-      : articlesGeneral;
-  }, [articlesGeneral, search]);
-
-  const handleClearSearch = () => setSearch("");
+  const { rows, total, isLoading, isFetching, pagination } =
+    useCompanyInventoryGeneralArticles(debouncedSearch || undefined);
 
   return (
     <ContentLayout title="Inventario General">
@@ -46,7 +32,7 @@ const InventarioGeneralPage = () => {
 
         <div className="relative max-w-xl mx-auto w-full">
           <Input
-            placeholder="Búsqueda General - Buscar por Descripción"
+            placeholder="Búsqueda General - Buscar por descripción, marca o presentación"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pr-8 h-11"
@@ -56,7 +42,7 @@ const InventarioGeneralPage = () => {
               variant="ghost"
               size="sm"
               className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
-              onClick={handleClearSearch}
+              onClick={() => setSearch("")}
             >
               <X className="h-4 w-4" />
             </Button>
@@ -68,7 +54,18 @@ const InventarioGeneralPage = () => {
             <Loader2 className="size-12 animate-spin text-primary" />
           </div>
         ) : (
-          <DataTable columns={generalConsultaColumns} data={data} />
+          <DataTable
+            columns={generalConsultaColumns}
+            data={rows}
+            isFetching={isFetching}
+            pagination={{
+              ...pagination,
+              summary:
+                total !== undefined
+                  ? `${total.toLocaleString("es-VE")} artículo(s)`
+                  : undefined,
+            }}
+          />
         )}
       </div>
     </ContentLayout>

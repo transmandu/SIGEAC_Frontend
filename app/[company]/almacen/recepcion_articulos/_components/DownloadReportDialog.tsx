@@ -1,7 +1,7 @@
-'use client'
+"use client";
 
-import { Button } from '@/components/ui/button'
-import { Calendar } from '@/components/ui/calendar'
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Dialog,
   DialogContent,
@@ -9,59 +9,65 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog'
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
+} from "@/components/ui/select";
 
-import axiosInstance from '@/lib/axios'
-import { useCompanyStore } from '@/stores/CompanyStore'
-import { cn } from '@/lib/utils'
-import { format } from 'date-fns'
-import { es } from 'date-fns/locale'
-import { CalendarDays, CalendarX, Download, FileText, Loader2 } from 'lucide-react'
-import { useState } from 'react'
+import axiosInstance from "@/lib/axios";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import {
+  CalendarDays,
+  CalendarX,
+  Download,
+  FileText,
+  Loader2,
+} from "lucide-react";
+import { useState } from "react";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@/components/ui/popover'
+} from "@/components/ui/popover";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@/components/ui/tooltip'
+} from "@/components/ui/tooltip";
 
 type DateFieldOption = {
-  value: string
-  label: string
-}
+  value: string;
+  label: string;
+};
 
 type StatusOption = {
-  value: string
-  label: string
-}
+  value: string;
+  label: string;
+};
 
 type DownloadReportDialogProps = {
-  /** Endpoint relativo a `/{company}`, ej: 'articles-reception-pdf' o '{location_id}/general-article-intakes-pdf' */
-  endpoint: string
+  /** Endpoint relativo a `/{company}`, ej: '{location_id}/general-article-intakes-pdf' */
+  endpoint: string;
   /** Si el endpoint requiere `location_id`, se antepone automáticamente usando selectedStation */
-  requiresLocation?: boolean
-  title: string
-  description: string
-  dateRangeLabel: string
-  fileNamePrefix: string
+  requiresLocation?: boolean;
+  title: string;
+  description: string;
+  dateRangeLabel: string;
+  fileNamePrefix: string;
   /** Cuando hay más de un campo de fecha posible (ej: llegada vs. confirmación) */
-  dateFieldOptions?: DateFieldOption[]
+  dateFieldOptions?: DateFieldOption[];
   /** Filtro de estado opcional (ej: Pendiente/Confirmada/Todas) */
-  statusOptions?: StatusOption[]
-  triggerVariant?: 'outline' | 'default' | 'secondary'
-}
+  statusOptions?: StatusOption[];
+  triggerVariant?: "outline" | "default" | "secondary";
+};
 
 export function DownloadReportDialog({
   endpoint,
@@ -72,68 +78,72 @@ export function DownloadReportDialog({
   fileNamePrefix,
   dateFieldOptions,
   statusOptions,
-  triggerVariant = 'outline',
+  triggerVariant = "outline",
 }: DownloadReportDialogProps) {
-  const { selectedCompany, selectedStation } = useCompanyStore()
-  const [open, setOpen] = useState(false)
-  const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined)
-  const [dateTo, setDateTo] = useState<Date | undefined>(undefined)
-  const [datePopoverOpen, setDatePopoverOpen] = useState(false)
+  const { selectedCompany, selectedStation } = useCompanyStore();
+  const [open, setOpen] = useState(false);
+  const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
+  const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
+  const [datePopoverOpen, setDatePopoverOpen] = useState(false);
   const [calendarMonth, setCalendarMonth] = useState<Date>(
-    new Date(new Date().getFullYear(), new Date().getMonth(), 1)
-  )
-  const [dateField, setDateField] = useState<string | undefined>(dateFieldOptions?.[0]?.value)
-  const [status, setStatus] = useState<string>(statusOptions?.[0]?.value ?? 'ALL')
-  const [loading, setLoading] = useState(false)
+    new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+  );
+  const [dateField, setDateField] = useState<string | undefined>(
+    dateFieldOptions?.[0]?.value,
+  );
+  const [status, setStatus] = useState<string>(
+    statusOptions?.[0]?.value ?? "ALL",
+  );
+  const [loading, setLoading] = useState(false);
 
   const handleDownload = async () => {
-    if (!selectedCompany?.slug) return
-    if (requiresLocation && !selectedStation) return
-    setLoading(true)
+    if (!selectedCompany?.slug) return;
+    if (requiresLocation && !selectedStation) return;
+    setLoading(true);
 
     try {
-      const params = new URLSearchParams()
-      if (dateFrom) params.set('date_from', format(dateFrom, 'yyyy-MM-dd'))
-      if (dateTo) params.set('date_to', format(dateTo, 'yyyy-MM-dd'))
-      if (dateFieldOptions && dateField) params.set('date_field', dateField)
-      if (statusOptions && status !== 'ALL') params.set('status', status)
+      const params = new URLSearchParams();
+      if (dateFrom) params.set("date_from", format(dateFrom, "yyyy-MM-dd"));
+      if (dateTo) params.set("date_to", format(dateTo, "yyyy-MM-dd"));
+      if (dateFieldOptions && dateField) params.set("date_field", dateField);
+      if (statusOptions && status !== "ALL") params.set("status", status);
 
       const resolvedEndpoint = requiresLocation
-        ? endpoint.replace('{location_id}', selectedStation)
-        : endpoint
+        ? endpoint.replace("{location_id}", selectedStation)
+        : endpoint;
 
       const res = await axiosInstance.get(
         `/${selectedCompany.slug}/${resolvedEndpoint}`,
-        { params, responseType: 'blob' }
-      )
+        { params, responseType: "blob" },
+      );
 
-      const blob = res.data
-      const url = window.URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
+      const blob = res.data;
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
 
       const datePart =
         dateFrom && dateTo
-          ? `_${format(dateFrom, 'yyyy-MM-dd')}_${format(dateTo, 'yyyy-MM-dd')}`
+          ? `_${format(dateFrom, "yyyy-MM-dd")}_${format(dateTo, "yyyy-MM-dd")}`
           : dateFrom
-            ? `_desde_${format(dateFrom, 'yyyy-MM-dd')}`
+            ? `_desde_${format(dateFrom, "yyyy-MM-dd")}`
             : dateTo
-              ? `_hasta_${format(dateTo, 'yyyy-MM-dd')}`
-              : ''
+              ? `_hasta_${format(dateTo, "yyyy-MM-dd")}`
+              : "";
 
-      a.download = `${fileNamePrefix}${datePart}.pdf`
-      document.body.appendChild(a)
-      a.click()
-      a.remove()
-      window.URL.revokeObjectURL(url)
+      a.download = `${fileNamePrefix}${datePart}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
 
-      setOpen(false)
+      setOpen(false);
     } catch {
       // silent
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -198,12 +208,12 @@ export function DownloadReportDialog({
                   {dateFrom && dateTo ? (
                     dateFrom.getTime() === dateTo.getTime() ? (
                       <span className="truncate">
-                        {format(dateFrom, 'dd MMM yyyy', { locale: es })}
+                        {format(dateFrom, "dd MMM yyyy", { locale: es })}
                       </span>
                     ) : (
                       <span className="truncate">
-                        {format(dateFrom, 'dd MMM yyyy', { locale: es })} —{' '}
-                        {format(dateTo, 'dd MMM yyyy', { locale: es })}
+                        {format(dateFrom, "dd MMM yyyy", { locale: es })} —{" "}
+                        {format(dateTo, "dd MMM yyyy", { locale: es })}
                       </span>
                     )
                   ) : (
@@ -224,62 +234,64 @@ export function DownloadReportDialog({
                 <div className="flex items-center justify-center gap-2 mb-2 flex-wrap">
                   {[
                     {
-                      label: '7D',
-                      tooltip: 'Últimos 7 días',
+                      label: "7D",
+                      tooltip: "Últimos 7 días",
                       fn: () => {
-                        const end = new Date()
-                        const start = new Date()
-                        start.setDate(end.getDate() - 7)
+                        const end = new Date();
+                        const start = new Date();
+                        start.setDate(end.getDate() - 7);
 
-                        setDateFrom(start)
-                        setDateTo(end)
-                        setCalendarMonth(start)
+                        setDateFrom(start);
+                        setDateTo(end);
+                        setCalendarMonth(start);
                       },
                     },
                     {
-                      label: '30D',
-                      tooltip: 'Últimos 30 días',
+                      label: "30D",
+                      tooltip: "Últimos 30 días",
                       fn: () => {
-                        const end = new Date()
-                        const start = new Date()
-                        start.setDate(end.getDate() - 30)
+                        const end = new Date();
+                        const start = new Date();
+                        start.setDate(end.getDate() - 30);
 
-                        setDateFrom(start)
-                        setDateTo(end)
-                        setCalendarMonth(start)
+                        setDateFrom(start);
+                        setDateTo(end);
+                        setCalendarMonth(start);
                       },
                     },
                     {
                       label:
                         calendarMonth.getMonth() === new Date().getMonth() &&
                         calendarMonth.getFullYear() === new Date().getFullYear()
-                          ? 'MES'
-                          : format(calendarMonth, 'MMM yyyy', { locale: es }).toUpperCase(),
-                      tooltip: 'Mes visible en el calendario',
+                          ? "MES"
+                          : format(calendarMonth, "MMM yyyy", {
+                              locale: es,
+                            }).toUpperCase(),
+                      tooltip: "Mes visible en el calendario",
                       fn: () => {
-                        const today = new Date()
+                        const today = new Date();
 
                         const start = new Date(
                           calendarMonth.getFullYear(),
                           calendarMonth.getMonth(),
-                          1
-                        )
+                          1,
+                        );
 
                         const isCurrentMonth =
                           calendarMonth.getMonth() === today.getMonth() &&
-                          calendarMonth.getFullYear() === today.getFullYear()
+                          calendarMonth.getFullYear() === today.getFullYear();
 
                         const end = isCurrentMonth
                           ? today
                           : new Date(
                               calendarMonth.getFullYear(),
                               calendarMonth.getMonth() + 1,
-                              0
-                            )
+                              0,
+                            );
 
-                        setDateFrom(start)
-                        setDateTo(end)
-                        setCalendarMonth(start)
+                        setDateFrom(start);
+                        setDateTo(end);
+                        setCalendarMonth(start);
                       },
                     },
                   ].map((p) => (
@@ -310,14 +322,16 @@ export function DownloadReportDialog({
                           variant="ghost"
                           className="h-7 w-7 text-slate-500 hover:text-slate-700 dark:hover:text-slate-200"
                           onClick={() => {
-                            setDateFrom(undefined)
-                            setDateTo(undefined)
+                            setDateFrom(undefined);
+                            setDateTo(undefined);
                           }}
                         >
                           <CalendarX className="w-4 h-4" />
                         </Button>
                       </TooltipTrigger>
-                      <TooltipContent className="text-xs">Limpiar rango</TooltipContent>
+                      <TooltipContent className="text-xs">
+                        Limpiar rango
+                      </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
                 </div>
@@ -330,25 +344,25 @@ export function DownloadReportDialog({
                     month={calendarMonth}
                     onMonthChange={setCalendarMonth}
                     onSelect={(range) => {
-                      const from = range?.from
-                      const to = range?.to
+                      const from = range?.from;
+                      const to = range?.to;
 
                       if (!from) {
-                        setDateFrom(undefined)
-                        setDateTo(undefined)
-                        return
+                        setDateFrom(undefined);
+                        setDateTo(undefined);
+                        return;
                       }
 
                       if (!to) {
-                        setDateFrom(from)
-                        setDateTo(from)
-                        setCalendarMonth(from)
-                        return
+                        setDateFrom(from);
+                        setDateTo(from);
+                        setCalendarMonth(from);
+                        return;
                       }
 
-                      setDateFrom(from)
-                      setDateTo(to)
-                      setCalendarMonth(from)
+                      setDateFrom(from);
+                      setDateTo(to);
+                      setCalendarMonth(from);
                     }}
                     numberOfMonths={
                       dateFrom && dateTo
@@ -363,17 +377,17 @@ export function DownloadReportDialog({
                     locale={es}
                     disabled={(d) => d > new Date()}
                     className={cn(
-                      'rounded-xl',
-                      '[&_.rdp-day_selected]:bg-slate-200',
-                      '[&_.rdp-day_selected]:text-slate-900',
-                      '[&_.rdp-day_range_middle]:bg-slate-100',
-                      '[&_.rdp-day_range_middle]:text-slate-900',
-                      '[&_.rdp-day_range_start]:bg-slate-300',
-                      '[&_.rdp-day_range_end]:bg-slate-300'
+                      "rounded-xl",
+                      "[&_.rdp-day_selected]:bg-slate-200",
+                      "[&_.rdp-day_selected]:text-slate-900",
+                      "[&_.rdp-day_range_middle]:bg-slate-100",
+                      "[&_.rdp-day_range_middle]:text-slate-900",
+                      "[&_.rdp-day_range_start]:bg-slate-300",
+                      "[&_.rdp-day_range_end]:bg-slate-300",
                     )}
                     formatters={{
                       formatCaption: (date) =>
-                        format(date, 'MMMM yyyy', { locale: es }).toUpperCase(),
+                        format(date, "MMMM yyyy", { locale: es }).toUpperCase(),
                     }}
                   />
                 </div>
@@ -391,10 +405,10 @@ export function DownloadReportDialog({
             ) : (
               <Download className="size-4" />
             )}
-            {loading ? 'Generando...' : 'Descargar'}
+            {loading ? "Generando..." : "Descargar"}
           </Button>
         </div>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

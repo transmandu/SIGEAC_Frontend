@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { format } from "date-fns";
 import { Department } from "@/types";
 import {
@@ -9,19 +9,14 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger
+  DialogTrigger,
 } from "@/components/ui/dialog";
 
 import { Button } from "@/components/ui/button";
 import { ActionTriggerButton } from "@/components/misc/ActionTriggerButton";
 import { Loader2, Download, FileText, Scale } from "lucide-react";
 
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger
-} from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { RiFileExcel2Fill } from "react-icons/ri";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -38,27 +33,37 @@ import { useGetAuthorizedEmployees } from "@/hooks/ajustes/autorizados/useGetAut
 import { useGetThirdParties } from "@/hooks/general/terceros/useGetThirdParties";
 import { useGetDepartments } from "@/hooks/ajustes/departamento/useGetDepartment";
 
-import { useGetArticlesByStatus } from "@/hooks/mantenimiento/almacen/articulos/useGetArticlesByStatus";
-import { useGetGeneralArticles } from "@/hooks/mantenimiento/almacen/almacen_general/useGetGeneralArticles";
+import { useGetDispatchReportArticleOptions } from "@/hooks/mantenimiento/almacen/reportes/useGetDispatchReportArticleOptions";
 
 import { DispatchReportFilters } from "@/components/dialogs/mantenimiento/almacen/DispatchReportFilters";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 type DispatchType = "aeronautical" | "general";
 type ArticleCategory = "CONSUMABLE" | "PART" | "COMPONENT" | "TOOL";
 
-const COST_REPORT_ROLES = ["ANALISTA_ADMINISTRACION", "JEFE_ADMINISTRACION", "SUPERUSER"];
+const COST_REPORT_ROLES = [
+  "ANALISTA_ADMINISTRACION",
+  "JEFE_ADMINISTRACION",
+  "SUPERUSER",
+];
 
 interface AdministrationDispatchReportDialogProps {
   roleNames?: string[];
 }
 
-export function AdministrationDispatchReportDialog({ roleNames = [] }: AdministrationDispatchReportDialogProps) {
+export function AdministrationDispatchReportDialog({
+  roleNames = [],
+}: AdministrationDispatchReportDialogProps) {
   const { selectedStation, selectedCompany } = useCompanyStore();
 
   const canSeeCostReport = useMemo(
     () => roleNames.some((role) => COST_REPORT_ROLES.includes(role)),
-    [roleNames]
+    [roleNames],
   );
 
   const [activeTab, setActiveTab] = useState("dispatch");
@@ -74,11 +79,14 @@ export function AdministrationDispatchReportDialog({ roleNames = [] }: Administr
   const [aircraft, setAircraft] = useState<string | null>(null);
   const [workOrder, setWorkOrder] = useState<string | null>(null);
   const [departmentId, setDepartmentId] = useState<string | null>(null);
-  const [authorizedEmployeeId, setAuthorizedEmployeeId] = useState<string | null>(null);
+  const [authorizedEmployeeId, setAuthorizedEmployeeId] = useState<
+    string | null
+  >(null);
   const [thirdPartyId, setThirdPartyId] = useState<string | null>(null);
 
   const [dispatchType, setDispatchType] = useState<DispatchType | null>(null);
-  const [articleCategory, setArticleCategory] = useState<ArticleCategory | null>(null);
+  const [articleCategory, setArticleCategory] =
+    useState<ArticleCategory | null>(null);
 
   const [articleFilters, setArticleFilters] = useState({
     part_number: "",
@@ -86,15 +94,16 @@ export function AdministrationDispatchReportDialog({ roleNames = [] }: Administr
     description: "",
     batch_id: "",
     variant_type: "",
-    brand_model: ""
+    brand_model: "",
   });
 
   const { mutateAsync: getDispatch } = useGetDispatchReport();
   const { mutateAsync: getDispatchCostReport } = useGetDispatchCostReport();
   const { mutateAsync: getBalance } = useGetBalanceAndTotalReport();
 
-  const { data: aircrafts, isLoading: isLoadingAircrafts } =
-    useGetAircrafts(selectedCompany?.slug);
+  const { data: aircrafts, isLoading: isLoadingAircrafts } = useGetAircrafts(
+    selectedCompany?.slug,
+  );
 
   const { data: workOrders, isLoading: isLoadingWorkOrders } =
     useGetDispatchWorkOrders(selectedCompany?.slug);
@@ -108,9 +117,7 @@ export function AdministrationDispatchReportDialog({ roleNames = [] }: Administr
       ...flattenDepartments(department.descendants ?? []),
     ]);
 
-  const allDepartments = departments
-    ? flattenDepartments(departments)
-    : [];
+  const allDepartments = departments ? flattenDepartments(departments) : [];
 
   const { data: authorizedEmployees, isLoading: isLoadingEmployees } =
     useGetAuthorizedEmployees(selectedCompany?.slug);
@@ -118,18 +125,9 @@ export function AdministrationDispatchReportDialog({ roleNames = [] }: Administr
   const { data: thirdParties, isLoading: isLoadingThirdParties } =
     useGetThirdParties();
 
-  const { data: articlesByStatus = [], isLoading: isLoadingArticles } =
-    useGetArticlesByStatus("STORED");
+  const { data: articleOptions } = useGetDispatchReportArticleOptions(open);
 
-  const { data: generalArticles = [], isLoading: isLoadingGeneralArticles } =
-    useGetGeneralArticles();
-
-  const allArticles = [...articlesByStatus, ...generalArticles];
-
-  const isDateRangeInvalid =
-    !!startDate &&
-    !!endDate &&
-    endDate < startDate;
+  const isDateRangeInvalid = !!startDate && !!endDate && endDate < startDate;
 
   const canDownload =
     !!selectedStation &&
@@ -138,7 +136,11 @@ export function AdministrationDispatchReportDialog({ roleNames = [] }: Administr
     !!endDate &&
     !isDateRangeInvalid;
 
-  useEffect(() => {
+  // Al cerrarse, el diálogo vuelve a su estado inicial. Se hace durante el
+  // render al detectar el cambio de `open`, no en un efecto.
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
     if (!open) {
       setStartDate(undefined);
       setEndDate(undefined);
@@ -157,21 +159,21 @@ export function AdministrationDispatchReportDialog({ roleNames = [] }: Administr
         description: "",
         batch_id: "",
         variant_type: "",
-        brand_model: ""
+        brand_model: "",
       });
 
       setActiveTab("dispatch");
     }
-  }, [open, canSeeCostReport]);
+  }
 
   // Si se activan los costos estando en la tab Balance (que no aplica), volvemos a Salidas.
-  useEffect(() => {
-    if (withCosts && activeTab === "balance") {
-      setActiveTab("dispatch");
-    }
-  }, [withCosts, activeTab]);
+  if (withCosts && activeTab === "balance") {
+    setActiveTab("dispatch");
+  }
 
-  const selectedWorkOrder = workOrders?.find((ot) => ot.work_order === workOrder);
+  const selectedWorkOrder = workOrders?.find(
+    (ot) => ot.work_order === workOrder,
+  );
 
   const buildParams = () => ({
     location_id: selectedStation!,
@@ -189,7 +191,8 @@ export function AdministrationDispatchReportDialog({ roleNames = [] }: Administr
     to: format(endDate!, "yyyy-MM-dd"),
 
     part_number: articleFilters.part_number || undefined,
-    alternative_part_number: articleFilters.alternative_part_number || undefined,
+    alternative_part_number:
+      articleFilters.alternative_part_number || undefined,
     description: articleFilters.description || undefined,
     batch_id: articleFilters.batch_id || undefined,
     variant_type: articleFilters.variant_type || undefined,
@@ -204,7 +207,9 @@ export function AdministrationDispatchReportDialog({ roleNames = [] }: Administr
     work_order_id: selectedWorkOrder?.work_order_id
       ? String(selectedWorkOrder.work_order_id)
       : undefined,
-    work_order: selectedWorkOrder?.work_order_id ? undefined : workOrder || undefined,
+    work_order: selectedWorkOrder?.work_order_id
+      ? undefined
+      : workOrder || undefined,
     department_id: departmentId || undefined,
     authorized_employee_id: authorizedEmployeeId || undefined,
     third_party_id: thirdPartyId || undefined,
@@ -303,16 +308,13 @@ export function AdministrationDispatchReportDialog({ roleNames = [] }: Administr
     }
   };
 
-
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <ActionTriggerButton>
-          Generar Reporte
-        </ActionTriggerButton>
+        <ActionTriggerButton>Generar Reporte</ActionTriggerButton>
       </DialogTrigger>
 
-      <DialogContent className="sm:max-w-[580px] p-0 overflow-visible">
+      <DialogContent className="sm:max-w-145 p-0 overflow-visible">
         <div className="relative bg-linear-to-br from-primary/5 via-background to-background px-6 pt-8 pb-1">
           <div className="absolute inset-0 bg-grid-white/[0.02]" />
 
@@ -331,7 +333,7 @@ export function AdministrationDispatchReportDialog({ roleNames = [] }: Administr
                   Almacén e Inventario
                 </p>
 
-                <DialogDescription className="max-w-[430px] text-sm leading-relaxed">
+                <DialogDescription className="max-w-107.5 text-sm leading-relaxed">
                   {withCosts
                     ? "Genera un reporte de salidas con precio unitario y total, separado por aeronave y tipo de artículo."
                     : "Genera reportes operativos, balances e históricos de solicitudes de salidas."}
@@ -359,14 +361,22 @@ export function AdministrationDispatchReportDialog({ roleNames = [] }: Administr
           )}
 
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className={`grid mb-4 ${withCosts ? "grid-cols-1" : "grid-cols-2"}`}>
-              <TabsTrigger value="dispatch" className="flex items-center justify-center gap-2 text-xs rounded-lg px-3 transition-all duration-200 data-[state=active]:bg-background data-[state=active]:shadow-md data-[state=active]:shadow-primary/10 data-[state=active]:ring-1 data-[state=active]:ring-primary/ data-[state=active]:text-primary">
+            <TabsList
+              className={`grid mb-4 ${withCosts ? "grid-cols-1" : "grid-cols-2"}`}
+            >
+              <TabsTrigger
+                value="dispatch"
+                className="flex items-center justify-center gap-2 text-xs rounded-lg px-3 transition-all duration-200 data-[state=active]:bg-background data-[state=active]:shadow-md data-[state=active]:shadow-primary/10 data-[state=active]:ring-1 data-[state=active]:ring-primary/ data-[state=active]:text-primary"
+              >
                 <FileText className="w-3.5 h-3.5" />
                 Salidas
               </TabsTrigger>
 
               {!withCosts && (
-                <TabsTrigger value="balance" className="flex items-center justify-center gap-2 text-xs rounded-lg px-3 transition-all duration-200 data-[state=active]:bg-background data-[state=active]:shadow-md data-[state=active]:shadow-primary/10 data-[state=active]:ring-1 data-[state=active]:ring-primary/ data-[state=active]:text-primary">
+                <TabsTrigger
+                  value="balance"
+                  className="flex items-center justify-center gap-2 text-xs rounded-lg px-3 transition-all duration-200 data-[state=active]:bg-background data-[state=active]:shadow-md data-[state=active]:shadow-primary/10 data-[state=active]:ring-1 data-[state=active]:ring-primary/ data-[state=active]:text-primary"
+                >
                   <Scale className="w-3.5 h-3.5" />
                   Balance
                 </TabsTrigger>
@@ -408,8 +418,7 @@ export function AdministrationDispatchReportDialog({ roleNames = [] }: Administr
               setDispatchType={setDispatchType}
               articleCategory={articleCategory}
               setArticleCategory={setArticleCategory}
-              articles={allArticles}
-              isLoadingArticles={isLoadingArticles || isLoadingGeneralArticles}
+              articleOptions={articleOptions}
               articleFilters={articleFilters}
               setArticleFilters={setArticleFilters}
 
@@ -430,7 +439,6 @@ export function AdministrationDispatchReportDialog({ roleNames = [] }: Administr
                   ) : (
                     <Download className="mr-2 h-5 w-5" />
                   )}
-
                   Descargar Reporte con Costos
                   <span className="ml-2 text-xs font-normal opacity-80">
                     XLSX
@@ -449,7 +457,6 @@ export function AdministrationDispatchReportDialog({ roleNames = [] }: Administr
                     ) : (
                       <Download className="mr-2 h-5 w-5" />
                     )}
-
                     Descargar Reporte
                     <span className="ml-2 text-xs font-normal opacity-80">
                       PDF
@@ -470,7 +477,13 @@ export function AdministrationDispatchReportDialog({ roleNames = [] }: Administr
                         </Button>
                       </TooltipTrigger>
 
-                      <TooltipContent side="top" align="center" sideOffset={10} avoidCollisions={false} className="z-9999 whitespace-nowrap rounded-xl px-3 py-1.5">
+                      <TooltipContent
+                        side="top"
+                        align="center"
+                        sideOffset={10}
+                        avoidCollisions={false}
+                        className="z-9999 whitespace-nowrap rounded-xl px-3 py-1.5"
+                      >
                         Descargar en Excel
                       </TooltipContent>
                     </Tooltip>
@@ -493,7 +506,6 @@ export function AdministrationDispatchReportDialog({ roleNames = [] }: Administr
                     ) : (
                       <Download className="mr-2 h-5 w-5" />
                     )}
-
                     Descargar Balance
                     <span className="ml-2 text-xs font-normal opacity-80">
                       PDF
@@ -514,7 +526,13 @@ export function AdministrationDispatchReportDialog({ roleNames = [] }: Administr
                         </Button>
                       </TooltipTrigger>
 
-                      <TooltipContent  side="top" align="center" sideOffset={10} avoidCollisions={false} className="z-9999 whitespace-nowrap rounded-xl px-3 py-1.5">
+                      <TooltipContent
+                        side="top"
+                        align="center"
+                        sideOffset={10}
+                        avoidCollisions={false}
+                        className="z-9999 whitespace-nowrap rounded-xl px-3 py-1.5"
+                      >
                         Descargar en Excel
                       </TooltipContent>
                     </Tooltip>
@@ -522,7 +540,6 @@ export function AdministrationDispatchReportDialog({ roleNames = [] }: Administr
                 </div>
               </TabsContent>
             )}
-
           </Tabs>
         </div>
       </DialogContent>

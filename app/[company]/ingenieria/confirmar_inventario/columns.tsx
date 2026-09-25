@@ -3,68 +3,13 @@
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { WarehouseResponse } from "@/hooks/mantenimiento/almacen/articulos/useGetWarehouseArticlesByCategory";
 import { type AppColumnDef } from "@/lib/table";
+import { formatQuantity } from "@/lib/utils";
+import type { CheckingArticle } from "@/types/inventory";
 import { addDays, format, parseISO } from "date-fns";
 import CheckingArticleDropdownActions from "./_components/CheckingArticleDropdownActionts";
 
-export interface IArticleSimple {
-  id: number;
-  part_number: string;
-  alternative_part_number?: string[];
-  description?: string;
-  quantity: number;
-  zone: string;
-  article_type: string;
-  serial?: string;
-  lot_number?: string;
-  status: string;
-  condition: string;
-  is_hazardous?: boolean;
-  batch_name: string;
-  batch_id: number;
-  min_quantity?: number | string; // Directamente en el artículo
-  tool?: {
-    status?: string | null;
-    calibration_date?: string | null; // ISO string o "dd/MM/yyyy"
-    next_calibration_date?: string | null; // si guardas fecha
-    next_calibration?: number | string | null; // o días
-  };
-}
-
-export const flattenArticles = (
-  data: WarehouseResponse | undefined,
-): IArticleSimple[] => {
-  if (!data?.batches) return [];
-  return data.batches.flatMap((batch) =>
-    batch.articles.map((article) => ({
-      id: article.id,
-      part_number: article.part_number,
-      alternative_part_number: article.alternative_part_number,
-      serial: article.serial,
-      lot_number: article.lot_number,
-      description: article.description,
-      zone: article.zone,
-      // ✅ No normalizar 0 -> 1
-      quantity: Number(article.quantity ?? 0),
-      status: article.status,
-      condition: article.condition ? article.condition.name : "N/A",
-      article_type: article.article_type ?? "N/A",
-      batch_name: batch.name,
-      is_hazardous: batch.is_hazardous ?? undefined,
-      batch_id: batch.batch_id,
-      min_quantity: article.min_quantity, // Directamente desde el artículo
-      tool: article.tool
-        ? {
-            status: article.tool.status,
-            calibration_date: article.tool.calibration_date,
-            next_calibration_date: article.tool.next_calibration_date,
-            next_calibration: article.tool.next_calibration,
-          }
-        : undefined,
-    })),
-  );
-};
+export type IArticleSimple = CheckingArticle;
 
 const baseCols: AppColumnDef<IArticleSimple>[] = [
   {
@@ -112,47 +57,27 @@ const baseCols: AppColumnDef<IArticleSimple>[] = [
       <DataTableColumnHeader column={column} title="Descripción" />
     ),
     cell: ({ row }) => (
-      <div className="text-muted-foreground font-bold text-center max-w-xs line-clamp-2">
+      <div className="text-muted-foreground font-bold text-center max-w-xs mx-auto line-clamp-2">
         {row.original.batch_name || "Sin descripción"}
       </div>
     ),
   },
   {
-    accessorKey: "quantity",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Disponiblidad" />
-    ),
-    cell: ({ row }) => {
-      const q = row.original.quantity ?? 0;
-      const isStored = row.original.status?.toLowerCase() === "stored";
-      const isAvailable = q > 0 && isStored;
-      return (
-        <div className="flex justify-center">
-          <Badge
-            variant={isAvailable ? "default" : "destructive"}
-            className="text-sm font-bold px-3 py-1 whitespace-nowrap"
-          >
-            {isAvailable ? "Disponible" : "No Disponible"}
-          </Badge>
-        </div>
-      );
-    },
-  },
-  {
-    id: "quantity_value",
-    accessorFn: (row) => row.quantity,
+    id: "quantity",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Cantidad" />
     ),
     cell: ({ row }) => {
       const q = Number(row.original.quantity ?? 0);
+      const unit = row.original.unit?.value ?? row.original.unit?.label ?? "u";
+
       return (
         <div className="flex justify-center">
           <Badge
-            variant={q > 5 ? "default" : q > 0 ? "secondary" : "destructive"}
-            className="text-base font-bold px-3 py-1"
+            variant={q > 0 ? "default" : "destructive"}
+            className="text-sm font-bold px-3 py-1 tabular-nums whitespace-nowrap"
           >
-            {q}
+            {`${formatQuantity(q)} ${unit}`}
           </Badge>
         </div>
       );
@@ -163,23 +88,13 @@ const baseCols: AppColumnDef<IArticleSimple>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Estado" />
     ),
-    cell: ({ row }) => {
-      const isStored = row.original.status?.toLowerCase() === "stored";
-      const q = Number(row.original.quantity ?? 0);
-      const isOutOfStock = isStored && q <= 0;
-
-      return (
-        <div className="flex flex-col justify-center items-center space-y-2">
-          {isOutOfStock ? (
-            <Badge variant="destructive">SIN STOCK</Badge>
-          ) : (
-            <Badge className="bg-yellow-500">
-              {row.original.status?.toUpperCase()}
-            </Badge>
-          )}
-        </div>
-      );
-    },
+    cell: ({ row }) => (
+      <div className="flex flex-col justify-center items-center space-y-2">
+        <Badge className="bg-yellow-500">
+          {row.original.status?.toUpperCase()}
+        </Badge>
+      </div>
+    ),
   },
   {
     accessorKey: "zone",
@@ -248,7 +163,7 @@ export const consumibleCols: AppColumnDef<IArticleSimple>[] = [
     ),
     cell: ({ row }) => (
       <div className="text-center font-medium text-sm">
-        {row.original.min_quantity || (
+        {row.original.min_quantity ?? (
           <span className="text-muted-foreground">0</span>
         )}
       </div>
@@ -332,7 +247,7 @@ export const herramientaCols: AppColumnDef<IArticleSimple>[] = [
 
 // Columnas por categoría
 export const getColumnsByCategory = (
-  cat: "COMPONENT" | "CONSUMABLE" | "TOOL" | "PART",
+  cat: "all" | "COMPONENT" | "CONSUMABLE" | "TOOL" | "PART",
 ): AppColumnDef<IArticleSimple>[] => {
   if (cat === "TOOL") return [selectionColumn, ...herramientaCols];
   if (cat === "CONSUMABLE") return [selectionColumn, ...consumibleCols];
