@@ -1,47 +1,59 @@
 "use client";
 
-import { pieChartData } from "@/types";
+import { GeneralStats } from "@/types";
 import { useTheme } from "next-themes";
 import { useMemo } from "react";
 import {
   Bar,
   BarChart,
   CartesianGrid,
+  Legend,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
 
-interface BarChartProps {
-  data: pieChartData[];
+interface OverlappingBarChartProps {
+  data: GeneralStats;
   title: string;
   height?: number;
   barSize?: number;
-  forceLight?: boolean;
+  bar_first_name: string;
+  bar_second_name: string;
 }
 
-const MultipleBarChartComponent: React.FC<BarChartProps> = ({
+export const OverlappingBarChartComponent = ({
   data,
   title,
   height = 260,
   barSize = 48,
-  forceLight = false,
-}) => {
+  bar_first_name,
+  bar_second_name,
+}: OverlappingBarChartProps) => {
   const { theme } = useTheme();
-  const isDark = forceLight ? false : theme === "dark";
+  const isDark = theme === "dark";
 
   const axisColor = useMemo(() => (isDark ? "#e5e7eb" : "#111827"), [isDark]);
   const gridColor = useMemo(() => (isDark ? "#4b5563" : "#d1d5db"), [isDark]);
-  const barColor = useMemo(() => (isDark ? "#6366f1" : "#4f46e5"), [isDark]);
 
-  if (!data || data.length === 0) {
+  if (!data.closed && !data.open) {
     return (
       <p className="text-sm text-muted-foreground">
         No hay datos para mostrar.
       </p>
     );
   }
+
+  // Las barras se superponen: la total (bar_first_name) detrás y la
+  // ejecutada (bar_second_name) adelante.
+  const chartData = [
+    {
+      name: "Estadísticas",
+      first: data.open,
+      second: data.closed,
+    },
+  ];
 
   return (
     <div className="w-full">
@@ -50,17 +62,20 @@ const MultipleBarChartComponent: React.FC<BarChartProps> = ({
           {title}
         </h2>
       )}
+
       <div style={{ width: "100%", height }}>
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
-            data={data}
+            data={chartData}
             margin={{ top: 16, right: 24, left: 8, bottom: 16 }}
             barSize={barSize}
+            barGap={-barSize}
+            barCategoryGap={20}
           >
             <CartesianGrid
               strokeDasharray="4"
               stroke={gridColor}
-              opacity={0.6}
+              opacity={1}
               strokeWidth={2}
             />
 
@@ -83,18 +98,33 @@ const MultipleBarChartComponent: React.FC<BarChartProps> = ({
             />
 
             <Tooltip
-              formatter={(value) => Number(value).toLocaleString("es-ES")}
-              labelFormatter={(label) => `Categoría: ${label}`}
               contentStyle={{
-                color: "#000",
+                backgroundColor: isDark ? "#1f2937" : "#ffffff",
+                border: `1px solid ${gridColor}`,
+                borderRadius: "6px",
+                fontSize: "12px",
+              }}
+            />
+
+            <Legend
+              wrapperStyle={{
+                fontSize: "14px",
+                paddingTop: "8px",
               }}
             />
 
             <Bar
-              dataKey="value"
-              name="Valor"
-              fill={barColor}
-              radius={[6, 6, 0, 0]}
+              dataKey="first"
+              name={bar_first_name}
+              fill="#64bda5ff"
+              radius={[4, 4, 0, 0]}
+            />
+
+            <Bar
+              dataKey="second"
+              name={bar_second_name}
+              fill="#0369a1"
+              radius={[4, 4, 0, 0]}
             />
           </BarChart>
         </ResponsiveContainer>
@@ -103,4 +133,4 @@ const MultipleBarChartComponent: React.FC<BarChartProps> = ({
   );
 };
 
-export default MultipleBarChartComponent;
+export default OverlappingBarChartComponent;

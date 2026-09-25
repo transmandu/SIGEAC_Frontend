@@ -1,12 +1,12 @@
 "use client";
-import BarChartComponent from "@/components/charts/BarChartComponent";
+import OverlappingBarChartComponent from "@/components/charts/OverlappingBarChartComponent";
 import { PieChartComponent } from "@/components/charts/PieChartComponent";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import DataFilter from "@/components/misc/DataFilter";
 import { Label } from "@/components/ui/label";
 import { useGetCourseStats } from "@/hooks/curso/useGetCourseStats";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { format, startOfMonth } from "date-fns";
+import { format, startOfYear } from "date-fns";
 import { Loader2 } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -33,12 +33,12 @@ const CourseStatsPage = () => {
   }
 
   const [params, setParams] = useState<Params>({
-    from: format(startOfMonth(new Date()), "yyyy-MM-dd"),
+    from: format(startOfYear(new Date()), "yyyy-MM-dd"),
     to: format(new Date(), "yyyy-MM-dd"),
   });
 
   useEffect(() => {
-    const defaultFrom = format(startOfMonth(new Date()), "yyyy-MM-dd");
+    const defaultFrom = format(startOfYear(new Date()), "yyyy-MM-dd");
     const defaultTo = format(new Date(), "yyyy-MM-dd");
 
     const newParams: Params = {};
@@ -68,7 +68,7 @@ const CourseStatsPage = () => {
 
   // Manejar reset de fechas
   const handleReset = () => {
-    const defaultFrom = format(startOfMonth(new Date()), "yyyy-MM-dd");
+    const defaultFrom = format(startOfYear(new Date()), "yyyy-MM-dd");
     const defaultTo = format(new Date(), "yyyy-MM-dd");
 
     const newParams = new URLSearchParams();
@@ -84,7 +84,7 @@ const CourseStatsPage = () => {
     isLoading: isLoadingBarChart,
     isError: isErrorBarChart,
   } = useGetCourseStats(
-    params.from || format(startOfMonth(new Date()), "yyyy-MM-dd"),
+    params.from || format(startOfYear(new Date()), "yyyy-MM-dd"),
     params.to || format(new Date(), "yyyy-MM-dd"),
     selectedStation ?? null,
     selectedCompany?.slug,
@@ -95,7 +95,7 @@ const CourseStatsPage = () => {
       ? []
       : [
           {
-            name: "Pendientes",
+            name: "Planificados",
             value: barChartData?.open ?? 0,
           },
           {
@@ -124,7 +124,7 @@ const CourseStatsPage = () => {
               buttonDataTour="estadisticas-filtro"
               initialDate={{
                 from:
-                  params.from || format(startOfMonth(new Date()), "yyyy-MM-dd"),
+                  params.from || format(startOfYear(new Date()), "yyyy-MM-dd"),
                 to: params.to || format(new Date(), "yyyy-MM-dd"),
               }}
             />
@@ -146,7 +146,7 @@ const CourseStatsPage = () => {
               <h2 className="text-sm font-semibold mb-2">
                 Planificados vs Ejecutados
               </h2>
-              <BarChartComponent
+              <OverlappingBarChartComponent
                 data={barChartData}
                 title="Planificados vs Ejecutados"
                 bar_first_name="Planificados"

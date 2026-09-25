@@ -1209,6 +1209,8 @@ export type GeneralStats = {
   total: number;
   open: number;
   closed: number;
+  open_percentage?: number;
+  closed_percentage?: number;
 };
 
 export type pieChartData = {
@@ -1284,6 +1286,7 @@ export type Course = {
   description: string;
   duration: string;
   time: string;
+  hours?: number;
   start_date: Date;
   end_date: Date;
   start_time: string;
