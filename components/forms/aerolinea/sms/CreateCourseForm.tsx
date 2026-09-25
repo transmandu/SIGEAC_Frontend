@@ -56,12 +56,9 @@ export function CreateCourseForm({
       description: z.string(),
       course_type: z.string(),
       instructor: z.string().optional(),
-      hours: z.coerce
-        .number()
-        .int()
-        .min(0, {
-          message: "Las horas deben ser 0 o un número entero positivo",
-        }),
+      hours: z.coerce.number().int().min(0, {
+        message: "Las horas deben ser 0 o un número entero positivo",
+      }),
       end_date: z
         .date()
         .refine((val) => !isNaN(val.getTime()), { message: "Fecha no válida" }),
