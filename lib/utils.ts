@@ -13,6 +13,14 @@ export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
 }
 
+// Registros viejos pueden traer alternative_part_number como string suelto o
+// null en vez de array; esto evita que un `.join` / `.some` tumbe la vista.
+export function toAltPartNumbers(value: unknown): string[] {
+    if (Array.isArray(value)) return value.filter(Boolean).map(String);
+    if (typeof value === "string" && value.trim() !== "") return [value.trim()];
+    return [];
+}
+
 // El backend a veces devuelve URLs absolutas de assets (image_url, etc.) con un
 // host distinto al configurado actualmente en NEXT_PUBLIC_HOSTNAME (por ejemplo,
 // generadas cuando el servidor tenía otra IP). Como el resto de la app sí es
