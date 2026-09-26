@@ -5,7 +5,7 @@ import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { AvailabilityBadge } from "@/components/tables/GeneralArticleConsultaColumns";
 import { Badge } from "@/components/ui/badge";
 import { addDays, format, parseISO } from "date-fns";
-import { cn } from "@/lib/utils";
+import { cn, toAltPartNumbers } from "@/lib/utils";
 import { toolStatusLabelEsUpper } from "@/lib/warehouse/statuses";
 import { formatCondition } from "@/lib/warehouse/conditions";
 import type { CompanyInventoryArticle } from "@/types/inventory";
@@ -42,8 +42,8 @@ const baseCols: AppColumnDef<CompanyInventoryArticle>[] = [
     ),
     cell: ({ row }) => (
       <div className="font-bold text-center text-base">
-        {row.original.alternative_part_number.length > 0
-          ? row.original.alternative_part_number.join("/ ")
+        {toAltPartNumbers(row.original.alternative_part_number).length > 0
+          ? toAltPartNumbers(row.original.alternative_part_number).join("/ ")
           : "N/A"}
       </div>
     ),

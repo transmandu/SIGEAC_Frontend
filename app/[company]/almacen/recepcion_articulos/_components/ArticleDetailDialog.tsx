@@ -21,7 +21,7 @@ import { useGetArticleById } from "@/hooks/mantenimiento/almacen/articulos/useGe
 import { EditTransitArticleDialog } from "@/app/[company]/compras/(aeronautico)/en_transito/_components/EditTransitArticleDialog";
 import SecureFileViewer from "@/components/library/SecureFileViewer";
 import axiosInstance from "@/lib/axios";
-import { cn } from "@/lib/utils";
+import { cn, toAltPartNumbers } from "@/lib/utils";
 import type { TransitArticle } from "@/types/purchase/in-transit";
 import type { ArticleDocument } from "@/types";
 
@@ -295,7 +295,10 @@ export function ArticleDetailDialog({ article }: { article: TransitArticle }) {
                 fields={[
                   {
                     label: "Número alterno",
-                    value: article.alternative_part_number.join(" / ") || null,
+                    value:
+                      toAltPartNumbers(article.alternative_part_number).join(
+                        " / ",
+                      ) || null,
                   },
                   { label: "Serial", value: article.serial },
                   { label: "Código ATA", value: article.ata_code },
