@@ -12,7 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useTransitQueue } from "@/hooks/mantenimiento/almacen/inventario/useArticleQueues";
-import { cn } from "@/lib/utils";
+import { cn, toAltPartNumbers } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import {
   ArrowRight,
@@ -107,13 +107,13 @@ const ArticleRow = memo(function ArticleRow({
             <div className="font-mono text-[12px] font-semibold bg-muted/60 px-1.5 py-0.5 rounded border border-border/40 w-fit tracking-wide">
               {article.part_number}
             </div>
-            {article.alternative_part_number.length > 0 ? (
+            {toAltPartNumbers(article.alternative_part_number).length > 0 ? (
               <div className="flex items-center gap-1">
                 <span className="shrink-0 text-[9px] font-mono font-semibold text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800/60 px-1 py-0.5 rounded tracking-widest select-none">
                   ALT
                 </span>
                 <span className="font-mono text-[11px] text-muted-foreground truncate">
-                  {article.alternative_part_number.join(" / ")}
+                  {toAltPartNumbers(article.alternative_part_number).join(" / ")}
                 </span>
               </div>
             ) : (
@@ -293,7 +293,7 @@ export function ArticulosEnTransitoTab() {
     return combined.filter(
       (a) =>
         a.part_number?.toLowerCase().includes(q) ||
-        a.alternative_part_number.some((alt) =>
+        toAltPartNumbers(a.alternative_part_number).some((alt) =>
           alt.toLowerCase().includes(q),
         ) ||
         a.batch?.name?.toLowerCase().includes(q) ||

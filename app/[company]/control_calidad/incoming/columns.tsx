@@ -1,5 +1,6 @@
 "use client";
 
+import { toAltPartNumbers } from "@/lib/utils";
 import IncomingArticleDropdownActions from "@/components/dropdowns/mantenimiento/control_calidad/IncomingArticleDropdownActions";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
 import { type AppColumnDef } from "@/lib/table";
@@ -48,8 +49,8 @@ export const columns: AppColumnDef<IncomingArticle>[] = [
     meta: { title: "Nro. Parte Alternativo" },
     cell: ({ row }) => (
       <p className="text-center italic text-muted-foreground">
-        {row.original.alternative_part_number.length
-          ? row.original.alternative_part_number.join("/ ")
+        {toAltPartNumbers(row.original.alternative_part_number).length
+          ? toAltPartNumbers(row.original.alternative_part_number).join("/ ")
           : "-"}
       </p>
     ),
