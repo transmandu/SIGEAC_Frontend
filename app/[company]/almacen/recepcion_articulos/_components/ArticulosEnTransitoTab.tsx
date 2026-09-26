@@ -113,7 +113,9 @@ const ArticleRow = memo(function ArticleRow({
                   ALT
                 </span>
                 <span className="font-mono text-[11px] text-muted-foreground truncate">
-                  {toAltPartNumbers(article.alternative_part_number).join(" / ")}
+                  {toAltPartNumbers(article.alternative_part_number).join(
+                    " / ",
+                  )}
                 </span>
               </div>
             ) : (

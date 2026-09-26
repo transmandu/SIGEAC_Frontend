@@ -295,7 +295,10 @@ export function ArticleDetailDialog({ article }: { article: TransitArticle }) {
                 fields={[
                   {
                     label: "Número alterno",
-                    value: toAltPartNumbers(article.alternative_part_number).join(" / ") || null,
+                    value:
+                      toAltPartNumbers(article.alternative_part_number).join(
+                        " / ",
+                      ) || null,
                   },
                   { label: "Serial", value: article.serial },
                   { label: "Código ATA", value: article.ata_code },

@@ -250,7 +250,8 @@ export const getColumns = (
     ),
 
     cell: ({ row }) => {
-      const hasAlt = toAltPartNumbers(row.original.alternative_part_number).length > 0;
+      const hasAlt =
+        toAltPartNumbers(row.original.alternative_part_number).length > 0;
 
       return (
         <div className="flex w-full justify-start">
@@ -293,7 +294,9 @@ export const getColumns = (
                 </span>
 
                 <span className="font-mono text-[11px] text-muted-foreground">
-                  {toAltPartNumbers(row.original.alternative_part_number).join(" / ")}
+                  {toAltPartNumbers(row.original.alternative_part_number).join(
+                    " / ",
+                  )}
                 </span>
               </div>
             ) : (

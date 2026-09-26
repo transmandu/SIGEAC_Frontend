@@ -95,7 +95,9 @@ export const columns: AppColumnDef<DestinationArticle>[] = [
               ALT
             </span>
             <span className="font-mono text-xs text-muted-foreground">
-              {toAltPartNumbers(row.original.alternative_part_number).join(" / ")}
+              {toAltPartNumbers(row.original.alternative_part_number).join(
+                " / ",
+              )}
             </span>
           </div>
         )}
