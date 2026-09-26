@@ -1,3 +1,10 @@
+## v4.27.0 — 2026-09-26
+
+- Merge pull request #294 from transmandu/fix/alternative-part-number-join
+- style: formato automatico (prettier)
+- fix: guard alternative_part_number join/length/some against non-array values
+- feat: add toAltPartNumbers helper to normalize alternative part numbers
+
 ## v4.26.0 — 2026-09-25
 
 - feat: add program trainning pdf (#293)
