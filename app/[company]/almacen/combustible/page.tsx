@@ -188,12 +188,13 @@ export default function FuelWarehousePage() {
   if (!canAccess) {
     return (
       <ContentLayout title="Combustible">
-        <div className="flex min-h-[360px] items-center justify-center">
+        <div className="flex min-h-90 items-center justify-center">
           <div className="max-w-md rounded-md border bg-background p-6 text-center">
             <ShieldAlert className="mx-auto h-8 w-8 text-muted-foreground" />
             <h1 className="mt-3 text-lg font-semibold">Sin acceso</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Este modulo esta disponible solo para SUPERUSER y JEFE_ALMACEN.
+              Este modulo esta disponible solo para los roles de Almacen y el
+              Director de Mantenimiento.
             </p>
           </div>
         </div>

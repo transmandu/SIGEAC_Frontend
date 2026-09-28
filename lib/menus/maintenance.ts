@@ -11,7 +11,12 @@ export function buildMaintenanceGroup({ pathname, currentCompany }: MenuContext)
                 label: "Servicios",
                 active: pathname.includes(`/${currentCompany?.slug}/mantenimiento/servicios`),
                 icon: Drill,
-                roles: ["ANALISTA_PLANIFICACION", "JEFE_PLANIFICACION", "SUPERUSER"],
+                roles: [
+                    "ANALISTA_PLANIFICACION",
+                    "JEFE_MANTENIMIENTO",
+                    "JEFE_PLANIFICACION",
+                    "SUPERUSER",
+                ],
                 requiresOmac: true,
                 submenus: [],
             },

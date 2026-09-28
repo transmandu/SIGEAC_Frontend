@@ -5,7 +5,7 @@ const WarehouseLayout = ({ children }: {
   children: React.ReactNode
 }) => {
   return (
-    <ProtectedLayout roles={["ANALISTA_ALMACEN", "JEFE_ALMACEN", "SUPERUSER", "REGULAR"]}>
+    <ProtectedLayout roles={["ANALISTA_ALMACEN", "JEFE_ALMACEN", "JEFE_MANTENIMIENTO", "SUPERUSER", "REGULAR"]}>
       {children}
     </ProtectedLayout>
   )

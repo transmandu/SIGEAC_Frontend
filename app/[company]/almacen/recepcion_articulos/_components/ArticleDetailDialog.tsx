@@ -25,7 +25,7 @@ import { cn, toAltPartNumbers } from "@/lib/utils";
 import type { TransitArticle } from "@/types/purchase/in-transit";
 import type { ArticleDocument } from "@/types";
 
-const EDIT_ROLES = ["JEFE_ALMACEN", "ANALISTA_ALMACEN"];
+const EDIT_ROLES = ["JEFE_ALMACEN", "ANALISTA_ALMACEN", "JEFE_MANTENIMIENTO"];
 
 const TRANSIT_STATUS_LABELS: Record<string, string> = {
   TRANSIT: "EN TRÁNSITO",

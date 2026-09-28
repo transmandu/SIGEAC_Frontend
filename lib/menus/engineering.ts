@@ -13,7 +13,7 @@ export function buildEngineeringGroup({ pathname, currentCompany }: MenuContext)
                     `/${currentCompany?.slug}/ingenieria/confirmar_inventario`,
                 ),
                 icon: ClipboardCheck,
-                roles: ["SUPERUSER", "ENGINEERING"],
+                roles: ["SUPERUSER", "ENGINEERING", "JEFE_MANTENIMIENTO"],
                 requiresOmac: true,
                 submenus: [],
             },

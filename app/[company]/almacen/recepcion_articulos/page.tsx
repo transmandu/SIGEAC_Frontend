@@ -12,7 +12,7 @@ import { RecepcionGeneralTab } from './_components/RecepcionGeneralTab'
 import { TrasladosEntreSedesTab } from './_components/TrasladosEntreSedesTab'
 import { PageHeader } from "@/components/layout/PageHeader";
 
-const ALMACEN_ROLES = ['ALMACEN', 'JEFE_ALMACEN', 'ANALISTA_ALMACEN', 'SUPERUSER']
+const ALMACEN_ROLES = ['ALMACEN', 'JEFE_ALMACEN', 'ANALISTA_ALMACEN', 'JEFE_MANTENIMIENTO', 'SUPERUSER']
 
 const RecepcionArticulosPage = () => {
     const { selectedCompany } = useCompanyStore()
