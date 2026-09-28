@@ -22,7 +22,12 @@ export function buildPlanificationGroup({
           `/${currentCompany?.slug}/planificacion/calendario`,
         ),
         icon: CalendarFold,
-        roles: ["ANALISTA_PLANIFICACION", "JEFE_PLANIFICACION", "SUPERUSER"],
+        roles: [
+          "ANALISTA_PLANIFICACION",
+          "JEFE_MANTENIMIENTO",
+          "JEFE_PLANIFICACION",
+          "SUPERUSER",
+        ],
         requiresOmac: true,
         submenus: [],
       },
@@ -33,7 +38,12 @@ export function buildPlanificationGroup({
           `/${currentCompany?.slug}/planificacion/ordenes_trabajo`,
         ),
         icon: SquarePen,
-        roles: ["ANALISTA_PLANIFICACION", "JEFE_PLANIFICACION", "SUPERUSER"],
+        roles: [
+          "ANALISTA_PLANIFICACION",
+          "JEFE_MANTENIMIENTO",
+          "JEFE_PLANIFICACION",
+          "SUPERUSER",
+        ],
         requiresOmac: true,
         submenus: [
           {
@@ -52,7 +62,12 @@ export function buildPlanificationGroup({
           `/${currentCompany?.slug}/planificacion/reportes`,
         ),
         icon: Plane,
-        roles: ["ANALISTA_PLANIFICACION", "JEFE_PLANIFICACION", "SUPERUSER"],
+        roles: [
+          "ANALISTA_PLANIFICACION",
+          "JEFE_MANTENIMIENTO",
+          "JEFE_PLANIFICACION",
+          "SUPERUSER",
+        ],
         requiresOmac: true,
         submenus: [
           {
@@ -71,7 +86,12 @@ export function buildPlanificationGroup({
         ),
         icon: BookCheck,
         requiresOmac: true,
-        roles: ["ANALISTA_PLANIFICACION", "JEFE_PLANIFICACION", "SUPERUSER"],
+        roles: [
+          "ANALISTA_PLANIFICACION",
+          "JEFE_MANTENIMIENTO",
+          "JEFE_PLANIFICACION",
+          "SUPERUSER",
+        ],
         submenus: [
           {
             href: `/${currentCompany?.slug}/planificacion/control_vuelos/vuelos`,

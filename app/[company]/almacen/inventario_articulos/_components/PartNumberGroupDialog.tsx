@@ -462,7 +462,8 @@ export function PartNumberGroupDialog({
 
                               {canModifyArticle(r.status, isSuperUser) &&
                                 (isSuperUser ||
-                                  roles.includes("JEFE_ALMACEN")) && (
+                                  roles.includes("JEFE_ALMACEN") ||
+                                  roles.includes("JEFE_MANTENIMIENTO")) && (
                                   <Tooltip>
                                     <TooltipTrigger asChild>
                                       <Button
