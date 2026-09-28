@@ -19,23 +19,20 @@ export function buildPlanificationGroup({
     moduleValue: "planification",
     menus: [
       {
-        href: `/${currentCompany?.slug}/planificacion/ordenes_trabajo`,
-        label: "Ordenes de Trabajo",
+        href: `/${currentCompany?.slug}/planificacion/auditoria`,
+        label: "Auditoría",
         active: pathname.includes(
-          `/${currentCompany?.slug}/planificacion/ordenes_trabajo`,
+          `/${currentCompany?.slug}/planificacion/auditoria`,
         ),
-        icon: SquarePen,
-        roles: ["ANALISTA_PLANIFICACION", "JEFE_PLANIFICACION", "SUPERUSER"],
+        icon: ClipboardCheck,
         requiresOmac: true,
-        submenus: [
-          {
-            href: `/${currentCompany?.slug}/planificacion/ordenes_trabajo/`,
-            label: "Gestionar Ordenes",
-            active:
-              pathname ===
-              `/${currentCompany?.slug}/planificacion/ordenes_trabajo`,
-          },
+        roles: [
+          "JEFE_CONTROL_CALIDAD",
+          "JEFE_MANTENIMIENTO",
+          "JEFE_PLANIFICACION",
+          "SUPERUSER",
         ],
+        submenus: [],
       },
       {
         href: `/${currentCompany?.slug}/planificacion/aeronaves`,
@@ -52,6 +49,25 @@ export function buildPlanificationGroup({
             label: "Gestión de Aeronaves",
             active:
               pathname === `/${currentCompany?.slug}/planificacion/aeronaves`,
+          },
+        ],
+      },
+      {
+        href: `/${currentCompany?.slug}/planificacion/ordenes_trabajo`,
+        label: "Ordenes de Trabajo",
+        active: pathname.includes(
+          `/${currentCompany?.slug}/planificacion/ordenes_trabajo`,
+        ),
+        icon: SquarePen,
+        roles: ["ANALISTA_PLANIFICACION", "JEFE_PLANIFICACION", "SUPERUSER"],
+        requiresOmac: true,
+        submenus: [
+          {
+            href: `/${currentCompany?.slug}/planificacion/ordenes_trabajo/`,
+            label: "Gestionar Ordenes",
+            active:
+              pathname ===
+              `/${currentCompany?.slug}/planificacion/ordenes_trabajo`,
           },
         ],
       },
@@ -156,22 +172,6 @@ export function buildPlanificationGroup({
               `/${currentCompany?.slug}/planificacion/control_directivas`,
           },
         ],
-      },
-      {
-        href: `/${currentCompany?.slug}/planificacion/auditoria`,
-        label: "Auditoría",
-        active: pathname.includes(
-          `/${currentCompany?.slug}/planificacion/auditoria`,
-        ),
-        icon: ClipboardCheck,
-        requiresOmac: true,
-        roles: [
-          "JEFE_CONTROL_CALIDAD",
-          "JEFE_MANTENIMIENTO",
-          "JEFE_PLANIFICACION",
-          "SUPERUSER",
-        ],
-        submenus: [],
       },
     ],
   };
