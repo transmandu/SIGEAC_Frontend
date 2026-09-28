@@ -2008,7 +2008,15 @@ export type ChangeActivity = {
   id: number;
   change_request_id: number;
   activity_description: string;
-  assigned_employee: Employee;
+  assigned_employee_id?: number | null;
+  authorized_employee_id?: number | null;
+  assigned_employee: Employee | null;
+  authorized_employee?: {
+    id: number;
+    dni_employee: string;
+    from_company_db: string;
+    full_name?: string | null;
+  } | null;
   created_at: string;
   updated_at: string;
 };
@@ -2087,7 +2095,8 @@ export type StoreChangeRequestPayload = {
   }>;
   activities?: Array<{
     activity_description: string;
-    assigned_employee_id: number;
+    assigned_employee_id?: number | null;
+    authorized_employee_id?: number | null;
   }>;
   photographic_records?: Array<{
     stage: PhotographicStage;
@@ -2131,7 +2140,8 @@ export type UpdateChangeRequestPayload = {
   activities?: Array<{
     id?: number;
     activity_description: string;
-    assigned_employee_id: number;
+    assigned_employee_id?: number | null;
+    authorized_employee_id?: number | null;
   }>;
   photographic_records?: Array<{
     id?: number;
