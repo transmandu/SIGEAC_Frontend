@@ -1,3 +1,7 @@
+## v4.33.0 — 2026-09-28
+
+- feat: add new chart to sms report pdf (#300)
+
 ## v4.32.0 — 2026-09-28
 
 - feat: add authorized employee to change request form (#299)
