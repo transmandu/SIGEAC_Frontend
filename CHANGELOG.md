@@ -1,3 +1,7 @@
+## v4.31.0 — 2026-09-28
+
+- feat: save course list document  (#298)
+
 ## v4.30.0 — 2026-09-28
 
 - feat: update roles to include JEFE_MANTENIMIENTO across various compo… (#297)
