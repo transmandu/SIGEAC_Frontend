@@ -1294,6 +1294,11 @@ export type Course = {
   course_type: string;
   instructor?: string;
   status: string;
+  /** Ruta del PDF dentro de la biblioteca. */
+  document?: string | null;
+  library_document_id?: number | null;
+  /** Carpetas de la biblioteca donde vive el documento. */
+  library_folder_paths?: string[];
 };
 
 export type CourseAttendance = {

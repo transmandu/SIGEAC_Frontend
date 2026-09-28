@@ -16,6 +16,8 @@ interface CourseData {
     course_type: string;
     hours?: number;
     instructor?: string;
+    document?: File;
+    library_folder_paths?: string[];
   };
 }
 
@@ -32,6 +34,8 @@ interface updateCourseData {
     start_time: string;
     end_time: string;
     hours: number;
+    document?: File;
+    library_folder_paths?: string[];
   };
 }
 
@@ -150,10 +154,40 @@ export const useUpdateCourse = () => {
   const queryClient = useQueryClient();
   const updateMutation = useMutation({
     mutationFn: async ({ data, company, id }: updateCourseData) => {
-      console.log(data);
-      const response = await axiosInstance.patch(
+      // Sin archivo se conserva el PATCH de siempre; con archivo, multipart no
+      // admite PATCH real: se envía POST y Laravel lo reinterpreta con _method.
+      if (!data.document) {
+        const response = await axiosInstance.patch(
+          `/general/${company}/update-course/${id}`,
+          data,
+        );
+        return response.data;
+      }
+
+      const formData = new FormData();
+      formData.append("_method", "PATCH");
+      formData.append("name", data.name);
+      formData.append("description", data.description);
+      formData.append("course_type", data.course_type);
+      formData.append("start_date", new Date(data.start_date).toISOString());
+      formData.append("end_date", new Date(data.end_date).toISOString());
+      formData.append("start_time", data.start_time);
+      formData.append("end_time", data.end_time);
+      formData.append("hours", String(data.hours));
+      if (data.instructor) formData.append("instructor", data.instructor);
+      formData.append("document", data.document);
+      (data.library_folder_paths ?? []).forEach((path) =>
+        formData.append("library_folder_paths[]", path),
+      );
+
+      const response = await axiosInstance.post(
         `/general/${company}/update-course/${id}`,
-        data,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        },
       );
       return response.data;
     },

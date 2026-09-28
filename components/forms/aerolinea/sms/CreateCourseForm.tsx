@@ -33,6 +33,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import FolderSelect from "@/components/library/FolderSelect";
 
 interface FormProps {
   onClose: (open: boolean) => void;
@@ -67,6 +68,15 @@ export function CreateCourseForm({
         .refine((val) => !isNaN(val.getTime()), { message: "Fecha no válida" }),
       end_time: z.string(),
       start_time: z.string(),
+      document: z
+        .instanceof(File)
+        .refine((file) => file.size <= 10 * 1024 * 1024, "Máximo 10MB")
+        .refine(
+          (file) => file.type === "application/pdf",
+          "Solo se permiten archivos PDF",
+        )
+        .optional(),
+      library_folder_paths: z.array(z.string()).optional().default([]),
     })
     .refine((data) => data.end_date >= data.start_date, {
       message:
@@ -106,8 +116,12 @@ export function CreateCourseForm({
         : selectedDate
           ? selectedDate.split(" ")[1]
           : undefined,
+
+      library_folder_paths: initialData?.library_folder_paths ?? [],
     },
   });
+
+  const selectedDocument = form.watch("document");
 
   const onSubmit = async (data: FormSchemaType) => {
     if (initialData && isEditing) {
@@ -124,6 +138,8 @@ export function CreateCourseForm({
           start_time: data.start_time,
           end_time: data.end_time,
           course_type: data.course_type,
+          document: data.document,
+          library_folder_paths: data.library_folder_paths,
         },
       };
       updateCourse.mutateAsync(value);
@@ -333,6 +349,67 @@ export function CreateCourseForm({
                 </FormItem>
               )}
             />
+          </div>
+
+          <div
+            className="flex w-full flex-col gap-4"
+            data-tour="cursos-create-document"
+          >
+            <FormField
+              control={form.control}
+              name="document"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>Documento PDF</FormLabel>
+                  <div className="flex flex-col gap-2">
+                    {field.value && (
+                      <div>
+                        <p className="text-sm text-gray-500">
+                          Archivo seleccionado:
+                        </p>
+                        <p className="font-semibold text-sm">
+                          {(field.value as File).name}
+                        </p>
+                      </div>
+                    )}
+                    <FormControl>
+                      <Input
+                        type="file"
+                        accept="application/pdf"
+                        onChange={(e) => field.onChange(e.target.files?.[0])}
+                      />
+                    </FormControl>
+                    <p className="text-xs text-muted-foreground">
+                      Se guardará en la biblioteca con el nombre del tipo de
+                      curso, su duración y la fecha de inicio.
+                    </p>
+                  </div>
+                  <FormMessage className="text-xs" />
+                </FormItem>
+              )}
+            />
+
+            {selectedDocument && (
+              <FormField
+                control={form.control}
+                name="library_folder_paths"
+                render={({ field }) => (
+                  <FormItem className="w-full">
+                    <FormLabel>Carpetas en Librería</FormLabel>
+                    <FolderSelect
+                      company={selectedCompany?.slug}
+                      value={field.value ?? []}
+                      onChange={(paths) => field.onChange(paths)}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      El documento guardado también estará disponible en la
+                      biblioteca dentro de estas carpetas.
+                    </p>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
           </div>
         </div>
 

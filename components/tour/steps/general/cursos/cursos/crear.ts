@@ -37,6 +37,12 @@ export const cursosCrearSteps: StepType[] = [
     position: "bottom",
   },
   {
+    selector: '[data-tour="cursos-create-document"]',
+    content:
+      "Opcional: adjunte el PDF del curso. Se guardará en la biblioteca con el nombre del tipo, la duración y la fecha de inicio.",
+    position: "top",
+  },
+  {
     selector: '[data-tour="cursos-create-submit"]',
     content: "Revise la información y presione para guardar el curso.",
     position: "top",
