@@ -20,6 +20,7 @@ import {
 } from "./StepPhotographicRecords";
 import { useGetDepartments } from "@/hooks/ajustes/departamento/useGetDepartment";
 import { useGetAllEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetAllEmployees";
+import { useGetAuthorizedEmployees } from "@/hooks/ajustes/autorizados/useGetAuthorizedEmployees";
 import { toCalendarPayload } from "@/lib/date";
 
 const STEPS = [
@@ -106,12 +107,18 @@ const formSchema = z.object({
     .optional(),
   activities: z
     .array(
-      z.object({
-        activity_description: z
-          .string()
-          .min(1, "La descripción de la actividad es requerida"),
-        assigned_employee_id: z.number().min(1, "El responsable es requerido"),
-      }),
+      z
+        .object({
+          activity_description: z
+            .string()
+            .min(1, "La descripción de la actividad es requerida"),
+          assigned_employee_id: z.number().nullable().optional(),
+          authorized_employee_id: z.number().nullable().optional(),
+        })
+        .refine((a) => a.assigned_employee_id || a.authorized_employee_id, {
+          message: "Asigne un responsable interno o externo",
+          path: ["assigned_employee_id"],
+        }),
     )
     .optional(),
 });
@@ -138,6 +145,8 @@ export function CreateChangeRequestForm() {
     useGetDepartments(selectedCompany?.slug);
   const { data: employees, isLoading: isLoadingEmployees } =
     useGetAllEmployeesByCompany(selectedCompany?.slug);
+  const { data: authorizedEmployees, isLoading: isLoadingAuthorizedEmployees } =
+    useGetAuthorizedEmployees(selectedCompany?.slug);
 
   const form = useForm<ChangeRequestFormValues>({
     resolver: zodResolver(formSchema),
@@ -290,6 +299,8 @@ export function CreateChangeRequestForm() {
               form={form}
               employees={employees ?? []}
               isLoadingEmployees={isLoadingEmployees}
+              authorizedEmployees={authorizedEmployees ?? []}
+              isLoadingAuthorizedEmployees={isLoadingAuthorizedEmployees}
             />
           )}
           {step === 3 && (
