@@ -55,14 +55,14 @@ const FormSchema = z.object({
       dni: z.string(),
       first_name: z.string(),
       last_name: z.string(),
-    })
+    }),
   ),
   removedEmployees: z.array(
     z.object({
       dni: z.string(),
       first_name: z.string(),
       last_name: z.string(),
-    })
+    }),
   ),
 });
 
@@ -105,7 +105,7 @@ export function AddToCourseForm({ onClose, initialData }: FormProps) {
           dni: e.dni,
           first_name: e.first_name,
           last_name: e.last_name,
-        }))
+        })),
       );
 
       form.setValue(
@@ -114,10 +114,10 @@ export function AddToCourseForm({ onClose, initialData }: FormProps) {
           dni: e.dni,
           first_name: e.first_name,
           last_name: e.last_name,
-        }))
+        })),
       );
     },
-    [form]
+    [form],
   );
 
   useEffect(() => {
@@ -163,7 +163,7 @@ export function AddToCourseForm({ onClose, initialData }: FormProps) {
 
   const toggleEmployeeSelection = (dni: string) => {
     const newSelections = employeeSelections.map((emp) =>
-      emp.dni === dni ? { ...emp, isSelected: !emp.isSelected } : emp
+      emp.dni === dni ? { ...emp, isSelected: !emp.isSelected } : emp,
     );
 
     setEmployeeSelections(newSelections);
@@ -286,7 +286,7 @@ export function AddToCourseForm({ onClose, initialData }: FormProps) {
                                   "mr-2 h-4 w-4",
                                   employee.isSelected
                                     ? "opacity-100"
-                                    : "opacity-0"
+                                    : "opacity-0",
                                 )}
                               />
                               {employee.first_name} {employee.last_name} -{" "}
