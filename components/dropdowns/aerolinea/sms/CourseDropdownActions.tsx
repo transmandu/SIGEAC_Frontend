@@ -6,7 +6,6 @@ import {
 import { AddCourseAttendanceForm } from "@/components/forms/aerolinea/sms/AddCourseAtendanceForm";
 import { AddToCourseForm } from "@/components/forms/aerolinea/sms/AddToCourseForm";
 import { CreateCourseForm } from "@/components/forms/aerolinea/sms/CreateCourseForm";
-import { CreateExamForm } from "@/components/forms/aerolinea/sms/CreateExamForm";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -33,7 +32,6 @@ import { startOfDay } from "date-fns";
 import {
   ClipboardPenLine,
   EyeIcon,
-  FilePlus,
   FileText,
   Loader2,
   LockKeyholeOpen,
@@ -58,7 +56,6 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
   const [openStatus, setOpenStatus] = useState(false);
   const [openAttendance, setOpenAttendance] = useState(false);
   const [openReopen, setOpenReopen] = useState(false);
-  const [openExam, setOpenExam] = useState(false);
 
   const router = useRouter();
   const handleDelete = async () => {
@@ -188,24 +185,6 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
                       <UserCheck className="h-4 w-4" />
                     </TooltipTrigger>
                     <TooltipContent side="bottom">Asistencia</TooltipContent>
-                  </Tooltip>
-                </Button>
-              )}
-
-              {course.status !== "CERRADO" && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => setOpenExam(true)}
-                >
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <FilePlus className="h-4 w-4" />
-                    </TooltipTrigger>
-                    <TooltipContent side="bottom">
-                      Agregar Examen
-                    </TooltipContent>
                   </Tooltip>
                 </Button>
               )}
@@ -416,21 +395,6 @@ const CourseDropdownActions = ({ course }: { course: Course }) => {
               )}
             </Button>
           </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={openExam} onOpenChange={setOpenExam}>
-        <DialogContent className="flex flex-col max-w-2xl m-2">
-          <DialogHeader>
-            <DialogTitle className="text-center font-bold">
-              Agregar Examen al Curso
-            </DialogTitle>
-            <DialogDescription className="text-center"></DialogDescription>
-          </DialogHeader>
-          <CreateExamForm
-            courseId={course.id.toString()}
-            onClose={() => setOpenExam(false)}
-          />
         </DialogContent>
       </Dialog>
     </>
