@@ -3,6 +3,15 @@
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { CreateExamForm } from "@/components/forms/aerolinea/sms/CreateExamForm";
 import { useGetCourseExamAttendance } from "@/hooks/curso/useGetCourseExamAttendance";
 import { useGetCourseExams } from "@/hooks/curso/useGetCourseExams";
 import { useGetCourseById } from "@/hooks/curso/useGetCourseById";
@@ -12,8 +21,10 @@ import {
   ArrowLeft,
   Calendar,
   CheckCircle,
+  FilePlus,
   FileText,
   Loader2,
+  Trash2,
   Users,
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
@@ -27,7 +38,10 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { useUpdateCourseExamResult } from "@/actions/general/cursos/actions";
+import {
+  useUpdateCourseExamResult,
+  useDeleteCourseExam,
+} from "@/actions/general/cursos/actions";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { formatCalendarDate } from "@/lib/date";
 import { PdfEndpointPreviewDialog } from "@/components/dialogs/shared/PdfEndpointPreviewDialog";
@@ -188,6 +202,10 @@ const ManageExamsPage = () => {
   const router = useRouter();
   const { selectedCompany } = useCompanyStore();
   const [selectedExamId, setSelectedExamId] = useState<string>("");
+  const [openCreateExam, setOpenCreateExam] = useState(false);
+  const [openDeleteExam, setOpenDeleteExam] = useState(false);
+
+  const { deleteCourseExam } = useDeleteCourseExam();
 
   const { data: course, isLoading: isCourseLoading } = useGetCourseById({
     id: course_id,
@@ -214,6 +232,20 @@ const ManageExamsPage = () => {
     (exam) => exam.id.toString() === selectedExamId,
   );
 
+  const isCourseClosed = course?.status === "CERRADO";
+
+  const handleDeleteExam = async () => {
+    if (!selectedExam) return;
+
+    await deleteCourseExam.mutateAsync({
+      company: selectedCompany!.slug,
+      id: selectedExam.id.toString(),
+    });
+
+    setSelectedExamId("");
+    setOpenDeleteExam(false);
+  };
+
   return (
     <ContentLayout title="Gestionar Exámenes">
       <PageHeader className="mb-6" />
@@ -238,6 +270,13 @@ const ManageExamsPage = () => {
               </p>
             </div>
           </div>
+
+          {!isCourseClosed && (
+            <Button onClick={() => setOpenCreateExam(true)}>
+              <FilePlus className="w-4 h-4 mr-2" />
+              Agregar Examen
+            </Button>
+          )}
         </div>
 
         {isExamsLoading ? (
@@ -257,18 +296,41 @@ const ManageExamsPage = () => {
               <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
                 Seleccione el examen a gestionar:
               </label>
-              <Select value={selectedExamId} onValueChange={setSelectedExamId}>
-                <SelectTrigger className="w-full md:w-[400px]">
-                  <SelectValue placeholder="Seleccionar Examen" />
-                </SelectTrigger>
-                <SelectContent>
-                  {exams.map((exam) => (
-                    <SelectItem key={exam.id} value={exam.id.toString()}>
-                      {exam.name} - {formatCalendarDate(exam.exam_date, "date")}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Select
+                  value={selectedExamId}
+                  onValueChange={setSelectedExamId}
+                >
+                  <SelectTrigger className="w-full md:w-[400px]">
+                    <SelectValue placeholder="Seleccionar Examen" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {exams.map((exam) => (
+                      <SelectItem key={exam.id} value={exam.id.toString()}>
+                        {exam.name} -{" "}
+                        {formatCalendarDate(exam.exam_date, "date")}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                {!isCourseClosed && (
+                  <Button
+                    variant="outline"
+                    className="text-red-500 hover:bg-red-500/10 hover:text-red-600"
+                    disabled={!selectedExam || deleteCourseExam.isPending}
+                    onClick={() => setOpenDeleteExam(true)}
+                  >
+                    {deleteCourseExam.isPending ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <>
+                        <Trash2 className="w-4 h-4 mr-2" />
+                      </>
+                    )}
+                  </Button>
+                )}
+              </div>
             </div>
 
             {selectedExam && (
@@ -344,6 +406,58 @@ const ManageExamsPage = () => {
           </div>
         )}
       </div>
+
+      <Dialog open={openCreateExam} onOpenChange={setOpenCreateExam}>
+        <DialogContent className="flex flex-col max-w-2xl m-2">
+          <DialogHeader>
+            <DialogTitle className="text-center font-bold">
+              Agregar Examen al Curso
+            </DialogTitle>
+            <DialogDescription className="text-center"></DialogDescription>
+          </DialogHeader>
+          <CreateExamForm
+            courseId={course_id}
+            onClose={() => setOpenCreateExam(false)}
+          />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={openDeleteExam} onOpenChange={setOpenDeleteExam}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-center">
+              ¿Seguro que desea eliminar el examen?
+            </DialogTitle>
+            <DialogDescription className="text-center p-2 mb-0 pb-0">
+              Esta acción es irreversible y se eliminará el examen{" "}
+              <span className="font-semibold">{selectedExam?.name}</span> junto
+              con los resultados y documentos de los participantes registrados.
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter className="flex flex-col-reverse gap-2 md:gap-0">
+            <Button
+              className="bg-rose-400 hover:bg-white hover:text-black hover:border hover:border-black"
+              onClick={() => setOpenDeleteExam(false)}
+              type="button"
+            >
+              Cancelar
+            </Button>
+
+            <Button
+              disabled={deleteCourseExam.isPending}
+              className="hover:bg-white hover:text-black hover:border hover:border-black transition-all"
+              onClick={() => handleDeleteExam()}
+            >
+              {deleteCourseExam.isPending ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <p>Confirmar</p>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </ContentLayout>
   );
 };

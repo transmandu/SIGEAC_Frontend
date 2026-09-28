@@ -13,7 +13,12 @@ export function buildWarehouseGroup({
   pathname,
   currentCompany,
 }: MenuContext): Group {
-  const ALMACEN_ROLES = ["ANALISTA_ALMACEN", "JEFE_ALMACEN", "SUPERUSER"];
+  const ALMACEN_ROLES = [
+    "ANALISTA_ALMACEN",
+    "JEFE_ALMACEN",
+    "JEFE_MANTENIMIENTO",
+    "SUPERUSER",
+  ];
 
   return {
     groupLabel: "Almacen",

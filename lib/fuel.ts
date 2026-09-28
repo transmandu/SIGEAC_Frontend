@@ -16,6 +16,7 @@ export const FUEL_ALLOWED_ROLES = [
   "SUPERUSER",
   "JEFE_ALMACEN",
   "ANALISTA_ALMACEN",
+  "JEFE_MANTENIMIENTO",
 ];
 
 // Formatos de placa venezolana vigentes (equivalente a la validacion del backend).

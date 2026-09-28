@@ -54,13 +54,28 @@ const movementFilterOptions: Array<{
   value: FuelMovementType;
   label: string;
 }> = [
-  { value: "warehouse_initial_balance", label: FUEL_MOVEMENT_LABELS.warehouse_initial_balance },
-  { value: "vehicle_initial_balance", label: FUEL_MOVEMENT_LABELS.vehicle_initial_balance },
+  {
+    value: "warehouse_initial_balance",
+    label: FUEL_MOVEMENT_LABELS.warehouse_initial_balance,
+  },
+  {
+    value: "vehicle_initial_balance",
+    label: FUEL_MOVEMENT_LABELS.vehicle_initial_balance,
+  },
   { value: "external_refuel", label: FUEL_MOVEMENT_LABELS.external_refuel },
   { value: "warehouse_unload", label: FUEL_MOVEMENT_LABELS.warehouse_unload },
-  { value: "warehouse_dispatch_vehicle", label: FUEL_MOVEMENT_LABELS.warehouse_dispatch_vehicle },
-  { value: "warehouse_dispatch_third_party", label: FUEL_MOVEMENT_LABELS.warehouse_dispatch_third_party },
-  { value: "vehicle_daily_consumption", label: FUEL_MOVEMENT_LABELS.vehicle_daily_consumption },
+  {
+    value: "warehouse_dispatch_vehicle",
+    label: FUEL_MOVEMENT_LABELS.warehouse_dispatch_vehicle,
+  },
+  {
+    value: "warehouse_dispatch_third_party",
+    label: FUEL_MOVEMENT_LABELS.warehouse_dispatch_third_party,
+  },
+  {
+    value: "vehicle_daily_consumption",
+    label: FUEL_MOVEMENT_LABELS.vehicle_daily_consumption,
+  },
   { value: "vehicle_trip", label: FUEL_MOVEMENT_LABELS.vehicle_trip },
   { value: "annulment", label: FUEL_MOVEMENT_LABELS.annulment },
 ];
@@ -110,14 +125,22 @@ export default function FuelWarehousePage() {
     cn(
       "border-slate-200 transition-colors duration-200 dark:border-slate-800",
       "focus:border-emerald-400 focus:ring-emerald-400/30 focus-visible:border-emerald-400 focus-visible:ring-emerald-400/30",
-      isActive && "border-emerald-400/70 ring-1 ring-emerald-400/20 dark:border-emerald-500/50",
+      isActive &&
+        "border-emerald-400/70 ring-1 ring-emerald-400/20 dark:border-emerald-500/50",
     );
 
   // Se resetea a la primera pagina cada vez que cambia algun filtro (no al
   // cambiar solo de pagina).
   useEffect(() => {
     setMovementPage(1);
-  }, [dateFrom, dateTo, vehicleId, thirdPartyId, movementType, movementFuelType]);
+  }, [
+    dateFrom,
+    dateTo,
+    vehicleId,
+    thirdPartyId,
+    movementType,
+    movementFuelType,
+  ]);
 
   const movementFilters = useMemo(
     () => ({
@@ -140,8 +163,11 @@ export default function FuelWarehousePage() {
     ],
   );
 
-  const { data: summary, isLoading: summaryLoading, isError: summaryError } =
-    useGetFuelSummary(company);
+  const {
+    data: summary,
+    isLoading: summaryLoading,
+    isError: summaryError,
+  } = useGetFuelSummary(company);
   const { data: vehicles, isLoading: vehiclesLoading } =
     useGetFuelVehicles(company);
   const { data: movementsPage, isLoading: movementsLoading } =
@@ -188,12 +214,13 @@ export default function FuelWarehousePage() {
   if (!canAccess) {
     return (
       <ContentLayout title="Combustible">
-        <div className="flex min-h-[360px] items-center justify-center">
+        <div className="flex min-h-90 items-center justify-center">
           <div className="max-w-md rounded-md border bg-background p-6 text-center">
             <ShieldAlert className="mx-auto h-8 w-8 text-muted-foreground" />
             <h1 className="mt-3 text-lg font-semibold">Sin acceso</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Este modulo esta disponible solo para SUPERUSER y JEFE_ALMACEN.
+              Este modulo esta disponible solo para los roles de Almacen y el
+              Director de Mantenimiento.
             </p>
           </div>
         </div>
@@ -331,7 +358,11 @@ export default function FuelWarehousePage() {
         </div>
 
         {/* --- Tabs con datos --- */}
-        <Tabs value={activeFuelTab} onValueChange={setActiveFuelTab} className="space-y-4">
+        <Tabs
+          value={activeFuelTab}
+          onValueChange={setActiveFuelTab}
+          className="space-y-4"
+        >
           <TabsList className="gap-1 rounded-full border border-slate-200/70 bg-slate-100/60 p-1 dark:border-slate-800 dark:bg-slate-800/40">
             <TabsTrigger
               value="movements"
@@ -423,7 +454,9 @@ export default function FuelWarehousePage() {
                       setMovementFuelType(value as FuelType | "all")
                     }
                   >
-                    <SelectTrigger className={filterFieldClass(movementFuelType !== "all")}>
+                    <SelectTrigger
+                      className={filterFieldClass(movementFuelType !== "all")}
+                    >
                       <SelectValue placeholder="Combustible" />
                     </SelectTrigger>
                     <SelectContent>
@@ -441,14 +474,20 @@ export default function FuelWarehousePage() {
                     Vehiculo
                   </Label>
                   <Select value={vehicleId} onValueChange={setVehicleId}>
-                    <SelectTrigger className={filterFieldClass(vehicleId !== "all")}>
+                    <SelectTrigger
+                      className={filterFieldClass(vehicleId !== "all")}
+                    >
                       <SelectValue placeholder="Vehiculo" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todos</SelectItem>
                       {vehicleOptionsForFilter.map((vehicle) => (
-                        <SelectItem key={vehicle.id} value={vehicle.id.toString()}>
-                          {vehicle.plate || "Sin placa"} - {formatLiters(vehicle.current_balance_liters)}
+                        <SelectItem
+                          key={vehicle.id}
+                          value={vehicle.id.toString()}
+                        >
+                          {vehicle.plate || "Sin placa"} -{" "}
+                          {formatLiters(vehicle.current_balance_liters)}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -459,7 +498,9 @@ export default function FuelWarehousePage() {
                     Tercero
                   </Label>
                   <Select value={thirdPartyId} onValueChange={setThirdPartyId}>
-                    <SelectTrigger className={filterFieldClass(thirdPartyId !== "all")}>
+                    <SelectTrigger
+                      className={filterFieldClass(thirdPartyId !== "all")}
+                    >
                       <SelectValue placeholder="Tercero" />
                     </SelectTrigger>
                     <SelectContent>
@@ -482,7 +523,9 @@ export default function FuelWarehousePage() {
                       setMovementType(value as FuelMovementType | "all")
                     }
                   >
-                    <SelectTrigger className={filterFieldClass(movementType !== "all")}>
+                    <SelectTrigger
+                      className={filterFieldClass(movementType !== "all")}
+                    >
                       <SelectValue placeholder="Tipo" />
                     </SelectTrigger>
                     <SelectContent>
@@ -495,7 +538,6 @@ export default function FuelWarehousePage() {
                     </SelectContent>
                   </Select>
                 </div>
-
               </div>
               {hasActiveFilters && (
                 <div className="flex justify-end">
@@ -525,8 +567,9 @@ export default function FuelWarehousePage() {
                 {movementsPagination && movementsPagination.last_page > 1 && (
                   <div className="flex items-center justify-between text-sm text-muted-foreground">
                     <span>
-                      {movementsPagination.from ?? 0}-{movementsPagination.to ?? 0}{" "}
-                      de {movementsPagination.total}
+                      {movementsPagination.from ?? 0}-
+                      {movementsPagination.to ?? 0} de{" "}
+                      {movementsPagination.total}
                     </span>
                     <div className="flex items-center gap-1">
                       <Button
