@@ -10,6 +10,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useGetCourseEnrollementStatus } from "@/hooks/curso/useGetCourseEnrollementStatus";
+import { useGetAllEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetAllEmployees";
 import { cn } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { Course } from "@/types";
@@ -82,6 +83,8 @@ export function AddToCourseForm({ onClose, initialData }: FormProps) {
   };
   const { data: employeesData, isLoading: isLoadingEnrolledEmployee } =
     useGetCourseEnrollementStatus(value);
+  const { data: allEmployees, isLoading: isLoadingAllEmployees } =
+    useGetAllEmployeesByCompany(selectedCompany?.slug);
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
@@ -118,32 +121,45 @@ export function AddToCourseForm({ onClose, initialData }: FormProps) {
   );
 
   useEffect(() => {
-    if (employeesData) {
-      const selections: EmployeeSelection[] = [
-        ...(employeesData.enrolled?.map((e) => ({
-          dni: e.dni,
-          first_name: e.first_name,
-          last_name: e.last_name,
-          job_title: e.job_title.name,
-          department: e.department.name,
-          isSelected: true,
-          wasEnrolled: true,
-        })) || []),
-        ...(employeesData.not_enrolled?.map((e) => ({
-          dni: e.dni,
-          first_name: e.first_name,
-          last_name: e.last_name,
-          job_title: e.job_title.name,
-          department: e.department.name,
-          isSelected: false,
-          wasEnrolled: false,
-        })) || []),
-      ];
+    if (!employeesData) return;
 
-      setEmployeeSelections(selections);
-      updateFormValues(selections);
-    }
-  }, [employeesData, updateFormValues]);
+    const enrolled = employeesData.enrolled ?? [];
+    const notEnrolled = employeesData.not_enrolled ?? [];
+    const enrolledDni = new Set(enrolled.map((e) => e.dni));
+
+    const toSelection = (employee: {
+      dni: string;
+      first_name: string;
+      last_name: string;
+      job_title?: { name: string } | null;
+      department?: { name: string } | null;
+    }): EmployeeSelection => {
+      const wasEnrolled = enrolledDni.has(employee.dni);
+      return {
+        dni: employee.dni,
+        first_name: employee.first_name,
+        last_name: employee.last_name,
+        job_title: employee.job_title?.name ?? "",
+        department: employee.department?.name ?? "",
+        isSelected: wasEnrolled,
+        wasEnrolled,
+      };
+    };
+
+    const selections: EmployeeSelection[] = (allEmployees ?? []).map(
+      toSelection,
+    );
+
+    const knownDni = new Set(selections.map((s) => s.dni));
+    selections.push(
+      ...[...enrolled, ...notEnrolled]
+        .filter((e) => !knownDni.has(e.dni))
+        .map(toSelection),
+    );
+
+    setEmployeeSelections(selections);
+    updateFormValues(selections);
+  }, [allEmployees, employeesData, updateFormValues]);
 
   const toggleEmployeeSelection = (dni: string) => {
     const newSelections = employeeSelections.map((emp) =>
@@ -194,7 +210,7 @@ export function AddToCourseForm({ onClose, initialData }: FormProps) {
     onClose();
   };
 
-  if (isLoadingEnrolledEmployee) {
+  if (isLoadingEnrolledEmployee || isLoadingAllEmployees) {
     return <div className="p-4 text-center">Cargando empleados...</div>;
   }
 
