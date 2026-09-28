@@ -1,3 +1,7 @@
+## v4.29.0 — 2026-09-28
+
+- feat: option-to-delete-course-examn  (#296)
+
 ## v4.28.0 — 2026-09-28
 
 - feat: show all employees in add course form (#295)
