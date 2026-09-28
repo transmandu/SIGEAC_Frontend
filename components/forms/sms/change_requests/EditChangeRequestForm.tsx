@@ -439,7 +439,7 @@ export function EditChangeRequestForm({
       })),
       activities: changeRequest.activities.map((a) => ({
         activity_description: a.activity_description,
-        assigned_employee_id: a.assigned_employee?.id ?? 0,
+        assigned_employee_id: a.assigned_employee?.id ?? null,
         authorized_employee_id: a.authorized_employee_id ?? null,
       })),
     },

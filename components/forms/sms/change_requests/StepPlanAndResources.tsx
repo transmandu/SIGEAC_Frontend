@@ -77,9 +77,11 @@ function ResponsibleSelect({
     `activities.${index}.authorized_employee_id` as any,
   );
 
-  const selectedLocal = localEmployees.find((e) => e.id === assignedId);
+  const selectedLocal = localEmployees.find(
+    (e) => String(e.id) === String(assignedId),
+  );
   const selectedAuthorized = authorizedEmployees.find(
-    (a) => a.id === authorizedId,
+    (a) => String(a.id) === String(authorizedId),
   );
 
   const searchLower = search.toLowerCase();
@@ -482,7 +484,7 @@ export function StepPlanAndResources({
             onClick={() =>
               appendActivity({
                 activity_description: "",
-                assigned_employee_id: 0,
+                assigned_employee_id: null,
                 authorized_employee_id: null,
               })
             }
