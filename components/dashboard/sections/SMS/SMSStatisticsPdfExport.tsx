@@ -2,6 +2,7 @@
 
 import BarChartComponent from "@/components/charts/BarChartComponent";
 import MultipleBarChartComponent from "@/components/charts/MultipleBarChartComponent";
+import SimpleLineChart from "@/components/charts/SimpleLineChart";
 import {
   PieChartComponent,
   DEFAULT_COLORS,
@@ -26,6 +27,7 @@ import { useGetTotalDangerIdentificationsCountedByType } from "@/hooks/sms/useGe
 import { useGetTotalIdentificationStatsBySourceName } from "@/hooks/sms/useGetTotalIdentificationStatsBySoruceName";
 import { useGetTotalIdentificationStatsBySourceType } from "@/hooks/sms/useGetTotalIdentificationStatsBySoruceType";
 import { useGetTotalPostRiskCountByDateRange } from "@/hooks/sms/useGetTotalPostRiskByDateRange";
+import { useGetReportsNumberByMonth } from "@/hooks/sms/useGetReportsByMonth";
 import { useGetTotalReportsCountedByArea } from "@/hooks/sms/useGetTotalReportsCountedByArea";
 import { useGetTotalReportsStatsByYear } from "@/hooks/sms/useGetTotalReportsStatsByYear";
 import { useGetTotalRiskCountByDateRange } from "@/hooks/sms/useGetTotalRiskByDateRange";
@@ -37,6 +39,10 @@ import { FileBarChart2, FileDown, Loader2 } from "lucide-react";
 import { type ReactNode, useRef, useState } from "react";
 
 const FIXED_STATISTICS: { id: string; label: string }[] = [
+  {
+    id: "reports-month",
+    label: "Reportes de Seguridad Operacional por Mes",
+  },
   {
     id: "bar-chart",
     label: "Peligros Identificados vs Gestionados (números y %)",
@@ -136,6 +142,12 @@ export default function SMSStatisticsPdfExport({
   } = useGetTotalReportsStatsByYear(range.from, range.to, companySlug);
 
   const {
+    data: reportsNumberByMonth,
+    isLoading: isLoadingReportsByMonth,
+    isError: isErrorReportsByMonth,
+  } = useGetReportsNumberByMonth(companySlug, range.from, range.to);
+
+  const {
     data: totalIdentificationData,
     isLoading: isLoadingType,
     isError: isErrorType,
@@ -224,6 +236,16 @@ export default function SMSStatisticsPdfExport({
         ]
       : [];
 
+  // Filas + total del gráfico mensual (para el % de la tabla del PDF)
+  const reportsByMonthRows = (reportsNumberByMonth || []).map((item) => ({
+    label: String(item.name),
+    value: Number(item.value) || 0,
+  }));
+  const reportsByMonthTotal = reportsByMonthRows.reduce(
+    (acc, row) => acc + row.value,
+    0,
+  );
+
   const coursesSelected = selectedOptionals.includes("cursos");
 
   const coursePieData =
@@ -241,6 +263,24 @@ export default function SMSStatisticsPdfExport({
   };
 
   const cards: ChartCardConfig[] = [
+    {
+      id: "reports-month",
+      label: "Reportes de Seguridad Operacional por Mes",
+      isLoading: isLoadingReportsByMonth,
+      isError: isErrorReportsByMonth,
+      isEmpty: arrayEmpty(reportsNumberByMonth),
+      render: () =>
+        reportsNumberByMonth ? (
+          <SimpleLineChart
+            data={reportsNumberByMonth}
+            height={280}
+            title="Reportes de Seguridad Operacional"
+            lineColor="#0891b2"
+            strokeWidth={2}
+            lineName="Reportes"
+          />
+        ) : null,
+    },
     {
       id: "bar-chart",
       label: "Peligros Identificados vs Gestionados (números y %)",
@@ -442,6 +482,9 @@ export default function SMSStatisticsPdfExport({
           image: captured.dataUrl,
           imageSize: { width: captured.width, height: captured.height },
           stats: stat.id === "bar-chart" ? barChartData : undefined,
+          statsRows:
+            stat.id === "reports-month" ? reportsByMonthRows : undefined,
+          total: stat.id === "reports-month" ? reportsByMonthTotal : undefined,
           legend,
         });
       }
