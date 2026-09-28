@@ -1,3 +1,7 @@
+## v4.30.0 — 2026-09-28
+
+- feat: update roles to include JEFE_MANTENIMIENTO across various compo… (#297)
+
 ## v4.29.0 — 2026-09-28
 
 - feat: option-to-delete-course-examn  (#296)
