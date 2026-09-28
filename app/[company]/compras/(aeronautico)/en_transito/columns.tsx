@@ -20,7 +20,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
-import { cn } from "@/lib/utils";
+import { cn, toAltPartNumbers } from "@/lib/utils";
 import { useUpdateArticleStatus } from "@/actions/mantenimiento/almacen/inventario/articulos/actions";
 import type { TransitArticle } from "@/types/purchase";
 import { EditTransitArticleDialog } from "./_components/EditTransitArticleDialog";
@@ -250,7 +250,8 @@ export const getColumns = (
     ),
 
     cell: ({ row }) => {
-      const hasAlt = row.original.alternative_part_number.length > 0;
+      const hasAlt =
+        toAltPartNumbers(row.original.alternative_part_number).length > 0;
 
       return (
         <div className="flex w-full justify-start">
@@ -293,7 +294,9 @@ export const getColumns = (
                 </span>
 
                 <span className="font-mono text-[11px] text-muted-foreground">
-                  {row.original.alternative_part_number.join(" / ")}
+                  {toAltPartNumbers(row.original.alternative_part_number).join(
+                    " / ",
+                  )}
                 </span>
               </div>
             ) : (

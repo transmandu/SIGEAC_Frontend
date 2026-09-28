@@ -1,5 +1,6 @@
 "use client";
 
+import { toAltPartNumbers } from "@/lib/utils";
 import { type AppColumnDef } from "@/lib/table";
 import { useState, type MouseEvent } from "react";
 import {
@@ -88,13 +89,15 @@ export const columns: AppColumnDef<DestinationArticle>[] = [
         <p className="font-mono text-sm font-semibold tracking-wide">
           {row.original.part_number || "Sin P/N"}
         </p>
-        {row.original.alternative_part_number.length > 0 && (
+        {toAltPartNumbers(row.original.alternative_part_number).length > 0 && (
           <div className="flex items-center gap-1.5">
             <span className="shrink-0 select-none rounded border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-[10px] font-mono font-semibold tracking-widest text-amber-600 dark:border-amber-800/60 dark:bg-amber-950/60 dark:text-amber-500">
               ALT
             </span>
             <span className="font-mono text-xs text-muted-foreground">
-              {row.original.alternative_part_number.join(" / ")}
+              {toAltPartNumbers(row.original.alternative_part_number).join(
+                " / ",
+              )}
             </span>
           </div>
         )}
