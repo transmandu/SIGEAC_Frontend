@@ -249,6 +249,34 @@ export const useCreateCourseExam = () => {
   };
 };
 
+export const useDeleteCourseExam = () => {
+  const queryClient = useQueryClient();
+  const deleteMutation = useMutation({
+    mutationFn: async ({ company, id }: { company: string; id: string }) => {
+      await axiosInstance.delete(`/general/${company}/course-exam/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["course-exams"] });
+      queryClient.invalidateQueries({ queryKey: ["course-exam-attendance"] });
+      queryClient.invalidateQueries({
+        queryKey: ["employee-training-profile"],
+      });
+      toast.success("¡Eliminado!", {
+        description: `El examen ha sido eliminado correctamente.`,
+      });
+    },
+    onError: (error) => {
+      toast.error("Oops!", {
+        description: "No se pudo eliminar el examen...",
+      });
+      console.log(error);
+    },
+  });
+  return {
+    deleteCourseExam: deleteMutation,
+  };
+};
+
 export const useUpdateCourseExamResult = () => {
   const queryClient = useQueryClient();
   const updateMutation = useMutation({
