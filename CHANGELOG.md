@@ -1,3 +1,7 @@
+## v4.32.0 — 2026-09-28
+
+- feat: add authorized employee to change request form (#299)
+
 ## v4.31.0 — 2026-09-28
 
 - feat: save course list document  (#298)
