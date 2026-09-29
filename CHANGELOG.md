@@ -1,3 +1,23 @@
+## v4.35.0 — 2026-09-29
+
+- feat: to save doc in change request form (#302)
+
+## v4.34.0 — 2026-09-29
+
+- feat: enhance incoming readiness handling in transit articles (#301)
+
+## v4.33.0 — 2026-09-28
+
+- feat: add new chart to sms report pdf (#300)
+
+## v4.32.0 — 2026-09-28
+
+- feat: add authorized employee to change request form (#299)
+
+## v4.31.0 — 2026-09-28
+
+- feat: save course list document  (#298)
+
 ## v4.30.0 — 2026-09-28
 
 - feat: update roles to include JEFE_MANTENIMIENTO across various compo… (#297)

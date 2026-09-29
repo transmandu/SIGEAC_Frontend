@@ -4,12 +4,7 @@ import { ContentLayout } from "@/components/layout/ContentLayout";
 import { useParams } from "next/navigation";
 import { useGetChangeRequestById } from "@/hooks/sms/gestion_de_cambio/useGetChangeRequestById";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -90,7 +85,10 @@ const CHANGE_TYPE_LABELS: Record<string, string> = {
   other: "OTRO",
 };
 
-const TOLERABILITY_LABELS: Record<string, { label: string; className: string }> = {
+const TOLERABILITY_LABELS: Record<
+  string,
+  { label: string; className: string }
+> = {
   acceptable: {
     label: "Aceptable",
     className:
@@ -118,11 +116,7 @@ const FieldValue = ({ children }: { children: React.ReactNode }) => (
   <p className="text-sm mt-0.5">{children || "—"}</p>
 );
 
-const RequiredItemsSection = ({
-  items,
-}: {
-  items: ChangeRequiredItem[];
-}) => {
+const RequiredItemsSection = ({ items }: { items: ChangeRequiredItem[] }) => {
   if (!items.length) return null;
   return (
     <Card className="shadow-xs border-border/60">
@@ -146,7 +140,9 @@ const RequiredItemsSection = ({
                 <TableCell className="text-center text-muted-foreground">
                   {index + 1}
                 </TableCell>
-                <TableCell className="text-sm">{item.item_description}</TableCell>
+                <TableCell className="text-sm">
+                  {item.item_description}
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -162,7 +158,10 @@ const FinancialResourcesSection = ({
   resources: ChangeFinancialResource[];
 }) => {
   if (!resources.length) return null;
-  const total = resources.reduce((acc, r) => acc + Number(r.estimated_value), 0);
+  const total = resources.reduce(
+    (acc, r) => acc + Number(r.estimated_value),
+    0,
+  );
   return (
     <Card className="shadow-xs border-border/60">
       <CardHeader className="pb-3 border-b border-border/60">
@@ -186,7 +185,9 @@ const FinancialResourcesSection = ({
                 <TableCell className="text-center text-muted-foreground">
                   {index + 1}
                 </TableCell>
-                <TableCell className="text-sm">{resource.description}</TableCell>
+                <TableCell className="text-sm">
+                  {resource.description}
+                </TableCell>
                 <TableCell className="text-right font-mono tabular-nums text-sm">
                   {resource.estimated_value.toLocaleString("es-VE", {
                     style: "currency",
@@ -262,7 +263,10 @@ const RiskAssessmentsSection = ({
                     {risk.risk_index}
                   </TableCell>
                   <TableCell className="text-center">
-                    <Badge variant="outline" className={tolerability?.className}>
+                    <Badge
+                      variant="outline"
+                      className={tolerability?.className}
+                    >
                       {tolerability?.label}
                     </Badge>
                   </TableCell>
@@ -276,7 +280,11 @@ const RiskAssessmentsSection = ({
   );
 };
 
-const ActivitiesSection = ({ activities }: { activities: ChangeActivity[] }) => {
+const ActivitiesSection = ({
+  activities,
+}: {
+  activities: ChangeActivity[];
+}) => {
   if (!activities.length) return null;
   return (
     <Card className="shadow-xs border-border/60">
@@ -307,7 +315,9 @@ const ActivitiesSection = ({ activities }: { activities: ChangeActivity[] }) => 
                 <TableCell className="text-sm">
                   {activity.assigned_employee
                     ? `${activity.assigned_employee.first_name} ${activity.assigned_employee.last_name}`
-                    : "—"}
+                    : activity.authorized_employee
+                      ? `${activity.authorized_employee.full_name ?? "Empleado externo"} (Externo)`
+                      : "—"}
                 </TableCell>
               </TableRow>
             ))}
@@ -652,7 +662,9 @@ export default function GestionDeCambioDetailPage() {
         {/* Sub-sections */}
         <div className="flex flex-col gap-5">
           <RequiredItemsSection items={changeRequest.required_items} />
-          <FinancialResourcesSection resources={changeRequest.financial_resources} />
+          <FinancialResourcesSection
+            resources={changeRequest.financial_resources}
+          />
           <RiskAssessmentsSection risks={changeRequest.risk_assessments} />
           <ActivitiesSection activities={changeRequest.activities} />
           <PhotographicRecordsSection

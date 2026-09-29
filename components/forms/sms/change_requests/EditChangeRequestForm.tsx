@@ -5,9 +5,26 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@/lib/zod-resolver";
 import * as z from "zod";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, ChevronRight, Send, Loader2, Plus, Trash2, Image as ImageIcon } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Send,
+  Loader2,
+  Plus,
+  Trash2,
+  Image as ImageIcon,
+} from "lucide-react";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Form } from "@/components/ui/form";
+import FolderSelect from "@/components/library/FolderSelect";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useUpdateChangeRequest } from "@/actions/sms/gestion_de_cambio/actions";
 import {
@@ -23,6 +40,7 @@ import { FileServer } from "@/components/misc/FileServer";
 import Image from "next/image";
 import { useGetDepartments } from "@/hooks/ajustes/departamento/useGetDepartment";
 import { useGetEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetEmployees";
+import { useGetAuthorizedEmployees } from "@/hooks/ajustes/autorizados/useGetAuthorizedEmployees";
 
 const STEPS = [
   { label: "General y Clasificación", step: 1 },
@@ -44,7 +62,9 @@ const formSchema = z.object({
   requested_by: z.number().min(1, "El solicitante es requerido"),
   is_temporary: z.boolean(),
   temporary_duration_value: z.number().optional(),
-  temporary_duration_unit: z.enum(["days", "weeks", "months", "years"]).optional(),
+  temporary_duration_unit: z
+    .enum(["days", "weeks", "months", "years"])
+    .optional(),
   change_type: z.string().min(1, "El tipo de cambio es requerido"),
   other_type_description: z
     .string()
@@ -68,7 +88,9 @@ const formSchema = z.object({
   planned_changes: z.string().nullable().optional(),
   cutoff_date: z.string().nullable().optional(),
   stabilization_period_value: z.number().optional(),
-  stabilization_period_unit: z.enum(["days", "weeks", "months", "years"]).optional(),
+  stabilization_period_unit: z
+    .enum(["days", "weeks", "months", "years"])
+    .optional(),
   project_lead_by: z.number().nullable().optional(),
   reviewed_by: z.number().nullable().optional(),
   approved_by: z.number().nullable().optional(),
@@ -79,7 +101,7 @@ const formSchema = z.object({
           .string()
           .min(1, "La descripción del item es requerida")
           .max(255, "Máximo 255 caracteres"),
-      })
+      }),
     )
     .optional(),
   financial_resources: z
@@ -88,7 +110,7 @@ const formSchema = z.object({
         description: z.string().min(1, "La descripción es requerida"),
         estimated_value: z.number().min(0, "El monto debe ser positivo"),
         currency_unit: z.string().min(1, "La moneda es requerida"),
-      })
+      }),
     )
     .optional(),
   risk_assessments: z
@@ -97,28 +119,29 @@ const formSchema = z.object({
         hazard_description: z
           .string()
           .min(1, "La descripción del peligro es requerida"),
-        probability_value: z
-          .number()
-          .min(1, "Mínimo 1")
-          .max(5, "Máximo 5"),
-        severity_value: z
-          .string()
-          .min(1, "La severidad es requerida"),
-      })
+        probability_value: z.number().min(1, "Mínimo 1").max(5, "Máximo 5"),
+        severity_value: z.string().min(1, "La severidad es requerida"),
+      }),
     )
     .optional(),
   activities: z
     .array(
-      z.object({
-        activity_description: z
-          .string()
-          .min(1, "La descripción de la actividad es requerida"),
-        assigned_employee_id: z
-          .number()
-          .min(1, "El responsable es requerido"),
-      })
+      z
+        .object({
+          activity_description: z
+            .string()
+            .min(1, "La descripción de la actividad es requerida"),
+          assigned_employee_id: z.number().nullable().optional(),
+          authorized_employee_id: z.number().nullable().optional(),
+        })
+        .refine((a) => a.assigned_employee_id || a.authorized_employee_id, {
+          message: "Asigne un responsable interno o externo",
+          path: ["assigned_employee_id"],
+        }),
     )
     .optional(),
+  document: z.any().optional(),
+  library_folder_paths: z.array(z.string()).optional().default([]),
 });
 
 type EditFormValues = z.infer<typeof formSchema>;
@@ -137,7 +160,10 @@ function parseDurationDays(durationStr: string | null | undefined): {
   return { value: totalDays, unit: "days" };
 }
 
-function convertToDays(value: number | undefined, unit: string | undefined): string {
+function convertToDays(
+  value: number | undefined,
+  unit: string | undefined,
+): string {
   if (!value || !unit) return "";
   const days = value * (TIME_UNIT_MULTIPLIER[unit] ?? 1);
   return `${days} días`;
@@ -171,10 +197,7 @@ function PhotographicRecordsEditStep({
   const existingBefore = existingRecords.filter((r) => r.stage === "before");
   const existingAfter = existingRecords.filter((r) => r.stage === "after");
 
-  const handleFiles = (
-    files: FileList | null,
-    target: "before" | "after"
-  ) => {
+  const handleFiles = (files: FileList | null, target: "before" | "after") => {
     if (!files) return;
     const newImages: PhotographicImage[] = [];
     for (const file of Array.from(files)) {
@@ -213,7 +236,7 @@ function PhotographicRecordsEditStep({
     existing: ChangePhotographicRecord[],
     newImages: PhotographicImage[],
     target: "before" | "after",
-    inputRef: React.RefObject<HTMLInputElement | null>
+    inputRef: React.RefObject<HTMLInputElement | null>,
   ) => (
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between">
@@ -247,8 +270,9 @@ function PhotographicRecordsEditStep({
             return (
               <div
                 key={record.id}
-                className={`relative group aspect-square rounded-md overflow-hidden border transition-opacity ${isKept ? "border-border/40" : "border-red-300 opacity-40"
-                  }`}
+                className={`relative group aspect-square rounded-md overflow-hidden border transition-opacity ${
+                  isKept ? "border-border/40" : "border-red-300 opacity-40"
+                }`}
               >
                 <FileServer path={record.image_url} company={company}>
                   {(url) =>
@@ -272,10 +296,11 @@ function PhotographicRecordsEditStep({
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className={`absolute top-1 right-1 size-6 opacity-0 group-hover:opacity-100 transition-opacity ${isKept
+                  className={`absolute top-1 right-1 size-6 opacity-0 group-hover:opacity-100 transition-opacity ${
+                    isKept
                       ? "bg-destructive/80 hover:bg-destructive text-white"
                       : "bg-green-500/80 hover:bg-green-500 text-white"
-                    }`}
+                  }`}
                   onClick={() => toggleExistingRecord(record.id)}
                 >
                   <Trash2 className="size-3" />
@@ -340,8 +365,20 @@ function PhotographicRecordsEditStep({
 
   return (
     <div className="flex flex-col gap-6">
-      {renderSection("ANTES del Cambio", existingBefore, newBeforeImages, "before", inputBeforeRef)}
-      {renderSection("DESPUÉS del Cambio", existingAfter, newAfterImages, "after", inputAfterRef)}
+      {renderSection(
+        "ANTES del Cambio",
+        existingBefore,
+        newBeforeImages,
+        "before",
+        inputBeforeRef,
+      )}
+      {renderSection(
+        "DESPUÉS del Cambio",
+        existingAfter,
+        newAfterImages,
+        "after",
+        inputAfterRef,
+      )}
     </div>
   );
 }
@@ -350,24 +387,26 @@ interface EditChangeRequestFormProps {
   changeRequest: ChangeRequest;
 }
 
-export function EditChangeRequestForm({ changeRequest }: EditChangeRequestFormProps) {
+export function EditChangeRequestForm({
+  changeRequest,
+}: EditChangeRequestFormProps) {
   const [step, setStep] = useState(1);
-  const [newBeforeImages, setNewBeforeImages] = useState<PhotographicImage[]>([]);
+  const [newBeforeImages, setNewBeforeImages] = useState<PhotographicImage[]>(
+    [],
+  );
   const [newAfterImages, setNewAfterImages] = useState<PhotographicImage[]>([]);
   const [keptRecordIds, setKeptRecordIds] = useState<number[]>(
-    changeRequest.photographic_records.map((r) => r.id)
+    changeRequest.photographic_records.map((r) => r.id),
   );
   const router = useRouter();
   const { selectedCompany } = useCompanyStore();
   const { updateChangeRequest } = useUpdateChangeRequest();
-  const {
-    data: departments,
-    isLoading: isLoadingDepartments,
-  } = useGetDepartments(selectedCompany?.slug);
-  const {
-    data: employees,
-    isLoading: isLoadingEmployees,
-  } = useGetEmployeesByCompany(selectedCompany?.slug);
+  const { data: departments, isLoading: isLoadingDepartments } =
+    useGetDepartments(selectedCompany?.slug);
+  const { data: employees, isLoading: isLoadingEmployees } =
+    useGetEmployeesByCompany(selectedCompany?.slug);
+  const { data: authorizedEmployees, isLoading: isLoadingAuthorizedEmployees } =
+    useGetAuthorizedEmployees(selectedCompany?.slug);
 
   const durationParsed = parseDurationDays(changeRequest.temporary_duration);
   const stabParsed = parseDurationDays(changeRequest.stabilization_period);
@@ -386,7 +425,8 @@ export function EditChangeRequestForm({ changeRequest }: EditChangeRequestFormPr
       description: changeRequest.description,
       scope: changeRequest.scope,
       justification: changeRequest.justification,
-      estimated_change_date: changeRequest.estimated_change_date?.split("T")[0] ?? null,
+      estimated_change_date:
+        changeRequest.estimated_change_date?.split("T")[0] ?? null,
       mitigation_plan: changeRequest.mitigation_plan,
       planned_changes: changeRequest.planned_changes,
       cutoff_date: changeRequest.cutoff_date?.split("T")[0] ?? null,
@@ -410,8 +450,17 @@ export function EditChangeRequestForm({ changeRequest }: EditChangeRequestFormPr
       })),
       activities: changeRequest.activities.map((a) => ({
         activity_description: a.activity_description,
-        assigned_employee_id: a.assigned_employee?.id ?? 0,
+        assigned_employee_id:
+          a.assigned_employee_id != null
+            ? Number(a.assigned_employee_id)
+            : null,
+        authorized_employee_id:
+          a.authorized_employee_id != null
+            ? Number(a.authorized_employee_id)
+            : null,
       })),
+      document: changeRequest.document,
+      library_folder_paths: changeRequest.library_folder_paths ?? [],
     },
   });
 
@@ -423,20 +472,32 @@ export function EditChangeRequestForm({ changeRequest }: EditChangeRequestFormPr
       temporary_duration_unit,
       stabilization_period_value,
       stabilization_period_unit,
+      document,
+      library_folder_paths,
       ...rest
     } = data;
 
     const payload = {
       ...rest,
-      temporary_duration: convertToDays(temporary_duration_value, temporary_duration_unit),
-      stabilization_period: convertToDays(stabilization_period_value, stabilization_period_unit),
+      temporary_duration: convertToDays(
+        temporary_duration_value,
+        temporary_duration_unit,
+      ),
+      stabilization_period: convertToDays(
+        stabilization_period_value,
+        stabilization_period_unit,
+      ),
     } as StoreChangeRequestPayload;
 
     const existingBeforeIds = keptRecordIds.filter((id) =>
-      changeRequest.photographic_records.some((r) => r.id === id && r.stage === "before")
+      changeRequest.photographic_records.some(
+        (r) => r.id === id && r.stage === "before",
+      ),
     );
     const existingAfterIds = keptRecordIds.filter((id) =>
-      changeRequest.photographic_records.some((r) => r.id === id && r.stage === "after")
+      changeRequest.photographic_records.some(
+        (r) => r.id === id && r.stage === "after",
+      ),
     );
 
     updateChangeRequest.mutate(
@@ -448,14 +509,16 @@ export function EditChangeRequestForm({ changeRequest }: EditChangeRequestFormPr
         afterImages: newAfterImages.map((img) => img.file),
         existingBeforeRecordIds: existingBeforeIds,
         existingAfterRecordIds: existingAfterIds,
+        document: document instanceof File ? document : undefined,
+        libraryFolderPaths: library_folder_paths ?? [],
       },
       {
         onSuccess: () => {
           router.push(
-            `/${selectedCompany.slug}/sms/aseguramiento_calidad/gestion_de_cambio/${changeRequest.id}`
+            `/${selectedCompany.slug}/sms/aseguramiento_calidad/gestion_de_cambio/${changeRequest.id}`,
           );
         },
-      }
+      },
     );
   };
 
@@ -495,28 +558,29 @@ export function EditChangeRequestForm({ changeRequest }: EditChangeRequestFormPr
             <div key={s.step} className="flex items-center">
               <div className="flex flex-col items-center gap-1">
                 <div
-                  className={`flex items-center justify-center w-8 h-8 rounded-full text-xs font-medium border ${step > s.step
+                  className={`flex items-center justify-center w-8 h-8 rounded-full text-xs font-medium border ${
+                    step > s.step
                       ? "bg-primary text-primary-foreground border-primary"
                       : step === s.step
                         ? "bg-primary text-primary-foreground border-primary"
                         : "bg-muted text-muted-foreground border-border"
-                    }`}
+                  }`}
                 >
                   {step > s.step ? "✓" : s.step}
                 </div>
                 <span
-                  className={`text-[10px] font-medium uppercase tracking-wide whitespace-nowrap ${step >= s.step
-                      ? "text-foreground"
-                      : "text-muted-foreground"
-                    }`}
+                  className={`text-[10px] font-medium uppercase tracking-wide whitespace-nowrap ${
+                    step >= s.step ? "text-foreground" : "text-muted-foreground"
+                  }`}
                 >
                   {s.label}
                 </span>
               </div>
               {i < STEPS.length - 1 && (
                 <div
-                  className={`w-12 h-px mx-2 mb-4 ${step > s.step ? "bg-primary" : "bg-border"
-                    }`}
+                  className={`w-12 h-px mx-2 mb-4 ${
+                    step > s.step ? "bg-primary" : "bg-border"
+                  }`}
                 />
               )}
             </div>
@@ -539,6 +603,8 @@ export function EditChangeRequestForm({ changeRequest }: EditChangeRequestFormPr
               form={form as never}
               employees={employees ?? []}
               isLoadingEmployees={isLoadingEmployees}
+              authorizedEmployees={authorizedEmployees ?? []}
+              isLoadingAuthorizedEmployees={isLoadingAuthorizedEmployees}
             />
           )}
           {step === 3 && (
@@ -549,16 +615,91 @@ export function EditChangeRequestForm({ changeRequest }: EditChangeRequestFormPr
             />
           )}
           {step === 4 && (
-            <PhotographicRecordsEditStep
-              existingRecords={changeRequest.photographic_records}
-              newBeforeImages={newBeforeImages}
-              newAfterImages={newAfterImages}
-              onNewBeforeImagesChange={setNewBeforeImages}
-              onNewAfterImagesChange={setNewAfterImages}
-              keptRecordIds={keptRecordIds}
-              onKeptRecordIdsChange={setKeptRecordIds}
-              company={selectedCompany?.slug ?? ""}
-            />
+            <div className="flex flex-col gap-6">
+              <FormField
+                control={form.control}
+                name="document"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Documento PDF</FormLabel>
+                    <div className="flex flex-col gap-4">
+                      {field.value instanceof File && (
+                        <div>
+                          <p className="text-sm text-gray-500">
+                            Archivo seleccionado:
+                          </p>
+                          <p className="font-semibold text-sm">
+                            {field.value.name}
+                          </p>
+                        </div>
+                      )}
+                      {!(field.value instanceof File) &&
+                        changeRequest.document &&
+                        typeof changeRequest.document === "string" && (
+                          <p className="text-sm text-green-600">
+                            ✓ Documento existente cargado
+                          </p>
+                        )}
+                      <FormControl>
+                        <Input
+                          type="file"
+                          accept="application/pdf"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) field.onChange(file);
+                          }}
+                        />
+                      </FormControl>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="space-y-3 rounded-lg border border-border/60 p-3">
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Carpetas en la Librería
+                </p>
+
+                <FormField
+                  control={form.control}
+                  name="library_folder_paths"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">
+                        Carpeta destino
+                      </FormLabel>
+                      <FormControl>
+                        <FolderSelect
+                          company={selectedCompany?.slug}
+                          value={field.value ?? []}
+                          onChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormMessage className="text-xs" />
+                    </FormItem>
+                  )}
+                />
+
+                <p className="text-xs text-muted-foreground">
+                  El documento adjunto se subirá una sola vez a la Librería.
+                  Puedes elegir una o varias carpetas; usa la estrella para
+                  fijar la carpeta principal, las demás son réplicas en otras
+                  carpetas.
+                </p>
+              </div>
+
+              <PhotographicRecordsEditStep
+                existingRecords={changeRequest.photographic_records}
+                newBeforeImages={newBeforeImages}
+                newAfterImages={newAfterImages}
+                onNewBeforeImagesChange={setNewBeforeImages}
+                onNewAfterImagesChange={setNewAfterImages}
+                keptRecordIds={keptRecordIds}
+                onKeptRecordIdsChange={setKeptRecordIds}
+                company={selectedCompany?.slug ?? ""}
+              />
+            </div>
           )}
         </div>
 

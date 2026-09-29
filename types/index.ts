@@ -1744,6 +1744,11 @@ export type Course = {
   course_type: string;
   instructor?: string;
   status: string;
+  /** Ruta del PDF dentro de la biblioteca. */
+  document?: string | null;
+  library_document_id?: number | null;
+  /** Carpetas de la biblioteca donde vive el documento. */
+  library_folder_paths?: string[];
 };
 
 export type CourseAttendance = {
@@ -2453,7 +2458,15 @@ export type ChangeActivity = {
   id: number;
   change_request_id: number;
   activity_description: string;
-  assigned_employee: Employee;
+  assigned_employee_id?: number | null;
+  authorized_employee_id?: number | null;
+  assigned_employee: Employee | null;
+  authorized_employee?: {
+    id: number;
+    dni_employee: string;
+    from_company_db: string;
+    full_name?: string | null;
+  } | null;
   created_at: string;
   updated_at: string;
 };
@@ -2498,6 +2511,9 @@ export type ChangeRequest = {
   risk_assessments: ChangeRiskAssessment[];
   activities: ChangeActivity[];
   photographic_records: ChangePhotographicRecord[];
+  document: string | null;
+  library_document_id: number | null;
+  library_folder_paths?: string[];
 };
 
 export type StoreChangeRequestPayload = {
@@ -2532,12 +2548,15 @@ export type StoreChangeRequestPayload = {
   }>;
   activities?: Array<{
     activity_description: string;
-    assigned_employee_id: number;
+    assigned_employee_id?: number | null;
+    authorized_employee_id?: number | null;
   }>;
   photographic_records?: Array<{
     stage: PhotographicStage;
     image_url: string;
   }>;
+  document?: string | null;
+  library_folder_paths?: string[];
 };
 
 export type UpdateChangeRequestPayload = {
@@ -2576,11 +2595,14 @@ export type UpdateChangeRequestPayload = {
   activities?: Array<{
     id?: number;
     activity_description: string;
-    assigned_employee_id: number;
+    assigned_employee_id?: number | null;
+    authorized_employee_id?: number | null;
   }>;
   photographic_records?: Array<{
     id?: number;
     stage: PhotographicStage;
     image_url: string;
   }>;
+  document?: string | null;
+  library_folder_paths?: string[];
 };

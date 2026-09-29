@@ -7,7 +7,16 @@ import * as z from "zod";
 import { useRouter } from "next/navigation";
 import { ChevronLeft, ChevronRight, Send, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Form } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import FolderSelect from "@/components/library/FolderSelect";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useCreateChangeRequest } from "@/actions/sms/gestion_de_cambio/actions";
 import { StoreChangeRequestPayload } from "@/types";
@@ -20,6 +29,7 @@ import {
 } from "./StepPhotographicRecords";
 import { useGetDepartments } from "@/hooks/ajustes/departamento/useGetDepartment";
 import { useGetAllEmployeesByCompany } from "@/hooks/ajustes/empleados/useGetAllEmployees";
+import { useGetAuthorizedEmployees } from "@/hooks/ajustes/autorizados/useGetAuthorizedEmployees";
 import { toCalendarPayload } from "@/lib/date";
 
 const STEPS = [
@@ -106,14 +116,22 @@ const formSchema = z.object({
     .optional(),
   activities: z
     .array(
-      z.object({
-        activity_description: z
-          .string()
-          .min(1, "La descripción de la actividad es requerida"),
-        assigned_employee_id: z.number().min(1, "El responsable es requerido"),
-      }),
+      z
+        .object({
+          activity_description: z
+            .string()
+            .min(1, "La descripción de la actividad es requerida"),
+          assigned_employee_id: z.number().nullable().optional(),
+          authorized_employee_id: z.number().nullable().optional(),
+        })
+        .refine((a) => a.assigned_employee_id || a.authorized_employee_id, {
+          message: "Asigne un responsable interno o externo",
+          path: ["assigned_employee_id"],
+        }),
     )
     .optional(),
+  document: z.any().optional(),
+  library_folder_paths: z.array(z.string()).optional().default([]),
 });
 
 export type ChangeRequestFormValues = z.infer<typeof formSchema>;
@@ -138,6 +156,8 @@ export function CreateChangeRequestForm() {
     useGetDepartments(selectedCompany?.slug);
   const { data: employees, isLoading: isLoadingEmployees } =
     useGetAllEmployeesByCompany(selectedCompany?.slug);
+  const { data: authorizedEmployees, isLoading: isLoadingAuthorizedEmployees } =
+    useGetAuthorizedEmployees(selectedCompany?.slug);
 
   const form = useForm<ChangeRequestFormValues>({
     resolver: zodResolver(formSchema),
@@ -166,6 +186,8 @@ export function CreateChangeRequestForm() {
       financial_resources: [],
       risk_assessments: [],
       activities: [],
+      document: undefined,
+      library_folder_paths: [],
     },
   });
 
@@ -177,6 +199,8 @@ export function CreateChangeRequestForm() {
       temporary_duration_unit,
       stabilization_period_value,
       stabilization_period_unit,
+      document,
+      library_folder_paths,
       ...rest
     } = data;
 
@@ -198,6 +222,8 @@ export function CreateChangeRequestForm() {
         data: payload,
         beforeImages: beforeImages.map((img) => img.file),
         afterImages: afterImages.map((img) => img.file),
+        document: document instanceof File ? document : undefined,
+        libraryFolderPaths: library_folder_paths ?? [],
       },
       {
         onSuccess: () => {
@@ -290,6 +316,8 @@ export function CreateChangeRequestForm() {
               form={form}
               employees={employees ?? []}
               isLoadingEmployees={isLoadingEmployees}
+              authorizedEmployees={authorizedEmployees ?? []}
+              isLoadingAuthorizedEmployees={isLoadingAuthorizedEmployees}
             />
           )}
           {step === 3 && (
@@ -300,12 +328,80 @@ export function CreateChangeRequestForm() {
             />
           )}
           {step === 4 && (
-            <StepPhotographicRecords
-              beforeImages={beforeImages}
-              afterImages={afterImages}
-              onBeforeImagesChange={setBeforeImages}
-              onAfterImagesChange={setAfterImages}
-            />
+            <div className="flex flex-col gap-6">
+              <FormField
+                control={form.control}
+                name="document"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Documento PDF</FormLabel>
+                    <div className="flex flex-col gap-4">
+                      {field.value instanceof File && (
+                        <div>
+                          <p className="text-sm text-gray-500">
+                            Archivo seleccionado:
+                          </p>
+                          <p className="font-semibold text-sm">
+                            {field.value.name}
+                          </p>
+                        </div>
+                      )}
+                      <FormControl>
+                        <Input
+                          type="file"
+                          accept="application/pdf"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) field.onChange(file);
+                          }}
+                        />
+                      </FormControl>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="space-y-3 rounded-lg border border-border/60 p-3">
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Carpetas en la Librería
+                </p>
+
+                <FormField
+                  control={form.control}
+                  name="library_folder_paths"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">
+                        Carpeta destino
+                      </FormLabel>
+                      <FormControl>
+                        <FolderSelect
+                          company={selectedCompany?.slug}
+                          value={field.value ?? []}
+                          onChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormMessage className="text-xs" />
+                    </FormItem>
+                  )}
+                />
+
+                <p className="text-xs text-muted-foreground">
+                  El documento adjunto se subirá una sola vez a la Librería.
+                  Puedes elegir una o varias carpetas; usa la estrella para
+                  fijar la carpeta principal, las demás son réplicas en otras
+                  carpetas.
+                </p>
+              </div>
+
+              <StepPhotographicRecords
+                beforeImages={beforeImages}
+                afterImages={afterImages}
+                onBeforeImagesChange={setBeforeImages}
+                onAfterImagesChange={setAfterImages}
+              />
+            </div>
           )}
         </div>
 

@@ -134,7 +134,7 @@ const ChangeManagementActions = ({
             >
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <EyeIcon className="size-5" />
+                  <EyeIcon className="size-4" />
                 </TooltipTrigger>
                 <TooltipContent>Ver</TooltipContent>
               </Tooltip>
@@ -149,7 +149,7 @@ const ChangeManagementActions = ({
             >
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Pencil className="size-5" />
+                  <Pencil className="size-4" />
                 </TooltipTrigger>
                 <TooltipContent>Editar</TooltipContent>
               </Tooltip>
@@ -162,9 +162,9 @@ const ChangeManagementActions = ({
               <Tooltip>
                 <TooltipTrigger asChild>
                   {downloadChangeRequestPdf.isPending ? (
-                    <Loader2 className="size-5 animate-spin" />
+                    <Loader2 className="size-4 animate-spin" />
                   ) : (
-                    <Download className="size-5" />
+                    <Download className="size-4" />
                   )}
                 </TooltipTrigger>
                 <TooltipContent>Descargar PDF</TooltipContent>
@@ -184,7 +184,7 @@ const ChangeManagementActions = ({
             >
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <CheckCircle2 className="size-5 text-emerald-500" />
+                  <CheckCircle2 className="size-4 text-emerald-500" />
                 </TooltipTrigger>
                 <TooltipContent>Revisar y aprobar</TooltipContent>
               </Tooltip>
@@ -194,7 +194,7 @@ const ChangeManagementActions = ({
               <DropdownMenuItem>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Trash2 className="size-5 text-red-500" />
+                    <Trash2 className="size-4 text-red-500" />
                   </TooltipTrigger>
                   <TooltipContent>Eliminar</TooltipContent>
                 </Tooltip>

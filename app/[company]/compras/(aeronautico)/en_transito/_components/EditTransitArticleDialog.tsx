@@ -1,22 +1,29 @@
-'use client'
+"use client";
 
-import RegisterArticleForm from '@/components/forms/mantenimiento/almacen/RegisterArticleForm'
+import RegisterArticleForm from "@/components/forms/mantenimiento/almacen/RegisterArticleForm";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
-import { useGetArticleById } from '@/hooks/mantenimiento/almacen/articulos/useGetArticleById'
-import { useCompanyStore } from '@/stores/CompanyStore'
-import { useQueryClient } from '@tanstack/react-query'
-import { Loader2 } from 'lucide-react'
+} from "@/components/ui/dialog";
+import { useGetArticleById } from "@/hooks/mantenimiento/almacen/articulos/useGetArticleById";
+import { useCompanyStore } from "@/stores/CompanyStore";
+import { useQueryClient } from "@tanstack/react-query";
+import { Loader2 } from "lucide-react";
 
 interface Props {
-  articleId: number
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  articleId: number;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  /**
+   * Rótulos del encabezado. Almacén también monta este diálogo, sobre artículos
+   * que ya están en recepción, y ahí el texto por defecto nombra un estado que
+   * el artículo dejó atrás.
+   */
+  title?: string;
+  description?: string;
 }
 
 /**
@@ -25,34 +32,36 @@ interface Props {
  * progresiva (pre-revisión) sin salir de la vista de tránsito. No exige
  * completitud: el pase final a recepción lo gobierna el botón de acciones.
  */
-export function EditTransitArticleDialog({ articleId, open, onOpenChange }: Props) {
-  const { selectedCompany } = useCompanyStore()
-  const queryClient = useQueryClient()
+export function EditTransitArticleDialog({
+  articleId,
+  open,
+  onOpenChange,
+  title = "Editar artículo en tránsito",
+  description = "Agregue o actualice progresivamente los datos y la documentación del artículo a medida que la recibe. Puede guardar de forma parcial las veces que necesite.",
+}: Props) {
+  const { selectedCompany } = useCompanyStore();
+  const queryClient = useQueryClient();
 
   const { data, isLoading } = useGetArticleById(
-    open ? String(articleId) : '',
-    selectedCompany?.slug
-  )
+    open ? String(articleId) : "",
+    selectedCompany?.slug,
+  );
 
   const handleEditSuccess = () => {
-    queryClient.invalidateQueries({ queryKey: ['article', String(articleId)] })
-    onOpenChange(false)
-  }
+    queryClient.invalidateQueries({ queryKey: ["article", String(articleId)] });
+    onOpenChange(false);
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] max-w-6xl overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Editar artículo en tránsito</DialogTitle>
-          <DialogDescription>
-            Agregue o actualice progresivamente los datos y la documentación del
-            artículo a medida que la recibe. Puede guardar de forma parcial las
-            veces que necesite.
-          </DialogDescription>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
 
         {isLoading || !data ? (
-          <div className="flex min-h-[200px] items-center justify-center">
+          <div className="flex min-h-50 items-center justify-center">
             <Loader2 className="size-6 animate-spin text-muted-foreground" />
           </div>
         ) : (
@@ -62,10 +71,11 @@ export function EditTransitArticleDialog({ articleId, open, onOpenChange }: Prop
             initialData={data}
             category={data.batch?.category}
             onEditSuccess={handleEditSuccess}
+            onCancel={() => onOpenChange(false)}
             submitLabel="Guardar avance"
           />
         )}
       </DialogContent>
     </Dialog>
-  )
+  );
 }

@@ -27,6 +27,7 @@ export interface PdfStatisticsChart {
   imageSize: { width: number; height: number };
   stats?: GeneralStats;
   statsRows?: StatsRow[];
+  total?: number;
   legend?: PieLegendRow[];
 }
 
@@ -150,18 +151,21 @@ const percent = (value: number, total: number) =>
 const StatsTable = ({
   stats,
   rows,
+  total,
 }: {
-  stats: GeneralStats;
+  stats?: GeneralStats;
   rows?: StatsRow[];
+  total?: number;
 }) => {
-  const data =
-    rows && rows.length > 0
-      ? rows
-      : [
-          { label: "Identificados", value: stats.open },
-          { label: "Gestionados", value: stats.closed },
-          { label: "Total", value: stats.total },
-        ];
+  const defaultRows: StatsRow[] = stats
+    ? [
+        { label: "Identificados", value: stats.open },
+        { label: "Gestionados", value: stats.closed },
+        { label: "Total", value: stats.total },
+      ]
+    : [];
+  const data = rows && rows.length > 0 ? rows : defaultRows;
+  const denominator = total ?? stats?.total ?? 0;
   return (
     <View style={styles.table}>
       <View
@@ -181,7 +185,7 @@ const StatsTable = ({
             {row.value.toLocaleString("es-ES")}
           </Text>
           <Text style={[styles.colPct, styles.td, styles.num]}>
-            {percent(row.value, stats.total)}%
+            {percent(row.value, denominator)}%
           </Text>
         </View>
       ))}
@@ -273,8 +277,13 @@ const StatisticsReportPdf = ({
               src={chart.image}
               style={[styles.chartImage, { height: imageHeight }]}
             />
-            {chart.stats && (
-              <StatsTable stats={chart.stats} rows={chart.statsRows} />
+            {(chart.stats ||
+              (chart.statsRows && chart.statsRows.length > 0)) && (
+              <StatsTable
+                stats={chart.stats}
+                rows={chart.statsRows}
+                total={chart.total}
+              />
             )}
             {chart.legend && <LegendTable rows={chart.legend} />}
 
