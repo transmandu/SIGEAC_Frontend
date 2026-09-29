@@ -79,6 +79,14 @@ export interface ArticleFormProps {
     isEditing?: boolean;
     /** Al editar: reemplaza la redirección post-guardado (útil dentro de diálogos). */
     onEditSuccess?: () => void;
+    /**
+     * Reemplaza el comportamiento del botón Cancelar, que por defecto retrocede
+     * en el historial. Dentro de un diálogo eso es incorrecto: no hay página que
+     * abandonar y el retroceso saca al usuario de su módulo —compras acababa en
+     * una ruta de almacén a la que no tiene acceso—, así que quien lo monta pasa
+     * el cierre del diálogo.
+     */
+    onCancel?: () => void;
     /** Rótulo del botón de guardado, para flujos que no son ingresar al almacén. */
     submitLabel?: string;
     /**

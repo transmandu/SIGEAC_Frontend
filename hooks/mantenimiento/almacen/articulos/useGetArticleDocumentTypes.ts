@@ -18,5 +18,9 @@ export const useGetArticleDocumentTypes = (company: string | undefined) => {
     queryKey: ["article-document-types", company],
     queryFn: () => fetchArticleDocumentTypes(company),
     enabled: !!company,
+    // Catálogo maestro: cambia cuando alguien edita los tipos, no durante una
+    // sesión de trabajo. Sin esto se volvía a pedir cada vez que se abría una
+    // ficha, y el selector aparecía cargando sobre datos que ya estaban.
+    staleTime: 1000 * 60 * 30,
   });
 };

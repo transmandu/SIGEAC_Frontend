@@ -33,6 +33,7 @@ import { cn } from "@/lib/utils";
 import type { Batch, Manufacturer } from "@/types";
 
 import {
+    FieldLabelRow,
     FormSection,
     fieldClass,
     hintClass,
@@ -178,7 +179,9 @@ export const IdentificationSection = ({
                     name="part_number"
                     render={({ field }) => (
                         <FormItem className="w-full">
-                            <FormLabel className={labelClass}>Nro. de parte</FormLabel>
+                            <FieldLabelRow>
+                                <FormLabel className={labelClass}>Nro. de parte</FormLabel>
+                            </FieldLabelRow>
                             <FormControl>
                                 <Input
                                     placeholder="Ej: 234ABAC"
@@ -202,26 +205,29 @@ export const IdentificationSection = ({
                     name="batch_id"
                     render={({ field }) => (
                         <FormItem className="w-full">
-                            <div className="flex min-h-6 items-center justify-between gap-2">
+                            <FieldLabelRow
+                                action={
+                                    onBatchCreated && (
+                                        <CreateBatchDialog
+                                            defaultCategory={batchCategory}
+                                            onSuccess={onBatchCreated}
+                                            triggerButton={
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="h-6 px-1.5 text-xs"
+                                                >
+                                                    <Plus className="mr-1 h-3 w-3" />
+                                                    Crear
+                                                </Button>
+                                            }
+                                        />
+                                    )
+                                }
+                            >
                                 <FormLabel className={labelClass}>{batchLabel}</FormLabel>
-                                {onBatchCreated && (
-                                    <CreateBatchDialog
-                                        defaultCategory={batchCategory}
-                                        onSuccess={onBatchCreated}
-                                        triggerButton={
-                                            <Button
-                                                type="button"
-                                                variant="ghost"
-                                                size="sm"
-                                                className="h-6 px-1.5 text-xs"
-                                            >
-                                                <Plus className="mr-1 h-3 w-3" />
-                                                Crear
-                                            </Button>
-                                        }
-                                    />
-                                )}
-                            </div>
+                            </FieldLabelRow>
                             <SearchableSelect
                                 options={batches}
                                 value={field.value}
@@ -250,32 +256,35 @@ export const IdentificationSection = ({
                     name="manufacturer_id"
                     render={({ field }) => (
                         <FormItem className="w-full">
-                            <div className="flex min-h-6 items-center justify-between gap-2">
-                                <FormLabel className={labelClass}>Fabricante</FormLabel>
-                                <CreateManufacturerDialog
-                                    defaultType="PART"
-                                    onSuccess={(manufacturer) => {
-                                        if (manufacturer?.id) {
-                                            form.setValue(
-                                                "manufacturer_id",
-                                                manufacturer.id.toString(),
-                                                { shouldValidate: true, shouldDirty: true },
-                                            );
+                            <FieldLabelRow
+                                action={
+                                    <CreateManufacturerDialog
+                                        defaultType="PART"
+                                        onSuccess={(manufacturer) => {
+                                            if (manufacturer?.id) {
+                                                form.setValue(
+                                                    "manufacturer_id",
+                                                    manufacturer.id.toString(),
+                                                    { shouldValidate: true, shouldDirty: true },
+                                                );
+                                            }
+                                        }}
+                                        triggerButton={
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-6 px-1.5 text-xs"
+                                            >
+                                                <Plus className="mr-1 h-3 w-3" />
+                                                Crear
+                                            </Button>
                                         }
-                                    }}
-                                    triggerButton={
-                                        <Button
-                                            type="button"
-                                            variant="ghost"
-                                            size="sm"
-                                            className="h-6 px-1.5 text-xs"
-                                        >
-                                            <Plus className="mr-1 h-3 w-3" />
-                                            Crear
-                                        </Button>
-                                    }
-                                />
-                            </div>
+                                    />
+                                }
+                            >
+                                <FormLabel className={labelClass}>Fabricante</FormLabel>
+                            </FieldLabelRow>
                             <SearchableSelect
                                 options={manufacturers}
                                 value={field.value}
@@ -304,7 +313,9 @@ export const IdentificationSection = ({
                     name="purchase_order_number"
                     render={({ field }) => (
                         <FormItem className="w-full">
-                            <FormLabel className={labelClass}>Nro. de orden de compra</FormLabel>
+                            <FieldLabelRow>
+                                <FormLabel className={labelClass}>Nro. de orden de compra</FormLabel>
+                            </FieldLabelRow>
                             <FormControl>
                                 <Input
                                     placeholder="Ej: OC-2026-014"
@@ -330,7 +341,9 @@ export const IdentificationSection = ({
                     name="zone"
                     render={({ field }) => (
                         <FormItem className="w-full">
-                            <FormLabel className={labelClass}>Ubicación interna</FormLabel>
+                            <FieldLabelRow>
+                                <FormLabel className={labelClass}>Ubicación interna</FormLabel>
+                            </FieldLabelRow>
                             <FormControl>
                                 <Input
                                     placeholder="Ej: Pasillo 4, Estante B"
@@ -361,7 +374,9 @@ export const IdentificationSection = ({
                     name="alternative_part_number"
                     render={({ field }) => (
                         <FormItem className="w-full">
-                            <FormLabel className={labelClass}>Nros. de parte alternos</FormLabel>
+                            <FieldLabelRow>
+                                <FormLabel className={labelClass}>Nros. de parte alternos</FormLabel>
+                            </FieldLabelRow>
                             <FormControl>
                                 <MultiInputField
                                     values={field.value || []}
@@ -372,6 +387,12 @@ export const IdentificationSection = ({
                                     disabled={disabled}
                                 />
                             </FormControl>
+                            {/* Los cinco campos vecinos llevan línea de apoyo y
+                                este no: sin ella su celda medía menos y la fila
+                                quedaba descuadrada. */}
+                            <FormDescription className={hintClass}>
+                                Otros identificadores con que llega el artículo.
+                            </FormDescription>
                             <FormMessage />
                         </FormItem>
                     )}

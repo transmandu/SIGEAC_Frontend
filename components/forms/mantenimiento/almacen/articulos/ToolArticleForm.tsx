@@ -33,6 +33,7 @@ import {
 } from "@/components/forms/mantenimiento/almacen/_components/ArticleDetailsSection";
 import { CheckboxCard } from "@/components/forms/mantenimiento/almacen/_components/CheckboxCard";
 import {
+    FieldLabelRow,
     FormSection,
     fieldClass,
     hintClass,
@@ -100,10 +101,32 @@ const formSchema = z
 
 type FormValues = z.infer<typeof formSchema>;
 
-const apiDate = (value?: Date | null) =>
-    value instanceof Date && !Number.isNaN(value.getTime())
-        ? format(value, "yyyy-MM-dd")
-        : undefined;
+/** El almacén marca "no aplica" con esta fecha centinela. */
+const NOT_APPLICABLE = "1900-01-01";
+
+const isNotApplicable = (value?: Date | null) =>
+    !!value &&
+    value.getFullYear() === 1900 &&
+    value.getMonth() === 0 &&
+    value.getDate() === 1;
+
+const apiDate = (value?: Date | null) => {
+    if (!(value instanceof Date) || Number.isNaN(value.getTime())) return undefined;
+
+    return isNotApplicable(value) ? NOT_APPLICABLE : format(value, "yyyy-MM-dd");
+};
+
+/**
+ * La fecha de recepción distingue "No aplica" de "sin indicar", cosa que la
+ * fecha de calibración no necesita.
+ *
+ * El picker manda `null` al marcar la casilla y `undefined` al no tocarla, y
+ * desde que el backend rellena la recepción ausente con la de hoy, colapsar
+ * ambos casos guardaría justo lo contrario de lo que pidió quien marcó la
+ * casilla.
+ */
+const receptionApiDate = (value?: Date | null) =>
+    value === null ? NOT_APPLICABLE : apiDate(value);
 
 /**
  * Registro de herramientas, para cualquier destino.
@@ -115,12 +138,21 @@ export default function ToolArticleForm({
     initialData,
     isEditing,
     onEditSuccess,
+    onCancel,
     submitLabel,
     onStateChange,
     showPreview,
 }: ArticleFormProps) {
+    // Al crear se precarga hoy: es la fecha correcta en la práctica —una
+    // herramienta se registra cuando llega— y deja a la vista lo que se va a
+    // guardar, en vez de un campo vacío que el backend rellena por detrás. Sigue
+    // siendo editable, y "No aplica" (null) o borrarlo son decisiones explícitas.
     const [receptionDate, setReceptionDate] = useState<Date | null | undefined>(
-        initialData?.reception_date ? parseISO(initialData.reception_date) : null,
+        initialData?.reception_date
+            ? parseISO(initialData.reception_date)
+            : isEditing
+                ? undefined
+                : new Date(),
     );
     const [preview, setPreview] = useState<FormValues | null>(null);
 
@@ -235,7 +267,7 @@ export default function ToolArticleForm({
                 ...rest,
                 ...manualOrderNumber,
                 calibration_date: apiDate(values.calibration_date),
-                reception_date: apiDate(receptionDate),
+                reception_date: receptionApiDate(receptionDate),
             },
             afterCreate: () => {
                 form.reset();
@@ -324,7 +356,7 @@ export default function ToolArticleForm({
                 submitLabel={submitLabel}
                 hideActions={!!onStateChange}
                 opensPreview={showPreview}
-                onCancel={() => router.back()}
+                onCancel={onCancel ?? (() => router.back())}
                 // La vista previa la pide quien monta el formulario: solo el
                 // alta y la edición formales del artículo la usan. Al crear se
                 // confirma lo que va a nacer; al editar, cómo queda.
@@ -358,7 +390,9 @@ export default function ToolArticleForm({
                             name="serial"
                             render={({ field }) => (
                                 <FormItem className="w-full">
-                                    <FormLabel className={labelClass}>Serial</FormLabel>
+                                    <FieldLabelRow>
+                                        <FormLabel className={labelClass}>Serial</FormLabel>
+                                    </FieldLabelRow>
                                     <FormControl>
                                         <Input
                                             placeholder="Ej: S-000123"
@@ -382,7 +416,9 @@ export default function ToolArticleForm({
                         name="model"
                         render={({ field }) => (
                             <FormItem className="w-full">
-                                <FormLabel className={labelClass}>Modelo</FormLabel>
+                                <FieldLabelRow>
+                                    <FormLabel className={labelClass}>Modelo</FormLabel>
+                                </FieldLabelRow>
                                 <FormControl>
                                     <Input
                                         placeholder="Ej: TW-500-A"
@@ -493,6 +529,7 @@ export default function ToolArticleForm({
                     control={form.control}
                     receptionDate={receptionDate}
                     onReceptionDateChange={setReceptionDate}
+                    isEditing={isEditing}
                     disabled={busy}
                 />
 

@@ -17,6 +17,13 @@ interface Props {
   articleId: number
   open: boolean
   onOpenChange: (open: boolean) => void
+  /**
+   * Rótulos del encabezado. Almacén también monta este diálogo, sobre artículos
+   * que ya están en recepción, y ahí el texto por defecto nombra un estado que
+   * el artículo dejó atrás.
+   */
+  title?: string
+  description?: string
 }
 
 /**
@@ -25,7 +32,13 @@ interface Props {
  * progresiva (pre-revisión) sin salir de la vista de tránsito. No exige
  * completitud: el pase final a recepción lo gobierna el botón de acciones.
  */
-export function EditTransitArticleDialog({ articleId, open, onOpenChange }: Props) {
+export function EditTransitArticleDialog({
+  articleId,
+  open,
+  onOpenChange,
+  title = 'Editar artículo en tránsito',
+  description = 'Agregue o actualice progresivamente los datos y la documentación del artículo a medida que la recibe. Puede guardar de forma parcial las veces que necesite.',
+}: Props) {
   const { selectedCompany } = useCompanyStore()
   const queryClient = useQueryClient()
 
@@ -43,16 +56,12 @@ export function EditTransitArticleDialog({ articleId, open, onOpenChange }: Prop
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] max-w-6xl overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Editar artículo en tránsito</DialogTitle>
-          <DialogDescription>
-            Agregue o actualice progresivamente los datos y la documentación del
-            artículo a medida que la recibe. Puede guardar de forma parcial las
-            veces que necesite.
-          </DialogDescription>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
 
         {isLoading || !data ? (
-          <div className="flex min-h-[200px] items-center justify-center">
+          <div className="flex min-h-50 items-center justify-center">
             <Loader2 className="size-6 animate-spin text-muted-foreground" />
           </div>
         ) : (
@@ -62,6 +71,7 @@ export function EditTransitArticleDialog({ articleId, open, onOpenChange }: Prop
             initialData={data}
             category={data.batch?.category}
             onEditSuccess={handleEditSuccess}
+            onCancel={() => onOpenChange(false)}
             submitLabel="Guardar avance"
           />
         )}

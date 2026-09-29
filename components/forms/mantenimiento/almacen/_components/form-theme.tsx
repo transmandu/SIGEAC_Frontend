@@ -69,6 +69,33 @@ export const textareaClass = cn(fieldClass, "h-auto resize-none py-2");
 
 export const labelClass = "text-sm font-medium text-foreground/85";
 
+/**
+ * Fila del rótulo de un campo, a la altura del elemento más alto que puede
+ * acompañarlo: el botón de acción de algunos campos ("crear renglón", "crear
+ * fabricante"), que mide 24px frente a los 20 del texto.
+ *
+ * Las grillas ponen dos o tres campos por fila y solo algunos llevan ese botón.
+ * Cuando la altura la fijaba el wrapper de esos, sus inputs arrancaban 4px más
+ * abajo que los de sus vecinos, así que la envuelven TODOS los rótulos de una
+ * misma grilla, lleven acción o no.
+ *
+ * No se mete en `labelClass` porque hay una segunda altura legítima: las filas
+ * que comparten con un `DatePickerField` se igualan a 16px —su rótulo lleva la
+ * casilla "No aplica" con `leading-none`— y ahí 24px descuadraría la fila.
+ */
+export const FieldLabelRow = ({
+    action,
+    children,
+}: {
+    action?: React.ReactNode;
+    children: React.ReactNode;
+}) => (
+    <div className="flex min-h-6 items-center justify-between gap-2">
+        {children}
+        {action}
+    </div>
+);
+
 /** Texto de apoyo bajo un campo: un escalón por debajo del rótulo. */
 export const hintClass = "text-[13px] text-muted-foreground";
 

@@ -16,6 +16,12 @@ interface IRegisterArticleProps {
     /** Al editar: reemplaza la redirección post-guardado (útil dentro de diálogos). */
     onEditSuccess?: () => void;
     /**
+     * Reemplaza el retroceso en el historial del botón Cancelar. Dentro de un
+     * diálogo hay que pasar su cierre: no hay página que abandonar, y retroceder
+     * saca al usuario de su módulo.
+     */
+    onCancel?: () => void;
+    /**
      * Rótulo del botón de guardado. El formulario se reutiliza desde flujos que
      * no son "ingresar al almacén" (corregir un artículo en cuarentena, editar
      * uno en tránsito), donde el texto por defecto describe algo que no ocurre.
@@ -46,6 +52,7 @@ const RegisterArticleForm = ({
     isEditing = false,
     initialData,
     onEditSuccess,
+    onCancel,
     submitLabel,
     onStateChange,
     showPreview,
@@ -56,6 +63,7 @@ const RegisterArticleForm = ({
         isEditing,
         initialData,
         onEditSuccess,
+        onCancel,
         submitLabel,
         onStateChange,
         showPreview,

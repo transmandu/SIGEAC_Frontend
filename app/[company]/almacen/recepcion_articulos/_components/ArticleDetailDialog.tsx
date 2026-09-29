@@ -6,6 +6,7 @@ import {
   DialogDescription,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -13,100 +14,172 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { CheckCircle2, Eye, FileWarning, Loader2, MapPin } from "lucide-react";
-import { useState } from "react";
+import {
+  Boxes,
+  CalendarClock,
+  CheckCircle2,
+  CircleAlert,
+  ClipboardList,
+  Eye,
+  FileWarning,
+  Fingerprint,
+  Gauge,
+  MapPin,
+  Package,
+  PencilLine,
+  Plane,
+  Wrench,
+  type LucideIcon,
+} from "lucide-react";
+import { useMemo, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { useGetArticleById } from "@/hooks/mantenimiento/almacen/articulos/useGetArticleById";
 import { EditTransitArticleDialog } from "@/app/[company]/compras/(aeronautico)/en_transito/_components/EditTransitArticleDialog";
 import SecureFileViewer from "@/components/library/SecureFileViewer";
 import axiosInstance from "@/lib/axios";
 import { cn, toAltPartNumbers } from "@/lib/utils";
 import type { TransitArticle } from "@/types/purchase/in-transit";
 import type { ArticleDocument } from "@/types";
+import { AssignDocumentRequirements } from "./AssignDocumentRequirements";
 
-const EDIT_ROLES = ["JEFE_ALMACEN", "ANALISTA_ALMACEN", "JEFE_MANTENIMIENTO"];
+// SUPERUSER va en la lista como en el resto del módulo: opera sobre todas las
+// sedes y sin él quedaba viendo la ficha sin poder editarla.
+const EDIT_ROLES = [
+  "SUPERUSER",
+  "JEFE_ALMACEN",
+  "ANALISTA_ALMACEN",
+  "JEFE_MANTENIMIENTO",
+];
 
 const TRANSIT_STATUS_LABELS: Record<string, string> = {
   TRANSIT: "EN TRÁNSITO",
   RECEPTION: "EN RECEPCIÓN",
 };
 
-const CATEGORY_LABELS: Record<string, string> = {
-  CONSUMABLE: "Consumible",
-  TOOL: "Herramienta",
-  COMPONENT: "Componente",
-  PART: "Parte",
+/**
+ * Cada categoría trae su icono y su rótulo: la ficha de una herramienta y la de
+ * un componente describen cosas distintas, y el encabezado de su sección es lo
+ * que lo anuncia antes de leer los campos.
+ */
+const CATEGORY_META: Record<string, { label: string; icon: LucideIcon }> = {
+  CONSUMABLE: { label: "Consumible", icon: Boxes },
+  TOOL: { label: "Herramienta", icon: Wrench },
+  COMPONENT: { label: "Componente", icon: Plane },
+  PART: { label: "Parte", icon: Package },
 };
 
 type FieldSpec = {
   label: string;
   value?: string | number | null;
+  /** Resalta el valor: es el dato por el que se abre la ficha. */
+  strong?: boolean;
   span?: 1 | 2;
 };
 
-/** Celda tipo "campo de formulario": etiqueta en versalitas arriba, valor en caja abajo. */
-function FieldCell({ label, value, span = 1 }: FieldSpec) {
-  const isEmpty =
-    value === null ||
-    value === undefined ||
-    (typeof value === "string" && value.trim() === "");
+const isBlank = (value: FieldSpec["value"]) =>
+  value === null ||
+  value === undefined ||
+  (typeof value === "string" && value.trim() === "");
+
+/** Dato suelto: rótulo arriba en versalitas, valor debajo. */
+function Field({ label, value, strong, span = 1 }: FieldSpec) {
+  const empty = isBlank(value);
+
   return (
-    <div
-      className={cn(
-        "border border-border/60 bg-background",
-        span === 2 && "col-span-2",
-      )}
-    >
-      <div className="border-b border-border/60 bg-muted/40 px-3 py-1">
-        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">
-          {label}
-        </span>
-      </div>
-      <div className="px-3 py-2">
-        <span
-          className={cn(
-            "text-[13px] font-mono leading-tight",
-            isEmpty && "text-muted-foreground/50",
-          )}
-        >
-          {isEmpty ? "N/A" : value}
-        </span>
-      </div>
+    <div className={cn("min-w-0", span === 2 && "sm:col-span-2")}>
+      <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">
+        {label}
+      </p>
+      <p
+        className={cn(
+          "mt-0.5 truncate text-[13px] leading-snug",
+          strong && !empty && "font-mono font-semibold",
+          empty && "text-muted-foreground/40",
+        )}
+        title={empty ? undefined : String(value)}
+      >
+        {empty ? "—" : value}
+      </p>
     </div>
   );
 }
 
 function FieldGrid({ fields }: { fields: FieldSpec[] }) {
   return (
-    <div className="grid grid-cols-2 gap-px bg-border/60 sm:grid-cols-3">
+    <div className="grid grid-cols-2 gap-x-5 gap-y-4 sm:grid-cols-3">
       {fields.map((f) => (
-        <FieldCell key={f.label} {...f} />
+        <Field key={f.label} {...f} />
       ))}
     </div>
   );
 }
 
-function SheetSection({
-  index,
+/**
+ * Bloque de la ficha, con el mismo cristal y encabezado que las secciones de
+ * los formularios de artículo: es la misma información y se estaba viendo con
+ * un lenguaje visual propio que no se parecía a nada más del módulo.
+ */
+function Section({
+  icon: Icon,
   title,
+  hint,
+  tone = "default",
   children,
 }: {
-  index: number;
+  icon: LucideIcon;
   title: string;
+  hint?: string;
+  tone?: "default" | "alert";
   children: React.ReactNode;
 }) {
+  const alert = tone === "alert";
+
   return (
-    <section>
-      <div className="flex items-center gap-2 bg-muted/60 px-5 py-1.5">
-        <span className="flex size-4 shrink-0 items-center justify-center rounded-sm bg-foreground/80 text-[9px] font-bold text-background">
-          {index}
+    <section
+      className={cn(
+        "rounded-xl border bg-linear-to-br p-4 shadow-xs backdrop-blur-md",
+        alert
+          ? "border-orange-300 from-orange-50/80 to-orange-50/40 dark:border-orange-700/60 dark:from-orange-950/40 dark:to-orange-950/20"
+          : "border-slate-400/50 from-background/70 to-background/40 dark:border-slate-600/50",
+      )}
+    >
+      <div className={cn("flex gap-3", hint ? "items-start" : "items-center")}>
+        <span
+          className={cn(
+            "flex size-8 shrink-0 items-center justify-center rounded-lg",
+            hint && "mt-0.5",
+            alert
+              ? "bg-orange-600 text-white"
+              : "bg-primary/10 text-primary",
+          )}
+        >
+          <Icon className="size-4" />
         </span>
-        <h3 className="text-[11px] font-bold uppercase tracking-wider">
-          {title}
-        </h3>
+        <div className="min-w-0 flex-1 space-y-1">
+          <h3
+            className={cn(
+              "text-sm font-semibold leading-none",
+              alert && "text-orange-900 dark:text-orange-200",
+            )}
+          >
+            {title}
+          </h3>
+          {hint && (
+            <p
+              className={cn(
+                "text-xs",
+                alert
+                  ? "text-orange-900/80 dark:text-orange-200/80"
+                  : "text-muted-foreground",
+              )}
+            >
+              {hint}
+            </p>
+          )}
+        </div>
       </div>
-      <div className="p-5">{children}</div>
+
+      <div className="mt-4">{children}</div>
     </section>
   );
 }
@@ -124,101 +197,63 @@ export function ArticleDetailDialog({ article }: { article: TransitArticle }) {
   const roles = user?.roles?.map((r) => r.name) ?? [];
   const canEdit = isReception && EDIT_ROLES.some((r) => roles.includes(r));
 
-  const { data: full, isLoading } = useGetArticleById(
-    open ? String(article.id) : "",
-    selectedCompany?.slug,
+  const location = article.batch?.warehouse?.location;
+  // El `?? []` crea un array nuevo en cada render, y eso invalidaba el memo de
+  // `assignedTypeIds` que depende de él: la referencia tiene que ser estable.
+  const requirements = useMemo(
+    () => article.document_requirements ?? [],
+    [article.document_requirements],
+  );
+  const category = article.batch?.category?.toUpperCase();
+  const categoryMeta = category ? CATEGORY_META[category] : undefined;
+
+  // Los datos de categoría llegan con la fila, así que la ficha se pinta
+  // completa de una vez. Antes esta sección los pedía al abrirse contra el
+  // endpoint del formulario de edición, que carga catorce relaciones: se veía
+  // cargando cuando todo lo demás ya estaba puesto.
+  const categoryDetails = article.category_details;
+
+  // Mientras nadie declare qué documentos exige el artículo, compras no tiene
+  // qué buscar. Es el motivo que almacén resuelve sin esperar a nadie, así que
+  // se señala desde el ícono, antes de que alguien abra la ficha.
+  const needsDocumentsDeclared =
+    isReception &&
+    (article.incoming_readiness?.reasons ?? []).includes(
+      "MISSING_DOCUMENT_REQUIREMENTS",
+    );
+
+  const consignedCount = requirements.filter(
+    (req) => req.documents.length > 0,
+  ).length;
+
+  // Memoizados porque este componente se monta una vez por fila de la tabla: el
+  // mapeo corría en cada render de la lista, con el diálogo cerrado.
+  //
+  // El serial y la cantidad ya se muestran en Identificación, así que la sección
+  // de categoría solo lista lo que es propio de ella.
+  const categoryFields: FieldSpec[] | null = useMemo(
+    () =>
+      categoryDetails
+        ? categoryDetails.fields.map((field) => ({
+            label: field.label,
+            value:
+              typeof field.value === "boolean"
+                ? field.value
+                  ? "Sí"
+                  : "No"
+                : field.value,
+          }))
+        : null,
+    [categoryDetails],
   );
 
-  const location = article.batch?.warehouse?.location;
-  const requirements = article.document_requirements ?? [];
-  const category = full?.batch?.category?.toUpperCase();
-
-  const categoryFields: FieldSpec[] | null = (() => {
-    if (category === "TOOL" && full?.tool) {
-      return [
-        { label: "Serial", value: full.tool.serial },
-        { label: "Modelo", value: full.tool.model },
-        { label: "¿Especial?", value: full.tool.isSpecial ? "Sí" : "No" },
-        {
-          label: "¿Requiere calibración?",
-          value: full.tool.needs_calibration ? "Sí" : "No",
-        },
-        { label: "Fecha de calibración", value: full.tool.calibration_date },
-        { label: "Próxima calibración", value: full.tool.next_calibration },
-      ];
-    }
-    if (
-      (category === "COMPONENT" || category === "PART") &&
-      full?.partComponent
-    ) {
-      const fields: FieldSpec[] = [
-        {
-          label: "Fecha de fabricación",
-          value: full.partComponent.fabrication_date,
-        },
-        {
-          label: "Fecha de expiración",
-          value: full.partComponent.expiration_date,
-        },
-        {
-          label: "Shelf life",
-          value:
-            full.partComponent.shelf_life != null
-              ? `${full.partComponent.shelf_life}${full.partComponent.shelf_life_unit ? ` ${full.partComponent.shelf_life_unit}` : ""}`
-              : null,
-        },
-      ];
-      if (category === "COMPONENT") {
-        fields.push(
-          { label: "Aeronave", value: full.partComponent.aircraft_id },
-          {
-            label: "Vida límite (horas)",
-            value: full.partComponent.life_limit_part_hours,
-          },
-          {
-            label: "Vida límite (ciclos)",
-            value: full.partComponent.life_limit_part_cycles,
-          },
-          {
-            label: "Vida límite (calendario)",
-            value: full.partComponent.life_limit_part_calendar,
-          },
-          {
-            label: "Hard time (horas)",
-            value: full.partComponent.hard_time_hours,
-          },
-          {
-            label: "Hard time (ciclos)",
-            value: full.partComponent.hard_time_cycles,
-          },
-          {
-            label: "Hard time (calendario)",
-            value: full.partComponent.hard_time_calendar,
-          },
-        );
-      }
-      return fields;
-    }
-    if (category === "CONSUMABLE" && full?.consumable) {
-      return [
-        { label: "Lote", value: full.consumable.lot_number },
-        {
-          label: "Fecha de fabricación",
-          value: full.consumable.fabrication_date,
-        },
-        {
-          label: "Fecha de expiración",
-          value: full.consumable.expiration_date,
-        },
-        {
-          label: "¿Manejado?",
-          value: full.consumable.is_managed ? "Sí" : "No",
-        },
-        { label: "Shelf life", value: full.consumable.shelf_life },
-      ];
-    }
-    return null;
-  })();
+  const assignedTypeIds = useMemo(
+    () =>
+      requirements
+        .map((req) => req.document_type?.id)
+        .filter((id): id is number => typeof id === "number"),
+    [requirements],
+  );
 
   return (
     <>
@@ -228,19 +263,33 @@ export function ArticleDetailDialog({ article }: { article: TransitArticle }) {
             <Button
               variant="ghost"
               size="icon"
-              className="h-7 w-7 text-muted-foreground hover:text-foreground"
+              className={cn(
+                "relative h-7 w-7",
+                needsDocumentsDeclared
+                  ? "text-orange-600 hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
               onClick={() => setOpen(true)}
             >
               <Eye className="size-4" />
+              {needsDocumentsDeclared && (
+                <span className="absolute -right-0.5 -top-0.5 flex size-3.5 animate-pulse items-center justify-center rounded-full bg-orange-500 text-[9px] font-bold text-white">
+                  !
+                </span>
+              )}
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="top">Ver detalle</TooltipContent>
+          <TooltipContent side="top" className="max-w-xs">
+            {needsDocumentsDeclared
+              ? "Indica qué documentos exige este artículo para que compras pueda conseguirlos"
+              : "Ver detalle"}
+          </TooltipContent>
         </Tooltip>
       </TooltipProvider>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent
-          className="max-h-[85vh] gap-0 overflow-y-auto p-0 sm:max-w-155"
+          className="flex max-h-[88vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-4xl"
           // El visor de documentos se renderiza fuera del content de Radix,
           // así que sus clics cuentan como "interacción externa": sin estos
           // guards, cerrar el visor cerraría también esta ficha.
@@ -263,34 +312,53 @@ export function ArticleDetailDialog({ article }: { article: TransitArticle }) {
           </DialogDescription>
 
           {/* Placa de identificación */}
-          <div className="border-b-2 border-foreground/80 bg-muted/30 py-4 pl-5 pr-12">
-            <div className="flex items-start justify-between gap-3">
+          <div className="shrink-0 border-b bg-muted/40 px-6 py-5 pr-14">
+            <div className="flex flex-wrap items-start justify-between gap-3">
               <div className="min-w-0">
-                <p className="text-[9px] font-semibold uppercase tracking-widest text-muted-foreground">
-                  Ficha de artículo
-                </p>
-                <p className="truncate font-mono text-xl font-bold leading-tight tracking-tight">
+                <div className="flex items-center gap-2">
+                  {categoryMeta && (
+                    <span className="flex size-5 items-center justify-center rounded bg-primary/10 text-primary">
+                      <categoryMeta.icon className="size-3" />
+                    </span>
+                  )}
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                    {categoryMeta
+                      ? `Ficha de ${categoryMeta.label.toLowerCase()}`
+                      : "Ficha de artículo"}
+                  </p>
+                </div>
+                <p className="mt-1 truncate font-mono text-2xl font-bold leading-tight tracking-tight">
                   {article.part_number}
                 </p>
-                <p className="truncate text-xs text-muted-foreground">
-                  {article.batch?.name ?? "N/A"}
+                <p className="truncate text-sm text-muted-foreground">
+                  {article.batch?.name ?? "Sin descripción"}
                 </p>
               </div>
-              <span
-                className={cn(
-                  "select-none shrink-0 rounded border px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide",
-                  isReception
-                    ? "border-amber-300 bg-amber-100 text-amber-800 dark:border-amber-800/60 dark:bg-amber-950/50 dark:text-amber-400"
-                    : "border-sky-300 bg-sky-100 text-sky-800 dark:border-sky-800/60 dark:bg-sky-950/50 dark:text-sky-400",
+
+              <div className="flex shrink-0 flex-col items-end gap-1.5">
+                <Badge
+                  className={cn(
+                    "rounded-md border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide",
+                    isReception
+                      ? "border-amber-300 bg-amber-100 text-amber-800 dark:border-amber-800/60 dark:bg-amber-950/50 dark:text-amber-400"
+                      : "border-sky-300 bg-sky-100 text-sky-800 dark:border-sky-800/60 dark:bg-sky-950/50 dark:text-sky-400",
+                  )}
+                >
+                  {TRANSIT_STATUS_LABELS[status ?? ""] ?? "Sin estado"}
+                </Badge>
+
+                {needsDocumentsDeclared && (
+                  <Badge className="animate-pulse rounded-md border border-orange-300 bg-orange-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-orange-800 dark:border-orange-700/60 dark:bg-orange-950/50 dark:text-orange-300">
+                    <CircleAlert className="mr-1 size-2.5" />
+                    Indica documentos
+                  </Badge>
                 )}
-              >
-                {TRANSIT_STATUS_LABELS[status ?? ""] ?? "Sin estado"}
-              </span>
+              </div>
             </div>
           </div>
 
-          <div className="divide-y divide-border/60">
-            <SheetSection index={1} title="Identificación">
+          <div className="flex-1 space-y-4 overflow-y-auto px-6 py-5">
+            <Section icon={Fingerprint} title="Identificación">
               <FieldGrid
                 fields={[
                   {
@@ -299,8 +367,9 @@ export function ArticleDetailDialog({ article }: { article: TransitArticle }) {
                       toAltPartNumbers(article.alternative_part_number).join(
                         " / ",
                       ) || null,
+                    strong: true,
                   },
-                  { label: "Serial", value: article.serial },
+                  { label: "Serial", value: article.serial, strong: true },
                   { label: "Código ATA", value: article.ata_code },
                   { label: "Condición", value: article.condition?.name },
                   { label: "Fabricante", value: article.manufacturer?.name },
@@ -311,156 +380,158 @@ export function ArticleDetailDialog({ article }: { article: TransitArticle }) {
                         ? `${article.quantity}${article.unit ? ` ${article.unit}` : ""}`
                         : null,
                   },
+                ]}
+              />
+            </Section>
+
+            <Section icon={ClipboardList} title="Origen y trazabilidad">
+              <FieldGrid
+                fields={[
                   {
-                    label: "Fecha de recepción",
-                    value: article.reception_date,
+                    label: "N° de orden de compra",
+                    value: article.order_number,
+                    strong: true,
                   },
                   {
                     label: "N° de requisición",
                     value: article.requisition_order_number,
+                    strong: true,
+                  },
+                  {
+                    label: "Fecha de recepción",
+                    value: article.reception_date,
                   },
                 ]}
               />
-            </SheetSection>
+            </Section>
 
-            <SheetSection index={2} title="Ubicación">
+            <Section icon={MapPin} title="Ubicación">
               {location ? (
-                <div className="flex items-center gap-2 border border-border/60 bg-background px-3 py-2.5 text-sm">
-                  <MapPin className="size-3.5 shrink-0 text-muted-foreground" />
-                  <span className="font-mono font-medium">
-                    {location.address}
-                  </span>
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="font-medium">{location.address}</span>
                   {location.cod_iata && (
-                    <span className="ml-auto rounded border border-border/40 bg-muted/60 px-1 py-0.5 font-mono text-[10px]">
+                    <span className="rounded border border-border/50 bg-muted/60 px-1.5 py-0.5 font-mono text-[10px]">
                       {location.cod_iata}
                     </span>
                   )}
                 </div>
               ) : (
-                <p className="border border-dashed border-border/60 px-3 py-2.5 text-sm text-muted-foreground/60">
-                  N/A
+                <p className="text-sm text-muted-foreground/50">
+                  Sin ubicación registrada.
                 </p>
               )}
-            </SheetSection>
+            </Section>
 
-            <SheetSection
-              index={3}
-              title={
-                category
-                  ? (CATEGORY_LABELS[category] ?? category)
-                  : "Datos de categoría"
+            {/* Solo si la categoría aporta campos propios: una sección vacía
+                para decir "sin datos" ocupaba el mismo espacio que una útil. */}
+            {categoryFields && categoryFields.length > 0 && (
+              <Section
+                icon={categoryMeta?.icon ?? Gauge}
+                title={`Datos de ${(categoryDetails?.label ?? categoryMeta?.label ?? "categoría").toLowerCase()}`}
+              >
+                <FieldGrid fields={categoryFields} />
+              </Section>
+            )}
+
+            <Section
+              icon={needsDocumentsDeclared ? CircleAlert : CalendarClock}
+              title="Manifiesto documental"
+              tone={needsDocumentsDeclared ? "alert" : "default"}
+              hint={
+                needsDocumentsDeclared
+                  ? "Nadie ha indicado qué documentos exige este artículo. Márcalos para que compras pueda conseguirlos: por conocimiento técnico ustedes son quienes mejor saben cuáles corresponden."
+                  : requirements.length > 0
+                    ? `${consignedCount} de ${requirements.length} consignado${requirements.length === 1 ? "" : "s"}.`
+                    : undefined
               }
             >
-              {isLoading ? (
-                <div className="flex items-center gap-2 border border-dashed border-border/60 px-3 py-3 text-sm text-muted-foreground">
-                  <Loader2 className="size-3.5 animate-spin" />
-                  Cargando datos de categoría...
-                </div>
-              ) : categoryFields ? (
-                <FieldGrid fields={categoryFields} />
-              ) : (
-                <p className="border border-dashed border-border/60 px-3 py-2.5 text-sm text-muted-foreground/60">
-                  Sin datos adicionales de categoría.
-                </p>
-              )}
-            </SheetSection>
-
-            <SheetSection index={4} title="Manifiesto documental">
               {requirements.length > 0 ? (
-                <div className="border border-border/60">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b border-border/60 bg-muted/40">
-                        <th className="px-3 py-1.5 text-left text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                          Documento
-                        </th>
-                        <th className="px-3 py-1.5 text-right text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                          Estado
-                        </th>
-                        <th className="w-10 px-3 py-1.5" />
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border/60">
-                      {requirements.map((req) => {
-                        const consigned = req.documents.length > 0;
-                        return (
-                          <tr key={req.id}>
-                            <td className="px-3 py-2">
-                              <p className="truncate font-medium">
-                                {req.document_type?.name ?? "Documento"}
-                              </p>
-                              {req.document_type?.regulation && (
-                                <p className="truncate text-[10px] text-muted-foreground">
-                                  {req.document_type.regulation}
-                                </p>
-                              )}
-                            </td>
-                            <td className="px-3 py-2 text-right">
-                              <span
-                                className={cn(
-                                  "inline-flex items-center gap-1 text-[11px] font-semibold",
-                                  consigned
-                                    ? "text-emerald-700 dark:text-emerald-400"
-                                    : "text-amber-700 dark:text-amber-400",
-                                )}
-                              >
-                                {consigned ? (
-                                  <>
-                                    <CheckCircle2 className="size-3.5" />
-                                    Consignado
-                                  </>
-                                ) : (
-                                  <>
-                                    <FileWarning className="size-3.5" />
-                                    Pendiente
-                                  </>
-                                )}
-                              </span>
-                            </td>
-                            <td className="px-2 py-2 text-right">
-                              {req.documents.length > 0 && (
-                                <div className="flex flex-col items-end gap-1">
-                                  {req.documents.map((doc, i) => (
-                                    <TooltipProvider key={doc.id}>
-                                      <Tooltip>
-                                        <TooltipTrigger asChild>
-                                          <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="h-6 w-6 text-muted-foreground hover:text-foreground"
-                                            onClick={() => setPreviewDoc(doc)}
-                                          >
-                                            <Eye className="size-3.5" />
-                                          </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent side="top">
-                                          {req.documents.length > 1
-                                            ? `Ver documento ${i + 1}`
-                                            : "Ver documento"}
-                                        </TooltipContent>
-                                      </Tooltip>
-                                    </TooltipProvider>
-                                  ))}
-                                </div>
-                              )}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <p className="border border-dashed border-border/60 px-3 py-2.5 text-sm text-muted-foreground/60">
+                <ul className="divide-y divide-border/50">
+                  {requirements.map((req) => {
+                    const consigned = req.documents.length > 0;
+
+                    return (
+                      <li
+                        key={req.id}
+                        className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0"
+                      >
+                        <span
+                          className={cn(
+                            "flex size-7 shrink-0 items-center justify-center rounded-lg",
+                            consigned
+                              ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400"
+                              : "bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-400",
+                          )}
+                        >
+                          {consigned ? (
+                            <CheckCircle2 className="size-3.5" />
+                          ) : (
+                            <FileWarning className="size-3.5" />
+                          )}
+                        </span>
+
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-[13px] font-medium">
+                            {req.document_type?.name ?? "Documento"}
+                          </p>
+                          <p className="truncate text-[10px] text-muted-foreground">
+                            {req.document_type?.regulation ??
+                              (consigned ? "Consignado" : "Pendiente de carga")}
+                          </p>
+                        </div>
+
+                        {req.documents.map((doc, i) => (
+                          <TooltipProvider key={doc.id}>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="size-7 shrink-0 text-muted-foreground hover:text-foreground"
+                                  onClick={() => setPreviewDoc(doc)}
+                                >
+                                  <Eye className="size-3.5" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent side="top">
+                                {req.documents.length > 1
+                                  ? `Ver documento ${i + 1}`
+                                  : "Ver documento"}
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        ))}
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : !needsDocumentsDeclared ? (
+                <p className="text-sm text-muted-foreground/50">
                   No hay documentación requerida para este artículo.
                 </p>
+              ) : null}
+
+              {/* Declarar y consultar la documentación son la misma tarea vista
+                  en dos momentos, así que comparten sección: separarlas dejaba
+                  dos bloques hablando de lo mismo en la misma ficha. */}
+              {needsDocumentsDeclared && (
+                <AssignDocumentRequirements
+                  articleId={article.id}
+                  assignedTypeIds={assignedTypeIds}
+                />
               )}
-            </SheetSection>
+            </Section>
           </div>
 
           {canEdit && (
-            <div className="flex justify-end border-t border-border/60 bg-muted/30 px-5 py-3">
-              <Button size="sm" onClick={() => setEditOpen(true)}>
+            <div className="flex shrink-0 justify-end border-t bg-muted/30 px-6 py-3">
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-1.5"
+                onClick={() => setEditOpen(true)}
+              >
+                <PencilLine className="size-3.5" />
                 Editar artículo
               </Button>
             </div>
@@ -473,6 +544,8 @@ export function ArticleDetailDialog({ article }: { article: TransitArticle }) {
           articleId={article.id}
           open={editOpen}
           onOpenChange={setEditOpen}
+          title="Editar artículo en recepción"
+          description="Corrija o complete los datos y la documentación del artículo. Puede guardar de forma parcial las veces que necesite."
         />
       )}
 

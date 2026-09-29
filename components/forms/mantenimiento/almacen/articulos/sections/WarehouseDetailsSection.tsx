@@ -42,12 +42,15 @@ export const WarehouseDetailsSection = <T extends FieldValues,>({
     control,
     receptionDate,
     onReceptionDateChange,
+    isEditing,
     disabled,
 }: {
     control: Control<T>;
     /** Sin estos dos, la sección omite la fecha. */
     receptionDate?: Date | null;
     onReceptionDateChange?: (date: Date | null | undefined) => void;
+    /** Al editar no se rellena nada solo: el valor guardado es el que manda. */
+    isEditing?: boolean;
     disabled?: boolean;
 }) => (
     <FormSection
@@ -92,7 +95,11 @@ export const WarehouseDetailsSection = <T extends FieldValues,>({
                     label="Fecha de recepción"
                     value={receptionDate}
                     setValue={onReceptionDateChange}
-                    description="Cuándo llegó el artículo al almacén."
+                    description={
+                        isEditing
+                            ? "Cuándo llegó el artículo al almacén."
+                            : "Cuándo llegó el artículo al almacén. Viene con la fecha de hoy; cámbiala si llegó otro día."
+                    }
                     busy={disabled}
                     shortcuts="back"
                     showNotApplicable

@@ -313,6 +313,56 @@ export const useCreateToReviewArticle = () => {
 };
 
 /**
+ * Declara qué tipos de documento exige un artículo, sin cargar archivos.
+ *
+ * Separado del formulario de edición porque responde a otra pregunta: no es
+ * "corrige los datos del artículo" sino "di qué papeles le corresponden", que es
+ * lo único que hace falta para que compras pueda ir a buscarlos. El endpoint es
+ * aditivo, así que solo se envían los tipos nuevos.
+ */
+export const useAssignArticleDocumentRequirements = () => {
+    const queryClient = useQueryClient();
+
+    const mutation = useMutation({
+        mutationFn: async ({
+            company,
+            articleId,
+            documentTypeIds,
+        }: {
+            company: string;
+            articleId: number;
+            documentTypeIds: number[];
+        }) => {
+            await axiosInstance.post(
+                `/${company}/articles/${articleId}/document-requirements`,
+                { document_type_ids: documentTypeIds }
+            );
+        },
+        onSuccess: (_data, variables) => {
+            invalidateArticleDocuments(queryClient);
+
+            const count = variables.documentTypeIds.length;
+
+            toast.success("Documentación indicada", {
+                description:
+                    count === 1
+                        ? "Se registró el documento requerido. Compras ya puede conseguirlo."
+                        : `Se registraron ${count} documentos requeridos. Compras ya puede conseguirlos.`,
+            });
+        },
+        onError: (error: any) => {
+            toast.error("Oops!", {
+                description:
+                    error?.response?.data?.message ??
+                    "No se pudo registrar la documentación requerida...",
+            });
+        },
+    });
+
+    return { assignArticleDocumentRequirements: mutation };
+};
+
+/**
  * Sincroniza los requerimientos del artículo con la selección del formulario:
  * elimina de la BD los tipos que el usuario quitó (o todos, si desmarcó la
  * casilla de documentación). Sin esto el requerimiento sobrevive y al reabrir
@@ -641,9 +691,13 @@ export const useUpdateArticleStatus = () => {
         description: `El articulo ha sido actualizado correctamente.`,
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
+      // El rechazo del incoming llega con lo que falta por artículo. Sin
+      // enumerarlo el usuario solo ve "no se pudo" y no qué resolver.
+      const data = error?.response?.data;
+
       toast.error("Oops!", {
-        description: "No se pudo actualizar el articulo...",
+        description: data?.message ?? "No se pudo actualizar el articulo...",
       });
       console.log(error);
     },
@@ -651,6 +705,49 @@ export const useUpdateArticleStatus = () => {
   return {
     updateArticleStatus: updateArticleStatusMutation,
   };
+};
+
+/**
+ * Almacén avisa que un artículo no puede pasar a incoming por datos que solo
+ * compras conoce: el número de orden y la documentación.
+ *
+ * Lo dispara una acción explícita y no un cambio de estado, porque el artículo
+ * se queda quieto en recepción: sin este aviso la parada no le consta a nadie.
+ */
+export const useReportIncomingBlocked = () => {
+  const { selectedCompany } = useCompanyStore();
+
+  const mutation = useMutation({
+    mutationFn: async ({
+      id,
+      reported_by,
+    }: {
+      id: number;
+      reported_by?: string | null;
+    }) => {
+      const { data } = await axiosInstance.post(
+        `/${selectedCompany?.slug}/articles/${id}/report-incoming-blocked`,
+        { reported_by: reported_by || null }
+      );
+
+      return data;
+    },
+    onSuccess: (data) => {
+      toast.success("¡Notificado!", {
+        description:
+          data?.message ??
+          "Se notificó al personal competente sobre la información faltante.",
+      });
+    },
+    onError: (error: any) => {
+      toast.error("Oops!", {
+        description:
+          error?.response?.data?.message ?? "No se pudo enviar la notificación...",
+      });
+    },
+  });
+
+  return { reportIncomingBlocked: mutation };
 };
 
 /**

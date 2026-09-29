@@ -28,6 +28,41 @@ export interface QueueArticleBase {
   } | null;
 }
 
+/**
+ * Motivo por el que un artículo no puede pasar a incoming. El backend los
+ * resuelve y aquí solo se traducen: la regla es legal y no puede divergir
+ * entre las dos pantallas que leen esta cola.
+ */
+export type IncomingBlockingReason =
+  | "MISSING_PURCHASE_ORDER"
+  | "MISSING_DOCUMENT_REQUIREMENTS"
+  | "PENDING_DOCUMENTS";
+
+/** Lo que le falta al artículo para poder inspeccionarse. */
+export interface IncomingReadiness {
+  ready: boolean;
+  reasons: IncomingBlockingReason[];
+  has_purchase_order: boolean;
+  pending_documents: {
+    id: number;
+    document_type: {
+      id: number;
+      name: string;
+      regulation: string | null;
+    } | null;
+  }[];
+}
+
+/**
+ * Datos propios de la categoría, ya resueltos por el backend: viajan con la
+ * fila para que la ficha los pinte sin una segunda petición, y planos para que
+ * el frontend no dependa de en qué tabla vive cada columna.
+ */
+export interface CategoryDetails {
+  label: string;
+  fields: { label: string; value: string | number | boolean | null }[];
+}
+
 /** Recepción del almacén y compras · en tránsito. */
 export interface TransitQueueArticle extends QueueArticleBase {
   /** Entrada al estado actual (ISO). */
@@ -41,6 +76,8 @@ export interface TransitQueueArticle extends QueueArticleBase {
   requisition_order_number: string | null;
   has_documentation: boolean;
   document_requirements: ArticleDocumentRequirementSummary[];
+  incoming_readiness: IncomingReadiness;
+  category_details: CategoryDetails | null;
 }
 
 /** Compras · destino indeterminado. */

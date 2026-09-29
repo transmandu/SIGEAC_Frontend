@@ -38,6 +38,7 @@ import {
   type DimensionDraft,
 } from "@/components/forms/mantenimiento/almacen/_components/DimensionFields";
 import {
+  FieldLabelRow,
   FormSection,
   hintClass,
   labelClass,
@@ -101,9 +102,23 @@ const isNotApplicable = (date?: Date | null) =>
   date.getDate() === 1;
 
 const apiDate = (date?: Date | null) => {
-  if (!date) return undefined;
+  if (!(date instanceof Date) || Number.isNaN(date.getTime())) return undefined;
+
   return isNotApplicable(date) ? NOT_APPLICABLE : format(date, "yyyy-MM-dd");
 };
+
+/**
+ * La fecha de recepción distingue "No aplica" de "sin indicar", cosa que el
+ * resto de las fechas no necesita.
+ *
+ * El picker manda `null` al marcar la casilla y `undefined` al no tocarla, y
+ * desde que el backend rellena la recepción ausente con la de hoy, colapsar
+ * ambos casos guardaría justo lo contrario de lo que pidió quien marcó la
+ * casilla. Vive aparte porque `apiDate` lo comparten fabricación, caducidad y
+ * shelf life, donde `null` y `undefined` sí significan lo mismo.
+ */
+const receptionApiDate = (date?: Date | null) =>
+  date === null ? NOT_APPLICABLE : apiDate(date);
 
 /**
  * Registro de consumibles, para cualquier destino.
@@ -115,6 +130,7 @@ export default function ConsumableArticleForm({
   initialData,
   isEditing,
   onEditSuccess,
+  onCancel,
   submitLabel,
   onStateChange,
   showPreview,
@@ -142,8 +158,16 @@ export default function ConsumableArticleForm({
       ? parseISO(initialData.consumable.shelf_life)
       : null,
   );
+  // Al crear se precarga hoy: es la fecha correcta en la práctica —un artículo
+  // se registra cuando llega— y deja a la vista lo que se va a guardar, en vez
+  // de un campo vacío que el backend rellena por detrás. Sigue siendo editable,
+  // y "No aplica" (null) o borrarlo son decisiones explícitas del usuario.
   const [receptionDate, setReceptionDate] = useState<Date | null | undefined>(
-    initialData?.reception_date ? parseISO(initialData.reception_date) : null,
+    initialData?.reception_date
+      ? parseISO(initialData.reception_date)
+      : isEditing
+        ? undefined
+        : new Date(),
   );
 
   // Conversiones y dimensiones son listas, no campos: viajan junto al payload.
@@ -298,7 +322,7 @@ export default function ConsumableArticleForm({
         fabrication_date: apiDate(fabricationDate),
         expiration_date: apiDate(expirationDate),
         shelf_life: apiDate(shelfLifeDate),
-        reception_date: apiDate(receptionDate),
+        reception_date: receptionApiDate(receptionDate),
         primary_unit_id: baseUnit?.id,
         conversions: conversions.length > 0 ? conversions : undefined,
         // Solo activa el modo dimensional; un consumible ya dimensionado
@@ -380,7 +404,10 @@ export default function ConsumableArticleForm({
           { label: "Remitente", value: values.sender },
           { label: "Origen", value: values.origin },
           { label: "Destino", value: values.destination },
-          { label: "Fecha de recepción", value: previewDate(receptionDate) },
+          {
+            label: "Fecha de recepción",
+            value: previewDate(receptionDate),
+          },
           { label: "Justificación", value: values.justification, full: true },
         ],
       },
@@ -427,7 +454,7 @@ export default function ConsumableArticleForm({
         submitLabel={submitLabel}
         hideActions={!!onStateChange}
         opensPreview={showPreview}
-        onCancel={() => router.back()}
+        onCancel={onCancel ?? (() => router.back())}
         // La vista previa la pide quien monta el formulario: solo el
         // alta y la edición formales del artículo la usan. Al crear se
         // confirma lo que va a nacer; al editar, cómo queda.
@@ -461,7 +488,9 @@ export default function ConsumableArticleForm({
             name="lot_number"
             render={({ field }) => (
               <FormItem className="w-full">
-                <FormLabel className={labelClass}>Nro. de lote</FormLabel>
+                <FieldLabelRow>
+                    <FormLabel className={labelClass}>Nro. de lote</FormLabel>
+                </FieldLabelRow>
                 <FormControl>
                   <Input
                     placeholder="Ej: LOTE123"
@@ -484,7 +513,9 @@ export default function ConsumableArticleForm({
             name="condition_id"
             render={({ field }) => (
               <FormItem className="w-full">
-                <FormLabel className={labelClass}>Condición</FormLabel>
+                <FieldLabelRow>
+                    <FormLabel className={labelClass}>Condición</FormLabel>
+                </FieldLabelRow>
                 <SearchableSelect
                   options={conditions}
                   value={field.value}
@@ -651,6 +682,7 @@ export default function ConsumableArticleForm({
           control={form.control}
           receptionDate={receptionDate}
           onReceptionDateChange={setReceptionDate}
+          isEditing={isEditing}
           disabled={busy}
         />
 

@@ -36,6 +36,7 @@ import {
   savedImageUrl,
 } from "@/components/forms/mantenimiento/almacen/_components/ArticleDetailsSection";
 import {
+  FieldLabelRow,
   FormSection,
   fieldClass,
   hintClass,
@@ -103,10 +104,32 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-const apiDate = (date?: Date | null) =>
-  date instanceof Date && !Number.isNaN(date.getTime())
-    ? format(date, "yyyy-MM-dd")
-    : undefined;
+/** El almacén marca "no aplica" con esta fecha centinela. */
+const NOT_APPLICABLE = "1900-01-01";
+
+const isNotApplicable = (date?: Date | null) =>
+  !!date &&
+  date.getFullYear() === 1900 &&
+  date.getMonth() === 0 &&
+  date.getDate() === 1;
+
+const apiDate = (date?: Date | null) => {
+  if (!(date instanceof Date) || Number.isNaN(date.getTime())) return undefined;
+
+  return isNotApplicable(date) ? NOT_APPLICABLE : format(date, "yyyy-MM-dd");
+};
+
+/**
+ * La fecha de recepción distingue "No aplica" de "sin indicar", cosa que el
+ * resto de las fechas no necesita.
+ *
+ * El picker manda `null` al marcar la casilla y `undefined` al no tocarla, y
+ * desde que el backend rellena la recepción ausente con la de hoy, colapsar
+ * ambos casos guardaría justo lo contrario de lo que pidió quien marcó la
+ * casilla.
+ */
+const receptionApiDate = (date?: Date | null) =>
+  date === null ? NOT_APPLICABLE : apiDate(date);
 
 /**
  * Registro de partes y componentes, para cualquier destino.
@@ -120,6 +143,7 @@ export default function PartComponentArticleForm({
   initialData,
   isEditing,
   onEditSuccess,
+  onCancel,
   submitLabel,
   onStateChange,
   showPreview,
@@ -163,8 +187,16 @@ export default function PartComponentArticleForm({
       ? parseISO(initialData.partComponent.hard_time_calendar)
       : null,
   );
+  // Al crear se precarga hoy: es la fecha correcta en la práctica —un artículo
+  // se registra cuando llega— y deja a la vista lo que se va a guardar, en vez
+  // de un campo vacío que el backend rellena por detrás. Sigue siendo editable,
+  // y "No aplica" (null) o borrarlo son decisiones explícitas del usuario.
   const [receptionDate, setReceptionDate] = useState<Date | null | undefined>(
-    initialData?.reception_date ? parseISO(initialData.reception_date) : null,
+    initialData?.reception_date
+      ? parseISO(initialData.reception_date)
+      : isEditing
+        ? undefined
+        : new Date(),
   );
 
   const [preview, setPreview] = useState<FormValues | null>(null);
@@ -341,7 +373,7 @@ export default function PartComponentArticleForm({
         expiration_date: apiDate(expirationDate),
         life_limit_part_calendar: apiDate(lifeLimitCalendar),
         hard_time_calendar: apiDate(hardTimeCalendar),
-        reception_date: apiDate(receptionDate),
+        reception_date: receptionApiDate(receptionDate),
       },
       afterCreate: () => {
         form.reset();
@@ -438,7 +470,10 @@ export default function PartComponentArticleForm({
           { label: "Remitente", value: values.sender },
           { label: "Origen", value: values.origin },
           { label: "Destino", value: values.destination },
-          { label: "Fecha de recepción", value: previewDate(receptionDate) },
+          {
+            label: "Fecha de recepción",
+            value: previewDate(receptionDate),
+          },
           { label: "Justificación", value: values.justification, full: true },
         ],
       },
@@ -487,7 +522,7 @@ export default function PartComponentArticleForm({
         submitLabel={submitLabel}
         hideActions={!!onStateChange}
         opensPreview={showPreview}
-        onCancel={() => router.back()}
+        onCancel={onCancel ?? (() => router.back())}
         // La vista previa la pide quien monta el formulario: solo el
         // alta y la edición formales del artículo la usan. Al crear se
         // confirma lo que va a nacer; al editar, cómo queda.
@@ -521,9 +556,11 @@ export default function PartComponentArticleForm({
               name="serial"
               render={({ field }) => (
                 <FormItem className="w-full">
-                  <FormLabel className={labelClass}>
-                    {isEditing ? "Serial" : "Seriales a registrar"}
-                  </FormLabel>
+                  <FieldLabelRow>
+                    <FormLabel className={labelClass}>
+                      {isEditing ? "Serial" : "Seriales a registrar"}
+                    </FormLabel>
+                  </FieldLabelRow>
                   <FormControl>
                     <MultiSerialInput
                       values={field.value ?? []}
@@ -532,6 +569,13 @@ export default function PartComponentArticleForm({
                       single={isEditing}
                     />
                   </FormControl>
+                  {/* Comparte fila con los números alternos, que llevan línea de
+                      apoyo: sin ella las dos celdas no cuadran. */}
+                  <FormDescription className={hintClass}>
+                    {isEditing
+                      ? "Identificador único de la pieza."
+                      : "Un serial por cada pieza que ingresa."}
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -543,7 +587,9 @@ export default function PartComponentArticleForm({
             name="condition_id"
             render={({ field }) => (
               <FormItem className="w-full">
-                <FormLabel className={labelClass}>Condición</FormLabel>
+                <FieldLabelRow>
+                    <FormLabel className={labelClass}>Condición</FormLabel>
+                </FieldLabelRow>
                 <SearchableSelect
                   options={conditions}
                   value={field.value}
@@ -582,7 +628,9 @@ export default function PartComponentArticleForm({
             name="ata_code"
             render={({ field }) => (
               <FormItem className="w-full">
-                <FormLabel className={labelClass}>Código ATA</FormLabel>
+                <FieldLabelRow>
+                    <FormLabel className={labelClass}>Código ATA</FormLabel>
+                </FieldLabelRow>
                 <FormControl>
                   <Input
                     placeholder="Ej: 32-41-00"
@@ -605,9 +653,11 @@ export default function PartComponentArticleForm({
               name="aircraft_id"
               render={({ field }) => (
                 <FormItem className="w-full">
-                  <FormLabel className={labelClass}>
-                    Aeronave de origen
-                  </FormLabel>
+                  <FieldLabelRow>
+                    <FormLabel className={labelClass}>
+                      Aeronave de origen
+                    </FormLabel>
+                  </FieldLabelRow>
                   <SearchableSelect
                     options={aircrafts?.map((aircraft) => ({
                       ...aircraft,
@@ -766,6 +816,7 @@ export default function PartComponentArticleForm({
           control={form.control}
           receptionDate={receptionDate}
           onReceptionDateChange={setReceptionDate}
+          isEditing={isEditing}
           disabled={busy}
         />
 
