@@ -2061,6 +2061,9 @@ export type ChangeRequest = {
   risk_assessments: ChangeRiskAssessment[];
   activities: ChangeActivity[];
   photographic_records: ChangePhotographicRecord[];
+  document: string | null;
+  library_document_id: number | null;
+  library_folder_paths?: string[];
 };
 
 export type StoreChangeRequestPayload = {
@@ -2102,6 +2105,8 @@ export type StoreChangeRequestPayload = {
     stage: PhotographicStage;
     image_url: string;
   }>;
+  document?: string | null;
+  library_folder_paths?: string[];
 };
 
 export type UpdateChangeRequestPayload = {
@@ -2148,4 +2153,6 @@ export type UpdateChangeRequestPayload = {
     stage: PhotographicStage;
     image_url: string;
   }>;
+  document?: string | null;
+  library_folder_paths?: string[];
 };

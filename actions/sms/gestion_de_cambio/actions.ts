@@ -12,6 +12,8 @@ interface CreateChangeRequestData {
   data: StoreChangeRequestPayload;
   beforeImages?: File[];
   afterImages?: File[];
+  document?: File;
+  libraryFolderPaths?: string[];
 }
 
 interface UpdateChangeRequestData {
@@ -22,6 +24,8 @@ interface UpdateChangeRequestData {
   afterImages?: File[];
   existingBeforeRecordIds?: number[];
   existingAfterRecordIds?: number[];
+  document?: File;
+  libraryFolderPaths?: string[];
 }
 
 function appendNestedFormData(
@@ -66,12 +70,25 @@ export const useCreateChangeRequest = () => {
       company,
       beforeImages = [],
       afterImages = [],
+      document,
+      libraryFolderPaths = [],
     }: CreateChangeRequestData) => {
       const formData = new FormData();
 
-      const { is_temporary, ...rest } = data as Record<string, unknown>;
+      // El documento y las carpetas los maneja el backend: se sacan del payload
+      // para no duplicarlos y se anexan explícitamente (patrón SMSActivity).
+      const {
+        is_temporary,
+        document: _doc,
+        library_folder_paths: _folders,
+        ...rest
+      } = data as Record<string, unknown>;
       appendNestedFormData(formData, rest);
       formData.append("is_temporary", is_temporary ? "1" : "0");
+      libraryFolderPaths.forEach((path) =>
+        formData.append("library_folder_paths[]", path),
+      );
+      if (document instanceof File) formData.append("document", document);
 
       let recordIdx = 0;
       beforeImages.forEach((file) => {
@@ -121,16 +138,27 @@ export const useUpdateChangeRequest = () => {
       afterImages = [],
       existingBeforeRecordIds = [],
       existingAfterRecordIds = [],
+      document,
+      libraryFolderPaths = [],
     }: UpdateChangeRequestData) => {
       const formData = new FormData();
       formData.append("_method", "PATCH");
 
-      const { is_temporary, photographic_records, ...rest } = data as Record<
-        string,
-        unknown
-      >;
+      // El documento y las carpetas los maneja el backend: se sacan del payload
+      // para no duplicarlos y se anexan explícitamente (patrón SMSActivity).
+      const {
+        is_temporary,
+        photographic_records,
+        document: _doc,
+        library_folder_paths: _folders,
+        ...rest
+      } = data as Record<string, unknown>;
       appendNestedFormData(formData, rest);
       formData.append("is_temporary", is_temporary ? "1" : "0");
+      libraryFolderPaths.forEach((path) =>
+        formData.append("library_folder_paths[]", path),
+      );
+      if (document instanceof File) formData.append("document", document);
 
       let recordIdx = 0;
       existingBeforeRecordIds.forEach((recordId) => {
