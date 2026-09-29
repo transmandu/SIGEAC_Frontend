@@ -515,7 +515,7 @@ export function EditChangeRequestForm({
       {
         onSuccess: () => {
           router.push(
-            `/${selectedCompany.slug}/sms/aseguramiento_calidad/gestion_de_cambio/${changeRequest.id}`,
+            `/${selectedCompany.slug}/sms/aseguramiento_calidad/gestion_de_cambio/${changeRequest.request_number}`,
           );
         },
       },

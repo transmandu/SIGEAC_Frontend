@@ -2,7 +2,7 @@
 
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { useParams } from "next/navigation";
-import { useGetChangeRequestById } from "@/hooks/sms/gestion_de_cambio/useGetChangeRequestById";
+import { useGetChangeRequestByNumber } from "@/hooks/sms/gestion_de_cambio/useGetChangeRequestByNumber";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -447,13 +447,13 @@ const PhotographicRecordsSection = ({
 export default function GestionDeCambioDetailPage() {
   const params = useParams();
   const company = params.company as string;
-  const id = params.id as string;
+  const requestNumber = params.requestNumber as string;
 
   const {
     data: changeRequest,
     isLoading,
     isError,
-  } = useGetChangeRequestById(company, id);
+  } = useGetChangeRequestByNumber(company, requestNumber);
 
   if (isLoading) {
     return (
@@ -504,7 +504,7 @@ export default function GestionDeCambioDetailPage() {
                 <FileText className="h-5 w-5 text-muted-foreground" />
                 Solicitud de Cambio{" "}
                 <span className="text-muted-foreground">
-                  #{changeRequest.id}
+                  {changeRequest.request_number}
                 </span>
               </h1>
               <p className="text-xs text-muted-foreground mt-0.5">
