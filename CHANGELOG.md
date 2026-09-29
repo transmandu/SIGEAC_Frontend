@@ -1,3 +1,7 @@
+## v4.34.0 — 2026-09-29
+
+- feat: enhance incoming readiness handling in transit articles (#301)
+
 ## v4.33.0 — 2026-09-28
 
 - feat: add new chart to sms report pdf (#300)
