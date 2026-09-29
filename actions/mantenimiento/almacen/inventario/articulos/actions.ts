@@ -1,54 +1,58 @@
 import axiosInstance from "@/lib/axios";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { ArticleDocumentRequirementSummary, ComponentArticle, ConsumableArticle, ToolArticle } from "@/types";
+import {
+  ArticleDocumentRequirementSummary,
+  ComponentArticle,
+  ConsumableArticle,
+  ToolArticle,
+} from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { toast } from "sonner";
 
 interface ArticleData {
-    serial?: string | string[];
-    part_number: string;
-    lot_number?: string;
-    alternative_part_number?: string[];
-    description?: string;
-    batch_name?: string;
-    zone?: string;
-    status?: string;
-    calibration_date?: string;
-    calibration_interval_days?: string;
-    manufacturer_id?: number | string;
-    condition_id?: number | string;
-    batch_id: string;
-    is_special?: boolean;
-    expiration_date?: string;
-    quantity?: string | number;
-    fabrication_date?: string;
-    calendar_date?: string;
-    image?: File | string;
-    /** Equivalencias del artículo: { unit_id, direction, value }. */
-    conversions?: { unit_id: number; direction: string; value: number }[];
-    primary_unit_id?: number;
-    life_limit_part_calendar?: string;
-    life_limit_part_hours?: string | number;
-    life_limit_part_cycles?: string | number;
-    inspector?: string;
-    inspect_date?: string;
-    reception_date?: string;
-    hard_time_calendar?: string;
-    hard_time_hours?: string | number;
-    hard_time_cycles?: string | number;
-    ata_code?: string;
+  serial?: string | string[];
+  part_number: string;
+  lot_number?: string;
+  alternative_part_number?: string[];
+  description?: string;
+  batch_name?: string;
+  zone?: string;
+  status?: string;
+  calibration_date?: string;
+  calibration_interval_days?: string;
+  manufacturer_id?: number | string;
+  condition_id?: number | string;
+  batch_id: string;
+  is_special?: boolean;
+  expiration_date?: string;
+  quantity?: string | number;
+  fabrication_date?: string;
+  calendar_date?: string;
+  image?: File | string;
+  /** Equivalencias del artículo: { unit_id, direction, value }. */
+  conversions?: { unit_id: number; direction: string; value: number }[];
+  primary_unit_id?: number;
+  life_limit_part_calendar?: string;
+  life_limit_part_hours?: string | number;
+  life_limit_part_cycles?: string | number;
+  inspector?: string;
+  inspect_date?: string;
+  reception_date?: string;
+  hard_time_calendar?: string;
+  hard_time_hours?: string | number;
+  hard_time_cycles?: string | number;
+  ata_code?: string;
 }
 
 interface SendToQuarantinePayload {
   article_id: number;
   reason: string;
-  quarantine_entry_date: string
+  quarantine_entry_date: string;
   quarantine_exit_date?: string;
   /** Username del inspector que retiene; el backend lo exige y lo valida contra master. */
   inspector: string;
 }
-
 
 type CheckResult = "PASS" | "FAIL" | "NA";
 
@@ -58,20 +62,20 @@ type CheckResult = "PASS" | "FAIL" | "NA";
  * consignar y/o la constancia de recepción física (crea el ArticleDocument).
  */
 export interface ArticleDocumentSelection {
-    typeId: number;
-    file?: File;
-    isPhysical?: boolean;
-    /**
-     * Id del requerimiento ya existente al que pertenece esta selección
-     * (modo edición: el tipo ya estaba consignado o pendiente). Si no viene,
-     * se asume que el requerimiento aún no existe y hay que crearlo.
-     */
-    requirementId?: number;
-    /**
-     * Id del documento consignado que debe eliminarse antes de subir el
-     * nuevo archivo (reemplazo explícito de un documento ya existente).
-     */
-    replaceDocumentId?: number;
+  typeId: number;
+  file?: File;
+  isPhysical?: boolean;
+  /**
+   * Id del requerimiento ya existente al que pertenece esta selección
+   * (modo edición: el tipo ya estaba consignado o pendiente). Si no viene,
+   * se asume que el requerimiento aún no existe y hay que crearlo.
+   */
+  requirementId?: number;
+  /**
+   * Id del documento consignado que debe eliminarse antes de subir el
+   * nuevo archivo (reemplazo explícito de un documento ya existente).
+   */
+  replaceDocumentId?: number;
 }
 
 /**
@@ -79,11 +83,15 @@ export interface ArticleDocumentSelection {
  * listados, el detalle que precarga el formulario de edición (`article`) y el
  * checklist que carga el diálogo de documentación.
  */
-const invalidateArticleDocuments = (queryClient: ReturnType<typeof useQueryClient>) => {
-    queryClient.invalidateQueries({ queryKey: ["articles"] });
-    queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
-    queryClient.invalidateQueries({ queryKey: ["article"] });
-    queryClient.invalidateQueries({ queryKey: ["article-document-requirements"] });
+const invalidateArticleDocuments = (
+  queryClient: ReturnType<typeof useQueryClient>,
+) => {
+  queryClient.invalidateQueries({ queryKey: ["articles"] });
+  queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
+  queryClient.invalidateQueries({ queryKey: ["article"] });
+  queryClient.invalidateQueries({
+    queryKey: ["article-document-requirements"],
+  });
 };
 
 /**
@@ -93,37 +101,37 @@ const invalidateArticleDocuments = (queryClient: ReturnType<typeof useQueryClien
  * real (preview + reemplazar) en vez de un input vacío.
  */
 export const buildDocumentSelectionFromArticle = (
-    article?: { document_requirements?: ArticleDocumentRequirementSummary[] },
-    /**
-     * Selección actual del formulario. El archivo adjunto vive solo en memoria
-     * y el servidor todavía no lo conoce: sin conservarlo, un refetch mientras
-     * el usuario tenía un archivo elegido lo descartaba en silencio y el submit
-     * no subía nada.
-     */
-    current: ArticleDocumentSelection[] = []
+  article?: { document_requirements?: ArticleDocumentRequirementSummary[] },
+  /**
+   * Selección actual del formulario. El archivo adjunto vive solo en memoria
+   * y el servidor todavía no lo conoce: sin conservarlo, un refetch mientras
+   * el usuario tenía un archivo elegido lo descartaba en silencio y el submit
+   * no subía nada.
+   */
+  current: ArticleDocumentSelection[] = [],
 ): ArticleDocumentSelection[] => {
-    const pendingByTypeId = new Map(
-        current
-            .filter((doc) => doc.file || doc.isPhysical || doc.replaceDocumentId)
-            .map((doc) => [doc.typeId, doc])
-    );
+  const pendingByTypeId = new Map(
+    current
+      .filter((doc) => doc.file || doc.isPhysical || doc.replaceDocumentId)
+      .map((doc) => [doc.typeId, doc]),
+  );
 
-    const fromArticle = (article?.document_requirements ?? [])
-        .filter((req) => typeof req.document_type?.id === "number")
-        .map((req) => {
-            const typeId = req.document_type!.id;
-            const pending = pendingByTypeId.get(typeId);
-            pendingByTypeId.delete(typeId);
+  const fromArticle = (article?.document_requirements ?? [])
+    .filter((req) => typeof req.document_type?.id === "number")
+    .map((req) => {
+      const typeId = req.document_type!.id;
+      const pending = pendingByTypeId.get(typeId);
+      pendingByTypeId.delete(typeId);
 
-            return {
-                ...pending,
-                typeId,
-                requirementId: req.documents.length > 0 ? req.id : undefined,
-            };
-        });
+      return {
+        ...pending,
+        typeId,
+        requirementId: req.documents.length > 0 ? req.id : undefined,
+      };
+    });
 
-    // Tipos que el usuario agregó y que el artículo aún no tiene registrados.
-    return [...fromArticle, ...Array.from(pendingByTypeId.values())];
+  // Tipos que el usuario agregó y que el artículo aún no tiene registrados.
+  return [...fromArticle, ...Array.from(pendingByTypeId.values())];
 };
 
 /**
@@ -132,18 +140,20 @@ export const buildDocumentSelectionFromArticle = (
  * no los ve: sin esto, adjuntar un archivo no habilita el botón de guardar.
  */
 export const isDocumentSelectionDirty = (
-    current: ArticleDocumentSelection[],
-    initial: ArticleDocumentSelection[]
+  current: ArticleDocumentSelection[],
+  initial: ArticleDocumentSelection[],
 ): boolean => {
-    if (current.some((doc) => doc.file || doc.isPhysical || doc.replaceDocumentId)) {
-        return true;
-    }
+  if (
+    current.some((doc) => doc.file || doc.isPhysical || doc.replaceDocumentId)
+  ) {
+    return true;
+  }
 
-    if (current.length !== initial.length) return true;
+  if (current.length !== initial.length) return true;
 
-    const initialTypeIds = new Set(initial.map((doc) => doc.typeId));
+  const initialTypeIds = new Set(initial.map((doc) => doc.typeId));
 
-    return current.some((doc) => !initialTypeIds.has(doc.typeId));
+  return current.some((doc) => !initialTypeIds.has(doc.typeId));
 };
 
 /**
@@ -152,11 +162,11 @@ export const isDocumentSelectionDirty = (
  * existentes) con la forma { Article: { article: { id, ... }, ... }, ... }.
  */
 export const extractCreatedArticleIds = (responseData: any): number[] => {
-    const items = Array.isArray(responseData) ? responseData : [responseData];
+  const items = Array.isArray(responseData) ? responseData : [responseData];
 
-    return items
-        .map((item) => item?.Article?.article?.id)
-        .filter((id): id is number => typeof id === "number");
+  return items
+    .map((item) => item?.Article?.article?.id)
+    .filter((id): id is number => typeof id === "number");
 };
 
 const serializeFormValue = (value: unknown) => {
@@ -182,7 +192,10 @@ const serializeFormValue = (value: unknown) => {
  * `toString()` y llegaban como "[object Object]", que el backend rechazaba con
  * un 422 sin mensaje visible.
  */
-const appendArticleFormData = (formData: FormData, data: Record<string, any>) => {
+const appendArticleFormData = (
+  formData: FormData,
+  data: Record<string, any>,
+) => {
   Object.entries(data).forEach(([key, value]) => {
     if (value === undefined || value === null) return;
 
@@ -200,7 +213,9 @@ const appendArticleFormData = (formData: FormData, data: Record<string, any>) =>
       if (value.some((item) => typeof item === "object" && item !== null)) {
         formData.append(key, JSON.stringify(value));
       } else {
-        value.forEach((item) => formData.append(`${key}[]`, serializeFormValue(item)));
+        value.forEach((item) =>
+          formData.append(`${key}[]`, serializeFormValue(item)),
+        );
       }
       return;
     }
@@ -254,7 +269,9 @@ export const useCreateArticle = () => {
     },
     onSuccess: (_, data) => {
       queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
-      queryClient.invalidateQueries({ queryKey: ['articles', data.company, data.data.status] });
+      queryClient.invalidateQueries({
+        queryKey: ["articles", data.company, data.data.status],
+      });
       toast.success("¡Creado!", {
         description: `El articulo ha sido creado correctamente.`,
       });
@@ -307,9 +324,59 @@ export const useCreateToReviewArticle = () => {
     },
   });
 
-    return {
-        createArticle: createMutation,
-    };
+  return {
+    createArticle: createMutation,
+  };
+};
+
+/**
+ * Declara qué tipos de documento exige un artículo, sin cargar archivos.
+ *
+ * Separado del formulario de edición porque responde a otra pregunta: no es
+ * "corrige los datos del artículo" sino "di qué papeles le corresponden", que es
+ * lo único que hace falta para que compras pueda ir a buscarlos. El endpoint es
+ * aditivo, así que solo se envían los tipos nuevos.
+ */
+export const useAssignArticleDocumentRequirements = () => {
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: async ({
+      company,
+      articleId,
+      documentTypeIds,
+    }: {
+      company: string;
+      articleId: number;
+      documentTypeIds: number[];
+    }) => {
+      await axiosInstance.post(
+        `/${company}/articles/${articleId}/document-requirements`,
+        { document_type_ids: documentTypeIds },
+      );
+    },
+    onSuccess: (_data, variables) => {
+      invalidateArticleDocuments(queryClient);
+
+      const count = variables.documentTypeIds.length;
+
+      toast.success("Documentación indicada", {
+        description:
+          count === 1
+            ? "Se registró el documento requerido. Compras ya puede conseguirlo."
+            : `Se registraron ${count} documentos requeridos. Compras ya puede conseguirlos.`,
+      });
+    },
+    onError: (error: any) => {
+      toast.error("Oops!", {
+        description:
+          error?.response?.data?.message ??
+          "No se pudo registrar la documentación requerida...",
+      });
+    },
+  });
+
+  return { assignArticleDocumentRequirements: mutation };
 };
 
 /**
@@ -319,48 +386,48 @@ export const useCreateToReviewArticle = () => {
  * el formulario la casilla vuelve a marcarse sola.
  */
 export const useSyncArticleDocumentRequirements = () => {
-    const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
 
-    const syncMutation = useMutation({
-        mutationKey: ["article-documents"],
-        mutationFn: async ({
-            company,
-            keptTypeIds,
-            existingRequirements,
-        }: {
-            company: string;
-            /** Tipos que deben permanecer; el resto se elimina. */
-            keptTypeIds: number[];
-            existingRequirements: ArticleDocumentRequirementSummary[];
-        }) => {
-            const kept = new Set(keptTypeIds);
+  const syncMutation = useMutation({
+    mutationKey: ["article-documents"],
+    mutationFn: async ({
+      company,
+      keptTypeIds,
+      existingRequirements,
+    }: {
+      company: string;
+      /** Tipos que deben permanecer; el resto se elimina. */
+      keptTypeIds: number[];
+      existingRequirements: ArticleDocumentRequirementSummary[];
+    }) => {
+      const kept = new Set(keptTypeIds);
 
-            const removable = existingRequirements.filter(
-                (req) =>
-                    typeof req.document_type?.id === "number" &&
-                    !kept.has(req.document_type.id)
-            );
+      const removable = existingRequirements.filter(
+        (req) =>
+          typeof req.document_type?.id === "number" &&
+          !kept.has(req.document_type.id),
+      );
 
-            for (const requirement of removable) {
-                await axiosInstance.delete(
-                    `/${company}/article-document-requirements/${requirement.id}`
-                );
-            }
-        },
-        onSuccess: () => {
-            invalidateArticleDocuments(queryClient);
-        },
-        onError: (error) => {
-            toast.error("Oops!", {
-                description: "No se pudo actualizar la documentación esperada...",
-            });
-            console.log(error);
-        },
-    });
+      for (const requirement of removable) {
+        await axiosInstance.delete(
+          `/${company}/article-document-requirements/${requirement.id}`,
+        );
+      }
+    },
+    onSuccess: () => {
+      invalidateArticleDocuments(queryClient);
+    },
+    onError: (error) => {
+      toast.error("Oops!", {
+        description: "No se pudo actualizar la documentación esperada...",
+      });
+      console.log(error);
+    },
+  });
 
-    return {
-        syncArticleDocumentRequirements: syncMutation,
-    };
+  return {
+    syncArticleDocumentRequirements: syncMutation,
+  };
 };
 
 /**
@@ -369,99 +436,99 @@ export const useSyncArticleDocumentRequirements = () => {
  * había forma de saber por qué el archivo fue rechazado.
  */
 const describeDocumentUploadError = (error: any): string => {
-    const response = error?.response;
+  const response = error?.response;
 
-    if (response?.status === 413) {
-        return "El archivo es demasiado grande. El máximo permitido es 10 MB.";
-    }
+  if (response?.status === 413) {
+    return "El archivo es demasiado grande. El máximo permitido es 10 MB.";
+  }
 
-    const validationErrors = response?.data?.errors;
+  const validationErrors = response?.data?.errors;
 
-    if (validationErrors && typeof validationErrors === "object") {
-        const first = Object.values(validationErrors).flat()[0];
-        if (typeof first === "string") return first;
-    }
+  if (validationErrors && typeof validationErrors === "object") {
+    const first = Object.values(validationErrors).flat()[0];
+    if (typeof first === "string") return first;
+  }
 
-    const message = response?.data?.message;
-    if (typeof message === "string" && message.length > 0) return message;
+  const message = response?.data?.message;
+  if (typeof message === "string" && message.length > 0) return message;
 
-    return "No se pudo guardar la documentación del artículo...";
+  return "No se pudo guardar la documentación del artículo...";
 };
 
 export const useUploadArticleDocuments = () => {
-    const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
 
-    const uploadMutation = useMutation({
-        mutationKey: ["article-documents"],
-        mutationFn: async ({
-            company,
-            articleId,
-            documents,
-        }: {
-            company: string;
-            articleId: number;
-            documents: ArticleDocumentSelection[];
-        }) => {
-            if (documents.length === 0) return;
+  const uploadMutation = useMutation({
+    mutationKey: ["article-documents"],
+    mutationFn: async ({
+      company,
+      articleId,
+      documents,
+    }: {
+      company: string;
+      articleId: number;
+      documents: ArticleDocumentSelection[];
+    }) => {
+      if (documents.length === 0) return;
 
-            // Dos pasos obligados: primero se declaran los tipos esperados y de
-            // ahí salen los requirements, contra los que se sube cada archivo.
-            // Un tipo sin archivo queda como pendiente, que es lo que se audita.
-            const { data } = await axiosInstance.post(
-                `/${company}/articles/${articleId}/document-requirements`,
-                { document_type_ids: documents.map((doc) => doc.typeId) }
-            );
+      // Dos pasos obligados: primero se declaran los tipos esperados y de
+      // ahí salen los requirements, contra los que se sube cada archivo.
+      // Un tipo sin archivo queda como pendiente, que es lo que se audita.
+      const { data } = await axiosInstance.post(
+        `/${company}/articles/${articleId}/document-requirements`,
+        { document_type_ids: documents.map((doc) => doc.typeId) },
+      );
 
-            const requirements: { id: number; article_document_type_id: number }[] =
-                data?.Requirements ?? [];
+      const requirements: { id: number; article_document_type_id: number }[] =
+        data?.Requirements ?? [];
 
-            for (const doc of documents) {
-                if (!doc.file && !doc.isPhysical) continue;
+      for (const doc of documents) {
+        if (!doc.file && !doc.isPhysical) continue;
 
-                const requirement = requirements.find(
-                    (req) => req.article_document_type_id === doc.typeId
-                );
+        const requirement = requirements.find(
+          (req) => req.article_document_type_id === doc.typeId,
+        );
 
-                if (!requirement) {
-                    throw new Error(
-                        `No se pudo registrar el documento "${doc.typeId}": el requerimiento no fue creado en el servidor.`
-                    );
-                }
+        if (!requirement) {
+          throw new Error(
+            `No se pudo registrar el documento "${doc.typeId}": el requerimiento no fue creado en el servidor.`,
+          );
+        }
 
-                const formData = new FormData();
-                if (doc.file) {
-                    formData.append("file", doc.file);
-                }
-                formData.append("is_physical", doc.isPhysical ? "1" : "0");
+        const formData = new FormData();
+        if (doc.file) {
+          formData.append("file", doc.file);
+        }
+        formData.append("is_physical", doc.isPhysical ? "1" : "0");
 
-                await axiosInstance.post(
-                    `/${company}/article-document-requirements/${requirement.id}/documents`,
-                    formData
-                );
+        await axiosInstance.post(
+          `/${company}/article-document-requirements/${requirement.id}/documents`,
+          formData,
+        );
 
-                // El anterior se borra recién cuando el nuevo quedó consignado:
-                // al revés, una subida fallida dejaba al artículo sin ninguno.
-                if (doc.replaceDocumentId) {
-                    await axiosInstance.delete(
-                        `/${company}/article-documents/${doc.replaceDocumentId}`
-                    );
-                }
-            }
-        },
-        onSuccess: () => {
-            invalidateArticleDocuments(queryClient);
-        },
-        onError: (error) => {
-            toast.error("Oops!", {
-                description: describeDocumentUploadError(error),
-            });
-            console.log(error);
-        },
-    });
+        // El anterior se borra recién cuando el nuevo quedó consignado:
+        // al revés, una subida fallida dejaba al artículo sin ninguno.
+        if (doc.replaceDocumentId) {
+          await axiosInstance.delete(
+            `/${company}/article-documents/${doc.replaceDocumentId}`,
+          );
+        }
+      }
+    },
+    onSuccess: () => {
+      invalidateArticleDocuments(queryClient);
+    },
+    onError: (error) => {
+      toast.error("Oops!", {
+        description: describeDocumentUploadError(error),
+      });
+      console.log(error);
+    },
+  });
 
-    return {
-        uploadArticleDocuments: uploadMutation,
-    };
+  return {
+    uploadArticleDocuments: uploadMutation,
+  };
 };
 
 /**
@@ -469,52 +536,52 @@ export const useUploadArticleDocuments = () => {
  * (ArticleDocumentRequirement): archivo y/o constancia de recepción física.
  */
 export interface RequirementConsignment {
-    requirementId: number;
-    file?: File;
-    isPhysical?: boolean;
+  requirementId: number;
+  file?: File;
+  isPhysical?: boolean;
 }
 
 export const useConsignRequirementDocuments = () => {
-    const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
 
-    const consignMutation = useMutation({
-        mutationKey: ["article-documents"],
-        mutationFn: async ({
-            company,
-            consignments,
-        }: {
-            company: string;
-            consignments: RequirementConsignment[];
-        }) => {
-            for (const consignment of consignments) {
-                if (!consignment.file && !consignment.isPhysical) continue;
+  const consignMutation = useMutation({
+    mutationKey: ["article-documents"],
+    mutationFn: async ({
+      company,
+      consignments,
+    }: {
+      company: string;
+      consignments: RequirementConsignment[];
+    }) => {
+      for (const consignment of consignments) {
+        if (!consignment.file && !consignment.isPhysical) continue;
 
-                const formData = new FormData();
-                if (consignment.file) {
-                    formData.append("file", consignment.file);
-                }
-                formData.append("is_physical", consignment.isPhysical ? "1" : "0");
+        const formData = new FormData();
+        if (consignment.file) {
+          formData.append("file", consignment.file);
+        }
+        formData.append("is_physical", consignment.isPhysical ? "1" : "0");
 
-                await axiosInstance.post(
-                    `/${company}/article-document-requirements/${consignment.requirementId}/documents`,
-                    formData
-                );
-            }
-        },
-        onSuccess: () => {
-            invalidateArticleDocuments(queryClient);
-        },
-        onError: (error) => {
-            toast.error("Oops!", {
-                description: "No se pudo consignar la documentación del artículo...",
-            });
-            console.log(error);
-        },
-    });
+        await axiosInstance.post(
+          `/${company}/article-document-requirements/${consignment.requirementId}/documents`,
+          formData,
+        );
+      }
+    },
+    onSuccess: () => {
+      invalidateArticleDocuments(queryClient);
+    },
+    onError: (error) => {
+      toast.error("Oops!", {
+        description: "No se pudo consignar la documentación del artículo...",
+      });
+      console.log(error);
+    },
+  });
 
-    return {
-        consignRequirementDocuments: consignMutation,
-    };
+  return {
+    consignRequirementDocuments: consignMutation,
+  };
 };
 
 /**
@@ -522,33 +589,33 @@ export const useConsignRequirementDocuments = () => {
  * reemplazarlo por uno nuevo.
  */
 export const useDeleteArticleDocument = () => {
-    const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
 
-    const deleteMutation = useMutation({
-        mutationKey: ["article-documents"],
-        mutationFn: async ({
-            company,
-            documentId,
-        }: {
-            company: string;
-            documentId: number;
-        }) => {
-            await axiosInstance.delete(`/${company}/article-documents/${documentId}`);
-        },
-        onSuccess: () => {
-            invalidateArticleDocuments(queryClient);
-        },
-        onError: (error) => {
-            toast.error("Oops!", {
-                description: "No se pudo eliminar el documento consignado...",
-            });
-            console.log(error);
-        },
-    });
+  const deleteMutation = useMutation({
+    mutationKey: ["article-documents"],
+    mutationFn: async ({
+      company,
+      documentId,
+    }: {
+      company: string;
+      documentId: number;
+    }) => {
+      await axiosInstance.delete(`/${company}/article-documents/${documentId}`);
+    },
+    onSuccess: () => {
+      invalidateArticleDocuments(queryClient);
+    },
+    onError: (error) => {
+      toast.error("Oops!", {
+        description: "No se pudo eliminar el documento consignado...",
+      });
+      console.log(error);
+    },
+  });
 
-    return {
-        deleteArticleDocument: deleteMutation,
-    };
+  return {
+    deleteArticleDocument: deleteMutation,
+  };
 };
 
 export const useDeleteArticle = () => {
@@ -566,7 +633,9 @@ export const useDeleteArticle = () => {
     },
     onSuccess: (_, data) => {
       queryClient.invalidateQueries({ queryKey: ["articles"] });
-      queryClient.invalidateQueries({ queryKey: ["warehouse-articles", data.company] });
+      queryClient.invalidateQueries({
+        queryKey: ["warehouse-articles", data.company],
+      });
       // queryClient.invalidateQueries({queryKey: ['warehouse-articles']})
       toast.success("¡Eliminado!", {
         description: `¡El articulo ha sido eliminado correctamente!`,
@@ -601,7 +670,7 @@ export const useUpdateArticleStatus = () => {
       if (ids && ids.length > 0) {
         await axiosInstance.put(
           `/${selectedCompany?.slug}/update-article-status`,
-          { status, ids }
+          { status, ids },
         );
         return;
       }
@@ -612,7 +681,7 @@ export const useUpdateArticleStatus = () => {
 
       await axiosInstance.put(
         `/${selectedCompany?.slug}/update-article-status/${id}`,
-        { status }
+        { status },
       );
     },
     onSuccess: () => {
@@ -626,24 +695,46 @@ export const useUpdateArticleStatus = () => {
       // El cambio de estado deja un movimiento nuevo: la cronología ya no vale.
       queryClient.invalidateQueries({ queryKey: ["article-status-history"] });
       if (company) {
-        queryClient.invalidateQueries({ queryKey: ["articles", company, "TRANSIT"] });
-        queryClient.invalidateQueries({ queryKey: ["articles", company, "RECEPTION"] });
-        queryClient.invalidateQueries({ queryKey: ["articles", company, "INCOMING"] });
-        queryClient.invalidateQueries({ queryKey: ["articles", company, "WAITING_FOR_FORMAT"] });
-        queryClient.invalidateQueries({ queryKey: ["articles", company, "WAITING_TO_LOCATE"] });
-        queryClient.invalidateQueries({ queryKey: ["articles", company, "QUARANTINE"] });
-        queryClient.invalidateQueries({ queryKey: ["articles", company, "PENDING_REINSPECTION"] });
-        queryClient.invalidateQueries({ queryKey: ["articles", company, "TO_DETERMINATE"] });
-        queryClient.invalidateQueries({ queryKey: ["articles", company, "STORED"] });
+        queryClient.invalidateQueries({
+          queryKey: ["articles", company, "TRANSIT"],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["articles", company, "RECEPTION"],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["articles", company, "INCOMING"],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["articles", company, "WAITING_FOR_FORMAT"],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["articles", company, "WAITING_TO_LOCATE"],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["articles", company, "QUARANTINE"],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["articles", company, "PENDING_REINSPECTION"],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["articles", company, "TO_DETERMINATE"],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["articles", company, "STORED"],
+        });
       }
       queryClient.invalidateQueries({ queryKey: ["purchase-orders"] });
       toast.success("¡Actualizado!", {
         description: `El articulo ha sido actualizado correctamente.`,
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
+      // El rechazo del incoming llega con lo que falta por artículo. Sin
+      // enumerarlo el usuario solo ve "no se pudo" y no qué resolver.
+      const data = error?.response?.data;
+
       toast.error("Oops!", {
-        description: "No se pudo actualizar el articulo...",
+        description: data?.message ?? "No se pudo actualizar el articulo...",
       });
       console.log(error);
     },
@@ -651,6 +742,50 @@ export const useUpdateArticleStatus = () => {
   return {
     updateArticleStatus: updateArticleStatusMutation,
   };
+};
+
+/**
+ * Almacén avisa que un artículo no puede pasar a incoming por datos que solo
+ * compras conoce: el número de orden y la documentación.
+ *
+ * Lo dispara una acción explícita y no un cambio de estado, porque el artículo
+ * se queda quieto en recepción: sin este aviso la parada no le consta a nadie.
+ */
+export const useReportIncomingBlocked = () => {
+  const { selectedCompany } = useCompanyStore();
+
+  const mutation = useMutation({
+    mutationFn: async ({
+      id,
+      reported_by,
+    }: {
+      id: number;
+      reported_by?: string | null;
+    }) => {
+      const { data } = await axiosInstance.post(
+        `/${selectedCompany?.slug}/articles/${id}/report-incoming-blocked`,
+        { reported_by: reported_by || null },
+      );
+
+      return data;
+    },
+    onSuccess: (data) => {
+      toast.success("¡Notificado!", {
+        description:
+          data?.message ??
+          "Se notificó al personal competente sobre la información faltante.",
+      });
+    },
+    onError: (error: any) => {
+      toast.error("Oops!", {
+        description:
+          error?.response?.data?.message ??
+          "No se pudo enviar la notificación...",
+      });
+    },
+  });
+
+  return { reportIncomingBlocked: mutation };
 };
 
 /**
@@ -681,7 +816,7 @@ export const useStoreArticleDirectly = () => {
           authorized_by,
           authorized_by_employee_id: authorized_by_employee_id ?? null,
           authorization_reason: authorization_reason || null,
-        }
+        },
       );
     },
     onSuccess: () => {
@@ -693,9 +828,15 @@ export const useStoreArticleDirectly = () => {
       queryClient.invalidateQueries({ queryKey: ["articles"] });
       queryClient.invalidateQueries({ queryKey: ["article-status-history"] });
       if (company) {
-        queryClient.invalidateQueries({ queryKey: ["articles", company, "RECEPTION"] });
-        queryClient.invalidateQueries({ queryKey: ["articles", company, "TO_DETERMINATE"] });
-        queryClient.invalidateQueries({ queryKey: ["articles", company, "STORED"] });
+        queryClient.invalidateQueries({
+          queryKey: ["articles", company, "RECEPTION"],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["articles", company, "TO_DETERMINATE"],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["articles", company, "STORED"],
+        });
       }
 
       toast.success("¡Almacenado!", {
@@ -714,7 +855,7 @@ export const useStoreArticleDirectly = () => {
       toast.error("Oops!", {
         description: pending.length
           ? `${data.message} Pendiente: ${pending.join(", ")}.`
-          : data?.message ?? "No se pudo pasar el artículo al inventario...",
+          : (data?.message ?? "No se pudo pasar el artículo al inventario..."),
       });
     },
   });
@@ -746,12 +887,20 @@ export const useConfirmIncomingArticle = () => {
       queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
       queryClient.invalidateQueries({ queryKey: ["articles"] });
       if (company) {
-        queryClient.invalidateQueries({ queryKey: ["articles", company, "INCOMING"] });
-        queryClient.invalidateQueries({ queryKey: ["articles", company, "WAITING_FOR_FORMAT"] });
+        queryClient.invalidateQueries({
+          queryKey: ["articles", company, "INCOMING"],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["articles", company, "WAITING_FOR_FORMAT"],
+        });
         // Una re-inspección entra por aquí: aprobar cierra la retención y
         // rechazar la reabre, así que ambos lados del ciclo quedan obsoletos.
-        queryClient.invalidateQueries({ queryKey: ["articles", company, "QUARANTINE"] });
-        queryClient.invalidateQueries({ queryKey: ["articles", company, "PENDING_REINSPECTION"] });
+        queryClient.invalidateQueries({
+          queryKey: ["articles", company, "QUARANTINE"],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["articles", company, "PENDING_REINSPECTION"],
+        });
       }
       queryClient.invalidateQueries({ queryKey: ["incoming-inspections"] });
       queryClient.invalidateQueries({ queryKey: ["quarantine-articles"] });
@@ -796,7 +945,7 @@ export const useEditArticle = () => {
           headers: {
             "Content-Type": "multipart/form-data",
           },
-        }
+        },
       );
     },
     onSuccess: (_, data) => {
@@ -806,7 +955,9 @@ export const useEditArticle = () => {
       queryClient.invalidateQueries({ queryKey: ["batches"] });
       queryClient.invalidateQueries({ queryKey: ["in-transit-articles"] });
       queryClient.invalidateQueries({ queryKey: ["in-reception-articles"] });
-      queryClient.invalidateQueries({ queryKey: ['articles', data.company, data.data.status] });
+      queryClient.invalidateQueries({
+        queryKey: ["articles", data.company, data.data.status],
+      });
       toast.success("¡Actualizado!", {
         description: `El articulo ha sido actualizado correctamente.`,
       });
@@ -847,7 +998,7 @@ export const useUpdateArticle = () => {
           headers: {
             "Content-Type": "multipart/form-data",
           },
-        }
+        },
       );
     },
 
@@ -881,14 +1032,11 @@ export const useLocateArticle = () => {
   const { selectedCompany } = useCompanyStore();
   const locateArticleMutation = useMutation({
     mutationKey: ["articles"],
-    mutationFn: async ({
-      id,
-      zone,
-    }: {
-      id: number | string;
-      zone: string;
-    }) => {
-      await axiosInstance.patch(`/${selectedCompany?.slug}/${id}/locate-article`, { zone });
+    mutationFn: async ({ id, zone }: { id: number | string; zone: string }) => {
+      await axiosInstance.patch(
+        `/${selectedCompany?.slug}/${id}/locate-article`,
+        { zone },
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["articles"] });
@@ -909,8 +1057,8 @@ export const useLocateArticle = () => {
   });
   return {
     locateArticle: locateArticleMutation,
-  }
-}
+  };
+};
 
 export const useSendToQuarantine = () => {
   const { selectedCompany } = useCompanyStore();
@@ -936,8 +1084,12 @@ export const useSendToQuarantine = () => {
       queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
       queryClient.invalidateQueries({ queryKey: ["articles"] });
       if (company) {
-        queryClient.invalidateQueries({ queryKey: ["articles", company, "INCOMING"] });
-        queryClient.invalidateQueries({ queryKey: ["articles", company, "QUARANTINE"] });
+        queryClient.invalidateQueries({
+          queryKey: ["articles", company, "INCOMING"],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["articles", company, "QUARANTINE"],
+        });
       }
       queryClient.invalidateQueries({ queryKey: ["incoming-articles"] });
       queryClient.invalidateQueries({ queryKey: ["quarantine-articles"] });
@@ -969,23 +1121,31 @@ export const useUpdateToolArticleStatus = () => {
   const queryClient = useQueryClient();
 
   const updateToolArticleStatusMutation = useMutation({
-    mutationKey: ['calibrated-tools'],
-    mutationFn: async ({ id, status, calibration_date }: { id: number; status: string; calibration_date?: string }) => {
+    mutationKey: ["calibrated-tools"],
+    mutationFn: async ({
+      id,
+      status,
+      calibration_date,
+    }: {
+      id: number;
+      status: string;
+      calibration_date?: string;
+    }) => {
       await axiosInstance.patch(`/${selectedCompany?.slug}/update-tool/${id}`, {
         status: status,
         calibration_date: calibration_date || null,
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['warehouse-articles'] });
-      queryClient.invalidateQueries({ queryKey: ['article-status-history'] });
-      toast.success('¡Actualizado!', {
+      queryClient.invalidateQueries({ queryKey: ["warehouse-articles"] });
+      queryClient.invalidateQueries({ queryKey: ["article-status-history"] });
+      toast.success("¡Actualizado!", {
         description: `El Material ha sido actualizado correctamente.`,
       });
     },
     onError: (error) => {
-      toast.error('Oops!', {
-        description: 'No se pudo actualizar el articulo...',
+      toast.error("Oops!", {
+        description: "No se pudo actualizar el articulo...",
       });
       console.log(error);
     },
@@ -1042,8 +1202,12 @@ export const useDetermineArticleDestination = () => {
       queryClient.invalidateQueries({ queryKey: ["incoming-transfers"] });
       queryClient.invalidateQueries({ queryKey: ["dispatches-requests"] });
       if (company) {
-        queryClient.invalidateQueries({ queryKey: ["articles", company, "TO_DETERMINATE"] });
-        queryClient.invalidateQueries({ queryKey: ["articles", company, "RECEPTION"] });
+        queryClient.invalidateQueries({
+          queryKey: ["articles", company, "TO_DETERMINATE"],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["articles", company, "RECEPTION"],
+        });
       }
 
       // Se abre una salida por sede destino: nombrarlas evita que compras

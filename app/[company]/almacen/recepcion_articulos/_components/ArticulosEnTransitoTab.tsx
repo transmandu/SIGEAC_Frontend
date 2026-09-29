@@ -1,6 +1,20 @@
 "use client";
 
-import { useUpdateArticleStatus } from "@/actions/mantenimiento/almacen/inventario/articulos/actions";
+import {
+  useReportIncomingBlocked,
+  useUpdateArticleStatus,
+} from "@/actions/mantenimiento/almacen/inventario/articulos/actions";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -11,12 +25,27 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { useAuth } from "@/contexts/AuthContext";
 import { useTransitQueue } from "@/hooks/mantenimiento/almacen/inventario/useArticleQueues";
+import {
+  INCOMING_REASON_ACTIONS,
+  INCOMING_REASON_LABELS,
+  isReadyForIncoming,
+} from "@/lib/incoming-readiness";
 import { cn, toAltPartNumbers } from "@/lib/utils";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import {
   ArrowRight,
+  BellRing,
   ChevronRight,
+  CircleAlert,
+  FileWarning,
   Loader2,
   MapPin,
   Search,
@@ -42,12 +71,27 @@ const ArticleRow = memo(function ArticleRow({
   article: TransitArticle;
 }) {
   const { selectedCompany } = useCompanyStore();
+  const { user } = useAuth();
   const { updateArticleStatus } = useUpdateArticleStatus();
+  const { reportIncomingBlocked } = useReportIncomingBlocked();
   const [pending, setPending] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
 
   const status = article.status?.toUpperCase();
   const isReception = status === "RECEPTION";
+
+  const readiness = article.incoming_readiness;
+  const canPassToIncoming = isReadyForIncoming(readiness);
+  const blockingReasons = readiness?.reasons ?? [];
+
+  // De todos los motivos, este es el que almacén puede resolver sin esperar a
+  // nadie, y por eso se destaca: mientras nadie declare qué documentos exige el
+  // artículo, compras no tiene ni qué conseguir. No es competencia exclusiva de
+  // almacén, pero por conocimiento técnico son quienes mejor saben cuáles son.
+  const needsDocumentsDeclared = blockingReasons.includes(
+    "MISSING_DOCUMENT_REQUIREMENTS",
+  );
 
   const handleMoveToIncoming = async () => {
     setPending(true);
@@ -64,13 +108,35 @@ const ArticleRow = memo(function ArticleRow({
     }
   };
 
+  const handleReportBlocked = async () => {
+    const reportedBy =
+      [user?.first_name, user?.last_name].filter(Boolean).join(" ").trim() ||
+      user?.username ||
+      null;
+
+    try {
+      await reportIncomingBlocked.mutateAsync({
+        id: article.id,
+        reported_by: reportedBy,
+      });
+
+      setReportDialogOpen(false);
+    } catch {
+      // El toast de error lo emite la mutación. El diálogo se queda abierto
+      // para poder reintentar sin volver a buscar la fila.
+    }
+  };
+
   const location = article.batch?.warehouse?.location;
+
+  const isBlocked = isReception && !canPassToIncoming;
 
   const hasExtra =
     article.condition ||
     article.manufacturer ||
     article.quantity != null ||
-    article.unit;
+    article.unit ||
+    isBlocked;
 
   return (
     <>
@@ -172,16 +238,31 @@ const ArticleRow = memo(function ArticleRow({
 
         {/* Estado */}
         <TableCell className="text-center">
-          <span
-            className={cn(
-              "select-none inline-block whitespace-nowrap text-[10px] font-medium px-1.5 py-0.5 rounded border tracking-wide",
-              isReception
-                ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800/60"
-                : "bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950/40 dark:text-sky-400 dark:border-sky-800/60",
-            )}
-          >
-            {TRANSIT_STATUS_LABELS[status ?? ""] ?? "Sin estado"}
-          </span>
+          <div className="flex flex-col items-center gap-1">
+            <span
+              className={cn(
+                "select-none inline-block whitespace-nowrap text-[10px] font-medium px-1.5 py-0.5 rounded border tracking-wide",
+                isReception
+                  ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800/60"
+                  : "bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950/40 dark:text-sky-400 dark:border-sky-800/60",
+              )}
+            >
+              {TRANSIT_STATUS_LABELS[status ?? ""] ?? "Sin estado"}
+            </span>
+
+            {isBlocked &&
+              (needsDocumentsDeclared ? (
+                <span className="select-none inline-flex animate-pulse items-center gap-1 whitespace-nowrap rounded border border-orange-300 bg-orange-100 px-1.5 py-0.5 text-[10px] font-bold tracking-wide text-orange-800 dark:border-orange-700/60 dark:bg-orange-950/50 dark:text-orange-300">
+                  <CircleAlert className="size-2.5" />
+                  INDICA DOCUMENTOS
+                </span>
+              ) : (
+                <span className="select-none inline-flex items-center gap-1 whitespace-nowrap rounded border border-red-200 bg-red-50 px-1.5 py-0.5 text-[10px] font-medium tracking-wide text-red-700 dark:border-red-800/60 dark:bg-red-950/40 dark:text-red-400">
+                  <FileWarning className="size-2.5" />
+                  RETENIDO
+                </span>
+              ))}
+          </div>
         </TableCell>
 
         {/* Detalle */}
@@ -196,22 +277,183 @@ const ArticleRow = memo(function ArticleRow({
         <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
           {isReception && (
             <div className="flex items-center justify-center gap-1">
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-7 px-2 text-xs gap-1"
-                disabled={pending}
-                onClick={handleMoveToIncoming}
-              >
-                {pending ? (
-                  <Loader2 className="size-3 animate-spin" />
-                ) : (
-                  <>
-                    <ArrowRight className="size-3" />
-                    Incoming
-                  </>
-                )}
-              </Button>
+              {canPassToIncoming ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 px-2 text-xs gap-1"
+                  disabled={pending}
+                  onClick={handleMoveToIncoming}
+                >
+                  {pending ? (
+                    <Loader2 className="size-3 animate-spin" />
+                  ) : (
+                    <>
+                      <ArrowRight className="size-3" />
+                      Incoming
+                    </>
+                  )}
+                </Button>
+              ) : (
+                // No va deshabilitado de verdad: sigue siendo pulsable para que
+                // el clic sirva de reclamo a compras. Lo que no hace es pasar el
+                // artículo, que es lo que la ley impide sin orden ni documentos.
+                //
+                // El aviso pasa por confirmación porque llega a diez o quince
+                // personas por correo: un doble clic distraído sobre un botón
+                // que parece deshabilitado llenaría sus bandejas.
+                <TooltipProvider>
+                  <Tooltip>
+                    <AlertDialog
+                      open={reportDialogOpen}
+                      // Mientras el aviso sale no se cierra por Escape ni por el
+                      // fondo: el botón ya está bloqueado, y cerrarlo a medias
+                      // dejaba la fila sin señal de que el envío sigue en curso.
+                      onOpenChange={(next) => {
+                        if (!next && reportIncomingBlocked.isPending) return;
+                        setReportDialogOpen(next);
+                      }}
+                    >
+                      <TooltipTrigger asChild>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className={cn(
+                              "h-7 px-2 text-xs gap-1",
+                              needsDocumentsDeclared
+                                ? "border-orange-400 font-semibold text-orange-800 hover:bg-orange-50 dark:border-orange-600/70 dark:text-orange-300 dark:hover:bg-orange-950/40"
+                                : "border-amber-300 text-amber-700 hover:bg-amber-50 dark:border-amber-800/60 dark:text-amber-400 dark:hover:bg-amber-950/40",
+                            )}
+                            disabled={reportIncomingBlocked.isPending}
+                          >
+                            {reportIncomingBlocked.isPending ? (
+                              <Loader2 className="size-3 animate-spin" />
+                            ) : needsDocumentsDeclared ? (
+                              <>
+                                <CircleAlert className="size-3" />
+                                Incoming
+                              </>
+                            ) : (
+                              <>
+                                <FileWarning className="size-3" />
+                                Incoming
+                              </>
+                            )}
+                          </Button>
+                        </AlertDialogTrigger>
+                      </TooltipTrigger>
+
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle className="flex items-center gap-2">
+                            <BellRing className="size-5 text-amber-500" />
+                            Notificar que el artículo está detenido
+                          </AlertDialogTitle>
+                          <AlertDialogDescription asChild>
+                            <div className="space-y-3">
+                              <p>
+                                Se enviará una notificación y un correo sobre el
+                                artículo{" "}
+                                <span className="font-mono font-semibold text-foreground">
+                                  {article.part_number}
+                                </span>{" "}
+                                a <strong>compras</strong> —para que aporten lo
+                                que falta— y al personal de{" "}
+                                <strong>
+                                  almacén, mantenimiento y control de calidad
+                                </strong>
+                                , explicando por qué queda retenido.
+                              </p>
+
+                              <div className="rounded-md border border-border/60 bg-muted/40 px-3 py-2">
+                                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                  Información faltante
+                                </p>
+                                <ul className="mt-1 space-y-0.5">
+                                  {blockingReasons.map((reason) => (
+                                    <li key={reason} className="text-xs">
+                                      •{" "}
+                                      {INCOMING_REASON_LABELS[reason] ?? reason}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+
+                              {needsDocumentsDeclared && (
+                                <p className="text-xs">
+                                  Si ya sabes qué documentos exige, indicarlos
+                                  tú desde el detalle del artículo desatasca el
+                                  flujo sin esperar respuesta.
+                                </p>
+                              )}
+                            </div>
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+
+                        <AlertDialogFooter>
+                          <AlertDialogCancel
+                            disabled={reportIncomingBlocked.isPending}
+                          >
+                            Cancelar
+                          </AlertDialogCancel>
+                          <AlertDialogAction
+                            disabled={reportIncomingBlocked.isPending}
+                            onClick={(e) => {
+                              // Radix cierra el diálogo con el clic de la acción:
+                              // se frena para que el cierre lo haga la mutación
+                              // al terminar, y el botón pueda mostrar su estado.
+                              e.preventDefault();
+                              handleReportBlocked();
+                            }}
+                            className="gap-1.5"
+                          >
+                            {reportIncomingBlocked.isPending ? (
+                              <Loader2 className="size-3.5 animate-spin" />
+                            ) : (
+                              <BellRing className="size-3.5" />
+                            )}
+                            Enviar notificación
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                    <TooltipContent side="top" className="max-w-xs text-xs">
+                      <p className="font-semibold">
+                        No puede pasar a incoming todavía
+                      </p>
+
+                      {needsDocumentsDeclared && (
+                        <p className="mt-1.5 flex gap-1.5 rounded border border-orange-300/70 bg-orange-100/70 px-2 py-1.5 font-semibold text-orange-900 dark:border-orange-700/60 dark:bg-orange-950/50 dark:text-orange-200">
+                          <CircleAlert className="mt-px size-3.5 shrink-0" />
+                          <span>
+                            Indica qué documentos exige este artículo para que
+                            compras pueda conseguirlos. Por conocimiento técnico
+                            ustedes son quienes mejor saben cuáles corresponden.
+                          </span>
+                        </p>
+                      )}
+
+                      <ul className="mt-1.5 space-y-0.5">
+                        {blockingReasons.map((reason) => (
+                          <li key={reason}>
+                            • {INCOMING_REASON_LABELS[reason] ?? reason}
+                            <span className="block pl-3 text-muted-foreground">
+                              {INCOMING_REASON_ACTIONS[reason]?.warehouse}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+
+                      <p className="mt-2 flex items-center gap-1 font-medium">
+                        <BellRing className="size-3" />
+                        Presiona para avisar a compras y al personal competente.
+                        Se pedirá confirmación.
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
               <StoreDirectlyDialog article={article} />
             </div>
           )}
@@ -260,6 +502,56 @@ const ArticleRow = memo(function ArticleRow({
                   </div>
                 )}
               </div>
+
+              {needsDocumentsDeclared && (
+                <div className="mt-3 flex gap-2 rounded-md border-l-4 border-orange-400 bg-orange-50 px-3 py-2.5 dark:border-orange-600 dark:bg-orange-950/30">
+                  <CircleAlert className="mt-0.5 size-4 shrink-0 text-orange-600 dark:text-orange-400" />
+                  <div>
+                    <p className="text-xs font-bold text-orange-900 dark:text-orange-200">
+                      Ayuda a compras: indica qué documentación requiere este
+                      artículo
+                    </p>
+                    <p className="mt-1 text-xs text-orange-900/80 dark:text-orange-200/80">
+                      Indica qué documentos exige este artículo para que compras
+                      pueda conseguirlos. Por conocimiento técnico ustedes son
+                      quienes mejor saben cuáles corresponden: márcalos desde el
+                      detalle del artículo.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {isBlocked && (
+                <div className="mt-3 rounded-md border border-red-200 bg-red-50/60 px-3 py-2 dark:border-red-800/50 dark:bg-red-950/20">
+                  <p className="flex items-center gap-1.5 text-xs font-semibold text-red-700 dark:text-red-400">
+                    <FileWarning className="size-3" />
+                    Falta información obligatoria para el incoming
+                  </p>
+                  <ul className="mt-1.5 space-y-1">
+                    {blockingReasons.map((reason) => (
+                      <li key={reason} className="text-xs">
+                        <span className="font-medium">
+                          {INCOMING_REASON_LABELS[reason] ?? reason}
+                        </span>
+                        <span className="ml-1 text-muted-foreground">
+                          — {INCOMING_REASON_ACTIONS[reason]?.warehouse}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  {readiness?.pending_documents?.length ? (
+                    <p className="mt-1.5 text-xs text-muted-foreground">
+                      Documentos sin cargar:{" "}
+                      {readiness.pending_documents
+                        .map((doc) => doc.document_type?.name)
+                        .filter(Boolean)
+                        .join(", ")}
+                      .
+                    </p>
+                  ) : null}
+                </div>
+              )}
             </div>
           </TableCell>
         </TableRow>
@@ -314,6 +606,15 @@ export function ArticulosEnTransitoTab() {
   const totalTransit = (transitArticles as TransitArticle[])?.length ?? 0;
   const totalReception = (receptionArticles as TransitArticle[])?.length ?? 0;
 
+  // Se cuenta sobre toda la cola de recepción y no sobre lo filtrado: es una
+  // llamada a la acción, y ocultarla al buscar o cambiar de pestaña haría que
+  // pareciera resuelta.
+  const awaitingDocuments = (
+    (receptionArticles as TransitArticle[]) ?? []
+  ).filter((a) =>
+    a.incoming_readiness?.reasons?.includes("MISSING_DOCUMENT_REQUIREMENTS"),
+  ).length;
+
   return (
     <div className="flex flex-col gap-y-3">
       {/* Encabezado */}
@@ -333,6 +634,24 @@ export function ArticulosEnTransitoTab() {
           />
         </div>
       </div>
+
+      {awaitingDocuments > 0 && (
+        <div className="flex items-start gap-2.5 rounded-md border-l-4 border-orange-400 bg-orange-50 px-4 py-3 dark:border-orange-600 dark:bg-orange-950/30">
+          <CircleAlert className="mt-0.5 size-4 shrink-0 text-orange-600 dark:text-orange-400" />
+          <div className="min-w-0">
+            <p className="text-sm font-bold text-orange-900 dark:text-orange-200">
+              {awaitingDocuments === 1
+                ? "1 artículo espera que indiques su documentación requerida"
+                : `${awaitingDocuments} artículos esperan que indiques su documentación requerida`}
+            </p>
+            <p className="mt-0.5 text-xs text-orange-900/80 dark:text-orange-200/80">
+              Indica qué documentos exige cada artículo para que compras pueda
+              conseguirlos. Por conocimiento técnico ustedes son quienes mejor
+              saben cuáles corresponden: márcalos desde el detalle del artículo.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Filtros + búsqueda */}
       <div className="flex items-center gap-2 flex-wrap">

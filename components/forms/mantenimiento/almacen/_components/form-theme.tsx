@@ -25,26 +25,26 @@ import type { LucideIcon } from "lucide-react";
  * perfectamente utilizables salían apagados y con el cursor de bloqueo.
  */
 const lockedFieldClass = cn(
-    "disabled:cursor-not-allowed disabled:opacity-60",
-    "disabled:hover:border-slate-400/60 disabled:hover:shadow-xs dark:disabled:hover:border-slate-600/60",
-    "[&:is(input,textarea):read-only]:cursor-not-allowed",
-    "[&:is(input,textarea):read-only]:opacity-60",
-    "[&:is(input,textarea):read-only]:bg-muted/40",
-    "[&:is(input,textarea):read-only]:hover:border-slate-400/60",
-    "[&:is(input,textarea):read-only]:hover:shadow-xs",
-    "dark:[&:is(input,textarea):read-only]:hover:border-slate-600/60",
+  "disabled:cursor-not-allowed disabled:opacity-60",
+  "disabled:hover:border-slate-400/60 disabled:hover:shadow-xs dark:disabled:hover:border-slate-600/60",
+  "[&:is(input,textarea):read-only]:cursor-not-allowed",
+  "[&:is(input,textarea):read-only]:opacity-60",
+  "[&:is(input,textarea):read-only]:bg-muted/40",
+  "[&:is(input,textarea):read-only]:hover:border-slate-400/60",
+  "[&:is(input,textarea):read-only]:hover:shadow-xs",
+  "dark:[&:is(input,textarea):read-only]:hover:border-slate-600/60",
 );
 
 export const fieldClass = cn(
-    "h-11 rounded-lg text-[15px]",
-    "bg-linear-to-br from-background/70 to-background/40",
-    "backdrop-blur-md",
-    "border border-slate-400/60 dark:border-slate-600/60",
-    "shadow-xs",
-    "hover:border-blue-400/30",
-    "hover:shadow-md hover:shadow-blue-500/10",
-    "transition-all duration-200",
-    lockedFieldClass,
+  "h-11 rounded-lg text-[15px]",
+  "bg-linear-to-br from-background/70 to-background/40",
+  "backdrop-blur-md",
+  "border border-slate-400/60 dark:border-slate-600/60",
+  "shadow-xs",
+  "hover:border-blue-400/30",
+  "hover:shadow-md hover:shadow-blue-500/10",
+  "transition-all duration-200",
+  lockedFieldClass,
 );
 
 export const numericFieldClass = cn(fieldClass, "tabular-nums");
@@ -53,15 +53,15 @@ export const selectTriggerClass = cn(fieldClass, "hover:shadow-none");
 
 /** Los combobox y date pickers son botones: el texto se alinea a la izquierda. */
 export const triggerButtonClass = cn(
-    selectTriggerClass,
-    "w-full justify-between px-3 font-normal",
-    // El `Button` de shadcn se deshabilita con `pointer-events-none`, y con eso
-    // el navegador resuelve el cursor del elemento de abajo: el usuario ve la
-    // flecha normal sobre un campo que no puede tocar. Se devuelven los eventos
-    // solo para poder mostrar el cursor correcto; el `disabled` del botón sigue
-    // impidiendo el clic y el foco.
-    "disabled:pointer-events-auto disabled:cursor-not-allowed disabled:opacity-60",
-    "disabled:hover:border-slate-400/60 disabled:hover:shadow-none dark:disabled:hover:border-slate-600/60",
+  selectTriggerClass,
+  "w-full justify-between px-3 font-normal",
+  // El `Button` de shadcn se deshabilita con `pointer-events-none`, y con eso
+  // el navegador resuelve el cursor del elemento de abajo: el usuario ve la
+  // flecha normal sobre un campo que no puede tocar. Se devuelven los eventos
+  // solo para poder mostrar el cursor correcto; el `disabled` del botón sigue
+  // impidiendo el clic y el foco.
+  "disabled:pointer-events-auto disabled:cursor-not-allowed disabled:opacity-60",
+  "disabled:hover:border-slate-400/60 disabled:hover:shadow-none dark:disabled:hover:border-slate-600/60",
 );
 
 /** El textarea crece con las filas, así que no puede heredar la altura fija. */
@@ -69,75 +69,102 @@ export const textareaClass = cn(fieldClass, "h-auto resize-none py-2");
 
 export const labelClass = "text-sm font-medium text-foreground/85";
 
+/**
+ * Fila del rótulo de un campo, a la altura del elemento más alto que puede
+ * acompañarlo: el botón de acción de algunos campos ("crear renglón", "crear
+ * fabricante"), que mide 24px frente a los 20 del texto.
+ *
+ * Las grillas ponen dos o tres campos por fila y solo algunos llevan ese botón.
+ * Cuando la altura la fijaba el wrapper de esos, sus inputs arrancaban 4px más
+ * abajo que los de sus vecinos, así que la envuelven TODOS los rótulos de una
+ * misma grilla, lleven acción o no.
+ *
+ * No se mete en `labelClass` porque hay una segunda altura legítima: las filas
+ * que comparten con un `DatePickerField` se igualan a 16px —su rótulo lleva la
+ * casilla "No aplica" con `leading-none`— y ahí 24px descuadraría la fila.
+ */
+export const FieldLabelRow = ({
+  action,
+  children,
+}: {
+  action?: React.ReactNode;
+  children: React.ReactNode;
+}) => (
+  <div className="flex min-h-6 items-center justify-between gap-2">
+    {children}
+    {action}
+  </div>
+);
+
 /** Texto de apoyo bajo un campo: un escalón por debajo del rótulo. */
 export const hintClass = "text-[13px] text-muted-foreground";
 
 export const sectionClass = cn(
-    "rounded-xl p-4",
-    "bg-linear-to-br from-background/70 to-background/40",
-    "backdrop-blur-md",
-    "border border-slate-400/50 dark:border-slate-600/50",
-    "shadow-xs",
+  "rounded-xl p-4",
+  "bg-linear-to-br from-background/70 to-background/40",
+  "backdrop-blur-md",
+  "border border-slate-400/50 dark:border-slate-600/50",
+  "shadow-xs",
 );
 
 export const SectionTitle = ({
-    icon: Icon,
-    title,
-    hint,
-    action,
+  icon: Icon,
+  title,
+  hint,
+  action,
 }: {
-    /** Sin icono, la viñeta queda como un punto neutro del mismo tamaño. */
-    icon?: LucideIcon;
-    title: string;
-    hint?: string;
-    action?: React.ReactNode;
+  /** Sin icono, la viñeta queda como un punto neutro del mismo tamaño. */
+  icon?: LucideIcon;
+  title: string;
+  hint?: string;
+  action?: React.ReactNode;
 }) => (
-    // Con hint el bloque de texto tiene dos líneas: el icono se ancla arriba
-    // (con un pequeño empuje) para que quede a la altura del título, no del
-    // bloque entero. Sin hint es una sola línea, así que centrarlos es lo que
-    // los deja alineados de verdad — "items-start" ahí dejaba el título
-    // flotando por encima del icono.
-    <div className={cn("mb-5 flex gap-3", hint ? "items-start" : "items-center")}>
-        <span
-            className={cn(
-                "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary",
-                hint && "mt-0.5",
-            )}
-        >
-            {Icon ? (
-                <Icon className="h-4 w-4" />
-            ) : (
-                <span className="h-1.5 w-1.5 rounded-full bg-current" />
-            )}
-        </span>
-        <div className="min-w-0 flex-1 space-y-1">
-            <h3 className="text-base font-semibold leading-none">{title}</h3>
-            {hint && <p className={hintClass}>{hint}</p>}
-        </div>
-        {action && <div className="shrink-0">{action}</div>}
+  // Con hint el bloque de texto tiene dos líneas: el icono se ancla arriba
+  // (con un pequeño empuje) para que quede a la altura del título, no del
+  // bloque entero. Sin hint es una sola línea, así que centrarlos es lo que
+  // los deja alineados de verdad — "items-start" ahí dejaba el título
+  // flotando por encima del icono.
+  <div className={cn("mb-5 flex gap-3", hint ? "items-start" : "items-center")}>
+    <span
+      className={cn(
+        "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary",
+        hint && "mt-0.5",
+      )}
+    >
+      {Icon ? (
+        <Icon className="h-4 w-4" />
+      ) : (
+        <span className="h-1.5 w-1.5 rounded-full bg-current" />
+      )}
+    </span>
+    <div className="min-w-0 flex-1 space-y-1">
+      <h3 className="text-base font-semibold leading-none">{title}</h3>
+      {hint && <p className={hintClass}>{hint}</p>}
     </div>
+    {action && <div className="shrink-0">{action}</div>}
+  </div>
 );
 
 /** Sección con el cristal y el encabezado ya montados. */
 export const FormSection = ({
-    icon,
-    title,
-    hint,
-    action,
-    className,
-    children,
+  icon,
+  title,
+  hint,
+  action,
+  className,
+  children,
 }: {
-    icon?: LucideIcon;
-    title: string;
-    hint?: string;
-    action?: React.ReactNode;
-    className?: string;
-    children: React.ReactNode;
+  icon?: LucideIcon;
+  title: string;
+  hint?: string;
+  action?: React.ReactNode;
+  className?: string;
+  children: React.ReactNode;
 }) => (
-    <section className={cn(sectionClass, className)}>
-        <SectionTitle icon={icon} title={title} hint={hint} action={action} />
-        {children}
-    </section>
+  <section className={cn(sectionClass, className)}>
+    <SectionTitle icon={icon} title={title} hint={hint} action={action} />
+    {children}
+  </section>
 );
 
 /**
@@ -148,10 +175,10 @@ export const FormSection = ({
  * sin darse cuenta al desplazar el formulario.
  */
 export const onlyNumeric = (raw: string) => {
-    const cleaned = raw.replace(/[^\d.]/g, "");
-    const parts = cleaned.split(".");
+  const cleaned = raw.replace(/[^\d.]/g, "");
+  const parts = cleaned.split(".");
 
-    return parts.length <= 1 ? cleaned : `${parts[0]}.${parts.slice(1).join("")}`;
+  return parts.length <= 1 ? cleaned : `${parts[0]}.${parts.slice(1).join("")}`;
 };
 
 /** Igual que `onlyNumeric` pero para campos que no admiten decimales. */

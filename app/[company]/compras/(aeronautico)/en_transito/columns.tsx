@@ -20,6 +20,11 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
+import {
+  INCOMING_REASON_ACTIONS,
+  INCOMING_REASON_LABELS,
+  isReadyForIncoming,
+} from "@/lib/incoming-readiness";
 import { cn, toAltPartNumbers } from "@/lib/utils";
 import { useUpdateArticleStatus } from "@/actions/mantenimiento/almacen/inventario/articulos/actions";
 import type { TransitArticle } from "@/types/purchase";
@@ -69,7 +74,14 @@ function TransitActionButton({ article }: { article: TransitArticle }) {
 
   // Una vez el artículo pasa a RECEPTION, la transición es unidireccional:
   // no queda ninguna acción disponible, solo un estado vacío deshabilitado.
+  //
+  // El pase a incoming NO aparece aquí a propósito: no es competencia de
+  // compras moverlo, sino aportar lo que la inspección exige. Lo que sí se
+  // muestra es que el artículo está retenido esperando justamente eso.
   if (!isTransit) {
+    const blocked = !isReadyForIncoming(article.incoming_readiness);
+    const reasons = article.incoming_readiness?.reasons ?? [];
+
     return (
       <TooltipProvider>
         <Tooltip>
@@ -79,22 +91,56 @@ function TransitActionButton({ article }: { article: TransitArticle }) {
                 variant="ghost"
                 size="sm"
                 disabled
-                className="
+                className={cn(
+                  `
                   h-7 px-3 gap-1.5
                   text-[11px]
                   rounded-full
-                  border border-slate-200/60 dark:border-slate-700/60
-                  bg-white/50 dark:bg-slate-800/40
+                  border
                   disabled:opacity-100
-                "
+                `,
+                  blocked
+                    ? "border-red-300/60 bg-red-50/60 text-red-700 dark:border-red-800/60 dark:bg-red-950/30 dark:text-red-400"
+                    : "border-slate-200/60 bg-white/50 dark:border-slate-700/60 dark:bg-slate-800/40",
+                )}
               >
-                <CheckCircle2 className="size-3 text-emerald-500" />
-                Recepción
+                {blocked ? (
+                  <>
+                    <FileWarning className="size-3" />
+                    Retenido
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="size-3 text-emerald-500" />
+                    Recepción
+                  </>
+                )}
               </Button>
             </span>
           </TooltipTrigger>
-          <TooltipContent side="top" className="text-xs px-2 py-1">
-            Ya marcaste este artículo como entregado a recepción
+          <TooltipContent side="top" className="max-w-xs text-xs">
+            {blocked ? (
+              <>
+                <p className="font-semibold">
+                  Retenido en recepción por falta de información
+                </p>
+                <ul className="mt-1 space-y-0.5">
+                  {reasons.map((reason) => (
+                    <li key={reason}>
+                      • {INCOMING_REASON_LABELS[reason] ?? reason}
+                      <span className="block pl-3 text-muted-foreground">
+                        {INCOMING_REASON_ACTIONS[reason]?.purchasing}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-2 text-muted-foreground">
+                  Edítalo para completarlo. El pase a incoming lo hace almacén.
+                </p>
+              </>
+            ) : (
+              "Ya marcaste este artículo como entregado a recepción"
+            )}
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
@@ -158,9 +204,19 @@ function EditTransitArticleAction({ article }: { article: TransitArticle }) {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const pendingCount = getPendingRequirements(article).length;
 
-  // Un artículo ya recepcionado no debe poder editarse: el ícono
-  // permanece visible pero deshabilitado como estado vacío.
-  const isEditable = article.status?.toUpperCase() === "TRANSIT";
+  const status = article.status?.toUpperCase();
+  const readiness = article.incoming_readiness;
+  const blockingReasons = readiness?.reasons ?? [];
+
+  // Un artículo en RECEPCIÓN retenido sigue siendo editable: nació de recepción
+  // administrativa sin orden ni documentos, y es compras quien debe aportarlos
+  // para que almacén pueda inspeccionarlo. Lo que compras ya no hace desde aquí
+  // es moverlo de estado.
+  const isBlocked = status === "RECEPTION" && !isReadyForIncoming(readiness);
+  const isEditable = status === "TRANSIT" || isBlocked;
+
+  const needsAttention = isBlocked || pendingCount > 0;
+  const badgeCount = isBlocked ? blockingReasons.length : pendingCount;
 
   return (
     <>
@@ -178,28 +234,52 @@ function EditTransitArticleAction({ article }: { article: TransitArticle }) {
                 }}
                 className={cn(
                   "relative h-7 w-7 disabled:opacity-40",
-                  isEditable
-                    ? pendingCount > 0
-                      ? "text-amber-500"
-                      : "text-muted-foreground"
+                  isEditable && needsAttention
+                    ? isBlocked
+                      ? "text-red-500"
+                      : "text-amber-500"
                     : "text-muted-foreground",
                 )}
               >
                 <FilePen className="size-3.5" />
-                {isEditable && pendingCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-amber-500 text-[9px] font-semibold text-white">
-                    {pendingCount}
+                {isEditable && badgeCount > 0 && (
+                  <span
+                    className={cn(
+                      "absolute -top-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full text-[9px] font-semibold text-white",
+                      isBlocked ? "bg-red-500" : "bg-amber-500",
+                    )}
+                  >
+                    {badgeCount}
                   </span>
                 )}
               </Button>
             </span>
           </TooltipTrigger>
-          <TooltipContent side="top" className="text-xs px-2 py-1">
-            {!isEditable
-              ? "Ya marcaste este artículo como entregado a recepción"
-              : pendingCount > 0
-                ? `Editar artículo (${pendingCount} documento${pendingCount === 1 ? "" : "s"} pendiente${pendingCount === 1 ? "" : "s"})`
-                : "Editar información del artículo"}
+          <TooltipContent side="top" className="max-w-xs text-xs">
+            {isBlocked ? (
+              <>
+                <p className="font-semibold">
+                  Almacén no puede inspeccionar este artículo
+                </p>
+                <ul className="mt-1 space-y-0.5">
+                  {blockingReasons.map((reason) => (
+                    <li key={reason}>
+                      • {INCOMING_REASON_LABELS[reason] ?? reason}
+                      <span className="block pl-3 text-muted-foreground">
+                        {INCOMING_REASON_ACTIONS[reason]?.purchasing}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-2 font-medium">Presiona para editarlo.</p>
+              </>
+            ) : !isEditable ? (
+              "Ya marcaste este artículo como entregado a recepción"
+            ) : pendingCount > 0 ? (
+              `Editar artículo (${pendingCount} documento${pendingCount === 1 ? "" : "s"} pendiente${pendingCount === 1 ? "" : "s"})`
+            ) : (
+              "Editar información del artículo"
+            )}
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
@@ -448,9 +528,11 @@ export const getColumns = (
       const status = row.original.status?.toUpperCase();
       const isTransit = status === "TRANSIT";
       const isReception = status === "RECEPTION";
+      const isBlocked =
+        isReception && !isReadyForIncoming(row.original.incoming_readiness);
 
       return (
-        <div className="flex justify-center w-full">
+        <div className="flex flex-col items-center gap-1 w-full">
           <Badge
             className={cn(
               `
@@ -478,6 +560,24 @@ export const getColumns = (
           >
             {isTransit ? "EN TRÁNSITO" : "EN RECEPCIÓN"}
           </Badge>
+
+          {/* Lo que compras necesita ver de un golpe: cuál de estos artículos
+              está frenando el trabajo de almacén por datos suyos. */}
+          {isBlocked && (
+            <Badge
+              className="
+                rounded-md border border-red-500/30
+                bg-red-500/10 px-2 py-0.5
+                text-[10px] font-semibold tracking-wide
+                text-red-700 shadow-xs
+                cursor-default
+                dark:text-red-300
+              "
+            >
+              <FileWarning className="mr-1 size-2.5" />
+              FALTAN DATOS
+            </Badge>
+          )}
         </div>
       );
     },
