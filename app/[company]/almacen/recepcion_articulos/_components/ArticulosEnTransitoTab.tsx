@@ -373,7 +373,8 @@ const ArticleRow = memo(function ArticleRow({
                                 <ul className="mt-1 space-y-0.5">
                                   {blockingReasons.map((reason) => (
                                     <li key={reason} className="text-xs">
-                                      • {INCOMING_REASON_LABELS[reason] ?? reason}
+                                      •{" "}
+                                      {INCOMING_REASON_LABELS[reason] ?? reason}
                                     </li>
                                   ))}
                                 </ul>
@@ -381,9 +382,9 @@ const ArticleRow = memo(function ArticleRow({
 
                               {needsDocumentsDeclared && (
                                 <p className="text-xs">
-                                  Si ya sabes qué documentos exige, indicarlos tú
-                                  desde el detalle del artículo desatasca el flujo
-                                  sin esperar respuesta.
+                                  Si ya sabes qué documentos exige, indicarlos
+                                  tú desde el detalle del artículo desatasca el
+                                  flujo sin esperar respuesta.
                                 </p>
                               )}
                             </div>
@@ -436,8 +437,7 @@ const ArticleRow = memo(function ArticleRow({
                       <ul className="mt-1.5 space-y-0.5">
                         {blockingReasons.map((reason) => (
                           <li key={reason}>
-                            •{" "}
-                            {INCOMING_REASON_LABELS[reason] ?? reason}
+                            • {INCOMING_REASON_LABELS[reason] ?? reason}
                             <span className="block pl-3 text-muted-foreground">
                               {INCOMING_REASON_ACTIONS[reason]?.warehouse}
                             </span>
@@ -609,9 +609,10 @@ export function ArticulosEnTransitoTab() {
   // Se cuenta sobre toda la cola de recepción y no sobre lo filtrado: es una
   // llamada a la acción, y ocultarla al buscar o cambiar de pestaña haría que
   // pareciera resuelta.
-  const awaitingDocuments = ((receptionArticles as TransitArticle[]) ?? []).filter(
-    (a) =>
-      a.incoming_readiness?.reasons?.includes("MISSING_DOCUMENT_REQUIREMENTS"),
+  const awaitingDocuments = (
+    (receptionArticles as TransitArticle[]) ?? []
+  ).filter((a) =>
+    a.incoming_readiness?.reasons?.includes("MISSING_DOCUMENT_REQUIREMENTS"),
   ).length;
 
   return (

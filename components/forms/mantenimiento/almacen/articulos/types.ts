@@ -5,10 +5,10 @@ import type { Article, ArticleDimension, Batch, Convertion } from "@/types";
  * formulario. Antes cada destino tenía su ruta y su copia del formulario.
  */
 export interface ArticleDestination {
-    /** Compras confirmará si el artículo pertenece a la empresa. */
-    destination_unknown?: boolean;
-    /** Salta la inspección y entra directo al inventario. */
-    goes_to_inventory?: boolean;
+  /** Compras confirmará si el artículo pertenece a la empresa. */
+  destination_unknown?: boolean;
+  /** Salta la inspección y entra directo al inventario. */
+  goes_to_inventory?: boolean;
 }
 
 /**
@@ -19,53 +19,53 @@ export interface ArticleDestination {
  * cuál se hubiera tocado por última vez.
  */
 export interface EditingArticle extends Article {
-    batch: Batch;
-    tool?: {
-        id: number;
-        serial: string;
-        isSpecial: boolean;
-        needs_calibration: boolean;
-        calibration_date?: string;
-        next_calibration?: string | number;
-        article_id: number;
-        model?: string;
-    };
-    partComponent?: {
-        id: number;
-        article_id: string;
-        aircraft_id?: string;
-        expiration_date?: string | null;
-        fabrication_date: string | null;
-        hour_date: string | null;
-        cycle_date: string | null;
-        calendary_date: string | null;
-        life_limit_part_calendar?: string;
-        life_limit_part_hours?: string | number;
-        life_limit_part_cycles?: string | number;
-        hard_time_calendar?: string;
-        hard_time_hours?: string | number;
-        hard_time_cycles?: string | number;
-        shelf_life?: number;
-        shelf_life_unit?: string;
-    };
-    consumable?: {
-        lot_number?: string;
-        expiration_date: string;
-        fabrication_date: string | null;
-        quantity?: number;
-        is_managed?: boolean | string | number;
-        shelf_life?: string | null;
-        primary_unit_id: string;
-        conversions: Convertion[];
-        /** Presente si el consumible se mide por dimensiones. */
-        dimension?: ArticleDimension | null;
-    };
-    has_documentation?: boolean;
-    reception_date?: string;
-    purchase_order_id?: number | null;
-    purchase_order_number?: string | null;
-    /** Número de la requisición de origen: purchase_order -> quote_order -> requisition_order. */
-    requisition_order_number?: string | null;
+  batch: Batch;
+  tool?: {
+    id: number;
+    serial: string;
+    isSpecial: boolean;
+    needs_calibration: boolean;
+    calibration_date?: string;
+    next_calibration?: string | number;
+    article_id: number;
+    model?: string;
+  };
+  partComponent?: {
+    id: number;
+    article_id: string;
+    aircraft_id?: string;
+    expiration_date?: string | null;
+    fabrication_date: string | null;
+    hour_date: string | null;
+    cycle_date: string | null;
+    calendary_date: string | null;
+    life_limit_part_calendar?: string;
+    life_limit_part_hours?: string | number;
+    life_limit_part_cycles?: string | number;
+    hard_time_calendar?: string;
+    hard_time_hours?: string | number;
+    hard_time_cycles?: string | number;
+    shelf_life?: number;
+    shelf_life_unit?: string;
+  };
+  consumable?: {
+    lot_number?: string;
+    expiration_date: string;
+    fabrication_date: string | null;
+    quantity?: number;
+    is_managed?: boolean | string | number;
+    shelf_life?: string | null;
+    primary_unit_id: string;
+    conversions: Convertion[];
+    /** Presente si el consumible se mide por dimensiones. */
+    dimension?: ArticleDimension | null;
+  };
+  has_documentation?: boolean;
+  reception_date?: string;
+  purchase_order_id?: number | null;
+  purchase_order_number?: string | null;
+  /** Número de la requisición de origen: purchase_order -> quote_order -> requisition_order. */
+  requisition_order_number?: string | null;
 }
 
 /**
@@ -75,36 +75,36 @@ export interface EditingArticle extends Article {
  * que es quien sabe en qué flujo está el usuario.
  */
 export interface ArticleFormProps {
-    initialData?: EditingArticle;
-    isEditing?: boolean;
-    /** Al editar: reemplaza la redirección post-guardado (útil dentro de diálogos). */
-    onEditSuccess?: () => void;
-    /**
-     * Reemplaza el comportamiento del botón Cancelar, que por defecto retrocede
-     * en el historial. Dentro de un diálogo eso es incorrecto: no hay página que
-     * abandonar y el retroceso saca al usuario de su módulo —compras acababa en
-     * una ruta de almacén a la que no tiene acceso—, así que quien lo monta pasa
-     * el cierre del diálogo.
-     */
-    onCancel?: () => void;
-    /** Rótulo del botón de guardado, para flujos que no son ingresar al almacén. */
-    submitLabel?: string;
-    /**
-     * Oculta el bloque de acciones y notifica el estado del formulario. Lo usan
-     * los flujos que lo embeben en un diálogo y montan el botón en el footer,
-     * fuera del área desplazable, disparando el submit por `requestSubmit()`.
-     */
-    onStateChange?: (state: { busy: boolean; canSave: boolean }) => void;
-    /**
-     * Pide confirmar en una vista previa antes de guardar.
-     *
-     * Solo lo activan los dos flujos que son el alta y la edición formales del
-     * artículo —recepción administrativa y gestión de inventario—. Los demás
-     * (cuarentena, tránsito, confirmación de ingeniería) editan un aspecto
-     * puntual dentro de un flujo que ya tiene su propia confirmación, y ahí el
-     * paso extra solo estorba.
-     */
-    showPreview?: boolean;
+  initialData?: EditingArticle;
+  isEditing?: boolean;
+  /** Al editar: reemplaza la redirección post-guardado (útil dentro de diálogos). */
+  onEditSuccess?: () => void;
+  /**
+   * Reemplaza el comportamiento del botón Cancelar, que por defecto retrocede
+   * en el historial. Dentro de un diálogo eso es incorrecto: no hay página que
+   * abandonar y el retroceso saca al usuario de su módulo —compras acababa en
+   * una ruta de almacén a la que no tiene acceso—, así que quien lo monta pasa
+   * el cierre del diálogo.
+   */
+  onCancel?: () => void;
+  /** Rótulo del botón de guardado, para flujos que no son ingresar al almacén. */
+  submitLabel?: string;
+  /**
+   * Oculta el bloque de acciones y notifica el estado del formulario. Lo usan
+   * los flujos que lo embeben en un diálogo y montan el botón en el footer,
+   * fuera del área desplazable, disparando el submit por `requestSubmit()`.
+   */
+  onStateChange?: (state: { busy: boolean; canSave: boolean }) => void;
+  /**
+   * Pide confirmar en una vista previa antes de guardar.
+   *
+   * Solo lo activan los dos flujos que son el alta y la edición formales del
+   * artículo —recepción administrativa y gestión de inventario—. Los demás
+   * (cuarentena, tránsito, confirmación de ingeniería) editan un aspecto
+   * puntual dentro de un flujo que ya tiene su propia confirmación, y ahí el
+   * paso extra solo estorba.
+   */
+  showPreview?: boolean;
 }
 
 /**
@@ -119,13 +119,13 @@ export interface ArticleFormProps {
  * mandaba a CHECKING y la de parte a INCOMING.
  */
 export const statusForDestination = ({
-    destination_unknown,
-    goes_to_inventory,
+  destination_unknown,
+  goes_to_inventory,
 }: ArticleDestination): string => {
-    if (destination_unknown) return "TO_DETERMINATE";
-    // Provisional: pasará a STORED cuando el ingreso quede validado. No es
-    // WAITING_TO_LOCATE porque el formulario ya captura la ubicación.
-    if (goes_to_inventory) return "CHECKING";
+  if (destination_unknown) return "TO_DETERMINATE";
+  // Provisional: pasará a STORED cuando el ingreso quede validado. No es
+  // WAITING_TO_LOCATE porque el formulario ya captura la ubicación.
+  if (goes_to_inventory) return "CHECKING";
 
-    return "RECEPTION";
+  return "RECEPTION";
 };

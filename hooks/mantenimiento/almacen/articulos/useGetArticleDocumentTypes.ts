@@ -1,5 +1,5 @@
-import axios from '@/lib/axios';
-import { useQuery } from '@tanstack/react-query';
+import axios from "@/lib/axios";
+import { useQuery } from "@tanstack/react-query";
 
 export interface ArticleDocumentType {
   id: number;
@@ -8,7 +8,9 @@ export interface ArticleDocumentType {
   regulation?: string | null;
 }
 
-const fetchArticleDocumentTypes = async (company: string | undefined): Promise<ArticleDocumentType[]> => {
+const fetchArticleDocumentTypes = async (
+  company: string | undefined,
+): Promise<ArticleDocumentType[]> => {
   const { data } = await axios.get(`/${company}/article-document-types`);
   return data;
 };

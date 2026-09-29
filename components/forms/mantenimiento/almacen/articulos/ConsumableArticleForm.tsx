@@ -489,7 +489,7 @@ export default function ConsumableArticleForm({
             render={({ field }) => (
               <FormItem className="w-full">
                 <FieldLabelRow>
-                    <FormLabel className={labelClass}>Nro. de lote</FormLabel>
+                  <FormLabel className={labelClass}>Nro. de lote</FormLabel>
                 </FieldLabelRow>
                 <FormControl>
                   <Input
@@ -514,7 +514,7 @@ export default function ConsumableArticleForm({
             render={({ field }) => (
               <FormItem className="w-full">
                 <FieldLabelRow>
-                    <FormLabel className={labelClass}>Condición</FormLabel>
+                  <FormLabel className={labelClass}>Condición</FormLabel>
                 </FieldLabelRow>
                 <SearchableSelect
                   options={conditions}

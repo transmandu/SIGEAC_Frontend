@@ -148,9 +148,7 @@ function Section({
           className={cn(
             "flex size-8 shrink-0 items-center justify-center rounded-lg",
             hint && "mt-0.5",
-            alert
-              ? "bg-orange-600 text-white"
-              : "bg-primary/10 text-primary",
+            alert ? "bg-orange-600 text-white" : "bg-primary/10 text-primary",
           )}
         >
           <Icon className="size-4" />

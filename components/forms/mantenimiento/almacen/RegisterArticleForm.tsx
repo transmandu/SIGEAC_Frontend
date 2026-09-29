@@ -10,35 +10,35 @@ import type { EditingArticle } from "./articulos/types";
 export type { EditingArticle };
 
 interface IRegisterArticleProps {
-    isEditing?: boolean;
-    initialData?: EditingArticle;
-    category?: string;
-    /** Al editar: reemplaza la redirección post-guardado (útil dentro de diálogos). */
-    onEditSuccess?: () => void;
-    /**
-     * Reemplaza el retroceso en el historial del botón Cancelar. Dentro de un
-     * diálogo hay que pasar su cierre: no hay página que abandonar, y retroceder
-     * saca al usuario de su módulo.
-     */
-    onCancel?: () => void;
-    /**
-     * Rótulo del botón de guardado. El formulario se reutiliza desde flujos que
-     * no son "ingresar al almacén" (corregir un artículo en cuarentena, editar
-     * uno en tránsito), donde el texto por defecto describe algo que no ocurre.
-     */
-    submitLabel?: string;
-    /**
-     * Oculta el bloque de acciones del formulario y notifica su estado. Lo usan
-     * los flujos que lo embeben en un diálogo y montan el botón en el footer,
-     * fuera del área que se desplaza; el submit se dispara por `requestSubmit()`.
-     */
-    onStateChange?: (state: { busy: boolean; canSave: boolean }) => void;
-    /**
-     * Pide confirmar en una vista previa antes de guardar. Solo lo activa la
-     * edición formal del artículo (gestión de inventario); los flujos que
-     * corrigen un aspecto puntual ya traen su propia confirmación.
-     */
-    showPreview?: boolean;
+  isEditing?: boolean;
+  initialData?: EditingArticle;
+  category?: string;
+  /** Al editar: reemplaza la redirección post-guardado (útil dentro de diálogos). */
+  onEditSuccess?: () => void;
+  /**
+   * Reemplaza el retroceso en el historial del botón Cancelar. Dentro de un
+   * diálogo hay que pasar su cierre: no hay página que abandonar, y retroceder
+   * saca al usuario de su módulo.
+   */
+  onCancel?: () => void;
+  /**
+   * Rótulo del botón de guardado. El formulario se reutiliza desde flujos que
+   * no son "ingresar al almacén" (corregir un artículo en cuarentena, editar
+   * uno en tránsito), donde el texto por defecto describe algo que no ocurre.
+   */
+  submitLabel?: string;
+  /**
+   * Oculta el bloque de acciones del formulario y notifica su estado. Lo usan
+   * los flujos que lo embeben en un diálogo y montan el botón en el footer,
+   * fuera del área que se desplaza; el submit se dispara por `requestSubmit()`.
+   */
+  onStateChange?: (state: { busy: boolean; canSave: boolean }) => void;
+  /**
+   * Pide confirmar en una vista previa antes de guardar. Solo lo activa la
+   * edición formal del artículo (gestión de inventario); los flujos que
+   * corrigen un aspecto puntual ya traen su propia confirmación.
+   */
+  showPreview?: boolean;
 }
 
 /**
@@ -49,35 +49,35 @@ interface IRegisterArticleProps {
  * si el usuario está corrigiendo una cuarentena o un artículo en tránsito.
  */
 const RegisterArticleForm = ({
-    isEditing = false,
+  isEditing = false,
+  initialData,
+  onEditSuccess,
+  onCancel,
+  submitLabel,
+  onStateChange,
+  showPreview,
+}: IRegisterArticleProps) => {
+  const category = initialData?.batch?.category?.toUpperCase() ?? "COMPONENT";
+
+  const shared = {
+    isEditing,
     initialData,
     onEditSuccess,
     onCancel,
     submitLabel,
     onStateChange,
     showPreview,
-}: IRegisterArticleProps) => {
-    const category = initialData?.batch?.category?.toUpperCase() ?? "COMPONENT";
+  };
 
-    const shared = {
-        isEditing,
-        initialData,
-        onEditSuccess,
-        onCancel,
-        submitLabel,
-        onStateChange,
-        showPreview,
-    };
+  if (category === "CONSUMABLE") return <ConsumableArticleForm {...shared} />;
+  if (category === "TOOL") return <ToolArticleForm {...shared} />;
 
-    if (category === "CONSUMABLE") return <ConsumableArticleForm {...shared} />;
-    if (category === "TOOL") return <ToolArticleForm {...shared} />;
-
-    return (
-        <PartComponentArticleForm
-            category={category === "PART" ? "PART" : "COMPONENT"}
-            {...shared}
-        />
-    );
+  return (
+    <PartComponentArticleForm
+      category={category === "PART" ? "PART" : "COMPONENT"}
+      {...shared}
+    />
+  );
 };
 
 export default RegisterArticleForm;

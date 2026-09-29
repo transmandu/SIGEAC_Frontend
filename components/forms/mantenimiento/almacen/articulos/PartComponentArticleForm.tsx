@@ -588,7 +588,7 @@ export default function PartComponentArticleForm({
             render={({ field }) => (
               <FormItem className="w-full">
                 <FieldLabelRow>
-                    <FormLabel className={labelClass}>Condición</FormLabel>
+                  <FormLabel className={labelClass}>Condición</FormLabel>
                 </FieldLabelRow>
                 <SearchableSelect
                   options={conditions}
@@ -629,7 +629,7 @@ export default function PartComponentArticleForm({
             render={({ field }) => (
               <FormItem className="w-full">
                 <FieldLabelRow>
-                    <FormLabel className={labelClass}>Código ATA</FormLabel>
+                  <FormLabel className={labelClass}>Código ATA</FormLabel>
                 </FieldLabelRow>
                 <FormControl>
                   <Input
