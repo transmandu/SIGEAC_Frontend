@@ -14,8 +14,17 @@ import {
   Trash2,
   Image as ImageIcon,
 } from "lucide-react";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Form } from "@/components/ui/form";
+import FolderSelect from "@/components/library/FolderSelect";
 import { useCompanyStore } from "@/stores/CompanyStore";
 import { useUpdateChangeRequest } from "@/actions/sms/gestion_de_cambio/actions";
 import {
@@ -131,6 +140,8 @@ const formSchema = z.object({
         }),
     )
     .optional(),
+  document: z.any().optional(),
+  library_folder_paths: z.array(z.string()).optional().default([]),
 });
 
 type EditFormValues = z.infer<typeof formSchema>;
@@ -439,9 +450,17 @@ export function EditChangeRequestForm({
       })),
       activities: changeRequest.activities.map((a) => ({
         activity_description: a.activity_description,
-        assigned_employee_id: a.assigned_employee?.id ?? null,
-        authorized_employee_id: a.authorized_employee_id ?? null,
+        assigned_employee_id:
+          a.assigned_employee_id != null
+            ? Number(a.assigned_employee_id)
+            : null,
+        authorized_employee_id:
+          a.authorized_employee_id != null
+            ? Number(a.authorized_employee_id)
+            : null,
       })),
+      document: changeRequest.document,
+      library_folder_paths: changeRequest.library_folder_paths ?? [],
     },
   });
 
@@ -453,6 +472,8 @@ export function EditChangeRequestForm({
       temporary_duration_unit,
       stabilization_period_value,
       stabilization_period_unit,
+      document,
+      library_folder_paths,
       ...rest
     } = data;
 
@@ -488,6 +509,8 @@ export function EditChangeRequestForm({
         afterImages: newAfterImages.map((img) => img.file),
         existingBeforeRecordIds: existingBeforeIds,
         existingAfterRecordIds: existingAfterIds,
+        document: document instanceof File ? document : undefined,
+        libraryFolderPaths: library_folder_paths ?? [],
       },
       {
         onSuccess: () => {
@@ -592,16 +615,91 @@ export function EditChangeRequestForm({
             />
           )}
           {step === 4 && (
-            <PhotographicRecordsEditStep
-              existingRecords={changeRequest.photographic_records}
-              newBeforeImages={newBeforeImages}
-              newAfterImages={newAfterImages}
-              onNewBeforeImagesChange={setNewBeforeImages}
-              onNewAfterImagesChange={setNewAfterImages}
-              keptRecordIds={keptRecordIds}
-              onKeptRecordIdsChange={setKeptRecordIds}
-              company={selectedCompany?.slug ?? ""}
-            />
+            <div className="flex flex-col gap-6">
+              <FormField
+                control={form.control}
+                name="document"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Documento PDF</FormLabel>
+                    <div className="flex flex-col gap-4">
+                      {field.value instanceof File && (
+                        <div>
+                          <p className="text-sm text-gray-500">
+                            Archivo seleccionado:
+                          </p>
+                          <p className="font-semibold text-sm">
+                            {field.value.name}
+                          </p>
+                        </div>
+                      )}
+                      {!(field.value instanceof File) &&
+                        changeRequest.document &&
+                        typeof changeRequest.document === "string" && (
+                          <p className="text-sm text-green-600">
+                            ✓ Documento existente cargado
+                          </p>
+                        )}
+                      <FormControl>
+                        <Input
+                          type="file"
+                          accept="application/pdf"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) field.onChange(file);
+                          }}
+                        />
+                      </FormControl>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="space-y-3 rounded-lg border border-border/60 p-3">
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Carpetas en la Librería
+                </p>
+
+                <FormField
+                  control={form.control}
+                  name="library_folder_paths"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">
+                        Carpeta destino
+                      </FormLabel>
+                      <FormControl>
+                        <FolderSelect
+                          company={selectedCompany?.slug}
+                          value={field.value ?? []}
+                          onChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormMessage className="text-xs" />
+                    </FormItem>
+                  )}
+                />
+
+                <p className="text-xs text-muted-foreground">
+                  El documento adjunto se subirá una sola vez a la Librería.
+                  Puedes elegir una o varias carpetas; usa la estrella para
+                  fijar la carpeta principal, las demás son réplicas en otras
+                  carpetas.
+                </p>
+              </div>
+
+              <PhotographicRecordsEditStep
+                existingRecords={changeRequest.photographic_records}
+                newBeforeImages={newBeforeImages}
+                newAfterImages={newAfterImages}
+                onNewBeforeImagesChange={setNewBeforeImages}
+                onNewAfterImagesChange={setNewAfterImages}
+                keptRecordIds={keptRecordIds}
+                onKeptRecordIdsChange={setKeptRecordIds}
+                company={selectedCompany?.slug ?? ""}
+              />
+            </div>
           )}
         </div>
 
