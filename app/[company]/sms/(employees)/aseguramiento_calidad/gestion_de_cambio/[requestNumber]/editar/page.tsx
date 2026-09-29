@@ -4,17 +4,17 @@ import { useParams } from "next/navigation";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { EditChangeRequestForm } from "@/components/forms/sms/change_requests/EditChangeRequestForm";
 import { useCompanyStore } from "@/stores/CompanyStore";
-import { useGetChangeRequestById } from "@/hooks/sms/gestion_de_cambio/useGetChangeRequestById";
+import { useGetChangeRequestByNumber } from "@/hooks/sms/gestion_de_cambio/useGetChangeRequestByNumber";
 import { Loader2 } from "lucide-react";
 
 const EditarSolicitudCambioPage = () => {
   const params = useParams();
   const { selectedCompany } = useCompanyStore();
-  const id = Number(params.id);
+  const requestNumber = params.requestNumber as string;
 
-  const { data: changeRequest, isLoading } = useGetChangeRequestById(
+  const { data: changeRequest, isLoading } = useGetChangeRequestByNumber(
     selectedCompany?.slug,
-    id
+    requestNumber,
   );
 
   if (isLoading) {
@@ -40,7 +40,7 @@ const EditarSolicitudCambioPage = () => {
   }
 
   return (
-    <ContentLayout title={`Editar Solicitud #${changeRequest.id}`}>
+    <ContentLayout title={`Editar Solicitud ${changeRequest.request_number}`}>
       <EditChangeRequestForm changeRequest={changeRequest} />
     </ContentLayout>
   );

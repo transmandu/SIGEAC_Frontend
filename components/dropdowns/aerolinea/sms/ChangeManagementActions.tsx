@@ -128,7 +128,7 @@ const ChangeManagementActions = ({
             <DropdownMenuItem
               onClick={() => {
                 router.push(
-                  `/${selectedCompany?.slug}/sms/aseguramiento_calidad/gestion_de_cambio/${changeManagement.id}`,
+                  `/${selectedCompany?.slug}/sms/aseguramiento_calidad/gestion_de_cambio/${changeManagement.request_number}`,
                 );
               }}
             >
@@ -143,7 +143,7 @@ const ChangeManagementActions = ({
             <DropdownMenuItem
               onClick={() => {
                 router.push(
-                  `/${selectedCompany?.slug}/sms/aseguramiento_calidad/gestion_de_cambio/${changeManagement.id}/editar`,
+                  `/${selectedCompany?.slug}/sms/aseguramiento_calidad/gestion_de_cambio/${changeManagement.request_number}/editar`,
                 );
               }}
             >
