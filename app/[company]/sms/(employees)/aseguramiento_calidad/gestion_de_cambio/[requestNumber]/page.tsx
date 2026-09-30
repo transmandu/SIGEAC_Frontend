@@ -3,6 +3,7 @@
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { useParams } from "next/navigation";
 import { useGetChangeRequestByNumber } from "@/hooks/sms/gestion_de_cambio/useGetChangeRequestByNumber";
+import { useChangeRequestPhotoUrls } from "@/hooks/sms/gestion_de_cambio/useChangeRequestPhotoUrls";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -36,7 +37,6 @@ import {
   ChangeActivity,
   ChangePhotographicRecord,
 } from "@/types";
-import { FileServer } from "@/components/misc/FileServer";
 import { ImageGalleryDialog } from "@/components/dialogs/general/ImageGalleryDialog";
 import Image from "next/image";
 
@@ -328,6 +328,70 @@ const ActivitiesSection = ({
   );
 };
 
+const PhotoStageGrid = ({
+  label,
+  records,
+  urls,
+}: {
+  label: string;
+  records: ChangePhotographicRecord[];
+  urls: Record<number, string>;
+}) => {
+  const loadedRecords = records.filter((record) => urls[record.id]);
+  if (!loadedRecords.length) return null;
+
+  const images = loadedRecords.map((record) => ({
+    src: urls[record.id],
+    alt: `${label} ${record.id}`,
+  }));
+  const indexById = new Map(loadedRecords.map((record, i) => [record.id, i]));
+
+  return (
+    <div className="flex flex-col gap-2">
+      <SectionLabel>{label}</SectionLabel>
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+        {records.map((record) => {
+          const url = urls[record.id];
+          const index = indexById.get(record.id);
+          const thumbnail = (
+            <div className="relative aspect-square rounded-md overflow-hidden border border-border/40">
+              {url ? (
+                <Image
+                  src={url}
+                  alt={`${label} ${record.id}`}
+                  fill
+                  className="object-cover"
+                  unoptimized
+                />
+              ) : (
+                <div className="flex items-center justify-center h-full bg-muted/30">
+                  <Loader2 className="size-4 animate-spin text-muted-foreground" />
+                </div>
+              )}
+            </div>
+          );
+
+          if (index === undefined)
+            return <div key={record.id}>{thumbnail}</div>;
+
+          return (
+            <ImageGalleryDialog
+              key={record.id}
+              images={images}
+              initialIndex={index}
+              trigger={
+                <div className="cursor-pointer hover:opacity-80 transition-opacity">
+                  {thumbnail}
+                </div>
+              }
+            />
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
 const PhotographicRecordsSection = ({
   records,
   company,
@@ -335,15 +399,12 @@ const PhotographicRecordsSection = ({
   records: ChangePhotographicRecord[];
   company: string;
 }) => {
+  const urls = useChangeRequestPhotoUrls(records, company);
+
   if (!records.length) return null;
 
   const beforeRecords = records.filter((r) => r.stage === "before");
   const afterRecords = records.filter((r) => r.stage === "after");
-
-  const allImages = records.map((r) => ({
-    src: r.image_url,
-    alt: `Registro fotográfico — ${r.stage === "before" ? "Antes" : "Después"}`,
-  }));
 
   return (
     <Card className="shadow-xs border-border/60">
@@ -354,91 +415,16 @@ const PhotographicRecordsSection = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="pt-4 space-y-4">
-        {beforeRecords.length > 0 && (
-          <div className="flex flex-col gap-2">
-            <SectionLabel>ANTES del Cambio</SectionLabel>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-              {beforeRecords.map((record, index) => (
-                <FileServer
-                  key={record.id}
-                  path={record.image_url}
-                  company={company}
-                  type="document"
-                >
-                  {(url) => (
-                    <ImageGalleryDialog
-                      images={beforeRecords.map((r) => ({
-                        src: r.image_url,
-                        alt: `ANTES ${r.id}`,
-                      }))}
-                      trigger={
-                        <div className="relative aspect-square rounded-md overflow-hidden border border-border/40 cursor-pointer hover:opacity-80 transition-opacity">
-                          {url ? (
-                            <Image
-                              src={url}
-                              alt={`ANTES ${index + 1}`}
-                              fill
-                              className="object-cover"
-                              unoptimized
-                            />
-                          ) : (
-                            <div className="flex items-center justify-center h-full bg-muted/30">
-                              <Loader2 className="size-4 animate-spin text-muted-foreground" />
-                            </div>
-                          )}
-                        </div>
-                      }
-                      initialIndex={index}
-                    />
-                  )}
-                </FileServer>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {afterRecords.length > 0 && (
-          <div className="flex flex-col gap-2">
-            <SectionLabel>DESPUÉS del Cambio</SectionLabel>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-              {afterRecords.map((record, index) => (
-                <FileServer
-                  key={record.id}
-                  path={record.image_url}
-                  company={company}
-                  type="document"
-                >
-                  {(url) => (
-                    <ImageGalleryDialog
-                      images={afterRecords.map((r) => ({
-                        src: r.image_url,
-                        alt: `DESPUÉS ${r.id}`,
-                      }))}
-                      trigger={
-                        <div className="relative aspect-square rounded-md overflow-hidden border border-border/40 cursor-pointer hover:opacity-80 transition-opacity">
-                          {url ? (
-                            <Image
-                              src={url}
-                              alt={`DESPUÉS ${index + 1}`}
-                              fill
-                              className="object-cover"
-                              unoptimized
-                            />
-                          ) : (
-                            <div className="flex items-center justify-center h-full bg-muted/30">
-                              <Loader2 className="size-4 animate-spin text-muted-foreground" />
-                            </div>
-                          )}
-                        </div>
-                      }
-                      initialIndex={index}
-                    />
-                  )}
-                </FileServer>
-              ))}
-            </div>
-          </div>
-        )}
+        <PhotoStageGrid
+          label="ANTES del Cambio"
+          records={beforeRecords}
+          urls={urls}
+        />
+        <PhotoStageGrid
+          label="DESPUÉS del Cambio"
+          records={afterRecords}
+          urls={urls}
+        />
       </CardContent>
     </Card>
   );
