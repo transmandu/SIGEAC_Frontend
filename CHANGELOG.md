@@ -1,3 +1,7 @@
+## v4.38.3 — 2026-09-30
+
+- fix: add required message for input in zod schema (#308)
+
 ## v4.38.2 — 2026-09-30
 
 - fix: risk index in change request (#307)
