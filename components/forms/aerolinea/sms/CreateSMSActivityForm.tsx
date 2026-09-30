@@ -76,7 +76,10 @@ const FormSchema = z
     start_time: z.string(),
     end_time: z.string(),
     place: z.string().max(500, "Máximo 500 caracteres"),
-    topics: z.string(),
+    topics: z
+      .string()
+      .min(1, "Debe agregar al menos un tema")
+      .max(1000, "Máximo 1000 caracteres"),
     categories: z.array(z.string()),
     objetive: z.string().max(500, "Máximo 500 caracteres"),
     description: z.string().max(2000, "Máximo 2000 caracteres"),
@@ -544,11 +547,11 @@ export default function CreateSMSActivityForm({
           control={form.control}
           name="topics"
           render={({ field }) => (
-            <FormItem className="hidden">
+            <FormItem>
               <FormControl>
                 <Input type="hidden" {...field} />
               </FormControl>
-              <FormMessage />
+              <FormMessage className="text-xs" />
             </FormItem>
           )}
         />
