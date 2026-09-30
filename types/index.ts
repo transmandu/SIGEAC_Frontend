@@ -1998,7 +1998,7 @@ export type ChangeRiskAssessment = {
   hazard_description: string;
   probability_value: number;
   severity_value: string;
-  risk_index: number;
+  risk_index: string;
   tolerability_level: TolerabilityLevel;
   created_at: string;
   updated_at: string;
