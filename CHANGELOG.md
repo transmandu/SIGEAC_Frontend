@@ -1,3 +1,7 @@
+## v4.38.1 — 2026-09-30
+
+- fix: images in change request register (#306)
+
 ## v4.38.0 — 2026-09-30
 
 - feat: create sms activity with bulletin together (#305)
