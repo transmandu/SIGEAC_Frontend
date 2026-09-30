@@ -2,17 +2,13 @@
 import CreateDangerIdentificationDialog from "@/components/dialogs/aerolinea/sms/CreateDangerIdentificationDialog";
 import CreateVoluntaryReportDialog from "@/components/dialogs/aerolinea/sms/CreateVoluntaryReportDialog";
 import DeleteVoluntaryReportDialog from "@/components/dialogs/aerolinea/sms/DeleteVoluntaryReportDialog";
-import PreviewVoluntaryReportPdfDialog from "@/components/dialogs/aerolinea/sms/PreviewVoluntaryReportPdfDialog";
+import { PdfDownloadButton } from "@/components/dialogs/shared/PdfDownloadButton";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -97,7 +93,12 @@ const ShowVoluntaryReport = () => {
                 reportType="RVP"
               />
             ) : (
-              <Button variant="outline" size="sm" className="h-9 w-full" asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-9 w-full"
+                asChild
+              >
                 <Link
                   href={`/${selectedCompany?.slug}/sms/gestion_reportes/peligros_identificados/${voluntaryReport.danger_identification_id}`}
                 >
@@ -119,15 +120,35 @@ const ShowVoluntaryReport = () => {
           </>
         )}
 
-        <PreviewVoluntaryReportPdfDialog
-          title="Descargar PDF"
-          voluntaryReport={voluntaryReport}
+        <PdfDownloadButton
+          label="PDF Formato"
+          endpoint={
+            selectedCompany?.slug
+              ? `/${selectedCompany.slug}/sms/voluntary-reports/${voluntaryReport.id}/format-pdf`
+              : ""
+          }
+          fileName={`reporte_sms_${voluntaryReport.id}`}
+          title="Vista previa del formato del reporte"
+          description="Revisa el formato del reporte antes de descargarlo."
+        />
+
+        <PdfDownloadButton
+          label="PDF Gestión"
+          endpoint={
+            selectedCompany?.slug
+              ? `/${selectedCompany.slug}/sms/voluntary-reports/${voluntaryReport.id}/management-pdf`
+              : ""
+          }
+          fileName={`TMD_GESTION_RIESGO_${voluntaryReport.report_number || voluntaryReport.id}`}
+          title="Vista previa del reporte de gestión"
+          description="Revisa el reporte de gestión antes de descargarlo."
         />
       </div>
     );
   };
 
-  const sectionLabel = "text-xs font-medium uppercase tracking-wide text-muted-foreground";
+  const sectionLabel =
+    "text-xs font-medium uppercase tracking-wide text-muted-foreground";
   const fieldValue = "text-sm";
 
   // ==========================================================
@@ -187,7 +208,8 @@ const ShowVoluntaryReport = () => {
               className={`text-xs font-semibold ${
                 reportData?.status === "CERRADO"
                   ? "bg-green-100 text-green-700 border border-green-200 dark:bg-green-950/50 dark:text-green-400 dark:border-green-800"
-                  : reportData?.status === "PROCESO" || reportData?.status === "PENDIENTE"
+                  : reportData?.status === "PROCESO" ||
+                      reportData?.status === "PENDIENTE"
                     ? "bg-amber-100 text-amber-700 border border-amber-200 dark:bg-amber-950/50 dark:text-amber-400 dark:border-amber-800"
                     : "bg-red-100 text-red-700 border border-red-200 dark:bg-red-950/50 dark:text-red-400 dark:border-red-800"
               }`}
@@ -366,7 +388,9 @@ const ShowVoluntaryReport = () => {
       {voluntaryReport?.imageUrl && (
         <Card className="shadow-none border-border/60">
           <CardHeader className="pb-3 flex flex-row items-center justify-between">
-            <h3 className={`font-semibold flex items-center gap-2 ${fieldValue}`}>
+            <h3
+              className={`font-semibold flex items-center gap-2 ${fieldValue}`}
+            >
               <ImageIcon className="w-4 h-4 text-muted-foreground" />
               Imagen Adjunta
             </h3>

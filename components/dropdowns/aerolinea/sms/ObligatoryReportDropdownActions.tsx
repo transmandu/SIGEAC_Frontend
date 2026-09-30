@@ -18,6 +18,7 @@ import {
   ClipboardPen,
   ClipboardPenLine,
   EyeIcon,
+  FileText,
   Loader2,
   MoreHorizontal,
   PrinterCheck,
@@ -50,27 +51,22 @@ const ObligatoryReportDropdownActions = ({
     useState<boolean>(false);
   const [openEdit, setOpenEdit] = useState<boolean>(false);
   const [openAccept, setOpenAccept] = useState<boolean>(false);
-  const [openPdf, setOpenPdf] = useState<boolean>(false);
+  const [openFormatPdf, setOpenFormatPdf] = useState<boolean>(false);
+  const [openManagementPdf, setOpenManagementPdf] = useState<boolean>(false);
 
   const router = useRouter();
 
   const { deleteObligatoryReport } = useDeleteObligatoryReport();
 
-  const useManagementPdf =
-    obligatoryReport.status === "CERRADO" &&
-    Boolean(obligatoryReport.danger_identification?.id);
+  const hasCompanySlug = Boolean(selectedCompany?.slug);
 
-  const pdfEndpoint = selectedCompany?.slug
-    ? `/${selectedCompany.slug}/sms/obligatory-reports/${obligatoryReport.id}/${useManagementPdf ? "management-pdf" : "format-pdf"}`
+  const formatPdfEndpoint = hasCompanySlug
+    ? `/${selectedCompany!.slug}/sms/obligatory-reports/${obligatoryReport.id}/format-pdf`
     : "";
 
-  const pdfTitle = useManagementPdf
-    ? "Vista previa del reporte de gestión"
-    : "Vista previa del formato del reporte";
-
-  const pdfDescription = useManagementPdf
-    ? "Revisa el reporte de gestión antes de descargarlo."
-    : "Revisa el formato del reporte antes de descargarlo.";
+  const managementPdfEndpoint = hasCompanySlug
+    ? `/${selectedCompany!.slug}/sms/obligatory-reports/${obligatoryReport.id}/management-pdf`
+    : "";
 
   const handleDelete = async (id: number | string) => {
     const value = {
@@ -155,32 +151,50 @@ const ObligatoryReportDropdownActions = ({
                 </Tooltip>
               )}
 
-            {obligatoryReport && pdfEndpoint && (
+            {obligatoryReport && formatPdfEndpoint && (
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <DropdownMenuItem onSelect={() => setOpenPdf(true)}>
+                  <DropdownMenuItem onSelect={() => setOpenFormatPdf(true)}>
                     <PrinterCheck className="size-4" />
                   </DropdownMenuItem>
                 </TooltipTrigger>
-                <TooltipContent>PDF</TooltipContent>
+                <TooltipContent>PDF formato</TooltipContent>
+              </Tooltip>
+            )}
+
+            {obligatoryReport && managementPdfEndpoint && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuItem onSelect={() => setOpenManagementPdf(true)}>
+                    <FileText className="size-4" />
+                  </DropdownMenuItem>
+                </TooltipTrigger>
+                <TooltipContent>PDF gestión</TooltipContent>
               </Tooltip>
             )}
           </TooltipProvider>
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {obligatoryReport && pdfEndpoint && (
+      {obligatoryReport && formatPdfEndpoint && (
         <PdfEndpointPreviewDialog
-          open={openPdf}
-          onOpenChange={setOpenPdf}
-          endpoint={pdfEndpoint}
-          fileName={
-            useManagementPdf
-              ? `TMD_GESTION_RIESGO_${obligatoryReport.report_number || obligatoryReport.id}`
-              : `TMD_FOR_SMS_REPORTE_OBLIGATORIO_DE_SUCESOS_${obligatoryReport.report_number || obligatoryReport.id}`
-          }
-          title={pdfTitle}
-          description={pdfDescription}
+          open={openFormatPdf}
+          onOpenChange={setOpenFormatPdf}
+          endpoint={formatPdfEndpoint}
+          fileName={`TMD_FOR_SMS_REPORTE_OBLIGATORIO_DE_SUCESOS_${obligatoryReport.report_number || obligatoryReport.id}`}
+          title="Vista previa del formato del reporte"
+          description="Revisa el formato del reporte antes de descargarlo."
+        />
+      )}
+
+      {obligatoryReport && managementPdfEndpoint && (
+        <PdfEndpointPreviewDialog
+          open={openManagementPdf}
+          onOpenChange={setOpenManagementPdf}
+          endpoint={managementPdfEndpoint}
+          fileName={`TMD_GESTION_RIESGO_${obligatoryReport.report_number || obligatoryReport.id}`}
+          title="Vista previa del reporte de gestión"
+          description="Revisa el reporte de gestión antes de descargarlo."
         />
       )}
 
