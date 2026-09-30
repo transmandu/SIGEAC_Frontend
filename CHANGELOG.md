@@ -1,3 +1,7 @@
+## v4.38.0 — 2026-09-30
+
+- feat: create sms activity with bulletin together (#305)
+
 ## v4.37.0 — 2026-09-30
 
 - feat: download management report pdf (#304)
