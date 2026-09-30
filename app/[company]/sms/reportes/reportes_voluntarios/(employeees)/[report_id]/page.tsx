@@ -2,7 +2,7 @@
 import CreateDangerIdentificationDialog from "@/components/dialogs/aerolinea/sms/CreateDangerIdentificationDialog";
 import CreateVoluntaryReportDialog from "@/components/dialogs/aerolinea/sms/CreateVoluntaryReportDialog";
 import DeleteVoluntaryReportDialog from "@/components/dialogs/aerolinea/sms/DeleteVoluntaryReportDialog";
-import PreviewVoluntaryReportPdfDialog from "@/components/dialogs/aerolinea/sms/PreviewVoluntaryReportPdfDialog";
+import { PdfDownloadButton } from "@/components/dialogs/shared/PdfDownloadButton";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -119,9 +119,28 @@ const ShowVoluntaryReport = () => {
           </>
         )}
 
-        <PreviewVoluntaryReportPdfDialog
-          title="Descargar PDF"
-          voluntaryReport={voluntaryReport}
+        <PdfDownloadButton
+          label="PDF Formato"
+          endpoint={
+            selectedCompany?.slug
+              ? `/${selectedCompany.slug}/sms/voluntary-reports/${voluntaryReport.id}/format-pdf`
+              : ""
+          }
+          fileName={`reporte_sms_${voluntaryReport.id}`}
+          title="Vista previa del formato del reporte"
+          description="Revisa el formato del reporte antes de descargarlo."
+        />
+
+        <PdfDownloadButton
+          label="PDF Gestión"
+          endpoint={
+            selectedCompany?.slug
+              ? `/${selectedCompany.slug}/sms/voluntary-reports/${voluntaryReport.id}/management-pdf`
+              : ""
+          }
+          fileName={`TMD_GESTION_RIESGO_${voluntaryReport.report_number || voluntaryReport.id}`}
+          title="Vista previa del reporte de gestión"
+          description="Revisa el reporte de gestión antes de descargarlo."
         />
       </div>
     );
