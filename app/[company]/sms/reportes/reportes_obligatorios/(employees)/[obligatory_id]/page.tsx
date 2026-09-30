@@ -2,7 +2,7 @@
 import CreateDangerIdentificationDialog from "@/components/dialogs/aerolinea/sms/CreateDangerIdentificationDialog";
 import CreateObligatoryDialog from "@/components/dialogs/aerolinea/sms/CreateObligatoryDialog";
 import DeleteObligatoryReportDialog from "@/components/dialogs/aerolinea/sms/DeleteObligatoryReportDialog";
-import PreviewObligatoryReportPdfDialog from "@/components/dialogs/aerolinea/sms/PreviewObligatoryReportPdfDialog";
+import { PdfDownloadButton } from "@/components/dialogs/shared/PdfDownloadButton";
 import { ContentLayout } from "@/components/layout/ContentLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -95,10 +95,31 @@ const ShowObligatoryReport = () => {
         )}
 
         {obligatoryReport && (
-          <PreviewObligatoryReportPdfDialog
-            title={"Descargar PDF"}
-            obligatoryReport={obligatoryReport}
-          />
+          <>
+            <PdfDownloadButton
+              label="PDF Formato"
+              endpoint={
+                selectedCompany?.slug
+                  ? `/${selectedCompany.slug}/sms/obligatory-reports/${obligatoryReport.id}/format-pdf`
+                  : ""
+              }
+              fileName={`TMD_FOR_SMS_REPORTE_OBLIGATORIO_DE_SUCESOS_${obligatoryReport.report_number || obligatoryReport.id}`}
+              title="Vista previa del formato del reporte"
+              description="Revisa el formato del reporte antes de descargarlo."
+            />
+
+            <PdfDownloadButton
+              label="PDF Gestión"
+              endpoint={
+                selectedCompany?.slug
+                  ? `/${selectedCompany.slug}/sms/obligatory-reports/${obligatoryReport.id}/management-pdf`
+                  : ""
+              }
+              fileName={`TMD_GESTION_RIESGO_${obligatoryReport.report_number || obligatoryReport.id}`}
+              title="Vista previa del reporte de gestión"
+              description="Revisa el reporte de gestión antes de descargarlo."
+            />
+          </>
         )}
       </div>
 

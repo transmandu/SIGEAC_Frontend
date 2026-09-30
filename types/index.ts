@@ -2451,6 +2451,7 @@ export type ChangePhotographicRecord = {
 export type ChangeRequest = {
   id: number;
   status: ChangeStatus;
+  request_number: string;
   request_date: string;
   department_id: string;
   requested_by: Employee;

@@ -21,6 +21,7 @@ import {
   ClipboardPen,
   ClipboardPenLine,
   EyeIcon,
+  FileText,
   Loader2,
   MoreHorizontal,
   PrinterCheck,
@@ -48,25 +49,20 @@ const VoluntaryReportDropdownActions = ({
   const [openEdit, setOpenEdit] = useState<boolean>(false);
   const [openAccept, setOpenAccept] = useState<boolean>(false);
   const [openDelete, setOpenDelete] = useState<boolean>(false);
-  const [openPdf, setOpenPdf] = useState<boolean>(false);
+  const [openFormatPdf, setOpenFormatPdf] = useState<boolean>(false);
+  const [openManagementPdf, setOpenManagementPdf] = useState<boolean>(false);
   const { deleteVoluntaryReport } = useDeleteVoluntaryReport();
   const router = useRouter();
 
-  const useManagementPdf =
-    voluntaryReport.status === "CERRADO" &&
-    Boolean(voluntaryReport.danger_identification_id);
+  const hasCompanySlug = Boolean(selectedCompany?.slug);
 
-  const pdfEndpoint = selectedCompany?.slug
-    ? `/${selectedCompany.slug}/sms/voluntary-reports/${voluntaryReport.id}/${useManagementPdf ? "management-pdf" : "format-pdf"}`
+  const formatPdfEndpoint = hasCompanySlug
+    ? `/${selectedCompany!.slug}/sms/voluntary-reports/${voluntaryReport.id}/format-pdf`
     : "";
 
-  const pdfTitle = useManagementPdf
-    ? "Vista previa del reporte de gestión"
-    : "Vista previa del formato del reporte";
-
-  const pdfDescription = useManagementPdf
-    ? "Revisa el reporte de gestión antes de descargarlo."
-    : "Revisa el formato del reporte antes de descargarlo.";
+  const managementPdfEndpoint = hasCompanySlug
+    ? `/${selectedCompany!.slug}/sms/voluntary-reports/${voluntaryReport.id}/management-pdf`
+    : "";
 
   const handleDelete = async (id: number | string) => {
     const value = {
@@ -158,30 +154,50 @@ const VoluntaryReportDropdownActions = ({
                 </Tooltip>
               )}
 
-            {voluntaryReport &&
-              voluntaryReport.status !== "PROCESO" &&
-              pdfEndpoint && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <DropdownMenuItem onSelect={() => setOpenPdf(true)}>
-                      <PrinterCheck className="size-4" />
-                    </DropdownMenuItem>
-                  </TooltipTrigger>
-                  <TooltipContent>PDF</TooltipContent>
-                </Tooltip>
-              )}
+            {voluntaryReport && formatPdfEndpoint && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuItem onSelect={() => setOpenFormatPdf(true)}>
+                    <PrinterCheck className="size-4" />
+                  </DropdownMenuItem>
+                </TooltipTrigger>
+                <TooltipContent>PDF formato</TooltipContent>
+              </Tooltip>
+            )}
+
+            {voluntaryReport && managementPdfEndpoint && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuItem onSelect={() => setOpenManagementPdf(true)}>
+                    <FileText className="size-4" />
+                  </DropdownMenuItem>
+                </TooltipTrigger>
+                <TooltipContent>PDF gestión</TooltipContent>
+              </Tooltip>
+            )}
           </TooltipProvider>
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {voluntaryReport && pdfEndpoint && (
+      {voluntaryReport && formatPdfEndpoint && (
         <PdfEndpointPreviewDialog
-          open={openPdf}
-          onOpenChange={setOpenPdf}
-          endpoint={pdfEndpoint}
+          open={openFormatPdf}
+          onOpenChange={setOpenFormatPdf}
+          endpoint={formatPdfEndpoint}
           fileName={`reporte_sms_${voluntaryReport.id}`}
-          title={pdfTitle}
-          description={pdfDescription}
+          title="Vista previa del formato del reporte"
+          description="Revisa el formato del reporte antes de descargarlo."
+        />
+      )}
+
+      {voluntaryReport && managementPdfEndpoint && (
+        <PdfEndpointPreviewDialog
+          open={openManagementPdf}
+          onOpenChange={setOpenManagementPdf}
+          endpoint={managementPdfEndpoint}
+          fileName={`TMD_GESTION_RIESGO_${voluntaryReport.id}`}
+          title="Vista previa del reporte de gestión"
+          description="Revisa el reporte de gestión antes de descargarlo."
         />
       )}
 

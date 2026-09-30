@@ -1,7 +1,6 @@
 "use client";
 
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader";
-import { dateFormat } from "@/lib/utils";
 import { ChangeRequest, ChangeStatus } from "@/types";
 import { type AppColumnDef } from "@/lib/table";
 import { Badge } from "@/components/ui/badge";
@@ -54,26 +53,14 @@ const CHANGE_TYPE_LABELS: Record<string, string> = {
 
 export const columns: AppColumnDef<ChangeRequest>[] = [
   {
-    accessorKey: "request_date",
+    accessorKey: "request_number",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Fecha" />
+      <DataTableColumnHeader column={column} title="Correlativo" />
     ),
-    meta: { title: "Fecha" },
+    meta: { title: "Correlativo" },
     cell: ({ row }) => (
-      <div className="flex justify-center font-medium">
-        {dateFormat(row.original.request_date, "PPP")}
-      </div>
-    ),
-  },
-  {
-    accessorKey: "department",
-    header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Depto." />
-    ),
-    meta: { title: "Depto." },
-    cell: ({ row }) => (
-      <div className="flex justify-center text-center">
-        {row.original.department?.acronym}
+      <div className="flex justify-center font-bold text-center">
+        {row.original.request_number}
       </div>
     ),
   },
@@ -146,9 +133,7 @@ export const columns: AppColumnDef<ChangeRequest>[] = [
     id: "actions",
     cell: ({ row }) => {
       const changeManagement = row.original;
-      return (
-        <ChangeManagementActions changeManagement={changeManagement} />
-      );
+      return <ChangeManagementActions changeManagement={changeManagement} />;
     },
   },
 ];

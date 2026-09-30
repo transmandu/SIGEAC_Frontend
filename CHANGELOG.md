@@ -1,3 +1,11 @@
+## v4.37.0 — 2026-09-30
+
+- feat: download management report pdf (#304)
+
+## v4.36.0 — 2026-09-29
+
+- feat: search change request by correlative number (#303)
+
 ## v4.35.0 — 2026-09-29
 
 - feat: to save doc in change request form (#302)
