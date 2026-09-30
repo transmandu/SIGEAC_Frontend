@@ -1,3 +1,7 @@
+## v4.38.2 — 2026-09-30
+
+- fix: risk index in change request (#307)
+
 ## v4.38.1 — 2026-09-30
 
 - fix: images in change request register (#306)
