@@ -79,7 +79,7 @@ const CalendarAdminPage = () => {
                     "flex shrink-0 items-start gap-3 rounded-xl border px-3.5 py-3 text-left transition-all duration-200",
                     "backdrop-blur-md",
                     isActive
-                      ? "border-blue-400/40 bg-gradient-to-br from-primary/15 to-blue-500/10 shadow-sm shadow-blue-500/10"
+                      ? "border-blue-400/40 bg-linear-to-br from-primary/15 to-blue-500/10 shadow-sm shadow-blue-500/10"
                       : "border-slate-400/30 bg-background/40 hover:border-slate-400/50 hover:bg-background/60 dark:border-slate-600/30 dark:hover:border-slate-600/50",
                   )}
                 >
@@ -107,7 +107,7 @@ const CalendarAdminPage = () => {
             })}
           </nav>
 
-          <div className="min-w-0 flex-1 rounded-2xl border border-slate-400/40 bg-gradient-to-br from-background/60 to-background/30 p-5 backdrop-blur-sm dark:border-slate-600/40">
+          <div className="min-w-0 flex-1 rounded-2xl border border-slate-400/40 bg-linear-to-br from-background/60 to-background/30 p-5 backdrop-blur-sm dark:border-slate-600/40">
             <div className="mb-5 flex items-center gap-2.5 border-b border-slate-400/20 pb-4 dark:border-slate-600/20">
               <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
                 <ActiveIcon className="size-4" />

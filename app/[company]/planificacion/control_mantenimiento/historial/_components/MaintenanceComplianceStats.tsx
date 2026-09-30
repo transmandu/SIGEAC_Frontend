@@ -42,7 +42,7 @@ function StatCard({
     <div
       className={cn(
         "flex flex-1 basis-56 flex-col gap-2 overflow-hidden rounded-xl p-4",
-        "bg-gradient-to-br from-background/70 to-background/40 backdrop-blur-md",
+        "bg-linear-to-br from-background/70 to-background/40 backdrop-blur-md",
         "border border-slate-400/50 shadow-sm dark:border-slate-600/50",
         "transition-shadow duration-200 hover:shadow-md hover:shadow-blue-500/10",
         CARD_HEIGHT,

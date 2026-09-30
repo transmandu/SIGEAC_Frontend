@@ -41,7 +41,7 @@ import { VisibilityRulesEditor } from "./VisibilityRulesEditor";
 // Mismo problema de especificidad que en SourceAccessPanel: AccordionItem
 // trae "border-b" de base, se fuerza con !important para el borde completo.
 const ACCORDION_ITEM_CLASS =
-  "rounded-xl !border !border-slate-400/40 bg-gradient-to-br from-background/70 to-background/40 backdrop-blur-md shadow-sm dark:!border-slate-600/40";
+  "rounded-xl !border !border-slate-400/40 bg-linear-to-br from-background/70 to-background/40 backdrop-blur-md shadow-sm dark:!border-slate-600/40";
 
 interface ManualEventsPanelProps {
   company: string;

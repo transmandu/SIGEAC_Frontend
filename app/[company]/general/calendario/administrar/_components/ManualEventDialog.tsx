@@ -166,7 +166,7 @@ export function ManualEventDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         className={cn(
-          "sm:max-w-md border-slate-400/50 bg-gradient-to-br from-background/95 to-background/90",
+          "sm:max-w-md border-slate-400/50 bg-linear-to-br from-background/95 to-background/90",
           "backdrop-blur-xl dark:border-slate-600/50",
         )}
       >

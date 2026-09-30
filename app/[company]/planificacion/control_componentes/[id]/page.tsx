@@ -49,7 +49,6 @@ import {
 import { partTypeLabel, partTypeRank } from "@/lib/maintenancePartTypes";
 import {
   COMPONENT_ACTION_LABELS,
-  COMPONENT_CATEGORY_LABELS,
   COMPONENT_LIMIT_KIND_LABELS,
 } from "@/lib/componentControlLabels";
 import {
@@ -414,9 +413,6 @@ function ComponentsTable({
                   </span>
                   <span className="mt-1 flex flex-wrap items-center gap-1">
                     <Badge variant="outline" className="text-[10px]">
-                      {COMPONENT_CATEGORY_LABELS[item.category]}
-                    </Badge>
-                    <Badge variant="outline" className="text-[10px]">
                       {COMPONENT_ACTION_LABELS[item.action]}
                     </Badge>
                     {item.is_hazardous && (
@@ -593,7 +589,6 @@ const ComponentControlDetailPage = () => {
   );
 
   const [search, setSearch] = useState("");
-  const [category, setCategory] = useState("all");
   const [status, setStatus] = useState("all");
   const [onlyHazardous, setOnlyHazardous] = useState(false);
 
@@ -608,7 +603,6 @@ const ComponentControlDetailPage = () => {
   const filtered = useMemo(() => {
     const needle = search.trim().toLowerCase();
     return activeItems.filter((item) => {
-      if (category !== "all" && item.category !== category) return false;
       if (onlyHazardous && !item.is_hazardous) return false;
       if (status !== "all" && computeMaintenanceItem(item).status !== status)
         return false;
@@ -626,7 +620,7 @@ const ComponentControlDetailPage = () => {
       }
       return true;
     });
-  }, [activeItems, category, onlyHazardous, status, search]);
+  }, [activeItems, onlyHazardous, status, search]);
 
   if (isLoading) return <LoadingPage />;
 
@@ -812,21 +806,6 @@ const ComponentControlDetailPage = () => {
               className="h-10 pl-9 text-sm"
             />
           </div>
-          <Select value={category} onValueChange={setCategory}>
-            <SelectTrigger className={cn(selectTriggerClass, "w-full sm:w-56")}>
-              <SelectValue placeholder="Tipo" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos los tipos</SelectItem>
-              {Object.entries(COMPONENT_CATEGORY_LABELS).map(
-                ([value, label]) => (
-                  <SelectItem key={value} value={value}>
-                    {label}
-                  </SelectItem>
-                ),
-              )}
-            </SelectContent>
-          </Select>
           <Select value={status} onValueChange={setStatus}>
             <SelectTrigger className={cn(selectTriggerClass, "w-full sm:w-48")}>
               <SelectValue placeholder="Estado" />

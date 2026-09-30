@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@/lib/zod-resolver";
 import { z } from "zod";
 import { format, startOfDay } from "date-fns";
@@ -151,8 +151,12 @@ export function RegisterComponentComplianceDialog({
     },
   });
 
-  const action = form.watch("action");
-  const keepsConsumed = action === "REPAIR" || action === "INSPECTION";
+  // useWatch, no form.watch: el watch() de useForm devuelve una función que el
+  // React Compiler no puede memoizar, y por eso saltea el componente entero.
+  const action = useWatch({ control: form.control, name: "action" });
+  // Solo el overhaul devuelve el componente a cero; un chequeo o un testeo lo
+  // verifican sin renovarlo, así que conservan lo ya consumido.
+  const keepsConsumed = action !== "OVERHAUL";
 
   const onSubmit = async (values: FormValues) => {
     await createComponentCompliance.mutateAsync({
@@ -188,7 +192,7 @@ export function RegisterComponentComplianceDialog({
         <TooltipContent>Registrar cumplimiento</TooltipContent>
       </Tooltip>
 
-      <DialogContent className="sm:max-w-[520px]">
+      <DialogContent className="sm:max-w-130">
         <DialogHeader>
           <DialogTitle>Registrar Cumplimiento</DialogTitle>
           <DialogDescription>{itemName}</DialogDescription>
@@ -410,7 +414,7 @@ export function RegisterComponentComplianceDialog({
             />
 
             <Button
-              className="h-11 gap-2 rounded-lg bg-gradient-to-br from-primary to-primary/85 text-primary-foreground shadow-sm transition-all duration-200 hover:shadow-md hover:shadow-blue-500/25 disabled:opacity-70"
+              className="h-11 gap-2 rounded-lg bg-linear-to-br from-primary to-primary/85 text-primary-foreground shadow-sm transition-all duration-200 hover:shadow-md hover:shadow-blue-500/25 disabled:opacity-70"
               disabled={createComponentCompliance.isPending}
               type="submit"
             >

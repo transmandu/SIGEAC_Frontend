@@ -133,7 +133,7 @@ export function ManualRevisionDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[85vh] flex-col bg-gradient-to-br from-background/95 to-background/90 backdrop-blur-xl sm:max-w-3xl">
+      <DialogContent className="flex max-h-[85vh] flex-col bg-linear-to-br from-background/95 to-background/90 backdrop-blur-xl sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle asChild>
             <SectionTitle icon={History} title="Registrar Nueva Revisión" />
@@ -246,7 +246,7 @@ export function ManualRevisionDialog({
                   return (
                     <div
                       key={sourceId}
-                      className="rounded-xl border border-slate-400/40 bg-gradient-to-br from-background/70 to-background/40 backdrop-blur-md dark:border-slate-600/40"
+                      className="rounded-xl border border-slate-400/40 bg-linear-to-br from-background/70 to-background/40 backdrop-blur-md dark:border-slate-600/40"
                     >
                       <div className="flex items-center gap-2 p-3">
                         <Checkbox

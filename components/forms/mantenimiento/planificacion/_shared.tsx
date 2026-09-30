@@ -1,7 +1,12 @@
 "use client";
 
-import { useMemo } from "react";
-import { Control, useFormContext, useWatch } from "react-hook-form";
+import { useEffect, useMemo, useRef } from "react";
+import {
+  Control,
+  UseFormReturn,
+  useFormContext,
+  useWatch,
+} from "react-hook-form";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon, X } from "lucide-react";
 
@@ -94,6 +99,58 @@ export function AircraftSelect({
       )}
     />
   );
+}
+
+/**
+ * Propone "Control de <Tipo> <MATRÍCULA>" como título al elegir la aeronave.
+ *
+ * Es una sugerencia, no un valor impuesto: solo escribe si el campo está
+ * vacío o si todavía tiene la sugerencia de la aeronave anterior, así un
+ * título que el usuario escribió a mano nunca se pisa al cambiar de aeronave.
+ * En edición arranca con el título ya guardado como "última sugerencia" solo
+ * si coincide con la fórmula; si no, se respeta desde el primer render.
+ */
+export function useSuggestedControlTitle(
+  form: UseFormReturn<any>,
+  controlLabel: string,
+) {
+  const { control, setValue, getValues } = form;
+  const { selectedCompany } = useCompanyStore();
+  const { data: aircrafts } = useGetMaintenanceAircrafts(selectedCompany?.slug);
+  const aircraftId = useWatch({ control, name: "aircraft_id" }) as string;
+
+  const buildTitle = (acronym: string) =>
+    `Control de ${controlLabel} ${acronym}`;
+
+  // Se compara contra la fórmula, no contra la matrícula suelta: así el
+  // título guardado de un control existente cuenta como sugerencia y se
+  // actualiza al cambiar de aeronave, igual que uno recién generado.
+  const lastSuggestion = useRef<string | null>(
+    (() => {
+      const current = (getValues("title") as string)?.trim();
+      if (!current) return null;
+      return /^Control de .+ \S+$/.test(current) ? current : null;
+    })(),
+  );
+
+  useEffect(() => {
+    const acronym = aircrafts?.find(
+      (a) => String(a.id) === aircraftId,
+    )?.acronym;
+    if (!acronym) return;
+
+    const current = ((getValues("title") as string) ?? "").trim();
+    if (current && current !== lastSuggestion.current) return;
+
+    const suggestion = buildTitle(acronym);
+    if (current === suggestion) return;
+
+    lastSuggestion.current = suggestion;
+    setValue("title", suggestion, { shouldValidate: true, shouldDirty: true });
+    // setValue/getValues no son estables en RHF; basta con reaccionar al
+    // cambio de aeronave y a la llegada de la lista.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [aircraftId, aircrafts, controlLabel]);
 }
 
 // Input de texto normal (sin flechitas ni scroll-cambia-el-valor de
@@ -192,15 +249,51 @@ export function CompactDateField({
 /**
  * Umbral de alerta propio de una fila. Vacío hereda el porcentaje general del
  * control, que se muestra como placeholder.
+ *
+ * Con `follows`, el campo trae el valor escrito en vez de vacío y sigue al
+ * general mientras nadie lo toque a mano: al mover el % del control se
+ * actualizan las filas que aún tenían el valor heredado, y las editadas
+ * quedan como están.
  */
 export function RemainingPercentageField({
   control,
   name,
+  follows = false,
 }: {
   control: Control<any>;
   name: string;
+  follows?: boolean;
 }) {
+  const { setValue, getValues } = useFormContext<any>();
   const controlPercentage = useWatch({ control, name: "remaining_percentage" });
+
+  // Se compara contra el valor general anterior, no contra el actual: así se
+  // distingue "quedó heredado" de "lo escribió el usuario, y da igual".
+  const previousControlPercentage = useRef(controlPercentage);
+  useEffect(() => {
+    if (!follows) return;
+
+    const previous = previousControlPercentage.current;
+    previousControlPercentage.current = controlPercentage;
+    if (previous === controlPercentage) return;
+
+    const current = getValues(name);
+    const wasInherited =
+      current === undefined ||
+      current === "" ||
+      String(current) === String(previous);
+
+    if (wasInherited) {
+      // shouldDirty: en edición este campo termina con un valor distinto al
+      // guardado, y el formulario exige motivo de corrección según isDirty.
+      setValue(name, controlPercentage, {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
+    }
+    // setValue/getValues no son estables en RHF.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [controlPercentage, follows, name]);
 
   return (
     <FormField
@@ -349,7 +442,17 @@ export function CatalogManualField({
 /** Valor centinela del select de conjunto: "Fuselaje" = la aeronave misma (parent_aircraft_part_id null). */
 export const FUSELAGE = "__fuselage__";
 
-export type ParentOption = { id: string; label: string };
+/**
+ * `label` es el texto de una línea que usan los selects de conjunto padre;
+ * `typeLabel` y `name` son las mismas partes por separado, para las tarjetas
+ * de selección de dos líneas (tipo arriba, identidad abajo).
+ */
+export type ParentOption = {
+  id: string;
+  label: string;
+  typeLabel: string;
+  name: string;
+};
 
 /**
  * "Fuselaje" más las partes asignadas a la aeronave, numeradas por tipo
@@ -369,13 +472,17 @@ export function useParentOptions(aircraftId?: string): ParentOption[] {
 
     const counters: Record<string, number> = {};
     return [
-      { id: FUSELAGE, label: "Fuselaje" },
+      { id: FUSELAGE, label: "Fuselaje", typeLabel: "", name: "Fuselaje" },
       ...parts.map((part) => {
         const type = (part.type ?? "").toUpperCase();
         counters[type] = (counters[type] ?? 0) + 1;
+        const typeLabel = `${partTypeLabel(part.type)} ${counters[type]}`;
         return {
           id: String(part.id),
-          label: `${partTypeLabel(part.type)} ${counters[type]}${part.serial ? ` - ${part.serial}` : ""}`,
+          // El select conserva el texto con serial que ya mostraba.
+          label: `${typeLabel}${part.serial ? ` - ${part.serial}` : ""}`,
+          typeLabel,
+          name: part.part_name || part.part_number,
         };
       }),
     ];

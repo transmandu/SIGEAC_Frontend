@@ -41,7 +41,6 @@ import {
   STATUS_META,
 } from "@/lib/maintenanceControlCalc";
 import {
-  DIRECTIVE_APPLICABILITY_LABELS,
   DIRECTIVE_AUTHORITY_LABELS,
   DIRECTIVE_COMPLIANCE_TYPE_LABELS,
 } from "@/lib/directiveControlLabels";
@@ -51,7 +50,6 @@ import {
   selectTriggerClass,
 } from "@/components/forms/mantenimiento/planificacion/_theme";
 import {
-  DirectiveApplicability,
   DirectiveControl,
   DirectiveControlItem,
   MaintenanceAircraftPart,
@@ -108,15 +106,6 @@ function TruncatedText({ children }: { children: string }) {
   );
 }
 
-const APPLICABILITY_BADGE: Record<DirectiveApplicability, string> = {
-  PENDING_ANALYSIS:
-    "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400",
-  APPLICABLE: "border-primary/30 bg-primary/10 text-primary",
-  NOT_APPLICABLE: "border-slate-400/40 bg-muted/60 text-muted-foreground",
-  SUPERSEDED:
-    "border-slate-400/40 bg-muted/60 text-muted-foreground line-through",
-};
-
 /**
  * Mismo ciclo que los otros controles. Una AD aplicable sin plazo también
  * puede registrar cumplimiento (el backend solo exige que sea aplicable y no
@@ -141,8 +130,7 @@ function PrimaryItemAction({
   currentHours: number;
   currentCycles: number;
 }) {
-  if (!item.id || item.applicability !== "APPLICABLE" || item.complied_at)
-    return null;
+  if (!item.id || item.complied_at) return null;
 
   const pendingWorkOrder = item.pending_work_order;
   const isBlockedByWorkOrder =
@@ -233,7 +221,6 @@ function ItemActionCell({
 
 const COL = {
   parent: "w-[130px]",
-  applicability: "w-[150px]",
   type: "w-[95px]",
   limit: "w-[110px]",
   applied: "w-[125px]",
@@ -254,7 +241,6 @@ const DirectiveControlDetailPage = () => {
   } = useGetDirectiveControl(selectedCompany?.slug, id);
 
   const [search, setSearch] = useState("");
-  const [applicability, setApplicability] = useState("all");
   const [authority, setAuthority] = useState("all");
   const [status, setStatus] = useState("all");
 
@@ -266,8 +252,6 @@ const DirectiveControlDetailPage = () => {
   const filtered = useMemo(() => {
     const needle = search.trim().toLowerCase();
     return items.filter((item) => {
-      if (applicability !== "all" && item.applicability !== applicability)
-        return false;
       if (authority !== "all" && item.authority !== authority) return false;
       if (status === "COMPLIED" && !item.complied_at) return false;
       if (
@@ -281,7 +265,7 @@ const DirectiveControlDetailPage = () => {
           item.ad_number,
           item.description,
           item.reference_document,
-          item.applicability_notes,
+          item.compliance_method,
         ]
           .filter(Boolean)
           .join(" ")
@@ -290,7 +274,7 @@ const DirectiveControlDetailPage = () => {
       }
       return true;
     });
-  }, [items, applicability, authority, status, search]);
+  }, [items, authority, status, search]);
 
   if (isLoading) return <LoadingPage />;
 
@@ -345,12 +329,10 @@ const DirectiveControlDetailPage = () => {
 
   const fuselageItems = filtered.filter((i) => !i.parent_aircraft_part_id);
 
-  const applicableCount = items.filter(
-    (i) => i.applicability === "APPLICABLE",
+  const recurrentCount = items.filter(
+    (i) => i.compliance_type === "RECURRENT",
   ).length;
-  const pendingAnalysisCount = items.filter(
-    (i) => i.applicability === "PENDING_ANALYSIS",
-  ).length;
+  const withDeadlineCount = items.filter((i) => i.computed).length;
   const compliedCount = items.filter((i) => i.complied_at).length;
 
   return (
@@ -416,13 +398,10 @@ const DirectiveControlDetailPage = () => {
                   : undefined
               }
             />
-            <InfoItem label="AD evaluadas" value={items.length} />
-            <InfoItem label="Aplicables" value={applicableCount} />
+            <InfoItem label="AD cargadas" value={items.length} />
+            <InfoItem label="Con plazo activo" value={withDeadlineCount} />
+            <InfoItem label="Recurrentes" value={recurrentCount} />
             <InfoItem label="Cumplidas (única vez)" value={compliedCount} />
-            <InfoItem
-              label="Pendientes de análisis"
-              value={pendingAnalysisCount}
-            />
           </div>
         </FormSection>
 
@@ -436,21 +415,6 @@ const DirectiveControlDetailPage = () => {
               className="h-10 pl-9 text-sm"
             />
           </div>
-          <Select value={applicability} onValueChange={setApplicability}>
-            <SelectTrigger className={cn(selectTriggerClass, "w-full sm:w-52")}>
-              <SelectValue placeholder="Aplicabilidad" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Toda aplicabilidad</SelectItem>
-              {Object.entries(DIRECTIVE_APPLICABILITY_LABELS).map(
-                ([value, label]) => (
-                  <SelectItem key={value} value={value}>
-                    {label}
-                  </SelectItem>
-                ),
-              )}
-            </SelectContent>
-          </Select>
           <Select value={authority} onValueChange={setAuthority}>
             <SelectTrigger className={cn(selectTriggerClass, "w-full sm:w-40")}>
               <SelectValue placeholder="Autoridad" />
@@ -573,11 +537,6 @@ function DirectivesTable({
             <TableHead className="bg-muted/40 font-semibold">
               Directiva
             </TableHead>
-            <TableHead
-              className={cn(COL.applicability, "bg-muted/40 font-semibold")}
-            >
-              Aplicabilidad
-            </TableHead>
             <TableHead className={cn(COL.type, "bg-muted/40 font-semibold")}>
               Tipo
             </TableHead>
@@ -617,7 +576,6 @@ function DirectivesTable({
             const pending = item.pending_work_order;
             const lastCompliance = item.latest_compliance;
             const lastWorkOrder = lastCompliance?.work_order?.order_number;
-            const isApplicable = item.applicability === "APPLICABLE";
 
             return (
               <TableRow
@@ -646,22 +604,6 @@ function DirectivesTable({
                   {item.compliance_method && (
                     <span className="block truncate text-xs text-muted-foreground">
                       Método: {item.compliance_method}
-                    </span>
-                  )}
-                </TableCell>
-                <TableCell className={cn(COL.applicability, "align-top")}>
-                  <Badge
-                    variant="outline"
-                    className={cn(
-                      "rounded-md text-[10px] shadow-none",
-                      APPLICABILITY_BADGE[item.applicability],
-                    )}
-                  >
-                    {DIRECTIVE_APPLICABILITY_LABELS[item.applicability]}
-                  </Badge>
-                  {item.applicability_notes && (
-                    <span className="mt-1 block text-xs text-muted-foreground">
-                      <TruncatedText>{item.applicability_notes}</TruncatedText>
                     </span>
                   )}
                 </TableCell>
@@ -800,11 +742,8 @@ function DirectivesTable({
                     colSpan={5}
                     className="text-sm text-muted-foreground"
                   >
-                    {isApplicable
-                      ? "Aplicable sin plazo definido — registre el cumplimiento cuando se ejecute."
-                      : item.applicability === "PENDING_ANALYSIS"
-                        ? "Pendiente de evaluar si aplica a esta aeronave/conjunto."
-                        : "Sin seguimiento — queda registrada con su motivo para el 39-001."}
+                    Sin plazo definido — registre el cumplimiento cuando se
+                    ejecute.
                   </TableCell>
                 )}
 

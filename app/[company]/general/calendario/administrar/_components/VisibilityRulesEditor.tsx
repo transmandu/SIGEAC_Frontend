@@ -325,7 +325,7 @@ export function VisibilityRulesEditor({
               key={rule.id}
               className={cn(
                 "flex items-center justify-between gap-2 rounded-lg border px-3 py-2 text-sm",
-                "bg-gradient-to-br from-background/70 to-background/40 backdrop-blur-md",
+                "bg-linear-to-br from-background/70 to-background/40 backdrop-blur-md",
                 rule.grant_type === "EXCLUDE_USER"
                   ? "border-destructive/40 bg-destructive/5"
                   : "border-slate-400/40 dark:border-slate-600/40",

@@ -76,7 +76,7 @@ export default function CreateMaintenanceProviderForm({
           )}
         />
         <Button
-          className="h-11 gap-2 rounded-lg bg-gradient-to-br from-primary to-primary/85 text-primary-foreground shadow-sm transition-all duration-200 hover:shadow-md hover:shadow-blue-500/25 disabled:opacity-70"
+          className="h-11 gap-2 rounded-lg bg-linear-to-br from-primary to-primary/85 text-primary-foreground shadow-sm transition-all duration-200 hover:shadow-md hover:shadow-blue-500/25 disabled:opacity-70"
           disabled={createMaintenanceProvider.isPending}
           type="submit"
         >

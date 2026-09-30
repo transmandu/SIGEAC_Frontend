@@ -3,7 +3,6 @@ import type { EditReasonValue } from "@/components/forms/mantenimiento/planifica
 import { invalidatePlanificationAudit } from "@/hooks/mantenimiento/planificacion/useGetPlanificationAuditStats";
 import axiosInstance from "@/lib/axios";
 import {
-  DirectiveApplicability,
   DirectiveAuthority,
   DirectiveComplianceType,
   MaintenanceCountingMethod,
@@ -28,18 +27,16 @@ export interface DirectiveItemData {
   id?: number;
   parent_aircraft_part_id?: number | null;
   maintenance_provider_id?: string;
+  maintenance_catalog_service_id?: number | null;
   ad_number: string;
   authority: DirectiveAuthority;
   revision?: string;
   description: string;
   reference_document?: string;
   compliance_method?: string;
-  applicability: DirectiveApplicability;
-  applicability_notes?: string;
   compliance_type: DirectiveComplianceType;
   first_applied_date?: string;
   remaining_percentage?: number | null;
-  observations?: string;
   intervals: DirectiveIntervalData[];
 }
 

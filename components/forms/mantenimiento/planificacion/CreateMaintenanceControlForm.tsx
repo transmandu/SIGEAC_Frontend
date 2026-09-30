@@ -82,6 +82,7 @@ import {
   CompactDateField,
   NumericInput,
   ProviderSelect,
+  useSuggestedControlTitle,
 } from "./_shared";
 
 const countingMethodEnum = z.enum(["HOURS", "CYCLES", "DAYS"]);
@@ -1072,6 +1073,8 @@ export default function CreateMaintenanceControlForm({
     name: "has_reference_manual",
   });
   const aircraftId = useWatch({ control, name: "aircraft_id" });
+
+  useSuggestedControlTitle(form, "Mantenimiento");
 
   const onSubmit = async (values: FormValues) => {
     const toBaseItem = (item: z.infer<typeof certificateSchema>) => ({

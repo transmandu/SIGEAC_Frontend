@@ -254,7 +254,7 @@ export function CatalogServicePicker({
                     key={task.id}
                     type="button"
                     onClick={() => handleSelectTask(task, service)}
-                    className="flex w-full items-start gap-2 rounded-lg border border-slate-400/40 bg-gradient-to-br from-background/70 to-background/40 p-3 text-left backdrop-blur-md transition-colors hover:border-primary/40 dark:border-slate-600/40"
+                    className="flex w-full items-start gap-2 rounded-lg border border-slate-400/40 bg-linear-to-br from-background/70 to-background/40 p-3 text-left backdrop-blur-md transition-colors hover:border-primary/40 dark:border-slate-600/40"
                   >
                     <ClipboardList className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
                     <div className="min-w-0">
@@ -297,7 +297,7 @@ export function CatalogServicePicker({
                     key={service.id}
                     type="button"
                     onClick={() => handleSelectService(service)}
-                    className="flex w-full items-center justify-between gap-2 rounded-lg border border-slate-400/40 bg-gradient-to-br from-background/70 to-background/40 p-3 text-left backdrop-blur-md transition-colors hover:border-primary/40 dark:border-slate-600/40"
+                    className="flex w-full items-center justify-between gap-2 rounded-lg border border-slate-400/40 bg-linear-to-br from-background/70 to-background/40 p-3 text-left backdrop-blur-md transition-colors hover:border-primary/40 dark:border-slate-600/40"
                   >
                     <div className="min-w-0">
                       <p className="truncate text-sm font-medium">
@@ -337,7 +337,7 @@ export function CatalogServicePicker({
                   key={task.id}
                   type="button"
                   onClick={() => handleSelectTask(task, drillService)}
-                  className="flex w-full items-start gap-2 rounded-lg border border-slate-400/40 bg-gradient-to-br from-background/70 to-background/40 p-3 text-left backdrop-blur-md transition-colors hover:border-primary/40 dark:border-slate-600/40"
+                  className="flex w-full items-start gap-2 rounded-lg border border-slate-400/40 bg-linear-to-br from-background/70 to-background/40 p-3 text-left backdrop-blur-md transition-colors hover:border-primary/40 dark:border-slate-600/40"
                 >
                   <ClipboardList className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
                   <div className="min-w-0">

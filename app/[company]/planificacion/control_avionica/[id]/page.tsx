@@ -40,10 +40,7 @@ import {
   ItemStatus,
   STATUS_META,
 } from "@/lib/maintenanceControlCalc";
-import {
-  AVIONICS_ACTION_LABELS,
-  AVIONICS_CATEGORY_LABELS,
-} from "@/lib/avionicsControlLabels";
+import { AVIONICS_ACTION_LABELS } from "@/lib/avionicsControlLabels";
 import {
   FormSection,
   selectTriggerClass,
@@ -231,7 +228,6 @@ const AvionicsControlDetailPage = () => {
   } = useGetAvionicsControl(selectedCompany?.slug, id);
 
   const [search, setSearch] = useState("");
-  const [category, setCategory] = useState("all");
   const [status, setStatus] = useState("all");
   const [onlyHazardous, setOnlyHazardous] = useState(false);
 
@@ -251,7 +247,6 @@ const AvionicsControlDetailPage = () => {
   const filtered = useMemo(() => {
     const needle = search.trim().toLowerCase();
     return activeItems.filter((item) => {
-      if (category !== "all" && item.category !== category) return false;
       if (onlyHazardous && !item.is_hazardous) return false;
       if (status === "ON_CONDITION" && item.status_computed) return false;
       if (
@@ -274,7 +269,7 @@ const AvionicsControlDetailPage = () => {
       }
       return true;
     });
-  }, [activeItems, category, onlyHazardous, status, search]);
+  }, [activeItems, onlyHazardous, status, search]);
 
   if (isLoading) return <LoadingPage />;
 
@@ -388,21 +383,6 @@ const AvionicsControlDetailPage = () => {
               className="h-10 pl-9 text-sm"
             />
           </div>
-          <Select value={category} onValueChange={setCategory}>
-            <SelectTrigger className={cn(selectTriggerClass, "w-full sm:w-60")}>
-              <SelectValue placeholder="Sistema" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos los sistemas</SelectItem>
-              {Object.entries(AVIONICS_CATEGORY_LABELS).map(
-                ([value, label]) => (
-                  <SelectItem key={value} value={value}>
-                    {label}
-                  </SelectItem>
-                ),
-              )}
-            </SelectContent>
-          </Select>
           <Select value={status} onValueChange={setStatus}>
             <SelectTrigger className={cn(selectTriggerClass, "w-full sm:w-48")}>
               <SelectValue placeholder="Estado" />
@@ -520,12 +500,6 @@ const AvionicsControlDetailPage = () => {
                                   </span>
                                 )}
                                 <span className="mt-1 flex flex-wrap items-center gap-1">
-                                  <Badge
-                                    variant="outline"
-                                    className="text-[10px]"
-                                  >
-                                    {AVIONICS_CATEGORY_LABELS[item.category]}
-                                  </Badge>
                                   {item.is_hazardous && (
                                     <Tooltip>
                                       <TooltipTrigger asChild>

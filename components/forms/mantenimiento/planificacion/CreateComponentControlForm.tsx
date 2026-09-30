@@ -22,6 +22,7 @@ import {
   Check,
   ClipboardList,
   Cog,
+  HelpCircle,
   Loader2,
   Plane,
   Plus,
@@ -62,10 +63,9 @@ import {
   useUpdateComponentControl,
 } from "@/actions/mantenimiento/planificacion/control_componentes/actions";
 import { CreateMaintenanceProviderDialog } from "@/components/dialogs/mantenimiento/planificacion/CreateMaintenanceProviderDialog";
-import { ComponentCategory, ComponentControl } from "@/types";
+import { ComponentAction, ComponentControl } from "@/types";
 import {
   COMPONENT_ACTION_LABELS,
-  COMPONENT_CATEGORY_LABELS,
   COMPONENT_LIMIT_KIND_LABELS,
 } from "@/lib/componentControlLabels";
 import {
@@ -84,6 +84,7 @@ import {
   ProviderSelect,
   RemainingPercentageField,
   useParentOptions,
+  useSuggestedControlTitle,
 } from "./_shared";
 
 const ALL_COUNTING_METHODS = ["HOURS", "CYCLES", "DAYS"] as const;
@@ -94,9 +95,6 @@ const COUNTING_METHOD_LABEL: Record<string, string> = {
 };
 
 const countingMethodEnum = z.enum(ALL_COUNTING_METHODS);
-const categoryEnum = z.enum(
-  Object.keys(COMPONENT_CATEGORY_LABELS) as [string, ...string[]],
-);
 const actionEnum = z.enum(
   Object.keys(COMPONENT_ACTION_LABELS) as [string, ...string[]],
 );
@@ -134,7 +132,6 @@ const intervalSchema = z.object({
 
 const itemSchema = z.object({
   id: z.number().optional(),
-  category: categoryEnum,
   is_hazardous: z.boolean().default(false),
   description: z.string().min(1, "Requerido"),
   part_number: z.string().min(1, "Requerido"),
@@ -238,8 +235,10 @@ const emptyInterval = (usedMethods: string[] = []) => ({
   consumed_at_event: 0,
 });
 
-const emptyItem = () => ({
-  category: "OTHER",
+// El % del control se copia al componente al crearlo (en vez de dejarlo vacío
+// heredando en silencio): así el usuario ve con qué umbral va a alertar y
+// puede cambiarlo sin adivinar de dónde salía el número.
+const emptyItem = (controlPercentage?: number | string) => ({
   is_hazardous: false,
   description: "",
   part_number: "",
@@ -249,6 +248,7 @@ const emptyItem = () => ({
   reference_document: "",
   maintenance_provider_id: "",
   first_applied_date: undefined as unknown as Date,
+  remaining_percentage: controlPercentage,
   intervals: [emptyInterval()],
 });
 
@@ -270,14 +270,14 @@ function SelectField({
       control={control}
       name={name}
       render={({ field }) => (
-        <FormItem className="space-y-1">
-          <FormLabel className={labelClass}>{label}</FormLabel>
+        <FormItem className="min-w-0 space-y-1">
+          <FieldLabel>{label}</FieldLabel>
           <Select
             onValueChange={field.onChange}
             value={field.value || undefined}
           >
             <FormControl>
-              <SelectTrigger className={selectTriggerClass}>
+              <SelectTrigger className={cn(selectTriggerClass, "w-full")}>
                 <SelectValue placeholder={placeholder ?? "Seleccione..."} />
               </SelectTrigger>
             </FormControl>
@@ -296,37 +296,67 @@ function SelectField({
   );
 }
 
+/**
+ * Rótulo que trunca sin comerse su ayuda: el texto cede ancho y el ícono
+ * (si hay algo que aclarar) se queda. Lo comparten los campos de la tarjeta,
+ * incluidos los que envuelven a mano un control de `_shared`.
+ */
+function FieldLabel({
+  children,
+  tooltip,
+}: {
+  children: React.ReactNode;
+  tooltip?: string;
+}) {
+  return (
+    <FormLabel className={cn(labelClass, "flex items-center gap-1")}>
+      <span className="truncate">{children}</span>
+      {tooltip && (
+        <TooltipProvider disableHoverableContent>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <HelpCircle className="size-3 shrink-0 text-muted-foreground/60" />
+            </TooltipTrigger>
+            <TooltipContent className="max-w-56">{tooltip}</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      )}
+    </FormLabel>
+  );
+}
+
+/**
+ * `optional` va como ícono con tooltip, no como "(Opcional)" escrito: en las
+ * columnas angostas ese sufijo obligaba a truncar el nombre del campo.
+ */
 function TextField({
   control,
   name,
   label,
   placeholder,
   optional,
+  hint,
 }: {
   control: Control<any>;
   name: string;
   label: string;
   placeholder?: string;
   optional?: boolean;
+  hint?: string;
 }) {
+  const tooltip = [optional && "Opcional.", hint].filter(Boolean).join(" ");
+
   return (
     <FormField
       control={control}
       name={name}
       render={({ field }) => (
-        <FormItem className="space-y-1">
-          <FormLabel className={labelClass}>
-            {label}
-            {optional && (
-              <span className="ml-1 text-xs text-muted-foreground">
-                (Opcional)
-              </span>
-            )}
-          </FormLabel>
+        <FormItem className="min-w-0 space-y-1">
+          <FieldLabel tooltip={tooltip || undefined}>{label}</FieldLabel>
           <FormControl>
             <Input
               placeholder={placeholder}
-              className={fieldClass}
+              className={cn(fieldClass, "w-full")}
               {...field}
               value={field.value ?? ""}
             />
@@ -338,33 +368,49 @@ function TextField({
   );
 }
 
+/**
+ * `suffix` va dentro del campo (no en el rótulo): las tres cifras de un
+ * intervalo comparten unidad, y repetirla en cada etiqueta las hacía tan
+ * anchas que la fila se desbordaba de la tarjeta.
+ */
 function NumericField({
   control,
   name,
   label,
   placeholder = "0",
+  suffix,
+  hint,
 }: {
   control: Control<any>;
   name: string;
   label: string;
   placeholder?: string;
+  suffix?: string;
+  hint?: string;
 }) {
   return (
     <FormField
       control={control}
       name={name}
       render={({ field }) => (
-        <FormItem className="space-y-1">
-          <FormLabel className={labelClass}>{label}</FormLabel>
+        <FormItem className="min-w-0 space-y-1">
+          <FieldLabel tooltip={hint}>{label}</FieldLabel>
           <FormControl>
-            <NumericInput
-              placeholder={placeholder}
-              className={fieldClass}
-              value={field.value}
-              onChange={field.onChange}
-              onBlur={field.onBlur}
-              name={field.name}
-            />
+            <div className="relative">
+              <NumericInput
+                placeholder={placeholder}
+                className={cn(fieldClass, "w-full", suffix && "pr-11")}
+                value={field.value}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+                name={field.name}
+              />
+              {suffix && (
+                <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+                  {suffix}
+                </span>
+              )}
+            </div>
           </FormControl>
           <FormMessage />
         </FormItem>
@@ -398,14 +444,33 @@ function IntervalRow({
         ? "cic"
         : "días";
 
+  // Al pasar a días esos dos campos desaparecen: si conservaran lo tipeado
+  // antes, el "consumido no puede alcanzar el límite" seguiría disparando
+  // contra un campo que ya no está en pantalla.
+  const { setValue } = useFormContext<FormValues>();
+  useEffect(() => {
+    if (!isDays) return;
+    setValue(`${namePrefix}.initial_value` as any, undefined);
+    setValue(`${namePrefix}.consumed_at_event` as any, 0);
+    // setValue no es estable en RHF.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isDays, namePrefix]);
+
   return (
-    <div className="grid grid-cols-1 items-end gap-2 rounded-lg border border-slate-400/30 bg-muted/20 p-2 dark:border-slate-600/30 sm:grid-cols-[110px_130px_1fr_1fr_1fr_32px]">
+    <div
+      className={cn(
+        "grid grid-cols-2 items-start gap-2 rounded-lg border border-slate-400/30 bg-muted/20 p-2 dark:border-slate-600/30",
+        isDays
+          ? "sm:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,1fr)_32px]"
+          : "sm:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_32px]",
+      )}
+    >
       <FormField
         control={control}
         name={`${namePrefix}.counting_method`}
         render={({ field }) => (
-          <FormItem className="space-y-1">
-            <FormLabel className={labelClass}>Unidad</FormLabel>
+          <FormItem className="min-w-0 space-y-1">
+            <FieldLabel>Unidad</FieldLabel>
             <Select
               onValueChange={field.onChange}
               value={field.value || undefined}
@@ -442,49 +507,52 @@ function IntervalRow({
       <NumericField
         control={control}
         name={`${namePrefix}.limit_value`}
-        label={`Límite (${unitShort})`}
+        label="Límite"
+        suffix={unitShort}
       />
 
-      {isDays ? (
-        <div className="space-y-1">
-          <p className={labelClass}>Lectura del padre</p>
-          <div
-            className={cn(
-              fieldClass,
-              "flex items-center justify-center text-sm text-muted-foreground/40 shadow-none",
-            )}
+      {/* Un límite en días corre por calendario: ni la lectura del padre ni lo
+          ya consumido entran en ese cálculo, así que no se piden. */}
+      {!isDays && (
+        <>
+          <NumericField
+            control={control}
+            name={`${namePrefix}.initial_value`}
+            label="Hrs/clc al instalar"
+            suffix={unitShort}
+            hint="Horas o ciclos que marca la aeronave (o el motor/hélice del que cuelga el componente) al instalar este componente. Es el punto de partida: el límite se cuenta desde ese número."
+          />
+
+          <NumericField
+            control={control}
+            name={`${namePrefix}.consumed_at_event`}
+            label="Uso previo"
+            suffix={unitShort}
+            hint="Lo que el componente ya traía gastado al instalarse; 0 si vino nuevo u overhauleado."
+          />
+        </>
+      )}
+
+      {/* El rótulo fantasma reserva el alto de los rótulos vecinos para que el
+          botón caiga a la altura de los inputs sin medirlos a mano; en dos
+          columnas no hay rótulos al lado que igualar, así que se oculta. */}
+      <div className="col-span-2 flex justify-end space-y-1 sm:col-span-1 sm:block">
+        <span className={cn(labelClass, "hidden sm:block")} aria-hidden>
+          &nbsp;
+        </span>
+        {canRemove && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={onRemove}
+            aria-label="Quitar intervalo"
+            className="h-11 w-8 shrink-0 text-muted-foreground/70 hover:text-destructive"
           >
-            —
-          </div>
-        </div>
-      ) : (
-        <NumericField
-          control={control}
-          name={`${namePrefix}.initial_value`}
-          label={`Padre al evento (${unitShort})`}
-        />
-      )}
-
-      <NumericField
-        control={control}
-        name={`${namePrefix}.consumed_at_event`}
-        label={`Consumido al instalar (${unitShort})`}
-      />
-
-      {canRemove ? (
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          onClick={onRemove}
-          aria-label="Quitar intervalo"
-          className="h-11 w-8 shrink-0 text-muted-foreground/70 hover:text-destructive"
-        >
-          <X className="size-3.5" />
-        </Button>
-      ) : (
-        <span />
-      )}
+            <X className="size-3.5" />
+          </Button>
+        )}
+      </div>
     </div>
   );
 }
@@ -520,7 +588,7 @@ function ComponentCard({
   return (
     <div className="space-y-3 rounded-xl border border-slate-400/40 bg-linear-to-br from-background/70 to-background/40 p-4 backdrop-blur-md dark:border-slate-600/40">
       <div className="flex items-center justify-between gap-2">
-        <p className="text-sm font-semibold">
+        <p className="min-w-0 truncate text-sm font-semibold">
           <span className="text-muted-foreground">#{position + 1}</span>{" "}
           {description || "Nuevo componente"}
         </p>
@@ -542,46 +610,8 @@ function ComponentCard({
         </TooltipProvider>
       </div>
 
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_1fr_auto]">
-        <SelectField
-          control={control}
-          name={`${namePrefix}.category`}
-          label="Tipo"
-          options={Object.entries(COMPONENT_CATEGORY_LABELS).map(
-            ([value, label]) => ({ value, label }),
-          )}
-        />
-        <SelectField
-          control={control}
-          name={`${namePrefix}.action`}
-          label="Acción al vencer"
-          options={Object.entries(COMPONENT_ACTION_LABELS).map(
-            ([value, label]) => ({ value, label }),
-          )}
-        />
-        <FormField
-          control={control}
-          name={`${namePrefix}.is_hazardous`}
-          render={({ field }) => (
-            <FormItem className="flex items-end space-y-0 pb-2">
-              <label className="flex cursor-pointer select-none items-center gap-2 text-sm">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <span className="flex items-center gap-1">
-                  <AlertTriangle className="size-3.5 text-amber-500" />
-                  Mercancía peligrosa
-                </span>
-              </label>
-            </FormItem>
-          )}
-        />
-      </div>
-
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-[2fr_1fr_1fr_100px]">
+      {/* Identidad del componente: qué es y cómo se lo reconoce físicamente. */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,2.5fr)_minmax(0,1.5fr)_minmax(0,1.5fr)_minmax(0,90px)]">
         <TextField
           control={control}
           name={`${namePrefix}.description`}
@@ -609,7 +639,23 @@ function ComponentCard({
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_1fr_140px_110px]">
+      {/* El trabajo que arranca el conteo: qué se hizo, quién y cuándo. */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1.5fr)_minmax(0,1.8fr)_minmax(0,130px)_minmax(0,100px)]">
+        <SelectField
+          control={control}
+          name={`${namePrefix}.action`}
+          label="Trabajo a realizar"
+          options={Object.entries(COMPONENT_ACTION_LABELS).map(
+            ([value, label]) => ({ value, label }),
+          )}
+        />
+        <FormItem className="min-w-0 space-y-1">
+          <FieldLabel>Realizado por</FieldLabel>
+          <ProviderSelect
+            control={control}
+            name={`${namePrefix}.maintenance_provider_id`}
+          />
+        </FormItem>
         <TextField
           control={control}
           name={`${namePrefix}.reference_document`}
@@ -617,36 +663,50 @@ function ComponentCard({
           placeholder="EJ: SB TPE331-72-0180 R30"
           optional
         />
-        <div className="space-y-1">
-          <p className={labelClass}>Realizado por</p>
-          <ProviderSelect
-            control={control}
-            name={`${namePrefix}.maintenance_provider_id`}
-          />
-        </div>
-        <div className="space-y-1">
-          <p className={labelClass}>Fecha del evento</p>
+        <FormItem className="min-w-0 space-y-1">
+          <FieldLabel tooltip="Fecha del último trabajo hecho a este componente (la instalación que está cargando, si es nueva). Desde ahí se cuenta el próximo vencimiento.">
+            Último cump.
+          </FieldLabel>
           <CompactDateField
             control={control}
             name={`${namePrefix}.first_applied_date`}
           />
-        </div>
-        <div className="space-y-1">
-          <p className={labelClass}>
-            % Alerta{" "}
-            <span className="text-xs font-normal text-muted-foreground">
-              (Opcional)
-            </span>
-          </p>
+        </FormItem>
+        <FormItem className="min-w-0 space-y-1">
+          <FieldLabel tooltip="Con cuánto remanente avisar que este componente está por vencer. Viene del % de Datos Básicos y se puede cambiar.">
+            % Alerta
+          </FieldLabel>
           <RemainingPercentageField
             control={control}
             name={`${namePrefix}.remaining_percentage`}
+            follows
           />
-        </div>
+        </FormItem>
       </div>
 
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
+      <FormField
+        control={control}
+        name={`${namePrefix}.is_hazardous`}
+        render={({ field }) => (
+          <FormItem className="space-y-0">
+            <label className="flex w-fit cursor-pointer select-none items-center gap-2 text-sm">
+              <FormControl>
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+              <span className="flex items-center gap-1">
+                <AlertTriangle className="size-3.5 text-amber-500" />
+                Mercancía peligrosa
+              </span>
+            </label>
+          </FormItem>
+        )}
+      />
+
+      <div className="space-y-2 border-t border-slate-400/25 pt-3 dark:border-slate-600/25">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <p className={labelClass}>
             Límites{" "}
             <span className="text-xs font-normal text-muted-foreground">
@@ -694,6 +754,7 @@ function ComponentPartsSection({ control }: { control: Control<any> }) {
   });
 
   const aircraftId = useWatch({ control, name: "aircraft_id" }) as string;
+  const controlPercentage = useWatch({ control, name: "remaining_percentage" });
   const selectedPartIds =
     (useWatch({ control, name: "selected_part_ids" }) as string[]) ?? [];
   const parentOptions = useParentOptions(aircraftId);
@@ -780,7 +841,12 @@ function ComponentPartsSection({ control }: { control: Control<any> }) {
               >
                 {checked && <Check className="h-3 w-3" />}
               </span>
-              <span className="font-medium">{part.label}</span>
+              <span className="flex flex-col leading-tight">
+                <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                  {part.typeLabel}
+                </span>
+                <span className="font-medium">{part.name}</span>
+              </span>
             </div>
           );
         })}
@@ -813,7 +879,10 @@ function ComponentPartsSection({ control }: { control: Control<any> }) {
                   variant="outline"
                   size="sm"
                   onClick={() =>
-                    append({ ...emptyItem(), aircraft_part_id: part.id })
+                    append({
+                      ...emptyItem(controlPercentage),
+                      aircraft_part_id: part.id,
+                    })
                   }
                   className="gap-1.5 border-dashed text-muted-foreground hover:border-blue-400/40 hover:text-primary"
                 >
@@ -831,7 +900,6 @@ function ComponentPartsSection({ control }: { control: Control<any> }) {
 function mapToFormItem(item: NonNullable<ComponentControl["items"]>[number]) {
   return {
     id: item.id,
-    category: item.category,
     is_hazardous: item.is_hazardous,
     description: item.description,
     part_number: item.part_number,
@@ -951,6 +1019,9 @@ export default function CreateComponentControlForm({
     name: "has_reference_manual",
   });
   const aircraftId = useWatch({ control, name: "aircraft_id" });
+  const controlPercentage = useWatch({ control, name: "remaining_percentage" });
+
+  useSuggestedControlTitle(form, "Componentes");
   const { fields, append, remove } = useFieldArray({ control, name: "items" });
 
   const onSubmit = async (values: FormValues) => {
@@ -978,13 +1049,12 @@ export default function CreateComponentControlForm({
           ? Number(item.aircraft_part_id)
           : null,
         maintenance_provider_id: item.maintenance_provider_id,
-        category: item.category as ComponentCategory,
         is_hazardous: item.is_hazardous ?? false,
         description: item.description,
         part_number: item.part_number,
         serial: item.serial,
         position: item.position || undefined,
-        action: item.action as "OVERHAUL" | "REPLACE" | "REPAIR" | "INSPECTION",
+        action: item.action as ComponentAction,
         reference_document: item.reference_document || undefined,
         first_applied_date: format(item.first_applied_date, "yyyy-MM-dd"),
         remaining_percentage: item.remaining_percentage ?? null,
@@ -1048,7 +1118,7 @@ export default function CreateComponentControlForm({
           hint="Aeronave, título y a partir de qué remanente se avisa."
           action={<CreateMaintenanceProviderDialog />}
         >
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-[minmax(150px,190px)_2fr_minmax(96px,140px)]">
             <AircraftSelect
               control={control}
               name="aircraft_id"
@@ -1077,27 +1147,23 @@ export default function CreateComponentControlForm({
               name="remaining_percentage"
               render={({ field }) => (
                 <FormItem className="w-full">
-                  <FormLabel className={labelClass}>
-                    % de Remanente para Alerta
-                  </FormLabel>
+                  <FormLabel className={labelClass}>% Remanente</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <NumericInput
-                        className={cn(fieldClass, "pr-8")}
+                        className={cn(fieldClass, "pr-7")}
                         value={field.value}
                         onChange={field.onChange}
                         onBlur={field.onBlur}
                         name={field.name}
                       />
-                      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                      <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
                         %
                       </span>
                     </div>
                   </FormControl>
                   <FormDescription className={hintClass}>
-                    Con cuánto remanente sobre el límite se avisa que un
-                    componente está próximo a vencer (15% es lo habitual en el
-                    43-004).
+                    Remanente para alertar.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -1107,7 +1173,7 @@ export default function CreateComponentControlForm({
               control={control}
               name="description"
               render={({ field }) => (
-                <FormItem className="w-full md:col-span-2">
+                <FormItem className="w-full md:col-span-3">
                   <FormLabel className={labelClass}>
                     Descripción{" "}
                     <span className="text-muted-foreground text-xs">
@@ -1132,7 +1198,7 @@ export default function CreateComponentControlForm({
                 <FormItem
                   className={cn(
                     fieldClass,
-                    "h-auto shadow-none md:col-span-2 flex flex-row items-start space-x-3 space-y-0 p-4 hover:shadow-none",
+                    "h-auto shadow-none md:col-span-3 flex flex-row items-start space-x-3 space-y-0 p-4 hover:shadow-none",
                   )}
                 >
                   <FormControl>
@@ -1153,7 +1219,7 @@ export default function CreateComponentControlForm({
               )}
             />
             {hasReferenceManual && (
-              <>
+              <div className="grid grid-cols-1 gap-4 md:col-span-3 md:grid-cols-2">
                 <CatalogManualField control={control} aircraftId={aircraftId} />
                 <FormField
                   control={control}
@@ -1174,7 +1240,7 @@ export default function CreateComponentControlForm({
                     </FormItem>
                   )}
                 />
-              </>
+              </div>
             )}
           </div>
         </FormSection>
@@ -1206,7 +1272,7 @@ export default function CreateComponentControlForm({
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => append(emptyItem())}
+                  onClick={() => append(emptyItem(controlPercentage))}
                   className="gap-1.5 border-dashed text-muted-foreground hover:border-blue-400/40 hover:text-primary"
                 >
                   <Plus className="size-3.5" />

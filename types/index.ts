@@ -606,21 +606,8 @@ export type MaintenanceControlSnapshot = {
 // Hermano del Control de Mantenimiento: mismo `computed` (el calculador es el
 // mismo), pero cada ítem es un componente físico P/N + S/N.
 
-export type ComponentCategory =
-  | "LANDING_GEAR"
-  | "ENGINE_ACCESSORY"
-  | "ENGINE_LLP"
-  | "PROPELLER"
-  | "AVIONICS"
-  | "EMERGENCY_EQUIPMENT"
-  | "HYDRAULIC_PNEUMATIC"
-  | "FUEL_SYSTEM"
-  | "ELECTRICAL"
-  | "STRUCTURE"
-  | "OTHER";
-
 /** Qué exige el límite al cumplirse ("descripción del trabajo" del 43-004). */
-export type ComponentAction = "OVERHAUL" | "REPLACE" | "REPAIR" | "INSPECTION";
+export type ComponentAction = "OVERHAUL" | "CHECK" | "TEST";
 
 /** HARD_TIME se overhaulea al límite; LIFE_LIMIT se descarta y se reemplaza. */
 export type ComponentLimitKind = "HARD_TIME" | "LIFE_LIMIT";
@@ -679,7 +666,6 @@ export type ComponentControlItem = Retirable & {
   maintenance_catalog_service_id?: number | null;
   pending_work_order_id?: number | string | null;
   pending_work_order?: WorkOrder | null;
-  category: ComponentCategory;
   is_hazardous: boolean;
   description: string;
   part_number: string;
@@ -721,18 +707,6 @@ export type ComponentControl = Retirable & {
 // Inventario certificado de equipos de aviónica. El vencimiento vive en la
 // TAREA (un equipo puede tener varias, con reloj propio); "por condición" =
 // sin plazo, solo se lista y se verifica.
-
-export type AvionicsCategory =
-  | "FLIGHT_INSTRUMENTS"
-  | "NAVIGATION"
-  | "COMMUNICATION"
-  | "SURVEILLANCE"
-  | "RECORDERS"
-  | "EMERGENCY"
-  | "AUTOPILOT"
-  | "RADAR"
-  | "ELECTRICAL"
-  | "OTHER";
 
 export type AvionicsAction =
   | "FUNCTIONAL_CHECK"
@@ -791,7 +765,6 @@ export type AvionicsControlItem = Retirable & {
   avionics_control_id?: number;
   aircraft_part_id?: number | string | null;
   maintenance_catalog_service_id?: number | null;
-  category: AvionicsCategory;
   is_hazardous: boolean;
   description: string;
   part_number: string;
@@ -830,8 +803,6 @@ export type AvionicsControl = Retirable & {
 // reloj; única vez cumplida → cerrada (complied_at).
 
 export type DirectiveAuthority = "INAC" | "FAA" | "EASA" | "OTHER";
-export type DirectiveApplicability =
-  "PENDING_ANALYSIS" | "APPLICABLE" | "NOT_APPLICABLE" | "SUPERSEDED";
 export type DirectiveComplianceType = "ONE_TIME" | "RECURRENT";
 
 export type DirectiveControlItemInterval = {
@@ -871,21 +842,19 @@ export type DirectiveControlItem = Retirable & {
   maintenance_provider?: MaintenanceProvider | null;
   pending_work_order_id?: number | string | null;
   pending_work_order?: WorkOrder | null;
+  maintenance_catalog_service_id?: number | null;
   ad_number: string;
   authority: DirectiveAuthority;
   revision?: string | null;
   description: string;
   reference_document?: string | null;
   compliance_method?: string | null;
-  applicability: DirectiveApplicability;
-  applicability_notes?: string | null;
   compliance_type: DirectiveComplianceType;
   first_applied_date?: string | null;
   /** Null = hereda el `remaining_percentage` del control. */
   remaining_percentage?: number | string | null;
-  observations?: string | null;
   intervals: DirectiveControlItemInterval[];
-  /** null = sin reloj (no aplica, pendiente, ya cumplida o sin plazo). */
+  /** null = sin reloj: ya cumplida (única vez) o sin plazo. */
   computed?: MaintenanceControlItemComputed | null;
   /** Fecha de cumplimiento cuando es de única vez y ya se cumplió. */
   complied_at?: string | null;
@@ -903,8 +872,7 @@ export type DirectiveControl = Retirable & {
   maintenance_catalog_manual_id?: number | string | null;
   catalog_manual?: CatalogManual | null;
   remaining_percentage: number | string;
-  applicable_items_count?: number;
-  pending_analysis_count?: number;
+  active_items_count?: number;
   items?: DirectiveControlItem[];
   registered_by?: string;
   updated_by?: string;

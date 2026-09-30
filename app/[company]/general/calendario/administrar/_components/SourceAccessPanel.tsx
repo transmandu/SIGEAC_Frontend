@@ -18,7 +18,7 @@ import { VisibilityRulesEditor } from "./VisibilityRulesEditor";
 // original) — misma propiedad que mi borde completo, así que sin !important
 // es una moneda al aire cuál gana. Con !border se fuerza siempre.
 const ACCORDION_ITEM_CLASS =
-  "rounded-xl !border !border-slate-400/40 bg-gradient-to-br from-background/70 to-background/40 backdrop-blur-md shadow-sm dark:!border-slate-600/40";
+  "rounded-xl !border !border-slate-400/40 bg-linear-to-br from-background/70 to-background/40 backdrop-blur-md shadow-sm dark:!border-slate-600/40";
 
 /**
  * El comportamiento sin reglas (deny/allow/own) lo declara cada provider y

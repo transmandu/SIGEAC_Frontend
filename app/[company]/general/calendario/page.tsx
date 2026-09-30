@@ -15,7 +15,7 @@ import { EventCalendar } from "./_components/EventCalendar";
 // almacén (bg-gradient + backdrop-blur + borde slate) — no un botón outline
 // genérico de shadcn.
 const glassButtonClass = cn(
-  "bg-gradient-to-br from-background/70 to-background/40",
+  "bg-linear-to-br from-background/70 to-background/40",
   "backdrop-blur-md",
   "border border-slate-400/60 dark:border-slate-600/60",
   "shadow-sm text-slate-700 dark:text-slate-200",

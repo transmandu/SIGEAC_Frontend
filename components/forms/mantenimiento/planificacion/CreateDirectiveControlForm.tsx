@@ -21,12 +21,14 @@ import {
   Check,
   ClipboardList,
   Cog,
+  HelpCircle,
   Loader2,
   Plane,
   Plus,
   X,
 } from "lucide-react";
 
+import { CatalogServicePicker } from "@/components/misc/CatalogServicePicker";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -62,13 +64,11 @@ import {
 } from "@/actions/mantenimiento/planificacion/control_directivas/actions";
 import { CreateMaintenanceProviderDialog } from "@/components/dialogs/mantenimiento/planificacion/CreateMaintenanceProviderDialog";
 import {
-  DirectiveApplicability,
   DirectiveAuthority,
   DirectiveComplianceType,
   DirectiveControl,
 } from "@/types";
 import {
-  DIRECTIVE_APPLICABILITY_LABELS,
   DIRECTIVE_AUTHORITY_LABELS,
   DIRECTIVE_COMPLIANCE_TYPE_LABELS,
 } from "@/lib/directiveControlLabels";
@@ -88,6 +88,7 @@ import {
   ProviderSelect,
   RemainingPercentageField,
   useParentOptions,
+  useSuggestedControlTitle,
 } from "./_shared";
 
 const ALL_COUNTING_METHODS = ["HOURS", "CYCLES", "DAYS"] as const;
@@ -100,9 +101,6 @@ const COUNTING_METHOD_LABEL: Record<string, string> = {
 const countingMethodEnum = z.enum(ALL_COUNTING_METHODS);
 const authorityEnum = z.enum(
   Object.keys(DIRECTIVE_AUTHORITY_LABELS) as [string, ...string[]],
-);
-const applicabilityEnum = z.enum(
-  Object.keys(DIRECTIVE_APPLICABILITY_LABELS) as [string, ...string[]],
 );
 const complianceTypeEnum = z.enum(
   Object.keys(DIRECTIVE_COMPLIANCE_TYPE_LABELS) as [string, ...string[]],
@@ -132,19 +130,19 @@ const intervalSchema = z.object({
 
 const itemSchema = z.object({
   id: z.number().optional(),
+  // Entrada del catálogo de la que salió la AD, si se eligió con el selector
+  // en vez de tipearla; el catálogo ayuda a llenar, nunca obliga.
+  maintenance_catalog_service_id: z.number().optional(),
   ad_number: z.string().min(1, "Requerido"),
   authority: authorityEnum,
   revision: z.string().optional(),
   description: z.string().min(1, "Requerido"),
   reference_document: z.string().optional(),
   compliance_method: z.string().optional(),
-  applicability: applicabilityEnum,
-  applicability_notes: z.string().optional(),
   compliance_type: complianceTypeEnum,
   maintenance_provider_id: z.string().optional(),
   first_applied_date: z.date().optional(),
   remaining_percentage: optionalPercentage,
-  observations: z.string().optional(),
   intervals: z.array(intervalSchema).default([]),
 });
 
@@ -195,23 +193,6 @@ const formSchema = z
       items.forEach((item, index) => {
         const path = [basePath, index];
 
-        if (
-          (item.applicability === "NOT_APPLICABLE" ||
-            item.applicability === "SUPERSEDED") &&
-          !item.applicability_notes?.trim()
-        ) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message:
-              item.applicability === "SUPERSEDED"
-                ? "Indique qué AD la supersede"
-                : "Indique el motivo (por modelo, por serial, por modificación...)",
-            path: [...path, "applicability_notes"],
-          });
-        }
-
-        if (item.applicability !== "APPLICABLE") return;
-
         const isRecurrent = item.compliance_type === "RECURRENT";
         if (isRecurrent && !item.first_applied_date) {
           ctx.addIssue({
@@ -223,7 +204,7 @@ const formSchema = z
         if (isRecurrent && item.intervals.length === 0) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: "Una AD recurrente necesita al menos un intervalo",
+            message: "Una AD recurrente necesita al menos un límite",
             path: [...path, "intervals"],
           });
         }
@@ -235,7 +216,7 @@ const formSchema = z
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message:
-              "Indique la fecha de referencia desde la que corre el plazo",
+              "Indique la fecha del último cumplimiento desde la que corre el límite",
             path: [...path, "first_applied_date"],
           });
         }
@@ -279,19 +260,17 @@ const emptyInterval = (usedMethods: string[] = []) => ({
 });
 
 const emptyItem = () => ({
+  maintenance_catalog_service_id: undefined as number | undefined,
   ad_number: "",
   authority: "FAA",
   revision: "",
   description: "",
   reference_document: "",
   compliance_method: "",
-  applicability: "PENDING_ANALYSIS",
-  applicability_notes: "",
   compliance_type: "ONE_TIME",
   maintenance_provider_id: "",
   first_applied_date: undefined as unknown as Date,
   remaining_percentage: undefined as number | undefined,
-  observations: "",
   intervals: [] as ReturnType<typeof emptyInterval>[],
 });
 
@@ -311,14 +290,16 @@ function SelectField({
       control={control}
       name={name}
       render={({ field }) => (
-        <FormItem className="space-y-1">
-          <FormLabel className={labelClass}>{label}</FormLabel>
+        <FormItem className="min-w-0 space-y-1">
+          <FormLabel className={cn(labelClass, "block truncate")}>
+            {label}
+          </FormLabel>
           <Select
             onValueChange={field.onChange}
             value={field.value || undefined}
           >
             <FormControl>
-              <SelectTrigger className={selectTriggerClass}>
+              <SelectTrigger className={cn(selectTriggerClass, "w-full")}>
                 <SelectValue placeholder="Seleccione..." />
               </SelectTrigger>
             </FormControl>
@@ -337,12 +318,17 @@ function SelectField({
   );
 }
 
+/**
+ * `optional` va como ícono con tooltip, no como "(Opcional)" escrito: en las
+ * columnas angostas ese sufijo obligaba a truncar el nombre del campo.
+ */
 function TextField({
   control,
   name,
   label,
   placeholder,
   optional,
+  hint,
   className,
 }: {
   control: Control<any>;
@@ -350,29 +336,124 @@ function TextField({
   label: string;
   placeholder?: string;
   optional?: boolean;
+  hint?: string;
   className?: string;
+}) {
+  const tooltip = [optional && "Opcional.", hint].filter(Boolean).join(" ");
+
+  return (
+    <FormField
+      control={control}
+      name={name}
+      render={({ field }) => (
+        <FormItem className={cn("min-w-0 space-y-1", className)}>
+          <FormLabel className={cn(labelClass, "flex items-center gap-1")}>
+            <span className="truncate">{label}</span>
+            {tooltip && (
+              <TooltipProvider disableHoverableContent>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <HelpCircle className="size-3 shrink-0 text-muted-foreground/60" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-56">
+                    {tooltip}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+          </FormLabel>
+          <FormControl>
+            <Input
+              placeholder={placeholder}
+              className={cn(fieldClass, "w-full")}
+              {...field}
+              value={field.value ?? ""}
+            />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
+
+/**
+ * Los límites se leen como una tabla: los rótulos los pone el encabezado una
+ * sola vez y las filas solo llevan campos. Repetirlos en cada fila hacía que
+ * dos o tres se vieran como un amontonamiento.
+ */
+const INTERVAL_GRID =
+  "grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.2fr)_32px]";
+
+const INTERVAL_COLUMNS: { label: string; hint?: string }[] = [
+  { label: "Unidad" },
+  { label: "Límite" },
+  {
+    label: "Hrs/clc al cumplir",
+    hint: "Horas o ciclos que marca la aeronave (o el conjunto) al cumplir esta AD ahora. Es el punto de partida: el límite se cuenta desde ese número. Use 0 si el límite corre sobre el total acumulado.",
+  },
+];
+
+function IntervalHeader() {
+  return (
+    <div className={cn(INTERVAL_GRID, "gap-2 px-1")}>
+      {INTERVAL_COLUMNS.map(({ label, hint }) => (
+        <span
+          key={label}
+          className="flex items-center gap-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground/70"
+        >
+          <span className="truncate">{label}</span>
+          {hint && (
+            <TooltipProvider disableHoverableContent>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="size-3 shrink-0" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-56 normal-case">
+                  {hint}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+        </span>
+      ))}
+      <span />
+    </div>
+  );
+}
+
+/** Campo numérico sin rótulo propio: el suyo lo pone `IntervalHeader`. */
+function CompactNumericField({
+  control,
+  name,
+  suffix,
+}: {
+  control: Control<any>;
+  name: string;
+  suffix?: string;
 }) {
   return (
     <FormField
       control={control}
       name={name}
       render={({ field }) => (
-        <FormItem className={cn("space-y-1", className)}>
-          <FormLabel className={labelClass}>
-            {label}
-            {optional && (
-              <span className="ml-1 text-xs text-muted-foreground">
-                (Opcional)
-              </span>
-            )}
-          </FormLabel>
+        <FormItem className="min-w-0 space-y-0">
           <FormControl>
-            <Input
-              placeholder={placeholder}
-              className={fieldClass}
-              {...field}
-              value={field.value ?? ""}
-            />
+            <div className="relative">
+              <NumericInput
+                placeholder="0"
+                className={cn(fieldClass, "w-full", suffix && "pr-11")}
+                value={field.value}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+                name={field.name}
+              />
+              {suffix && (
+                <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+                  {suffix}
+                </span>
+              )}
+            </div>
           </FormControl>
           <FormMessage />
         </FormItem>
@@ -405,19 +486,18 @@ function IntervalRow({
         : "días";
 
   return (
-    <div className="grid grid-cols-1 items-end gap-2 sm:grid-cols-[110px_1fr_1fr_32px]">
+    <div className={cn(INTERVAL_GRID, "items-start gap-2")}>
       <FormField
         control={control}
         name={`${namePrefix}.counting_method`}
         render={({ field }) => (
-          <FormItem className="space-y-1">
-            <FormLabel className={labelClass}>Unidad</FormLabel>
+          <FormItem className="min-w-0 space-y-0">
             <Select
               onValueChange={field.onChange}
               value={field.value || undefined}
             >
               <FormControl>
-                <SelectTrigger className={selectTriggerClass}>
+                <SelectTrigger className={cn(selectTriggerClass, "w-full")}>
                   <SelectValue placeholder="Unidad" />
                 </SelectTrigger>
               </FormControl>
@@ -435,69 +515,39 @@ function IntervalRow({
           </FormItem>
         )}
       />
-      <FormField
+
+      <CompactNumericField
         control={control}
         name={`${namePrefix}.limit_value`}
-        render={({ field }) => (
-          <FormItem className="space-y-1">
-            <FormLabel className={labelClass}>Plazo ({unitShort})</FormLabel>
-            <FormControl>
-              <NumericInput
-                placeholder="0"
-                className={fieldClass}
-                value={field.value}
-                onChange={field.onChange}
-                onBlur={field.onBlur}
-                name={field.name}
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
+        suffix={unitShort}
       />
+
+      {/* Un límite en días corre por calendario: la lectura del conjunto no
+          entra en ese cálculo, así que la celda queda neutralizada. */}
       {isDays ? (
-        <div className="space-y-1">
-          <p className={labelClass}>Lectura del conjunto</p>
-          <div
-            className={cn(
-              fieldClass,
-              "flex items-center justify-center text-sm text-muted-foreground/40 shadow-none",
-            )}
-          >
-            —
-          </div>
+        <div
+          className={cn(
+            fieldClass,
+            "flex items-center justify-center text-sm text-muted-foreground/40 shadow-none",
+          )}
+        >
+          —
         </div>
       ) : (
-        <FormField
+        <CompactNumericField
           control={control}
           name={`${namePrefix}.initial_value`}
-          render={({ field }) => (
-            <FormItem className="space-y-1">
-              <FormLabel className={labelClass}>
-                Conjunto en la referencia ({unitShort})
-              </FormLabel>
-              <FormControl>
-                <NumericInput
-                  placeholder="0"
-                  className={fieldClass}
-                  value={field.value}
-                  onChange={field.onChange}
-                  onBlur={field.onBlur}
-                  name={field.name}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+          suffix={unitShort}
         />
       )}
+
       <Button
         type="button"
         variant="ghost"
         size="icon"
         onClick={onRemove}
         aria-label="Quitar intervalo"
-        className="h-11 w-8 shrink-0 text-muted-foreground/70 hover:text-destructive"
+        className="h-11 w-8 shrink-0 justify-self-end text-muted-foreground/70 hover:text-destructive"
       >
         <X className="size-3.5" />
       </Button>
@@ -519,14 +569,22 @@ function DirectiveCard({
   onRemove: () => void;
 }) {
   const namePrefix = `${arrayName}.${index}`;
+  const { setValue } = useFormContext<FormValues>();
   const adNumber = useWatch({
     control,
     name: `${namePrefix}.ad_number`,
   }) as string;
-  const applicability = useWatch({
+  // Acotan el catálogo a la aeronave del control y, si hay uno elegido en la
+  // cabecera, a su manual.
+  const aircraftId = useWatch({ control, name: "aircraft_id" }) as string;
+  const manualId = useWatch({
     control,
-    name: `${namePrefix}.applicability`,
-  }) as DirectiveApplicability;
+    name: "maintenance_catalog_manual_id",
+  }) as number | undefined;
+  const manualName = useWatch({
+    control,
+    name: "reference_manual",
+  }) as string;
   const complianceType = useWatch({
     control,
     name: `${namePrefix}.compliance_type`,
@@ -541,15 +599,12 @@ function DirectiveCard({
     }[]) ?? [];
   const usedMethods = intervals.map((i) => i.counting_method).filter(Boolean);
 
-  const isApplicable = applicability === "APPLICABLE";
-  const needsNotes =
-    applicability === "NOT_APPLICABLE" || applicability === "SUPERSEDED";
   const isRecurrent = complianceType === "RECURRENT";
 
   return (
     <div className="space-y-3 rounded-xl border border-slate-400/40 bg-linear-to-br from-background/70 to-background/40 p-4 backdrop-blur-md dark:border-slate-600/40">
       <div className="flex items-center justify-between gap-2">
-        <p className="text-sm font-semibold">
+        <p className="min-w-0 truncate text-sm font-semibold">
           <span className="text-muted-foreground">#{position + 1}</span>{" "}
           {adNumber || "Nueva directiva"}
         </p>
@@ -571,7 +626,70 @@ function DirectiveCard({
         </TooltipProvider>
       </div>
 
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_120px_110px_1fr]">
+      {/* El catálogo llena de una vez N° de AD, documento y revisión; los tres
+          siguen editables porque no toda AD está cargada ahí todavía. La
+          autoridad la pone el usuario: el catálogo no la registra. */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1.2fr)_minmax(0,120px)_minmax(0,90px)]">
+        {/* El picker va pegado al documento (no en su propia columna), igual
+            que en el Control de Mantenimiento: el ícono es del campo. */}
+        <div className="flex items-start gap-1">
+          <TextField
+            control={control}
+            name={`${namePrefix}.reference_document`}
+            label="Documento de referencia"
+            placeholder="EJ: SB 407-32-101"
+            className="flex-1"
+            optional
+          />
+          {/* Rótulo fantasma: baja el botón a la altura del input sin
+              desalinear el campo respecto de los de al lado. Copia el `flex`
+              del rótulo real para que ambos midan exactamente lo mismo. */}
+          <div className="space-y-1">
+            <span
+              className={cn(labelClass, "flex items-center gap-1")}
+              aria-hidden
+            >
+              &nbsp;
+            </span>
+            <CatalogServicePicker
+              aircraftId={aircraftId}
+              manualId={manualId}
+              manualName={manualName}
+              onSelectService={(service) => {
+                // El nombre del servicio ES la AD; el documento sale del
+                // manual al que está ligada, y la revisión de ese manual.
+                setValue(`${namePrefix}.ad_number` as any, service.name, {
+                  shouldValidate: true,
+                });
+                setValue(
+                  `${namePrefix}.maintenance_catalog_service_id` as any,
+                  service.id,
+                );
+                if (service.manual) {
+                  setValue(
+                    `${namePrefix}.reference_document` as any,
+                    service.manual.name,
+                    { shouldValidate: true },
+                  );
+                  if (service.manual.revision) {
+                    setValue(
+                      `${namePrefix}.revision` as any,
+                      service.manual.revision,
+                      { shouldValidate: true },
+                    );
+                  }
+                }
+                if (service.description) {
+                  setValue(
+                    `${namePrefix}.description` as any,
+                    service.description,
+                    { shouldValidate: true },
+                  );
+                }
+              }}
+            />
+          </div>
+        </div>
         <TextField
           control={control}
           name={`${namePrefix}.ad_number`}
@@ -595,30 +713,20 @@ function DirectiveCard({
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-[2fr_1fr]">
+      {/* Qué exige la AD y cómo se cumple, con quién la hizo y cuándo. */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,2fr)_minmax(0,1.4fr)_minmax(0,1.2fr)_minmax(0,1.1fr)_minmax(0,150px)]">
         <TextField
           control={control}
           name={`${namePrefix}.description`}
-          label="Asunto"
+          label="Descripción"
           placeholder="EJ: Inspección de tren de aterrizaje principal"
         />
         <TextField
           control={control}
-          name={`${namePrefix}.reference_document`}
-          label="Documento de referencia"
-          placeholder="EJ: SB 407-32-101"
+          name={`${namePrefix}.compliance_method`}
+          label="Método de cumplimiento"
+          placeholder="EJ: Inspección visual párrafo (e)"
           optional
-        />
-      </div>
-
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_1fr_1fr]">
-        <SelectField
-          control={control}
-          name={`${namePrefix}.applicability`}
-          label="Aplicabilidad"
-          options={Object.entries(DIRECTIVE_APPLICABILITY_LABELS).map(
-            ([value, label]) => ({ value, label }),
-          )}
         />
         <SelectField
           control={control}
@@ -628,95 +736,73 @@ function DirectiveCard({
             ([value, label]) => ({ value, label }),
           )}
         />
-        <TextField
-          control={control}
-          name={`${namePrefix}.compliance_method`}
-          label="Método de cumplimiento"
-          placeholder="EJ: Inspección visual párrafo (e)"
-          optional
-        />
+        <FormItem className="min-w-0 space-y-1">
+          <FormLabel className={cn(labelClass, "block truncate")}>
+            Realizado por
+          </FormLabel>
+          <ProviderSelect
+            control={control}
+            name={`${namePrefix}.maintenance_provider_id`}
+          />
+        </FormItem>
+        <FormItem className="min-w-0 space-y-1">
+          <FormLabel className={cn(labelClass, "flex items-center gap-1")}>
+            <span className="truncate">Último cump.</span>
+            <TooltipProvider disableHoverableContent>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="size-3 shrink-0 text-muted-foreground/60" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-56">
+                  {isRecurrent
+                    ? "Fecha en que se cumplió esta AD por última vez (el cumplimiento que está cargando, si es nuevo). Desde ahí se cuenta el próximo vencimiento."
+                    : "Fecha en que se cumplió esta AD. Si todavía no se cumplió, use la de efectividad: desde ahí corre su límite."}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </FormLabel>
+          <CompactDateField
+            control={control}
+            name={`${namePrefix}.first_applied_date`}
+          />
+        </FormItem>
       </div>
 
-      {needsNotes && (
-        <TextField
-          control={control}
-          name={`${namePrefix}.applicability_notes`}
-          label={
-            applicability === "SUPERSEDED"
-              ? "Supersedida por"
-              : "Motivo de no aplicabilidad"
-          }
-          placeholder={
-            applicability === "SUPERSEDED"
-              ? "EJ: AD 2021-12-08"
-              : "EJ: Por serial — aplica a S/N 53000 a 53999"
-          }
-        />
-      )}
-
-      {isApplicable && (
-        <>
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_180px_110px]">
-            <div className="space-y-1">
-              <p className={labelClass}>
-                Realizado por
-                {!isRecurrent && (
-                  <span className="ml-1 text-xs font-normal text-muted-foreground">
-                    (Opcional)
-                  </span>
-                )}
-              </p>
-              <ProviderSelect
-                control={control}
-                name={`${namePrefix}.maintenance_provider_id`}
-              />
-            </div>
-            <div className="space-y-1">
-              <p className={labelClass}>
-                {isRecurrent ? "Último cumplimiento" : "Fecha de referencia"}
-              </p>
-              <CompactDateField
-                control={control}
-                name={`${namePrefix}.first_applied_date`}
-              />
-            </div>
-            <div className="space-y-1">
-              <p className={labelClass}>
-                % Alerta{" "}
-                <span className="text-xs font-normal text-muted-foreground">
-                  (Opcional)
-                </span>
-              </p>
+      <div className="space-y-2 border-t border-slate-400/25 pt-3 dark:border-slate-600/25">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className={labelClass}>
+            Límites{" "}
+            <span className="text-xs font-normal text-muted-foreground">
+              {isRecurrent
+                ? "(varios = lo que ocurra primero)"
+                : "(vacío si ya se cumplió o no tiene límite)"}
+            </span>
+          </p>
+          <div className="flex items-center gap-2">
+            {/* El % vive con los límites: solo tiene sentido cuando hay uno
+                del que avisar. */}
+            <FormLabel
+              className={cn(labelClass, "whitespace-nowrap")}
+              title="Con cuánto remanente avisar que esta AD está por vencer. Viene del % de Datos Básicos y se puede cambiar."
+            >
+              Avisar al
+            </FormLabel>
+            <div className="w-20">
               <RemainingPercentageField
                 control={control}
                 name={`${namePrefix}.remaining_percentage`}
+                follows
               />
             </div>
           </div>
+        </div>
 
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <p className={labelClass}>
-                {isRecurrent ? "Intervalos" : "Plazo para cumplir"}{" "}
-                <span className="text-xs font-normal text-muted-foreground">
-                  {isRecurrent
-                    ? "(varios = lo que ocurra primero)"
-                    : "(vacío si ya se cumplió o no tiene plazo)"}
-                </span>
-              </p>
-              {fields.length < ALL_COUNTING_METHODS.length && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => append(emptyInterval(usedMethods))}
-                  className="gap-1.5 border-dashed text-muted-foreground hover:text-primary"
-                >
-                  <Plus className="size-3.5" />
-                  Agregar {isRecurrent ? "intervalo" : "plazo"}
-                </Button>
-              )}
-            </div>
+        {/* La tabla no colapsa a una columna: sus cuatro celdas se leen en
+            relación (unidad, límite, lectura). En pantallas angostas se
+            desplaza en lugar de comprimir los campos hasta romperlos. */}
+        <div className="overflow-x-auto">
+          <div className="min-w-100 space-y-2">
+            {fields.length > 0 && <IntervalHeader />}
             {fields.map((field, i) => (
               <IntervalRow
                 key={field.id}
@@ -726,36 +812,28 @@ function DirectiveCard({
                 onRemove={() => remove(i)}
               />
             ))}
-            <FormField
-              control={control}
-              name={`${namePrefix}.intervals`}
-              render={() => <FormMessage />}
-            />
           </div>
-        </>
-      )}
+        </div>
+        <FormField
+          control={control}
+          name={`${namePrefix}.intervals`}
+          render={() => <FormMessage />}
+        />
 
-      <FormField
-        control={control}
-        name={`${namePrefix}.observations`}
-        render={({ field }) => (
-          <FormItem className="space-y-1">
-            <FormLabel className={labelClass}>
-              Observaciones{" "}
-              <span className="text-xs text-muted-foreground">(Opcional)</span>
-            </FormLabel>
-            <FormControl>
-              <Textarea
-                placeholder="..."
-                className={cn(fieldClass, "h-auto min-h-9 resize-none py-2")}
-                {...field}
-                value={field.value ?? ""}
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
+        {fields.length < ALL_COUNTING_METHODS.length && (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => append(emptyInterval(usedMethods))}
+            className="gap-1.5 border-dashed text-muted-foreground hover:border-blue-400/40 hover:text-primary"
+          >
+            <Plus className="size-3.5" />
+            Agregar límite
+          </Button>
         )}
-      />
+      </div>
+
     </div>
   );
 }
@@ -854,7 +932,12 @@ function DirectivePartsSection({ control }: { control: Control<any> }) {
               >
                 {checked && <Check className="h-3 w-3" />}
               </span>
-              <span className="font-medium">{part.label}</span>
+              <span className="flex flex-col leading-tight">
+                <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                  {part.typeLabel}
+                </span>
+                <span className="font-medium">{part.name}</span>
+              </span>
             </div>
           );
         })}
@@ -905,14 +988,14 @@ function DirectivePartsSection({ control }: { control: Control<any> }) {
 function mapToFormItem(item: NonNullable<DirectiveControl["items"]>[number]) {
   return {
     id: item.id,
+    maintenance_catalog_service_id:
+      item.maintenance_catalog_service_id ?? undefined,
     ad_number: item.ad_number,
     authority: item.authority,
     revision: item.revision ?? "",
     description: item.description,
     reference_document: item.reference_document ?? "",
     compliance_method: item.compliance_method ?? "",
-    applicability: item.applicability,
-    applicability_notes: item.applicability_notes ?? "",
     compliance_type: item.compliance_type,
     maintenance_provider_id: item.maintenance_provider_id
       ? String(item.maintenance_provider_id)
@@ -925,7 +1008,6 @@ function mapToFormItem(item: NonNullable<DirectiveControl["items"]>[number]) {
       item.remaining_percentage !== undefined
         ? Number(item.remaining_percentage)
         : undefined,
-    observations: item.observations ?? "",
     intervals: item.intervals.map((interval) => ({
       id: interval.id,
       counting_method: interval.counting_method,
@@ -1018,6 +1100,8 @@ export default function CreateDirectiveControlForm({
     name: "has_reference_manual",
   });
   const aircraftId = useWatch({ control, name: "aircraft_id" });
+
+  useSuggestedControlTitle(form, "Directivas");
   const { fields, append, remove } = useFieldArray({ control, name: "items" });
 
   const onSubmit = async (values: FormValues) => {
@@ -1039,42 +1123,30 @@ export default function CreateDirectiveControlForm({
       reference_manual: values.reference_manual,
       maintenance_catalog_manual_id: values.maintenance_catalog_manual_id,
       remaining_percentage: values.remaining_percentage,
-      items: allItems.map((item) => {
-        const applicable = item.applicability === "APPLICABLE";
-        return {
-          id: item.id,
-          parent_aircraft_part_id: item.aircraft_part_id
-            ? Number(item.aircraft_part_id)
-            : null,
-          ad_number: item.ad_number,
-          authority: item.authority as DirectiveAuthority,
-          revision: item.revision || undefined,
-          description: item.description,
-          reference_document: item.reference_document || undefined,
-          compliance_method: item.compliance_method || undefined,
-          applicability: item.applicability as DirectiveApplicability,
-          applicability_notes: item.applicability_notes || undefined,
-          compliance_type: item.compliance_type as DirectiveComplianceType,
-          maintenance_provider_id: applicable
-            ? item.maintenance_provider_id || undefined
-            : undefined,
-          first_applied_date:
-            applicable && item.first_applied_date
-              ? format(item.first_applied_date, "yyyy-MM-dd")
-              : undefined,
-          remaining_percentage: applicable
-            ? (item.remaining_percentage ?? null)
-            : null,
-          observations: item.observations || undefined,
-          intervals: applicable
-            ? item.intervals.map((interval) => ({
-                counting_method: interval.counting_method,
-                limit_value: interval.limit_value,
-                initial_value: interval.initial_value,
-              }))
-            : [],
-        };
-      }),
+      items: allItems.map((item) => ({
+        id: item.id,
+        maintenance_catalog_service_id: item.maintenance_catalog_service_id,
+        parent_aircraft_part_id: item.aircraft_part_id
+          ? Number(item.aircraft_part_id)
+          : null,
+        ad_number: item.ad_number,
+        authority: item.authority as DirectiveAuthority,
+        revision: item.revision || undefined,
+        description: item.description,
+        reference_document: item.reference_document || undefined,
+        compliance_method: item.compliance_method || undefined,
+        compliance_type: item.compliance_type as DirectiveComplianceType,
+        maintenance_provider_id: item.maintenance_provider_id || undefined,
+        first_applied_date: item.first_applied_date
+          ? format(item.first_applied_date, "yyyy-MM-dd")
+          : undefined,
+        remaining_percentage: item.remaining_percentage ?? null,
+        intervals: item.intervals.map((interval) => ({
+          counting_method: interval.counting_method,
+          limit_value: interval.limit_value,
+          initial_value: interval.initial_value,
+        })),
+      })),
     };
 
     if (isEditing) {
@@ -1125,7 +1197,7 @@ export default function CreateDirectiveControlForm({
           hint="Aeronave, título y a partir de qué remanente se avisa."
           action={<CreateMaintenanceProviderDialog />}
         >
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-[minmax(150px,190px)_2fr_minmax(96px,140px)]">
             <AircraftSelect
               control={control}
               name="aircraft_id"
@@ -1154,26 +1226,23 @@ export default function CreateDirectiveControlForm({
               name="remaining_percentage"
               render={({ field }) => (
                 <FormItem className="w-full">
-                  <FormLabel className={labelClass}>
-                    % de Remanente para Alerta
-                  </FormLabel>
+                  <FormLabel className={labelClass}>% Remanente</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <NumericInput
-                        className={cn(fieldClass, "pr-8")}
+                        className={cn(fieldClass, "pr-7")}
                         value={field.value}
                         onChange={field.onChange}
                         onBlur={field.onBlur}
                         name={field.name}
                       />
-                      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                      <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
                         %
                       </span>
                     </div>
                   </FormControl>
                   <FormDescription className={hintClass}>
-                    Con cuánto remanente sobre el plazo se avisa que una AD está
-                    próxima a vencer.
+                    Remanente para alertar.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -1183,7 +1252,7 @@ export default function CreateDirectiveControlForm({
               control={control}
               name="description"
               render={({ field }) => (
-                <FormItem className="w-full md:col-span-2">
+                <FormItem className="w-full md:col-span-3">
                   <FormLabel className={labelClass}>
                     Descripción{" "}
                     <span className="text-xs text-muted-foreground">
@@ -1208,7 +1277,7 @@ export default function CreateDirectiveControlForm({
                 <FormItem
                   className={cn(
                     fieldClass,
-                    "h-auto shadow-none md:col-span-2 flex flex-row items-start space-x-3 space-y-0 p-4 hover:shadow-none",
+                    "h-auto shadow-none md:col-span-3 flex flex-row items-start space-x-3 space-y-0 p-4 hover:shadow-none",
                   )}
                 >
                   <FormControl>
@@ -1229,7 +1298,7 @@ export default function CreateDirectiveControlForm({
               )}
             />
             {hasReferenceManual && (
-              <>
+              <div className="grid grid-cols-1 gap-4 md:col-span-3 md:grid-cols-2">
                 <CatalogManualField control={control} aircraftId={aircraftId} />
                 <FormField
                   control={control}
@@ -1250,7 +1319,7 @@ export default function CreateDirectiveControlForm({
                     </FormItem>
                   )}
                 />
-              </>
+              </div>
             )}
           </div>
         </FormSection>

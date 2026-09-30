@@ -245,6 +245,10 @@ const VALUE_LABELS: Record<string, Record<string, string>> = {
   },
   action: {
     OVERHAUL: "Overhaul",
+    CHECK: "Chequeo",
+    TEST: "Testeo",
+    // Ya no se ofrecen en componentes; se conservan para leer los registros
+    // escritos antes del cambio.
     REPLACE: "Reemplazo",
     REPAIR: "Reparación",
     INSPECTION: "Inspección",
@@ -254,6 +258,8 @@ const VALUE_LABELS: Record<string, Record<string, string>> = {
     REPLACEMENT: "Reemplazo",
     DATA_DOWNLOAD: "Descarga de datos",
   },
+  // La aplicabilidad ya no se captura; se conserva para leer los registros
+  // escritos antes de quitarla.
   applicability: {
     PENDING_ANALYSIS: "Pendiente de análisis",
     APPLICABLE: "Aplicable",

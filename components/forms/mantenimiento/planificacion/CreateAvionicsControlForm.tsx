@@ -5,8 +5,14 @@ import {
   EditReasonValue,
   editReasonErrorFrom,
 } from "@/components/forms/mantenimiento/planificacion/EditReasonFields";
-import { useMemo, useState } from "react";
-import { Control, useFieldArray, useForm, useWatch } from "react-hook-form";
+import { useEffect, useMemo, useState } from "react";
+import {
+  Control,
+  useFieldArray,
+  useForm,
+  useFormContext,
+  useWatch,
+} from "react-hook-form";
 import { zodResolver } from "@/lib/zod-resolver";
 import { z } from "zod";
 import { format, parseISO } from "date-fns";
@@ -14,6 +20,7 @@ import { useRouter } from "next/navigation";
 import {
   AlertTriangle,
   ClipboardList,
+  HelpCircle,
   Loader2,
   Plane,
   Plus,
@@ -55,11 +62,8 @@ import {
   useUpdateAvionicsControl,
 } from "@/actions/mantenimiento/planificacion/control_avionica/actions";
 import { CreateMaintenanceProviderDialog } from "@/components/dialogs/mantenimiento/planificacion/CreateMaintenanceProviderDialog";
-import { AvionicsAction, AvionicsCategory, AvionicsControl } from "@/types";
-import {
-  AVIONICS_ACTION_LABELS,
-  AVIONICS_CATEGORY_LABELS,
-} from "@/lib/avionicsControlLabels";
+import { AvionicsAction, AvionicsControl } from "@/types";
+import { AVIONICS_ACTION_LABELS } from "@/lib/avionicsControlLabels";
 import {
   FormSection,
   fieldClass,
@@ -74,6 +78,7 @@ import {
   NumericInput,
   ProviderSelect,
   RemainingPercentageField,
+  useSuggestedControlTitle,
 } from "./_shared";
 
 const ALL_COUNTING_METHODS = ["HOURS", "CYCLES", "DAYS"] as const;
@@ -84,9 +89,6 @@ const COUNTING_METHOD_LABEL: Record<string, string> = {
 };
 
 const countingMethodEnum = z.enum(ALL_COUNTING_METHODS);
-const categoryEnum = z.enum(
-  Object.keys(AVIONICS_CATEGORY_LABELS) as [string, ...string[]],
-);
 const actionEnum = z.enum(
   Object.keys(AVIONICS_ACTION_LABELS) as [string, ...string[]],
 );
@@ -127,7 +129,6 @@ const taskSchema = z.object({
 
 const itemSchema = z.object({
   id: z.number().optional(),
-  category: categoryEnum,
   is_hazardous: z.boolean().default(false),
   description: z.string().min(1, "Requerido"),
   part_number: z.string().min(1, "Requerido"),
@@ -223,25 +224,56 @@ const emptyInterval = (usedMethods: string[] = []) => ({
   limit_value: undefined as unknown as number,
 });
 
-const emptyTask = () => ({
+// El % del control se copia a la tarea al crearla (en vez de dejarlo vacío
+// heredando en silencio): así el usuario ve con qué umbral va a alertar y
+// puede cambiarlo sin adivinar de dónde salía el número.
+const emptyTask = (controlPercentage?: number | string) => ({
   action: "FUNCTIONAL_CHECK",
   is_on_condition: true,
   maintenance_provider_id: "",
   first_applied_date: undefined as unknown as Date,
-  remaining_percentage: undefined as number | undefined,
+  remaining_percentage: controlPercentage as number | undefined,
   intervals: [] as ReturnType<typeof emptyInterval>[],
 });
 
-const emptyItem = () => ({
-  category: "OTHER",
+const emptyItem = (controlPercentage?: number | string) => ({
   is_hazardous: false,
   description: "",
   part_number: "",
   serial: "",
   position: "",
   reference_document: "",
-  tasks: [emptyTask()],
+  tasks: [emptyTask(controlPercentage)],
 });
+
+/**
+ * Rótulo que trunca sin comerse su ayuda: el texto cede ancho y el ícono
+ * (si hay algo que aclarar) se queda. Lo comparten los campos de la tarjeta,
+ * incluidos los que envuelven a mano un control de `_shared`.
+ */
+function FieldLabel({
+  children,
+  tooltip,
+}: {
+  children: React.ReactNode;
+  tooltip?: string;
+}) {
+  return (
+    <FormLabel className={cn(labelClass, "flex items-center gap-1")}>
+      <span className="truncate">{children}</span>
+      {tooltip && (
+        <TooltipProvider disableHoverableContent>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <HelpCircle className="size-3 shrink-0 text-muted-foreground/60" />
+            </TooltipTrigger>
+            <TooltipContent className="max-w-56">{tooltip}</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      )}
+    </FormLabel>
+  );
+}
 
 function SelectField({
   control,
@@ -259,14 +291,14 @@ function SelectField({
       control={control}
       name={name}
       render={({ field }) => (
-        <FormItem className="space-y-1">
-          <FormLabel className={labelClass}>{label}</FormLabel>
+        <FormItem className="min-w-0 space-y-1">
+          <FieldLabel>{label}</FieldLabel>
           <Select
             onValueChange={field.onChange}
             value={field.value || undefined}
           >
             <FormControl>
-              <SelectTrigger className={selectTriggerClass}>
+              <SelectTrigger className={cn(selectTriggerClass, "w-full")}>
                 <SelectValue placeholder="Seleccione..." />
               </SelectTrigger>
             </FormControl>
@@ -285,40 +317,126 @@ function SelectField({
   );
 }
 
+/**
+ * `optional` va como ícono con tooltip, no como "(Opcional)" escrito: en las
+ * columnas angostas ese sufijo obligaba a truncar el nombre del campo.
+ */
 function TextField({
   control,
   name,
   label,
   placeholder,
   optional,
+  hint,
 }: {
   control: Control<any>;
   name: string;
   label: string;
   placeholder?: string;
   optional?: boolean;
+  hint?: string;
+}) {
+  const tooltip = [optional && "Opcional.", hint].filter(Boolean).join(" ");
+
+  return (
+    <FormField
+      control={control}
+      name={name}
+      render={({ field }) => (
+        <FormItem className="min-w-0 space-y-1">
+          <FieldLabel tooltip={tooltip || undefined}>{label}</FieldLabel>
+          <FormControl>
+            <Input
+              placeholder={placeholder}
+              className={cn(fieldClass, "w-full")}
+              {...field}
+              value={field.value ?? ""}
+            />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
+
+/**
+ * Los límites se leen como una tabla: los rótulos los pone el encabezado una
+ * sola vez y las filas solo llevan campos. Repetirlos en cada fila hacía que
+ * dos o tres intervalos se vieran como un amontonamiento.
+ */
+const INTERVAL_GRID =
+  "grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.2fr)_32px]";
+
+const INTERVAL_COLUMNS: { label: string; hint?: string }[] = [
+  { label: "Unidad" },
+  { label: "Límite" },
+  {
+    label: "Hrs/clc al cumplir",
+    hint: "Horas o ciclos que marca la aeronave al cumplir esta tarea ahora. Es el punto de partida: el límite se cuenta desde ese número.",
+  },
+];
+
+function IntervalHeader() {
+  return (
+    <div className={cn(INTERVAL_GRID, "gap-2 px-1")}>
+      {INTERVAL_COLUMNS.map(({ label, hint }) => (
+        <span
+          key={label}
+          className="flex items-center gap-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground/70"
+        >
+          <span className="truncate">{label}</span>
+          {hint && (
+            <TooltipProvider disableHoverableContent>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="size-3 shrink-0" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-56 normal-case">
+                  {hint}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+        </span>
+      ))}
+      <span />
+    </div>
+  );
+}
+
+/** Campo numérico sin rótulo propio: el suyo lo pone `IntervalHeader`. */
+function CompactNumericField({
+  control,
+  name,
+  suffix,
+}: {
+  control: Control<any>;
+  name: string;
+  suffix?: string;
 }) {
   return (
     <FormField
       control={control}
       name={name}
       render={({ field }) => (
-        <FormItem className="space-y-1">
-          <FormLabel className={labelClass}>
-            {label}
-            {optional && (
-              <span className="ml-1 text-xs text-muted-foreground">
-                (Opcional)
-              </span>
-            )}
-          </FormLabel>
+        <FormItem className="min-w-0 space-y-0">
           <FormControl>
-            <Input
-              placeholder={placeholder}
-              className={fieldClass}
-              {...field}
-              value={field.value ?? ""}
-            />
+            <div className="relative">
+              <NumericInput
+                placeholder="0"
+                className={cn(fieldClass, "w-full", suffix && "pr-11")}
+                value={field.value}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+                name={field.name}
+              />
+              {suffix && (
+                <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+                  {suffix}
+                </span>
+              )}
+            </div>
           </FormControl>
           <FormMessage />
         </FormItem>
@@ -350,20 +468,29 @@ function IntervalRow({
         ? "cic"
         : "días";
 
+  // Al pasar a días el campo desaparece: sin esto quedaría enviando al backend
+  // una lectura que ya nadie ve ni puede corregir.
+  const { setValue } = useFormContext<FormValues>();
+  useEffect(() => {
+    if (!isDays) return;
+    setValue(`${namePrefix}.initial_value` as any, undefined);
+    // setValue no es estable en RHF.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isDays, namePrefix]);
+
   return (
-    <div className="grid grid-cols-1 items-end gap-2 sm:grid-cols-[110px_1fr_1fr_32px]">
+    <div className={cn(INTERVAL_GRID, "items-start gap-2")}>
       <FormField
         control={control}
         name={`${namePrefix}.counting_method`}
         render={({ field }) => (
-          <FormItem className="space-y-1">
-            <FormLabel className={labelClass}>Unidad</FormLabel>
+          <FormItem className="min-w-0 space-y-0">
             <Select
               onValueChange={field.onChange}
               value={field.value || undefined}
             >
               <FormControl>
-                <SelectTrigger className={selectTriggerClass}>
+                <SelectTrigger className={cn(selectTriggerClass, "w-full")}>
                   <SelectValue placeholder="Unidad" />
                 </SelectTrigger>
               </FormControl>
@@ -381,69 +508,41 @@ function IntervalRow({
           </FormItem>
         )}
       />
-      <FormField
+
+      <CompactNumericField
         control={control}
         name={`${namePrefix}.limit_value`}
-        render={({ field }) => (
-          <FormItem className="space-y-1">
-            <FormLabel className={labelClass}>Límite ({unitShort})</FormLabel>
-            <FormControl>
-              <NumericInput
-                placeholder="0"
-                className={fieldClass}
-                value={field.value}
-                onChange={field.onChange}
-                onBlur={field.onBlur}
-                name={field.name}
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
+        suffix={unitShort}
       />
+
+      {/* Un límite en días corre por calendario: la lectura de la aeronave no
+          entra en ese cálculo, así que la celda queda neutralizada — con un
+          guion y no vacía, para que se lea como "no aplica" y la fila no se
+          descuadre respecto de las de arriba. */}
       {isDays ? (
-        <div className="space-y-1">
-          <p className={labelClass}>Lectura aeronave</p>
-          <div
-            className={cn(
-              fieldClass,
-              "flex items-center justify-center text-sm text-muted-foreground/40 shadow-none",
-            )}
-          >
-            —
-          </div>
+        <div
+          className={cn(
+            fieldClass,
+            "flex items-center justify-center text-sm text-muted-foreground/40 shadow-none",
+          )}
+        >
+          —
         </div>
       ) : (
-        <FormField
+        <CompactNumericField
           control={control}
           name={`${namePrefix}.initial_value`}
-          render={({ field }) => (
-            <FormItem className="space-y-1">
-              <FormLabel className={labelClass}>
-                Aeronave al evento ({unitShort})
-              </FormLabel>
-              <FormControl>
-                <NumericInput
-                  placeholder="0"
-                  className={fieldClass}
-                  value={field.value}
-                  onChange={field.onChange}
-                  onBlur={field.onBlur}
-                  name={field.name}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+          suffix={unitShort}
         />
       )}
+
       <Button
         type="button"
         variant="ghost"
         size="icon"
         onClick={onRemove}
         aria-label="Quitar intervalo"
-        className="h-11 w-8 shrink-0 text-muted-foreground/70 hover:text-destructive"
+        className="h-11 w-8 shrink-0 justify-self-end text-muted-foreground/70 hover:text-destructive"
       >
         <X className="size-3.5" />
       </Button>
@@ -478,7 +577,11 @@ function TaskCard({
 
   return (
     <div className="space-y-3 rounded-lg border border-slate-400/30 bg-muted/20 p-3 dark:border-slate-600/30">
-      <div className="grid grid-cols-1 items-end gap-3 md:grid-cols-[1fr_auto_32px]">
+      {/* Toda la cabecera de la tarea en una fila: qué es, si lleva plazo,
+          quién la hizo y cuándo. Realizado por y la fecha se muestran aunque
+          sea por condición — igual se cumple y se deja asentada; lo que no
+          tiene es plazo. */}
+      <div className="grid grid-cols-2 items-start gap-3 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1.4fr)_minmax(0,130px)_auto_32px]">
         <SelectField
           control={control}
           name={`${namePrefix}.action`}
@@ -487,105 +590,126 @@ function TaskCard({
             ([value, label]) => ({ value, label }),
           )}
         />
+        <FormItem className="min-w-0 space-y-1">
+          <FieldLabel>Realizado por</FieldLabel>
+          <ProviderSelect
+            control={control}
+            name={`${namePrefix}.maintenance_provider_id`}
+          />
+        </FormItem>
+        <FormItem className="min-w-0 space-y-1">
+          <FieldLabel tooltip="Fecha en que se cumplió esta tarea por última vez (el cumplimiento que está cargando, si es nuevo). Desde ahí se cuenta el próximo vencimiento.">
+            Último cump.
+          </FieldLabel>
+          <CompactDateField
+            control={control}
+            name={`${namePrefix}.first_applied_date`}
+          />
+        </FormItem>
+        {/* Va al final de la fila porque es lo que decide si abajo aparecen
+            los límites: primero se lee la tarea, después lo que la condiciona. */}
         <FormField
           control={control}
           name={`${namePrefix}.is_on_condition`}
           render={({ field }) => (
-            <FormItem className="flex items-end space-y-0 pb-2">
-              <label className="flex cursor-pointer select-none items-center gap-2 text-sm">
+            <FormItem className="space-y-1">
+              <span className={cn(labelClass, "hidden lg:block")} aria-hidden>
+                &nbsp;
+              </span>
+              <label className="flex h-11 cursor-pointer select-none items-center gap-2 text-sm">
                 <FormControl>
                   <Checkbox
                     checked={field.value}
                     onCheckedChange={field.onChange}
                   />
                 </FormControl>
-                Por condición (sin plazo)
+                <span className="whitespace-nowrap">Por condición</span>
               </label>
             </FormItem>
           )}
         />
-        {canRemove ? (
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={onRemove}
-            aria-label="Quitar tarea"
-            className="h-11 w-8 shrink-0 text-muted-foreground/70 hover:text-destructive"
-          >
-            <X className="size-3.5" />
-          </Button>
-        ) : (
-          <span />
-        )}
+        {/* El rótulo fantasma baja el botón a la altura de los inputs; en dos
+            columnas no hay rótulos al lado que igualar, así que se oculta. */}
+        <div className="col-span-2 flex justify-end space-y-1 lg:col-span-1 lg:block">
+          <span className={cn(labelClass, "hidden lg:block")} aria-hidden>
+            &nbsp;
+          </span>
+          {canRemove && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={onRemove}
+              aria-label="Quitar tarea"
+              className="h-11 w-8 shrink-0 text-muted-foreground/70 hover:text-destructive"
+            >
+              <X className="size-3.5" />
+            </Button>
+          )}
+        </div>
       </div>
 
       {!isOnCondition && (
         <>
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_140px_110px]">
-            <div className="space-y-1">
-              <p className={labelClass}>Realizado por</p>
-              <ProviderSelect
-                control={control}
-                name={`${namePrefix}.maintenance_provider_id`}
-              />
-            </div>
-            <div className="space-y-1">
-              <p className={labelClass}>Último evento</p>
-              <CompactDateField
-                control={control}
-                name={`${namePrefix}.first_applied_date`}
-              />
-            </div>
-            <div className="space-y-1">
-              <p className={labelClass}>
-                % Alerta{" "}
-                <span className="text-xs font-normal text-muted-foreground">
-                  (Opcional)
-                </span>
-              </p>
-              <RemainingPercentageField
-                control={control}
-                name={`${namePrefix}.remaining_percentage`}
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
+          <div className="space-y-2 border-t border-slate-400/25 pt-3 dark:border-slate-600/25">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <p className={labelClass}>
                 Límites{" "}
                 <span className="text-xs font-normal text-muted-foreground">
                   (varios = lo que ocurra primero)
                 </span>
               </p>
-              {fields.length < ALL_COUNTING_METHODS.length && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => append(emptyInterval(usedMethods))}
-                  className="gap-1.5 border-dashed text-muted-foreground hover:text-primary"
-                >
-                  <Plus className="size-3.5" />
-                  Agregar límite
-                </Button>
-              )}
+              <div className="flex items-center gap-2">
+                {/* El % vive con los límites, no con "Realizado por": solo
+                    tiene sentido cuando hay un plazo del que avisar. */}
+                <FieldLabel tooltip="Con cuánto remanente avisar que esta tarea está por vencer. Viene del % de Datos Básicos y se puede cambiar.">
+                  Avisar al
+                </FieldLabel>
+                <div className="w-20">
+                  <RemainingPercentageField
+                    control={control}
+                    name={`${namePrefix}.remaining_percentage`}
+                    follows
+                  />
+                </div>
+              </div>
             </div>
-            {fields.map((field, i) => (
-              <IntervalRow
-                key={field.id}
-                control={control}
-                namePrefix={`${namePrefix}.intervals.${i}`}
-                usedMethods={usedMethods}
-                onRemove={() => remove(i)}
-              />
-            ))}
+
+            {/* La tabla no colapsa a una columna: sus cuatro celdas se leen en
+                relación (unidad, límite, lectura). En pantallas angostas se
+                desplaza en lugar de comprimir los campos hasta romperlos. */}
+            <div className="overflow-x-auto">
+              <div className="min-w-100 space-y-2">
+                {fields.length > 0 && <IntervalHeader />}
+                {fields.map((field, i) => (
+                  <IntervalRow
+                    key={field.id}
+                    control={control}
+                    namePrefix={`${namePrefix}.intervals.${i}`}
+                    usedMethods={usedMethods}
+                    onRemove={() => remove(i)}
+                  />
+                ))}
+              </div>
+            </div>
             <FormField
               control={control}
               name={`${namePrefix}.intervals`}
               render={() => <FormMessage />}
             />
+
+            {fields.length < ALL_COUNTING_METHODS.length && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => append(emptyInterval(usedMethods))}
+                className="gap-1.5 border-dashed text-muted-foreground hover:border-blue-400/40 hover:text-primary"
+              >
+                <Plus className="size-3.5" />
+                Agregar límite
+              </Button>
+            )}
           </div>
         </>
       )}
@@ -611,11 +735,12 @@ function DeviceCard({
     control,
     name: `${namePrefix}.description`,
   }) as string;
+  const controlPercentage = useWatch({ control, name: "remaining_percentage" });
 
   return (
     <div className="space-y-3 rounded-xl border border-slate-400/40 bg-linear-to-br from-background/70 to-background/40 p-4 backdrop-blur-md dark:border-slate-600/40">
       <div className="flex items-center justify-between gap-2">
-        <p className="text-sm font-semibold">
+        <p className="min-w-0 truncate text-sm font-semibold">
           <span className="text-muted-foreground">#{index + 1}</span>{" "}
           {description || "Nuevo equipo"}
         </p>
@@ -637,7 +762,8 @@ function DeviceCard({
         </TooltipProvider>
       </div>
 
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-[2fr_1fr_1fr_100px]">
+      {/* Identidad del equipo: qué es y cómo se lo reconoce físicamente. */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)]">
         <TextField
           control={control}
           name={`${namePrefix}.description`}
@@ -656,23 +782,17 @@ function DeviceCard({
           label="Serial"
           placeholder="S/N"
         />
+      </div>
+
+      {/* Los tres opcionales del equipo juntos: dónde está montado, de qué
+          documento sale y si es mercancía peligrosa. */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,90px)_minmax(0,1fr)_auto]">
         <TextField
           control={control}
           name={`${namePrefix}.position`}
           label="Posición"
           placeholder="# 1"
           optional
-        />
-      </div>
-
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_1fr_auto]">
-        <SelectField
-          control={control}
-          name={`${namePrefix}.category`}
-          label="Sistema"
-          options={Object.entries(AVIONICS_CATEGORY_LABELS).map(
-            ([value, label]) => ({ value, label }),
-          )}
         />
         <TextField
           control={control}
@@ -685,15 +805,18 @@ function DeviceCard({
           control={control}
           name={`${namePrefix}.is_hazardous`}
           render={({ field }) => (
-            <FormItem className="flex items-end space-y-0 pb-2">
-              <label className="flex cursor-pointer select-none items-center gap-2 text-sm">
+            <FormItem className="space-y-1">
+              <span className={cn(labelClass, "hidden lg:block")} aria-hidden>
+                &nbsp;
+              </span>
+              <label className="flex h-11 w-fit cursor-pointer select-none items-center gap-2 text-sm">
                 <FormControl>
                   <Checkbox
                     checked={field.value}
                     onCheckedChange={field.onChange}
                   />
                 </FormControl>
-                <span className="flex items-center gap-1">
+                <span className="flex items-center gap-1 whitespace-nowrap">
                   <AlertTriangle className="size-3.5 text-amber-500" />
                   Mercancía peligrosa
                 </span>
@@ -703,8 +826,8 @@ function DeviceCard({
         />
       </div>
 
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
+      <div className="space-y-2 border-t border-slate-400/25 pt-3 dark:border-slate-600/25">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <p className={labelClass}>
             Tareas{" "}
             <span className="text-xs font-normal text-muted-foreground">
@@ -715,7 +838,7 @@ function DeviceCard({
             type="button"
             variant="outline"
             size="sm"
-            onClick={() => append(emptyTask())}
+            onClick={() => append(emptyTask(controlPercentage))}
             className="gap-1.5 border-dashed text-muted-foreground hover:text-primary"
           >
             <Plus className="size-3.5" />
@@ -744,7 +867,6 @@ function DeviceCard({
 function mapToFormItem(item: NonNullable<AvionicsControl["items"]>[number]) {
   return {
     id: item.id,
-    category: item.category,
     is_hazardous: item.is_hazardous,
     description: item.description,
     part_number: item.part_number,
@@ -851,6 +973,9 @@ export default function CreateAvionicsControlForm({
     name: "has_reference_manual",
   });
   const aircraftId = useWatch({ control, name: "aircraft_id" });
+  const controlPercentage = useWatch({ control, name: "remaining_percentage" });
+
+  useSuggestedControlTitle(form, "Aviónica");
   const { fields, append, remove } = useFieldArray({ control, name: "items" });
 
   const onSubmit = async (values: FormValues) => {
@@ -864,7 +989,6 @@ export default function CreateAvionicsControlForm({
       remaining_percentage: values.remaining_percentage,
       items: values.items.map((item) => ({
         id: item.id,
-        category: item.category as AvionicsCategory,
         is_hazardous: item.is_hazardous ?? false,
         description: item.description,
         part_number: item.part_number,
@@ -875,13 +999,13 @@ export default function CreateAvionicsControlForm({
           id: task.id,
           action: task.action as AvionicsAction,
           is_on_condition: task.is_on_condition ?? false,
-          maintenance_provider_id: task.is_on_condition
-            ? undefined
-            : task.maintenance_provider_id || undefined,
-          first_applied_date:
-            task.is_on_condition || !task.first_applied_date
-              ? undefined
-              : format(task.first_applied_date, "yyyy-MM-dd"),
+          // Quién la hizo y cuándo se envían siempre: una tarea por condición
+          // igual se cumple y deja registro. Lo que no tiene es plazo, y por
+          // eso el % de alerta y los intervalos sí quedan vacíos.
+          maintenance_provider_id: task.maintenance_provider_id || undefined,
+          first_applied_date: task.first_applied_date
+            ? format(task.first_applied_date, "yyyy-MM-dd")
+            : undefined,
           remaining_percentage: task.is_on_condition
             ? null
             : (task.remaining_percentage ?? null),
@@ -944,7 +1068,7 @@ export default function CreateAvionicsControlForm({
           hint="Aeronave, título y a partir de qué remanente se avisa."
           action={<CreateMaintenanceProviderDialog />}
         >
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-[minmax(150px,190px)_2fr_minmax(96px,140px)]">
             <AircraftSelect
               control={control}
               name="aircraft_id"
@@ -973,26 +1097,23 @@ export default function CreateAvionicsControlForm({
               name="remaining_percentage"
               render={({ field }) => (
                 <FormItem className="w-full">
-                  <FormLabel className={labelClass}>
-                    % de Remanente para Alerta
-                  </FormLabel>
+                  <FormLabel className={labelClass}>% Remanente</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <NumericInput
-                        className={cn(fieldClass, "pr-8")}
+                        className={cn(fieldClass, "pr-7")}
                         value={field.value}
                         onChange={field.onChange}
                         onBlur={field.onBlur}
                         name={field.name}
                       />
-                      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                      <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
                         %
                       </span>
                     </div>
                   </FormControl>
                   <FormDescription className={hintClass}>
-                    Con cuánto remanente sobre el plazo se avisa que una tarea
-                    está próxima a vencer.
+                    Remanente para alertar.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -1002,7 +1123,7 @@ export default function CreateAvionicsControlForm({
               control={control}
               name="description"
               render={({ field }) => (
-                <FormItem className="w-full md:col-span-2">
+                <FormItem className="w-full md:col-span-3">
                   <FormLabel className={labelClass}>
                     Descripción{" "}
                     <span className="text-xs text-muted-foreground">
@@ -1027,7 +1148,7 @@ export default function CreateAvionicsControlForm({
                 <FormItem
                   className={cn(
                     fieldClass,
-                    "h-auto shadow-none md:col-span-2 flex flex-row items-start space-x-3 space-y-0 p-4 hover:shadow-none",
+                    "h-auto shadow-none md:col-span-3 flex flex-row items-start space-x-3 space-y-0 p-4 hover:shadow-none",
                   )}
                 >
                   <FormControl>
@@ -1048,7 +1169,7 @@ export default function CreateAvionicsControlForm({
               )}
             />
             {hasReferenceManual && (
-              <>
+              <div className="grid grid-cols-1 gap-4 md:col-span-3 md:grid-cols-2">
                 <CatalogManualField control={control} aircraftId={aircraftId} />
                 <FormField
                   control={control}
@@ -1069,7 +1190,7 @@ export default function CreateAvionicsControlForm({
                     </FormItem>
                   )}
                 />
-              </>
+              </div>
             )}
           </div>
         </FormSection>
@@ -1098,7 +1219,7 @@ export default function CreateAvionicsControlForm({
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => append(emptyItem())}
+                onClick={() => append(emptyItem(controlPercentage))}
                 className="gap-1.5 border-dashed text-muted-foreground hover:border-blue-400/40 hover:text-primary"
               >
                 <Plus className="size-3.5" />

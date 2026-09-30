@@ -2,11 +2,7 @@ import type { ConfirmedReason } from "@/components/dialogs/mantenimiento/planifi
 import type { EditReasonValue } from "@/components/forms/mantenimiento/planificacion/EditReasonFields";
 import { invalidatePlanificationAudit } from "@/hooks/mantenimiento/planificacion/useGetPlanificationAuditStats";
 import axiosInstance from "@/lib/axios";
-import {
-  AvionicsAction,
-  AvionicsCategory,
-  MaintenanceCountingMethod,
-} from "@/types";
+import { AvionicsAction, MaintenanceCountingMethod } from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -37,7 +33,6 @@ export interface AvionicsItemData {
   id?: number;
   aircraft_part_id?: number | null;
   maintenance_catalog_service_id?: number | null;
-  category: AvionicsCategory;
   is_hazardous: boolean;
   description: string;
   part_number: string;

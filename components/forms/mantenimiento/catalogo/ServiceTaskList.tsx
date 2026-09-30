@@ -78,7 +78,7 @@ export function ServiceTaskList({ service }: { service: CatalogService }) {
             {tasks.map((task) => (
               <div
                 key={task.id}
-                className="flex items-start justify-between gap-3 rounded-xl border border-slate-400/40 bg-gradient-to-br from-background/70 to-background/40 p-3.5 shadow-sm backdrop-blur-md dark:border-slate-600/40"
+                className="flex items-start justify-between gap-3 rounded-xl border border-slate-400/40 bg-linear-to-br from-background/70 to-background/40 p-3.5 shadow-sm backdrop-blur-md dark:border-slate-600/40"
               >
                 <div className="min-w-0 flex-1 space-y-1">
                   <div className="flex flex-wrap items-center gap-2">

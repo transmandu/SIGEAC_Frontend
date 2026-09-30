@@ -4,7 +4,6 @@ import { invalidatePlanificationAudit } from "@/hooks/mantenimiento/planificacio
 import axiosInstance from "@/lib/axios";
 import {
   ComponentAction,
-  ComponentCategory,
   ComponentLimitKind,
   MaintenanceCountingMethod,
 } from "@/types";
@@ -33,7 +32,6 @@ export interface ComponentItemData {
   aircraft_part_id?: number | null;
   maintenance_catalog_service_id?: number | null;
   maintenance_provider_id: string;
-  category: ComponentCategory;
   is_hazardous: boolean;
   description: string;
   part_number: string;

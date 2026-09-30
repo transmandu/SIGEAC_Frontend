@@ -170,7 +170,7 @@ const ManualDetailPage = () => {
                 <Link
                   key={prev.id}
                   href={`/${selectedCompany?.slug}/ingenieria/catalogo/manuales/${prev.id}`}
-                  className="flex items-center justify-between gap-2 rounded-lg border border-slate-400/40 bg-gradient-to-br from-background/70 to-background/40 p-3 text-sm transition-colors hover:border-primary/40 dark:border-slate-600/40"
+                  className="flex items-center justify-between gap-2 rounded-lg border border-slate-400/40 bg-linear-to-br from-background/70 to-background/40 p-3 text-sm transition-colors hover:border-primary/40 dark:border-slate-600/40"
                 >
                   <span className="font-medium">
                     {prev.revision || prev.name}
@@ -214,7 +214,7 @@ const ManualDetailPage = () => {
               {services.map((service) => (
                 <div
                   key={service.id}
-                  className="rounded-xl border border-slate-400/40 bg-gradient-to-br from-background/70 to-background/40 p-4 shadow-sm backdrop-blur-md dark:border-slate-600/40"
+                  className="rounded-xl border border-slate-400/40 bg-linear-to-br from-background/70 to-background/40 p-4 shadow-sm backdrop-blur-md dark:border-slate-600/40"
                 >
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="flex flex-wrap items-center gap-2">

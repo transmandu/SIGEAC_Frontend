@@ -121,7 +121,7 @@ export function ManualDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-gradient-to-br from-background/95 to-background/90 backdrop-blur-xl sm:max-w-lg">
+      <DialogContent className="bg-linear-to-br from-background/95 to-background/90 backdrop-blur-xl sm:max-w-lg">
         <DialogHeader>
           <DialogTitle asChild>
             <SectionTitle

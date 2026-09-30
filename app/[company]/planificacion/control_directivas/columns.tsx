@@ -94,27 +94,16 @@ export const getColumns = (
     ),
   },
   {
-    id: "applicable_items_count",
+    id: "active_items_count",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="AD Aplicables" />
+      <DataTableColumnHeader column={column} title="AD Cargadas" />
     ),
     cell: ({ row }) => (
       <div className="flex items-center justify-center gap-1.5">
         <span className="inline-flex items-center gap-1.5 rounded-md bg-muted/60 px-2 py-1 text-xs font-medium tabular-nums text-foreground/80">
           <ShieldAlert className="h-3.5 w-3.5" />
-          {row.original.applicable_items_count ?? 0}
+          {row.original.active_items_count ?? 0}
         </span>
-        {(row.original.pending_analysis_count ?? 0) > 0 && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/10 px-1.5 py-1 text-xs font-medium tabular-nums text-amber-600">
-                <Clock className="h-3 w-3" />
-                {row.original.pending_analysis_count}
-              </span>
-            </TooltipTrigger>
-            <TooltipContent>Pendientes de análisis</TooltipContent>
-          </Tooltip>
-        )}
       </div>
     ),
   },
